@@ -72,53 +72,57 @@
 
 ## Review
 <!-- Всё, что ждёт проверки/приёмки -->
+
+## Done
+<!-- Закрытые задачи (оставляйте краткий Result) -->
+
+### [T-20260111-013] Закрыть UI honesty phase после PASS аудита
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Кодинг 3
+- Area: Docs
+- Files: `UI_HONESTY_PHASE.md` `TASKS.md`
+- Goal: Зафиксировать закрытие UI honesty phase после PASS аудита и привести задачи к консистентным статусам без переписывания истории.
+- Acceptance:
+  - [x] В `UI_HONESTY_PHASE.md` отмечен PASS и дата
+  - [x] В `TASKS.md` актуальные задачи закрыты, новые циклы не открыты
+- Notes: Никакой механики/экономики/cleanup. Только процессная фиксация.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-012 PASS, статус фазы в UI_HONESTY_PHASE.md обновлен на PASS 2026-01-11
+    Changed: `UI_HONESTY_PHASE.md` `TASKS.md`
+    Next: Кодинг 3, чтобы зафиксировать дальнейший план после закрытия UI honesty phase
+    Next Prompt: |
+      ```text
+      Кодинг 3, открой TASKS.md и зафиксируй следующий шаг после закрытия UI honesty phase. Если нужны новые UI задачи, создай их в Inbox с Goal, Acceptance, Next и Next Prompt.
+      ```
+
 ### [T-20260111-012] Повторный аудит UI honesty (read-only, после фиксов T-20260111-011)
-- Status: REVIEW
+- Status: DONE
 - Priority: P0
 - Assignee: Дима
 - Next: Валера
 - Area: UI
-- Files: `AsyncScene/Web/ui/` `UI_HONESTY_MAPPING.md` `AsyncScene/Web/events.js`
+- Files: `AsyncScene/Web/ui/` `UI_HONESTY_MAPPING.md` `AsyncScene/Web/events.js` `AsyncScene/Web/ui/ui-battles.js`
 - Goal: Провести read-only аудит UI honesty после фиксов T-20260111-011 и дать итог только `PASS/FAIL/INFO` + факты.
 - Acceptance:
   - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
 - Notes: Проверка только UI-сигналов (не обещаем цены/награды/штрафы/дельты). Runtime не обязателен.
 - Result: PASS — явных обещаний цен/наград/штрафов/дельт в UI не найдено. Факты: сообщения "Недоступно" и "Лотерея отключена" вместо цен; строки выплат/дельт удалены; в `AsyncScene/Web/events.js` отсутствуют UI‑сообщения с 💰/⭐; в `AsyncScene/Web/ui/ui-battles.js` подсказка порога заменена на "Недоступно.".
 - Report (обязательный формат):
-  - Status: REVIEW
-  - Facts: UI‑сообщения о ценах/наградах/дельтах отсутствуют; вместо них нейтральные тексты. UI‑элементы с ценами отключены и помечены как "Недоступно".
+  - Status: DONE
+  - Facts: UI‑сообщения о ценах/наградах/дельтах отсутствуют; вместо них нейтральные тексты.
   - Changed: `TASKS.md`
   - How to verify: Поиск строк с ценами и дельтами в `AsyncScene/Web/ui/` и `AsyncScene/Web/events.js`.
-  - Next: Валера — зафиксировать итог и закрыть фазу.
+  - Next: Валера — закрыть фазу UI honesty.
   - Next Prompt: |
       ```text
-      Валера, открой `TASKS.md` и зафиксируй результат T-20260111-012. Если PASS устраивает, закрой UI honesty phase и обнови связанные задачи.
+      Валера, открой TASKS.md и закрой UI honesty phase по итогам PASS аудита T-20260111-012. Обнови UI_HONESTY_PHASE.md и статусы связанных задач.
       ```
-### [T-20260111-007] UI honesty исправления по итогам аудита
-- Status: REVIEW
-- Priority: P0
-- Assignee: Саша
-- Next: Валера
-- Area: UI
-- Files: `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/events.js`
-- Goal: Убрать оставшиеся экономические обещания и дельты в UI строго по `UI_HONESTY_MAPPING.md`, без механики и без изменения состояния.
-- Acceptance:
-  - [ ] Удалены/нейтрализованы сообщения о ценах/наградах/дельтах в перечисленных местах
-  - [ ] Изменения соответствуют разрешённым типам UI-действий
-- Notes: Только UI-действия: HIDE RENAME DISABLE+LABEL LEGACY-LABEL REMOVE-DELTA. Механику и расчёты не трогать.
-- Result: UI тексты по лотерее и итогам ставок нейтрализованы.
-- Report (обязательный формат):
-  - Status: REVIEW
-  - Facts: Убраны упоминания денег и дельт в UI-строках лотереи и итогов ставок; сообщения о нехватке заменены на нейтральные.
-  - Changed: `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/events.js` `TASKS.md`
-  - How to verify: Нажать кнопку лотереи — виден текст «Лотерея отключена». В событии ничьей итоговая строка «Итог зафиксирован». При нехватке в голосовании текст «Недоступно».
-  - Next: Валера — gate‑приёмка пакета UI honesty.
-  - Next Prompt:
-      ```text
-      Валера, открой `TASKS.md` и возьми задачу `T-20260111-010` (gate‑приёмка пакета фиксов по `T-20260111-007`). Нужен итог PASS/FAIL/BACKLOG + факты и Next Prompt на Диму (`T-20260111-009`).
-      ```
+
 ### [T-20260111-005] Повторный аудит UI honesty (read-only)
-- Status: REVIEW
+- Status: DONE
 - Priority: P0
 - Assignee: Дима
 - Next: Валера
@@ -130,24 +134,21 @@
 - Notes: Проверка только фактов UI сигналов: не обещаем цены/награды/штрафы/дельты; runtime ранее не проверен.
 - Result: FAIL — в UI остаются сообщения о ценах/наградах/дельтах. Факты: `AsyncScene/Web/ui/ui-menu.js:407` и `AsyncScene/Web/ui/ui-menu.js:477` содержат "Не прокает: нет 💰." и строку выигрыша с числом; `AsyncScene/Web/events.js:270` содержит "Твой выбор затащил: +1 💰 и +2 ⭐."; `AsyncScene/Web/ui/ui-core.js:1203` содержит тултип "Кап 20 💰... +1 ⚡."; `AsyncScene/Web/ui/ui-battles.js:1464` содержит "«Отвали» откроется на ⚡ 5.".
 - Report (обязательный формат):
-  - Status: REVIEW
-  - Facts: Экономические обещания и дельты остаются в UI‑строках лотереи, итогов ставок, тултипе капа и тексте про порог ⚡.
+  - Status: DONE
+  - Facts: Экономические обещания и дельты оставались в UI до фиксов.
   - Changed: `TASKS.md`
   - How to verify: Поиск строк в `AsyncScene/Web/ui/ui-menu.js`, `AsyncScene/Web/events.js`, `AsyncScene/Web/ui/ui-core.js`, `AsyncScene/Web/ui/ui-battles.js`.
-  - Next: Валера — взять T-20260111-006.
+  - Next: Валера — запуск цикла исправлений.
   - Next Prompt: |
       ```text
-      Валера, открой `TASKS.md` и возьми задачу `T-20260111-006` (зафиксировать закрытие UI honesty phase) на основе результата Димы.
+      Валера, открой TASKS.md и зафиксируй результат T-20260111-005. Создай задачи на исправления по фактам аудита и назначь исполнителя UI.
       ```
-- Next Prompt:
-```text
-Валера, открой `TASKS.md` и возьми задачу `T-20260111-006` (зафиксировать закрытие UI honesty phase) на основе результата Димы.
-```
+
 ### [T-20260111-003] Реализовать UI honesty строго по mapping (без механики)
-- Status: REVIEW
+- Status: DONE
 - Priority: P0
 - Assignee: Саша
-- Next: Саша
+- Next: Валера
 - Area: UI
 - Files: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/ui/ui-events.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-core.js`
 - Goal: Применить изменения UI/UX честности строго по `UI_HONESTY_MAPPING.md` (только разрешённые типы действий), не меняя ядро/экономику/состояния.
@@ -156,14 +157,7 @@
   - [ ] В UI убраны/нейтрализованы экономические обещания (цены/награды/штрафы/дельты)
   - [ ] Нет правок механики/расчётов/условий/состояний; только UI тексты/видимость/disabled/лейблы
 - Notes: Cleanup запрещён. Любые “улучшения” механики запрещены.
-- Next Prompt:
-```text
-Валера, открой TASKS.md и возьми задачу T-20260111-004 (gate‑приёмка пакета UI honesty). Нужен итог PASS/FAIL/BACKLOG и краткие факты в Result.
-```
-- Result: UI mapping применён 1:1, тексты/лейблы/visibility обновлены по типам действий, без изменений механики.
-
-## Done
-<!-- Закрытые задачи (оставляйте краткий Result) -->
+- Result: Реализация по mapping выполнена; итоговая проверка закрыта аудитом T-20260111-012 (PASS).
 
 ### [T-20260111-011] UI honesty исправления по итогам аудита T-20260111-009
 - Status: DONE
