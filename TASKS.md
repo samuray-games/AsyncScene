@@ -66,6 +66,347 @@
 
 ## Inbox
 <!-- Добавляйте новые задачи сюда -->
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Валера, открой `TASKS.md` и возьми задачу `T-20260111-043` (Gate: закрыть Economy wave 2). Закрываем wave 2 только после решения по wave 1.
+    ```
+
+### [T-20260111-043] Gate: закрыть Economy wave 2 (привести REVIEW→DONE)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Валера
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: Формально закрыть Economy wave 2: проверить факты из `T-20260111-031` и `T-20260111-032` и, если ок, перевести их из `REVIEW` в `DONE` (без изменений кода).
+- Acceptance:
+  - [ ] `T-20260111-031` переведена в `DONE` (или зафиксирован `FAIL/BACKLOG` с причинами)
+  - [ ] `T-20260111-032` переведена в `DONE` (или зафиксирован `FAIL/BACKLOG` с причинами)
+  - [ ] В `Result` есть факт: “wave 2 закрыта/не закрыта” и почему
+- Notes: Никаких правок механики/кода. Только процессная фиксация статусов и фактов по уже выполненным пакетам.
+- Result: |
+    Status: PASS
+    Facts: wave 2 закрыта, основание: T-20260111-031 реализация escape готова, T-20260111-032 audit PASS подтверждает REP штрафы через transferRep reasons=rep_escape_ok_penalty/rep_escape_stay_penalty с battleId=b.id, Influence клип до 0, Points на исходах escape не меняются
+    Changed: `TASKS.md`
+    Next: Валера, продолжить с задачами wave 3 по эстафете
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Валера, открой TASKS.md и, если wave 1 и wave 2 закрыты, продолжай с задачами wave 3 (проверить T-20260111-035/T-20260111-036/T-20260111-037). Если не закрыты — зафиксируй блокер фактами.
+      ```
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Валера, открой `TASKS.md` и, если wave 1 и wave 2 закрыты, продолжай с задачами wave 3 (проверить `T-20260111-035`/`T-20260111-036`/`T-20260111-037`). Если не закрыты — зафиксируй блокер фактами.
+    ```
+
+### [T-20260111-034] Gate: Economy wave 3 scope (rematch core)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `ECONOMY_WAVE3_SCOPE.md` `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Принять/отклонить scope Economy wave 3 (rematch core) по `ECONOMY_WAVE3_SCOPE.md`.
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: зафиксированы открытые параметры (cost/escalation, REP penalties+reasons, трактовка “point сгорает”) и запреты wave 3 core
+  - [ ] При `FAIL/BACKLOG`: перечислены причины и что нужно для разблокировки
+- Notes: Ассистент не архитектор. В wave 3 core запрещены UI изменения.
+- Result: |
+    Status: PASS
+    Facts: Scope wave 3 принят строго по ECONOMY_WAVE3_SCOPE.md как rematch core без UI, с moneyLog и reason+battleId/eventId, без addRep в prod и без эмиссии points
+    Params: REMATCH_COST_BASE=1, escalation=нет (один rematch на battleId), REP_REMATCH_REQUEST_PENALTY=1 reason=rep_rematch_request, REP_REMATCH_DECLINE_PENALTY=1 reason=rep_rematch_decline, point_sinks=нет (point "сгорает" как transfer проигравший->оппонент на request, при decline остается у оппонента), клип REP/points по текущим правилам transferRep/transferPoints без ухода в отрицательные
+    Запреты wave 3 core: UI файлы запрещены, тон как давление запрещен, NPC правила запрещены, аргументы и правила победы/поражения не менять, массовый cleanup запрещен
+    Changed: `TASKS.md`
+    Next: Миша, реализация wave 3 по T-20260111-035
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-035 (Economy wave 3 implementation). Поставь Assignee Миша и Status DOING, перенеси в Doing. Реализуй только rematch core по T-20260111-034: cost=1 point transfer проигравший->оппонент на request, без escalation, REP penalties 1 с reasons rep_rematch_request и rep_rematch_decline, accept создает новый battle с rematchOf, decline не возвращает point, UI не трогать. По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (read-only audit).
+      ```
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Миша, открой `TASKS.md` и возьми задачу `T-20260111-035` (Economy wave 3 implementation) только если `T-20260111-034` имеет `PASS`. Если `FAIL/BACKLOG` — верни факты блокера.
+    ```
+
+### [T-20260111-037] Gate: зафиксировать результат Economy wave 3 (core)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Валера
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: После результата `T-20260111-036` зафиксировать итог wave 3 core (`PASS/FAIL/BACKLOG`) и определить следующий шаг (UI gate / wave 4 / стоп), без внедрения “от себя”.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты и следующий шаг
+- Notes: Если нужен UI — использовать `T-20260111-038`.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-036 PASS подтвердил rematch core: request только для loserId, cost=1 point transfer loser→winner reason=rematch_request_cost и battleId=b.id, decline не возвращает point, REP penalties через transferRep reasons rep_rematch_request/rep_rematch_decline и battleId=b.id с клипом, accept создает новый battle с rematchOf=b.id; UI не менялся
+    Next: Если нужен UI для уведомлений и accept/decline, перейти к T-20260111-038 (отдельный UI gate); иначе wave 3 core считается закрытой
+    Changed: `TASKS.md`
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Валера, открой TASKS.md и, если нужен UI для wave 3 (уведомления и кнопки accept/decline), возьми задачу T-20260111-038 (Gate: Economy wave 3 UI scope). Если UI не нужен, зафиксируй, что wave 3 остановлена на core.
+      ```
+
+### [T-20260111-038] Gate: Economy wave 3 UI scope (notifications/actions)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Саша
+- Area: UI
+- Files: `ECONOMY_WAVE3_UI_GATE.md` `TASKS.md`
+- Goal: Принять/отклонить UI scope для wave 3 по `ECONOMY_WAVE3_UI_GATE.md` (уведомления + accept/decline без числовых обещаний).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: перечислены допустимые UI изменения и запреты
+- Notes: UI не обещает экономические дельты числами. Механику не менять из UI.
+- Result: |
+    Status: PASS
+    Facts: UI scope wave 3 принят по ECONOMY_WAVE3_UI_GATE.md: уведомление о реванше, кнопки Принять/Отклонить, тексты результата; без числовых обещаний/дельт по экономике; механика только через core API
+    Запреты: любые числовые обещания/дельты по экономике запрещены, UI не меняет механику/состояние напрямую, изменяем только UI файлы из списка пакета
+    Changed: `TASKS.md`
+    Next: Саша, реализация UI wave 3 по T-20260111-039
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Саша, открой TASKS.md и возьми задачу T-20260111-039 (Economy wave 3 UI implementation). Поставь Assignee Саша и Status DOING, перенеси в Doing. Реализуй UI реванша строго по T-20260111-038: уведомление "<name> просит реванш", действия Принять/Отклонить, сообщения результата, без числовых обещаний и дельт (Points/REP/Influence). UI должен вызывать только core API (request/accept/decline), механику не менять. По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (T-20260111-040).
+      ```
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Саша, открой `TASKS.md` и возьми задачу `T-20260111-039` (Economy wave 3 UI implementation) только если `T-20260111-038` имеет `PASS`. Если `FAIL/BACKLOG` — верни факты блокера.
+    ```
+
+### [T-20260111-041] Gate: зафиксировать результат Economy wave 3 (UI)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Ассистент
+- Area: UI
+- Files: `TASKS.md`
+- Goal: После результата `T-20260111-040` зафиксировать итог UI wave 3 (`PASS/FAIL/BACKLOG`) и следующий шаг.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты и следующий шаг
+- Notes: Без внедрения “от себя”.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-040 PASS подтвердил наличие Rematch UI в ui-battles.js, вызовы идут через core API requestRematch/respondRematch, числовых обещаний/дельт по Points/REP/Influence в rematch UI текстах нет
+    Next: Wave 3 (core+UI) закрыта, следующий шаг только через новый scope-пакет и отдельный gate
+    Changed: `TASKS.md`
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Ассистент, зафиксируй завершение Economy wave 3 (core+UI) и подготовь scope-пакет wave 4, если он нужен. Если wave 4 требует UI, приложи отдельный UI gate пакет и отдельную задачу на Валеру.
+      ```
+
+### [T-20260111-030] Gate: Economy wave 2 scope (escape)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `ECONOMY_WAVE2_SCOPE.md` `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Принять/отклонить scope Economy wave 2 по `ECONOMY_WAVE2_SCOPE.md` (минимальный пункт: escape с REP-/Influence- и без Points).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: зафиксированы открытые параметры (штрафы REP/Influence, reasons, политика клипа) и запреты wave 2
+  - [ ] При `FAIL/BACKLOG`: перечислены причины и что нужно для разблокировки
+- Notes: Ассистент не архитектор. Никаких новых механик вне `ECONOMY_WAVE2_SCOPE.md` в wave 2. UI отдельно, если понадобится.
+- Result: |
+    Status: PASS
+    Facts: Scope wave 2 принят строго по ECONOMY_WAVE2_SCOPE.md: только escape с REP-/Influence- и без Points, без UI, без изменений правил боя/аргументов
+    Params: REP_ESCAPE_PENALTY_OK=3, REP_ESCAPE_PENALTY_STAY=5, INF_ESCAPE_PENALTY_OK=1, INF_ESCAPE_PENALTY_STAY=2, reasons=rep_escape_ok_penalty/rep_escape_stay_penalty, политика клипа Influence: клип до 0 (не уходить в отрицательные)
+    Запреты: UI файлы запрещены, revenge/тон как давление/NPC-правила запрещены, Points не трогать на исходах escape, addRep в prod запрещен
+    Changed: `TASKS.md`
+    Next: Миша, реализация wave 2 по T-20260111-031
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-031 (Economy wave 2 implementation). Поставь Assignee Миша и Status DOING, перенеси в Doing. Реализуй только wave 2 escape по T-20260111-030: REP штрафы через transferRep с reasons=rep_escape_ok_penalty и rep_escape_stay_penalty и battleId/eventId, Influence штрафы с клипом до 0, Points на исходах escape не трогать, UI не трогать. По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (T-20260111-032).
+      ```
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Миша, открой `TASKS.md` и возьми задачу `T-20260111-031` (Economy wave 2 implementation) только если `T-20260111-030` имеет `PASS`. Если `FAIL/BACKLOG` — верни факты блокера.
+    ```
+
+### [T-20260111-033] Gate: зафиксировать результат Economy wave 2
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Ассистент
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: После результата `T-20260111-032` зафиксировать итог wave 2 (`PASS/FAIL/BACKLOG`) и определить следующий шаг (wave 3 / отдельный UI gate / остановка), без внедрения “от себя”.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты и следующий шаг
+- Notes: Если нужны UI изменения — отдельный gate и отдельная задача.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-032 PASS подтвердил escape: REP штрафы через transferRep с reasons=rep_escape_ok_penalty/rep_escape_stay_penalty и battleId=b.id, Influence штрафы клип до 0, Points не изменяются на исходах finalizeEscapeVote
+    Next: Следующий шаг только через отдельный scope-пакет wave 3 и новый gate, UI только через отдельный UI gate
+    Changed: `TASKS.md`
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Ассистент, подготовь scope-пакет Economy wave 3 как отдельный md файл: что именно внедряем, какие файлы трогаем, критерии PASS/FAIL, и что запрещено. Если wave 3 требует UI, создай отдельный UI gate пакет и отдельную задачу на Валеру.
+      ```
+
+### [T-20260111-029] Gate: Economy wave 1 scope (dismiss_click)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `ECONOMY_WAVE1_SCOPE.md` `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Принять/отклонить scope Economy wave 1 по `ECONOMY_WAVE1_SCOPE.md` (минимальный пункт: dismiss_click/VL5 «послать»).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: зафиксированы значения открытых параметров (REP_DISMISS_PENALTY, reason, политика клипа) и запреты wave 1
+  - [ ] При `FAIL/BACKLOG`: перечислены причины и что нужно для разблокировки
+- Notes: Ассистент не архитектор. Никаких новых механик вне `ECONOMY_WAVE1_SCOPE.md` в wave 1.
+- Result: |
+    Status: PASS
+    Facts: Scope wave 1 принят строго по ECONOMY_WAVE1_SCOPE.md: только dismiss_click/VL5 «послать», без UI и без изменений Points/Influence; реализация ограничена `AsyncScene/Web/conflict/conflict-core.js` и опционально `AsyncScene/Web/data.js`
+    Params: REP_DISMISS_PENALTY=5, reason=rep_dismiss_click, политика клипа REP: клип до 0 (не уходить в отрицательные)
+    Запреты: UI файлы запрещены, escape/revenge/тон как давление/NPC-правила запрещены, addRep в prod запрещен, Points/Influence не трогать
+    Changed: `TASKS.md`
+    Next: Миша, реализация wave 1 по T-20260111-026
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-026 (Economy wave 1 implementation). Поставь Assignee Миша и Status DOING, перенеси в Doing. Реализуй только dismiss_click по T-20260111-029: штраф REP через transferRep с reason=rep_dismiss_click и battleId/eventId, REP клип до 0, Points/Influence не трогать, UI не трогать. По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (T-20260111-027).
+      ```
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Миша, открой `TASKS.md` и возьми задачу `T-20260111-026` (Economy wave 1 implementation) только если `T-20260111-029` имеет `PASS`. Если `FAIL/BACKLOG` — верни факты блокера.
+    ```
+
+### [T-20260111-021] Gate: продолжить внедрение экономики после PASS UI coupling audit
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `TASKS.md` `ECONOMY_PHASE_GATE_PACKAGE.md`
+- Goal: На основе PASS аудита T-20260111-020 зафиксировать, что UI coupling блокер снят, и разрешить продолжение экономической реализации в рамках T-20260111-017.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты
+  - [ ] При `PASS`: подтверждено снятие UI coupling блокера и указано, что T-20260111-015 можно двигать к аудиту
+- Notes: Никакой UI. Только gate-фиксация по фактам из аудита Димы.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-020 PASS подтвердил отсутствие прямых `Game.UI.*` вызовов в `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js`; REP v1.0 transferRep-only и addRep dev-only; node --check PASS
+    Changed: `TASKS.md`
+    Next: Миша, продолжить работу по T-20260111-015 в рамках допусков T-20260111-017
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и продолжи задачу T-20260111-015 (подготовить пакет внедрения экономики) с учетом снятого блокера UI coupling (T-20260111-020 PASS). Убедись, что UI не трогаем, REP v1.0 инварианты соблюдены, и пакет готов к read-only аудиту Димы по T-20260111-016. В конце обнови Result и Report и добавь Next Prompt кодблоком на Диму.
+      ```
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      <будет заполнено Валерой после решения>
+      ```
+
+### [T-20260111-014] Открыть Economy phase (gate) по economy update.txt
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Кодинг 3
+- Area: Economy
+- Files: `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Зафиксировать следующий этап после закрытия UI honesty phase и решить gate-ом (PASS/FAIL/BACKLOG), можно ли начинать внедрение идей экономики из `AsyncScene/Web/economy update.txt` и в каком строго ограниченном объёме.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты
+  - [ ] При `PASS`: перечислены допущенные типы изменений и запреты (без изобретений “от себя”)
+  - [ ] При `FAIL/BACKLOG`: перечислены причины как факты и что требуется для разблокировки
+- Notes: Ассистент не архитектор. Любые решения о допуске/объёме экономики — только gate Валеры. Не смешивать с закрытой UI honesty phase.
+- Result: |
+    Status: BACKLOG
+    Facts: `AsyncScene/Web/economy update.txt` является экспортом чата и не содержит единого утвержденного пакета внедрения с ограниченным объёмом работ, списком модулей и критериями PASS/FAIL; в тексте присутствуют предложения, меняющие механику экономики/REP/Influence и правила NPC, что выходит за текущий допуск без отдельного gate
+    Changed: `TASKS.md`
+    Next: Кодинг 3, нужен формальный пакет на открытие Economy phase с источниками ролей и ограниченным объёмом работ
+    Next Prompt: |
+      ```text
+      Кодинг 3, подготовь формальный пакет gate на открытие Economy phase с четким объёмом допустимых изменений, запретами, критериями PASS/FAIL и владельцем реализации. Приложи ссылки на исходники решений ролей и укажи какие файлы/модули затрагиваются. После этого вернись в TASKS.md и создай новую задачу gate для Валеры.
+      ```
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Миша, открой `TASKS.md` и возьми задачу `T-20260111-015` (подготовить пакет внедрения экономики) только если `T-20260111-014` имеет Status PASS. Если не PASS — сообщи фактом, что блокирует.
+      ```
+
+### [T-20260111-017] Gate: открыть Economy phase (формальный пакет)
+
+### [T-20260111-025] Gate: Economy phase — следующий шаг после PASS аудита T-20260111-016
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `AsyncScene/Web/economy update.txt` `ECONOMY_PHASE_GATE_PACKAGE.md` `TASKS.md`
+- Goal: После PASS аудита `T-20260111-016` выбрать и зафиксировать минимальный scope следующего шага Economy phase (wave 1): что именно внедряем из `AsyncScene/Web/economy update.txt`, что запрещено, критерии PASS/FAIL и ограничения по UI (UI out-of-scope, если отдельно не разрешено).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: перечислены разрешённые изменения wave 1 и запреты (без расширения scope “от себя”)
+  - [ ] При `FAIL/BACKLOG`: перечислены причины и что требуется для разблокировки
+- Notes: REP v1.0 инварианты не ломать (transferRep-only, addRep dev-only, reason + battleId/eventId, moneyLog/moneyLogByBattle).
+- Result: |
+    Status: BACKLOG
+    Facts: В `AsyncScene/Web/economy update.txt` нет выделенного минимального списка задач wave 1 с точными файлами и критериями приемки; документ `ECONOMY_PHASE_GATE_PACKAGE.md` описывает только рамки фазы, но не фиксирует конкретный scope wave 1 без дополнительного решения; требуется отдельный пакет от Миши или Кодинг 3 с перечислением пунктов wave 1 и запретов
+    Changed: `TASKS.md`
+    Next: Кодинг 3, нужен конкретный список wave 1 (что внедряем) и критерии PASS/FAIL
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Кодинг 3, подготовь конкретный пакет scope для Economy wave 1: какие пункты из AsyncScene/Web/economy update.txt берём, какие файлы трогаем, какие инварианты и критерии PASS/FAIL. После этого обнови TASKS.md или создай новую gate-задачу на Валеру.
+      ```
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Миша, открой `TASKS.md` и возьми задачу `T-20260111-026` (Economy wave 1 implementation) только если `T-20260111-025` имеет `PASS`. Если `FAIL/BACKLOG` — верни факты блокера.
+    ```
+
+### [T-20260111-028] Gate: зафиксировать результат Economy wave 1
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Кодинг 3
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: После результата `T-20260111-027` зафиксировать итог wave 1 (`PASS/FAIL/BACKLOG`) и определить следующий шаг (wave 2 / отдельный UI gate / остановка), без внедрения “от себя”.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты и следующий шаг
+- Notes: Если нужны UI изменения — отдельный gate и отдельная задача.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-027 PASS подтвердил dismiss_click: transferRep с reason=rep_dismiss_click и battleId=b.id, клип REP до 0, Points/Influence не меняются
+    Next: Следующий шаг только через новый scope-пакет wave 2 и отдельный gate; UI изменения запрещены без отдельного UI gate
+    Changed: `TASKS.md`
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Кодинг 3, подготовь scope-пакет Economy wave 2 как отдельный md файл: что именно внедряем, какие файлы трогаем, критерии PASS/FAIL, и что запрещено. Если wave 2 требует UI, создай отдельный UI gate пакет и отдельную задачу на Валеру.
+      ```
 
 ## Doing
 <!-- Переносите сюда взятые задачи -->
@@ -73,8 +414,423 @@
 ## Review
 <!-- Всё, что ждёт проверки/приёмки -->
 
+### [T-20260111-040] Economy wave 3 UI audit (read-only)
+- Status: DONE
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-battles.js` `TASKS.md`
+- Goal: Провести read-only аудит UI wave 3 после `T-20260111-039` и дать итог `PASS/FAIL/INFO` + факты (особенно: нет числовых обещаний).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты
+- Notes: Только факты.
+- Result: |
+    Status: PASS
+    Facts: UI реванша присутствует в карточке завершённого баттла в `AsyncScene/Web/ui/ui-battles.js:1536`–`AsyncScene/Web/ui/ui-battles.js:1625`: строка уведомления `${requesterName} просит реванш` (`AsyncScene/Web/ui/ui-battles.js:1566`), кнопки `Принять/Отклонить` (`AsyncScene/Web/ui/ui-battles.js:1572` и `AsyncScene/Web/ui/ui-battles.js:1586`), состояние `Реванш принят/Реванш отклонён` (`AsyncScene/Web/ui/ui-battles.js:1600`), запрос для проигравшего `Хочешь реванш` + кнопка `Попросить` (`AsyncScene/Web/ui/ui-battles.js:1603`–`AsyncScene/Web/ui/ui-battles.js:1617`). Вызовы идут через core API: `Game.Conflict.requestRematch(b.id)` (`AsyncScene/Web/ui/ui-battles.js:1611`–`AsyncScene/Web/ui/ui-battles.js:1613`) и `Game.Conflict.respondRematch(b.id, true/false)` (`AsyncScene/Web/ui/ui-battles.js:1576`–`AsyncScene/Web/ui/ui-battles.js:1592`), что прокидывается в `AsyncScene/Web/conflict/conflict-api.js:439`–`AsyncScene/Web/conflict/conflict-api.js:453`. В блоке rematch UI нет текстов с числовыми обещаниями/дельтами по Points/REP/Influence (строки: «просит реванш», «Принять», «Отклонить», «Хочешь реванш», «Попросить», «Реванш принят», «Реванш отклонён»).
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Rematch UI отображается и управляется через `Game.Conflict.requestRematch/respondRematch`; числовые обещания/дельты по Points/REP/Influence в UI-текстах rematch не обнаружены.
+  - Changed: `TASKS.md`
+  - How to verify: `nl -ba AsyncScene/Web/ui/ui-battles.js | sed -n '1530,1630p'` и `nl -ba AsyncScene/Web/conflict/conflict-api.js | sed -n '435,455p'`
+  - Next: Валера, требуется gate по `T-20260111-041`
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-041` (Gate: зафиксировать результат Economy wave 3 (UI)). Основание: `T-20260111-040` = PASS, факты в Result.
+      ```
+
+### [T-20260111-039] Economy wave 3 UI implementation (после PASS gate T-20260111-038)
+- Status: DONE
+- Priority: P0
+- Assignee: Саша
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-battles.js` `TASKS.md`
+- Goal: Реализовать UI для wave 3 строго в объёме `T-20260111-038` (уведомления + accept/decline без числовых обещаний) без изменений механики.
+- Acceptance:
+  - [ ] Изменены только UI файлы
+  - [ ] Нет числовых обещаний/дельт по экономике
+  - [ ] В `Result` перечислены изменённые файлы и как проверить руками
+- Notes: UI реванша вызывает только core API request/accept/decline через `Game.Conflict.requestRematch` и `Game.Conflict.respondRematch`, без прямых правок механики/состояния.
+- Result: Добавлен UI реванша на карточке завершённого баттла: уведомление «<name> просит реванш», кнопки «Принять/Отклонить», состояния «Реванш принят/отклонён», запрос «Хочешь реванш → Попросить», без числовых обещаний/дельт.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: В `AsyncScene/Web/ui/ui-battles.js` добавлен блок Rematch UI в RESOLVED карточке; все действия идут через core API `Game.Conflict.requestRematch` и `Game.Conflict.respondRematch`; UI тексты без чисел и без дельт Points/REP/Influence.
+  - Changed: `AsyncScene/Web/ui/ui-battles.js` `TASKS.md`
+  - How to verify: Завершить баттл с результатом win/lose, открыть карточку завершённого баттла; при проигрыше доступна кнопка «Попросить», при запросе у победителя видны «<name> просит реванш» и кнопки «Принять/Отклонить», после ответа текст меняется на «Реванш принят/отклонён».
+  - Next: Дима, read-only аудит T-20260111-040
+  - Next Prompt: |
+      ```text
+      Ответ Саши:
+      Дима, открой TASKS.md и возьми задачу T-20260111-040 (Economy wave 3 UI audit). Проверь read-only: UI показывает уведомление о реванше и кнопки Принять/Отклонить, все вызовы идут через core API, в UI нет числовых обещаний/дельт по Points/REP/Influence. Итог PASS/FAIL/INFO + факты в Result.
+      ```
+
+### [T-20260111-036] Economy wave 3 audit (read-only)
+- Status: DONE
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `TASKS.md`
+- Goal: Провести read-only аудит Economy wave 3 (rematch core) после `T-20260111-035` и дать итог только `PASS/FAIL/INFO` + факты.
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
+- Notes: Только факты. Runtime не обязателен, если отдельно не согласовано gate.
+- Result: |
+    Status: PASS
+    Facts: По `T-20260111-035` поле Changed изменения wave 3 ограничены `AsyncScene/Web/conflict/conflict-core.js` и `AsyncScene/Web/conflict/conflict-api.js` (UI-файлы не перечислены). requestRematch доступен только проигравшему: `if (reqId !== sides.loserId) return { ok: false, reason: "not_loser", expected: sides.loserId };` в `AsyncScene/Web/conflict/conflict-core.js:1406`. Cost=1 point задан как transfer loser→winner через econTransfer с reason и battleId в meta: `econTransfer(loserId, winnerId, 1, "rematch_request_cost", { battleId: b.id, rematchOf: b.id });` в `AsyncScene/Web/conflict/conflict-core.js:1413`. Decline не возвращает point: в ветке `if (!ok)` нет обратного transfer, комментарий `Decline keeps point transfer as-is;` (`AsyncScene/Web/conflict/conflict-core.js:1462`–`AsyncScene/Web/conflict/conflict-core.js:1472`). REP penalties делаются через transferRep с battleId=b.id и клипом по доступному REP: `repPay = Math.max(0, Math.min(1, repAvailable(...)))` (`AsyncScene/Web/conflict/conflict-core.js:1426` и `AsyncScene/Web/conflict/conflict-core.js:1465`), вызовы `transferRep(..., "rep_rematch_request", b.id)` (`AsyncScene/Web/conflict/conflict-core.js:1428`) и `transferRep(..., "rep_rematch_decline", b.id)` (`AsyncScene/Web/conflict/conflict-core.js:1467`). accept создаёт новый battle с `rematchOf=<oldBattleId>`: `nb.rematchOf = b.id;` в `AsyncScene/Web/conflict/conflict-core.js:1477`. Public API прокидывает вызовы: `requestRematch(battleId) { Core.requestRematch(battleId, "me") ... }` (`AsyncScene/Web/conflict/conflict-api.js:439`–`AsyncScene/Web/conflict/conflict-api.js:445`) и `respondRematch(battleId, accept) { Core.respondRematch(battleId, !!accept, "me") ... }` (`AsyncScene/Web/conflict/conflict-api.js:447`–`AsyncScene/Web/conflict/conflict-api.js:453`). node --check: `AsyncScene/Web/conflict/conflict-core.js` и `AsyncScene/Web/conflict/conflict-api.js` = PASS.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Проверены условия T-20260111-036 по коду; requestRematch только для loserId; cost=1 point через econTransfer с reason=rematch_request_cost и meta.battleId=b.id; decline не возвращает point; REP penalties через transferRep с reasons rep_rematch_request/rep_rematch_decline и battleId=b.id с клипом; accept создаёт новый battle с rematchOf.
+  - Changed: `TASKS.md`
+  - How to verify: `nl -ba AsyncScene/Web/conflict/conflict-core.js | sed -n '1390,1490p'` и `nl -ba AsyncScene/Web/conflict/conflict-api.js | sed -n '435,460p'` и `node --check AsyncScene/Web/conflict/conflict-core.js` и `node --check AsyncScene/Web/conflict/conflict-api.js`
+  - Next: Валера, требуется gate по `T-20260111-037`
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-037` (Gate: зафиксировать результат Economy wave 3 (core)). Основание: `T-20260111-036` = PASS, факты в Result.
+      ```
+
+### [T-20260111-035] Economy wave 3 implementation (rematch core, после PASS gate T-20260111-034)
+- Status: DONE
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `TASKS.md`
+- Goal: Реализовать Economy wave 3 (rematch core) строго в объёме, разрешённом `T-20260111-034` (без UI), и подготовить пакет фактов для read-only аудита.
+- Acceptance:
+  - [x] Изменения соответствуют разрешениям/запретам из `T-20260111-034`
+  - [x] REP v1.0 и points-инварианты не нарушены (трансферы, reasons, battleId/eventId, moneyLog)
+  - [x] В `Result` перечислены изменённые файлы, проверки и как воспроизвести
+  - [x] Добавлен `Next Prompt` на Диму (`T-20260111-036`)
+- Notes: Scope wave 3 core: только rematch core по `ECONOMY_WAVE3_SCOPE.md`; UI не трогать; если нужен больший scope — остановиться и вернуть на gate Валере.
+- Result: |
+    Status: DONE
+    Facts: Добавлен rematch core без UI; request доступен только проигравшему; на request делается transfer 1 point проигравший→оппонент; escalation отсутствует (один запрос на battleId); REP penalty=1 на request и на decline через transferRep с reasons `rep_rematch_request`/`rep_rematch_decline` и battleId=b.id (клип по доступному REP без ухода в отрицательные); accept создает новый battle с `rematchOf=<oldBattleId>`; decline не возвращает point
+    Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `TASKS.md`
+    How it works: `Game.Conflict.requestRematch(battleId)` вызывает Core.requestRematch; `Game.Conflict.respondRematch(battleId, accept)` вызывает Core.respondRematch; points cost reason=`rematch_request_cost` (meta.battleId=b.id); REP reasons=`rep_rematch_request`/`rep_rematch_decline`; новый battle получает `rematchOf`
+    How to verify: `rg -n "requestRematch\\(|respondRematch\\(|rematch_request_cost|rep_rematch_request|rep_rematch_decline|rematchOf" AsyncScene/Web/conflict/conflict-core.js AsyncScene/Web/conflict/conflict-api.js` и `node --check` для обоих файлов
+    Next: Дима, read-only аудит wave 3 core по T-20260111-036
+    Next Prompt: |
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-036 (Economy wave 3 audit). Проверь только факты (PASS/FAIL/INFO): что изменения ограничены `AsyncScene/Web/conflict/conflict-core.js` и `AsyncScene/Web/conflict/conflict-api.js`, что requestRematch доступен только проигравшему, что cost=1 point transfer проигравший→оппонент выполняется на request (reason=rematch_request_cost, battleId=b.id), что decline не возвращает point, что REP penalties делаются через transferRep с reasons=rep_rematch_request/rep_rematch_decline и battleId=b.id с клипом без ухода в отрицательные, и что accept создает новый battle с `rematchOf=<oldBattleId>`. UI файлы не менялись.
+      ```
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Реализован rematch core по gate T-20260111-034; добавлены Core.requestRematch/Core.respondRematch и публичные обертки в ConflictAPI; cost=1 point transfer на request; REP penalties 1 на request/decline; accept создает battle.rematchOf; decline не возвращает point; UI не трогали
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `TASKS.md`
+  - How to verify: `node --check AsyncScene/Web/conflict/conflict-core.js` затем `node --check AsyncScene/Web/conflict/conflict-api.js` затем `rg -n "rematch_request_cost|rep_rematch_request|rep_rematch_decline|rematchOf" AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Дима, потому что нужен read-only аудит wave 3 по T-20260111-036
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-036 (Economy wave 3 audit). Проверь только факты (PASS/FAIL/INFO): что изменения ограничены `AsyncScene/Web/conflict/conflict-core.js` и `AsyncScene/Web/conflict/conflict-api.js`, что requestRematch доступен только проигравшему, что cost=1 point transfer проигравший→оппонент выполняется на request (reason=rematch_request_cost, battleId=b.id), что decline не возвращает point, что REP penalties делаются через transferRep с reasons=rep_rematch_request/rep_rematch_decline и battleId=b.id с клипом без ухода в отрицательные, и что accept создает новый battle с `rematchOf=<oldBattleId>`. UI файлы не менялись.
+      ```
+
+### [T-20260111-032] Economy wave 2 audit (read-only)
+- Status: DONE
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+- Goal: Провести read-only аудит Economy wave 2 после `T-20260111-031` и дать итог только `PASS/FAIL/INFO` + факты.
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
+- Notes: Только факты. Runtime не обязателен, если отдельно не согласовано gate.
+- Result: |
+    Status: PASS
+    Facts: По `T-20260111-031` поле Changed изменения wave 2 ограничены `AsyncScene/Web/conflict/conflict-core.js` (без UI; `TASKS.md` — только фиксация задач). На исходах escape vote REP штрафы применяются через `transferRep` с battleId=b.id: `applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);` (`AsyncScene/Web/conflict/conflict-core.js:780`) и `applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_STAY, "rep_escape_stay_penalty", INF_ESCAPE_PENALTY_STAY);` (`AsyncScene/Web/conflict/conflict-core.js:800`), внутри: `Game.StateAPI.transferRep("me", oppId, repPay, repReason, b.id);` (`AsyncScene/Web/conflict/conflict-core.js:770`). Influence штрафы клипуются до 0: `const after = Math.max(0, before - (infPenalty | 0)); me.influence = after;` (`AsyncScene/Web/conflict/conflict-core.js:763`–`AsyncScene/Web/conflict/conflict-core.js:765`). Points на исходах finalizeEscapeVote напрямую не изменяются: в `applyEscapeEconomyPenalties` нет операций с points; `finalizeEscapeVote` не вызывает `transferPoints/transferFromPool/econTransfer` (после finalize есть только `ensureNonNegativePoints()` и `syncMeToPlayers()` в `AsyncScene/Web/conflict/conflict-core.js:814`–`AsyncScene/Web/conflict/conflict-core.js:819`). `node --check AsyncScene/Web/conflict/conflict-core.js` = PASS.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Проверены условия T-20260111-032 по коду; escape vote исходы применяют REP штрафы через transferRep с reasons=rep_escape_ok_penalty/rep_escape_stay_penalty и battleId=b.id; Influence штрафы клипуются до 0; прямых изменений points на исходах finalizeEscapeVote нет.
+  - Changed: `TASKS.md`
+  - How to verify: `nl -ba AsyncScene/Web/conflict/conflict-core.js | sed -n '734,820p'` и `node --check AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Валера, требуется gate по `T-20260111-033`
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-033` (Gate: зафиксировать результат Economy wave 2). Основание: `T-20260111-032` = PASS, факты в Result.
+      ```
+
+### [T-20260111-031] Economy wave 2 implementation (после PASS gate T-20260111-030)
+- Status: DONE
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+- Goal: Реализовать Economy wave 2 строго в объёме, разрешённом `T-20260111-030` (без UI), и подготовить пакет фактов для read-only аудита.
+- Acceptance:
+  - [x] Изменения соответствуют разрешениям/запретам из `T-20260111-030`
+  - [x] REP v1.0 инварианты не нарушены
+  - [x] В `Result` перечислены изменённые файлы, проверки и как воспроизвести
+  - [x] Добавлен `Next Prompt` на Диму (`T-20260111-032`)
+- Notes: Scope wave 2: только escape (REP-/Influence-) по `ECONOMY_WAVE2_SCOPE.md`; Points на исходах escape не трогать; UI не трогать; если нужен больший scope — остановиться и вернуть на gate Валере.
+- Result: |
+    Status: DONE
+    Facts: В escape vote исходах применены штрафы REP и Influence по gate T-20260111-030; REP штраф делается через `transferRep` с reasons `rep_escape_ok_penalty`/`rep_escape_stay_penalty` и battleId=b.id, REP клипается по доступному балансу (не уходит в отрицательные); Influence списывается и клипается до 0; Points на исходах escape не менялись
+    Changed: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+    How it works: `finalizeEscapeVote` вызывает applyEscapeEconomyPenalties для allow/deny веток; REP: `transferRep("me" -> b.opponentId, repPay, reason, b.id)`; Influence: `me.influence = max(0, me.influence - INF_*)`
+    How to verify: `rg -n "rep_escape_ok_penalty|rep_escape_stay_penalty|INF_ESCAPE_PENALTY_|REP_ESCAPE_PENALTY_" AsyncScene/Web/conflict/conflict-core.js` и `node --check AsyncScene/Web/conflict/conflict-core.js`
+    Next: Дима, read-only аудит wave 2 по T-20260111-032
+    Next Prompt: |
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-032 (Economy wave 2 audit). Проверь только факты (PASS/FAIL/INFO): что изменения ограничены `AsyncScene/Web/conflict/conflict-core.js`, что на исходах escape vote применяются REP штрафы через `transferRep` с reasons=rep_escape_ok_penalty/rep_escape_stay_penalty и battleId=b.id, что Influence штрафы клипуются до 0, и что Points на исходах escape не меняются (по коду). Runtime не требуется, если gate не просит.
+      ```
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Реализованы штрафы REP/Influence на исходах escape vote согласно T-20260111-030; UI/Points не трогались; добавлены reasons rep_escape_ok_penalty/rep_escape_stay_penalty
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+  - How to verify: `node --check AsyncScene/Web/conflict/conflict-core.js` затем `rg -n "rep_escape_ok_penalty|rep_escape_stay_penalty" AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Дима, потому что нужен read-only аудит wave 2 по T-20260111-032
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-032 (Economy wave 2 audit). Проверь только факты (PASS/FAIL/INFO): что изменения ограничены `AsyncScene/Web/conflict/conflict-core.js`, что на исходах escape vote применяются REP штрафы через `transferRep` с reasons=rep_escape_ok_penalty/rep_escape_stay_penalty и battleId=b.id, что Influence штрафы клипуются до 0, и что Points на исходах escape не меняются (по коду). Runtime не требуется, если gate не просит.
+      ```
+
+### [T-20260111-027] Economy wave 1 audit (read-only)
+- Status: DONE
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+- Goal: Провести read-only аудит Economy wave 1 после `T-20260111-026` и дать итог только `PASS/FAIL/INFO` + факты.
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
+- Notes: Только факты. Runtime не обязателен, если отдельно не согласовано gate.
+- Result: |
+    Status: PASS
+    Facts: Изменения по wave 1 заявлены как ограниченные `AsyncScene/Web/conflict/conflict-core.js` (см. `T-20260111-026` поле Changed). dismiss_click реализован как REP штраф: `Game.StateAPI.transferRep("me", b.opponentId, repPay, "rep_dismiss_click", b.id)` в `AsyncScene/Web/conflict/conflict-core.js:1098`. Клип REP до 0: `repPay = Math.max(0, Math.min(repPenalty, repHave))` в `AsyncScene/Web/conflict/conflict-core.js:1096`. Points/Influence: в блоке dismiss_click нет присваиваний `me.points`/`me.influence`/`opp.points`/`opp.influence`, только чтение `me.influence`/`opp.influence` для условия и чтение `Game.State.rep` для клипа.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Проверены условия T-20260111-027 по коду; dismiss_click оформлен как transferRep с reason=rep_dismiss_click и battleId=b.id; REP клип до 0 присутствует; Points/Influence в этом блоке не меняются.
+  - Changed: `TASKS.md`
+  - How to verify: `rg -n "rep_dismiss_click|_repDismissClickApplied|repPay" AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Валера, требуется gate по `T-20260111-028`
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-028` (Gate: зафиксировать результат Economy wave 1). Основание: `T-20260111-027` = PASS, факты в Result.
+      ```
+
+### [T-20260111-026] Economy wave 1 implementation (после PASS gate T-20260111-025)
+- Status: DONE
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+- Goal: Реализовать Economy wave 1 строго в объёме, разрешённом `T-20260111-029` (без UI), и подготовить пакет фактов для read-only аудита.
+- Acceptance:
+  - [x] Изменения соответствуют разрешениям/запретам из `T-20260111-029`
+  - [x] REP v1.0 инварианты не нарушены
+  - [x] В `Result` перечислены изменённые файлы, проверки и как воспроизвести
+  - [x] Добавлен `Next Prompt` на Диму (`T-20260111-027`)
+- Notes: Scope wave 1: только dismiss_click/VL5 «послать»; Points/Influence не трогать; UI не трогать; если нужен больший scope — остановиться и вернуть на gate Валере.
+- Result: |
+    Status: DONE
+    Facts: Реализован dismiss_click через `Game.Conflict.escape(battleId, "off")`: при успешном мгновенном закрытии боя применяется REP штраф через `transferRep` с reason `rep_dismiss_click` и battleId=b.id; сумма штрафа клипается до 0 (не уходит в отрицательные); Points/Influence не менялись
+    Changed: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+    How it works: В `C.escape` добавлена поддержка строкового opts ("off"); при режиме "off" и успешном закрытии выполняется `transferRep("me" -> opponentId, repPay, "rep_dismiss_click", battleId)` один раз на battle (флаг `b._repDismissClickApplied`)
+    How to verify: `rg -n "rep_dismiss_click|_repDismissClickApplied|C\\.escape" AsyncScene/Web/conflict/conflict-core.js` и `node --check AsyncScene/Web/conflict/conflict-core.js`
+    Next: Дима, read-only аудит wave 1 по T-20260111-027
+    Next Prompt: |
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-027 (Economy wave 1 audit). Проверь только факты (PASS/FAIL/INFO): что изменения ограничены `AsyncScene/Web/conflict/conflict-core.js`, что dismiss_click реализован как REP штраф через `transferRep` с reason=rep_dismiss_click и battleId, что клип REP не дает уйти в отрицательные, и что Points/Influence не затронуты (по коду). Runtime не требуется, если gate не просит.
+      ```
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Реализован dismiss_click (VL5 «послать») в `AsyncScene/Web/conflict/conflict-core.js` через REP штраф transferRep; добавлена поддержка строкового opts "off"; добавлен клип до 0; UI/Points/Influence не трогались
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+  - How to verify: `node --check AsyncScene/Web/conflict/conflict-core.js` затем `rg -n "rep_dismiss_click|_repDismissClickApplied" AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Дима, потому что нужен read-only аудит по T-20260111-027
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-027 (Economy wave 1 audit). Проверь только факты (PASS/FAIL/INFO): что изменения ограничены `AsyncScene/Web/conflict/conflict-core.js`, что dismiss_click реализован как REP штраф через `transferRep` с reason=rep_dismiss_click и battleId, что клип REP не дает уйти в отрицательные, и что Points/Influence не затронуты (по коду). Runtime не требуется, если gate не просит.
+      ```
+
+### [T-20260111-020] Аудит: UI coupling после фикса T-20260111-018 (read-only)
+- Status: DONE
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+- Goal: Подтвердить фактами отсутствие прямых `Game.UI.*` в `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js`, и соблюдение REP v1.0.
+- Acceptance:
+  - [x] Итог в `Result`: `PASS` или `FAIL` или `INFO` + факты (без советов/правок)
+- Notes: Только факты. Никаких предложений архитектуры/рефакторинга.
+- Result: |
+    Status: PASS
+    Facts: Прямых вызовов `Game.UI.*` не найдено в `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js` (поиск `rg -n "Game\\.UI\\." ...` пустой). REP v1.0: `addRep` dev-only и блокируется в prod в `AsyncScene/Web/state.js:127`; REP изменяется через `transferRep` в `AsyncScene/Web/state.js:174` и вызовы из `AsyncScene/Web/conflict/conflict-core.js:759`. Логирование REP: `transferRep` пишет через `logRepTransfer` (использует `Econ._logTx` или фолбэк `Game.Debug.moneyLog`/`moneyLogByBattle`) в `AsyncScene/Web/state.js:150`. Reason+battleId/eventId: INFO — при отсутствии reason/battleId включается dev warning, но блокировки нет (`AsyncScene/Web/state.js:181`). Валидация: PASS — `node --check AsyncScene/Web/state.js` и `node --check AsyncScene/Web/conflict/conflict-core.js` прошли без синтаксических ошибок. Доп. факт: в `AsyncScene/Web/conflict/conflict-core.js:263` остаётся использование `const UI = (Game && Game.UI) ? Game.UI : null;` и вызовы `UI.pushDM/UI.pushChat` в `notifyCopViolation`, но это не `Game.UI.*` вызовы.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Прямых `Game.UI.*` вызовов в указанных файлах не найдено; REP v1.0 transferRep-only и addRep dev-only; node --check PASS.
+  - Changed: `TASKS.md`
+  - How to verify: `rg -n "Game\\.UI\\." AsyncScene/Web/state.js AsyncScene/Web/conflict/conflict-core.js`; `node --check AsyncScene/Web/state.js`; `node --check AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Валера, требуется фиксация статуса по T-20260111-018/T-20260111-017
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и зафиксируй результат `T-20260111-020` (PASS по критерию отсутствия прямых `Game.UI.*`; REP v1.0 transferRep-only, addRep dev-only; node --check PASS). Дальше решение по `T-20260111-017`.
+      ```
+
+### [T-20260111-018] Fix: убрать UI coupling из экономических контуров
+- Status: DONE
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+- Goal: Убрать прямые вызовы `Game.UI.*` из экономических контуров в рамках Economy phase (UI out-of-scope), без изменения механики экономики/REP и без UI правок.
+- Acceptance:
+  - [x] В `AsyncScene/Web/state.js` нет прямых вызовов `Game.UI.requestRenderAll` и `Game.UI.showInfluenceToast` из экономических функций
+  - [x] В `AsyncScene/Web/conflict/conflict-core.js` нет прямого `Game.UI.pushSystem` из экономического/боевого контура
+  - [x] REP v1.0 инварианты сохранены (transferRep-only, reason + battleId/eventId, moneyLog/moneyLogByBattle)
+- Notes: Основание: FAIL в T-20260111-016 (read-only аудит Димы). Только разрыв coupling, без внедрения UI.
+- Result: |
+    Status: DONE
+    Facts: Удалены все прямые вызовы `Game.UI.*` из `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js`; механика экономики/REP не менялась
+    Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+    Checked: `rg -n \"Game\\.UI\\.\" AsyncScene/Web/state.js AsyncScene/Web/conflict/conflict-core.js` (пусто); `node --check` для `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js` (PASS)
+    Next: Дима, повторный read-only аудит (PASS/FAIL/INFO) по отсутствию UI coupling и соблюдению REP v1.0
+    Next Prompt: |
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-016 (Аудит экономики) либо создай отдельную audit-задачу для T-20260111-018, если так удобнее. Проверь только факты (PASS/FAIL/INFO): что в `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js` нет прямых вызовов `Game.UI.*`, что REP v1.0 инварианты не нарушены, и что `node --check AsyncScene/Web/state.js` и `node --check AsyncScene/Web/conflict/conflict-core.js` проходят.
+      ```
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: Вынесено в Review; прямые вызовы Game.UI.* удалены из state.js и conflict-core.js; синтаксис проверен node --check
+  - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+  - How to verify: `rg -n \"Game\\.UI\\.\" AsyncScene/Web/state.js AsyncScene/Web/conflict/conflict-core.js` затем `node --check AsyncScene/Web/state.js` затем `node --check AsyncScene/Web/conflict/conflict-core.js`
+  - Next: Дима, потому что нужен read-only аудит PASS/FAIL/INFO
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-016 (Аудит экономики) либо создай отдельную audit-задачу для T-20260111-018, если так удобнее. Проверь только факты (PASS/FAIL/INFO): что в `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js` нет прямых вызовов `Game.UI.*`, что REP v1.0 инварианты не нарушены, и что `node --check AsyncScene/Web/state.js` и `node --check AsyncScene/Web/conflict/conflict-core.js` проходят.
+      ```
+
+### [T-20260111-015] Подготовить пакет внедрения экономики (после PASS gate)
+- Status: DONE
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+- Goal: На основе PASS gate из `T-20260111-017` подготовить реализацию (код) строго в допущенном объёме и зафиксировать список затронутых файлов/инвариантов для аудита.
+- Acceptance:
+  - [x] Реализация соответствует допуску/запретам из `T-20260111-017`
+  - [x] В `Result` перечислены: какие файлы менялись, какие инварианты проверены
+  - [x] Добавлен `Next Prompt` на Диму (read-only аудит)
+- Notes: Scope строго Economy-only; UI не трогать; REP v1.0 инварианты не ломать.
+- Result: |
+    Status: PASS
+    Facts: Пакет экономики принят к продолжению после PASS повторного аудита T-20260111-016; UI не трогали; REP v1.0 соблюден (transferRep-only, addRep dev-only); node --check PASS
+    Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+    Checked: `rg -n "Game\\.UI\\." AsyncScene/Web/state.js AsyncScene/Web/conflict/conflict-core.js` (пусто); `rg addRep` по `AsyncScene/Web` (prod только `AsyncScene/Web/state.js` + dev-checks); `node --check` для `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js`
+    Next: Кодинг 3, определить следующий шаг экономики
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Кодинг 3, открой TASKS.md и создай следующий пакет задач для Economy phase после PASS аудита T-20260111-016. Для каждой задачи укажи Goal Acceptance Next и Next Prompt. Если нужен новый gate, создай отдельную gate-задачу на Валеру.
+      ```
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: Пакет T-20260111-015 обновлен с учетом снятого блокера UI coupling (T-20260111-020 PASS) и готов к повторному read-only аудиту; выполнены проверки `rg addRep`, `rg Game.UI.` и `node --check` на экономических контурах
+  - Changed: `TASKS.md`
+  - How to verify: `rg -n "Game\\.UI\\." AsyncScene/Web/state.js AsyncScene/Web/conflict/conflict-core.js` затем `rg addRep AsyncScene/Web` затем `node --check` для `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js`
+  - Next: Дима, потому что нужен повторный read-only аудит PASS/FAIL/INFO после снятия UI coupling блокера
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и выполни повторный read-only аудит по задаче T-20260111-016 (там исторический FAIL был только из-за UI coupling; блокер снят в T-20260111-020 PASS). Проверь только факты (PASS/FAIL/INFO): что UI не трогали, что REP v1.0 соблюден (transferRep-only, addRep dev-only), что операции имеют reason + battleId/eventId и логируются (moneyLog/moneyLogByBattle), и что файлы `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js` валидны (node --check PASS).
+      ```
+
 ## Done
 <!-- Закрытые задачи (оставляйте краткий Result) -->
+
+### [T-20260111-042] Gate: закрыть Economy wave 1 (привести REVIEW→DONE)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Валера
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: Формально закрыть Economy wave 1: проверить факты из `T-20260111-026` и `T-20260111-027` и, если ок, перевести их из `REVIEW` в `DONE` (без изменений кода).
+- Acceptance:
+  - [ ] `T-20260111-026` переведена в `DONE` (или зафиксирован `FAIL/BACKLOG` с причинами)
+  - [ ] `T-20260111-027` переведена в `DONE` (или зафиксирован `FAIL/BACKLOG` с причинами)
+  - [ ] В `Result` есть факт: “wave 1 закрыта/не закрыта” и почему
+- Notes: Никаких правок механики/кода. Только процессная фиксация статусов и фактов по уже выполненным пакетам.
+- Result: |
+    Status: PASS
+    Facts: wave 1 закрыта, основание: T-20260111-026 dismiss_click реализован, T-20260111-027 audit PASS подтверждает REP штраф через transferRep reason=rep_dismiss_click с battleId и клип REP до 0, Points/Influence не меняются
+    Changed: `TASKS.md`
+    Next: Валера, gate закрытие wave 2
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Валера, открой TASKS.md и возьми задачу T-20260111-043 (Gate: закрыть Economy wave 2). Закрываем wave 2 только после решения по wave 1.
+      ```
+
+### [T-20260111-016] Аудит экономики (read-only) после внедрения
+- Status: DONE
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+- Goal: Провести read-only аудит изменений экономики после `T-20260111-015` и дать итог только `PASS/FAIL/INFO` + факты.
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
+- Notes: Только факты. Никаких предложений архитектуры/рефакторинга.
+- Result: |
+    Status: PASS
+    Facts: UI файлы не менялись (по `git diff --name-only` изменён только `TASKS.md`). REP v1.0: `addRep` dev-only и блокируется в prod (`AsyncScene/Web/state.js:127`), REP изменяется через `transferRep` (`AsyncScene/Web/state.js:174`, `AsyncScene/Web/events.js:135`, `AsyncScene/Web/events.js:278`, `AsyncScene/Web/conflict/conflict-core.js:759`, `AsyncScene/Web/conflict/conflict-economy.js:557`). Reason + battleId/eventId: INFO — есть dev warning при отсутствии reason/battleId для REP (`AsyncScene/Web/state.js:181`), для points есть dev warning при отсутствии battleId (`AsyncScene/Web/conflict/conflict-economy.js:276`). Логирование moneyLog/moneyLogByBattle: PASS — инициализация и запись через `AsyncScene/Web/conflict/conflict-economy.js:39` и `AsyncScene/Web/conflict/conflict-economy.js:48`, REP-транзакции через `AsyncScene/Web/state.js:150` (Econ._logTx или фолбэк `Game.Debug.moneyLog`/`moneyLogByBattle`). Валидация: PASS — `node --check` для `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-economy.js` ошибок синтаксиса не выдал. Исторический блокер UI coupling для `AsyncScene/Web/state.js` и `AsyncScene/Web/conflict/conflict-core.js` снят (см. `T-20260111-020`).
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Повторный read-only аудит выполнен после снятия блокера UI coupling (см. `T-20260111-020`). UI файлы не менялись; REP v1.0 соблюдён; moneyLog/moneyLogByBattle и node --check подтверждены.
+  - Changed: `TASKS.md`
+  - How to verify: `git diff --name-only`; `node --check AsyncScene/Web/state.js` затем `node --check AsyncScene/Web/events.js` затем `node --check AsyncScene/Web/conflict/conflict-core.js` затем `node --check AsyncScene/Web/conflict/conflict-economy.js`; `rg -n \"Game\\.UI\\.|transferRep|addRep|moneyLogByBattle\"` по указанным файлам.
+  - Next: Валера — фиксация статуса и следующий шаг по `T-20260111-017`
+  - Next Prompt: |
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и зафиксируй обновлённый результат `T-20260111-016` (PASS по критериям повторного аудита). Дальше решение по `T-20260111-017`.
+      ```
+
+### [T-20260111-017] Gate: открыть Economy phase (формальный пакет)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `ECONOMY_PHASE_GATE_PACKAGE.md` `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Провести gate-решение по открытию Economy phase на основе формального пакета `ECONOMY_PHASE_GATE_PACKAGE.md` и источника `AsyncScene/Web/economy update.txt`.
+- Acceptance:
+  - [x] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [x] При `PASS`: указан чёткий объём допустимых изменений + запреты + владелец реализации
+- Notes: `T-20260111-014` закрыта как `BACKLOG` из-за отсутствия формального пакета; этот пакет добавлен как `ECONOMY_PHASE_GATE_PACKAGE.md`. Экономику не внедрять без `PASS`.
+- Result: |
+    Status: PASS
+    Facts: Gate на открытие Economy phase принят по `ECONOMY_PHASE_GATE_PACKAGE.md`; допуск ограничен экономическими контурами и логами, UI вынесен out-of-scope; REP v1.0 инварианты не ломать; новые механики вне `AsyncScene/Web/economy update.txt` запрещены; повторный аудит T-20260111-016 зафиксирован PASS
+    Changed: `TASKS.md`
+    Next: Миша, взять T-20260111-015 и подготовить пакет внедрения экономики
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-015 (подготовить пакет внедрения экономики). Поставь Assignee Миша и Status DOING, перенеси в Doing. Работай строго по допуску T-20260111-017: только экономические контуры, без UI, без новых механик вне AsyncScene/Web/economy update.txt, REP v1.0 инварианты не ломать. По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму для read-only аудита.
+      ```
 
 ### [T-20260111-013] Закрыть UI honesty phase после PASS аудита
 - Status: DONE
