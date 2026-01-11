@@ -3,3 +3,6 @@
 
 # Local backup of nested git history (kept intentionally, not part of repo)
 AsyncScene/.git.backup/
+
+# Local git bundles / snapshots
+.backups/
