@@ -1,0 +1,5 @@
+.DS_Store
+**/.DS_Store
+
+# Local backup of nested git history (kept intentionally, not part of repo)
+AsyncScene/.git.backup/
