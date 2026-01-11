@@ -67,34 +67,33 @@
 ## Inbox
 <!-- Добавляйте новые задачи сюда -->
 
-### [T-20260111-012] Повторный аудит UI honesty (read-only, после фиксов T-20260111-011)
-- Status: TODO
-- Priority: P0
-- Assignee: Дима
-- Next: Валера
-- Area: UI
-- Files: `AsyncScene/Web/ui/` `UI_HONESTY_MAPPING.md`
-- Goal: Провести read-only аудит UI honesty после фиксов T-20260111-011 и дать итог только `PASS/FAIL/INFO` + факты.
-- Acceptance:
-  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
-- Notes: Проверка только UI-сигналов (не обещаем цены/награды/штрафы/дельты). Runtime не обязателен.
-- Result: —
-- Report (обязательный формат):
-  - Status: DONE|REVIEW|BLOCKED
-  - Facts: <только факты, что сделано/что не сделано>
-  - Changed: `<file>` `<file>`
-  - How to verify: <1–3 шага проверки>
-  - Next: <кого созвать смотреть TASKS.md дальше и почему>
-  - Next Prompt: |
-      ```text
-      <готовый текст, который творец просто копипастит следующему исполнителю>
-      ```
-
 ## Doing
 <!-- Переносите сюда взятые задачи -->
 
 ## Review
 <!-- Всё, что ждёт проверки/приёмки -->
+### [T-20260111-012] Повторный аудит UI honesty (read-only, после фиксов T-20260111-011)
+- Status: REVIEW
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: UI
+- Files: `AsyncScene/Web/ui/` `UI_HONESTY_MAPPING.md` `AsyncScene/Web/events.js`
+- Goal: Провести read-only аудит UI honesty после фиксов T-20260111-011 и дать итог только `PASS/FAIL/INFO` + факты.
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` + факты (без советов/правок)
+- Notes: Проверка только UI-сигналов (не обещаем цены/награды/штрафы/дельты). Runtime не обязателен.
+- Result: PASS — явных обещаний цен/наград/штрафов/дельт в UI не найдено. Факты: сообщения "Недоступно" и "Лотерея отключена" вместо цен; строки выплат/дельт удалены; в `AsyncScene/Web/events.js` отсутствуют UI‑сообщения с 💰/⭐; в `AsyncScene/Web/ui/ui-battles.js` подсказка порога заменена на "Недоступно.".
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: UI‑сообщения о ценах/наградах/дельтах отсутствуют; вместо них нейтральные тексты. UI‑элементы с ценами отключены и помечены как "Недоступно".
+  - Changed: `TASKS.md`
+  - How to verify: Поиск строк с ценами и дельтами в `AsyncScene/Web/ui/` и `AsyncScene/Web/events.js`.
+  - Next: Валера — зафиксировать итог и закрыть фазу.
+  - Next Prompt: |
+      ```text
+      Валера, открой `TASKS.md` и зафиксируй результат T-20260111-012. Если PASS устраивает, закрой UI honesty phase и обнови связанные задачи.
+      ```
 ### [T-20260111-007] UI honesty исправления по итогам аудита
 - Status: REVIEW
 - Priority: P0
