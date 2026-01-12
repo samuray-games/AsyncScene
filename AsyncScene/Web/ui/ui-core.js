@@ -750,36 +750,40 @@ window.Game = window.Game || {};
     if (!UI.__statDelta) return;
     const order = ["influence", "rep", "points", "wins"];
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
-    const lines = [];
+    
+    // Show separate toast under each stat (fixes DUM-011)
     for (const k of order) {
       const v = UI.__statDelta[k] | 0;
       if (!v) continue;
+      
+      const anchor = statAnchor(k);
+      if (!anchor) continue;
+      
       const sign = v > 0 ? "+" : "";
-      lines.push(`${icons[k]} ${sign}${v}`);
+      const text = `${icons[k]} ${sign}${v}`;
+      const id = `statToast_delta_${k}`;
+      
+      let toast = document.getElementById(id);
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = id;
+        toast.className = "statToast";
+        toast.onclick = () => { toast.style.display = "none"; };
+        document.body.appendChild(toast);
+      }
+      
+      toast.textContent = text;
+      const r = anchor.getBoundingClientRect();
+      const left = Math.round(r.left + (r.width / 2));
+      const top = Math.round(r.bottom + 8);
+      toast.style.left = `${left}px`;
+      toast.style.top = `${top}px`;
+      toast.style.display = "block";
+      toast.style.opacity = "1";
+      toast.style.transform = "translateX(-50%)";
     }
+    
     UI.__statDelta = { influence: 0, rep: 0, points: 0, wins: 0 };
-    if (!lines.length) return;
-    const anchor = statAnchor("influence");
-    if (!anchor) return;
-    const id = "statToast_delta";
-    let toast = document.getElementById(id);
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = id;
-      toast.className = "statToast";
-      toast.onclick = () => { toast.style.display = "none"; };
-      document.body.appendChild(toast);
-    }
-    toast.textContent = lines.join("\n");
-    toast.style.whiteSpace = "pre-line";
-    const r = anchor.getBoundingClientRect();
-    const left = Math.round(r.left + (r.width / 2));
-    const top = Math.round(r.bottom + 8);
-    toast.style.left = `${left}px`;
-    toast.style.top = `${top}px`;
-    toast.style.display = "block";
-    toast.style.opacity = "1";
-    toast.style.transform = "translateX(-50%)";
   }
 
   UI.showStatToast = (kind, text) => {
