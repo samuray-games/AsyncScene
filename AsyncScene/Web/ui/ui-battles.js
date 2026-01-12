@@ -657,7 +657,9 @@
       const listWrap = document.createElement("div");
       listWrap.id = "battleInviteList";
       listWrap.className = "mention-list";
-      body.appendChild(listWrap);
+      // Positioning handled by CSS: #battleInviteList with position:fixed and z-index:2000
+      // Store for appendChild before early return (fixes regression: dropdown not appearing at all)
+      UI._battleInviteListWrap = listWrap;
 
       const renderInviteList = () => {
         const q = String(UI._battleInvite.q || "").trim().toLowerCase();
@@ -723,7 +725,8 @@
         } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
           Game.Conflict.startWith(cid);
         }
-        UI._battleInvite.open = false;
+        // Keep dropdown open after starting battle (fixes DUM-005: dropdown disappears after battle starts)
+        // UI._battleInvite.open = false; // ← removed: user can close manually via × or Escape
         UI._battleInvite.q = "";
         UI._battleInvite.sel = 0;
         requestAll();
@@ -754,6 +757,14 @@
         renderInviteList();
       };
     }
+
+   // Append invite list dropdown now (must be before early return for empty battles)
+   if (UI._battleInviteListWrap) {
+     body.appendChild(UI._battleInviteListWrap);
+     // Store reference to re-append at end if battles exist (to ensure dropdown is on top)
+     UI._battleDropdownElement = UI._battleInviteListWrap;
+     delete UI._battleInviteListWrap;
+   }
 
    // Empty state (after invite controls)
    if (!Array.isArray(S.battles) || S.battles.length === 0) {
@@ -1103,34 +1114,7 @@
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
 
-      if (b.status === "pickDefense") {
-          const boost = document.createElement("button");
-          boost.className = "btn small";
-          boost.textContent = "Недоступно";
-          boost.disabled = true;
-          boost.onclick = (e) => {
-            stop(e);
-          };
-          tactRow.appendChild(boost);
-
-          const reroll = document.createElement("button");
-          reroll.className = "btn small";
-          reroll.textContent = "Недоступно";
-          reroll.disabled = true;
-          reroll.onclick = (e) => {
-            stop(e);
-          };
-          tactRow.appendChild(reroll);
-
-          const hint = document.createElement("button");
-          hint.className = "btn small";
-          hint.textContent = "Недоступно";
-          hint.disabled = true;
-          hint.onclick = (e) => {
-            stop(e);
-          };
-          tactRow.appendChild(hint);
-        }
+      // Removed 3 "Недоступно" buttons (boost/reroll/hint) - they are not displayed anymore
 
         if (tactRow.childElementCount > 0) card.appendChild(tactRow);
 
@@ -1453,17 +1437,19 @@
             off.disabled = !canFreeOff;
             off.onclick = (e) => {
               stop(e);
+              if (!canFreeOff) {
+                // Show toast if button is disabled (influence < 5)
+                if (UI && typeof UI.showStatToast === "function") {
+                  UI.showStatToast("influence", "Отвали откроется на ⚡ 5.");
+                }
+                return;
+              }
               _captureBattleFocus(b.id, card);
               tryEscapeBattle(b.id, "off");
             };
             actions.appendChild(off);
-
-            if (!canFreeOff) {
-              const hint = document.createElement("span");
-              hint.className = "pill";
-              hint.textContent = "Недоступно.";
-              actions.appendChild(hint);
-            }
+            
+            // Removed "Недоступно." pill - now showing toast on button click instead
           }
 
           card.appendChild(actions);
@@ -1645,6 +1631,12 @@
 
       body.appendChild(card);
     });
+
+    // Move dropdown to end of body AFTER all battle cards to ensure it's on top
+    if (UI._battleDropdownElement && UI._battleDropdownElement.parentNode === body) {
+      body.appendChild(UI._battleDropdownElement);
+      delete UI._battleDropdownElement;
+    }
 
     // Keep the interacted battle card in view as it moves between active/resolved sections.
    if (_focusIdBefore) {

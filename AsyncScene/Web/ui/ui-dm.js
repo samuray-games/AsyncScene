@@ -969,8 +969,14 @@ window.Game = window.Game || {};
         if (!q0) return;
         if (!Game.StateAPI || typeof Game.StateAPI.applyReportByRole !== "function") return;
 
-        Game.StateAPI.applyReportByRole(q0);
+        const result = Game.StateAPI.applyReportByRole(q0);
         reportInput.value = "";
+        
+        // Force immediate synchronous render for battles if jail applied (DUM-009)
+        if (result && result.ok && UI && typeof UI.renderBattles === "function") {
+          UI.renderBattles();
+        }
+        
         UI.renderDM();
         requestAll();
       };
