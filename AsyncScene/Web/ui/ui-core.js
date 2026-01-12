@@ -705,7 +705,22 @@ window.Game = window.Game || {};
   }
 
   function maybeQueueStatDeltaFromState(next){
-    return;
+    // Track and show toasts for all stat changes (fixes DUM-009)
+    UI.__prevStats = UI.__prevStats || { influence: 0, points: 0, rep: 0, wins: 0 };
+    const prev = UI.__prevStats;
+    
+    const stats = ["influence", "points", "rep", "wins"];
+    for (const key of stats) {
+      const cur = (next && Number.isFinite(next[key])) ? (next[key] | 0) : 0;
+      const old = Number.isFinite(prev[key]) ? (prev[key] | 0) : 0;
+      const delta = cur - old;
+      
+      if (delta !== 0 && old !== 0) {  // old !== 0 to skip initial render
+        queueDeltaToast(key, delta);
+      }
+      
+      prev[key] = cur;
+    }
   }
 
   function parseDeltaFromText(text){

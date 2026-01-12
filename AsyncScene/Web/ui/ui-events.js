@@ -744,6 +744,9 @@ window.Game = window.Game || {};
 
           if (ok) setEventNote(e, t("vote_ok"));
 
+          // Immediate synchronous render for battles to show vote counts instantly (fixes DUM-009)
+          if (UI && typeof UI.renderBattles === "function") UI.renderBattles();
+          
           // Prefer a soft render to avoid re-entrant synchronous rerenders ("need to click twice")
           if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
           else rerenderEventsOnly();
