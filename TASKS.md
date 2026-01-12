@@ -52,6 +52,8 @@
 ```
 
 ## Правила работы (коротко)
+- Общий контекст между чатами/агентами: `PROJECT_MEMORY.md` (обновлять при изменении правил/фаз/статусов).
+- Каждый участник команды дополняет свой раздел в `PROJECT_MEMORY.md` (см. “Team Sections”) фактами по своей зоне ответственности, чтобы синхронизироваться между устройствами/чатами.
 - Один assignee на задачу. Если нужно несколько — заводим подзадачи.
 - В `Files` указывать реальные пути (хотя бы 1), чтобы сразу было понятно где править.
 - Если вы “проверяете”, а не кодите (Дима) — ставьте `REVIEW` и пишите только PASS/FAIL + факты в `Result`.
@@ -69,7 +71,254 @@
 - Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ Ассистента:
-    Валера, открой `TASKS.md` и возьми задачу `T-20260111-043` (Gate: закрыть Economy wave 2). Закрываем wave 2 только после решения по wave 1.
+    Валера, открой `TASKS.md` и возьми задачу `T-20260111-051` (Gate: Economy wave 5 scope — battle_end REP by strength delta). Вход: `ECONOMY_WAVE5_SCOPE.md`. Нужен итог PASS/FAIL/BACKLOG + факты; при PASS — подтвердить, что параметры фиксированные (tierDiff, таблица REP win/lose/draw, reasons, клип) и что UI/Points/Influence запрещены. В ответе в чат обязательно приложи Next Prompt кодблоком.
+    ```
+
+### [T-20260111-050] Gate: Economy wave 5 decision (STOP или запуск)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Ассистент
+- Area: Economy
+- Files: `ECONOMY_WAVE5_SCOPE.md` `TASKS.md`
+- Goal: Зафиксировать gate-решение по Economy wave 5: STOP (не открываем) или запуск (с параметрами), строго на основе `ECONOMY_WAVE5_SCOPE.md`.
+- Acceptance:
+  - [ ] В `Result` есть итог `PASS/FAIL/BACKLOG` + факты (без “додумываний”)
+  - [ ] В `Result` есть `Next` и `Next Prompt` кодблоком
+- Notes: Если для запуска нужны параметры (дельта силы, таблица REP, reasons) и они не зафиксированы готовым пакетом - это не открываем в gate, а возвращаем на пакетирование.
+- Result: |
+    Status: BACKLOG
+    Facts: `ECONOMY_WAVE5_SCOPE.md` содержит STOP как рекомендацию процесса и “кандидатный scope” wave 5, но без зафиксированных параметров (как считать дельту силы, таблица REP по исходам и дельте, reasons, политика клипа). Открывать wave 5 без этих параметров означает проектирование и “додумывание”, что запрещено. Поэтому wave 5 не открываем.
+    Changed: `TASKS.md`
+    Next: Ассистент - нужен новый пакет wave 5 с фиксированными параметрами, утвержденный Мишей (и балансом от Лёши, если требуется), либо фиксация STOP как окончательного решения.
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Ассистент, открой TASKS.md и создай новый пакет wave 5 (или финальную фиксацию STOP). Если wave 5 нужен - принеси один md файл со строго зафиксированными параметрами (как считаем strength delta, таблица REP по win/lose/draw, reasons, политика клипа) и явным списком файлов. После этого заведи gate-задачу на Валеру в Inbox. В отчете добавь Next Prompt кодблоком.
+      ```
+
+### [T-20260111-051] Gate: Economy wave 5 scope (battle_end REP by strength delta)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `ECONOMY_WAVE5_SCOPE.md` `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Принять/отклонить wave 5 scope по `ECONOMY_WAVE5_SCOPE.md` (battle_end REP эффект по tierDiff, фиксированные параметры, без UI).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: подтверждены фиксированные параметры (tierDiff, таблица REP win/lose/draw, reasons, политика клипа) и список файлов
+  - [ ] При `FAIL/BACKLOG`: перечислены причины и что нужно для разблокировки
+- Notes: Координатор не архитектор. Любые изменения UI/Points/Influence запрещены в wave 5.
+- Result: |
+    Status: PASS
+    Facts: Scope wave 5 принят по `ECONOMY_WAVE5_SCOPE.md` как battle_end REP by strength delta, параметры фиксированы в пакете (tierDiff по y/o/r/k=1/2/3/4, категории UPSET/SHAME, таблица REP win/lose/draw, reasons, клип через transferRep поведение), изменения ограничены `AsyncScene/Web/conflict/conflict-economy.js` (+ опционально `AsyncScene/Web/data.js`)
+    Params: tierMap y=1 o=2 r=3 k=4; WIN +2/+1/0; LOSE -2/-1/0; DRAW 0; reasons rep_battle_upset_win и rep_battle_shame_lose; REP клип не уходит в отрицательные (single source: transferRep)
+    Запреты: UI запрещен, Points запрещены, Influence запрещен, addRep в prod запрещен, аргументы/исход боя не менять
+    Changed: `TASKS.md`
+    Next: Миша, реализация wave 5 по новому scope, затем Дима аудит, затем Валера gate-close
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-052 (Economy wave 5 implementation - battle_end REP by tierDiff). Поставь Assignee Миша и Status DOING, перенеси блок в Doing. Реализуй строго по T-20260111-051 и ECONOMY_WAVE5_SCOPE.md: заменить legacy repGain на таблицу wave 5 для me на win/lose/draw, считать tierDiff по y/o/r/k=1/2/3/4, применять только через transferRep с reasons rep_battle_upset_win и rep_battle_shame_lose и battleId, Points/Influence/UI не трогать, addRep в prod не использовать. Разрешенные файлы: AsyncScene/Web/conflict/conflict-economy.js (+ опционально AsyncScene/Web/data.js). По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (T-20260111-053).
+      ```
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Gate-решение wave 5 принято PASS; параметры и запреты зафиксированы по пакету; решение не требует правок кода в рамках gate, только постановка реализации на Мишу
+  - Changed: `TASKS.md`
+  - How to verify: Открыть `ECONOMY_WAVE5_SCOPE.md` и убедиться, что tierDiff, таблица REP, reasons и клип зафиксированы; открыть этот блок `T-20260111-051` и проверить, что запреты UI/Points/Influence и список файлов указан
+  - Next: Миша, потому что дальше идет реализация в коде
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-052 (Economy wave 5 implementation - battle_end REP by tierDiff). Поставь Assignee Миша и Status DOING, перенеси блок в Doing. Реализуй строго по T-20260111-051 и ECONOMY_WAVE5_SCOPE.md: заменить legacy repGain на таблицу wave 5 для me на win/lose/draw, считать tierDiff по y/o/r/k=1/2/3/4, применять только через transferRep с reasons rep_battle_upset_win и rep_battle_shame_lose и battleId, Points/Influence/UI не трогать, addRep в prod не использовать. Разрешенные файлы: AsyncScene/Web/conflict/conflict-economy.js (+ опционально AsyncScene/Web/data.js). По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (T-20260111-053).
+      ```
+
+### [T-20260111-052] Economy wave 5 implementation (battle_end REP by tierDiff)
+- Status: TODO
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/data.js`
+- Goal: Реализовать wave 5 строго по gate `T-20260111-051` и `ECONOMY_WAVE5_SCOPE.md`: REP эффект на battle_end по tierDiff (win/lose/draw), без UI.
+- Acceptance:
+  - [ ] Изменения ограничены `AsyncScene/Web/conflict/conflict-economy.js` (и опционально `AsyncScene/Web/data.js`)
+  - [ ] REP меняется только через `transferRep` с `reason` и `battleId`, `addRep` в prod не используется
+  - [ ] Points и Influence не изменяются в wave 5
+- Notes: UI/Points/Influence запрещены, исход боя не менять, аргументы не трогать.
+- Result: —
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен): —
+
+### [T-20260111-053] Economy wave 5 audit (read-only)
+- Status: TODO
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/data.js` `TASKS.md`
+- Goal: Read-only аудит wave 5 по фактам: REP эффект battle_end реализован по параметрам gate `T-20260111-051`, только через transferRep, без UI/Points/Influence.
+- Acceptance:
+  - [ ] Итог PASS/FAIL/INFO + факты в Result
+- Notes: Только факты. Без советов и без правок кода.
+- Result: —
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен): —
+
+### [T-20260111-054] Gate: зафиксировать результат Economy wave 5
+- Status: TODO
+- Priority: P0
+- Assignee: Валера
+- Next: Ассистент
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: После результата `T-20260111-053` зафиксировать итог wave 5 (`PASS/FAIL/BACKLOG`) и следующий шаг.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты и следующий шаг
+- Notes: Без внедрения “от себя”. Если нужен UI - отдельный UI gate пакет и отдельная задача.
+- Result: —
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен): —
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Валера, открой `TASKS.md` и возьми задачу `T-20260111-051` (Gate: Economy wave 5 scope — battle_end REP by strength delta). Вход: `ECONOMY_WAVE5_SCOPE.md`. Нужен итог PASS/FAIL/BACKLOG + факты; при PASS — подтвердить, что параметры фиксированные (tierDiff, таблица REP win/lose/draw, reasons, клип) и что UI/Points/Influence запрещены. В ответе в чат обязательно приложи Next Prompt кодблоком (на Мишу, следующая задача будет создаваться после PASS).
+    ```
+
+### [T-20260111-049] Подготовить scope/STOP пакет Economy wave 5
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Валера
+- Area: Economy
+- Files: `ECONOMY_WAVE5_SCOPE.md` `TASKS.md`
+- Goal: Подготовить scope-пакет Economy wave 5 как отдельный md файл (или зафиксировать STOP, если wave 5 не нужен).
+- Acceptance:
+  - [ ] Создан `ECONOMY_WAVE5_SCOPE.md` с явным STOP (или scope) + запретами + PASS/FAIL
+  - [ ] Если scope требует UI — вынесено отдельно (в этом пакете UI не требуется)
+- Notes: Координатор не принимает архитектурных решений; итог открывать/не открывать wave 5 — gate Валеры.
+- Result: |
+    Status: DONE
+    Facts: Подготовлен пакет `ECONOMY_WAVE5_SCOPE.md` с рекомендацией STOP до закрытия wave 4; приложен кандидатный минимальный scope (battle_end REP effect по разнице сил) на случай, если gate решит продолжать. UI отдельно не требуется.
+    Changed: `ECONOMY_WAVE5_SCOPE.md` `TASKS.md`
+    Next: Валера (gate-решение “STOP или открыть wave 5”)
+    Next Prompt: |
+      ```text
+      Ответ Ассистента:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-051` (Gate: Economy wave 5 scope — battle_end REP by strength delta). Вход: `ECONOMY_WAVE5_SCOPE.md`. Нужен итог PASS/FAIL/BACKLOG + факты; при PASS — подтвердить, что параметры фиксированные (tierDiff, таблица REP win/lose/draw, reasons, клип) и что UI/Points/Influence запрещены. В ответе в чат обязательно приложи Next Prompt кодблоком.
+      ```
+
+### [T-20260111-044] Зафиксировать закрытие Economy wave 3 (core+UI) и подготовить запуск wave 4
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Валера
+- Area: Economy
+- Files: `TASKS.md` `ECONOMY_WAVE4_SCOPE.md`
+- Goal: Зафиксировать, что Economy wave 3 закрыта (core+UI), и подготовить scope-пакет wave 4 + gate-задачу на Валеру.
+- Acceptance:
+  - [ ] В `Result` зафиксировано, что wave 3 (core+UI) закрыта, с ссылкой на задачи-основания
+  - [ ] Создан `ECONOMY_WAVE4_SCOPE.md`
+  - [ ] Созданы задачи на wave 4 (gate → implement → audit → gate close)
+- Notes: Это координация/пакетирование. Архитектурные решения принимает Валера.
+- Result: |
+    Status: DONE
+    Facts: Economy wave 3 закрыта как PASS по gate-задачам `T-20260111-037` (core PASS) и `T-20260111-041` (UI PASS). Подготовлен scope Economy wave 4: `ECONOMY_WAVE4_SCOPE.md` (тон как давление — минимальный pressure-on-win без UI). Созданы задачи wave 4: `T-20260111-045`..`T-20260111-048`.
+    Changed: `TASKS.md` `ECONOMY_WAVE4_SCOPE.md`
+    How to verify: Открыть `TASKS.md` и убедиться, что wave 3 закрыта, а wave 4 заведена с gate-задачей на Валеру.
+    Next: Валера (gate по `T-20260111-045`)
+    Next Prompt: |
+      ```text
+      Ответ Ассистента:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-045` (Gate: Economy wave 4 scope — tone as pressure). Нужен итог PASS/FAIL/BACKLOG + факты; при PASS зафиксируй параметры: high tone, weak threshold, `INF_PRESSURE_WIN_COST`, `REP_PRESSURE_WIN_CAP` и reasons. В отчёте в чат вставь Next Prompt кодблоком (на Мишу, `T-20260111-046`).
+      ```
+
+### [T-20260111-045] Gate: Economy wave 4 scope (tone as pressure: pressure-on-win)
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Миша
+- Area: Economy
+- Files: `ECONOMY_WAVE4_SCOPE.md` `AsyncScene/Web/economy update.txt` `TASKS.md`
+- Goal: Принять/отклонить scope Economy wave 4 по `ECONOMY_WAVE4_SCOPE.md` (тон как давление — минимальный pressure-on-win без UI).
+- Acceptance:
+  - [ ] Итог в `Result`: `PASS` или `FAIL` или `BACKLOG` + факты
+  - [ ] При `PASS`: зафиксированы параметры (high tone, weak threshold, `INF_PRESSURE_WIN_COST`, `REP_PRESSURE_WIN_CAP`) и reasons для аудита
+  - [ ] При `FAIL/BACKLOG`: перечислены причины и что нужно для разблокировки
+- Notes: Ассистент не архитектор. В wave 4 запрещены UI изменения и любые новые механики вне `ECONOMY_WAVE4_SCOPE.md`.
+- Result: |
+    Status: PASS
+    Facts: Scope wave 4 принят строго по ECONOMY_WAVE4_SCOPE.md, только pressure-on-win для me в исходе win, без UI и без изменений Points; только экономический эффект (Influence - и ограничение REP gain) в `AsyncScene/Web/conflict/conflict-economy.js` (опционально параметры в `AsyncScene/Web/data.js`)
+    Params: high tone = tierColor in {r,k}; weak threshold = tierColor in {y,o}; INF_PRESSURE_WIN_COST=1; REP_PRESSURE_WIN_CAP=0; reasons: rep_pressure_win_cap (для ветки pressure), inf_pressure_win_cost (маркер для аудита, без UI)
+    Запреты wave 4: UI файлы запрещены, Points не трогать, addRep в prod запрещен, вне условия win поведение не менять, тон как давление шире pressure-on-win запрещен
+    Changed: `TASKS.md`
+    Next: Миша, реализация wave 4 по T-20260111-046
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Миша, открой TASKS.md и возьми задачу T-20260111-046 (Economy wave 4 implementation). Поставь Assignee Миша и Status DOING, перенеси в Doing. Реализуй wave 4 строго по параметрам gate T-20260111-045: high tone tierColor r/k, weak threshold tierColor y/o, INF_PRESSURE_WIN_COST=1 (клип influence до 0), REP_PRESSURE_WIN_CAP=0, reason для REP ветки pressure rep_pressure_win_cap. Менять только AsyncScene/Web/conflict/conflict-economy.js и опционально AsyncScene/Web/data.js, UI не трогать, Points не трогать, addRep в prod не использовать. По завершении поставь Status REVIEW, заполни Result и Report и добавь Next Prompt кодблоком на Диму (T-20260111-047).
+      ```
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен): —
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Валера, открой `TASKS.md` и возьми задачу `T-20260111-045` (Gate: Economy wave 4 scope — tone as pressure). Нужен итог PASS/FAIL/BACKLOG + факты; при PASS зафиксируй параметры: high tone, weak threshold, `INF_PRESSURE_WIN_COST`, `REP_PRESSURE_WIN_CAP` и reasons. В отчёте в чат вставь Next Prompt кодблоком (на Мишу, `T-20260111-046`).
+    ```
+
+### [T-20260111-048] Gate: зафиксировать результат Economy wave 4
+- Status: DONE
+- Priority: P0
+- Assignee: Валера
+- Next: Ассистент
+- Area: Economy
+- Files: `TASKS.md`
+- Goal: После результата `T-20260111-047` зафиксировать итог wave 4 (`PASS/FAIL/BACKLOG`) и следующий шаг.
+- Acceptance:
+  - [ ] В `Result` есть `PASS/FAIL/BACKLOG` + факты и следующий шаг
+- Notes: Без внедрения “от себя”. Если нужен UI — отдельный UI gate пакет и отдельная задача.
+- Result: |
+    Status: PASS
+    Facts: Аудит T-20260111-047 PASS подтвердил pressure-on-win: high tone r/k vs weak y/o, Influence -1 с клипом до 0, REP cap=0 и reason=rep_pressure_win_cap; Points не меняются в pressure блоке; addRep в prod не используется
+    Next: Следующий шаг только через scope-пакет wave 5 или фиксация стопа; UI изменения только через отдельный UI gate
+    Changed: `TASKS.md`
+    Next Prompt: |
+      ```text
+      Ответ Валеры:
+      Ассистент, подготовь scope-пакет Economy wave 5 как отдельный md файл (или зафиксируй STOP, если wave 5 не нужен). Укажи что внедряем, какие файлы трогаем, критерии PASS/FAIL и запреты. Если нужен UI, приложи отдельный UI gate пакет и отдельную задачу на Валеру.
+      ```
+- Report (обязательный формат):
+  - Status: TODO
+  - Facts: —
+  - Changed: —
+  - How to verify: —
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен): —
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Ассистента:
+    Валера, открой `TASKS.md` и возьми задачу `T-20260111-048` (Gate: зафиксировать результат Economy wave 4) после того, как `T-20260111-047` будет в `REVIEW`. Нужен итог PASS/FAIL/BACKLOG + факты, и Next (что делаем дальше: wave 5 / UI gate / стоп). В отчёте в чат вставь Next Prompt кодблоком (на Ассистента).
     ```
 
 ### [T-20260111-043] Gate: закрыть Economy wave 2 (привести REVIEW→DONE)
@@ -413,6 +662,73 @@
 
 ## Review
 <!-- Всё, что ждёт проверки/приёмки -->
+
+### [T-20260111-047] Economy wave 4 audit (read-only)
+- Status: REVIEW
+- Priority: P0
+- Assignee: Дима
+- Next: Валера
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+- Goal: Read-only аудит wave 4 по фактам: проверить, что pressure-on-win реализован строго по параметрам gate `T-20260111-045`, без UI и без нарушения инвариантов.
+- Acceptance:
+  - [ ] Итог только `PASS/FAIL/INFO` + факты (без предложений/улучшений)
+  - [ ] Подтверждены: влияние уменьшается только в рамках pressure-on-win, REP ограничен по gate, UI не менялся, `addRep` не использован в prod
+  - [ ] Заполнен `Report` и `Next Prompt` кодблоком на Валеру (`T-20260111-048`)
+- Notes: Дима — смотритель системы, read-only; итог только PASS/FAIL/INFO.
+- Result: |
+    Status: PASS
+    Facts: По `T-20260111-046` поле Changed изменения wave 4 ограничены `AsyncScene/Web/conflict/conflict-economy.js` (UI файлы не перечислены). Pressure-on-win находится в legacy win-ветке `applyResult` и соответствует параметрам gate: high tone r/k и weak y/o заданы через `PRESSURE_HIGH_TONE = new Set(["r","k"])` и `PRESSURE_WEAK_TONE = new Set(["y","o"])` (`AsyncScene/Web/conflict/conflict-economy.js:531`–`AsyncScene/Web/conflict/conflict-economy.js:532`); `INF_PRESSURE_WIN_COST=1` (`AsyncScene/Web/conflict/conflict-economy.js:533`) применяется с клипом influence до 0: `me.influence = Math.max(0, (me.influence|0) - (INF_PRESSURE_WIN_COST|0));` (`AsyncScene/Web/conflict/conflict-economy.js:572`); `REP_PRESSURE_WIN_CAP=0` (`AsyncScene/Web/conflict/conflict-economy.js:534`) и `reason="rep_pressure_win_cap"` (`AsyncScene/Web/conflict/conflict-economy.js:535`) применяются как кап для repGain: `if (repGain > REP_PRESSURE_WIN_CAP) repGain = REP_PRESSURE_WIN_CAP;` (`AsyncScene/Web/conflict/conflict-economy.js:573`) и маркер логируется через `logTransfer(... amount:0, reason:REP_PRESSURE_WIN_REASON, battleId:...)` (`AsyncScene/Web/conflict/conflict-economy.js:575`–`AsyncScene/Web/conflict/conflict-economy.js:584`). Points в рамках pressure-on-win блока не изменяются (внутри `try` блока `AsyncScene/Web/conflict/conflict-economy.js:563`–`AsyncScene/Web/conflict/conflict-economy.js:587` нет операций с points). addRep в prod-контурах не обнаружен: `addRep(` найден только в `AsyncScene/Web/state.js:127` (определение) и `AsyncScene/Web/dev/dev-checks.js:1230` (dev-check). node --check: `AsyncScene/Web/conflict/conflict-economy.js` = PASS.
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: Проверены условия T-20260111-047 по коду; pressure-on-win соответствует gate T-20260111-045 по r/k vs y/o, Influence -1 с клипом до 0, REP cap=0 и reason=rep_pressure_win_cap; в pressure-on-win блоке нет операций с points; addRep в prod-контурах не найден.
+  - Changed: `TASKS.md`
+  - How to verify: `nl -ba AsyncScene/Web/conflict/conflict-economy.js | sed -n '520,610p'` и `rg -n "rep_pressure_win_cap|PRESSURE_HIGH_TONE|PRESSURE_WEAK_TONE|INF_PRESSURE_WIN_COST|REP_PRESSURE_WIN_CAP" AsyncScene/Web/conflict/conflict-economy.js` и `rg -n "addRep\\(" AsyncScene/Web/state.js AsyncScene/Web/dev/dev-checks.js` и `node --check AsyncScene/Web/conflict/conflict-economy.js`
+  - Next: Валера, требуется gate по `T-20260111-048`
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Димы:
+      Валера, открой `TASKS.md` и возьми задачу `T-20260111-048` (Gate: зафиксировать результат Economy wave 4). Основание: `T-20260111-047` = PASS, факты в Result.
+      ```
+
+### [T-20260111-046] Economy wave 4 implementation (tone as pressure: pressure-on-win, после PASS gate T-20260111-045)
+- Status: REVIEW
+- Priority: P0
+- Assignee: Миша
+- Next: Дима
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+- Goal: Реализовать wave 4 строго в объёме и параметрах, разрешённых `T-20260111-045`: pressure-on-win для `me` (Influence - и REP cap на победе сильного над слабым), без UI.
+- Acceptance:
+  - [ ] Реализация строго по параметрам из `T-20260111-045`
+  - [ ] В `win` при условии “высокий тон + слабый оппонент” уменьшается Influence у `me` и ограничивается REP gain согласно gate
+  - [ ] Вне условия win поведение не меняется
+  - [ ] UI файлы не менялись
+  - [ ] `addRep` не используется в prod-контурах
+  - [ ] Заполнен `Report` и `Next Prompt` на Диму (`T-20260111-047`) кодблоком
+- Notes: Scope wave 4: только pressure-on-win по параметрам gate; менять только `AsyncScene/Web/conflict/conflict-economy.js` (опционально `AsyncScene/Web/data.js`); UI/Points не трогать.
+- Result: |
+    Status: REVIEW
+    Facts: В `AsyncScene/Web/conflict/conflict-economy.js` в `applyResult` для исхода `win` (legacy ветка) добавлен pressure-on-win: если мой tierColor в r/k и tierColor оппонента в y/o, то Influence уменьшается на 1 с клипом до 0 и REP gain капается до 0; при срабатывании капа добавляется log marker с reason=rep_pressure_win_cap и battleId
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+    How to verify: `node --check AsyncScene/Web/conflict/conflict-economy.js` затем `rg -n "rep_pressure_win_cap|PRESSURE_HIGH_TONE|PRESSURE_WEAK_TONE|INF_PRESSURE_WIN_COST|REP_PRESSURE_WIN_CAP" AsyncScene/Web/conflict/conflict-economy.js`
+    Next: Дима, read-only аудит wave 4 по T-20260111-047
+    Next Prompt: |
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-047 (Economy wave 4 audit). Проверь только факты (PASS/FAIL/INFO): изменения ограничены `AsyncScene/Web/conflict/conflict-economy.js` (без UI), что в win-ветке pressure-on-win соответствует gate T-20260111-045 (high tone r/k, weak y/o, INF_PRESSURE_WIN_COST=1 с клипом до 0, REP_PRESSURE_WIN_CAP=0, reason=rep_pressure_win_cap), что Points не трогались в рамках wave 4, и что addRep в prod не используется.
+      ```
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: Реализован wave 4 pressure-on-win в conflict-economy.js по параметрам gate; UI/Points не трогались; addRep в prod не использован
+  - Changed: `AsyncScene/Web/conflict/conflict-economy.js` `TASKS.md`
+  - How to verify: `node --check AsyncScene/Web/conflict/conflict-economy.js` затем `rg -n "rep_pressure_win_cap" AsyncScene/Web/conflict/conflict-economy.js`
+  - Next: Дима, потому что нужен read-only аудит по T-20260111-047
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Миши:
+      Дима, открой `TASKS.md` и возьми задачу T-20260111-047 (Economy wave 4 audit). Проверь только факты (PASS/FAIL/INFO): изменения ограничены `AsyncScene/Web/conflict/conflict-economy.js` (без UI), что в win-ветке pressure-on-win соответствует gate T-20260111-045 (high tone r/k, weak y/o, INF_PRESSURE_WIN_COST=1 с клипом до 0, REP_PRESSURE_WIN_CAP=0, reason=rep_pressure_win_cap), что Points не трогались в рамках wave 4, и что addRep в prod не используется.
+      ```
 
 ### [T-20260111-040] Economy wave 3 UI audit (read-only)
 - Status: DONE

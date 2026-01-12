@@ -1,0 +1,147 @@
+# AsyncScene — Project Memory (single shared context)
+
+Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
+Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
+
+## Правило обновления
+- Любая новая договорённость/ограничение/решение/статус фазы, которое ассистент считает “памятью”, фиксируется здесь.
+- Формат: добавляем запись в **Log** (внизу) и при необходимости обновляем **Current Snapshot**.
+
+## Current Snapshot
+
+### Проект
+- Project: AsyncScene
+- Repo: `samuray-games/AsyncScene` (работа идёт через git; изменения синкаются через push/pull)
+
+### Команда (роли)
+Источник: `AGENTS.md`, `TASKS.md`
+- Валера — gate/интеграция, решения только `PASS/FAIL/BACKLOG`
+- Миша — реализация (код) в рамках gate scope
+- Дима — read-only аудит, итог только `PASS/FAIL/INFO` + факты
+- Саша — UI/UX и тексты (без механики)
+- Игорь — AI + NPC
+- Лёша — геймдизайн баттлов/прогрессии
+- Ассистент — координатор процесса + локальная интеграция/контент (ранее: Codex-ассистент)
+
+### Процесс (эстафета)
+Источник: `TASKS.md`
+- Источник правды по задачам: `TASKS.md`
+- Каждый исполнитель в конце:
+  - заполняет `Result`/`Report` по шаблону
+  - указывает `Next`
+  - прикладывает `Next Prompt` **кодблоком**
+
+### Формат “промтов для пересылки”
+- Первая строка в `Next Prompt`: `Ответ <имя/роль>:` (пример: `Ответ Миши:` / `Ответ Валеры:` / `Ответ Димы:`)
+- `Next Prompt` всегда в кодблоке (```text ... ```)
+
+### Статусы фаз/волн (по фактам из `TASKS.md`)
+- UI honesty phase: закрыта `PASS`
+- Economy:
+  - wave 1–4: закрыты (см. `TASKS.md` для конкретных задач-оснований)
+  - wave 5: scope принят `PASS` (battle_end REP by tierDiff), реализация по `T-20260111-052`, аудит `T-20260111-053`, gate close `T-20260111-054`
+
+### Отчётность ассистента (в чате)
+- В каждом сообщении по проекту: отдельная строка `Память обновлена`
+- После каждого сообщения по теме: прогресс в формате:
+  - `wave X: X%`
+  - `фаза Economy (текущие задачи): X%`
+  - `весь проект (текущие задачи): X%`
+
+## Log (append-only)
+
+### 2026-01-11 — Init shared memory file
+- Facts: создан `PROJECT_MEMORY.md` как единая “память проекта” для всех чатов/агентов; договорённости фиксируются здесь и в `TASKS.md`.
+- Rule: все новые “памятные” договорённости, которые ассистент подтверждает строкой `Память обновлена` в чате, также добавляются записью в этот Log.
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-01-11 — Требование дублировать “память” в файл
+- Facts: творец попросил вести отдельный файл “памяти” и дублировать туда всё, что ассистент фиксирует как “Память обновлена”; `PROJECT_MEMORY.md` назначен источником общего контекста между чатами/агентами.
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-01-11 — Обновление правил Димы и итоги аудитов wave 3 UI / wave 4
+- Facts: Для Димы закреплено правило — первая строка ответа в чате и Next Prompt: `Ответ Димы:`; закрыты read-only аудиты `T-20260111-040` (UI wave 3) PASS и `T-20260111-047` (Economy wave 4) PASS по фактам; проверка `node --check AsyncScene/Web/conflict/conflict-economy.js` PASS.
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-01-11 — Обновление процесса и роли “Ассистент”
+- Facts: “Кодинг 3” переименован в “Ассистент” как координатор; для Next Prompt первая строка фиксирована как `Ответ Валеры:`.
+- Facts: Валера зафиксировал текущие статусы фаз/волн и gate по wave 5 как BACKLOG до пакета с параметрами (см. секцию Валера).
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-01-11 — Gate: Economy wave 5 scope
+- Facts: Gate `T-20260111-051` = PASS, принят scope wave 5 по `ECONOMY_WAVE5_SCOPE.md` (battle_end REP by tierDiff) с фиксированными параметрами (tierDiff, таблица REP win/lose/draw, reasons, клип), без UI/Points/Influence; эстафета заведена `T-20260111-052` -> `T-20260111-053` -> `T-20260111-054`.
+- Changed: `PROJECT_MEMORY.md`
+
+---
+
+## Team Sections (обновляет каждый сам)
+
+### Валера (gate/интеграция)
+- Что сюда писать:
+  - Итоги gate (`PASS/FAIL/BACKLOG`) с короткими фактами
+  - Принятые/запрещённые параметры (числа, reasons, инварианты), но только после решения
+  - Конфликты/коллизии статусов и как они разрешены (фактами)
+- Не писать: идеи/архитектуру “от себя”
+
+Факт: UI honesty phase закрыта PASS (основание в `TASKS.md`).
+Факт: Economy wave 1 закрыта PASS, Economy wave 2 закрыта PASS, Economy wave 3 закрыта PASS (core+UI), Economy wave 4 закрыта PASS (основание в `TASKS.md`).
+Факт: Economy wave 5 scope принят PASS по gate `T-20260111-051` на основе `ECONOMY_WAVE5_SCOPE.md`.
+Факт: Параметры wave 5 зафиксированы: tierMap y=1 o=2 r=3 k=4, tierDiff категории UPSET/SHAME, WIN +2/+1/0, LOSE -2/-1/0, DRAW 0, reasons rep_battle_upset_win и rep_battle_shame_lose, клип REP без ухода в отрицательные (single source: transferRep).
+Факт: Запреты wave 5: UI/Points/Influence запрещены, addRep в prod запрещен, исход боя и аргументы не менять, правки только conflict-economy.js (+ опционально data.js).
+Факт: Эстафета wave 5 заведена задачами `T-20260111-052` (Миша) -> `T-20260111-053` (Дима) -> `T-20260111-054` (Валера).
+Факт: Источник/адресат “Ассистент” принят как рабочий (переименование “Кодинг 3”).
+
+### Миша (ядро/реализация)
+- Что сюда писать:
+  - Какие механики/хуки реально внедрены (факт), строго в рамках gate
+  - Какие файлы/модули тронуты (список)
+  - Любые важные технические ограничения/known issues (факт)
+- Не писать: UI тексты/маркетинг, новые механики без gate
+
+Факт: Wave 1 (dismiss_click) — REP штраф через `Game.StateAPI.transferRep("me" -> opponentId)` с reason=`rep_dismiss_click` и battleId=b.id; Points/Influence не менялись. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+Факт: Wave 2 (escape) — REP штрафы через `transferRep("me" -> oppId)` с reasons=`rep_escape_ok_penalty`/`rep_escape_stay_penalty` и battleId=b.id; Influence штрафы с клипом до 0; Points на исходах escape не менялись. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+Факт: Wave 3 (rematch core) — запрос реванша доступен проигравшему; cost=1 point transfer проигравший→оппонент (reason=`rematch_request_cost`, meta.battleId=b.id); REP penalties=1 с reasons=`rep_rematch_request`/`rep_rematch_decline`; accept создаёт новый battle с `rematchOf`, decline не возвращает point; доп. battle_entry на accept не добавлялся. Файлы: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js`.
+Факт: Wave 4 (tone as pressure) — в `win` ветке (legacy) добавлен pressure-on-win: если мой tierColor в {r,k} и opp tierColor в {y,o}, то Influence у me уменьшается на 1 (клип до 0) и REP gain капается до 0; причина cap фиксируется маркером reason=`rep_pressure_win_cap` с battleId. Файл: `AsyncScene/Web/conflict/conflict-economy.js`.
+Факт: UI файлы в wave 1–4 со стороны Миши не изменялись; addRep в prod не использовался (в state.js addRep остаётся только как заблокированный/guard путь, dev-only сценарии отдельно).
+
+### Дима (аудит read-only)
+- Что сюда писать:
+  - Итог аудита (`PASS/FAIL/INFO`) + факты проверки (что проверено, что нет)
+  - Команды/шаги проверки (если применимо)
+- Не писать: рекомендации/улучшения/правки
+
+Факт: Все ответы Димы в чате начинаются строкой `Ответ Димы:`; Next Prompt в TASKS.md для Димы также начинается строкой `Ответ Димы:`.
+Факт: UI wave 3 audit `T-20260111-040` = PASS; проверен rematch UI в `AsyncScene/Web/ui/ui-battles.js:1536`–`1625`, кнопки `Принять/Отклонить/Попросить` и тексты без числовых дельт; вызовы идут через `Game.Conflict.requestRematch/respondRematch` (см. `AsyncScene/Web/conflict/conflict-api.js:439`–`453`).
+Факт: Economy wave 4 audit `T-20260111-047` = PASS; pressure-on-win в `AsyncScene/Web/conflict/conflict-economy.js:531`–`584` соответствует gate (r/k vs y/o, INF_PRESSURE_WIN_COST=1 с клипом до 0, REP_PRESSURE_WIN_CAP=0, reason=rep_pressure_win_cap); в блоке pressure-on-win нет операций с points; `addRep` найден только в `AsyncScene/Web/state.js` (определение) и `AsyncScene/Web/dev/dev-checks.js` (dev).
+Факт: Проверки: `node --check AsyncScene/Web/conflict/conflict-economy.js` = PASS; поиск `addRep(` выполнялся по `AsyncScene/Web/state.js` и `AsyncScene/Web/dev/dev-checks.js`.
+
+### Саша (UI/UX и тексты)
+- Что сюда писать:
+  - Итоги UI-правок (факт) и где они лежат (файлы)
+  - Тексты/формулировки, которые утверждены и используются
+  - UI-ограничения (что запрещено/что нельзя обещать)
+- Не писать: правки механики/экономики
+
+Факт: Введён канон UI honesty mapping в `UI_HONESTY_MAPPING.md` (элемент → файл → тип UI-действия → текст до/после).
+Факт: UI honesty применён по mapping (нейтрализация экономических обещаний/дельт) в UI-файлах: `AsyncScene/Web/ui/ui-boot.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/ui/ui-battles.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-menu.js`, `AsyncScene/Web/ui/ui-chat.js`, `AsyncScene/Web/ui/ui-core.js`.
+Факт: Дополнительные правки по итогам аудитов UI honesty внесены в `AsyncScene/Web/ui/ui-core.js` и `AsyncScene/Web/ui/ui-battles.js` (убраны упоминания «цена удваивается», убраны подсказки с порогами ⚡ в формулировках).
+Факт: Economy wave 3 UI (реванш) реализован в `AsyncScene/Web/ui/ui-battles.js` (карточка завершённого баттла): уведомление «<name> просит реванш», действия «Принять/Отклонить», статусы «Реванш принят/Реванш отклонён», и для проигравшего действие «Хочешь реванш → Попросить».
+Факт: UI реванша вызывает только core API: `Game.Conflict.requestRematch(battleId)` и `Game.Conflict.respondRematch(battleId, accept)`; прямых правок механики/состояния из UI не добавлено.
+Ограничение: В UI запрещены числовые обещания/дельты по Points/REP/Influence и любые упоминания цен/награды/штрафов в цифрах (кроме dev-диагностики, если отдельно разрешена gate-ом).
+Ограничение: Коммуникация в чате: первая строка каждого моего сообщения и Next Prompt — «Ответ Саши:».
+
+### Игорь (AI + NPC)
+- Что сюда писать:
+  - Согласованные роли/NPC-реплики/шаблоны (факт)
+  - Где находится контент (файлы/ключи)
+
+### Лёша (геймдизайн)
+- Что сюда писать:
+  - Принятые (gate) числа/баланс-параметры (если Валера утвердил)
+  - Факты плейтеста и выводы по ощущениям (без внедрения)
+
+### Ассистент (координация)
+- Что сюда писать:
+  - Правила процесса/эстафеты/форматы отчётов (если менялись)
+  - Статус фаз/волн (только по `TASKS.md`)
+  - Любые обязательные требования к коммуникации/копипастам
