@@ -341,8 +341,13 @@
       const res = Game.Conflict.escape(battleId, mode);
       if (res && res.ok === false) {
         const cost = (typeof res.cost === "number") ? res.cost : null;
-        if (res.reason === "no_points" || res.error === "not_enough_points") {
-         const msg = "Недоступно.";
+        if (
+          res.reason === "no_points" ||
+          res.reason === "insufficient" ||
+          res.reason === "min_reserve" ||
+          res.error === "not_enough_points"
+        ) {
+         const msg = "Пойнтов не хватает.";
          if (UI && typeof UI.showStatToast === "function") {
            UI.showStatToast("points", msg);
          } else {
@@ -434,7 +439,7 @@
     } catch (_) {}
 
     if ((S.me.points || 0) < need) {
-      const msg = "Недоступно.";
+      const msg = "Пойнтов не хватает.";
       if (UI && typeof UI.showStatToast === "function") {
         UI.showStatToast("points", msg);
       } else if (act[0] && act[0].id) {
@@ -661,6 +666,13 @@
       // Store for appendChild before early return (fixes regression: dropdown not appearing at all)
       UI._battleInviteListWrap = listWrap;
 
+      const positionDropdown = () => {
+        const r = input.getBoundingClientRect();
+        listWrap.style.left = `${r.left}px`;
+        listWrap.style.top = `${r.bottom + 4}px`;
+        listWrap.style.width = `${Math.max(r.width, 200)}px`;
+      };
+
       const renderInviteList = () => {
         const q = String(UI._battleInvite.q || "").trim().toLowerCase();
       const list = q ? all.filter(p => p && String(p.name || "").toLowerCase().includes(q)) : all.slice(0, 10);
@@ -683,6 +695,7 @@
           };
           listWrap.appendChild(it);
         });
+        positionDropdown();
       };
 
       renderInviteList();
@@ -720,10 +733,17 @@
         // Ensure battles panel is not collapsed
         try { if (UI && typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles"); } catch (_) {}
 
-        if (Game.Conflict && typeof Game.Conflict.start === "function") {
-          Game.Conflict.start(cid);
-        } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
-          Game.Conflict.startWith(cid);
+        let res = null;
+        try {
+          if (Game.Conflict && typeof Game.Conflict.start === "function") {
+            res = Game.Conflict.start(cid);
+          } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
+            res = Game.Conflict.startWith(cid);
+          }
+        } catch (_) {}
+        if (res && res.ok === false && (res.reason === "no_points" || res.reason === "insufficient")) {
+          UI.showStatToast("points", "Пойнтов не хватает.");
+          return;
         }
         // Keep dropdown open after starting battle (fixes DUM-005: dropdown disappears after battle starts)
         // UI._battleInvite.open = false; // ← removed: user can close manually via × or Escape
@@ -755,6 +775,9 @@
         UI._battleInvite.q = String(input.value || "");
         UI._battleInvite.sel = 0;
         renderInviteList();
+      };
+      input.onfocus = () => {
+        positionDropdown();
       };
     }
 
@@ -851,9 +874,12 @@
           voteHint.textContent = "Голосование идёт. Ты только смотришь.";
           escapeWrap.appendChild(voteHint);
 
-          const voteRow = document.createElement("div");
-          voteRow.className = "eventVoteRow";
-          escapeWrap.appendChild(voteRow);
+          // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
+          // Any previously captured DOM nodes become detached. We keep a mutable
+          // reference and re-acquire the current row from DOM on each tick.
+          let voteRowEl = document.createElement("div");
+          voteRowEl.className = "eventVoteRow";
+          escapeWrap.appendChild(voteRowEl);
 
           const mkVoteBtn = (label, votes) => {
             const btn = document.createElement("button");
@@ -866,19 +892,72 @@
           };
 
           const update = (bb) => {
-            const c = bb.escapeVote || {};
-            const end = (typeof c.endAt === "number") ? c.endAt : v.endAt;
+            // IMPORTANT: votes may be mutated on Game.State battles (core/api),
+            // while UI.S.battles can lag until a full render is triggered (e.g. chat).
+            // During the ticker we read authoritative values from Game.State by id.
+            let freshBattle = null;
+            try {
+              if (Game && Game.State && Array.isArray(Game.State.battles)) {
+                freshBattle = Game.State.battles.find(x => x && x.id === bb.id) || null;
+              }
+            } catch (_) {}
+            const freshVote = (freshBattle && freshBattle.escapeVote) ? freshBattle.escapeVote : null;
+
+            const c = freshVote || bb.escapeVote || {};
+            const end =
+              (typeof c.endAt === "number") ? c.endAt :
+              (typeof c.endsAt === "number") ? c.endsAt :
+              v.endAt;
             const left = end - nowMs();
+            // Re-acquire current vote row if the panel was re-rendered.
+            try {
+              const bid0 = String(bb.id || "");
+              const bidSel = (window && window.CSS && typeof window.CSS.escape === "function")
+                ? window.CSS.escape(bid0)
+                : bid0;
+              if (!voteRowEl || voteRowEl.isConnected !== true) {
+                const bodyEl = $("battlesBody") || document.getElementById("battlesBody") || null;
+                const cardEl = bodyEl
+                  ? bodyEl.querySelector(`[data-battle-id="${bidSel}"]`)
+                  : document.querySelector(`[data-battle-id="${bidSel}"]`);
+                const row = cardEl ? cardEl.querySelector(".eventVoteRow") : null;
+                if (row) voteRowEl = row;
+              }
+            } catch (_) {}
+
             const infoEl = document.getElementById(`escapeInfo_${bb.id}`);
             if (infoEl) infoEl.textContent = `Ещё ${fmtSec(left)} сек`;
 
             try {
-            if (voteRow && voteRow.childElementCount === 0) {
-                voteRow.appendChild(mkVoteBtn(voteLabelA, c.votesA || 0));
-                voteRow.appendChild(mkVoteBtn(voteLabelB, c.votesB || 0));
-              } else if (voteRow && voteRow.childElementCount === 2) {
-                voteRow.children[0].textContent = `${voteLabelA} - ${c.votesA || 0}`;
-                voteRow.children[1].textContent = `${voteLabelB} - ${c.votesB || 0}`;
+            // Best-effort: keep local battle in sync so other UI code reads fresh numbers.
+            try {
+              bb.escapeVote = bb.escapeVote || {};
+              if (typeof c.endAt === "number") bb.escapeVote.endAt = c.endAt;
+              if (typeof c.endsAt === "number") bb.escapeVote.endsAt = c.endsAt;
+              bb.escapeVote.votesA = (c.votesA | 0);
+              bb.escapeVote.votesB = (c.votesB | 0);
+              bb.escapeVote.decided = !!c.decided;
+            } catch (_) {}
+
+            if (voteRowEl && voteRowEl.childElementCount === 0) {
+                voteRowEl.appendChild(mkVoteBtn(voteLabelA, c.votesA || 0));
+                voteRowEl.appendChild(mkVoteBtn(voteLabelB, c.votesB || 0));
+              } else if (voteRowEl && voteRowEl.childElementCount === 2) {
+                voteRowEl.children[0].textContent = `${voteLabelA} - ${c.votesA || 0}`;
+                voteRowEl.children[1].textContent = `${voteLabelB} - ${c.votesB || 0}`;
+              }
+            } catch (_) {}
+
+            // Optional debug (opt-in): window.__logBattleCounters = true
+            try {
+              if (window && window.__logBattleCounters) {
+                const a0 = c.votesA | 0;
+                const b0 = c.votesB | 0;
+                if (bb._lastEscapeVotesA !== a0 || bb._lastEscapeVotesB !== b0) {
+                  bb._lastEscapeVotesA = a0;
+                  bb._lastEscapeVotesB = b0;
+                  console.log("[escapeCounters]", bb.id, "votesA=", a0, "votesB=", b0);
+                }
               }
             } catch (_) {}
 
@@ -1010,9 +1089,12 @@
           voteHint.textContent = isMyDraw ? "Голосование идёт. Ты только смотришь." : "Голосование идёт.";
           drawWrap.appendChild(voteHint);
 
-          const voteRow = document.createElement("div");
-          voteRow.className = "eventVoteRow";
-          drawWrap.appendChild(voteRow);
+          // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
+          // Any previously captured DOM nodes become detached. We keep a mutable
+          // reference and re-acquire the current row from DOM on each tick.
+          let voteRowEl = document.createElement("div");
+          voteRowEl.className = "eventVoteRow";
+          drawWrap.appendChild(voteRowEl);
 
           const me = S.me || {};
           const attackerId = b.fromThem ? b.opponentId : "me";
@@ -1041,14 +1123,54 @@
           };
 
           const update = (bb) => {
-            const c = bb.crowd || {};
-            const end = (typeof c.endAt === "number") ? c.endAt : endAt;
+            // IMPORTANT: votes may be mutated on Game.State battles (core/api),
+            // while UI.S.battles can lag until a full render is triggered (e.g. chat).
+            // During the ticker we read authoritative values from Game.State by id.
+            let freshBattle = null;
+            try {
+              if (Game && Game.State && Array.isArray(Game.State.battles)) {
+                freshBattle = Game.State.battles.find(x => x && x.id === bb.id) || null;
+              }
+            } catch (_) {}
+            const freshCrowd = (freshBattle && freshBattle.crowd) ? freshBattle.crowd : null;
+
+            const c = freshCrowd || bb.crowd || {};
+            const end =
+              (typeof c.endAt === "number") ? c.endAt :
+              (typeof c.endsAt === "number") ? c.endsAt :
+              endAt;
             const left = end - nowMs();
+            // Re-acquire current vote row if the panel was re-rendered.
+            try {
+              const bid0 = String(bb.id || "");
+              const bidSel = (window && window.CSS && typeof window.CSS.escape === "function")
+                ? window.CSS.escape(bid0)
+                : bid0;
+              if (!voteRowEl || voteRowEl.isConnected !== true) {
+                const bodyEl = $("battlesBody") || document.getElementById("battlesBody") || null;
+                const cardEl = bodyEl
+                  ? bodyEl.querySelector(`[data-battle-id="${bidSel}"]`)
+                  : document.querySelector(`[data-battle-id="${bidSel}"]`);
+                const row = cardEl ? cardEl.querySelector(".eventVoteRow") : null;
+                if (row) voteRowEl = row;
+              }
+            } catch (_) {}
+
             const infoEl = document.getElementById(`drawInfo_${bb.id}`);
             if (infoEl) infoEl.textContent = `Ещё ${fmtSec(left)} сек`;
 
             try {
-              const vRow = voteRow;
+              const vRow = voteRowEl;
+              // Best-effort: keep local battle in sync so other UI code reads fresh numbers.
+              try {
+                bb.crowd = bb.crowd || {};
+                if (typeof c.endAt === "number") bb.crowd.endAt = c.endAt;
+                if (typeof c.endsAt === "number") bb.crowd.endsAt = c.endsAt;
+                bb.crowd.votesA = (c.votesA | 0);
+                bb.crowd.votesB = (c.votesB | 0);
+                bb.crowd.decided = !!c.decided;
+              } catch (_) {}
+
               if (vRow && vRow.childElementCount === 0) {
                 const aLabel = nameWithInf(attackerId);
                 const bLabel = nameWithInf(defenderId);
@@ -1057,6 +1179,19 @@
               } else if (vRow && vRow.childElementCount === 2) {
                 vRow.children[0].textContent = `${nameWithInf(attackerId)} - ${c.votesA || 0}`;
                 vRow.children[1].textContent = `${nameWithInf(defenderId)} - ${c.votesB || 0}`;
+              }
+            } catch (_) {}
+
+            // Optional debug (opt-in): window.__logBattleCounters = true
+            try {
+              if (window && window.__logBattleCounters) {
+                const a0 = c.votesA | 0;
+                const b0 = c.votesB | 0;
+                if (bb._lastCrowdVotesA !== a0 || bb._lastCrowdVotesB !== b0) {
+                  bb._lastCrowdVotesA = a0;
+                  bb._lastCrowdVotesB = b0;
+                  console.log("[drawCounters]", bb.id, "votesA=", a0, "votesB=", b0);
+                }
               }
             } catch (_) {}
 
@@ -1434,20 +1569,46 @@
             const off = document.createElement("button");
             off.className = "btn small";
             off.textContent = "Отвали";
-            off.disabled = !canFreeOff;
+            // NOTE: disabled buttons do not fire hover/click events in browsers.
+            // We keep it interactive, but block action when locked and show an inline toast under the button.
+            off.disabled = false;
+            off.setAttribute("aria-disabled", String(!canFreeOff));
+            off.classList.toggle("is-disabled", !canFreeOff);
+
+            const offWrap = document.createElement("div");
+            offWrap.style.display = "flex";
+            offWrap.style.flexDirection = "column";
+            offWrap.style.alignItems = "flex-start";
+            offWrap.style.gap = "4px";
+
+            const offToast = document.createElement("div");
+            offToast.className = "noteLine";
+            offToast.style.display = "none";
+
+            const showOffToast = () => {
+              try {
+                offToast.textContent = "Отвали откроется на ⚡ 5.";
+                offToast.style.display = "";
+                if (offToast._t) clearTimeout(offToast._t);
+                offToast._t = setTimeout(() => {
+                  try { offToast.style.display = "none"; } catch (_) {}
+                }, 1500);
+              } catch (_) {}
+            };
+
+            off.onmouseenter = () => { if (!canFreeOff) showOffToast(); };
             off.onclick = (e) => {
               stop(e);
               if (!canFreeOff) {
-                // Show toast if button is disabled (influence < 5)
-                if (UI && typeof UI.showStatToast === "function") {
-                  UI.showStatToast("influence", "Отвали откроется на ⚡ 5.");
-                }
+                showOffToast();
                 return;
               }
               _captureBattleFocus(b.id, card);
               tryEscapeBattle(b.id, "off");
             };
-            actions.appendChild(off);
+            offWrap.appendChild(off);
+            offWrap.appendChild(offToast);
+            actions.appendChild(offWrap);
             
             // Removed "Недоступно." pill - now showing toast on button click instead
           }
@@ -1595,7 +1756,10 @@
               stop(e);
               try {
                 if (Game.Conflict && typeof Game.Conflict.requestRematch === "function") {
-                  Game.Conflict.requestRematch(b.id);
+                  const r = Game.Conflict.requestRematch(b.id);
+                  if (r && r.ok === false && (r.reason === "no_points" || r.reason === "insufficient" || r.reason === "min_reserve")) {
+                    if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Пойнтов не хватает.");
+                  }
                 }
               } catch (_) {}
               requestAll();
@@ -1645,5 +1809,54 @@
      });
    }
    try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
+ };
+
+ // Update crowd vote counters for a specific battle (fixes DUM-030)
+ UI.updateBattleCounters = (battleId) => {
+   if (!battleId) return;
+   
+   // Sync crowd data from Game.State.battles to local S.battles
+   if (Game && Game.State && Array.isArray(Game.State.battles)) {
+     const freshBattle = Game.State.battles.find(x => x.id === battleId);
+     const localBattle = S && Array.isArray(S.battles) ? S.battles.find(x => x.id === battleId) : null;
+     if (freshBattle && localBattle && freshBattle.crowd) {
+       localBattle.crowd = localBattle.crowd || {};
+       localBattle.crowd.votesA = freshBattle.crowd.votesA | 0;
+       localBattle.crowd.votesB = freshBattle.crowd.votesB | 0;
+       localBattle.crowd.voters = freshBattle.crowd.voters || {};
+       
+       // Update DOM immediately
+       try {
+         const card = document.querySelector(`[data-battle-id="${battleId}"]`);
+         if (card) {
+           const voteRow = card.querySelector('.eventVoteRow');
+           if (voteRow && voteRow.childElementCount === 2) {
+             const c = localBattle.crowd;
+             // Find attacker/defender names from battle
+             const attackerId = localBattle.attackerId || localBattle.fromId;
+             const defenderId = localBattle.defenderId || localBattle.toId;
+             
+             // Helper to get name with influence badge
+             const nameWithInf = (playerId) => {
+               if (!playerId) return "?";
+               const p = S.players && S.players[playerId] ? S.players[playerId] : null;
+               if (!p) return playerId;
+               const name = p.name || playerId;
+               const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
+               const inf = Number.isFinite(p.influence) ? (p.influence | 0) : 0;
+               return `${name} 💰${pts} [${inf}]`;
+             };
+             
+             voteRow.children[0].textContent = `${nameWithInf(attackerId)} - ${c.votesA || 0}`;
+             voteRow.children[1].textContent = `${nameWithInf(defenderId)} - ${c.votesB || 0}`;
+             
+             console.log('[updateBattleCounters]', battleId, 'votesA:', c.votesA, 'votesB:', c.votesB);
+           }
+         }
+       } catch (e) {
+         console.warn('[updateBattleCounters] DOM update failed:', e);
+       }
+     }
+   }
  };
 })();

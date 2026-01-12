@@ -400,6 +400,30 @@ window.Game ||= {};
 
       mirrorCrowdVotesToEvent(e);
 
+      // Sync NPC votes into battle.crowd too (fixes DUM-024)
+      const battleId = e.battleId || e.relatedBattleId || e.refId;
+      if (battleId) {
+        const b = findBattleById(battleId);
+        if (b && b.crowd && typeof b.crowd === "object") {
+          b.crowd.aVotes = (crowd.aVotes | 0);
+          b.crowd.bVotes = (crowd.bVotes | 0);
+          b.crowd.votesA = (crowd.votesA | 0);
+          b.crowd.votesB = (crowd.votesB | 0);
+          // Sync voters map too
+          b.crowd.voters = b.crowd.voters || {};
+          if (!allowRepeat && voter && voter.id) {
+            b.crowd.voters[voter.id] = side;
+          }
+          
+          // Trigger immediate UI update (fixes DUM-030)
+          try {
+            if (Game.UI && typeof Game.UI.updateBattleCounters === "function") {
+              Game.UI.updateBattleCounters(battleId);
+            }
+          } catch (_) {}
+        }
+      }
+
       voted = true;
       votesEmitted++;
 

@@ -931,13 +931,15 @@ button:disabled{opacity:.55; cursor:not-allowed}
   z-index:100; /* Set high z-index to ensure dropdown is above battle cards */
 }
 
-/* Battle invite dropdown: create isolated stacking context above all battle cards */
+/* Battle invite dropdown: overlay positioned under input */
 #battleInviteList{
-  position:relative !important;
+  position:fixed !important;
   z-index:9999 !important;
-  isolation:isolate; /* Create new stacking context */
-  transform:translateZ(0); /* Force GPU layer / new stacking context */
-  margin-top:8px;
+  max-height:300px;
+  overflow:auto;
+  isolation:isolate;
+  transform:translateZ(0);
+  /* left/top set by JS based on input position */
 }
 .mention-item{
   padding:10px 12px;

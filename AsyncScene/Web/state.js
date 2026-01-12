@@ -143,7 +143,7 @@ window.Game = window.Game || {};
     if (id === "crowd_pool" || id === "daily_pool") {
       if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
       if (!Game.Debug.repPools || typeof Game.Debug.repPools !== "object") Game.Debug.repPools = {};
-      if (!Game.Debug.repPools[id]) Game.Debug.repPools[id] = { id, rep: 0, pool: true };
+      if (!Game.Debug.repPools[id]) Game.Debug.repPools[id] = { id, rep: 1000, pool: true };
       return Game.Debug.repPools[id];
     }
     if (id === "me") return { id: "me", kind: "me" };
@@ -183,10 +183,21 @@ window.Game = window.Game || {};
     const beforeFrom = (fromId === "me") ? (State.rep | 0) : (fromAcc.rep | 0);
     const beforeTo = (toId === "me") ? (State.rep | 0) : (toAcc.rep | 0);
     const amt = n | 0;
-    if (fromId === "me") State.rep = (State.rep | 0) - amt;
-    else fromAcc.rep = (fromAcc.rep | 0) - amt;
-    if (toId === "me") State.rep = (State.rep | 0) + amt;
-    else toAcc.rep = (toAcc.rep | 0) + amt;
+    
+    // Check sufficient funds (fix DUM-022 #3)
+    const available = beforeFrom | 0;
+    if (available < amt) {
+      if (isDevFlag()) {
+        try { console.warn("[REP] transferRep insufficient funds", { fromId, available, amt, reason }); } catch (_) {}
+      }
+      return { ok: false, reason: "insufficient_rep", available, requested: amt };
+    }
+    
+    // Apply transfer with clipping to prevent negative (fix DUM-022 #2)
+    if (fromId === "me") State.rep = Math.max(0, (State.rep | 0) - amt);
+    else fromAcc.rep = Math.max(0, (fromAcc.rep | 0) - amt);
+    if (toId === "me") State.rep = Math.max(0, (State.rep | 0) + amt);
+    else toAcc.rep = Math.max(0, (toAcc.rep | 0) + amt);
     if (fromId === "me" || toId === "me") {
       applyRepConversion();
       syncMeToPlayers();
@@ -394,7 +405,7 @@ window.Game = window.Game || {};
     // Cop reports (denunciations) runtime state
     reports: {
       lastAt: 0,
-      cooldownMs: 90_000, // 90s default
+      cooldownMs: 5 * 60 * 1000, // 5m default (canon: report cooldown matches villain jail window)
       // targetId -> { ok: boolean, at: number, by: "me", role: string }
       history: {},
     },
@@ -550,7 +561,7 @@ window.Game = window.Game || {};
     State.sightings = {};
     State.reports = {
       lastAt: 0,
-      cooldownMs: 90_000,
+      cooldownMs: 5 * 60 * 1000,
       history: {},
     };
     State.jailed = {};
@@ -841,11 +852,19 @@ window.Game = window.Game || {};
       by: "me",
       role: String(role || ""),
     };
-    State.reports.lastAt = Date.now();
+    // Canon: cooldown on "report" starts only after a successful report.
+    // (False reports should not lock the whole report action.)
+    if (ok) State.reports.lastAt = Date.now();
   }
 
   function hasReported(targetId){
-    return !!State.reports.history[targetId];
+    // Canon: reported targets disappear from lists only during the report cooldown window,
+    // and only after a successful report.
+    const rec = State.reports.history[targetId];
+    if (!rec || !rec.ok) return false;
+    const cd = State.reports.cooldownMs || 0;
+    if (!cd) return false;
+    return (Date.now() - (rec.at || 0)) < cd;
   }
 
   function applyReportByRole(role){
@@ -892,14 +911,8 @@ window.Game = window.Game || {};
       }
     }
 
-    // Evidence window: Cop accepts reports only if the role was seen recently.
-    // Toxic/bandit can be jailed even without recent evidence when reported by name.
-    const seenAt = State.sightings[roleKey] || 0;
-    const EVIDENCE_MS = 4 * 60 * 1000; // 4 minutes
-    const recentlySeen = (Date.now() - seenAt) <= EVIDENCE_MS;
-    const forceJail = (roleKey === "toxic" || roleKey === "bandit") && !!target;
-
-    if (!forceJail && hasReported(target.id)) {
+    // Prevent repeat report of the same target during cooldown window.
+    if (hasReported(target.id)) {
       copDm("Этот контакт уже отмечен. Повтор не требуется.");
       return { ok: false, reason: "already_reported", targetId: target.id };
     }
@@ -915,73 +928,20 @@ window.Game = window.Game || {};
     const reward = (N.COP && N.COP.report && Number.isFinite(N.COP.report.rewardPoints)) ? (N.COP.report.rewardPoints|0) : 2;
     const penalty = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty)) ? (N.COP.report.falsePenalty|0) : 5;
 
-      if (!recentlySeen && !forceJail) {
-        // No evidence: toxic/bandit/mafia tips are still rewarded, no false report.
-        if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
-          const tipReward = 2;
-          let payoutApplied = tipReward;
-          if (isCirculationEnabled()) {
-            const Econ = getEcon();
-            if (Econ && typeof Econ.transferPoints === "function") {
-              const acc = (State.players && target && target.id && State.players[target.id]) ? State.players[target.id] : null;
-              const available = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
-              const amt = Math.max(0, Math.min(tipReward, available));
-              if (amt > 0) {
-                Econ.transferPoints(target.id, "me", amt, "cop_tip", { role: roleKey });
-                payoutApplied = amt;
-              }
-            }
-          } else {
-            const acc = (State.players && target && target.id && State.players[target.id]) ? State.players[target.id] : null;
-            const available = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
-            const amt = Math.max(0, Math.min(tipReward, available));
-            if (amt > 0) {
-              acc.points = Math.max(0, acc.points - amt);
-              addPoints(amt, "cop_tip");
-              payoutApplied = amt;
-            }
-          }
-          
-          // REP повышение за донос
-          transferRep("crowd_pool", "me", 2, "rep_cop_tip", reportId);
-          
-          markReported(target.id, true, roleKey);
-          copDm(`Принял. Без подтверждений, но инфа зачтена. Вознаграждение ${payoutApplied} 💰.`);
-          if (roleKey === "mafia") {
-            const meName = (State.me && State.me.name) ? State.me.name : "Игрок";
-            copChat(`Благодаря ${meName} мафиози ${target.name} отмечен.`);
-          }
-          return { ok: true, targetId: target.id, role: roleKey, reward: payoutApplied, reason: "tip_no_evidence" };
-        }
-      }
-
-      if (truthful) {
-        transferRep("crowd_pool", "me", 5, "rep_report_true", reportId);
-        repTransferred = true;
-        markReported(target.id, true, roleKey);
-        copDm("Подтверждений мало. Доноса недостаточно.");
-        copChat("Доноса недостаточно для меры.");
-        return { ok: false, reason: "no_evidence", role: roleKey, penalty: 0 };
-      }
-
-      // Apply false report penalty for others
+    // Canon: truth is determined by actual role only. No "evidence window" gating.
+    // If role mismatched -> false report (REP penalty only).
+    if (!truthful) {
+      const prev = (State.reports && State.reports.history) ? State.reports.history[target.id] : null;
+      const repPenalty = (prev && prev.ok === false) ? 3 : 2;
       if (!State.players["npc_cop"]) {
         State.players["npc_cop"] = { id: "npc_cop", name: copName(), role: "cop", rep: 0 };
       }
-      transferRep("me", "npc_cop", 5, "rep_report_false", reportId);
-      if (isCirculationEnabled()) {
-        const Econ = getEcon();
-        if (Econ && typeof Econ.transferPoints === "function") {
-          Econ.transferPoints("me", "sink", penalty, "false_report");
-        }
-      } else {
-        spendPoints(penalty, "false_report");
-      }
-
+      transferRep("me", "npc_cop", repPenalty, "rep_report_false", reportId);
       markReported(target.id, false, roleKey);
-      copDm(`Подтверждений мало. Ложный донос. Штраф -${penalty} 💰`);
+      copDm(`Ложный донос. Штраф по репутации -${repPenalty}.`);
       copChat("Ложный донос зафиксирован.");
-      return { ok: false, reason: "no_evidence", role: roleKey, penalty };
+      return { ok: false, reason: "false_report", role: roleKey, repPenalty };
+    }
 
     const sendRevengeDM = (roleKey, jailedId) => {
       try {
@@ -999,23 +959,29 @@ window.Game = window.Game || {};
       } catch (_) {}
     };
 
-    if (truthful || forceJail) {
-      if (truthful && !repTransferred) {
-        transferRep("crowd_pool", "me", 5, "rep_report_true", reportId);
-        repTransferred = true;
-      }
+    if (truthful) {
       let payout = reward;
       const now = Date.now();
       const harm = State.victimByRole ? State.victimByRole[roleKey] : null;
       const HARM_WINDOW_MS = 10 * 60 * 1000;
       const hasHarm = harm && harm.loss > 0 && (now - harm.at) <= HARM_WINDOW_MS;
 
+      // Points canon:
+      // - Base reward: 2 points (transfer from villain to me)
+      // - If harmed recently: return stolen + 3 extra points
       if ((roleKey === "toxic" || roleKey === "bandit") && hasHarm) {
-        payout = (harm.loss | 0) + 2; // Возврат + 2 Points награда
-      } else if ((roleKey === "toxic" || roleKey === "bandit") && !recentlySeen) {
-        payout = 2; // Простая награда 2 Points
-      } else if (roleKey === "mafia") {
-        payout = 2; // Награда 2 Points
+        payout = (harm.loss | 0) + 3; // Возврат + 3 Points награда
+      } else {
+        payout = 2;
+      }
+
+      // REP canon:
+      // - Report without confirmations: +1
+      // - Report with harm confirmation: +2
+      if (!repTransferred) {
+        const repGain = hasHarm ? 2 : 1;
+        transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
+        repTransferred = true;
       }
 
       let payoutApplied = payout | 0;
@@ -1027,7 +993,7 @@ window.Game = window.Game || {};
           const available = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
           const amt = Math.max(0, Math.min(payout | 0, available));
           if (amt > 0) {
-            Econ.transferPoints(target.id, "me", amt, "cop_reward", { role: roleKey });
+            Econ.transferPoints(target.id, "me", amt, "cop_reward", { role: roleKey, battleId: reportId });
             payoutApplied = amt;
           }
         }

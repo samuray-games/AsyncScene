@@ -297,14 +297,11 @@
       const fromKey = String(fromId || "");
       const isPool = (fromKey === "sink" || fromKey === "crowd" || fromKey.startsWith("crowd:"));
       const isNpc = !!(from && (from.npc === true || from.type === "npc"));
-      const isPlayer = !isPool && !isNpc;
-      if (isPlayer) {
-        const maxSpend = Math.max(0, fromPts - 1);
-        if (amt > maxSpend) amt = maxSpend;
-      } else if (!isPool) {
+      // Canon: points may reach 0 (never below 0). No hidden "keep 1 💰" reserve for players.
+      if (!isPool) {
         if (amt > fromPts) amt = fromPts;
       }
-      if (amt <= 0) return { ok: false, reason: "min_reserve", have: fromPts, need: (n | 0) };
+      if (amt <= 0) return { ok: false, reason: "insufficient", have: fromPts, need: (n | 0) };
     } else {
       if (fromPts < amt) return { ok: false, reason: "insufficient", have: fromPts, need: amt };
     }

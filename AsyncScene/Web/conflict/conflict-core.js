@@ -986,7 +986,9 @@
     const me = Game.State.me;
     ensurePointsField(me);
 
-    if ((me.points|0) <= 1) {
+    // Canon: points may be 0; only negative is forbidden.
+    // Allow starting a battle with 1 point (cost is applied elsewhere).
+    if ((me.points|0) <= 0) {
       return { ok: false, reason: "no_points" };
     }
     // NOTE: start cost is applied by conflict-economy.js, not here
@@ -1138,7 +1140,7 @@
       }
     }
     const cost = (mode === "off") ? 0 : ((opts && typeof opts.cost === "number") ? (opts.cost | 0) : escapeCostForBattle(b));
-    if (mode !== "off" && (me.points|0) <= 1) return { ok: false, reason: "no_points", cost, have: (me.points|0) };
+    if (mode !== "off" && (me.points|0) <= 0) return { ok: false, reason: "no_points", cost, have: (me.points|0) };
     if ((me.points|0) < cost) return { ok: false, reason: "no_points", cost, have: (me.points|0) };
 
     return startEscapeVote(b, mode, cost);
@@ -1155,7 +1157,7 @@
     let total = 0;
     for (const b of active) total += escapeCostForBattle(b);
 
-    if (total > 0 && (me.points|0) <= 1) {
+    if (total > 0 && (me.points|0) <= 0) {
       return { ok: false, reason: "no_points", cost: total, have: (me.points|0) };
     }
     if ((me.points|0) < total) {
@@ -1432,12 +1434,25 @@
     try {
       const tx = econTransfer(loserId, winnerId, 1, "rematch_request_cost", { battleId: b.id, rematchOf: b.id });
       if (!tx || tx.ok !== true) {
-        const loser = getPlayer(loserId);
-        const winner = getPlayer(winnerId);
+        // If econ is present but refuses due to insufficient points, do NOT apply legacy fallback.
+        const have =
+          (loserId === "me")
+            ? ((Game.State && Game.State.me && Number.isFinite(Game.State.me.points)) ? (Game.State.me.points | 0) : 0)
+            : ((getPlayer(loserId) && Number.isFinite(getPlayer(loserId).points)) ? (getPlayer(loserId).points | 0) : 0);
+
+        if (tx && tx.reason && tx.reason !== "no_econ") {
+          return { ok: false, reason: "no_points", cost: 1, have };
+        }
+
+        // No econ: apply safe legacy transfer with a strict funds check.
+        const loser = (loserId === "me") ? (Game.State && Game.State.me) : getPlayer(loserId);
+        const winner = (winnerId === "me") ? (Game.State && Game.State.me) : getPlayer(winnerId);
         ensurePointsField(loser);
         ensurePointsField(winner);
-        if (loser) loser.points = clamp0((loser.points | 0) - 1);
-        if (winner) winner.points = clamp0((winner.points | 0) + 1);
+        if (!loser || !winner) return { ok: false, reason: "no_points", cost: 1, have };
+        if ((loser.points | 0) < 1) return { ok: false, reason: "no_points", cost: 1, have: (loser.points | 0) };
+        loser.points = clamp0((loser.points | 0) - 1);
+        winner.points = clamp0((winner.points | 0) + 1);
       }
     } catch (_) {}
 

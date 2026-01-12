@@ -725,14 +725,18 @@ window.Game = window.Game || {};
           try {
             if (Game && Game.Events && typeof Game.Events.helpEvent === "function") {
               ok = !!Game.Events.helpEvent(eventId, side);
-              // Mirror into local crowd state for immediate UI feedback (avoid "vote not counted" glitch)
-              if (ok) {
-                const crowdNow = getCrowdState(e);
-                const meNow = (S && S.me && S.me.id) ? S.me.id : "me";
-                if (crowdNow && (!crowdNow.voters || typeof crowdNow.voters !== "object")) crowdNow.voters = {};
-                if (crowdNow && !crowdNow.voters[meNow]) {
-                  // Only apply if not already recorded to avoid double counting
-                  voteForSide(e, side);
+              // Sync local state from Game.State immediately after vote
+              if (ok && Game.State && Array.isArray(Game.State.events)) {
+                const freshEvent = Game.State.events.find(x => x.id === eventId);
+                if (freshEvent && freshEvent.crowd) {
+                  const crowdLocal = getCrowdState(e);
+                  if (crowdLocal) {
+                    crowdLocal.voters = freshEvent.crowd.voters || {};
+                    crowdLocal.aVotes = freshEvent.crowd.aVotes | 0;
+                    crowdLocal.bVotes = freshEvent.crowd.bVotes | 0;
+                    crowdLocal.votesA = freshEvent.crowd.votesA | 0;
+                    crowdLocal.votesB = freshEvent.crowd.votesB | 0;
+                  }
                 }
               }
             } else {
@@ -743,6 +747,21 @@ window.Game = window.Game || {};
           }
 
           if (ok) setEventNote(e, t("vote_ok"));
+
+          // Sync battle crowd data from Game.State.battles before render
+          if (ok && Game && Game.State && Array.isArray(Game.State.battles)) {
+            const battleId = (e && e.battleId) || (ne && ne.battleId) || null;
+            if (battleId) {
+              const freshBattle = Game.State.battles.find(x => x.id === battleId);
+              const localBattle = S && Array.isArray(S.battles) ? S.battles.find(x => x.id === battleId) : null;
+              if (freshBattle && localBattle && freshBattle.crowd) {
+                localBattle.crowd = localBattle.crowd || {};
+                localBattle.crowd.votesA = freshBattle.crowd.votesA | 0;
+                localBattle.crowd.votesB = freshBattle.crowd.votesB | 0;
+                localBattle.crowd.voters = freshBattle.crowd.voters || {};
+              }
+            }
+          }
 
           // Immediate synchronous render for battles to show vote counts instantly (fixes DUM-009)
           if (UI && typeof UI.renderBattles === "function") UI.renderBattles();

@@ -1,14 +1,13 @@
 # Progress Scale — AsyncScene
 
-<<<<<<< HEAD
 ## Current Stage
-- Каркас + стабилизация. Economy wave 5: gate PASS, реализация в работе.
+- Каркас + стабилизация. Economy wave 5: scope PASS, реализация в работе.
 
 ## What is done
 - REP v1.0: закрыт PASS (не переобсуждается).
 - UI honesty: закрыта PASS.
 - Economy wave 1–4: закрыты PASS.
-- Economy wave 5: gate PASS.
+- Economy wave 5: scope PASS.
 
 ## What is not done
 - Economy wave 5: реализация (ещё не закрыта PASS).
@@ -17,7 +16,8 @@
 ## One next logical step
 - Зафиксировать в `TEAM_LOG.md` (NAV) актуальный snapshot по `PROGRESS_SCALE.md` и следующий шаг.
 
-=======
+---
+
 Шкала прогресса от "игры нет" до "в игру активно играют".  
 Порядок этапов фиксирован. Каждый этап закрывается по критериям выхода, не по ощущениям.
 
@@ -290,5 +290,4 @@
 
 ---
 
-**Последнее обновление:** 2026-01-12
->>>>>>> 3397d9b333f1f1a6137aa5fe970d9c6182d35348
+**Последнее обновление:** 2026-01-13
