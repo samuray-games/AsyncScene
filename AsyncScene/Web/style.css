@@ -1,0 +1,1338 @@
+/* Menu panel (right column, pushes content down) */
+.menuPanel {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+/* When menu is open, push only the right blocks stack down (not the top bar) */
+#right.menu-open #blocks{
+  padding-top: calc(var(--menu-height, 0px) + 14px);
+}
+
+#blocks{
+  padding-top: 0;
+}
+
+/* Menu close button, like .btn.closeX but aligned right */
+.menuCloseBtn {
+  width: 44px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 900;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  margin-left: auto;
+}
+.menuCloseBtn:hover {
+  background: var(--surfaceHover);
+}
+
+/* Lottery input styles */
+.lotteryRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-direction: column;
+}
+.lotteryInput {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  text-align: center;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+.lotteryInput:focus {
+  border-color: rgba(120,180,255,.45);
+}
+.lotteryStepper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lotteryStepper button {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lotteryHint {
+  color: var(--muted);
+  font-size: 13px;
+  margin-left: 4px;
+}
+.lotteryToast{
+  position: fixed;
+  z-index: 220;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 800;
+  display: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.influenceToast{
+  position: fixed;
+  z-index: 220;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 900;
+  display: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.statToast{
+  position: fixed;
+  z-index: 220;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 900;
+  display: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* style.css */
+:root{
+  --bg:#070a12;
+  --panel:#0f1626;
+  --panel2:#0c1220;
+  --panelSolid:#0f1626;
+  --line:rgba(255,255,255,.08);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.65);
+  --muted2:rgba(255,255,255,.45);
+  --shadow:0 20px 70px rgba(0,0,0,.6);
+  --r:22px;
+
+  --y:rgba(255,215,0,.85);
+  --o:rgba(255,140,0,.85);
+  --rcol:rgba(255,70,70,.9);
+
+  --kcol:rgba(25,28,36,.92);
+  --kbd:rgba(0,0,0,.55);
+
+  --ybd:rgba(255,215,0,.55);
+  --obd:rgba(255,140,0,.55);
+  --rbd:rgba(255,70,70,.60);
+  --y-shadow:none;
+
+  --sys:rgba(120,180,255,.25);
+  --sysText:rgba(210,235,255,.95);
+
+  --surface:var(--panel);
+  --surfaceSoft:var(--panel2);
+  --surfaceHover:var(--panel2);
+  --panelGradTop:var(--panel);
+  --panelGradTopAlt:var(--panel);
+  --panelGradBottom:var(--panel);
+
+  --cardBg:var(--panel2);
+  --chipNeutralBg:rgba(255,255,255,.03);
+  --chipNeutralBorder:rgba(255,255,255,.10);
+  --chipHiddenBg:rgba(255,255,255,.06);
+  --chipHiddenBorder:rgba(255,255,255,.18);
+  --hiddenText:rgba(255,255,255,.92);
+  --onDark:rgba(255,255,255,.92);
+  --mention-other-color:rgba(120,220,160,.95);
+}
+
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f4f6fb;
+    --panel:#ffffff;
+    --panel2:#f2f4fa;
+    --panelSolid:#ffffff;
+    --line:rgba(12,18,32,.12);
+    --text:rgba(12,18,32,.92);
+    --muted:rgba(12,18,32,.62);
+    --muted2:rgba(12,18,32,.45);
+    --shadow:0 22px 60px rgba(20,30,60,.18);
+
+    --kcol:rgba(24,30,42,.86);
+    --kbd:rgba(10,14,22,.28);
+
+    --sys:rgba(60,120,255,.16);
+    --sysText:rgba(20,36,70,.96);
+
+    --surface:var(--panel);
+    --surfaceSoft:var(--panel2);
+    --surfaceHover:var(--panel2);
+    --panelGradTop:var(--panel);
+    --panelGradTopAlt:var(--panel);
+    --panelGradBottom:var(--panel);
+    --y-shadow:0 1px 1px rgba(0,0,0,.35);
+
+    --cardBg:var(--panel2);
+    --chipNeutralBg:rgba(12,18,32,.05);
+    --chipNeutralBorder:rgba(12,18,32,.18);
+    --chipHiddenBg:rgba(12,18,32,.10);
+    --chipHiddenBorder:rgba(12,18,32,.26);
+    --hiddenText:rgba(12,18,32,.92);
+    --onDark:rgba(255,255,255,.92);
+    --mention-other-color:rgba(20,120,90,.90);
+  }
+
+  body{
+    background:
+      radial-gradient(900px 500px at 35% 12%, rgba(160,190,255,.35), transparent 60%),
+      radial-gradient(900px 600px at 85% 65%, rgba(150,230,210,.28), transparent 60%),
+      radial-gradient(1100px 900px at 30% 90%, rgba(255,180,210,.28), transparent 60%),
+      var(--bg);
+  }
+}
+
+*{box-sizing:border-box}
+html,body{min-height:100%; height:100%}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--text);
+  background:
+    radial-gradient(900px 500px at 35% 12%, rgba(70,100,255,.14), transparent 60%),
+    radial-gradient(900px 600px at 85% 65%, rgba(120,255,220,.10), transparent 60%),
+    radial-gradient(1100px 900px at 30% 90%, rgba(255,120,200,.10), transparent 60%),
+    var(--bg);
+  overflow:hidden;
+}
+
+#app{
+  height:100vh;
+  display:grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap:14px;
+  padding:14px;
+}
+#left,#right{
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  height:100%;
+}
+#left{overflow:hidden}
+#right{overflow:visible; position:relative}
+
+/* Top bars (chat header + right top bar) */
+#chatHeader,#topBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panelSolid);
+  box-shadow: var(--shadow);
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+
+#meBar{
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#balance{
+  font-weight:900;
+}
+.pointsWrap{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+}
+.pointsRow{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+.pointsValue{
+  color:var(--text);
+}
+.pointsValue.is-cap{
+  color:var(--rcol);
+}
+.is-cap{
+  color:var(--rcol);
+}
+.pointsOverflow{
+  font-size:11px;
+  font-weight:900;
+  color:var(--muted);
+  margin-left:2px;
+}
+.light .pointsOverflow{
+  color:rgba(40,90,160,.95);
+}
+.pointsNote{
+  font-size:11px;
+  line-height:1.1;
+  color:var(--muted);
+}
+.lotteryDock{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:0 4px;
+}
+.locDropdown{
+  position:absolute;
+  top:48px;
+  left:0;
+  z-index:30;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panelSolid);
+  box-shadow:var(--shadow);
+  max-height:320px;
+  overflow:auto;
+}
+
+.righty{
+  color:var(--muted);
+  font-size:13px;
+  font-weight:800;
+  user-select:none;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* Left chat container (IDs) */
+#left{
+  min-height:0;
+}
+#chatLog{
+  min-height:0;
+  flex:1 1 auto;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+#chatInputRow{
+  flex:0 0 auto;
+  border-top:1px solid var(--line);
+  padding:12px;
+  display:flex;
+  gap:10px;
+}
+
+/* Inputs by ID */
+#chatInput,#dmInput,#nameInput,#reportInput{
+  width:100%;
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  outline:none;
+}
+#chatInput:focus,#dmInput:focus,#nameInput:focus,#reportInput:focus{border-color:rgba(120,180,255,.45)}
+
+/* Right blocks wrapper */
+#blocks{
+  min-height:0;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  flex:1 1 auto;
+  position:relative;
+}
+#blocks{scrollbar-width:none}
+#blocks::-webkit-scrollbar{width:0;height:0}
+
+#blocks.has-overlay-panel{
+  overflow:hidden;
+}
+
+.right.has-overlay-panel .block.panel--full,
+.right.has-overlay-panel .panel.panel--full{
+  position:absolute;
+  inset:0;
+  z-index:6;
+  margin:0;
+  opacity:1;
+}
+
+.right.has-overlay-panel .block:not(.panel--full),
+.right.has-overlay-panel .panel:not(.panel--full){
+  pointer-events:none;
+  opacity:1;
+}
+
+.rightScroll{
+  position:absolute;
+  left:-10px;
+  top:var(--right-scroll-top, 0px);
+  height:var(--right-scroll-height, 100%);
+  width:16px;
+  border-radius:10px;
+  background:rgba(0,0,0,.22);
+  border:1px solid var(--line);
+  padding:2px;
+  z-index:50;
+}
+.rightScroll.is-hidden{
+  opacity:0;
+  pointer-events:none;
+}
+.rightScrollThumb{
+  width:100%;
+  height:40px;
+  border-radius:8px;
+  background:var(--text);
+  border:1px solid var(--line);
+  opacity:.35;
+  cursor:grab;
+  touch-action:none;
+}
+.rightScroll.dragging .rightScrollThumb{
+  cursor:grabbing;
+}
+
+/* Allow the whole page to scroll when panels exceed viewport height */
+body{overflow:hidden}
+
+/* Map .block structure to .panel styles */
+.block{
+  border:1px solid var(--line);
+  border-radius: var(--r);
+  background:linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+  box-shadow: var(--shadow);
+  overflow:hidden;
+  min-height:0;
+  flex:0 0 auto;
+}
+.block.panel{
+  width:100%;
+  min-width:0;
+}
+.blockHeader{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  min-height:56px; /* меньше "прыжков" при смене размеров */
+}
+.blockHeader.clickable{cursor:pointer}
+
+/* Default inner scrolling for long bodies */
+.blockBody{
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:0;
+  max-height:420px;
+  overflow:auto;
+  flex:0 0 auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+
+/* Allow inner scrolling in collapsible bodies */
+.blockBody.scroll{max-height:360px; overflow:auto}
+
+/* ------------------------------ */
+/* 3 sizes for blocks: collapsed / medium / max (full height like chat) */
+
+/* Collapsed: body hidden */
+.block.size-collapsed .blockBody{display:none !important}
+
+/* Medium: keep default max-heights */
+.block.size-medium .blockBody{display:flex}
+.block.size-medium .blockBody.scroll{max-height:360px}
+
+/* Max: block takes remaining column height and body becomes full-height */
+.block.size-max{
+  flex:1 1 auto;
+  min-height:0;
+}
+.block.size-max .blockBody{
+  flex:1 1 auto;
+  max-height:none;
+}
+.block.size-max .blockBody.scroll{
+  flex:1 1 auto;
+  max-height:none;
+}
+
+/* ------------------------------ */
+/* Aliases for Step 10 (ui-core.js): panel--collapsed / panel--medium / panel--full */
+/* These do not replace existing size-* classes, they simply mirror them. */
+
+/* Collapsed */
+.block.panel--collapsed .blockBody{display:none !important}
+
+/* Medium */
+.block.panel--medium .blockBody{display:flex}
+.block.panel--medium .blockBody.scroll{max-height:360px}
+
+/* Full (max) */
+.block.panel--full{
+  flex:1 1 auto;
+  min-height:0;
+}
+.block.panel--full .blockBody{
+  flex:1 1 auto;
+  max-height:none;
+}
+.block.panel--full .blockBody.scroll{
+  flex:1 1 auto;
+  max-height:none;
+}
+
+/* Same sizing rules for .panel */
+/* Primary: panel--* (new) */
+/* Legacy aliases: size-* (old) */
+.panel.panel--collapsed .panelBody,
+.panel.size-collapsed .panelBody{display:none !important}
+
+.panel.panel--medium .panelBody,
+.panel.size-medium .panelBody{display:flex}
+
+.panel.panel--medium .panelBody.scroll,
+.panel.size-medium .panelBody.scroll{max-height:360px}
+
+.panel.panel--full,
+.panel.size-max{flex:1 1 auto; min-height:0}
+
+.panel.panel--full .panelBody,
+.panel.size-max .panelBody{flex:1 1 auto}
+
+.panel.panel--full .panelBody.scroll,
+.panel.size-max .panelBody.scroll{max-height:none}
+
+.hidden{display:none !important}
+
+.layout{
+  height:100%;
+  display:grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap:14px;
+  padding:14px;
+}
+
+.left,.right{
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(180deg, var(--panelGradTop), var(--panelGradBottom));
+  box-shadow: var(--shadow);
+}
+
+.pill{
+  padding:7px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--surface);
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.btn{
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  cursor:pointer;
+}
+.btn:hover{background:var(--surfaceHover)}
+.btn.primary{
+  background:rgba(70,110,255,.20);
+  border-color:rgba(70,110,255,.35);
+}
+.btn.icon{
+  margin-left:auto;
+  width:44px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  font-size:16px;
+}
+
+button{
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:900;
+}
+button:hover{background:var(--surfaceHover)}
+button:disabled{opacity:.55; cursor:not-allowed}
+
+.miniBtn{
+  padding:8px 10px;
+  border-radius:12px;
+  font-weight:900;
+}
+
+/* ------------------------------ */
+/* Step 10: panel controls aliases (used by ui-battles/ui-events/ui-dm) */
+/* Resize button: single glyph ⤢, big and readable */
+.panelResizeBtn{
+  position:relative;
+  width:44px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  font-size:22px;
+  font-weight:900;
+  line-height:1;
+  user-select:none;
+}
+
+/* If some module still uses .btn.toggle triangles, ensure they stay disabled for alias too */
+.panelResizeBtn::before,
+.panelResizeBtn::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Direction change (optional): inward can be used by modules */
+.panelResizeBtn.inward{
+  transform: rotate(180deg);
+}
+
+/* Max size indicator: red button in max */
+/* Supports both ui-core helper ".is-max" and legacy ".maxed" */
+.panelResizeBtn.is-max,
+.panelResizeBtn.maxed{
+  background:rgba(255,70,70,.18);
+  border-color:rgba(255,70,70,.45);
+}
+
+/* Close button alias (✕) */
+.panelCloseBtn{
+  width:44px;
+  height:40px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  font-size:22px;
+  line-height:1;
+  font-weight:900;
+}
+
+.panelCtrlBtn{
+  width:34px;
+  height:32px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  font-weight:900;
+  cursor:pointer;
+}
+.panelCtrlBtn:hover{background:var(--surfaceHover)}
+.panelCtrlBtn.is-active{
+  background:var(--sys);
+  color:var(--sysText);
+  border-color:rgba(120,180,255,.45);
+}
+
+.manifestPanel{
+  margin-top:10px;
+}
+
+.manifestBody{
+  max-height:220px;
+  overflow:auto;
+  white-space:pre-line;
+}
+
+/* One toggle button: glyph ⤢, direction changes via rotation */
+.btn.toggle{
+  position:relative;
+  width:44px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  font-size:22px;       /* крупная и читаемая */
+  font-weight:900;
+  line-height:1;
+  user-select:none;
+}
+
+/* Use the text glyph, not pseudo-triangles */
+.btn.toggle::before,
+.btn.toggle::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Direction change (collapse/expand) */
+.btn.toggle.inward{
+  transform: rotate(180deg);
+}
+
+/* Max size indicator: button turns red */
+/* Supports both legacy class ".maxed" and ui-core helper class ".is-max" */
+.btn.toggle.maxed,
+.btn.toggle.is-max{
+  background:rgba(255,70,70,.18);
+  border-color:rgba(255,70,70,.45);
+}
+
+.btn.closeX{
+  width:44px;
+  height:40px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  font-size:22px; /* крупнее и читаемее */
+  line-height:1;
+  font-weight:900;
+}
+
+.btn.small{padding:7px 10px; border-radius:12px; font-size:13px}
+
+.input{
+  width:100%;
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  outline:none;
+}
+.input:focus{border-color:rgba(120,180,255,.45)}
+
+.chat{
+  min-height:0;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  border:1px solid var(--line);
+  border-radius: var(--r);
+  background:linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+  box-shadow: var(--shadow);
+  overflow:hidden;
+  resize: vertical;
+}
+
+.chatHeader{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  position:relative;
+}
+
+.chatLog{
+  min-height:0;
+  flex:1;
+  overflow:auto;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.chatInputRow{
+  border-top:1px solid var(--line);
+  padding:12px;
+  display:flex;
+  gap:10px;
+}
+
+.h1{font-size:44px; font-weight:800; letter-spacing:.2px}
+.h2{font-size:18px; font-weight:800}
+.muted{color:var(--muted)}
+.small{font-size:13px; color:var(--muted)}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mb8{margin-bottom:8px}
+
+.panel{
+  border:1px solid var(--line);
+  border-radius: var(--r);
+  background:linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.panelHeader{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.capLine{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+.panelHeader.clickable{cursor:pointer}
+.panelBody{padding:12px 14px; display:flex; flex-direction:column; gap:12px; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable}
+
+/* Optional scroll body for collapsible panels */
+.panelBody.scroll{
+  max-height:360px;
+  overflow:auto;
+}
+
+
+.chev{color:var(--muted); font-size:18px; user-select:none}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  font-size:12px;
+  color:var(--muted);
+}
+
+.bubble{
+  display:block;
+  width:100%;
+  padding:10px 12px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bubble:hover{background:var(--surfaceHover)}
+/* Make the whole bubble the click target */
+.bubble *{
+  pointer-events:none;
+}
+.bubble:focus-visible{
+  outline:2px solid rgba(120,180,255,.55);
+  outline-offset:2px;
+}
+.bubble .meta{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.bubble .name{color:var(--text); font-weight:800}
+.bubble .lvl{color:var(--muted2)}
+.bubble .txt{white-space:pre-wrap; line-height:1.35}
+
+.mention{
+  color:rgba(120,180,255,.95);
+  font-weight:900;
+}
+.mention.other{
+  color:var(--mention-other-color);
+}
+.mention.me{
+  background:rgba(120,180,255,.18);
+  border:1px solid rgba(120,180,255,.35);
+  padding:0 6px;
+  border-radius:10px;
+}
+/* Mentions autocomplete dropdown */
+.mention-list{
+  position:fixed;
+  left:18px;
+  bottom:74px; /* sits above the chat input row */
+  width:min(360px, calc(100vw - 36px));
+  max-height:260px;
+  overflow:auto;
+  z-index:2000;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+  box-shadow: var(--shadow);
+  padding:6px;
+}
+
+/* When mention-list is used INSIDE a panel (e.g., battles invite), it must NOT be fixed at the bottom.
+   Keep chat dropdown behavior unchanged (fixed), but make nested ones inline. */
+.block .mention-list,
+.panel .mention-list,
+.eventCard .mention-list,
+.battleCard .mention-list{
+  position:static;
+  left:auto;
+  right:auto;
+  bottom:auto;
+  width:100%;
+  max-width:none;
+  max-height:220px;
+  margin-top:8px;
+  z-index:auto;
+}
+.mention-item{
+  padding:10px 12px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:900;
+  color:var(--text);
+  user-select:none;
+}
+.mention-item:hover{
+  background:rgba(120,180,255,.12);
+}
+.mention-item.active{
+  background:rgba(120,180,255,.18);
+  border:1px solid rgba(120,180,255,.25);
+}
+.bubble.meMention{
+  border-color:rgba(120,180,255,.35);
+  box-shadow:0 0 0 2px rgba(120,180,255,.10);
+}
+
+.bubble.sys{
+  background:var(--sys);
+  border-color:rgba(120,180,255,.35);
+}
+.bubble.sys .name{color:var(--sysText)}
+.bubble.sys .txt{color:var(--sysText)}
+.bubble.sys .meta{color:rgba(210,235,255,.75)}
+
+.dmLog{
+  max-height:none;
+  overflow:visible;
+  flex:0 0 auto;
+  min-height:0;
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.dmList{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:6px 0;
+  max-width:100%;
+}
+.dmList .dmTab{
+  cursor:pointer;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.dmList .dmTab.active{
+  border-color:rgba(120,180,255,.4);
+}
+.dmTabRow{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.dmTabClose{
+  min-width:28px;
+  padding:2px 8px;
+}
+#dmBlock{
+  display:flex;
+  flex-direction:column;
+}
+#dmBlock .panelBody{
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:0;
+  flex:1 1 auto;
+}
+#dmBlock.panel--medium .panelBody,
+#dmBlock.size-medium .panelBody{
+  height:calc(100% - 56px);
+}
+#dmBlock.panel--medium,
+#dmBlock.size-medium{
+  height:420px;
+  display:flex;
+  flex-direction:column;
+}
+#dmBlock.panel--full .panelBody{
+  max-height:none;
+  overflow:hidden;
+}
+.dmActions{
+  padding:12px 14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.dmInputRow{
+  padding:12px 14px;
+  border-top:1px solid var(--line);
+  display:flex;
+  gap:10px;
+}
+.policeBox{
+  padding:0 14px 14px 14px;
+  width:100%;
+}
+.policeBox .row{width:100%; flex-wrap:nowrap}
+.policeBox #reportInput{flex:1 1 auto; width:auto; min-width:0}
+.policeBox #reportBtn{flex:0 0 auto}
+.policeBox #reportHint{
+  display:block;
+  width:100%;
+  white-space:normal;
+}
+.policeBox .mention-list{width:100%; max-width:none}
+.policeBox input{flex:1 1 auto; width:auto}
+#dmExtraRow{width:100%}
+#dmExtraRow #reportInput{flex:1 1 220px; width:auto; min-width:0}
+#dmExtraRow #reportBtn{flex:0 0 auto}
+#dmExtraRow #reportHint{
+  display:block;
+  width:100%;
+  white-space:normal;
+}
+#dmExtraRow #reportList{
+  width:100%;
+  max-width:none;
+}
+.row{display:flex; gap:10px; align-items:center}
+
+.battleCard,.eventCard{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  background:var(--cardBg);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* -------------------------------------------------- */
+/* Event voting button states: base, disabled, selected, hover */
+/* Supports BOTH:
+   - native disabled attribute (:disabled)
+   - class-based state (.is-disabled)
+   - aria-disabled (aria-disabled="true")
+   - selected state via .selected or .is-selected
+*/
+.eventVoteBtn{
+  cursor:pointer;
+  transition:opacity .18s, background .18s, border-color .18s, filter .18s, box-shadow .18s;
+  border:1.5px solid var(--line);
+  border-radius:14px;
+  background:var(--surface);
+  color:var(--text);
+  opacity:1;
+}
+
+/* Disabled (greyed) - unselected */
+.eventVoteBtn:disabled,
+.eventVoteBtn.is-disabled,
+.eventVoteBtn[aria-disabled="true"]{
+  opacity:.45;
+  filter:grayscale(1);
+  cursor:not-allowed;
+  background:var(--surfaceSoft);
+  pointer-events:none;
+}
+
+/* Selected (your vote) - highlighted */
+.eventVoteBtn.selected,
+.eventVoteBtn.is-selected{
+  background:var(--sys);
+  border-color:rgba(120,180,255,.65);
+  color:var(--sysText);
+  opacity:1;
+  filter:none;
+  box-shadow:0 0 0 2px rgba(120,180,255,.12);
+}
+
+/* Selected AND disabled: keep highlight, but still non-clickable */
+.eventVoteBtn.selected:disabled,
+.eventVoteBtn.is-selected.is-disabled,
+.eventVoteBtn.selected[aria-disabled="true"],
+.eventVoteBtn.is-selected[aria-disabled="true"]{
+  opacity:1;
+  filter:none;
+  background:var(--sys);
+  border-color:rgba(120,180,255,.65);
+  color:var(--sysText);
+  pointer-events:none;
+}
+
+/* Hover only when clickable */
+.eventVoteBtn:not(:disabled):not(.is-disabled):not([aria-disabled="true"]):hover{
+  background:rgba(120,180,255,.09);
+}
+/* -------------------------------------------------- */
+.battleTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.kpill{
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  font-size:13px;
+  color:var(--muted);
+}
+.kpill strong{color:var(--text)}
+.noteLine{color:var(--muted); font-size:13px}
+.actions{display:flex; flex-wrap:wrap; gap:10px}
+.choiceRow{display:flex; flex-wrap:wrap; gap:10px}
+.eventVoteRow{display:flex; flex-wrap:wrap; gap:10px}
+
+.chip{
+  padding:10px 12px;
+  border-radius:14px;
+  border:2px solid var(--chipNeutralBorder);
+  background:var(--chipNeutralBg);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  user-select:none;
+  color:var(--text);
+}
+.chip:hover{filter:brightness(1.03)}
+
+/* Strength fills + borders */
+.chip.y{background:var(--y); border-color:var(--ybd)}
+.chip.o{background:var(--o); border-color:var(--obd)}
+.chip.r{background:var(--rcol); border-color:var(--rbd)}
+.chip.y,.chip.o,.chip.r{color:#000}
+.chip.k{background:var(--kcol); border-color:var(--kbd); color:var(--onDark)}
+
+/* Hidden argument (no color yet) */
+.chip.hiddenPower{
+  /* hidden power: keep the chip itself neutral but readable */
+  background:var(--chipHiddenBg);
+  border-color:var(--chipHiddenBorder);
+  color:var(--hiddenText);
+}
+
+/* Explicit readable text for hidden-power argument label */
+.hiddenText{
+  color:var(--hiddenText);
+}
+
+/* If a hidden-power chip contains nested text nodes, keep them readable too */
+.chip.hiddenPower *{
+  color:inherit;
+}
+
+/* Ensure hiddenText stays readable inside any container */
+.hiddenText *{
+  color:inherit;
+}
+
+/* Reveal outline AFTER choosing a counter */
+.reveal.y{outline:3px solid rgba(255,215,0,.55)}
+.reveal.o{outline:3px solid rgba(255,140,0,.55)}
+.reveal.r{outline:3px solid rgba(255,70,70,.60)}
+.reveal.k{outline:3px solid rgba(0,0,0,.70)}
+
+.modalMask{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  z-index:50;
+}
+.modal{
+  position:fixed;
+  left:50%; top:50%;
+  transform: translate(-50%, -50%);
+  width:min(720px, calc(100vw - 28px));
+  max-height:min(75vh, 740px);
+  overflow:auto;
+  z-index:60;
+  border:1px solid var(--line);
+  border-radius: var(--r);
+  background:linear-gradient(180deg, rgba(20,30,55,.95), rgba(10,15,30,.92));
+  box-shadow: var(--shadow);
+}
+.modalHeader{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.teachList{
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  place-items:center;
+  padding:16px;
+  background:rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+  z-index:100;
+}
+.overlay.active{display:grid}
+.card{
+  width:min(920px, calc(100vw - 24px));
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:linear-gradient(180deg, rgba(20,30,55,.94), rgba(10,15,30,.90));
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.cardHeader{
+  padding:18px 18px 12px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+.login{max-width:980px}
+.formRow{padding:14px 18px}
+.label{display:block; margin-bottom:8px; color:var(--muted); font-size:13px}
+.card .row{padding:0 18px 14px 18px}
+
+/* Start screen overlay */
+#startScreen{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.62);
+  backdrop-filter: blur(10px);
+  z-index:9999;
+}
+#startCard{
+  width:min(420px, calc(100vw - 28px));
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:linear-gradient(180deg, var(--panel), var(--panel2));
+  box-shadow: var(--shadow);
+  padding:18px;
+  text-align:center;
+}
+#startCard .input{
+  background:var(--surface);
+  color:var(--text);
+}
+#startCard .btn{
+  background:var(--surface);
+  color:var(--text);
+}
+#startCard .btn.primary{
+  background:var(--sys);
+  color:var(--sysText);
+  border-color:rgba(120,180,255,.45);
+}
+
+@media (prefers-color-scheme: light){
+  #startScreen{
+    background:rgba(12,18,32,.25);
+  }
+}
+#startCard h1{
+  margin:6px 0 14px 0;
+  font-size:22px;
+  font-weight:900;
+}
+#startManifestShort{
+  white-space:normal;
+  max-width:100%;
+  text-align:left;
+  line-height:1.35;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+#startBtns{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+#startHint{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.35;
+}
+@media (max-width: 860px){
+  .mention-list{
+    left:14px;
+    right:14px;
+    width:auto;
+  }
+}

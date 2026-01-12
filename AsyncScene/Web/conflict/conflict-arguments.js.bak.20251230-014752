@@ -1,0 +1,389 @@
+//
+//  conflict-arguments.js
+//  AsyncScene
+//
+//  Created by Ray on 2025/12/18.
+//
+
+
+// conflict/conflict-arguments.js
+(function () {
+  const A = {};
+
+  function safeList(arr) {
+    return Array.isArray(arr) ? arr : [];
+  }
+
+  // Accept arrays or arbitrarily nested objects of arrays.
+  // Examples supported:
+  // - [ {..}, {..} ]
+  // - { yesno:[..], who:[..] }
+  // - { yesno:{ y:[..], o:[..] }, who:{ y:[..] } }
+  function flattenArgs(src) {
+    const out = [];
+
+    const walk = (v) => {
+      if (!v) return;
+      if (Array.isArray(v)) {
+        for (const item of v) out.push(item);
+        return;
+      }
+      if (typeof v === "object") {
+        for (const vv of Object.values(v)) walk(vv);
+      }
+    };
+
+    walk(src);
+    return out;
+  }
+
+  function getUtil() {
+    // Support both window.Util and Game.Util
+    if (typeof window !== "undefined" && window.Util && typeof window.Util.pickN === "function") return window.Util;
+    if (typeof Game !== "undefined" && Game && Game.Util && typeof Game.Util.pickN === "function") return Game.Util;
+    return null;
+  }
+
+  function pickN(pool, n) {
+    const src = safeList(pool).slice();
+    const U = getUtil();
+    if (U) {
+      // Some Util.pickN implementations return [] when pool < n.
+      // We want "up to n" here and we will pad later.
+      const out = U.pickN(src, Math.min(n, src.length));
+      return safeList(out);
+    }
+    // Fallback: simple shuffle, take n.
+    for (let i = src.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [src[i], src[j]] = [src[j], src[i]];
+    }
+    return src.slice(0, Math.min(n, src.length));
+  }
+
+  function padToN(list, n) {
+    const out = safeList(list).slice();
+    if (n <= 0) return [];
+    if (out.length === 0) return [];
+    const base = out.slice();
+    let i = 0;
+    while (out.length < n) {
+      out.push(base[i % base.length]);
+      i++;
+    }
+    return out.slice(0, n);
+  }
+
+  function makeFallbackDefense(group, color) {
+    const g = normGroup(group) || "yn";
+    const c = (color === "k" || color === "r" || color === "o" || color === "y") ? color : "y";
+
+    const mk = (idx, text) => ({
+      id: `__fallback_def_${g}_${c}_${idx}`,
+      color: c,
+      group: g,
+      text
+    });
+
+    if (g === "where") {
+      return [
+        mk(1, "Извините, кажется, где-то рядом, но я не уверен."),
+        mk(2, "Возможно, у входа или около площади."),
+        mk(3, "Проверьте, пожалуйста, рядом с вывеской или у перекрестка.")
+      ];
+    }
+    if (g === "who") {
+      return [
+        mk(1, "Извините, возможно, это кто-то из местных."),
+        mk(2, "Похоже, это человек из толпы, но я не уверен."),
+        mk(3, "Кажется, это кто-то знакомый, но я не ручаюсь.")
+      ];
+    }
+    // yn
+    return [
+      mk(1, "Эм... да, наверное."),
+      mk(2, "Скорее да, но я не уверен."),
+      mk(3, "Наверное нет... простите, я сомневаюсь.")
+    ];
+  }
+
+  function getCore() {
+    if (typeof Game === "undefined" || !Game) return null;
+    return Game._ConflictCore || Game.ConflictCore || null;
+  }
+
+  function getProgressionUnlocks() {
+    const P = (typeof Game !== "undefined" && Game && Game.Data && Game.Data.PROGRESSION) ? Game.Data.PROGRESSION : null;
+    const U = (P && P.unlockInfluence) ? P.unlockInfluence : null;
+    const strong = (U && Number.isFinite(U.strong)) ? (U.strong | 0) : 5;
+    const power = (U && Number.isFinite(U.power)) ? (U.power | 0) : 10;
+    const absolute = (U && Number.isFinite(U.absolute)) ? (U.absolute | 0) : 100;
+    return {
+      strong: Math.max(0, strong),
+      power: Math.max(0, power),
+      absolute: Math.max(0, absolute),
+    };
+  }
+
+  function unlockFromColor(color) {
+    // Single source of truth: Game.Data.PROGRESSION.unlockInfluence
+    // y: weak (0), o: strong, r: powerful, k: absolute
+    const U = getProgressionUnlocks();
+    if (color === "k") return U.absolute;
+    if (color === "r") return U.power;
+    if (color === "o") return U.strong;
+    return 0; // y
+  }
+
+  function currentTierColor(level) {
+    const inf = Number(level);
+    const U = getProgressionUnlocks();
+    if (Number.isFinite(inf) && inf >= U.absolute) return "k"; // absolute
+    if (Number.isFinite(inf) && inf >= U.power) return "r";    // powerful
+    if (Number.isFinite(inf) && inf >= U.strong) return "o";   // strong
+    return "y"; // weak
+  }
+
+  function onlyTier(list, tier) {
+    const t = tier || "y";
+    return safeList(list).filter(a => a && a.color === t);
+  }
+
+  function isUnlocked(arg, level) {
+    if (!arg) return false;
+    // Prefer explicit unlock if present, otherwise derive from color
+    const req = (arg.unlock != null) ? Number(arg.unlock) : unlockFromColor(arg.color);
+    return (Number.isFinite(req) ? req : 0) <= level;
+  }
+
+  function normGroup(raw) {
+    const s = String(raw || "").trim().toLowerCase();
+    if (!s) return null;
+    // Project canonical groups: yn | who | where
+    if (s === "yn" || s === "yesno" || s === "yes-no" || s === "yes_no" || s === "да/нет" || s === "да-нет") return "yn";
+    if (s === "who" || s === "what" || s === "who/what" || s === "who-what" || s === "кто" || s === "что" || s === "кто/что" || s === "кто-что") return "who";
+    if (s === "where" || s === "где") return "where";
+    return s; // allow future groups
+  }
+
+  function getGroup(arg) {
+    if (!arg) return null;
+    // Prefer `type` (used by attacks), then `group` (used by defense pool), then other aliases.
+    return normGroup(arg.type || arg.group || arg.qtype || arg.kind || arg.questionType || null);
+  }
+
+  function lowestUnlockOfSameGroup(all, group, need, level) {
+    const g = normGroup(group);
+    const src = safeList(all)
+      .filter(a => a && getGroup(a) === g)
+      .slice();
+
+    // Sort by required influence (explicit unlock wins, else from color)
+    src.sort((a, b) => {
+      const au = (a && a.unlock != null) ? Number(a.unlock) : unlockFromColor(a && a.color);
+      const bu = (b && b.unlock != null) ? Number(b.unlock) : unlockFromColor(b && b.color);
+      return (au || 0) - (bu || 0);
+    });
+
+    const unlocked = src.filter(a => isUnlocked(a, level));
+    const locked = src.filter(a => !isUnlocked(a, level));
+
+    const merged = unlocked.concat(locked);
+    return merged.slice(0, need);
+  }
+
+  function normalizeInfluence(battle) {
+    const me = (Game && Game.State && Game.State.me) ? Game.State.me : { influence: 0 };
+    const base = Number(me.influence);
+    const boost = battle && Number.isFinite(battle.tempInfluenceBoost) ? (battle.tempInfluenceBoost | 0) : 0;
+    const inf = (Number.isFinite(base) ? base : 0) + boost;
+    return Number.isFinite(inf) ? inf : 0;
+  }
+
+  A.myAttackOptions = function (battle) {
+    const level = normalizeInfluence(battle);
+    const tier = currentTierColor(level);
+    const all = flattenArgs(Game && Game.Data && Game.Data.ARGUMENTS ? Game.Data.ARGUMENTS.attack : []);
+
+    // After unlock, player should see ONLY the current tier (no weaker tiers).
+    const tierPool = onlyTier(all, tier);
+    const unlocked = tierPool.filter(a => a && isUnlocked(a, level));
+
+    if (unlocked.length > 0) return unlocked;
+
+    // If data is misconfigured for this tier, fall back to *something* so UI never goes empty.
+    const anyUnlocked = safeList(all).filter(a => a && isUnlocked(a, level));
+    if (anyUnlocked.length > 0) return anyUnlocked;
+
+    return safeList(all);
+  };
+
+  function buildDefenseOptions(attackArg) {
+    const battle = (attackArg && attackArg.attack) ? attackArg : null;
+    const level = normalizeInfluence(battle);
+    const tier = currentTierColor(level);
+    const all = flattenArgs(Game && Game.Data && Game.Data.ARGUMENTS ? Game.Data.ARGUMENTS.defense : []);
+
+    const attackGroup = getGroup(battle && battle.attack ? battle.attack : attackArg) || "yn";
+    const groups = ["yn", "who", "where"];
+
+    function pickOne(group) {
+      const g = normGroup(group) || "yn";
+      const tierPool = onlyTier(safeList(all).filter(a => a && getGroup(a) === g), tier);
+      const unlocked = tierPool.filter(a => isUnlocked(a, level));
+
+      if (unlocked.length > 0) {
+        // pick random from unlocked tier pool
+        return pickN(unlocked, 1)[0];
+      }
+
+      // If no unlocked item exists for this group+ tier, use a tier-colored fallback.
+      return makeFallbackDefense(g, tier)[0];
+    }
+
+    function personalize(arg) {
+      if (!arg || !arg.text) return arg;
+      const g = getGroup(arg) || "";
+      const D0 = Game.Data || {};
+      const pick = (arr) => (arr && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
+      const trimEndPunct = (s) => String(s || "").trim().replace(/[.!?]\s*$/u, "");
+      const trimEndWord = (s, word) => String(s || "").trim().replace(new RegExp(`\\b${word}\\b\\s*$`, "iu"), "").trim();
+      const toAccusative = (full) => {
+        const s = String(full || "").trim();
+        if (!s) return s;
+        const parts = s.split(/\s+/);
+        const last = parts.pop();
+        const lower = last.toLowerCase();
+        let acc = last;
+        if (/[ая]$/.test(lower)) acc = last.slice(0, -1) + (lower.endsWith("я") ? "ю" : "у");
+        else if (lower.endsWith("й")) acc = last.slice(0, -1) + "я";
+        else if (lower.endsWith("ь")) acc = last + "я";
+        else if (!/[еёиоуыэюя]$/.test(lower)) acc = last + "а";
+        parts.push(acc);
+        return parts.join(" ");
+      };
+      if (g === "where") {
+        const place = pick(D0.RANDOM_PLACES);
+        if (place) {
+          let base = trimEndPunct(arg.text);
+          base = trimEndWord(trimEndWord(trimEndWord(base, "тут"), "здесь"), "там");
+          return { ...arg, text: `${base} ${place}.`.trim() };
+        }
+      }
+      if (g === "who") {
+        const name = pick((D0.RANDOM_NICKS || []).concat(D0.RANDOM_PEOPLE || []));
+        if (name) {
+          const acc = toAccusative(name);
+          let base = trimEndPunct(arg.text);
+          const replaced = /про меня/iu.test(base);
+          base = base.replace(/про меня/iu, `про ${acc}`);
+          base = trimEndWord(base, "я");
+          const text = replaced ? `${base}.` : `${base} ${acc}.`;
+          return { ...arg, text: text.trim() };
+        }
+      }
+      return arg;
+    }
+
+    // Build: 1 correct group + 2 wrong groups (exactly one from each group)
+    const out = [];
+    out.push(personalize(pickOne(attackGroup)));
+    for (const g of groups) {
+      if (g !== attackGroup) out.push(personalize(pickOne(g)));
+    }
+
+    // Shuffle order (random button order)
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+
+    // Ensure exactly 3
+    return out.slice(0, 3);
+  }
+
+  A.myDefenseOptions = function (attackArg) {
+    return buildDefenseOptions(attackArg);
+  };
+
+  // Защитные варианты должны сохранять инварианты (3 разных типа, 1 правильный).
+  // Фиксируем на уровне модуля, чтобы внешний адаптер не перезаписывал логику.
+  (function lockDefenseOptions(){
+    try {
+      const desc = Object.getOwnPropertyDescriptor(A, "myDefenseOptions");
+      if (desc && typeof desc.get === "function") return;
+      Object.defineProperty(A, "myDefenseOptions", {
+        configurable: true,
+        enumerable: true,
+        get() { return buildDefenseOptions; },
+        set(_) {}
+      });
+    } catch (_) {}
+  })();
+
+  A.resolve = function (battle, defenseArg) {
+    battle.defense = defenseArg;
+
+    const a = battle.attack;
+    const d = defenseArg;
+
+    // If something is badly missing, default to draw so UI never explodes.
+    if (!a || !d) {
+      // Reveal attack color after the choice (even if it was missing).
+      if (battle.attack && battle.attack.color == null && battle.attack._color) {
+        battle.attack.color = battle.attack._color;
+      }
+
+      const core = getCore();
+      if (core && typeof core.finalize === "function") {
+        core.finalize(battle.id, "draw");
+      } else {
+        battle.result = "draw";
+        battle.status = "draw";
+        battle.draw = true;
+      }
+      return "draw";
+    }
+
+    const aG = getGroup(a) || "yn";
+    const dG = getGroup(d) || "yn";
+
+    const core = getCore();
+
+    // Let core decide the real outcome (handles special roles, colors, neighbor rules, black rules, etc.)
+    let outcome = null;
+    if (core && typeof core.computeOutcome === "function") {
+      outcome = core.computeOutcome(battle, a, d);
+    } else {
+      // Fallback must NOT grant win/lose based on type. Without core rules (colors, roles, neighbor steps),
+      // the only safe resolution is a draw that can be handled by crowd logic.
+      outcome = "draw";
+    }
+
+    // IMPORTANT: reveal the attack color only AFTER the player chose a defense.
+    // Our attack keeps hidden strength in `_color` until this moment.
+    if (battle.attack && battle.attack.color == null && battle.attack._color) {
+      battle.attack.color = battle.attack._color;
+    }
+    battle.attackRevealed = true;
+
+    if (core && typeof core.finalize === "function") {
+      core.finalize(battle.id, outcome);
+    } else {
+      battle.result = outcome || "draw";
+      battle.resultLine = (battle.result === "draw") ? "Толпа решает" : (battle.result === "win" ? "Победа" : "Поражение");
+      if (battle.result === "draw") {
+        battle.status = "draw";
+        battle.draw = true;
+      } else {
+        battle.status = "finished";
+        battle.resolved = true;
+      }
+    }
+
+    return outcome || "draw";
+  };
+
+  Game._ConflictArguments = A;
+  Game.ConflictArguments = A;
+})();

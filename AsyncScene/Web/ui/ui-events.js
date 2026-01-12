@@ -1,0 +1,853 @@
+// ui-events.js
+window.Game = window.Game || {};
+
+(() => {
+  const UI = Game.UI;
+  const S = UI.S;
+  const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
+    ? Game.Data.t(key, vars)
+    : String(key || "");
+  const $ = UI.$;
+  const escapeHtml = UI.escapeHtml;
+
+  function stop(ev){
+    try { ev.preventDefault(); } catch(_) {}
+    try { ev.stopPropagation(); } catch(_) {}
+  }
+
+  function getEventsRootBlock(headerEl){
+    if (!headerEl) return null;
+    // Prefer explicit id if present, otherwise closest .block container
+    const byId = $("eventsBlock");
+    if (byId) return byId;
+    return headerEl.closest ? headerEl.closest(".block") : null;
+  }
+
+  function applyEventsSizeClass(rootEl, size){
+    if (!rootEl) return;
+    try {
+      if (UI && typeof UI.applyPanelSizeClasses === "function") {
+        UI.applyPanelSizeClasses(rootEl, "events");
+        return;
+      }
+    } catch (_) {}
+    rootEl.classList.remove("panel--collapsed","panel--medium","panel--full");
+    const s = (size === "collapsed" || size === "max" || size === "medium") ? size : "medium";
+    const cls =
+      s === "collapsed" ? "panel--collapsed" :
+      s === "max" ? "panel--full" :
+      "panel--medium";
+    rootEl.classList.add(cls);
+  }
+
+  function getEventsSize(){
+    return (S.flags && S.flags.eventsSize) || "medium";
+  }
+
+  function setEventsSize(next){
+    S.flags = S.flags || {};
+    S.flags.eventsSize = next;
+  }
+
+  // NOTE:
+  // - Events показывают открытые события (свои + чужие).
+  // - Этот UI не создаёт события сам. Он только рендерит то, что лежит в State/Events.
+  // - Сворачивание/разворачивание хранится в state-флагах, а не в DOM.
+
+  function setEventNote(e, msg) {
+    e.uiNote = msg || "";
+  }
+
+  function isMySideId(id) {
+    const meId = (S && S.me && S.me.id) ? S.me.id : "me";
+    return id === "me" || (id && id === meId);
+  }
+
+  function isMyEvent(e) {
+    const aId = e?.a?.id || e?.aId;
+    const bId = e?.b?.id || e?.bId;
+    return isMySideId(aId) || isMySideId(bId);
+  }
+
+  function getEventBattleId(e) {
+    return (e && (e.battleId || e.battle?.id || e.tie?.battleId || e.refBattleId)) || null;
+  }
+
+  function highlightEvent(eventId) {
+    S.flags = S.flags || {};
+    S.flags.highlightEventId = eventId || null;
+  }
+
+  function getActiveEventId(){
+    const evs = S && S.events;
+    if (evs && (evs.activeId || evs.selectedId)) return evs.activeId || evs.selectedId;
+    if (S && S.flags && (S.flags.activeEventId || S.flags.selectedEventId)) return S.flags.activeEventId || S.flags.selectedEventId;
+    return null;
+  }
+
+  function setActiveEventId(eventId){
+    // Prefer S.events container if it exists (ui-chat fallback writes here)
+    if (S) {
+      if (!S.events || Array.isArray(S.events)) {
+        // If S.events is an array, keep it, but create a sidecar container
+        S.eventsMeta = S.eventsMeta || {};
+        S.eventsMeta.activeId = eventId || null;
+        S.eventsMeta.selectedId = eventId || null;
+      } else {
+        S.events.activeId = eventId || null;
+        S.events.selectedId = eventId || null;
+      }
+      S.flags = S.flags || {};
+      S.flags.activeEventId = eventId || null;
+      S.flags.selectedEventId = eventId || null;
+    }
+  }
+
+  function getHighlightEventId(){
+    return (S && S.flags && S.flags.highlightEventId) ? S.flags.highlightEventId : null;
+  }
+
+  function ensureEventsExpanded() {
+    try {
+      if (UI && typeof UI.ensureEventsExpanded === "function") return UI.ensureEventsExpanded();
+    } catch (_) {}
+
+    // Fallback if ui-core helpers are not present
+    const body = $("eventsBody");
+    if (body) body.classList.remove("hidden");
+
+    S.flags = S.flags || {};
+    S.flags.eventsCollapsed = false;
+  }
+
+  function scrollToEventCard(eventId) {
+    if (!eventId) return false;
+
+    // mark highlight BEFORE render so the element can be styled when it appears
+    highlightEvent(eventId);
+    setActiveEventId(eventId);
+
+    ensureEventsExpanded();
+
+    // Render once so the card exists in DOM
+    rerenderEventsOnly();
+
+    const body = $("eventsBody");
+    if (!body) return false;
+
+    const card = body.querySelector(`[data-event-id="${CSS.escape(eventId)}"]`);
+    if (!card) return false;
+
+    card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+    // clear highlight after a short pulse
+    setTimeout(() => {
+      if (S.flags && S.flags.highlightEventId === eventId) {
+        S.flags.highlightEventId = null;
+        rerenderEventsOnly();
+      }
+    }, 1500);
+
+    return true;
+  }
+
+  // Если у тебя есть отдельный модуль Events - читаем оттуда, иначе из S.events
+  function getEventsList() {
+    if (Game.Events && typeof Game.Events.getAll === "function") {
+      const arr = Game.Events.getAll();
+      return Array.isArray(arr) ? arr : [];
+    }
+    return Array.isArray(S.events) ? S.events : [];
+  }
+
+  function rerenderEventsOnly() {
+    // Avoid full re-render because Battles may randomize options on render.
+    if (UI && typeof UI.renderEvents === "function") {
+      UI.renderEvents();
+      return;
+    }
+    // Fallback: prefer requestRenderAll to avoid click-double issues
+    if (UI && typeof UI.requestRenderAll === "function") return UI.requestRenderAll();
+    if (UI && typeof UI.renderAll === "function") {
+      return setTimeout(() => { try { UI.renderAll(); } catch (_) {} }, 0);
+    }
+  }
+
+  // Auto-refresh the Events panel while at least one crowd vote is active
+  function scheduleEventsAutoRefresh(openList) {
+    try {
+      if (UI && UI._eventsAutoTimer) {
+        clearTimeout(UI._eventsAutoTimer);
+        UI._eventsAutoTimer = null;
+      }
+    } catch (_) {}
+
+    if (!Array.isArray(openList) || openList.length === 0) return;
+
+    // Keep refreshing while any crowd-vote event is unresolved.
+    const now = Date.now();
+    let nextDelay = null;
+    let hasPending = false;
+    openList.forEach(ne => {
+      const e = ne && ne.raw;
+      if (!ne || !e) return;
+      if (!ne.crowd) return;
+      if (e.resolved) return;
+      const endsAt = (typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
+      if (!Number.isFinite(endsAt)) return;
+      hasPending = true;
+      const left = endsAt - now;
+      if (nextDelay === null || left < nextDelay) nextDelay = left;
+    });
+
+    if (!hasPending) return;
+
+    const delay = (nextDelay != null && nextDelay <= 0) ? 80 : Math.min(1000, Math.max(200, (nextDelay | 0)));
+
+    UI._eventsAutoTimer = setTimeout(() => {
+      try { UI._eventsAutoTimer = null; } catch (_) {}
+      try {
+        if (UI && UI._eventsClickHold && Date.now() < UI._eventsClickHold) return;
+      } catch (_) {}
+      rerenderEventsOnly();
+    }, delay);
+  }
+
+  // Унификация структуры события (чтобы не было «пустых событий»)
+  function normalizeEvent(e) {
+    const displayNameSafe = (id, name) => {
+      if (UI && typeof UI.displayNameByIdOrName === "function") {
+        const v = UI.displayNameByIdOrName(id || name);
+        if (v) return v;
+      }
+      return String(name || "???");
+    };
+    const A = e?.a || (e?.aId ? S.players?.[e.aId] : null);
+    const B = e?.b || (e?.bId ? S.players?.[e.bId] : null);
+
+    const aId = e?.a?.id || e?.aId || A?.id || null;
+    const bId = e?.b?.id || e?.bId || B?.id || null;
+
+    const aNameRaw = e?.a?.name || e?.aName || A?.name || "???";
+    const bNameRaw = e?.b?.name || e?.bName || B?.name || "???";
+    const aName = displayNameSafe(aId, aNameRaw);
+    const bName = displayNameSafe(bId, bNameRaw);
+
+    const aInf = Number.isFinite(e?.a?.influence)
+      ? e.a.influence
+      : (Number.isFinite(A?.influence) ? A.influence : 0);
+
+    const bInf = Number.isFinite(e?.b?.influence)
+      ? e.b.influence
+      : (Number.isFinite(B?.influence) ? B.influence : 0);
+
+    const createdAt = (typeof e?.createdAt === "number") ? e.createdAt : Date.now();
+    const endsAt = (typeof e?.endsAt === "number")
+      ? e.endsAt
+      : (typeof e?.endAt === "number")
+        ? e.endAt
+        : (createdAt + 10000);
+
+    const resolved = !!e?.resolved;
+
+    const titleFallback = `${aName} [${aInf}] vs ${bName} [${bInf}]`;
+    const safeTitle = (e?.title && String(e.title).trim().length)
+      ? String(e.title)
+      : titleFallback;
+
+    const stableId = e?.id || `e_${createdAt}_${Math.floor(Math.random() * 9999)}`;
+    // IMPORTANT: If raw event has no id, persist the generated one so Game.Events can reference it.
+    if (e && !e.id) e.id = stableId;
+
+    return {
+      raw: e,
+      id: stableId,
+      battleId: getEventBattleId(e),
+      createdAt,
+      endsAt,
+      resolved,
+      a: { id: aId, name: aName, influence: aInf },
+      b: { id: bId, name: bName, influence: bInf },
+      title: safeTitle,
+      resultLine: (e?.resultLine || e?.result || ""),
+      closed: !!e?.closed,
+      uiNote: e?.uiNote || "",
+      voteLabels: e?.voteLabels || null,
+      escapeMode: e?.escapeMode || null,
+      // crowd votes (если есть)
+      crowd: getCrowdState(e),
+    };
+  }
+
+  function getCrowdState(rawEvent) {
+    if (!rawEvent) return null;
+    // Prefer existing crowd container, otherwise create one on the raw event (so mutations persist)
+    const c = rawEvent.crowd || rawEvent.tieVote || rawEvent.tie || null;
+    if (c && typeof c === "object") {
+      // normalize common fields
+      if (!Number.isFinite(c.aVotes) && Number.isFinite(c.votesA)) c.aVotes = c.votesA;
+      if (!Number.isFinite(c.bVotes) && Number.isFinite(c.votesB)) c.bVotes = c.votesB;
+      if (!Number.isFinite(c.aVotes)) c.aVotes = 0;
+      if (!Number.isFinite(c.bVotes)) c.bVotes = 0;
+      if (!c.voters || typeof c.voters !== "object") c.voters = {};
+      return c;
+    }
+
+    const created = { aVotes: 0, bVotes: 0, voters: {} };
+    rawEvent.crowd = created;
+    return created;
+  }
+
+  function canVoteOnEvent(ne, rawEvent) {
+    if (!ne || !rawEvent) return false;
+    if (ne.resolved || rawEvent.resolved) return false;
+    if (!ne.crowd) return false;
+    if (isMyEvent(rawEvent)) return false;
+    const sec = Math.max(0, Math.ceil((ne.endsAt - Date.now()) / 1000));
+    if (sec <= 0) return false;
+    // One vote per player
+    const meId = (S && S.me && S.me.id) ? S.me.id : "me";
+    const crowd = getCrowdState(rawEvent);
+    if (!crowd) return false;
+    return !crowd.voters[meId];
+  }
+
+  function voteForSide(rawEvent, side) {
+    const crowd = getCrowdState(rawEvent);
+    if (!crowd) return false;
+
+    const meId = (S && S.me && S.me.id) ? S.me.id : "me";
+    if (crowd.voters[meId]) return false;
+
+    crowd.voters[meId] = side;
+    if (side === "a") crowd.aVotes = (Number.isFinite(crowd.aVotes) ? crowd.aVotes : 0) + 1;
+    if (side === "b") crowd.bVotes = (Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0) + 1;
+    crowd.votesA = (crowd.aVotes | 0);
+    crowd.votesB = (crowd.bVotes | 0);
+    if (rawEvent) {
+      rawEvent.aVotes = crowd.aVotes;
+      rawEvent.bVotes = crowd.bVotes;
+      rawEvent.votesA = crowd.votesA;
+      rawEvent.votesB = crowd.votesB;
+    }
+
+    return true;
+  }
+
+  function computeCrowdWinner(rawEvent) {
+    const crowd = getCrowdState(rawEvent);
+    if (!crowd) return { winner: null, aVotes: 0, bVotes: 0 };
+    const aVotes = Number.isFinite(crowd.aVotes) ? crowd.aVotes : 0;
+    const bVotes = Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0;
+    let winner = null;
+    if (aVotes > bVotes) winner = "a";
+    else if (bVotes > aVotes) winner = "b";
+    return { winner, aVotes, bVotes };
+  }
+
+  function escapeResultLine(ne, rawEvent) {
+    const mode = ne.escapeMode || (rawEvent && rawEvent.escapeMode) || "smyt";
+    const { winner } = computeCrowdWinner(rawEvent);
+    const aName = (UI && typeof UI.displayNameByIdOrName === "function")
+      ? (UI.displayNameByIdOrName(ne.a.id || ne.a.name) || ne.a.name)
+      : ne.a.name;
+    const bName = (UI && typeof UI.displayNameByIdOrName === "function")
+      ? (UI.displayNameByIdOrName(ne.b.id || ne.b.name) || ne.b.name)
+      : ne.b.name;
+    if (mode === "off") {
+      return (winner === "a")
+        ? `${aName} послал ${bName}`
+        : `${aName} не послал ${bName}`;
+    }
+    return (winner === "a")
+      ? `${aName} свалил от ${bName}`
+      : `${aName} не свалил от ${bName}`;
+  }
+
+  function finalizeEventIfExpired(rawEvent, ne) {
+    if (!rawEvent || !ne) return false;
+    if (rawEvent.resolved || ne.resolved) return false;
+    if (!ne.crowd) return false;
+
+    const kind = rawEvent.type || rawEvent.kind;
+    if (kind === "escape") return false;
+
+    const now = Date.now();
+    const endsAt = (typeof rawEvent.endsAt === "number") ? rawEvent.endsAt : ne.endsAt;
+    if (!Number.isFinite(endsAt)) return false;
+    if (now < endsAt) return false;
+
+    const { winner, aVotes, bVotes } = computeCrowdWinner(rawEvent);
+
+    rawEvent.resolved = true;
+    rawEvent.resolvedAt = now;
+
+    if (winner === "a") {
+      rawEvent.winnerSide = "a";
+      rawEvent.resultLine = t("tie_end_winner", { name: aName, aVotes, bVotes });
+    } else if (winner === "b") {
+      rawEvent.winnerSide = "b";
+      rawEvent.resultLine = t("tie_end_winner", { name: bName, aVotes, bVotes });
+    } else {
+      rawEvent.winnerSide = null;
+      rawEvent.resultLine = t("tie_end_draw", { aVotes, bVotes });
+    }
+
+    // Clear any UI-only notes when the outcome is locked
+    rawEvent.uiNote = "";
+    return true;
+  }
+
+  // PUBLIC: scroll to event by eventId (used from chat SYS bubbles)
+  UI.scrollToEvent = (eventId) => {
+    return scrollToEventCard(eventId);
+  };
+
+  // PUBLIC: allow other modules to focus a particular event
+  UI.scrollToEventByBattleId = (battleId) => {
+    if (!battleId) return false;
+    const list = getEventsList();
+    const rawFound = list.find(x => getEventBattleId(x) === battleId);
+    if (!rawFound) return false;
+
+    const ne = normalizeEvent(rawFound);
+    // IMPORTANT: normalizeEvent may generate an id if raw event has none
+    return scrollToEventCard(ne.id);
+  };
+
+  UI.renderEvents = () => {
+    const body = $("eventsBody");
+    const header = $("eventsHeader");
+    if (!body || !header) return;
+
+    // Let Events finalize expired NPC-NPC draw events before render (if such a hook exists)
+    try {
+      if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
+      else if (Game.Events && typeof Game.Events.finalizeExpired === "function") Game.Events.finalizeExpired();
+    } catch (_) {}
+
+    const rootBlock = getEventsRootBlock(header);
+    const size = getEventsSize();
+    applyEventsSizeClass(rootBlock, size);
+    if (rootBlock) rootBlock.classList.remove("hidden");
+
+    // Ensure header right controls exist (size cycler + close)
+    // We do not rely on innerHTML of header to avoid ломать структуру.
+    let right = header.querySelector(".righty");
+    if (!right) {
+      right = document.createElement("div");
+      right.className = "righty";
+      header.appendChild(right);
+    }
+    // Ensure a dedicated title node (avoid clobbering .righty and causing layout flicker)
+    let titleEl = header.querySelector(".eventsTitle");
+    if (!titleEl) {
+      titleEl = document.createElement("div");
+      titleEl.className = "eventsTitle";
+      // Put title before right controls
+      header.insertBefore(titleEl, right);
+    } else if (titleEl.parentNode !== header) {
+      header.insertBefore(titleEl, right);
+    }
+
+    if (!right.__controlsBuilt) {
+      right.__controlsBuilt = true;
+      right.textContent = "";
+    }
+    try {
+      const legacyClose = document.getElementById("eventsCloseX");
+      if (legacyClose) legacyClose.remove();
+    } catch (_) {}
+
+    const setSize = (next) => {
+      setEventsSize(next);
+      if (next === "collapsed") body.classList.add("hidden");
+      else body.classList.remove("hidden");
+      try {
+        if (UI && typeof UI.setEventsCollapsed === "function") UI.setEventsCollapsed(next === "collapsed");
+        else { S.flags = S.flags || {}; S.flags.eventsCollapsed = (next === "collapsed"); }
+      } catch(_) {}
+      rerenderEventsOnly();
+    };
+
+    const ensureBtn = (id, glyph, title, onClick) => {
+      let btn = document.getElementById(id);
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.id = id;
+        btn.type = "button";
+        btn.className = "panelCtrlBtn";
+        btn.title = title;
+        btn.textContent = glyph;
+        btn.onclick = onClick;
+        right.appendChild(btn);
+      } else if (!right.contains(btn)) {
+        right.appendChild(btn);
+      }
+      return btn;
+    };
+
+    const btnCollapse = ensureBtn("eventsBtnCollapse", "—", "Свернуть", (ev) => { stop(ev); setSize("collapsed"); });
+    const btnMax = ensureBtn("eventsBtnMax", "□", "Развернуть", (ev) => { stop(ev); setSize("max"); });
+    const btnMed = ensureBtn("eventsBtnMed", "⧉", "Стандартный размер", (ev) => { stop(ev); setSize("medium"); });
+
+    try {
+      const cur = getEventsSize();
+      btnCollapse.classList.toggle("is-active", cur === "collapsed");
+      btnMed.classList.toggle("is-active", cur === "medium");
+      btnMax.classList.toggle("is-active", cur === "max");
+    } catch(_) {}
+
+    header.onclick = (ev) => {
+      const t = ev && ev.target;
+      if (t && (t.tagName === "BUTTON" || t.closest("button"))) return;
+    };
+
+    // Only open events (свои + чужие)
+    const raw = getEventsList();
+    const open = raw
+      .filter(e => e && !e.closed)
+      .filter(e => {
+        const kind = e.kind || e.type || e.result || e.status;
+        const isCrowd = (kind === "draw" || kind === "tie" || kind === "escape");
+        if (!isCrowd) return true;
+        return !isMyEvent(e);
+      })
+      .map(normalizeEvent);
+
+    // Keep the Events panel updating while crowd voting is active (NPC votes should continue after player vote)
+    scheduleEventsAutoRefresh(open);
+
+    // My events first, then newest
+    open.sort((a, b) => {
+      const am = isMyEvent(a) ? 1 : 0;
+      const bm = isMyEvent(b) ? 1 : 0;
+      if (am !== bm) return bm - am;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+
+    // Update header title (do not overwrite controls)
+    if (titleEl) {
+      const nextTitle = t("events_title", { count: open.length });
+      if (titleEl.textContent !== nextTitle) titleEl.textContent = nextTitle;
+    }
+
+    // Persist count to flags for other UI blocks (if needed)
+    try {
+      if (Game && Game.StateAPI && typeof Game.StateAPI.setEventCount === "function") {
+        Game.StateAPI.setEventCount(open.length);
+      } else {
+        S.flags = S.flags || {};
+        S.flags.eventCount = open.length;
+      }
+    } catch (_) {}
+
+    body.innerHTML = "";
+
+    // Close / clear workflow (dynamic: active vs resolved vs empty)
+    const activeCount = open.filter(e => e && !e.resolved).length;
+    const resolvedCount = open.filter(e => e && e.resolved).length;
+
+    if (activeCount > 0) {
+      const topRow = document.createElement("div");
+      topRow.className = "eventRow";
+      const btn = document.createElement("button");
+      btn.className = "miniBtn danger";
+      btn.textContent = t("events_close_extra");
+      btn.onclick = () => {
+        // Close resolved only
+        if (Array.isArray(S.events)) {
+          S.events.forEach(e => {
+            if (e && !e.closed && e.resolved) e.closed = true;
+          });
+        }
+        rerenderEventsOnly();
+      };
+      topRow.appendChild(btn);
+      body.appendChild(topRow);
+    } else if (resolvedCount > 0) {
+      const topRow = document.createElement("div");
+      topRow.className = "eventRow";
+      const btn = document.createElement("button");
+      btn.className = "miniBtn danger";
+      btn.textContent = t("events_clear_all");
+      btn.onclick = () => {
+        if (Array.isArray(S.events)) {
+          S.events.forEach(e => { if (e) e.closed = true; });
+        }
+        rerenderEventsOnly();
+      };
+      topRow.appendChild(btn);
+      body.appendChild(topRow);
+    }
+
+    const renderOne = (ne) => {
+      const e = ne.raw; // original reference (so buttons can mutate)
+      const aName = (UI && typeof UI.displayNameByIdOrName === "function")
+        ? (UI.displayNameByIdOrName(ne?.a?.id || ne?.a?.name) || ne?.a?.name || "???")
+        : (ne?.a?.name || "???");
+      const bName = (UI && typeof UI.displayNameByIdOrName === "function")
+        ? (UI.displayNameByIdOrName(ne?.b?.id || ne?.b?.name) || ne?.b?.name || "???")
+        : (ne?.b?.name || "???");
+
+      // Ensure crowd state exists if this event supports voting
+      if (ne.crowd) getCrowdState(e);
+
+      const card = document.createElement("div");
+      card.className = "eventCard";
+      card.dataset.eventId = ne.id;
+      if (ne.battleId) card.dataset.battleId = ne.battleId;
+
+      card.onclick = (ev) => {
+        const t = ev.target;
+        if (t && (t.tagName === "BUTTON" || t.closest("button"))) return;
+
+        highlightEvent(ne.id);
+        setActiveEventId(ne.id);
+
+        if (ne.battleId && Game.UI && typeof Game.UI.focusBattle === "function") {
+          Game.UI.focusBattle(ne.battleId);
+        }
+
+        rerenderEventsOnly();
+      };
+
+      // If the vote timer expired, lock the result on the raw event before rendering.
+      finalizeEventIfExpired(e, ne);
+
+      // Fallback: if escape event reached end but still not resolved, resolve locally for UI.
+      if (ne.voteLabels && ne.escapeMode && e && !e.resolved) {
+        const endAt = (typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
+        if (Number.isFinite(endAt) && Date.now() >= endAt) {
+          const { winner } = computeCrowdWinner(e);
+          if (winner) {
+            e.resolved = true;
+            e.state = "resolved";
+            e.resultLine = escapeResultLine(ne, e);
+          }
+        }
+      }
+
+      const resolvedNow = !!(e && e.resolved);
+      const endsAtNow = (e && typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
+      const sec = resolvedNow ? 0 : Math.max(0, Math.ceil((endsAtNow - Date.now()) / 1000));
+      const metaText = resolvedNow
+        ? t("events_done")
+        : t("events_left", { sec });
+
+      card.innerHTML = `
+        <div class="eventTop">
+          <div class="title">${escapeHtml(ne.title)}</div>
+          <div class="meta">${escapeHtml(metaText)}</div>
+        </div>
+      `;
+
+      if (ne.voteLabels && ne.a && ne.b) {
+        const who = document.createElement("div");
+        who.className = "pill";
+        who.textContent = `${aName} [${ne.a.influence}] vs ${bName} [${ne.b.influence}]`;
+        card.appendChild(who);
+      }
+
+      // Crowd vote UI (clickable names + counters)
+      if (ne.crowd && !resolvedNow && sec > 0) {
+        const crowd = getCrowdState(e);
+        const aVotes = Number.isFinite(crowd.aVotes) ? crowd.aVotes : 0;
+        const bVotes = Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0;
+
+        const hint = document.createElement("div");
+        hint.className = "pill";
+        if (ne.voteLabels && ne.escapeMode) {
+          hint.textContent = (ne.escapeMode === "off")
+            ? `Послать ${bName}?`
+            : `Дашь ${aName} смыться?`;
+        } else {
+          hint.textContent = t("tie_click_name_hint");
+        }
+        card.appendChild(hint);
+
+        const row = document.createElement("div");
+        row.className = "eventVoteRow";
+
+        const meId = (S && S.me && S.me.id) ? S.me.id : "me";
+        const myPick = crowd.voters && crowd.voters[meId] ? crowd.voters[meId] : null;
+        const votingAllowed = canVoteOnEvent(ne, e);
+
+      const mkSideBtn = (side, label, votes) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "eventVoteBtn";
+        btn.style.cursor = "pointer";
+        btn.textContent = `${label} - ${votes}`;
+        btn.setAttribute("data-side", side);
+
+        // Visual state: picked vs locked
+        if (myPick === side) btn.classList.add("selected");
+
+        // After the player vote, BOTH buttons should look greyed (locked).
+        // This must NOT stop NPC voting (NPC voting is time-based in Events tick).
+        if (!votingAllowed) {
+          btn.classList.add("is-disabled");
+          btn.setAttribute("aria-disabled", "true");
+          // Disable click interaction for the player (one vote only)
+          btn.disabled = true;
+        } else {
+          btn.classList.remove("is-disabled");
+          btn.removeAttribute("aria-disabled");
+          btn.disabled = false;
+        }
+
+        // Make the picked side visibly distinct even when locked/disabled
+        if (myPick === side) {
+          btn.classList.add("selected");
+        } else {
+          btn.classList.remove("selected");
+        }
+
+        btn.onclick = (ev) => {
+          stop(ev);
+          if (btn.disabled) return;
+          if (UI) UI._eventsClickHold = Date.now() + 420;
+
+          // One vote per player: lock only the player, never stop NPC voting.
+          if (!canVoteOnEvent(ne, e)) {
+            const secLeft = Math.max(0, Math.ceil((ne.endsAt - Date.now()) / 1000));
+            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : t("vote_already"));
+            // Prefer a soft render to avoid click flicker
+            if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+            else rerenderEventsOnly();
+            return;
+          }
+
+          // IMPORTANT: route the vote through Game.Events if available (single source of truth)
+          const eventId = (e && e.id) ? e.id : (ne.id || null);
+          let ok = false;
+          try {
+            if (Game && Game.Events && typeof Game.Events.helpEvent === "function") {
+              ok = !!Game.Events.helpEvent(eventId, side);
+              // Mirror into local crowd state for immediate UI feedback (avoid "vote not counted" glitch)
+              if (ok) {
+                const crowdNow = getCrowdState(e);
+                const meNow = (S && S.me && S.me.id) ? S.me.id : "me";
+                if (crowdNow && (!crowdNow.voters || typeof crowdNow.voters !== "object")) crowdNow.voters = {};
+                if (crowdNow && !crowdNow.voters[meNow]) {
+                  // Only apply if not already recorded to avoid double counting
+                  voteForSide(e, side);
+                }
+              }
+            } else {
+              ok = !!voteForSide(e, side);
+            }
+          } catch (_) {
+            ok = false;
+          }
+
+          if (ok) setEventNote(e, t("vote_ok"));
+
+          // Prefer a soft render to avoid re-entrant synchronous rerenders ("need to click twice")
+          if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+          else rerenderEventsOnly();
+        };
+
+        return btn;
+      };
+
+        const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
+        const aLabel = useLabels ? ne.voteLabels.a : `${aName} [${ne.a.influence}]`;
+        const bLabel = useLabels ? ne.voteLabels.b : `${bName} [${ne.b.influence}]`;
+
+        row.appendChild(mkSideBtn("a", aLabel, aVotes));
+        row.appendChild(mkSideBtn("b", bLabel, bVotes));
+        card.appendChild(row);
+
+        const D0 = Game.Data || {};
+        const extraCost = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;
+        const extraRow = document.createElement("div");
+        extraRow.className = "actions";
+
+        const addExtra = (side) => {
+          if (Game.Events && typeof Game.Events.addExtraVote === "function") {
+            Game.Events.addExtraVote(e.id, side);
+          }
+        };
+
+        const btnExtraA = document.createElement("button");
+        btnExtraA.className = "btn small";
+        btnExtraA.textContent = "Недоступно";
+        btnExtraA.disabled = true;
+        btnExtraA.onclick = (ev) => { stop(ev); };
+
+        const btnExtraB = document.createElement("button");
+        btnExtraB.className = "btn small";
+        btnExtraB.textContent = "Недоступно";
+        btnExtraB.disabled = true;
+        btnExtraB.onclick = (ev) => { stop(ev); };
+
+        extraRow.appendChild(btnExtraA);
+        extraRow.appendChild(btnExtraB);
+
+        card.appendChild(extraRow);
+
+      }
+
+      // In-card note (no chat spam)
+      if (e && e.uiNote) {
+        const note = document.createElement("div");
+        note.className = "noteLine";
+        note.textContent = e.uiNote;
+        card.appendChild(note);
+      }
+
+      if (resolvedNow) {
+        const res = document.createElement("div");
+        res.className = "pill";
+        let line = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : "";
+        if (ne.voteLabels && ne.escapeMode) {
+          line = escapeResultLine(ne, e);
+        }
+        res.textContent = (line && line.trim().length) ? line : "Всё, движ закончен.";
+        card.appendChild(res);
+
+        if (e && e.betMessage) {
+          const betLine = document.createElement("div");
+          betLine.className = "noteLine";
+          betLine.textContent = String(e.betMessage);
+          card.appendChild(betLine);
+        }
+      }
+
+      const hlId = getHighlightEventId();
+      if (hlId && hlId === ne.id) {
+        card.style.outline = "2px solid rgba(191,195,255,0.65)";
+        card.style.boxShadow = "0 0 0 4px rgba(191,195,255,0.10)";
+      }
+
+      const activeId = getActiveEventId();
+      if (activeId && activeId === ne.id) {
+        card.classList.add("eventCard--active");
+      }
+
+      body.appendChild(card);
+    };
+
+    if (open.length) {
+      open.forEach(renderOne);
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "pill";
+      empty.textContent = t("events_empty");
+      body.appendChild(empty);
+    }
+
+    try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
+  };
+
+  // Hook from chat/battles: try to focus the corresponding Event if it exists.
+  // NOTE: we DO NOT create Events for my own ties.
+  UI.signalTieFromBattle = (battleId) => {
+    if (!battleId) return;
+    // Only focus if the corresponding Event exists (we do NOT create events here)
+    UI.scrollToEventByBattleId(battleId);
+  };
+
+})();

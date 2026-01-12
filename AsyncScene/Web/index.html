@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>AsyncScene</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="layout">
+    <div id="left" class="left chat">
+      <div id="chatHeader" class="chatHeader">
+        <div id="meBar">Площадь</div>
+        <div class="pill" id="locPill">Локация: Площадь</div>
+      </div>
+
+      <div id="chatLog" class="chatLog"></div>
+
+      <div id="chatInputRow" class="chatInputRow">
+        <input id="chatInput" class="input" placeholder="Пиши что по теме." />
+        <button id="btnSend" class="btn">Заслать</button>
+      </div>
+    </div>
+
+    <div id="right" class="right">
+      <div id="topBar" class="topbar">
+        <div id="balance"><span title="Влияние">⚡</span> <span id="meInfluence">0</span> | <span title="Репутация">⭐</span> <span id="meRep">0</span>/<span id="meRepNeed">12</span> <span id="weeklyCapNote"></span> | <span class="pointsWrap"><span class="pointsRow"><span title="Пойнты">💰</span> <span id="mePoints" class="pointsValue">0</span><span id="mePointsOverflow" class="pointsOverflow"></span></span><span id="pointsCapNote" class="pointsNote"></span></span> | <span title="Победы">🏆</span> <span id="meWins">0</span></div>
+        <div id="weeklyCapLine" class="capLine"></div>
+        <button id="btnLotteryTop" class="btn small" title="Лотерея">🎲</button>
+        <button id="btnMenu" class="btn">Меню</button>
+      </div>
+      <div id="lotteryDock" class="lotteryDock"></div>
+
+      <div id="blocks">
+        <div class="block panel hidden" id="menuBlock">
+          <div class="blockHeader panelHeader">
+            <div>Меню</div>
+            <div class="righty"></div>
+          </div>
+          <div class="blockBody panelBody" id="menuBody">
+          </div>
+        </div>
+
+        <div class="block panel hidden" id="dmBlock">
+          <div class="blockHeader panelHeader">
+            <div>Личка</div>
+            <div class="righty"></div>
+          </div>
+          <div class="blockBody panelBody">
+            <div id="dmHeader">
+            <div id="dmTitle">Личка</div>
+            <button class="btn small" id="dmClose">Свернуть</button>
+            </div>
+
+            <div id="dmLog"></div>
+
+            <div id="dmActions"></div>
+
+            <div id="teachPanel" class="hidden"></div>
+
+            <div id="dmInputRow">
+              <input id="dmInput" class="input" placeholder="Пиши в личку." />
+              <button id="dmSend" class="btn">Заслать</button>
+            </div>
+
+            <div id="dmExtraRow" class="hidden" style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <input id="reportInput" class="input" placeholder="Ник бандита или токсика." style="flex:1; min-width:220px;"/>
+              <button id="reportBtn" class="btn">Сдать</button>
+              <span class="pill" id="reportHint">Сдать бандита/токсика за +2 💰.</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="block panel" id="battlesBlock">
+          <div class="blockHeader panelHeader" id="battlesHeader">
+            <div>Баттлы (<span id="battleCount">0</span>)</div>
+            <div class="righty"></div>
+          </div>
+          <div class="blockBody panelBody scroll hidden" id="battlesBody"></div>
+        </div>
+
+        <div class="block panel" id="eventsBlock">
+          <div class="blockHeader panelHeader" id="eventsHeader">
+            <div>События</div>
+            <div class="righty"></div>
+          </div>
+          <div class="blockBody panelBody scroll hidden" id="eventsBody"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="startScreen">
+    <div id="startCard">
+      <h1>AsyncScene</h1>
+      <input id="nameInput" class="input" placeholder="Ник" />
+      <div id="startManifestShort" class="pill"></div>
+      <div id="startBtns">
+        <button id="btnRandom" class="btn">Рандом ник</button>
+        <button id="btnStart" class="btn primary">Погнали</button>
+      </div>
+      <div id="startHint">
+        Чат — главный экран. Клик по баблу — личка и движ.
+      </div>
+    </div>
+  </div>
+
+  <script defer src="util.js?v=2"></script>
+  <script defer src="state.js?v=4"></script>
+  <script defer src="data.js?v=2"></script>
+  <script defer src="npcs.js?v=2"></script>
+  <script defer src="conflict/conflict-core.js?v=2"></script>
+  <script defer src="conflict/conflict-economy.js?v=2"></script>
+  <script defer src="conflict/conflict-arguments.js?v=2"></script>
+  <script defer src="conflict/conflict-api.js?v=2"></script>
+  <script defer src="events.js?v=2"></script>
+
+  <script defer src="ui/ui-core.js?v=2"></script>
+  <script defer src="ui/ui-chat.js?v=2"></script>
+  <script defer src="ui/ui-dm.js?v=2"></script>
+  <script defer src="ui/ui-battles.js?v=2"></script>
+  <script defer src="ui/ui-events.js?v=2"></script>
+  <script defer src="ui/ui-menu.js?v=2"></script>
+  <script defer src="ui/ui-loops.js?v=2"></script>
+  <script defer src="dev/dev-checks.js?v=3"></script>
+  <script defer src="ui/ui-boot.js?v=2"></script>
+
+</body>
+</html>
