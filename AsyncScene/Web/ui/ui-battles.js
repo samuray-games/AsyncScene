@@ -894,21 +894,48 @@
         };
 
         // Click outside to hide dropdown (delayed to avoid immediate trigger)
+        // Prevent leaking multiple document listeners across re-renders.
+        try {
+          if (UI._battleInvite && UI._battleInvite._clickOutsideHandler) {
+            document.removeEventListener("click", UI._battleInvite._clickOutsideHandler, true);
+          }
+          if (UI._battleInvite && UI._battleInvite._clickOutsideTimer) {
+            clearTimeout(UI._battleInvite._clickOutsideTimer);
+            UI._battleInvite._clickOutsideTimer = null;
+          }
+        } catch (_) {}
+
         const handleClickOutside = (e) => {
-          if (!UI._battleInvite || !UI._battleInvite.open) return;
+          // If state/input/dropdown is gone, clean up this listener.
+          if (!UI._battleInvite || !UI._battleInvite.open) {
+            try { document.removeEventListener("click", handleClickOutside, true); } catch (_) {}
+            try { if (UI._battleInvite) UI._battleInvite._clickOutsideHandler = null; } catch (_) {}
+            return;
+          }
           const dropdown = document.getElementById("battleInviteDropdown");
-          if (!dropdown || !input) return;
+          if (!dropdown || !input || input.isConnected !== true) {
+            UI._battleInvite.open = false;
+            try { if (dropdown && dropdown.parentNode) dropdown.remove(); } catch (_) {}
+            try { document.removeEventListener("click", handleClickOutside, true); } catch (_) {}
+            try { UI._battleInvite._clickOutsideHandler = null; } catch (_) {}
+            return;
+          }
           // Check if click is outside both input and dropdown
           if (!input.contains(e.target) && !dropdown.contains(e.target)) {
             UI._battleInvite.open = false;
             if (dropdown.parentNode) dropdown.remove();
             document.removeEventListener("click", handleClickOutside, true);
+            try { UI._battleInvite._clickOutsideHandler = null; } catch (_) {}
           }
         };
+
         // Delay listener to avoid triggering on the same click that opened dropdown
-        setTimeout(() => {
-          document.addEventListener("click", handleClickOutside, true);
-        }, 200);
+        try { UI._battleInvite._clickOutsideHandler = handleClickOutside; } catch (_) {}
+        try {
+          UI._battleInvite._clickOutsideTimer = setTimeout(() => {
+            document.addEventListener("click", handleClickOutside, true);
+          }, 200);
+        } catch (_) {}
       }
     }
 
@@ -1941,6 +1968,15 @@
                       if (r && r.ok === false && (r.reason === "no_points" || r.reason === "insufficient" || r.reason === "min_reserve")) {
                         if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Пойнтов не хватает.");
                       }
+                      if (r && r.ok === false && r.reason === "already_requested") {
+                        if (UI && typeof UI.showToast === "function") UI.showToast("Реванш уже запрошен.");
+                      }
+                      if (r && r.ok === false && r.reason === "not_eligible") {
+                        if (UI && typeof UI.showToast === "function") UI.showToast("Пока нельзя: баттл ещё не завершён.");
+                      }
+                      if (r && r.ok === false && r.reason === "not_found") {
+                        if (UI && typeof UI.showToast === "function") UI.showToast("Баттл не найден.");
+                      }
                     }
                   } catch (_) {}
                   requestAll();
@@ -1972,6 +2008,15 @@
                     const r = Game.Conflict.requestRematch(b.id);
                     if (r && r.ok === false && (r.reason === "no_points" || r.reason === "insufficient" || r.reason === "min_reserve")) {
                       if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Пойнтов не хватает.");
+                    }
+                    if (r && r.ok === false && r.reason === "already_requested") {
+                      if (UI && typeof UI.showToast === "function") UI.showToast("Реванш уже запрошен.");
+                    }
+                    if (r && r.ok === false && r.reason === "not_eligible") {
+                      if (UI && typeof UI.showToast === "function") UI.showToast("Пока нельзя: баттл ещё не завершён.");
+                    }
+                    if (r && r.ok === false && r.reason === "not_found") {
+                      if (UI && typeof UI.showToast === "function") UI.showToast("Баттл не найден.");
                     }
                   }
                 } catch (_) {}

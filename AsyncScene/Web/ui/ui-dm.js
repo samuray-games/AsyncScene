@@ -725,6 +725,13 @@ window.Game = window.Game || {};
         listEl.innerHTML = "";
         inviteItems = [];
         inviteActive = 0;
+        // Clean up global click listener (prevents listener leaks across renders)
+        try {
+          if (inp && inp.__dmInviteOutsideHandler) {
+            document.removeEventListener("click", inp.__dmInviteOutsideHandler, true);
+            inp.__dmInviteOutsideHandler = null;
+          }
+        } catch (_) {}
       }
 
       function renderInviteList(filter){
@@ -806,11 +813,22 @@ window.Game = window.Game || {};
 
       // Click outside to hide dropdown
       const handleClickOutside = (e) => {
-        if (!listEl || listEl.style.display === "none") return;
+        if (!listEl || listEl.isConnected !== true || !inp || inp.isConnected !== true) {
+          closeInviteList();
+          return;
+        }
+        if (listEl.style.display === "none") return;
         if (!inp.contains(e.target) && !listEl.contains(e.target)) {
           closeInviteList();
         }
       };
+      // Replace any previous handler to avoid accumulation
+      try {
+        if (inp && inp.__dmInviteOutsideHandler) {
+          document.removeEventListener("click", inp.__dmInviteOutsideHandler, true);
+        }
+        inp.__dmInviteOutsideHandler = handleClickOutside;
+      } catch (_) {}
       document.addEventListener("click", handleClickOutside, true);
 
       inp.addEventListener("keydown", (e) => {
@@ -1083,6 +1101,8 @@ window.Game = window.Game || {};
             // Close dropdown after selection
             UI._reportInvite.open = false;
             listWrap.style.display = "none";
+            // Prevent focus handler from immediately reopening the dropdown
+            UI._reportInvite._suppressNextFocusOpen = true;
             reportInput.focus();
           };
           listWrap.appendChild(it);
@@ -1092,6 +1112,10 @@ window.Game = window.Game || {};
       };
 
       reportInput.addEventListener("focus", () => {
+        if (UI._reportInvite && UI._reportInvite._suppressNextFocusOpen) {
+          UI._reportInvite._suppressNextFocusOpen = false;
+          return;
+        }
         UI._reportInvite.open = true;
         UI._reportInvite.q = String(reportInput.value || "");
         UI._reportInvite.sel = 0;
@@ -1120,11 +1144,29 @@ window.Game = window.Game || {};
       // Click outside to hide dropdown
       const handleReportClickOutside = (e) => {
         if (!UI._reportInvite || !UI._reportInvite.open) return;
+        if (!reportInput || reportInput.isConnected !== true || !listWrap || listWrap.isConnected !== true) {
+          UI._reportInvite.open = false;
+          try { if (listWrap) listWrap.style.display = "none"; } catch (_) {}
+          try {
+            if (reportInput && reportInput.__reportOutsideHandler) {
+              document.removeEventListener("click", reportInput.__reportOutsideHandler, true);
+              reportInput.__reportOutsideHandler = null;
+            }
+          } catch (_) {}
+          return;
+        }
         if (!reportInput.contains(e.target) && !listWrap.contains(e.target)) {
           UI._reportInvite.open = false;
           listWrap.style.display = "none";
         }
       };
+      // Replace any previous handler to avoid accumulation
+      try {
+        if (reportInput && reportInput.__reportOutsideHandler) {
+          document.removeEventListener("click", reportInput.__reportOutsideHandler, true);
+        }
+        if (reportInput) reportInput.__reportOutsideHandler = handleReportClickOutside;
+      } catch (_) {}
       document.addEventListener("click", handleReportClickOutside, true);
 
       // Click in input to show dropdown again

@@ -1423,7 +1423,6 @@
     if (b.rematch && b.rematch.requestedAt && b.rematch.decided !== true) {
       return { ok: false, reason: "already_requested" };
     }
-    if (b.rematchOf) return { ok: false, reason: "is_rematch" };
     const sides = getRematchSides(b);
     if (!sides) return { ok: false, reason: "not_eligible" };
 

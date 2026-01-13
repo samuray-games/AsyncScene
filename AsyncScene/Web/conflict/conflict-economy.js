@@ -305,24 +305,24 @@
     } else {
       if (fromPts < amt) return { ok: false, reason: "insufficient", have: fromPts, need: amt };
     }
+    // IMPORTANT: any points write must happen inside withPointsWrite() while circulation is enabled.
+    // Otherwise State's points-guard may reject the assignment (even for internal sync like S.players.me -> S.me).
     withPointsWrite(() => {
       from.points = Math.max(0, (from.points | 0) - amt);
       to.points = (to.points | 0) + amt;
-    });
-    if (isCirculationEnabled()) {
-      const S = Game.State || null;
-      const touchMe = (String(fromId) === "me") || (String(toId) === "me");
-      if (touchMe && S && S.me && S.players && S.players.me && typeof S.players.me.points === "number") {
-        const dbg = (Game && Game.Debug) ? Game.Debug : null;
-        const prevBypass = dbg ? (dbg.BYPASS_POINTS_GUARD === true) : null;
-        if (dbg) dbg.BYPASS_POINTS_GUARD = true;
-        try {
-          S.me.points = S.players.me.points;
-        } finally {
-          if (dbg) dbg.BYPASS_POINTS_GUARD = prevBypass;
+
+      // Keep UI source-of-truth in sync:
+      // UI reads points from State.me, while Econ often mutates State.players.me.
+      try {
+        if (isCirculationEnabled()) {
+          const S = Game.State || null;
+          const touchMe = (String(fromId) === "me") || (String(toId) === "me");
+          if (touchMe && S && S.me && S.players && S.players.me && typeof S.players.me.points === "number") {
+            S.me.points = S.players.me.points;
+          }
         }
-      }
-    }
+      } catch (_) {}
+    });
     logTransfer({
       time: Date.now(),
       sourceId: String(fromId),

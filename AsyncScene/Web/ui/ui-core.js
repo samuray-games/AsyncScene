@@ -567,9 +567,16 @@ window.Game = window.Game || {};
 
     const nextColorKey = _argColorKeyFromSub(nextSubKey) || colorKey;
     dom.next.style.display = "";
+    const __logToneHUD = (() => {
+      try {
+        // Console spam can freeze input when DevTools is open. Log only when explicitly enabled.
+        return (_isDevFlag() && (window.__LOG_TONEHUD === true || (Game && Game.Debug && Game.Debug.LOG_TONEHUD === true)));
+      } catch (_) { return false; }
+    })();
+
     if (!nextSubKey) {
       dom.next.innerHTML = `Предел: <span style="${colorStyleForTierKey(colorKey)}font-weight:900;">${escapeHtml(subLabel)}</span>`;
-      if (_isDevFlag()) {
+      if (__logToneHUD) {
         console.log(`[ToneHUD] influence=${inf} cur=${subKey} next=K remaining=0`);
       }
       return;
@@ -577,7 +584,7 @@ window.Game = window.Game || {};
 
     const remaining = Math.max(1, (left == null ? 1 : left));
     dom.next.innerHTML = `До <span style="${colorStyleForTierKey(nextColorKey)}font-weight:900;">${escapeHtml(nextLabel)}</span>: ${remaining} ⚡`;
-    if (_isDevFlag()) {
+    if (__logToneHUD) {
       console.log(`[ToneHUD] influence=${inf} cur=${subKey} next=${nextSubKey} remaining=${remaining}`);
     }
   };
@@ -620,7 +627,7 @@ window.Game = window.Game || {};
           UI.updateArgStrengthPills();
         }
       } catch (_) {}
-    }, 200);
+    }, 500);
   }
 
   _startArgPillWatcher();
@@ -1288,6 +1295,10 @@ window.Game = window.Game || {};
       if (UI.renderDM && S.dm.open) UI.renderDM();
       ensureRightScrollBar();
 
+      // Safety: keep overlay-pointer-events state consistent every full render.
+      // Prevents rare "everything is unclickable" when DOM was rebuilt without re-applying panel classes.
+      try { if (UI.updatePanelOverlayState) UI.updatePanelOverlayState(); } catch (_) {}
+
       // If any module requested another render during this run, it will be queued.
     } finally {
       UI.__renderAllRunning = false;
@@ -1392,11 +1403,124 @@ window.Game = window.Game || {};
       const right = document.getElementById("right");
       const blocks = document.getElementById("blocks");
       if (!right || !blocks) return;
-      const hasMax = !!blocks.querySelector(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max");
+      // Only treat as overlay if there is a VISIBLE max panel.
+      // Otherwise we can get stuck in a state where everything becomes unclickable
+      // (pointer-events:none on all blocks except a hidden/removed max panel).
+      const maxNodes = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
+      const hasMax = maxNodes.some(el => {
+        try {
+          if (!el || el.isConnected !== true) return false;
+          // offsetParent null for display:none or detached nodes
+          if (el.offsetParent === null) return false;
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        } catch (_) { return false; }
+      });
       right.classList.toggle("has-overlay-panel", !!hasMax);
       blocks.classList.toggle("has-overlay-panel", !!hasMax);
     } catch (_) {}
   };
+
+  // Watchdog: if overlay class is stuck but no visible max panel exists, clear it.
+  // This avoids rare "scroll works but nothing is clickable" freezes.
+  try {
+    if (!window.__overlayWatchdogBound) {
+      window.__overlayWatchdogBound = true;
+      setInterval(() => {
+        try {
+          const right = document.getElementById("right");
+          const blocks = document.getElementById("blocks");
+          if (!right || !blocks) return;
+          if (!blocks.classList.contains("has-overlay-panel") && !right.classList.contains("has-overlay-panel")) return;
+          const maxNodes = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
+          const hasVisible = maxNodes.some(el => {
+            try {
+              if (!el || el.isConnected !== true) return false;
+              if (el.offsetParent === null) return false;
+              const r = el.getBoundingClientRect();
+              return r.width > 0 && r.height > 0;
+            } catch (_) { return false; }
+          });
+          if (!hasVisible) {
+            right.classList.remove("has-overlay-panel");
+            blocks.classList.remove("has-overlay-panel");
+          }
+        } catch (_) {}
+      }, 500);
+    }
+  } catch (_) {}
+
+  // Debug helpers (console-first): identify what blocks clicks.
+  try {
+    if (!window.__uiInputBlockerDebugBound) {
+      window.__uiInputBlockerDebugBound = true;
+
+      window.__dumpInputBlockers = function(x, y){
+        try {
+          const vx = Number.isFinite(x) ? x : (window.innerWidth / 2);
+          const vy = Number.isFinite(y) ? y : (window.innerHeight / 2);
+          const el = document.elementFromPoint(vx, vy);
+          const stack = (document.elementsFromPoint ? document.elementsFromPoint(vx, vy) : (el ? [el] : [])) || [];
+          const right = document.getElementById("right");
+          const blocks = document.getElementById("blocks");
+          const st = document.getElementById("startScreen");
+          const info = (node) => {
+            if (!node) return null;
+            const cs = window.getComputedStyle(node);
+            return {
+              tag: node.tagName,
+              id: node.id || null,
+              cls: node.className || null,
+              pe: cs.pointerEvents,
+              pos: cs.position,
+              z: cs.zIndex,
+              disp: cs.display,
+              op: cs.opacity,
+              rect: node.getBoundingClientRect ? (() => {
+                const r = node.getBoundingClientRect();
+                return { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
+              })() : null
+            };
+          };
+          const summarize = (x) => {
+            if (!x) return "";
+            const id = x.id ? `#${x.id}` : "";
+            const cls = x.cls ? `.${String(x.cls).trim().split(/\s+/).slice(0, 4).join(".")}` : "";
+            const z = (x.z != null && x.z !== "" && x.z !== "auto") ? ` z=${x.z}` : "";
+            return `${x.tag || "?"}${id}${cls} pe=${x.pe} pos=${x.pos}${z} disp=${x.disp} op=${x.op}`;
+          };
+          return {
+            at: { x: Math.round(vx), y: Math.round(vy) },
+            topElement: info(el),
+            stack: stack.slice(0, 12).map(info),
+            topSummary: summarize(info(el)),
+            stackSummary: stack.slice(0, 12).map(n => summarize(info(n))),
+            overlay: {
+              rightHasOverlay: !!(right && right.classList.contains("has-overlay-panel")),
+              blocksHasOverlay: !!(blocks && blocks.classList.contains("has-overlay-panel")),
+            },
+            startScreen: info(st),
+          };
+        } catch (e) {
+          return { ok:false, error: String(e && e.message ? e.message : e) };
+        }
+      };
+
+      // Optional live logging: enable with `window.__LOG_INPUT_BLOCKERS = true`
+      document.addEventListener("pointerdown", (ev) => {
+        try {
+          if (!window.__LOG_INPUT_BLOCKERS) return;
+          const x = ev && typeof ev.clientX === "number" ? ev.clientX : null;
+          const y = ev && typeof ev.clientY === "number" ? ev.clientY : null;
+          // Throttle to avoid console-induced freezes
+          const now = Date.now();
+          if (window.__lastInputBlockersLogAt && (now - window.__lastInputBlockersLogAt) < 200) return;
+          window.__lastInputBlockersLogAt = now;
+          console.log("[inputBlockers]", window.__dumpInputBlockers(x, y));
+        } catch (_) {}
+      }, true);
+    }
+  } catch (_) {}
 
   // Updates a resize button visual state (for CSS to color max red).
   // Expects a button element and a panel key.

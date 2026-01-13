@@ -803,60 +803,15 @@ window.Game = window.Game || {};
             Game.Events.tickVotes();
           }
 
-          // Auto-vote by NPCs for tie events so votes continue until endsAt.
-          // IMPORTANT: NPC voting must NOT stop just because the player has voted.
-          try {
-            const eventsArr = getEventsArraySafe();
-
-            // Always tick any built-in NPC auto-vote first (if present),
-            // but never let it become a global stop condition for NPC votes.
-            if (Game.Events && typeof Game.Events.autoVoteNpc === "function") {
-              try { Game.Events.autoVoteNpc(); } catch (_) {}
-            }
-
-            // Some implementations stop after the player votes (or only add a couple votes).
-            // We ALWAYS run a safe fallback vote batch, which is rate-limited per event.
-            autoNpcVoteFallback();
-
-            // Lightweight stagnation detector: if an event's totals don't change for a while,
-            // keep nudging fallback so votes keep flowing until endsAt.
-            if (eventsArr && eventsArr.length) {
-              const now2 = Date.now();
-              for (const ev of eventsArr) {
-                if (!isActiveTieEvent(ev)) continue;
-                const c = ensureCrowdShape(ev);
-                if (!c) continue;
-                const total = (c.votesA || 0) + (c.votesB || 0);
-                const lastTotal = (typeof ev._lastVoteTotal === "number") ? ev._lastVoteTotal : total;
-                const lastAt = (typeof ev._lastVoteTotalAt === "number") ? ev._lastVoteTotalAt : now2;
-
-                if (total !== lastTotal) {
-                  ev._lastVoteTotal = total;
-                  ev._lastVoteTotalAt = now2;
-                } else {
-                  // If no progress for >1200ms and we're still before endsAt, nudge again.
-                  if ((now2 - lastAt) > 1200) {
-                    ev._lastVoteTotalAt = now2;
-                    autoNpcVoteFallback();
-                    break;
-                  }
-                }
-              }
-            }
-          } catch (e) {
-            warnOnce("autoVote", "[ui-loops] NPC auto-vote error", e);
-          }
-          // Keep Events UI timers updating without full-page rerender.
-          try {
-            if (Game.UI && typeof Game.UI.renderEvents === "function") Game.UI.renderEvents();
-            else if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
-            else if (Game.UI && typeof Game.UI.renderAll === "function") Game.UI.renderAll();
-          } catch (_) {}
+          // IMPORTANT:
+          // Do NOT duplicate NPC voting simulation here.
+          // `events.js/Events.tick()` already simulates NPC votes and requests render when needed.
+          // Duplicating it here causes render storms and can freeze Safari (especially with DevTools open).
         } catch (e) {
           warnOnce("eventsTick", "[ui-loops] Events.tick error", e);
         }
         scheduleNpcEventTick();
-      }, 250);
+      }, 600);
     }
 
     function makeNpcEventFallback(aId, bId) {

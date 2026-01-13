@@ -808,8 +808,13 @@
            b.opponentThinking = false;
 
            try {
+             // DEV NOTE:
+             // Console spam can freeze UI when DevTools is open.
+             // Log ConflictAPI internals ONLY when explicitly enabled.
              const devOn = !!(Game && Game.UI && Game.UI.S && Game.UI.S.flags && Game.UI.S.flags.devChecks);
-             if (devOn && console && typeof console.debug === "function") {
+             const verbose = !!(typeof window !== "undefined" && window.__LOG_CONFLICT_API === true) ||
+               !!(Game && Game.Debug && Game.Debug.LOG_CONFLICT_API === true);
+             if (devOn && verbose && console && typeof console.debug === "function") {
                console.debug("[ConflictAPI] npc defense pick", {
                  battleId: b.id,
                  phase: b.status,

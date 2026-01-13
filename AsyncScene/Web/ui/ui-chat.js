@@ -336,11 +336,23 @@ window.Game = window.Game || {};
   const applyMention = (name) => {
     const inp = $("chatInput");
     if (!inp) return;
-    const v = inp.value;
+    const v = String(inp.value || "");
     const at = v.lastIndexOf("@");
     if (at >= 0) {
-      // Insert with a hidden marker that will be highlighted but displayed without "@"
-      inp.value = v.slice(0, at) + "@" + name + " ";
+      // Replace only the @token (keeps the rest of the message intact).
+      const afterAt = v.slice(at + 1);
+      const ws = afterAt.search(/\s/);
+      const tokenEnd = (ws >= 0) ? (at + 1 + ws) : v.length;
+      const before = v.slice(0, at + 1);
+      const after = v.slice(tokenEnd);
+      // Ensure we keep a trailing space after a mention if it was at the end.
+      const needSpace = after.length === 0 || !/^\s/.test(after);
+      inp.value = before + String(name || "").trim() + (needSpace ? " " : "") + after;
+    } else {
+      // No @ in the input: append a mention-like token (do not destroy typed text).
+      const trimmed = v.trim();
+      const sep = trimmed.length === 0 ? "" : (/\s$/.test(v) ? "" : " ");
+      inp.value = v + sep + "@" + String(name || "").trim() + " ";
     }
     closeMention();
     inp.focus();
@@ -564,6 +576,26 @@ window.Game = window.Game || {};
   const bindMentionInput = () => {
     const inp = $("chatInput");
     if (!inp || inp.__mentionBound) return;
+
+    const updateMentionListFromInput = (forceOpen = false) => {
+      const v = String(inp.value || "");
+      const at = v.lastIndexOf("@");
+      let q = "";
+      if (at >= 0) {
+        const afterAt = v.slice(at + 1);
+        const ws = afterAt.search(/\s/);
+        q = (ws >= 0) ? afterAt.slice(0, ws) : afterAt;
+      } else {
+        // If dropdown is open (user explicitly clicked/focused), filter by last word.
+        const parts = v.trim().split(/\s+/).filter(Boolean);
+        q = parts.length ? parts[parts.length - 1] : "";
+      }
+      mentionQuery = String(q || "");
+      mentionIndex = 0;
+      const items = filterMentionNames(mentionQuery);
+      if (forceOpen || mentionOpen || at >= 0) renderMentionList(items);
+    };
+
     inp.addEventListener("keydown", (e) => {
       if (mentionOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
         e.preventDefault();
@@ -585,16 +617,18 @@ window.Game = window.Game || {};
     });
 
     inp.addEventListener("input", () => {
-      const v = inp.value;
-      const at = v.lastIndexOf("@");
-      if (at >= 0) {
-        mentionQuery = v.slice(at + 1);
-        const items = filterMentionNames(mentionQuery);
-        mentionIndex = 0;
-        renderMentionList(items);
-      } else {
-        closeMention();
-      }
+      // While dropdown is open (or user typed @), keep it updated.
+      updateMentionListFromInput(false);
+    });
+
+    // Click/focus in input should show the list (even if query is empty).
+    inp.addEventListener("focus", () => {
+      updateMentionListFromInput(true);
+    });
+    inp.addEventListener("click", (e) => {
+      // Don't let click-outside handler instantly close it.
+      try { e.stopPropagation(); } catch (_) {}
+      updateMentionListFromInput(true);
     });
 
     // Click outside to hide dropdown
