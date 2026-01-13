@@ -214,6 +214,64 @@ window.Game = window.Game || {};
     const reportBtn = $("reportBtn");
     const reportInput = $("reportInput");
 
+    // Add clear × button to all input fields
+    const addClearButton = (input) => {
+      if (!input || input.__clearBtnAdded) return;
+      input.__clearBtnAdded = true;
+
+      // Wrap input in relative container
+      const parent = input.parentNode;
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      wrapper.style.display = "inline-block";
+      wrapper.style.width = "100%";
+      
+      parent.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+
+      // Add padding to input for clear button
+      input.style.paddingRight = "28px";
+
+      // Create clear button
+      const clearBtn = document.createElement("button");
+      clearBtn.textContent = "×";
+      clearBtn.className = "btn small";
+      clearBtn.style.position = "absolute";
+      clearBtn.style.right = "4px";
+      clearBtn.style.top = "50%";
+      clearBtn.style.transform = "translateY(-50%)";
+      clearBtn.style.padding = "0 6px";
+      clearBtn.style.minWidth = "0";
+      clearBtn.style.background = "transparent";
+      clearBtn.style.border = "none";
+      clearBtn.style.cursor = "pointer";
+      clearBtn.style.fontSize = "18px";
+      clearBtn.style.lineHeight = "1";
+      clearBtn.style.display = input.value.trim() ? "" : "none";
+      clearBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        input.value = "";
+        clearBtn.style.display = "none";
+        input.focus();
+        // Trigger input event to update any listeners
+        const event = new Event("input", { bubbles: true });
+        input.dispatchEvent(event);
+      };
+
+      wrapper.appendChild(clearBtn);
+
+      // Show/hide clear button on input
+      input.addEventListener("input", () => {
+        clearBtn.style.display = input.value.trim() ? "" : "none";
+      });
+    };
+
+    // Apply to all relevant inputs
+    if (chatInput) addClearButton(chatInput);
+    if (dmInput) addClearButton(dmInput);
+    if (reportInput) addClearButton(reportInput);
+
     // Menu: bindings are delegated in ui-menu.js to survive re-renders.
 
     // Random nick

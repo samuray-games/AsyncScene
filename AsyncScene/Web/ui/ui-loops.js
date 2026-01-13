@@ -44,6 +44,7 @@ window.Game = window.Game || {};
     let npcEventTickTimer = null;
     let npcDmTimer = null;
     let npcRematchTimer = null;
+    let npcRematchRequestTimer = null;
 
     // Rate-limited warn helper (prevents console spam but keeps visibility)
     const _warnAt = Object.create(null);
@@ -288,6 +289,7 @@ window.Game = window.Game || {};
       if (npcEventTickTimer) clearTimeout(npcEventTickTimer);
       if (npcDmTimer) clearTimeout(npcDmTimer);
       if (npcRematchTimer) clearTimeout(npcRematchTimer);
+      if (npcRematchRequestTimer) clearTimeout(npcRematchRequestTimer);
 
       npcChatTimer = null;
       npcBattleTimer = null;
@@ -295,6 +297,7 @@ window.Game = window.Game || {};
       npcEventTickTimer = null;
       npcDmTimer = null;
       npcRematchTimer = null;
+      npcRematchRequestTimer = null;
     };
 
     UI.startLoops = () => {
@@ -327,6 +330,7 @@ window.Game = window.Game || {};
       scheduleNpcDm();
       scheduleNpcBattle();
       scheduleNpcRematchResponse();
+      scheduleNpcRematchRequest();
     };
 
     // Auto-start loops once they are defined. startLoops() will self-retry until player name exists.
@@ -585,6 +589,81 @@ window.Game = window.Game || {};
         }
 
         scheduleNpcRematchResponse();
+      }, delay);
+    }
+
+    function scheduleNpcRematchRequest() {
+      // NPCs request rematch after losing (with escalating cost) every 10-20s
+      const delay = 10000 + Math.floor(Math.random() * 10001);
+      npcRematchRequestTimer = setTimeout(() => {
+        if (!isLive()) {
+          scheduleNpcRematchRequest();
+          return;
+        }
+
+        try {
+          const st = getStateSafe();
+          if (!st || !Array.isArray(st.battles)) {
+            scheduleNpcRematchRequest();
+            return;
+          }
+
+          // Find resolved battles where NPC lost (eligible for rematch).
+          const eligibleBattles = st.battles.filter(b => {
+            if (!b || !b.resolved || b.rematchOf) return false;
+            // NPC lost if: result="win" and fromThem=true (player won incoming battle)
+            // OR result="lose" and fromThem=false (player won outgoing battle)
+            const npcLost = (b.result === "win" && b.fromThem === true) || (b.result === "lose" && b.fromThem === false);
+            if (!npcLost) return false;
+
+            // Check if opponent is NPC
+            const npcId = b.opponentId;
+            if (!npcId || npcId === "me") return false;
+            const npc = (st.players && st.players[npcId]) ? st.players[npcId] : null;
+            const isNpc = !!(npc && (npc.npc === true || npc.type === "npc"));
+            if (!isNpc) return false;
+
+            // Skip if there's already an undecided rematch request
+            if (b.rematch && b.rematch.requestedAt && b.rematch.decided !== true) return false;
+
+            return true;
+          });
+
+          if (eligibleBattles.length === 0) {
+            scheduleNpcRematchRequest();
+            return;
+          }
+
+          // Pick a random eligible battle
+          const b = eligibleBattles[Math.floor(Math.random() * eligibleBattles.length)];
+          const npcId = b.opponentId;
+          const npc = (st.players && st.players[npcId]) ? st.players[npcId] : null;
+
+          // 40% chance to request rematch
+          if (Math.random() < 0.4) {
+            try {
+              if (Game.Conflict && typeof Game.Conflict.requestRematch === "function") {
+                const result = Game.Conflict.requestRematch(b.id, npcId);
+                if (result && result.ok) {
+                  // Optional: add NPC chat line about requesting rematch
+                  try {
+                    if (npc && npc.name && UI && typeof UI.pushChat === "function") {
+                      const lines = ["ещё раз?", "давай по новой", "не сдаюсь", "реванш"];
+                      const line = lines[Math.floor(Math.random() * lines.length)];
+                      UI.pushChat({ name: npc.name, text: line, system: false });
+                    }
+                  } catch (_) {}
+                }
+              }
+            } catch (e) {
+              warnOnce("npcRematchReq", "[ui-loops] NPC rematch request error", e);
+            }
+          }
+        } catch (e) {
+          warnOnce("npcRematchReqLoop", "[ui-loops] NPC rematch request loop error", e);
+        }
+
+        scheduleNpcRematchRequest();
       }, delay);
     }
 

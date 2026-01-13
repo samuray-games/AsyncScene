@@ -675,6 +675,8 @@ window.Game = window.Game || {};
         listEl.id = "dmInviteList";
         listEl.className = "mention-list";
         listEl.style.display = "none";
+        listEl.style.position = "fixed"; // Fixed positioning to escape parent overflow
+        listEl.style.zIndex = "9999"; // High z-index to appear above all elements
         document.body.appendChild(listEl);
       }
 
@@ -801,6 +803,15 @@ window.Game = window.Game || {};
         // Delay so click on list registers
         setTimeout(() => closeInviteList(), 120);
       });
+
+      // Click outside to hide dropdown
+      const handleClickOutside = (e) => {
+        if (!listEl || listEl.style.display === "none") return;
+        if (!inp.contains(e.target) && !listEl.contains(e.target)) {
+          closeInviteList();
+        }
+      };
+      document.addEventListener("click", handleClickOutside, true);
 
       inp.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
@@ -1007,6 +1018,8 @@ window.Game = window.Game || {};
       const listWrap = document.getElementById("reportList") || document.createElement("div");
       listWrap.id = "reportList";
       listWrap.className = "mention-list";
+      listWrap.style.position = "fixed"; // Fixed positioning to escape parent overflow
+      listWrap.style.zIndex = "9999"; // High z-index to appear above all elements
 
       const isReportable = (p) => {
         if (!p || !p.name) return false;
@@ -1030,6 +1043,14 @@ window.Game = window.Game || {};
         return ps;
       };
 
+      const positionReportList = () => {
+        if (!reportInput) return;
+        const rect = reportInput.getBoundingClientRect();
+        listWrap.style.left = `${rect.left}px`;
+        listWrap.style.top = `${rect.bottom + 4}px`;
+        listWrap.style.width = `${Math.max(rect.width, 200)}px`;
+      };
+
       const renderReportList = () => {
         const q = String(UI._reportInvite.q || "").trim().toLowerCase();
         const base = getReportables();
@@ -1044,6 +1065,8 @@ window.Game = window.Game || {};
           it.className = "mention-item";
           it.textContent = "Тут пусто.";
           listWrap.appendChild(it);
+          listWrap.style.display = "block";
+          positionReportList();
           return;
         }
 
@@ -1057,11 +1080,15 @@ window.Game = window.Game || {};
             UI._reportInvite.q = String(p.name || "");
             reportInput.value = UI._reportInvite.q;
             UI._reportInvite.sel = idx;
-            renderReportList();
+            // Close dropdown after selection
+            UI._reportInvite.open = false;
+            listWrap.style.display = "none";
             reportInput.focus();
           };
           listWrap.appendChild(it);
         });
+        listWrap.style.display = "block";
+        positionReportList();
       };
 
       reportInput.addEventListener("focus", () => {
@@ -1084,11 +1111,29 @@ window.Game = window.Game || {};
         if (e.key === "ArrowUp") { stop(e); UI._reportInvite.sel = Math.max(0, (UI._reportInvite.sel || 0) - 1); renderReportList(); }
       });
 
-      const extra = $("dmExtraRow");
-      if (extra && !extra.contains(listWrap)) {
-        extra.appendChild(listWrap);
+      // Append to body for fixed positioning
+      if (!document.body.contains(listWrap)) {
+        document.body.appendChild(listWrap);
       }
       if (UI._reportInvite.open) renderReportList();
+
+      // Click outside to hide dropdown
+      const handleReportClickOutside = (e) => {
+        if (!UI._reportInvite || !UI._reportInvite.open) return;
+        if (!reportInput.contains(e.target) && !listWrap.contains(e.target)) {
+          UI._reportInvite.open = false;
+          listWrap.style.display = "none";
+        }
+      };
+      document.addEventListener("click", handleReportClickOutside, true);
+
+      // Click in input to show dropdown again
+      reportInput.addEventListener("click", () => {
+        if (!UI._reportInvite.open) {
+          UI._reportInvite.open = true;
+          renderReportList();
+        }
+      });
     }
 
     const extra = $("dmExtraRow");

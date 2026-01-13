@@ -1419,7 +1419,10 @@
   C.requestRematch = function(battleId, requesterId){
     const b = Game.State.battles.find(x => x && x.id === battleId);
     if (!b) return { ok: false, reason: "not_found" };
-    if (b.rematch && b.rematch.requestedAt) return { ok: false, reason: "already_requested" };
+    // Allow multiple rematch requests with escalating cost: only block if there's an undecided request.
+    if (b.rematch && b.rematch.requestedAt && b.rematch.decided !== true) {
+      return { ok: false, reason: "already_requested" };
+    }
     if (b.rematchOf) return { ok: false, reason: "is_rematch" };
     const sides = getRematchSides(b);
     if (!sides) return { ok: false, reason: "not_eligible" };
@@ -1430,9 +1433,13 @@
     const winnerId = sides.winnerId;
     const loserId = sides.loserId;
 
-    // Cost: 1 point transfer loser -> winner (no sinks, no escalation). Must be loggable with battleId.
+    // Escalating cost: track rematch request count on the battle.
+    b.rematchRequestCount = (b.rematchRequestCount || 0) + 1;
+    const cost = b.rematchRequestCount;
+
+    // Cost: escalating point transfer loser -> winner. Must be loggable with battleId.
     try {
-      const tx = econTransfer(loserId, winnerId, 1, "rematch_request_cost", { battleId: b.id, rematchOf: b.id });
+      const tx = econTransfer(loserId, winnerId, cost, "rematch_request_cost", { battleId: b.id, rematchOf: b.id });
       if (!tx || tx.ok !== true) {
         // If econ is present but refuses due to insufficient points, do NOT apply legacy fallback.
         const have =
@@ -1441,7 +1448,7 @@
             : ((getPlayer(loserId) && Number.isFinite(getPlayer(loserId).points)) ? (getPlayer(loserId).points | 0) : 0);
 
         if (tx && tx.reason && tx.reason !== "no_econ") {
-          return { ok: false, reason: "no_points", cost: 1, have };
+          return { ok: false, reason: "no_points", cost, have };
         }
 
         // No econ: apply safe legacy transfer with a strict funds check.
@@ -1449,10 +1456,10 @@
         const winner = (winnerId === "me") ? (Game.State && Game.State.me) : getPlayer(winnerId);
         ensurePointsField(loser);
         ensurePointsField(winner);
-        if (!loser || !winner) return { ok: false, reason: "no_points", cost: 1, have };
-        if ((loser.points | 0) < 1) return { ok: false, reason: "no_points", cost: 1, have: (loser.points | 0) };
-        loser.points = clamp0((loser.points | 0) - 1);
-        winner.points = clamp0((winner.points | 0) + 1);
+        if (!loser || !winner) return { ok: false, reason: "no_points", cost, have };
+        if ((loser.points | 0) < cost) return { ok: false, reason: "no_points", cost, have: (loser.points | 0) };
+        loser.points = clamp0((loser.points | 0) - cost);
+        winner.points = clamp0((winner.points | 0) + cost);
       }
     } catch (_) {}
 
@@ -1506,14 +1513,23 @@
       return { ok: true, battleId: b.id, accepted: false };
     }
 
-    // Accept: create a new battle linked to the old one (no extra point costs in wave 3 core).
+    // Accept: create a new battle and replace the old one at the same position.
     const fromThem = (loserId !== "me");
     const nb = createBattle({ opponentId: b.opponentId, fromThem });
     nb.rematchOf = b.id;
     nb.pinned = true;
-    Game.State.battles.unshift(nb);
+    // INVARIANT: rematch counter persists across battles (each loss against same opponent costs +1💰)
+    nb.rematchRequestCount = b.rematchRequestCount || 0;
+    
+    // Replace old battle at the same index (not unshift to top).
+    const oldIndex = Game.State.battles.indexOf(b);
+    if (oldIndex >= 0) {
+      Game.State.battles.splice(oldIndex, 1, nb);
+    } else {
+      // Fallback: if old battle not found, add new one to top.
+      Game.State.battles.unshift(nb);
+    }
 
-    b.updatedAt = now();
     return { ok: true, accepted: true, battle: nb };
   };
 

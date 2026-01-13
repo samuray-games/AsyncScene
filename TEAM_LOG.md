@@ -1839,3 +1839,447 @@ Impact:
 - Меняется лексика и маршрутизация: только текущий агент + внутренние режимы; никаких ссылок на старую команду
 OpenQuestions:
 - Нет
+
+**ID:** DUM-036  
+**LOG-ID:** 2026-01-13-points0-runtime-pass-017  
+**Дата:** 2026-01-13  
+**Type:** PASS  
+**Context:** Runtime-подтверждение фиксов DUM-034 и DUM-035 — все 3 сценария работают правильно.  
+**Details:**
+- **A) 1💰→реванш→0💰**: PASS (баланс стал 0, реванш отработал).
+- **B) 0💰→клик платного действия→тост под 💰 "Пойнтов не хватает."**: PASS.
+- **C) influence<5→hover/click "Отвали"→тост под кнопкой**: PASS (тост появляется внутри карточки баттла).
+**Evidence:** Сообщение пользователя "A - pass, B - pass, C - pass".  
+**Impact:**
+- Блокеры по доносу/тюрьме, points=0 и toast-UI закрыты.
+- Инвариант "Points ≥ 0 (не <0)" заменил старый "Points ≥ 1".
+**OpenQuestions:** Нет.  
+
+---
+
+**ID:** DUM-037  
+**LOG-ID:** 2026-01-13-rematch-escalation-npc-017  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Реализованы 3 изменения в механике реванша: (1) многократные запросы с растущей ценой, (2) замена старой карточки на новую при принятии, (3) NPC инициируют реванши.  
+**Details:**
+- **1) Многократный реванш с растущей ценой:**
+  - В `conflict-core.js/C.requestRematch`: убрана блокировка повторных запросов после `decided=true`, добавлен счетчик `b.rematchRequestCount`, цена = счетчик + 1 (первый раз 1💰, второй 2💰, и т.д.).
+  - В `ui-battles.js`: кнопка "Попросить (N 💰)" показывается всегда для проигравшего, независимо от предыдущих запросов.
+- **2) Замена карточки:**
+  - В `conflict-core.js/C.respondRematch`: при accept старый батл удаляется из массива (`Game.State.battles = ...filter(x => x.id !== b.id)`), счетчик передается новому батлу.
+- **3) NPC инициируют реванши:**
+  - В `ui-loops.js`: добавлена функция `scheduleNpcRematchRequest()`, которая проверяет resolved battles где NPC проиграл и с вероятностью 40% запрашивает реванш каждые 10-20 секунд.
+**Files changed:**
+- `AsyncScene/Web/conflict/conflict-core.js`
+- `AsyncScene/Web/ui/ui-battles.js`
+- `AsyncScene/Web/ui/ui-loops.js`
+**Evidence:**
+- `node --check` PASS для всех 3 файлов.
+- Линтер: без ошибок.
+**Impact:**
+- Реванш теперь может запрашиваться многократно с растущей стоимостью.
+- Принятие реванша заменяет старую карточку вместо создания дубликата.
+- NPC проявляют инициативу и сами просят реванш после проигрыша.
+**OpenQuestions:** Нужен runtime PASS/FAIL: (A) проиграть батл, попросить реванш за 1💰, получить отказ, попросить снова за 2💰; (B) принять реванш и убедиться что старая карточка заменилась новой; (C) проиграть NPC и дождаться его запроса реванша в чате.  
+
+---
+
+**ID:** DUM-038  
+**LOG-ID:** 2026-01-13-rematch-ux-inline-018  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Доработан UX реванша согласно канону: текст встроен в строку, показывается pending состояние, новый батл заменяет старый на том же месте, после decline предлагается retry с растущей ценой.  
+**Details:**
+- **UI (ui-battles.js):**
+  - "Хочешь реванш? Хочу! 1💰" — кликабельная строка (не отдельная кнопка с ценой).
+  - После клика: "Ты вызвал на реванш." (пока ждём ответ).
+  - После decline: "Реванш отклонён." + "Всё ещё хочешь реванш? Хочу! 2💰" (кликабельная).
+  - Цена встроена в текст строки, кнопки убраны для запроса (остались только Принять/Отклонить для получателя).
+- **Core (conflict-core.js):**
+  - При accept: новый батл вставляется на **то же место** (`splice(oldIndex, 1, nb)`), а не в начало списка.
+**Files changed:**
+- `AsyncScene/Web/conflict/conflict-core.js`
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS для обоих файлов.
+- Линтер: без ошибок.
+**Impact:**
+- UX реванша соответствует канону: текст inline, pending показывается, retry после decline, замена на том же месте.
+**OpenQuestions:** Нужен runtime PASS/FAIL: (A) проиграть, кликнуть "Хочу! 1💰" → "Ты вызвал на реванш."; (B) получить decline → "Реванш отклонён." + "Всё ещё хочешь реванш? Хочу! 2💰"; (C) получить accept → старая карточка заменяется новой на том же месте.  
+
+---
+
+**ID:** DUM-039  
+**LOG-ID:** 2026-01-13-battle-call-ux-leave-019  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Переделан UX вызова на батл + добавлена кнопка "Уйти" под аргументами при pickAttack. Реванш-тексты обновлены (DUM-038 уже записан).  
+**Details:**
+- **Реванш-тексты (ui-battles.js):**
+  - "Хочешь реванш? Хочу! 1💰" → "Реванш? 1💰"
+  - "Всё ещё хочешь реванш? Хочу! 2💰" → "Снова реванш? 2💰"
+- **Вызов на батл (ui-battles.js):**
+  - Кнопка "Вызвать" → клик → **заменяется на input** с автофокусом
+  - Сразу выпадает inline dropdown со списком игроков (position:absolute под input, не fixed popup)
+  - Input имеет встроенный крестик "×" справа для очистки (показывается только когда есть текст)
+  - Справа от input кнопка "Баттл!" (вместо отдельной кнопки "Вызвать" внутри popup)
+  - Клик "Баттл!" → input закрывается, возвращается кнопка "Вызвать", появляется карточка батла
+  - Enter в input → триггерит "Баттл!" кнопку
+  - Escape в input → закрывает input, возвращается кнопка "Вызвать"
+  - **Удалён старый popup-код** (строки 846-1013 в старой версии) с fixed positioning и отдельным top2/go/close блоком
+- **Кнопка "Уйти" (ui-battles.js):**
+  - Добавлена под аргументами при `pickAttack` (перед выбором аргумента игрок может уйти из батла)
+  - Вызывает `Game.Conflict.escape(b.id, "smyt")` → снимает REP, закрывает карточку батла
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS
+- Линтер: без ошибок
+**Impact:**
+- UX вызова на батл теперь inline (кнопка → input → dropdown → крестик × → "Баттл!"), без popup-модалки
+- Dropdown позиционируется inline (absolute под input), не перекрывается другими элементами
+- Кнопка "Уйти" даёт игроку возможность выйти из батла до выбора аргумента (штраф REP)
+- Реванш-тексты стали короче и чётче
+**OpenQuestions:** Нужен runtime PASS/FAIL: (A) клик "Вызвать" → input с автофокусом, dropdown сразу открыт; (B) выбор игрока → имя в input, крестик × появился; (C) клик "Баттл!" → input закрылся, карточка батла появилась; (D) при pickAttack кнопка "Уйти" под аргументами → клик → батл закрыт, REP снят.  
+
+---
+
+**ID:** DUM-040  
+**LOG-ID:** 2026-01-13-rematch-text-snova-020  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлен текст реванша после accept и нового проигрыша: теперь показывается "Снова реванш?" вместо "Реванш?" при rematchRequestCount > 0.  
+**Details:**
+- **Проблема:** После accept и нового проигрыша текст был "Реванш? 2💰", хотя должен быть "Снова реванш? 2💰"
+- **Правило:** 
+  - `rematchRequestCount === 0` (первый раз): "Реванш? 1💰"
+  - `rematchRequestCount > 0` (все последующие): "Снова реванш? N💰"
+- **Изменение (ui-battles.js, строка ~1888):**
+  - Добавлена проверка `isFirstTime = (b.rematchRequestCount || 0) === 0`
+  - Текст: `isFirstTime ? "Реванш? N💰" : "Снова реванш? N💰"`
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS
+**Impact:**
+- Текст реванша теперь корректно отражает, первый это запрос или повторный (после decline или нового проигрыша)
+**OpenQuestions:** Нужен runtime PASS: (A) проиграть → "Реванш? 1💰"; (B) decline → "Снова реванш? 2💰"; (C) accept, проиграть снова → "Снова реванш? 2💰" (не "Реванш? 2💰").  
+
+---
+
+**ID:** DUM-041  
+**LOG-ID:** 2026-01-13-rematch-counter-reset-021  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлена логика счётчика реванша при accept: теперь новый батл начинается с чистого счётчика (0), а не переносит старый.  
+**Details:**
+- **Проблема:** При accept старый `rematchRequestCount` переносился в новый батл (строка 1522: `nb.rematchRequestCount = b.rematchRequestCount || 0`), из-за чего новый конфликт продолжал эскалацию цены вместо сброса.
+- **Правильная логика:**
+  - **Accept** → новый батл → счётчик **сбрасывается** (rematchRequestCount = undefined/0) → "Реванш? 1💰"
+  - **Decline** → тот же батл → счётчик **растёт** → "Снова реванш? 2💰", "Снова реванш? 3💰"...
+- **Изменение (conflict-core.js, строка ~1522):**
+  - Удалена строка `nb.rematchRequestCount = b.rematchRequestCount || 0;`
+  - Добавлен комментарий: "Accept = new battle, reset rematch counter (fresh start). Decline will keep old battle and counter continues to grow."
+**Files changed:**
+- `AsyncScene/Web/conflict/conflict-core.js`
+**Evidence:**
+- `node --check` PASS
+**Impact:**
+- Accept реванша теперь создаёт новый батл с чистого листа (цена реванша начинается с 1💰)
+- Decline продолжает эскалацию цены в том же батле
+**OpenQuestions:** Нужен runtime PASS: (A) проиграть → "Реванш? 1💰"; (B) decline → "Снова реванш? 2💰"; (C) decline → "Снова реванш? 3💰"; (D) accept → проиграть новый батл → "Реванш? 1💰" (счётчик сброшен).  
+
+---
+
+**ID:** DUM-042  
+**LOG-ID:** 2026-01-13-rematch-always-show-button-022  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлены две проблемы с реваншем: (1) реванш не появлялся после второго боя из-за проверки `!b.rematchOf`, (2) кнопка реванша выглядела как уведомление (div.noteLine) вместо настоящей кнопки.  
+**Details:**
+- **Проблема 1: Реванш не появляется после accept→новый бой→проигрыш**
+  - Причина: проверка `isEligible = !b.rematchOf && (b.result === "win" || b.result === "lose")` на строке 1782
+  - Новый батл после accept имеет `rematchOf = b.id` (conflict-core.js:1519), поэтому `isEligible` становился `false`
+  - Исправление: убрана проверка `!b.rematchOf`, теперь `isEligible = (b.result === "win" || b.result === "lose")`
+  - Комментарий добавлен: "Allow rematch for any resolved battle (including those created via accept/rematchOf)."
+- **Проблема 2: Оформление кнопки реванша**
+  - Было: `div.noteLine` с `onclick` и `cursor: pointer` (выглядело как уведомление)
+  - Стало: `<button class="btn small">` (как "Свалить", "Принять", "Отклонить")
+  - Изменены два места:
+    - "Реванш? 1💰" / "Снова реванш? 2💰" (initial request)
+    - "Снова реванш? 2💰" (retry after decline)
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS
+- Линтер: без ошибок
+**Impact:**
+- Реванш теперь показывается после **каждого** проигрыша (включая батлы, созданные через accept)
+- Кнопка реванша оформлена как настоящая кнопка (не как уведомление)
+**OpenQuestions:** Нужен runtime PASS: (A) проиграть → кнопка "Реванш? 1💰" появилась; (B) accept → проиграть новый батл → кнопка "Реванш? 1💰" **появилась снова** (это главная проверка!); (C) кнопка выглядит как "Свалить" (btn small, не div.noteLine).  
+
+---
+
+**ID:** DUM-043  
+**LOG-ID:** 2026-01-13-rematch-enable-dropdown-zindex-023  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлены две проблемы: (1) кнопка реванша была неактивна (disabled) после accept→новый бой→проигрыш, (2) dropdown "Вызвать" перекрывался карточками батлов.  
+**Details:**
+- **Проблема 1: Кнопка реванша неактивна**
+  - Симптом: после accept→новый бой→проигрыш кнопка "Реванш?" или "Снова реванш?" появлялась, но была disabled
+  - Причина: кнопки создавались без явной установки `disabled = false`, и возможно CSS или браузер устанавливал disabled по умолчанию
+  - Исправление: добавлена явная строка `btnRematch.disabled = false;` и `retryBtn.disabled = false;` при создании кнопок реванша (строки ~1895 и ~1864)
+- **Проблема 2: Dropdown "Вызвать" перекрывался карточками**
+  - Симптом: выпадающий список игроков в поле "Вызвать" перекрывался карточками батлов и другими блоками
+  - Причина: `z-index: 1000` был недостаточно высоким
+  - Исправление: изменен `z-index` с 1000 на 9999 (строка ~779) с комментарием "High z-index to appear above all battle cards"
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS
+- Линтер: без ошибок
+**Impact:**
+- Кнопка реванша теперь всегда активна (кликабельна) после проигрыша
+- Dropdown "Вызвать" теперь всегда поверх всех элементов UI
+**OpenQuestions:** Нужен runtime PASS: (A) accept→проиграть новый бой→кнопка "Реванш? 1💰" **активна** (можно кликнуть); (B) клик "Вызвать"→dropdown появился **поверх всех карточек** батлов.  
+
+---
+
+**ID:** DUM-044  
+**LOG-ID:** 2026-01-13-dropdown-fixed-positioning-024  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Dropdown "Вызвать" теперь рендерится за пределами блока с `position: fixed`, чтобы не обрезаться родительским контейнером.  
+**Details:**
+- **Проблема:** Dropdown имел `position: absolute`, что привязывало его к `inviteRow` (position: relative). Если у родительского контейнера (battles body) был `overflow: hidden` или другие ограничения, dropdown обрезался и не был виден полностью.
+- **Решение:**
+  - Изменён `position: absolute` → `position: fixed` (строка ~774)
+  - Убраны `top: "100%"`, `left: "0"`, `right: "0"` (для absolute позиционирования)
+  - Добавлена функция `positionDropdown()`, которая рассчитывает координаты через `input.getBoundingClientRect()` и устанавливает `left`, `top`, `width`
+  - Dropdown добавляется в `body` (battles body) через `body.appendChild(listWrap)` вместо `inviteRow.appendChild(listWrap)`
+  - `positionDropdown()` вызывается при инициализации и при `input.onfocus` (на случай скролла/ресайза)
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS
+- Линтер: без ошибок
+**Impact:**
+- Dropdown "Вызвать" теперь рендерится поверх всех элементов и не обрезается родительским контейнером (выходит за пределы блока)
+**OpenQuestions:** Нужен runtime PASS: клик "Вызвать" → dropdown выпадает **за пределы блока** поверх всех карточек батлов, не обрезается.  
+
+---
+
+**ID:** DUM-045  
+**LOG-ID:** 2026-01-13-all-dropdowns-fixed-clickoutside-025  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Применено fixed positioning ко всем dropdown в проекте + добавлен функционал "клик за пределами скрывает, клик в input показывает".  
+**Details:**
+- **Проблема 1: Не все dropdown использовали fixed positioning**
+  - `dmInviteList` (ui-dm.js) — добавлен `position: fixed`, `z-index: 9999`
+  - `reportList` (ui-dm.js) — добавлен `position: fixed`, `z-index: 9999`, функция `positionReportList()` для расчёта координат через `getBoundingClientRect()`, перенесён из `dmExtraRow` в `document.body`
+  - `mentionList` (ui-chat.js) — добавлен `position: fixed`, `z-index: 9999`, `maxHeight: 200px`, `overflowY: auto`, позиционирование через `getBoundingClientRect()`
+- **Проблема 2: Dropdown не скрывались при клике за пределами**
+  - **ui-battles.js (battle invite):** добавлен `handleClickOutside` listener, который проверяет клик вне `input` и `listWrap`, закрывает dropdown через `UI._battleInvite.open = false` и вызывает `requestAll()`. Добавлена функция `UI._battleInviteCleanup()` для удаления listener и DOM-элемента.
+  - **ui-dm.js (DM invite):** добавлен `handleClickOutside` listener для `dmInviteList`.
+  - **ui-dm.js (cop report):** добавлен `handleReportClickOutside` listener для `reportList`, добавлен click handler на `reportInput` для повторного открытия при клике в input.
+  - **ui-chat.js (mention):** добавлен `handleClickOutside` listener в `bindMentionInput()` для `mentionList`.
+- **Дополнительно (от пользователя):**
+  - В `ui-dm.js` добавлены строки `listWrap.style.display = "block";` в `renderReportList()` для явного показа dropdown.
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+- `AsyncScene/Web/ui/ui-dm.js`
+- `AsyncScene/Web/ui/ui-chat.js`
+**Evidence:**
+- `node --check` PASS для всех 3 файлов
+- Линтер: без ошибок
+**Impact:**
+- Все dropdown теперь рендерятся с `position: fixed` и `z-index: 9999` → выходят за пределы родительских контейнеров и не обрезаются
+- Клик за пределами dropdown → скрывает его
+- Клик в input → показывает dropdown снова (для reportList явно реализовано)
+**OpenQuestions:** Нужен runtime PASS: (A) все dropdown выпадают поверх всех элементов; (B) клик за пределами скрывает dropdown; (C) клик в input снова показывает dropdown.  
+
+---
+
+**ID:** DUM-046  
+**LOG-ID:** 2026-01-13-dropdown-click-fix-clearbutton-026  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлен баг с закрытием dropdown "Вызвать" при клике на элемент списка + добавлены крестики × для очистки во всех полях ввода.  
+**Details:**
+- **Проблема 1: Dropdown "Вызвать" закрывался при клике на элемент списка**
+  - Причина: в `it.onclick` (ui-battles.js, строка ~798) вызывался `requestAll()`, который перерисовывал весь UI и закрывал dropdown
+  - Исправление: убран вызов `requestAll()` из `it.onclick`, теперь при клике на элемент только обновляется `input.value` и `UI._battleInvite.q`, но dropdown остаётся открытым. Пользователь может выбрать игрока и затем нажать "Баттл!" или продолжить выбирать.
+  - Комментарий: "Don't call requestAll() here to keep dropdown open for further selection. User can click 'Баттл!' button when ready."
+- **Проблема 2: Крестики × отсутствовали в большинстве полей ввода**
+  - Создана универсальная функция `addClearButton(input)` в ui-boot.js (строка ~218)
+  - Функция:
+    - Оборачивает input в `div` с `position: relative`
+    - Добавляет `paddingRight: 28px` к input
+    - Создаёт кнопку × с `position: absolute` справа внутри
+    - Показывает × только когда `input.value.trim()` не пустое
+    - При клике на × очищает поле, скрывает кнопку, фокусирует input, триггерит `input` event
+  - Применена к: `chatInput`, `dmInput`, `reportInput`
+  - Примечание: `battleInviteInput` уже имел крестик в ui-battles.js (DUM-044)
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+- `AsyncScene/Web/ui/ui-boot.js`
+**Evidence:**
+- `node --check` PASS для обоих файлов
+- Линтер: без ошибок
+**Impact:**
+- Dropdown "Вызвать" теперь не закрывается при клике на элемент списка, можно выбирать игроков многократно
+- Все поля ввода (chat, DM, cop report, battle invite) имеют крестик × для быстрой очистки
+**OpenQuestions:** Нужен runtime PASS: (A) клик на элемент в dropdown "Вызвать" → dropdown остаётся открытым, имя заполняется в input; (B) во всех полях ввода появляется крестик × при вводе текста; (C) клик на × очищает поле.  
+
+---
+
+**ID:** DUM-047  
+**LOG-ID:** 2026-01-13-dropdown-final-fix-027  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлены все проблемы с dropdown: дублирующий список, некорректное закрытие, и реализована финальная логика "клик в поле → список появляется, клик на элемент → заполняет и закрывает".  
+**Details:**
+- **Проблема 1: Дублирующий список слева сверху**
+  - Причина: при каждом рендере создавался новый `listWrap` и добавлялся в `body`, старые не удалялись
+  - Исправление (ui-battles.js): добавлено `const oldListWrap = document.getElementById("battleInviteDropdown"); if (oldListWrap) oldListWrap.remove();` перед созданием нового. Dropdown теперь имеет id `"battleInviteDropdown"` для надёжного поиска и удаления.
+- **Проблема 2: Dropdown закрывался при любом клике**
+  - Причина: `handleClickOutside` listener добавлялся с задержкой 100ms, но клик по кнопке "Вызвать" успевал попасть в listener и закрывал dropdown сразу
+  - Исправление (ui-battles.js): увеличена задержка до 200ms, `handleClickOutside` теперь использует `document.getElementById("battleInviteDropdown")` вместо локальной переменной, listener удаляется после закрытия dropdown
+- **Проблема 3: Финальная логика dropdown**
+  - Реализовано для всех dropdown:
+    - **battle invite (ui-battles.js):** 
+      - Добавлен `input.onclick` handler: при клике в поле если `UI._battleInvite.open === false`, устанавливает `true` и вызывает `requestAll()`
+      - В `it.onclick`: после заполнения `input.value` закрывает dropdown через `UI._battleInvite.open = false; listWrap.remove();`
+    - **cop report (ui-dm.js):**
+      - В `it.onclick`: добавлено `UI._reportInvite.open = false; listWrap.style.display = "none";` после заполнения
+      - Click handler на `reportInput` уже был реализован в DUM-045 (строка 1129-1134)
+    - **DM invite (ui-dm.js):** уже корректно работает (closeInviteList), focus handler уже был
+    - **mention (ui-chat.js):** работает через "@" автокомплит, не трогали
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+- `AsyncScene/Web/ui/ui-dm.js`
+**Evidence:**
+- `node --check` PASS для обоих файлов
+- Линтер: без ошибок
+**Impact:**
+- Больше нет дублирующих dropdown
+- Клик в поле ввода → показывает dropdown
+- Клик на элемент → заполняет поле и закрывает dropdown
+- Клик за пределами → закрывает dropdown (с корректной задержкой)
+**OpenQuestions:** Нужен runtime PASS: (A) клик "Вызвать"→dropdown появляется; (B) клик на элемент→имя заполняется, dropdown закрывается; (C) клик в поле→dropdown появляется снова; (D) нет дублирующих dropdown слева сверху.  
+
+---
+
+**ID:** DUM-048  
+**LOG-ID:** 2026-01-13-dropdown-positioning-fix-028  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлена проблема с позиционированием dropdown "Вызвать" — появлялся не под полем ввода из-за неправильного порядка добавления элементов в DOM.  
+**Details:**
+- **Проблема:** Dropdown появлялся в неправильном месте (не под полем ввода)
+- **Причина:** 
+  1. Dropdown создавался и позиционировался ДО того, как `inviteRow` (содержащий input) был добавлен в battles body
+  2. `input.getBoundingClientRect()` возвращал координаты для элемента, который ещё не был в финальной позиции DOM
+  3. Был дублирующий `body.appendChild(inviteRow)` на строке 906
+- **Исправление (ui-battles.js):**
+  1. Переместил `body.appendChild(inviteRow)` выше — сразу после создания `inviteRow` (строка ~758)
+  2. Вынес создание dropdown в отдельный блок `if (UI._battleInvite && UI._battleInvite.open)` ПОСЛЕ добавления inviteRow в DOM (строка ~760)
+  3. Dropdown теперь ищет уже существующий `input` через `document.getElementById("battleInviteInput")`
+  4. `positionDropdown()` вызывается через двойной `requestAnimationFrame()` для гарантии правильных координат после рендера
+  5. Удалён дублирующий `body.appendChild(inviteRow)` на строке 906
+  6. Обновлены ссылки на `clearBtn`: теперь используется `input.nextElementSibling` вместо локальной переменной
+**Files changed:**
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS
+- Линтер: без ошибок
+**Impact:**
+- Dropdown "Вызвать" теперь появляется точно под полем ввода (используя правильные координаты из `getBoundingClientRect()`)
+**OpenQuestions:** Нужен runtime PASS: клик "Вызвать" → input появляется → dropdown появляется **под input** (не слева сверху или в другом месте).  
+
+---
+
+**ID:** DUM-049  
+**LOG-ID:** 2026-01-13-rematch-escalation-invariant-029  
+**Дата:** 2026-01-13  
+**Type:** DECISION + FIX  
+**Context:** Зафиксирован инвариант эскалации реванша: КАЖДОЕ поражение предлагает реванш, КАЖДЫЙ повторный реванш против того же противника стоит дороже на +1💰.  
+**Details:**
+- **Проблема:** В DUM-041 счётчик реванша сбрасывался при accept, что противоречило желаемой логике (каждое поражение должно стоить дороже)
+- **Решение:**
+  - **Правило 1:** КАЖДОЕ поражение → показывается предложение реванша (уже реализовано в DUM-042)
+  - **Правило 2:** КАЖДЫЙ повторный реванш против ТОГО ЖЕ противника стоит дороже на +1💰
+    - `b.rematchRequestCount` отслеживает количество поражений/реваншей подряд
+    - Первый реванш: 1💰, второй: 2💰, третий: 3💰, и так далее
+    - При accept счётчик **переносится** на новый батл (`nb.rematchRequestCount = b.rematchRequestCount || 0;`)
+  - **Правило 3:** Текст кнопки
+    - `rematchRequestCount === 0`: "Реванш? 1💰"
+    - `rematchRequestCount > 0`: "Снова реванш? N💰"
+- **Изменение (conflict-core.js, строка ~1527):**
+  - Возвращена строка `nb.rematchRequestCount = b.rematchRequestCount || 0;` (была удалена в DUM-041)
+  - Обновлён комментарий: "INVARIANT: rematch counter persists across battles (each loss against same opponent costs +1💰)"
+- **Документация:**
+  - Добавлена секция в `PROJECT_MEMORY.md`: "2026-01-13 — Инвариант: эскалация реванша против противника"
+  - Зафиксированы все 3 правила + файлы реализации
+**Files changed:**
+- `AsyncScene/Web/conflict/conflict-core.js`
+- `PROJECT_MEMORY.md`
+**Evidence:**
+- `node --check` PASS
+**Impact:**
+- Реванш теперь эскалирует цену с каждым поражением против одного противника, независимо от accept/decline
+- Инвариант зафиксирован в PROJECT_MEMORY.md для всех агентов
+**OpenQuestions:** Нужен runtime PASS: (A) проиграть → "Реванш? 1💰"; (B) accept → проиграть снова → "Снова реванш? 2💰" (не 1💰!); (C) accept → проиграть снова → "Снова реванш? 3💰".  
+
+---
+
+**ID:** DUM-050  
+**LOG-ID:** 2026-01-13-instant-stats-timer-cooldown-030  
+**Дата:** 2026-01-13  
+**Type:** FIX  
+**Context:** Исправлены 4 проблемы с реактивностью UI: (1) счётчик побед не обновлялся сразу, (2) stats/toasts задерживались, (3) таймер толпы зависал на 1 сек, (4) игроки с battle cooldown показывались в списке вызвать.  
+**Details:**
+- **Проблема 1: Wins counter не обновлялся сразу после победы**
+  - Причина: после `me.wins += 1;` не вызывался явный UI update и wins toast
+  - Исправление (conflict-economy.js, строка ~538):
+    - Добавлен `Game.UI.pushSystem("🏆 Победа!");` сразу после `me.wins += 1;`
+    - Это триггерит wins toast через роутинг в ui-core.js (строка 682-684)
+- **Проблема 2: Stats и toasts задерживались**
+  - Причина: после обновления stats (win/lose) вызывался только `syncMeToPlayers()`, но не было явного UI re-render
+  - Исправление (conflict-economy.js):
+    - Добавлен `Game.UI.requestRenderAll();` после `syncMeToPlayers()` в блоке win (строка ~605)
+    - Добавлен `Game.UI.requestRenderAll();` после `syncMeToPlayers()` в блоке lose (строка ~665)
+    - Это вызывает полное обновление UI и maybeQueueStatDeltaFromState, что триггерит все toasts мгновенно
+- **Проблема 3: Таймер "толпа решает" зависал на "1 сек"**
+  - Причина: finalizeCrowdVote вызывался только при `left <= 0`, но когда left = 500-999ms, fmtSec показывал "1" и таймер застывал
+  - Исправление (ui-battles.js, строка ~1327):
+    - Изменено условие `if (left <= 0 && !c.decided ...)` → `if (left <= 1000 && !c.decided ...)`
+    - Изменено условие force re-render `if ((left <= 0 || c.decided) ...)` → `if ((left <= 1000 || c.decided) ...)`
+    - Комментарий: "Finalize vote when ≤1 sec remaining (fixes timer freeze at '1 сек')"
+- **Проблема 4: Игроки с battle cooldown показывались в списке вызвать**
+  - Причина: в `isTargetablePlayer()` не было проверки на battle cooldown
+  - Исправление (ui-battles.js, строка ~774):
+    - Добавлена проверка cooldown в `isTargetablePlayer()`:
+      ```javascript
+      const cdMap = S.battleCooldowns || {};
+      const last = cdMap[p.id] || 0;
+      const cdMs = 3 * 60 * 1000;
+      if (last && (Date.now() - last) < cdMs) return false;
+      ```
+**Files changed:**
+- `AsyncScene/Web/conflict/conflict-economy.js`
+- `AsyncScene/Web/ui/ui-battles.js`
+**Evidence:**
+- `node --check` PASS для обоих файлов
+- Линтер: без ошибок
+**Impact:**
+- Wins counter и toast обновляются мгновенно после победы
+- Все stats (points, rep, wins) обновляются и показывают toasts мгновенно после win/lose
+- Таймер толпы не зависает на "1 сек" (финализируется когда ≤1 сек)
+- Игроки с active battle cooldown (3 минуты) не показываются в списке вызвать
+**OpenQuestions:** Нужен runtime PASS: (A) победить → wins counter +1 мгновенно, toast 🏆 под счётчиком; (B) проиграть → points/rep обновляются мгновенно с toasts; (C) таймер толпы доходит до 1 сек и завершается сразу (не зависает); (D) игрок с battle cooldown не показывается в dropdown вызвать.  
+
+---

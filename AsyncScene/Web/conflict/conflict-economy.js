@@ -536,6 +536,13 @@
       if (addPts) addPts(gain, "battle_win");
       else me.points = Math.max(0, me.points + gain);
       me.wins += 1;
+      
+      // Immediately show wins toast (fixes instant feedback)
+      try {
+        if (Game.UI && typeof Game.UI.pushSystem === "function") {
+          Game.UI.pushSystem(`🏆 Победа!`);
+        }
+      } catch (_) {}
 
       // Rep (difficulty-based)
       let repGain = (D && Number.isFinite(D.REP_WIN)) ? (D.REP_WIN | 0) : 2;
@@ -595,6 +602,13 @@
         }
       } catch (_) {}
 
+      // Force immediate UI update (fixes instant stats/toasts)
+      try {
+        if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+          Game.UI.requestRenderAll();
+        }
+      } catch (_) {}
+
       if (dailyBonus) dailyBonus();
       return;
       }
@@ -640,6 +654,13 @@
       try {
         if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
           Game.StateAPI.syncMeToPlayers();
+        }
+      } catch (_) {}
+
+      // Force immediate UI update (fixes instant stats/toasts)
+      try {
+        if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+          Game.UI.requestRenderAll();
         }
       } catch (_) {}
 

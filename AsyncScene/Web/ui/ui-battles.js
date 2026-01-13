@@ -137,6 +137,24 @@
     return String(s);
   };
 
+  // Normalize timer field names across modules (some use endAt, some endsAt).
+  // Returns the best-effort numeric end time (ms) or 0.
+  function _normEnds(v) {
+    try {
+      if (!v || typeof v !== "object") return 0;
+      const ea = Number(v.endAt);
+      const es = Number(v.endsAt);
+      const hasEA = Number.isFinite(ea) && ea > 0;
+      const hasES = Number.isFinite(es) && es > 0;
+      if (!hasEA && hasES) v.endAt = es;
+      if (!hasES && hasEA) v.endsAt = ea;
+      const out = Number(v.endAt || v.endsAt || 0);
+      return Number.isFinite(out) ? out : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
  const spendPoints = (amount, reason) => {
    try {
      if (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function") {
@@ -458,13 +476,19 @@
 
  function isDrawBattle(b) {
    if (!b) return false;
+   const c = b.crowd;
+   if (!c || c.decided) return false;
+   // Accept either endAt or endsAt as evidence that vote is ongoing.
+   const end = _normEnds(c);
    if (b.status === "draw") return true;
-   if (b.draw === true && b.crowd && !b.crowd.decided) return true;
-   return !!(b.crowd && typeof b.crowd.endAt === "number" && !b.crowd.decided);
+   if (b.draw === true) return true;
+   return !!(end > 0);
  }
 
  function isEscapeVote(b) {
-   return !!(b && b.escapeVote && !b.escapeVote.decided);
+   if (!b || !b.escapeVote || b.escapeVote.decided) return false;
+   _normEnds(b.escapeVote);
+   return true;
  }
 
   function sortedBattles() {
@@ -597,88 +621,187 @@
 
     body.innerHTML = "";
 
-    // Invite to battle button (inline input like @)
+    // Invite to battle button → input with dropdown when clicked
     {
       const inviteRow = document.createElement("div");
       inviteRow.className = "actions";
+      inviteRow.style.position = "relative";
+      inviteRow.style.display = "flex";
+      inviteRow.style.gap = "8px";
+      inviteRow.style.alignItems = "center";
 
-      const inviteBtn = document.createElement("button");
-      inviteBtn.className = "btn";
-      inviteBtn.textContent = "Вызвать";
-      inviteBtn.onclick = (e) => {
-        stop(e);
-        UI._battleInvite.open = !UI._battleInvite.open;
-        UI._battleInvite.sel = 0;
-        requestAll();
-        setTimeout(() => {
-          const el = document.getElementById("battleInviteInput");
-          if (el) el.focus();
-        }, 0);
-      };
-      inviteRow.appendChild(inviteBtn);
+      if (!UI._battleInvite || !UI._battleInvite.open) {
+        // Show button "Вызвать"
+        const inviteBtn = document.createElement("button");
+        inviteBtn.className = "btn";
+        inviteBtn.textContent = "Вызвать";
+        inviteBtn.onclick = (e) => {
+          stop(e);
+          UI._battleInvite = UI._battleInvite || {};
+          UI._battleInvite.open = true;
+          UI._battleInvite.sel = 0;
+          UI._battleInvite.q = "";
+          requestAll();
+          setTimeout(() => {
+            const el = document.getElementById("battleInviteInput");
+            if (el) el.focus();
+          }, 0);
+        };
+        inviteRow.appendChild(inviteBtn);
+      } else {
+        // Show input with clear × inside + "Баттл!" button + dropdown below
+        const inputWrap = document.createElement("div");
+        inputWrap.style.position = "relative";
+        inputWrap.style.display = "flex";
+        inputWrap.style.alignItems = "center";
+        inputWrap.style.flex = "1";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = "battleInviteInput";
+        input.className = "input";
+        input.placeholder = "Ник. Как в чате.";
+        input.value = String(UI._battleInvite.q || "");
+        input.autocomplete = "off";
+        input.style.paddingRight = "28px"; // Space for clear × button
+
+        const clearBtn = document.createElement("button");
+        clearBtn.textContent = "×";
+        clearBtn.className = "btn small";
+        clearBtn.style.position = "absolute";
+        clearBtn.style.right = "4px";
+        clearBtn.style.top = "50%";
+        clearBtn.style.transform = "translateY(-50%)";
+        clearBtn.style.padding = "0 6px";
+        clearBtn.style.minWidth = "0";
+        clearBtn.style.background = "transparent";
+        clearBtn.style.border = "none";
+        clearBtn.style.cursor = "pointer";
+        clearBtn.style.fontSize = "18px";
+        clearBtn.style.lineHeight = "1";
+        clearBtn.style.display = (UI._battleInvite.q && UI._battleInvite.q.trim()) ? "" : "none";
+        clearBtn.onclick = (e) => {
+          stop(e);
+          UI._battleInvite.q = "";
+          input.value = "";
+          clearBtn.style.display = "none";
+          input.focus();
+          requestAll();
+        };
+
+        inputWrap.appendChild(input);
+        inputWrap.appendChild(clearBtn);
+        inviteRow.appendChild(inputWrap);
+
+        const battleBtn = document.createElement("button");
+        battleBtn.className = "btn small";
+        battleBtn.textContent = "Баттл!";
+        battleBtn.onclick = (e) => {
+          stop(e);
+          // Start battle from input value
+          const nameRaw = String(input.value || "").trim();
+          if (!nameRaw) {
+            UI.showStatToast("points", "Выбери игрока.");
+            return;
+          }
+
+          const all = Object.values(S.players || {}).filter(p => {
+            if (!p) return false;
+            if (p.isMe) return false;
+            if (p.role === "cop") return false;
+            if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
+              try { if (Game.StateAPI.isNpcJailed(p.id)) return false; } catch (_) {}
+            }
+            return true;
+          });
+
+          const target = all.find(p => p && String(p.name || "").toLowerCase() === nameRaw.toLowerCase());
+          if (!target) {
+            UI.showStatToast("points", "Такого нет.");
+            return;
+          }
+
+          const cid = target.id;
+          const cdMap = S.battleCooldowns || {};
+          const last = cdMap[cid] || 0;
+          const cdMs = 3 * 60 * 1000;
+          if (last && (Date.now() - last) < cdMs) {
+            UI.showStatToast("points", "Подожди немного.");
+            return;
+          }
+
+          // Ensure battles panel is not collapsed
+          try { if (UI && typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles"); } catch (_) {}
+
+          let res = null;
+          try {
+            if (Game.Conflict && typeof Game.Conflict.start === "function") {
+              res = Game.Conflict.start(cid);
+            } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
+              res = Game.Conflict.startWith(cid);
+            }
+          } catch (_) {}
+          if (res && res.ok === false && (res.reason === "no_points" || res.reason === "insufficient")) {
+            UI.showStatToast("points", "Пойнтов не хватает.");
+            return;
+          }
+
+          // Close input and return to button
+          UI._battleInvite.open = false;
+          UI._battleInvite.q = "";
+          UI._battleInvite.sel = 0;
+          requestAll();
+        };
+        inviteRow.appendChild(battleBtn);
+      }
 
       body.appendChild(inviteRow);
-    }
 
-    if (UI._battleInvite && UI._battleInvite.open) {
-      const top2 = document.createElement("div");
-      top2.className = "battleTop";
+      // Create dropdown AFTER inviteRow is added to DOM (so input has correct position)
+      if (UI._battleInvite && UI._battleInvite.open) {
+        const input = document.getElementById("battleInviteInput");
+        if (!input) return;
 
-      const input = document.createElement("input");
-      input.type = "text";
-      input.id = "battleInviteInput";
-      input.className = "input";
-      input.placeholder = "Ник. Как в чате.";
-      input.value = String(UI._battleInvite.q || "");
-      input.autocomplete = "off";
+        // Dropdown list below input
+        const isTargetablePlayer = (p) => {
+          if (!p) return false;
+          if (p.isMe) return false;
+          if (p.role === "cop") return false;
+          if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
+            try { if (Game.StateAPI.isNpcJailed(p.id)) return false; } catch (_) {}
+          }
+          // Filter out players with active battle cooldown (3 minutes)
+          const cdMap = S.battleCooldowns || {};
+          const last = cdMap[p.id] || 0;
+          const cdMs = 3 * 60 * 1000;
+          if (last && (Date.now() - last) < cdMs) return false;
+          return true;
+        };
 
-      const close = document.createElement("button");
-      close.className = "btn small";
-      close.textContent = "×";
-      close.title = "Закрыть";
-      close.onclick = (e) => { stop(e); UI._battleInvite.open = false; requestAll(); };
-
-      top2.appendChild(input);
-      const go = document.createElement("button");
-      go.className = "btn small";
-      go.textContent = "Вызвать";
-      top2.appendChild(go);
-      top2.appendChild(close);
-      body.appendChild(top2);
-
-      const isTargetablePlayer = (p) => {
-        if (!p) return false;
-        if (p.isMe) return false;
-        if (p.role === "cop") return false;
-        if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
-          try { if (Game.StateAPI.isNpcJailed(p.id)) return false; } catch (_) {}
-        }
-        return true;
-      };
-
-      const all = Object.values(S.players || {}).filter(isTargetablePlayer);
-      const names = all.map(p => p && p.name).filter(Boolean);
-
-      const listWrap = document.createElement("div");
-      listWrap.id = "battleInviteList";
-      listWrap.className = "mention-list";
-      // Positioning handled by CSS: #battleInviteList with position:fixed and z-index:2000
-      // Store for appendChild before early return (fixes regression: dropdown not appearing at all)
-      UI._battleInviteListWrap = listWrap;
-
-      const positionDropdown = () => {
-        const r = input.getBoundingClientRect();
-        listWrap.style.left = `${r.left}px`;
-        listWrap.style.top = `${r.bottom + 4}px`;
-        listWrap.style.width = `${Math.max(r.width, 200)}px`;
-      };
-
-      const renderInviteList = () => {
+        const all = Object.values(S.players || {}).filter(isTargetablePlayer);
         const q = String(UI._battleInvite.q || "").trim().toLowerCase();
-      const list = q ? all.filter(p => p && String(p.name || "").toLowerCase().includes(q)) : all.slice(0, 10);
-        UI._battleInvite._list = list;
+        const list = q ? all.filter(p => p && String(p.name || "").toLowerCase().includes(q)) : all.slice(0, 10);
 
-        listWrap.innerHTML = "";
+        // Remove old dropdown if exists
+        const oldListWrap = document.getElementById("battleInviteDropdown");
+        if (oldListWrap) oldListWrap.remove();
+
+        const listWrap = document.createElement("div");
+        listWrap.id = "battleInviteDropdown";
+        listWrap.className = "mention-list";
+        listWrap.style.position = "fixed"; // Fixed positioning to escape parent overflow
+        listWrap.style.zIndex = "9999"; // High z-index to appear above all battle cards
+        listWrap.style.maxHeight = "200px";
+        listWrap.style.overflowY = "auto";
+
+        // Position dropdown below input using getBoundingClientRect
+        const positionDropdown = () => {
+          const rect = input.getBoundingClientRect();
+          listWrap.style.left = `${rect.left}px`;
+          listWrap.style.top = `${rect.bottom + 4}px`;
+          listWrap.style.width = `${Math.max(rect.width, 200)}px`;
+        };
+
         list.forEach((p, idx) => {
           const it = document.createElement("div");
           it.className = "mention-item";
@@ -687,107 +810,108 @@
           it.onclick = (e) => {
             stop(e);
             UI._battleInvite.q = String(p.name || "");
-            UI._battleInvite.lastPicked = p.id;
             UI._battleInvite.sel = idx;
             input.value = UI._battleInvite.q;
-            renderInviteList();
-            setTimeout(() => { try { const el = document.getElementById("battleInviteInput"); el && el.focus && el.focus(); } catch(_){} }, 0);
+            // Update clear button visibility
+            const clearBtn = input.nextElementSibling;
+            if (clearBtn) clearBtn.style.display = UI._battleInvite.q ? "" : "none";
+            // Close dropdown after selection
+            UI._battleInvite.open = false;
+            listWrap.remove();
           };
           listWrap.appendChild(it);
         });
-        positionDropdown();
-      };
 
-      renderInviteList();
+        // Append to body to render outside inviteRow container
+        document.body.appendChild(listWrap);
 
-      const findByExact = (nameRaw) => all.find(p => p && String(p.name || "").toLowerCase() === nameRaw.toLowerCase());
+        // Position dropdown after adding to DOM (delayed to get correct coordinates)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            positionDropdown();
+          });
+        });
 
-      const snapToSelection = () => {
-        const list = UI._battleInvite._list || [];
-        const idx = Math.max(0, Math.min(UI._battleInvite.sel || 0, list.length - 1));
-        if (list[idx]) {
-          UI._battleInvite.q = list[idx].name;
-          input.value = UI._battleInvite.q;
-        }
-      };
+        // Input event handlers
+        input.oninput = () => {
+          UI._battleInvite.q = String(input.value || "");
+          UI._battleInvite.sel = 0;
+          const clearBtn = input.nextElementSibling;
+          if (clearBtn) clearBtn.style.display = UI._battleInvite.q.trim() ? "" : "none";
+          requestAll();
+        };
 
-      const startFromInput = () => {
-        UI._battleInvite.q = String(input.value || "");
-        const nameRaw = String(UI._battleInvite.q || "").trim();
-        if (!nameRaw) return;
-
-        const target = findByExact(nameRaw);
-        if (!target) {
-          UI.showStatToast("points", "Такого нет.");
-          return;
-        }
-        const cid = target.id;
-        const cdMap = S.battleCooldowns || {};
-        const last = cdMap[cid] || 0;
-        const cdMs = 3 * 60 * 1000;
-        if (last && (Date.now() - last) < cdMs) {
-          UI.showStatToast("points", "Подожди немного.");
-          return;
-        }
-
-        // Ensure battles panel is not collapsed
-        try { if (UI && typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles"); } catch (_) {}
-
-        let res = null;
-        try {
-          if (Game.Conflict && typeof Game.Conflict.start === "function") {
-            res = Game.Conflict.start(cid);
-          } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
-            res = Game.Conflict.startWith(cid);
+        input.onkeydown = (e) => {
+          const k = e.key;
+          if (k === "Escape") {
+            stop(e);
+            UI._battleInvite.open = false;
+            requestAll();
+            return;
           }
-        } catch (_) {}
-        if (res && res.ok === false && (res.reason === "no_points" || res.reason === "insufficient")) {
-          UI.showStatToast("points", "Пойнтов не хватает.");
-          return;
-        }
-        // Keep dropdown open after starting battle (fixes DUM-005: dropdown disappears after battle starts)
-        // UI._battleInvite.open = false; // ← removed: user can close manually via × or Escape
-        UI._battleInvite.q = "";
-        UI._battleInvite.sel = 0;
-        requestAll();
-      };
+          if (k === "ArrowDown") {
+            stop(e);
+            UI._battleInvite.sel = Math.min((UI._battleInvite.sel || 0) + 1, list.length - 1);
+            requestAll();
+            return;
+          }
+          if (k === "ArrowUp") {
+            stop(e);
+            UI._battleInvite.sel = Math.max(0, (UI._battleInvite.sel || 0) - 1);
+            requestAll();
+            return;
+          }
+          if (k === "Enter") {
+            stop(e);
+            // Snap to selection if no exact match
+            if (!UI._battleInvite.q.trim() && list[UI._battleInvite.sel || 0]) {
+              UI._battleInvite.q = list[UI._battleInvite.sel || 0].name;
+              input.value = UI._battleInvite.q;
+            }
+            // Trigger "Баттл!" button click
+            battleBtn.click();
+            return;
+          }
+        };
 
-      go.onclick = (e) => { stop(e); if (!String(UI._battleInvite.q || "").trim()) snapToSelection(); startFromInput(); };
+        // Reposition dropdown on focus (in case of scroll/resize)
+        input.onfocus = () => {
+          setTimeout(() => positionDropdown(), 0);
+        };
 
-      input.onkeydown = (e) => {
-        const k = e.key;
-        if (k === "Escape") { stop(e); UI._battleInvite.open = false; requestAll(); return; }
-        if (k === "ArrowDown") { stop(e); UI._battleInvite.sel = (UI._battleInvite.sel || 0) + 1; renderInviteList(); return; }
-        if (k === "ArrowUp") { stop(e); UI._battleInvite.sel = Math.max(0, (UI._battleInvite.sel || 0) - 1); renderInviteList(); return; }
-        if (k === "Enter") {
+        // Click in input to show dropdown if closed
+        input.onclick = (e) => {
           stop(e);
-          if (!String(UI._battleInvite.q || "").trim()) snapToSelection();
-          startFromInput();
-          return;
-        }
-      };
-      input.addEventListener("keydown", input.onkeydown, true);
-      input.addEventListener("keyup", (e) => {
-        if (e && e.key === "Enter") stop(e);
-      }, true);
+          const dropdown = document.getElementById("battleInviteDropdown");
+          if (!UI._battleInvite.open) {
+            UI._battleInvite.open = true;
+            requestAll();
+          } else if (dropdown && dropdown.style.display === "none") {
+            // Dropdown exists but hidden, just show and reposition
+            dropdown.style.display = "";
+            requestAnimationFrame(() => positionDropdown());
+          }
+        };
 
-      input.oninput = () => {
-        UI._battleInvite.q = String(input.value || "");
-        UI._battleInvite.sel = 0;
-        renderInviteList();
-      };
-      input.onfocus = () => {
-        positionDropdown();
-      };
+        // Click outside to hide dropdown (delayed to avoid immediate trigger)
+        const handleClickOutside = (e) => {
+          if (!UI._battleInvite || !UI._battleInvite.open) return;
+          const dropdown = document.getElementById("battleInviteDropdown");
+          if (!dropdown || !input) return;
+          // Check if click is outside both input and dropdown
+          if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            UI._battleInvite.open = false;
+            if (dropdown.parentNode) dropdown.remove();
+            document.removeEventListener("click", handleClickOutside, true);
+          }
+        };
+        // Delay listener to avoid triggering on the same click that opened dropdown
+        setTimeout(() => {
+          document.addEventListener("click", handleClickOutside, true);
+        }, 200);
+      }
     }
 
-   // Append invite list dropdown now (must be before early return for empty battles)
-   if (UI._battleInviteListWrap) {
-     body.appendChild(UI._battleInviteListWrap);
-     // Store reference to re-append at end if battles exist (to ensure dropdown is on top)
-     UI._battleDropdownElement = UI._battleInviteListWrap;
-     delete UI._battleInviteListWrap;
-   }
 
    // Empty state (after invite controls)
    if (!Array.isArray(S.battles) || S.battles.length === 0) {
@@ -904,11 +1028,12 @@
             const freshVote = (freshBattle && freshBattle.escapeVote) ? freshBattle.escapeVote : null;
 
             const c = freshVote || bb.escapeVote || {};
+            const end0 = _normEnds(c) || _normEnds(v) || 0;
             const end =
               (typeof c.endAt === "number") ? c.endAt :
               (typeof c.endsAt === "number") ? c.endsAt :
               v.endAt;
-            const left = end - nowMs();
+            const left = (end0 || end || 0) - nowMs();
             // Re-acquire current vote row if the panel was re-rendered.
             try {
               const bid0 = String(bb.id || "");
@@ -964,6 +1089,14 @@
             if (left <= 0 && !c.decided && Game.Conflict && typeof Game.Conflict.finalizeEscapeVote === "function") {
               try { Game.Conflict.finalizeEscapeVote(bb.id); } catch (_) {}
             }
+
+            // Force a re-render when vote finishes, even if API suppresses renders (e.g. uiOnly).
+            try {
+              if ((left <= 0 || c.decided) && !bb._uiEscapeFinalRenderQueued) {
+                bb._uiEscapeFinalRenderQueued = true;
+                requestAll();
+              }
+            } catch (_) {}
           };
 
           UI._ensureEscapeTicker(
@@ -1135,11 +1268,12 @@
             const freshCrowd = (freshBattle && freshBattle.crowd) ? freshBattle.crowd : null;
 
             const c = freshCrowd || bb.crowd || {};
+            const end0 = _normEnds(c) || _normEnds({ endAt }) || 0;
             const end =
               (typeof c.endAt === "number") ? c.endAt :
               (typeof c.endsAt === "number") ? c.endsAt :
               endAt;
-            const left = end - nowMs();
+            const left = (end0 || end || 0) - nowMs();
             // Re-acquire current vote row if the panel was re-rendered.
             try {
               const bid0 = String(bb.id || "");
@@ -1195,9 +1329,18 @@
               }
             } catch (_) {}
 
-            if (left <= 0 && !c.decided && Game.Conflict && typeof Game.Conflict.finalizeCrowdVote === "function") {
+            // Finalize vote when ≤1 sec remaining (fixes timer freeze at "1 сек")
+            if (left <= 1000 && !c.decided && Game.Conflict && typeof Game.Conflict.finalizeCrowdVote === "function") {
               try { Game.Conflict.finalizeCrowdVote(bb.id); } catch (_) {}
             }
+
+            // Force a re-render when vote finishes or nearing end
+            try {
+              if ((left <= 1000 || c.decided) && !bb._uiDrawFinalRenderQueued) {
+                bb._uiDrawFinalRenderQueued = true;
+                requestAll();
+              }
+            } catch (_) {}
           };
 
           UI._ensureDrawTicker(
@@ -1392,6 +1535,29 @@
           });
 
           card.appendChild(row);
+
+          // "Уйти" button: leave battle, lose REP, close card
+          const leaveActions = document.createElement("div");
+          leaveActions.className = "actions";
+
+          const leaveBtn = document.createElement("button");
+          leaveBtn.className = "btn small";
+          leaveBtn.textContent = "Уйти";
+          leaveBtn.onclick = (e) => {
+            stop(e);
+            _captureBattleFocus(b.id, card);
+            // Leave battle: lose REP and close the battle card
+            try {
+              if (Game.Conflict && typeof Game.Conflict.escape === "function") {
+                Game.Conflict.escape(b.id, "smyt");
+              } else if (Game.Conflict && typeof Game.Conflict.tryEscape === "function") {
+                Game.Conflict.tryEscape(b.id, "smyt");
+              }
+            } catch (_) {}
+            requestAll();
+          };
+          leaveActions.appendChild(leaveBtn);
+          card.appendChild(leaveActions);
         }
 
         // Defense choices (LIMIT to 3) - built once per battle/status, then reused
@@ -1683,7 +1849,8 @@
         // Rematch UI (wave 3): request/accept/decline via core API only, no numeric promises.
         try {
           const rem = b.rematch || null;
-          const isEligible = !b.rematchOf && (b.result === "win" || b.result === "lose");
+          // Allow rematch for any resolved battle (including those created via accept/rematchOf).
+          const isEligible = (b.result === "win" || b.result === "lose");
           const youAreLoser = (b.result === "lose");
           const nameById = (pid) => {
             if (!pid) return "Кто-то";
@@ -1706,14 +1873,20 @@
 
           let show = false;
 
+          // Pending rematch request (undecided)
           if (rem && rem.requestedAt && rem.decided !== true) {
             show = true;
             const requesterId = rem.requestedBy || null;
-            const requesterName = nameById(requesterId);
-            remLine.textContent = `${requesterName} просит реванш`;
+            const isFromMe = (requesterId === "me");
 
-            const isForMe = (requesterId !== "me");
-            if (isForMe) {
+            if (isFromMe) {
+              // I requested rematch, waiting for response.
+              remLine.textContent = "Ты вызвал на реванш.";
+            } else {
+              // Opponent requested rematch, show accept/decline buttons.
+              const requesterName = nameById(requesterId);
+              remLine.textContent = `${requesterName} просит реванш`;
+
               const btnAccept = document.createElement("button");
               btnAccept.className = "btn small";
               btnAccept.textContent = "Принять";
@@ -1742,29 +1915,70 @@
               };
               remActions.appendChild(btnDecline);
             }
-          } else if (rem && rem.requestedAt && rem.decided === true) {
+          }
+          
+          // Decided rematch: show result and offer retry if declined and I'm the loser.
+          if (rem && rem.requestedAt && rem.decided === true) {
             show = true;
-            remLine.textContent = (rem.accepted === true) ? "Реванш принят" : "Реванш отклонён";
-          } else if (isEligible && youAreLoser) {
-            show = true;
-            remLine.textContent = "Хочешь реванш";
-
-            const btnReq = document.createElement("button");
-            btnReq.className = "btn small";
-            btnReq.textContent = "Попросить";
-            btnReq.onclick = (e) => {
-              stop(e);
-              try {
-                if (Game.Conflict && typeof Game.Conflict.requestRematch === "function") {
-                  const r = Game.Conflict.requestRematch(b.id);
-                  if (r && r.ok === false && (r.reason === "no_points" || r.reason === "insufficient" || r.reason === "min_reserve")) {
-                    if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Пойнтов не хватает.");
+            if (rem.accepted === true) {
+              // Accepted: battle card will be replaced, show brief message.
+              remLine.textContent = "Реванш принят";
+            } else {
+              // Declined: show "Реванш отклонён." and offer retry (if I'm the loser).
+              remLine.textContent = "Реванш отклонён.";
+              
+              if (isEligible && youAreLoser) {
+                const nextCost = (b.rematchRequestCount || 0) + 1;
+                const retryBtn = document.createElement("button");
+                retryBtn.className = "btn small";
+                retryBtn.disabled = false; // Explicitly enable button
+                retryBtn.textContent = `Снова реванш? ${nextCost} 💰`;
+                retryBtn.onclick = (e) => {
+                  stop(e);
+                  try {
+                    if (Game.Conflict && typeof Game.Conflict.requestRematch === "function") {
+                      const r = Game.Conflict.requestRematch(b.id);
+                      if (r && r.ok === false && (r.reason === "no_points" || r.reason === "insufficient" || r.reason === "min_reserve")) {
+                        if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Пойнтов не хватает.");
+                      }
+                    }
+                  } catch (_) {}
+                  requestAll();
+                };
+                const retryActions = document.createElement("div");
+                retryActions.className = "actions";
+                retryActions.appendChild(retryBtn);
+                remWrap.appendChild(retryActions);
+              }
+            }
+          }
+          
+          // Initial rematch request (no request yet, or only after accept - new battle).
+          if (!rem || (rem.decided === true && rem.accepted === true)) {
+            if (isEligible && youAreLoser) {
+              show = true;
+              const nextCost = (b.rematchRequestCount || 0) + 1;
+              const isFirstTime = (b.rematchRequestCount || 0) === 0;
+              
+              // Use button instead of clickable div for rematch request
+              const btnRematch = document.createElement("button");
+              btnRematch.className = "btn small";
+              btnRematch.disabled = false; // Explicitly enable button
+              btnRematch.textContent = isFirstTime ? `Реванш? ${nextCost} 💰` : `Снова реванш? ${nextCost} 💰`;
+              btnRematch.onclick = (e) => {
+                stop(e);
+                try {
+                  if (Game.Conflict && typeof Game.Conflict.requestRematch === "function") {
+                    const r = Game.Conflict.requestRematch(b.id);
+                    if (r && r.ok === false && (r.reason === "no_points" || r.reason === "insufficient" || r.reason === "min_reserve")) {
+                      if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Пойнтов не хватает.");
+                    }
                   }
-                }
-              } catch (_) {}
-              requestAll();
-            };
-            remActions.appendChild(btnReq);
+                } catch (_) {}
+                requestAll();
+              };
+              remActions.appendChild(btnRematch);
+            }
           }
 
           if (show) {

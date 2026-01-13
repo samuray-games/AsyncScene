@@ -679,6 +679,9 @@ window.Game = window.Game || {};
     if (msg.includes("⭐")) {
       if (UI.showStatToast) { UI.showStatToast("rep", msg); return; }
     }
+    if (msg.includes("🏆")) {
+      if (UI.showStatToast) { UI.showStatToast("wins", msg); return; }
+    }
     pushChat({ name:"Система", text: msg, system:true, action:opts.action||null, battleId:opts.battleId||null });
   };
 
@@ -701,6 +704,7 @@ window.Game = window.Game || {};
     if (!bal) return null;
     if (kind === "points") return bal.querySelector('span[title="Пойнты"]');
     if (kind === "rep") return bal.querySelector('span[title="Репутация"]');
+    if (kind === "wins") return bal.querySelector('span[title="Победы"]');
     return bal.querySelector('span[title="Влияние"]');
   }
 

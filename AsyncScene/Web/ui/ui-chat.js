@@ -307,6 +307,11 @@ window.Game = window.Game || {};
     const list = document.createElement("div");
     list.id = "mentionList";
     list.className = "mention-list";
+    list.style.position = "fixed"; // Fixed positioning to escape parent overflow
+    list.style.zIndex = "9999"; // High z-index to appear above all elements
+    list.style.maxHeight = "200px";
+    list.style.overflowY = "auto";
+    
     items.forEach((name, i) => {
       const it = document.createElement("div");
       it.className = "mention-item" + (i === mentionIndex ? " active" : "");
@@ -314,6 +319,16 @@ window.Game = window.Game || {};
       it.onclick = () => applyMention(name);
       list.appendChild(it);
     });
+    
+    // Position below chatInput
+    const inp = $("chatInput");
+    if (inp) {
+      const rect = inp.getBoundingClientRect();
+      list.style.left = `${rect.left}px`;
+      list.style.top = `${rect.bottom + 4}px`;
+      list.style.width = `${Math.max(rect.width, 200)}px`;
+    }
+    
     document.body.appendChild(list);
     mentionOpen = true;
   };
@@ -581,6 +596,17 @@ window.Game = window.Game || {};
         closeMention();
       }
     });
+
+    // Click outside to hide dropdown
+    const handleClickOutside = (e) => {
+      if (!mentionOpen) return;
+      const mentionList = $("mentionList");
+      if (!mentionList) return;
+      if (!inp.contains(e.target) && !mentionList.contains(e.target)) {
+        closeMention();
+      }
+    };
+    document.addEventListener("click", handleClickOutside, true);
 
     inp.__mentionBound = true;
   };
