@@ -420,10 +420,12 @@ window.Game = window.Game || {};
     const header = $("eventsHeader");
     if (!body || !header) return;
 
-    // Let Events finalize expired NPC-NPC draw events before render (if such a hook exists)
+    // IMPORTANT: Do NOT call Events.tick() here!
+    // It causes infinite loop: renderEvents → tick → simulateVotes → requestRender → renderEvents...
+    // Events.tick() is called by ui-loops.js on a safe timer instead.
+    // Only finalize expired events (read-only check, no render trigger).
     try {
-      if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
-      else if (Game.Events && typeof Game.Events.finalizeExpired === "function") Game.Events.finalizeExpired();
+      if (Game.Events && typeof Game.Events.finalizeExpired === "function") Game.Events.finalizeExpired();
     } catch (_) {}
 
     const rootBlock = getEventsRootBlock(header);

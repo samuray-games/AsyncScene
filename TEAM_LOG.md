@@ -2283,3 +2283,25 @@ OpenQuestions:
 **OpenQuestions:** Нужен runtime PASS: (A) победить → wins counter +1 мгновенно, toast 🏆 под счётчиком; (B) проиграть → points/rep обновляются мгновенно с toasts; (C) таймер толпы доходит до 1 сек и завершается сразу (не зависает); (D) игрок с battle cooldown не показывается в dropdown вызвать.  
 
 ---
+
+---
+
+**ID:** DUM-032  
+**LOG-ID:** REP-ECONOMY-V2  
+**Дата:** 2026-01-13  
+**Type:** ECONOMY_REBALANCE  
+**Context:** Пересборка экономики REP и POINTS для долгосрочной, справедливой и играбельной модели.  
+
+**Изменения:** REP v2 economy — новые константы, REP_FLOOR защита, повторные штрафы.
+
+**Таблица:**
+- Победа: +2, над сильным +3
+- Поражение: -1 (floor=1)
+- Ложный донос: -2/-3, Robbery: -2/-3 (floor), Dismiss: -3/-4
+
+**Файлы:** data.js, conflict-economy.js, state.js, conflict-core.js  
+**Синтаксис:** ✅ PASS  
+**Status:** REVIEW (ожидается аудит)
+
+**Next:** Аудит Проверяющим — проверить константы, REP_FLOOR, runtime сценарии, moneyLog.
+

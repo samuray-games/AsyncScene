@@ -498,6 +498,20 @@
       ? Game.StateAPI.maybeDailyRepBonus
       : null;
 
+    function syncAndRenderNow(){
+      try {
+        if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
+          Game.StateAPI.syncMeToPlayers();
+        }
+      } catch (_) {}
+      // Force immediate UI update so stat counters + delta-toasts update instantly.
+      try {
+        if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+          Game.UI.requestRenderAll();
+        }
+      } catch (_) {}
+    }
+
     if (res === "win") {
       if (isCirculationEnabled()) {
         const D0 = getData();
@@ -522,6 +536,12 @@
             }
           }
         }
+        // Wins are progression; must increment in both economy modes.
+        try { me.wins = (me.wins | 0) + 1; } catch (_) { try { me.wins += 1; } catch (_) {} }
+        try { maybeUnlocks(me); } catch (_) {}
+        syncAndRenderNow();
+        if (dailyBonus) dailyBonus();
+        return;
       } else {
       const prog = getProgression();
 
@@ -544,23 +564,18 @@
         }
       } catch (_) {}
 
-      // Rep (difficulty-based)
+      // Rep (difficulty-based) — REP v2 economy
       let repGain = (D && Number.isFinite(D.REP_WIN)) ? (D.REP_WIN | 0) : 2;
       try {
-        const progV2 = !!(Game && Game.Data && Game.Data.PROGRESSION_V2);
         const opp = (Game.State && Game.State.players && battle.opponentId) ? Game.State.players[battle.opponentId] : null;
         const oppInf = (opp && Number.isFinite(opp.influence)) ? (opp.influence | 0) : 0;
         const myInf = (me && Number.isFinite(me.influence)) ? (me.influence | 0) : 0;
-        const diff = oppInf - myInf;
-        if (progV2) {
-          // Smooth difficulty scaling: harder opponents pay out more, easy farming pays less.
-          if (diff >= 5) repGain = (repGain + 2);
-          else if (diff >= 2) repGain = (repGain + 1);
-          else if (diff <= -5) repGain = Math.max(0, repGain - 2);
-          else if (diff <= -2) repGain = Math.max(0, repGain - 1);
-        } else {
-          if (diff >= 2) repGain = (repGain + 1);
-          else if (diff <= -2) repGain = Math.max(0, repGain - 1);
+        const tierDiff = oppInf - myInf;
+        
+        // Bonus for beating stronger opponent
+        if (tierDiff > 0) {
+          const bonus = (D && Number.isFinite(D.REP_WIN_TIER_BONUS)) ? (D.REP_WIN_TIER_BONUS | 0) : 3;
+          repGain = bonus;
         }
       } catch (_) {}
 
@@ -639,14 +654,23 @@
             }
           }
         }
+        syncAndRenderNow();
+        if (dailyBonus) dailyBonus();
+        return;
       } else {
       const gain = (D && Number.isFinite(D.POINTS_LOSE)) ? (D.POINTS_LOSE | 0) : 1;
       if (addPts) addPts(gain, "battle_lose");
       else me.points = Math.max(0, me.points + gain);
 
-      const repGain = (D && Number.isFinite(D.REP_LOSE)) ? (D.REP_LOSE | 0) : 0;
-      if (transferRep && repGain > 0 && battle.opponentId) {
-        transferRep("me", "crowd_pool", repGain, "rep_battle_lose", battle.id || battle.battleId || null);
+      // REP v2 economy: loss penalty with floor protection
+      const repLoss = (D && Number.isFinite(D.REP_LOSE)) ? (D.REP_LOSE | 0) : 1;
+      if (transferRep && repLoss > 0 && battle.opponentId) {
+        const repFloor = (D && Number.isFinite(D.REP_FLOOR)) ? (D.REP_FLOOR | 0) : 1;
+        const currentRep = (Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
+        const actualLoss = Math.min(repLoss, Math.max(0, currentRep - repFloor));
+        if (actualLoss > 0) {
+          transferRep("me", "crowd_pool", actualLoss, "rep_battle_lose", battle.id || battle.battleId || null);
+        }
       }
 
       if (dailyBonus) dailyBonus();
@@ -693,10 +717,15 @@
             E.transferPoints(oppId, poolId, amt, "battle_draw_deposit_opponent", { battleId: battle.id || battle.battleId || null, status: battle.status || null, result: battle.result || null });
           }
         }
+        syncAndRenderNow();
+        if (dailyBonus) dailyBonus();
+        return;
       } else {
       const gain = (D && Number.isFinite(D.POINTS_DRAW)) ? (D.POINTS_DRAW | 0) : 2;
       if (addPts) addPts(gain, "battle_draw");
       else me.points = Math.max(0, me.points + gain);
+      
+      // REP v2 economy: draw reward
       const repGain = (D && Number.isFinite(D.REP_DRAW)) ? (D.REP_DRAW | 0) : 1;
       if (transferRep && repGain > 0 && battle.opponentId) {
         transferRep("crowd_pool", "me", repGain, "rep_battle_draw", battle.id || battle.battleId || null);

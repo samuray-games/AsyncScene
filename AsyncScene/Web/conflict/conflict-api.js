@@ -436,8 +436,10 @@
        return { ok: true, cost, battle: res };
      },
 
-     requestRematch(battleId) {
-       const res = Core.requestRematch ? Core.requestRematch(battleId, "me") : { ok: false, reason: "no_core" };
+     requestRematch(battleId, requesterId) {
+       // Support NPC auto-rematch requests: ui-loops may call requestRematch(battleId, npcId).
+       const rid = (requesterId != null) ? requesterId : "me";
+       const res = Core.requestRematch ? Core.requestRematch(battleId, rid) : { ok: false, reason: "no_core" };
        const bid = (res && res.battleId) ? res.battleId : battleId;
        if (bid) pinBattleToTop(bid);
        render();

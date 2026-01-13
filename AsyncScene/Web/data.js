@@ -43,12 +43,25 @@ window.Game = window.Game || {};
   Data.POINTS_TIE_LOSE_PICK = 1;
   Data.POINTS_CHAT_REPLY = 1;
 
-  // Rep / Influence progression (long-term)
-  Data.REP_WIN = PROG_V2 ? 1 : 2;
-  Data.REP_DRAW = PROG_V2 ? 0 : 1;
-  Data.REP_LOSE = 0;
-  Data.REP_TIE_HELP = PROG_V2 ? 0 : 1;
-  Data.REP_DAILY = 1;
+  // Rep / Influence progression (long-term) — REP v2 economy
+  Data.REP_WIN = 2;                    // Base victory reward
+  Data.REP_WIN_TIER_BONUS = 3;        // Victory over stronger opponent
+  Data.REP_DRAW = 1;                  // Draw reward
+  Data.REP_LOSE = 1;                  // Loss penalty (was 0)
+  Data.REP_TIE_HELP = 1;              // Tie vote participation
+  Data.REP_TIE_WIN = 2;               // Tie pick win
+  Data.REP_TIE_LOSE = 1;              // Tie pick lose
+  Data.REP_DAILY = 1;                 // Daily bonus
+  Data.REP_REPORT_TRUE = 2;           // Truthful report to cop
+  Data.REP_REPORT_FALSE = 2;          // False report penalty
+  Data.REP_REPORT_FALSE_REPEAT = 3;   // Repeated false report
+  Data.REP_TOXIC_ROBBERY = 2;         // Toxic robbed you
+  Data.REP_BANDIT_ROBBERY = 3;        // Bandit robbed you
+  Data.REP_DISMISS = 3;               // Dismiss ("отвали") penalty
+  Data.REP_DISMISS_REPEAT = 4;        // Repeated dismiss
+  Data.REP_CROWD_SUPPORT = 1;         // Crowd voted for you
+  Data.REP_FLOOR = 1;                 // Minimum REP after NPC actions
+  
   Data.INF_BASE_COST = PROG_V2 ? 16 : 12;
   Data.INF_PER_LEVEL = PROG_V2 ? 2 : 4;
   Data.WEEKLY_SOFTCAP = PROG_V2 ? 2 : 3;

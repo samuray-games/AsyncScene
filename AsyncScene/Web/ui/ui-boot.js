@@ -214,28 +214,44 @@ window.Game = window.Game || {};
     const reportBtn = $("reportBtn");
     const reportInput = $("reportInput");
 
-    // Add clear × button to all input fields
+    // Add clear × button to all input fields (flex-safe, works inside rows).
     const addClearButton = (input) => {
       if (!input || input.__clearBtnAdded) return;
       input.__clearBtnAdded = true;
 
-      // Wrap input in relative container
+      // Wrap input in a flex-safe relative container
       const parent = input.parentNode;
+      if (!parent) return;
       const wrapper = document.createElement("div");
+      wrapper.className = "inputClearWrap";
+      wrapper.dataset.clearWrap = "1";
       wrapper.style.position = "relative";
-      wrapper.style.display = "inline-block";
-      wrapper.style.width = "100%";
-      
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "center";
+      // Preserve flex sizing when input is inside a flex row
+      try {
+        const cs = window.getComputedStyle ? getComputedStyle(input) : null;
+        const flex = cs ? cs.flex : "";
+        const minw = cs ? cs.minWidth : "";
+        if (flex) wrapper.style.flex = flex;
+        if (minw) wrapper.style.minWidth = minw;
+      } catch (_) {}
+      wrapper.style.width = "auto";
+
       parent.insertBefore(wrapper, input);
       wrapper.appendChild(input);
 
       // Add padding to input for clear button
       input.style.paddingRight = "28px";
+      input.style.flex = input.style.flex || "1 1 auto";
+      input.style.width = "100%";
 
       // Create clear button
       const clearBtn = document.createElement("button");
       clearBtn.textContent = "×";
       clearBtn.className = "btn small";
+      clearBtn.type = "button";
+      try { clearBtn.dataset.enterIgnore = "1"; } catch (_) {}
       clearBtn.style.position = "absolute";
       clearBtn.style.right = "4px";
       clearBtn.style.top = "50%";

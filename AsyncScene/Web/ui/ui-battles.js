@@ -131,6 +131,31 @@
     delete UI._escapeTickers[battleId];
   };
 
+  // Coalesced async finalization / render scheduling for draw tickers.
+  // Prevents synchronous spikes when many tickers fire near the same end time.
+  UI._drawFinalizePending = UI._drawFinalizePending || Object.create(null);
+  UI._drawRenderPending = UI._drawRenderPending || false;
+  UI._scheduleDrawFinalize = (battleId) => {
+    try {
+      if (UI._drawFinalizePending[battleId]) return;
+      UI._drawFinalizePending[battleId] = true;
+      setTimeout(() => {
+        try { delete UI._drawFinalizePending[battleId]; } catch(_) {}
+        try { if (Game && Game.Conflict && typeof Game.Conflict.finalizeCrowdVote === "function") Game.Conflict.finalizeCrowdVote(battleId); } catch (_) {}
+      }, 0);
+    } catch (_) {}
+  };
+  UI._scheduleDrawRequestAll = () => {
+    try {
+      if (UI._drawRenderPending) return;
+      UI._drawRenderPending = true;
+      setTimeout(() => {
+        try { UI._drawRenderPending = false; } catch(_) {}
+        try { requestAll(); } catch (_) {}
+      }, 0);
+    } catch (_) {}
+  };
+
   const nowMs = () => Date.now();
   const fmtSec = (ms) => {
     const s = Math.max(0, Math.ceil(ms / 1000));
@@ -618,8 +643,53 @@
     } catch (_) {}
 
     const _focusIdBefore = UI._battleFocus && UI._battleFocus.id ? UI._battleFocus.id : null;
+    // Preserve visible anchor to avoid shifting cards when new ones are prepended.
+    // If the user is viewing a specific card (focused) or any visible card, keep it fixed.
+    let _anchor = null;
+    try {
+      const container = body;
+      const rect = container.getBoundingClientRect();
+      // Prefer focused card if exists
+      const focusId = UI._battleFocus && UI._battleFocus.id ? String(UI._battleFocus.id) : null;
+      let anchorEl = null;
+      if (focusId) {
+        try {
+          anchorEl = container.querySelector(`[data-battle-id="${(window.CSS && typeof CSS.escape === 'function') ? CSS.escape(focusId) : focusId}"]`);
+        } catch (_) { anchorEl = null; }
+      }
+      // Fallback: first visible child
+      if (!anchorEl) {
+        for (const ch of Array.from(container.children)) {
+          try {
+            const cr = ch.getBoundingClientRect();
+            if (cr.bottom > rect.top + 2) { anchorEl = ch; break; }
+          } catch(_) {}
+        }
+      }
+      if (anchorEl) {
+        const id = anchorEl.getAttribute && anchorEl.getAttribute("data-battle-id");
+        if (id) _anchor = { id: String(id), offset: (anchorEl.offsetTop - container.scrollTop) };
+      }
+    } catch (_) { _anchor = null; }
 
     body.innerHTML = "";
+    // Schedule a deferred restore so the anchor's visual position stays stable
+    // after the synchronous DOM build completes.
+    try {
+      const _savedAnchor = _anchor;
+      setTimeout(() => {
+        try {
+          if (!_savedAnchor || !_savedAnchor.id) return;
+          const container = body;
+          const aid = (window.CSS && typeof CSS.escape === "function") ? CSS.escape(_savedAnchor.id) : _savedAnchor.id;
+          const newEl = container.querySelector(`[data-battle-id="${aid}"]`);
+          if (newEl) {
+            const newOffset = newEl.offsetTop;
+            container.scrollTop = Math.max(0, newOffset - (_savedAnchor.offset || 0));
+          }
+        } catch (_) {}
+      }, 0);
+    } catch (_) {}
 
     // Invite to battle button → input with dropdown when clicked
     {
@@ -663,6 +733,10 @@
         input.placeholder = "Ник. Как в чате.";
         input.value = String(UI._battleInvite.q || "");
         input.autocomplete = "off";
+        // This input already has a dedicated clear button inside inputWrap.
+        // Prevent global auto-clear wrapper from double-wrapping it.
+        try { input.dataset.noAutoClear = "1"; } catch (_) {}
+        try { input.__clearBtnAdded = true; } catch (_) {}
         input.style.paddingRight = "28px"; // Space for clear × button
 
         const clearBtn = document.createElement("button");
@@ -701,7 +775,8 @@
           // Start battle from input value
           const nameRaw = String(input.value || "").trim();
           if (!nameRaw) {
-            UI.showStatToast("points", "Выбери игрока.");
+            if (UI && typeof UI.showActionToast === "function") UI.showActionToast(battleBtn, "Выбери игрока.");
+            else if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Выбери игрока.");
             return;
           }
 
@@ -1356,16 +1431,18 @@
               }
             } catch (_) {}
 
-            // Finalize vote when ≤1 sec remaining (fixes timer freeze at "1 сек")
-            if (left <= 1000 && !c.decided && Game.Conflict && typeof Game.Conflict.finalizeCrowdVote === "function") {
-              try { Game.Conflict.finalizeCrowdVote(bb.id); } catch (_) {}
+            // If the vote is nearing end, defer heavy work to avoid synchronous spikes.
+            // Use a slightly higher threshold to avoid 2s-edge re-entrancy.
+            const FINALIZE_THRESHOLD_MS = 1200;
+            if (left <= FINALIZE_THRESHOLD_MS && !c.decided) {
+              UI._scheduleDrawFinalize(bb.id);
             }
 
-            // Force a re-render when vote finishes or nearing end
+            // Schedule a coalesced render when nearing end or decided
             try {
-              if ((left <= 1000 || c.decided) && !bb._uiDrawFinalRenderQueued) {
+              if ((left <= FINALIZE_THRESHOLD_MS || c.decided) && !bb._uiDrawFinalRenderQueued) {
                 bb._uiDrawFinalRenderQueued = true;
-                requestAll();
+                UI._scheduleDrawRequestAll();
               }
             } catch (_) {}
           };
@@ -1916,6 +1993,8 @@
 
               const btnAccept = document.createElement("button");
               btnAccept.className = "btn small";
+              btnAccept.type = "button";
+              try { btnAccept.dataset.enterIgnore = "1"; } catch (_) {}
               btnAccept.textContent = "Принять";
               btnAccept.onclick = (e) => {
                 stop(e);
@@ -1930,6 +2009,8 @@
 
               const btnDecline = document.createElement("button");
               btnDecline.className = "btn small";
+              btnDecline.type = "button";
+              try { btnDecline.dataset.enterIgnore = "1"; } catch (_) {}
               btnDecline.textContent = "Отклонить";
               btnDecline.onclick = (e) => {
                 stop(e);
@@ -1959,6 +2040,8 @@
                 const retryBtn = document.createElement("button");
                 retryBtn.className = "btn small";
                 retryBtn.disabled = false; // Explicitly enable button
+                retryBtn.type = "button";
+                try { retryBtn.dataset.enterIgnore = "1"; } catch (_) {}
                 retryBtn.textContent = `Снова реванш? ${nextCost} 💰`;
                 retryBtn.onclick = (e) => {
                   stop(e);
@@ -2000,6 +2083,8 @@
               const btnRematch = document.createElement("button");
               btnRematch.className = "btn small";
               btnRematch.disabled = false; // Explicitly enable button
+              btnRematch.type = "button";
+              try { btnRematch.dataset.enterIgnore = "1"; } catch (_) {}
               btnRematch.textContent = isFirstTime ? `Реванш? ${nextCost} 💰` : `Снова реванш? ${nextCost} 💰`;
               btnRematch.onclick = (e) => {
                 stop(e);

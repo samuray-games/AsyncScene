@@ -320,12 +320,16 @@ window.Game = window.Game || {};
       list.appendChild(it);
     });
     
-    // Position below chatInput
+    // Position ABOVE chatInput (user requested dropdown upward)
     const inp = $("chatInput");
     if (inp) {
       const rect = inp.getBoundingClientRect();
       list.style.left = `${rect.left}px`;
-      list.style.top = `${rect.bottom + 4}px`;
+      // Use maxHeight to compute "upward" placement
+      const gap = 6;
+      const maxH = 200;
+      const top = Math.max(8, Math.floor(rect.top - gap - maxH));
+      list.style.top = `${top}px`;
       list.style.width = `${Math.max(rect.width, 200)}px`;
     }
     

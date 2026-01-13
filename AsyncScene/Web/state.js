@@ -929,10 +929,13 @@ window.Game = window.Game || {};
     const penalty = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty)) ? (N.COP.report.falsePenalty|0) : 5;
 
     // Canon: truth is determined by actual role only. No "evidence window" gating.
-    // If role mismatched -> false report (REP penalty only).
+    // If role mismatched -> false report (REP penalty only) — REP v2 economy
     if (!truthful) {
+      const D = (Game && Game.Data) ? Game.Data : null;
       const prev = (State.reports && State.reports.history) ? State.reports.history[target.id] : null;
-      const repPenalty = (prev && prev.ok === false) ? 3 : 2;
+      const baseRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE)) ? (D.REP_REPORT_FALSE | 0) : 2;
+      const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
+      const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
       if (!State.players["npc_cop"]) {
         State.players["npc_cop"] = { id: "npc_cop", name: copName(), role: "cop", rep: 0 };
       }
@@ -1163,6 +1166,9 @@ window.Game = window.Game || {};
 
     // mirror unlock flags and cached tier for UI
     State.players.me.argumentTier = State.me.argumentTier;
+    // mirror progression counters for UI lists/filters
+    State.players.me.wins = (State.me.wins | 0);
+    State.players.me.winsSinceInfluence = (State.me.winsSinceInfluence | 0);
     State.players.me.unlockOrange = !!State.me.unlockOrange;
     State.players.me.unlockRed = !!State.me.unlockRed;
     State.players.me.unlockBlack = !!State.me.unlockBlack;

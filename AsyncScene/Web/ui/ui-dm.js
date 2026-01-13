@@ -150,6 +150,15 @@ window.Game = window.Game || {};
     S.dm.logs = S.dm.logs || {};
     S.dm.logs[playerId] = S.dm.logs[playerId] || [];
 
+    // Ensure the DM becomes a visible tab even before any incoming messages.
+    // This enables "open second DM while first stays available" behavior.
+    try {
+      const arr = S.dm.logs[playerId];
+      if (Array.isArray(arr) && arr.length === 0) {
+        arr.push({ t: UI.nowHHMM(), from: "Система", text: "Окно открыто." });
+      }
+    } catch (_) {}
+
     const dmBlock = $("dmBlock");
     if (dmBlock) dmBlock.classList.remove("hidden");
 
@@ -988,202 +997,311 @@ window.Game = window.Game || {};
       });
     }
 
-    const reportInput = $("reportInput");
-    const reportBtn = $("reportBtn");
-    if (reportInput && reportBtn && !reportInput.__enterHooked) {
-      reportInput.__enterHooked = true;
-      reportInput.dataset.enterMode = "custom";
-      reportBtn.onclick = () => {
-        const q0 = (reportInput.value || "").trim();
-        if (!q0) return;
-        if (!Game.StateAPI || typeof Game.StateAPI.applyReportByRole !== "function") return;
-
-        const result = Game.StateAPI.applyReportByRole(q0);
-        reportInput.value = "";
-        
-        // Force immediate synchronous render for battles if jail applied (DUM-009)
-        if (result && result.ok && UI && typeof UI.renderBattles === "function") {
-          UI.renderBattles();
-        }
-        
-        UI.renderDM();
-        requestAll();
-      };
-      reportInput.addEventListener("keydown", (e) => {
-        if (e.key !== "Enter") return;
-        stop(e);
-        // First Enter picks highlighted name, second Enter submits
-        const list = (UI._reportInvite && Array.isArray(UI._reportInvite.list)) ? UI._reportInvite.list : [];
-        if (list.length > 0) {
-          const idx = Math.max(0, Math.min(UI._reportInvite.sel || 0, list.length - 1));
-          const nextName = String(list[idx].name || "");
-          if (String(reportInput.value || "") !== nextName) {
-            reportInput.value = nextName;
-            UI._reportInvite.q = nextName;
-            renderReportList();
-            stop(e);
-            return;
-          }
-        }
-        reportBtn.click();
-      }, true);
-    }
-
-    // Cop report autocomplete list (NPC toxic/bandit/mafia)
-    if (reportInput) {
-      UI._reportInvite = UI._reportInvite || { open:false, q:"", sel:0, list:[] };
-
-      const listWrap = document.getElementById("reportList") || document.createElement("div");
-      listWrap.id = "reportList";
-      listWrap.className = "mention-list";
-      listWrap.style.position = "fixed"; // Fixed positioning to escape parent overflow
-      listWrap.style.zIndex = "9999"; // High z-index to appear above all elements
-
-      const isReportable = (p) => {
-        if (!p || !p.name) return false;
-        if (p.isMe || p.id === "me") return false;
-        try {
-          if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
-            if (Game.StateAPI.isNpcJailed(p.id)) return false;
-          }
-          if (Game.StateAPI && typeof Game.StateAPI.hasReported === "function") {
-            const role = String(p.role || "");
-            if (role === "toxic" || role === "bandit" || role === "mafia") {
-              if (Game.StateAPI.hasReported(p.id)) return false;
-            }
-          }
-        } catch (_) {}
-        return true;
-      };
-
-      const getReportables = () => {
-        const ps = Object.values(getS().players || {}).filter(isReportable);
-        return ps;
-      };
-
-      const positionReportList = () => {
-        if (!reportInput) return;
-        const rect = reportInput.getBoundingClientRect();
-        listWrap.style.left = `${rect.left}px`;
-        listWrap.style.top = `${rect.bottom + 4}px`;
-        listWrap.style.width = `${Math.max(rect.width, 200)}px`;
-      };
-
-      const renderReportList = () => {
-        const q = String(UI._reportInvite.q || "").trim().toLowerCase();
-        const base = getReportables();
-        const list = q
-          ? base.filter(p => String(p.name || "").toLowerCase().includes(q))
-          : base;
-        UI._reportInvite.list = list;
-        listWrap.innerHTML = "";
-
-        if (!list.length) {
-          const it = document.createElement("div");
-          it.className = "mention-item";
-          it.textContent = "Тут пусто.";
-          listWrap.appendChild(it);
-          listWrap.style.display = "block";
-          positionReportList();
-          return;
-        }
-
-        UI._reportInvite.sel = Math.max(0, Math.min(UI._reportInvite.sel || 0, list.length - 1));
-        list.forEach((p, idx) => {
-          const it = document.createElement("div");
-          it.className = "mention-item" + (idx === (UI._reportInvite.sel || 0) ? " active" : "");
-          it.textContent = String(p.name || "");
-          it.onclick = (e) => {
-            stop(e);
-            UI._reportInvite.q = String(p.name || "");
-            reportInput.value = UI._reportInvite.q;
-            UI._reportInvite.sel = idx;
-            // Close dropdown after selection
-            UI._reportInvite.open = false;
-            listWrap.style.display = "none";
-            // Prevent focus handler from immediately reopening the dropdown
-            UI._reportInvite._suppressNextFocusOpen = true;
-            reportInput.focus();
-          };
-          listWrap.appendChild(it);
-        });
-        listWrap.style.display = "block";
-        positionReportList();
-      };
-
-      reportInput.addEventListener("focus", () => {
-        if (UI._reportInvite && UI._reportInvite._suppressNextFocusOpen) {
-          UI._reportInvite._suppressNextFocusOpen = false;
-          return;
-        }
-        UI._reportInvite.open = true;
-        UI._reportInvite.q = String(reportInput.value || "");
-        UI._reportInvite.sel = 0;
-        renderReportList();
-      });
-
-      reportInput.addEventListener("input", () => {
-        UI._reportInvite.open = true;
-        UI._reportInvite.q = String(reportInput.value || "");
-        UI._reportInvite.sel = 0;
-        renderReportList();
-      });
-
-      reportInput.addEventListener("keydown", (e) => {
-        if (!UI._reportInvite.open) return;
-        if (e.key === "ArrowDown") { stop(e); UI._reportInvite.sel = (UI._reportInvite.sel || 0) + 1; renderReportList(); }
-        if (e.key === "ArrowUp") { stop(e); UI._reportInvite.sel = Math.max(0, (UI._reportInvite.sel || 0) - 1); renderReportList(); }
-      });
-
-      // Append to body for fixed positioning
-      if (!document.body.contains(listWrap)) {
-        document.body.appendChild(listWrap);
-      }
-      if (UI._reportInvite.open) renderReportList();
-
-      // Click outside to hide dropdown
-      const handleReportClickOutside = (e) => {
-        if (!UI._reportInvite || !UI._reportInvite.open) return;
-        if (!reportInput || reportInput.isConnected !== true || !listWrap || listWrap.isConnected !== true) {
-          UI._reportInvite.open = false;
-          try { if (listWrap) listWrap.style.display = "none"; } catch (_) {}
-          try {
-            if (reportInput && reportInput.__reportOutsideHandler) {
-              document.removeEventListener("click", reportInput.__reportOutsideHandler, true);
-              reportInput.__reportOutsideHandler = null;
-            }
-          } catch (_) {}
-          return;
-        }
-        if (!reportInput.contains(e.target) && !listWrap.contains(e.target)) {
-          UI._reportInvite.open = false;
-          listWrap.style.display = "none";
-        }
-      };
-      // Replace any previous handler to avoid accumulation
-      try {
-        if (reportInput && reportInput.__reportOutsideHandler) {
-          document.removeEventListener("click", reportInput.__reportOutsideHandler, true);
-        }
-        if (reportInput) reportInput.__reportOutsideHandler = handleReportClickOutside;
-      } catch (_) {}
-      document.addEventListener("click", handleReportClickOutside, true);
-
-      // Click in input to show dropdown again
-      reportInput.addEventListener("click", () => {
-        if (!UI._reportInvite.open) {
-          UI._reportInvite.open = true;
-          renderReportList();
-        }
-      });
-    }
-
     const extra = $("dmExtraRow");
     const hint = $("reportHint");
 
     if (isCop) {
+      // Cop report flow: button → input with dropdown → submit → collapse and scroll to cop message.
+      UI._copReport = UI._copReport || { open:false, q:"", sel:0, list:[], dropdownOpen:false };
+
       if (extra) extra.classList.remove("hidden");
       if (hint) hint.textContent = "Сообщить о токсике, бандите или мафиози.";
+
+      if (extra) {
+        extra.innerHTML = "";
+        extra.style.display = "flex";
+        extra.style.gap = "8px";
+        extra.style.alignItems = "center";
+        extra.style.flexWrap = "wrap";
+
+        const state = UI._copReport;
+
+        const closeDropdown = () => {
+          state.dropdownOpen = false;
+          const el = document.getElementById("reportList");
+          if (el) el.style.display = "none";
+        };
+
+        const ensureDropdown = (inputEl) => {
+          let listWrap = document.getElementById("reportList");
+          if (!listWrap) {
+            listWrap = document.createElement("div");
+            listWrap.id = "reportList";
+            listWrap.className = "mention-list";
+            listWrap.style.position = "fixed";
+            listWrap.style.zIndex = "9999";
+            document.body.appendChild(listWrap);
+          }
+          const isReportable = (p) => {
+            if (!p || !p.name) return false;
+            if (p.isMe || p.id === "me") return false;
+            try {
+              if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
+                if (Game.StateAPI.isNpcJailed(p.id)) return false;
+              }
+              if (Game.StateAPI && typeof Game.StateAPI.hasReported === "function") {
+                const role = String(p.role || "");
+                if (role === "toxic" || role === "bandit" || role === "mafia") {
+                  if (Game.StateAPI.hasReported(p.id)) return false;
+                }
+              }
+            } catch (_) {}
+            return true;
+          };
+          const getReportables = () => Object.values(getS().players || {}).filter(isReportable);
+          const position = () => {
+            if (!inputEl) return;
+            const rect = inputEl.getBoundingClientRect();
+            listWrap.style.left = `${rect.left}px`;
+            listWrap.style.top = `${rect.bottom + 4}px`;
+            listWrap.style.width = `${Math.max(rect.width, 220)}px`;
+          };
+          const render = () => {
+            const q = String(state.q || "").trim().toLowerCase();
+            const base = getReportables();
+            const list = q ? base.filter(p => String(p.name || "").toLowerCase().includes(q)) : base;
+            state.list = list;
+            state.sel = Math.max(0, Math.min(state.sel || 0, Math.max(0, list.length - 1)));
+            listWrap.innerHTML = "";
+
+            if (!list.length) {
+              const it = document.createElement("div");
+              it.className = "mention-item";
+              it.textContent = "Тут пусто.";
+              listWrap.appendChild(it);
+              listWrap.style.display = "block";
+              position();
+              return;
+            }
+
+            list.forEach((p, idx) => {
+              const it = document.createElement("div");
+              it.className = "mention-item" + (idx === (state.sel || 0) ? " active" : "");
+              it.textContent = String(p.name || "");
+              it.onclick = (e) => {
+                stop(e);
+                state.q = String(p.name || "");
+                state.sel = idx;
+                if (inputEl) inputEl.value = state.q;
+                // Ensure local clear button becomes visible immediately (no chat render needed).
+                try {
+                  const cb = document.getElementById("reportClearBtn");
+                  if (cb) cb.style.display = state.q.trim() ? "" : "none";
+                } catch (_) {}
+                state.dropdownOpen = false;
+                listWrap.style.display = "none";
+              };
+              listWrap.appendChild(it);
+            });
+            listWrap.style.display = "block";
+            position();
+          };
+
+          // Replace outside click handler (avoid leaks)
+          const handleOutside = (e) => {
+            if (!state.dropdownOpen) return;
+            if (!inputEl || inputEl.isConnected !== true || !listWrap || listWrap.isConnected !== true) {
+              closeDropdown();
+              return;
+            }
+            if (!inputEl.contains(e.target) && !listWrap.contains(e.target)) {
+              closeDropdown();
+            }
+          };
+          try {
+            if (state._outsideHandler) document.removeEventListener("click", state._outsideHandler, true);
+          } catch (_) {}
+          state._outsideHandler = handleOutside;
+          document.addEventListener("click", handleOutside, true);
+
+          return { listWrap, render, position };
+        };
+
+        const focusCopLine = () => {
+          try {
+            const box = $("dmLog");
+            if (!box) return;
+            box.scrollTop = 0;
+            const copName = String(target && target.name ? target.name : "Коп");
+            const lines = Array.from(box.querySelectorAll(".dmLine"));
+            const hit = lines.slice().reverse().find(el => {
+              const t = String(el.textContent || "").trim().toLowerCase();
+              return copName && t.startsWith(copName.toLowerCase() + ":");
+            }) || null;
+            if (hit) {
+              try { hit.classList.remove("focusFlash"); } catch (_) {}
+              hit.scrollIntoView({ block: "start", behavior: "smooth" });
+              hit.classList.add("focusFlash");
+              setTimeout(() => { try { hit.classList.remove("focusFlash"); } catch (_) {} }, 1200);
+            }
+          } catch (_) {}
+        };
+
+        if (!state.open) {
+          const openBtn = document.createElement("button");
+          openBtn.id = "reportOpenBtn";
+          openBtn.type = "button";
+          openBtn.className = "btn";
+          openBtn.textContent = "Сдать";
+          openBtn.onclick = (e) => {
+            stop(e);
+            state.open = true;
+            state.dropdownOpen = true;
+            state.sel = 0;
+            UI.renderDM();
+            requestAll();
+            setTimeout(() => {
+              try {
+                const inp = document.getElementById("reportInput");
+                if (inp) inp.focus();
+                // Open list immediately
+                state.dropdownOpen = true;
+                const dd = ensureDropdown(inp);
+                if (dd) dd.render();
+              } catch (_) {}
+            }, 0);
+          };
+          extra.appendChild(openBtn);
+        } else {
+          const inputWrap = document.createElement("div");
+          inputWrap.style.position = "relative";
+          inputWrap.style.display = "flex";
+          inputWrap.style.alignItems = "center";
+          inputWrap.style.flex = "1";
+          inputWrap.style.minWidth = "220px";
+
+          const input = document.createElement("input");
+          input.id = "reportInput";
+          input.type = "text";
+          input.className = "input";
+          input.placeholder = "Ник бандита или токсика.";
+          input.autocomplete = "off";
+          input.value = String(state.q || "");
+          // Prevent global auto-clear wrapper (we provide an in-field clear)
+          try { input.dataset.noAutoClear = "1"; } catch (_) {}
+          try { input.__clearBtnAdded = true; } catch (_) {}
+          input.style.paddingRight = "28px";
+          input.style.flex = "1";
+          input.style.minWidth = "0";
+
+          const clearBtn = document.createElement("button");
+          clearBtn.id = "reportClearBtn";
+          clearBtn.type = "button";
+          clearBtn.className = "btn small";
+          clearBtn.textContent = "×";
+          clearBtn.style.position = "absolute";
+          clearBtn.style.right = "4px";
+          clearBtn.style.top = "50%";
+          clearBtn.style.transform = "translateY(-50%)";
+          clearBtn.style.padding = "0 6px";
+          clearBtn.style.minWidth = "0";
+          clearBtn.style.background = "transparent";
+          clearBtn.style.border = "none";
+          clearBtn.style.cursor = "pointer";
+          clearBtn.style.fontSize = "18px";
+          clearBtn.style.lineHeight = "1";
+          clearBtn.style.display = input.value.trim() ? "" : "none";
+          clearBtn.onclick = (e) => {
+            stop(e);
+            state.q = "";
+            input.value = "";
+            clearBtn.style.display = "none";
+            state.dropdownOpen = true;
+            const dd = ensureDropdown(input);
+            if (dd) dd.render();
+            input.focus();
+          };
+
+          inputWrap.appendChild(input);
+          inputWrap.appendChild(clearBtn);
+          extra.appendChild(inputWrap);
+
+          const submitBtn = document.createElement("button");
+          submitBtn.id = "reportBtn";
+          submitBtn.type = "button";
+          submitBtn.className = "btn";
+          submitBtn.textContent = "Сдать";
+          submitBtn.onclick = (e) => {
+            stop(e);
+            const q0 = String(input.value || "").trim();
+            if (!q0) {
+              if (UI && typeof UI.showActionToast === "function") UI.showActionToast(submitBtn, "Выбери игрока.");
+              return;
+            }
+            if (!Game.StateAPI || typeof Game.StateAPI.applyReportByRole !== "function") return;
+            const result = Game.StateAPI.applyReportByRole(q0);
+
+            // Collapse back to the "Сдать" button
+            state.open = false;
+            state.q = "";
+            state.sel = 0;
+            state.dropdownOpen = false;
+            closeDropdown();
+
+            // If jail applied, update battles immediately
+            try {
+              if (result && result.ok && UI && typeof UI.renderBattles === "function") UI.renderBattles();
+            } catch (_) {}
+
+            UI.renderDM();
+            requestAll();
+            setTimeout(() => focusCopLine(), 0);
+          };
+          extra.appendChild(submitBtn);
+
+          // Keep hint at the end of the row (as a pill)
+          if (hint) extra.appendChild(hint);
+
+          // Dropdown behavior
+          const dd = ensureDropdown(input);
+          const renderNow = () => { try { if (dd && dd.render) dd.render(); } catch (_) {} };
+
+          input.addEventListener("focus", () => {
+            state.dropdownOpen = true;
+            renderNow();
+          });
+          input.addEventListener("click", (e) => {
+            stop(e);
+            state.dropdownOpen = true;
+            renderNow();
+          });
+          input.addEventListener("input", () => {
+            state.q = String(input.value || "");
+            clearBtn.style.display = input.value.trim() ? "" : "none";
+            state.dropdownOpen = true;
+            renderNow();
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") { stop(e); state.dropdownOpen = false; closeDropdown(); return; }
+            if (e.key === "ArrowDown") { stop(e); state.sel = (state.sel || 0) + 1; renderNow(); return; }
+            if (e.key === "ArrowUp") { stop(e); state.sel = Math.max(0, (state.sel || 0) - 1); renderNow(); return; }
+            if (e.key === "Enter") {
+              stop(e);
+              // If dropdown has items and current value differs from selected, snap to it first.
+              const list = Array.isArray(state.list) ? state.list : [];
+              if (list.length > 0) {
+                const idx = Math.max(0, Math.min(state.sel || 0, list.length - 1));
+                const nextName = String(list[idx] && list[idx].name ? list[idx].name : "");
+                if (nextName && String(input.value || "") !== nextName) {
+                  state.q = nextName;
+                  input.value = nextName;
+                  clearBtn.style.display = nextName.trim() ? "" : "none";
+                  state.dropdownOpen = false;
+                  closeDropdown();
+                  return;
+                }
+              }
+              // Otherwise submit
+              submitBtn.click();
+            }
+          });
+
+          // Initial open: show list immediately
+          if (state.dropdownOpen) {
+            try { renderNow(); } catch (_) {}
+          }
+        }
+      }
     } else {
       if (extra) extra.classList.add("hidden");
     }

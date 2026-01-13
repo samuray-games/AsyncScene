@@ -450,14 +450,22 @@ window.Game ||= {};
     console.log(msg);
   }
 
+  // Guard against recursive render calls (prevents infinite loop)
+  let _renderPending = false;
   function requestRender(){
-    try {
-      if (Game.UI && typeof Game.UI.renderEvents === "function") return Game.UI.renderEvents();
-      if (Game.UI && typeof Game.UI.requestRenderAll === "function") return Game.UI.requestRenderAll();
-      if (Game.UI && typeof Game.UI.renderAll === "function") {
-        return setTimeout(() => { try { Game.UI.renderAll(); } catch (_) {} }, 0);
-      }
-    } catch (_) {}
+    if (_renderPending) return; // Already scheduled, skip
+    _renderPending = true;
+    // Use setTimeout to break synchronous call chain and prevent recursion
+    setTimeout(() => {
+      _renderPending = false;
+      try {
+        if (Game.UI && typeof Game.UI.renderEvents === "function") return Game.UI.renderEvents();
+        if (Game.UI && typeof Game.UI.requestRenderAll === "function") return Game.UI.requestRenderAll();
+        if (Game.UI && typeof Game.UI.renderAll === "function") {
+          return setTimeout(() => { try { Game.UI.renderAll(); } catch (_) {} }, 0);
+        }
+      } catch (_) {}
+    }, 0);
   }
 
   function sysNpcDrawStartLine(aName, aInf, bName, bInf){

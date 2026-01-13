@@ -411,6 +411,10 @@
       for (const item of shuffled) {
         if (!item || !item.q) continue;
         const text = normalizeFinalText(fillText(item.q, ctx));
+        // Rule: if text contains the interrogative "кто", it cannot be an "about" (про) type.
+        try {
+          if (/\bкто\b/iu.test(text) && String(t || "").toLowerCase() === "about") continue;
+        } catch (_) {}
         const key = `${subKey}|${t}|${text}`;
         if (usedTexts.has(text) || usedPairs.has(key)) continue;
         usedTexts.add(text);
@@ -542,6 +546,10 @@
         if (subKey === "K" && String(type || "").toLowerCase() === "yn") {
           text = normalizeKyn(text);
         }
+        // Enforce: if text asks "кто", defenses of type "about" ("про") are invalid.
+        try {
+          if (/\bкто\b/iu.test(text) && String(type || "").toLowerCase() === "about") continue;
+        } catch (_) {}
         if (usedTexts.has(text)) continue;
         usedTexts.add(text);
         return text;

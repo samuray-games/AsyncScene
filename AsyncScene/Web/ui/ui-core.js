@@ -725,11 +725,12 @@ window.Game = window.Game || {};
       const cur = (next && Number.isFinite(next[key])) ? (next[key] | 0) : 0;
       const old = Number.isFinite(prev[key]) ? (prev[key] | 0) : 0;
       const delta = cur - old;
-      
-      if (delta !== 0 && old !== 0) {  // old !== 0 to skip initial render
+
+      // Always show delta toasts on any change (including 0 -> 1).
+      if (delta !== 0) {
         queueDeltaToast(key, delta);
       }
-      
+
       prev[key] = cur;
     }
   }
@@ -759,6 +760,7 @@ window.Game = window.Game || {};
 
   function showDeltaToast(){
     if (!UI.__statDelta) return;
+    UI.__statDeltaShown = UI.__statDeltaShown || { influence: 0, rep: 0, points: 0, wins: 0 };
     const order = ["influence", "rep", "points", "wins"];
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
     
@@ -769,9 +771,22 @@ window.Game = window.Game || {};
       
       const anchor = statAnchor(k);
       if (!anchor) continue;
-      
-      const sign = v > 0 ? "+" : "";
-      const text = `${icons[k]} ${sign}${v}`;
+
+      // Accumulate while the toast is visible: +1 then +2 => +3
+      const prevShown = (UI.__statDeltaShown[k] | 0);
+      const nextShown = (prevShown + (v | 0)) | 0;
+      UI.__statDeltaShown[k] = nextShown;
+
+      // If we cancelled out to 0, hide.
+      if (!nextShown) {
+        const id0 = `statToast_delta_${k}`;
+        const t0 = document.getElementById(id0);
+        if (t0) t0.style.display = "none";
+        continue;
+      }
+
+      const sign = nextShown > 0 ? "+" : "";
+      const text = `${icons[k]} ${sign}${nextShown}`;
       const id = `statToast_delta_${k}`;
       
       let toast = document.getElementById(id);
@@ -779,9 +794,13 @@ window.Game = window.Game || {};
         toast = document.createElement("div");
         toast.id = id;
         toast.className = "statToast";
-        toast.onclick = () => { toast.style.display = "none"; };
         document.body.appendChild(toast);
       }
+      // Toasts persist until clicked; click hides and resets accumulation for this stat.
+      toast.onclick = () => {
+        try { toast.style.display = "none"; } catch (_) {}
+        try { UI.__statDeltaShown[k] = 0; } catch (_) {}
+      };
       
       toast.textContent = text;
       const r = anchor.getBoundingClientRect();
@@ -822,6 +841,68 @@ window.Game = window.Game || {};
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
   };
+
+  // De-dup stat toasts by text (hide previous identical ones).
+  (function(){
+    if (UI.__statToastDedupPatched) return;
+    UI.__statToastDedupPatched = true;
+    const prev = UI.showStatToast;
+    UI.showStatToast = (kind, text) => {
+      try {
+        const msg = String(text || "");
+        const existing = Array.from(document.querySelectorAll(".statToast"));
+        for (const el of existing) {
+          try {
+            if (el && el.textContent === msg) el.style.display = "none";
+          } catch (_) {}
+        }
+      } catch (_) {}
+      return prev(kind, text);
+    };
+  })();
+
+  // Action toast anchored to any element (e.g., button near an input).
+  // Used for "Выбери игрока." under submit buttons.
+  UI.showActionToast = (anchorEl, text) => {
+    if (!anchorEl || !anchorEl.getBoundingClientRect) return;
+    const id = `actionToast_${String(anchorEl.id || "anon")}`;
+    let toast = document.getElementById(id);
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = id;
+      toast.className = "statToast";
+      toast.onclick = () => { toast.style.display = "none"; };
+      document.body.appendChild(toast);
+    }
+    toast.textContent = String(text || "");
+    const r = anchorEl.getBoundingClientRect();
+    const left = Math.round(r.left + (r.width / 2));
+    const top = Math.round(r.bottom + 8);
+    toast.style.left = `${left}px`;
+    toast.style.top = `${top}px`;
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+    toast.style.transform = "translateX(-50%)";
+  };
+
+  // Hide all but the newest identical toast (prevents piling duplicates).
+  (function(){
+    if (UI.__toastDedupPatched) return;
+    UI.__toastDedupPatched = true;
+    const prev = UI.showActionToast;
+    UI.showActionToast = (anchorEl, text) => {
+      try {
+        const msg = String(text || "");
+        const existing = Array.from(document.querySelectorAll(".statToast"));
+        for (const el of existing) {
+          try {
+            if (el && el.textContent === msg) el.style.display = "none";
+          } catch (_) {}
+        }
+      } catch (_) {}
+      return prev(anchorEl, text);
+    };
+  })();
 
   UI.showInfluenceToast = (text) => {
     UI.showStatToast("influence", text);
@@ -1147,6 +1228,95 @@ window.Game = window.Game || {};
   }
 
   // Render-all (shell). Реальные рендеры подключатся из модулей.
+  // Ensure utility UI affordances (like clear buttons) exist after any render.
+  UI.ensureClearButtons = function(root){
+    const r = root || document;
+    if (!r || !r.querySelectorAll) return;
+    const inputs = Array.from(r.querySelectorAll("input, textarea"));
+    for (const el of inputs) {
+      try {
+        if (!el || el.__clearBtnAdded) continue;
+        try { if (el.dataset && (el.dataset.noAutoClear === "1" || el.dataset.noAutoClear === "true")) continue; } catch(_) {}
+        const tag = String(el.tagName || "").toLowerCase();
+        if (tag !== "input" && tag !== "textarea") continue;
+        if (tag === "input") {
+          const type = String(el.type || "text").toLowerCase();
+          // Only for text-like inputs
+          if (!["text","search","tel","url","email","password","number"].includes(type)) continue;
+        }
+        // Skip readonly/disabled fields
+        if (el.disabled) continue;
+
+        // Wrap input with a flex-safe container (same logic as ui-boot).
+        const parent = el.parentNode;
+        if (!parent) continue;
+
+        // If already wrapped by our wrapper, just mark and continue.
+        const p = el.parentElement;
+        if (p && p.dataset && p.dataset.clearWrap === "1") {
+          el.__clearBtnAdded = true;
+          continue;
+        }
+
+        el.__clearBtnAdded = true;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "inputClearWrap";
+        wrapper.dataset.clearWrap = "1";
+        wrapper.style.position = "relative";
+        wrapper.style.display = "flex";
+        wrapper.style.alignItems = "center";
+        wrapper.style.width = "auto";
+        try {
+          const cs = window.getComputedStyle ? getComputedStyle(el) : null;
+          const flex = cs ? cs.flex : "";
+          const minw = cs ? cs.minWidth : "";
+          if (flex) wrapper.style.flex = flex;
+          if (minw) wrapper.style.minWidth = minw;
+        } catch (_) {}
+
+        parent.insertBefore(wrapper, el);
+        wrapper.appendChild(el);
+
+        el.style.paddingRight = "28px";
+        el.style.flex = el.style.flex || "1 1 auto";
+        el.style.width = "100%";
+
+        const clearBtn = document.createElement("button");
+        clearBtn.type = "button";
+        clearBtn.textContent = "×";
+        clearBtn.className = "btn small";
+        try { clearBtn.dataset.enterIgnore = "1"; } catch (_) {}
+        clearBtn.style.position = "absolute";
+        clearBtn.style.right = "4px";
+        clearBtn.style.top = "50%";
+        clearBtn.style.transform = "translateY(-50%)";
+        clearBtn.style.padding = "0 6px";
+        clearBtn.style.minWidth = "0";
+        clearBtn.style.background = "transparent";
+        clearBtn.style.border = "none";
+        clearBtn.style.cursor = "pointer";
+        clearBtn.style.fontSize = "18px";
+        clearBtn.style.lineHeight = "1";
+        clearBtn.style.display = (String(el.value || "").trim()) ? "" : "none";
+        clearBtn.onclick = (e) => {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+          try {
+            el.value = "";
+            clearBtn.style.display = "none";
+            el.focus();
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+          } catch (_) {}
+        };
+        wrapper.appendChild(clearBtn);
+
+        el.addEventListener("input", () => {
+          try { clearBtn.style.display = (String(el.value || "").trim()) ? "" : "none"; } catch (_) {}
+        });
+      } catch (_) {}
+    }
+  };
+
   UI.renderAll = () => {
     applyMentionCSSVarsOnce();
     ensureMentionStyles();
@@ -1294,6 +1464,7 @@ window.Game = window.Game || {};
       if (UI.renderLocations) UI.renderLocations();
       if (UI.renderDM && S.dm.open) UI.renderDM();
       ensureRightScrollBar();
+      try { if (UI.ensureClearButtons) UI.ensureClearButtons(document); } catch (_) {}
 
       // Safety: keep overlay-pointer-events state consistent every full render.
       // Prevents rare "everything is unclickable" when DOM was rebuilt without re-applying panel classes.
@@ -1732,6 +1903,8 @@ window.Game = window.Game || {};
         // Prefer obvious primary buttons by id/class/text
         const preferred = Array.from(candidates).find(b => {
           if (!b) return false;
+          // Ignore buttons that explicitly opt-out from Enter-triggered actions.
+          try { if (b.dataset && (b.dataset.enterIgnore === "1" || b.dataset.enterIgnore === "true")) return false; } catch(_) {}
           if (b.disabled) return false;
           const id = String(b.id || "");
           const cls = String(b.className || "");
@@ -1744,7 +1917,10 @@ window.Game = window.Game || {};
         if (preferred) return preferred;
 
         // Otherwise take the first enabled button
-        const firstEnabled = Array.from(candidates).find(b => b && !b.disabled);
+        const firstEnabled = Array.from(candidates).find(b => {
+          try { if (b.dataset && (b.dataset.enterIgnore === "1" || b.dataset.enterIgnore === "true")) return false; } catch(_) {}
+          return b && !b.disabled;
+        });
         if (firstEnabled) return firstEnabled;
       }
 

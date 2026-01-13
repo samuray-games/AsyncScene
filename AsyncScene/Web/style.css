@@ -1070,6 +1070,13 @@ button:disabled{opacity:.55; cursor:not-allowed}
   width:100%;
   max-width:none;
 }
+
+/* Visual focus for "cop message" after report submit */
+.dmLine.focusFlash{
+  outline:1px solid rgba(120,180,255,.55);
+  background:rgba(120,180,255,.08);
+  border-radius:10px;
+}
 .row{display:flex; gap:10px; align-items:center}
 
 .battleCard,.eventCard{

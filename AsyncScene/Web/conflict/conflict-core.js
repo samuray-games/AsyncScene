@@ -215,11 +215,17 @@
         const actual = Math.max(0, before - me.points);
         recordVillainHarm("toxic", actual || cost, b.opponentId);
         
-        // REP падение при ограблении токсиком
+        // REP падение при ограблении токсиком — REP v2 economy
         try {
           if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-            const repLoss = 2;
-            Game.StateAPI.transferRep("me", "crowd_pool", repLoss, "rep_toxic_robbery", b.id || b.battleId || null);
+            const D = (Game && Game.Data) ? Game.Data : null;
+            const repLoss = (D && Number.isFinite(D.REP_TOXIC_ROBBERY)) ? (D.REP_TOXIC_ROBBERY | 0) : 2;
+            const repFloor = (D && Number.isFinite(D.REP_FLOOR)) ? (D.REP_FLOOR | 0) : 1;
+            const currentRep = (Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
+            const actualLoss = Math.min(repLoss, Math.max(0, currentRep - repFloor));
+            if (actualLoss > 0) {
+              Game.StateAPI.transferRep("me", "crowd_pool", actualLoss, "rep_toxic_robbery", b.id || b.battleId || null);
+            }
           }
         } catch (_) {}
         
@@ -243,11 +249,17 @@
         b.banditRobbed = true;
         recordVillainHarm("bandit", stolen, b.opponentId);
         
-        // REP падение при ограблении бандитом
+        // REP падение при ограблении бандитом — REP v2 economy
         try {
           if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-            const repLoss = 3;
-            Game.StateAPI.transferRep("me", "crowd_pool", repLoss, "rep_bandit_robbery", b.id || b.battleId || null);
+            const D = (Game && Game.Data) ? Game.Data : null;
+            const repLoss = (D && Number.isFinite(D.REP_BANDIT_ROBBERY)) ? (D.REP_BANDIT_ROBBERY | 0) : 3;
+            const repFloor = (D && Number.isFinite(D.REP_FLOOR)) ? (D.REP_FLOOR | 0) : 1;
+            const currentRep = (Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
+            const actualLoss = Math.min(repLoss, Math.max(0, currentRep - repFloor));
+            if (actualLoss > 0) {
+              Game.StateAPI.transferRep("me", "crowd_pool", actualLoss, "rep_bandit_robbery", b.id || b.battleId || null);
+            }
           }
         } catch (_) {}
         
@@ -1126,8 +1138,18 @@
         b.draw = false;
         b.crowd = null;
         b.updatedAt = now();
+        // REP v2 economy: dismiss penalty with repeat detection
         try {
-          const repPenalty = 5;
+          const D = (Game && Game.Data) ? Game.Data : null;
+          const baseRepPenalty = (D && Number.isFinite(D.REP_DISMISS)) ? (D.REP_DISMISS | 0) : 3;
+          const repeatRepPenalty = (D && Number.isFinite(D.REP_DISMISS_REPEAT)) ? (D.REP_DISMISS_REPEAT | 0) : 4;
+          
+          // Check if player dismissed recently (within last 5 battles)
+          const recentDismiss = (Game.State && Array.isArray(Game.State.battles)) 
+            ? Game.State.battles.slice(0, 5).some(x => x && x._repDismissClickApplied && x.id !== b.id)
+            : false;
+          const repPenalty = recentDismiss ? repeatRepPenalty : baseRepPenalty;
+          
           const repHave = (Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
           const repPay = Math.max(0, Math.min(repPenalty, repHave));
           if (!b._repDismissClickApplied && repPay > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
