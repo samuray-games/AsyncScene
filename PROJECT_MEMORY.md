@@ -360,6 +360,11 @@ Next step
 
 ## [ASSISTANTS] Log
 
+### 2026-01-15 01:40:00 JST - Проверил ограничения PROMPT A
+- Проверил: установленные правила read-only, лог, запрет реальных правок без разрешения
+- Результат: PASS
+- Next: ждать указаний пользователя, готовлю plan/patch-preview при необходимости
+
 - 2026-01-15 01:17:38 JST: проверили PROMPT A (ASSISTENT) - role reminder, read-only + log-only file `PROJECT_MEMORY.md`, model economy rule; результат PASS; next step - следить за новым сообщением и логировать действия/проверки в этот раздел per instructions.
 
 ## [CURSOR] Programmer Log
@@ -388,3 +393,14 @@ DevTools verification snippet:
   console.log('Any YN answers include "здесь"?', ynHasHere);
 })();
 ```
+
+2026-01-15 12:04:00 UTC
+- Files reviewed: `AsyncScene/Web/data.js`
+- Entry points / functions checked:
+  - `sanitizeWhereAnswers()`
+  - `Data.buildArgCanon()` (index build + in-loop sanitize)
+  - `sanitizeCanonWhereInText()`
+- What found: Unicode-aware regexes using `\p{L}` with 'u' flag present in all three locations; replacements use `'$1там, где {PLACE}'`; YN "здесь" banned via `rxHere` -> replacement to 'там, где {PLACE}'.
+- PASS/FAIL: PASS
+- Risk/regressions: if JS engine does not support Unicode property escapes (`\p{L}`) regexes may throw or no-op (code wrapped in try/catch -> silent skip). Possible post-load overwrite of `Data.ARG_CANON_TEXT`/`ARG_CANON_INDEX` could bypass sanitizers.
+- Next step: run runtime smoke-check (DevTools snippet above). If FAIL - investigate RegExp support and dynamic overwrites; prepare plan/patch-preview only after explicit permission.
