@@ -366,6 +366,7 @@ Next step
 - Next: ждать указаний пользователя, готовлю plan/patch-preview при необходимости
 
 - 2026-01-15 01:17:38 JST: проверили PROMPT A (ASSISTENT) - role reminder, read-only + log-only file `PROJECT_MEMORY.md`, model economy rule; результат PASS; next step - следить за новым сообщением и логировать действия/проверки в этот раздел per instructions.
+- 2026-01-15 01:51:50 JST: проверили `AsyncScene/Web/data.js` на `здесь` в WHERE-ответах и нашли 5 записей (Y1/Y2/O1/O2/O3); результат FAIL; next step - подготовить plan/patch-preview + prompt для Cursor-прогера, чтобы заменить ответы на `Кажется, там, где {PLACE}.`.
 
 ## [CURSOR] Programmer Log
 
