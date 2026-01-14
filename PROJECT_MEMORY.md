@@ -340,6 +340,28 @@ Edge cases
 Next step
 - Ждать следующий месседж пользователя и писать отдельную запись в этот лог с PASS/FAIL и следующими шагами.
 
+## [PROGRAMMERS] Log
+
+2026-01-15 00:10:00 UTC
+- Files reviewed: `AsyncScene/Web/data.js`, `AsyncScene/Web/conflict/conflict-arguments.js`, `AsyncScene/Web/state.js`, `AsyncScene/Web/events.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-chat.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/npcs.js`
+- Entry points / functions checked:
+  - `Data.buildArgCanon()` (post-index sanitization)
+  - `sanitizeWhereAnswers()` and `sanitizeCanonWhereInText()` in `data.js`
+  - runtime dev-assert in `conflict-arguments.js` (YN place check)
+  - `applyReportByRole()` and `copDm()` in `state.js`
+  - `helpEvent()` / `payoutCrowdPool()` in `events.js`
+  - `renderOne()` summary block in `ui-events.js`
+  - DM routing in `ui-dm.js` (mafia trap)
+  - NPC definition in `npcs.js` (mafia name)
+- What found: Unicode-aware sanitizers using `\p{L}` present in three locations; ARG_CANON_INDEX sanitized after build; YN "здесь" replacement implemented; dev-assert present.
+- PASS/FAIL: PASS — place-phrase fix and YN ban appear implemented and applied to canonical index.
+- Risk/regressions: Replacing standalone "здесь" with 'там, где {PLACE}' introduces a {PLACE} token into some YN answers that previously had none; runtime placeholder fill must supply a sensible place (Data.fillTemplate / Data.pickPlace). Confirm UX acceptable.
+- Next step: run DevTools smoke-check (snippet in PROJECT_MEMORY.md) and confirm UI WHERE answers render correctly and no YN contains "здесь".
+
+## [ASSISTANTS] Log
+
+- 2026-01-15 01:17:38 JST: проверили PROMPT A (ASSISTENT) - role reminder, read-only + log-only file `PROJECT_MEMORY.md`, model economy rule; результат PASS; next step - следить за новым сообщением и логировать действия/проверки в этот раздел per instructions.
+
 ## [CURSOR] Programmer Log
 
 2026-01-14 12:05:00 UTC
