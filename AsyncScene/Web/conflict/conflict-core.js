@@ -1541,6 +1541,23 @@
     nb.pinned = true;
     // INVARIANT: rematch counter persists across battles (each loss against same opponent costs +1💰)
     nb.rematchRequestCount = b.rematchRequestCount || 0;
+
+    // IMPORTANT: an incoming battle must have an attack argument immediately,
+    // otherwise UI gets stuck in pickDefense with empty args.
+    // Mirror Core.incoming() initialization, but do NOT touch economy here.
+    if (fromThem) {
+      nb.attack = pickIncomingAttack(nb.opponentId);
+      nb.attackHidden = true;
+      nb.presentedAt = now();
+      if (!nb.attack || !nb.attack.text) {
+        nb.attack = sanitizeAttack(null);
+      }
+      if (!nb.attackerId) nb.attackerId = nb.opponentId;
+      try {
+        const cdMap = Game.State.battleCooldowns || (Game.State.battleCooldowns = {});
+        cdMap[nb.opponentId] = now();
+      } catch (_) {}
+    }
     
     // Replace old battle at the same index (not unshift to top).
     const oldIndex = Game.State.battles.indexOf(b);

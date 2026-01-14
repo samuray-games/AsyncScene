@@ -970,6 +970,7 @@ window.Game = window.Game || {};
 
     if (truthful) {
       // REP v2 economy: truthful report gives fixed REP, no points reward.
+      const payout = 0;
       const D = (Game && Game.Data) ? Game.Data : null;
       if (!repTransferred) {
         const repGain = (D && Number.isFinite(D.REP_REPORT_TRUE)) ? (D.REP_REPORT_TRUE | 0) : 2;
@@ -984,7 +985,16 @@ window.Game = window.Game || {};
         copDm(`Донос принят. Контакт отмечен.`);
       }
 
-      if (roleKey === "toxic" || roleKey === "bandit") {
+      // Remove any active battles with this target immediately (pipeline consistency).
+      try {
+        if (Array.isArray(State.battles)) {
+          State.battles = State.battles.filter(b => b && b.opponentId !== target.id && b.attackerId !== target.id);
+        }
+      } catch (_) {}
+
+      const now = Date.now();
+
+      if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
         const jailMs = 5 * 60 * 1000;
         State.jailed = State.jailed || {};
         State.jailed[target.id] = { until: now + jailMs, role: roleKey };
@@ -992,15 +1002,16 @@ window.Game = window.Game || {};
         try {
           if (State.reports && State.reports.history) delete State.reports.history[target.id];
         } catch (_) {}
-        try {
-          if (Array.isArray(State.battles)) {
-            State.battles = State.battles.filter(b => b && b.opponentId !== target.id);
-          }
-        } catch (_) {}
         const meName = (State.me && State.me.name) ? State.me.name : "Игрок";
-        copChat(`Благодаря ${meName} ${roleKey === "toxic" ? "токсик" : "бандит"} ${target.name} отправился за решётку на 5 минут.`);
-        copChat(`Все баттлы ${target.name} сняты.`);
-        sendRevengeDM(roleKey, target.id);
+        if (roleKey === "toxic" || roleKey === "bandit") {
+          copChat(`Благодаря ${meName} ${roleKey === "toxic" ? "токсик" : "бандит"} ${target.name} отправился за решётку на 5 минут.`);
+          copChat(`Все баттлы ${target.name} сняты.`);
+          sendRevengeDM(roleKey, target.id);
+        } else if (roleKey === "mafia") {
+          copChat(`Благодаря ${meName} мафиози ${target.name} отмечен.`);
+        } else {
+          copChat(`Внимание: подозрительный персонаж — ${target.name}.`);
+        }
       } else {
         const meName = (State.me && State.me.name) ? State.me.name : "Игрок";
         if (roleKey === "mafia") {
