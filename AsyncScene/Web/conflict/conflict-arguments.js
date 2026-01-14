@@ -436,6 +436,7 @@
           group: t,
           type: t,
           text: chosen.text,
+          _canonQ: chosen.item && chosen.item.q ? String(chosen.item.q) : null,
           _sub: subKey
         });
       }
@@ -446,6 +447,8 @@
       [out[i], out[j]] = [out[j], out[i]];
     }
 
+    // Canon-only invariant: if we cannot produce a full set, return empty (caller must degrade to draw).
+    if (out.length < 3) return [];
     return out.slice(0, 3);
   }
 
@@ -552,26 +555,24 @@
         } catch (_) {}
         if (usedTexts.has(text)) continue;
         usedTexts.add(text);
-        return text;
+        return { text, canonA: String(item.a) };
       }
       return null;
     };
 
     const out = [];
     for (const t of wanted) {
-      const text = pickDefenseText(t);
-      if (text) {
+      const picked = pickDefenseText(t);
+      if (picked && picked.text) {
         out.push({
           id: `canon_${subKey}_${t}_${Math.random().toString(36).slice(2, 8)}`,
           color: tierColor,
           group: t,
           type: t,
-          text,
+          text: picked.text,
+          _canonA: picked.canonA || null,
           _sub: subKey
         });
-      } else {
-        const fallback = makeFallbackDefense(t, tierColor)[0];
-        if (fallback) out.push(fallback);
       }
     }
 
@@ -580,8 +581,68 @@
       [out[i], out[j]] = [out[j], out[i]];
     }
 
+    // Canon-only invariant: no base/fallback defenses. If missing, return empty (caller must degrade to draw).
+    if (out.length < 3) return [];
     return out.slice(0, 3);
   }
+
+  // Canon-only incoming attack picker for core (used to avoid Data.ARGUMENTS/base fallbacks).
+  A.pickIncomingAttack = function (opponentId) {
+    const D = (Game && Game.Data) ? Game.Data : null;
+    if (!D || typeof D.getArgCanonGroup !== "function") return null;
+    const opp = (Game.State && Game.State.players && opponentId) ? Game.State.players[opponentId] : null;
+    const inf = opp ? (opp.influence || 0) : 0;
+    const tierKeys = (D && typeof D.tierKeysByInfluence === "function") ? D.tierKeysByInfluence(inf) : ["y1"];
+    const tierKey = pickN(tierKeys, 1)[0] || tierKeys[0] || "y1";
+    const subKey = (function canonSubFromTierKey(tk){
+      const s = String(tk || "").trim();
+      if (!s) return "Y1";
+      const low = s.toLowerCase();
+      if (low === "k" || low === "k1") return "K";
+      if (low.startsWith("y")) return ("Y" + low.slice(1)).toUpperCase();
+      if (low.startsWith("o")) return ("O" + low.slice(1)).toUpperCase();
+      if (low.startsWith("r")) return ("R" + low.slice(1)).toUpperCase();
+      return s.toUpperCase();
+    })(tierKey);
+    const canonColorFromSub = (sk) => {
+      const s = String(sk || "").toUpperCase();
+      if (s.startsWith("K")) return "k";
+      if (s.startsWith("R")) return "r";
+      if (s.startsWith("O")) return "o";
+      return "y";
+    };
+    // If opponent is mafia, force black arguments
+    const tierColor = (opp && opp.role === "mafia") ? "k" : canonColorFromSub(subKey);
+    const typesWanted = ["about", "who", "where", "yn"];
+    const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
+    const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, ctx) : String(text || "");
+
+    const t = pickN(typesWanted, 1)[0] || "yn";
+    const list = D.getArgCanonGroup(subKey, String(t).toUpperCase()) || [];
+    if (!list.length) return null;
+    const picked = pickN(list, 1)[0] || list[0];
+    if (!picked || !picked.q) return null;
+    const q = normalizeFinalText(fillText(picked.q));
+    
+    // P0-1: Runtime assert для YN-ответов с "в {PLACE}"
+    if (t === "yn" && q && q.match(/\b(в|на|у)\s*\{?[А-Я][а-я]+\}?/i)) {
+      try {
+        if (Game.Debug && Game.Debug.WARN_YN_PLACE) {
+          console.warn(`[YN_PLACE_BUG] YN answer contains location preposition: "${q}" (battleId: ${ctx.battleId || "unknown"})`);
+        }
+      } catch (_) {}
+    }
+    
+    return {
+      id: `canon_${subKey}_${t}_${Math.random().toString(36).slice(2, 8)}`,
+      type: t,
+      group: t,
+      text: q,
+      _canonQ: String(picked.q),
+      _sub: subKey,
+      _color: tierColor,
+    };
+  };
 
   A.myDefenseOptions = function (attackArg) {
     return buildDefenseOptions(attackArg);

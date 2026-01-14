@@ -493,7 +493,14 @@
            list = [];
          }
        }
-       return filterValidArgs(list, "attack");
+       const filtered = filterValidArgs(list, "attack").filter(a => a && String(a.id || "").startsWith("canon_"));
+       if (battle && battle.id && filtered.length < 3) {
+         try {
+           console.warn("[CANON] attack options missing canon set → draw", { battleId: battle.id, have: filtered.length });
+           if (Core && typeof Core.finalize === "function") Core.finalize(battle.id, "draw");
+         } catch (_) {}
+       }
+       return filtered;
     },
 
     myDefenseOptions(battle) {
@@ -510,7 +517,14 @@
            list = [];
          }
        }
-       return filterValidArgs(list, "defense");
+       const filtered = filterValidArgs(list, "defense").filter(a => a && String(a.id || "").startsWith("canon_"));
+       if (battle && battle.id && filtered.length < 3) {
+         try {
+           console.warn("[CANON] defense options missing canon set → draw", { battleId: battle.id, have: filtered.length });
+           if (Core && typeof Core.finalize === "function") Core.finalize(battle.id, "draw");
+         } catch (_) {}
+       }
+       return filtered;
     },
 
      // Crowd vote controls (core already has the implementation).
@@ -583,6 +597,11 @@
         picked = this._findArgById(battle._attackChoices.filter(a => a && !a._pad), attackArgId);
       }
       if (!picked) return { ok: false, error: "no_attack_arg" };
+      if (!String(picked.id || "").startsWith("canon_")) {
+        try { console.warn("[CANON] non-canon attack picked blocked", { battleId, attackArgId }); } catch (_) {}
+        try { if (Core && typeof Core.finalize === "function") Core.finalize(battleId, "draw"); } catch (_) {}
+        return { ok: false, error: "non_canon_attack" };
+      }
 
        // Persist chosen attack. Keep power/color for logic, but UI should hide it until resolved.
        battle.attack = picked ? { ...picked } : picked;
@@ -642,69 +661,7 @@
            if (!b || b.resolved || b.finished) return;
            if (b.status !== "waiting") return;
 
-           // --- choose opponent defense ---
-           const data = Game.Data || {};
-           const A = data.ARGUMENTS || data.PHRASES || null;
-
-           // Helper: power tier by influence (fallback rule)
-           function powerByInfluence(inf) {
-             const v = Number.isFinite(inf) ? inf : 0;
-             const P = (Game && Game.Data && Game.Data.PROGRESSION) ? Game.Data.PROGRESSION : null;
-             const U = (P && P.unlockInfluence) ? P.unlockInfluence : null;
-             const strong = (U && Number.isFinite(U.strong)) ? (U.strong | 0) : 5;
-             const power = (U && Number.isFinite(U.power)) ? (U.power | 0) : 10;
-             const absolute = (U && Number.isFinite(U.absolute)) ? (U.absolute | 0) : 100;
-
-             if (v >= absolute) return "k";
-             if (v >= power) return "r";
-             if (v >= strong) return "o";
-             return "y";
-           }
-
-           // Helper: collect defense pool for a given power tier
-           function collectDefensePool(power) {
-             const pool = [];
-             if (!A) return pool;
-
-             // Accept multiple possible shapes:
-             // 1) A.defense[power] = [ ...items ]
-             // 2) A.defense[power][type] = [ ...items ]
-             // 3) A.defense[type][power] = [ ...items ]
-             const D = A.defense || A.DEFENSE || null;
-             if (!D) return pool;
-
-             // Flat array shape (current Data): A.defense = [ {id,color,group,text}, ... ]
-             if (Array.isArray(D)) {
-               for (const it of D) {
-                 if (!it || typeof it !== "object") continue;
-                 if (it.color !== power) continue;
-                 pool.push(it);
-               }
-               return pool;
-             }
-
-             const byPower = D[power];
-             if (Array.isArray(byPower)) {
-               for (const it of byPower) if (it) pool.push(it);
-               return pool;
-             }
-             if (byPower && typeof byPower === "object") {
-               for (const k of Object.keys(byPower)) {
-                 const arr = byPower[k];
-                 if (Array.isArray(arr)) for (const it of arr) if (it) pool.push(it);
-               }
-               if (pool.length) return pool;
-             }
-
-             // Type-first shape
-             for (const t of ["yn", "who", "where", "yesno"]) {
-               const node = D[t];
-               if (!node) continue;
-               const arr = node[power];
-               if (Array.isArray(arr)) for (const it of arr) if (it) pool.push(it);
-             }
-             return pool;
-           }
+          // --- choose opponent defense (CANON ONLY) ---
 
            function pickOne(arr) {
              if (!Array.isArray(arr) || !arr.length) return null;
@@ -714,24 +671,17 @@
            // Determine opponent power tier and role
            const opp = (Game.State && Game.State.players && b.opponentId) ? Game.State.players[b.opponentId] : null;
            const oppRole = (b.opponentRole || (opp && opp.role) || "").toString();
-           const oppInf = (opp && Number.isFinite(opp.influence)) ? opp.influence : 0;
-           const oppPower = powerByInfluence(oppInf);
-
-           const pool = collectDefensePool(oppPower);
-           // If pool is empty, fall back down the tiers.
-           const fallbackTiers = oppPower === "k" ? ["k", "r", "o", "y"] : (oppPower === "r" ? ["r", "o", "y"] : (oppPower === "o" ? ["o", "y"] : ["y"]));
-           let usable = pool;
-           if (!usable.length) {
-             for (const tier of fallbackTiers) {
-               const p = collectDefensePool(tier);
-               if (p.length) { usable = p; break; }
-             }
-           }
+          const usable = (Args && typeof Args.myDefenseOptions === "function") ? (Args.myDefenseOptions(b) || []) : [];
+          if (!usable.length) {
+            try { console.warn("[CANON] npc defense options empty → draw", { battleId: b.id }); } catch (_) {}
+            if (typeof Core.finalize === "function") Core.finalize(b.id, "draw");
+            return;
+          }
 
            // Choose whether opponent answers with correct type.
-           const types = ["yn", "who", "where"];
-           const atkType = (b.attackType || (b.attack && b.attack.type) || "yn").toString();
-           const normType = (atkType === "yesno") ? "yn" : atkType;
+          const types = ["about", "yn", "who", "where"];
+          const atkType = (b.attackType || (b.attack && b.attack.type) || "yn").toString().toLowerCase();
+          const normType = (atkType === "yesno") ? "yn" : atkType;
            const otherTypes = types.filter(t => t !== normType);
 
            let correctChance = 0.62;
@@ -739,56 +689,17 @@
            if (oppRole === "bandit") correctChance = 0.78;
            if (oppRole === "mafia") correctChance = 0.92;
 
-           const useCorrect = (Math.random() < correctChance);
-           const wantType = useCorrect ? normType : pickOne(otherTypes);
+          const useCorrect = (Math.random() < correctChance);
+          const wantType = useCorrect ? normType : pickOne(otherTypes);
 
-           const candidates = usable.filter(it => {
-             const t = (it.type || it.group || it.kind || "").toString();
-             const tt = (t === "yesno") ? "yn" : t;
-             return tt === wantType;
-           });
-
-           function normalizeArg(it, fallbackColor) {
-             if (!it || typeof it !== "object") return null;
-
-             // Work on a copy to avoid mutating Data tables.
-             const obj = { ...it };
-
-             // Ensure UI-visible text.
-             if (typeof obj.text !== "string" || !obj.text.trim()) {
-               const t = (typeof obj.phrase === "string" && obj.phrase.trim()) ? obj.phrase
-                 : (typeof obj.line === "string" && obj.line.trim()) ? obj.line
-                 : (typeof obj.value === "string" && obj.value.trim()) ? obj.value
-                 : (typeof obj.name === "string" && obj.name.trim()) ? obj.name
-                 : "";
-               if (t) obj.text = t;
-             }
-
-             // Ensure color exists (some Data.defense buckets imply tier by container).
-             if ((!obj.color || typeof obj.color !== "string") && fallbackColor) obj.color = fallbackColor;
-
-             // Normalize type/group naming.
-             if (!obj.type && obj.group) obj.type = obj.group;
-             if (!obj.group && obj.type) obj.group = obj.type;
-
-             // Ensure id exists (some data lines may not have one).
-             if (!obj.id) {
-               const uid = (Game && Game.Util && typeof Game.Util.uid === "function")
-                 ? Game.Util.uid("arg")
-                 : ("arg_" + Math.random().toString(36).slice(2));
-               obj.id = uid;
-             }
-
-             // If we still don't have UI-visible text, treat as unusable.
-             if (typeof obj.text !== "string" || !obj.text.trim()) return null;
-
-             return obj;
-           }
-
-           let defensePicked = pickOne(candidates);
-           if (!defensePicked) defensePicked = pickOne(usable);
-           defensePicked = normalizeArg(defensePicked, oppPower);
-           if (defensePicked) defensePicked = { ...defensePicked };
+          const candidates = usable.filter(it => String(it && (it.type || it.group) || "").toLowerCase() === String(wantType || "").toLowerCase());
+          let defensePicked = pickOne(candidates) || pickOne(usable);
+          if (!defensePicked || !String(defensePicked.id || "").startsWith("canon_")) {
+            try { console.warn("[CANON] npc picked non-canon defense → draw", { battleId: b.id }); } catch (_) {}
+            if (typeof Core.finalize === "function") Core.finalize(b.id, "draw");
+            return;
+          }
+          defensePicked = { ...defensePicked };
 
            // Persist opponent defense and resolve via core.
            b.defense = defensePicked || null;
@@ -902,6 +813,11 @@
       }
       if (!picked) picked = this._findArgById(opts, defenseArgId);
       if (!picked) return { ok: false, error: "no_defense_arg" };
+      if (!String(picked.id || "").startsWith("canon_")) {
+        try { console.warn("[CANON] non-canon defense picked blocked", { battleId, defenseArgId }); } catch (_) {}
+        try { if (Core && typeof Core.finalize === "function") Core.finalize(battleId, "draw"); } catch (_) {}
+        return { ok: false, error: "non_canon_defense" };
+      }
       try {
         const opp = (Game.State && Game.State.players) ? Game.State.players[battle.opponentId] : null;
         const oppRole = String((opp && (opp.role || opp.type)) || "").toLowerCase();

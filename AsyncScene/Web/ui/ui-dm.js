@@ -940,26 +940,20 @@ window.Game = window.Game || {};
           return;
         }
         if (target && target.role === "mafia") {
-          // Mafioso replies politely with ideal punctuation.
-          const N = Game.NPC || null;
-          const pick = (Game.Data && typeof Game.Data.pick === "function") ? Game.Data.pick : null;
-
-          let base = "";
-          if (N && N.SAY && N.SAY.mafia) {
-            const pool = (N.SAY.mafia.m || N.SAY.mafia.f || []);
-            if (pool && pool.length) base = pool[Math.floor(Math.random() * pool.length)];
-          }
-
-          if (!base) {
-            base = "Добрый день. Если сомневаетесь, лучше уйдите";
-          }
-
-          const lineFn = (N && typeof N.normalizeCopLine === "function") ? N.normalizeCopLine : null;
-          const reply = lineFn ? lineFn(base) : base;
-
-          dmPushLine(curId, target.name, reply);
+          // Per spec: mafia immediate trap DM and start battle
+          const mafiaName = "Аркадий Петрович";
+          const reply = "Ты мне пишешь? Тогда поговорим лично.";
+          dmPushLine(curId, mafiaName, reply);
           dmInput.value = "";
           UI.renderDM();
+          // Start incoming battle with mafia
+          try {
+            if (Game.Conflict && typeof Game.Conflict.incoming === "function") {
+              Game.Conflict.incoming(curId);
+            } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
+              Game.Conflict.startWith(curId);
+            }
+          } catch (_) {}
           requestAll();
           return;
         }

@@ -418,12 +418,26 @@
   function sanitizeAttack(raw, fallbackType){
     const ft = normalizeGroup(fallbackType || "yesno");
     if (!raw) {
-      return {
-        id: "atk_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6),
-        type: ft,
-        text: "ты тут?",
-        _color: "y"
-      };
+      // Canon-only: do not inject non-canon fallback strings.
+      // Try to fall back to a canonical template; if unavailable, return null.
+      try {
+        const D = Game.Data || null;
+        const typeU = String(ft || "yn").toUpperCase();
+        const list = (D && typeof D.getArgCanonGroup === "function") ? D.getArgCanonGroup("Y1", typeU) : [];
+        const item = (Array.isArray(list) && list.length) ? (list[0] || null) : null;
+        if (item && item.q) {
+          return {
+            id: "canon_Y1_" + String(ft || "yn") + "_" + Math.random().toString(36).slice(2, 6),
+            type: ft,
+            group: ft,
+            text: String(item.q),
+            _canonQ: String(item.q),
+            _sub: "Y1",
+            _color: "y"
+          };
+        }
+      } catch (_) {}
+      return null;
     }
 
     const text = String(raw.text || raw.t || raw.line || raw.value || raw.msg || "").trim();
@@ -486,6 +500,15 @@
     const dS = colorToStrength(dColor);
 
     const correct = isCorrectType(attackArg, defenseArg);
+    
+    // Task D: dev-log для проверки типов
+    try {
+      if (Game.Debug && Game.Debug.LOG_TYPE_CHECK) {
+        const attackType = argGroup(attackArg);
+        const defenseType = argGroup(defenseArg);
+        console.log(`[TYPE_CHECK] attack=${attackType} defense=${defenseType} correct=${correct} reason=${correct ? "type_match" : "type_mismatch"}`);
+      }
+    } catch (_) {}
 
     // Black logic
     if (aColor === "k" || dColor === "k") {
@@ -559,7 +582,8 @@
     if (Game.NPC && typeof Game.NPC.pickAttackByInfluence === "function") {
       try {
         const a = Game.NPC.pickAttackByInfluence(inf);
-        if (a) return sanitizeAttack(a);
+        // Canon-only: accept NPC pick only if it already looks canonical.
+        if (a && (String(a.id || "").startsWith("canon_") || a._canonQ)) return sanitizeAttack(a);
       } catch (e) {
         warnOnce("npc_pick_attack_error", "[ConflictCore] NPC.pickAttackByInfluence failed", e);
       }
@@ -571,30 +595,8 @@
       const a = A.pickIncomingAttack(opponentId);
       if (a) return sanitizeAttack(a);
     }
-
-    // Fallback: pick from data by tier, random group.
-    const D = Game.Data || {};
-    const src = (D.ARGUMENTS && D.ARGUMENTS.attack) || null;
-    if (!src) return sanitizeAttack(null);
-
-    const tier = tierByInfluence(inf);
-
-    // Support modern flat arrays in Data.ARGUMENTS.attack
-    if (Array.isArray(src)) {
-      const allowed = (D.allowedColorsByInfluence && typeof D.allowedColorsByInfluence === "function")
-        ? D.allowedColorsByInfluence(inf)
-        : new Set(["y", "o", "r", "k"]);
-      const pool = src.filter(a => a && allowed.has(a.color));
-      return pool.length ? sanitizeAttack(pickRandom(pool)) : sanitizeAttack(null);
-    }
-
-    const pool = [].concat(
-      (src.yesno && src.yesno[tier]) ? src.yesno[tier] : [],
-      (src.who && src.who[tier]) ? src.who[tier] : [],
-      (src.where && src.where[tier]) ? src.where[tier] : []
-    ).filter(Boolean);
-
-    return pool.length ? sanitizeAttack(pickRandom(pool)) : sanitizeAttack(null);
+    // Canon-only: no base/data fallbacks.
+    return null;
   }
 
   // Economy + progress: SINGLE source of truth is Web/conflict/conflict-economy.js (Game._ConflictEconomy).
@@ -1074,9 +1076,12 @@
     // Timing hint for "answered immediately" mechanics (UI may overwrite with firstSeenAt)
     battle.presentedAt = now();
 
-    // Safety: never allow missing attack in state (UI requires attack.text + attack.type)
+    // Canon-only: if we cannot build a canonical incoming attack, degrade to draw.
     if (!battle.attack || !battle.attack.text) {
-      battle.attack = sanitizeAttack(null);
+      Game.State.battles.unshift(battle);
+      if (!battle.attackerId) battle.attackerId = opponentId;
+      try { if (typeof C.finalize === "function") C.finalize(battle.id, "draw"); } catch (_) {}
+      return battle;
     }
 
     Game.State.battles.unshift(battle);
@@ -1484,13 +1489,14 @@
       }
     } catch (_) {}
 
-    // REP penalty: 1, clipped by available REP (no отрицательные).
-    try {
-      const repPay = Math.max(0, Math.min(1, repAvailable(loserId)));
-      if (repPay > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-        Game.StateAPI.transferRep(loserId, winnerId, repPay, "rep_rematch_request", b.id);
-      }
-    } catch (_) {}
+    // REP penalty: rematch request should NOT remove REP. 
+    // Fixed: removed Game.StateAPI.transferRep call here.
+    // try {
+    //   const repPay = Math.max(0, Math.min(1, repAvailable(loserId)));
+    //   if (repPay > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+    //     Game.StateAPI.transferRep(loserId, winnerId, repPay, "rep_rematch_request", b.id);
+    //   }
+    // } catch (_) {}
 
     b.rematch = {
       requestedAt: now(),
@@ -1523,13 +1529,14 @@
     b.rematch.decidedAt = now();
 
     if (!ok) {
-      // Decline keeps point transfer as-is; applies REP penalty to decliner (clipped).
-      try {
-        const repPay = Math.max(0, Math.min(1, repAvailable(winnerId)));
-        if (repPay > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-          Game.StateAPI.transferRep(winnerId, loserId, repPay, "rep_rematch_decline", b.id);
-        }
-      } catch (_) {}
+      // Decline keeps point transfer as-is; rematch should NOT remove REP.
+      // Fixed: removed Game.StateAPI.transferRep call here.
+      // try {
+      //   const repPay = Math.max(0, Math.min(1, repAvailable(winnerId)));
+      //   if (repPay > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+      //     Game.StateAPI.transferRep(winnerId, loserId, repPay, "rep_rematch_decline", b.id);
+      //   }
+      // } catch (_) {}
       b.updatedAt = now();
       return { ok: true, battleId: b.id, accepted: false };
     }
@@ -1549,8 +1556,9 @@
       nb.attack = pickIncomingAttack(nb.opponentId);
       nb.attackHidden = true;
       nb.presentedAt = now();
+      // Canon-only: if no canonical incoming attack, degrade to draw.
       if (!nb.attack || !nb.attack.text) {
-        nb.attack = sanitizeAttack(null);
+        try { if (typeof C.finalize === "function") C.finalize(nb.id, "draw"); } catch (_) {}
       }
       if (!nb.attackerId) nb.attackerId = nb.opponentId;
       try {

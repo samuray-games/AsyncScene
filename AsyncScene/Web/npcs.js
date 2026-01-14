@@ -55,8 +55,13 @@ window.Game ||= {};
     { id:"npc_bandit",  name:"Олег",     influence:75,  role:"bandit", sex:"m", trap:true },
     { id:"npc_bandit2", name:"Егор",     influence:60,  role:"bandit", sex:"m" },
     { id:"npc_bandit3", name:"Макс",     influence:85,  role:"bandit", sex:"m" },
-    { id:"npc_cop",     name:"Коп",      influence:75,  role:"cop",    sex:"m" },
-    { id:"npc_mafia",   name:"Мафиози",  influence:100, role:"mafia",  sex:"m", noInsult:true },
+
+    // authority roles
+    { id:"npc_cop_v",   name:"Владимир Иванович", influence:75,  role:"cop", sex:"m" },
+    { id:"npc_cop_k",   name:"Кирилл Олегович",   influence:75,  role:"cop", sex:"m" },
+    { id:"npc_cop_a",   name:"Алексей Петрович",  influence:75,  role:"cop", sex:"m" },
+
+    { id:"npc_mafia",   name:"Аркадий Петрович",  influence:100, role:"mafia",  sex:"m", noInsult:true },
   ];
 
   // Chat style rules for NPC lines:
@@ -598,14 +603,18 @@ window.Game ||= {};
 
   // Generate a cop reply (ideal punctuation). Intended for DM/chat routing.
   NPC.generateCopReply = (text) => {
+    if (!Game.Data || !Game.Data.t) return "Принято.";
     const q = (text == null) ? "" : String(text);
     const t = q.toLowerCase();
 
+    const tVar = (key) => {
+      const arr = Game.Data.TEXTS.genz[key];
+      return Array.isArray(arr) ? pickOne(arr) : arr;
+    };
+
     // Reports
     if (t.includes("сдать") || t.includes("донес") || t.includes("донос") || t.includes("report")) {
-      return normalizeCopLine(
-        `Засчитано. Укажи, кого сдаёшь: токсик, бандит или мафиози. Награда: ${NPC.COP.report.rewardPoints} 💰. Ложный донос: штраф ${NPC.COP.report.falsePenalty}.`
-      );
+      return normalizeCopLine(tVar("cop_report_accept"));
     }
 
     // Topic help

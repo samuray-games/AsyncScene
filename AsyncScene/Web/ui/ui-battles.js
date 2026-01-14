@@ -1603,6 +1603,18 @@
             chip.className = clsForColor(p && p.color ? p.color : null, false);
             chip.textContent = String(p && p.text ? p.text : "");
 
+            // UI type hints (Canon hover)
+            try {
+              if (p && !p._pad && Game.Data && typeof Game.Data.t === "function") {
+                const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
+                const type = (typeRaw === "yesno") ? "yn" : typeRaw;
+                if (type === "who") chip.title = Game.Data.t("hint_type_who");
+                else if (type === "where") chip.title = Game.Data.t("hint_type_where");
+                else if (type === "about") chip.title = Game.Data.t("hint_type_about");
+                else if (type === "yn") chip.title = Game.Data.t("hint_type_yn");
+              }
+            } catch (_) {}
+
             // Text color rules: black on colored chips, light on black chips, light on unknown.
             if (p && p.color === "k") chip.style.color = "#ddd";
             else if (p && p.color) chip.style.color = "black";
@@ -1773,6 +1785,18 @@
 
             chip.className = clsForColor(p.color);
             chip.textContent = p.text;
+
+            // UI type hints (Canon hover)
+            try {
+              if (p && !p._pad && Game.Data && typeof Game.Data.t === "function") {
+                const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
+                const type = (typeRaw === "yesno") ? "yn" : typeRaw;
+                if (type === "who") chip.title = Game.Data.t("hint_type_who");
+                else if (type === "where") chip.title = Game.Data.t("hint_type_where");
+                else if (type === "about") chip.title = Game.Data.t("hint_type_about");
+                else if (type === "yn") chip.title = Game.Data.t("hint_type_yn");
+              }
+            } catch (_) {}
 
             if (pickDefenseFn) {
               chip.onclick = (e) => {

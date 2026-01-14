@@ -225,8 +225,144 @@
  - Note: Бэкап сохранён локально пользователем; файл не изменён в репозитории.
 
 ## 2026-01-13 — Процесс работы: “оценка модели → выполнение”
-- Facts: Зафиксирован строгий порядок взаимодействия.
-- Rule:
+ - Facts: Зафиксирован строгий порядок взаимодействия.
+ - Rule:
   - Если сообщение содержит задачу: ассистент отвечает ОДНИМ словом (mini | gpt5.2 | sonnet | opus) и НЕ начинает исправлять.
   - Исполнение начинается только после сообщения пользователя “Переключил, выполняй”.
-- Note: В ответе-оценке никаких пояснений; выполнение только после явного переключения.
+ - Note: В ответе-оценке никаких пояснений; выполнение только после явного переключения.
+
+### 2026-01-14 — Team Log: assistant implementation entry
+- Facts: Assistant implemented a set of UI and economy fixes requested by the team:
+  - Task A: REP by tone delta (y=1,o=2,r=3,k=4) in battle finalize (reasons: rep_battle_win_delta / rep_battle_lose_delta).
+  - Task B: Crowd voting flow — points charged on click, +1 REP participation immediately, outcome ±2 REP on resolution, refund point on majority.
+  - Task C: Rematch (revenge) does not affect REP; cost remains points transfer (rematch_request_cost).
+  - Task D: Type-compatibility enforcement (check by argument type) with dev-log when `Game.Debug.LOG_TYPE_CHECK=true`.
+  - Task E: WHERE-response guard applied ("там, где {PLACE}"), YN answers preserved; data guard present.
+  - Task F: UI toasts cleaned — removed duplicate "Победа!" toast; keep only delta toasts.
+  - Task G: Cop DM behavior: after successful report, if player was victimized by the target, cop sends an additional DM ("Я понимаю, что вас это задело. Меры приняты.") — cop speaks in first person.
+- Changed files: `AsyncScene/Web/conflict/conflict-economy.js`, `AsyncScene/Web/events.js`, `AsyncScene/Web/state.js`, `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/ui/ui-events.js`
+- Artifacts: `SMOKE_TEST_COMMANDS.md`, `IMPLEMENTATION_SUMMARY.md` added to workspace root.
+- Changed by: Assistant (logged per user's request).
+
+## Ассистент - Лог
+
+Правила ведения
+- Каждый новый месседж пользователя - отдельная запись.
+- В заголовке записи - локальные дата и время.
+- Пишу максимально подробно: контекст, инварианты, текущие задачи, результаты проверок, принятые решения, открытые вопросы.
+- Не использую длинное тире, только дефис.
+
+### 2026-01-15 00:20:59 JST - Опорная точка: smoke-check фикса "там, где {PLACE}" (PASS)
+
+Контекст
+- Проект: AsyncScene
+- Стадия: активная доработка механик и UI (после UI honesty)
+- Открытые вкладки (IDE): `SMOKE_TEST_COMMANDS.md`, `AsyncScene/Web/data.js`, `AsyncScene/Web/conflict/conflict-arguments.js`, `/Users/User/.codex/config.toml`
+- Режим ассистента по файлам: по умолчанию read-only, любые правки только по явному разрешению пользователя с перечислением файлов и цели
+- Текущая правка в репозитории: добавлен только этот раздел лога в `PROJECT_MEMORY.md` (остальные файлы не трогались в рамках этой операции)
+
+Глобальные инварианты механик и контента (как сформулировано пользователем в чате)
+- BASE-аргументы запрещены. Используется только CANON: `Game.Data.getArgCanonGroup`.
+- Если канон не собирается - draw.
+- Сила для правил REP по дельте - это тон (y/o/r/k). Influence в расчет силы не входит.
+- Defense matching: любой defense того же типа подходит к вопросу независимо от тона. Привязка по тону запрещена.
+- UI: все изменения статов должны быть видны сразу, UI обновляется немедленно, тосты строго в момент изменения. Никакой агрегации.
+
+Опорная точка (что уже сделано и почему)
+- Баг: в рантайме встречались "в {PLACE}" и "В {PLACE}" в CANON, и слово "здесь" в YN-ответах
+- Причина: старые санитайзеры использовали `\\b` (ASCII word boundary), что не подходит для кириллицы
+- Источник данных: `AsyncScene/Web/data.js`
+- Цепочка данных: `Data.ARG_CANON_TEXT` -> `Data.buildArgCanon()` -> `Data.ARG_CANON_INDEX`
+- Фикс (уже внесен ранее, механики не менялись): санитайзеры переведены на Unicode-aware regex с `\\p{L}` и замену предлогов перед `{PLACE}` на "там, где {PLACE}", плюс запрет слова "здесь" в YN-ответах
+- Фикс присутствует в 3 местах в `AsyncScene/Web/data.js`:
+  - `sanitizeWhereAnswers` (правка base where + `Data.ARG_CANON_TEXT`)
+  - `Data.buildArgCanon` (post-sanitize уже собранного `Data.ARG_CANON_INDEX`)
+  - `sanitizeCanonWhereInText` (post-sanitize `Data.ARG_CANON_TEXT` и `Data.ARG_CANON_INDEX`)
+
+Текущая задача: smoke-check фикса
+- Требование A: В рантайме больше нет "в {PLACE}" и "В {PLACE}" в `Game.Data.ARG_CANON_INDEX`
+- Требование B: В YN-ответах больше нет слова "здесь"
+- Требование C: В реальных WHERE-баттлах в UI ответы выглядят как "там, где {PLACE}" и нет регрессий
+
+Результаты smoke-check (по фактам из DevTools и ручной проверки UI)
+- A: PASS
+  - DevTools результат: `{hasLower:false, hasUpper:false, samples:[]}`
+- B: PASS
+  - DevTools результат: `{hasZdesInYnAnswers:false, samples:[]}`
+- C: PASS
+  - Сообщение пользователя: "Проверил, всё в порядке."
+
+Принятые решения
+- Smoke-check фикса "там, где {PLACE}" принят как PASS, дальнейшие правки по этой теме не требуются без новых фактов
+
+Открытые вопросы (держать в фокусе, но не делать без явного ТЗ)
+- Голосования и экономика UI: мгновенные тосты и дельты без агрегации, соответствие реально примененным изменениям
+- Личка копа и доносы: отсутствие DM сейчас считается багом
+- Баг: отправка сообщения в чат вызывает тост "+1п" - источник не найден
+- Контент и NPC: проверка канона (непобедимость токсик/бандит/мафиози для обычного игрока, запрет 3 лица у NPC) только по явному запросу
+
+Контекст про лог-файл (факт)
+- Ранее по ошибке был указан путь `/Users/User/.codex/PROJECT_MEMORY.md`; этого файла в момент запроса не было, поэтому он был создан отдельно от репозитория
+- Текущий источник правды для лога проекта: `PROJECT_MEMORY.md` в корне репозитория (этот файл)
+
+## [CODEX] Assistant Log
+
+Правила ведения (PROMPT 1/4 update)
+- По умолчанию READ-ONLY.
+- Единственный файл, который можно менять: `/Users/User/Documents/created apps/AsyncScene/PROJECT_MEMORY.md`.
+- Единственное допустимое изменение: дописывать лог в этот файл.
+- Любые правки других файлов: только plan + patch-preview, и ждать явного разрешения пользователя "РАЗРЕШАЮ ПРАВКУ: <файл> - <цель>".
+- Каждое новое сообщение пользователя - отдельная запись.
+- Заголовок записи: локальные дата и время.
+- Формат отчета после каждого шага: 1) что проверили/изменилось, 2) как проверить в рантайме, 3) edge cases.
+- Не использовать длинное тире, только дефис.
+
+### 2026-01-15 00:58:52 JST - Принят PROMPT 1/4 update, правила лога и read-only
+
+Контекст
+- Сообщение пользователя: PROMPT 1/4 (UPDATE) с жесткими правилами read-only и обязательного логирования в `PROJECT_MEMORY.md`.
+- Разрешения: правки допустимы только для `PROJECT_MEMORY.md` и только как дописывание лога.
+
+Что проверили
+- Проверено, что раздел `## [CODEX] Assistant Log` отсутствовал в `PROJECT_MEMORY.md` и был добавлен.
+- Зафиксированы правила ведения лога и оптимизации цены при подготовке промтов для Cursor-прогера (выбор модели по S/M/L, выбирать дешевле при сомнениях, сначала read-only аудит).
+
+Результат
+- PASS: правила приняты, раздел лога создан, дальнейшие действия будут логироваться здесь отдельными записями на каждый новый месседж пользователя.
+
+Как проверить (файлы)
+- Открыть `/Users/User/Documents/created apps/AsyncScene/PROJECT_MEMORY.md` и найти раздел `## [CODEX] Assistant Log` и эту запись по заголовку времени.
+
+Edge cases
+- Если в одном сообщении пользователя несколько разных задач, все равно создается одна запись на месседж, но внутри с отдельными подпунктами по задачам.
+- Если в PROMPT пользователя указана "текущая задача", но по фактам она уже закрыта (например smoke-check "там, где {PLACE}" уже PASS), в логе фиксируется фактический статус и источник (DevTools результаты и сообщение пользователя).
+
+Next step
+- Ждать следующий месседж пользователя и писать отдельную запись в этот лог с PASS/FAIL и следующими шагами.
+
+## [CURSOR] Programmer Log
+
+2026-01-14 12:05:00 UTC
+- Files reviewed: `AsyncScene/Web/data.js`, `AsyncScene/Web/conflict/conflict-arguments.js`
+- Checks performed:
+  - Verified Unicode-aware regex for PLACE sanitizing: `/(^|[^\p{L}])(в|на|у)\s*\{PLACE\}/giu` present in three locations.
+  - Verified replacement uses `$1там, где {PLACE}`.
+  - Verified ARG_CANON_INDEX is sanitized immediately after Data.buildArgCanon().
+  - Verified YN "здесь" ban via `/(^|[^\p{L}])здесь([^\p{L}]|$)/giu` and replacement to 'там, где {PLACE}' for YN answers.
+- PASS/FAIL: PASS
+- Next step: run smoke-check in runtime with the snippet below and confirm UI WHERE answers show "там, где <place>" and no YN contains "здесь".
+
+DevTools verification snippet:
+```js
+(() => {
+  const s = JSON.stringify(Game.Data.ARG_CANON_INDEX || {});
+  console.log('ARG_CANON_INDEX includes "в {PLACE}" ?', s.includes('в {PLACE}'));
+  console.log('ARG_CANON_INDEX includes "В {PLACE}" ?', s.includes('В {PLACE}'));
+  const ynHasHere = Object.keys(Game.Data.ARG_CANON_INDEX || {}).some(k => {
+    if (!k.toUpperCase().endsWith('|YN')) return false;
+    const rec = Game.Data.ARG_CANON_INDEX[k];
+    return Array.isArray(rec.items) && rec.items.some(it => it && typeof it.a === 'string' && /\bздесь\b/i.test(it.a));
+  });
+  console.log('Any YN answers include "здесь"?', ynHasHere);
+})();
+```

@@ -409,11 +409,12 @@ window.Game = window.Game || {};
     },
 
     // Cop reports (denunciations) runtime state
+    // Global state for authority system (multiple cops)
     reports: {
       lastAt: 0,
-      cooldownMs: 5 * 60 * 1000, // 5m default (canon: report cooldown matches villain jail window)
-      // targetId -> { ok: boolean, at: number, by: "me", role: string }
+      cooldownMs: 5 * 60 * 1000, 
       history: {},
+      copCooldowns: {}, // copId -> lastAt (global per cop)
     },
     jailed: {},
     victimByRole: {},
@@ -698,8 +699,27 @@ window.Game = window.Game || {};
   }
 
   function copName(){
-    const p = State.players["npc_cop"];
-    return (p && p.name) ? p.name : "Коп";
+    // Pick an assigned cop for the current session or a random one if none assigned.
+    if (!State.assignedCopId) {
+      const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
+      if (cops.length > 0) {
+        State.assignedCopId = cops[Math.floor(Math.random() * cops.length)].id;
+      }
+    }
+    const p = State.players[State.assignedCopId || "npc_cop_v"];
+    return (p && p.name) ? p.name : "Владимир Иванович";
+  }
+
+  function getAvailableCop(){
+    const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
+    const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
+    const now = Date.now();
+    
+    // Find first cop whose cooldown has passed
+    return cops.find(c => {
+      const last = State.reports.copCooldowns[c.id] || 0;
+      return (now - last) >= cdMs;
+    }) || null;
   }
 
   function getRoleOf(id){
@@ -811,14 +831,30 @@ window.Game = window.Game || {};
   }
 
   function copDm(text){
-    const name = copName();
+    // Use fixed cop DM header/name per spec
+    const name = "Владимир Иванович";
+    // Exact canonical messages (do not invent)
+    const templates = {
+      cop_busy: "Я занят, оформляю дело. Вернись позже.",
+      cop_accept: "Принял. Проверяю. Если всё подтвердится - оформлю.",
+      cop_report_ok: "Принял. Проверяю. Если всё подтвердится - оформлю.",
+      cop_success: "Подтвердилось. Оформил. Спасибо за помощь.",
+      cop_fail: "Не подтвердилось. Похоже, ложная тревога."
+    };
+    const msg = templates[text] || String(text || "");
     // DM log key: npc_cop
-    pushDm("npc_cop", name, copLine(text), { isSystem: false, playerId: "npc_cop" });
+    pushDm("npc_cop", name, copLine(msg), { isSystem: false, playerId: State.assignedCopId || "npc_cop_v" });
   }
 
   function copChat(text){
     const name = copName();
-    pushChat(name, copLine(text), { isSystem: false, playerId: "npc_cop" });
+    const D = Game.Data || null;
+    const tVar = (key) => {
+      const arr = (D && D.TEXTS && D.TEXTS.genz) ? D.TEXTS.genz[key] : null;
+      return (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random()*arr.length)] : (arr || "Принято.");
+    };
+    const msg = (D && D.TEXTS && D.TEXTS.genz && D.TEXTS.genz[text]) ? tVar(text) : text;
+    pushChat(name, copLine(msg), { isSystem: false, playerId: State.assignedCopId || "npc_cop_v" });
   }
 
   function pushDm(targetId, name, text, opts = {}){
@@ -841,14 +877,21 @@ window.Game = window.Game || {};
   }
 
   function canReport(){
-    const cd = State.reports.cooldownMs || 0;
-    return Date.now() - (State.reports.lastAt || 0) >= cd;
+    return !!getAvailableCop();
   }
 
   function getReportCooldownLeftMs(){
-    const cd = State.reports.cooldownMs || 0;
-    const left = cd - (Date.now() - (State.reports.lastAt || 0));
-    return Math.max(0, left);
+    const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
+    const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
+    const now = Date.now();
+    
+    const lefts = cops.map(c => {
+      const last = State.reports.copCooldowns[c.id] || 0;
+      return Math.max(0, cdMs - (now - last));
+    });
+    
+    // If any cop is free, cooldown left is 0. Otherwise, it's the minimum wait time until first cop is free.
+    return Math.min(...lefts);
   }
 
   function markReported(targetId, ok, role){
@@ -859,8 +902,13 @@ window.Game = window.Game || {};
       role: String(role || ""),
     };
     // Canon: cooldown on "report" starts only after a successful report.
-    // (False reports should not lock the whole report action.)
-    if (ok) State.reports.lastAt = Date.now();
+    // In multi-cop system, we record which cop took the report and start their global cooldown.
+    if (ok) {
+      State.reports.lastAt = Date.now();
+      if (State.assignedCopId) {
+        State.reports.copCooldowns[State.assignedCopId] = Date.now();
+      }
+    }
   }
 
   function hasReported(targetId){
@@ -868,9 +916,40 @@ window.Game = window.Game || {};
     // and only after a successful report.
     const rec = State.reports.history[targetId];
     if (!rec || !rec.ok) return false;
-    const cd = State.reports.cooldownMs || 0;
-    if (!cd) return false;
+    
+    // We check against the general cooldown duration.
+    const cd = State.reports.cooldownMs || 5 * 60 * 1000;
     return (Date.now() - (rec.at || 0)) < cd;
+  }
+
+  // P0-2: проверить, пострадал ли игрок от этого NPC и сколько потерял
+  function checkIfVictimized(npcId) {
+    if (!npcId) return false;
+    try {
+      let stolenAmount = 0;
+      let wasVictimized = false;
+      
+      // Проверяем moneyLog на robbery/theft от этого конкретного NPC
+      if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) {
+        const theftLogs = Game.Debug.moneyLog.filter(l => 
+          l && l.sourceId === "me" && l.targetId === npcId &&
+          (l.reason && (l.reason.includes("toxic") || l.reason.includes("bandit") || l.reason.includes("robbery") || l.reason.includes("steal")))
+        );
+        if (theftLogs.length > 0) {
+          wasVictimized = true;
+          stolenAmount = theftLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+        }
+      }
+      
+      // Проверяем историю баттлов на поражения от этого NPC
+      if (Array.isArray(State.battles)) {
+        const lost = State.battles.find(b => b && b.opponentId === npcId && b.result === "lose");
+        if (lost) wasVictimized = true;
+      }
+      
+      return wasVictimized ? { stolenAmount } : false;
+    } catch (_) {}
+    return false;
   }
 
   function applyReportByRole(role){
@@ -896,11 +975,17 @@ window.Game = window.Game || {};
       return { ok: false, reason: "unknown_role" };
     }
 
-    if (!canReport()) {
-      const left = Math.ceil(getReportCooldownLeftMs() / 1000);
-      copDm("Я занят. Зайди позже.");
-      return { ok: false, reason: "cooldown", leftSec: left };
+    // MULTI-COP CANON: check if any cop is available.
+    const availableCop = getAvailableCop();
+    if (!availableCop) {
+      copDm("cop_busy"); 
+      return { ok: false, reason: "all_cops_busy" };
     }
+    
+    // Assign the available cop for this interaction
+    State.assignedCopId = availableCop.id;
+    // Immediately notify player that cop accepted the report (DM)
+    try { copDm("cop_accept"); } catch (_) {}
 
     if (!target) target = findNpcByRole(roleKey);
     if (!target || !target.id) {
@@ -910,7 +995,7 @@ window.Game = window.Game || {};
     }
 
     // If already jailed, don't panic or duplicate.
-    if ((roleKey === "toxic" || roleKey === "bandit") && State.jailed && State.jailed[target.id]) {
+    if ((roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") && State.jailed && State.jailed[target.id]) {
       const jail = State.jailed[target.id];
       if (jail && Date.now() < (jail.until || 0)) {
         return { ok: false, reason: "already_jailed", targetId: target.id };
@@ -942,12 +1027,10 @@ window.Game = window.Game || {};
       const baseRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE)) ? (D.REP_REPORT_FALSE | 0) : 2;
       const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
       const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
-      if (!State.players["npc_cop"]) {
-        State.players["npc_cop"] = { id: "npc_cop", name: copName(), role: "cop", rep: 0 };
-      }
-      transferRep("me", "npc_cop", repPenalty, "rep_report_false", reportId);
+      
+      transferRep("me", "crowd_pool", repPenalty, "rep_report_false", reportId);
       markReported(target.id, false, roleKey);
-      copDm(`Ложный донос. Штраф по репутации -${repPenalty}.`);
+      copDm("cop_fail"); 
       copChat("Ложный донос зафиксирован.");
       return { ok: false, reason: "false_report", role: roleKey, repPenalty };
     }
@@ -979,10 +1062,53 @@ window.Game = window.Game || {};
       }
 
       markReported(target.id, true, roleKey);
-      if (roleKey === "toxic" || roleKey === "bandit") {
-        copDm(`Донос принят. ${target.name} задержан на 5 минут.`);
+      
+      if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
+        copDm("cop_success");
+        
+        // P0-2: дополнительный DM если игрок пострадал + компенсация пойнтов
+        try {
+          const victimized = checkIfVictimized(target.id);
+          if (victimized) {
+            copDm("Я понимаю, что вас это задело. Меры приняты.");
+            
+            // P0-2: компенсация пойнтов по правилам проекта (возврат украденного)
+            const returnAmount = victimized.stolenAmount || 0; // возврат украденного
+            if (returnAmount > 0) {
+              // Возврат украденных пойнтов: используем addPoints для простоты
+              addPoints(returnAmount, "cop_compensation_return");
+            }
+            // P0-2: grant extra +1 REP and +1 point (bonus) for victim case
+            try {
+              if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+                Game.StateAPI.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
+              }
+            } catch (_) {}
+            // Apply +1 point bonus
+            try { addPoints(1, "cop_victim_point_bonus"); } catch (_) {}
+
+            // Immediate toast for the bonus
+            try {
+              if (Game.UI && typeof Game.UI.pushSystem === "function") {
+                Game.UI.pushSystem(`+1⭐ +1💰`);
+              }
+              if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+                Game.UI.requestRenderAll();
+              }
+            } catch (_) {}
+
+            // If there was a return of stolen points, show a toast for that amount
+            if (returnAmount > 0) {
+              try {
+                if (Game.UI && typeof Game.UI.pushSystem === "function") {
+                  Game.UI.pushSystem(`+${returnAmount}💰`);
+                }
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
       } else {
-        copDm(`Донос принят. Контакт отмечен.`);
+        copDm("Информация подтвердилась. Контакт отмечен.");
       }
 
       // Remove any active battles with this target immediately (pipeline consistency).
@@ -1028,20 +1154,9 @@ window.Game = window.Game || {};
       return { ok: true, targetId: target.id, role: roleKey, reward: payout };
     }
 
-    // False report
-    if (isCirculationEnabled()) {
-      const Econ = getEcon();
-      if (Econ && typeof Econ.transferPoints === "function") {
-        Econ.transferPoints("me", "sink", penalty, "false_report");
-      }
-    } else {
-      spendPoints(penalty, "false_report");
-    }
-
-    markReported(target.id, false, roleKey);
-    copDm(`Ложный донос. Штраф -${penalty} 💰.`);
-    copChat("Ложный донос зафиксирован.");
-    return { ok: false, targetId: target.id, role: roleKey, penalty, reason: "false_report" };
+    // False report (no confirmation branch - redundant with above check but kept for safety)
+    copDm("Подтверждений нет. Будьте осторожнее с обвинениями.");
+    return { ok: false, reason: "false_report" };
   }
 
   function ensureNonNegativePoints(){

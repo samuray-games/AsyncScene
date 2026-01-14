@@ -471,6 +471,32 @@
 
   // Apply economy based on battle result.
   // Must be applied exactly once per battle (battle.economyApplied).
+  // Task A: функция вычисления разницы сил по тону
+  function getToneDelta(battle) {
+    const tonePower = { y: 1, o: 2, r: 3, k: 4 };
+    const normColor = (c) => {
+      if (!c) return "y";
+      const s = String(c).toLowerCase();
+      if (s === "yellow") return "y";
+      if (s === "orange") return "o";
+      if (s === "red") return "r";
+      if (s === "black") return "k";
+      return s.charAt(0);
+    };
+    
+    const myColor = battle.defense && battle.defense.color 
+      ? normColor(battle.defense.color) 
+      : (battle.myColor ? normColor(battle.myColor) : "y");
+    const oppColor = battle.attack && battle.attack.color 
+      ? normColor(battle.attack.color)
+      : (battle.oppColor ? normColor(battle.oppColor) : "y");
+    
+    const myPower = tonePower[myColor] || 1;
+    const oppPower = tonePower[oppColor] || 1;
+    
+    return myPower - oppPower;
+  }
+
   E.applyResult = function (battle) {
     if (!battle) return;
     if (battle.economyApplied) return;
@@ -539,6 +565,19 @@
         // Wins are progression; must increment in both economy modes.
         try { me.wins = (me.wins | 0) + 1; } catch (_) { try { me.wins += 1; } catch (_) {} }
         try { maybeUnlocks(me); } catch (_) {}
+        
+        // Task A: REP за исход по разнице сил Δ (победа)
+        if (transferRep) {
+          const delta = getToneDelta(battle);
+          let repGain = 0;
+          if (delta >= 2) repGain = 0;
+          else if (Math.abs(delta) <= 1) repGain = 1;
+          else if (delta <= -2) repGain = 2;
+          if (repGain > 0) {
+            transferRep("crowd_pool", "me", repGain, "rep_battle_win_delta", battle.id || battle.battleId || null);
+          }
+        }
+        
         syncAndRenderNow();
         if (dailyBonus) dailyBonus();
         return;
@@ -557,15 +596,19 @@
       else me.points = Math.max(0, me.points + gain);
       me.wins += 1;
       
-      // Immediately show wins toast (fixes instant feedback)
-      try {
-        if (Game.UI && typeof Game.UI.pushSystem === "function") {
-          Game.UI.pushSystem(`🏆 Победа!`);
-        }
-      } catch (_) {}
+      // Task F: убрать тост "Победа!" (оставлен только для legacy режима, но закомментирован)
+      // try {
+      //   if (Game.UI && typeof Game.UI.pushSystem === "function") {
+      //     Game.UI.pushSystem(`🏆 Победа!`);
+      //   }
+      // } catch (_) {}
 
-      // Rep (difficulty-based) — REP v2 economy
-      let repGain = (D && Number.isFinite(D.REP_WIN)) ? (D.REP_WIN | 0) : 2;
+      // Task A: REP за исход по разнице сил Δ (победа, legacy режим)
+      let repGain = 0;
+      const delta = getToneDelta(battle);
+      if (delta >= 2) repGain = 0;
+      else if (Math.abs(delta) <= 1) repGain = 1;
+      else if (delta <= -2) repGain = 2;
       try {
         const opp = (Game.State && Game.State.players && battle.opponentId) ? Game.State.players[battle.opponentId] : null;
         const oppInf = (opp && Number.isFinite(opp.influence)) ? (opp.influence | 0) : 0;
@@ -654,6 +697,22 @@
             }
           }
         }
+        
+        // Task A: REP за исход по разнице сил Δ (поражение)
+        if (transferRep) {
+          const delta = getToneDelta(battle);
+          if (delta <= -2) {
+            // Проиграл более сильному: +1 REP
+            transferRep("crowd_pool", "me", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          } else if (Math.abs(delta) <= 1) {
+            // Проиграл равному: -1 REP
+            transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          } else if (delta >= 2) {
+            // Проиграл более слабому: -2 REP
+            transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          }
+        }
+        
         syncAndRenderNow();
         if (dailyBonus) dailyBonus();
         return;
@@ -662,14 +721,18 @@
       if (addPts) addPts(gain, "battle_lose");
       else me.points = Math.max(0, me.points + gain);
 
-      // REP v2 economy: loss penalty with floor protection
-      const repLoss = (D && Number.isFinite(D.REP_LOSE)) ? (D.REP_LOSE | 0) : 1;
-      if (transferRep && repLoss > 0 && battle.opponentId) {
-        const repFloor = (D && Number.isFinite(D.REP_FLOOR)) ? (D.REP_FLOOR | 0) : 1;
-        const currentRep = (Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
-        const actualLoss = Math.min(repLoss, Math.max(0, currentRep - repFloor));
-        if (actualLoss > 0) {
-          transferRep("me", "crowd_pool", actualLoss, "rep_battle_lose", battle.id || battle.battleId || null);
+      // Task A: REP за исход по разнице сил Δ (поражение, legacy режим)
+      if (transferRep && battle.opponentId) {
+        const delta = getToneDelta(battle);
+        if (delta <= -2) {
+          // Проиграл более сильному: +1 REP
+          transferRep("crowd_pool", "me", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+        } else if (Math.abs(delta) <= 1) {
+          // Проиграл равному: -1 REP
+          transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+        } else if (delta >= 2) {
+          // Проиграл более слабому: -2 REP
+          transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
         }
       }
 

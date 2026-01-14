@@ -698,30 +698,11 @@ window.Game = window.Game || {};
       }
     } catch (_) {}
 
-    // Chat activity reward (cooldown-based)
+    // Chat activity reward disabled: chat messages must not change points or show economy toasts.
     try {
-      const D0 = Game.Data || {};
-      const gain = Number.isFinite(D0.POINTS_CHAT_REPLY) ? (D0.POINTS_CHAT_REPLY | 0) : 1;
       const now = Date.now();
       S.points = S.points || { lastChatRewardAt: 0 };
-      const last = Number(S.points.lastChatRewardAt || 0);
-      if ((now - last) >= 10000) {
-        const cir = !!(D0 && D0.CIRCULATION_ENABLED === true);
-        if (cir) {
-          try {
-            if (Game.StateAPI && typeof Game.StateAPI.pushSystem === "function") {
-              Game.StateAPI.pushSystem("Сейчас без бонусов.");
-            } else if (Game.UI && typeof Game.UI.pushSystem === "function") {
-              Game.UI.pushSystem("Сейчас без бонусов.");
-            }
-          } catch (_) {}
-        } else if (Game.StateAPI && typeof Game.StateAPI.addPoints === "function") {
-          Game.StateAPI.addPoints(gain, "chat_reply");
-        } else if (S.me) {
-          S.me.points = (S.me.points || 0) + gain;
-        }
-        S.points.lastChatRewardAt = now;
-      }
+      S.points.lastChatRewardAt = now;
     } catch (_) {}
   };
 

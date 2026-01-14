@@ -128,11 +128,40 @@ window.Game ||= {};
     if (share > 0 && bId) {
       Econ.transferFromPool(poolId, bId, share, "crowd_draw_payout_opp", { battleId });
     }
-    if (minority.length) {
+    if (minority.length || majority.length) {
       const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") ? Game.StateAPI.transferRep : null;
       const repEventId = e && (e.id || e.eventId || e.refId || e.battleId || e.relatedBattleId || null);
       if (transferRep) {
-        for (const vid of minority) transferRep("crowd_pool", vid, 1, "rep_crowd_vote_minority", repEventId);
+        // Task B: outcome REP - ТОЛЬКО результат (участие уже начислено при клике в helpEvent)
+        // +2 for majority, -2 for minority
+        for (const vid of majority) {
+          transferRep("crowd_pool", vid, 2, "rep_crowd_vote_majority", repEventId);
+        }
+        for (const vid of minority) {
+          transferRep(vid, "crowd_pool", 2, "rep_crowd_vote_minority", repEventId);
+        }
+        
+        // P0-3: показать тосты результата для игрока + мгновенное обновление (символами)
+        const meId = (Game.State && Game.State.me && Game.State.me.id) ? Game.State.me.id : "me";
+        if (majority.includes(meId)) {
+          try {
+            if (Game.UI && typeof Game.UI.pushSystem === "function") {
+              Game.UI.pushSystem(`+2⭐ +1💰`);
+            }
+            if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+              Game.UI.requestRenderAll();
+            }
+          } catch (_) {}
+        } else if (minority.includes(meId)) {
+          try {
+            if (Game.UI && typeof Game.UI.pushSystem === "function") {
+              Game.UI.pushSystem(`-2⭐ +0💰`);
+            }
+            if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+              Game.UI.requestRenderAll();
+            }
+          } catch (_) {}
+        }
       }
     }
     if (Econ.markCrowdPaid) Econ.markCrowdPaid(poolId);
@@ -865,6 +894,26 @@ window.Game ||= {};
 
     // Keep mirrored fields consistent for UI
     mirrorCrowdVotesToEvent(e);
+
+    // Task B: начислить +1 REP за участие сразу
+    try {
+      const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function")
+        ? Game.StateAPI.transferRep
+        : null;
+      if (transferRep) {
+        transferRep("crowd_pool", "me", 1, "rep_crowd_vote_participation", e.id || e.battleId || e.refId || null);
+      }
+    } catch (_) {}
+
+    // P0-3: показать тост участия сразу "+1⭐ -1💰" и мгновенно обновить UI
+    try {
+      if (Game.UI && typeof Game.UI.pushSystem === "function") {
+        Game.UI.pushSystem(`+1⭐ -1💰`);
+      }
+      if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+        Game.UI.requestRenderAll();
+      }
+    } catch (_) {}
 
     // Player vote must NOT stop NPC votes. Nudge the NPC vote timer so simulation continues.
     if (e.crowd && typeof e.crowd === "object") {

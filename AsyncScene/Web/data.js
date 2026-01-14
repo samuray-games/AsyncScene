@@ -61,6 +61,14 @@ window.Game = window.Game || {};
   Data.REP_DISMISS_REPEAT = 4;        // Repeated dismiss
   Data.REP_CROWD_SUPPORT = 1;         // Crowd voted for you
   Data.REP_FLOOR = 1;                 // Minimum REP after NPC actions
+
+  // TODO_CANON: Future REP values for victory/loss by tier (NOT implemented yet)
+  // - win over weak: 0 REP
+  // - win over equal: +2 REP
+  // - win over strong: +4 REP
+  // - lose from weak: -4 REP
+  // - lose from equal: -2 REP
+  // - lose from strong: +1 REP
   
   Data.INF_BASE_COST = PROG_V2 ? 16 : 12;
   Data.INF_PER_LEVEL = PROG_V2 ? 2 : 4;
@@ -117,6 +125,19 @@ window.Game = window.Game || {};
       invite_open_hint: "Введи ник игрока. Без ошибок, иначе не сработает.",
       invite_invalid: "Такого игрока нет.",
       menu_title: "Меню",
+
+      // Authority templates (Canon)
+      cop_report_accept: ["Я вас понял. Проверяю информацию.", "Принял. Сейчас разберёмся."],
+      cop_busy: ["Я сейчас занят, подойдите позже.", "Сейчас не могу, оформляю другое дело."],
+      cop_report_ok: ["Информация подтвердилась. Приняты меры.", "Вы были правы. Я занялся этим."],
+      cop_report_fail: ["Подтверждений нет. Будьте осторожнее с обвинениями."],
+      cop_cooldown: ["Дайте мне время, я ещё занят предыдущим делом."],
+
+      // UI type hints (Canon)
+      hint_type_who: "Ответь кто",
+      hint_type_where: "Ответь где",
+      hint_type_about: "Ответь про кого / про что",
+      hint_type_yn: "Ответь да или нет",
     },
     alpha: {
       tie_start: "ТОЛПА",
@@ -345,7 +366,7 @@ window.Game = window.Game || {};
       { q:"Кто сейчас, возможно, у всех в ленте?", a:"Похоже, про {NAME} пишут." },
       { q:"Кого, как будто, все обсуждают?", a:"Кажется, про {NAME} спорят." },
       { q:"Кто снова, наверное, на повестке?", a:"Если не ошибаюсь, про {NAME} напоминают." },
-      { q:"Кто тут, кажется, главная тема?", a:"Вроде бы про {NAME} весь чат." },
+      { q:"Какая тут, кажется, главная тема?", a:"Вроде бы про {NAME} весь чат." },
       { q:"Кого сегодня, может быть, упоминают чаще всего?", a:"Кажется, про {NAME} чаще всего." },
       { q:"Кто сейчас, возможно, на хайпе?", a:"Похоже, про {NAME} везде." },
       { q:"Кто опять, кажется, в новостях?", a:"Кажется, про {NAME} снова новости." }
@@ -392,7 +413,7 @@ window.Game = window.Game || {};
       { q:"Кто сейчас у всех в ленте?", a:"Про {NAME} пишут." },
       { q:"Кого все обсуждают?", a:"Про {NAME} спорят." },
       { q:"Кто снова на повестке?", a:"Про {NAME} напоминают." },
-      { q:"Кто тут главная тема?", a:"Про {NAME} весь чат." },
+      { q:"Какая тут главная тема?", a:"Про {NAME} весь чат." },
       { q:"Кого сегодня упоминают чаще всего?", a:"Про {NAME} чаще всего." },
       { q:"Кто сейчас на хайпе?", a:"Про {NAME} везде." },
       { q:"Кто опять в новостях?", a:"Про {NAME} снова новости." }
@@ -525,6 +546,57 @@ window.Game = window.Game || {};
       { q:"Подтверди продолжение!", a:"Да." }
     ]
   };
+
+  // Guard: ABOUT questions must not start with "Кто" (content-level fix).
+  // This does not change types/selection rules; it only sanitizes displayed text.
+  (function sanitizeAboutQuestions(){
+    const startsWithKto = (s) => /^\s*кто\b/iu.test(String(s || ""));
+    const isMainTopic = (s) => /главн\w*\s+тема/iu.test(String(s || ""));
+    const fix = (q) => {
+      const s = String(q || "");
+      if (!startsWithKto(s)) return s;
+      return s.replace(/^\s*кто\b/iu, isMainTopic(s) ? "Какая" : "Что");
+    };
+    const apply = (base) => {
+      if (!base || !Array.isArray(base.about)) return;
+      base.about.forEach(item => {
+        if (!item || typeof item.q !== "string") return;
+        item.q = fix(item.q);
+      });
+    };
+    apply(Data.ARG_BASE_Y);
+    apply(Data.ARG_BASE_O);
+    apply(Data.ARG_BASE_R);
+    apply(Data.ARG_BASE_K);
+  })();
+
+  // Guard: WHERE answers should use "там, где {PLACE}" instead of "в/на/у {PLACE}".
+  // Note: JS word-boundary \b is ASCII-only, so we use Unicode property escapes.
+  (function sanitizeWhereAnswers(){
+    const rxPlace = /(^|[^\p{L}])(в|на|у)\s*\{PLACE\}/giu;
+    const fixPlace = (s) => {
+      if (typeof s !== "string") return s;
+      return s.replace(rxPlace, '$1там, где {PLACE}');
+    };
+
+    const bases = [Data.ARG_BASE_Y, Data.ARG_BASE_O, Data.ARG_BASE_R, Data.ARG_BASE_K];
+    for (const base of bases) {
+      try {
+        if (!base || !Array.isArray(base.where)) continue;
+        base.where.forEach(item => {
+          if (!item || typeof item.a !== "string") return;
+          item.a = fixPlace(item.a);
+        });
+      } catch (_) {}
+    }
+
+    // Also sanitize canonical text block (ARG_CANON_TEXT) if it contains WHERE answers.
+    try {
+      if (typeof Data.ARG_CANON_TEXT === "string") {
+        Data.ARG_CANON_TEXT = fixPlace(Data.ARG_CANON_TEXT);
+      }
+    } catch (_) {}
+  })();
 
   Data.ARG_CANON_TEXT = `
 Y1 ABOUT Q1: Извините, про кого сейчас говорят?
@@ -1621,6 +1693,33 @@ K YN A9: Нет.
       else index[key].items[idx].a = text;
     }
     Data.ARG_CANON_INDEX = index;
+    // Immediately sanitize the built index to replace any leading prepositions before {PLACE}
+    try {
+      const rxPlace = /(^|[^\p{L}])(в|на|у)\s*\{PLACE\}/giu;
+      const fixPlace = (s) => (typeof s === "string") ? s.replace(rxPlace, '$1там, где {PLACE}') : s;
+
+      // Standalone word "здесь" (Unicode-aware)
+      const rxHere = /(^|[^\p{L}])здесь([^\p{L}]|$)/giu;
+      const fixHere = (s) => (typeof s === "string") ? s.replace(rxHere, '$1там, где {PLACE}$2') : s;
+
+      for (const k of Object.keys(Data.ARG_CANON_INDEX)) {
+        const rec = Data.ARG_CANON_INDEX[k];
+        if (!rec || !Array.isArray(rec.items)) continue;
+        for (let i = 0; i < rec.items.length; i++) {
+          const it = rec.items[i];
+          if (!it) continue;
+          try {
+            if (typeof it.q === "string") it.q = fixPlace(it.q);
+            if (typeof it.a === "string") {
+              it.a = fixPlace(it.a);
+              if (String(k || "").toUpperCase().endsWith("|YN")) {
+                it.a = fixHere(it.a);
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
   };
 
   Data.getArgCanonGroup = (sub, type) => {
@@ -1639,6 +1738,41 @@ K YN A9: Нет.
   };
 
   Data.buildArgCanon();
+
+  // Post-process canonical text and the built index to enforce place phrasing and YN "здесь" ban.
+  (function sanitizeCanonWhereInText(){
+    try {
+      const rxPlace = /(^|[^\p{L}])(в|на|у)\s*\{PLACE\}/giu;
+      const fixPlace = (s) => (typeof s === "string") ? s.replace(rxPlace, '$1там, где {PLACE}') : s;
+
+      const rxHere = /(^|[^\p{L}])здесь([^\p{L}]|$)/giu;
+      const fixHere = (s) => (typeof s === "string") ? s.replace(rxHere, '$1там, где {PLACE}$2') : s;
+
+      if (typeof Data.ARG_CANON_TEXT === "string") {
+        Data.ARG_CANON_TEXT = fixPlace(Data.ARG_CANON_TEXT);
+      }
+
+      if (Data.ARG_CANON_INDEX && typeof Data.ARG_CANON_INDEX === "object") {
+        for (const k of Object.keys(Data.ARG_CANON_INDEX)) {
+          const rec = Data.ARG_CANON_INDEX[k];
+          if (!rec || !Array.isArray(rec.items)) continue;
+          for (let i = 0; i < rec.items.length; i++) {
+            const it = rec.items[i];
+            if (!it) continue;
+            try {
+              if (typeof it.q === "string") it.q = fixPlace(it.q);
+              if (typeof it.a === "string") {
+                it.a = fixPlace(it.a);
+                if (String(k || "").toUpperCase().endsWith("|YN")) {
+                  it.a = fixHere(it.a);
+                }
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {}
+  })();
 
   // Argument pools (fallback, neutral base)
   Data.ARG_POOLS = Data.ARG_BASE_O;

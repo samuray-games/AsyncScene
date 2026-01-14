@@ -251,9 +251,16 @@ window.Game = window.Game || {};
     const resolved = !!e?.resolved;
 
     const titleFallback = `${aName} [${aInf}] vs ${bName} [${bInf}]`;
-    const safeTitle = (e?.title && String(e.title).trim().length)
+    let safeTitle = (e?.title && String(e.title).trim().length)
       ? String(e.title)
       : titleFallback;
+
+    // Task 1: Use attempt formulation for title if it's an escape event
+    if (e && e.voteLabels && e.escapeMode) {
+      const isOff = e.escapeMode === "off";
+      const action = isOff ? "послать" : "свалить от";
+      safeTitle = `${aName} пытается ${action} ${bName}`;
+    }
 
     const stableId = e?.id || `e_${createdAt}_${Math.floor(Math.random() * 9999)}`;
     // IMPORTANT: If raw event has no id, persist the generated one so Game.Events can reference it.
@@ -793,32 +800,7 @@ window.Game = window.Game || {};
 
         const D0 = Game.Data || {};
         const extraCost = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;
-        const extraRow = document.createElement("div");
-        extraRow.className = "actions";
-
-        const addExtra = (side) => {
-          if (Game.Events && typeof Game.Events.addExtraVote === "function") {
-            Game.Events.addExtraVote(e.id, side);
-          }
-        };
-
-        const btnExtraA = document.createElement("button");
-        btnExtraA.className = "btn small";
-        btnExtraA.textContent = "Недоступно";
-        btnExtraA.disabled = true;
-        btnExtraA.onclick = (ev) => { stop(ev); };
-
-        const btnExtraB = document.createElement("button");
-        btnExtraB.className = "btn small";
-        btnExtraB.textContent = "Недоступно";
-        btnExtraB.disabled = true;
-        btnExtraB.onclick = (ev) => { stop(ev); };
-
-        extraRow.appendChild(btnExtraA);
-        extraRow.appendChild(btnExtraB);
-
-        card.appendChild(extraRow);
-
+        // Removed "Недоступно" buttons - they are not displayed anymore
       }
 
       // In-card note (no chat spam)
@@ -834,10 +816,84 @@ window.Game = window.Game || {};
         res.className = "pill";
         let line = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : "";
         if (ne.voteLabels && ne.escapeMode) {
-          line = escapeResultLine(ne, e);
+          // Task 1: For escape events, the primary line is the consequence
+          const { winner } = computeCrowdWinner(e);
+          line = (winner === "a") ? "Действие произошло" : "Действие не произошло";
         }
         res.textContent = (line && line.trim().length) ? line : "Всё, движ закончен.";
         card.appendChild(res);
+
+        // Result of voting after timer (Task B + Task 1 & 2)
+        if (e && e.playerVoted && e.myVote) {
+          const resBlock = document.createElement("div");
+          resBlock.className = "noteLine";
+          resBlock.style.marginTop = "4px";
+          resBlock.style.borderTop = "1px solid rgba(255,255,255,0.1)";
+          resBlock.style.paddingTop = "4px";
+
+          const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
+          const myChoiceLabel = (e.myVote === "a") 
+            ? (useLabels ? ne.voteLabels.a : aName)
+            : (useLabels ? ne.voteLabels.b : bName);
+          
+          const winnerSide = (e.crowd && e.crowd.winner) || e.result;
+          const isWin = (e.myVote === winnerSide);
+          const outcomeText = isWin ? "затащил" : "не затащил";
+
+          let html = `<div>Твой выбор: ${myChoiceLabel}</div>`;
+          // Task 2: Use var(--text) for outcome color (black in light, white in dark)
+          html += `<div style="color: var(--text); font-weight: 900;">Итог голосования: ${outcomeText}</div>`;
+
+          // Try to extract total deltas from moneyLog for this event
+          try {
+            if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) {
+              const eventId = ne.id;
+              // Participation + result (majority/minority)
+              const logs = Game.Debug.moneyLog.filter(l => 
+                l && (l.targetId === "me" || l.sourceId === "me") && 
+                (l.battleId === eventId || (l.battleId && eventId.includes(l.battleId)))
+              );
+              
+              // Compute separate deltas: participation (immediate on click) and result (on completion)
+              let partRep = 0, partPts = 0;
+              let resultRep = 0, resultPts = 0;
+
+              logs.forEach(l => {
+                const amt = Number(l.amount || 0);
+                const reason = String(l.reason || "").toLowerCase();
+                if (l.currency === "rep") {
+                  if (reason.includes("participation")) {
+                    if (l.targetId === "me") partRep += amt;
+                    else if (l.sourceId === "me") partRep -= amt;
+                  } else if (reason.includes("majority") || reason.includes("minority")) {
+                    if (l.targetId === "me") resultRep += amt;
+                    else if (l.sourceId === "me") resultRep -= amt;
+                  }
+                } else {
+                  // points / transferFromPool reasons
+                  if (reason.includes("crowd_vote_cost")) {
+                    if (l.sourceId === "me") partPts -= amt;
+                    else if (l.targetId === "me") partPts += amt;
+                  } else if (reason.includes("refund_majority") || reason.includes("crowd_draw_payout") || reason.includes("crowd")) {
+                    if (l.targetId === "me") resultPts += amt;
+                    else if (l.sourceId === "me") resultPts -= amt;
+                  }
+                }
+              });
+
+              // Format helper: always show sign, show 0 as +0
+              const fmt = (n, suffix) => `${n >= 0 ? '+'+n : n}${suffix}`;
+
+              // Participation line (symbols only)
+              html += `<div style=\"color: var(--text)\">${fmt(partRep,'⭐')} ${fmt(partPts,'💰')}</div>`;
+              // Result line (symbols only)
+              html += `<div style=\"color: var(--text)\">${fmt(resultRep,'⭐')} ${fmt(resultPts,'💰')}</div>`;
+            }
+          } catch (_) {}
+
+          resBlock.innerHTML = html;
+          card.appendChild(resBlock);
+        }
 
         if (e && e.betMessage) {
           const betLine = document.createElement("div");
