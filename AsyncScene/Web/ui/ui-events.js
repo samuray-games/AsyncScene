@@ -372,6 +372,13 @@ window.Game = window.Game || {};
     const kind = rawEvent.type || rawEvent.kind;
     if (kind === "escape") return false;
 
+    const aName = (UI && typeof UI.displayNameByIdOrName === "function")
+      ? (UI.displayNameByIdOrName(ne.a.id || ne.a.name) || ne.a.name)
+      : ne.a.name;
+    const bName = (UI && typeof UI.displayNameByIdOrName === "function")
+      ? (UI.displayNameByIdOrName(ne.b.id || ne.b.name) || ne.b.name)
+      : ne.b.name;
+
     const now = Date.now();
     const endsAt = (typeof rawEvent.endsAt === "number") ? rawEvent.endsAt : ne.endsAt;
     if (!Number.isFinite(endsAt)) return false;

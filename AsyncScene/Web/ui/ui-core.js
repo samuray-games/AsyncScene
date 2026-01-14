@@ -795,12 +795,12 @@ window.Game = window.Game || {};
         toast.id = id;
         toast.className = "statToast";
         document.body.appendChild(toast);
+        // Toasts persist until clicked; click hides and resets accumulation for this stat.
+        toast.onclick = () => {
+          try { toast.style.display = "none"; } catch (_) {}
+          try { UI.__statDeltaShown[k] = 0; } catch (_) {}
+        };
       }
-      // Toasts persist until clicked; click hides and resets accumulation for this stat.
-      toast.onclick = () => {
-        try { toast.style.display = "none"; } catch (_) {}
-        try { UI.__statDeltaShown[k] = 0; } catch (_) {}
-      };
       
       toast.textContent = text;
       const r = anchor.getBoundingClientRect();

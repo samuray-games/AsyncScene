@@ -228,6 +228,12 @@ window.Game = window.Game || {};
     const day = new Date();
     const dayId = `daily_${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
     transferRep("daily_pool", "me", cfg.REP_DAILY, "rep_daily_bonus", dayId);
+    // REP v2 economy: daily also grants +1 point (legacy mode only).
+    try {
+      if (!isCirculationEnabled()) {
+        addPoints(1, "daily_bonus");
+      }
+    } catch (_) {}
     return true;
   }
   function getPointsConfig(){
@@ -963,61 +969,19 @@ window.Game = window.Game || {};
     };
 
     if (truthful) {
-      let payout = reward;
-      const now = Date.now();
-      const harm = State.victimByRole ? State.victimByRole[roleKey] : null;
-      const HARM_WINDOW_MS = 10 * 60 * 1000;
-      const hasHarm = harm && harm.loss > 0 && (now - harm.at) <= HARM_WINDOW_MS;
-
-      // Points canon:
-      // - Base reward: 2 points (transfer from villain to me)
-      // - If harmed recently: return stolen + 3 extra points
-      if ((roleKey === "toxic" || roleKey === "bandit") && hasHarm) {
-        payout = (harm.loss | 0) + 3; // Возврат + 3 Points награда
-      } else {
-        payout = 2;
-      }
-
-      // REP canon:
-      // - Report without confirmations: +1
-      // - Report with harm confirmation: +2
+      // REP v2 economy: truthful report gives fixed REP, no points reward.
+      const D = (Game && Game.Data) ? Game.Data : null;
       if (!repTransferred) {
-        const repGain = hasHarm ? 2 : 1;
+        const repGain = (D && Number.isFinite(D.REP_REPORT_TRUE)) ? (D.REP_REPORT_TRUE | 0) : 2;
         transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
         repTransferred = true;
       }
 
-      let payoutApplied = payout | 0;
-      if (isCirculationEnabled()) {
-        payoutApplied = 0;
-        const Econ = getEcon();
-        if (Econ && typeof Econ.transferPoints === "function") {
-          const acc = (State.players && target && target.id && State.players[target.id]) ? State.players[target.id] : null;
-          const available = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
-          const amt = Math.max(0, Math.min(payout | 0, available));
-          if (amt > 0) {
-            Econ.transferPoints(target.id, "me", amt, "cop_reward", { role: roleKey, battleId: reportId });
-            payoutApplied = amt;
-          }
-        }
-      } else {
-        const acc = (State.players && target && target.id && State.players[target.id]) ? State.players[target.id] : null;
-        const available = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
-        const amt = Math.max(0, Math.min(payout, available));
-        if (amt > 0) {
-          acc.points = Math.max(0, acc.points - amt);
-          addPoints(amt, "cop_reward");
-          payoutApplied = amt;
-        }
-      }
-
       markReported(target.id, true, roleKey);
-      if ((roleKey === "toxic" || roleKey === "bandit") && hasHarm) {
-        copDm(`Донос принят. Возмещение ${harm.loss} и вознаграждение ${payoutApplied} 💰. ${target.name} задержан на 5 минут.`);
-      } else if (roleKey === "toxic" || roleKey === "bandit") {
-        copDm(`Донос принят. Вознаграждение ${payoutApplied} 💰. ${target.name} задержан на 5 минут.`);
+      if (roleKey === "toxic" || roleKey === "bandit") {
+        copDm(`Донос принят. ${target.name} задержан на 5 минут.`);
       } else {
-        copDm(`Донос принят. Вознаграждение ${payoutApplied} 💰. Контакт отмечен.`);
+        copDm(`Донос принят. Контакт отмечен.`);
       }
 
       if (roleKey === "toxic" || roleKey === "bandit") {

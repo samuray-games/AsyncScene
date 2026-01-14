@@ -34,13 +34,13 @@ window.Game = window.Game || {};
   Data.DRAW_CROWD_DEPOSIT = 1;
   Data.RICH_LOSS_EXTRA = 1;
 
-  // Points rewards
-  Data.POINTS_WIN = 3;
-  Data.POINTS_DRAW = 2;
-  Data.POINTS_LOSE = 1;
+  // Points rewards — REP v2 economy
+  Data.POINTS_WIN = 2;              // Victory reward (was 3)
+  Data.POINTS_DRAW = 1;             // Draw reward (was 2)
+  Data.POINTS_LOSE = 0;             // Loss reward (was 1)
   Data.POINTS_VOTE_TIE = 1;
-  Data.POINTS_TIE_WIN_PICK = 2;
-  Data.POINTS_TIE_LOSE_PICK = 1;
+  Data.POINTS_TIE_WIN_PICK = 1;     // Tie-pick win (was 2)
+  Data.POINTS_TIE_LOSE_PICK = 0;    // Tie-pick lose (was 1)
   Data.POINTS_CHAT_REPLY = 1;
 
   // Rep / Influence progression (long-term) — REP v2 economy
