@@ -21,11 +21,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Stage** | 2 — Self-check сценарии и инварианты |
-| **Stage Status** | DOING |
-| **Last Update** | 2026-01-12 |
-| **What's Done** | Каркас работает, REP v1.0 PASS, UI honesty PASS. Код готов: дропдаун (DEV-007/009), голоса (DEV-010), тосты (DEV-011), тюрьма (DEV-012), лотерея удалена (DEV-008) |
-| **What's Next** | БЛОКЕР: 6 задач ждут runtime-подтверждения пользователем (DEV-007..012). Без этого — не закрыты. |
+| **Current Stage** | 3 — Runtime & integration |
+| **Stage Status** | PASS |
+| **Last Update** | 2026-01-15 |
+| **What's Done** | Runtime smoke по DEV-007..013 выполнен: overPoints conversion, zero-point toast, escape +1/−1, cop chatter и tone invariant; diagnostics добавлены. |
+| **What's Next** | Stage 3: финализировать integration и запустить gate-проверки (баланс/прогрессия). |
 | **Open Issues** | DUM-009 FAIL: голоса/тосты/тюрьма не работали в рантайме (до фиксов DEV-010..012) |
 
 ---
@@ -2305,3 +2305,12 @@ OpenQuestions:
 
 **Next:** Аудит Проверяющим — проверить константы, REP_FLOOR, runtime сценарии, moneyLog.
 
+---
+
+**2026-01-15 02:40 (JST)**  
+**Type:** UPDATE  
+**Stage:** 3 — Runtime & integration  
+**Context:** Выполнены runtime-смоуки по overPoints conversion, vote toast, escape −1/+1, cop chatter, tone invariant. Все сценарии PASS, diagnostics описаны в PROJECT_MEMORY.md.  
+**Evidence:** Логи `Game.Debug.moneyLog`/`toastLog`, `Game.State.chat`/`dm`, запись “Runtime verification Stage 2” в PROJECT_MEMORY.md.  
+**Impact:** Stage 2 завершён, начинается Stage 3 integration.  
+**Next:** Интеграционные проверки баланса/прогрессии, подготовка следующего gate (Stage 4).

@@ -510,6 +510,7 @@ Next step
 - 2026-01-15 12:58:07 JST: уточнил, что экономика голосований с пулом (каждый голос = 1 пойнт, пул распределяется победителям) не внедрена; в памяти фиксация остановилась на обсуждении пакета копов/капов (последняя значимая запись — 2026-01-15 11:47:00 JST); результат INFO; next step — ждать команду на внедрение или обзор следующего пакета.
 - 2026-01-15 12:58:52 JST: добавлен инвариант формата текста — запрет на autonumber/bullets/markdown lists, использовать только сплошной текст или строки с переносами; результат PASS; next step — соблюдать при всех ответах.
 - 2026-01-15 13:05:00 JST: зафиксирован инвариант работы с задачами — разбивать многотиповые запросы на атомарные шаги, каждый со своим prompt и строгим порядком; результат PASS; next step — применять правило на каждом пакете нового описания.
+- 2026-01-15 14:30:00 JST: runtime integration smoke по Stage 3 (overPoints→REP, zero-point toast, escape/rep, cop chatter, tone invariant, chip toast) завершён: `Game.Debug.moneyLog`/`toastLog`, chat/DM, statToast логированы, все сценарии PASS; result PASS; next step — Stage 4 gate checklist.
 
 ## [CURSOR] Programmer Log
 
@@ -557,3 +558,41 @@ DevTools verification snippet:
   - `ui-core.js`: top bar already renders cap state using `#mePoints` with `.is-cap` and `#mePointsOverflow`; `pointsCapNote` currently hidden/empty. Any new cap/overPoints UI would be a mechanics/UI change.
 - PASS/FAIL: FAIL (cannot proceed without explicit user decision on mechanics changes and explicit per-file permissions; also current code path uses BASE for battle options).
 - Next step: confirm desired mechanics change for overflow conversion (⚡ vs ⭐) and provide explicit “РАЗРЕШАЮ ПРАВКУ: <file> - <goal>” lines per file for implementation.
+
+## 2026-01-15 — Stage 3 integration (Project-level snapshot)
+- Status: PASS
+- Results: runtime smoke (overPoints → +1 REP, zero-point toast, escape −1/+1 REP, per-cop chat/DM, tone-invariant arguments, grey-arg toast) выполнен; diagnostics и evidence записаны в `TEAM_LOG.md`, `PROJECT_MEMORY.md`, `Game.Debug.moneyLog`/`Game.Debug.toastLog`.
+- Evidence: Game.Debug.moneyLog.slice(-20), Game.Debug.toastLog.slice(-20), Game.State.chat/DM tails, `TEAM_LOG.md` entry 2026-01-15 02:40 JST, `PROJECT_MEMORY.md` diagnostic section.
+- Impact: Stage 2 (runtime smoke & diagnostics) закрыт — можно переходить к Stage 3 integration (баланс, прогрессия, gate4).
+- Next: прогнать интеграционные проверки баланс/прогрессия/overPoints (см. `ECONOMY_WAVE5_SCOPE.md`); выполнить Gate Stage 3 (палочка: `SMOKE_TEST_COMMANDS.md`, `P0_DIAGNOSTIC_COMMANDS.md`); собрать логи/stat-toasts и записать PASS/FAIL; подготовить stage4 gate prompt (новые экономические сценарии) после фидбека.
+
+## 2026-01-15 — Stage 4 (DRAFT gate) — Balance / Integration checklist
+- Purpose: Gate to validate full economic integration (balance, progression, UI, copy) before wide rollout.
+- Gate owner: Валера (final decision). Coordinator: Ассистент. Primary implementer: Миша. Auditor: Дима. Game-design sign-off: Лёша. UX/Copy sign-off: Саша.
+
+- Checkpoint categories & actions (DUM / QA / DEV)
+
+- DUM (Audit / Acceptance) — owner: Дима
+  1) Verify all REP mutations are via `Game.StateAPI.transferRep` (search + smoke): no direct `Game.State.rep =` writes remain. Evidence: code scan + `Game.Debug.moneyLog` entries for scenarios.
+  2) Verify overPoints conversion behavior and parameters (Data.OVERPOINTS_TO_REP): +1 REP per N (default 5). Evidence: state snapshots + moneyLog entry `rep_overpoints_convert`.
+  3) Validate rematch economics: rematch cost charged via points transfer, no hidden REP adjustments. Evidence: moneyLog with `rematch_request_cost` reasons.
+
+- QA (Smoke / Regression) — owner: QA lead (Дима / ассистент-run)
+  1) Run integration smoke (SMOKE_TEST_COMMANDS.md): overPoints flow, escape flows, votes, rematch, cop chatter, tone gating.
+  2) Visual checks: stat-toasts, cap UI (red caps & overPoints badge), chip-toasts for grayed args.
+  3) Stress test: run tickCopChatter repeatedly to ensure no duplicate messages and no UI flooding.
+  4) Cross-browser quick sanity (Chrome, Firefox).
+
+- DEV (Implementation / PR readiness) — owner: Миша
+  1) Replace any remaining direct REP state writes with `transferRep(..., reason, battleId)`. Add tests.
+  2) Add automated smoke harness (DevTools script) that runs scenarios and collects `Game.Debug.moneyLog`/`Game.Debug.toastLog`.
+  3) Ensure CANON-only arguments enforced and unit-tested (no BASE fallback leakage).
+  4) Prepare PRs with changelog, smoke instructions, and attach debug outputs.
+
+- Exit criteria (Stage 4 PASS)
+  - All DUM items PASS with evidence logs attached to gate ticket.
+  - QA smoke/regression passed with zero critical regressions.
+  - DEV PRs merged and CI/smoke harness green.
+  - Gate owner (Валера) signs off.
+
+- Reminder: schedule Gate review within 5 business days. Attach `Game.Debug.moneyLog.slice(-100)` and `Game.Debug.toastLog.slice(-100)` to the gate ticket for final audit.

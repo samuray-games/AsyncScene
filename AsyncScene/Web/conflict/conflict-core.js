@@ -392,7 +392,13 @@
       } else {
         me.points = 0;
       }
-      if (typeof Game.State.rep === "number") Game.State.rep = 0;
+      // IMPORTANT: do not modify Game.State.rep directly — always use transferRep to log REP moves.
+      try {
+        const cur = (Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
+        if (cur > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+          Game.StateAPI.transferRep("me", "crowd_pool", cur, "rep_mafia_humiliation_reset", b.id || b.battleId || null);
+        }
+      } catch (_) {}
       me.wins = 0;
       if (typeof me.winsSinceInfluence === "number") me.winsSinceInfluence = 0;
       if (Game.State.progress) {
