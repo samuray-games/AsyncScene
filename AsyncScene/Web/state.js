@@ -1434,6 +1434,7 @@ window.Game = window.Game || {};
 
   function addPoints(amount, reason){
     const cfg = getPointsConfig();
+    // Capture beforePoints early so circulation branch can compute overflow reliably.
     const beforePoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
     const finalizePoints = () => {
       const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
@@ -1456,6 +1457,30 @@ window.Game = window.Game || {};
       });
       syncMeToPlayers();
       ensureNonNegativePoints();
+      // When circulation is enabled, still support overflow->REP conversion:
+      try {
+        const cfg2 = getPointsConfig();
+        const cap2 = (cfg2 && Number.isFinite(cfg2.softCap)) ? (cfg2.softCap | 0) : ((Game.Data && Number.isFinite(Game.Data.POINTS_SOFT_CAP)) ? (Game.Data.POINTS_SOFT_CAP|0) : 20);
+        const before = (typeof beforePoints !== "undefined" && Number.isFinite(beforePoints)) ? (beforePoints | 0) : ((State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0) - (n|0);
+        const total = before + (n|0);
+        let overflow = Math.max(0, total - cap2);
+        const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP)) ? (Game.Data.OVERPOINTS_TO_REP | 0) : 5;
+        const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
+        if (repGain > 0) {
+          overflow -= (repGain * step);
+          try {
+            const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
+            if (Game && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+              Game.StateAPI.transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
+            } else {
+              transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
+            }
+          } catch (_) {}
+        }
+        State.points.overflow = Math.max(0, overflow | 0);
+        State.overPoints = Math.max(0, State.points.overflow | 0);
+        State.pointsCapActive = ((State.me && Number.isFinite(State.me.points) ? (State.me.points|0) : 0) >= cap2);
+      } catch (_) {}
       return finalizePoints();
     }
     const cap = (cfg.softCap | 0);
