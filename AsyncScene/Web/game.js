@@ -67,7 +67,18 @@ window.Game = window.Game || {};
         winsSinceInfluence: 0,
       };
       Game.State.me = Game.State.players.me;
-      Game.State.rep = 0;
+      // Initialize REP via transferRep to keep moneyLog consistent (avoid direct writes).
+      try {
+        const cur = (Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
+        if (cur > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+          Game.StateAPI.transferRep("me", "crowd_pool", cur, "rep_init_reset", null);
+        } else {
+          // If transferRep unavailable, avoid direct Game.State.rep writes here.
+          // Leave initialization to State layer / StateAPI to preserve logging invariants.
+        }
+      } catch (_) {
+        // Swallow: avoid direct Game.State.rep writes in catch to keep transferRep as single source of truth.
+      }
       Game.State.influence = 0;
       Game.State.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
 
