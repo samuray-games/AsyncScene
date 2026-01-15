@@ -185,6 +185,113 @@ window.Game = window.Game || {};
     }
   };
 
+  // Cop templates (authoritative strings, insert as-is; placeholders are replaced at send time)
+  Data.COP_TEMPLATES = {
+    intros: [
+      "Добрый день, меня зовут {cop.fullName}, я ваш участковый.",
+      "Здравствуйте, на связи {cop.fullName}, держу ваш район.",
+      "Привет, я {cop.fullName}, майор в округе.",
+      "Добрый день, {cop.fullName} на связи, фиксирую ситуацию.",
+      "Здравствуйте, {cop.fullName} тут, следим за порядком.",
+      "{cop.fullName} рядом, не переключайтесь.",
+      "Добрый день, это {cop.fullName}, держим вас в поле зрения.",
+      "{cop.fullName} в эфире, сообщайте детали.",
+      "Здравствуйте, я {cop.fullName} — ваш участковый.",
+      "Привет, {cop.fullName} подключился, держим связь."
+    ],
+    warnings: [
+      "Будьте внимательны, место может быть опасным, я на связи.",
+      "Соблюдайте спокойствие, по этой информации уже выехали.",
+      "Не вмешивайтесь, я контролирую ситуацию.",
+      "Оставайтесь на связи, я фиксирую ваши слова.",
+      "Сдерживайтесь, я рядом и наблюдаю.",
+      "Невыясненные обстоятельства могут привести к эскалации, держите дистанцию.",
+      "Своевременно сообщайте детали, чтобы я мог реагировать.",
+      "Я вас слышу, не делайте резких движений.",
+      "Держите себя в руках, я уже приближаюсь.",
+      "Не создавайте шум, я фиксирую происходящее."
+    ],
+    toxicDescriptions: [
+      "Токсик — хамоватая тень, прячется за оскорблениями и агрессией.",
+      "Он пахнет угрозами и ищет повод поссориться.",
+      "Токсик постоянно ищет способ унизить других.",
+      "Его слова как удары, но слаба логика.",
+      "Он живёт за счёт негативных историй и треш-стримов.",
+      "Токсик мастерски искажает правду ради хайпа.",
+      "Он ходит, обрушивая на всех поток желчи.",
+      "Токсик любит громко кричать, чтобы почувствовать власть.",
+      "Он портит атмосферу, цепляясь за каждого.",
+      "Токсик отнимает ресурсы силой слова."
+    ],
+    banditDescriptions: [
+      "Бандит — драчун с холодными глазами, ищет наживу.",
+      "Он скрывает лицо, но видно — человек с криминальными привычками.",
+      "Бандит кочует между районами и собирает долги.",
+      "Он действует быстро, но отвлекается на пустяки.",
+      "Бандит любит угрожать, чтобы почувствовать контроль.",
+      "Такие типы живут на грани, но хорошо знают карту.",
+      "Он чувствует слабость и сразу нападает.",
+      "Бандит ищет легкую добычу и уходит при сопротивлении.",
+      "Он знает, когда нужно промолчать и наблюдать.",
+      "Бандит всегда держит с собой оружие или телефон."
+    ],
+    chatReplies: [
+      "Принято, держу вас под наблюдением.",
+      "Фиксирую факт, ведём дальше.",
+      "Я рядом, не переключайся.",
+      "Ситуация на контроле, передавайте детали.",
+      "Работаем по цепочке, перехожу к следующей цели.",
+      "Держи связь, не отпускаю тебя одного.",
+      "Я на рации, не выключай движок.",
+      "Понятно, держу отметку в журнале.",
+      "Хорошо, фиксирую сообщение.",
+      "Передал коллегам, продолжаю наблюдение."
+    ],
+    cooldownReplies: [
+      "Я занят расследованием, вернись через пару минут.",
+      "Сейчас разгребаю дело, не могу отвечать.",
+      "На линии другой вызов, вернусь позже.",
+      "Пока не могу подключиться, подожди немного.",
+      "Занят оформлением протокола, перезвони позже.",
+      "Сейчас перегружен, оставь сообщение.",
+      "Я в разборе ситуации, скоро выйду.",
+      "Сейчас не выйдет, жди сигнала.",
+      "Прямо сейчас оформляю материалы, вернусь позже.",
+      "Я на случке, вернусь через минуту."
+    ],
+    thanks: [
+      "Спасибо, что сдали злодея — вы помогли спокойствию.",
+      "Хорошая работа, так держать.",
+      "Благодарю, теперь население будет спать спокойнее.",
+      "Отлично, мы забрали его с улиц.",
+      "Вы молодец, лицо за решёткой.",
+      "Спасибо, что доверились полиции.",
+      "Хорошо скоординировали, мы зафиксировали победу.",
+      "Вы сделали дом безопаснее.",
+      "Отличная работа, ваш вклад заметен.",
+      "Спасибо, что сдали злодея — улицы стали спокойнее."
+    ],
+    scolds: [
+      "Ложный донос — лишняя бумага, сначала проверяйте факты.",
+      "Не нужно подставлять систему без оснований.",
+      "Не стоит разводить панику без доказательств.",
+      "Такие сигналы тормозят реальные дела.",
+      "Вы недосказали детали, а заявка вызвала переполох.",
+      "Сначала убедитесь, потом вызывайте копов.",
+      "Не раздувайте ситуацию без оснований.",
+      "Такие доносы разрушают доверие.",
+      "Мы не можем реагировать на каждый слух.",
+      "Помните: ложные тревоги идут в отчет, проверяйте факты."
+    ]
+  };
+
+  Data.CAP_MESSAGES = {
+    rep: "Cap: max REP на этой неделе. Пополните сверхпойнты, чтобы конвертировать в REP.",
+    points: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap."
+  };
+
+  Data.OVERPOINTS_TO_REP = 5;
+
   Data.t = (key, vars = {}) => {
     const mode = (Data.TEXT_MODE === "alpha") ? "alpha" : "genz";
     const layer = (Data.TEXTS && Data.TEXTS[mode]) ? Data.TEXTS[mode] : {};
@@ -1728,7 +1835,16 @@ K YN A9: Нет.
     const key = s + "|" + t;
     const rec = Data.ARG_CANON_INDEX ? Data.ARG_CANON_INDEX[key] : null;
     if (!rec || !Array.isArray(rec.items)) return [];
-    return rec.items.filter(it => it && it.q && it.a);
+    // Hard filter: if either side contains "здесь", exclude the whole pair.
+    return rec.items.filter(it => {
+      if (!it || !it.q || !it.a) return false;
+      try {
+        const q = String(it.q).toLowerCase();
+        const a = String(it.a).toLowerCase();
+        if (q.includes("здесь") || a.includes("здесь")) return false;
+      } catch (_) {}
+      return true;
+    });
   };
 
   Data.getArgCanonByColorSubType = (color, sub, type) => {
@@ -1760,6 +1876,13 @@ K YN A9: Нет.
             const it = rec.items[i];
             if (!it) continue;
             try {
+              // Filter out any canon pair that contains the forbidden word "здесь"
+              const q0 = (typeof it.q === "string") ? it.q : "";
+              const a0 = (typeof it.a === "string") ? it.a : "";
+              if ((q0 && q0.toLowerCase().includes("здесь")) || (a0 && a0.toLowerCase().includes("здесь"))) {
+                rec.items[i] = null;
+                continue;
+              }
               if (typeof it.q === "string") it.q = fixPlace(it.q);
               if (typeof it.a === "string") {
                 it.a = fixPlace(it.a);
@@ -1769,6 +1892,7 @@ K YN A9: Нет.
               }
             } catch (_) {}
           }
+          rec.items = rec.items.filter(Boolean);
         }
       }
     } catch (_) {}
@@ -1812,6 +1936,12 @@ K YN A9: Нет.
           const aText = Data.fillPlaceholders
             ? Data.fillPlaceholders(pair && pair.a ? pair.a : "", { usedNames, usedPlaces })
             : (pair && pair.a ? pair.a : "");
+          // Hard filter: drop any argument/counter pair containing "здесь"
+          try {
+            const q0 = String(qText || "").toLowerCase();
+            const a0 = String(aText || "").toLowerCase();
+            if ((q0 && q0.includes("здесь")) || (a0 && a0.includes("здесь"))) return;
+          } catch (_) {}
           attack.push({
             id: `${baseId}_q_${color}`,
             color,
@@ -1884,6 +2014,21 @@ K YN A9: Нет.
     { id:"arcade", name:"Аркада" }
   ];
 
+  // Place list used for {PLACE} placeholders
+  Data.PLACE_LIST = (function buildPlaceList(){
+    const out = [];
+    try {
+      const fromLoc = Array.isArray(Data.LOCATIONS) ? Data.LOCATIONS.map(x => x && x.name).filter(Boolean) : [];
+      const fromSafe = Array.isArray(Data.PLACES_SAFE) ? Data.PLACES_SAFE.slice() : [];
+      [...fromLoc, ...fromSafe].forEach(n => {
+        const s = String(n || "").trim();
+        if (!s) return;
+        if (!out.includes(s)) out.push(s);
+      });
+    } catch (_) {}
+    return out;
+  })();
+
   // --- Placeholder helpers ---
   Data.getPlayerNames = () => {
     const names = [];
@@ -1912,31 +2057,29 @@ K YN A9: Нет.
 
   Data.pickName = (ctx = {}) => {
     const used = ctx.used || new Set();
-    const role = (ctx.role != null) ? String(ctx.role).toLowerCase() : null;
-    if (role && Data.NAMES_BY_ROLE[role]) {
-      const pool = Data.NAMES_BY_ROLE[role].slice();
-      const pick = pool.find(n => !used.has(n)) || pool[0];
-      if (pick) used.add(pick);
-      return pick || "";
-    }
-    const players = Data.getPlayerNames();
-    const fallback = Data.NAMES_SAFE || [];
-    const usePlayers = (players.length > 0) && (Math.random() < 0.5);
-    const pool = usePlayers ? players : fallback;
-    const pick = pool.find(n => !used.has(n)) || pool[0] || (fallback[0] || "");
+    const pool = (Array.isArray(Data.RANDOM_NAMES) && Data.RANDOM_NAMES.length)
+      ? Data.RANDOM_NAMES
+      : (Data.NAMES_SAFE || []);
+    if (!pool || !pool.length) return "";
+    const avail = pool.filter(n => n && !used.has(n));
+    const src = avail.length ? avail : pool;
+    const pick = src[Math.floor(Math.random() * src.length)] || pool[0] || "";
     if (pick) used.add(pick);
-    return pick;
+    return pick || "";
   };
 
   Data.pickPlace = (ctx = {}) => {
     const used = ctx.used || new Set();
-    const gamePlaces = Data.getGamePlaces();
-    const fallback = Data.PLACES_SAFE || [];
-    const useGame = (gamePlaces.length > 0) && (Math.random() < 0.6);
-    const pool = useGame ? gamePlaces : fallback;
-    const pick = pool.find(n => !used.has(n)) || pool[0] || (fallback[0] || "");
+    // WHERE must use the full Data.PLACE_LIST (fallback: PLACES_SAFE)
+    const pool = (Array.isArray(Data.PLACE_LIST) && Data.PLACE_LIST.length)
+      ? Data.PLACE_LIST
+      : (Data.PLACES_SAFE || []);
+    if (!pool || !pool.length) return "";
+    const avail = pool.filter(n => n && !used.has(n));
+    const src = avail.length ? avail : pool;
+    const pick = src[Math.floor(Math.random() * src.length)] || pool[0] || "";
     if (pick) used.add(pick);
-    return pick;
+    return pick || "";
   };
 
   Data.fillTemplate = (tpl, ctx = {}) => {
@@ -1962,6 +2105,35 @@ K YN A9: Нет.
     if (v >= U.strong) out.push("o1","o2","o3");
     if (v >= U.power) out.push("r1","r2","r3","r4");
     if (v >= U.absolute) out.push("k1");
+    return out;
+  };
+
+  // Helper: allowed tone by influence (y/o/r/k)
+  Data.allowedTonesByInfluence = (influence) => {
+    const v = Number(influence || 0);
+    // Canon gating:
+    // - influence <= 5: y
+    // - influence <= 10: y/o
+    // - influence < 60: o/r
+    // - influence >= 60: k
+    const allowed =
+      (v >= 60) ? ["k"] :
+      (v <= 5) ? ["y"] :
+      (v <= 10) ? ["y", "o"] :
+      ["o", "r"];
+
+    // Deterministic return value for debugging/tests:
+    // - out.allowed: allowed tones (array)
+    // - out.label: "y" | "y/o" | "o/r" | "k"
+    // - out.pick(): helper to pick ONE allowed tone (random)
+    const out = { allowed, label: allowed.join("/") };
+    out.pick = () => {
+      const src = allowed.length ? allowed : ["y"];
+      return String(src[Math.floor(Math.random() * src.length)] || src[0] || "y");
+    };
+    // String(out) => label (NOT a random tone)
+    try { out[Symbol.toPrimitive] = () => out.label; } catch (_) {}
+    out.toString = () => out.label;
     return out;
   };
 
@@ -2118,9 +2290,11 @@ K YN A9: Нет.
   Data.installArgumentAdapter = () => {
     if (Data._argAdapterInstalled) return;
     if (!Game || !Game.ConflictArguments) return;
+    // CANON-only invariant:
+    // Battle options must come from conflict-arguments.js (uses Data.getArgCanonGroup),
+    // and must NOT be overridden by BASE-backed pickUniqueOptions/select*Options.
     Data._argAdapterInstalled = true;
-    Game.ConflictArguments.myAttackOptions = (battle) => Data.selectAttackOptions(battle);
-    Game.ConflictArguments.myDefenseOptions = (attackArg) => Data.selectDefenseOptions(attackArg);
+    return;
   };
 
   // Install adapter after conflict-arguments loads
@@ -2136,21 +2310,12 @@ K YN A9: Нет.
     if (!Game || !Game.NPC) return;
     const NPC = Game.NPC;
     if (typeof NPC.pickAttack !== "function" || typeof NPC.pickDefense !== "function") return;
+    // CANON-only invariant:
+    // Do not patch NPC pickers to use BASE-backed Data.ARGUMENTS/Data.pickUniqueOptions.
+    // conflict-core.js already enforces canon-only for incoming attacks, and conflict-arguments.js
+    // provides canon-only generators.
     Data._npcArgAdapterInstalled = true;
-    const pickPoolKey = () => {
-      const keys = ["about","who","where","yn"];
-      return keys[Math.floor(Math.random() * keys.length)];
-    };
-    NPC.pickAttack = (inf, npc) => {
-      const tierKeys = Data.tierKeysByInfluence(inf);
-      const poolKey = pickPoolKey();
-      return Data.pickUniqueOptions(poolKey, tierKeys, "attack", npc && npc.role)[0] || null;
-    };
-    NPC.pickDefense = (inf, npc) => {
-      const tierKeys = Data.tierKeysByInfluence(inf);
-      const poolKey = pickPoolKey();
-      return Data.pickUniqueOptions(poolKey, tierKeys, "defense", npc && npc.role)[0] || null;
-    };
+    return;
   };
 
   setTimeout(function tickNpcArgs(){

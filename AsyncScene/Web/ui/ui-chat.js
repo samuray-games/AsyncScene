@@ -493,7 +493,14 @@ window.Game = window.Game || {};
           expanded = normalizeNpcChatText(expanded);
         }
       }
-      const rendered = renderMentionsLocal(expanded, { speakerName: m.name });
+      let rendered = renderMentionsLocal(expanded, { speakerName: m.name });
+      // Cop messages: name must be at the beginning of the message line.
+      try {
+        if (isCopSpeaker(m)) {
+          const nm = (m && m.name != null) ? String(m.name) : "Коп";
+          rendered = `<span class="copPrefix">${escapeHtml(nm)}: </span>` + rendered;
+        }
+      } catch (_) {}
 
       // Mark bubble if it mentions me
       const S = getS();

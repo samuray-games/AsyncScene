@@ -224,6 +224,20 @@
  - Action: Запись в лог по запросу пользователя.
  - Note: Бэкап сохранён локально пользователем; файл не изменён в репозитории.
 
+## 2026-01-12 — Диагностика “внимание!” (cop chatter, escape REP, tone gating)
+- Состояние: правки внесены в `state.js`, `events.js`, `ui-battles.js`, `ui-chat.js`, `conflict-core.js`, `conflict-arguments.js`, `data.js` (git_write недоступен, коммита нет). Требуется runtime в браузере.
+- Почему раньше не закрыто: (1) нет разрешения на git_write → нельзя зафиксировать; (2) нет браузерного рантайма в среде ассистента → нельзя подтвердить toasts/chatter; (3) нужно ручное прохождение сценариев.
+- Барьеры:
+  - Cop chatter: нужно вызвать `Game.StateAPI.tickCops()` и убедиться, что каждый коп пишет либо в чат, либо в DM (без дублей), кулдауны работают, “Благодаря …” только от assigned cop.
+  - Escape REP: UI кнопки при points=0 дают toast справа; клик всегда даёт `rep_escape_click`; успех даёт `rep_escape_success_refund`; проверить через `Game.Debug.moneyLog` и stat-toasts.
+  - Tone invariant: `allowedTonesByInfluence` детерминирован, генераторы берут только разрешённые тона; проверить DevTools `[0,5,10,60,100].map(Game.Data.allowedTonesByInfluence)` и мафия `myDefenseOptions` / `pickIncomingAttack` → только `k`.
+- Action plan (для полного closure):
+  1) Разрешить git_write, собрать и сохранить текущие diffs.
+  2) В браузере: прогнать сценарий репорта злодея → проверить чат/DM (cop chatter, “Благодаря …” один раз, без дубликатов).
+  3) В браузере: escape при points=0 и успешный escape → `Game.Debug.moneyLog` должен содержать `rep_escape_click` и `rep_escape_success_refund`, toasts показаны.
+  4) В DevTools: проверить `allowedTonesByInfluence` на порогах и мафию (аргументы только `k`).
+  5) После верификации — smoke-тесты из `SMOKE_TEST_COMMANDS.md` / `P0_DIAGNOSTIC_COMMANDS.md`, затем git add/commit.
+
 ## 2026-01-13 — Процесс работы: “оценка модели → выполнение”
  - Facts: Зафиксирован строгий порядок взаимодействия.
  - Rule:
@@ -358,6 +372,117 @@ Next step
 - Risk/regressions: Replacing standalone "здесь" with 'там, где {PLACE}' introduces a {PLACE} token into some YN answers that previously had none; runtime placeholder fill must supply a sensible place (Data.fillTemplate / Data.pickPlace). Confirm UX acceptable.
 - Next step: run DevTools smoke-check (snippet in PROJECT_MEMORY.md) and confirm UI WHERE answers render correctly and no YN contains "здесь".
 
+2026-01-15 02:36:00 UTC
+- Permissions received:
+  - РАЗРЕШАЮ ПРАВКУ: `AsyncScene/Web/data.js` - перевести battle options на CANON-only и удалить BASE-пайплайн
+  - РАЗРЕШАЮ ПРАВКУ: `AsyncScene/Web/state.js` - изменить overflow конверсию и хранение cap/overPoints
+  - РАЗРЕШАЮ ПРАВКУ: `AsyncScene/Web/ui/ui-core.js` - отрисовка капов/оверпоинтов и hover
+- Changes made:
+  - `AsyncScene/Web/data.js`: disabled BASE-backed adapters (`installArgumentAdapter`, `installNpcArgAdapter`) so they no longer override CANON-only battle option generation from `conflict-arguments.js`.
+  - `AsyncScene/Web/state.js`: kept Option A behavior (overflow/5 -> +1 ⚡ influence), but mirrored overflow remainder into `State.overPoints` and set `State.pointsCapActive` for UI.
+  - `AsyncScene/Web/ui/ui-core.js`: points overflow now reads `S.overPoints` first; when at cap, hover/title shows `S.points.capNote` on the points UI elements.
+- PASS/FAIL: PASS (syntax check via `node --check` for all three files).
+- Next step: runtime smoke-check:
+  1) Start a battle and confirm argument options come from CANON (no BASE ids/texts).
+  2) Hit points cap and confirm hover shows cap note and overflow indicator updates immediately.
+
+2026-01-15 03:49:27 UTC
+- Input received: user requested to "внедрить пакет изменений" across multiple files (data.js, conflict-arguments.js, conflict-core.js, state.js, events.js, ui-core.js, ui-events.js, ui-battles.js, ui-chat.js) with cop templates, tone gating, cap/overPoints, NPC gating, escape REP behavior, and UI changes.
+- Safety gate: current rule says "По умолчанию READ-ONLY. Любые изменения файлов запрещены без фразы пользователя: 'РАЗРЕШАЮ ПРАВКУ: <файл> - <цель>'".
+- Blockers found:
+  - Missing explicit per-file permissions in the required format for this new large batch (message contained "выполняй", but not the per-file "РАЗРЕШАЮ ПРАВКУ: ...").
+  - Spec ambiguity: COP_TEMPLATES strings are referenced as "предложения из предыдущего prompt", but the full canonical lists are not provided inline.
+  - Spec contradiction: earlier confirmed Option A for overflow conversion (overflow/5 -> +1 ⚡ influence), but new batch requests overPoints 5 -> +1 ⭐ REP.
+- Action taken: did not modify code for the new batch; requested explicit permissions + complete template strings + clarification on the overPoints conversion rule.
+
+2026-01-15 04:02:20 UTC
+- Permissions received (explicit):
+  - `AsyncScene/Web/data.js` - добавить Data.COP_TEMPLATES, Data.CAP_MESSAGES, Data.OVERPOINTS_TO_REP; фильтр "здесь"; allowedTonesByInfluence; синхронизировать CANON WHERE A1
+  - `AsyncScene/Web/conflict/conflict-arguments.js` - tone gating по influence + фильтрация "здесь"
+  - `AsyncScene/Web/conflict/conflict-core.js` - запрет NPC с 0 points на инициирование баттла
+  - `AsyncScene/Web/state.js` - cap/overPoints (вариант B): 5 overPoints -> +1 ⭐ REP, сброс при использовании point
+  - `AsyncScene/Web/events.js` - "Не хватает пойнтов." при 0 points, NPC с 0 points не голосуют
+  - `AsyncScene/Web/ui/ui-core.js` - hover капов и показ overPoints
+  - `AsyncScene/Web/ui/ui-events.js` - показать "Не хватает пойнтов." при провале голосования
+- Changes made:
+  - `AsyncScene/Web/data.js`:
+    - added `Data.COP_TEMPLATES` and `Data.CAP_MESSAGES` (strings inserted as provided)
+    - added `Data.OVERPOINTS_TO_REP = 5`
+    - added `Data.allowedTonesByInfluence(influence)` returning y/o/r/k
+    - set `Data.PLACE_LIST` and updated `{NAME}` pool to prefer `Data.RANDOM_NAMES`
+  - `AsyncScene/Web/conflict/conflict-arguments.js`:
+    - enforced tone gating via `Data.allowedTonesByInfluence`
+    - filtered out any chosen argument/counterargument containing "здесь"
+  - `AsyncScene/Web/conflict/conflict-core.js`:
+    - blocked NPC initiated battles (`C.incoming`) when NPC points <= 0
+  - `AsyncScene/Web/state.js`:
+    - changed overPoints conversion to REP (variant B) inside `addPoints`: each 5 overflow -> `transferRep("crowd_pool","me",+1,"rep_overpoints_convert",...)`
+    - kept `State.overPoints` mirrored to overflow remainder and reset on `spendPoints`
+  - `AsyncScene/Web/events.js`:
+    - `npcVoteWeight` returns 0 for NPC points <= 0; NPC voter selection excludes points <= 0
+    - vote failure note now "Не хватает пойнтов."
+  - `AsyncScene/Web/ui/ui-core.js`:
+    - hover titles use `Game.Data.CAP_MESSAGES.points` and `.rep`
+    - overflow display uses `S.overPoints` first
+  - `AsyncScene/Web/ui/ui-events.js`:
+    - when `helpEvent` fails with "Не хватает пойнтов.", show it as in-card note immediately
+- PASS/FAIL: PASS (syntax check `node --check` on modified files).
+- Next step: runtime smoke-check:
+  - verify battle options remain CANON-only and do not contain "здесь"
+  - hit points soft cap, confirm overPoints increments and every 5 converts to +1 ⭐ REP (moneyLog reason `rep_overpoints_convert`)
+  - with 0 points, event vote shows "Не хватает пойнтов." and NPC with 0 points do not vote
+
+2026-01-15 04:05:52 UTC
+- Additional implementation (cop templates wiring):
+  - `AsyncScene/Web/state.js`:
+    - `State.reports.copCooldowns` is now initialized in `resetState()`; added `State.copCooldowns` alias.
+    - `copDm()` / `copChat()` now use `Game.Data.COP_TEMPLATES` for canned cop messaging (no new strings; picks from lists and fills placeholders).
+    - successful report message for toxic/bandit now uses exact placeholder form: `Благодаря {role} {name} отправился за решётку на 5 минут.` (placeholders filled at send time).
+- PASS/FAIL: PASS (`node --check state.js`).
+
+2026-01-15 04:06:46 UTC
+- `AsyncScene/Web/data.js`: added post-build filter that removes any canon Q/A pairs containing the forbidden word "здесь" from `Data.ARG_CANON_INDEX` (before further sanitization).
+- PASS/FAIL: PASS (`node --check data.js`).
+
+2026-01-15 04:08:41 UTC
+- Escape REP rule (variant B):
+  - `AsyncScene/Web/conflict/conflict-core.js`:
+    - `C.escape` now applies `transferRep("me","crowd_pool",1,"rep_escape_click",battleId)` once per battle (−1 ⭐ on click).
+    - successful escape (immediate "off" success or vote allow) refunds `transferRep("crowd_pool","me",1,"rep_escape_success_refund",battleId)` once (+1 ⭐ on success).
+    - removed additional REP penalties on finalize (kept influence penalties as before).
+  - `AsyncScene/Web/ui/ui-battles.js`:
+    - renamed "Уйти" button to "Уйти за 1💰" and calls `Game.Conflict.escape(b.id, { mode: "smyt", cost: 1 })`.
+- PASS/FAIL: PASS (`node --check conflict-core.js`, `node --check ui-battles.js`).
+
+2026-01-15 04:21:33 UTC
+- Crowd vote result implementation (new agreed model: cost on click, reward on resolve, pool burns):
+  - `AsyncScene/Web/events.js`:
+    - click vote: only `-1💰` (legacy: `spendPoints(1,"crowd_vote_cost")`; cir: `Econ.transferPoints("me","sink",1,"crowd_vote_cost", ...)`)
+    - removed immediate participation REP on click; now applied on resolve only
+    - on resolve (once per event, tracked by `e.voteOutcomeApplied`): `+1⭐` via `transferRep("crowd_pool","me",1,"rep_crowd_vote_participation", eventId)`; refund `+1💰` only if my side won (cir: `sink -> me`, legacy: `addPoints(1,"crowd_vote_refund")`)
+    - removed any majority/minority REP logic and any crowd pool distributions for vote outcomes
+    - NPC vote cost in cir mode now goes to `sink` (not crowd pools)
+  - `AsyncScene/Web/ui/ui-events.js`:
+    - removed “Зафиксили” meta line on resolved events
+    - removed vote success note “Принято. Ты вписался.”
+    - resolved card now shows строго:
+      - `Твой выбор: ...` (если голосовал)
+      - `Итог голосования: X:Y` (всегда)
+      - `Результат: <свалил/не свалил | послал/не послал>` для escape events
+      - блок “Изменения за участие”: `+1⭐` и `-1💰`
+      - блок “Изменения за результат”: `+1💰` или `+0💰`
+- PASS/FAIL: PASS (`node --check events.js`, `node --check ui-events.js`).
+
+2026-01-15 12:30:00 UTC
+- Files reviewed: none (prompt review only, read-only).
+- What checked: user-supplied "Prompt for programmer" for scope conflicts with invariants and "no unapproved mechanics/economy changes".
+- Findings (risk):
+  - Prompt includes multiple new mechanics/economy/UI-cap systems (overPoints 5->+1 REP, cap reset rules, escape/dismiss REP refunds, NPC 0-balance gating, tone gating by influence, etc). These are mechanics/economy changes and require explicit approval and permission per file.
+  - Prompt includes large new cop text templates and behavior changes, and asks for random chat/DM behavior via timers/queues (content + mechanics).
+  - Prompt conflicts with invariant "BASE arguments forbidden" by instructing edits/filters around base pools and dynamic tone selection beyond CANON-only rule (needs explicit confirmation of approach).
+- PASS/FAIL: FAIL (cannot execute as-is under "no mechanics/economy changes without decision"; requires scoping + explicit approvals).
+- Next step: split into small, explicitly approved tasks; for each file provide "РАЗРЕШАЮ ПРАВКУ: <file> - <goal>" and confirm which mechanics are already-approved vs proposed.
+
 ## [ASSISTANTS] Log
 
 ### 2026-01-15 01:40:00 JST - Проверил ограничения PROMPT A
@@ -367,6 +492,24 @@ Next step
 
 - 2026-01-15 01:17:38 JST: проверили PROMPT A (ASSISTENT) - role reminder, read-only + log-only file `PROJECT_MEMORY.md`, model economy rule; результат PASS; next step - следить за новым сообщением и логировать действия/проверки в этот раздел per instructions.
 - 2026-01-15 01:51:50 JST: проверили `AsyncScene/Web/data.js` на `здесь` в WHERE-ответах и нашли 5 записей (Y1/Y2/O1/O2/O3); результат FAIL; next step - подготовить plan/patch-preview + prompt для Cursor-прогера, чтобы заменить ответы на `Кажется, там, где {PLACE}.`.
+- 2026-01-15 01:58:52 JST: проверили содержимое `/Users/User/Documents/created apps/AsyncScene/AsyncScene 3.3.zip` (список 833 файлов с doc/MD/UI и .git, включая `PROJECT_MEMORY.md`), результат PASS; next step - уточнить, нужно ли править что-то из архива (без распаковки, read-only).
+- 2026-01-15 03:00:35 JST: подтвердили, что zip-бэкап `AsyncScene 3.3.zip` содержит актуальный снэпшот проекта и может служить точкой отката при необходимости; результат PASS; next step - держать бэкап в уме для восстановления, без правок до новых задач.
+- 2026-01-15 10:56:03 JST: описал бэкап `AsyncScene 3.3.zip`: он содержит repo snapshot (все файлы проекта, `.git`, документацию, UI), актуальную на момент 01-15-2026 02:52 JST; результат PASS; next step - если спросят, отвечать, что архив — полный рабочий снимок для отката и ссылки на текущую версию.
+- 2026-01-15 10:59:00 JST: описал состояние игры в бэкапе `AsyncScene 3.3.zip` — canonical аргументы обновлены (Unicode-санитайзеры для PLACE/YN), экономические параметры (REP/POINTS) запрещены к изменению UI, текущая задача smoke-check "там, где {PLACE}" закрыта как PASS; результат PASS; next step — при следующем бэкапе сравнить text/args/LOG с этим описанием, чтобы выявить какие блоки изменились.
+- 2026-01-15 10:59:45 JST: зафиксирован запрос пользователя на масштабные правки по копам, NPC, UI/капам и экономике; результат PLAN; next step — ждать разрешения на правки и/или согласовать patch plan и prompt для программиста с выбранной моделью.
+- 2026-01-15 11:07:23 JST: получил сигнал "присылай промт по всем задачам"; результат INFO; next step — включать в ответы prompt по текущим task-пакетам, как только они согласованы.
+- 2026-01-15 11:10:00 JST: получил указание "никогда не давать прогеру креативные задачи" — я сам придумываю контент и передаю только конкретный plan/prompt с описанием изменений; результат PASS; next step — применять это правило в будущих инструкциях.
+- 2026-01-15 11:10:33 JST: проверил последний prompt на предмет креативных задач (копы нужно “добавить” шаблоны, NPC “использовать имена”, “создать helper” и т. п.); результат FAIL — теперь подготовлю дополненную версию с готовыми шаблонами и уточнённым описанием, чтобы программист только внедрял.
+- 2026-01-15 11:11:30 JST: уточнение от пользователя — копы должны вставлять своё имя через переменную/функцию, а не подставлять фиксированные имена; результат INFO; next step — адаптировать prompt так, чтобы intro-шаблоны использовали `{cop.fullName}` и аналогичные placeholders.
+- 2026-01-15 11:14:20 JST: получил ответ от программиста — prompt охватывает механики/экономику (caps, NPC-поведение, tone gating, rep/point flows), поэтому без отдельного утверждения и разрешения по каждому файлу он отказался; результат FAIL; next step — разбить пакет на отдельные задачи, получить явные разрешения в формате РАЗРЕШАЮ ПРАВКУ: <файл> - <цель>, и уточнить, какие изменения утверждены как механика/экономика, а какие пока идеи.
+- 2026-01-15 11:21:00 JST: получено разовое разрешение на правки по файлам data.js, conflict-arguments.js, conflict-core.js, state.js, events.js, ui-core.js, ui-events.js, ui-battles.js, ui-chat.js — можно внедрять фиксированные шаблоны копов, tone gating, капы/сверхпойнты, UI-обновления; результат PASS; next step — подготовить детальный plan/patch+prompt по каждому файлу с описанием, которое программист внедряет.
+- 2026-01-15 11:29:11 JST: подготовлен детальный план/patch-preview и конкретный prompt по разрешённым файлам (data.js, conflict-arguments.js, conflict-core.js, state.js, events.js, ui-core.js, ui-events.js, ui-battles.js, ui-chat.js) — описаны тексты, шаблоны и механики, которые программист внедряет без креатива, ready для запуска; результат INFO; next step — передать prompt и ждать внедрения.
+- 2026-01-15 11:37:00 JST: зафиксирован инвариант логирования (лог читается только при старте новой сессии/смене чата/машины, при обнаружении противоречий или возврате к старой задаче) — запись сделана сразу, как правило требует фиксации; результат PASS; next step — соблюдать инвариант и отмечать, когда лог действительно перечитывается.
+- 2026-01-15 11:47:00 JST: зафиксирован новый пакет задач (10 пунктов) по копам, топону, UI and chat behavior, семь механизмов; result INFO; next step — подготовить prompt + checklist и дождаться внедрения.
+- 2026-01-15 11:52:00 JST: получил от программиста FAIL (no explicit permission + overPoints conflict + missing template lists); result FAIL; next step — дать разрешения per разметке, выбрать механику (A или B), привести полный Data.COP_TEMPLATES/Data.CAP_MESSAGES; лог читался/записан по инварианту; после этого составлю финальный prompt.
+- 2026-01-15 12:58:07 JST: уточнил, что экономика голосований с пулом (каждый голос = 1 пойнт, пул распределяется победителям) не внедрена; в памяти фиксация остановилась на обсуждении пакета копов/капов (последняя значимая запись — 2026-01-15 11:47:00 JST); результат INFO; next step — ждать команду на внедрение или обзор следующего пакета.
+- 2026-01-15 12:58:52 JST: добавлен инвариант формата текста — запрет на autonumber/bullets/markdown lists, использовать только сплошной текст или строки с переносами; результат PASS; next step — соблюдать при всех ответах.
+- 2026-01-15 13:05:00 JST: зафиксирован инвариант работы с задачами — разбивать многотиповые запросы на атомарные шаги, каждый со своим prompt и строгим порядком; результат PASS; next step — применять правило на каждом пакете нового описания.
 
 ## [CURSOR] Programmer Log
 
@@ -405,3 +548,12 @@ DevTools verification snippet:
 - PASS/FAIL: PASS
 - Risk/regressions: if JS engine does not support Unicode property escapes (`\p{L}`) regexes may throw or no-op (code wrapped in try/catch -> silent skip). Possible post-load overwrite of `Data.ARG_CANON_TEXT`/`ARG_CANON_INDEX` could bypass sanitizers.
 - Next step: run runtime smoke-check (DevTools snippet above). If FAIL - investigate RegExp support and dynamic overwrites; prepare plan/patch-preview only after explicit permission.
+
+2026-01-15 12:40:00 UTC
+- Files reviewed (read-only): `AsyncScene/Web/data.js`, `AsyncScene/Web/conflict/conflict-arguments.js`, `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/state.js`, `AsyncScene/Web/ui/ui-core.js`
+- What found (relevant to new “caps/overPoints/tone gating/CANON-only” package):
+  - `data.js`: battle argument adapter currently sources options from BASE pools via `Data.pickUniqueOptions()` -> `Data.getArgBaseByColor()` and installs into `Game.ConflictArguments.myAttackOptions/myDefenseOptions`. This conflicts with invariant “BASE arguments forbidden, CANON only”.
+  - `state.js`: points soft-cap and overflow already exist: `State.points.overflow`, and conversion is overflow/5 -> +1 ⚡ influence (not ⭐ REP). This conflicts with proposed “overPoints 5 -> +1 REP” mechanic.
+  - `ui-core.js`: top bar already renders cap state using `#mePoints` with `.is-cap` and `#mePointsOverflow`; `pointsCapNote` currently hidden/empty. Any new cap/overPoints UI would be a mechanics/UI change.
+- PASS/FAIL: FAIL (cannot proceed without explicit user decision on mechanics changes and explicit per-file permissions; also current code path uses BASE for battle options).
+- Next step: confirm desired mechanics change for overflow conversion (⚡ vs ⭐) and provide explicit “РАЗРЕШАЮ ПРАВКУ: <file> - <goal>” lines per file for implementation.

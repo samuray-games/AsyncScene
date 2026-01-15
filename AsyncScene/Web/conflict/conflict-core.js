@@ -782,8 +782,10 @@
     v.allowed = allow;
     v.finalizedAt = now();
 
-    const REP_ESCAPE_PENALTY_OK = 3;
-    const REP_ESCAPE_PENALTY_STAY = 5;
+    // Canon (variant B): escape/dismiss click applies -1 ⭐ once; successful escape refunds +1 ⭐.
+    // No additional REP penalties on finalize.
+    const REP_ESCAPE_PENALTY_OK = 0;
+    const REP_ESCAPE_PENALTY_STAY = 0;
     const INF_ESCAPE_PENALTY_OK = 1;
     const INF_ESCAPE_PENALTY_STAY = 2;
 
@@ -798,11 +800,7 @@
           me.influence = after;
         }
 
-        if (oppId && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-          const repHave = Math.max(0, (Game.State && Number.isFinite(Game.State.rep) ? (Game.State.rep | 0) : 0));
-          const repPay = Math.max(0, Math.min(repPenalty | 0, repHave));
-          if (repPay > 0) Game.StateAPI.transferRep("me", oppId, repPay, repReason, b.id);
-        }
+        // REP penalties are handled on click only (see C.escape)
       } catch (_) {}
     };
 
@@ -812,6 +810,13 @@
       b.note = (mode === "off") ? "Толпа решила: отвалил." : "Толпа решила: свалил.";
       b.resultLine = (mode === "off") ? "Отвалил" : "Свалил";
       applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);
+      // Refund +1 ⭐ on success (once)
+      try {
+        if (!b._repEscapeRefundApplied && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+          Game.StateAPI.transferRep("crowd_pool", "me", 1, "rep_escape_success_refund", b.id);
+          b._repEscapeRefundApplied = true;
+        }
+      } catch (_) {}
     } else {
       // Restore previous battle state when escape is denied.
       const prev = b._escapePrev || null;
@@ -1051,6 +1056,15 @@
         if (Game.StateAPI.isNpcJailed(opponentId)) return null;
       }
     } catch (_) {}
+    // NPC with 0 points/balance cannot initiate a battle
+    try {
+      const opp = getPlayer(opponentId);
+      if (opp && (opp.npc === true || opp.type === "npc")) {
+        const pts = Number.isFinite(opp.points) ? (opp.points | 0) : 0;
+        const bal = Number.isFinite(opp.balance) ? (opp.balance | 0) : null;
+        if (pts <= 0 || (bal != null && bal <= 0)) return null;
+      }
+    } catch (_) {}
     try {
       const cdMs = 3 * 60 * 1000;
       const cdMap = Game.State.battleCooldowns || (Game.State.battleCooldowns = {});
@@ -1128,6 +1142,15 @@
     const mode = (typeof opts === "string")
       ? String(opts)
       : (opts && opts.mode ? String(opts.mode) : "smyt");
+
+    // Canon: both "Уйти"/"Свалить" apply -1 ⭐ REP immediately (once per battle)
+    try {
+      if (!b._repEscapeClickApplied && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+        Game.StateAPI.transferRep("me", "crowd_pool", 1, "rep_escape_click", b.id);
+        b._repEscapeClickApplied = true;
+      }
+    } catch (_) {}
+
     if (mode === "off") {
       const opp = getPlayer(b.opponentId);
       const meInf = (me && Number.isFinite(me.influence)) ? (me.influence | 0) : 0;
@@ -1143,23 +1166,11 @@
         b.draw = false;
         b.crowd = null;
         b.updatedAt = now();
-        // REP v2 economy: dismiss penalty with repeat detection
+        // Refund +1 ⭐ on immediate success (once)
         try {
-          const D = (Game && Game.Data) ? Game.Data : null;
-          const baseRepPenalty = (D && Number.isFinite(D.REP_DISMISS)) ? (D.REP_DISMISS | 0) : 3;
-          const repeatRepPenalty = (D && Number.isFinite(D.REP_DISMISS_REPEAT)) ? (D.REP_DISMISS_REPEAT | 0) : 4;
-          
-          // Check if player dismissed recently (within last 5 battles)
-          const recentDismiss = (Game.State && Array.isArray(Game.State.battles)) 
-            ? Game.State.battles.slice(0, 5).some(x => x && x._repDismissClickApplied && x.id !== b.id)
-            : false;
-          const repPenalty = recentDismiss ? repeatRepPenalty : baseRepPenalty;
-          
-          const repHave = (Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
-          const repPay = Math.max(0, Math.min(repPenalty, repHave));
-          if (!b._repDismissClickApplied && repPay > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-            Game.StateAPI.transferRep("me", b.opponentId, repPay, "rep_dismiss_click", b.id);
-            b._repDismissClickApplied = true;
+          if (!b._repEscapeRefundApplied && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+            Game.StateAPI.transferRep("crowd_pool", "me", 1, "rep_escape_success_refund", b.id);
+            b._repEscapeRefundApplied = true;
           }
         } catch (_) {}
         announceBattleResult(b);

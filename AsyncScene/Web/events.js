@@ -91,80 +91,51 @@ window.Game ||= {};
   }
 
   function payoutCrowdPool(e, winnerSide){
-    if (!isCirculationEnabled()) return;
-    const Econ = getEcon();
-    if (!Econ || typeof Econ.getPoolBalance !== "function" || typeof Econ.transferFromPool !== "function") return;
-    const poolId = getCrowdPoolId(e);
-    if (Econ.isCrowdPaid && Econ.isCrowdPaid(poolId)) return;
-    const crowd = e && e.crowd;
-    const voters = crowd && crowd.voters ? crowd.voters : {};
-    const aVotes = crowd ? ((crowd.aVotes ?? crowd.votesA) | 0) : 0;
-    const bVotes = crowd ? ((crowd.bVotes ?? crowd.votesB) | 0) : 0;
-    const allMajority = (aVotes === bVotes);
-    const majoritySide = aVotes > bVotes ? "a" : (bVotes > aVotes ? "b" : null);
-    const majority = [];
-    const minority = [];
-    Object.keys(voters || {}).forEach(id => {
-      const side = voters[id];
-      if (allMajority || side === majoritySide) majority.push(id);
-      else minority.push(id);
-    });
-    const battleId = e && (e.battleId || e.relatedBattleId || e.refId || null);
-    let pot = Econ.getPoolBalance(poolId);
-    if (pot > 0 && majority.length) {
-      for (const vid of majority) {
-        if (pot <= 0) break;
-        const res = Econ.transferFromPool(poolId, vid, 1, "crowd_vote_refund_majority", { battleId });
-        if (res && res.ok) pot = Econ.getPoolBalance(poolId);
+    // Vote economy (pool burns, no distributions):
+    // - click: -1💰 immediately (see helpEvent)
+    // - after resolve: +1⭐ for participation; +1💰 refund if player's side won
+    if (!e || e.voteOutcomeApplied) return;
+    if (!e.playerVoted || !e.myVote) return;
+
+    const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function")
+      ? Game.StateAPI.transferRep
+      : null;
+    const repEventId = e && (e.id || e.eventId || e.refId || e.battleId || e.relatedBattleId || null);
+
+    try {
+      if (transferRep) transferRep("crowd_pool", "me", 1, "rep_crowd_vote_participation", repEventId);
+    } catch (_) {}
+
+    try {
+      if (Game.UI && typeof Game.UI.pushSystem === "function") {
+        Game.UI.pushSystem(`+1⭐`);
       }
-    }
-    pot = Econ.getPoolBalance(poolId);
-    const share = Math.floor(pot / 2);
-    const aId = e && e.aId;
-    const bId = e && e.bId;
-    if (share > 0 && aId) {
-      Econ.transferFromPool(poolId, aId, share, "crowd_draw_payout_me", { battleId });
-    }
-    if (share > 0 && bId) {
-      Econ.transferFromPool(poolId, bId, share, "crowd_draw_payout_opp", { battleId });
-    }
-    if (minority.length || majority.length) {
-      const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") ? Game.StateAPI.transferRep : null;
-      const repEventId = e && (e.id || e.eventId || e.refId || e.battleId || e.relatedBattleId || null);
-      if (transferRep) {
-        // Task B: outcome REP - ТОЛЬКО результат (участие уже начислено при клике в helpEvent)
-        // +2 for majority, -2 for minority
-        for (const vid of majority) {
-          transferRep("crowd_pool", vid, 2, "rep_crowd_vote_majority", repEventId);
+    } catch (_) {}
+
+    const win = (winnerSide && e.myVote === winnerSide);
+    if (win) {
+      try {
+        if (isCirculationEnabled()) {
+          const Econ = getEcon();
+          const battleId = e && (e.battleId || e.relatedBattleId || e.refId || null);
+          if (Econ && typeof Econ.transferPoints === "function") {
+            Econ.transferPoints("sink", "me", 1, "crowd_vote_refund", { battleId });
+          }
+        } else {
+          const addPts = (Game.StateAPI && typeof Game.StateAPI.addPoints === "function") ? Game.StateAPI.addPoints : null;
+          if (addPts) addPts(1, "crowd_vote_refund");
         }
-        for (const vid of minority) {
-          transferRep(vid, "crowd_pool", 2, "rep_crowd_vote_minority", repEventId);
+      } catch (_) {}
+      try {
+        if (Game.UI && typeof Game.UI.pushSystem === "function") {
+          Game.UI.pushSystem(`+1💰`);
         }
-        
-        // P0-3: показать тосты результата для игрока + мгновенное обновление (символами)
-        const meId = (Game.State && Game.State.me && Game.State.me.id) ? Game.State.me.id : "me";
-        if (majority.includes(meId)) {
-          try {
-            if (Game.UI && typeof Game.UI.pushSystem === "function") {
-              Game.UI.pushSystem(`+2⭐ +1💰`);
-            }
-            if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
-              Game.UI.requestRenderAll();
-            }
-          } catch (_) {}
-        } else if (minority.includes(meId)) {
-          try {
-            if (Game.UI && typeof Game.UI.pushSystem === "function") {
-              Game.UI.pushSystem(`-2⭐ +0💰`);
-            }
-            if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
-              Game.UI.requestRenderAll();
-            }
-          } catch (_) {}
-        }
-      }
+      } catch (_) {}
     }
-    if (Econ.markCrowdPaid) Econ.markCrowdPaid(poolId);
+
+    e.voteOutcomeApplied = true;
+    try { requestRender(); } catch (_) {}
+    try { if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll(); } catch (_) {}
   }
 
   function isMeId(id){
@@ -201,6 +172,12 @@ window.Game ||= {};
 
   function npcVoteWeight(npc){
     if (!npc) return 1;
+    // NPC with 0 points/balance cannot vote
+    try {
+      const pts = Number.isFinite(npc.points) ? (npc.points | 0) : 0;
+      const bal = Number.isFinite(npc.balance) ? (npc.balance | 0) : null;
+      if (pts <= 0 || (bal != null && bal <= 0)) return 0;
+    } catch (_) {}
     return 1;
   }
 
@@ -348,7 +325,13 @@ window.Game ||= {};
       const voters = crowd.voters || {};
 
       // Build eligible list once for a deterministic fallback.
-      const eligible = npcs.filter(p => p && p.id && p.id !== aId && p.id !== bId);
+      const eligible = npcs.filter(p => {
+        if (!p || !p.id || p.id === aId || p.id === bId) return false;
+        // NPC with 0 points/balance cannot vote
+        const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
+        const bal = Number.isFinite(p.balance) ? (p.balance | 0) : null;
+        return pts > 0 && (bal == null || bal > 0);
+      });
       if (!eligible.length) return null;
 
       if (!allowRepeat) {
@@ -408,9 +391,8 @@ window.Game ||= {};
       const w = npcVoteWeight(voter);
       if (isCirculationEnabled()) {
         const Econ = getEcon();
-        const poolId = getCrowdPoolId(e);
         const ok = Econ && typeof Econ.transferPoints === "function"
-          ? Econ.transferPoints(voter.id, poolId, 1, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
+          ? Econ.transferPoints(voter.id, "sink", 1, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
           : null;
         if (!ok || !ok.ok) {
           votesEmitted++;
@@ -829,7 +811,7 @@ window.Game ||= {};
 
     // Block only a second player vote, but keep the event open for NPC votes until endsAt.
     if (e.playerVoted) {
-      e.note = "Ты уже вписался в эту ничью.";
+      e.note = "Ты уже проголосовал.";
       requestRender();
       return false;
     }
@@ -852,7 +834,7 @@ window.Game ||= {};
       e.myVote = crowd.voters[meId];
       e.bet = { side: e.myVote };
       e.reveal = true;
-      e.note = "Ты уже вписался в эту ничью.";
+      e.note = "Ты уже проголосовал.";
       requestRender();
       return false;
     }
@@ -860,23 +842,23 @@ window.Game ||= {};
     if (isCirculationEnabled()) {
       const Econ = getEcon();
       const ok = Econ && typeof Econ.transferPoints === "function"
-        ? Econ.transferPoints("me", getCrowdPoolId(e), voteCost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
+        ? Econ.transferPoints("me", "sink", voteCost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
         : null;
       if (!ok || !ok.ok) {
-        e.note = "Недоступно.";
+        e.note = "Не хватает пойнтов.";
         requestRender();
         return false;
       }
     } else if (spend) {
-      if (!spend(voteCost, "tie_vote")) {
-        e.note = "Недоступно.";
+      if (!spend(voteCost, "crowd_vote_cost")) {
+        e.note = "Не хватает пойнтов.";
         requestRender();
         return false;
       }
     } else {
       const me2 = Game.State && Game.State.me ? Game.State.me : null;
       if (!me2 || (me2.points | 0) < voteCost) {
-        e.note = "Недоступно.";
+        e.note = "Не хватает пойнтов.";
         requestRender();
         return false;
       }
@@ -895,20 +877,10 @@ window.Game ||= {};
     // Keep mirrored fields consistent for UI
     mirrorCrowdVotesToEvent(e);
 
-    // Task B: начислить +1 REP за участие сразу
-    try {
-      const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function")
-        ? Game.StateAPI.transferRep
-        : null;
-      if (transferRep) {
-        transferRep("crowd_pool", "me", 1, "rep_crowd_vote_participation", e.id || e.battleId || e.refId || null);
-      }
-    } catch (_) {}
-
-    // P0-3: показать тост участия сразу "+1⭐ -1💰" и мгновенно обновить UI
+    // Toast on click: -1💰 only (REP participation is applied on resolve)
     try {
       if (Game.UI && typeof Game.UI.pushSystem === "function") {
-        Game.UI.pushSystem(`+1⭐ -1💰`);
+        Game.UI.pushSystem(`-1💰`);
       }
       if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
         Game.UI.requestRenderAll();
@@ -946,7 +918,7 @@ window.Game ||= {};
     e.myVote = side;
     e.bet = { side, cost: voteCost };
     e.reveal = true;
-    e.voteRewardApplied = true;
+    e.voteRewardApplied = false;
 
     requestRender();
     return true;
@@ -965,14 +937,14 @@ window.Game ||= {};
     if (isCirculationEnabled()) {
       const Econ = getEcon();
       const ok = Econ && typeof Econ.transferPoints === "function"
-        ? Econ.transferPoints("me", getCrowdPoolId(e), cost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
+        ? Econ.transferPoints("me", "sink", cost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
         : null;
       if (!ok || !ok.ok) {
         e.note = "Не прокает: нет P.";
         requestRender();
         return false;
       }
-    } else if (spend && !spend(cost, "tie_extra_vote")) {
+    } else if (spend && !spend(cost, "crowd_vote_cost")) {
       e.note = "Не прокает: нет P.";
       requestRender();
       return false;
@@ -1212,7 +1184,6 @@ window.Game ||= {};
     }
 
     payoutCrowdPool(e, winner);
-    if (!isCirculationEnabled()) applyBetOutcome(e, winner);
 
     return true;
   }
@@ -1244,6 +1215,14 @@ window.Game ||= {};
         }
       }
     }
+
+    // Cop chatter tick (per-cop cooldown + templates live in State)
+    try {
+      if (Game.StateAPI && typeof Game.StateAPI.tickCops === "function") {
+        const did = !!Game.StateAPI.tickCops(now());
+        if (did) changed = true;
+      }
+    } catch (_) {}
 
     if (changed) requestRender();
   }
@@ -1341,7 +1320,6 @@ window.Game ||= {};
             pushSystem(finalLine);
           }
           payoutCrowdPool(e, winner);
-          if (!isCirculationEnabled()) applyBetOutcome(e, winner);
         } else {
           const line = formatCrowdStatusLine(aName, aInf, bName, bInf, b.crowd);
           e.text = line;

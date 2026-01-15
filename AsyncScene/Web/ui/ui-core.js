@@ -748,10 +748,18 @@ window.Game = window.Game || {};
     return (kind === "influence" || kind === "rep" || kind === "points" || kind === "wins");
   }
 
-  function queueDeltaToast(kind, delta){
+  function queueDeltaToast(kind, delta, opts){
     UI.__statDelta = UI.__statDelta || { influence: 0, rep: 0, points: 0, wins: 0 };
     UI.__statDelta[kind] = (UI.__statDelta[kind] || 0) + (delta | 0);
-    if (UI.__statDeltaTimer) clearTimeout(UI.__statDeltaTimer);
+    const immediate = opts && opts.immediate;
+    if (UI.__statDeltaTimer) {
+      clearTimeout(UI.__statDeltaTimer);
+      UI.__statDeltaTimer = null;
+    }
+    if (immediate) {
+      showDeltaToast();
+      return;
+    }
     UI.__statDeltaTimer = setTimeout(() => {
       UI.__statDeltaTimer = null;
       showDeltaToast();
@@ -840,6 +848,12 @@ window.Game = window.Game || {};
     toast.style.display = "block";
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
+  };
+
+  UI.emitStatDelta = (kind, delta, opts) => {
+    if (!kind || !Number.isFinite(Number(delta || 0)) || (delta | 0) === 0) return;
+    const merged = Object.assign({}, opts || {}, { immediate: true });
+    queueDeltaToast(kind, delta, merged);
   };
 
   // De-dup stat toasts by text (hide previous identical ones).
@@ -1375,27 +1389,55 @@ window.Game = window.Game || {};
           ? (Game.Data.POINTS_SOFT_CAP | 0)
           : 20;
         const pts = Number.isFinite(S.me.points) ? (S.me.points | 0) : 0;
-        const overflow = (S.points && Number.isFinite(S.points.overflow)) ? (S.points.overflow | 0) : 0;
-        const pointsTitle = "";
+        const overflow = Number.isFinite(S.overPoints)
+          ? (S.overPoints | 0)
+          : ((S.points && Number.isFinite(S.points.overflow)) ? (S.points.overflow | 0) : 0);
         if (pts >= cap) {
           mp.textContent = String(cap);
           mp.classList.add("is-cap");
+          mp.style.color = "#ff3b30";
         } else {
           mp.textContent = String(pts);
           mp.classList.remove("is-cap");
+          mp.style.color = "";
         }
         if (mpOverflow) {
-          mpOverflow.textContent = overflow > 0 ? String(Math.min(overflow, 5)) : "";
+          const val = overflow > 0 ? `×${String(Math.min(overflow, 5))}` : "";
+          mpOverflow.textContent = val;
+          // Small badge (black/white via var(--text))
+          mpOverflow.style.display = val ? "inline-block" : "none";
+          mpOverflow.style.marginLeft = "6px";
+          mpOverflow.style.padding = "1px 6px";
+          mpOverflow.style.borderRadius = "999px";
+          mpOverflow.style.fontSize = "11px";
+          mpOverflow.style.lineHeight = "14px";
+          mpOverflow.style.fontWeight = "900";
+          mpOverflow.style.color = "var(--text)";
+          mpOverflow.style.border = "1px solid rgba(127,127,127,0.35)";
+          mpOverflow.style.background = "transparent";
         }
         if (pointsNote) {
           pointsNote.textContent = "";
           pointsNote.style.display = "none";
         }
-        if (mp) mp.removeAttribute("title");
-        if (mpOverflow) mpOverflow.removeAttribute("title");
+        // Hover: show cap message when at cap (use Data.CAP_MESSAGES.points)
         try {
+          const capMsg = (Game.Data && Game.Data.CAP_MESSAGES && typeof Game.Data.CAP_MESSAGES.points === "string")
+            ? String(Game.Data.CAP_MESSAGES.points)
+            : "";
           const wrap = mp.closest(".pointsWrap");
-          if (wrap) wrap.removeAttribute("title");
+          if (wrap) {
+            if (pts >= cap && capMsg) wrap.setAttribute("title", capMsg);
+            else wrap.removeAttribute("title");
+          }
+          if (mpOverflow) {
+            if (pts >= cap && capMsg) mpOverflow.setAttribute("title", capMsg);
+            else mpOverflow.removeAttribute("title");
+          }
+          if (mp) {
+            if (pts >= cap && capMsg) mp.setAttribute("title", capMsg);
+            else mp.removeAttribute("title");
+          }
         } catch (_) {}
       }
       if (mr) mr.textContent = String(S.rep || 0);
@@ -1409,10 +1451,18 @@ window.Game = window.Game || {};
           : false;
         if (capActive) {
           mneed.classList.add("is-cap");
-          mneed.removeAttribute("title");
+          mneed.style.color = "#ff3b30";
+          try {
+            const capMsg = (Game.Data && Game.Data.CAP_MESSAGES && typeof Game.Data.CAP_MESSAGES.rep === "string")
+              ? String(Game.Data.CAP_MESSAGES.rep)
+              : "";
+            if (capMsg) mneed.setAttribute("title", capMsg);
+            else mneed.removeAttribute("title");
+          } catch (_) { mneed.removeAttribute("title"); }
         } else {
           mneed.classList.remove("is-cap");
           mneed.removeAttribute("title");
+          mneed.style.color = "";
         }
       }
       if (capNote) capNote.textContent = "";

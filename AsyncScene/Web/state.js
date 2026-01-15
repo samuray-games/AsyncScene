@@ -180,6 +180,8 @@ window.Game = window.Game || {};
     if (isDevFlag() && (!reason || !battleId)) {
       try { console.warn("[REP] transferRep missing reason/battleId", reason, battleId); } catch (_) {}
     }
+    const beforeRep = (State.rep || 0) | 0;
+    const beforeInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
     const beforeFrom = (fromId === "me") ? (State.rep | 0) : (fromAcc.rep | 0);
     const beforeTo = (toId === "me") ? (State.rep | 0) : (toAcc.rep | 0);
     const amt = n | 0;
@@ -212,6 +214,10 @@ window.Game = window.Game || {};
       currency: "rep",
       before: { from: beforeFrom, to: beforeTo }
     });
+    const afterRep = (State.rep || 0) | 0;
+    const afterInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
+    emitStatDelta("rep", afterRep - beforeRep, { reason: reason || "rep_transfer", battleId: battleId || null });
+    emitStatDelta("influence", afterInfluence - beforeInfluence, { reason: reason || "rep_transfer", battleId: battleId || null });
     return { ok: true, amount: amt };
   }
 
@@ -339,6 +345,31 @@ window.Game = window.Game || {};
         store = next;
       }
     });
+  }
+
+  function emitStatDelta(kind, delta, meta){
+    if (!kind || !Number.isFinite(Number(delta || 0))) return;
+    const diff = (delta | 0);
+    if (!diff) return;
+    try {
+      if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
+      if (!Array.isArray(Game.Debug.toastLog)) Game.Debug.toastLog = [];
+      Game.Debug.toastLog.push({
+        time: Date.now(),
+        kind: String(kind),
+        delta: diff,
+        reason: meta && meta.reason ? String(meta.reason) : null,
+        battleId: (meta && meta.battleId != null) ? meta.battleId : null,
+      });
+      if (Game.Debug.toastLog.length > 300) {
+        Game.Debug.toastLog.splice(0, Game.Debug.toastLog.length - 300);
+      }
+    } catch (_) {}
+    try {
+      if (Game && Game.UI && typeof Game.UI.emitStatDelta === "function") {
+        Game.UI.emitStatDelta(kind, diff);
+      }
+    } catch (_) {}
   }
 
   // Tier is derived from influence thresholds (single source of truth: Game.Data.PROGRESSION.unlockInfluence)
@@ -570,7 +601,16 @@ window.Game = window.Game || {};
       lastAt: 0,
       cooldownMs: 5 * 60 * 1000,
       history: {},
+      copCooldowns: {},
+      copChatter: {
+        nextChatAtByCopId: {},
+        nextDmAtByCopId: {},
+        introChatSentByCopId: {},
+        introDmSentByCopId: {},
+      },
     };
+    // Alias for external access (requested: state.copCooldowns)
+    State.copCooldowns = State.reports.copCooldowns;
     State.jailed = {};
     State.victimByRole = {};
     State.revengeUntil = 0;
@@ -710,6 +750,168 @@ window.Game = window.Game || {};
     return (p && p.name) ? p.name : "Владимир Иванович";
   }
 
+  function listCops(){
+    return Object.values(State.players || {}).filter(p => p && p.role === "cop");
+  }
+
+  function isCopBusyById(copId, nowTs){
+    const cdMs = (State.reports && Number.isFinite(State.reports.cooldownMs)) ? (State.reports.cooldownMs | 0) : (5 * 60 * 1000);
+    const last = (State.reports && State.reports.copCooldowns) ? (State.reports.copCooldowns[copId] || 0) : 0;
+    const now0 = (typeof nowTs === "number") ? nowTs : Date.now();
+    return (now0 - last) < cdMs;
+  }
+
+  function pickCopTemplate(list, fallback){
+    const arr = Array.isArray(list) ? list : [];
+    if (!arr.length) return String(fallback || "");
+    return String(arr[Math.floor(Math.random() * arr.length)] || arr[0] || fallback || "");
+  }
+
+  function fillCopTemplate(tpl, cop, vars = {}){
+    let out = String(tpl || "");
+    const copName0 = (cop && cop.name) ? String(cop.name) : "Коп";
+    out = out.replace(/\{cop\.fullName\}/g, copName0);
+    out = out.replace(/\{cop\.rank\}/g, "");
+    out = out.replace(/\{role\}/g, String(vars.role || ""));
+    out = out.replace(/\{name\}/g, String(vars.name || ""));
+    return out.replace(/\s+/g, " ").trim();
+  }
+
+  function emitCopChatById(copId, listName, vars = {}){
+    const D = Game.Data || null;
+    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
+    const cop = (State.players && copId && State.players[copId]) ? State.players[copId] : null;
+    if (!cop || cop.role !== "cop") return false;
+    if (!tpl) return false;
+    const raw = pickCopTemplate(tpl[listName], "");
+    const msg = fillCopTemplate(raw, cop, vars);
+    if (!msg) return false;
+    pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: copId });
+    return true;
+  }
+
+  function emitCopDmById(copId, listName, vars = {}){
+    const D = Game.Data || null;
+    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
+    const cop = (State.players && copId && State.players[copId]) ? State.players[copId] : null;
+    if (!cop || cop.role !== "cop") return false;
+    if (!tpl) return false;
+    const raw = pickCopTemplate(tpl[listName], "");
+    const msg = fillCopTemplate(raw, cop, vars);
+    if (!msg) return false;
+    pushDm("npc_cop", String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: copId });
+    return true;
+  }
+
+  function tickCopChatter(nowTs){
+    const now0 = (typeof nowTs === "number") ? nowTs : Date.now();
+    const cops = listCops();
+    if (!cops.length) return false;
+    const D = Game.Data || null;
+    if (!D || !D.COP_TEMPLATES) return false;
+
+    const rep = State.reports || {};
+    rep.copChatter ||= {
+      nextChatAtByCopId: {},
+      nextDmAtByCopId: {},
+      introChatSentByCopId: {},
+      introDmSentByCopId: {},
+      // New single-source flags (avoid chat+DM duplicates)
+      introSentByCopId: {},
+      lastKindByCopId: {},   // "warnings" | "chatReplies" | "cooldownReplies" | "intros"
+      lastTextByCopId: {},   // last emitted line (dedupe)
+    };
+    const ch = rep.copChatter;
+    ch.nextChatAtByCopId ||= {};
+    ch.nextDmAtByCopId ||= {};
+    ch.introChatSentByCopId ||= {};
+    ch.introDmSentByCopId ||= {};
+    ch.introSentByCopId ||= {};
+    ch.lastKindByCopId ||= {};
+    ch.lastTextByCopId ||= {};
+
+    let did = false;
+
+    for (const cop of cops) {
+      const cid = String(cop.id || "");
+      if (!cid) continue;
+
+      // Schedule defaults (staggered)
+      if (!Number.isFinite(ch.nextChatAtByCopId[cid])) ch.nextChatAtByCopId[cid] = now0 + 8000 + Math.floor(Math.random() * 12000);
+      if (!Number.isFinite(ch.nextDmAtByCopId[cid])) ch.nextDmAtByCopId[cid] = now0 + 12000 + Math.floor(Math.random() * 18000);
+
+      const busy = isCopBusyById(cid, now0);
+
+      const dueChat = now0 >= (ch.nextChatAtByCopId[cid] || 0);
+      const dueDm = now0 >= (ch.nextDmAtByCopId[cid] || 0);
+      if (!dueChat && !dueDm) continue;
+
+      // IMPORTANT: each cop emits into exactly ONE channel per tick (chat OR DM), no dual-send.
+      const channel = (dueChat && dueDm)
+        ? (Math.random() < 0.5 ? "chat" : "dm")
+        : (dueChat ? "chat" : "dm");
+
+      let listName = "chatReplies";
+      if (busy) {
+        listName = "cooldownReplies";
+      } else if (!ch.introSentByCopId[cid]) {
+        listName = "intros";
+      } else {
+        // Alternate warnings <-> chatReplies when not busy
+        const last = String(ch.lastKindByCopId[cid] || "");
+        listName = (last === "warnings") ? "chatReplies" : "warnings";
+      }
+
+      // Build the exact message once (so it can't appear in both chat+DM)
+      let ok = false;
+      try {
+        const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
+        if (tpl) {
+          let raw = pickCopTemplate(tpl[listName], "");
+          let msg = fillCopTemplate(raw, cop, {});
+          const lastText = String(ch.lastTextByCopId[cid] || "");
+          // Try a couple times to avoid immediate repeats
+          if (msg && lastText && msg === lastText) {
+            for (let i = 0; i < 2; i++) {
+              raw = pickCopTemplate(tpl[listName], raw);
+              msg = fillCopTemplate(raw, cop, {});
+              if (msg && msg !== lastText) break;
+            }
+          }
+          if (msg) {
+            if (channel === "chat") {
+              pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+            } else {
+              pushDm("npc_cop", String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+            }
+            ok = true;
+            ch.lastTextByCopId[cid] = msg;
+          }
+        }
+      } catch (_) {
+        ok = false;
+      }
+
+      // Reschedule: always push the chosen channel forward; push the other slightly to prevent immediate back-to-back.
+      if (channel === "chat") {
+        ch.nextChatAtByCopId[cid] = now0 + 45000 + Math.floor(Math.random() * 45000);
+        if (dueDm) ch.nextDmAtByCopId[cid] = Math.max(ch.nextDmAtByCopId[cid] || 0, now0 + 18000);
+      } else {
+        ch.nextDmAtByCopId[cid] = now0 + 60000 + Math.floor(Math.random() * 60000);
+        if (dueChat) ch.nextChatAtByCopId[cid] = Math.max(ch.nextChatAtByCopId[cid] || 0, now0 + 18000);
+      }
+
+      if (ok) {
+        did = true;
+        if (listName === "intros") ch.introSentByCopId[cid] = true;
+        if (!busy && (listName === "warnings" || listName === "chatReplies")) ch.lastKindByCopId[cid] = listName;
+        if (busy) ch.lastKindByCopId[cid] = "cooldownReplies";
+      }
+    }
+
+    return did;
+  }
+
   function getAvailableCop(){
     const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
     const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
@@ -830,31 +1032,83 @@ window.Game = window.Game || {};
     return null;
   }
 
-  function copDm(text){
-    // Use fixed cop DM header/name per spec
-    const name = "Владимир Иванович";
-    // Exact canonical messages (do not invent)
-    const templates = {
-      cop_busy: "Я занят, оформляю дело. Вернись позже.",
-      cop_accept: "Принял. Проверяю. Если всё подтвердится - оформлю.",
-      cop_report_ok: "Принял. Проверяю. Если всё подтвердится - оформлю.",
-      cop_success: "Подтвердилось. Оформил. Спасибо за помощь.",
-      cop_fail: "Не подтвердилось. Похоже, ложная тревога."
+  function copDm(text, vars = {}){
+    const D = Game.Data || null;
+    const cop = (State && State.players && State.assignedCopId && State.players[State.assignedCopId])
+      ? State.players[State.assignedCopId]
+      : (State && State.players ? Object.values(State.players).find(p => p && p.role === "cop") : null);
+    const copName0 = (cop && cop.name) ? String(cop.name) : "Коп";
+    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
+    const pick = (arr) => (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
+    const fill = (s) => {
+      let out = String(s || "");
+      out = out.replace(/\{cop\.fullName\}/g, copName0);
+      out = out.replace(/\{cop\.rank\}/g, "");
+      out = out.replace(/\{role\}/g, String(vars.role || ""));
+      out = out.replace(/\{name\}/g, String(vars.name || ""));
+      return out.replace(/\s+/g, " ").trim();
     };
-    const msg = templates[text] || String(text || "");
-    // DM log key: npc_cop
-    pushDm("npc_cop", name, copLine(msg), { isSystem: false, playerId: State.assignedCopId || "npc_cop_v" });
+    const isKey =
+      text === "cop_busy" ||
+      text === "cop_accept" ||
+      text === "cop_success" ||
+      text === "cop_fail";
+    const listName =
+      (text === "cop_busy") ? "cooldownReplies" :
+      (text === "cop_accept") ? "chatReplies" :
+      (text === "cop_success") ? "thanks" :
+      (text === "cop_fail") ? "scolds" :
+      "";
+
+    // First DM: send intro once
+    try {
+      migrateDmState();
+      const arr = (State.dm && State.dm.logs && State.dm.logs["npc_cop"]) ? State.dm.logs["npc_cop"] : [];
+      if (arr && arr.length === 0 && tpl && tpl.intros) {
+        const intro = fill(pick(tpl.intros));
+        if (intro) pushDm("npc_cop", copName0, copLine(intro), { isSystem: false, playerId: State.assignedCopId || (cop && cop.id) || "npc_cop_v" });
+      }
+    } catch (_) {}
+
+    const msg = (isKey && tpl && listName && tpl[listName])
+      ? fill(pick(tpl[listName]))
+      : fill(String(text || ""));
+    pushDm("npc_cop", copName0, copLine(msg), { isSystem: false, playerId: State.assignedCopId || (cop && cop.id) || "npc_cop_v" });
   }
 
-  function copChat(text){
-    const name = copName();
+  function copChat(text, vars = {}){
     const D = Game.Data || null;
-    const tVar = (key) => {
-      const arr = (D && D.TEXTS && D.TEXTS.genz) ? D.TEXTS.genz[key] : null;
-      return (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random()*arr.length)] : (arr || "Принято.");
+    const cop = (State && State.players && State.assignedCopId && State.players[State.assignedCopId])
+      ? State.players[State.assignedCopId]
+      : (State && State.players ? Object.values(State.players).find(p => p && p.role === "cop") : null);
+    const copName0 = (cop && cop.name) ? String(cop.name) : "Коп";
+    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
+    const pick = (arr) => (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
+    const fill = (s) => {
+      let out = String(s || "");
+      out = out.replace(/\{cop\.fullName\}/g, copName0);
+      out = out.replace(/\{cop\.rank\}/g, "");
+      out = out.replace(/\{role\}/g, String(vars.role || ""));
+      out = out.replace(/\{name\}/g, String(vars.name || ""));
+      return out.replace(/\s+/g, " ").trim();
     };
-    const msg = (D && D.TEXTS && D.TEXTS.genz && D.TEXTS.genz[text]) ? tVar(text) : text;
-    pushChat(name, copLine(msg), { isSystem: false, playerId: State.assignedCopId || "npc_cop_v" });
+    const isKey =
+      text === "cop_warning" ||
+      text === "cop_reply" ||
+      text === "cop_busy" ||
+      text === "cop_thanks" ||
+      text === "cop_scold";
+    const listName =
+      (text === "cop_warning") ? "warnings" :
+      (text === "cop_reply") ? "chatReplies" :
+      (text === "cop_busy") ? "cooldownReplies" :
+      (text === "cop_thanks") ? "thanks" :
+      (text === "cop_scold") ? "scolds" :
+      "";
+    const msg = (isKey && tpl && listName && tpl[listName])
+      ? fill(pick(tpl[listName]))
+      : fill(String(text || ""));
+    pushChat(copName0, copLine(msg), { isSystem: false, playerId: State.assignedCopId || (cop && cop.id) || "npc_cop_v" });
   }
 
   function pushDm(targetId, name, text, opts = {}){
@@ -1031,7 +1285,7 @@ window.Game = window.Game || {};
       transferRep("me", "crowd_pool", repPenalty, "rep_report_false", reportId);
       markReported(target.id, false, roleKey);
       copDm("cop_fail"); 
-      copChat("Ложный донос зафиксирован.");
+      copChat("cop_scold");
       return { ok: false, reason: "false_report", role: roleKey, repPenalty };
     }
 
@@ -1128,20 +1382,21 @@ window.Game = window.Game || {};
         try {
           if (State.reports && State.reports.history) delete State.reports.history[target.id];
         } catch (_) {}
-        const meName = (State.me && State.me.name) ? State.me.name : "Игрок";
-        if (roleKey === "toxic" || roleKey === "bandit") {
-          copChat(`Благодаря ${meName} ${roleKey === "toxic" ? "токсик" : "бандит"} ${target.name} отправился за решётку на 5 минут.`);
+        if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
+          const roleLabel =
+            (roleKey === "toxic") ? "токсик" :
+            (roleKey === "bandit") ? "бандит" :
+            "мафиози";
+          copChat("Благодаря {role} {name} отправился за решётку на 5 минут.", { role: roleLabel, name: target.name });
+          copChat("cop_thanks");
           copChat(`Все баттлы ${target.name} сняты.`);
           sendRevengeDM(roleKey, target.id);
-        } else if (roleKey === "mafia") {
-          copChat(`Благодаря ${meName} мафиози ${target.name} отмечен.`);
         } else {
           copChat(`Внимание: подозрительный персонаж — ${target.name}.`);
         }
       } else {
-        const meName = (State.me && State.me.name) ? State.me.name : "Игрок";
         if (roleKey === "mafia") {
-          copChat(`Благодаря ${meName} мафиози ${target.name} отмечен.`);
+          copChat(`Благодаря мафиози ${target.name} отмечен.`);
         } else {
           copChat(`Внимание: подозрительный персонаж — ${target.name}.`);
         }
@@ -1165,6 +1420,8 @@ window.Game = window.Game || {};
       State.me.points = Math.max(0, State.me.points || 0);
       if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
       State.points.overflow = Math.max(0, State.points.overflow || 0);
+      // Mirror legacy/compat field for UI: overPoints == overflow remainder (0..4)
+      State.overPoints = Math.max(0, (State.points.overflow || 0) | 0);
       // mirror in players
       if (State.players.me) State.players.me.points = State.me.points;
 
@@ -1177,6 +1434,12 @@ window.Game = window.Game || {};
 
   function addPoints(amount, reason){
     const cfg = getPointsConfig();
+    const beforePoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    const finalizePoints = () => {
+      const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+      emitStatDelta("points", afterPoints - beforePoints, { reason: reason || "addPoints" });
+      return State.me.points;
+    };
     const n = Number(amount || 0);
     if (!Number.isFinite(n) || n === 0) return 0;
     if (isCirculationEnabled() && !pointsWriteDepth) {
@@ -1193,7 +1456,7 @@ window.Game = window.Game || {};
       });
       syncMeToPlayers();
       ensureNonNegativePoints();
-      return State.me.points;
+      return finalizePoints();
     }
     const cap = (cfg.softCap | 0);
     let base = (State.me.points || 0) | 0;
@@ -1205,20 +1468,27 @@ window.Game = window.Game || {};
       base = cap;
       overflow += (total - cap);
     }
-    const infGain = Math.floor(overflow / 5);
-    if (infGain > 0) {
-      overflow -= (infGain * 5);
-      State.me.influence = (State.me.influence | 0) + infGain;
-      if (State.progress) {
-        State.progress.weeklyInfluenceGained = (State.progress.weeklyInfluenceGained | 0) + infGain;
-      }
+    // Variant B: convert overPoints to +1 ⭐ REP per N (default 5), not influence
+    const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP))
+      ? (Game.Data.OVERPOINTS_TO_REP | 0)
+      : 5;
+    const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
+    if (repGain > 0) {
+      overflow -= (repGain * step);
+      try {
+        const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
+        transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
+      } catch (_) {}
     }
     State.me.points = base;
-    State.points.overflow = overflow;
-    State.points.capNote = (base >= cap) ? "Кап: каждые 5 💰 -> +1 ⚡." : "";
+    // Option A: keep existing conversion overflow/5 -> +1 ⚡ (influence). Store remainder as overPoints.
+    State.points.overflow = Math.max(0, overflow | 0);
+    State.overPoints = Math.max(0, State.points.overflow | 0);
+    State.pointsCapActive = (base >= cap);
+    State.points.capNote = (base >= cap) ? "Кап: каждые 5 💰 -> +1 ⭐." : "";
     syncMeToPlayers();
     ensureNonNegativePoints();
-    return State.me.points;
+    return finalizePoints();
   }
 
   function spendPoints(amount, reason){
@@ -1231,14 +1501,19 @@ window.Game = window.Game || {};
     }
     const cur = (State.me.points || 0) | 0;
     if (cur < n) return false;
+    const beforePoints = cur;
     withPointsWrite(() => {
       State.me.points = cur - (n | 0);
       if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
       State.points.overflow = 0;
       State.points.capNote = "";
     });
+    State.overPoints = 0;
+    State.pointsCapActive = false;
     syncMeToPlayers();
     ensureNonNegativePoints();
+    const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    emitStatDelta("points", afterPoints - beforePoints, { reason: reason || "spendPoints" });
     return true;
   }
 
@@ -1317,6 +1592,7 @@ window.Game = window.Game || {};
     getReportCooldownLeftMs,
     hasReported,
     applyReportByRole,
+    tickCops: (nowTs) => tickCopChatter(nowTs),
     setReportCooldownMs: (ms) => {
       if (typeof ms === "number" && ms >= 0) State.reports.cooldownMs = ms;
     },

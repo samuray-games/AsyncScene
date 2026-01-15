@@ -485,45 +485,8 @@ window.Game = window.Game || {};
       box.parentNode.insertBefore(listWrap, box);
     }
     const logsById = (S.dm && S.dm.logs) ? S.dm.logs : {};
-    const dmIds = Object.keys(logsById).filter(id => logsById[id] && logsById[id].length);
-    if (dmIds.length > 1) {
-      listWrap.classList.remove("hidden");
-      listWrap.innerHTML = "";
-      dmIds.forEach((id) => {
-        const p = getS().players[id] || {};
-        const row = document.createElement("div");
-        row.className = "dmTabRow";
-
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "pill dmTab" + (id === withId ? " active" : "");
-        btn.textContent = (UI.displayName ? UI.displayName(p) : String(p.name || id));
-        btn.onclick = (e) => { stop(e); UI.openDM(id); };
-
-        const close = document.createElement("button");
-        close.type = "button";
-        close.className = "pill dmTabClose";
-        close.textContent = "✕";
-        close.title = "Закрыть";
-        close.onclick = (e) => {
-          stop(e);
-          try { if (S.dm && S.dm.logs) delete S.dm.logs[id]; } catch (_) {}
-          if (id === withId) {
-            const rest = Object.keys(S.dm.logs || {});
-            if (rest.length) UI.openDM(rest[0]);
-            else UI.closeDM();
-          } else {
-            UI.renderDM();
-          }
-        };
-
-        row.appendChild(btn);
-        row.appendChild(close);
-        listWrap.appendChild(row);
-      });
-    } else {
-      listWrap.classList.add("hidden");
-    }
+    listWrap.classList.add("hidden");
+    listWrap.innerHTML = "";
 
     box.innerHTML = "";
     const lines = ((S.dm && S.dm.logs && S.dm.logs[withId]) ? S.dm.logs[withId] : []);

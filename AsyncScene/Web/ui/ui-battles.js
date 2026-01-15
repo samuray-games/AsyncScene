@@ -29,6 +29,77 @@
     } catch (_) {}
   };
 
+  function showBtnToastRight(btn, text) {
+    if (!btn) return;
+    const msg = String(text || "").trim();
+    if (!msg) return;
+    const host = btn.parentElement || btn;
+    try { host.style.position = host.style.position || "relative"; } catch (_) {}
+    let el = host.querySelector ? host.querySelector(".btnToastRight") : null;
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "btnToastRight";
+      el.style.position = "absolute";
+      el.style.left = "100%";
+      el.style.top = "50%";
+      el.style.marginLeft = "8px";
+      el.style.transform = "translateY(-50%)";
+      el.style.padding = "4px 8px";
+      el.style.borderRadius = "8px";
+      el.style.fontSize = "12px";
+      el.style.fontWeight = "900";
+      el.style.whiteSpace = "nowrap";
+      el.style.background = "rgba(0,0,0,0.75)";
+      el.style.color = "white";
+      el.style.zIndex = "9999";
+      el.style.pointerEvents = "none";
+      try { host.appendChild(el); } catch (_) {}
+    }
+    el.textContent = msg;
+    el.style.display = "block";
+    try {
+      if (host.__btnToastTimer) clearTimeout(host.__btnToastTimer);
+      host.__btnToastTimer = setTimeout(() => {
+        try { if (el) el.style.display = "none"; } catch (_) {}
+      }, 1200);
+    } catch (_) {}
+  }
+
+  function showChipToastAbove(chip, text) {
+    if (!chip) return;
+    const msg = String(text || "").trim();
+    if (!msg) return;
+    try { chip.style.position = "relative"; } catch (_) {}
+    let el = chip.querySelector ? chip.querySelector(".chipToast") : null;
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "chipToast";
+      el.style.position = "absolute";
+      el.style.left = "50%";
+      el.style.bottom = "100%";
+      el.style.marginBottom = "6px";
+      el.style.transform = "translateX(-50%)";
+      el.style.padding = "4px 8px";
+      el.style.borderRadius = "8px";
+      el.style.fontSize = "12px";
+      el.style.fontWeight = "900";
+      el.style.whiteSpace = "nowrap";
+      el.style.background = "rgba(0,0,0,0.75)";
+      el.style.color = "white";
+      el.style.zIndex = "9999";
+      el.style.pointerEvents = "none";
+      try { chip.appendChild(el); } catch (_) {}
+    }
+    el.textContent = msg;
+    el.style.display = "block";
+    try {
+      if (chip.__chipToastTimer) clearTimeout(chip.__chipToastTimer);
+      chip.__chipToastTimer = setTimeout(() => {
+        try { if (el) el.style.display = "none"; } catch (_) {}
+      }, 1200);
+    } catch (_) {}
+  }
+
   // Keep a specific battle card in view across re-renders.
   UI._battleFocus = UI._battleFocus || { id: null, offset: null, at: 0 };
 
@@ -378,10 +449,19 @@
     } catch (_) {}
   }
 
-  function tryEscapeBattle(battleId, mode) {
+  function tryEscapeBattle(battleId, mode, anchorBtn, costOverride) {
     try {
-      if (!Game.Conflict || typeof Game.Conflict.escape !== "function") return;
-      const res = Game.Conflict.escape(battleId, mode);
+      const Core = (Game && (Game._ConflictCore || Game.ConflictCore)) ? (Game._ConflictCore || Game.ConflictCore) : null;
+      const useCore = !!(Core && typeof Core.escape === "function");
+      const useApi = !!(Game.Conflict && typeof Game.Conflict.escape === "function");
+      if (!useCore && !useApi) return;
+
+      const opts = (typeof mode === "string" || mode == null)
+        ? { mode: String(mode || "smyt") }
+        : mode;
+      if (typeof costOverride === "number") opts.cost = costOverride | 0;
+
+      const res = useCore ? Core.escape(battleId, opts) : Game.Conflict.escape(battleId, opts);
       if (res && res.ok === false) {
         const cost = (typeof res.cost === "number") ? res.cost : null;
         if (
@@ -390,8 +470,10 @@
           res.reason === "min_reserve" ||
           res.error === "not_enough_points"
         ) {
-         const msg = "Пойнтов не хватает.";
-         if (UI && typeof UI.showStatToast === "function") {
+         const msg = "Не хватает пойнтов.";
+         if (anchorBtn) {
+           showBtnToastRight(anchorBtn, msg);
+         } else if (UI && typeof UI.showStatToast === "function") {
            UI.showStatToast("points", msg);
          } else {
            setInlineNote(battleId, msg);
@@ -400,6 +482,7 @@
          setInlineNote(battleId, "Этот мув не зашёл.");
        }
       }
+      requestAll();
     } catch (_) {
       // silent
     }
@@ -1623,6 +1706,10 @@
             if (p && p._pad) {
               chip.style.opacity = "0.55";
               chip.style.cursor = "default";
+              chip.onclick = (e) => {
+                stop(e);
+                showChipToastAbove(chip, "Не хватает пойнтов.");
+              };
               row.appendChild(chip);
               return;
             }
@@ -1652,25 +1739,19 @@
 
           card.appendChild(row);
 
-          // "Уйти" button: leave battle, lose REP, close card
+          // "Уйти за 1💰" button
           const leaveActions = document.createElement("div");
           leaveActions.className = "actions";
 
           const leaveBtn = document.createElement("button");
           leaveBtn.className = "btn small";
-          leaveBtn.textContent = "Уйти";
+          leaveBtn.textContent = "Уйти за 1💰";
+          leaveBtn.title = "−1⭐, при успехе +1⭐";
           leaveBtn.onclick = (e) => {
             stop(e);
             _captureBattleFocus(b.id, card);
-            // Leave battle: lose REP and close the battle card
-            try {
-              if (Game.Conflict && typeof Game.Conflict.escape === "function") {
-                Game.Conflict.escape(b.id, "smyt");
-              } else if (Game.Conflict && typeof Game.Conflict.tryEscape === "function") {
-                Game.Conflict.tryEscape(b.id, "smyt");
-              }
-            } catch (_) {}
-            requestAll();
+            // Leave battle: applies -1 ⭐ REP (core), then resolves via escape pipeline
+            tryEscapeBattle(b.id, "smyt", leaveBtn, 1);
           };
           leaveActions.appendChild(leaveBtn);
           card.appendChild(leaveActions);
@@ -1779,6 +1860,10 @@
               chip.style.opacity = "0.55";
               chip.style.cursor = "default";
               chip.style.color = "rgba(255,255,255,.92)";
+              chip.onclick = (e) => {
+                stop(e);
+                showChipToastAbove(chip, "Не хватает пойнтов.");
+              };
               row.appendChild(chip);
               return;
             }
@@ -1786,17 +1871,8 @@
             chip.className = clsForColor(p.color);
             chip.textContent = p.text;
 
-            // UI type hints (Canon hover)
-            try {
-              if (p && !p._pad && Game.Data && typeof Game.Data.t === "function") {
-                const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
-                const type = (typeRaw === "yesno") ? "yn" : typeRaw;
-                if (type === "who") chip.title = Game.Data.t("hint_type_who");
-                else if (type === "where") chip.title = Game.Data.t("hint_type_where");
-                else if (type === "about") chip.title = Game.Data.t("hint_type_about");
-                else if (type === "yn") chip.title = Game.Data.t("hint_type_yn");
-              }
-            } catch (_) {}
+            // Counter-arguments: hover hints disabled
+            try { chip.removeAttribute("title"); } catch (_) {}
 
             if (pickDefenseFn) {
               chip.onclick = (e) => {
@@ -1852,10 +1928,11 @@
           } catch (_) {}
 
          sm.textContent = t("escape_button_label", { X: oneCost });
+          sm.title = "−1⭐, при успехе +1⭐";
           sm.onclick = (e) => {
             stop(e);
             _captureBattleFocus(b.id, card);
-            tryEscapeBattle(b.id, "smyt");
+            tryEscapeBattle(b.id, "smyt", sm);
           };
           actions.appendChild(sm);
 
@@ -1898,7 +1975,7 @@
                 return;
               }
               _captureBattleFocus(b.id, card);
-              tryEscapeBattle(b.id, "off");
+              tryEscapeBattle(b.id, "off", off);
             };
             offWrap.appendChild(off);
             offWrap.appendChild(offToast);

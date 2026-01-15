@@ -58,6 +58,47 @@ window.Game = window.Game || {};
     e.uiNote = msg || "";
   }
 
+  function showVoteBtnToast(anchorEl, text) {
+    if (!anchorEl) return;
+    const msg = String(text || "").trim();
+    if (!msg) return;
+    const host = anchorEl.__toastHost || anchorEl;
+    let el = host.querySelector ? host.querySelector(".voteBtnToast") : null;
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "voteBtnToast";
+      // Inline styles (no CSS file touch)
+      el.style.position = "absolute";
+      // Right of the clicked button
+      el.style.left = "100%";
+      el.style.top = "50%";
+      el.style.marginLeft = "8px";
+      el.style.transform = "translateY(-50%)";
+      el.style.padding = "4px 8px";
+      el.style.borderRadius = "8px";
+      el.style.fontSize = "12px";
+      el.style.fontWeight = "900";
+      el.style.whiteSpace = "nowrap";
+      el.style.background = "rgba(0,0,0,0.75)";
+      el.style.color = "white";
+      el.style.zIndex = "9999";
+      el.style.pointerEvents = "none";
+      try { host.appendChild(el); } catch (_) {}
+    }
+    el.textContent = msg;
+    el.style.display = "block";
+    // Auto-hide quickly (error toast, not a stat toast)
+    try {
+      if (host.__toastTimer) clearTimeout(host.__toastTimer);
+      host.__toastTimer = setTimeout(() => {
+        try { if (el) el.style.display = "none"; } catch (_) {}
+      }, 1200);
+    } catch (_) {}
+  }
+
+  // Cop chatter is driven by StateAPI.tickCops (state.js / events.js). UI must not duplicate it here.
+  function maybeEmitCopChatter(_ctx) { return; }
+
   function isMySideId(id) {
     const meId = (S && S.me && S.me.id) ? S.me.id : "me";
     return id === "me" || (id && id === meId);
@@ -647,9 +688,7 @@ window.Game = window.Game || {};
       const resolvedNow = !!(e && e.resolved);
       const endsAtNow = (e && typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
       const sec = resolvedNow ? 0 : Math.max(0, Math.ceil((endsAtNow - Date.now()) / 1000));
-      const metaText = resolvedNow
-        ? t("events_done")
-        : t("events_left", { sec });
+      const metaText = resolvedNow ? "" : t("events_left", { sec });
 
       card.innerHTML = `
         <div class="eventTop">
@@ -690,12 +729,17 @@ window.Game = window.Game || {};
         const votingAllowed = canVoteOnEvent(ne, e);
 
       const mkSideBtn = (side, label, votes) => {
+        const slot = document.createElement("div");
+        slot.style.position = "relative";
+        slot.style.display = "inline-block";
+
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "eventVoteBtn";
         btn.style.cursor = "pointer";
         btn.textContent = `${label} - ${votes}`;
         btn.setAttribute("data-side", side);
+        btn.__toastHost = slot;
 
         // Visual state: picked vs locked
         if (myPick === side) btn.classList.add("selected");
@@ -725,10 +769,17 @@ window.Game = window.Game || {};
           if (btn.disabled) return;
           if (UI) UI._eventsClickHold = Date.now() + 420;
 
+          // If no points, show local toast under the button and do nothing.
+          const havePts = (S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+          if (havePts <= 0) {
+            showVoteBtnToast(btn, "Не хватает пойнтов.");
+            return;
+          }
+
           // One vote per player: lock only the player, never stop NPC voting.
           if (!canVoteOnEvent(ne, e)) {
             const secLeft = Math.max(0, Math.ceil((ne.endsAt - Date.now()) / 1000));
-            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : t("vote_already"));
+            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : "Ты уже проголосовал.");
             // Prefer a soft render to avoid click flicker
             if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
             else rerenderEventsOnly();
@@ -762,7 +813,18 @@ window.Game = window.Game || {};
             ok = false;
           }
 
-          if (ok) setEventNote(e, t("vote_ok"));
+          if (!ok) {
+            // Show "Не хватает пойнтов." when vote failed due to insufficient points
+            try {
+              if (Game && Game.State && Array.isArray(Game.State.events)) {
+                const freshEvent = Game.State.events.find(x => x && x.id === eventId);
+                if (freshEvent && String(freshEvent.note || "") === "Не хватает пойнтов.") {
+                  setEventNote(e, "Не хватает пойнтов.");
+                  showVoteBtnToast(btn, "Не хватает пойнтов.");
+                }
+              }
+            } catch (_) {}
+          }
 
           // Sync battle crowd data from Game.State.battles before render
           if (ok && Game && Game.State && Array.isArray(Game.State.battles)) {
@@ -787,7 +849,8 @@ window.Game = window.Game || {};
           else rerenderEventsOnly();
         };
 
-        return btn;
+        slot.appendChild(btn);
+        return slot;
       };
 
         const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
@@ -812,95 +875,76 @@ window.Game = window.Game || {};
       }
 
       if (resolvedNow) {
-        const res = document.createElement("div");
-        res.className = "pill";
-        let line = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : "";
-        if (ne.voteLabels && ne.escapeMode) {
-          // Task 1: For escape events, the primary line is the consequence
-          const { winner } = computeCrowdWinner(e);
-          line = (winner === "a") ? "Действие произошло" : "Действие не произошло";
-        }
-        res.textContent = (line && line.trim().length) ? line : "Всё, движ закончен.";
-        card.appendChild(res);
+        const crowd = getCrowdState(e);
+        const aVotes = Number.isFinite(crowd.aVotes) ? crowd.aVotes : 0;
+        const bVotes = Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0;
+        const winnerSide = (e && e.crowd && e.crowd.winner) ? e.crowd.winner : computeCrowdWinner(e).winner;
 
-        // Result of voting after timer (Task B + Task 1 & 2)
+        const info = document.createElement("div");
+        info.className = "noteLine";
+        info.style.marginTop = "4px";
+        info.style.borderTop = "1px solid rgba(255,255,255,0.1)";
+        info.style.paddingTop = "4px";
+
+        // Твой выбор
         if (e && e.playerVoted && e.myVote) {
-          const resBlock = document.createElement("div");
-          resBlock.className = "noteLine";
-          resBlock.style.marginTop = "4px";
-          resBlock.style.borderTop = "1px solid rgba(255,255,255,0.1)";
-          resBlock.style.paddingTop = "4px";
-
           const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
-          const myChoiceLabel = (e.myVote === "a") 
+          const myChoiceLabel = (e.myVote === "a")
             ? (useLabels ? ne.voteLabels.a : aName)
             : (useLabels ? ne.voteLabels.b : bName);
-          
-          const winnerSide = (e.crowd && e.crowd.winner) || e.result;
-          const isWin = (e.myVote === winnerSide);
-          const outcomeText = isWin ? "затащил" : "не затащил";
-
-          let html = `<div>Твой выбор: ${myChoiceLabel}</div>`;
-          // Task 2: Use var(--text) for outcome color (black in light, white in dark)
-          html += `<div style="color: var(--text); font-weight: 900;">Итог голосования: ${outcomeText}</div>`;
-
-          // Try to extract total deltas from moneyLog for this event
-          try {
-            if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) {
-              const eventId = ne.id;
-              // Participation + result (majority/minority)
-              const logs = Game.Debug.moneyLog.filter(l => 
-                l && (l.targetId === "me" || l.sourceId === "me") && 
-                (l.battleId === eventId || (l.battleId && eventId.includes(l.battleId)))
-              );
-              
-              // Compute separate deltas: participation (immediate on click) and result (on completion)
-              let partRep = 0, partPts = 0;
-              let resultRep = 0, resultPts = 0;
-
-              logs.forEach(l => {
-                const amt = Number(l.amount || 0);
-                const reason = String(l.reason || "").toLowerCase();
-                if (l.currency === "rep") {
-                  if (reason.includes("participation")) {
-                    if (l.targetId === "me") partRep += amt;
-                    else if (l.sourceId === "me") partRep -= amt;
-                  } else if (reason.includes("majority") || reason.includes("minority")) {
-                    if (l.targetId === "me") resultRep += amt;
-                    else if (l.sourceId === "me") resultRep -= amt;
-                  }
-                } else {
-                  // points / transferFromPool reasons
-                  if (reason.includes("crowd_vote_cost")) {
-                    if (l.sourceId === "me") partPts -= amt;
-                    else if (l.targetId === "me") partPts += amt;
-                  } else if (reason.includes("refund_majority") || reason.includes("crowd_draw_payout") || reason.includes("crowd")) {
-                    if (l.targetId === "me") resultPts += amt;
-                    else if (l.sourceId === "me") resultPts -= amt;
-                  }
-                }
-              });
-
-              // Format helper: always show sign, show 0 as +0
-              const fmt = (n, suffix) => `${n >= 0 ? '+'+n : n}${suffix}`;
-
-              // Participation line (symbols only)
-              html += `<div style=\"color: var(--text)\">${fmt(partRep,'⭐')} ${fmt(partPts,'💰')}</div>`;
-              // Result line (symbols only)
-              html += `<div style=\"color: var(--text)\">${fmt(resultRep,'⭐')} ${fmt(resultPts,'💰')}</div>`;
-            }
-          } catch (_) {}
-
-          resBlock.innerHTML = html;
-          card.appendChild(resBlock);
+          const row = document.createElement("div");
+          row.textContent = `Твой выбор: ${myChoiceLabel}`;
+          info.appendChild(row);
         }
 
-        if (e && e.betMessage) {
-          const betLine = document.createElement("div");
-          betLine.className = "noteLine";
-          betLine.textContent = String(e.betMessage);
-          card.appendChild(betLine);
+        // Итог голосования: X:Y (always)
+        {
+          const row = document.createElement("div");
+          row.textContent = `Итог голосования: ${aVotes}:${bVotes}`;
+          info.appendChild(row);
         }
+
+        // Результат: <...> (escape events use canonical phrasing)
+        {
+          let resLine = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : "";
+          if (ne.voteLabels && ne.escapeMode) {
+            resLine = escapeResultLine(ne, e);
+          }
+          const row = document.createElement("div");
+          row.textContent = `Результат: ${resLine || "—"}`;
+          info.appendChild(row);
+        }
+
+        // Deltas for player vote (participation -> result)
+        if (e && e.playerVoted && e.myVote) {
+          const sep = document.createElement("div");
+          sep.style.marginTop = "6px";
+          info.appendChild(sep);
+
+          const head1 = document.createElement("div");
+          head1.textContent = "Изменения за участие:";
+          info.appendChild(head1);
+
+          const d1a = document.createElement("div");
+          d1a.textContent = "+1⭐";
+          info.appendChild(d1a);
+
+          const d1b = document.createElement("div");
+          d1b.textContent = "-1💰";
+          info.appendChild(d1b);
+
+          const head2 = document.createElement("div");
+          head2.style.marginTop = "6px";
+          head2.textContent = "Изменения за результат:";
+          info.appendChild(head2);
+
+          const win = (winnerSide && e.myVote === winnerSide);
+          const d2 = document.createElement("div");
+          d2.textContent = win ? "+1💰" : "+0💰";
+          info.appendChild(d2);
+        }
+
+        card.appendChild(info);
       }
 
       const hlId = getHighlightEventId();

@@ -239,6 +239,27 @@
     return String(text || "").replace(/\s+/g, " ").trim();
   }
 
+  function allowedToneSet(toneInfo){
+    if (!toneInfo) return null;
+    try {
+      if (typeof toneInfo === "string") {
+        const s = String(toneInfo || "").toLowerCase().trim();
+        if (!s) return null;
+        return s.includes("/") ? s.split("/").map(x => x.trim()).filter(Boolean) : [s];
+      }
+      if (typeof toneInfo === "object") {
+        if (Array.isArray(toneInfo.allowed) && toneInfo.allowed.length) {
+          return toneInfo.allowed.map(x => String(x || "").toLowerCase().trim()).filter(Boolean);
+        }
+        if (typeof toneInfo.label === "string" && toneInfo.label.trim()) {
+          const s = toneInfo.label.toLowerCase().trim();
+          return s.includes("/") ? s.split("/").map(x => x.trim()).filter(Boolean) : [s];
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   function logAttackPool(level, tier, basePool, typesWanted) {
     try {
       if (!Game || !Game.DEBUG_ATTACK_CHOICES) return;
@@ -370,6 +391,16 @@
         const subs = canonSubKeysByColor(forced);
         return pickN(subs, 1)[0] || subs[0] || "Y1";
       }
+      // Tone gating by influence (allowed set)
+      const toneInfo = (D && typeof D.allowedTonesByInfluence === "function")
+        ? D.allowedTonesByInfluence(level)
+        : null;
+      const allowed = allowedToneSet(toneInfo);
+      if (allowed && allowed.length) {
+        const subs = [];
+        for (const c of allowed) subs.push(...canonSubKeysByColor(c));
+        return pickN(subs, 1)[0] || subs[0] || "Y1";
+      }
       const tierKeys = (D && typeof D.tierKeysByInfluence === "function")
         ? D.tierKeysByInfluence(level)
         : ["y1"];
@@ -386,6 +417,10 @@
     const fillText = (text, ctx) => {
       if (D && typeof D.fillPlaceholders === "function") return D.fillPlaceholders(text, ctx);
       return String(text || "");
+    };
+
+    const hasHere = (s) => {
+      try { return String(s || "").toLowerCase().includes("здесь"); } catch (_) { return false; }
     };
 
     const pickCanonItem = (type) => {
@@ -410,7 +445,16 @@
       const shuffled = pickN(list, list.length);
       for (const item of shuffled) {
         if (!item || !item.q) continue;
+        // Drop the whole pair if either side contains "здесь" (raw or filled)
+        try {
+          if (hasHere(item.q) || hasHere(item.a)) continue;
+        } catch (_) {}
         const text = normalizeFinalText(fillText(item.q, ctx));
+        if (hasHere(text)) continue;
+        try {
+          const aText = item && item.a ? normalizeFinalText(fillText(item.a, ctx)) : "";
+          if (aText && hasHere(aText)) continue;
+        } catch (_) {}
         // Rule: if text contains the interrogative "кто", it cannot be an "about" (про) type.
         try {
           if (/\bкто\b/iu.test(text) && String(t || "").toLowerCase() === "about") continue;
@@ -425,8 +469,17 @@
       if (!chosen) {
         const fallback = pickCanonItem(t);
         if (fallback && fallback.q) {
-          const text = normalizeFinalText(fillText(fallback.q, ctx));
-          chosen = { item: fallback, text };
+          try {
+            if (hasHere(fallback.q) || hasHere(fallback.a)) {
+              // skip
+            } else {
+              const text = normalizeFinalText(fillText(fallback.q, ctx));
+              if (!hasHere(text)) {
+                const aText = fallback && fallback.a ? normalizeFinalText(fillText(fallback.a, ctx)) : "";
+                if (!aText || !hasHere(aText)) chosen = { item: fallback, text };
+              }
+            }
+          } catch (_) {}
         }
       }
       if (chosen) {
@@ -476,6 +529,10 @@
     const forced = getForcedColor();
     const D = (Game && Game.Data) ? Game.Data : null;
     const types = ["about", "who", "where", "yn"];
+    const opponentRoleRaw = (battle && (battle.opponentRole || (battle.opponent && battle.opponent.role)))
+      ? String(battle.opponentRole || (battle.opponent && battle.opponent.role)).toLowerCase()
+      : "";
+    const isMafiaOpponent = opponentRoleRaw === "mafia";
 
     const canonSubKeysByColor = (color) => {
       if (color === "k") return ["K"];
@@ -508,6 +565,16 @@
         const subs = canonSubKeysByColor(forced);
         return pickN(subs, 1)[0] || subs[0] || "Y1";
       }
+      if (isMafiaOpponent) return "K";
+      const toneInfo = (D && typeof D.allowedTonesByInfluence === "function")
+        ? D.allowedTonesByInfluence(level)
+        : null;
+      const allowed = allowedToneSet(toneInfo);
+      if (allowed && allowed.length) {
+        const subs = [];
+        for (const c of allowed) subs.push(...canonSubKeysByColor(c));
+        return pickN(subs, 1)[0] || subs[0] || "Y1";
+      }
       const tierKeys = (D && typeof D.tierKeysByInfluence === "function")
         ? D.tierKeysByInfluence(level)
         : ["y1"];
@@ -516,7 +583,7 @@
     };
 
     const subKey = pickCanonSub();
-    const tierColor = forced || canonColorFromSub(subKey);
+    const tierColor = isMafiaOpponent ? "k" : (forced || canonColorFromSub(subKey));
     const attackGroup = getGroup(battle && battle.attack ? battle.attack : attackArg) || "yn";
     const correctType = types.includes(attackGroup) ? attackGroup : "yn";
 
@@ -532,6 +599,10 @@
       return String(text || "");
     };
 
+    const hasHere = (s) => {
+      try { return String(s || "").toLowerCase().includes("здесь"); } catch (_) { return false; }
+    };
+
     const normalizeKyn = (text) => {
       const s = String(text || "").trim();
       if (/нет/iu.test(s)) return "Нет.";
@@ -545,7 +616,16 @@
       const shuffled = pickN(list, list.length);
       for (const item of shuffled) {
         if (!item || !item.a) continue;
+        // Drop the whole pair if either side contains "здесь" (raw or filled)
+        try {
+          if (hasHere(item.q) || hasHere(item.a)) continue;
+        } catch (_) {}
         let text = normalizeFinalText(fillText(item.a));
+        if (hasHere(text)) continue;
+        try {
+          const qText = item && item.q ? normalizeFinalText(fillText(item.q)) : "";
+          if (qText && hasHere(qText)) continue;
+        } catch (_) {}
         if (subKey === "K" && String(type || "").toLowerCase() === "yn") {
           text = normalizeKyn(text);
         }
@@ -591,11 +671,34 @@
     const D = (Game && Game.Data) ? Game.Data : null;
     if (!D || typeof D.getArgCanonGroup !== "function") return null;
     const opp = (Game.State && Game.State.players && opponentId) ? Game.State.players[opponentId] : null;
+    // NPC with 0 points/balance cannot initiate a battle
+    try {
+      if (opp && (opp.npc === true || opp.type === "npc")) {
+        const pts = Number.isFinite(opp.points) ? (opp.points | 0) : 0;
+        const bal = Number.isFinite(opp.balance) ? (opp.balance | 0) : null;
+        if (pts <= 0 || (bal != null && bal <= 0)) return null;
+      }
+    } catch (_) {}
     const inf = opp ? (opp.influence || 0) : 0;
-    const tierKeys = (D && typeof D.tierKeysByInfluence === "function") ? D.tierKeysByInfluence(inf) : ["y1"];
-    const tierKey = pickN(tierKeys, 1)[0] || tierKeys[0] || "y1";
-    const subKey = (function canonSubFromTierKey(tk){
-      const s = String(tk || "").trim();
+    const toneInfo = (opp && opp.role === "mafia")
+      ? { allowed: ["k"], label: "k" }
+      : ((D && typeof D.allowedTonesByInfluence === "function") ? D.allowedTonesByInfluence(inf) : null);
+    const allowed = allowedToneSet(toneInfo);
+    const canonSubKeysByColor = (color) => {
+      if (color === "k") return ["K"];
+      if (color === "r") return ["R1", "R2", "R3", "R4"];
+      if (color === "o") return ["O1", "O2", "O3"];
+      return ["Y1", "Y2"];
+    };
+    const subKey = (function(){
+      if (allowed && allowed.length) {
+        const subs = [];
+        for (const c of allowed) subs.push(...canonSubKeysByColor(c));
+        return pickN(subs, 1)[0] || subs[0] || "Y1";
+      }
+      const tierKeys = (D && typeof D.tierKeysByInfluence === "function") ? D.tierKeysByInfluence(inf) : ["y1"];
+      const tierKey = pickN(tierKeys, 1)[0] || tierKeys[0] || "y1";
+      const s = String(tierKey || "").trim();
       if (!s) return "Y1";
       const low = s.toLowerCase();
       if (low === "k" || low === "k1") return "K";
@@ -603,7 +706,7 @@
       if (low.startsWith("o")) return ("O" + low.slice(1)).toUpperCase();
       if (low.startsWith("r")) return ("R" + low.slice(1)).toUpperCase();
       return s.toUpperCase();
-    })(tierKey);
+    })();
     const canonColorFromSub = (sk) => {
       const s = String(sk || "").toUpperCase();
       if (s.startsWith("K")) return "k";
@@ -622,7 +725,19 @@
     if (!list.length) return null;
     const picked = pickN(list, 1)[0] || list[0];
     if (!picked || !picked.q) return null;
+    // Drop the whole pair if either side contains "здесь" (raw or filled)
+    const hasHere = (s) => {
+      try { return String(s || "").toLowerCase().includes("здесь"); } catch (_) { return false; }
+    };
+    try {
+      if (hasHere(picked.q) || hasHere(picked.a)) return null;
+    } catch (_) {}
     const q = normalizeFinalText(fillText(picked.q));
+    try { if (hasHere(q)) return null; } catch (_) {}
+    try {
+      const aText = picked && picked.a ? normalizeFinalText(fillText(picked.a)) : "";
+      if (aText && hasHere(aText)) return null;
+    } catch (_) {}
     
     // P0-1: Runtime assert для YN-ответов с "в {PLACE}"
     if (t === "yn" && q && q.match(/\b(в|на|у)\s*\{?[А-Я][а-я]+\}?/i)) {
