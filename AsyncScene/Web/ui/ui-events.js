@@ -760,12 +760,12 @@ window.Game = window.Game || {};
         if (!votingAllowed) {
           btn.classList.add("is-disabled");
           btn.setAttribute("aria-disabled", "true");
-          // Disable click interaction for the player (one vote only)
-          btn.disabled = true;
+          // Do NOT set btn.disabled=true so onclick still fires and can show a toast.
+          // Visual disabled state kept via class only.
         } else {
           btn.classList.remove("is-disabled");
           btn.removeAttribute("aria-disabled");
-          btn.disabled = false;
+          try { btn.disabled = false; } catch(_) {}
         }
 
         // Make the picked side visibly distinct even when locked/disabled
@@ -777,7 +777,6 @@ window.Game = window.Game || {};
 
         btn.onclick = (ev) => {
           stop(ev);
-          if (btn.disabled) return;
           if (UI) UI._eventsClickHold = Date.now() + 420;
 
           // If no points, show local toast under the button and do nothing.
