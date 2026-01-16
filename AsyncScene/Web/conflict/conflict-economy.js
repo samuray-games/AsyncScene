@@ -780,6 +780,13 @@
             E.transferPoints(oppId, poolId, amt, "battle_draw_deposit_opponent", { battleId: battle.id || battle.battleId || null, status: battle.status || null, result: battle.result || null });
           }
         }
+        // Circulation mode: also grant REP for draw if configured (mirror legacy behavior).
+        try {
+          const repGain = (D0 && Number.isFinite(D0.REP_DRAW)) ? (D0.REP_DRAW | 0) : 0;
+          if (repGain > 0 && Game && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+            Game.StateAPI.transferRep("crowd_pool", "me", repGain, "rep_battle_draw", battle.id || battle.battleId || null);
+          }
+        } catch (_) {}
         syncAndRenderNow();
         if (dailyBonus) dailyBonus();
         return;
