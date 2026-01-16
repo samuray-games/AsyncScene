@@ -781,7 +781,10 @@ window.Game = window.Game || {};
           if (UI) UI._eventsClickHold = Date.now() + 420;
 
           // If no points, show local toast under the button and do nothing.
-          const havePts = (S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+          // Prefer authoritative source: Game.State.me (may be updated by core/econ).
+          const havePts = (Game && Game.State && Game.State.me && Number.isFinite(Game.State.me.points))
+            ? (Game.State.me.points | 0)
+            : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
             showVoteBtnToast(btn, "Не хватает пойнтов.");
             return;
