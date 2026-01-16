@@ -524,7 +524,10 @@
   })();
 
   function buildDefenseOptions(attackArg) {
-    const battle = (attackArg && attackArg.attack) ? attackArg : null;
+    // Support both calling conventions:
+    // - buildDefenseOptions(battle) where battle.attack exists
+    // - buildDefenseOptions({ opponentRole: 'mafia', ... }) for tests/adapters
+    const battle = (attackArg && (attackArg.attack || attackArg.opponentRole)) ? attackArg : null;
     const level = normalizeInfluence(battle);
     const forced = getForcedColor();
     const D = (Game && Game.Data) ? Game.Data : null;
