@@ -41,6 +41,47 @@
   - wave 1–4: закрыты (см. `TASKS.md` для конкретных задач-оснований)
   - wave 5: scope принят `PASS` (battle_end REP by tierDiff), реализация по `T-20260111-052`, аудит `T-20260111-053`, gate close `T-20260111-054`
 
+### Прогресс и текущий этап
+- Stage 2 (Self-check сценарии и инварианты) — в `PROGRESS_SCALE.md` и `TEAM_LOG.md` указан как DOING: формализованного чек-листа нет, runtime-подтверждение всех сценариев (DEV-007..013) пока не собрали.
+- Stage 3 (Runtime & integration) — фактически закрыт PASS (см. `TEAM_LOG.md`: Runtime smoke завершён). Следующий шаг: формализовать `Stage 2` чек-лист и задокументировать, что каждый сценарий прогнан, чтобы можно было считать stage 2 DONE.
+- Общая шкала `PROGRESS_SCALE.md` показывает: этапы 0–1 DONE, 2 DOING, 3 DONE, 4–12 NOT_STARTED, значит фактически ~25 % пути до финала (щадность "вовсю играют").
+
+### Stage 2 Checklist (Self-check сценарии)
+- [A] Battle win (tier-diff outcomes): пройти бой до победы, проверить `Game.Debug.moneyLog` на `rep_battle_*`, посмотреть toast `⭐ +n`, убедиться, что tier/tones соответствуют allowed set. Команды: использовать UI, затем `Game.Debug.moneyLog.slice(-10)`/`toastLog`.
+- [B] Battle loss/draw: проиграть/ничья, проверить `rep_battle_*` (lose/draw reasons) и отсутствие `rep_escape` события, стат- toasts `💰 -1` или `⭐ 0`.
+- [C] Escape zero (points=0): вызвать `Game.Conflict.escape` с {mode:'smyt'} и `Game.State.me.points=0`, убедиться, что `rep_escape_click` есть, toast “Не хватает пойнтов.” виден рядом с кнопкой.
+- [D] Escape success refund: обеспечить `me.influence > opponent.influence`, вызвать escape {mode:'off'}, проверить `rep_escape_success_refund` entry и toast `⭐ +1` сразу после успеха.
+- [E] OverPoints conversion: установить `points≥softCap`, вызвать `Game.StateAPI.addPoints(OVERPOINTS_TO_REP+1)`, убедиться, что `rep_overpoints_convert` в moneyLog, overflow сбросился, toast `⭐ +1` от conversion.
+- [F] Cop chatter & vote toast: вызвать `Game.StateAPI.tickCops`, убедиться, что jeder cop пишет либо в чат, либо DM, без дублей, и что `toast “Не хватает пойнтов.”` появляется под кнопкой голосования при `points=0`.
+- [G] Tone invariant: проверить `Game.Data.allowedTonesByInfluence` labels (`["y","y","y/o","o/r","k","k"]`), убедиться, что veteran/influence ≠ allowed difference; запустить `Game._ConflictArguments.myDefenseOptions` с `opponentRole:'mafia'` и проверить только `k`.
+- [H] Stats toasts immediate: провести изменения (escape success / overPoints), собрать `document.querySelectorAll('.statToast')` и убедиться, что новые тосты появляются сразу, а `Game.Debug.toastLog` содержит соответствующие дельты.
+
+Для каждого шага:
+- записать результаты (PASS/FAIL) в `PROJECT_MEMORY.md` log как отдельную запись (внизу) и упомянуть `Stage 2` как задокументированный чек-лист.
+- показать выводы: `Game.Debug.moneyLog.slice(-20)`, `Game.Debug.toastLog.slice(-20)`, `document.querySelectorAll('.statToast')`, и любые UI-заметки (hover, toast).
+- после всех проверок отметить `Stage 2 — PASS` в `PROGRESS_SCALE.md` и `PROJECT_MEMORY.md`, обновить `Current Snapshot`.  
+
+### Также
+- TEAM_LOG теперь архив: не обновляем его, используем только `PROJECT_MEMORY.md`/`PROGRESS_SCALE.md` как живой источник. `Память обновлена`.
+
+### Полный цикл разработки (по `PROGRESS_SCALE.md`)
+- Этап 0 — нулевая точка, DONE (есть репо, цикл описан).  
+- Этап 1 — каркас цикла, DONE (чат → конфликт → бой → исход → прогресс, структуры в `conflict-core.js`, `state.js`).  
+- Этап 2 — self-check (сценарии и инварианты), DOING: критерии — повторяемый чек-лист, runtime-подтверждения, документированное PASS/FAIL. Требуется собрать чек-лист и прогнать вручную.  
+- Этап 3 — UX честность, DONE (UI honesty phase подтверждена, нет "ложных обещаний").  
+- Этапы 4–12 ещё не стартовали; следующее крупное направление — Stage 4 “Интерактивный язык” (tone profiles и data-driven тексты), и далее контент/ИИ/хаос/тесты.  
+
+### Напоминание по использованию TEAM_LOG
+- `TEAM_LOG.md` остаётся справочным, но не источником “живой” памяти: последние snapshot/обновления по этапам уже перенесены сюда. Правило: при ответах о прогрессе надеемся на `PROJECT_MEMORY.md` и `PROGRESS_SCALE.md`, TEAM_LOG используют только при явном запросе исторического контекста. `Память обновлена`.
+
+### Дополнительные стадии (roadmap после этапа 3)
+- Мобильная версия — задача перед запуском первоначального тестирования: адаптация UI и touch-интерфейса, убедиться в стабильности core, потом проводим пилот.  
+- Английская локализация — синхронный перевод всех UI/текстов/диалогов после формирования канона tone profiles; требует отдельного QA на стилистику.  
+- Японская локализация — особо важна для основного рынка; включает адаптацию tone profiles и проверку UI на переполнения.  
+- Испанская локализация — охват LAC; нужна проверка на местные idioms и ux-правки.  
+- Китайская локализация — тонкие шрифты/стилы, потребуется отдельный build/test (CJK support).  
+Эти стадии добавлены как будущие milestones, чтобы не забыть международные/мобильные требования при переходе между этапами.
+
 ### Отчётность ассистента (в чате)
 - В каждом сообщении по проекту: отдельная строка `Память обновлена`
 - После каждого сообщения по теме: прогресс в формате:
