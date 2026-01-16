@@ -462,6 +462,22 @@
       if (typeof costOverride === "number") opts.cost = costOverride | 0;
 
       const res = useCore ? Core.escape(battleId, opts) : Game.Conflict.escape(battleId, opts);
+      // If player has no points, show a nearby toast immediately (UI-level guidance),
+      // but still call core so rep_escape_click is applied and core can return its result.
+      try {
+        const mePts = (Game && Game.State && Game.State.me && Number.isFinite(Game.State.me.points)) ? (Game.State.me.points | 0) : 0;
+        if ((mePts | 0) <= 0 && opts && String(opts.mode || "").toLowerCase() !== "off") {
+          const msg = "Не хватает пойнтов.";
+          if (anchorBtn) {
+            showBtnToastRight(anchorBtn, msg);
+          } else if (UI && typeof UI.showStatToast === "function") {
+            UI.showStatToast("points", msg);
+          } else {
+            setInlineNote(battleId, msg);
+          }
+        }
+      } catch (_) {}
+
       if (res && res.ok === false) {
         const cost = (typeof res.cost === "number") ? res.cost : null;
         if (
