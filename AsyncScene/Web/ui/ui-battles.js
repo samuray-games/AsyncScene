@@ -33,34 +33,44 @@
     if (!btn) return;
     const msg = String(text || "").trim();
     if (!msg) return;
-    const host = btn.parentElement || btn;
-    try { host.style.position = host.style.position || "relative"; } catch (_) {}
-    let el = host.querySelector ? host.querySelector(".btnToastRight") : null;
+    // Render toast as a body-level absolutely positioned element so it survives
+    // rapid re-renders of the battle card (which may detach button's parent).
+    let el = document.querySelector(".btnToastRight[data-for-btid=\"" + (btn.dataset && btn.dataset.battleId ? String(btn.dataset.battleId) : "") + "\"]");
     if (!el) {
       el = document.createElement("div");
       el.className = "btnToastRight";
+      el.setAttribute("data-for-btid", (btn.dataset && btn.dataset.battleId) ? String(btn.dataset.battleId) : "");
       el.style.position = "absolute";
-      el.style.left = "100%";
-      el.style.top = "50%";
-      el.style.marginLeft = "8px";
-      el.style.transform = "translateY(-50%)";
-      el.style.padding = "4px 8px";
+      el.style.padding = "6px 10px";
       el.style.borderRadius = "8px";
       el.style.fontSize = "12px";
       el.style.fontWeight = "900";
       el.style.whiteSpace = "nowrap";
-      el.style.background = "rgba(0,0,0,0.75)";
+      el.style.background = "rgba(0,0,0,0.85)";
       el.style.color = "white";
-      el.style.zIndex = "9999";
+      el.style.zIndex = "999999";
       el.style.pointerEvents = "none";
-      try { host.appendChild(el); } catch (_) {}
+      el.style.transition = "opacity 120ms ease";
+      el.style.opacity = "0";
+      try { document.body.appendChild(el); } catch (_) {}
     }
     el.textContent = msg;
-    el.style.display = "block";
     try {
-      if (host.__btnToastTimer) clearTimeout(host.__btnToastTimer);
-      host.__btnToastTimer = setTimeout(() => {
-        try { if (el) el.style.display = "none"; } catch (_) {}
+      const r = btn.getBoundingClientRect();
+      const left = (r.right + (window.pageXOffset || document.documentElement.scrollLeft || 0) + 8);
+      const top = (r.top + (window.pageYOffset || document.documentElement.scrollTop || 0) + (r.height / 2));
+      el.style.left = String(Math.round(left)) + "px";
+      el.style.top = String(Math.round(top)) + "px";
+      el.style.transform = "translateY(-50%)";
+      el.style.display = "block";
+      // show
+      requestAnimationFrame(() => { try { el.style.opacity = "1"; } catch(_) {} });
+    } catch (_) {}
+    try {
+      if (el.__btnToastTimer) clearTimeout(el.__btnToastTimer);
+      el.__btnToastTimer = setTimeout(() => {
+        try { el.style.opacity = "0"; } catch (_) {}
+        try { setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 160); } catch (_) {}
       }, 1200);
     } catch (_) {}
   }
