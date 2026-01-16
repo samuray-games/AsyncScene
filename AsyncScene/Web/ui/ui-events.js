@@ -786,7 +786,9 @@ window.Game = window.Game || {};
             ? (Game.State.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
-            showVoteBtnToast(btn, "Не хватает пойнтов.");
+            const msg = "Не хватает пойнтов.";
+            try { showVoteBtnToast(btn, msg); } catch (_) {}
+            try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
             return;
           }
 
@@ -834,7 +836,8 @@ window.Game = window.Game || {};
                 const freshEvent = Game.State.events.find(x => x && x.id === eventId);
                 if (freshEvent && String(freshEvent.note || "") === "Не хватает пойнтов.") {
                   setEventNote(e, "Не хватает пойнтов.");
-                  showVoteBtnToast(btn, "Не хватает пойнтов.");
+                  try { showVoteBtnToast(btn, "Не хватает пойнтов."); } catch (_) {}
+                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Не хватает пойнтов."); } catch(_) {}
                 }
               }
             } catch (_) {}
