@@ -62,37 +62,48 @@ window.Game = window.Game || {};
     if (!anchorEl) return;
     const msg = String(text || "").trim();
     if (!msg) return;
-    const host = anchorEl.__toastHost || anchorEl;
-    let el = host.querySelector ? host.querySelector(".voteBtnToast") : null;
-    if (!el) {
-      el = document.createElement("div");
-      el.className = "voteBtnToast";
-      // Inline styles (no CSS file touch)
-      el.style.position = "absolute";
-      // Right of the clicked button
-      el.style.left = "100%";
-      el.style.top = "50%";
-      el.style.marginLeft = "8px";
-      el.style.transform = "translateY(-50%)";
-      el.style.padding = "4px 8px";
-      el.style.borderRadius = "8px";
-      el.style.fontSize = "12px";
-      el.style.fontWeight = "900";
-      el.style.whiteSpace = "nowrap";
-      el.style.background = "rgba(0,0,0,0.75)";
-      el.style.color = "white";
-      el.style.zIndex = "9999";
-      el.style.pointerEvents = "none";
-      try { host.appendChild(el); } catch (_) {}
-    }
-    el.textContent = msg;
-    el.style.display = "block";
-    // Auto-hide quickly (error toast, not a stat toast)
+    // Render toast on body so it survives DOM re-renders of the events card.
     try {
-      if (host.__toastTimer) clearTimeout(host.__toastTimer);
-      host.__toastTimer = setTimeout(() => {
-        try { if (el) el.style.display = "none"; } catch (_) {}
-      }, 1200);
+      // Associate a stable id with the anchor element if not present
+      if (!anchorEl.__voteToastId) anchorEl.__voteToastId = `voteToast_${Date.now()}_${Math.floor(Math.random()*1e6)}`;
+      const sid = String(anchorEl.__voteToastId);
+      let el = document.querySelector(`.voteBtnToast[data-for='${sid}']`);
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "voteBtnToast";
+        el.setAttribute("data-for", sid);
+        el.style.position = "absolute";
+        el.style.padding = "6px 10px";
+        el.style.borderRadius = "8px";
+        el.style.fontSize = "12px";
+        el.style.fontWeight = "900";
+        el.style.whiteSpace = "nowrap";
+        el.style.background = "rgba(0,0,0,0.85)";
+        el.style.color = "white";
+        el.style.zIndex = "999999";
+        el.style.pointerEvents = "none";
+        el.style.transition = "opacity 120ms ease";
+        el.style.opacity = "0";
+        try { document.body.appendChild(el); } catch (_) {}
+      }
+      el.textContent = msg;
+      try {
+        const r = anchorEl.getBoundingClientRect();
+        const left = (r.right + (window.pageXOffset || document.documentElement.scrollLeft || 0) + 8);
+        const top = (r.top + (window.pageYOffset || document.documentElement.scrollTop || 0) + (r.height / 2));
+        el.style.left = String(Math.round(left)) + "px";
+        el.style.top = String(Math.round(top)) + "px";
+        el.style.transform = "translateY(-50%)";
+        el.style.display = "block";
+        requestAnimationFrame(() => { try { el.style.opacity = "1"; } catch(_) {} });
+      } catch (_) {}
+      try {
+        if (el.__voteToastTimer) clearTimeout(el.__voteToastTimer);
+        el.__voteToastTimer = setTimeout(() => {
+          try { el.style.opacity = "0"; } catch (_) {}
+          try { setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 160); } catch (_) {}
+        }, 1200);
+      } catch (_) {}
     } catch (_) {}
   }
 
