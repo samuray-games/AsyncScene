@@ -1476,9 +1476,12 @@ window.Game = window.Game || {};
               transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
             }
           } catch (_) {}
+          // Per spec: on conversion, reset overflow to 0.
+          overflow = 0;
         }
-        State.points.overflow = Math.max(0, overflow | 0);
-        State.overPoints = Math.max(0, State.points.overflow | 0);
+        const finalOverflow = Math.max(0, overflow | 0);
+        State.points.overflow = finalOverflow;
+        State.overPoints = finalOverflow;
         State.pointsCapActive = ((State.me && Number.isFinite(State.me.points) ? (State.me.points|0) : 0) >= cap2);
       } catch (_) {}
       return finalizePoints();
@@ -1504,9 +1507,11 @@ window.Game = window.Game || {};
         const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
         transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
       } catch (_) {}
+      // Reset overflow on conversion (spec: clear overPoints after conversion)
+      overflow = 0;
     }
     State.me.points = base;
-    // Option A: keep existing conversion overflow/5 -> +1 ⚡ (influence). Store remainder as overPoints.
+    // Store final overflow (zero if conversion occurred)
     State.points.overflow = Math.max(0, overflow | 0);
     State.overPoints = Math.max(0, State.points.overflow | 0);
     State.pointsCapActive = (base >= cap);
