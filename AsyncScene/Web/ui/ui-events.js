@@ -779,8 +779,12 @@ window.Game = window.Game || {};
           stop(ev);
           if (UI) UI._eventsClickHold = Date.now() + 420;
 
-          // If no points, show local toast under the button and do nothing.
-          // Prefer authoritative source: Game.State.me (may be updated by core/econ).
+          // Disabled button hint: do not run economic checks / toasts
+          if (!votingAllowed) {
+            try { showVoteBtnToast(btn, "Недоступно сейчас."); } catch (_) {}
+            return;
+          }
+
           const havePts = (Game && Game.State && Game.State.me && Number.isFinite(Game.State.me.points))
             ? (Game.State.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
@@ -907,43 +911,77 @@ window.Game = window.Game || {};
         info.style.borderTop = "1px solid rgba(255,255,255,0.1)";
         info.style.paddingTop = "6px";
         try {
-          // Result phrasing
+          // Line 1: canonical result phrasing.
           let resLine = "";
           if (ne && ne.escapeMode) {
             resLine = escapeResultLine(ne, e);
           } else {
-            resLine = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : `${aName} vs ${bName}`;
+            // Use A as subject: "<A> победил/не победил <B>"
+            if (winnerSide === "a") resLine = `${aName} победил ${bName}`;
+            else if (winnerSide === "b") resLine = `${aName} не победил ${bName}`;
+            else resLine = `${aName} не победил ${bName}`;
           }
           const rowRes = document.createElement("div");
           rowRes.textContent = resLine;
           info.appendChild(rowRes);
+          try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
 
-          // Your choice
-          if (e && e.playerVoted && e.myVote) {
-            const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
-            const myChoiceLabel = (e.myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
-            const rowChoice = document.createElement("div");
-            rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
+          // Line 2: player's choice (if any)
+          try {
+            const meId = (S && S.me && S.me.id) ? S.me.id : "me";
+            const crowd = getCrowdState(e);
+            const myVote = (crowd && crowd.voters && crowd.voters[meId]) ? crowd.voters[meId] : (e && e.myVote ? e.myVote : null);
+            if (myVote) {
+              const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
+              const myChoiceLabel = (myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
+              const rowChoice = document.createElement("div");
+              rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
             info.appendChild(rowChoice);
-          }
+            try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+            }
+          } catch (_) {}
 
-          // Vote tally
+          // Line 3: vote tally
           const rowTally = document.createElement("div");
           rowTally.textContent = `Итог голосования: ${aVotes}:${bVotes}`;
           info.appendChild(rowTally);
+          try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
 
-          // Single delta line
-          const repDelta = (e && e.playerVoted) ? 1 : 0;
-          // participation cost -1 point, refund +1 if player's side won
-          const playerParticipated = !!(e && e.playerVoted);
-          const playerWon = playerParticipated && winnerSide && (e.myVote === winnerSide);
-          const pointsDelta = playerParticipated ? (playerWon ? 0 : -1) : 0;
-          const repStr = `+${repDelta}⭐`;
-          const ptsStr = (pointsDelta >= 0) ? `+${pointsDelta}💰` : `${pointsDelta}💰`;
+          // Line 4: single aggregated delta line from Game.Debug.moneyLog / toastLog
+          let repSum = 0;
+          let ptsSum = 0;
+          try {
+            const bid = ne.battleId || ne.id || null;
+            const money = (Game && Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null;
+            const toasts = (Game && Game.Debug && Array.isArray(Game.Debug.toastLog)) ? Game.Debug.toastLog : null;
+            if (Array.isArray(money)) {
+              for (const it of money) {
+                try {
+                  if (!it) continue;
+                  if (bid && String(it.battleId || it.eventId || "") !== String(bid)) continue;
+                  if (String(it.kind || "").toLowerCase() === "rep" || String(it.reason || "").toLowerCase().includes("rep")) repSum += Number(it.delta || 0);
+                  if (String(it.kind || "").toLowerCase() === "points" || String(it.reason || "").toLowerCase().includes("points")) ptsSum += Number(it.delta || 0);
+                } catch (_) {}
+              }
+            }
+            if (Array.isArray(toasts)) {
+              for (const it of toasts) {
+                try {
+                  if (!it) continue;
+                  if (bid && String(it.battleId || it.eventId || "") !== String(bid)) continue;
+                  if (String(it.kind || "").toLowerCase() === "rep") repSum += Number(it.delta || 0);
+                  if (String(it.kind || "").toLowerCase() === "points") ptsSum += Number(it.delta || 0);
+                } catch (_) {}
+              }
+            }
+          } catch (_) {}
+          const repStr = (repSum >= 0) ? `+${repSum}⭐` : `${repSum}⭐`;
+          const ptsStr = (ptsSum >= 0) ? `+${ptsSum}💰` : `${ptsSum}💰`;
           const rowDelta = document.createElement("div");
           rowDelta.textContent = `${repStr} ${ptsStr}`;
           rowDelta.style.fontWeight = "900";
           info.appendChild(rowDelta);
+          try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
         } catch (_) {}
         card.appendChild(info);
       }

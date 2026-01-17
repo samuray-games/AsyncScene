@@ -367,7 +367,7 @@ window.Game = window.Game || {};
     } catch (_) {}
     try {
       if (Game && Game.UI && typeof Game.UI.emitStatDelta === "function") {
-        Game.UI.emitStatDelta(kind, diff);
+        Game.UI.emitStatDelta(kind, diff, meta || null);
       }
     } catch (_) {}
   }
@@ -443,7 +443,7 @@ window.Game = window.Game || {};
     // Global state for authority system (multiple cops)
     reports: {
       lastAt: 0,
-      cooldownMs: 5 * 60 * 1000, 
+      cooldownMs: 3 * 60 * 1000, 
       history: {},
       copCooldowns: {}, // copId -> lastAt (global per cop)
     },
@@ -599,7 +599,7 @@ window.Game = window.Game || {};
     State.sightings = {};
     State.reports = {
       lastAt: 0,
-      cooldownMs: 5 * 60 * 1000,
+      cooldownMs: 3 * 60 * 1000,
       history: {},
       copCooldowns: {},
       copChatter: {
@@ -799,7 +799,7 @@ window.Game = window.Game || {};
     const raw = pickCopTemplate(tpl[listName], "");
     const msg = fillCopTemplate(raw, cop, vars);
     if (!msg) return false;
-    pushDm("npc_cop", String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: copId });
+    pushDm(copId, String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: copId });
     return true;
   }
 
@@ -1032,11 +1032,21 @@ window.Game = window.Game || {};
     return null;
   }
 
-  function copDm(text, vars = {}){
+  function resolveCopById(copId){
+    try {
+      if (!copId || !State || !State.players) return null;
+      const p = State.players[copId];
+      if (!p) return null;
+      const role = String(p.role || p.type || "").toLowerCase();
+      if (role === "cop" || role === "police") return p;
+    } catch (_) {}
+    return null;
+  }
+
+  function copDmTo(copId, text, vars = {}){
     const D = Game.Data || null;
-    const cop = (State && State.players && State.assignedCopId && State.players[State.assignedCopId])
-      ? State.players[State.assignedCopId]
-      : (State && State.players ? Object.values(State.players).find(p => p && p.role === "cop") : null);
+    const cop = resolveCopById(copId)
+      || (State && State.players ? Object.values(State.players).find(p => p && (p.role === "cop" || p.role === "police")) : null);
     const copName0 = (cop && cop.name) ? String(cop.name) : "Коп";
     const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
     const pick = (arr) => (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
@@ -1063,24 +1073,24 @@ window.Game = window.Game || {};
     // First DM: send intro once
     try {
       migrateDmState();
-      const arr = (State.dm && State.dm.logs && State.dm.logs["npc_cop"]) ? State.dm.logs["npc_cop"] : [];
+      const key = (cop && cop.id) ? cop.id : String(copId || "npc_cop");
+      const arr = (State.dm && State.dm.logs && State.dm.logs[key]) ? State.dm.logs[key] : [];
       if (arr && arr.length === 0 && tpl && tpl.intros) {
         const intro = fill(pick(tpl.intros));
-        if (intro) pushDm("npc_cop", copName0, copLine(intro), { isSystem: false, playerId: State.assignedCopId || (cop && cop.id) || "npc_cop_v" });
+        if (intro && cop && cop.id) pushDm(cop.id, copName0, copLine(intro), { isSystem: false, playerId: cop.id });
       }
     } catch (_) {}
 
     const msg = (isKey && tpl && listName && tpl[listName])
       ? fill(pick(tpl[listName]))
       : fill(String(text || ""));
-    pushDm("npc_cop", copName0, copLine(msg), { isSystem: false, playerId: State.assignedCopId || (cop && cop.id) || "npc_cop_v" });
+    if (cop && cop.id) pushDm(cop.id, copName0, copLine(msg), { isSystem: false, playerId: cop.id });
   }
 
-  function copChat(text, vars = {}){
+  function copChatFrom(copId, text, vars = {}){
     const D = Game.Data || null;
-    const cop = (State && State.players && State.assignedCopId && State.players[State.assignedCopId])
-      ? State.players[State.assignedCopId]
-      : (State && State.players ? Object.values(State.players).find(p => p && p.role === "cop") : null);
+    const cop = resolveCopById(copId)
+      || (State && State.players ? Object.values(State.players).find(p => p && (p.role === "cop" || p.role === "police")) : null);
     const copName0 = (cop && cop.name) ? String(cop.name) : "Коп";
     const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
     const pick = (arr) => (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
@@ -1108,15 +1118,41 @@ window.Game = window.Game || {};
     const msg = (isKey && tpl && listName && tpl[listName])
       ? fill(pick(tpl[listName]))
       : fill(String(text || ""));
-    pushChat(copName0, copLine(msg), { isSystem: false, playerId: State.assignedCopId || (cop && cop.id) || "npc_cop_v" });
+    pushChat(copName0, copLine(msg), { isSystem: false, playerId: (cop && cop.id) ? cop.id : (copId || "npc_cop_v") });
+  }
+
+  // Backward-compat wrappers (legacy callsites rely on assignedCopId).
+  function copDm(text, vars = {}){
+    const cid = State && State.assignedCopId ? State.assignedCopId : null;
+    return copDmTo(cid, text, vars);
+  }
+
+  function copChat(text, vars = {}){
+    const cid = State && State.assignedCopId ? State.assignedCopId : null;
+    return copChatFrom(cid, text, vars);
   }
 
   function pushDm(targetId, name, text, opts = {}){
     migrateDmState();
     if (!State.dm.logs[targetId]) State.dm.logs[targetId] = [];
+    // Deduplicate: avoid pushing identical DM from same sender within short window
+    try {
+      const arr = State.dm.logs[targetId];
+      const last = Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null;
+      const nowMs = Date.now();
+      if (last && String(last.name) === String(name) && String(last.text) === String(text)) {
+        const lastTime = Number(last.timeMs || 0);
+        if (nowMs - lastTime < 2500) {
+          // skip duplicate within 2.5s window
+          return;
+        }
+      }
+    } catch (_) {}
+
     State.dm.logs[targetId].push({
       id: safeId(),
       t: nowHHMM(),
+      timeMs: Date.now(),
       name,
       text,
       isSystem: !!opts.isSystem,
@@ -1128,9 +1164,27 @@ window.Game = window.Game || {};
     });
     const arr = State.dm.logs[targetId];
     if (arr.length > 120) arr.shift();
+
+    // DM tabs: incoming/outgoing line opens (or focuses) the corresponding DM thread.
+    // This is the canonical place where logs[targetId] is mutated.
+    try {
+      State.dm.openIds = Array.isArray(State.dm.openIds) ? State.dm.openIds : [];
+      if (!("activeId" in State.dm)) State.dm.activeId = null;
+      const id = String(targetId || "");
+      if (id && !State.dm.openIds.includes(id)) State.dm.openIds.push(id);
+      if (id) {
+        State.dm.activeId = id;
+        State.dm.withId = id; // compat alias
+        State.dm.open = true;
+      }
+    } catch (_) {}
   }
 
-  function canReport(){
+  function canReport(copId){
+    const specific = resolveCopById(copId);
+    if (specific && specific.id) {
+      return !isCopBusyById(specific.id);
+    }
     return !!getAvailableCop();
   }
 
@@ -1148,20 +1202,20 @@ window.Game = window.Game || {};
     return Math.min(...lefts);
   }
 
-  function markReported(targetId, ok, role){
+  function markReported(targetId, ok, role, copId){
     State.reports.history[targetId] = {
       ok: !!ok,
       at: Date.now(),
       by: "me",
       role: String(role || ""),
+      copId: copId || null,
     };
     // Canon: cooldown on "report" starts only after a successful report.
     // In multi-cop system, we record which cop took the report and start their global cooldown.
     if (ok) {
       State.reports.lastAt = Date.now();
-      if (State.assignedCopId) {
-        State.reports.copCooldowns[State.assignedCopId] = Date.now();
-      }
+      const cid = copId || State.assignedCopId || null;
+      if (cid) State.reports.copCooldowns[cid] = Date.now();
     }
   }
 
@@ -1206,7 +1260,7 @@ window.Game = window.Game || {};
     return false;
   }
 
-  function applyReportByRole(role){
+  function applyReportByRole(role, opts = null){
     const raw = String(role || "").trim();
     const r = raw.toLowerCase();
     // normalize synonyms
@@ -1215,36 +1269,57 @@ window.Game = window.Game || {};
       const ps = State.players || {};
       target = Object.values(ps).find(x => x && x.name && String(x.name).toLowerCase() === r) || null;
     } catch (_) {}
-    const roleKey =
-      (target && (String(target.role || target.type || "").includes("toxic") || String(target.role || target.type || "").includes("токс"))) ? "toxic" :
-      (target && (String(target.role || target.type || "").includes("bandit") || String(target.role || target.type || "").includes("банд"))) ? "bandit" :
-      (target && (String(target.role || target.type || "").includes("mafia") || String(target.role || target.type || "").includes("мафи"))) ? "mafia" :
-      (r.includes("токс") || r === "toxic") ? "toxic" :
-      (r.includes("банд") || r === "bandit") ? "bandit" :
-      (r.includes("мафи") || r === "mafia" || r === "mafioso") ? "mafia" :
-      "";
+    // normalize synonyms helper (moved up so name-only reports are supported)
+    const normalizeRoleKeyEarly = (s) => {
+      const x = String(s || "").toLowerCase();
+      if (!x) return "";
+      if (x.includes("токс") || x.includes("toxic")) return "toxic";
+      if (x.includes("банд") || x.includes("bandit")) return "bandit";
+      if (x.includes("мафи") || x.includes("mafia") || x.includes("mafioso")) return "mafia";
+      return "";
+    };
 
-    if (!roleKey) {
-      copDm("Уточните, кого сдаёте: токсик, бандит или мафиози.");
+    let roleKey = "";
+    try {
+      if (target) roleKey = normalizeRoleKeyEarly(String(target.role || target.type || ""));
+      if (!roleKey) {
+        if (r.includes("токс") || r === "toxic") roleKey = "toxic";
+        else if (r.includes("банд") || r === "bandit") roleKey = "bandit";
+        else if (r.includes("мафи") || r === "mafia" || r === "mafioso") roleKey = "mafia";
+      }
+    } catch (_) { roleKey = ""; }
+
+    // MULTI-COP CANON: report is handled by a конкретный copId (from DM), with per-cop cooldowns.
+    // We resolve the cop as early as possible so even "unknown_role" replies go to the correct DM thread.
+    const requestedCopId = (opts && typeof opts === "object" && opts.copId) ? String(opts.copId) : "";
+    const requestedCop = requestedCopId ? resolveCopById(requestedCopId) : null;
+    const availableCop = requestedCop || getAvailableCop();
+    const cop = (availableCop && availableCop.id) ? availableCop : null;
+
+    // If no roleKey AND no target found by name -> unknown role request
+    if (!roleKey && !target) {
+      if (cop && cop.id) copDmTo(cop.id, "Уточните, кого сдаёте: токсик, бандит или мафиози.");
       return { ok: false, reason: "unknown_role" };
     }
 
-    // MULTI-COP CANON: check if any cop is available.
-    const availableCop = getAvailableCop();
-    if (!availableCop) {
-      copDm("cop_busy"); 
+    if (!cop || !cop.id) {
       return { ok: false, reason: "all_cops_busy" };
     }
-    
-    // Assign the available cop for this interaction
-    State.assignedCopId = availableCop.id;
-    // Immediately notify player that cop accepted the report (DM)
-    try { copDm("cop_accept"); } catch (_) {}
+    // If the requested cop is busy, only this cop replies "busy" in their DM.
+    if (isCopBusyById(cop.id)) {
+      try { copDmTo(cop.id, "cop_busy"); } catch (_) {}
+      return { ok: false, reason: "cop_busy", copId: cop.id };
+    }
+
+    // Assign this cop for this interaction (used by legacy helpers)
+    State.assignedCopId = cop.id;
+    // Immediately notify player that this cop accepted the report (DM in THIS cop thread)
+    try { pushDm(cop.id, cop.name, copLine("Принял. Сейчас разберёмся."), { isSystem: false, playerId: cop.id }); } catch (_) {}
 
     if (!target) target = findNpcByRole(roleKey);
     if (!target || !target.id) {
-      copDm("Цель не обнаружена. Проверю ещё раз.");
-      markReported(`missing:${roleKey}:${Date.now()}`, false, roleKey);
+      copDmTo(cop.id, "Цель не обнаружена. Проверю ещё раз.");
+      markReported(`missing:${roleKey}:${Date.now()}`, false, roleKey, cop.id);
       return { ok: false, reason: "not_found" };
     }
 
@@ -1258,13 +1333,34 @@ window.Game = window.Game || {};
 
     // Prevent repeat report of the same target during cooldown window.
     if (hasReported(target.id)) {
-      copDm("Этот контакт уже отмечен. Повтор не требуется.");
+      copDmTo(cop.id, "Этот контакт уже отмечен. Повтор не требуется.");
       return { ok: false, reason: "already_reported", targetId: target.id };
     }
 
-    // Determine truth: role must match.
-    const actual = getRoleOf(target.id);
-    const truthful = (actual === roleKey);
+    // Determine reported role key (for later truthful check).
+    const normalizeRoleKey = (s) => {
+      const x = String(s || "").toLowerCase();
+      if (!x) return "";
+      if (x.includes("токс") || x.includes("toxic")) return "toxic";
+      if (x.includes("банд") || x.includes("bandit")) return "bandit";
+      if (x.includes("мафи") || x.includes("mafia") || x.includes("mafioso")) return "mafia";
+      return x;
+    };
+
+    // If roleKey is empty but we found a target by name, accept the report and use the target's role for comparisons.
+    if (!roleKey && target && target.role) {
+      const nr = normalizeRoleKey(target.role);
+      roleKey = nr || "";
+    }
+
+    let reportedRole = "";
+    try {
+      if (target && target.role) reportedRole = normalizeRoleKey(target.role);
+      if (!reportedRole) reportedRole = normalizeRoleKey(r);
+    } catch (_) { reportedRole = normalizeRoleKey(r); }
+
+    const actual = getRoleOf(target && target.id);
+    const truthful = Boolean(reportedRole && target && (reportedRole === normalizeRoleKey(actual)));
     const reportId = `report_${target.id}_${Date.now()}`;
     let repTransferred = false;
 
@@ -1282,11 +1378,38 @@ window.Game = window.Game || {};
       const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
       const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
       
-      transferRep("me", "crowd_pool", repPenalty, "rep_report_false", reportId);
-      markReported(target.id, false, roleKey);
-      copDm("cop_fail"); 
-      copChat("cop_scold");
-      return { ok: false, reason: "false_report", role: roleKey, repPenalty };
+      // Apply REP penalty via transferRep; record and notify player explicitly.
+      try {
+        transferRep("me", "crowd_pool", repPenalty, "rep_report_false", reportId);
+      } catch (_) {}
+
+      // Ensure debug logs and toasts reflect the penalty even if econ path is silent.
+      try {
+        const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+        dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+        dbg.moneyLog.push({
+          time: Date.now(),
+          sourceId: "me",
+          targetId: "crowd_pool",
+          amount: repPenalty,
+          reason: "rep_report_false",
+          eventId: reportId || null,
+          battleId: reportId || null,
+          currency: "rep"
+        });
+        dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
+        dbg.toastLog.push({ ts: Date.now(), kind: "rep", delta: -(repPenalty), eventId: reportId || null, text: `-${repPenalty}⭐` });
+      } catch (_) {}
+
+      // DM to player: explicit penalty notice
+      try {
+        const penaltyMsg = `Это ложный донос — штраф ${repPenalty}⭐. Будьте внимательнее.`;
+        pushDm(cop.id, cop.name, copLine(penaltyMsg), { isSystem: false, playerId: cop.id });
+      } catch (_) {}
+
+      markReported(target.id, false, roleKey, cop.id);
+      try { copDmTo(cop.id, "cop_fail"); } catch (_) {}
+      return { ok: false, reason: "false_report", role: roleKey, repPenalty, copId: cop.id };
     }
 
     const sendRevengeDM = (roleKey, jailedId) => {
@@ -1309,28 +1432,100 @@ window.Game = window.Game || {};
       // REP v2 economy: truthful report gives fixed REP, no points reward.
       const payout = 0;
       const D = (Game && Game.Data) ? Game.Data : null;
-      if (!repTransferred) {
+        if (!repTransferred) {
         const repGain = (D && Number.isFinite(D.REP_REPORT_TRUE)) ? (D.REP_REPORT_TRUE | 0) : 2;
-        transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
+        try {
+          transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
+        } catch (_) {}
+        // immediate DM: use known local values (repGain)
+        try {
+          const repMsg = repGain > 0 ? `+${repGain}⭐` : "";
+          const bonusMsg = repMsg ? `Благодарим за сдачу, получено ${repMsg}`.trim() : "Благодарим за сдачу, получено.";
+          pushDm(cop.id, cop.name, copLine(bonusMsg), { isSystem: false, playerId: cop.id });
+        } catch (_) {}
+        // Fallback logging: ensure debug logs / toasts reflect the rep transfer if econ didn't
+        try {
+          const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+          dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+          const existsRep = dbg.moneyLog.some(x => x && String(x.reason || "") === "rep_report_true" && String(x.eventId||x.battleId||"") === String(reportId || ""));
+          if (!existsRep) {
+            dbg.moneyLog.push({
+              time: Date.now(),
+              reason: "rep_report_true",
+              currency: "rep",
+              amount: repGain,
+              sourceId: "crowd_pool",
+              targetId: "me",
+              eventId: reportId || null,
+              battleId: reportId || null
+            });
+          }
+          dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
+          dbg.toastLog.push({ ts: Date.now(), kind: "rep", delta: repGain, eventId: reportId || null, text: `+${repGain}⭐` });
+        } catch (_) {}
         repTransferred = true;
       }
 
-      markReported(target.id, true, roleKey);
+      markReported(target.id, true, roleKey, cop.id);
       
+      // Notify player in DM about the successful report and rewards.
+      // Compute actual rep/points amounts from moneyLog (authoritative) to avoid mismatches.
+      try {
+        let repSum = 0;
+        let ptsSum = 0;
+        try {
+          const logs = (Game && Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+          const bidStr = String(reportId || "");
+          for (const L of logs) {
+            if (!L) continue;
+            const tag = String(L.reason || "").toLowerCase();
+            const bidMatch = String(L.eventId || L.battleId || L.meta && L.meta.eventId || "").indexOf(bidStr) >= 0 || String(L.battleId || L.eventId || "") === bidStr;
+            if (!bidStr || bidMatch) {
+              // rep reasons
+              if (tag.indexOf("rep_report_true") >= 0 || tag.indexOf("rep_") === 0 || String(L.currency || "").toLowerCase() === "rep") {
+                repSum += Number(L.amount || L.delta || 0);
+              }
+              // points reasons
+              if (tag.indexOf("cop_compensation_return") >= 0 || tag.indexOf("crowd_vote_refund") >= 0 || String(L.currency || "").toLowerCase() === "points") {
+                ptsSum += Number(L.amount || L.delta || 0);
+              }
+            }
+          }
+        } catch (_) {}
+        const repMsg = (repSum > 0) ? `+${repSum}⭐` : "";
+        const ptsMsg = (ptsSum > 0) ? ` +${ptsSum}💰` : "";
+        const bonusMsg = repMsg || ptsMsg ? `Благодарим за сдачу, получено ${repMsg}${ptsMsg}`.trim() : "Благодарим за сдачу, получено.";
+        pushDm(cop.id, cop.name, copLine(bonusMsg), { isSystem: false, playerId: cop.id });
+      } catch(_) {}
+
       if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
-        copDm("cop_success");
-        
         // P0-2: дополнительный DM если игрок пострадал + компенсация пойнтов
         try {
           const victimized = checkIfVictimized(target.id);
           if (victimized) {
-            copDm("Я понимаю, что вас это задело. Меры приняты.");
+            copDmTo(cop.id, "Я понимаю, что вас это задело. Меры приняты.");
             
             // P0-2: компенсация пойнтов по правилам проекта (возврат украденного)
             const returnAmount = victimized.stolenAmount || 0; // возврат украденного
             if (returnAmount > 0) {
               // Возврат украденных пойнтов: используем addPoints для простоты
               addPoints(returnAmount, "cop_compensation_return");
+              // Fallback: log the refund in debug moneyLog/toastLog
+              try {
+                const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+                dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+                dbg.moneyLog.push({
+                  time: Date.now(),
+                  reason: "cop_compensation_return",
+                  currency: "points",
+                  amount: returnAmount,
+                  sourceId: "cop_compensation",
+                  targetId: "me",
+                  eventId: reportId || null
+                });
+                dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
+                dbg.toastLog.push({ ts: Date.now(), kind: "points", delta: returnAmount, eventId: reportId || null, text: `+${returnAmount}💰` });
+              } catch (_) {}
             }
             // P0-2: grant extra +1 REP and +1 point (bonus) for victim case
             try {
@@ -1362,7 +1557,7 @@ window.Game = window.Game || {};
           }
         } catch (_) {}
       } else {
-        copDm("Информация подтвердилась. Контакт отмечен.");
+        copDmTo(cop.id, "Информация подтвердилась. Контакт отмечен.");
       }
 
       // Remove any active battles with this target immediately (pipeline consistency).
@@ -1382,35 +1577,24 @@ window.Game = window.Game || {};
         try {
           if (State.reports && State.reports.history) delete State.reports.history[target.id];
         } catch (_) {}
-        if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
-          const roleLabel =
-            (roleKey === "toxic") ? "токсик" :
-            (roleKey === "bandit") ? "бандит" :
-            "мафиози";
-          copChat("Благодаря {role} {name} отправился за решётку на 5 минут.", { role: roleLabel, name: target.name });
-          copChat("cop_thanks");
-          copChat(`Все баттлы ${target.name} сняты.`);
-          sendRevengeDM(roleKey, target.id);
-        } else {
-          copChat(`Внимание: подозрительный персонаж — ${target.name}.`);
-        }
+        // Public chat: ONLY this cop posts the jail notice. No благодарностей / наград в общем чате.
+        try {
+          copChatFrom(cop.id, `${target.name} отправился за решётку на 5 минут.`);
+        } catch (_) {}
+        sendRevengeDM(roleKey, target.id);
       } else {
-        if (roleKey === "mafia") {
-          copChat(`Благодаря мафиози ${target.name} отмечен.`);
-        } else {
-          copChat(`Внимание: подозрительный персонаж — ${target.name}.`);
-        }
+        // Non-jail confirmations stay in DM only.
       }
 
       if (State.victimByRole && State.victimByRole[roleKey]) {
         State.victimByRole[roleKey] = null;
       }
 
-      return { ok: true, targetId: target.id, role: roleKey, reward: payout };
+      return { ok: true, targetId: target.id, role: roleKey, reward: payout, copId: cop.id };
     }
 
     // False report (no confirmation branch - redundant with above check but kept for safety)
-    copDm("Подтверждений нет. Будьте осторожнее с обвинениями.");
+    try { if (cop && cop.id) copDmTo(cop.id, "Подтверждений нет. Будьте осторожнее с обвинениями."); } catch (_) {}
     return { ok: false, reason: "false_report" };
   }
 
@@ -1586,6 +1770,7 @@ window.Game = window.Game || {};
     spendPoints,
     addRep,
     transferRep,
+    emitStatDelta,
     maybeDailyRepBonus,
     repNeedForNextInfluence,
     weeklyCapActive,

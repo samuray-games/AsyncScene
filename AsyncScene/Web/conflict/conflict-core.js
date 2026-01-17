@@ -208,7 +208,13 @@
           const oppId = b.opponentId || "sink";
           econTransfer("me", oppId, cost, "toxicHit", { battleId: b.id || b.battleId || null });
         } else {
-          me.points = clamp0(before - cost);
+          const afterPts = clamp0(before - cost);
+          me.points = afterPts;
+          try {
+            if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+              Game.StateAPI.emitStatDelta("points", (afterPts - before) | 0, { reason: "toxicHit", battleId: b.id || b.battleId || null });
+            }
+          } catch (_) {}
         }
         b.toxicHitApplied = true;
         b.toxicHitMs = now();
@@ -244,7 +250,13 @@
           const oppId = b.opponentId || "sink";
           econTransfer("me", oppId, stolen, "bandit_robbery", { battleId: b.id || b.battleId || null });
         } else {
-          me.points = Math.max(0, keepOne);
+          const afterPts = Math.max(0, keepOne);
+          me.points = afterPts;
+          try {
+            if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+              Game.StateAPI.emitStatDelta("points", (afterPts - before) | 0, { reason: "bandit_robbery", battleId: b.id || b.battleId || null });
+            }
+          } catch (_) {}
         }
         b.banditRobbed = true;
         recordVillainHarm("bandit", stolen, b.opponentId);
@@ -341,7 +353,14 @@
         const oppId = b.opponentId || "sink";
         econTransfer("me", oppId, 1, "toxicHit", { battleId: b.id || b.battleId || null });
       } else {
-        me.points = clamp0((me.points || 0) - 1);
+        const beforePts = (me.points || 0) | 0;
+        const afterPts = clamp0(beforePts - 1);
+        me.points = afterPts;
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "toxicHit", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
       }
 
       b.toxicHitApplied = true;
@@ -367,7 +386,13 @@
         const oppId = b.opponentId || "sink";
         econTransfer("me", oppId, before, "bandit_robbery", { battleId: b.id || b.battleId || null });
       } else {
+        const beforePts = (me.points || 0) | 0;
         me.points = 0;
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("points", (0 - beforePts) | 0, { reason: "bandit_robbery", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
       }
       b.banditRobbed = true;
     } catch (_) {}
@@ -385,12 +410,26 @@
       const me = Game.State && Game.State.me;
       if (!me) return;
 
-      me.influence = 0;
+      {
+        const beforeInf = (me.influence || 0) | 0;
+        me.influence = 0;
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("influence", (0 - beforeInf) | 0, { reason: "mafia_humiliation", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
       if (isCirculationEnabled()) {
         const before = me.points | 0;
         econTransfer("me", "sink", before, "mafia_humiliation", { battleId: b.id || b.battleId || null });
       } else {
+        const beforePts = (me.points || 0) | 0;
         me.points = 0;
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("points", (0 - beforePts) | 0, { reason: "mafia_humiliation", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
       }
       // IMPORTANT: do not modify Game.State.rep directly — always use transferRep to log REP moves.
       try {
@@ -399,7 +438,15 @@
           Game.StateAPI.transferRep("me", "crowd_pool", cur, "rep_mafia_humiliation_reset", b.id || b.battleId || null);
         }
       } catch (_) {}
-      me.wins = 0;
+      {
+        const beforeWins = (me.wins || 0) | 0;
+        me.wins = 0;
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("wins", (0 - beforeWins) | 0, { reason: "mafia_humiliation", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
       if (typeof me.winsSinceInfluence === "number") me.winsSinceInfluence = 0;
       if (Game.State.progress) {
         Game.State.progress.weeklyInfluenceGained = 0;
@@ -449,7 +496,9 @@
     const text = String(raw.text || raw.t || raw.line || raw.value || raw.msg || "").trim();
     const type = normalizeGroup(raw.type || raw.group || raw.g || raw.kindGroup || ft);
     const id = String(raw.id || raw.key || raw.tag || ("atk_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6)));
-    const color = normalizeColor(raw.color || raw.c || raw.power || "y");
+    // IMPORTANT: some producers (conflict-arguments.js) store hidden power in `_color`.
+    // If we ignore it, incoming NPC attacks silently downgrade to yellow.
+    const color = normalizeColor(raw._color || raw.color || raw.c || raw.power || "y");
 
     return {
       id,
@@ -587,7 +636,7 @@
     // Prefer NPC picker if available (influence-based, uses current data)
     if (Game.NPC && typeof Game.NPC.pickAttackByInfluence === "function") {
       try {
-        const a = Game.NPC.pickAttackByInfluence(inf);
+        const a = Game.NPC.pickAttackByInfluence(inf, opp && opp.role);
         // Canon-only: accept NPC pick only if it already looks canonical.
         if (a && (String(a.id || "").startsWith("canon_") || a._canonQ)) return sanitizeAttack(a);
       } catch (e) {
@@ -804,6 +853,11 @@
           const before = me.influence | 0;
           const after = Math.max(0, before - (infPenalty | 0));
           me.influence = after;
+          try {
+            if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+              Game.StateAPI.emitStatDelta("influence", (after - before) | 0, { reason: "inf_escape_vote", battleId: b.id || null });
+            }
+          } catch (_) {}
         }
 
         // REP penalties are handled on click only (see C.escape)
@@ -942,7 +996,16 @@
           econTransfer("me", opp.id, costNorm, "escape_vote_cost", { battleId: b.id || b.battleId || null });
         }
       } else {
-        if (me) me.points = clamp0((me.points|0) - costNorm);
+        if (me) {
+          const beforePts = (me.points | 0);
+          const afterPts = clamp0(beforePts - costNorm);
+          me.points = afterPts;
+          try {
+            if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+              Game.StateAPI.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "escape_vote_cost", battleId: b.id || b.battleId || null });
+            }
+          } catch (_) {}
+        }
         if (opp) opp.points = clamp0((opp.points|0) + costNorm);
       }
     }
@@ -1247,7 +1310,14 @@
             if (isCirculationEnabled()) {
               econTransfer("me", "sink", penalty, "cop_penalty", { battleId: b.id || b.battleId || null });
             } else {
-              me.points = clamp0((me.points | 0) - penalty);
+              const beforePts = (me.points | 0);
+              const afterPts = clamp0(beforePts - penalty);
+              me.points = afterPts;
+              try {
+                if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+                  Game.StateAPI.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "cop_penalty", battleId: b.id || b.battleId || null });
+                }
+              } catch (_) {}
             }
           }
           b.copPenaltyApplied = true;

@@ -49,19 +49,19 @@ window.Game ||= {};
     { id:"npc_queen",   name:"Королева", influence:12, role:"crowd",  sex:"f" },
     { id:"npc_veteran", name:"Ветеран",  influence:15, role:"crowd",  sex:"m" },
 
-    { id:"npc_toxic",   name:"Слава",    influence:45,  role:"toxic",  sex:"m", steals:3 },
-    { id:"npc_toxic2",  name:"Глеб",     influence:32,  role:"toxic",  sex:"m" },
-    { id:"npc_toxic3",  name:"Ксю",      influence:28,  role:"toxic",  sex:"f" },
-    { id:"npc_bandit",  name:"Олег",     influence:75,  role:"bandit", sex:"m", trap:true },
-    { id:"npc_bandit2", name:"Егор",     influence:60,  role:"bandit", sex:"m" },
-    { id:"npc_bandit3", name:"Макс",     influence:85,  role:"bandit", sex:"m" },
+    { id:"npc_toxic",   name:"Слава",    influence:20,  role:"toxic",  sex:"m", steals:3 },
+    { id:"npc_toxic2",  name:"Глеб",     influence:18,  role:"toxic",  sex:"m" },
+    { id:"npc_toxic3",  name:"Ксю",      influence:16,  role:"toxic",  sex:"f" },
+    { id:"npc_bandit",  name:"Олег",     influence:24,  role:"bandit", sex:"m", trap:true },
+    { id:"npc_bandit2", name:"Егор",     influence:22,  role:"bandit", sex:"m" },
+    { id:"npc_bandit3", name:"Макс",     influence:26,  role:"bandit", sex:"m" },
 
     // authority roles
-    { id:"npc_cop_v",   name:"Владимир Иванович", influence:75,  role:"cop", sex:"m" },
-    { id:"npc_cop_k",   name:"Кирилл Олегович",   influence:75,  role:"cop", sex:"m" },
-    { id:"npc_cop_a",   name:"Алексей Петрович",  influence:75,  role:"cop", sex:"m" },
+    { id:"npc_cop_v",   name:"Владимир Иванович", influence:18,  role:"cop", sex:"m" },
+    { id:"npc_cop_k",   name:"Кирилл Олегович",   influence:18,  role:"cop", sex:"m" },
+    { id:"npc_cop_a",   name:"Алексей Петрович",  influence:18,  role:"cop", sex:"m" },
 
-    { id:"npc_mafia",   name:"Аркадий Петрович",  influence:100, role:"mafia",  sex:"m", noInsult:true },
+    { id:"npc_mafia",   name:"Аркадий Петрович",  influence:35, role:"mafia",  sex:"m", noInsult:true },
   ];
 
   // Chat style rules for NPC lines:
@@ -273,7 +273,7 @@ window.Game ||= {};
     if (!p) return 1;
     if (p.role === "toxic") return (mode === "battle") ? 6 : 4; // токсик активнее
     if (p.role === "bandit") return (mode === "battle") ? 3 : 2;
-    if (p.role === "cop") return 0.4; // speaks publicly, but rarely
+    if (p.role === "cop") return 0.33; // ~3x rarer than normal NPCs
     if (p.role === "mafia") return (mode === "battle") ? 0 : 0.12; // appears very rarely, never initiates battles
     return 1;
   };
@@ -319,25 +319,29 @@ window.Game ||= {};
     return NPC.randomForBattle();
   };
 
-  NPC.allowedColorsForInfluence = (inf) => {
-    // New system uses short color codes: y (weak), o (strong), r (power), k (superpower)
+  NPC.allowedColorsForInfluence = (inf, role) => {
+    // Variant 2: tone guard is derived ONLY from tierKeysByInfluence (via Data.allowedColorsByInfluence).
+    // Rule: "k" (black) is allowed ONLY for mafia.
     const v = (inf || 0);
-    const set = new Set();
-    if (v >= 100) set.add("k");
-    else if (v >= 10) set.add("r");
-    else if (v >= 5) set.add("o");
-    else set.add("y");
-    return set;
+    const r = (role != null) ? String(role) : "";
+    try {
+      if (Game && Game.Data && typeof Game.Data.allowedColorsByInfluence === "function") {
+        const arr = Game.Data.allowedColorsByInfluence(v, r) || [];
+        return new Set(Array.isArray(arr) ? arr : [arr]);
+      }
+    } catch (_) {}
+    // Fallback if Data is missing: never allow k without explicit mafia role.
+    return new Set([String(r || "").toLowerCase() === "mafia" ? "k" : "y"]);
   };
 
-  NPC.pickAttack = (inf) => {
+  NPC.pickAttack = (inf, role) => {
     // Prefer ARGUMENTS (new), fallback to PHRASES (old) for safety.
     const src = (Game.Data && Game.Data.ARGUMENTS) ? Game.Data.ARGUMENTS
               : (Game.Data && Game.Data.PHRASES)   ? Game.Data.PHRASES
               : null;
     if (!src || !Array.isArray(src.attack)) return null;
 
-    const allowed = NPC.allowedColorsForInfluence(inf);
+    const allowed = NPC.allowedColorsForInfluence(inf, role);
 
     // If we are on old data (yellow/orange/red/black), map to new codes.
     const normalize = (c) => {
@@ -353,13 +357,13 @@ window.Game ||= {};
     return all.length ? Game.Data.pick(all) : null;
   };
 
-  NPC.pickDefense = (inf) => {
+  NPC.pickDefense = (inf, role) => {
     const src = (Game.Data && Game.Data.ARGUMENTS) ? Game.Data.ARGUMENTS
               : (Game.Data && Game.Data.PHRASES)   ? Game.Data.PHRASES
               : null;
     if (!src || !Array.isArray(src.defense)) return null;
 
-    const allowed = NPC.allowedColorsForInfluence(inf);
+    const allowed = NPC.allowedColorsForInfluence(inf, role);
 
     const normalize = (c) => {
       if (!c) return "y";
@@ -572,7 +576,12 @@ window.Game ||= {};
   NPC.normalizeCopLine = normalizeCopLine;
 
   // Cop knowledge base + reply generator (used by UI DM/chat routing).
-  NPC.getCop = () => NPC.getById("npc_cop");
+  // Multi-cop: return a random cop NPC (not a single hardcoded id).
+  NPC.getCop = () => {
+    const cops = NPC.getAll().filter(p => p && (p.role === "cop" || p.role === "police"));
+    if (!cops.length) return null;
+    return cops[Math.floor(Math.random() * cops.length)];
+  };
 
   NPC.COP = {
     topics: {
@@ -642,9 +651,9 @@ window.Game ||= {};
   // Backward-compat: some modules expect this older API name.
   // We proxy to the current picker and never throw, so NPC/event loops cannot die.
   if (typeof Game.NPC.pickAttackByInfluence !== "function") {
-    Game.NPC.pickAttackByInfluence = function(influence){
+    Game.NPC.pickAttackByInfluence = function(influence, role){
       try {
-        return (typeof NPC.pickAttack === "function") ? NPC.pickAttack(influence) : null;
+        return (typeof NPC.pickAttack === "function") ? NPC.pickAttack(influence, role) : null;
       } catch (_) {
         return null;
       }
@@ -654,9 +663,9 @@ window.Game ||= {};
   // Backward-compat: some modules expect this older API name.
   // Defense picker proxy for legacy callers.
   if (typeof Game.NPC.pickDefenseByInfluence !== "function") {
-    Game.NPC.pickDefenseByInfluence = function(influence){
+    Game.NPC.pickDefenseByInfluence = function(influence, role){
       try {
-        return (typeof NPC.pickDefense === "function") ? NPC.pickDefense(influence) : null;
+        return (typeof NPC.pickDefense === "function") ? NPC.pickDefense(influence, role) : null;
       } catch (_) {
         return null;
       }

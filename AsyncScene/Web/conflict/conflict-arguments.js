@@ -391,32 +391,28 @@
         const subs = canonSubKeysByColor(forced);
         return pickN(subs, 1)[0] || subs[0] || "Y1";
       }
-      // Tone gating by influence (allowed set)
-      // Additional tone guard: if player (me) involved and influence > 10, restrict to orange ('o') only.
-      let allowed = null;
+      // Variant 2: influence -> tierKeysByInfluence -> tierKey -> subKey.
+      // "k" is allowed ONLY for mafia.
+      const isPlayerAttack = !(battle && battle.fromThem === true);
+      let myRole = "";
+      let playerInf = 0;
       try {
-        const toneInfo = (D && typeof D.allowedTonesByInfluence === "function")
-          ? D.allowedTonesByInfluence(level)
-          : null;
-        allowed = allowedToneSet(toneInfo);
-      } catch (_) { allowed = null; }
+        const me = (Game && Game.State && Game.State.me) ? Game.State.me : null;
+        playerInf = (me && Number.isFinite(me.influence)) ? (me.influence | 0) : 0;
+        myRole = (me && me.role) ? String(me.role) : "";
+      } catch (_) { myRole = ""; }
+      let tierKey = "y1";
       try {
-        const myId = (Game && Game.State && Game.State.me && Game.State.me.id) ? String(Game.State.me.id) : "me";
-        const involvedWithMe = !!(battle && (String(battle.attackerId) === myId || String(battle.defenderId) === myId || (!battle.attackerId && !battle.fromThem)));
-        if (involvedWithMe && Number(level) > 10) {
-          // Force only orange for high-influence players
-          allowed = ["o"];
+        const sourceInf = isPlayerAttack ? playerInf : level;
+        const sourceRole = isPlayerAttack ? myRole : "";
+        if (D && typeof D.tierKeyByInfluence === "function") {
+          tierKey = D.tierKeyByInfluence(sourceInf, sourceRole);
+        } else if (D && typeof D.tierKeysByInfluence === "function") {
+          const keys = D.tierKeysByInfluence(sourceInf) || [];
+          tierKey = String(keys[0] || "y1");
+          if (String(tierKey).toLowerCase() === "k" && String(sourceRole || "").toLowerCase() !== "mafia") tierKey = "r4";
         }
-      } catch (_) {}
-      if (allowed && allowed.length) {
-        const subs = [];
-        for (const c of allowed) subs.push(...canonSubKeysByColor(c));
-        return pickN(subs, 1)[0] || subs[0] || "Y1";
-      }
-      const tierKeys = (D && typeof D.tierKeysByInfluence === "function")
-        ? D.tierKeysByInfluence(level)
-        : ["y1"];
-      const tierKey = pickN(tierKeys, 1)[0] || tierKeys[0] || "y1";
+      } catch (_) { tierKey = "y1"; }
       return canonSubFromTierKey(tierKey);
     };
 
@@ -547,7 +543,6 @@
     const opponentRoleRaw = (battle && (battle.opponentRole || (battle.opponent && battle.opponent.role)))
       ? String(battle.opponentRole || (battle.opponent && battle.opponent.role)).toLowerCase()
       : "";
-    const isMafiaOpponent = opponentRoleRaw === "mafia";
 
     const canonSubKeysByColor = (color) => {
       if (color === "k") return ["K"];
@@ -580,25 +575,45 @@
         const subs = canonSubKeysByColor(forced);
         return pickN(subs, 1)[0] || subs[0] || "Y1";
       }
-      if (isMafiaOpponent) return "K";
-      const toneInfo = (D && typeof D.allowedTonesByInfluence === "function")
-        ? D.allowedTonesByInfluence(level)
-        : null;
-      const allowed = allowedToneSet(toneInfo);
-      if (allowed && allowed.length) {
-        const subs = [];
-        for (const c of allowed) subs.push(...canonSubKeysByColor(c));
-        return pickN(subs, 1)[0] || subs[0] || "Y1";
+      // Variant 2:
+      // - Incoming battle (fromThem=true): build defense options for ME (use my influence).
+      // - Outgoing battle (fromThem=false): used by ConflictAPI to pick NPC defense (use opponent influence).
+      let chooserInf = level;
+      let chooserRole = "";
+      try {
+        const incoming = !!(battle && battle.fromThem === true);
+        if (incoming) {
+          chooserInf = level;
+          chooserRole = (Game && Game.State && Game.State.me && Game.State.me.role) ? String(Game.State.me.role) : "";
+        } else {
+          // Opponent chooser: battle.opponent may be missing; fall back to players lookup by opponentId.
+          const oppObj =
+            (battle && battle.opponent) ? battle.opponent :
+            ((battle && battle.opponentId && Game && Game.State && Game.State.players) ? Game.State.players[battle.opponentId] : null);
+          chooserInf = (oppObj && Number.isFinite(oppObj.influence)) ? (oppObj.influence | 0) : 0;
+          chooserRole = opponentRoleRaw || (oppObj && oppObj.role ? String(oppObj.role) : "");
+        }
+      } catch (_) {
+        chooserInf = level;
+        chooserRole = "";
       }
-      const tierKeys = (D && typeof D.tierKeysByInfluence === "function")
-        ? D.tierKeysByInfluence(level)
-        : ["y1"];
-      const tierKey = pickN(tierKeys, 1)[0] || tierKeys[0] || "y1";
+
+      let tierKey = "y1";
+      try {
+        if (D && typeof D.tierKeyByInfluence === "function") {
+          tierKey = D.tierKeyByInfluence(chooserInf, chooserRole);
+        } else if (D && typeof D.tierKeysByInfluence === "function") {
+          const keys = D.tierKeysByInfluence(chooserInf) || [];
+          tierKey = String(keys[0] || "y1");
+          if (String(tierKey).toLowerCase() === "k" && String(chooserRole || "").toLowerCase() !== "mafia") tierKey = "r4";
+        }
+      } catch (_) { tierKey = "y1"; }
+
       return canonSubFromTierKey(tierKey);
     };
 
     const subKey = pickCanonSub();
-    const tierColor = isMafiaOpponent ? "k" : (forced || canonColorFromSub(subKey));
+    const tierColor = forced || canonColorFromSub(subKey);
     const attackGroup = getGroup(battle && battle.attack ? battle.attack : attackArg) || "yn";
     const correctType = types.includes(attackGroup) ? attackGroup : "yn";
 
@@ -695,10 +710,6 @@
       }
     } catch (_) {}
     const inf = opp ? (opp.influence || 0) : 0;
-    const toneInfo = (opp && opp.role === "mafia")
-      ? { allowed: ["k"], label: "k" }
-      : ((D && typeof D.allowedTonesByInfluence === "function") ? D.allowedTonesByInfluence(inf) : null);
-    const allowed = allowedToneSet(toneInfo);
     const canonSubKeysByColor = (color) => {
       if (color === "k") return ["K"];
       if (color === "r") return ["R1", "R2", "R3", "R4"];
@@ -706,13 +717,19 @@
       return ["Y1", "Y2"];
     };
     const subKey = (function(){
-      if (allowed && allowed.length) {
-        const subs = [];
-        for (const c of allowed) subs.push(...canonSubKeysByColor(c));
-        return pickN(subs, 1)[0] || subs[0] || "Y1";
-      }
-      const tierKeys = (D && typeof D.tierKeysByInfluence === "function") ? D.tierKeysByInfluence(inf) : ["y1"];
-      const tierKey = pickN(tierKeys, 1)[0] || tierKeys[0] || "y1";
+      // Variant 2: tierKeysByInfluence is the ONLY source of tone.
+      // "k" is allowed ONLY for mafia.
+      let tierKey = "y1";
+      try {
+        if (D && typeof D.tierKeyByInfluence === "function") {
+          tierKey = D.tierKeyByInfluence(inf, opp && opp.role);
+        } else if (D && typeof D.tierKeysByInfluence === "function") {
+          const keys = D.tierKeysByInfluence(inf) || [];
+          tierKey = String(keys[0] || "y1");
+          if (String(tierKey).toLowerCase() === "k" && String((opp && opp.role) || "").toLowerCase() !== "mafia") tierKey = "r4";
+        }
+      } catch (_) { tierKey = "y1"; }
+
       const s = String(tierKey || "").trim();
       if (!s) return "Y1";
       const low = s.toLowerCase();
@@ -729,8 +746,7 @@
       if (s.startsWith("O")) return "o";
       return "y";
     };
-    // If opponent is mafia, force black arguments
-    const tierColor = (opp && opp.role === "mafia") ? "k" : canonColorFromSub(subKey);
+    const tierColor = canonColorFromSub(subKey);
     const typesWanted = ["about", "who", "where", "yn"];
     const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
     const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, ctx) : String(text || "");

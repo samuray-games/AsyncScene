@@ -75,12 +75,71 @@
 - `TEAM_LOG.md` остаётся справочным, но не источником “живой” памяти: последние snapshot/обновления по этапам уже перенесены сюда. Правило: при ответах о прогрессе надеемся на `PROJECT_MEMORY.md` и `PROGRESS_SCALE.md`, TEAM_LOG используют только при явном запросе исторического контекста. `Память обновлена`.
 
 ### Дополнительные стадии (roadmap после этапа 3)
-- Мобильная версия — задача перед запуском первоначального тестирования: адаптация UI и touch-интерфейса, убедиться в стабильности core, потом проводим пилот.  
-- Английская локализация — синхронный перевод всех UI/текстов/диалогов после формирования канона tone profiles; требует отдельного QA на стилистику.  
-- Японская локализация — особо важна для основного рынка; включает адаптацию tone profiles и проверку UI на переполнения.  
-- Испанская локализация — охват LAC; нужна проверка на местные idioms и ux-правки.  
-- Китайская локализация — тонкие шрифты/стилы, потребуется отдельный build/test (CJK support).  
-Эти стадии добавлены как будущие milestones, чтобы не забыть международные/мобильные требования при переходе между этапами.
+[•] Stage X — Мобильная версия: адаптация UI/touch до первых тестов (core стабильность, пилот).  
+[•] Stage X+1 — Английская локализация: переводы UI/системы/NPC после tone profiles, отдельный QA.  
+[•] Stage X+2 — Японская локализация: tone profiles + UI адаптированы под JP.  
+[•] Stage X+3 — Испанская локализация: особенности LAC (idiom, UX).  
+[•] Stage X+4 — Китайская локализация: шрифты и CJK support.  
+[•] Stage X+5 — Mafia mechanics: отдельная stage для социальной игры “мафия” с ролями, ночными действиями, голосованиями и сообщениями копов/мафии; включает проверки ночных/дневных циклов.  
+Перечисленные стадии фиксируют будущие milestones, чтобы не забыть международные/мобильные/социальные инициативы после current stages.
+
+### Stage 5 — Интерактивный язык (tone profiles)
+
+Цель: задать формальную структуру для внедрения profile‑based текстов (tone profiles) в UI, системные сообщения и NPC‑реплики. Контент (фразы) предоставляет контентная команда — здесь фиксируется структура и поля для заполнения программистом/контентом.
+
+1) Список профилей (фиксированные имена)
+- boomer
+- millennial
+- genz
+- alpha
+
+2) Структура описания профиля (шаблон для заполнения)
+- profile: (ключ, например `boomer`)
+- selection_source: (где выбирается профиль — `account_setting` | `panel` | `per_npc_role`)
+- priority: (`global` | `panel` | `npc`)
+- affected_scopes: [ UI_labels, system_messages, npc_replies, battle_texts, dm_templates, toasts ]
+- substitution_rules: [ поддерживаемые placeholder'ы: `{cop.fullName}`, `{role}`, `{name}`, `{PLACE}` ]
+- fallback_profile: (ключ профиля для fallback)
+- testing_keys: [ примерные keys для smoke-тестов, напр. `ui.menu.quit`, `battle.escape_button`, `cop_thanks` ]
+- acceptance_criteria:
+  - тексты не меняют механику/экономику
+  - placeholders не удаляются/изменяются
+  - smoke: отрисовать 3 UI‑элемента + 2 NPC‑ответа для каждого профиля
+- notes: (ограничения, пример: контент команда поставляет тексты; ассистент не генерирует креатив)
+
+3) Implementation checklist (для прогера)
+- добавить data structure: `Game.Data.TONE_PROFILES` (пустые поля, контент не заполнять)
+- API:
+  - `Game.State.me.toneProfile` — выбор профиля пользователя
+  - `Game.UI.setToneProfile(profile)` — setter + UI.render
+  - `Game.NPC.getTone(profile)` — helper для выборки реплик
+- Integration points:
+  - UI labels: `ui-core.js`
+  - System messages: `state.js` / `ui-core.js`
+  - NPC replies: `npcs.js` / `state.js`
+  - Battle texts: `ui-battles.js`
+  - DM templates: `ui-dm.js`
+- Test plan:
+  - Для каждого профиля: установить профиль, открыть UI (menu/battles/chat), вызвать NPC reply, зафиксировать DOM/лог (PASS/FAIL)
+
+4) Storage / format
+- Примерная структура (заполняется контентной командой):
+  - Game.Data.TONE_PROFILES = {
+  -   boomer: { ui: {...}, npc: {...}, system: {...} },
+  -   ...
+  - }
+- Программист реализует фоллбек на `fallback_profile`.
+
+5) Ограничения / инварианты
+- Профили НЕ влияют на аргументы/канон/экономику.
+- Все placeholder'ы сохраняются без изменений.
+- Контентный текст предоставляет команда — ассистент не придумывает фразы.
+
+6) Документация / next steps
+- Добавить инструкцию для контентной команды с полями структуры.
+- После заполнения — прогер запускает smoke: проверить UI и NPC для каждого профиля.
+
+Память обновлена
 
 ### Отчётность ассистента (в чате)
 - В каждом сообщении по проекту: отдельная строка `Память обновлена`
@@ -637,3 +696,56 @@ DevTools verification snippet:
   - Gate owner (Валера) signs off.
 
 - Reminder: schedule Gate review within 5 business days. Attach `Game.Debug.moneyLog.slice(-100)` and `Game.Debug.toastLog.slice(-100)` to the gate ticket for final audit.
+ 
+### 2026-01-17 — Assistant: insert startup memory & new-chat prompt
+- Purpose: сохранить компактный рабочий контекст и предоставить стартовый промт для нового чата (копировать в начало нового чата или хранить здесь).
+- Краткая память (ключевые факты):
+  - Repo: `/Users/User/Documents/created apps/AsyncScene`
+  - Инварианты:
+    - ВСЕ изменения REP/POINTS — только через `Game.StateAPI.transferRep` / transferRep; никаких прямых присвоений `Game.State.rep = ...`.
+    - CANON-only аргументы; фильтр: удалить пары с текстом содержащим "здесь".
+    - Data.COP_TEMPLATES, Data.CAP_MESSAGES, Data.OVERPOINTS_TO_REP = 5 вынесены в `data.js`.
+    - Tone gating: `Data.allowedTonesByInfluence` (<=5 → y; <=10 → y/o; <60 → o/r; >=60 → k). Mafia forced 'k'. Доп. guard: если игрок в бою и influence > 10 → принудительно 'o'.
+    - OverPoints: 5 overPoints → +1 REP (variant B); State.overPoints / pointsCapActive хранится в `state.js`.
+    - UI: red cap numbers + hover из `Data.CAP_MESSAGES`; overPoints badge; stat-toasts мгновенные; toast "Не хватает пойнтов." справа/над элементом при попытке с 0 points.
+  - Важные файлы: `data.js`, `conflict/conflict-arguments.js`, `conflict/conflict-core.js`, `conflict/conflict-economy.js`, `state.js`, `events.js`, `ui/ui-core.js`, `ui/ui-events.js`, `ui/ui-battles.js`, `ui/ui-chat.js`.
+- Быстрые DevTools команды для smoke:
+  1) Escape click / success: `Game.Debug.moneyLog.slice(-60)`, `Game.Debug.toastLog.slice(-60)`
+  2) OverPoints → REP: `Game.Debug.moneyLog.filter(x=>x.reason&&x.reason.indexOf('overpoints')>-1)`, `State.overPoints`
+  3) Vote with 0 points: `Array.from(document.querySelectorAll('.voteBtnToast, .chipToast, .statToast')).map(n=>n.textContent)`
+  4) Battle win points: `Game.Debug.moneyLog.slice(-40)` (ищем `battle_win_points`)
+  5) Tone gating checks: `([0,5,10,60,100].map(Game.Data.allowedTonesByInfluence))` и инспекция options rawColor/norm
+  6) Battle card final block: `Array.from(document.querySelectorAll('.battleCard .noteLine')).slice(-5).map(n=>n.textContent)`
+
+- Формат итоговой карточки боя (UI) — компактный блок из 4 строк:
+  1) "<X победил/не победил Y>" (или `b.resultLine`)
+  2) "Твой выбор: <текст выбора>" (если есть)
+  3) "Итог голосования: A:B"
+  4) одна строка с агрегированными дельтами: "+X⭐ +Y💰" (в одной строке, жирно)
+
+- Start prompt для нового чата (вставить как первое сообщение в новом чате):
+```
+Ты — инженер/ассистент, продолжающий работу над проектом AsyncScene (репо: /Users/User/Documents/created apps/AsyncScene).
+Контекст (копировать в память чата):
+- Инварианты: все изменения REP/POINTS только через transferRep; CANON-only args; фильтр "здесь"; Data.COP_TEMPLATES, Data.CAP_MESSAGES, Data.OVERPOINTS_TO_REP=5; tone gating (<=5:y, <=10:y/o, <60:o/r, >=60:k); mafia forced 'k'; player-in-battle+influence>10 -> force 'o'; overPoints 5 -> +1 REP.
+- Важные файлы: data.js, conflict/*, state.js, events.js, ui/*
+- Smoke команды (DevTools): (1) `Game.Debug.moneyLog.slice(-60)` (escape/rep), (2) `Game.Debug.moneyLog.filter(...'overpoints'...)`, `State.overPoints`, (3) check vote-toasts and chip-toasts, (4) `Game.Debug.moneyLog.slice(-40)` for battle_win_points, (5) tone gating checks, (6) `Array.from(document.querySelectorAll('.battleCard .noteLine')).map(n=>n.textContent)` to verify final card format.
+Задачи ассистента в новом чате:
+- Всегда проверять инвариант transferRep; перед правкой файлов — читать и запрашивать подтверждение; давать короткие патчи и точные DevTools команды; при получении логов — отвечать PASS/FAIL по чек-листу.
+Начни с вопроса: "Готовы вставить этот контекст в память проекта (PROJECT_MEMORY.md) и открыть новый чат? Нужна помощь с автоматическим патчем или вставишь сам?"
+```
+
+Память обновлена
+
+### 2026-01-17 — UI: cop chat prefix removed, cop DM & reports verification
+- Facts:
+-  - Убрано дублирование префикса "Имя:" в тексте сообщений копов (теперь имя показывается только в meta блока), файл: `AsyncScene/Web/ui/ui-chat.js`.
+-  - Логика пер-коп кулдаунов и DM подтверждена: при успешном приёме доноса коп отправляет DM "Принял. Сейчас разберёмся." и итоговую DM с суммами; `State.reports.copCooldowns` содержит запись для назначенного копа; `Game.Debug.moneyLog` и `Game.Debug.toastLog` содержат `rep_report_true`. Файл: `AsyncScene/Web/state.js`.
+-  - Проверка в рантайме: вызов `Game.StateAPI.applyReportByRole("Слабак")` вернул `{ ok: true, targetId: "npc_weak", role: "crowd", reward: 0 }`, DM и moneyLog/toastLog содержат ожидаемые записи.
+- Changed: `AsyncScene/Web/ui/ui-chat.js`, `AsyncScene/Web/state.js`
+- Result: PASS — cop chat prefix removal + cop DM/report basic flow verified in runtime.
+- Notes:
+-  - False-report (ложный донос) end-to-end penalty path requires separate smoke run; current runtime test covered a truthful report and DM/rep logging.
+-  - Если нужно — могу добавить отдельный atomic test для ложного доноса и скачать логи.
+
+Память обновлена

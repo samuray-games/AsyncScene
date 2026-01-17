@@ -1621,7 +1621,16 @@
           // show toast above incoming (grey) attack when clicked
           chip.onclick = (e) => {
             stop(e);
-            showChipToastAbove(chip, "Не хватает пойнтов.");
+          const typeRaw = (b.attack && (b.attack.type || b.attack.group || b.attack.kind || b.attack.pool)) ? String(b.attack.type || b.attack.group || b.attack.kind || b.attack.pool).toLowerCase() : "";
+          const norm = (typeRaw === "yesno") ? "yn" : typeRaw;
+          const hints = {
+            who: "Ответь кто.",
+            where: "Ответь где.",
+            about: "Ответь про кого.",
+            yn: "Ответь да или нет."
+          };
+          const msg = hints[norm] || "Ответь ...";
+          showChipToastAbove(chip, msg);
           };
           incoming.appendChild(chip);
           card.appendChild(incoming);
@@ -1733,13 +1742,22 @@
             else if (p && p.color) chip.style.color = "black";
             else chip.style.color = "rgba(255,255,255,.92)";
 
-            if (p && p._pad) {
-              chip.style.opacity = "0.55";
-              chip.style.cursor = "default";
-              chip.onclick = (e) => {
-                stop(e);
-                showChipToastAbove(chip, "Не хватает пойнтов.");
+          if (p && p._pad) {
+            chip.style.opacity = "0.55";
+            chip.style.cursor = "default";
+            chip.onclick = (e) => {
+              stop(e);
+              const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
+              const norm = (typeRaw === "yesno") ? "yn" : typeRaw;
+              const hints = {
+                who: "Ответь кто.",
+                where: "Ответь где.",
+                about: "Ответь про кого.",
+                yn: "Ответь да или нет."
               };
+              const msg = hints[norm] || "Ответь ...";
+              showChipToastAbove(chip, msg);
+            };
               row.appendChild(chip);
               return;
             }
@@ -1892,7 +1910,16 @@
               chip.style.color = "rgba(255,255,255,.92)";
               chip.onclick = (e) => {
                 stop(e);
-                showChipToastAbove(chip, "Не хватает пойнтов.");
+                const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
+                const norm = (typeRaw === "yesno") ? "yn" : typeRaw;
+                const hints = {
+                  who: "Ответь кто.",
+                  where: "Ответь где.",
+                  about: "Ответь про кого.",
+                  yn: "Ответь да или нет."
+                };
+                const msg = hints[norm] || "Ответь ...";
+                showChipToastAbove(chip, msg);
               };
               row.appendChild(chip);
               return;

@@ -367,11 +367,7 @@ window.Game = window.Game || {};
           try {
             if (Game.NPC && typeof Game.NPC.randomAny === "function" && typeof Game.NPC.generateChatLine === "function") {
               let npc = (typeof Game.NPC.randomForChat === "function") ? Game.NPC.randomForChat() : Game.NPC.randomAny();
-              // Ensure cop appears occasionally in public chat.
-              if (Game.NPC.getCop && Math.random() < 0.12) {
-                const cop = Game.NPC.getCop();
-                if (cop) npc = cop;
-              }
+              // Cop frequency is controlled by NPC.randomForChat weights (cops are ~3x rarer).
               // Bandit speaks rarer than Toxic; Mafioso is extremely rare and event-like
               if (npc && npc.role === "bandit" && Math.random() < 0.5) {
                 scheduleNpcChat();

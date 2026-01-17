@@ -199,6 +199,34 @@ window.Game = window.Game || {};
       }
     }
 
+  function bindChatHeaderLocations(UI) {
+    const $ = UI.$;
+    const header = $("chatHeader");
+    if (!header || header.__locHeader) return;
+    header.__locHeader = true;
+    header.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      UI.S.flags = UI.S.flags || {};
+      UI.S.flags.locationsOpen = !UI.S.flags.locationsOpen;
+      if (typeof UI.renderLocations === "function") UI.renderLocations();
+    });
+  }
+
+  function bindBlockHeaderToggles() {
+    const blocksRoot = $("blocks");
+    if (!blocksRoot || blocksRoot.__headerToggleBound) return;
+    blocksRoot.__headerToggleBound = true;
+    blocksRoot.addEventListener("click", (e) => {
+      const header = e.target && e.target.closest ? e.target.closest(".blockHeader, .panelHeader") : null;
+      if (!header) return;
+      if (e.target && e.target.closest && e.target.closest("button")) return;
+      const block = header.closest ? header.closest(".block, .panel") : null;
+      if (!block) return;
+      block.classList.toggle("panel--collapsed");
+    }, false);
+  }
+
     const btnRandom = $("btnRandom");
 
     const btnSend = $("btnSend");
@@ -208,6 +236,7 @@ window.Game = window.Game || {};
     const btnLottery = $("btnLottery");
 
     const dmClose = $("dmClose");
+    if (dmClose) dmClose.remove();
     const dmSend = $("dmSend");
     const dmInput = $("dmInput");
 
@@ -434,7 +463,7 @@ window.Game = window.Game || {};
 
     // Clear runtime collections
     S.chat = [];
-    S.dm = { open: false, withId: null, logs: {}, inviteOpen: false, copSilent: true, aggro: {} };
+    S.dm = { open: false, withId: null, openIds: [], activeId: null, logs: {}, inviteOpen: false, copSilent: true, aggro: {} };
     S.battles = [];
     S.events = [];
     S.flags = S.flags || {};
@@ -477,6 +506,8 @@ window.Game = window.Game || {};
 
     // Bind events
     bindUI(UI);
+    bindChatHeaderLocations(UI);
+    bindBlockHeaderToggles();
 
     // Render minimal UI only
     UI.renderAllMinimal && UI.renderAllMinimal();

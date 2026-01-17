@@ -112,16 +112,30 @@ window.Game = window.Game || {};
   function dmPushLine(whoId, from, text) {
     const S = getS();
     S.dm = S.dm || { logs:{} };
+    // DM tabs: ensure state shape
+    if (!Array.isArray(S.dm.openIds)) S.dm.openIds = [];
+    if (!("activeId" in S.dm)) S.dm.activeId = null;
     S.dm.logs = S.dm.logs || {};
     S.dm.logs[whoId] = S.dm.logs[whoId] || [];
     S.dm.logs[whoId].push({ t: UI.nowHHMM(), from, text });
+    // Keep thread available as a tab, but do NOT force-open here (caller decides).
+    try {
+      const id = String(whoId || "");
+      if (id && !S.dm.openIds.includes(id)) S.dm.openIds.push(id);
+      if (!S.dm.activeId) {
+        S.dm.activeId = id || null;
+        S.dm.withId = S.dm.activeId;
+      }
+    } catch (_) {}
   }
   UI.dmPushLine = dmPushLine;
 
   function closeDM() {
     const S = getS();
     S.dm.open = false;
+    S.dm.activeId = null;
     S.dm.withId = null;
+    S.dm.openIds = [];
     S.dm.inviteOpen = false;
 
     const dmBlock = $("dmBlock");
@@ -144,11 +158,16 @@ window.Game = window.Game || {};
     const myId = (S && S.me && S.me.id) ? S.me.id : "me";
     if (!playerId || playerId === myId || playerId === "me") return false;
     if (!getS().players[playerId]) return false;
-    S.dm = S.dm || { open:false, withId:null, logs:{}, inviteOpen:false };
-    S.dm.open = true;
-    S.dm.withId = playerId;
+    S.dm = S.dm || { open:false, withId:null, openIds:[], activeId:null, logs:{}, inviteOpen:false };
+    if (!Array.isArray(S.dm.openIds)) S.dm.openIds = [];
     S.dm.logs = S.dm.logs || {};
     S.dm.logs[playerId] = S.dm.logs[playerId] || [];
+
+    const id = String(playerId);
+    if (!S.dm.openIds.includes(id)) S.dm.openIds.push(id);
+    S.dm.activeId = id;
+    S.dm.withId = id; // compat alias
+    S.dm.open = true;
 
     // Ensure the DM becomes a visible tab even before any incoming messages.
     // This enables "open second DM while first stays available" behavior.
@@ -163,6 +182,7 @@ window.Game = window.Game || {};
     if (dmBlock) dmBlock.classList.remove("hidden");
 
     if (UI.setPanelSize) UI.setPanelSize("dm", "medium");
+    try { if (typeof UI.renderDM === "function") UI.renderDM(); } catch (_) {}
     requestAll();
   };
 
@@ -357,9 +377,15 @@ window.Game = window.Game || {};
 
   UI.renderDM = () => {
     const S = getS();
-    S.dm = S.dm || { open:false, withId:null, logs:{}, inviteOpen:false };
+    S.dm = S.dm || { open:false, withId:null, openIds:[], activeId:null, logs:{}, inviteOpen:false };
+    if (!Array.isArray(S.dm.openIds)) S.dm.openIds = [];
+    if (!("activeId" in S.dm)) S.dm.activeId = null;
+    // compat alias
+    if (S.dm.activeId && !S.dm.withId) S.dm.withId = S.dm.activeId;
+    if (S.dm.withId && !S.dm.activeId) S.dm.activeId = S.dm.withId;
 
-    const withId = S.dm.withId;
+    // Source of truth: activeId
+    const withId = S.dm.activeId;
     const dmBlock = $("dmBlock");
     if (dmBlock) dmBlock.classList.toggle("hidden", !S.dm.open);
 
@@ -454,8 +480,15 @@ window.Game = window.Game || {};
       }
     }
 
-    // DM must be hidden until explicitly opened by user action (bubble click / UI.openDM).
-    if (!S.dm.open || !withId) {
+    // If activeId is missing but we have open tabs, select the last one.
+    if (!withId && S.dm.openIds.length) {
+      S.dm.activeId = S.dm.openIds[S.dm.openIds.length - 1] || null;
+      S.dm.withId = S.dm.activeId;
+    }
+
+    // DM must be hidden until explicitly opened by user action (bubble click / UI.openDM),
+    // OR until an incoming DM opens the panel.
+    if (!S.dm.open || !S.dm.activeId) {
       if (dmBlock) dmBlock.classList.add("hidden");
       return;
     }
@@ -471,6 +504,85 @@ window.Game = window.Game || {};
 
     const target = getS().players[withId];
     if (!target) return;
+
+    // --- Tabs (chips) inside DM header ---
+    try {
+      const dmHeader = document.getElementById("dmHeader");
+      if (dmHeader) {
+        let tabs = document.getElementById("dmTabs");
+        if (!tabs) {
+          tabs = document.createElement("div");
+          tabs.id = "dmTabs";
+          // Reuse existing DM tabs styling
+          tabs.className = "dmList";
+          // Put tabs right after the title
+          const titleEl = document.getElementById("dmTitle");
+          if (titleEl && titleEl.parentNode === dmHeader) {
+            titleEl.insertAdjacentElement("afterend", tabs);
+          } else {
+            dmHeader.appendChild(tabs);
+          }
+        }
+        tabs.innerHTML = "";
+
+        const openIds = Array.isArray(S.dm.openIds) ? S.dm.openIds.slice() : [];
+        const activeId = String(S.dm.activeId || "");
+        openIds.forEach((id) => {
+          const p = S.players && S.players[id] ? S.players[id] : null;
+          const name = p ? (UI.displayName ? UI.displayName(p) : p.name) : String(id);
+
+          const chip = document.createElement("div");
+          chip.className = "pill dmTab" + (String(id) === activeId ? " active" : "");
+          chip.title = String(name || "");
+          chip.onclick = (ev) => {
+            stop(ev);
+            S.dm.activeId = String(id);
+            S.dm.withId = S.dm.activeId;
+            S.dm.open = true;
+            try { UI.renderDM(); } catch (_) {}
+            requestAll();
+          };
+
+          const row = document.createElement("div");
+          row.className = "dmTabRow";
+          chip.appendChild(row);
+
+          const label = document.createElement("span");
+          label.className = "dmTabLabel";
+          label.textContent = String(name || "");
+          row.appendChild(label);
+
+          const x = document.createElement("button");
+          x.type = "button";
+          x.className = "btn small dmTabClose";
+          x.textContent = "×";
+          x.title = "Закрыть";
+          x.onclick = (ev) => {
+            stop(ev);
+            const i = S.dm.openIds.indexOf(String(id));
+            if (i >= 0) S.dm.openIds.splice(i, 1);
+            // If closing active: pick neighbor, else keep current
+            if (String(id) === String(S.dm.activeId || "")) {
+              const left = S.dm.openIds[i - 1] || null;
+              const right = S.dm.openIds[i] || null;
+              const next = right || left || null;
+              S.dm.activeId = next;
+              S.dm.withId = next;
+              if (!next) {
+                S.dm.open = false;
+                const dmBlock0 = $("dmBlock");
+                if (dmBlock0) dmBlock0.classList.add("hidden");
+              }
+            }
+            try { UI.renderDM(); } catch (_) {}
+            requestAll();
+          };
+          row.appendChild(x);
+
+          tabs.appendChild(chip);
+        });
+      }
+    } catch (_) {}
 
     const dmTitle = $("dmTitle");
     if (dmTitle) {
@@ -1186,7 +1298,9 @@ window.Game = window.Game || {};
               return;
             }
             if (!Game.StateAPI || typeof Game.StateAPI.applyReportByRole !== "function") return;
-            const result = Game.StateAPI.applyReportByRole(q0);
+            // IMPORTANT: report is bound to the конкретному копу этой лички (per-cop cooldowns).
+            const copId = (target && target.id) ? target.id : withId;
+            const result = Game.StateAPI.applyReportByRole(q0, { copId });
 
             // Collapse back to the "Сдать" button
             state.open = false;

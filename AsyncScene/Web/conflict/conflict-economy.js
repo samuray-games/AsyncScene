@@ -334,6 +334,16 @@
       phase: meta && meta.phase ? meta.phase : null,
       meta: meta || null
     });
+    // Emit delta toast immediately for player points (no aggregation, no render-tick delay).
+    try {
+      const touchMe = (String(fromId) === "me") || (String(toId) === "me");
+      if (touchMe && Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+        const d = ((String(toId) === "me") ? (amt | 0) : 0) - ((String(fromId) === "me") ? (amt | 0) : 0);
+        if (d) {
+          Game.StateAPI.emitStatDelta("points", d, { reason: reason || "points_transfer", battleId: meta && meta.battleId ? meta.battleId : null });
+        }
+      }
+    } catch (_) {}
     return { ok: true };
   };
 
@@ -403,7 +413,14 @@
     if (spend) spend(1, "battle_start");
     else {
       if (typeof me.points !== "number") me.points = 0;
-      me.points = Math.max(0, me.points - 1);
+      const before = (me.points | 0);
+      const after = Math.max(0, before - 1);
+      me.points = after;
+      try {
+        if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+          Game.StateAPI.emitStatDelta("points", (after - before) | 0, { reason: "battle_start", battleId: battle && (battle.id || battle.battleId || null) });
+        }
+      } catch (_) {}
     }
 
     try {
@@ -563,7 +580,13 @@
           }
         }
         // Wins are progression; must increment in both economy modes.
-        try { me.wins = (me.wins | 0) + 1; } catch (_) { try { me.wins += 1; } catch (_) {} }
+        try {
+          const beforeWins = (me.wins | 0);
+          me.wins = beforeWins + 1;
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("wins", 1, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
+          }
+        } catch (_) { try { me.wins += 1; } catch (_) {} }
         try { maybeUnlocks(me); } catch (_) {}
         
         // Award +2 points on victory (contributes to overPoints / badge)
@@ -602,8 +625,21 @@
       // Rewards
       const gain = (D && Number.isFinite(D.POINTS_WIN)) ? (D.POINTS_WIN | 0) : 3;
       if (addPts) addPts(gain, "battle_win");
-      else me.points = Math.max(0, me.points + gain);
-      me.wins += 1;
+      else {
+        const beforePts = (me.points | 0);
+        me.points = Math.max(0, beforePts + gain);
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
+          }
+        } catch (_) {}
+      }
+      try {
+        me.wins = (me.wins | 0) + 1;
+        if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+          Game.StateAPI.emitStatDelta("wins", 1, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
+        }
+      } catch (_) { try { me.wins += 1; } catch (_) {} }
       
       // Task F: убрать тост "Победа!" (оставлен только для legacy режима, но закомментирован)
       // try {
@@ -640,7 +676,14 @@
         const isHighTone = PRESSURE_HIGH_TONE.has(myColor);
         const isWeakOpp = PRESSURE_WEAK_TONE.has(oppColor);
         if (isHighTone && isWeakOpp) {
-          me.influence = Math.max(0, (me.influence | 0) - (INF_PRESSURE_WIN_COST | 0));
+          const beforeInf = (me.influence | 0);
+          const afterInf = Math.max(0, beforeInf - (INF_PRESSURE_WIN_COST | 0));
+          me.influence = afterInf;
+          try {
+            if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+              Game.StateAPI.emitStatDelta("influence", (afterInf - beforeInf) | 0, { reason: "inf_pressure_win", battleId: battle.id || battle.battleId || null });
+            }
+          } catch (_) {}
           if (repGain > REP_PRESSURE_WIN_CAP) repGain = REP_PRESSURE_WIN_CAP;
           if (repGain <= 0) {
             logTransfer({
@@ -737,7 +780,15 @@
       } else {
       const gain = (D && Number.isFinite(D.POINTS_LOSE)) ? (D.POINTS_LOSE | 0) : 1;
       if (addPts) addPts(gain, "battle_lose");
-      else me.points = Math.max(0, me.points + gain);
+      else {
+        const beforePts = (me.points | 0);
+        me.points = Math.max(0, beforePts + gain);
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_lose", battleId: battle.id || battle.battleId || null });
+          }
+        } catch (_) {}
+      }
 
       // Task A: REP за исход по разнице сил Δ (поражение, legacy режим)
       if (transferRep && battle.opponentId) {
@@ -811,7 +862,15 @@
       } else {
       const gain = (D && Number.isFinite(D.POINTS_DRAW)) ? (D.POINTS_DRAW | 0) : 2;
       if (addPts) addPts(gain, "battle_draw");
-      else me.points = Math.max(0, me.points + gain);
+      else {
+        const beforePts = (me.points | 0);
+        me.points = Math.max(0, beforePts + gain);
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+            Game.StateAPI.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_draw", battleId: battle.id || battle.battleId || null });
+          }
+        } catch (_) {}
+      }
       
       // REP v2 economy: draw reward
       const repGain = (D && Number.isFinite(D.REP_DRAW)) ? (D.REP_DRAW | 0) : 1;

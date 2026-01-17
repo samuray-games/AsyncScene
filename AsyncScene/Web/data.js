@@ -361,19 +361,26 @@ window.Game = window.Game || {};
 
   Data.isBlack = (c) => c === "k";
 
-  // Colors available to a player/NPC by influence (single source of truth for tiers).
-  // Only the current tier (no weaker tiers at higher influence).
-  Data.allowedColorsByInfluence = (influence) => {
+  // Colors available to a player/NPC by influence (single source of truth).
+  // Variant 2: tone guard is based ONLY on tierKeysByInfluence.
+  // Rule: "k" (black) is allowed ONLY for mafia.
+  Data.allowedColorsByInfluence = (influence, role) => {
+    const D = Data;
     const inf = Number(influence || 0);
-    const u = (Data.PROGRESSION && Data.PROGRESSION.unlockInfluence) ? Data.PROGRESSION.unlockInfluence : {};
-    const strongAt = Number(u.strong || 5);
-    const powerAt = Number(u.power || 10);
-    const absoluteAt = Number(u.absolute || 100);
-
-    if (inf >= absoluteAt) return ["k"];
-    if (inf >= powerAt) return ["r"];
-    if (inf >= strongAt) return ["o"];
-    return ["y"];
+    const r = String(role || "").toLowerCase();
+    let tierKey = "y1";
+    try {
+      if (typeof D.tierKeyByInfluence === "function") {
+        tierKey = D.tierKeyByInfluence(inf, r);
+      } else if (typeof D.tierKeysByInfluence === "function") {
+        const keys = D.tierKeysByInfluence(inf) || [];
+        tierKey = String(keys[0] || "y1").toLowerCase();
+        if (tierKey === "k" && r !== "mafia") tierKey = "r4";
+      }
+    } catch (_) {
+      tierKey = "y1";
+    }
+    return [D.colorFromTierKey(tierKey)];
   };
 
   // Legacy helper: some UI places may still want full color names.
@@ -2100,41 +2107,81 @@ K YN A9: Нет.
 
   Data.tierKeysByInfluence = (inf) => {
     const v = Number(inf || 0);
-    const U = (Data.PROGRESSION && Data.PROGRESSION.unlockInfluence) ? Data.PROGRESSION.unlockInfluence : { strong:5, power:10, absolute:100 };
-    const out = ["y1","y2"];
-    if (v >= U.strong) out.push("o1","o2","o3");
-    if (v >= U.power) out.push("r1","r2","r3","r4");
-    if (v >= U.absolute) out.push("k1");
-    return out;
+    // Strict mapping of influence -> exact tier subkey (deterministic)
+    // Ranges:
+    // 0..2   -> y1
+    // 3..5   -> y2
+    // 6..8   -> o1
+    // 9..11  -> o2
+    // 12..14 -> o3
+    // 15..17 -> r1
+    // 18..20 -> r2
+    // 21..23 -> r3
+    // 24..26 -> r4
+    // 27+    -> k
+    try {
+      if (v >= 27) return ["k"];
+      if (v >= 24) return ["r4"];
+      if (v >= 21) return ["r3"];
+      if (v >= 18) return ["r2"];
+      if (v >= 15) return ["r1"];
+      if (v >= 12) return ["o3"];
+      if (v >= 9) return ["o2"];
+      if (v >= 6) return ["o1"];
+      if (v >= 3) return ["y2"];
+      return ["y1"];
+    } catch (_) {
+      return ["y1"];
+    }
   };
 
   // Helper: allowed tone by influence (y/o/r/k)
-  Data.allowedTonesByInfluence = (influence) => {
-    const v = Number(influence || 0);
-    // Canon gating:
-    // - influence <= 5: y
-    // - influence <= 10: y/o
-    // - influence < 60: o/r
-    // - influence >= 60: k
-    const allowed =
-      (v >= 60) ? ["k"] :
-      (v <= 5) ? ["y"] :
-      (v <= 10) ? ["y", "o"] :
-      ["o", "r"];
+  // Variant 2: allowed tone is derived ONLY from tierKeysByInfluence.
+  // Rule: "k" (black) is allowed ONLY for mafia.
+  Data.allowedTonesByInfluence = (influence, role) => {
+    const D = Data;
+    const inf = Number(influence || 0);
+    const r = String(role || "").toLowerCase();
+    let tierKey = "y1";
+    try {
+      if (typeof D.tierKeyByInfluence === "function") {
+        tierKey = D.tierKeyByInfluence(inf, r);
+      } else if (typeof D.tierKeysByInfluence === "function") {
+        const keys = D.tierKeysByInfluence(inf) || [];
+        tierKey = String(keys[0] || "y1").toLowerCase();
+        if (tierKey === "k" && r !== "mafia") tierKey = "r4";
+      }
+    } catch (_) {
+      tierKey = "y1";
+    }
+
+    const color = D.colorFromTierKey(tierKey);
+    const allowed = [color];
 
     // Deterministic return value for debugging/tests:
-    // - out.allowed: allowed tones (array)
-    // - out.label: "y" | "y/o" | "o/r" | "k"
-    // - out.pick(): helper to pick ONE allowed tone (random)
-    const out = { allowed, label: allowed.join("/") };
-    out.pick = () => {
-      const src = allowed.length ? allowed : ["y"];
-      return String(src[Math.floor(Math.random() * src.length)] || src[0] || "y");
-    };
-    // String(out) => label (NOT a random tone)
+    // - out.allowed: allowed tones (array; single element)
+    // - out.label: "y" | "o" | "r" | "k"
+    // - out.tierKey: tierKey ("y1".."r4"|"k")
+    // - out.pick(): helper to pick ONE allowed tone (deterministic)
+    const out = { allowed, label: color, tierKey };
+    out.pick = () => color;
+    // String(out) => label
     try { out[Symbol.toPrimitive] = () => out.label; } catch (_) {}
     out.toString = () => out.label;
     return out;
+  };
+
+  // Single source of truth helper:
+  // influence -> tierKeysByInfluence -> tierKey -> color,
+  // with a hard ban on "k" for non-mafia roles.
+  Data.tierKeyByInfluence = (influence, role) => {
+    const D = Data;
+    const inf = Number(influence || 0);
+    const r = String(role || "").toLowerCase();
+    const keys = (typeof D.tierKeysByInfluence === "function") ? (D.tierKeysByInfluence(inf) || []) : [];
+    let k = String(keys[0] || "y1").toLowerCase();
+    if (k === "k" && r !== "mafia") k = "r4";
+    return k;
   };
 
   Data.colorFromTierKey = (tierKey) => {

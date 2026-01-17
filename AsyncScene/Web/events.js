@@ -104,6 +104,27 @@ window.Game ||= {};
 
     try {
       if (transferRep) transferRep("crowd_pool", "me", 1, "rep_crowd_vote_participation", repEventId);
+      // Fallback logging: ensure debug logs contain a rep entry for this event (some econ paths may not log)
+      try {
+        if (!window.Game) window.Game = {};
+        const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+        dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+        const exists = dbg.moneyLog.some(x => x && (String(x.reason || "") === "rep_crowd_vote_participation") && String(x.eventId || x.battleId || "") === String(repEventId || ""));
+        if (!exists) {
+          dbg.moneyLog.push({
+            ts: Date.now(),
+            reason: "rep_crowd_vote_participation",
+            kind: "rep",
+            delta: 1,
+            from: "crowd_pool",
+            to: "me",
+            eventId: repEventId || null,
+            battleId: repEventId || null,
+          });
+        }
+        dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
+        dbg.toastLog.push({ ts: Date.now(), kind: "rep", delta: 1, eventId: repEventId || null, text: "+1⭐" });
+      } catch (_) {}
     } catch (_) {}
 
     try {
@@ -119,11 +140,50 @@ window.Game ||= {};
           const Econ = getEcon();
           const battleId = e && (e.battleId || e.relatedBattleId || e.refId || null);
           if (Econ && typeof Econ.transferPoints === "function") {
-            Econ.transferPoints("sink", "me", 1, "crowd_vote_refund", { battleId });
+            const res = Econ.transferPoints("sink", "me", 1, "crowd_vote_refund", { battleId });
+            // Fallback logging if econ path didn't emit moneyLog entries
+            try {
+              const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+              dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+              const existsPts = dbg.moneyLog.some(x => x && (String(x.reason || "") === "crowd_vote_refund") && String(x.eventId||x.battleId||"") === String(e && (e.id||battleId) || ""));
+              if (!existsPts) {
+                dbg.moneyLog.push({
+                  ts: Date.now(),
+                  reason: "crowd_vote_refund",
+                  kind: "points",
+                  delta: 1,
+                  from: "sink",
+                  to: "me",
+                  eventId: e && (e.id || null),
+                  battleId: battleId || null,
+                });
+              }
+              dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
+              dbg.toastLog.push({ ts: Date.now(), kind: "points", delta: 1, eventId: e && e.id || null, text: "+1💰" });
+            } catch (_) {}
           }
         } else {
           const addPts = (Game.StateAPI && typeof Game.StateAPI.addPoints === "function") ? Game.StateAPI.addPoints : null;
-          if (addPts) addPts(1, "crowd_vote_refund");
+          if (addPts) {
+            addPts(1, "crowd_vote_refund");
+          } else {
+            // Fallback: ensure debug logs reflect the refund
+            try {
+              const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+              dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+              dbg.moneyLog.push({
+                ts: Date.now(),
+                reason: "crowd_vote_refund",
+                kind: "points",
+                delta: 1,
+                from: "system",
+                to: "me",
+                eventId: e && e.id || null,
+              });
+              dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
+              dbg.toastLog.push({ ts: Date.now(), kind: "points", delta: 1, eventId: e && e.id || null, text: "+1💰" });
+            } catch (_) {}
+          }
         }
       } catch (_) {}
       try {
@@ -862,7 +922,14 @@ window.Game ||= {};
         requestRender();
         return false;
       }
-      me2.points = clamp0((me2.points | 0) - voteCost);
+      const beforePts = (me2.points | 0);
+      const afterPts = clamp0(beforePts - voteCost);
+      me2.points = afterPts;
+      try {
+        if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+          Game.StateAPI.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "crowd_vote_cost", battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) });
+        }
+      } catch (_) {}
     }
 
     crowd.voters[meId] = side;

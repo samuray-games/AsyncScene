@@ -494,11 +494,10 @@ window.Game = window.Game || {};
         }
       }
       let rendered = renderMentionsLocal(expanded, { speakerName: m.name });
-      // Cop messages: name must be at the beginning of the message line.
+      // Cop messages: do NOT prefix text with "Name:" — name is shown in meta.
       try {
         if (isCopSpeaker(m)) {
-          const nm = (m && m.name != null) ? String(m.name) : "Коп";
-          rendered = `<span class="copPrefix">${escapeHtml(nm)}: </span>` + rendered;
+          // intentionally leave 'rendered' unchanged so chat text has no "Name:" prefix
         }
       } catch (_) {}
 

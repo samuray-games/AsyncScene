@@ -45,6 +45,9 @@ window.Game = window.Game || {};
   if (!("dm" in S) || !S.dm) S.dm = {};
   if (!("open" in S.dm)) S.dm.open = false;
   if (!("withId" in S.dm)) S.dm.withId = null;
+  // DM tabs (chips): multiple open threads in one DM panel
+  if (!("openIds" in S.dm) || !Array.isArray(S.dm.openIds)) S.dm.openIds = [];
+  if (!("activeId" in S.dm)) S.dm.activeId = null;
   if (!("logs" in S.dm) || !S.dm.logs) S.dm.logs = {};
   if (!("inviteOpen" in S.dm)) S.dm.inviteOpen = false;
   if (!("copSilent" in S.dm)) S.dm.copSilent = true;
@@ -716,21 +719,15 @@ window.Game = window.Game || {};
   }
 
   function maybeQueueStatDeltaFromState(next){
-    // Track and show toasts for all stat changes (fixes DUM-009)
+    // Track stat values for UI, but do NOT generate delta-toasts here.
+    // Delta-toasts must be emitted at the moment the stat changes (see UI.emitStatDelta),
+    // not deferred until a render pass (no batching / no aggregation).
     UI.__prevStats = UI.__prevStats || { influence: 0, points: 0, rep: 0, wins: 0 };
     const prev = UI.__prevStats;
     
     const stats = ["influence", "points", "rep", "wins"];
     for (const key of stats) {
       const cur = (next && Number.isFinite(next[key])) ? (next[key] | 0) : 0;
-      const old = Number.isFinite(prev[key]) ? (prev[key] | 0) : 0;
-      const delta = cur - old;
-
-      // Always show delta toasts on any change (including 0 -> 1).
-      if (delta !== 0) {
-        queueDeltaToast(key, delta);
-      }
-
       prev[key] = cur;
     }
   }
@@ -748,80 +745,42 @@ window.Game = window.Game || {};
     return (kind === "influence" || kind === "rep" || kind === "points" || kind === "wins");
   }
 
-  function queueDeltaToast(kind, delta, opts){
-    UI.__statDelta = UI.__statDelta || { influence: 0, rep: 0, points: 0, wins: 0 };
-    UI.__statDelta[kind] = (UI.__statDelta[kind] || 0) + (delta | 0);
-    const immediate = opts && opts.immediate;
-    if (UI.__statDeltaTimer) {
-      clearTimeout(UI.__statDeltaTimer);
-      UI.__statDeltaTimer = null;
-    }
-    if (immediate) {
-      showDeltaToast();
-      return;
-    }
-    UI.__statDeltaTimer = setTimeout(() => {
-      UI.__statDeltaTimer = null;
-      showDeltaToast();
-    }, 80);
-  }
+  function showDeltaToastInstant(kind, delta){
+    const d = (delta | 0);
+    if (!kind || !d) return;
+    const anchor = statAnchor(kind);
+    if (!anchor) return;
 
-  function showDeltaToast(){
-    if (!UI.__statDelta) return;
-    UI.__statDeltaShown = UI.__statDeltaShown || { influence: 0, rep: 0, points: 0, wins: 0 };
-    const order = ["influence", "rep", "points", "wins"];
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
-    
-    // Show separate toast under each stat (fixes DUM-011)
-    for (const k of order) {
-      const v = UI.__statDelta[k] | 0;
-      if (!v) continue;
-      
-      const anchor = statAnchor(k);
-      if (!anchor) continue;
+    const icon = icons[kind] || "";
+    const sign = d > 0 ? "+" : "";
+    const text = `${icon} ${sign}${d}`;
 
-      // Accumulate while the toast is visible: +1 then +2 => +3
-      const prevShown = (UI.__statDeltaShown[k] | 0);
-      const nextShown = (prevShown + (v | 0)) | 0;
-      UI.__statDeltaShown[k] = nextShown;
+    UI.__deltaToastSeq = (UI.__deltaToastSeq | 0) + 1;
+    const id = `statToast_delta_${String(kind)}_${UI.__deltaToastSeq}`;
 
-      // If we cancelled out to 0, hide.
-      if (!nextShown) {
-        const id0 = `statToast_delta_${k}`;
-        const t0 = document.getElementById(id0);
-        if (t0) t0.style.display = "none";
-        continue;
-      }
+    const toast = document.createElement("div");
+    toast.id = id;
+    toast.className = "statToast statToast--delta";
+    toast.dataset.deltaKind = String(kind);
+    toast.textContent = text;
+    toast.onclick = () => {
+      try { toast.remove(); } catch (_) { try { toast.style.display = "none"; } catch (_) {} }
+    };
+    document.body.appendChild(toast);
 
-      const sign = nextShown > 0 ? "+" : "";
-      const text = `${icons[k]} ${sign}${nextShown}`;
-      const id = `statToast_delta_${k}`;
-      
-      let toast = document.getElementById(id);
-      if (!toast) {
-        toast = document.createElement("div");
-        toast.id = id;
-        toast.className = "statToast";
-        document.body.appendChild(toast);
-        // Toasts persist until clicked; click hides and resets accumulation for this stat.
-        toast.onclick = () => {
-          try { toast.style.display = "none"; } catch (_) {}
-          try { UI.__statDeltaShown[k] = 0; } catch (_) {}
-        };
-      }
-      
-      toast.textContent = text;
-      const r = anchor.getBoundingClientRect();
-      const left = Math.round(r.left + (r.width / 2));
-      const top = Math.round(r.bottom + 8);
-      toast.style.left = `${left}px`;
-      toast.style.top = `${top}px`;
-      toast.style.display = "block";
-      toast.style.opacity = "1";
-      toast.style.transform = "translateX(-50%)";
-    }
-    
-    UI.__statDelta = { influence: 0, rep: 0, points: 0, wins: 0 };
+    // Stack multiple delta-toasts for the same stat (no aggregation; separate toasts).
+    const existing = Array.from(document.querySelectorAll(`.statToast--delta[data-delta-kind="${String(kind)}"]`));
+    const idx = Math.max(0, existing.length - 1);
+
+    const r = anchor.getBoundingClientRect();
+    const left = Math.round(r.left + (r.width / 2));
+    const top = Math.round(r.bottom + 8 + (idx * 28));
+    toast.style.left = `${left}px`;
+    toast.style.top = `${top}px`;
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+    toast.style.transform = "translateX(-50%)";
   }
 
   UI.showStatToast = (kind, text) => {
@@ -852,8 +811,8 @@ window.Game = window.Game || {};
 
   UI.emitStatDelta = (kind, delta, opts) => {
     if (!kind || !Number.isFinite(Number(delta || 0)) || (delta | 0) === 0) return;
-    const merged = Object.assign({}, opts || {}, { immediate: true });
-    queueDeltaToast(kind, delta, merged);
+    // Must be immediate: same tick as the stat mutation, without batching/aggregation.
+    showDeltaToastInstant(kind, (delta | 0));
   };
 
   // De-dup stat toasts by text (hide previous identical ones).
@@ -867,6 +826,8 @@ window.Game = window.Game || {};
         const existing = Array.from(document.querySelectorAll(".statToast"));
         for (const el of existing) {
           try {
+            // Do not de-dup delta-toasts: each delta must be visible separately.
+            if (el && el.classList && el.classList.contains("statToast--delta")) continue;
             if (el && el.textContent === msg) el.style.display = "none";
           } catch (_) {}
         }
