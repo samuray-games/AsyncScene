@@ -566,6 +566,15 @@
         try { me.wins = (me.wins | 0) + 1; } catch (_) { try { me.wins += 1; } catch (_) {} }
         try { maybeUnlocks(me); } catch (_) {}
         
+        // Award +2 points on victory (contributes to overPoints / badge)
+        try {
+          if (addPts) {
+            addPts(2, "battle_win_points");
+          } else if (Game && Game.StateAPI && typeof Game.StateAPI.addPoints === "function") {
+            Game.StateAPI.addPoints(2, "battle_win_points");
+          }
+        } catch (_) {}
+
         // Task A: REP за исход по разнице сил Δ (победа)
         if (transferRep) {
           const delta = getToneDelta(battle);
@@ -651,7 +660,7 @@
       if (transferRep && repGain > 0 && battle.opponentId) {
         transferRep("crowd_pool", "me", repGain, "rep_battle_win", battle.id || battle.battleId || null);
       }
-
+      
       maybeUnlocks(me);
 
       try {
@@ -664,6 +673,15 @@
       try {
         if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
           Game.UI.requestRenderAll();
+        }
+      } catch (_) {}
+
+      // Award +2 points on victory (legacy): contributes to overPoints / badge
+      try {
+        if (addPts) {
+          addPts(2, "battle_win_points");
+        } else if (Game && Game.StateAPI && typeof Game.StateAPI.addPoints === "function") {
+          Game.StateAPI.addPoints(2, "battle_win_points");
         }
       } catch (_) {}
 
