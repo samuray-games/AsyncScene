@@ -392,10 +392,22 @@
         return pickN(subs, 1)[0] || subs[0] || "Y1";
       }
       // Tone gating by influence (allowed set)
-      const toneInfo = (D && typeof D.allowedTonesByInfluence === "function")
-        ? D.allowedTonesByInfluence(level)
-        : null;
-      const allowed = allowedToneSet(toneInfo);
+      // Additional tone guard: if player (me) involved and influence > 10, restrict to orange ('o') only.
+      let allowed = null;
+      try {
+        const toneInfo = (D && typeof D.allowedTonesByInfluence === "function")
+          ? D.allowedTonesByInfluence(level)
+          : null;
+        allowed = allowedToneSet(toneInfo);
+      } catch (_) { allowed = null; }
+      try {
+        const myId = (Game && Game.State && Game.State.me && Game.State.me.id) ? String(Game.State.me.id) : "me";
+        const involvedWithMe = !!(battle && (String(battle.attackerId) === myId || String(battle.defenderId) === myId || (!battle.attackerId && !battle.fromThem)));
+        if (involvedWithMe && Number(level) > 10) {
+          // Force only orange for high-influence players
+          allowed = ["o"];
+        }
+      } catch (_) {}
       if (allowed && allowed.length) {
         const subs = [];
         for (const c of allowed) subs.push(...canonSubKeysByColor(c));

@@ -1618,7 +1618,11 @@
           chip.className = clsForColor(null, true);
           chip.textContent = `Вброс: ${String(b.attack.text || "")}`;
           chip.style.color = "rgba(255,255,255,.92)";
-
+          // show toast above incoming (grey) attack when clicked
+          chip.onclick = (e) => {
+            stop(e);
+            showChipToastAbove(chip, "Не хватает пойнтов.");
+          };
           incoming.appendChild(chip);
           card.appendChild(incoming);
         }
@@ -1984,7 +1988,10 @@
 
             const showOffToast = () => {
               try {
-                offToast.textContent = "Отвали откроется на ⚡ 5.";
+                const msg = "Отвали откроется на ⚡ 5.";
+                // position near button via global helper
+                try { showBtnToastRight(off, msg); } catch (_) {}
+                offToast.textContent = msg;
                 offToast.style.display = "";
                 if (offToast._t) clearTimeout(offToast._t);
                 offToast._t = setTimeout(() => {
