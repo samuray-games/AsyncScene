@@ -896,70 +896,55 @@ window.Game = window.Game || {};
         const bVotes = Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0;
         const winnerSide = (e && e.crowd && e.crowd.winner) ? e.crowd.winner : computeCrowdWinner(e).winner;
 
+        // Build compact final info block per spec:
+        // Line 1: "<A> послал/не послал <B>" (use escapeResultLine for escape events when available)
+        // Line 2: "Твой выбор: X" (only if player voted)
+        // Line 3: "Итог голосования: A:B"
+        // Line 4: single summary line with deltas: "+{rep}⭐ {pointsSign}{points}💰"
         const info = document.createElement("div");
         info.className = "noteLine";
         info.style.marginTop = "4px";
         info.style.borderTop = "1px solid rgba(255,255,255,0.1)";
-        info.style.paddingTop = "4px";
-
-        // Твой выбор
-        if (e && e.playerVoted && e.myVote) {
-          const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
-          const myChoiceLabel = (e.myVote === "a")
-            ? (useLabels ? ne.voteLabels.a : aName)
-            : (useLabels ? ne.voteLabels.b : bName);
-          const row = document.createElement("div");
-          row.textContent = `Твой выбор: ${myChoiceLabel}`;
-          info.appendChild(row);
-        }
-
-        // Итог голосования: X:Y (always)
-        {
-          const row = document.createElement("div");
-          row.textContent = `Итог голосования: ${aVotes}:${bVotes}`;
-          info.appendChild(row);
-        }
-
-        // Результат: <...> (escape events use canonical phrasing)
-        {
-          let resLine = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : "";
-          if (ne.voteLabels && ne.escapeMode) {
+        info.style.paddingTop = "6px";
+        try {
+          // Result phrasing
+          let resLine = "";
+          if (ne && ne.escapeMode) {
             resLine = escapeResultLine(ne, e);
+          } else {
+            resLine = (e && (e.resultLine || e.result || e.resultText)) ? String(e.resultLine || e.result || e.resultText) : `${aName} vs ${bName}`;
           }
-          const row = document.createElement("div");
-          row.textContent = `Результат: ${resLine || "—"}`;
-          info.appendChild(row);
-        }
+          const rowRes = document.createElement("div");
+          rowRes.textContent = resLine;
+          info.appendChild(rowRes);
 
-        // Deltas for player vote (participation -> result)
-        if (e && e.playerVoted && e.myVote) {
-          const sep = document.createElement("div");
-          sep.style.marginTop = "6px";
-          info.appendChild(sep);
+          // Your choice
+          if (e && e.playerVoted && e.myVote) {
+            const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
+            const myChoiceLabel = (e.myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
+            const rowChoice = document.createElement("div");
+            rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
+            info.appendChild(rowChoice);
+          }
 
-          const head1 = document.createElement("div");
-          head1.textContent = "Изменения за участие:";
-          info.appendChild(head1);
+          // Vote tally
+          const rowTally = document.createElement("div");
+          rowTally.textContent = `Итог голосования: ${aVotes}:${bVotes}`;
+          info.appendChild(rowTally);
 
-          const d1a = document.createElement("div");
-          d1a.textContent = "+1⭐";
-          info.appendChild(d1a);
-
-          const d1b = document.createElement("div");
-          d1b.textContent = "-1💰";
-          info.appendChild(d1b);
-
-          const head2 = document.createElement("div");
-          head2.style.marginTop = "6px";
-          head2.textContent = "Изменения за результат:";
-          info.appendChild(head2);
-
-          const win = (winnerSide && e.myVote === winnerSide);
-          const d2 = document.createElement("div");
-          d2.textContent = win ? "+1💰" : "+0💰";
-          info.appendChild(d2);
-        }
-
+          // Single delta line
+          const repDelta = (e && e.playerVoted) ? 1 : 0;
+          // participation cost -1 point, refund +1 if player's side won
+          const playerParticipated = !!(e && e.playerVoted);
+          const playerWon = playerParticipated && winnerSide && (e.myVote === winnerSide);
+          const pointsDelta = playerParticipated ? (playerWon ? 0 : -1) : 0;
+          const repStr = `+${repDelta}⭐`;
+          const ptsStr = (pointsDelta >= 0) ? `+${pointsDelta}💰` : `${pointsDelta}💰`;
+          const rowDelta = document.createElement("div");
+          rowDelta.textContent = `${repStr} ${ptsStr}`;
+          rowDelta.style.fontWeight = "900";
+          info.appendChild(rowDelta);
+        } catch (_) {}
         card.appendChild(info);
       }
 
