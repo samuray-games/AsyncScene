@@ -1738,19 +1738,7 @@
               chip.style.cursor = "default";
               chip.onclick = (e) => {
                 stop(e);
-                try {
-                  const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
-                  const type = (typeRaw === "yesno" || typeRaw === "yn") ? "yn" : (typeRaw || "yn");
-                  const hint =
-                    (type === "yn") ? "Ответь да или нет." :
-                    (type === "who") ? "Ответь кто." :
-                    (type === "where") ? "Ответь где." :
-                    (type === "about") ? "Ответь про кого." :
-                    "Ответь на вопрос.";
-                  showChipToastAbove(chip, hint);
-                } catch (_) {
-                  showChipToastAbove(chip, "Ответь на вопрос.");
-                }
+                showChipToastAbove(chip, "Не хватает пойнтов.");
               };
               row.appendChild(chip);
               return;
@@ -1901,23 +1889,11 @@
               chip.textContent = p.text;
               chip.style.opacity = "0.55";
               chip.style.cursor = "default";
-            chip.style.color = "rgba(255,255,255,.92)";
-            chip.onclick = (e) => {
-              stop(e);
-              try {
-                const typeRaw = (p.qtype || p.type || p.group || "").toString().toLowerCase();
-                const type = (typeRaw === "yesno" || typeRaw === "yn") ? "yn" : (typeRaw || "yn");
-                const hint =
-                  (type === "yn") ? "Ответь да или нет." :
-                  (type === "who") ? "Ответь кто." :
-                  (type === "where") ? "Ответь где." :
-                  (type === "about") ? "Ответь про кого." :
-                  "Ответь на вопрос.";
-                showChipToastAbove(chip, hint);
-              } catch (_) {
-                showChipToastAbove(chip, "Ответь на вопрос.");
-              }
-            };
+              chip.style.color = "rgba(255,255,255,.92)";
+              chip.onclick = (e) => {
+                stop(e);
+                showChipToastAbove(chip, "Не хватает пойнтов.");
+              };
               row.appendChild(chip);
               return;
             }
@@ -2013,14 +1989,9 @@
             const showOffToast = () => {
               try {
                 const msg = "Отвали откроется на ⚡ 5.";
-                // position near button via global helper
                 try { showBtnToastRight(off, msg); } catch (_) {}
-                offToast.textContent = msg;
-                offToast.style.display = "";
-                if (offToast._t) clearTimeout(offToast._t);
-                offToast._t = setTimeout(() => {
-                  try { offToast.style.display = "none"; } catch (_) {}
-                }, 1500);
+                // ensure inline offToast stays hidden to avoid duplicate messages
+                try { offToast.style.display = "none"; } catch (_) {}
               } catch (_) {}
             };
 
