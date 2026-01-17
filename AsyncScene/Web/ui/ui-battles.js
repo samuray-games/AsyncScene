@@ -1738,7 +1738,19 @@
               chip.style.cursor = "default";
               chip.onclick = (e) => {
                 stop(e);
-                showChipToastAbove(chip, "Не хватает пойнтов.");
+                try {
+                  const typeRaw = (p.group || p.type || p.pool || "").toString().toLowerCase();
+                  const type = (typeRaw === "yesno" || typeRaw === "yn") ? "yn" : (typeRaw || "yn");
+                  const hint =
+                    (type === "yn") ? "Ответь да или нет." :
+                    (type === "who") ? "Ответь кто." :
+                    (type === "where") ? "Ответь где." :
+                    (type === "about") ? "Ответь про кого." :
+                    "Ответь на вопрос.";
+                  showChipToastAbove(chip, hint);
+                } catch (_) {
+                  showChipToastAbove(chip, "Ответь на вопрос.");
+                }
               };
               row.appendChild(chip);
               return;
@@ -1889,11 +1901,23 @@
               chip.textContent = p.text;
               chip.style.opacity = "0.55";
               chip.style.cursor = "default";
-              chip.style.color = "rgba(255,255,255,.92)";
-              chip.onclick = (e) => {
-                stop(e);
-                showChipToastAbove(chip, "Не хватает пойнтов.");
-              };
+            chip.style.color = "rgba(255,255,255,.92)";
+            chip.onclick = (e) => {
+              stop(e);
+              try {
+                const typeRaw = (p.qtype || p.type || p.group || "").toString().toLowerCase();
+                const type = (typeRaw === "yesno" || typeRaw === "yn") ? "yn" : (typeRaw || "yn");
+                const hint =
+                  (type === "yn") ? "Ответь да или нет." :
+                  (type === "who") ? "Ответь кто." :
+                  (type === "where") ? "Ответь где." :
+                  (type === "about") ? "Ответь про кого." :
+                  "Ответь на вопрос.";
+                showChipToastAbove(chip, hint);
+              } catch (_) {
+                showChipToastAbove(chip, "Ответь на вопрос.");
+              }
+            };
               row.appendChild(chip);
               return;
             }
