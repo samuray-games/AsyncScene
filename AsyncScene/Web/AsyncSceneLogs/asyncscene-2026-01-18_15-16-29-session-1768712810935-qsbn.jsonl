@@ -1,0 +1,3 @@
+{"ts": 1768716988025, "sessionId": "session-1768712810935-qsbn", "type": "chat", "name": "Слава", "text": "ну что, готов к баттлу", "system": false}
+{"ts": 1768716989344, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1768716979071_1476"}}
+{"ts": 1768716989345, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund"}}

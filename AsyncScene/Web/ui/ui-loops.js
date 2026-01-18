@@ -440,8 +440,6 @@ window.Game = window.Game || {};
           if (text && Game.StateAPI && typeof Game.StateAPI.pushDm === "function") {
             Game.StateAPI.pushDm(npc.id, npc.name, String(text), { isSystem: false, playerId: npc.id });
             st.npc.lastDmAt = Date.now();
-            if (UI && typeof UI.openDMBySpeakerId === "function") UI.openDMBySpeakerId(npc.id);
-            if (UI && typeof UI.setPanelSize === "function") UI.setPanelSize("dm", "medium");
           }
         } catch (_) {}
         scheduleNpcDm();

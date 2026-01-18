@@ -73,6 +73,14 @@
     return s || "yn";
   }
 
+  function bumpBattleBadgeIfCollapsed() {
+    try {
+      if (Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("battles")) {
+        if (typeof Game.UI.bumpCollapsedCounter === "function") Game.UI.bumpCollapsedCounter("battles");
+      }
+    } catch (_) {}
+  }
+
   function argGroup(arg){
     if (!arg) return "yesno";
     return normalizeGroup(arg.type || arg.group || arg.g || arg.kindGroup || "yesno");
@@ -1104,6 +1112,7 @@
 
     battle.pinned = true;
     Game.State.battles.unshift(battle);
+    bumpBattleBadgeIfCollapsed();
     try {
       const cdMap = Game.State.battleCooldowns || (Game.State.battleCooldowns = {});
       cdMap[opponentId] = now();
@@ -1162,12 +1171,14 @@
     // Canon-only: if we cannot build a canonical incoming attack, degrade to draw.
     if (!battle.attack || !battle.attack.text) {
       Game.State.battles.unshift(battle);
+      bumpBattleBadgeIfCollapsed();
       if (!battle.attackerId) battle.attackerId = opponentId;
       try { if (typeof C.finalize === "function") C.finalize(battle.id, "draw"); } catch (_) {}
       return battle;
     }
 
     Game.State.battles.unshift(battle);
+    bumpBattleBadgeIfCollapsed();
     try {
       const cdMap = Game.State.battleCooldowns || (Game.State.battleCooldowns = {});
       cdMap[opponentId] = now();
@@ -1661,6 +1672,7 @@
     } else {
       // Fallback: if old battle not found, add new one to top.
       Game.State.battles.unshift(nb);
+      bumpBattleBadgeIfCollapsed();
     }
 
     return { ok: true, accepted: true, battle: nb };

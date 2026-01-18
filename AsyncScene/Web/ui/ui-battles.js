@@ -647,11 +647,12 @@
     return activePinned.concat(activeUnpinned).concat(resolved);
   }
 
- UI.renderBattles = () => {
-   const body = $("battlesBody");
-   const countEl = $("battleCount");
-   if (!body || !countEl) return;
-   bindBattleArgClicks();
+UI.renderBattles = () => {
+  const body = $("battlesBody");
+  const countEl = $("battleCount");
+  if (!body || !countEl) return;
+  body.classList.remove("hidden");
+  bindBattleArgClicks();
 
    const header = $("battlesHeader");
    let headerBtns = null;
@@ -691,11 +692,26 @@
        requestAll();
      };
 
-     const btnCollapse = ensureBtn("battlesBtnCollapse", "—", "Свернуть", (ev) => { stop(ev); setSizeHeader("collapsed"); });
      const btnMax = ensureBtn("battlesBtnMax", "□", "Развернуть", (ev) => { stop(ev); setSizeHeader("max"); });
      const btnMed = ensureBtn("battlesBtnMed", "⧉", "Стандартный размер", (ev) => { stop(ev); setSizeHeader("medium"); });
-     headerBtns = { btnCollapse, btnMed, btnMax };
-   }
+    headerBtns = { btnMed, btnMax };
+    try {
+      const badgeValue = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("battles") : 0;
+      let badgeEl = header.querySelector(".panelBadge.battlesBadge");
+      if (!badgeEl) {
+        badgeEl = document.createElement("span");
+        badgeEl.className = "badge panelBadge battlesBadge";
+      }
+      badgeEl.textContent = badgeValue ? `(${badgeValue})` : "";
+      badgeEl.style.display = badgeValue ? "" : "none";
+      const right = header.querySelector(".righty");
+      if (right && badgeEl.parentNode !== header) {
+        header.insertBefore(badgeEl, right);
+      } else if (!right && badgeEl.parentNode !== header) {
+        header.appendChild(badgeEl);
+      }
+    } catch (_) {}
+  }
 
    // Ensure default size on start
    S.flags = S.flags || {};
@@ -716,26 +732,13 @@
    const size = (UI && typeof UI.getPanelSize === "function")
      ? UI.getPanelSize("battles")
      : ((S.flags && S.flags.battlesSize) || "medium");
-   if (headerBtns) {
-     headerBtns.btnCollapse.classList.toggle("is-active", size === "collapsed");
-     headerBtns.btnMed.classList.toggle("is-active", size === "medium");
-     headerBtns.btnMax.classList.toggle("is-active", size === "max");
-   }
-   body.classList.toggle("hidden", size === "collapsed");
+  if (headerBtns) {
+    headerBtns.btnMed.classList.toggle("is-active", size === "medium");
+    headerBtns.btnMax.classList.toggle("is-active", size === "max");
+  }
 
     // Local invite UI state (kept stable across renders)
     UI._battleInvite = UI._battleInvite || { open:false, q:"", sel:0, lastPicked:null };
-
-    // Auto-expand battles panel when there is at least one active battle (Step 10)
-    try {
-      if (typeof UI.openBattles === "function") {
-        const hasActive = Array.isArray(S.battles) && S.battles.some(b => b && b.resolved !== true);
-        if (hasActive) {
-          if (UI && typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles");
-          else if (size === "collapsed") { S.flags = S.flags || {}; S.flags.battlesSize = "medium"; }
-        }
-      }
-    } catch (_) {}
 
    const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
    countEl.textContent = String(battlesCount);
@@ -1330,7 +1333,7 @@
 
             const closeBtn = document.createElement("button");
             closeBtn.className = "btn small";
-            closeBtn.textContent = "Свернуть";
+            closeBtn.textContent = "Закрыть";
             closeBtn.onclick = (e) => {
               stop(e);
               _captureBattleFocus(b.id, card);
@@ -1576,7 +1579,7 @@
 
             const closeBtn = document.createElement("button");
             closeBtn.className = "btn small";
-            closeBtn.textContent = "Свернуть";
+            closeBtn.textContent = "Закрыть";
             closeBtn.onclick = (e) => {
               stop(e);
               _captureBattleFocus(b.id, card);
@@ -2015,7 +2018,7 @@
 
             const showOffToast = () => {
               try {
-                const msg = "Отвали откроется на ⚡ 5.";
+                const msg = "Откроется на ⚡5";
                 try { showBtnToastRight(off, msg); } catch (_) {}
                 // ensure inline offToast stays hidden to avoid duplicate messages
                 try { offToast.style.display = "none"; } catch (_) {}
@@ -2277,9 +2280,9 @@
         const closeRow = document.createElement("div");
         closeRow.className = "actions";
 
-        const closeBtn = document.createElement("button");
-        closeBtn.className = "btn small";
-        closeBtn.textContent = "Свернуть";
+            const closeBtn = document.createElement("button");
+            closeBtn.className = "btn small";
+            closeBtn.textContent = "Закрыть";
         closeBtn.onclick = (e) => {
           stop(e);
           _captureBattleFocus(b.id, card);

@@ -555,13 +555,11 @@ window.Game = window.Game || {};
       return btn;
     };
 
-    const btnCollapse = ensureBtn("eventsBtnCollapse", "—", "Свернуть", (ev) => { stop(ev); setSize("collapsed"); });
     const btnMax = ensureBtn("eventsBtnMax", "□", "Развернуть", (ev) => { stop(ev); setSize("max"); });
     const btnMed = ensureBtn("eventsBtnMed", "⧉", "Стандартный размер", (ev) => { stop(ev); setSize("medium"); });
 
     try {
       const cur = getEventsSize();
-      btnCollapse.classList.toggle("is-active", cur === "collapsed");
       btnMed.classList.toggle("is-active", cur === "medium");
       btnMax.classList.toggle("is-active", cur === "max");
     } catch(_) {}
@@ -597,7 +595,22 @@ window.Game = window.Game || {};
     // Update header title (do not overwrite controls)
     if (titleEl) {
       const nextTitle = t("events_title", { count: open.length });
-      if (titleEl.textContent !== nextTitle) titleEl.textContent = nextTitle;
+      titleEl.textContent = nextTitle;
+      try {
+        const badgeValue = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("events") : 0;
+        let badgeEl = header.querySelector(".panelBadge.eventsBadge");
+        if (!badgeEl) {
+          badgeEl = document.createElement("span");
+          badgeEl.className = "badge panelBadge eventsBadge";
+        }
+        badgeEl.textContent = badgeValue ? `(${badgeValue})` : "";
+        badgeEl.style.display = badgeValue ? "" : "none";
+        if (right && badgeEl.parentNode !== header) {
+          header.insertBefore(badgeEl, right);
+        } else if (!right && badgeEl.parentNode !== header) {
+          header.appendChild(badgeEl);
+        }
+      } catch (_) {}
     }
 
     // Persist count to flags for other UI blocks (if needed)

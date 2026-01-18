@@ -749,3 +749,20 @@ DevTools verification snippet:
 -  - Если нужно — могу добавить отдельный atomic test для ложного доноса и скачать логи.
 
 Память обновлена
+
+### 2026-01-18 — Toasts & collapsed-badge UX
+- Facts:
+  - “Отвали” tooltip now reads “Откроется на ⚡5”, delta toasts (⚡/⭐/💰) stay visible until clicked, and collapsed panel counters inform the player about unseen DM/battle/event updates without forcing expansion.
+  - `bindBlockHeaderToggles` now drives panel sizes through `Game.StateAPI` so toggles survive reloads and reset the badge when panel is expanded.
+  - `state.js`, `conflict-core.js`, `events.js` count unread lines for collapsed panels instead of forcing focus, while `ui-dm.js`, `ui-battles.js`, `ui-events.js` show badge chips under the header and badges on DM tabs.
+- Changed: `AsyncScene/Web/ui/ui-battles.js`, `AsyncScene/Web/ui/ui-core.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/state.js`, `AsyncScene/Web/events.js`
+- Next: continue checking `AsyncScene/Web/AsyncSceneLogs/last.jsonl` when needed and keep appending this memory log after each reply per the new invariant.
+
+### 2026-01-18 — Read-only request: DM/battles/events auto-open ban
+- Facts: запрос на запрет auto-open для DM/battles/events, добавление aggregated unread counter в шапке “Личка (N)” и сохранение focus без изменения core был получен; лог проверен (`AsyncScene/Web/AsyncSceneLogs/last.jsonl#L1-L20`).
+- Changed: —
+- Next: нужен explicit `РАЗРЕШАЮ ПРАВКУ` на UI-файлы/`state.js` чтобы реализовать тот UX; пока только read-only ответ.
+
+Память обновлена
+
+Память обновлена

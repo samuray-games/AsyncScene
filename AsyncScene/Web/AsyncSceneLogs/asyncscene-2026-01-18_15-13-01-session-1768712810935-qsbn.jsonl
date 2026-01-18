@@ -1,0 +1,2 @@
+{"ts": 1768716780504, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "influence", "delta": -1, "meta": {"reason": "inf_escape_vote", "battleId": "battle_mkjcaqcu_3hzfd5"}}
+{"ts": 1768716780506, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_escape_success_refund", "battleId": "battle_mkjcaqcu_3hzfd5"}}

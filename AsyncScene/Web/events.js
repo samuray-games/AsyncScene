@@ -49,6 +49,14 @@ window.Game ||= {};
     Game.State.events ||= [];
   }
 
+  function bumpEventBadgeIfCollapsed(){
+    try {
+      if (Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("events")) {
+        if (typeof Game.UI.bumpCollapsedCounter === "function") Game.UI.bumpCollapsedCounter("events");
+      }
+    } catch (_) {}
+  }
+
   function getEcon(){
     return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
   }
@@ -840,6 +848,7 @@ window.Game ||= {};
 
     Game.State.events.unshift(e);
     capEvents();
+    bumpEventBadgeIfCollapsed();
 
     // NPC-NPC события должны звучать как SYS с идеальной пунктуацией.
     if (e && e.aName && e.bName && !e.announced && !e.uiAnnounced && !e.skipSys) {

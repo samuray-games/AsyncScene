@@ -1,0 +1,4 @@
+{"ts": 1768713502846, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "rep", "delta": -15, "meta": {"reason": "rep_overpoints_convert", "battleId": "overpoints_-813712120"}}
+{"ts": 1768713502846, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "influence", "delta": 1, "meta": {"reason": "rep_overpoints_convert", "battleId": "overpoints_-813712120"}}
+{"ts": 1768713502847, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkjackck_zs1hpb"}}
+{"ts": 1768713502878, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "rep", "delta": 3, "meta": {"reason": "rep_battle_win", "battleId": "battle_mkjackck_zs1hpb"}}

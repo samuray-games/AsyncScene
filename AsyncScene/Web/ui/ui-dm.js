@@ -115,6 +115,7 @@ window.Game = window.Game || {};
     // DM tabs: ensure state shape
     if (!Array.isArray(S.dm.openIds)) S.dm.openIds = [];
     if (!("activeId" in S.dm)) S.dm.activeId = null;
+    if (!("unread" in S.dm)) S.dm.unread = {};
     S.dm.logs = S.dm.logs || {};
     S.dm.logs[whoId] = S.dm.logs[whoId] || [];
     S.dm.logs[whoId].push({ t: UI.nowHHMM(), from, text });
@@ -386,6 +387,10 @@ window.Game = window.Game || {};
 
     // Source of truth: activeId
     const withId = S.dm.activeId;
+    if (withId) {
+      S.dm.unread = S.dm.unread || {};
+      S.dm.unread[String(withId)] = 0;
+    }
     const dmBlock = $("dmBlock");
     if (dmBlock) dmBlock.classList.toggle("hidden", !S.dm.open);
 
@@ -435,7 +440,6 @@ window.Game = window.Game || {};
           return btn;
         };
 
-        const btnCollapse = ensureBtn("dmBtnCollapse", "—", "Свернуть", (ev) => { stop(ev); setSizeHeader("collapsed"); });
         const btnMax = ensureBtn("dmBtnMax", "□", "Развернуть", (ev) => { stop(ev); setSizeHeader("max"); });
         const btnMed = ensureBtn("dmBtnMed", "⧉", "Стандартный размер", (ev) => { stop(ev); setSizeHeader("medium"); });
 
@@ -443,7 +447,6 @@ window.Game = window.Game || {};
           const cur = (UI && typeof UI.getPanelSize === "function")
             ? UI.getPanelSize("dm")
             : getDmSize();
-          btnCollapse.classList.toggle("is-active", cur === "collapsed");
           btnMed.classList.toggle("is-active", cur === "medium");
           btnMax.classList.toggle("is-active", cur === "max");
         } catch(_) {}
@@ -455,7 +458,7 @@ window.Game = window.Game || {};
           closeBtn.id = "dmCloseX";
           closeBtn.type = "button";
           closeBtn.className = "btn closeX";
-          closeBtn.title = "Свернуть";
+          closeBtn.title = "Закрыть";
           closeBtn.textContent = "×";
           closeBtn.onclick = (ev) => {
             stop(ev);
@@ -477,6 +480,21 @@ window.Game = window.Game || {};
             }
           }, false);
         }
+        try {
+          const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("dm") : 0;
+          let badgeEl = header.querySelector(".panelBadge.dmBadge");
+          if (!badgeEl) {
+            badgeEl = document.createElement("span");
+            badgeEl.className = "badge panelBadge dmBadge";
+          }
+          badgeEl.textContent = collapsedCount ? `(${collapsedCount})` : "";
+          badgeEl.style.display = collapsedCount ? "" : "none";
+          if (right && badgeEl.parentNode !== header) {
+            header.insertBefore(badgeEl, right);
+          } else if (!right && badgeEl.parentNode !== header) {
+            header.appendChild(badgeEl);
+          }
+        } catch (_) {}
       }
     }
 
@@ -539,6 +557,8 @@ window.Game = window.Game || {};
             S.dm.activeId = String(id);
             S.dm.withId = S.dm.activeId;
             S.dm.open = true;
+            S.dm.unread = S.dm.unread || {};
+            S.dm.unread[String(id)] = 0;
             try { UI.renderDM(); } catch (_) {}
             requestAll();
           };
@@ -551,6 +571,13 @@ window.Game = window.Game || {};
           label.className = "dmTabLabel";
           label.textContent = String(name || "");
           row.appendChild(label);
+          const unreadCount = (S.dm.unread && S.dm.unread[id]) ? S.dm.unread[id] : 0;
+          if (unreadCount > 0) {
+            const badgeDot = document.createElement("span");
+            badgeDot.className = "badge dmTabBadge";
+            badgeDot.textContent = String(unreadCount);
+            row.appendChild(badgeDot);
+          }
 
           const x = document.createElement("button");
           x.type = "button";

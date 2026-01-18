@@ -116,7 +116,7 @@ window.Game = window.Game || {};
     const isHidden = body.classList.contains("hidden");
     if (isHidden) {
       body.classList.remove("hidden");
-      arrow.textContent = "Свернуть";
+      arrow.textContent = "Скрыть";
     } else {
       body.classList.add("hidden");
       arrow.textContent = "Развернуть";
@@ -177,6 +177,63 @@ window.Game = window.Game || {};
     }
   }
 
+  function bindChatHeaderLocations(UI) {
+    const $ = UI.$;
+    const header = $("chatHeader");
+    if (!header || header.__locHeader) return;
+    header.__locHeader = true;
+    header.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      UI.S.flags = UI.S.flags || {};
+      UI.S.flags.locationsOpen = !UI.S.flags.locationsOpen;
+      if (typeof UI.renderLocations === "function") UI.renderLocations();
+    });
+  }
+
+  function bindBlockHeaderToggles(UI) {
+    const blocksRoot = document.getElementById("blocks");
+    if (!blocksRoot || blocksRoot.__headerToggleBound) return;
+    blocksRoot.__headerToggleBound = true;
+    const panelKeyMap = {
+      battlesBlock: "battles",
+      eventsBlock: "events",
+      dmBlock: "dm",
+    };
+    blocksRoot.addEventListener("click", (e) => {
+      const header = e.target && e.target.closest ? e.target.closest(".blockHeader, .panelHeader") : null;
+      if (!header) return;
+      if (e.target && e.target.closest && e.target.closest("button")) return;
+      const block = header.closest ? header.closest(".block, .panel") : null;
+      if (!block) return;
+      const key = panelKeyMap[block.id];
+      if (key) {
+        const current = (UI && typeof UI.getPanelSize === "function") ? UI.getPanelSize(key) : "medium";
+        const next = (current === "collapsed") ? "medium" : "collapsed";
+        let applied = false;
+        try {
+          if (Game && Game.StateAPI && typeof Game.StateAPI.setPanelSize === "function") {
+            Game.StateAPI.setPanelSize(key, next);
+            applied = true;
+          } else if (UI && typeof UI.setPanelSize === "function") {
+            UI.setPanelSize(key, next);
+            applied = true;
+          }
+        } catch (_) {}
+        if (applied) {
+          try {
+            if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+          } catch (_) {}
+          if (next !== "collapsed" && UI && typeof UI.resetCollapsedCounter === "function") {
+            UI.resetCollapsedCounter(key);
+          }
+          return;
+        }
+      }
+      block.classList.toggle("panel--collapsed");
+    }, false);
+  }
+
   function bindUI(UI) {
     const S = UI.S;
     const $ = UI.$;
@@ -198,34 +255,6 @@ window.Game = window.Game || {};
         });
       }
     }
-
-  function bindChatHeaderLocations(UI) {
-    const $ = UI.$;
-    const header = $("chatHeader");
-    if (!header || header.__locHeader) return;
-    header.__locHeader = true;
-    header.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      UI.S.flags = UI.S.flags || {};
-      UI.S.flags.locationsOpen = !UI.S.flags.locationsOpen;
-      if (typeof UI.renderLocations === "function") UI.renderLocations();
-    });
-  }
-
-  function bindBlockHeaderToggles() {
-    const blocksRoot = $("blocks");
-    if (!blocksRoot || blocksRoot.__headerToggleBound) return;
-    blocksRoot.__headerToggleBound = true;
-    blocksRoot.addEventListener("click", (e) => {
-      const header = e.target && e.target.closest ? e.target.closest(".blockHeader, .panelHeader") : null;
-      if (!header) return;
-      if (e.target && e.target.closest && e.target.closest("button")) return;
-      const block = header.closest ? header.closest(".block, .panel") : null;
-      if (!block) return;
-      block.classList.toggle("panel--collapsed");
-    }, false);
-  }
 
     const btnRandom = $("btnRandom");
 
@@ -396,7 +425,7 @@ window.Game = window.Game || {};
         if (reportInput) reportInput.value = "";
 
         if (Game.StateAPI && typeof Game.StateAPI.applyReportByRole === "function") {
-          Game.StateAPI.applyReportByRole(nick);
+          Game.StateAPI.applyReportByRole(nick, {});
         }
 
         UI.requestRenderAll && UI.requestRenderAll();
@@ -506,8 +535,8 @@ window.Game = window.Game || {};
 
     // Bind events
     bindUI(UI);
-    bindChatHeaderLocations(UI);
-    bindBlockHeaderToggles();
+    if (typeof bindChatHeaderLocations === "function") bindChatHeaderLocations(UI);
+    bindBlockHeaderToggles(UI);
 
     // Render minimal UI only
     UI.renderAllMinimal && UI.renderAllMinimal();

@@ -40,6 +40,7 @@ window.Game = window.Game || {};
   if (!("highlightEventId" in S.flags)) S.flags.highlightEventId = null;
   if (!("eventsCollapsed" in S.flags)) S.flags.eventsCollapsed = false;
   if (!("menuOpen" in S.flags)) S.flags.menuOpen = false;
+  if (!("collapsedCounters" in S.flags)) S.flags.collapsedCounters = {};
 
   // Дефолты DM
   if (!("dm" in S) || !S.dm) S.dm = {};
@@ -745,6 +746,16 @@ window.Game = window.Game || {};
     return (kind === "influence" || kind === "rep" || kind === "points" || kind === "wins");
   }
 
+  const activeDeltaToasts = {};
+
+  function dismissDeltaToast(kind){
+    const prev = activeDeltaToasts[kind];
+    if (prev && prev.el) {
+      try { prev.el.remove(); } catch (_) { try { prev.el.style.display = "none"; } catch (_) {} }
+    }
+    delete activeDeltaToasts[kind];
+  }
+
   function showDeltaToastInstant(kind, delta){
     const d = (delta | 0);
     if (!kind || !d) return;
@@ -753,34 +764,34 @@ window.Game = window.Game || {};
 
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
     const icon = icons[kind] || "";
-    const sign = d > 0 ? "+" : "";
-    const text = `${icon} ${sign}${d}`;
-
-    UI.__deltaToastSeq = (UI.__deltaToastSeq | 0) + 1;
-    const id = `statToast_delta_${String(kind)}_${UI.__deltaToastSeq}`;
-
-    const toast = document.createElement("div");
-    toast.id = id;
-    toast.className = "statToast statToast--delta";
-    toast.dataset.deltaKind = String(kind);
-    toast.textContent = text;
-    toast.onclick = () => {
-      try { toast.remove(); } catch (_) { try { toast.style.display = "none"; } catch (_) {} }
-    };
-    document.body.appendChild(toast);
-
-    // Stack multiple delta-toasts for the same stat (no aggregation; separate toasts).
-    const existing = Array.from(document.querySelectorAll(`.statToast--delta[data-delta-kind="${String(kind)}"]`));
-    const idx = Math.max(0, existing.length - 1);
+    const prev = activeDeltaToasts[kind];
+    const value = (prev && typeof prev.value === "number") ? (prev.value | 0) : 0;
+    const nextValue = value + d;
+    const sign = nextValue > 0 ? "+" : "";
+    const text = `${icon} ${sign}${nextValue}`;
 
     const r = anchor.getBoundingClientRect();
     const left = Math.round(r.left + (r.width / 2));
-    const top = Math.round(r.bottom + 8 + (idx * 28));
+    const top = Math.round(r.bottom + 8);
+
+    let toast = prev ? prev.el : null;
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = `statToast_delta_${kind}`;
+      toast.className = "statToast statToast--delta";
+      toast.dataset.deltaKind = kind;
+      toast.onclick = () => dismissDeltaToast(kind);
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = text;
     toast.style.left = `${left}px`;
     toast.style.top = `${top}px`;
     toast.style.display = "block";
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
+
+    activeDeltaToasts[kind] = { el: toast, value: nextValue };
   }
 
   UI.showStatToast = (kind, text) => {
@@ -1544,6 +1555,9 @@ window.Game = window.Game || {};
     if (k === "battles") S.flags.battlesSize = s;
     if (k === "events") S.flags.eventsSize = s;
     if (k === "locations") S.flags.locationsSize = s;
+    try {
+      if (typeof UI.resetCollapsedCounter === "function" && s !== "collapsed") UI.resetCollapsedCounter(k);
+    } catch (_) {}
     UI.requestRenderAll();
   };
 
@@ -1578,6 +1592,49 @@ window.Game = window.Game || {};
     el.classList.toggle("panel--medium", size === "medium");
     el.classList.toggle("panel--full", size === "max");
     try { if (UI.updatePanelOverlayState) UI.updatePanelOverlayState(); } catch (_) {}
+  };
+
+  function __getPanelCounterMap() {
+    if (!S.flags) S.flags = {};
+    if (!S.flags.collapsedCounters) S.flags.collapsedCounters = {};
+    return S.flags.collapsedCounters;
+  }
+
+  UI.getCollapsedCounter = function(key){
+    if (!key) return 0;
+    const map = __getPanelCounterMap();
+    const value = map[key];
+    if (Number.isFinite(value)) return value;
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  UI.bumpCollapsedCounter = function(key){
+    if (!key) return 0;
+    const map = __getPanelCounterMap();
+    const current = (Number.isFinite(map[key]) ? map[key] : parseInt(map[key], 10) || 0) + 1;
+    map[key] = current;
+    return current;
+  };
+
+  UI.resetCollapsedCounter = function(key){
+    const map = __getPanelCounterMap();
+    if (key) {
+      map[key] = 0;
+    } else {
+      Object.keys(map).forEach(k => { map[k] = 0; });
+    }
+    try { if (typeof UI.requestRenderAll === "function") UI.requestRenderAll(); } catch (_) {}
+  };
+
+  UI.isPanelCollapsed = function(key){
+    if (!key) return false;
+    try {
+      if (typeof UI.getPanelSize === "function") {
+        return UI.getPanelSize(key) === "collapsed";
+      }
+    } catch (_) {}
+    return false;
   };
 
   UI.updatePanelOverlayState = function(){

@@ -882,7 +882,13 @@ window.Game = window.Game || {};
             if (channel === "chat") {
               pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
             } else {
-              pushDm("npc_cop", String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+              const targetId = (cop && cop.id) ? cop.id : "";
+              if (targetId) {
+                pushDm(targetId, String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+              } else {
+                // Fallback to chat when we cannot resolve a real cop id
+                pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+              }
             }
             ok = true;
             ch.lastTextByCopId[cid] = msg;
@@ -1170,12 +1176,25 @@ window.Game = window.Game || {};
     try {
       State.dm.openIds = Array.isArray(State.dm.openIds) ? State.dm.openIds : [];
       if (!("activeId" in State.dm)) State.dm.activeId = null;
+      State.dm.unread = State.dm.unread || {};
       const id = String(targetId || "");
       if (id && !State.dm.openIds.includes(id)) State.dm.openIds.push(id);
-      if (id) {
+      if (id && !State.dm.activeId) {
         State.dm.activeId = id;
         State.dm.withId = id; // compat alias
-        State.dm.open = true;
+      }
+      const activeId = String(State.dm.activeId || "");
+      if (id) {
+        if (activeId === id) {
+          State.dm.unread[id] = 0;
+        } else {
+          State.dm.unread[id] = (Number(State.dm.unread[id]) || 0) + 1;
+        }
+        try {
+          if (Game && Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("dm")) {
+            if (typeof Game.UI.bumpCollapsedCounter === "function") Game.UI.bumpCollapsedCounter("dm");
+          }
+        } catch (_) {}
       }
     } catch (_) {}
   }
@@ -1353,12 +1372,25 @@ window.Game = window.Game || {};
       roleKey = nr || "";
     }
 
+    const ALLOWED_REPORT_ROLES = new Set(["toxic","bandit","mafia"]);
+    const ALLOWED_REPORT_ROLES = new Set(["toxic","bandit","mafia"]);
     let reportedRole = "";
     try {
       if (target && target.role) reportedRole = normalizeRoleKey(target.role);
       if (!reportedRole) reportedRole = normalizeRoleKey(r);
     } catch (_) { reportedRole = normalizeRoleKey(r); }
 
+    if (!ALLOWED_REPORT_ROLES.has(roleKey)) {
+      return { ok:false, reason:"report_invalid_target", role: roleKey };
+    }
+    const meId = (State.me && State.me.id) ? String(State.me.id) : "me";
+    if (target && target.id && String(target.id) === meId) {
+      return { ok:false, reason:"self_report", role: roleKey };
+    }
+    const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
+    if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
+      return { ok:false, reason:"report_invalid_target", role: roleKey };
+    }
     const actual = getRoleOf(target && target.id);
     const truthful = Boolean(reportedRole && target && (reportedRole === normalizeRoleKey(actual)));
     const reportId = `report_${target.id}_${Date.now()}`;
@@ -1371,6 +1403,19 @@ window.Game = window.Game || {};
 
     // Canon: truth is determined by actual role only. No "evidence window" gating.
     // If role mismatched -> false report (REP penalty only) — REP v2 economy
+    if (!ALLOWED_REPORT_ROLES.has(roleKey)) {
+      applyFalseReport(target, roleKey, cop.id, reportId);
+      return { ok:false, reason:"report_invalid_target", role: roleKey };
+    }
+    if (target && target.id && String(target.id) === meId) {
+      applyFalseReport(target, roleKey, cop.id, reportId);
+      return { ok:false, reason:"self_report", role: roleKey };
+    }
+    const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
+    if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
+      applyFalseReport(target, roleKey, cop.id, reportId);
+      return { ok:false, reason:"report_invalid_target", role: roleKey };
+    }
     if (!truthful) {
       const D = (Game && Game.Data) ? Game.Data : null;
       const prev = (State.reports && State.reports.history) ? State.reports.history[target.id] : null;

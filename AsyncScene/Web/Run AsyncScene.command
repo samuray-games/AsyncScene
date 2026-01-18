@@ -1,137 +1,52 @@
-#!/bin/zsh
-set -euo pipefail
+#!/bin/bash
 
-PORT="${PORT:-8080}"
-PRIVATE="${PRIVATE:-1}"
-CLEAR_CACHE="${CLEAR_CACHE:-1}"
+set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DEFAULT_WEB_DIR="/Users/User/Documents/created apps/AsyncScene/AsyncScene/Web"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+WEB_DIR="$ROOT_DIR/Web"
+TOOLS_DIR="$ROOT_DIR/tools"
+LOGGER_JS="$TOOLS_DIR/logger.js"
+LOG_DIR="$ROOT_DIR/AsyncSceneLogs"
 
-WEB_DIR="${WEB_DIR:-$SCRIPT_DIR}"
-if [[ ! -f "${WEB_DIR}/index.html" ]]; then
-  WEB_DIR="$DEFAULT_WEB_DIR"
-fi
+mkdir -p "$LOG_DIR"
 
-LOG="/tmp/asyncscene.launch.log"
-: > "${LOG}"
+echo "▶ AsyncScene launcher"
+echo "▶ Root: $ROOT_DIR"
+echo "▶ Logger: $LOGGER_JS"
 
-log(){ print -r -- "$@" | tee -a "${LOG}"; }
-
-if [[ ! -f "${WEB_DIR}/index.html" ]]; then
-  log "[fail] index.html не найден."
-  read -r "?нажми Enter чтобы закрыть это окно... "
-  exit 1
-fi
-
-URL="http://localhost:${PORT}/index.html?v=$(date +%s)"
-
-log "[run] web_dir: ${WEB_DIR}"
-log "[run] port: ${PORT}"
-log "[run] url: ${URL}"
-log "[run] private: ${PRIVATE}"
-log "[run] clear_cache: ${CLEAR_CACHE}"
-log ""
-
-if [[ "${CLEAR_CACHE}" == "1" ]]; then
-  log "[run] quitting Safari (for cache clean)..."
-  osascript >>"${LOG}" 2>&1 <<'OSA' || true
-tell application "Safari"
-  if it is running then quit
-end tell
-OSA
-
-  for i in {1..80}; do
-    if ! pgrep -x "Safari" >/dev/null 2>&1; then break; fi
-    sleep 0.05
-  done
-
-  log "[run] clearing Safari/WebKit caches..."
-  rm -rf \
-    "$HOME/Library/Caches/com.apple.Safari" \
-    "$HOME/Library/Caches/com.apple.WebKit.Networking" \
-    "$HOME/Library/Caches/com.apple.WebKit.WebContent" \
-    "$HOME/Library/Caches/com.apple.WebKit.GPU" \
-    "$HOME/Library/Caches/com.apple.WebKit.WebContentExtension" \
-    "$HOME/Library/Caches/com.apple.Safari.SafeBrowsing" \
-    >/dev/null 2>&1 || true
-fi
-
-PIDS="$(lsof -ti tcp:${PORT} 2>/dev/null || true)"
-if [[ -n "${PIDS}" ]]; then
-  log "[run] killing existing on port ${PORT}: ${PIDS}"
-  kill -9 ${PIDS} 2>/dev/null || true
-fi
-
-log "[run] starting server..."
-python3 -m http.server "${PORT}" --directory "${WEB_DIR}" >>/tmp/asyncscene.server.log 2>&1 &
-SERVER_PID=$!
-disown
-
-for i in {1..120}; do
-  if lsof -ti tcp:${PORT} >/dev/null 2>&1; then break; fi
-  sleep 0.05
-done
-
-open_private_safari() {
-  osascript >>"${LOG}" 2>&1 <<OSA
-set theURL to "${URL}"
-
-tell application "Safari" to activate
-delay 0.25
-
-tell application "System Events"
-  tell process "Safari"
-    set frontmost to true
-    delay 0.25
-
-    -- Attempt 1: menu (English)
-    try
-      click menu item "New Private Window" of menu "File" of menu bar 1
-      delay 0.25
-    end try
-
-    -- Attempt 2: menu (Russian)
-    try
-      click menu item "Новое приватное окно" of menu "Файл" of menu bar 1
-      delay 0.25
-    end try
-
-    -- Attempt 3: hotkey Shift+Cmd+N
-    try
-      keystroke "n" using {command down, shift down}
-      delay 0.25
-    end try
-  end tell
-end tell
-
-tell application "Safari"
-  try
-    set URL of front document to theURL
-  on error
-    open location theURL
-  end try
-end tell
-OSA
-}
-
-if [[ "${PRIVATE}" == "1" ]]; then
-  log "[run] opening Safari (try Private Window)..."
-  open_private_safari || true
+# ---- start logger ----
+if lsof -i :17321 >/dev/null 2>&1; then
+  echo "▶ Logger already running on :17321"
 else
-  log "[run] opening Safari..."
-  open -a "Safari" "${URL}"
+  if [ ! -f "$LOGGER_JS" ]; then
+    echo "❌ logger.js not found at $LOGGER_JS"
+  else
+    echo "▶ Starting logger..."
+    node "$LOGGER_JS" >> "$LOG_DIR/logger.out.log" 2>&1 &
+    LOGGER_PID=$!
+    sleep 0.5
+    if ps -p $LOGGER_PID > /dev/null; then
+      echo "▶ Logger started (pid=$LOGGER_PID)"
+    else
+      echo "❌ Logger failed to start, see $LOG_DIR/logger.out.log"
+    fi
+  fi
 fi
 
-log ""
-log "[ok] server pid: ${SERVER_PID}"
-log "[ok] logs: /tmp/asyncscene.server.log"
-log "[ok] launcher log: ${LOG}"
-log ""
+# ---- start web server ----
+if lsof -i :8080 >/dev/null 2>&1; then
+  echo "▶ Web server already running on :8080"
+else
+  echo "▶ Starting web server..."
+  cd "$WEB_DIR"
+  python3 -m http.server 8080 >> "$LOG_DIR/web.out.log" 2>&1 &
+  echo "▶ Web server started"
+fi
 
-log "[hint] Если приватное окно не открылось:"
-log " - проверь System Settings -> Privacy & Security -> Automation -> Terminal -> Safari (галочка)"
-log " - и что пункт 'New Private Window' доступен в Safari вручную"
-log ""
+sleep 0.3
 
-read -r "?нажми Enter чтобы закрыть это окно... "
+URL="http://localhost:8080/index.html?dev=1"
+echo "▶ Opening browser: $URL"
+open -n "$URL"
+
+echo "▶ Done"

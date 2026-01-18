@@ -168,6 +168,78 @@ window.Game = window.Game || {};
       wrap.appendChild(btn);
     }
   }
+
+  function ensureLoggerControls() {
+    if (!isDevModeActive()) return;
+    const block = getMenuBlock();
+    if (!block) return;
+    const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
+    if (!body) return;
+
+    let wrap = document.getElementById("loggerControls");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "loggerControls";
+      wrap.className = "eventRow";
+      wrap.style.gap = "8px";
+      wrap.style.flexWrap = "wrap";
+      wrap.style.alignItems = "center";
+      body.appendChild(wrap);
+    }
+    wrap.innerHTML = "";
+
+    const status = document.createElement("span");
+    status.id = "loggerStatusIndicator";
+    status.className = "pill";
+    status.textContent = "Logger: unknown";
+    wrap.appendChild(status);
+
+    const makeButton = (label, title, onClick) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn small";
+      btn.textContent = label;
+      btn.title = title;
+      btn.onclick = onClick;
+      wrap.appendChild(btn);
+      return btn;
+    };
+
+    const logger = (Game && Game.Logger) ? Game.Logger : null;
+    const notify = (msg) => {
+      if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg);
+      else if (UI && typeof UI.pushSystem === "function") UI.pushSystem(msg);
+    };
+
+    makeButton("Ping logger", "Check logger availability", async () => {
+      if (!logger) {
+        notify("Logger not running.");
+        return;
+      }
+      const ok = await logger.ping();
+      notify(ok ? "Logger reachable." : "Logger unreachable.");
+    });
+
+    makeButton("Force flush", "Send pending log batch", () => {
+      if (!logger) {
+        notify("Logger not running.");
+        return;
+      }
+      logger.forceFlush();
+      notify("Logger flush triggered.");
+    });
+
+    const updateStatus = (value) => {
+      if (!status) return;
+      const label = value === "connected" ? "connected" : value === "disconnected" ? "disconnected" : "unknown";
+      status.textContent = `Logger: ${label}`;
+    };
+    if (logger && typeof logger.onStatusChange === "function") {
+      logger.onStatusChange(updateStatus);
+    } else {
+      updateStatus("disabled");
+    }
+  }
   function ensureMenuHeaderHasCloseX() {
     const block = getMenuBlock();
     if (!block) return;
@@ -187,7 +259,7 @@ window.Game = window.Game || {};
     btn.className = "btn closeX"; // style.css supports this
     btn.type = "button";
     btn.textContent = "×";
-    btn.title = "Свернуть";
+    btn.title = "Закрыть";
 
     btn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -387,6 +459,7 @@ window.Game = window.Game || {};
     if (S.flags && S.flags.menuOpen) ensureMenuHeaderHasCloseX();
     ensureManifestControls();
     ensureEconDevControls();
+    ensureLoggerControls();
   };
 
   UI.lottery = () => {

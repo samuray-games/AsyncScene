@@ -1,0 +1,7 @@
+{"ts": 1768707814816, "sessionId": "session-1768707736563-rtg3", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win"}}
+{"ts": 1768707814817, "sessionId": "session-1768707736563-rtg3", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkj6xssr_5o2tc4"}}
+{"ts": 1768707814818, "sessionId": "session-1768707736563-rtg3", "type": "stat", "kind": "rep", "delta": 3, "meta": {"reason": "rep_battle_win", "battleId": "battle_mkj6xssr_5o2tc4"}}
+{"ts": 1768707814849, "sessionId": "session-1768707736563-rtg3", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768707814850, "sessionId": "session-1768707736563-rtg3", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-18"}}
+{"ts": 1768707814850, "sessionId": "session-1768707736563-rtg3", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "daily_bonus"}}
+{"ts": 1768707816593, "sessionId": "session-1768707736563-rtg3", "type": "chat", "name": "Слава", "text": "@Юна, ты ща ответишь, не тяни", "system": false}

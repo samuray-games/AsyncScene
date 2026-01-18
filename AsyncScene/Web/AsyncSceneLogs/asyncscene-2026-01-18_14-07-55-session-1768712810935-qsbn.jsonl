@@ -1,0 +1,7 @@
+{"ts": 1768712874114, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win"}}
+{"ts": 1768712874115, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkj9yit3_l40akf"}}
+{"ts": 1768712874117, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "rep", "delta": 3, "meta": {"reason": "rep_battle_win", "battleId": "battle_mkj9yit3_l40akf"}}
+{"ts": 1768712874158, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768712874159, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-18"}}
+{"ts": 1768712874159, "sessionId": "session-1768712810935-qsbn", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "daily_bonus"}}
+{"ts": 1768712874224, "sessionId": "session-1768712810935-qsbn", "type": "chat", "name": "Слава", "text": "@Fox, сейчас проверим кто тут главный", "system": false}

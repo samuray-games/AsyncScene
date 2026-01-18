@@ -743,14 +743,6 @@ window.Game = window.Game || {};
         S.chat.push(msg);
       }
 
-      // Soft-open events panel so the user immediately sees where to click.
-      try {
-        const SS = getS();
-        SS.flags = SS.flags || {};
-        SS.flags.eventsOpen = true;
-        SS.flags.eventsCollapsed = false;
-      } catch (_) {}
-
       try {
         if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
         else if (typeof UI.renderChatSmart === "function") UI.renderChatSmart();
