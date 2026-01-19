@@ -16,6 +16,27 @@
   const DRAW_VOTE_DURATION_MS = 10000;
   function getPlayer(id){ return (Game.State.players && Game.State.players[id]) || null; }
   function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function isActivePlayer(p){
+    if (!p || !p.id) return false;
+    if (p.removed === true) return false;
+    const jailed = (Game.State && Game.State.jailed) ? Game.State.jailed : null;
+    if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && now() < jailed[p.id].until) return false;
+    if (p.id === "me" || p.isMe) return true;
+    if (p.npc === true || p.type === "npc") return true;
+    return !!p.name;
+  }
+  function getTotalPlayersCount(){
+    const players = (Game.State && Game.State.players) ? Game.State.players : {};
+    let n = 0;
+    for (const p of Object.values(players)) {
+      if (isActivePlayer(p)) n++;
+    }
+    return n;
+  }
+  function getCrowdVoteCap(totalPlayers){
+    const base = Math.round(0.4 * (totalPlayers | 0));
+    return Math.max(10, base);
+  }
   const warnOnce = (() => {
     const seen = Object.create(null);
     return (key, msg, extra) => {
@@ -724,24 +745,187 @@
     return !!(b && b.draw && b.crowd && !b.crowd.decided);
   }
 
-  function applyCrowdVoteTick(b){
-    // Core tick must NOT add NPC votes. NPC voting is injected by conflict-api.js
-    // via applyCrowdVote(battleId) so we don't double-count.
-    if (!isBattleInDraw(b)) return;
-    b.updatedAt = now();
+  function resolveCrowdCore(crowd, ctx, participants){
+    const out = {
+      outcome: "TIE",
+      decided: false,
+      sideStats: {
+        a: { count: 0, weight: 0 },
+        b: { count: 0, weight: 0 },
+        total: { count: 0, weight: 0 },
+        totalPlayers: Array.isArray(participants) ? participants.length : 0
+      }
+    };
+    if (!crowd || typeof crowd !== "object") return out;
+    const aCount = Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0)
+      : (Number.isFinite(crowd.votesA) ? (crowd.votesA | 0) : 0);
+    const bCount = Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0)
+      : (Number.isFinite(crowd.votesB) ? (crowd.votesB | 0) : 0);
+    const aWeight = aCount | 0;
+    const bWeight = bCount | 0;
+    out.sideStats.a.count = aCount;
+    out.sideStats.a.weight = aWeight;
+    out.sideStats.b.count = bCount;
+    out.sideStats.b.weight = bWeight;
+    out.sideStats.total.count = (aCount + bCount) | 0;
+    out.sideStats.total.weight = (aWeight + bWeight) | 0;
+    if (aWeight > bWeight) {
+      out.outcome = "A_WIN";
+      out.decided = true;
+    } else if (bWeight > aWeight) {
+      out.outcome = "B_WIN";
+      out.decided = true;
+    } else {
+      out.outcome = "TIE";
+      out.decided = false;
+    }
+    return out;
   }
 
-  function finalizeCrowdVote(b){
-    if (!isBattleInDraw(b)) return;
+  function ensureBattleCrowdCap(v){
+    if (!v) return;
+    if (!Number.isFinite(v.cap) || v.cap <= 0) {
+      const total = getTotalPlayersCount();
+      v.cap = getCrowdVoteCap(total);
+      v.totalPlayers = total;
+    }
+  }
+
+  function getCrowdTotalVotes(v){
+    if (!v) return 0;
+    if (v.voters && typeof v.voters === "object" && Object.keys(v.voters).length > 0) {
+      return Object.keys(v.voters).length;
+    }
+    const a = Number.isFinite(v.votesA) ? (v.votesA | 0) : (Number.isFinite(v.aVotes) ? (v.aVotes | 0) : 0);
+    const b = Number.isFinite(v.votesB) ? (v.votesB | 0) : (Number.isFinite(v.bVotes) ? (v.bVotes | 0) : 0);
+    return (a + b) | 0;
+  }
+
+  function createCrowdCapMeta(b, endedBy){
+    if (!b || !b.crowd) return null;
     const v = b.crowd;
-    // Normalize crowd timer field names (some UI reads endsAt).
+    const totalPlayers = Number.isFinite(v.totalPlayers) ? (v.totalPlayers | 0) : getTotalPlayersCount();
+    const cap = Number.isFinite(v.cap) ? (v.cap | 0) : 0;
+    const totalVotes = getCrowdTotalVotes(v);
+    const aVotes = Number.isFinite(v.aVotes) ? (v.aVotes | 0) : (Number.isFinite(v.votesA) ? (v.votesA | 0) : 0);
+    const bVotes = Number.isFinite(v.bVotes) ? (v.bVotes | 0) : (Number.isFinite(v.votesB) ? (v.votesB | 0) : 0);
+    return {
+      battleId: b.id || b.battleId || null,
+      totalPlayers,
+      cap,
+      totalVotes,
+      aVotes,
+      bVotes,
+      endedBy
+    };
+  }
+
+  function ensureCrowdCapMetaCache(){
+    const dbg = Game.Debug || (Game.Debug = {});
+    if (!dbg.crowdCapMetaByBattle) dbg.crowdCapMetaByBattle = Object.create(null);
+    return dbg.crowdCapMetaByBattle;
+  }
+
+  function logCrowdCapDebug(b, meta){
+    if (!b || !b.crowd) return;
+    if (!meta) return;
+    const dbg = Game.Debug || (Game.Debug = {});
+    const log = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    log.push({
+      ts: now(),
+      reason: "crowd_cap_debug",
+      battleId: meta.battleId,
+      kind: "debug",
+      meta
+    });
+    const cache = ensureCrowdCapMetaCache();
+    if (meta && meta.battleId) {
+      cache[String(meta.battleId)] = meta;
+    }
+  }
+
+  function applyCrowdVoteTick(b, battleIdFallback){
+    const cache = ensureCrowdCapMetaCache();
+    const battleId = (b && (b.id || b.battleId)) || battleIdFallback || null;
+    const cacheKey = battleId ? String(battleId) : null;
+    let pendingMeta = null;
+    if (b && b.crowd) {
+      pendingMeta = createCrowdCapMeta(b, "pending");
+    }
+    if (!isBattleInDraw(b)) {
+      const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+      return {
+        ok: false,
+        battleId,
+        crowdCapMeta: cachedMeta,
+        pendingMeta,
+        cacheHit: !!cachedMeta,
+        why: cachedMeta ? null : "battle_not_draw"
+      };
+    }
+    if (b && b.crowd) {
+      ensureBattleCrowdCap(b.crowd);
+      const totalVotes = getCrowdTotalVotes(b.crowd);
+      if (Number.isFinite(b.crowd.cap) && totalVotes >= b.crowd.cap) {
+        const res = finalizeCrowdVote(b, { force: true });
+        const meta = res ? res.crowdCapMeta : null;
+        if (meta && cacheKey) cache[cacheKey] = meta;
+        return {
+          ok: !!(res && res.outcome),
+          battleId,
+          outcome: (res && res.outcome) ? res.outcome : null,
+          crowdCapMeta: meta,
+          pendingMeta,
+          cacheHit: !!(meta && cacheKey && cache[cacheKey]),
+          why: meta ? null : "finalize_missing_meta"
+        };
+      }
+    }
+    if (b) b.updatedAt = now();
+    const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+    return {
+      ok: false,
+      battleId,
+      crowdCapMeta: cachedMeta,
+      pendingMeta,
+      cacheHit: !!cachedMeta,
+      why: pendingMeta ? null : "cap_not_reached"
+    };
+  }
+
+  function finalizeCrowdVote(b, opts){
+    if (!isBattleInDraw(b)) return null;
+    const v = b.crowd;
+    const force = !!(opts && opts.force);
     if (v && typeof v.endsAt !== "number" && typeof v.endAt === "number") v.endsAt = v.endAt;
     if (v && typeof v.endAt !== "number" && typeof v.endsAt === "number") v.endAt = v.endsAt;
-    if (!v || !Number.isFinite(v.endAt)) return;
-    if (now() < v.endAt) return;
-    const votesA = v.votesA | 0;
-    const votesB = v.votesB | 0;
-    if (votesA === votesB) {
+    if (!v) return null;
+    ensureBattleCrowdCap(v);
+    if (!force) {
+      if (!Number.isFinite(v.endAt)) return null;
+      if (now() < v.endAt) return null;
+    }
+    const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
+    const res = resolveCrowdCore(v, { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId }, participants);
+    const totalVotes = getCrowdTotalVotes(v);
+    let endedBy = "fallback_timer";
+    if (force) {
+      endedBy = (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) ? "cap" : "manual";
+    }
+    const crowdCapMeta = createCrowdCapMeta(b, endedBy);
+    if (crowdCapMeta) {
+      v.crowdCapDebug = crowdCapMeta;
+      logCrowdCapDebug(b, crowdCapMeta);
+      const dbg = Game.Debug || (Game.Debug = {});
+      dbg.lastCrowdCapMeta = crowdCapMeta;
+    }
+    const votesA = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : (v.votesA | 0);
+    const votesB = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : (v.votesB | 0);
+    v.votesA = votesA;
+    v.votesB = votesB;
+    v.aVotes = votesA;
+    v.bVotes = votesB;
+    if (res && res.outcome === "TIE") {
       // Restart the crowd vote on exact tie.
       v.endAt = now() + DRAW_VOTE_DURATION_MS;
       v.endsAt = v.endAt;
@@ -753,19 +937,20 @@
       v.decided = false;
       v.winnerSide = null;
       v.winnerId = null;
+      ensureBattleCrowdCap(v);
       b.result = "draw";
       b.resultLine = "Толпа решает";
       b.note = "Поровну, без перевеса. Ещё круг.";
       b.updatedAt = now();
-      return;
+      return { outcome: "TIE", crowdCapMeta };
     }
 
     v.decided = true;
     // Mirror vote counters for UIs that read a grouped structure.
     v.votes = { attacker: votesA, defender: votesB };
 
-    const attackerWins = votesA > votesB;
-    const defenderWins = votesB > votesA;
+    const attackerWins = res && res.outcome === "A_WIN";
+    const defenderWins = res && res.outcome === "B_WIN";
 
     const { attackerId, defenderId } = attackerDefenderIds(b);
     const iAmAttacker = attackerId === "me";
@@ -822,6 +1007,11 @@
     b.updatedAt = now();
     if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
     announceBattleResult(b);
+
+    return {
+      outcome: (res && res.outcome) ? res.outcome : null,
+      crowdCapMeta
+    };
   }
 
   function isEscapeVote(b){
@@ -881,7 +1071,6 @@
       // Refund +1 ⭐ on success (once)
       try {
         if (!b._repEscapeRefundApplied && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-          Game.StateAPI.transferRep("crowd_pool", "me", 1, "rep_escape_success_refund", b.id);
           b._repEscapeRefundApplied = true;
         }
       } catch (_) {}
@@ -967,6 +1156,18 @@
             if (res.side === "attacker") v.votesA = (v.votesA|0) + (res.weight|0 || 1);
             else if (res.side === "defender") v.votesB = (v.votesB|0) + (res.weight|0 || 1);
           }
+        }
+      } catch (_) {}
+
+      try {
+        ensureBattleCrowdCap(v);
+        const totalVotes = getCrowdTotalVotes(v);
+        if (Number.isFinite(v.cap) && totalVotes >= v.cap) {
+          clearInterval(cur._crowdTimer || b._crowdTimer);
+          cur._crowdTimer = null;
+          b._crowdTimer = null;
+          finalizeCrowdVote(cur, { force: true });
+          return;
         }
       } catch (_) {}
     }, tickMs);
@@ -1223,10 +1424,9 @@
       ? String(opts)
       : (opts && opts.mode ? String(opts.mode) : "smyt");
 
-    // Canon: both "Уйти"/"Свалить" apply -1 ⭐ REP immediately (once per battle)
+    // Canon: escape click accounted once per battle (REP via participation, not pool)
     try {
-      if (!b._repEscapeClickApplied && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-        Game.StateAPI.transferRep("me", "crowd_pool", 1, "rep_escape_click", b.id);
+      if (!b._repEscapeClickApplied) {
         b._repEscapeClickApplied = true;
       }
     } catch (_) {}
@@ -1249,7 +1449,6 @@
         // Refund +1 ⭐ on immediate success (once)
         try {
           if (!b._repEscapeRefundApplied && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-            Game.StateAPI.transferRep("crowd_pool", "me", 1, "rep_escape_success_refund", b.id);
             b._repEscapeRefundApplied = true;
           }
         } catch (_) {}
@@ -1411,6 +1610,8 @@
         voters: {},
 
         decided: false,
+        cap: getCrowdVoteCap(getTotalPlayersCount()),
+        totalPlayers: getTotalPlayersCount(),
         attackerId,
         defenderId
       };
@@ -1503,8 +1704,7 @@
 
   C.applyCrowdVoteTick = function(battleId){
     const b = Game.State.battles.find(x => x.id === battleId);
-    if (!b) return;
-    applyCrowdVoteTick(b);
+    return applyCrowdVoteTick(b, battleId);
   };
 
   C.finalizeCrowdVote = function(battleId){
@@ -1679,6 +1879,7 @@
   };
 
   C.applyVillainPenalty = applyVillainPenalty;
+  C.resolveCrowdCore = resolveCrowdCore;
 
   // Export ONLY the internal core. Public API must live in conflict-api.js.
   // This avoids double-definitions and accidental overwrites.

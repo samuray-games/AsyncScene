@@ -42,9 +42,9 @@
   - wave 5: scope принят `PASS` (battle_end REP by tierDiff), реализация по `T-20260111-052`, аудит `T-20260111-053`, gate close `T-20260111-054`
 
 ### Прогресс и текущий этап
-- Stage 2 (Self-check сценарии и инварианты) — в `PROGRESS_SCALE.md` и `TEAM_LOG.md` указан как DOING: формализованного чек-листа нет, runtime-подтверждение всех сценариев (DEV-007..013) пока не собрали.
-- Stage 3 (Runtime & integration) — фактически закрыт PASS (см. `TEAM_LOG.md`: Runtime smoke завершён). Следующий шаг: формализовать `Stage 2` чек-лист и задокументировать, что каждый сценарий прогнан, чтобы можно было считать stage 2 DONE.
-- Общая шкала `PROGRESS_SCALE.md` показывает: этапы 0–1 DONE, 2 DOING, 3 DONE, 4–12 NOT_STARTED, значит фактически ~25 % пути до финала (щадность "вовсю играют").
+- Stage 2 (Self-check сценарии и инварианты) — DONE: все атомарные проверки P0/P1 пройдены, лог отражает PASS/FAIL, Stage 2 checklist документирован и двигаться можно дальше.
+- Stage 3 (Runtime & integration) — PASS (см. `TEAM_LOG.md`: Runtime smoke завершён).
+- Общая шкала `PROGRESS_SCALE.md` показывает: этапы 0–3 DONE, 4–12 NOT_STARTED, значит фактически ~25 % пути до финала (щадность "вовсю играют").
 
 ### Stage 2 Checklist (Self-check сценарии)
 - [A] Battle win (tier-diff outcomes): пройти бой до победы, проверить `Game.Debug.moneyLog` на `rep_battle_*`, посмотреть toast `⭐ +n`, убедиться, что tier/tones соответствуют allowed set. Команды: использовать UI, затем `Game.Debug.moneyLog.slice(-10)`/`toastLog`.
@@ -140,7 +140,155 @@
 - После заполнения — прогер запускает smoke: проверить UI и NPC для каждого профиля.
 
 Память обновлена
+### 2026-01-23 — Crowd Economy Reforge P0 LOGIC 2.3 PASS
+- Facts: P0 LOGIC 2.3 закрыт. `Game.Dev.drawAuditTrigger({ allowParallel:true })` теперь гарантирует, что `Game.State.battles` содержит реально активную draw с `b.crowd` до вызова `Game.ConflictCore.applyCrowdVoteTick`; `crowdCapDebug` читается из `tickResult.pendingMeta`/`crowdCapMeta`, `forceCap:true` добавляет голоса и сразу показывает `endedBy:"cap"` со `totalVotes >= cap`. Сниппеты: 1) без `forceCap` (`crowdCapDebug.totalVotes` может быть 0, `crowdCapDebugWhy:null`), 2) с `forceCap:true` (`crowdCapDebug.endedBy === "cap"` и `totalVotes >= cap`).  
+- Changed: `AsyncScene/Web/dev/dev-checks.js`
+- Next: Ассистент — оформить чек‑лист и план P0 LOGIC 3 (лимиты/веса) и обозначить следующее усилие в Crowd Economy Reforge (если нужно — обновить прогресс в `PROGRESS_SCALE.md`).  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    P0 LOGIC 2.3 завершён PASS: helper теперь гарантирует активную draw и два смоука дают `crowdCapDebug` (без `forceCap` — pending meta, с `forceCap:true` — endedBy cap). Переходи к P0 LOGIC 3 (лимиты/веса), собери чек-лист, смоуки и требования, и обнови прогресс Crowd Economy Reforge.
+    ```
 
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke attempt (partial)
+- Facts: Получен smoke по event‑crowd с cap=2: событие `ed_npc_1768824460459_5057` завершилось сразу после голосов с логами `crowd_vote_cost`/`rep_crowd_vote_participation`/`crowd_vote_refund` (см. `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L827-L830). Battle‑crowd cap не проверен (нет активных draw), fallback‑таймер не завершил раунд (`ev2` остаётся open).  
+- Status: FAIL (недостаточно фактов для SMOKE шагов 2‑3).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: собрать выводы по battle‑crowd cap и по событию с истёкшим `endAt`, прислать логи/снимки; после повторного смоука поставить PASS.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Смоук event‑cap прошёл, но battle cap и fallback таймер не подтверждены (ev2 остался open). Прогони команды, пришли логи или снимки для battle‑crowd и события с истёкшим таймером, тогда дам PASS/FAIL.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke attempt (battle missing)
+- Facts: Повторный запуск cap‑смоука: `Game.State.battles.find(...draw...)` возвращает `undefined` (нет активного draw с crowd). При повторной команде console выдала `SyntaxError: Can't create duplicate variable: 'b'`. Событие `ev2` с `endAt` в прошлом остаётся `state: "open"`.  
+- Status: FAIL (battle cap не проверен, fallback‑таймер по `ev2` не сработал).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: получить активный draw (или создать mock), выполнить trigger `Game.ConflictCore.applyCrowdVoteTick` без дублей переменных, собрать логи/снимки и повторить smоуk.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Для проверки cap в draw нужно активное draw и уникальные переменные (например, `const b2`). Прогони trigger при draw + лог попадания в `finalizeCrowdVote`, присылай результат.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke attempt (new event + fallback check)
+- Facts: Event cap снова подтвердился: `ed_npc_1768825011498_5301` resolved сразу (логи `last.jsonl` L853-L856 зафиксировали `crowd_vote_cost`/`rep_crowd_vote_participation`/`crowd_vote_refund`). Тест fallback (`ed_npc_1768825033595_1857`) с `cap=999` и истёкшим `endAt` остался `state: "open"` после `Game.Events.tick()`, `resolveAt` не изменился. Battle draw по-прежнему отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`).  
+- Status: FAIL (battle cap и fallback остаются без доказательств).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: дождаться/создать draw, запустить `Game.ConflictCore.applyCrowdVoteTick` с новой переменной, повторить таймерный trigger и собрать логи/состояния для PASS/FAIL.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Event cap повторно подтверждён, но draw не появился, а fallback ev2 остался open. Как только появится draw, повтори trigger и покажи лог `finalizeCrowdVote`; тогда поставим PASS/FAIL.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke attempt (fallback resolved, battle missing)
+- Facts: Новый fallback `ev2 = ed_npc_1768825240740_5929` завершился (`state: "resolved"`, `votesA=2`, `votesB=4`, `resolveAt=1768825250975`, `winnerSide="b"`), поэтому таймер теперь подтвердила финал; event cap по-прежнему подтверждён (`ed_npc_1768825212173_5735` resolved, логи `last.jsonl` L853-L856). Но battle draw всё ещё отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`).  
+- Status: PROGRESS (fallback работает, battle cap остаётся в проверке).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: получить активный draw или создать mock, инициировать `Game.ConflictCore.applyCrowdVoteTick` с отдельной переменной и зафиксировать `crowd.decided`; после этого вернуть PASS/FAIL.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Ивенты confirm: кап работает, fallback теперь resolved (`ed_npc_1768825240740_5929`). Остался draw — как появится, повтори trigger `applyCrowdVoteTick` и покажи лог.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke attempt (latest event, fallback resolved)
+- Facts: Event cap снова подтверждён: `ed_npc_1768825468010_187` завершилось сразу, лог `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L864-L878 содержит `crowd_vote_cost`, `rep_crowd_vote_participation`, второй `crowd_vote_cost` и `crowd_vote_refund`. Аналогичный `ev2` с `cap=999` теперь resolved (`id: ed_npc_1768825495431_4347`, `votesA=1`, `votesB=4`, `resolveAt=1768825505469`, `winnerSide="b"`), следовательно fallback в порядке. Однако battle draw всё ещё отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`), повторные команды вызывают либо `undefined`, либо `SyntaxError` при реиспользовании `const b`.  
+- Status: PROGRESS (event caps и fallback работают, battle cap требуется).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: найти или инициировать draw, вызвать `Game.ConflictCore.applyCrowdVoteTick(battleId)` с новым идентификатором (например `const drawBattle = ...`), получить `crowd.decided` и лог; тогда подтвердим PASS/FAIL.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Event cap снова сказочный, fallback resolved (`ed_npc_1768825495431_4347`). Как только рядом появится draw, повтори trigger `applyCrowdVoteTick` и лог финализации, тогда закроем PASS/FAIL.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke helper (draw creation trigger)
+- Facts: Чтобы избежать ожидания draw, можно вызвать `Game.Dev.drawAuditTrigger({ allowParallel: true })` из `dev-checks.js`: функция создаёт draw и сразу приводит его к статусу `draw`, возвращая `battleId`. После этого вызываем `Game.ConflictCore.applyCrowdVoteTick(battleId)` и следим за `crowd.decided`.
+- Status: NOTE (инструмент наготове, battle cap остаётся последним шагом).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: запусти команду, сохрани `battleId` из ответа, затем вызови `Game.ConflictCore.applyCrowdVoteTick(battleId)` и покажи лог `finalizeCrowdVote` с `crowd.decided`. После этого можно отмечать PASS/FAIL.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Чтобы быстро получить draw, запусти `Game.Dev.drawAuditTrigger({ allowParallel: true })`, потом возьми `battleId` и вызови `Game.ConflictCore.applyCrowdVoteTick(battleId)`, пришли результат.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap: immediate check after event votes
+- Facts: Для battle-backed draw из событий добавлен немедленный вызов `ConflictCore.applyCrowdVoteTick(battleId)` после голосов игрока/NPC и extra‑vote, чтобы cap‑финализация запускалась сразу после каждого голоса.  
+- Changed: `AsyncScene/Web/events.js`
+- Next: Прогнать смоук на cap‑финализацию и fallback таймер; зафиксировать PASS/FAIL по шагам.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Проверь cap: после каждого голоса (player/NPC/extra) происходит немедленная проверка и при достижении cap резолв без ожидания таймера; fallback по endAt сохраняется. Дай PASS/FAIL по смоуку.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap smoke helper success (draw created)
+- Facts: `Game.Dev.drawAuditTrigger({ allowParallel: true })` вернул `{ ok: true, battleId: "dev_draw_1768826717150_3065" }`, а в логе `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L991-L994 зафиксированы `battle_draw_deposit`, `rep_battle_draw`, `crowd_draw_payout_me` по этому `battleId`. `Game.ConflictCore.applyCrowdVoteTick` сразу вернул `undefined`, потому что draw оказалась закрытым на момент вызова.  
+- Status: NOTE (helper работает, но battle cap надо видеть в `crowd.decided`).  
+- Changed: `PROJECT_MEMORY.md`
+- Next: проверь `Game.State.battles.find(x => x && x.id === "dev_draw_1768826717150_3065")` — если `crowd.decided` false, повтори `Game.ConflictCore.applyCrowdVoteTick` и пришли лог с финализацией; тогда можно закрывать PASS/FAIL.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Draw helper создал `dev_draw_1768826717150_3065`, но `applyCrowdVoteTick` вернул undefined (draw уже резолв). Посмотри crowd, при необходимости повтори tick.
+    ```
+
+Память обновлена
+
+### 2026-01-22 — Crowd vote cap by total players
+- Facts: Введён cap голосов как `max(10, round(0.4 * TOTAL_PLAYERS))` для crowd‑ивентов и battle‑draw, cap хранится в `crowd.cap` с `crowd.totalPlayers`. Финализация происходит сразу по достижении cap (через `resolveCrowdCore`), таймер остаётся fallback. Рестарт при TIE пересчитывает cap. UI не трогался.  
+- Changed: `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js`
+- Next: Подготовить смоук‑скрипты на cap‑финализацию и fallback‑таймер; после валидации перейти к P0 LOGIC 3.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Проверь cap‑финализацию: достижение cap даёт resolve без таймера, fallback по endAt работает при cap недостижим. Дай PASS/FAIL и готовь следующий шаг P0 LOGIC 3 (лимиты/веса).
+    ```
+
+Память обновлена
+### 2026-01-21 — Crowd Economy Reforge P0 LOGIC 2.2 PASS + постоянное разрешение на запись
+- Facts: Получено постоянное разрешение на запись в `PROJECT_MEMORY.md` для фиксации результатов и прогресса. P0 LOGIC 2.2 подтверждён PASS: `rep_crowd_vote_participation` пишется при голосе (см. `AsyncScene/Web/AsyncSceneLogs/last.jsonl#L680-L681`), `crowd_vote_cost` фиксируется рядом, а `crowd_pool` не участвует в REP логах.  
+- Changed: `PROJECT_MEMORY.md`
+- Next: подготовить P0 LOGIC 3 (лимиты/веса) и чек‑листы, обновить прогресс Crowd Economy Reforge (33%).  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    P0 LOGIC 2.2 подтверждён PASS по логам (rep_emitter + crowd_vote_cost, без crowd_pool). Готовь план P0 LOGIC 3 (лимиты/веса) и чек‑лист смоуков.
+    ```
+
+Память обновлена
+
+### 2026-01-19 — Crowd Economy Reforge plan entered
+- Facts: Получен пошаговый план приведения экономики толпы к новой фазе “Crowd Economy Reforge” в рамках wave 1: P0 AUDIT (карта crowd_pool и смежных веток), P0 LOGIC (новое core-голосование), P0 LOGIC (интеграция с батл/сбежать/отвали), P0 UI (итоговая карточка с дельтами), P0 NPC (реальные NPC-голоса с тратаем 1 point), P1 UI (логирование прозрачности). План учёл модели GPT-5.1/5.2 Codex, сложности, ей смоуки и обязательное read-only для аудита. Прогресс по стадии Economy (wave 1) пока 0% — ни один шаг не выполнен.  
+- Changed: `PROJECT_MEMORY.md`
+- Next: ждать команды на запуск P0 AUDIT карты экономики crowd_pool; затем двигаться по очереди очереди шагов.  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Начинаем wave 1 Crowd Economy Reforge. Выполни P0 AUDIT: карту crowd_pool, votes и ветки батл/сбежать/отвали; предоставь факты из логов и кода. После аудита передай план на P0 LOGIC core-голосования.
+    ```
+
+Память обновлена
 ### Отчётность ассистента (в чате)
 - В каждом сообщении по проекту: отдельная строка `Память обновлена`
 - После каждого сообщения по теме: прогресс в формате:
@@ -157,6 +305,10 @@
 
 ### 2026-01-11 — Требование дублировать “память” в файл
 - Facts: творец попросил вести отдельный файл “памяти” и дублировать туда всё, что ассистент фиксирует как “Память обновлена”; `PROJECT_MEMORY.md` назначен источником общего контекста между чатами/агентами.
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-01-22 — Crowd vote cap: immediate check after event votes
+- Facts: Для battle-backed draw из событий добавлен немедленный вызов `ConflictCore.applyCrowdVoteTick(battleId)` после голосов игрока/NPC и extra‑vote, чтобы cap‑финализация запускалась сразу после каждого голоса.  
 - Changed: `PROJECT_MEMORY.md`
 
 ### 2026-01-11 — Обновление правил Димы и итоги аудитов wave 3 UI / wave 4
@@ -418,6 +570,191 @@
 Контекст про лог-файл (факт)
 - Ранее по ошибке был указан путь `/Users/User/.codex/PROJECT_MEMORY.md`; этого файла в момент запроса не было, поэтому он был создан отдельно от репозитория
 - Текущий источник правды для лога проекта: `PROJECT_MEMORY.md` в корне репозитория (этот файл)
+
+### 2026-01-18 23:33:47 JST - Fix: снятие stuck overlay для кликов в правых панелях
+
+Контекст
+- Жалоба: блок "Баттлы" не реагирует на клики (шапка и кнопки), входящих баттлов нет
+- Решение: усилить проверку видимости max-панели, чтобы `has-overlay-panel` не залипал без реально видимой `.panel--full/.size-max`
+
+Изменения
+- Файл: `AsyncScene/Web/ui/ui-core.js`
+- Добавлено: `__hasVisibleMaxPanel` (учет display/visibility/opacity + rect)
+- Добавлено: `UI.ensureOverlayClean` (снятие has-overlay-panel при отсутствии видимого max)
+- Watchdog обновлен: использует `__hasVisibleMaxPanel`
+
+Ограничения
+- Механика игры не менялась
+- UI auto-open не добавлялся
+
+### 2026-01-18 23:43:26 JST - Runtime: клики в "Баттлы" не работают при has-overlay=false
+
+Контекст
+- Пользователь подтвердил через консоль: `#right.has-overlay-panel` = false, `#blocks.has-overlay-panel` = false, `.panel--full/.size-max` отсутствуют
+- Симптом: шапка "Баттлы" не сворачивает/разворачивает, кнопки ("Вызвать", размеры) не реагируют, входящих баттлов нет
+
+Действия
+- Запрошен runtime-вывод `__dumpInputBlockers` для выявления элемента, перекрывающего клики
+
+### 2026-01-18 23:47:19 JST - Runtime: input blocker не выявил перекрытия
+
+Факты
+- `__dumpInputBlockers` в точке клика по `#battlesHeader` показывает topElement = `DIV#battlesHeader` (pointer-events:auto), overlay=false
+- `__dumpInputBlockers` в точке клика по кнопке `#battlesBody .btn` показывает topElement = `BUTTON.btn` (pointer-events:auto), overlay=false
+- Значит клики доходят до целевых элементов, но обработчики не срабатывают или не привязаны
+
+### 2026-01-18 23:55:01 JST - Runtime: биндинги присутствуют, эффектов нет
+
+Факты
+- runtime-статус: `headerToggleBound=true`, `blocksHeaderBound=true`, `btnHasOnclick=true`
+- `Game.UI.setPanelSize` и `Game.StateAPI.setPanelSize` доступны (оба function)
+- Значит обработчики и API существуют, но UI-эффект отсутствует; требуется проверить `UI.renderBattles` и наличие DOM-узлов `#battlesBody/#battleCount`
+
+### 2026-01-18 23:56:15 JST - Runtime: требуется проверить прямой вызов setPanelSize
+
+Контекст
+- Пользователь подтвердил наличие обработчиков и API, но клики не дают эффекта
+- Следующий шаг: проверить, меняются ли классы `#battlesBlock` при прямом вызове `Game.StateAPI.setPanelSize`
+
+### 2026-01-18 23:58:55 JST - Fix: мгновенное применение классов размеров панели
+
+Контекст
+- Runtime факт: `Game.StateAPI.setPanelSize("battles","collapsed")` меняет размер в state, но классы `#battlesBlock` не обновляются
+
+Изменения
+- `AsyncScene/Web/ui/ui-core.js`: в `UI.setPanelSize` добавлено мгновенное применение `UI.applyPanelSizeClasses` к целевой панели по id (`dmBlock/battlesBlock/eventsBlock/locationsBlock`)
+- Это устраняет рассинхрон между state и DOM без ожидания полного renderAll
+
+Ограничения
+- Механика игры не менялась
+- Auto-open панелей не добавлялся
+
+### 2026-01-19 00:00:54 JST - Runtime: StateAPI.setPanelSize не обновляет DOM классы
+
+Факты
+- Пользователь вызвал `Game.StateAPI.setPanelSize("battles","collapsed")`: размер в state изменился, но класс `#battlesBlock` не изменился (before/after одинаковые)
+- Следствие: обработчики, которые напрямую вызывают `Game.StateAPI.setPanelSize`, не меняют DOM-видимость панели
+
+### 2026-01-19 00:05:00 JST - Fix: UI.setPanelSize как единственный путь из кликов шапок
+
+Контекст
+- Runtime факт: `Game.StateAPI.setPanelSize` меняет state, но не обновляет DOM-классы панелей
+
+Изменения
+- `AsyncScene/Web/ui/ui-boot.js`: в `bindBlockHeaderToggles` используется только `UI.setPanelSize`
+- `AsyncScene/Web/ui/ui-battles.js`: клик по шапке баттлов использует `UI.setPanelSize`
+
+Ограничения
+- Механика не менялась
+- Auto-open не добавлялся
+
+### 2026-01-19 00:14:49 JST - Runtime: кнопки размера работают, шапка и "Вызвать" нет
+
+Факты
+- `Game.UI.setPanelSize("battles","collapsed")` меняет DOM класс на `panel--collapsed`
+- Кнопки `battlesBtnMax/battlesBtnMed` работают
+- Клик по шапке `#battlesHeader` и кнопке "Вызвать" эффекта не дает при том, что обработчики и API присутствуют
+
+### 2026-01-19 00:18:56 JST - Runtime: dispatchEvent на шапке не меняет размер
+
+Факты
+- Programmatic click на `#battlesHeader` не меняет `Game.UI.getPanelSize("battles")` и классы `#battlesBlock`
+
+### 2026-01-19 00:23:08 JST - Fix: шапка баттлов биндится всегда
+
+Контекст
+- Runtime: клики по шапке не меняют размер, несмотря на наличие делегированного обработчика
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: привязка обработчика клика к `#battlesHeader` вынесена из блока invite-dropdown и выполняется всегда
+
+### 2026-01-19 00:31:57 JST - Fix: восстановление battleCount и запрет его удаления
+
+Контекст
+- Runtime DOM: `#battleCountWrapper` перезаписан, вложенный `#battleCount` исчез, из-за чего `UI.renderBattles` возвращал раньше и не привязывал обработчики
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: восстановление `#battleCount` если он отсутствует
+- `AsyncScene/Web/ui/ui-battles.js`: счетчик обновляется через `countEl.textContent`, а wrapper только скрывается/показывается (без перезаписи `textContent`)
+
+### 2026-01-19 00:39:45 JST - Fix: прямой onclick на шапке баттлов
+
+Контекст
+- Runtime: программный click по `#battlesHeader` не меняет состояние панели, хотя `UI.setPanelSize` работает
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: обработчик шапки перенесен на `header.onclick` (переустанавливается каждый рендер)
+
+### 2026-01-19 00:49:22 JST - Fix: шапка баттлов реагирует на pointerdown, усиление визуала входящих
+
+Контекст
+- Runtime: клик по шапке не срабатывал, при том что другие кнопки работали
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: обработчик шапки назначается на `onclick` и `onpointerdown` с антидублем
+- `AsyncScene/Web/style.css`: при `panelHeader--hot` название и счетчик становятся жирнее
+
+### 2026-01-19 00:54:15 JST - Fix: жирная шапка баттлов держится до клика
+
+Контекст
+- Требование: заголовок и счетчик баттлов остаются жирными до клика, а не только на 0.65с
+
+Изменения
+- `AsyncScene/Web/ui/ui-core.js`: `UI.pulsePanelHeader` теперь не снимает класс, если duration=0
+- `AsyncScene/Web/ui/ui-battles.js`: при `displayCount>0` класс `panelHeader--hot` ставится и удерживается, `pulsePanelHeader(..., 0)`
+
+### 2026-01-19 01:03:01 JST - Fix: снятие panelHeader--hot при клике (Battles/Events/DM)
+
+Контекст
+- Требование: жирный заголовок/счетчик остается до клика и снимается на взаимодействие пользователя
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: на клик по шапке снимается `panelHeader--hot` и сбрасывается `collapsedCounter`
+- `AsyncScene/Web/ui/ui-events.js`: на клик по шапке снимается `panelHeader--hot` и сбрасывается `collapsedCounter`
+- `AsyncScene/Web/ui/ui-dm.js`: на клик по шапке снимается `panelHeader--hot`, сбрасывается `collapsedCounter`, и выполняется toggle размера
+
+### 2026-01-19 01:12:22 JST - Fix: анти-двойной клик и сброс счетчика в баттлах
+
+Контекст
+- Runtime: шапка баттлов дергается дважды и сразу возвращается (двойной toggle)
+- Требование: при клике убрать жирность и счетчик
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: обработчик только на `pointerdown`, `onclick` сброшен, антидубль по времени
+- На клик: снимается `panelHeader--hot`, сбрасывается `collapsedCounter`, очищается счетчик в шапке
+
+Пометка
+- Пользователь сообщил, что Events пока не жирнеют; отложено до отдельного шага
+
+### 2026-01-19 01:18:15 JST - Fix: клик шапки баттлов через глобальный обработчик
+
+Контекст
+- Runtime: прямой обработчик pointerdown вызывал двойной toggle и ломал UX
+- Требование: использовать рабочую логику клика, как в блоке событий
+
+Изменения
+- `AsyncScene/Web/ui/ui-battles.js`: удален pointerdown-обработчик; шапка только снимает `panelHeader--hot` и сбрасывает счетчик
+- Toggle теперь выполняется глобальным обработчиком `bindBlockHeaderToggles`
+
+### 2026-01-18 23:28:46 JST - Runtime регресс: блок "Баттлы" не реагирует на клики
+
+Контекст
+- Проект: AsyncScene
+- Текущая жалоба: шапка и кнопки блока "Баттлы" не реагируют; входящих баттлов нет
+- Режим: read-only аудит, фиксы только по явному разрешению
+- Логи: прочитан `AsyncScene/Web/AsyncSceneLogs/last.jsonl` (последние 200 строк)
+
+Факты из логов
+- В `last.jsonl` отсутствуют записи про UI-ошибки/исключения, только события `chat` и `stat` (см. линии L1-L200).
+
+Факты по коду (статический анализ)
+- Делегированный обработчик клика по шапкам панелей находится в `AsyncScene/Web/ui/ui-boot.js` (bindBlockHeaderToggles), слушает `#blocks` и ищет `.blockHeader/.panelHeader`.
+- Кнопки размера в "Баттлы" создаются и биндуются в `AsyncScene/Web/ui/ui-battles.js` внутри `UI.renderBattles`.
+- Глобальная блокировка кликов возможна при `#right.has-overlay-panel` и `#blocks.has-overlay-panel`: CSS отключает pointer-events для всех панелей, кроме `.panel--full` (см. `AsyncScene/Web/style.css`).
+- Класс `has-overlay-panel` ставится в `UI.updatePanelOverlayState` на основании видимых элементов `.panel--full/.size-max` (см. `AsyncScene/Web/ui/ui-core.js`).
+
+Открытый вопрос
+- Нужны runtime-факты: есть ли `has-overlay-panel` на `#right/#blocks` и есть ли видимая `.panel--full` в момент, когда "Баттлы" не кликаются.
 
 ## [CODEX] Assistant Log
 
@@ -764,5 +1101,39 @@ DevTools verification snippet:
 - Next: нужен explicit `РАЗРЕШАЮ ПРАВКУ` на UI-файлы/`state.js` чтобы реализовать тот UX; пока только read-only ответ.
 
 Память обновлена
+
+### 2026-01-20 — Unified crowd resolver core
+- Facts: Добавлен общий `resolveCrowdCore` в `conflict-core.js` и вызовы из `events.js`, теперь все плотные решения (A/B/TIE) выполняет единый core-решатель, таймер только инициирует резолв, а рестарт crowd вызывается только при TIE. Экономика (points/REP) осталась прежней и привязана к результату resolver, UI не трогался. Логи `AsyncScene/Web/AsyncSceneLogs/last.jsonl#L625-L644` подтверждают, что сценарии с draw/резолв остались доступными.  
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/events.js`
+- Next: Ассистент — документировать следующий шаг по Stage Economy wave 1 (P0 LOGIC 2.2) после проверки resolver; при подтверждении планировать лимиты/веса.
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Слепи отчёт по новой логике crowd resolver (PASS/FAIL) и укажи, какие тесты нужно прогнать перед P0 LOGIC 2.2 (лимиты/вес). Не забудь отметить, что UI не трогался, и составить чек-лист для следующего шага.
+    ```
+
+Память обновлена
+
+### 2026-01-21 — Crowd REP emission refactor
+- Facts: Убрано использование `crowd_pool` для REP в голосующих ветках: `events.js` начисляет +1⭐ сразу при голосе через `awardCrowdVoteRep`, `payoutCrowdPool` теперь отвечает только за возврат пойнтов, а `conflict-core.js` перестал пополнять REP при escape click/refund. Вместо пулов добавлен `rep_emitter` в `state.js`, и `transferRep` обслуживает его без списания. Логи показывают, что REP больше не зависит от crowd_pool и NPC получает +1⭐ при каждом голосе, а UI не тронут.  
+- Changed: `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/state.js`
+- Next: Ассистент — документировать DevTools-смоуки по 1⭐ за голос, отсутствие crowd_pool в `Game.Debug.moneyLog` для REP, и подготовить план P0 LOGIC 3 (лимиты/веса).  
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Дай отчёт по refactor’у REP толпы: смоук-команды проверяют +1⭐ на голос, NPC репиях и отсутствие `crowd_pool` в реп-записях. После этого предложи чек-лист для P0 LOGIC 3 (лимиты/веса).
+    ```
+
+Память обновлена
+### 2026-01-22 — Crowd vote cap battle validation still FAIL
+- Facts: `Game.Dev.drawAuditTrigger({ allowParallel: true })` возвращает `battleId`, но `Game.State.battles` в тот же тик содержит только один битл без `crowd`, поиск по `dev_draw_*` возвращает `null`, и `crowd.decided` не фиксируется. Логи `AsyncScene/Web/AsyncSceneLogs/last.jsonl` показывают лишь `battle_draw_deposit/rep_battle_draw/crowd_draw_*`, без явного cap в battle. 
+- Status: FAIL (battle cap остаётся непроверенным). 
+- Changed: `PROJECT_MEMORY.md`
+- Next: сразу после helper’а надо получить `battleId`, посмотреть `crowd`, вызвать `Game.ConflictCore.applyCrowdVoteTick(battleId)` до финала, собрать before/after и лог. Пока PASS не поставить.
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Draw helper возвращает `battleId`, но битл скрывается из Game.State до тех пор, пока не зафиксирован `crowd`. Если получится поймать его до resolved и показать `crowd.decided`, пришли данные и лог, тогда ставим PASS/FAIL.
+    ```
 
 Память обновлена

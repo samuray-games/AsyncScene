@@ -1540,10 +1540,22 @@ window.Game = window.Game || {};
     const k = String(key || "").toLowerCase();
     const s = __normalizePanelSize(size);
 
+    const applyNow = () => {
+      try {
+        const map = { dm: "dmBlock", battles: "battlesBlock", events: "eventsBlock", locations: "locationsBlock" };
+        const id = map[k] || null;
+        const el = id ? document.getElementById(id) : null;
+        if (el && typeof UI.applyPanelSizeClasses === "function") {
+          UI.applyPanelSizeClasses(el, k);
+        }
+      } catch (_) {}
+    };
+
     // Preferred: StateAPI setter
     try{
       if (Game.StateAPI && typeof Game.StateAPI.setPanelSize === "function") {
         Game.StateAPI.setPanelSize(k, s);
+        applyNow();
         UI.requestRenderAll();
         return;
       }
@@ -1558,6 +1570,7 @@ window.Game = window.Game || {};
     try {
       if (typeof UI.resetCollapsedCounter === "function" && s !== "collapsed") UI.resetCollapsedCounter(k);
     } catch (_) {}
+    applyNow();
     UI.requestRenderAll();
   };
 
@@ -1592,6 +1605,22 @@ window.Game = window.Game || {};
     el.classList.toggle("panel--medium", size === "medium");
     el.classList.toggle("panel--full", size === "max");
     try { if (UI.updatePanelOverlayState) UI.updatePanelOverlayState(); } catch (_) {}
+  };
+
+  UI.__panelHeaderCounts = UI.__panelHeaderCounts || {};
+  UI.pulsePanelHeader = function(key, header, count, duration = 650){
+    if (!key || !header) return;
+    const prev = UI.__panelHeaderCounts[key] || 0;
+    UI.__panelHeaderCounts[key] = count;
+    if (count > prev) {
+      header.classList.remove("panelHeader--hot");
+      header.classList.add("panelHeader--hot");
+      if (duration > 0) {
+        setTimeout(() => {
+          try { header.classList.remove("panelHeader--hot"); } catch (_) {}
+        }, duration);
+      }
+    }
   };
 
   function __getPanelCounterMap() {
@@ -1637,6 +1666,20 @@ window.Game = window.Game || {};
     return false;
   };
 
+  function __hasVisibleMaxPanel(blocks){
+    const list = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
+    return list.some(el => {
+      try {
+        if (!el || el.isConnected !== true) return false;
+        const cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+        if (cs && (cs.display === "none" || cs.visibility === "hidden")) return false;
+        if (cs && Number.isFinite(parseFloat(cs.opacity)) && parseFloat(cs.opacity) <= 0) return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      } catch (_) { return false; }
+    });
+  }
+
   UI.updatePanelOverlayState = function(){
     try {
       const right = document.getElementById("right");
@@ -1645,18 +1688,23 @@ window.Game = window.Game || {};
       // Only treat as overlay if there is a VISIBLE max panel.
       // Otherwise we can get stuck in a state where everything becomes unclickable
       // (pointer-events:none on all blocks except a hidden/removed max panel).
-      const maxNodes = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
-      const hasMax = maxNodes.some(el => {
-        try {
-          if (!el || el.isConnected !== true) return false;
-          // offsetParent null for display:none or detached nodes
-          if (el.offsetParent === null) return false;
-          const r = el.getBoundingClientRect();
-          return r.width > 0 && r.height > 0;
-        } catch (_) { return false; }
-      });
+      const hasMax = __hasVisibleMaxPanel(blocks);
       right.classList.toggle("has-overlay-panel", !!hasMax);
       blocks.classList.toggle("has-overlay-panel", !!hasMax);
+    } catch (_) {}
+  };
+
+  UI.ensureOverlayClean = function(){
+    try {
+      const right = document.getElementById("right");
+      const blocks = document.getElementById("blocks");
+      if (!right || !blocks) return;
+      if (!right.classList.contains("has-overlay-panel") && !blocks.classList.contains("has-overlay-panel")) return;
+      const hasMax = __hasVisibleMaxPanel(blocks);
+      if (!hasMax) {
+        right.classList.remove("has-overlay-panel");
+        blocks.classList.remove("has-overlay-panel");
+      }
     } catch (_) {}
   };
 
@@ -1671,15 +1719,7 @@ window.Game = window.Game || {};
           const blocks = document.getElementById("blocks");
           if (!right || !blocks) return;
           if (!blocks.classList.contains("has-overlay-panel") && !right.classList.contains("has-overlay-panel")) return;
-          const maxNodes = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
-          const hasVisible = maxNodes.some(el => {
-            try {
-              if (!el || el.isConnected !== true) return false;
-              if (el.offsetParent === null) return false;
-              const r = el.getBoundingClientRect();
-              return r.width > 0 && r.height > 0;
-            } catch (_) { return false; }
-          });
+          const hasVisible = __hasVisibleMaxPanel(blocks);
           if (!hasVisible) {
             right.classList.remove("has-overlay-panel");
             blocks.classList.remove("has-overlay-panel");

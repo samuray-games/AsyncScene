@@ -517,6 +517,18 @@ window.Game = window.Game || {};
     } else if (titleEl.parentNode !== header) {
       header.insertBefore(titleEl, right);
     }
+    let titleTextEl = titleEl.querySelector(".headerTitleText");
+    if (!titleTextEl) {
+      titleTextEl = document.createElement("span");
+      titleTextEl.className = "headerTitleText";
+      titleEl.appendChild(titleTextEl);
+    }
+    let headerCountEl = titleEl.querySelector(".headerCountWrapper");
+    if (!headerCountEl) {
+      headerCountEl = document.createElement("span");
+      headerCountEl.className = "headerCountWrapper";
+      titleEl.appendChild(headerCountEl);
+    }
 
     if (!right.__controlsBuilt) {
       right.__controlsBuilt = true;
@@ -565,6 +577,10 @@ window.Game = window.Game || {};
     } catch(_) {}
 
     header.onclick = (ev) => {
+      try {
+        if (header && header.classList) header.classList.remove("panelHeader--hot");
+        if (UI && typeof UI.resetCollapsedCounter === "function") UI.resetCollapsedCounter("events");
+      } catch (_) {}
       const t = ev && ev.target;
       if (t && (t.tagName === "BUTTON" || t.closest("button"))) return;
     };
@@ -594,23 +610,11 @@ window.Game = window.Game || {};
 
     // Update header title (do not overwrite controls)
     if (titleEl) {
-      const nextTitle = t("events_title", { count: open.length });
-      titleEl.textContent = nextTitle;
-      try {
-        const badgeValue = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("events") : 0;
-        let badgeEl = header.querySelector(".panelBadge.eventsBadge");
-        if (!badgeEl) {
-          badgeEl = document.createElement("span");
-          badgeEl.className = "badge panelBadge eventsBadge";
-        }
-        badgeEl.textContent = badgeValue ? `(${badgeValue})` : "";
-        badgeEl.style.display = badgeValue ? "" : "none";
-        if (right && badgeEl.parentNode !== header) {
-          header.insertBefore(badgeEl, right);
-        } else if (!right && badgeEl.parentNode !== header) {
-          header.appendChild(badgeEl);
-        }
-      } catch (_) {}
+      const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("events") : 0;
+      const displayCount = Math.max(collapsedCount, open.length);
+      titleTextEl.textContent = "События";
+      if (headerCountEl) headerCountEl.textContent = displayCount ? ` (${displayCount})` : "";
+      header && UI.pulsePanelHeader && UI.pulsePanelHeader("events", header, displayCount);
     }
 
     // Persist count to flags for other UI blocks (if needed)

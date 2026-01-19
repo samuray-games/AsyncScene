@@ -1,0 +1,2 @@
+{"ts": 1768824870506, "sessionId": "session-1768824838685-r8s8", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1768824866206_7325"}}
+{"ts": 1768824870508, "sessionId": "session-1768824838685-r8s8", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1768824866206_7325"}}

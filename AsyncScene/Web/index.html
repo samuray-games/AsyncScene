@@ -43,8 +43,11 @@
         </div>
 
         <div class="block panel hidden" id="dmBlock">
-          <div class="blockHeader panelHeader">
-            <div>Личка</div>
+          <div class="blockHeader panelHeader" id="dmBlockHeader">
+            <div>
+              <span class="headerTitleText">Личка</span>
+              <span class="headerCountWrapper" id="dmHeaderCount"></span>
+            </div>
             <div class="righty"></div>
           </div>
           <div class="blockBody panelBody">
@@ -74,7 +77,10 @@
 
         <div class="block panel" id="battlesBlock">
           <div class="blockHeader panelHeader" id="battlesHeader">
-            <div>Баттлы (<span id="battleCount">0</span>)</div>
+            <div>
+              <span class="battleTitleText">Баттлы</span>
+              <span id="battleCountWrapper">(<span id="battleCount">0</span>)</span>
+            </div>
             <div class="righty"></div>
           </div>
           <div class="blockBody panelBody scroll hidden" id="battlesBody"></div>
@@ -82,7 +88,10 @@
 
         <div class="block panel" id="eventsBlock">
           <div class="blockHeader panelHeader" id="eventsHeader">
-            <div>События</div>
+            <div class="eventsTitle">
+              <span class="headerTitleText">События</span>
+              <span class="headerCountWrapper" id="eventsHeaderCount"></span>
+            </div>
             <div class="righty"></div>
           </div>
           <div class="blockBody panelBody scroll hidden" id="eventsBody"></div>

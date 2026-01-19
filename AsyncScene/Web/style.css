@@ -828,6 +828,24 @@ button:disabled{opacity:.55; cursor:not-allowed}
   justify-content:space-between;
   gap:10px;
 }
+.panelHeader--hot{
+  animation: panelHeaderPulse 0.65s ease;
+}
+.panelHeader--hot .battleTitleText,
+.panelHeader--hot .headerTitleText,
+.panelHeader--hot .headerCountWrapper,
+.panelHeader--hot #battleCountWrapper{
+  font-weight:800;
+}
+.headerCountWrapper{
+  opacity:0.9;
+  font-weight:600;
+}
+@keyframes panelHeaderPulse{
+  0%{box-shadow:0 0 0 0 rgba(255,255,255,0.6)}
+  60%{box-shadow:0 0 0 8px rgba(255,255,255,0)}
+  100%{box-shadow:0 0 0 0 transparent}
+}
 .capLine{
   font-size:12px;
   color:var(--muted);

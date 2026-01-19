@@ -1,0 +1,5 @@
+{"ts": 1768827098133, "sessionId": "session-1768827064103-7hig", "type": "chat", "name": "Макс", "text": "сделай шаг назад и послушай", "system": false}
+{"ts": 1768827098992, "sessionId": "session-1768827064103-7hig", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_draw_deposit", "battleId": "dev_draw_1768827098991_6746"}}
+{"ts": 1768827098992, "sessionId": "session-1768827064103-7hig", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_draw", "battleId": "dev_draw_1768827098991_6746"}}
+{"ts": 1768827098993, "sessionId": "session-1768827064103-7hig", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-19"}}
+{"ts": 1768827098994, "sessionId": "session-1768827064103-7hig", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_draw_payout_me", "battleId": "dev_draw_1768827098991_6746"}}

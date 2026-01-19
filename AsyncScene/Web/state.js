@@ -146,6 +146,9 @@ window.Game = window.Game || {};
       if (!Game.Debug.repPools[id]) Game.Debug.repPools[id] = { id, rep: 1000, pool: true };
       return Game.Debug.repPools[id];
     }
+    if (id === "rep_emitter") {
+      return { id: "rep_emitter", rep: Number.MAX_SAFE_INTEGER, pool: true };
+    }
     if (id === "me") return { id: "me", kind: "me" };
     if (!State.players) return null;
     const p = State.players[id];
@@ -184,11 +187,12 @@ window.Game = window.Game || {};
     const beforeInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
     const beforeFrom = (fromId === "me") ? (State.rep | 0) : (fromAcc.rep | 0);
     const beforeTo = (toId === "me") ? (State.rep | 0) : (toAcc.rep | 0);
+    const isEmitter = (fromId === "rep_emitter");
     const amt = n | 0;
     
     // Check sufficient funds (fix DUM-022 #3)
-    const available = beforeFrom | 0;
-    if (available < amt) {
+    const available = isEmitter ? Number.MAX_SAFE_INTEGER : (beforeFrom | 0);
+    if (!isEmitter && available < amt) {
       if (isDevFlag()) {
         try { console.warn("[REP] transferRep insufficient funds", { fromId, available, amt, reason }); } catch (_) {}
       }
@@ -196,8 +200,10 @@ window.Game = window.Game || {};
     }
     
     // Apply transfer with clipping to prevent negative (fix DUM-022 #2)
-    if (fromId === "me") State.rep = Math.max(0, (State.rep | 0) - amt);
-    else fromAcc.rep = Math.max(0, (fromAcc.rep | 0) - amt);
+    if (!isEmitter) {
+      if (fromId === "me") State.rep = Math.max(0, (State.rep | 0) - amt);
+      else fromAcc.rep = Math.max(0, (fromAcc.rep | 0) - amt);
+    }
     if (toId === "me") State.rep = Math.max(0, (State.rep | 0) + amt);
     else toAcc.rep = Math.max(0, (toAcc.rep | 0) + amt);
     if (fromId === "me" || toId === "me") {
@@ -1199,6 +1205,17 @@ window.Game = window.Game || {};
     } catch (_) {}
   }
 
+  try {
+    if (Game && Game.UI && typeof Game.UI.renderDM === "function") {
+      Game.UI.renderDM();
+    }
+  } catch (_) {}
+  try {
+    if (Game && Game.UI && typeof Game.UI.requestRenderAll === "function") {
+      Game.UI.requestRenderAll();
+    }
+  } catch (_) {}
+
   function canReport(copId){
     const specific = resolveCopById(copId);
     if (specific && specific.id) {
@@ -1373,7 +1390,6 @@ window.Game = window.Game || {};
     }
 
     const ALLOWED_REPORT_ROLES = new Set(["toxic","bandit","mafia"]);
-    const ALLOWED_REPORT_ROLES = new Set(["toxic","bandit","mafia"]);
     let reportedRole = "";
     try {
       if (target && target.role) reportedRole = normalizeRoleKey(target.role);
@@ -1387,7 +1403,6 @@ window.Game = window.Game || {};
     if (target && target.id && String(target.id) === meId) {
       return { ok:false, reason:"self_report", role: roleKey };
     }
-    const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
     if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
       return { ok:false, reason:"report_invalid_target", role: roleKey };
     }

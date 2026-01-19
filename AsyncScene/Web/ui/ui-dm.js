@@ -394,6 +394,18 @@ window.Game = window.Game || {};
     const dmBlock = $("dmBlock");
     if (dmBlock) dmBlock.classList.toggle("hidden", !S.dm.open);
 
+    const dmBlockHeader = $("dmBlockHeader");
+    const dmHeaderCount = $("dmHeaderCount");
+    const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("dm") : 0;
+    const unreadMap = (S.dm && S.dm.unread) ? S.dm.unread : {};
+    const totalUnread = Object.values(unreadMap).reduce((sum, v) => sum + ((Number(v) || 0)), 0);
+    const displayCount = Math.max(collapsedCount, totalUnread);
+    if (dmHeaderCount) dmHeaderCount.textContent = displayCount ? ` (${displayCount})` : "";
+    if (dmBlockHeader) {
+      if (displayCount > 0) dmBlockHeader.classList.add("panelHeader--hot");
+      UI.pulsePanelHeader && UI.pulsePanelHeader("dm", dmBlockHeader, displayCount, 0);
+    }
+
     // Apply 3-size layout classes and header controls (cycler + close)
     if (dmBlock) {
       const size = getDmSize();
@@ -405,6 +417,21 @@ window.Game = window.Game || {};
 
       const header = findDmHeader(dmBlock);
       const right = ensureHeaderRight(header);
+      if (header) {
+        header.onclick = (ev) => {
+          try {
+            header.classList.remove("panelHeader--hot");
+            if (UI && typeof UI.resetCollapsedCounter === "function") UI.resetCollapsedCounter("dm");
+          } catch (_) {}
+          const t = ev && ev.target;
+          if (t && (t.tagName === "BUTTON" || (t.closest && t.closest("button")))) return;
+          const current = (UI && typeof UI.getPanelSize === "function") ? UI.getPanelSize("dm") : "medium";
+          const next = (current === "collapsed") ? "medium" : "collapsed";
+          try {
+            if (UI && typeof UI.setPanelSize === "function") UI.setPanelSize("dm", next);
+          } catch (_) {}
+        };
+      }
 
       if (right) {
         if (!right.__controlsBuilt) {

@@ -212,10 +212,7 @@ window.Game = window.Game || {};
         const next = (current === "collapsed") ? "medium" : "collapsed";
         let applied = false;
         try {
-          if (Game && Game.StateAPI && typeof Game.StateAPI.setPanelSize === "function") {
-            Game.StateAPI.setPanelSize(key, next);
-            applied = true;
-          } else if (UI && typeof UI.setPanelSize === "function") {
+          if (UI && typeof UI.setPanelSize === "function") {
             UI.setPanelSize(key, next);
             applied = true;
           }

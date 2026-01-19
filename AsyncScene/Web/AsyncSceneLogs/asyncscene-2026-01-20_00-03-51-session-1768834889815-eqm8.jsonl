@@ -1,0 +1,5 @@
+{"ts": 1768835030866, "sessionId": "session-1768834889815-eqm8", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mklapcv7_ifdp36"}}
+{"ts": 1768835030866, "sessionId": "session-1768834889815-eqm8", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mklapcv7_ifdp36"}}
+{"ts": 1768835030867, "sessionId": "session-1768834889815-eqm8", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_overpoints_convert", "battleId": "overpoints_-691632740"}}
+{"ts": 1768835030868, "sessionId": "session-1768834889815-eqm8", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768835030868, "sessionId": "session-1768834889815-eqm8", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "battle_mklapcv7_ifdp36"}}

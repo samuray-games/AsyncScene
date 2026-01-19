@@ -1128,6 +1128,7 @@ window.Game = window.Game || {};
   Game.Dev.drawAuditTrigger = (opts = {}) => {
     const name = "draw_audit_trigger";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
     if (!Econ || typeof Econ.transferPoints !== "function" || typeof Econ.transferFromPool !== "function") {
       return { name, ok: false, details: "Econ.transferPoints/transferFromPool missing" };
     }
@@ -1241,9 +1242,95 @@ window.Game = window.Game || {};
       const byBattle = (Game.Debug && Game.Debug.moneyLogByBattle) ? (Game.Debug.moneyLogByBattle[battleId] || []) : [];
       const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
 
+      const ensureDrawBattle = () => {
+        const state = Game.State || (Game.State = {});
+        if (!Array.isArray(state.battles)) state.battles = [];
+        let existing = state.battles.find(x => x && String(x.id) === String(battleId));
+        if (existing) return existing;
+        const nowStamp = Date.now();
+        const totalPlayers = Math.max(3, (state.players ? Object.keys(state.players).length : 0) || 3);
+        const newCrowd = {
+          endAt: nowStamp + 10000,
+          endsAt: nowStamp + 10000,
+          votesA: 0,
+          votesB: 0,
+          aVotes: 0,
+          bVotes: 0,
+          totalPlayers,
+          cap: Math.max(1, totalPlayers),
+          voters: {},
+          decided: false,
+          attackerId: "me",
+          defenderId: oppId
+        };
+        const battle = {
+          id: battleId,
+          opponentId: oppId,
+          attackerId: "me",
+          defenderId: oppId,
+          fromThem: false,
+          status: "draw",
+          draw: true,
+          result: "draw",
+          resolved: false,
+          finished: false,
+          attackHidden: false,
+          createdAt: nowStamp,
+          updatedAt: nowStamp,
+          crowd: newCrowd
+        };
+        state.battles = [battle].concat(state.battles.filter(x => x && String(x.id) !== String(battleId)));
+        return battle;
+      };
+
+      let tickResult = null;
+      let crowdCapDebug = null;
+      let cacheHit = false;
+      let crowdCapDebugWhy = null;
+      let helperOk = false;
+
+      const coreMissing = !Core || typeof Core.applyCrowdVoteTick !== "function";
+      if (coreMissing) {
+        crowdCapDebugWhy = "core_missing";
+      } else {
+        const battleInState = ensureDrawBattle();
+        if (!battleInState) {
+          crowdCapDebugWhy = "battle_missing_after_create";
+        } else if (!battleInState.crowd) {
+          crowdCapDebugWhy = "battle_has_no_crowd";
+        } else if (battleInState.crowd.decided) {
+          crowdCapDebugWhy = "battle_already_decided";
+        } else if (!battleInState.draw) {
+          crowdCapDebugWhy = "battle_not_draw_after_create";
+        } else {
+          if (opts.forceCap && battleInState.crowd) {
+            const currCap = Math.max(1, Number.isFinite(battleInState.crowd.cap) ? (battleInState.crowd.cap | 0) : (battleInState.crowd.totalPlayers | 0));
+            const currentVotes = (battleInState.crowd.votesA | 0) + (battleInState.crowd.votesB | 0);
+            const needed = Math.max(0, currCap - currentVotes);
+            battleInState.crowd.votesA = (battleInState.crowd.votesA | 0) + needed;
+            battleInState.crowd.aVotes = battleInState.crowd.votesA;
+          }
+          try {
+            tickResult = Core.applyCrowdVoteTick(battleId);
+          } catch (_) {
+            tickResult = null;
+          }
+          if (!tickResult) {
+            tickResult = { ok: false, battleId, why: "tick_failed" };
+          }
+          const metaCandidate = (tickResult.crowdCapMeta || tickResult.pendingMeta) || null;
+          crowdCapDebug = metaCandidate;
+          cacheHit = !!(tickResult && tickResult.cacheHit);
+          helperOk = !!metaCandidate;
+          crowdCapDebugWhy = tickResult && tickResult.why ? tickResult.why : null;
+        }
+      }
+
+      const overallOk = helperOk && !!(assert && assert.ok);
+
       return {
         name,
-        ok: !!(assert && assert.ok),
+        ok: overallOk,
         battleId,
         T0_FINISHED: { id: battleId, result: "draw", status: "finished", oppId },
         T1_BY_BATTLE_REASONS: byBattle.map(x => x && x.reason),
@@ -1261,7 +1348,11 @@ window.Game = window.Game || {};
         repAwardedMinority,
         repAwardedMajority: 0,
         minorityPointsGranted: 0,
-        v13
+        v13,
+        crowdCapDebug,
+        tickResult,
+        cacheHit,
+        crowdCapDebugWhy
       };
     } finally {
       if (!Game.Debug) Game.Debug = {};

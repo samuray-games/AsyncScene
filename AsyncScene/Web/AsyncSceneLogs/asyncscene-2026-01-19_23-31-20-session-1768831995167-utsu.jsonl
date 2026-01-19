@@ -1,0 +1,2 @@
+{"ts": 1768833079300, "sessionId": "session-1768831995167-utsu", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_draw_deposit", "battleId": "battle_mkl9jdg0_2szxw9"}}
+{"ts": 1768833079301, "sessionId": "session-1768831995167-utsu", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_draw", "battleId": "battle_mkl9jdg0_2szxw9"}}

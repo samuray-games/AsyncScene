@@ -1384,3 +1384,27 @@
   - [x] Блок агента добавлен в AGENTS.md
 - Notes: Формат блока соответствует текущему AGENTS.md.
 - Result: Добавлен блок агента Миши в AGENTS.md.
+### [T-20260123-001] Crowd vote cap instrumentation (P0 LOGIC 2.3 PASS)
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Ассистент
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Goal: Зафиксировать PASS P0 LOGIC 2.3: helper создаёт draw, валидирует `crowd`, возвращает `pendingMeta`/`crowdCapMeta`, `forceCap:true` демонстрирует `endedBy:"cap"` и `totalVotes>=cap`.  
+- Acceptance:
+  - [x] Draw battle вставляется в `Game.State.battles` и проверяется до вызова `Game.ConflictCore.applyCrowdVoteTick`.
+  - [x] `crowdCapDebug` берётся из `tickResult.pendingMeta` или `tickResult.crowdCapMeta`, без `Game.Debug.moneyLog`.
+  - [x] Смоуки без `forceCap` и с `forceCap:true` возвращают `crowdCapDebug` с `why:null`, `forceCap` даёт `endedBy:"cap"`.
+- Result: PASS — helper больше не возвращает `battle_not_draw` на `ok:true`, оба сниппета подтверждены, документация обновлена.
+- Report (обязательный формат):
+  - Status: PASS
+  - Facts: `drawAuditTrigger` гарантирует draw с crowd, exposes meta directly from `tickResult`, `forceCap:true` finishes with `endedBy:"cap"`.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js`
+  - How to verify: запустить оба смоука и убедиться в `crowdCapDebug` и `endedBy:"cap"` с `totalVotes>=cap`.
+  - Next: Ассистент — подготовить P0 LOGIC 3 (лимиты/веса) и обновить прогресс Crowd Economy Reforge.
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Ассистента:
+      Crowd Economy Reforge: P0 LOGIC 2.3 PASS. Вынеси план на P0 LOGIC 3 (лимиты/веса), составь чек-лист смоуков и обнови прогресс в PROJECT_MEMORY.md/PROGRESS_SCALE.md. После этого передай следующий prompt роли, отвечающей за P0 LOGIC 3.
+      ```

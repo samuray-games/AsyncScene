@@ -649,7 +649,17 @@
 
 UI.renderBattles = () => {
   const body = $("battlesBody");
-  const countEl = $("battleCount");
+  let countEl = $("battleCount");
+  const countWrapper = $("battleCountWrapper");
+  if (countWrapper && !countEl) {
+    // Restore missing counter span if wrapper was overwritten.
+    countWrapper.textContent = "(";
+    countEl = document.createElement("span");
+    countEl.id = "battleCount";
+    countEl.textContent = "0";
+    countWrapper.appendChild(countEl);
+    countWrapper.appendChild(document.createTextNode(")"));
+  }
   if (!body || !countEl) return;
   body.classList.remove("hidden");
   bindBattleArgClicks();
@@ -657,7 +667,19 @@ UI.renderBattles = () => {
    const header = $("battlesHeader");
    let headerBtns = null;
    if (header) {
-     let right = header.querySelector(".righty");
+     header.__toggleBound = true;
+     header.onpointerdown = null;
+     header.onclick = (ev) => {
+       const t = ev && ev.target;
+       if (t && (t.tagName === "BUTTON" || (t.closest && t.closest("button")))) return;
+       try {
+         if (header && header.classList) header.classList.remove("panelHeader--hot");
+         if (UI && typeof UI.resetCollapsedCounter === "function") UI.resetCollapsedCounter("battles");
+       } catch (_) {}
+     };
+   }
+    if (header) {
+      let right = header.querySelector(".righty");
      if (!right) {
        right = document.createElement("div");
        right.className = "righty";
@@ -696,19 +718,16 @@ UI.renderBattles = () => {
      const btnMed = ensureBtn("battlesBtnMed", "⧉", "Стандартный размер", (ev) => { stop(ev); setSizeHeader("medium"); });
     headerBtns = { btnMed, btnMax };
     try {
-      const badgeValue = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("battles") : 0;
-      let badgeEl = header.querySelector(".panelBadge.battlesBadge");
-      if (!badgeEl) {
-        badgeEl = document.createElement("span");
-        badgeEl.className = "badge panelBadge battlesBadge";
-      }
-      badgeEl.textContent = badgeValue ? `(${badgeValue})` : "";
-      badgeEl.style.display = badgeValue ? "" : "none";
-      const right = header.querySelector(".righty");
-      if (right && badgeEl.parentNode !== header) {
-        header.insertBefore(badgeEl, right);
-      } else if (!right && badgeEl.parentNode !== header) {
-        header.appendChild(badgeEl);
+      const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("battles") : 0;
+      const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
+      const displayCount = Math.max(collapsedCount, battlesCount);
+      const battleTitle = header.querySelector(".battleTitleText");
+      if (battleTitle) battleTitle.textContent = "Баттлы";
+      if (countWrapper) countWrapper.style.display = displayCount ? "" : "none";
+      countEl.textContent = String(displayCount);
+      if (header) {
+        if (displayCount > 0) header.classList.add("panelHeader--hot");
+        UI.pulsePanelHeader && UI.pulsePanelHeader("battles", header, displayCount, 0);
       }
     } catch (_) {}
   }
@@ -740,8 +759,8 @@ UI.renderBattles = () => {
     // Local invite UI state (kept stable across renders)
     UI._battleInvite = UI._battleInvite || { open:false, q:"", sel:0, lastPicked:null };
 
-   const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
-   countEl.textContent = String(battlesCount);
+  const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
+  countEl.textContent = String(battlesCount);
 
    // We'll render invite controls even when there are no battles.
    // The empty-state hint will be shown AFTER invite UI.
@@ -1124,6 +1143,7 @@ UI.renderBattles = () => {
           }, 200);
         } catch (_) {}
       }
+      // header toggle is bound near header creation (always on)
     }
 
 

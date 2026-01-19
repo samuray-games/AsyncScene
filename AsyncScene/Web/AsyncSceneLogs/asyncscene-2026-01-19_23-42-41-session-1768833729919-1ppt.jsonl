@@ -1,0 +1,6 @@
+{"ts": 1768833760655, "sessionId": "session-1768833729919-1ppt", "type": "chat", "name": "Ветеран", "text": "@Yuna, вот это было грязно", "system": false}
+{"ts": 1768833761548, "sessionId": "session-1768833729919-1ppt", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkl9xzwf_pdm32d"}}
+{"ts": 1768833761549, "sessionId": "session-1768833729919-1ppt", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkl9xzwf_pdm32d"}}
+{"ts": 1768833761550, "sessionId": "session-1768833729919-1ppt", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768833761550, "sessionId": "session-1768833729919-1ppt", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "battle_mkl9xzwf_pdm32d"}}
+{"ts": 1768833761551, "sessionId": "session-1768833729919-1ppt", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-19"}}

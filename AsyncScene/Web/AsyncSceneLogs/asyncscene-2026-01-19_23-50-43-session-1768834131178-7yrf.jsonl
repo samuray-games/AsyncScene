@@ -1,0 +1,5 @@
+{"ts": 1768834242219, "sessionId": "session-1768834131178-7yrf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund", "battleId": "ed_npc_1768834232081_9846"}}
+{"ts": 1768834242670, "sessionId": "session-1768834131178-7yrf", "type": "chat", "name": "Олег", "text": "@Слабак, лучший ход для тебя это смыться", "system": false}
+{"ts": 1768834243187, "sessionId": "session-1768834131178-7yrf", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkla8j09_pnu1zz"}}
+{"ts": 1768834243188, "sessionId": "session-1768834131178-7yrf", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "battle_mkla8j09_pnu1zz"}}
+{"ts": 1768834243189, "sessionId": "session-1768834131178-7yrf", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_mkla8j09_pnu1zz"}}
