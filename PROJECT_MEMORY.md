@@ -140,6 +140,111 @@
 - После заполнения — прогер запускает smoke: проверить UI и NPC для каждого профиля.
 
 Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote cache return (pending)
+- Facts: проверен `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L1549-L1569, фиксируются draw‑статы (`battle_draw_deposit`, `rep_battle_draw`, `crowd_draw_payout_me`) по `dev_draw_*`, но в логах нет явной `crowd_cap_debug`; требуется обеспечить возврат meta по `battleId` даже после удаления battle из State.
+- Status: ожидаю явного разрешения на правку `AsyncScene/Web/conflict/conflict-core.js` для добавления cache‑возврата в `finalizeCrowdVote`.
+- Next: после разрешения сделать один атомарный патч и дать smoke‑команды.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote cache return (done)
+- Facts: `finalizeCrowdVote(battleId)` теперь возвращает meta из cache при отсутствии battle в State; при наличии battle возвращает объект с `crowdCapMeta` и `outcome`. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke.
+- Next: запустить команды для проверки `finalizeCrowdVote` по `battleId` после `drawAuditTrigger` и сравнить с `applyCrowdVoteTick`.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote fallback via applyCrowdVoteTick
+- Facts: в ветке отсутствующего battle `C.finalizeCrowdVote` теперь вызывает `C.applyCrowdVoteTick(battleId)` и возвращает `crowdCapMeta`/`pendingMeta` из тикера, без прямого чтения cache. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke по требованиям 2.4.
+- Next: проверить, что `f.crowdCapMeta.endedBy === "cap"` при `forceCap:true`.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote fallback uses internal ticker
+- Facts: в ветке отсутствующего battle `C.finalizeCrowdVote` вызывает внутренний `applyCrowdVoteTick(null, battleId)` для получения `crowdCapMeta`/`pendingMeta`, чтобы избежать несоответствия замыкания `C.applyCrowdVoteTick`. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke по требованиям 2.4.
+- Next: проверить smoke с `forceCap:true`, ожидание `f.crowdCapMeta.endedBy === "cap"`.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote fallback signature fix
+- Facts: в ветке отсутствующего battle `C.finalizeCrowdVote` вызывает `applyCrowdVoteTick(battleId)` (battleId первым аргументом) для корректной сигнатуры. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke по требованиям 2.4.
+- Next: проверить, что `f.crowdCapMeta.endedBy === "cap"` и `f !== null`.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 finalize fallback uses helper wrapper
+- Facts: fallback-ветка `C.finalizeCrowdVote` теперь вызывает `helperCore = (Game.ConflictCore||Game._ConflictCore)` и просит `helperCore.applyCrowdVoteTick(battleId)` для получения meta, затем возвращает объект. Это устраняет расхождение ссылок и гарантирует `f` не `null`. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke.
+- Next: прогнать `forceCap`-смоук и убедиться, что `f.crowdCapMeta.endedBy === "cap"`.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4 PASS
+- Facts: смоук подтвердил `tEndedBy:"cap"`, `fEndedBy:"cap"`, `fIsNull:false` при существующем battle.
+- Status: PASS.
+- Next: перейти к следующей задаче по плану.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4b outcome return (pending)
+- Facts: запрос на возврат `outcome` из `C.finalizeCrowdVote` при `endedBy:"cap"`; по факту `f.ok===false` и `outcome` отсутствует, хотя `crowdCapMeta` есть.
+- Status: ожидаю разрешение на правку `AsyncScene/Web/conflict/conflict-core.js`.
+- Next: после разрешения — добавить минимальный возврат `outcome` в finalize без изменения механики и дать smoke‑команды.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4b outcome return (done)
+- Facts: `finalizeCrowdVote(battleId)` теперь вычисляет `outcome` из `crowdCapMeta` при `endedBy:"cap"` и возвращает его вместе с meta; Добавлена helper-функция `getOutcomeFromCapMeta`. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke. PASS.
+- Next: прогнать `forceCap`-смоук и убедиться, что `fOutcome` не null и равен "A_WIN"/"B_WIN"/"TIE".
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4b outcome field in fallback
+- Facts: в ветке fallback при наличии `snap` теперь добавляется поле `outcome` (из `getOutcomeFromCapMeta`) в возвращаемый объект. Файл: `AsyncScene/Web/conflict/conflict-core.js`.
+- Status: готово к smoke.
+- Next: проверить, что `fKeys` содержит `outcome` и `fOutcome` не null при `forceCap:true`.
+
+Память обновлена
+
+### 2026-01-24 — P0 LOGIC 2.4c weighted tally economy compare PASS
+- Facts: normalize-smoke (battleId normalized) вернул `sigEqualNorm === true`, `only0`/`only1` пустые, значит `moneyLog` по POINТ/REP идентичны между базовым и debugWeights. Weighted tally влияет только на `crowdCapMeta`/outcome с весами y=1,o=2,r=3,k=4.
+- Status: PASS.
+- Next: завершённая задача P0 LOGIC 2.4 с weighted tally; переходите к следующей задаче по плану.
+
+Память обновлена
+
+### 2026-01-24 — Step [2] live event crowd economy apply (implemented)
+- Facts: в `AsyncScene/Web/events.js` добавлен `applyEventCrowdEconomy` и вызов в `finalizeOpenEventNow` для refund/remainder по событию; tie-ветка теперь возвращает всех в старт, не дублирует REP; в `AsyncScene/Web/dev/dev-checks.js` добавлен `Game.Dev.smokeNpcCrowdEventEconomyOnce` для smoke без UI.
+- Status: готово к smoke.
+- Next: запустить `Game.Dev.smokeNpcCrowdEventEconomyOnce()` и зафиксировать byReason/poolAfter/asserts.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4c weighted tally (pending)
+- Facts: запрос на weighted tally без UI и без изменения экономики; в коде не найдено `voteWeight/getVoteWeight/weighted` в `conflict-core.js`, а веса можно вывести из `Data.tierKeysByInfluence`/`Data.tierKeyByInfluence`/`Data.colorFromTierKey` (см. `data.js` L2108-L2195).
+- Status: ожидаю подтверждение канона весов и разрешение на правки `AsyncScene/Web/conflict/conflict-core.js` и `AsyncScene/Web/dev/dev-checks.js`.
+- Next: после подтверждения реализовать `getVoteWeight`, weighted `aVotes/bVotes`, и dev-опцию `debugWeights:true` в drawAuditTrigger.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4c weighted tally (implemented)
+- Facts: добавлены `useWeightedTally/getVoteWeight/getWeightedVotesFromCrowd` в `AsyncScene/Web/conflict/conflict-core.js`; `resolveCrowdCore` и `createCrowdCapMeta` используют взвешенные суммы при включенном флаге; в `AsyncScene/Web/dev/dev-checks.js` добавлен `debugWeights:true` (ставит `CROWD_WEIGHTED_TALLY`, подставляет двух голосующих с разными influence, cap=2).
+- Status: готово к smoke.
+- Next: прогнать `debugWeights:true` и подтвердить `aVotes/bVotes` как суммы весов и корректный outcome.
+
+Память обновлена
+
+### 2026-01-20 — P0 LOGIC 2.4c economy unchanged smoke (pending)
+- Facts: запрошено сравнение `moneyLog` baseline vs `debugWeights` для подтверждения неизменности экономики; результатов смоука пока нет.
+- Status: ожидаю выводы DevTools (sig/log diff).
+- Next: после получения `sigEqual` дать PASS/FAIL и зафиксировать.
+
+Память обновлена
 ### 2026-01-23 — Crowd Economy Reforge P0 LOGIC 2.3 PASS
 - Facts: P0 LOGIC 2.3 закрыт. `Game.Dev.drawAuditTrigger({ allowParallel:true })` теперь гарантирует, что `Game.State.battles` содержит реально активную draw с `b.crowd` до вызова `Game.ConflictCore.applyCrowdVoteTick`; `crowdCapDebug` читается из `tickResult.pendingMeta`/`crowdCapMeta`, `forceCap:true` добавляет голоса и сразу показывает `endedBy:"cap"` со `totalVotes >= cap`. Сниппеты: 1) без `forceCap` (`crowdCapDebug.totalVotes` может быть 0, `crowdCapDebugWhy:null`), 2) с `forceCap:true` (`crowdCapDebug.endedBy === "cap"` и `totalVotes >= cap`).  
 - Changed: `AsyncScene/Web/dev/dev-checks.js`

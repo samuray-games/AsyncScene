@@ -228,6 +228,43 @@ window.Game ||= {};
     try { if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll(); } catch (_) {}
   }
 
+  function applyEventCrowdEconomy(e, res){
+    if (!e || !res) return;
+    const crowd = e.crowd;
+    if (!crowd || typeof crowd !== "object") return;
+    if (crowd._econApplied) return;
+    crowd._econApplied = true;
+
+    if (!isCirculationEnabled()) return;
+    const Econ = getEcon();
+    if (!Econ || typeof Econ.transferPoints !== "function") return;
+
+    const battleId = e && (e.id || e.battleId || e.relatedBattleId || e.refId || null);
+    const voters = (crowd.voters && typeof crowd.voters === "object")
+      ? Object.keys(crowd.voters)
+      : [];
+    const poolId = getCrowdPoolId(e);
+    if (Econ.ensurePool) Econ.ensurePool(poolId);
+
+    if (!crowd._poolInit && voters.length) {
+      voters.forEach(() => {
+        Econ.transferPoints("sink", poolId, 1, "crowd_vote_pool_init", { battleId });
+      });
+      crowd._poolInit = true;
+    }
+
+    const refundAll = (res.outcome === "TIE");
+    const winnerSide = (res.outcome === "A_WIN") ? "a" : (res.outcome === "B_WIN" ? "b" : null);
+    const refundReason = refundAll ? "crowd_vote_refund" : "crowd_vote_refund_majority";
+    const transferFromPool = (Econ && typeof Econ.transferFromPool === "function") ? Econ.transferFromPool : null;
+
+    voters.forEach(id => {
+      if (!refundAll && crowd.voters && crowd.voters[id] !== winnerSide) return;
+      if (transferFromPool) transferFromPool(poolId, id, 1, refundReason, { battleId });
+      else Econ.transferPoints(poolId, id, 1, refundReason, { battleId });
+    });
+  }
+
   function isMeId(id){
     if (!id) return false;
     if (id === "me") return true;
@@ -367,6 +404,8 @@ window.Game ||= {};
     e.crowd.bVotes = 0;
     e.crowd.votesA = 0;
     e.crowd.votesB = 0;
+    e.crowd._econApplied = false;
+    e.crowd._poolInit = false;
 
     if (hadPlayerVote && prevVote) {
       e.crowd.voters[meId] = prevVote;
@@ -1313,7 +1352,14 @@ window.Game ||= {};
     const bInf = Number(e.bInf ?? 0);
 
     if (res && res.outcome === "TIE") {
+      applyEventCrowdEconomy(e, res);
       restartEventCrowd(e);
+      e.playerVoted = false;
+      e.myVote = null;
+      e.bet = null;
+      e.reveal = false;
+      e.voteRewardApplied = false;
+      e.voteOutcomeApplied = false;
       return true;
     }
 
@@ -1342,7 +1388,7 @@ window.Game ||= {};
       pushSystem(finalLine);
     }
 
-    payoutCrowdPool(e, winner);
+    applyEventCrowdEconomy(e, res);
     return true;
   }
 

@@ -711,6 +711,85 @@
     } catch (_) {}
   }
 
+  function getBattleCrowdPoolId(b){
+    const Econ = getEcon();
+    const bid = b && (b.id || b.battleId || null);
+    if (Econ && typeof Econ.getCrowdPoolId === "function") return Econ.getCrowdPoolId(bid);
+    return bid ? `crowd:${bid}` : "crowd";
+  }
+
+  function applyBattleCrowdEconomy(b, res, crowdOverride){
+    const crowd = crowdOverride || (b ? b.crowd : null);
+    if (!b || !crowd || !res) return;
+    if (crowd._econApplied) return;
+    crowd._econApplied = true;
+    if (!isCirculationEnabled()) return;
+
+    const Econ = getEcon();
+    if (!Econ || typeof Econ.transferPoints !== "function") return;
+
+    const battleId = b.id || b.battleId || null;
+    const voters = (crowd.voters && typeof crowd.voters === "object")
+      ? Object.keys(crowd.voters)
+      : [];
+    const poolId = getBattleCrowdPoolId(b);
+    if (Econ.ensurePool) Econ.ensurePool(poolId);
+
+    if (!crowd._poolInit && voters.length) {
+      econTransfer("sink", poolId, voters.length, "crowd_vote_pool_init", { battleId });
+      crowd._poolInit = true;
+    }
+
+    const refundAll = (res.outcome === "TIE");
+    const winnerSide = (res.outcome === "A_WIN") ? "a" : (res.outcome === "B_WIN" ? "b" : null);
+    const winnerAlt = (winnerSide === "a") ? "attacker" : (winnerSide === "b" ? "defender" : null);
+    const refundReason = refundAll ? "crowd_vote_refund" : "crowd_vote_refund_majority";
+    const transferFromPool = (Econ && typeof Econ.transferFromPool === "function") ? Econ.transferFromPool : null;
+
+    voters.forEach(id => {
+      if (!refundAll) {
+        const side = crowd.voters ? crowd.voters[id] : null;
+        if (side !== winnerSide && side !== winnerAlt) return;
+      }
+      if (transferFromPool) transferFromPool(poolId, id, 1, refundReason, { battleId });
+      else econTransfer(poolId, id, 1, refundReason, { battleId });
+    });
+  }
+
+  function withRepSourceOverride(fn){
+    try {
+      const API = (Game && Game.StateAPI) ? Game.StateAPI : null;
+      if (!API || typeof API.transferRep !== "function") return fn();
+      const orig = API.transferRep;
+      API.transferRep = function(fromId, toId, amount, reason, battleId){
+        const src = (String(fromId || "") === "crowd_pool") ? "rep_emitter" : fromId;
+        return orig.call(this, src, toId, amount, reason, battleId);
+      };
+      try { return fn(); }
+      finally { API.transferRep = orig; }
+    } catch (_) {
+      return fn();
+    }
+  }
+
+  function logCrowdCapDebugRaw(meta){
+    if (!meta) return;
+    const dbg = Game.Debug || (Game.Debug = {});
+    const log = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    log.push({
+      ts: now(),
+      reason: "crowd_cap_debug",
+      battleId: meta.battleId,
+      kind: "debug",
+      meta
+    });
+    const cache = ensureCrowdCapMetaCache();
+    if (meta && meta.battleId) {
+      cache[String(meta.battleId)] = meta;
+    }
+    dbg.lastCrowdCapMeta = meta;
+  }
+
   // Safety: ensure the state shape exists before we touch it.
   Game.State = Game.State || {};
   Game.State.me = Game.State.me || { points: 0, influence: 0, wins: 0 };
@@ -745,6 +824,53 @@
     return !!(b && b.draw && b.crowd && !b.crowd.decided);
   }
 
+  function useWeightedTally(){
+    const dbg = Game && Game.Debug ? Game.Debug : null;
+    const D = Game && Game.Data ? Game.Data : null;
+    if (dbg && dbg.CROWD_WEIGHTED_TALLY === true) return true;
+    if (D && D.CROWD_WEIGHTED_TALLY === true) return true;
+    return false;
+  }
+
+  function getVoteWeight(voterId){
+    try {
+      const D = Game && Game.Data ? Game.Data : null;
+      const p = (voterId === "me" && Game && Game.State && Game.State.me)
+        ? Game.State.me
+        : getPlayer(voterId);
+      const inf = (p && Number.isFinite(p.influence)) ? (p.influence | 0) : 0;
+      const role = p ? String(p.role || p.type || "") : "";
+      let tierKey = "y1";
+      if (D && typeof D.tierKeyByInfluence === "function") {
+        tierKey = D.tierKeyByInfluence(inf, role);
+      } else if (D && typeof D.tierKeysByInfluence === "function") {
+        const keys = D.tierKeysByInfluence(inf) || [];
+        tierKey = String(keys[0] || "y1");
+      }
+      const color = (D && typeof D.colorFromTierKey === "function") ? D.colorFromTierKey(tierKey) : "y";
+      const c = String(color || "y").toLowerCase();
+      if (c === "o") return 2;
+      if (c === "r") return 3;
+      if (c === "k") return 4;
+      return 1;
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  function getWeightedVotesFromCrowd(crowd){
+    if (!crowd || !crowd.voters || typeof crowd.voters !== "object") return null;
+    let a = 0;
+    let b = 0;
+    for (const vid of Object.keys(crowd.voters)) {
+      const side = crowd.voters[vid];
+      const w = getVoteWeight(vid);
+      if (side === "a" || side === "attacker") a += w;
+      else if (side === "b" || side === "defender") b += w;
+    }
+    return { a, b };
+  }
+
   function resolveCrowdCore(crowd, ctx, participants){
     const out = {
       outcome: "TIE",
@@ -757,10 +883,18 @@
       }
     };
     if (!crowd || typeof crowd !== "object") return out;
-    const aCount = Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0)
-      : (Number.isFinite(crowd.votesA) ? (crowd.votesA | 0) : 0);
-    const bCount = Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0)
-      : (Number.isFinite(crowd.votesB) ? (crowd.votesB | 0) : 0);
+    let aCount = 0;
+    let bCount = 0;
+    const weighted = useWeightedTally() ? getWeightedVotesFromCrowd(crowd) : null;
+    if (weighted) {
+      aCount = weighted.a | 0;
+      bCount = weighted.b | 0;
+    } else {
+      aCount = Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0)
+        : (Number.isFinite(crowd.votesA) ? (crowd.votesA | 0) : 0);
+      bCount = Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0)
+        : (Number.isFinite(crowd.votesB) ? (crowd.votesB | 0) : 0);
+    }
     const aWeight = aCount | 0;
     const bWeight = bCount | 0;
     out.sideStats.a.count = aCount;
@@ -807,8 +941,16 @@
     const totalPlayers = Number.isFinite(v.totalPlayers) ? (v.totalPlayers | 0) : getTotalPlayersCount();
     const cap = Number.isFinite(v.cap) ? (v.cap | 0) : 0;
     const totalVotes = getCrowdTotalVotes(v);
-    const aVotes = Number.isFinite(v.aVotes) ? (v.aVotes | 0) : (Number.isFinite(v.votesA) ? (v.votesA | 0) : 0);
-    const bVotes = Number.isFinite(v.bVotes) ? (v.bVotes | 0) : (Number.isFinite(v.votesB) ? (v.votesB | 0) : 0);
+    let aVotes = 0;
+    let bVotes = 0;
+    const weighted = useWeightedTally() ? getWeightedVotesFromCrowd(v) : null;
+    if (weighted) {
+      aVotes = weighted.a | 0;
+      bVotes = weighted.b | 0;
+    } else {
+      aVotes = Number.isFinite(v.aVotes) ? (v.aVotes | 0) : (Number.isFinite(v.votesA) ? (v.votesA | 0) : 0);
+      bVotes = Number.isFinite(v.bVotes) ? (v.bVotes | 0) : (Number.isFinite(v.votesB) ? (v.votesB | 0) : 0);
+    }
     return {
       battleId: b.id || b.battleId || null,
       totalPlayers,
@@ -818,6 +960,14 @@
       bVotes,
       endedBy
     };
+  }
+
+  function getOutcomeFromCapMeta(meta){
+    if (!meta) return null;
+    const a = Number.isFinite(meta.aVotes) ? (meta.aVotes | 0) : 0;
+    const b = Number.isFinite(meta.bVotes) ? (meta.bVotes | 0) : 0;
+    if (a === b) return "TIE";
+    return (a > b) ? "A_WIN" : "B_WIN";
   }
 
   function ensureCrowdCapMetaCache(){
@@ -849,6 +999,29 @@
     const battleId = (b && (b.id || b.battleId)) || battleIdFallback || null;
     const cacheKey = battleId ? String(battleId) : null;
     let pendingMeta = null;
+    if (b && b.crowd && b.crowd.noTimerResolution) {
+      const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
+      const meta = res ? res.crowdCapMeta : null;
+      if (!meta) {
+        return {
+          ok: false,
+          battleId,
+          crowdCapMeta: null,
+          pendingMeta: null,
+          cacheHit: false,
+          why: "fifty_missing_meta"
+        };
+      }
+      return {
+        ok: true,
+        battleId,
+        outcome: (res && res.outcome) ? res.outcome : null,
+        crowdCapMeta: meta,
+        pendingMeta: null,
+        cacheHit: true,
+        why: null
+      };
+    }
     if (b && b.crowd) {
       pendingMeta = createCrowdCapMeta(b, "pending");
     }
@@ -861,6 +1034,20 @@
         pendingMeta,
         cacheHit: !!cachedMeta,
         why: cachedMeta ? null : "battle_not_draw"
+      };
+    }
+    if (b && b.crowd && b.crowd.noTimerResolution) {
+      const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
+      const meta = res ? res.crowdCapMeta : null;
+      if (meta && cacheKey) cache[cacheKey] = meta;
+      return {
+        ok: !!(res && res.outcome),
+        battleId,
+        outcome: (res && res.outcome) ? res.outcome : null,
+        crowdCapMeta: meta,
+        pendingMeta,
+        cacheHit: !!(meta && cacheKey && cache[cacheKey]),
+        why: meta ? null : "finalize_missing_meta"
       };
     }
     if (b && b.crowd) {
@@ -906,11 +1093,19 @@
       if (now() < v.endAt) return null;
     }
     const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
-    const res = resolveCrowdCore(v, { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId }, participants);
+    const relate = { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    const res = resolveCrowdCore(v, relate, participants);
     const totalVotes = getCrowdTotalVotes(v);
     let endedBy = "fallback_timer";
     if (force) {
       endedBy = (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) ? "cap" : "manual";
+    }
+    const fiftyFifty = !!(opts && opts.fiftyFifty);
+    if (fiftyFifty) {
+      endedBy = "fifty_fifty_no_timer";
+      const outcome = (Math.random() < 0.5) ? "A_WIN" : "B_WIN";
+      res.outcome = outcome;
+      res.decided = true;
     }
     const crowdCapMeta = createCrowdCapMeta(b, endedBy);
     if (crowdCapMeta) {
@@ -982,20 +1177,20 @@
         applyVillainPenalty(b, "crowd");
       } else {
         b.resultLine = "Победа";
-        applyEconomyForOutcome(b.result, b);
+        withRepSourceOverride(() => applyEconomyForOutcome(b.result, b));
       }
     } else if (attackerWins) {
       b.result = iAmAttacker ? "win" : (iAmDefender ? "lose" : "win");
-      if (iAmAttacker) applyEconomyForOutcome("win", b);
-      if (iAmDefender) applyEconomyForOutcome("lose", b);
+      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
+      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
       b.note = "Толпа решила: атакующий затащил.";
       b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
     } else {
-      // Defender wins: no economy changes.
-      b.result = "draw";
+      b.result = iAmDefender ? "win" : (iAmAttacker ? "lose" : "lose");
+      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
+      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
       b.note = "Толпа решила: защитник отбился.";
-      b.resultLine = "Разошлись на чиле.";
-      applyEconomyForOutcome("draw", b);
+      b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
     }
 
     // Persist winner metadata for UI/events.
@@ -1006,6 +1201,7 @@
     b.draw = false;
     b.updatedAt = now();
     if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
+    applyBattleCrowdEconomy(b, res);
     announceBattleResult(b);
 
     return {
@@ -1027,9 +1223,32 @@
     if (!v || !Number.isFinite(v.endAt)) return;
     if (now() < v.endAt) return;
 
-    const votesA = v.votesA | 0;
-    const votesB = v.votesB | 0;
-    const allow = votesA > votesB;
+    ensureBattleCrowdCap(v);
+    const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
+    const relate = { kind: "escape", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    const res = resolveCrowdCore(v, relate, participants);
+    const votesA = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : (v.votesA | 0);
+    const votesB = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : (v.votesB | 0);
+    v.votesA = votesA;
+    v.votesB = votesB;
+    v.aVotes = votesA;
+    v.bVotes = votesB;
+    const totalVotes = getCrowdTotalVotes(v);
+    const endedBy = (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) ? "cap" : "timer";
+    const totalPlayers = Number.isFinite(v.totalPlayers) ? (v.totalPlayers | 0) : getTotalPlayersCount();
+    const crowdCapMeta = {
+      battleId: b.id || b.battleId || null,
+      totalPlayers,
+      cap: Number.isFinite(v.cap) ? (v.cap | 0) : 0,
+      totalVotes,
+      aVotes: votesA,
+      bVotes: votesB,
+      endedBy
+    };
+    logCrowdCapDebugRaw(crowdCapMeta);
+
+    const allow = !!(res && res.outcome === "A_WIN");
+    v.outcome = (res && res.outcome) ? res.outcome : null;
 
     v.decided = true;
     v.allowed = allow;
@@ -1061,6 +1280,8 @@
         // REP penalties are handled on click only (see C.escape)
       } catch (_) {}
     };
+
+    applyBattleCrowdEconomy(b, res, v);
 
     if (allow) {
       const mode = (v.mode || "smyt");
@@ -1094,7 +1315,7 @@
       b._escapePrev = null;
       b.updatedAt = now();
       applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_STAY, "rep_escape_stay_penalty", INF_ESCAPE_PENALTY_STAY);
-      return;
+      return { outcome: v.outcome, crowdCapMeta };
     }
 
     b.attackHidden = false;
@@ -1116,6 +1337,7 @@
     } catch (_) {}
 
     announceBattleResult(b);
+    return { outcome: v.outcome, crowdCapMeta };
   }
 
   function startEscapeVoteTimer(b){
@@ -1166,7 +1388,7 @@
           clearInterval(cur._crowdTimer || b._crowdTimer);
           cur._crowdTimer = null;
           b._crowdTimer = null;
-          finalizeCrowdVote(cur, { force: true });
+          finalizeEscapeVote(cur);
           return;
         }
       } catch (_) {}
@@ -1709,14 +1931,66 @@
 
   C.finalizeCrowdVote = function(battleId){
     const b = Game.State.battles.find(x => x.id === battleId);
-    if (!b) return;
-    finalizeCrowdVote(b);
+    if (!b) {
+      const helperCore = (Game.ConflictCore || Game._ConflictCore);
+      const snap = helperCore ? helperCore.applyCrowdVoteTick(battleId) : null;
+      const debug = {
+        __snapDebug: {
+          hasSnap: !!snap,
+          hasCap: !!(snap && snap.crowdCapMeta),
+          hasPending: !!(snap && snap.pendingMeta),
+          capEndedBy: snap && snap.crowdCapMeta ? snap.crowdCapMeta.endedBy : null,
+          pendingEndedBy: snap && snap.pendingMeta ? snap.pendingMeta.endedBy : null
+        }
+      };
+      if (!snap || (!snap.crowdCapMeta && !snap.pendingMeta)) {
+        return Object.assign({
+          ok: false,
+          battleId
+        }, debug);
+      }
+      const meta = snap.crowdCapMeta || snap.pendingMeta || null;
+      const fallbackOutcome = getOutcomeFromCapMeta(meta);
+      return Object.assign({
+        ok: false,
+        battleId,
+        outcome: fallbackOutcome || null,
+        crowdCapMeta: snap.crowdCapMeta || null,
+        pendingMeta: snap.pendingMeta || null,
+        cacheHit: !!snap.cacheHit,
+        why: snap.why || null
+      }, debug);
+    }
+    const snap = applyCrowdVoteTick(b, battleId);
+    const res = finalizeCrowdVote(b);
+    if (res && res.crowdCapMeta) {
+      return {
+        ok: true,
+        battleId: b.id || battleId,
+        outcome: res.outcome || null,
+        crowdCapMeta: res.crowdCapMeta
+      };
+    }
+    if (snap && (snap.crowdCapMeta || snap.pendingMeta)) {
+      const metaForOutcome = snap.crowdCapMeta ? snap.crowdCapMeta : (snap.pendingMeta || null);
+      const fallbackOutcome = metaForOutcome ? getOutcomeFromCapMeta(metaForOutcome) : null;
+      return {
+        ok: false,
+        battleId,
+        outcome: fallbackOutcome || null,
+        crowdCapMeta: snap.crowdCapMeta || null,
+        pendingMeta: snap.pendingMeta || null,
+        cacheHit: !!snap.cacheHit,
+        why: snap.why || null
+      };
+    }
+    return res || null;
   };
 
   C.finalizeEscapeVote = function(battleId){
     const b = Game.State.battles.find(x => x.id === battleId);
     if (!b) return;
-    finalizeEscapeVote(b);
+    return finalizeEscapeVote(b);
   };
 
   function getRematchSides(b){

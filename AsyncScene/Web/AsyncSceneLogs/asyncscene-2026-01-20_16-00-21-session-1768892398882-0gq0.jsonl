@@ -1,0 +1,10 @@
+{"ts": 1768892420688, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_step2_fifty_1768892420675_8373"}}
+{"ts": 1768892420691, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_step2_fifty_1768892420675_8373"}}
+{"ts": 1768892420692, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768892420693, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_step2_fifty_1768892420675_8373"}}
+{"ts": 1768892420695, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-20"}}
+{"ts": 1768892420698, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_step2_majority_1768892420697_5567"}}
+{"ts": 1768892420698, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_step2_majority_1768892420697_5567"}}
+{"ts": 1768892420698, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768892420698, "sessionId": "session-1768892398882-0gq0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_step2_majority_1768892420697_5567"}}
+{"ts": 1768892420781, "sessionId": "session-1768892398882-0gq0", "type": "chat", "name": "Слабак", "text": "@Егор, я тут ради лулзов", "system": false}

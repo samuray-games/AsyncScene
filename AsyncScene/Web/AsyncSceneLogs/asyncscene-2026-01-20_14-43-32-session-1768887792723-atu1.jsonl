@@ -1,0 +1,4 @@
+{"ts": 1768887811620, "sessionId": "session-1768887792723-atu1", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_draw_deposit", "battleId": "dev_draw_1768887811615_2472"}}
+{"ts": 1768887811626, "sessionId": "session-1768887792723-atu1", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_draw", "battleId": "dev_draw_1768887811615_2472"}}
+{"ts": 1768887811635, "sessionId": "session-1768887792723-atu1", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-20"}}
+{"ts": 1768887811636, "sessionId": "session-1768887792723-atu1", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_draw_payout_me", "battleId": "dev_draw_1768887811615_2472"}}

@@ -1,0 +1,9 @@
+{"ts": 1768877512475, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_draw_deposit", "battleId": "dev_draw_1768877512471_8178"}}
+{"ts": 1768877512477, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_draw", "battleId": "dev_draw_1768877512471_8178"}}
+{"ts": 1768877512479, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-20"}}
+{"ts": 1768877512481, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_draw_payout_me", "battleId": "dev_draw_1768877512471_8178"}}
+{"ts": 1768877512483, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_draw_1768877512471_8178"}}
+{"ts": 1768877512484, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_draw_1768877512471_8178"}}
+{"ts": 1768877512484, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_points"}}
+{"ts": 1768877512485, "sessionId": "session-1768877488407-33v3", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_draw_1768877512471_8178"}}
+{"ts": 1768877512567, "sessionId": "session-1768877488407-33v3", "type": "chat", "name": "Горячий", "text": "@Слава, кринж на площади, но я остаюсь", "system": false}

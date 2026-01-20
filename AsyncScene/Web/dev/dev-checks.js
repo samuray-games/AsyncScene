@@ -1147,14 +1147,18 @@ window.Game = window.Game || {};
     let prevForce = null;
     let prevBypass = null;
     let prevAllow = null;
+    let prevWeighted = null;
+    let prevInfluence = null;
     try {
       if (!Game.Debug) Game.Debug = {};
       prevForce = Game.Debug.FORCE_CIRCULATION;
       prevBypass = Game.Debug.BYPASS_POINTS_GUARD === true;
       prevAllow = Game.Debug.ALLOW_POINTS_WRITE === true;
+      prevWeighted = Game.Debug.CROWD_WEIGHTED_TALLY;
       Game.Debug.FORCE_CIRCULATION = true;
       Game.Debug.BYPASS_POINTS_GUARD = true;
       Game.Debug.ALLOW_POINTS_WRITE = true;
+      if (opts && opts.debugWeights) Game.Debug.CROWD_WEIGHTED_TALLY = true;
 
       const battleId = `dev_draw_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
       const oppId = (opts.oppId && S.players[opts.oppId]) ? opts.oppId : "npc_weak";
@@ -1263,10 +1267,10 @@ window.Game = window.Game || {};
           attackerId: "me",
           defenderId: oppId
         };
-        const battle = {
-          id: battleId,
-          opponentId: oppId,
-          attackerId: "me",
+      const battle = {
+        id: battleId,
+        opponentId: oppId,
+        attackerId: "me",
           defenderId: oppId,
           fromThem: false,
           status: "draw",
@@ -1278,10 +1282,10 @@ window.Game = window.Game || {};
           createdAt: nowStamp,
           updatedAt: nowStamp,
           crowd: newCrowd
-        };
-        state.battles = [battle].concat(state.battles.filter(x => x && String(x.id) !== String(battleId)));
-        return battle;
       };
+      state.battles = [battle].concat(state.battles.filter(x => x && String(x.id) !== String(battleId)));
+      return battle;
+    };
 
       let tickResult = null;
       let crowdCapDebug = null;
@@ -1303,12 +1307,39 @@ window.Game = window.Game || {};
         } else if (!battleInState.draw) {
           crowdCapDebugWhy = "battle_not_draw_after_create";
         } else {
+          if (opts && opts.debugWeights && battleInState.crowd) {
+            const highId = majority[0];
+            const lowId = minority[0] || majority[1] || null;
+            prevInfluence = {};
+            if (highId && S.players[highId]) {
+              prevInfluence[highId] = S.players[highId].influence;
+              S.players[highId].influence = 100;
+            }
+            if (lowId && S.players[lowId]) {
+              prevInfluence[lowId] = S.players[lowId].influence;
+              S.players[lowId].influence = 1;
+            }
+            battleInState.crowd.cap = 2;
+            battleInState.crowd.totalPlayers = Math.max(2, battleInState.crowd.totalPlayers | 0);
+            battleInState.crowd.voters = {};
+            if (highId) battleInState.crowd.voters[highId] = "a";
+            if (lowId) battleInState.crowd.voters[lowId] = "b";
+            battleInState.crowd.votesA = 1;
+            battleInState.crowd.votesB = 1;
+            battleInState.crowd.aVotes = 1;
+            battleInState.crowd.bVotes = 1;
+          }
           if (opts.forceCap && battleInState.crowd) {
             const currCap = Math.max(1, Number.isFinite(battleInState.crowd.cap) ? (battleInState.crowd.cap | 0) : (battleInState.crowd.totalPlayers | 0));
             const currentVotes = (battleInState.crowd.votesA | 0) + (battleInState.crowd.votesB | 0);
             const needed = Math.max(0, currCap - currentVotes);
             battleInState.crowd.votesA = (battleInState.crowd.votesA | 0) + needed;
             battleInState.crowd.aVotes = battleInState.crowd.votesA;
+          }
+          const battleInState = ensureDrawBattle();
+          if (opts.mode === "fifty" && battleInState && battleInState.crowd) {
+            battleInState.crowd.noTimerResolution = true;
+            battleInState.crowd.voters = battleInState.crowd.voters || {};
           }
           try {
             tickResult = Core.applyCrowdVoteTick(battleId);
@@ -1317,6 +1348,9 @@ window.Game = window.Game || {};
           }
           if (!tickResult) {
             tickResult = { ok: false, battleId, why: "tick_failed" };
+          }
+          if (opts.mode === "fifty" && (!tickResult.ok || !tickResult.outcome || !tickResult.crowdCapMeta || tickResult.crowdCapMeta.endedBy !== "fifty_fifty_no_timer")) {
+            return { name, ok: false, battleId, why: "fifty_missing_or_not_final", tickResult, crowdCapDebug: tickResult?.pendingMeta || null };
           }
           const metaCandidate = (tickResult.crowdCapMeta || tickResult.pendingMeta) || null;
           crowdCapDebug = metaCandidate;
@@ -1359,6 +1393,1430 @@ window.Game = window.Game || {};
       Game.Debug.FORCE_CIRCULATION = prevForce;
       Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
       Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      if (prevWeighted !== null) Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (prevInfluence) {
+        Object.keys(prevInfluence).forEach(id => {
+          if (S && S.players && S.players[id]) S.players[id].influence = prevInfluence[id];
+        });
+      }
+    }
+  };
+
+  Game.Dev.smokeCrowdStep2 = (opts = {}) => {
+    const name = "smoke_crowd_step2";
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const S = Game.State || null;
+    if (!Econ || typeof Econ.transferPoints !== "function" || typeof Econ.transferFromPool !== "function") {
+      return { name, ok: false, details: "Econ.transferPoints/transferFromPool missing" };
+    }
+    if (!Core || typeof Core.applyCrowdVoteTick !== "function") {
+      return { name, ok: false, details: "ConflictCore.applyCrowdVoteTick missing" };
+    }
+    if (!S || !S.players || !S.me) return { name, ok: false, details: "Game.State missing" };
+    if (Array.isArray(S.battles) && S.battles.some(b => b && b.status !== "finished" && !b.resolved) && !opts.allowParallel) {
+      return { name, ok: false, details: "active_battle_present" };
+    }
+
+    let prevForce = null;
+    let prevBypass = null;
+    let prevAllow = null;
+    const touched = [];
+    try {
+      if (!Game.Debug) Game.Debug = {};
+      prevForce = Game.Debug.FORCE_CIRCULATION;
+      prevBypass = Game.Debug.BYPASS_POINTS_GUARD === true;
+      prevAllow = Game.Debug.ALLOW_POINTS_WRITE === true;
+      Game.Debug.FORCE_CIRCULATION = true;
+      Game.Debug.BYPASS_POINTS_GUARD = true;
+      Game.Debug.ALLOW_POINTS_WRITE = true;
+
+      const D0 = Game.Data || {};
+      const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
+      const startPlayer = Number.isFinite(D0.START_POINTS_PLAYER) ? (D0.START_POINTS_PLAYER | 0) : 12;
+
+      const isActivePlayer = (p) => {
+        if (!p || !p.id) return false;
+        if (p.removed === true) return false;
+        const jailed = (S && S.jailed) ? S.jailed : null;
+        if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && Date.now() < jailed[p.id].until) return false;
+        if (p.id === "me" || p.isMe) return true;
+        if (p.npc === true || p.type === "npc") return true;
+        return !!p.name;
+      };
+      const totalPlayers = () => {
+        let n = 0;
+        Object.values(S.players || {}).forEach(p => { if (isActivePlayer(p)) n++; });
+        return n;
+      };
+      const capFormula = (n) => Math.max(10, Math.round(0.4 * (n | 0)));
+
+      const toneWeight = (tone) => {
+        if (tone === "r") return 2;
+        if (tone === "k") return 3;
+        return 1; // y/o
+      };
+
+      const toneFromInfluence = (inf, role) => {
+        if (D0 && typeof D0.tierKeyByInfluence === "function") {
+          const tk = D0.tierKeyByInfluence(inf, role);
+          return (D0.colorFromTierKey ? D0.colorFromTierKey(tk) : "y");
+        }
+        if (D0 && typeof D0.tierKeysByInfluence === "function") {
+          const keys = D0.tierKeysByInfluence(inf) || [];
+          const tk = String(keys[0] || "y1");
+          return (D0.colorFromTierKey ? D0.colorFromTierKey(tk) : "y");
+        }
+        return "y";
+      };
+
+      const setTone = (id, toneKey) => {
+        const p = S.players[id];
+        if (!p) return;
+        touched.push({ id, influence: p.influence, role: p.role });
+        if (toneKey === "k") {
+          p.role = "mafia";
+          p.influence = 30;
+          return;
+        }
+        if (toneKey === "r") { p.influence = 16; return; }
+        if (toneKey === "o") { p.influence = 8; return; }
+        p.influence = 1;
+      };
+
+      const pickNpc = (excludeIds = {}) => {
+        const list = Object.values(S.players || {}).filter(p => {
+          if (!p || !p.id) return false;
+          if (p.id === "me") return false;
+          if (excludeIds[p.id]) return false;
+          return p.npc === true || p.type === "npc";
+        });
+        return list[0] || null;
+      };
+
+      const ensureBattle = (battleId, oppId) => {
+        if (!Array.isArray(S.battles)) S.battles = [];
+        const now = Date.now();
+        const crowd = {
+          endAt: now - 1,
+          endsAt: now - 1,
+          votesA: 0,
+          votesB: 0,
+          aVotes: 0,
+          bVotes: 0,
+          totalPlayers: totalPlayers(),
+          cap: capFormula(totalPlayers()),
+          voters: {},
+          decided: false,
+          attackerId: "me",
+          defenderId: oppId
+        };
+        const battle = {
+          id: battleId,
+          opponentId: oppId,
+          attackerId: "me",
+          defenderId: oppId,
+          fromThem: false,
+          status: "draw",
+          draw: true,
+          result: "draw",
+          resolved: false,
+          finished: false,
+          attackHidden: false,
+          createdAt: now,
+          updatedAt: now,
+          crowd
+        };
+        S.battles = [battle].concat(S.battles.filter(x => x && String(x.id) !== String(battleId)));
+        return battle;
+      };
+
+      const runScenario = (label, config) => {
+        const battleId = `dev_step2_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+        const oppId = (config.oppId && S.players[config.oppId]) ? config.oppId : "npc_weak";
+        if (!S.players[oppId]) return { ok: false, why: "opponent_missing", battleId };
+
+        const poolId = Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`;
+        if (Econ.ensurePool) Econ.ensurePool(poolId);
+        const poolBefore = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
+
+        const battle = ensureBattle(battleId, oppId);
+        const capUsed = battle.crowd.cap;
+
+        const exclude = { me: true };
+        exclude[oppId] = true;
+        const voters = [];
+
+        const addVoter = (toneKey, side) => {
+          const npc = pickNpc(exclude);
+          if (!npc) return false;
+          exclude[npc.id] = true;
+          setTone(npc.id, toneKey);
+          voters.push({ id: npc.id, side, toneKey });
+          return true;
+        };
+
+        // Seed participants for weights
+        config.seed.forEach(s => { addVoter(s.toneKey, s.side); });
+
+        // Fill to cap using y voters
+        while (voters.length < capUsed) {
+          if (!addVoter("y", config.fillSide)) break;
+        }
+
+        if (voters.length < capUsed) {
+          return { ok: false, battleId, why: "not_enough_voters", have: voters.length, capUsed };
+        }
+
+        // Ensure points/rep baseline and apply costs/rep
+        const participants = voters.map(v => {
+          const p = S.players[v.id];
+          if (p && (!Number.isFinite(p.points) || p.points < 1)) p.points = startNpc;
+          const pointsBefore = p ? (p.points | 0) : 0;
+          const repBefore = p && Number.isFinite(p.rep) ? (p.rep | 0) : 0;
+          Econ.transferPoints(v.id, poolId, 1, "crowd_vote_cost", { battleId });
+          if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+            Game.StateAPI.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", battleId);
+          }
+          const pointsAfter = p ? (p.points | 0) : 0;
+          const repAfter = p && Number.isFinite(p.rep) ? (p.rep | 0) : 0;
+          const toneKey = String(toneFromInfluence(p ? p.influence : 0, p ? p.role : "") || "y");
+          const weightUsed = toneWeight(toneKey);
+          return { id: v.id, side: v.side, toneKey, weightUsed, pointsBefore, pointsAfter, repBefore, repAfter };
+        });
+
+        // Build voters map + weighted sums
+        battle.crowd.voters = {};
+        let aW = 0;
+        let bW = 0;
+        participants.forEach(p => {
+          battle.crowd.voters[p.id] = (p.side === "A") ? "a" : "b";
+          if (p.side === "A") aW += p.weightUsed;
+          else bW += p.weightUsed;
+        });
+        battle.crowd.aVotes = aW;
+        battle.crowd.bVotes = bW;
+        battle.crowd.votesA = aW;
+        battle.crowd.votesB = bW;
+        battle.crowd.totalPlayers = totalPlayers();
+        battle.crowd.cap = capUsed;
+
+        // Refunds based on scenario
+        if (config.refundAll) {
+          participants.forEach(p => {
+            Econ.transferFromPool(poolId, p.id, 1, "crowd_vote_refund", { battleId });
+          });
+        } else {
+          participants.filter(p => p.side === "A").forEach(p => {
+            Econ.transferFromPool(poolId, p.id, 1, "crowd_vote_refund_majority", { battleId });
+          });
+        }
+
+        const tickResult = Core.applyCrowdVoteTick(battleId);
+        const crowdMeta = tickResult && tickResult.crowdCapMeta ? tickResult.crowdCapMeta : null;
+        const poolAfter = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
+
+        const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+        const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+        const reasons = {};
+        logForBid.forEach(tx => {
+          const r = tx && tx.reason ? String(tx.reason) : "unknown";
+          reasons[r] = (reasons[r] || 0) + 1;
+        });
+
+        const assertCap = (capUsed === capFormula(totalPlayers()));
+        const assertWeights = participants.every(p => {
+          if (p.toneKey === "k") return p.weightUsed === 3 && (S.players[p.id] && String(S.players[p.id].role || "").toLowerCase() === "mafia");
+          if (p.toneKey === "r") return p.weightUsed === 2;
+          return p.weightUsed === 1;
+        });
+        const assertCost = participants.every(p => (p.pointsAfter === (p.pointsBefore - 1)));
+        const assertRep = participants.every(p => (p.repAfter === (p.repBefore + 1)));
+        const assertFifty = config.refundAll ? participants.every(p => {
+          const p0 = S.players[p.id];
+          return p0 && Number.isFinite(p0.points) && (p0.points | 0) === (p.pointsBefore | 0);
+        }) : true;
+        const assertMajority = !config.refundAll ? participants.filter(p => p.side === "A").every(p => {
+          const p0 = S.players[p.id];
+          return p0 && Number.isFinite(p0.points) && (p0.points | 0) === (p.pointsBefore | 0);
+        }) : true;
+        const minorityRemain = !config.refundAll ? (poolAfter != null && poolAfter > 0) : true;
+
+        return {
+          ok: !!(crowdMeta && tickResult && tickResult.outcome),
+          battleId,
+          totalPlayers: battle.crowd.totalPlayers,
+          capUsed,
+          totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+          aVotesWeighted: crowdMeta ? crowdMeta.aVotes : null,
+          bVotesWeighted: crowdMeta ? crowdMeta.bVotes : null,
+          endedBy: crowdMeta ? crowdMeta.endedBy : null,
+          outcome: tickResult ? tickResult.outcome : null,
+          participants,
+          pool: { id: poolId, pointsBefore: poolBefore, pointsAfter: poolAfter },
+          moneyLogByReason: reasons,
+          asserts: {
+            capUsed: assertCap,
+            weights: assertWeights,
+            participationCost: assertCost,
+            repParticipation: assertRep,
+            fiftyFiftyRefunds: assertFifty,
+            majorityRefunds: assertMajority,
+            minorityRemainder: minorityRemain
+          }
+        };
+      };
+
+      const fiftyFifty = runScenario("fifty", {
+        seed: [
+          { toneKey: "r", side: "A" },
+          { toneKey: "y", side: "A" },
+          { toneKey: "r", side: "B" },
+          { toneKey: "o", side: "B" }
+        ],
+        fillSide: "A",
+        refundAll: true
+      });
+
+      const majority = runScenario("majority", {
+        seed: [
+          { toneKey: "k", side: "A" },
+          { toneKey: "r", side: "A" },
+          { toneKey: "y", side: "B" },
+          { toneKey: "o", side: "B" }
+        ],
+        fillSide: "A",
+        refundAll: false
+      });
+
+      const ok = !!(fiftyFifty.ok && majority.ok &&
+        fiftyFifty.asserts && Object.values(fiftyFifty.asserts).every(Boolean) &&
+        majority.asserts && Object.values(majority.asserts).every(Boolean));
+
+      return { name, ok, fiftyFifty, majority };
+    } finally {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = prevForce;
+      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      if (touched.length) {
+        touched.forEach(t => {
+          const p = S.players[t.id];
+          if (!p) return;
+          p.influence = t.influence;
+          if (t.role !== undefined) p.role = t.role;
+        });
+      }
+    }
+  };
+
+  Game.Dev.smokeNpcCrowdEventEconomyOnce = (opts = {}) => {
+    const name = "smoke_npc_crowd_event_economy_once";
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.State || null;
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, details: "Econ.transferPoints missing" };
+    }
+    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    const forceBranch = opts && opts.forceBranch ? String(opts.forceBranch).toLowerCase() : null;
+    const branch = forceBranch || "fifty";
+    const touched = [];
+
+    const pickNpc = (exclude = {}) => {
+      const list = Object.values(S.players || {}).filter(p => {
+        if (!p || !p.id) return false;
+        if (exclude[p.id]) return false;
+        return p.npc === true || p.type === "npc";
+      });
+      return list[0] || null;
+    };
+
+    const setTone = (id, toneKey) => {
+      const p = S.players[id];
+      if (!p) return;
+      touched.push({ id, influence: p.influence, role: p.role });
+      if (toneKey === "k") {
+        p.role = "mafia";
+        p.influence = 30;
+        return;
+      }
+      if (toneKey === "r") { p.influence = 16; return; }
+      if (toneKey === "o") { p.influence = 8; return; }
+      p.influence = 1;
+    };
+
+    const toneWeight = (tone) => {
+      if (tone === "r") return 2;
+      if (tone === "k") return 3;
+      return 1;
+    };
+
+    const toneFromInfluence = (inf, role) => {
+      const D0 = Game.Data || {};
+      if (D0 && typeof D0.tierKeyByInfluence === "function") {
+        const tk = D0.tierKeyByInfluence(inf, role);
+        return (D0.colorFromTierKey ? D0.colorFromTierKey(tk) : "y");
+      }
+      if (D0 && typeof D0.tierKeysByInfluence === "function") {
+        const keys = D0.tierKeysByInfluence(inf) || [];
+        const tk = String(keys[0] || "y1");
+        return (D0.colorFromTierKey ? D0.colorFromTierKey(tk) : "y");
+      }
+      return "y";
+    };
+
+    const event = Game.Events && typeof Game.Events.makeNpcEvent === "function"
+      ? Game.Events.makeNpcEvent()
+      : null;
+    if (!event) return { name, ok: false, details: "makeNpcEvent failed" };
+    if (Game.Events && typeof Game.Events.addEvent === "function") {
+      Game.Events.addEvent(event);
+    } else {
+      return { name, ok: false, details: "addEvent missing" };
+    }
+
+    const exclude = {};
+    exclude[event.aId] = true;
+    exclude[event.bId] = true;
+    const vA1 = pickNpc(exclude); if (vA1) exclude[vA1.id] = true;
+    const vB1 = pickNpc(exclude); if (vB1) exclude[vB1.id] = true;
+    const vA2 = pickNpc(exclude); if (vA2) exclude[vA2.id] = true;
+    const vB2 = pickNpc(exclude);
+
+    const voters = [];
+    if (branch === "majority") {
+      if (vA1) voters.push({ id: vA1.id, side: "a", toneKey: "k" });
+      if (vA2) voters.push({ id: vA2.id, side: "a", toneKey: "r" });
+      if (vB1) voters.push({ id: vB1.id, side: "b", toneKey: "r" });
+      if (vB2) voters.push({ id: vB2.id, side: "b", toneKey: "y" });
+      if (vB2 && !voters.some(v => v.id === vB2.id)) voters.push({ id: vB2.id, side: "b", toneKey: "y" });
+    } else {
+      if (vA1) voters.push({ id: vA1.id, side: "a", toneKey: "r" });
+      if (vB1) voters.push({ id: vB1.id, side: "b", toneKey: "r" });
+      if (vA2) voters.push({ id: vA2.id, side: "a", toneKey: "y" });
+      if (vB2) voters.push({ id: vB2.id, side: "b", toneKey: "o" });
+    }
+
+    voters.forEach(v => setTone(v.id, v.toneKey));
+
+    const poolId = (Econ.getCrowdPoolId ? Econ.getCrowdPoolId(event.id) : `crowd:${event.id}`);
+    if (Econ.ensurePool) Econ.ensurePool(poolId);
+    const poolBefore = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
+
+    event.crowd.voters = {};
+    let aVotes = 0;
+    let bVotes = 0;
+    voters.forEach(v => {
+      event.crowd.voters[v.id] = v.side;
+      const p = S.players[v.id];
+      const toneKey = toneFromInfluence(p ? p.influence : 0, p ? p.role : "");
+      const w = toneWeight(toneKey);
+      if (v.side === "a") aVotes += w;
+      else bVotes += w;
+      Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId: event.id });
+      if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
+        Game.StateAPI.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", event.id);
+      }
+    });
+
+    event.crowd.aVotes = aVotes;
+    event.crowd.bVotes = bVotes;
+    event.crowd.votesA = aVotes;
+    event.crowd.votesB = bVotes;
+    event.crowd.endAt = Date.now() - 1;
+    event.endsAt = event.crowd.endAt;
+
+    if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
+
+    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+    const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(event.id));
+    const byReason = {};
+    logForBid.forEach(tx => {
+      const r = tx && tx.reason ? String(tx.reason) : "unknown";
+      byReason[r] = (byReason[r] || 0) + 1;
+    });
+
+    const poolAfter = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
+    const outcome = event && event.crowd && event.crowd.winner ? event.crowd.winner : null;
+    const branchName = branch;
+    const refundAll = branchName === "fifty";
+
+    const asserts = {
+      hasCosts: (byReason.crowd_vote_cost | 0) >= voters.length,
+      hasRep: (byReason.rep_crowd_vote_participation | 0) >= voters.length,
+      hasRefunds: refundAll ? (byReason.crowd_vote_refund | 0) >= voters.length : (byReason.crowd_vote_refund_majority | 0) > 0,
+    };
+
+    touched.forEach(t => {
+      const p = S.players[t.id];
+      if (!p) return;
+      p.influence = t.influence;
+      p.role = t.role;
+    });
+
+    return {
+      name,
+      ok: Object.values(asserts).every(Boolean),
+      id: event.id,
+      branch: branchName,
+      byReason,
+      poolAfter,
+      asserts
+    };
+  };
+
+  Game.Dev.smokeBattleCrowdOutcomeOnce = (opts = {}) => {
+    const name = "smoke_battle_crowd_outcome_once";
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.State || null;
+    if (!Core || typeof Core.finalizeCrowdVote !== "function") {
+      return { name, ok: false, details: "ConflictCore.finalizeCrowdVote missing" };
+    }
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, details: "Econ.transferPoints missing" };
+    }
+    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+
+    const allowParallel = !!(opts && opts.allowParallel);
+    if (!allowParallel) {
+      const active = Array.isArray(S.battles) ? S.battles.filter(b => b && b.status !== "finished" && !b.resolved) : [];
+      if (active.length) return { name, ok: false, details: "active_battle_present", activeCount: active.length };
+    }
+
+    const prevForce = Game.Debug ? Game.Debug.FORCE_CIRCULATION : undefined;
+    const prevBypass = Game.Debug ? Game.Debug.BYPASS_POINTS_GUARD : undefined;
+    const prevAllow = Game.Debug ? Game.Debug.ALLOW_POINTS_WRITE : undefined;
+    const prevWeighted = Game.Debug ? Game.Debug.CROWD_WEIGHTED_TALLY : undefined;
+    const touched = [];
+
+    try {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = true;
+      Game.Debug.BYPASS_POINTS_GUARD = true;
+      Game.Debug.ALLOW_POINTS_WRITE = true;
+      Game.Debug.CROWD_WEIGHTED_TALLY = true;
+
+      const D0 = Game.Data || {};
+      const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
+
+      const isActivePlayer = (p) => {
+        if (!p || !p.id) return false;
+        if (p.removed === true) return false;
+        const jailed = (S && S.jailed) ? S.jailed : null;
+        if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && Date.now() < jailed[p.id].until) return false;
+        if (p.id === "me" || p.isMe) return true;
+        if (p.npc === true || p.type === "npc") return true;
+        return !!p.name;
+      };
+      const totalPlayers = () => {
+        let n = 0;
+        Object.values(S.players || {}).forEach(p => { if (isActivePlayer(p)) n++; });
+        return n;
+      };
+      const capFormula = (n) => Math.max(10, Math.round(0.4 * (n | 0)));
+
+      const pickNpc = (excludeIds = {}) => {
+        const list = Object.values(S.players || {}).filter(p => {
+          if (!p || !p.id) return false;
+          if (p.id === "me") return false;
+          if (excludeIds[p.id]) return false;
+          return p.npc === true || p.type === "npc";
+        });
+        return list[0] || null;
+      };
+
+      const setTone = (id, toneKey) => {
+        const p = S.players[id];
+        if (!p) return;
+        touched.push({ id, influence: p.influence, role: p.role });
+        if (toneKey === "k") {
+          p.role = "mafia";
+          p.influence = 30;
+          return;
+        }
+        if (toneKey === "r") { p.influence = 16; return; }
+        if (toneKey === "o") { p.influence = 8; return; }
+        p.influence = 1;
+      };
+
+      const ensureBattle = (battleId, oppId) => {
+        if (!Array.isArray(S.battles)) S.battles = [];
+        const now = Date.now();
+        const crowd = {
+          endAt: now - 1,
+          endsAt: now - 1,
+          votesA: 0,
+          votesB: 0,
+          aVotes: 0,
+          bVotes: 0,
+          totalPlayers: totalPlayers(),
+          cap: capFormula(totalPlayers()),
+          voters: {},
+          decided: false,
+          attackerId: "me",
+          defenderId: oppId
+        };
+        const battle = {
+          id: battleId,
+          opponentId: oppId,
+          attackerId: "me",
+          defenderId: oppId,
+          fromThem: false,
+          status: "draw",
+          draw: true,
+          result: "draw",
+          resolved: false,
+          finished: false,
+          attackHidden: false,
+          createdAt: now,
+          updatedAt: now,
+          crowd
+        };
+        S.battles = [battle].concat(S.battles.filter(x => x && String(x.id) !== String(battleId)));
+        return battle;
+      };
+
+      const battleId = `dev_battle_crowd_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const oppId = (opts && opts.oppId && S.players[opts.oppId]) ? opts.oppId : "npc_weak";
+      if (!S.players[oppId]) return { name, ok: false, details: "opponent_missing", battleId };
+
+      const battle = ensureBattle(battleId, oppId);
+      const capUsed = battle.crowd.cap;
+
+      const exclude = { me: true };
+      exclude[oppId] = true;
+      const voters = [];
+
+      const addVoter = (toneKey, side) => {
+        const npc = pickNpc(exclude);
+        if (!npc) return false;
+        exclude[npc.id] = true;
+        setTone(npc.id, toneKey);
+        voters.push({ id: npc.id, side, toneKey });
+        return true;
+      };
+
+      addVoter("k", "A");
+      addVoter("r", "A");
+      addVoter("y", "B");
+
+      while (voters.length < capUsed) {
+        if (!addVoter("y", "A")) break;
+      }
+
+      if (voters.length < capUsed) {
+        return { name, ok: false, details: "not_enough_voters", have: voters.length, capUsed };
+      }
+
+      const poolId = Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`;
+      if (Econ.ensurePool) Econ.ensurePool(poolId);
+
+      voters.forEach(v => {
+        const p = S.players[v.id];
+        if (p && (!Number.isFinite(p.points) || p.points < 1)) p.points = startNpc;
+      });
+
+      const pointIds = {
+        me: "me",
+        npcWeak: oppId,
+        sink: "sink",
+        crowd: "crowd",
+        crowdPool: poolId
+      };
+      const voterIds = voters.map(v => v.id);
+      voterIds.forEach((id, i) => { pointIds[`voter_${i + 1}`] = id; });
+
+      const readPoints = (id) => {
+        if (id === "sink" || id === "crowd" || String(id).startsWith("crowd:")) {
+          if (Econ.getPoolBalance) return Econ.getPoolBalance(id) | 0;
+          return null;
+        }
+        const p = (id === "me") ? (S.players.me || S.me) : S.players[id];
+        return p && Number.isFinite(p.points) ? (p.points | 0) : null;
+      };
+
+      const buildPointsSnapshot = () => {
+        const out = {};
+        Object.keys(pointIds).forEach(k => { out[k] = readPoints(pointIds[k]); });
+        return out;
+      };
+
+      const beforeSnapshot = Game.Dev.sumPointsSnapshot();
+      const beforePoints = buildPointsSnapshot();
+
+      const participants = voters.map(v => {
+        const p = S.players[v.id];
+        const pointsBefore = p ? (p.points | 0) : 0;
+        Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId });
+        const pointsAfter = p ? (p.points | 0) : 0;
+        return { id: v.id, side: v.side, toneKey: v.toneKey, pointsBefore, pointsAfter };
+      });
+
+      battle.crowd.voters = {};
+      participants.forEach(p => {
+        battle.crowd.voters[p.id] = (p.side === "A") ? "a" : "b";
+      });
+      battle.crowd.totalPlayers = totalPlayers();
+      battle.crowd.cap = capUsed;
+
+      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+      const logStart = log.length;
+
+      const res = Core.finalizeCrowdVote(battleId);
+      const battleAfter = (S.battles || []).find(b => b && String(b.id) === String(battleId)) || battle;
+      const crowdMeta = res && res.crowdCapMeta ? res.crowdCapMeta : null;
+      const endedBy = crowdMeta ? crowdMeta.endedBy : null;
+      const outcome = res && res.outcome ? res.outcome : null;
+
+      const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+      const byReason = {};
+      let poolInitAmount = 0;
+      logForBid.forEach(tx => {
+        const r = tx && tx.reason ? String(tx.reason) : "unknown";
+        byReason[r] = (byReason[r] || 0) + 1;
+        if (r === "crowd_vote_pool_init") poolInitAmount += (tx.amount | 0);
+      });
+      const logAfter = log.slice(logStart);
+
+      const afterSnapshot = Game.Dev.sumPointsSnapshot();
+      const afterPoints = buildPointsSnapshot();
+      const netDeltaById = {};
+      let sumNetDelta = 0;
+      Object.keys(beforePoints).forEach(k => {
+        const b = beforePoints[k];
+        const a = afterPoints[k];
+        if (typeof b === "number" && typeof a === "number") {
+          const d = (a | 0) - (b | 0);
+          netDeltaById[k] = d;
+          sumNetDelta += d;
+        } else {
+          netDeltaById[k] = null;
+        }
+      });
+
+      const winnerSide = (outcome === "A_WIN") ? "a" : (outcome === "B_WIN" ? "b" : null);
+      const winnerCount = winnerSide ? participants.filter(p => battle.crowd.voters[p.id] === winnerSide).length : 0;
+      const refundReason = (outcome === "TIE") ? "crowd_vote_refund" : "crowd_vote_refund_majority";
+      const poolInitCount = byReason.crowd_vote_pool_init | 0;
+      const refundCount = byReason[refundReason] | 0;
+      const repInFinalize = logAfter.some(tx => String(tx && tx.reason || "") === "rep_crowd_vote_participation");
+      const repDeltaFromCrowdPool = logForBid.some(tx =>
+        String(tx && tx.reason || "") === "rep_battle_win_delta" &&
+        String(tx && tx.sourceId || "") === "crowd_pool"
+      );
+      const mintReasons = new Set(["battle_win_points", "battle_win", "battle_lose", "battle_draw"]);
+      const mintAllowance = logForBid.reduce((sum, tx) => {
+        const r = String(tx && tx.reason || "");
+        if (!mintReasons.has(r)) return sum;
+        return sum + ((tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0);
+      }, 0);
+      const netDeltaFromMoneyLog = logForBid.reduce((acc, tx) => {
+        const amt = (tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0;
+        const sourceId = String(tx && tx.sourceId || "");
+        const targetId = String(tx && tx.targetId || "");
+        if (amt === 0) return acc;
+        const srcKey = sourceId || "unknown";
+        const tgtKey = targetId || "unknown";
+        acc.map[srcKey] = (acc.map[srcKey] || 0) - amt;
+        acc.map[tgtKey] = (acc.map[tgtKey] || 0) + amt;
+        acc.sum += 0; // tracked via map
+        return acc;
+      }, { map: Object.create(null), sum: 0 });
+      const sumNetFromMoneyLog = Object.values(netDeltaFromMoneyLog.map).reduce((s, v) => s + (v | 0), 0);
+      const adjustedDiff = (sumNetFromMoneyLog | 0) - (mintAllowance | 0);
+      const pointsDiffOk = adjustedDiff === 0;
+
+      const expectedResult = (outcome === "A_WIN") ? "win" : (outcome === "B_WIN" ? "lose" : "draw");
+      const battleOutcomeOk = battleAfter && battleAfter.result === expectedResult;
+
+      const weightsSummary = {
+        aVotes: crowdMeta ? crowdMeta.aVotes : null,
+        bVotes: crowdMeta ? crowdMeta.bVotes : null,
+        totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+        cap: crowdMeta ? crowdMeta.cap : null
+      };
+
+      const asserts = {
+        outcomePresent: !!outcome,
+        endedByCap: (String(opts && opts.mode || "cap").toLowerCase() === "cap") ? (endedBy === "cap") : true,
+        poolInitCountOk: poolInitCount === 1 && poolInitAmount === participants.length,
+        refundCountOk: (outcome === "TIE") ? (refundCount === participants.length) : (refundCount === winnerCount),
+        noRepInFinalize: !repInFinalize,
+        repDeltaSourceOk: !repDeltaFromCrowdPool,
+        pointsDiffOk: pointsDiffOk === true,
+        battleOutcomeOk
+      };
+
+      return {
+        name,
+        ok: Object.values(asserts).every(Boolean),
+        battleId,
+        outcome,
+        endedBy,
+        cap: crowdMeta ? crowdMeta.cap : null,
+        totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+        weightsSummary,
+        byReason,
+        poolAfter: (Econ.getPoolBalance && battleId) ? Econ.getPoolBalance(Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`) : null,
+        snapshotReport: { beforePoints, afterPoints, netDeltaById, sumNetDelta },
+        moneyLogReport: { netDeltaById: netDeltaFromMoneyLog.map, sumNetFromMoneyLog, mintAllowance, adjustedDiff },
+        pointsDiffOk,
+        asserts
+      };
+    } finally {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = prevForce;
+      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (touched.length) {
+        touched.forEach(t => {
+          const p = S.players[t.id];
+          if (!p) return;
+          p.influence = t.influence;
+          if (t.role !== undefined) p.role = t.role;
+        });
+      }
+    }
+  };
+
+  Game.Dev.smokeEscapeCrowdOutcomeOnce = (opts = {}) => {
+    const name = "smoke_escape_crowd_outcome_once";
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.State || null;
+    if (!Core || typeof Core.escape !== "function" || typeof Core.finalizeEscapeVote !== "function") {
+      return { name, ok: false, details: "ConflictCore.escape/finalizeEscapeVote missing" };
+    }
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, details: "Econ.transferPoints missing" };
+    }
+    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+
+    const allowParallel = !!(opts && opts.allowParallel);
+    if (!allowParallel) {
+      const active = Array.isArray(S.battles) ? S.battles.filter(b => b && b.status !== "finished" && !b.resolved) : [];
+      if (active.length) return { name, ok: false, details: "active_battle_present", activeCount: active.length };
+    }
+
+    const prevForce = Game.Debug ? Game.Debug.FORCE_CIRCULATION : undefined;
+    const prevBypass = Game.Debug ? Game.Debug.BYPASS_POINTS_GUARD : undefined;
+    const prevAllow = Game.Debug ? Game.Debug.ALLOW_POINTS_WRITE : undefined;
+    const prevWeighted = Game.Debug ? Game.Debug.CROWD_WEIGHTED_TALLY : undefined;
+    const touched = [];
+
+    try {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = true;
+      Game.Debug.BYPASS_POINTS_GUARD = true;
+      Game.Debug.ALLOW_POINTS_WRITE = true;
+      Game.Debug.CROWD_WEIGHTED_TALLY = false;
+
+      const D0 = Game.Data || {};
+      const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
+      const startPlayer = Number.isFinite(D0.START_POINTS_PLAYER) ? (D0.START_POINTS_PLAYER | 0) : 12;
+
+      const isActivePlayer = (p) => {
+        if (!p || !p.id) return false;
+        if (p.removed === true) return false;
+        const jailed = (S && S.jailed) ? S.jailed : null;
+        if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && Date.now() < jailed[p.id].until) return false;
+        if (p.id === "me" || p.isMe) return true;
+        if (p.npc === true || p.type === "npc") return true;
+        return !!p.name;
+      };
+      const totalPlayers = () => {
+        let n = 0;
+        Object.values(S.players || {}).forEach(p => { if (isActivePlayer(p)) n++; });
+        return n;
+      };
+      const capFormula = (n) => Math.max(10, Math.round(0.4 * (n | 0)));
+
+      const pickNpc = (excludeIds = {}) => {
+        const list = Object.values(S.players || {}).filter(p => {
+          if (!p || !p.id) return false;
+          if (p.id === "me") return false;
+          if (excludeIds[p.id]) return false;
+          return p.npc === true || p.type === "npc";
+        });
+        return list[0] || null;
+      };
+
+      const setTone = (id, toneKey) => {
+        const p = S.players[id];
+        if (!p) return;
+        touched.push({ id, influence: p.influence, role: p.role });
+        if (toneKey === "k") {
+          p.role = "mafia";
+          p.influence = 30;
+          return;
+        }
+        if (toneKey === "r") { p.influence = 16; return; }
+        if (toneKey === "o") { p.influence = 8; return; }
+        p.influence = 1;
+      };
+
+      const ensureBattle = (battleId, oppId) => {
+        if (!Array.isArray(S.battles)) S.battles = [];
+        const now = Date.now();
+        const battle = {
+          id: battleId,
+          opponentId: oppId,
+          attackerId: "me",
+          defenderId: oppId,
+          fromThem: false,
+          status: "pickAttack",
+          draw: false,
+          result: null,
+          resolved: false,
+          finished: false,
+          attackHidden: false,
+          createdAt: now,
+          updatedAt: now,
+          crowd: null,
+          escapeVote: null
+        };
+        S.battles = [battle].concat(S.battles.filter(x => x && String(x.id) !== String(battleId)));
+        return battle;
+      };
+
+      const battleId = `dev_escape_crowd_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const oppId = (opts && opts.oppId && S.players[opts.oppId]) ? opts.oppId : "npc_weak";
+      if (!S.players[oppId]) return { name, ok: false, details: "opponent_missing", battleId };
+
+      ensureBattle(battleId, oppId);
+
+      const me = S.me || (S.players && S.players.me) || null;
+      if (me && (!Number.isFinite(me.points) || me.points < 1)) {
+        me.points = startPlayer;
+        if (S.players && S.players.me) S.players.me.points = me.points;
+      }
+
+      const modeNorm = (opts && opts.mode === "off") ? "off" : "smyt";
+      const costNorm = (opts && typeof opts.cost === "number") ? (opts.cost | 0) : 1;
+      const started = Core.escape(battleId, { cost: costNorm, mode: modeNorm });
+      if (!started || !started.ok) return { name, ok: false, details: "escape_start_failed", battleId, started };
+
+      const battle = (S.battles || []).find(b => b && String(b.id) === String(battleId)) || null;
+      if (!battle || !battle.escapeVote) return { name, ok: false, details: "escape_vote_missing", battleId };
+
+      const v = battle.escapeVote;
+      v.endAt = Date.now() - 1;
+      v.endsAt = v.endAt;
+      v.voters = v.voters || {};
+      v.totalPlayers = totalPlayers();
+      v.cap = capFormula(v.totalPlayers);
+
+      const capUsed = v.cap;
+      const exclude = { me: true };
+      exclude[oppId] = true;
+      const voters = [];
+
+      const addVoter = (toneKey, side) => {
+        const npc = pickNpc(exclude);
+        if (!npc) return false;
+        exclude[npc.id] = true;
+        setTone(npc.id, toneKey);
+        voters.push({ id: npc.id, side, toneKey });
+        return true;
+      };
+
+      addVoter("r", "attacker");
+      addVoter("y", "attacker");
+      addVoter("y", "attacker");
+
+      while (voters.length < capUsed) {
+        if (!addVoter("y", "attacker")) break;
+      }
+
+      if (voters.length < capUsed) {
+        return { name, ok: false, details: "not_enough_voters", have: voters.length, capUsed };
+      }
+
+      voters.forEach(vt => {
+        const p = S.players[vt.id];
+        if (p && (!Number.isFinite(p.points) || p.points < 1)) p.points = startNpc;
+      });
+
+      const pointIds = {
+        me: "me",
+        npcWeak: oppId,
+        sink: "sink",
+        crowd: "crowd",
+        crowdPool: (Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`)
+      };
+      const voterIds = voters.map(vt => vt.id);
+      voterIds.forEach((id, i) => { pointIds[`voter_${i + 1}`] = id; });
+
+      const readPoints = (id) => {
+        if (id === "sink" || id === "crowd" || String(id).startsWith("crowd:")) {
+          if (Econ.getPoolBalance) return Econ.getPoolBalance(id) | 0;
+          return null;
+        }
+        const p = (id === "me") ? (S.players.me || S.me) : S.players[id];
+        return p && Number.isFinite(p.points) ? (p.points | 0) : null;
+      };
+
+      const buildPointsSnapshot = () => {
+        const out = {};
+        Object.keys(pointIds).forEach(k => { out[k] = readPoints(pointIds[k]); });
+        return out;
+      };
+
+      const beforePoints = buildPointsSnapshot();
+
+      voters.forEach(vt => {
+        Econ.transferPoints(vt.id, "sink", 1, "crowd_vote_cost", { battleId });
+        v.voters[vt.id] = vt.side;
+      });
+      v.aVotes = voters.length;
+      v.bVotes = 0;
+      v.votesA = v.aVotes;
+      v.votesB = v.bVotes;
+
+      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+      const logStart = log.length;
+
+      const res = Core.finalizeEscapeVote(battleId);
+      const battleAfter = (S.battles || []).find(b => b && String(b.id) === String(battleId)) || battle;
+      const crowdMeta = res && res.crowdCapMeta ? res.crowdCapMeta : null;
+      const endedBy = crowdMeta ? crowdMeta.endedBy : null;
+      const outcome = res && res.outcome ? res.outcome : (v.outcome || null);
+
+      const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+      const byReason = {};
+      let poolInitAmount = 0;
+      logForBid.forEach(tx => {
+        const r = tx && tx.reason ? String(tx.reason) : "unknown";
+        byReason[r] = (byReason[r] || 0) + 1;
+        if (r === "crowd_vote_pool_init") poolInitAmount += (tx.amount | 0);
+      });
+      const logAfter = log.slice(logStart);
+
+      const afterPoints = buildPointsSnapshot();
+      const netDeltaById = {};
+      let sumNetDelta = 0;
+      Object.keys(beforePoints).forEach(k => {
+        const b0 = beforePoints[k];
+        const a0 = afterPoints[k];
+        if (typeof b0 === "number" && typeof a0 === "number") {
+          const d = (a0 | 0) - (b0 | 0);
+          netDeltaById[k] = d;
+          sumNetDelta += d;
+        } else {
+          netDeltaById[k] = null;
+        }
+      });
+
+      const mintReasons = new Set(["battle_win_points", "battle_win", "battle_lose", "battle_draw"]);
+      const mintAllowance = logForBid.reduce((sum, tx) => {
+        const r = String(tx && tx.reason || "");
+        if (!mintReasons.has(r)) return sum;
+        return sum + ((tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0);
+      }, 0);
+      const netDeltaFromMoneyLog = logForBid.reduce((acc, tx) => {
+        const amt = (tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0;
+        const sourceId = String(tx && tx.sourceId || "");
+        const targetId = String(tx && tx.targetId || "");
+        if (amt === 0) return acc;
+        const srcKey = sourceId || "unknown";
+        const tgtKey = targetId || "unknown";
+        acc.map[srcKey] = (acc.map[srcKey] || 0) - amt;
+        acc.map[tgtKey] = (acc.map[tgtKey] || 0) + amt;
+        acc.sum += 0;
+        return acc;
+      }, { map: Object.create(null), sum: 0 });
+      const sumNetFromMoneyLog = Object.values(netDeltaFromMoneyLog.map).reduce((s, v0) => s + (v0 | 0), 0);
+      const adjustedDiff = (sumNetFromMoneyLog | 0) - (mintAllowance | 0);
+      const pointsDiffOk = adjustedDiff === 0;
+
+      const winnerSide = (outcome === "A_WIN") ? "attacker" : (outcome === "B_WIN" ? "defender" : null);
+      const winnerCount = winnerSide ? voters.filter(p => v.voters[p.id] === winnerSide).length : 0;
+      const refundReason = (outcome === "TIE") ? "crowd_vote_refund" : "crowd_vote_refund_majority";
+      const poolInitCount = byReason.crowd_vote_pool_init | 0;
+      const refundCount = byReason[refundReason] | 0;
+      const repInFinalize = logAfter.some(tx => String(tx && tx.reason || "") === "rep_crowd_vote_participation");
+      const repDeltaFromCrowdPool = logForBid.some(tx =>
+        String(tx && tx.reason || "").startsWith("rep_") &&
+        String(tx && tx.sourceId || "") === "crowd_pool"
+      );
+      const escapeOutcomeOk = (battleAfter && battleAfter.result === "escaped");
+      const hasEscapeCost = (byReason.escape_vote_cost | 0) > 0;
+      const isOff = modeNorm === "off";
+
+      const weightsSummary = {
+        aVotes: crowdMeta ? crowdMeta.aVotes : null,
+        bVotes: crowdMeta ? crowdMeta.bVotes : null,
+        totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+        cap: crowdMeta ? crowdMeta.cap : null
+      };
+
+      const asserts = {
+        outcomePresent: !!outcome,
+        endedByCap: (String(opts && opts.mode || "cap").toLowerCase() === "cap") ? (endedBy === "cap") : true,
+        poolInitCountOk: poolInitCount === 1 && poolInitAmount === voters.length,
+        refundCountOk: (outcome === "TIE") ? (refundCount === voters.length) : (refundCount === winnerCount),
+        noRepInFinalize: !repInFinalize,
+        repDeltaSourceOk: !repDeltaFromCrowdPool,
+        pointsDiffOk,
+        escapeOutcomeOk,
+        escapeCostLogged: isOff ? true : hasEscapeCost
+      };
+
+      return {
+        name,
+        ok: Object.values(asserts).every(Boolean),
+        battleId,
+        outcome,
+        endedBy,
+        cap: crowdMeta ? crowdMeta.cap : null,
+        totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+        weightsSummary,
+        byReason,
+        poolAfter: (Econ.getPoolBalance && battleId) ? Econ.getPoolBalance(Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`) : null,
+        snapshotReport: { beforePoints, afterPoints, netDeltaById, sumNetDelta },
+        moneyLogReport: { netDeltaById: netDeltaFromMoneyLog.map, sumNetFromMoneyLog, mintAllowance, adjustedDiff },
+        pointsDiffOk,
+        asserts
+      };
+    } finally {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = prevForce;
+      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (touched.length) {
+        touched.forEach(t => {
+          const p = S.players[t.id];
+          if (!p) return;
+          p.influence = t.influence;
+          if (t.role !== undefined) p.role = t.role;
+        });
+      }
+    }
+  };
+
+  Game.Dev.smokeIgnoreCrowdOutcomeOnce = (opts = {}) => {
+    const name = "smoke_ignore_crowd_outcome_once";
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.State || null;
+    if (!Core || typeof Core.escape !== "function" || typeof Core.finalizeEscapeVote !== "function") {
+      return { name, ok: false, details: "ConflictCore.escape/finalizeEscapeVote missing" };
+    }
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, details: "Econ.transferPoints missing" };
+    }
+    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+
+    const allowParallel = !!(opts && opts.allowParallel);
+    if (!allowParallel) {
+      const active = Array.isArray(S.battles) ? S.battles.filter(b => b && b.status !== "finished" && !b.resolved) : [];
+      if (active.length) return { name, ok: false, details: "active_battle_present", activeCount: active.length };
+    }
+
+    const prevForce = Game.Debug ? Game.Debug.FORCE_CIRCULATION : undefined;
+    const prevBypass = Game.Debug ? Game.Debug.BYPASS_POINTS_GUARD : undefined;
+    const prevAllow = Game.Debug ? Game.Debug.ALLOW_POINTS_WRITE : undefined;
+    const prevWeighted = Game.Debug ? Game.Debug.CROWD_WEIGHTED_TALLY : undefined;
+    const touched = [];
+
+    try {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = true;
+      Game.Debug.BYPASS_POINTS_GUARD = true;
+      Game.Debug.ALLOW_POINTS_WRITE = true;
+      Game.Debug.CROWD_WEIGHTED_TALLY = false;
+
+      const D0 = Game.Data || {};
+      const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
+      const startPlayer = Number.isFinite(D0.START_POINTS_PLAYER) ? (D0.START_POINTS_PLAYER | 0) : 12;
+
+      const isActivePlayer = (p) => {
+        if (!p || !p.id) return false;
+        if (p.removed === true) return false;
+        const jailed = (S && S.jailed) ? S.jailed : null;
+        if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && Date.now() < jailed[p.id].until) return false;
+        if (p.id === "me" || p.isMe) return true;
+        if (p.npc === true || p.type === "npc") return true;
+        return !!p.name;
+      };
+      const totalPlayers = () => {
+        let n = 0;
+        Object.values(S.players || {}).forEach(p => { if (isActivePlayer(p)) n++; });
+        return n;
+      };
+      const capFormula = (n) => Math.max(10, Math.round(0.4 * (n | 0)));
+
+      const pickNpc = (excludeIds = {}) => {
+        const list = Object.values(S.players || {}).filter(p => {
+          if (!p || !p.id) return false;
+          if (p.id === "me") return false;
+          if (excludeIds[p.id]) return false;
+          return p.npc === true || p.type === "npc";
+        });
+        return list[0] || null;
+      };
+
+      const setTone = (id, toneKey) => {
+        const p = S.players[id];
+        if (!p) return;
+        touched.push({ id, influence: p.influence, role: p.role });
+        if (toneKey === "k") {
+          p.role = "mafia";
+          p.influence = 30;
+          return;
+        }
+        if (toneKey === "r") { p.influence = 16; return; }
+        if (toneKey === "o") { p.influence = 8; return; }
+        p.influence = 1;
+      };
+
+      const ensureBattle = (battleId, oppId) => {
+        if (!Array.isArray(S.battles)) S.battles = [];
+        const now = Date.now();
+        const battle = {
+          id: battleId,
+          opponentId: oppId,
+          attackerId: "me",
+          defenderId: oppId,
+          fromThem: false,
+          status: "pickAttack",
+          draw: false,
+          result: null,
+          resolved: false,
+          finished: false,
+          attackHidden: false,
+          createdAt: now,
+          updatedAt: now,
+          crowd: null,
+          escapeVote: null
+        };
+        S.battles = [battle].concat(S.battles.filter(x => x && String(x.id) !== String(battleId)));
+        return battle;
+      };
+
+      const battleId = `dev_ignore_crowd_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const oppId = (opts && opts.oppId && S.players[opts.oppId]) ? opts.oppId : "npc_weak";
+      if (!S.players[oppId]) return { name, ok: false, details: "opponent_missing", battleId };
+
+      ensureBattle(battleId, oppId);
+
+      const me = S.me || (S.players && S.players.me) || null;
+      if (me && (!Number.isFinite(me.points) || me.points < 1)) {
+        me.points = startPlayer;
+        if (S.players && S.players.me) S.players.me.points = me.points;
+      }
+
+      const modeNorm = "off";
+      const costNorm = 0;
+      const started = Core.escape(battleId, { cost: costNorm, mode: modeNorm });
+      if (!started || !started.ok) return { name, ok: false, details: "ignore_start_failed", battleId, started };
+
+      const battle = (S.battles || []).find(b => b && String(b.id) === String(battleId)) || null;
+      if (!battle || !battle.escapeVote) return { name, ok: false, details: "ignore_vote_missing", battleId };
+
+      const v = battle.escapeVote;
+      v.endAt = Date.now() - 1;
+      v.endsAt = v.endAt;
+      v.voters = v.voters || {};
+      v.totalPlayers = totalPlayers();
+      v.cap = capFormula(v.totalPlayers);
+
+      const capUsed = v.cap;
+      const exclude = { me: true };
+      exclude[oppId] = true;
+      const voters = [];
+
+      const addVoter = (toneKey, side) => {
+        const npc = pickNpc(exclude);
+        if (!npc) return false;
+        exclude[npc.id] = true;
+        setTone(npc.id, toneKey);
+        voters.push({ id: npc.id, side, toneKey });
+        return true;
+      };
+
+      addVoter("r", "attacker");
+      addVoter("y", "attacker");
+      addVoter("y", "attacker");
+
+      while (voters.length < capUsed) {
+        if (!addVoter("y", "attacker")) break;
+      }
+
+      if (voters.length < capUsed) {
+        return { name, ok: false, details: "not_enough_voters", have: voters.length, capUsed };
+      }
+
+      voters.forEach(vt => {
+        const p = S.players[vt.id];
+        if (p && (!Number.isFinite(p.points) || p.points < 1)) p.points = startNpc;
+      });
+
+      const pointIds = {
+        me: "me",
+        npcWeak: oppId,
+        sink: "sink",
+        crowd: "crowd",
+        crowdPool: (Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`)
+      };
+      const voterIds = voters.map(vt => vt.id);
+      voterIds.forEach((id, i) => { pointIds[`voter_${i + 1}`] = id; });
+
+      const readPoints = (id) => {
+        if (id === "sink" || id === "crowd" || String(id).startsWith("crowd:")) {
+          if (Econ.getPoolBalance) return Econ.getPoolBalance(id) | 0;
+          return null;
+        }
+        const p = (id === "me") ? (S.players.me || S.me) : S.players[id];
+        return p && Number.isFinite(p.points) ? (p.points | 0) : null;
+      };
+
+      const buildPointsSnapshot = () => {
+        const out = {};
+        Object.keys(pointIds).forEach(k => { out[k] = readPoints(pointIds[k]); });
+        return out;
+      };
+
+      const beforePoints = buildPointsSnapshot();
+
+      voters.forEach(vt => {
+        Econ.transferPoints(vt.id, "sink", 1, "crowd_vote_cost", { battleId });
+        v.voters[vt.id] = vt.side;
+      });
+      v.aVotes = voters.length;
+      v.bVotes = 0;
+      v.votesA = v.aVotes;
+      v.votesB = v.bVotes;
+
+      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+      const logStart = log.length;
+
+      const res = Core.finalizeEscapeVote(battleId);
+      const battleAfter = (S.battles || []).find(b => b && String(b.id) === String(battleId)) || battle;
+      const crowdMeta = res && res.crowdCapMeta ? res.crowdCapMeta : null;
+      const endedBy = crowdMeta ? crowdMeta.endedBy : null;
+      const outcome = res && res.outcome ? res.outcome : (v.outcome || null);
+
+      if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) {
+        Game.Debug.moneyLog.push({
+          ts: Date.now(),
+          reason: "ignore_outcome_debug",
+          battleId,
+          kind: "debug",
+          meta: { mode: "off", outcome }
+        });
+      }
+
+      const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+      const byReason = {};
+      let poolInitAmount = 0;
+      logForBid.forEach(tx => {
+        const r = tx && tx.reason ? String(tx.reason) : "unknown";
+        byReason[r] = (byReason[r] || 0) + 1;
+        if (r === "crowd_vote_pool_init") poolInitAmount += (tx.amount | 0);
+      });
+      const logAfter = log.slice(logStart);
+
+      const afterPoints = buildPointsSnapshot();
+      const netDeltaById = {};
+      let sumNetDelta = 0;
+      Object.keys(beforePoints).forEach(k => {
+        const b0 = beforePoints[k];
+        const a0 = afterPoints[k];
+        if (typeof b0 === "number" && typeof a0 === "number") {
+          const d = (a0 | 0) - (b0 | 0);
+          netDeltaById[k] = d;
+          sumNetDelta += d;
+        } else {
+          netDeltaById[k] = null;
+        }
+      });
+
+      const mintReasons = new Set(["battle_win_points", "battle_win", "battle_lose", "battle_draw"]);
+      const mintAllowance = logForBid.reduce((sum, tx) => {
+        const r = String(tx && tx.reason || "");
+        if (!mintReasons.has(r)) return sum;
+        return sum + ((tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0);
+      }, 0);
+      const netDeltaFromMoneyLog = logForBid.reduce((acc, tx) => {
+        const amt = (tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0;
+        const sourceId = String(tx && tx.sourceId || "");
+        const targetId = String(tx && tx.targetId || "");
+        if (amt === 0) return acc;
+        const srcKey = sourceId || "unknown";
+        const tgtKey = targetId || "unknown";
+        acc.map[srcKey] = (acc.map[srcKey] || 0) - amt;
+        acc.map[tgtKey] = (acc.map[tgtKey] || 0) + amt;
+        acc.sum += 0;
+        return acc;
+      }, { map: Object.create(null), sum: 0 });
+      const sumNetFromMoneyLog = Object.values(netDeltaFromMoneyLog.map).reduce((s, v0) => s + (v0 | 0), 0);
+      const adjustedDiff = (sumNetFromMoneyLog | 0) - (mintAllowance | 0);
+      const pointsDiffOk = adjustedDiff === 0;
+
+      const winnerSide = (outcome === "A_WIN") ? "attacker" : (outcome === "B_WIN" ? "defender" : null);
+      const winnerCount = winnerSide ? voters.filter(p => v.voters[p.id] === winnerSide).length : 0;
+      const refundReason = (outcome === "TIE") ? "crowd_vote_refund" : "crowd_vote_refund_majority";
+      const poolInitCount = byReason.crowd_vote_pool_init | 0;
+      const refundCount = byReason[refundReason] | 0;
+      const repInFinalize = logAfter.some(tx => String(tx && tx.reason || "") === "rep_crowd_vote_participation");
+      const repDeltaFromCrowdPool = logForBid.some(tx =>
+        String(tx && tx.reason || "").startsWith("rep_") &&
+        String(tx && tx.sourceId || "") === "crowd_pool"
+      );
+      const ignoreOutcomeOk = (battleAfter && battleAfter.result === "escaped" && v.mode === "off");
+
+      const weightsSummary = {
+        aVotes: crowdMeta ? crowdMeta.aVotes : null,
+        bVotes: crowdMeta ? crowdMeta.bVotes : null,
+        totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+        cap: crowdMeta ? crowdMeta.cap : null
+      };
+
+      const asserts = {
+        outcomePresent: !!outcome,
+        endedByCap: (String(opts && opts.mode || "cap").toLowerCase() === "cap") ? (endedBy === "cap") : true,
+        poolInitCountOk: poolInitCount === 1 && poolInitAmount === voters.length,
+        refundCountOk: (outcome === "TIE") ? (refundCount === voters.length) : (refundCount === winnerCount),
+        noRepInFinalize: !repInFinalize,
+        repDeltaSourceOk: !repDeltaFromCrowdPool,
+        pointsDiffOk,
+        ignoreOutcomeOk
+      };
+
+      return {
+        name,
+        ok: Object.values(asserts).every(Boolean),
+        battleId,
+        outcome,
+        endedBy,
+        cap: crowdMeta ? crowdMeta.cap : null,
+        totalVotes: crowdMeta ? crowdMeta.totalVotes : null,
+        weightsSummary,
+        byReason,
+        poolAfter: (Econ.getPoolBalance && battleId) ? Econ.getPoolBalance(Econ.getCrowdPoolId ? Econ.getCrowdPoolId(battleId) : `crowd:${battleId}`) : null,
+        snapshotReport: { beforePoints, afterPoints, netDeltaById, sumNetDelta },
+        moneyLogReport: { netDeltaById: netDeltaFromMoneyLog.map, sumNetFromMoneyLog, mintAllowance, adjustedDiff },
+        pointsDiffOk,
+        asserts
+      };
+    } finally {
+      if (!Game.Debug) Game.Debug = {};
+      Game.Debug.FORCE_CIRCULATION = prevForce;
+      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (touched.length) {
+        touched.forEach(t => {
+          const p = S.players[t.id];
+          if (!p) return;
+          p.influence = t.influence;
+          if (t.role !== undefined) p.role = t.role;
+        });
+      }
     }
   };
 

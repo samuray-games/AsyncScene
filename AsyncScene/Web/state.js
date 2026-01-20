@@ -2005,4 +2005,31 @@ window.Game = window.Game || {};
       State.lottery.lastAt = Date.now();
     },
   };
+
+  function readCrowdCore(){
+    return (Game && (Game.ConflictCore || Game._ConflictCore)) ? (Game.ConflictCore || Game._ConflictCore) : null;
+  }
+
+  function bindCrowdCoreFunctions(){
+    const core = readCrowdCore();
+    if (!Game.StateAPI) Game.StateAPI = {};
+    Game.StateAPI.applyCrowdVoteTick = (battleId) => {
+      try {
+        if (!core || typeof core.applyCrowdVoteTick !== "function") return null;
+        return core.applyCrowdVoteTick(battleId);
+      } catch (_) {
+        return null;
+      }
+    };
+    Game.StateAPI.finalizeCrowdVote = (battleId) => {
+      try {
+        if (!core || typeof core.finalizeCrowdVote !== "function") return null;
+        return core.finalizeCrowdVote(battleId);
+      } catch (_) {
+        return null;
+      }
+    };
+  }
+
+  bindCrowdCoreFunctions();
 })();
