@@ -66,7 +66,21 @@
   function logTransfer(entry){
     const dbg = ensureDebugStore();
     const log = dbg.moneyLog;
-    const bid = entry ? String(entry.battleId || (entry.meta && entry.meta.battleId) || "") : "";
+    const meta = entry && entry.meta ? entry.meta : null;
+    let bid = entry ? String(entry.battleId || (meta && meta.battleId) || entry.eventId || (meta && meta.eventId) || "") : "";
+    if (!bid && entry) {
+      const src = String(entry.sourceId || "");
+      const tgt = String(entry.targetId || "");
+      if (src.startsWith("crowd:")) bid = src.slice("crowd:".length);
+      else if (tgt.startsWith("crowd:")) bid = tgt.slice("crowd:".length);
+    }
+    if (!bid && entry) {
+      const reason = String(entry.reason || "");
+      if (reason.startsWith("crowd_vote_")) {
+        const last = dbg && dbg.lastCrowdCapMeta ? dbg.lastCrowdCapMeta : null;
+        if (last && last.battleId) bid = String(last.battleId);
+      }
+    }
     if (bid && entry && !entry.battleId) entry.battleId = bid;
     log.push(entry);
     if (bid) {

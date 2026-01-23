@@ -321,6 +321,13 @@ window.Game ||= {};
     return Math.max(10, base);
   }
 
+  function getMaxNpcShare(){
+    const D0 = Game && Game.Data ? Game.Data : null;
+    const raw = (D0 && Number.isFinite(D0.MAX_NPC_SHARE_CROWD)) ? D0.MAX_NPC_SHARE_CROWD : 1;
+    if (!Number.isFinite(raw)) return 1;
+    return Math.max(0, Math.min(1, raw));
+  }
+
   function ensureCrowdCap(e){
     if (!e || !e.crowd) return;
     if (!Number.isFinite(e.crowd.cap) || e.crowd.cap <= 0) {
@@ -336,6 +343,18 @@ window.Game ||= {};
     const a = Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0) : (Number.isFinite(crowd.votesA) ? (crowd.votesA | 0) : 0);
     const b = Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0) : (Number.isFinite(crowd.votesB) ? (crowd.votesB | 0) : 0);
     return (a + b) | 0;
+  }
+
+  function getCrowdCountsFromVoters(crowd){
+    if (!crowd || !crowd.voters || typeof crowd.voters !== "object") return null;
+    let a = 0;
+    let b = 0;
+    for (const id of Object.keys(crowd.voters)) {
+      const side = crowd.voters[id];
+      if (side === "a" || side === "attacker") a++;
+      else if (side === "b" || side === "defender") b++;
+    }
+    return { a, b };
   }
 
   function npcVoteWeight(npc){
@@ -462,6 +481,8 @@ window.Game ||= {};
 
     ensureEventCrowd(e);
     const crowd = e.crowd;
+    const Econ = getEcon();
+    if (!Econ || typeof Econ.transferPoints !== "function") return false;
 
     const endAt = Number(crowd.endAt || e.endsAt || 0);
     if (!endAt) return false;
@@ -485,13 +506,24 @@ window.Game ||= {};
     const aId = e.aId;
     const bId = e.bId;
 
-    function pickVoter(allowRepeat){
-      // Prefer a fresh voter (not yet in crowd.voters). If everyone already voted, allow repeats.
+    const npcPaidSet = (crowd.npcPaidSet && typeof crowd.npcPaidSet === "object")
+      ? crowd.npcPaidSet
+      : (crowd.npcPaidSet = Object.create(null));
+    if (Array.isArray(crowd.npcPaidOrder)) {
+      crowd.npcPaidOrder.forEach(id => {
+        if (id) npcPaidSet[id] = true;
+      });
+    }
+
+    function pickVoter(){
+      // Prefer a fresh voter (not yet in crowd.voters).
       const voters = crowd.voters || {};
 
       // Build eligible list once for a deterministic fallback.
       const eligible = npcs.filter(p => {
         if (!p || !p.id || p.id === aId || p.id === bId) return false;
+        if (npcPaidSet[p.id]) return false;
+        if (voters[p.id]) return false;
         // NPC with 0 points/balance cannot vote
         const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
         const bal = Number.isFinite(p.balance) ? (p.balance | 0) : null;
@@ -499,23 +531,19 @@ window.Game ||= {};
       });
       if (!eligible.length) return null;
 
-      if (!allowRepeat) {
-        // Try random sampling first.
-        for (let i = 0; i < Math.max(10, eligible.length); i++){
-          const cand = eligible[Math.floor(Math.random() * eligible.length)];
-          if (!cand || !cand.id) continue;
-          if (voters[cand.id]) continue;
-          return cand;
-        }
-        // Deterministic fallback: first not-yet-voted.
-        for (const cand of eligible){
-          if (!voters[cand.id]) return cand;
-        }
-        return null;
+      // Try random sampling first.
+      for (let i = 0; i < Math.max(10, eligible.length); i++){
+        const cand = eligible[Math.floor(Math.random() * eligible.length)];
+        if (!cand || !cand.id) continue;
+        if (npcPaidSet[cand.id]) continue;
+        if (voters[cand.id]) continue;
+        return cand;
       }
-
-      // allowRepeat = true
-      return eligible[Math.floor(Math.random() * eligible.length)];
+      // Deterministic fallback: first not-yet-voted.
+      for (const cand of eligible){
+        if (!npcPaidSet[cand.id] && !voters[cand.id]) return cand;
+      }
+      return null;
     }
 
     function decideSide(){
@@ -533,6 +561,43 @@ window.Game ||= {};
       crowd.nextNpcVoteAt = now + NPC_VOTE_PACE_MIN_MS + Math.floor(Math.random() * (NPC_VOTE_PACE_MAX_MS - NPC_VOTE_PACE_MIN_MS));
     }
 
+    function countCrowdVoteCostLogs(voterId, battleId){
+      const dbg = (Game && Game.Debug) ? Game.Debug : null;
+      if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
+      return dbg.moneyLog.reduce((count, x) => {
+        if (!x) return count;
+        if (String(x.reason || "") !== "crowd_vote_cost") return count;
+        if (String(x.battleId || "") !== String(battleId)) return count;
+        if (String(x.sourceId || "") !== String(voterId)) return count;
+        return count + 1;
+      }, 0);
+    }
+
+    function removeCrowdVoteCostLog(voterId, battleId){
+      const dbg = (Game && Game.Debug) ? Game.Debug : null;
+      if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
+      let removed = 0;
+      const match = (x) =>
+        x &&
+        String(x.reason || "") === "crowd_vote_cost" &&
+        String(x.sourceId || "") === String(voterId || "") &&
+        String(x.battleId || "") === String(battleId || "");
+      for (let i = dbg.moneyLog.length - 1; i >= 0; i--) {
+        if (match(dbg.moneyLog[i])) { dbg.moneyLog.splice(i, 1); removed++; }
+      }
+      const byBattle = dbg.moneyLogByBattle && dbg.moneyLogByBattle[battleId];
+      if (Array.isArray(byBattle)) {
+        for (let i = byBattle.length - 1; i >= 0; i--) {
+          if (match(byBattle[i])) { byBattle.splice(i, 1); }
+        }
+      }
+      return removed;
+    }
+
+    const simDebugSteps = [];
+    if (e && typeof e === "object") {
+      e.simDebugSteps = simDebugSteps;
+    }
     let voted = false;
     let votesEmitted = 0;
 
@@ -543,39 +608,98 @@ window.Game ||= {};
       // Ensure crowd.voters exists
       if (!crowd.voters || typeof crowd.voters !== "object") crowd.voters = {};
 
-      // First try: require fresh voter. If exhausted, allow repeats so voting continues until endAt.
-      let voter = pickVoter(false);
-      let allowRepeat = false;
-      if (!voter) {
-        voter = pickVoter(true);
-        allowRepeat = true;
-      }
+      // Require a fresh voter; stop when exhausted.
+      const voter = pickVoter();
       if (!voter || !voter.id) break;
 
       const side = decideSide();
       const w = npcVoteWeight(voter);
-      if (isCirculationEnabled()) {
-        const Econ = getEcon();
-        const ok = Econ && typeof Econ.transferPoints === "function"
-          ? Econ.transferPoints(voter.id, "sink", 1, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
-          : null;
-        if (!ok || !ok.ok) {
-          votesEmitted++;
-          continue;
+      const voterId = voter.id;
+      const stateNpc = getPlayerById(voterId) || voter;
+      const beforePts = Number.isFinite(stateNpc && stateNpc.points) ? (stateNpc.points | 0) : 0;
+      const voteBattleId = e && (e.battleId || e.relatedBattleId || e.refId || e.id || null);
+      const costCountBefore = countCrowdVoteCostLogs(voterId, voteBattleId);
+      const ok = Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId: voteBattleId });
+      const stateNpcAfter = getPlayerById(voterId) || stateNpc;
+      const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
+      const costCountAfter = countCrowdVoteCostLogs(voterId, voteBattleId);
+      if (!ok || !ok.ok || (afterPts !== (beforePts - 1))) {
+        const cleanupAttempted = !!(ok && ok.ok);
+        let cleanupRemoved = false;
+        if (ok && ok.ok && (afterPts !== (beforePts - 1))) {
+          cleanupRemoved = !!removeCrowdVoteCostLog(voterId, voteBattleId);
         }
+        simDebugSteps.push({
+          voterId,
+          beforePts,
+          afterPts,
+          costCountBefore,
+          costCountAfter,
+          transferOk: !!(ok && ok.ok),
+          cleanupAttempted,
+          cleanupRemoved,
+          excludedReason: "payment_failed",
+          voteCounted: false
+        });
+        votesEmitted++;
+        continue;
       }
 
-      // Record voter side only if it is a fresh vote.
-      // For repeats we still count votes, but do not overwrite the original side in voters map.
-      if (!allowRepeat) {
-        crowd.voters[voter.id] = side;
-        awardCrowdVoteRep(voter.id, e);
+      if (!npcPaidSet[voterId]) {
+        npcPaidSet[voterId] = true;
       }
+      crowd.npcPaidOrder = Array.isArray(crowd.npcPaidOrder) ? crowd.npcPaidOrder : [];
+      if (!crowd.npcPaidOrder.includes(voterId)) crowd.npcPaidOrder.push(voterId);
+
+      const maxNpcShare = getMaxNpcShare();
+      const totalPlayers = Number.isFinite(crowd.totalPlayers) ? (crowd.totalPlayers | 0) : getTotalPlayersCount();
+      const npcCap = Math.floor(maxNpcShare * totalPlayers);
+      crowd.npcCountedIds = Array.isArray(crowd.npcCountedIds) ? crowd.npcCountedIds : [];
+      const countedSoFar = crowd.npcCountedIds.length | 0;
+      if (npcCap <= 0 || countedSoFar >= npcCap) {
+        crowd.excludedNpcVotes = crowd.excludedNpcVotes || {};
+        crowd.excludedNpcVotes[voterId] = "excluded_by_npc_cap";
+        simDebugSteps.push({
+          voterId,
+          beforePts,
+          afterPts,
+          costCountBefore,
+          costCountAfter,
+          transferOk: true,
+          cleanupAttempted: false,
+          cleanupRemoved: false,
+          excludedReason: "excluded_by_npc_cap",
+          voteCounted: false,
+          npcCap,
+          countedSoFar
+        });
+        votesEmitted++;
+        paceNext();
+        continue;
+      }
+
+      // Record voter side and award REP (paid vote only).
+      crowd.voters[voterId] = side;
+      awardCrowdVoteRep(voterId, e);
+      crowd.npcCountedIds.push(voterId);
 
       if (side === "a") crowd.aVotes = (crowd.aVotes|0) + w;
       else crowd.bVotes = (crowd.bVotes|0) + w;
 
       mirrorCrowdVotesToEvent(e);
+      const costCountAfterOk = countCrowdVoteCostLogs(voterId, voteBattleId);
+      simDebugSteps.push({
+        voterId,
+        beforePts,
+        afterPts,
+        costCountBefore,
+        costCountAfter: costCountAfterOk,
+        transferOk: true,
+        cleanupAttempted: false,
+        cleanupRemoved: false,
+        excludedReason: null,
+        voteCounted: true
+      });
       if (finalizeOpenEventByCap(e)) return true;
 
       // Sync NPC votes into battle.crowd too (fixes DUM-024)
@@ -589,9 +713,9 @@ window.Game ||= {};
           b.crowd.votesB = (crowd.votesB | 0);
           // Sync voters map too
           b.crowd.voters = b.crowd.voters || {};
-          if (!allowRepeat && voter && voter.id) {
-            b.crowd.voters[voter.id] = side;
-          }
+        if (voter && voter.id) {
+          b.crowd.voters[voter.id] = side;
+        }
           
           // Trigger immediate UI update (fixes DUM-030)
           try {
@@ -1331,6 +1455,14 @@ window.Game ||= {};
     if (!crowd || typeof crowd !== "object") return false;
     const kind = e.type || e.kind;
     const nowTs = (opts && Number.isFinite(opts.nowTs)) ? opts.nowTs : now();
+
+    const voterCounts = getCrowdCountsFromVoters(crowd);
+    if (voterCounts) {
+      crowd.aVotes = voterCounts.a;
+      crowd.bVotes = voterCounts.b;
+      crowd.votesA = voterCounts.a;
+      crowd.votesB = voterCounts.b;
+    }
 
     const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
     const res = resolveCrowdCore(crowd, { kind, eventId: e.id || e.eventId || e.refId || null, aId: e.aId, bId: e.bId }, participants);

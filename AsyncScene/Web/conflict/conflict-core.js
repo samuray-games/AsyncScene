@@ -728,7 +728,8 @@
     const Econ = getEcon();
     if (!Econ || typeof Econ.transferPoints !== "function") return;
 
-    const battleId = b.id || b.battleId || null;
+    const battleId = b.id || b.battleId || (crowd && (crowd.battleId || crowd.eventId)) || null;
+    if (battleId && crowd && !crowd.battleId) crowd.battleId = battleId;
     const voters = (crowd.voters && typeof crowd.voters === "object")
       ? Object.keys(crowd.voters)
       : [];
@@ -754,6 +755,22 @@
       if (transferFromPool) transferFromPool(poolId, id, 1, refundReason, { battleId });
       else econTransfer(poolId, id, 1, refundReason, { battleId });
     });
+
+    try {
+      if (Econ && typeof Econ.getPoolBalance === "function") {
+        const remainder = Econ.getPoolBalance(poolId) | 0;
+        if (remainder > 0) {
+          const ids = attackerDefenderIds(b);
+          const winnerId = (winnerSide === "a") ? ids.attackerId : (winnerSide === "b" ? ids.defenderId : null);
+          if (winnerId) {
+            if (transferFromPool) transferFromPool(poolId, winnerId, remainder, "crowd_vote_remainder_to_winner", { battleId });
+            else econTransfer(poolId, winnerId, remainder, "crowd_vote_remainder_to_winner", { battleId });
+          } else {
+            econTransfer(poolId, "sink", remainder, "crowd_vote_remainder_to_sink", { battleId });
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   function withRepSourceOverride(fn){

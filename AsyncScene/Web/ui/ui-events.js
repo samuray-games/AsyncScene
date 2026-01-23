@@ -335,6 +335,7 @@ window.Game = window.Game || {};
       escapeMode: e?.escapeMode || null,
       // crowd votes (если есть)
       crowd: getCrowdState(e),
+      devCard: e?.devCard || null,
     };
   }
 
@@ -928,35 +929,56 @@ window.Game = window.Game || {};
         info.style.borderTop = "1px solid rgba(255,255,255,0.1)";
         info.style.paddingTop = "6px";
         try {
-          // Line 1: canonical result phrasing.
-          let resLine = "";
-          if (ne && ne.escapeMode) {
-            resLine = escapeResultLine(ne, e);
-          } else {
-            // Use A as subject: "<A> победил/не победил <B>"
-            if (winnerSide === "a") resLine = `${aName} победил ${bName}`;
-            else if (winnerSide === "b") resLine = `${aName} не победил ${bName}`;
-            else resLine = `${aName} не победил ${bName}`;
-          }
-          const rowRes = document.createElement("div");
-          rowRes.textContent = resLine;
-          info.appendChild(rowRes);
-          try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+          const devCard = ne.devCard;
+          const customLines = (devCard && Array.isArray(devCard.lines)) ? devCard.lines.filter(line => typeof line === "string" && line.trim().length) : [];
+          const useCustomLines = customLines.length > 0;
 
-          // Line 2: player's choice (if any)
-          try {
-            const meId = (S && S.me && S.me.id) ? S.me.id : "me";
-            const crowd = getCrowdState(e);
-            const myVote = (crowd && crowd.voters && crowd.voters[meId]) ? crowd.voters[meId] : (e && e.myVote ? e.myVote : null);
-            if (myVote) {
-              const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
-              const myChoiceLabel = (myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
-              const rowChoice = document.createElement("div");
-              rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
-            info.appendChild(rowChoice);
-            try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+          const meId = (S && S.me && S.me.id) ? S.me.id : "me";
+          const crowdForChoice = getCrowdState(e);
+          const myVote = (crowdForChoice && crowdForChoice.voters && crowdForChoice.voters[meId])
+            ? crowdForChoice.voters[meId]
+            : (e && e.myVote ? e.myVote : null);
+          const didMeVote = !!myVote;
+
+          if (useCustomLines) {
+            if (devCard && devCard.debugMarker && !devCard._warned) {
+              console.warn("UI_USING_DEV_LINES", e && e.id, customLines.slice());
+              devCard._warned = true;
             }
-          } catch (_) {}
+            customLines.forEach(line => {
+              const row = document.createElement("div");
+              row.textContent = line;
+              info.appendChild(row);
+              try { info.appendChild(document.createTextNode("\n")); } catch (_) {}
+            });
+          } else {
+            // Line 1: canonical result phrasing.
+            let resLine = "";
+            if (ne && ne.escapeMode) {
+              resLine = escapeResultLine(ne, e);
+            } else {
+              // Use A as subject: "<A> победил/не победил <B>"
+              if (winnerSide === "a") resLine = `${aName} победил ${bName}`;
+              else if (winnerSide === "b") resLine = `${aName} не победил ${bName}`;
+              else resLine = `${aName} не победил ${bName}`;
+            }
+            const rowRes = document.createElement("div");
+            rowRes.textContent = resLine;
+            info.appendChild(rowRes);
+            try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+
+            // Line 2: player's choice (if any)
+            try {
+              if (myVote) {
+                const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
+                const myChoiceLabel = (myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
+                const rowChoice = document.createElement("div");
+                rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
+                info.appendChild(rowChoice);
+                try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+              }
+            } catch (_) {}
+          }
 
           // Line 3: vote tally
           const rowTally = document.createElement("div");
@@ -994,11 +1016,13 @@ window.Game = window.Game || {};
           } catch (_) {}
           const repStr = (repSum >= 0) ? `+${repSum}⭐` : `${repSum}⭐`;
           const ptsStr = (ptsSum >= 0) ? `+${ptsSum}💰` : `${ptsSum}💰`;
-          const rowDelta = document.createElement("div");
-          rowDelta.textContent = `${repStr} ${ptsStr}`;
-          rowDelta.style.fontWeight = "900";
-          info.appendChild(rowDelta);
-          try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+          if (didMeVote) {
+            const rowDelta = document.createElement("div");
+            rowDelta.textContent = `${repStr} ${ptsStr}`;
+            rowDelta.style.fontWeight = "900";
+            info.appendChild(rowDelta);
+            try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+          }
         } catch (_) {}
         card.appendChild(info);
       }
