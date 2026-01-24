@@ -57,7 +57,11 @@ window.Game = window.Game || {};
       }
 
       // IMPORTANT: `players` is the single source of truth. `me` must live inside it.
-      const pStart = (Game.Data && Number.isFinite(Game.Data.POINTS_START)) ? (Game.Data.POINTS_START | 0) : 0;
+      const pStart = (Game.Data && Number.isFinite(Game.Data.START_POINTS_PLAYER))
+        ? (Game.Data.START_POINTS_PLAYER | 0)
+        : (Game.Data && Number.isFinite(Game.Data.POINTS_START))
+          ? (Game.Data.POINTS_START | 0)
+          : 0;
       Game.State.players.me = {
         id: "me",
         name: nick,

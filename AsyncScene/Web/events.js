@@ -484,11 +484,8 @@ window.Game ||= {};
     const Econ = getEcon();
     if (!Econ || typeof Econ.transferPoints !== "function") return false;
 
-    const endAt = Number(crowd.endAt || e.endsAt || 0);
-    if (!endAt) return false;
-    if (now >= endAt) return false;
     if (crowd.decided) return false;
-    // IMPORTANT: player voting must NOT stop NPC voting. We only stop on time (endAt) or decision.
+    // IMPORTANT: player voting must NOT stop NPC voting. We only stop on decision/cap.
     // Do NOT add checks like `if (e.playerVoted) return` here.
 
     // Throttle NPC voting per event
@@ -1431,14 +1428,22 @@ window.Game ||= {};
 
   function formatCrowdStatusLine(aName, aInf, bName, bInf, crowd){
     // System text: keep punctuation perfect. No NPC chat normalization here.
-    const vA = crowd ? ((crowd.aVotes ?? crowd.votesA) | 0) : 0;
-    const vB = crowd ? ((crowd.bVotes ?? crowd.votesB) | 0) : 0;
-    const endAt = crowd ? (crowd.endAt||0) : 0;
-    const leftMs = endAt ? Math.max(0, endAt - now()) : 0;
-    const leftS = Math.ceil(leftMs / 1000);
-
-    const timePart = endAt ? ` Ещё ${leftS} сек.` : "";
-    return `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}]. Голоса: ${vA}-${vB}.${timePart}`;
+    let vA = 0;
+    let vB = 0;
+    if (crowd && crowd.voters && typeof crowd.voters === "object") {
+      for (const id of Object.keys(crowd.voters)) {
+        const side = crowd.voters[id];
+        if (side === "a") vA++;
+        else if (side === "b") vB++;
+      }
+    } else {
+      vA = crowd ? ((crowd.aVotes ?? crowd.votesA) | 0) : 0;
+      vB = crowd ? ((crowd.bVotes ?? crowd.votesB) | 0) : 0;
+    }
+    const total = (vA + vB) | 0;
+    const cap = (crowd && Number.isFinite(crowd.cap)) ? (crowd.cap | 0) : 0;
+    const capPart = cap > 0 ? ` Лимит: ${cap}.` : "";
+    return `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}]. Голоса: ${vA}-${vB} (всего ${total}${cap ? "/" + cap : ""}).${capPart}`;
   }
 
   function decideCrowdWinner(aInf, bInf, crowd){
@@ -1536,16 +1541,7 @@ window.Game ||= {};
   }
 
   function finalizeOpenEventIfExpired(e){
-    if (!e || e.state !== "open") return false;
-    const crowd = e.crowd;
-    if (!crowd || typeof crowd !== "object") return false;
-
-    const endAt = Number(crowd.endAt || e.endsAt || 0);
-    if (!endAt) return false;
-
-    const nowTs = now();
-    if (nowTs < endAt) return false;
-    return finalizeOpenEventNow(e, { nowTs });
+    return false;
   }
 
   function tick(){
@@ -1616,7 +1612,6 @@ window.Game ||= {};
       const bInf = Number(e.bInf ?? b.bInf ?? (bb && bb.influence) ?? 0);
 
       if (b.crowd && b.status === "draw" && b.draw === true && !b.crowd.decided) {
-        const endAt = (b.crowd.endAt || 0);
         const nowTs = now();
 
         // Keep event vote mirrors in sync (UI reads event fields)
@@ -1642,52 +1637,11 @@ window.Game ||= {};
           e.bVotes = (b.crowd.bVotes|0);
         } catch (_) {}
 
-        if (endAt && nowTs >= endAt) {
-          const aVotes = (b.crowd.aVotes ?? b.crowd.votesA) | 0;
-          const bVotes = (b.crowd.bVotes ?? b.crowd.votesB) | 0;
-
-          if (aVotes === bVotes) {
-            restartEventCrowd(e);
-            b.crowd.endAt = e.crowd.endAt;
-            b.crowd.endsAt = e.crowd.endAt;
-            b.crowd.aVotes = e.crowd.aVotes;
-            b.crowd.bVotes = e.crowd.bVotes;
-            b.crowd.votesA = e.crowd.votesA;
-            b.crowd.votesB = e.crowd.votesB;
-            b.crowd.voters = e.crowd.voters;
-            b.crowd.decided = false;
-            b.crowd.winner = null;
-            continue;
-          }
-
-          // Finalize
-          const winner = (aVotes > bVotes) ? "a" : "b";
-          b.crowd.decided = true;
-          b.crowd.winner = winner;
-
-          const winnerName = (winner === "a") ? aName : bName;
-          const loserName = (winner === "a") ? bName : aName;
-
-          const finalLine = sysNpcDrawResolvedLine(winnerName, loserName);
-
-          e.text = finalLine;
-          e.resultLine = finalLine;
-          e.meta = `${aName} [${aInf}] - ${bName} [${bInf}]`;
-          e.state = "resolved";
-
-          // One-time broadcast to chat/system
-          if (!e._broadcastResolved) {
-            e._broadcastResolved = true;
-            pushSystem(finalLine);
-          }
-          payoutCrowdPool(e, winner);
-        } else {
-          const line = formatCrowdStatusLine(aName, aInf, bName, bInf, b.crowd);
-          e.text = line;
-          e.resultLine = line;
-          e.meta = `${aName} [${aInf}] - ${bName} [${bInf}]`;
-          e.state = "open";
-        }
+        const line = formatCrowdStatusLine(aName, aInf, bName, bInf, b.crowd);
+        e.text = line;
+        e.resultLine = line;
+        e.meta = `${aName} [${aInf}] - ${bName} [${bInf}]`;
+        e.state = "open";
       } else {
         // Crowd decided or battle finished: keep event but freeze a clean final line.
         const base = `Всё, финал: ничья между ${aName} и ${bName}.`;

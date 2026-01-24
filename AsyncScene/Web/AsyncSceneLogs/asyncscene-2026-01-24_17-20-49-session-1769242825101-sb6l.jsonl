@@ -1,0 +1,4 @@
+{"ts": 1769242847628, "sessionId": "session-1769242825101-sb6l", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mks1i6hx_6ofwnw"}}
+{"ts": 1769242847631, "sessionId": "session-1769242825101-sb6l", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-24"}}
+{"ts": 1769242847633, "sessionId": "session-1769242825101-sb6l", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mks1i6hx_6ofwnw"}}
+{"ts": 1769242847778, "sessionId": "session-1769242825101-sb6l", "type": "chat", "name": "Олег", "text": "@Егор, не тяни, я не люблю ожидание", "system": false}

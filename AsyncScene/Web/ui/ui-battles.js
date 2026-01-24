@@ -29,6 +29,22 @@
     } catch (_) {}
   };
 
+  function getRawCountsFromVoters(c) {
+    if (!c || !c.voters || typeof c.voters !== "object") {
+      const a = Number.isFinite(c && c.votesA) ? (c.votesA | 0) : (Number.isFinite(c && c.aVotes) ? (c.aVotes | 0) : 0);
+      const b = Number.isFinite(c && c.votesB) ? (c.votesB | 0) : (Number.isFinite(c && c.bVotes) ? (c.bVotes | 0) : 0);
+      return { a, b, total: (a + b) | 0 };
+    }
+    let a = 0;
+    let b = 0;
+    for (const id of Object.keys(c.voters)) {
+      const side = c.voters[id];
+      if (side === "a" || side === "attacker") a++;
+      else if (side === "b" || side === "defender") b++;
+    }
+    return { a, b, total: (a + b) | 0 };
+  }
+
   function showBtnToastRight(btn, text) {
     if (!btn) return;
     const msg = String(text || "").trim();
@@ -1204,13 +1220,6 @@ UI.renderBattles = () => {
       // ESCAPE VOTE (crowd vote) - render even if resolved is true
       if (isEscapeVote(b)) {
           const v = b.escapeVote || {};
-          if (!Number.isFinite(v.endAt) && Number.isFinite(v.endsAt)) v.endAt = v.endsAt;
-          if (!Number.isFinite(v.endsAt) && Number.isFinite(v.endAt)) v.endsAt = v.endAt;
-          if (!Number.isFinite(v.endAt) || !v.endAt) {
-            v.endAt = nowMs() + 30000;
-            v.endsAt = v.endAt;
-          }
-
           const isOff = v.mode === "off";
           const voteLabelA = isOff ? "Отвалить" : "Свалить";
           const voteLabelB = isOff ? "Останься" : "Остаться";
@@ -1262,12 +1271,6 @@ UI.renderBattles = () => {
             const freshVote = (freshBattle && freshBattle.escapeVote) ? freshBattle.escapeVote : null;
 
             const c = freshVote || bb.escapeVote || {};
-            const end0 = _normEnds(c) || _normEnds(v) || 0;
-            const end =
-              (typeof c.endAt === "number") ? c.endAt :
-              (typeof c.endsAt === "number") ? c.endsAt :
-              v.endAt;
-            const left = (end0 || end || 0) - nowMs();
             // Re-acquire current vote row if the panel was re-rendered.
             try {
               const bid0 = String(bb.id || "");
@@ -1285,33 +1288,33 @@ UI.renderBattles = () => {
             } catch (_) {}
 
             const infoEl = document.getElementById(`escapeInfo_${bb.id}`);
-            if (infoEl) infoEl.textContent = `Ещё ${fmtSec(left)} сек`;
+            if (infoEl) infoEl.textContent = "Голосование идёт.";
 
             try {
             // Best-effort: keep local battle in sync so other UI code reads fresh numbers.
             try {
               bb.escapeVote = bb.escapeVote || {};
-              if (typeof c.endAt === "number") bb.escapeVote.endAt = c.endAt;
-              if (typeof c.endsAt === "number") bb.escapeVote.endsAt = c.endsAt;
               bb.escapeVote.votesA = (c.votesA | 0);
               bb.escapeVote.votesB = (c.votesB | 0);
               bb.escapeVote.decided = !!c.decided;
             } catch (_) {}
 
+            const raw = getRawCountsFromVoters(c);
             if (voteRowEl && voteRowEl.childElementCount === 0) {
-                voteRowEl.appendChild(mkVoteBtn(voteLabelA, c.votesA || 0));
-                voteRowEl.appendChild(mkVoteBtn(voteLabelB, c.votesB || 0));
+                voteRowEl.appendChild(mkVoteBtn(voteLabelA, raw.a || 0));
+                voteRowEl.appendChild(mkVoteBtn(voteLabelB, raw.b || 0));
               } else if (voteRowEl && voteRowEl.childElementCount === 2) {
-                voteRowEl.children[0].textContent = `${voteLabelA} - ${c.votesA || 0}`;
-                voteRowEl.children[1].textContent = `${voteLabelB} - ${c.votesB || 0}`;
+                voteRowEl.children[0].textContent = `${voteLabelA} - ${raw.a || 0}`;
+                voteRowEl.children[1].textContent = `${voteLabelB} - ${raw.b || 0}`;
               }
             } catch (_) {}
 
             // Optional debug (opt-in): window.__logBattleCounters = true
             try {
               if (window && window.__logBattleCounters) {
-                const a0 = c.votesA | 0;
-                const b0 = c.votesB | 0;
+                const raw0 = getRawCountsFromVoters(c);
+                const a0 = raw0.a | 0;
+                const b0 = raw0.b | 0;
                 if (bb._lastEscapeVotesA !== a0 || bb._lastEscapeVotesB !== b0) {
                   bb._lastEscapeVotesA = a0;
                   bb._lastEscapeVotesB = b0;
@@ -1320,13 +1323,9 @@ UI.renderBattles = () => {
               }
             } catch (_) {}
 
-            if (left <= 0 && !c.decided && Game.Conflict && typeof Game.Conflict.finalizeEscapeVote === "function") {
-              try { Game.Conflict.finalizeEscapeVote(bb.id); } catch (_) {}
-            }
-
             // Force a re-render when vote finishes, even if API suppresses renders (e.g. uiOnly).
             try {
-              if ((left <= 0 || c.decided) && !bb._uiEscapeFinalRenderQueued) {
+              if (c.decided && !bb._uiEscapeFinalRenderQueued) {
                 bb._uiEscapeFinalRenderQueued = true;
                 requestAll();
               }
@@ -1340,8 +1339,7 @@ UI.renderBattles = () => {
           );
           update(b);
 
-          const leftNow = v.endAt - nowMs();
-          if ((leftNow <= 0 || v.decided) && !escapeWrap._resultShown) {
+          if (v.decided && !escapeWrap._resultShown) {
             const resLine = document.createElement("div");
             resLine.className = "noteLine";
             resLine.textContent = b.resultLine || "Всё, финал.";
@@ -1374,19 +1372,8 @@ UI.renderBattles = () => {
       if (isDrawBattle(b)) {
           const isMyDraw = (b.fromThem === true || b.fromThem === false);
           const crowd = b.crowd || {};
-          if (!b.crowd) b.crowd = { endAt: 0, votesA: 0, votesB: 0, decided: false };
+          if (!b.crowd) b.crowd = { votesA: 0, votesB: 0, decided: false };
           b.crowd.uiOnly = true;
-          if (!Number.isFinite(b.crowd.endAt) && Number.isFinite(b.crowd.endsAt)) {
-            b.crowd.endAt = b.crowd.endsAt;
-          }
-          if (!Number.isFinite(b.crowd.endsAt) && Number.isFinite(b.crowd.endAt)) {
-            b.crowd.endsAt = b.crowd.endAt;
-          }
-          if (!Number.isFinite(b.crowd.endAt) || !b.crowd.endAt) {
-            b.crowd.endAt = nowMs() + 30000;
-            b.crowd.endsAt = b.crowd.endAt;
-          }
-          const endAt = b.crowd.endAt;
 
           if (!b._crowdLoopStarted && !b.crowd.decided && Game.Conflict && typeof Game.Conflict.startCrowdVote === "function") {
             b._crowdLoopStarted = true;
@@ -1502,12 +1489,6 @@ UI.renderBattles = () => {
             const freshCrowd = (freshBattle && freshBattle.crowd) ? freshBattle.crowd : null;
 
             const c = freshCrowd || bb.crowd || {};
-            const end0 = _normEnds(c) || _normEnds({ endAt }) || 0;
-            const end =
-              (typeof c.endAt === "number") ? c.endAt :
-              (typeof c.endsAt === "number") ? c.endsAt :
-              endAt;
-            const left = (end0 || end || 0) - nowMs();
             // Re-acquire current vote row if the panel was re-rendered.
             try {
               const bid0 = String(bb.id || "");
@@ -1525,15 +1506,13 @@ UI.renderBattles = () => {
             } catch (_) {}
 
             const infoEl = document.getElementById(`drawInfo_${bb.id}`);
-            if (infoEl) infoEl.textContent = `Ещё ${fmtSec(left)} сек`;
+            if (infoEl) infoEl.textContent = "Голосование идёт.";
 
             try {
               const vRow = voteRowEl;
               // Best-effort: keep local battle in sync so other UI code reads fresh numbers.
               try {
                 bb.crowd = bb.crowd || {};
-                if (typeof c.endAt === "number") bb.crowd.endAt = c.endAt;
-                if (typeof c.endsAt === "number") bb.crowd.endsAt = c.endsAt;
                 bb.crowd.votesA = (c.votesA | 0);
                 bb.crowd.votesB = (c.votesB | 0);
                 bb.crowd.decided = !!c.decided;
@@ -1542,19 +1521,22 @@ UI.renderBattles = () => {
               if (vRow && vRow.childElementCount === 0) {
                 const aLabel = nameWithInf(attackerId);
                 const bLabel = nameWithInf(defenderId);
-                vRow.appendChild(mkVoteBtn(aLabel, c.votesA || 0));
-                vRow.appendChild(mkVoteBtn(bLabel, c.votesB || 0));
+                const raw = getRawCountsFromVoters(c);
+                vRow.appendChild(mkVoteBtn(aLabel, raw.a || 0));
+                vRow.appendChild(mkVoteBtn(bLabel, raw.b || 0));
               } else if (vRow && vRow.childElementCount === 2) {
-                vRow.children[0].textContent = `${nameWithInf(attackerId)} - ${c.votesA || 0}`;
-                vRow.children[1].textContent = `${nameWithInf(defenderId)} - ${c.votesB || 0}`;
+                const raw = getRawCountsFromVoters(c);
+                vRow.children[0].textContent = `${nameWithInf(attackerId)} - ${raw.a || 0}`;
+                vRow.children[1].textContent = `${nameWithInf(defenderId)} - ${raw.b || 0}`;
               }
             } catch (_) {}
 
             // Optional debug (opt-in): window.__logBattleCounters = true
             try {
               if (window && window.__logBattleCounters) {
-                const a0 = c.votesA | 0;
-                const b0 = c.votesB | 0;
+                const raw0 = getRawCountsFromVoters(c);
+                const a0 = raw0.a | 0;
+                const b0 = raw0.b | 0;
                 if (bb._lastCrowdVotesA !== a0 || bb._lastCrowdVotesB !== b0) {
                   bb._lastCrowdVotesA = a0;
                   bb._lastCrowdVotesB = b0;
@@ -1563,16 +1545,9 @@ UI.renderBattles = () => {
               }
             } catch (_) {}
 
-            // If the vote is nearing end, defer heavy work to avoid synchronous spikes.
-            // Use a slightly higher threshold to avoid 2s-edge re-entrancy.
-            const FINALIZE_THRESHOLD_MS = 1200;
-            if (left <= FINALIZE_THRESHOLD_MS && !c.decided) {
-              UI._scheduleDrawFinalize(bb.id);
-            }
-
-            // Schedule a coalesced render when nearing end or decided
+            // Schedule a coalesced render when decided
             try {
-              if ((left <= FINALIZE_THRESHOLD_MS || c.decided) && !bb._uiDrawFinalRenderQueued) {
+              if (c.decided && !bb._uiDrawFinalRenderQueued) {
                 bb._uiDrawFinalRenderQueued = true;
                 UI._scheduleDrawRequestAll();
               }
@@ -1586,8 +1561,7 @@ UI.renderBattles = () => {
           );
           update(b);
 
-          const leftNow = b.crowd.endAt - nowMs();
-          if ((leftNow <= 0 || b.drawResolved === true || b.crowd.decided) && !drawWrap._resultShown) {
+          if ((b.drawResolved === true || b.crowd.decided) && !drawWrap._resultShown) {
             const resLine = document.createElement("div");
             resLine.className = "noteLine";
             resLine.textContent = b.drawResultLine || b.resultLine || "Всё, финал.";
@@ -2370,10 +2344,11 @@ UI.renderBattles = () => {
                return `${name} 💰${pts} [${inf}]`;
              };
              
-             voteRow.children[0].textContent = `${nameWithInf(attackerId)} - ${c.votesA || 0}`;
-             voteRow.children[1].textContent = `${nameWithInf(defenderId)} - ${c.votesB || 0}`;
-             
-             console.log('[updateBattleCounters]', battleId, 'votesA:', c.votesA, 'votesB:', c.votesB);
+            const raw = getRawCountsFromVoters(c);
+            voteRow.children[0].textContent = `${nameWithInf(attackerId)} - ${raw.a || 0}`;
+            voteRow.children[1].textContent = `${nameWithInf(defenderId)} - ${raw.b || 0}`;
+            
+            console.log('[updateBattleCounters]', battleId, 'votesA:', raw.a, 'votesB:', raw.b);
            }
          }
        } catch (e) {

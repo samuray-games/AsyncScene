@@ -138,7 +138,9 @@
    function applyNpcVotesToBattle(battle) {
      try {
        if (!isDrawWithCrowd(battle)) return 0;
-       if (!Game.NPC || typeof Game.NPC.getAll !== "function" || typeof Game.NPC.voteInDraw !== "function") return 0;
+      if (!Game.NPC || typeof Game.NPC.getAll !== "function" || typeof Game.NPC.voteInDraw !== "function") return 0;
+      const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
+      if (!Econ || typeof Econ.transferPoints !== "function") return 0;
 
        const now = Date.now();
        const endAt = battle.crowd.endAt || 0;
@@ -157,6 +159,43 @@
        const budget = 1;
        let applied = 0;
 
+      const battleId = battle.id || battle.battleId || null;
+      const crowd = battle.crowd || (battle.crowd = {});
+      crowd.voters ||= {};
+
+      const countCrowdVoteCostLogs = (voterId, bid) => {
+        const dbg = (Game && Game.Debug) ? Game.Debug : null;
+        if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
+        return dbg.moneyLog.reduce((count, x) => {
+          if (!x) return count;
+          if (String(x.reason || "") !== "crowd_vote_cost") return count;
+          if (String(x.battleId || "") !== String(bid)) return count;
+          if (String(x.sourceId || "") !== String(voterId)) return count;
+          return count + 1;
+        }, 0);
+      };
+
+      const removeCrowdVoteCostLog = (voterId, bid) => {
+        const dbg = (Game && Game.Debug) ? Game.Debug : null;
+        if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
+        let removed = 0;
+        const match = (x) =>
+          x &&
+          String(x.reason || "") === "crowd_vote_cost" &&
+          String(x.sourceId || "") === String(voterId || "") &&
+          String(x.battleId || "") === String(bid || "");
+        for (let i = dbg.moneyLog.length - 1; i >= 0; i--) {
+          if (match(dbg.moneyLog[i])) { dbg.moneyLog.splice(i, 1); removed++; }
+        }
+        const byBattle = dbg.moneyLogByBattle && dbg.moneyLogByBattle[bid];
+        if (Array.isArray(byBattle)) {
+          for (let i = byBattle.length - 1; i >= 0; i--) {
+            if (match(byBattle[i])) { byBattle.splice(i, 1); }
+          }
+        }
+        return removed;
+      };
+
        for (let i = 0; i < budget; i++) {
          const voter = npcs[Math.floor(Math.random() * npcs.length)];
          if (!voter) continue;
@@ -164,10 +203,37 @@
          const v = Game.NPC.voteInDraw(battle, voter);
          if (!v || !v.side || !v.weight) continue;
 
-         const w = Math.max(1, v.weight | 0);
-         if (v.side === "attacker") battle.crowd.votesA = (battle.crowd.votesA | 0) + w;
-         if (v.side === "defender") battle.crowd.votesB = (battle.crowd.votesB | 0) + w;
-         applied++;
+        const voterId = v.voterId || voter.id;
+        if (!voterId) continue;
+        if (crowd.voters && crowd.voters[voterId]) continue;
+        const stateNpc = (Game.State && Game.State.players) ? Game.State.players[voterId] : null;
+        const beforePts = Number.isFinite(stateNpc && stateNpc.points) ? (stateNpc.points | 0) : 0;
+        if (beforePts <= 0) continue;
+        const costCountBefore = countCrowdVoteCostLogs(voterId, battleId);
+        const ok = Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId });
+        const stateNpcAfter = (Game.State && Game.State.players) ? Game.State.players[voterId] : stateNpc;
+        const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
+        const costCountAfter = countCrowdVoteCostLogs(voterId, battleId);
+        if (!ok || !ok.ok || (afterPts !== (beforePts - 1))) {
+          if (ok && ok.ok && (afterPts !== (beforePts - 1))) {
+            removeCrowdVoteCostLog(voterId, battleId);
+          }
+          continue;
+        }
+
+        crowd.voters[voterId] = (v.side === "attacker") ? "a" : "b";
+        let w = 1;
+        if (Core && typeof Core.getVoteWeight === "function") {
+          w = Core.getVoteWeight(voterId) | 0;
+          if (w <= 0) w = 1;
+        } else {
+          w = Math.max(1, v.weight | 0);
+        }
+        if (crowd.voters) {
+          if (v.side === "attacker") crowd.votesA = (crowd.votesA | 0) + w;
+          if (v.side === "defender") crowd.votesB = (crowd.votesB | 0) + w;
+        }
+        applied++;
        }
 
        return applied;
@@ -204,12 +270,6 @@
        try { Core.startCrowdVoteTimer(battleId); } catch (_) {}
      }
 
-     // Normalize endAt/endsAt for UI + for our loop.
-     if (b.crowd) {
-       if (b.crowd.endAt && !b.crowd.endsAt) b.crowd.endsAt = b.crowd.endAt;
-       if (b.crowd.endsAt && !b.crowd.endAt) b.crowd.endAt = b.crowd.endsAt;
-     }
-
      if (_crowdLoops[battleId]) return true;
 
      _crowdLoops[battleId] = setInterval(() => {
@@ -230,14 +290,7 @@
 
          const endAt = _getCrowdEndAt(cur);
          if (endAt && Date.now() >= endAt) {
-           if (typeof Core.finalizeCrowdVote === "function") {
-             try { Core.finalizeCrowdVote(battleId); } catch (_) {}
-           }
-           const cur2 = findBattle(battleId);
-           if (!(cur2 && cur2.crowd && cur2.crowd.decided)) {
-             return;
-           }
-           stopCrowdVoteLoop(battleId);
+           // No timer-based finalize; cap-only logic.
          }
 
          if (!(cur.crowd && cur.crowd.uiOnly)) render();
@@ -267,13 +320,6 @@
      if (!Number.isFinite(b.crowd.votesB)) b.crowd.votesB = b.crowd.votesB | 0;
      if (!b.crowd.voters) b.crowd.voters = {};
      if (!b.crowd.decided) b.crowd.decided = false;
-
-     const endAt = _getCrowdEndAt(b);
-     if (!endAt) {
-       const t = Date.now() + 30000;
-       b.crowd.endAt = t;
-       b.crowd.endsAt = t;
-     }
 
      return ensureCrowdVoteLoop(battleId);
    }
@@ -542,6 +588,12 @@
        // Let NPCs vote a little each tick while the draw is active.
        if (b) applyNpcVotesToBattle(b);
        if (typeof Core.applyCrowdVoteTick === "function") Core.applyCrowdVoteTick(battleId);
+       render();
+       return { ok: true };
+     },
+
+     applyEscapeVote(battleId) {
+       if (typeof Core.applyEscapeVoteTick === "function") Core.applyEscapeVoteTick(battleId);
        render();
        return { ok: true };
      },

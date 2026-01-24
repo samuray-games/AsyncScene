@@ -1,0 +1,5 @@
+{"ts": 1769234004314, "sessionId": "session-1769233708577-5py2", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1769234004306_1951"}}
+{"ts": 1769234004314, "sessionId": "session-1769233708577-5py2", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1769234004306_1951"}}
+{"ts": 1769234004315, "sessionId": "session-1769233708577-5py2", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_crowd_1769234004306_1951"}}
+{"ts": 1769234004319, "sessionId": "session-1769233708577-5py2", "type": "stat", "kind": "points", "delta": 7, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1769234004306_1951"}}
+{"ts": 1769234004320, "sessionId": "session-1769233708577-5py2", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1769234004306_1951"}}

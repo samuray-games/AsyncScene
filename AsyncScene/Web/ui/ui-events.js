@@ -237,7 +237,6 @@ window.Game = window.Game || {};
     if (!Array.isArray(openList) || openList.length === 0) return;
 
     // Keep refreshing while any crowd-vote event is unresolved.
-    const now = Date.now();
     let nextDelay = null;
     let hasPending = false;
     openList.forEach(ne => {
@@ -245,16 +244,13 @@ window.Game = window.Game || {};
       if (!ne || !e) return;
       if (!ne.crowd) return;
       if (e.resolved) return;
-      const endsAt = (typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
-      if (!Number.isFinite(endsAt)) return;
       hasPending = true;
-      const left = endsAt - now;
-      if (nextDelay === null || left < nextDelay) nextDelay = left;
+      if (nextDelay === null) nextDelay = 500;
     });
 
     if (!hasPending) return;
 
-    const delay = (nextDelay != null && nextDelay <= 0) ? 80 : Math.min(1000, Math.max(200, (nextDelay | 0)));
+    const delay = Math.min(1000, Math.max(200, (nextDelay | 0)));
 
     UI._eventsAutoTimer = setTimeout(() => {
       try { UI._eventsAutoTimer = null; } catch (_) {}
@@ -294,11 +290,7 @@ window.Game = window.Game || {};
       : (Number.isFinite(B?.influence) ? B.influence : 0);
 
     const createdAt = (typeof e?.createdAt === "number") ? e.createdAt : Date.now();
-    const endsAt = (typeof e?.endsAt === "number")
-      ? e.endsAt
-      : (typeof e?.endAt === "number")
-        ? e.endAt
-        : (createdAt + 10000);
+    const endsAt = null;
 
     const resolved = !!e?.resolved;
 
@@ -358,13 +350,27 @@ window.Game = window.Game || {};
     return created;
   }
 
+  function getCrowdRawCounts(crowd) {
+    if (!crowd || !crowd.voters || typeof crowd.voters !== "object") {
+      const a = Number.isFinite(crowd && crowd.aVotes) ? (crowd.aVotes | 0) : 0;
+      const b = Number.isFinite(crowd && crowd.bVotes) ? (crowd.bVotes | 0) : 0;
+      return { a, b, total: (a + b) | 0 };
+    }
+    let a = 0;
+    let b = 0;
+    for (const id of Object.keys(crowd.voters)) {
+      const side = crowd.voters[id];
+      if (side === "a") a++;
+      else if (side === "b") b++;
+    }
+    return { a, b, total: (a + b) | 0 };
+  }
+
   function canVoteOnEvent(ne, rawEvent) {
     if (!ne || !rawEvent) return false;
     if (ne.resolved || rawEvent.resolved) return false;
     if (!ne.crowd) return false;
     if (isMyEvent(rawEvent)) return false;
-    const sec = Math.max(0, Math.ceil((ne.endsAt - Date.now()) / 1000));
-    if (sec <= 0) return false;
     // One vote per player
     const meId = (S && S.me && S.me.id) ? S.me.id : "me";
     const crowd = getCrowdState(rawEvent);
@@ -425,6 +431,7 @@ window.Game = window.Game || {};
   }
 
   function finalizeEventIfExpired(rawEvent, ne) {
+    return false;
     if (!rawEvent || !ne) return false;
     if (rawEvent.resolved || ne.resolved) return false;
     if (!ne.crowd) return false;
@@ -698,26 +705,8 @@ window.Game = window.Game || {};
         rerenderEventsOnly();
       };
 
-      // If the vote timer expired, lock the result on the raw event before rendering.
-      finalizeEventIfExpired(e, ne);
-
-      // Fallback: if escape event reached end but still not resolved, resolve locally for UI.
-      if (ne.voteLabels && ne.escapeMode && e && !e.resolved) {
-        const endAt = (typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
-        if (Number.isFinite(endAt) && Date.now() >= endAt) {
-          const { winner } = computeCrowdWinner(e);
-          if (winner) {
-            e.resolved = true;
-            e.state = "resolved";
-            e.resultLine = escapeResultLine(ne, e);
-          }
-        }
-      }
-
       const resolvedNow = !!(e && e.resolved);
-      const endsAtNow = (e && typeof e.endsAt === "number") ? e.endsAt : ne.endsAt;
-      const sec = resolvedNow ? 0 : Math.max(0, Math.ceil((endsAtNow - Date.now()) / 1000));
-      const metaText = resolvedNow ? "" : t("events_left", { sec });
+      const metaText = resolvedNow ? "" : "";
 
       card.innerHTML = `
         <div class="eventTop">
@@ -734,10 +723,11 @@ window.Game = window.Game || {};
       }
 
       // Crowd vote UI (clickable names + counters)
-      if (ne.crowd && !resolvedNow && sec > 0) {
+      if (ne.crowd && !resolvedNow) {
         const crowd = getCrowdState(e);
-        const aVotes = Number.isFinite(crowd.aVotes) ? crowd.aVotes : 0;
-        const bVotes = Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0;
+        const raw = getCrowdRawCounts(crowd);
+        const aVotes = raw.a;
+        const bVotes = raw.b;
 
         const hint = document.createElement("div");
         hint.className = "pill";
@@ -757,7 +747,7 @@ window.Game = window.Game || {};
         const myPick = crowd.voters && crowd.voters[meId] ? crowd.voters[meId] : null;
         const votingAllowed = canVoteOnEvent(ne, e);
 
-      const mkSideBtn = (side, label, votes) => {
+        const mkSideBtn = (side, label, votes) => {
         const slot = document.createElement("div");
         slot.style.position = "relative";
         slot.style.display = "inline-block";
@@ -914,8 +904,9 @@ window.Game = window.Game || {};
 
       if (resolvedNow) {
         const crowd = getCrowdState(e);
-        const aVotes = Number.isFinite(crowd.aVotes) ? crowd.aVotes : 0;
-        const bVotes = Number.isFinite(crowd.bVotes) ? crowd.bVotes : 0;
+        const raw = getCrowdRawCounts(crowd);
+        const aVotes = raw.a;
+        const bVotes = raw.b;
         const winnerSide = (e && e.crowd && e.crowd.winner) ? e.crowd.winner : computeCrowdWinner(e).winner;
 
         // Build compact final info block per spec:

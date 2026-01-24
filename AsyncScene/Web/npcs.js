@@ -11,7 +11,7 @@ window.Game ||= {};
 
     const D0 = Game.Data || {};
     const cir = !!(D0 && D0.CIRCULATION_ENABLED === true);
-    const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
+    const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 10;
     const devSim = (typeof window !== "undefined" && window.DEV_SIM_NPCS === true);
 
     NPC.PLAYERS.forEach(p => {

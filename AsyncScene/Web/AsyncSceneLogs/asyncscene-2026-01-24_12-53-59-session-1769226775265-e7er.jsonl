@@ -1,0 +1,4 @@
+{"ts": 1769226837790, "sessionId": "session-1769226775265-e7er", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkrryuxk_41gm85"}}
+{"ts": 1769226837790, "sessionId": "session-1769226775265-e7er", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkrryuxk_41gm85"}}
+{"ts": 1769226837792, "sessionId": "session-1769226775265-e7er", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "battle_mkrryuxk_41gm85"}}
+{"ts": 1769226837794, "sessionId": "session-1769226775265-e7er", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-24"}}

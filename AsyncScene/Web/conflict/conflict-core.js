@@ -757,17 +757,56 @@
     });
 
     try {
+      const ids = attackerDefenderIds(b);
+      const attackerId = ids.attackerId || null;
+      const defenderId = ids.defenderId || null;
+      const attackerWins = (res && res.outcome === "A_WIN");
+      const defenderWins = (res && res.outcome === "B_WIN");
+      const isEscapeVote = !!(crowd && crowd.mode != null);
       if (Econ && typeof Econ.getPoolBalance === "function") {
         const remainder = Econ.getPoolBalance(poolId) | 0;
+          const splitRemainder = (extraToAttacker) => {
+            if (!attackerId && !defenderId) return;
+            if (!attackerId || !defenderId) {
+              const onlyId = attackerId || defenderId;
+              if (onlyId) {
+                const onlyReason = (onlyId === attackerId) ? "crowd_vote_remainder_split_attacker" : "crowd_vote_remainder_split_defender";
+                if (transferFromPool) transferFromPool(poolId, onlyId, remainder, onlyReason, { battleId });
+                else econTransfer(poolId, onlyId, remainder, onlyReason, { battleId });
+              }
+              return;
+            }
+            const hi = Math.ceil(remainder / 2);
+            const lo = remainder - hi;
+            const firstId = extraToAttacker ? attackerId : defenderId;
+            const secondId = extraToAttacker ? defenderId : attackerId;
+            const firstReason = extraToAttacker ? "crowd_vote_remainder_split_attacker" : "crowd_vote_remainder_split_defender";
+            const secondReason = extraToAttacker ? "crowd_vote_remainder_split_defender" : "crowd_vote_remainder_split_attacker";
+            if (hi > 0) {
+              if (transferFromPool) transferFromPool(poolId, firstId, hi, firstReason, { battleId });
+              else econTransfer(poolId, firstId, hi, firstReason, { battleId });
+            }
+            if (lo > 0) {
+              if (transferFromPool) transferFromPool(poolId, secondId, lo, secondReason, { battleId });
+              else econTransfer(poolId, secondId, lo, secondReason, { battleId });
+            }
+          };
         if (remainder > 0) {
-          const ids = attackerDefenderIds(b);
-          const winnerId = (winnerSide === "a") ? ids.attackerId : (winnerSide === "b" ? ids.defenderId : null);
-          if (winnerId) {
-            if (transferFromPool) transferFromPool(poolId, winnerId, remainder, "crowd_vote_remainder_to_winner", { battleId });
-            else econTransfer(poolId, winnerId, remainder, "crowd_vote_remainder_to_winner", { battleId });
+          if (!isEscapeVote && attackerWins) {
+            if (attackerId) {
+              if (transferFromPool) transferFromPool(poolId, attackerId, remainder, "crowd_vote_remainder_win", { battleId });
+              else econTransfer(poolId, attackerId, remainder, "crowd_vote_remainder_win", { battleId });
+            }
+          } else if (isEscapeVote || defenderWins) {
+            splitRemainder(attackerWins);
           } else {
-            econTransfer(poolId, "sink", remainder, "crowd_vote_remainder_to_sink", { battleId });
+            splitRemainder(attackerWins);
           }
+        }
+        if (!isEscapeVote && attackerId && defenderId && (attackerWins || defenderWins)) {
+          const winnerId = attackerWins ? attackerId : defenderId;
+          const loserId = attackerWins ? defenderId : attackerId;
+          econTransfer(loserId, winnerId, 2, "crowd_vote_loser_penalty", { battleId });
         }
       }
     } catch (_) {}
@@ -866,9 +905,11 @@
       }
       const color = (D && typeof D.colorFromTierKey === "function") ? D.colorFromTierKey(tierKey) : "y";
       const c = String(color || "y").toLowerCase();
-      if (c === "o") return 2;
-      if (c === "r") return 3;
-      if (c === "k") return 4;
+      const roleLower = String(role || "").toLowerCase();
+      const isMafiaRole = roleLower === "mafia";
+      const isMafiaId = String(voterId || "") === "npc_mafia";
+      if (c === "k" && isMafiaRole && isMafiaId) return 3;
+      if (c === "r") return 2;
       return 1;
     } catch (_) {
       return 1;
@@ -1101,22 +1142,18 @@
     if (!isBattleInDraw(b)) return null;
     const v = b.crowd;
     const force = !!(opts && opts.force);
-    if (v && typeof v.endsAt !== "number" && typeof v.endAt === "number") v.endsAt = v.endAt;
-    if (v && typeof v.endAt !== "number" && typeof v.endsAt === "number") v.endAt = v.endsAt;
     if (!v) return null;
     ensureBattleCrowdCap(v);
     if (!force) {
-      if (!Number.isFinite(v.endAt)) return null;
-      if (now() < v.endAt) return null;
+      const totalVotes = getCrowdTotalVotes(v);
+      if (!Number.isFinite(v.cap) || totalVotes < (v.cap | 0)) return null;
     }
     const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
     const relate = { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
     const res = resolveCrowdCore(v, relate, participants);
     const totalVotes = getCrowdTotalVotes(v);
-    let endedBy = "fallback_timer";
-    if (force) {
-      endedBy = (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) ? "cap" : "manual";
-    }
+    let endedBy = "cap";
+    if (force) endedBy = "cap";
     const fiftyFifty = !!(opts && opts.fiftyFifty);
     if (fiftyFifty) {
       endedBy = "fifty_fifty_no_timer";
@@ -1235,12 +1272,9 @@
     if (!isEscapeVote(b)) return;
     const v = b.escapeVote;
     if (!v) return;
-    if (v && typeof v.endsAt !== "number" && typeof v.endAt === "number") v.endsAt = v.endAt;
-    if (v && typeof v.endAt !== "number" && typeof v.endsAt === "number") v.endAt = v.endsAt;
-    if (!v || !Number.isFinite(v.endAt)) return;
-    if (now() < v.endAt) return;
-
     ensureBattleCrowdCap(v);
+    const totalVotesNow = getCrowdTotalVotes(v);
+    if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
     const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
     const relate = { kind: "escape", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
     const res = resolveCrowdCore(v, relate, participants);
@@ -1251,7 +1285,7 @@
     v.aVotes = votesA;
     v.bVotes = votesB;
     const totalVotes = getCrowdTotalVotes(v);
-    const endedBy = (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) ? "cap" : "timer";
+    const endedBy = "cap";
     const totalPlayers = Number.isFinite(v.totalPlayers) ? (v.totalPlayers | 0) : getTotalPlayersCount();
     const crowdCapMeta = {
       battleId: b.id || b.battleId || null,
@@ -1357,6 +1391,88 @@
     return { outcome: v.outcome, crowdCapMeta };
   }
 
+  function applyEscapeVoteTick(b){
+    if (!isEscapeVote(b)) return { ok: false, reason: "not_escape_vote" };
+    const v = b.escapeVote;
+    if (!v || v.decided) return { ok: false, reason: "decided" };
+    ensureBattleCrowdCap(v);
+
+    try {
+      if (Game.NPC && typeof Game.NPC.voteInDraw === "function") {
+        const res = Game.NPC.voteInDraw(b);
+        const voterId = res && res.voterId ? String(res.voterId) : "";
+        const side = res && res.side ? res.side : null;
+        if (voterId && side) {
+          v.voters ||= {};
+          if (!v.voters[voterId]) {
+            const Econ = getEcon();
+            const battleId = b.id || b.battleId || null;
+            const beforePts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
+            const ok = (Econ && typeof Econ.transferPoints === "function")
+              ? Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId })
+              : { ok: false };
+            const afterPts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
+            if (ok && ok.ok && (afterPts === (beforePts - 1))) {
+              v.voters[voterId] = (side === "attacker") ? "a" : "b";
+              let w = 1;
+              if (typeof getVoteWeight === "function") {
+                w = getVoteWeight(voterId) | 0;
+                if (w <= 0) w = 1;
+              } else if (res && Number.isFinite(res.weight)) {
+                w = Math.max(1, res.weight | 0);
+              }
+              if (side === "attacker") v.votesA = (v.votesA|0) + w;
+              else if (side === "defender") v.votesB = (v.votesB|0) + w;
+            } else if (ok && ok.ok && (afterPts !== (beforePts - 1))) {
+              try {
+                const dbg = Game && Game.Debug ? Game.Debug : null;
+                if (dbg && Array.isArray(dbg.moneyLog)) {
+                  for (let i = dbg.moneyLog.length - 1; i >= 0; i--) {
+                    const x = dbg.moneyLog[i];
+                    if (!x) continue;
+                    if (String(x.reason || "") !== "crowd_vote_cost") continue;
+                    if (String(x.sourceId || "") !== voterId) continue;
+                    if (String(x.battleId || "") !== String(battleId || "")) continue;
+                    dbg.moneyLog.splice(i, 1);
+                    break;
+                  }
+                }
+                if (dbg && dbg.moneyLogByBattle && Array.isArray(dbg.moneyLogByBattle[battleId])) {
+                  const arr = dbg.moneyLogByBattle[battleId];
+                  for (let i = arr.length - 1; i >= 0; i--) {
+                    const x = arr[i];
+                    if (!x) continue;
+                    if (String(x.reason || "") !== "crowd_vote_cost") continue;
+                    if (String(x.sourceId || "") !== voterId) continue;
+                    arr.splice(i, 1);
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    const totalVotes = getCrowdTotalVotes(v);
+    if (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) {
+      finalizeEscapeVote(b);
+      return { ok: true, decided: true, totalVotes };
+    }
+    try {
+      if (Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
+        const pool = Game.NPC.getVotingPool(b) || [];
+        if (pool.length > 0 && totalVotes >= pool.length) {
+          v.cap = totalVotes | 0;
+          finalizeEscapeVote(b);
+          return { ok: true, decided: true, totalVotes };
+        }
+      }
+    } catch (_) {}
+    return { ok: true, decided: false, totalVotes };
+  }
+
   function startEscapeVoteTimer(b){
     if (!isEscapeVote(b)) return;
     if (b._escapeTimer) return;
@@ -1373,30 +1489,8 @@
 
       const v = cur.escapeVote;
       if (!v) return;
-      if (v && typeof v.endsAt !== "number" && typeof v.endAt === "number") v.endsAt = v.endAt;
-      if (v && typeof v.endAt !== "number" && typeof v.endsAt === "number") v.endAt = v.endsAt;
-      if (!Number.isFinite(v.endAt) || v.endAt <= now()) {
-        v.endAt = now() + DRAW_VOTE_DURATION_MS;
-        v.endsAt = v.endAt;
-      }
 
-      if (now() >= v.endAt) {
-        clearInterval(cur._escapeTimer || b._escapeTimer);
-        cur._escapeTimer = null;
-        b._escapeTimer = null;
-        finalizeEscapeVote(cur);
-        return;
-      }
-
-      try {
-        if (Game.NPC && typeof Game.NPC.voteInDraw === "function") {
-          const res = Game.NPC.voteInDraw(cur);
-          if (res && res.side) {
-            if (res.side === "attacker") v.votesA = (v.votesA|0) + (res.weight|0 || 1);
-            else if (res.side === "defender") v.votesB = (v.votesB|0) + (res.weight|0 || 1);
-          }
-        }
-      } catch (_) {}
+      try { applyEscapeVoteTick(cur); } catch (_) {}
 
       try {
         ensureBattleCrowdCap(v);
@@ -1408,6 +1502,16 @@
           finalizeEscapeVote(cur);
           return;
         }
+        try {
+          if (Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
+            const pool = Game.NPC.getVotingPool(cur) || [];
+            if (pool.length > 0 && totalVotes >= pool.length) {
+              v.cap = totalVotes | 0;
+              finalizeEscapeVote(cur);
+              return;
+            }
+          }
+        } catch (_) {}
       } catch (_) {}
     }, tickMs);
   }
@@ -1458,7 +1562,7 @@
       }
     }
     b.escapeVote = {
-      endAt: now() + DRAW_VOTE_DURATION_MS,
+      endAt: null,
       endsAt: null,
       votesA: 0,
       votesB: 0,
@@ -1469,7 +1573,6 @@
       attackerId,
       defenderId
     };
-    b.escapeVote.endsAt = b.escapeVote.endAt;
     b.status = "escape_vote";
     b.result = "escape_vote";
     b.note = (modeNorm === "off") ? "Толпа решает, отвалить ли." : "Толпа решает, свалить ли.";
@@ -1507,11 +1610,10 @@
       }
 
       if (now() >= (v && v.endAt ? v.endAt : 0)) {
-        clearInterval(cur._crowdTimer || b._crowdTimer);
-        cur._crowdTimer = null;
-        b._crowdTimer = null;
-        finalizeCrowdVote(cur);
-        return;
+        if (v) {
+          v.endAt = now() + DRAW_VOTE_DURATION_MS;
+          v.endsAt = v.endAt;
+        }
       }
 
       applyCrowdVoteTick(cur);
@@ -1946,6 +2048,11 @@
     return applyCrowdVoteTick(b, battleId);
   };
 
+  C.applyEscapeVoteTick = function(battleId){
+    const b = Game.State.battles.find(x => x.id === battleId);
+    return applyEscapeVoteTick(b);
+  };
+
   C.finalizeCrowdVote = function(battleId){
     const b = Game.State.battles.find(x => x.id === battleId);
     if (!b) {
@@ -2171,6 +2278,7 @@
 
   C.applyVillainPenalty = applyVillainPenalty;
   C.resolveCrowdCore = resolveCrowdCore;
+  C.getVoteWeight = getVoteWeight;
 
   // Export ONLY the internal core. Public API must live in conflict-api.js.
   // This avoids double-definitions and accidental overwrites.

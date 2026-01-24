@@ -23,11 +23,11 @@ window.Game = window.Game || {};
   };
 
   // === POINTS (short-term tactical currency) ===
-  Data.POINTS_START = 0;
+  Data.POINTS_START = 10;
   Data.POINTS_SOFT_CAP = 20;
   Data.CIRCULATION_ENABLED = false;
-Data.START_POINTS_PLAYER = 12;
-Data.START_POINTS_NPC = 8;
+Data.START_POINTS_PLAYER = 10;
+Data.START_POINTS_NPC = 10;
 Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.RICH_THRESHOLD = 20;
   Data.BATTLE_ENTRY_COST = 1;

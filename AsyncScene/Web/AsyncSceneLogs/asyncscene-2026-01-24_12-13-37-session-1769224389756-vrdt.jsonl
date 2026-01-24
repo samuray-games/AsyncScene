@@ -1,0 +1,5 @@
+{"ts": 1769224417154, "sessionId": "session-1769224389756-vrdt", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1769224417150_8912"}}
+{"ts": 1769224417155, "sessionId": "session-1769224389756-vrdt", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1769224417150_8912"}}
+{"ts": 1769224417156, "sessionId": "session-1769224389756-vrdt", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_crowd_1769224417150_8912"}}
+{"ts": 1769224417159, "sessionId": "session-1769224389756-vrdt", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_to_winner", "battleId": "dev_battle_crowd_1769224417150_8912"}}
+{"ts": 1769224417617, "sessionId": "session-1769224389756-vrdt", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}

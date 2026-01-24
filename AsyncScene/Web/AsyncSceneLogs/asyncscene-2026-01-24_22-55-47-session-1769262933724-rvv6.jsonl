@@ -1,0 +1,8 @@
+{"ts": 1769262945741, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mksdh592_s3zfhy"}}
+{"ts": 1769262945741, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mksdh592_s3zfhy"}}
+{"ts": 1769262945742, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "battle_mksdh592_s3zfhy"}}
+{"ts": 1769262945742, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-01-24"}}
+{"ts": 1769262945743, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mksdh592_s3zfhy"}}
+{"ts": 1769262945743, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mksdh592_s3zfhy"}}
+{"ts": 1769262945789, "sessionId": "session-1769262933724-rvv6", "type": "stat", "kind": "points", "delta": -6, "meta": {"reason": "runtime_audit_revert_points", "battleId": "battle_mksdh592_s3zfhy"}}
+{"ts": 1769262947363, "sessionId": "session-1769262933724-rvv6", "type": "chat", "name": "Егор", "text": "@Ветеран, либо отвечаешь, либо платишь", "system": false}

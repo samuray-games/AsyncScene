@@ -1,0 +1,3 @@
+{"ts": 1769227820174, "sessionId": "session-1769227499160-63xx", "type": "stat", "kind": "points", "delta": -13, "meta": {"reason": "mafia_humiliation", "battleId": "battle_mkrsk9ko_8k0fgo"}}
+{"ts": 1769227820174, "sessionId": "session-1769227499160-63xx", "type": "stat", "kind": "rep", "delta": -4, "meta": {"reason": "rep_mafia_humiliation_reset", "battleId": "battle_mkrsk9ko_8k0fgo"}}
+{"ts": 1769227820175, "sessionId": "session-1769227499160-63xx", "type": "stat", "kind": "wins", "delta": -2, "meta": {"reason": "mafia_humiliation", "battleId": "battle_mkrsk9ko_8k0fgo"}}

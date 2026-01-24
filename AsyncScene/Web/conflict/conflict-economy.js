@@ -603,15 +603,6 @@
         } catch (_) { try { me.wins += 1; } catch (_) {} }
         try { maybeUnlocks(me); } catch (_) {}
         
-        // Award +2 points on victory (contributes to overPoints / badge)
-        try {
-          if (addPts) {
-            addPts(2, "battle_win_points");
-          } else if (Game && Game.StateAPI && typeof Game.StateAPI.addPoints === "function") {
-            Game.StateAPI.addPoints(2, "battle_win_points");
-          }
-        } catch (_) {}
-
         // Task A: REP за исход по разнице сил Δ (победа)
         if (transferRep) {
           const delta = getToneDelta(battle);
@@ -780,11 +771,15 @@
             // Проиграл более сильному: +1 REP
             transferRep("crowd_pool", "me", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
           } else if (Math.abs(delta) <= 1) {
-            // Проиграл равному: -1 REP
-            transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+            // Проиграл равному: -1 REP (only if available)
+            if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 1) {
+              transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+            }
           } else if (delta >= 2) {
-            // Проиграл более слабому: -2 REP
-            transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+            // Проиграл более слабому: -2 REP (only if available)
+            if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 2) {
+              transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+            }
           }
         }
         
@@ -811,11 +806,15 @@
           // Проиграл более сильному: +1 REP
           transferRep("crowd_pool", "me", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
         } else if (Math.abs(delta) <= 1) {
-          // Проиграл равному: -1 REP
-          transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          // Проиграл равному: -1 REP (only if available)
+          if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 1) {
+            transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          }
         } else if (delta >= 2) {
-          // Проиграл более слабому: -2 REP
-          transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          // Проиграл более слабому: -2 REP (only if available)
+          if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 2) {
+            transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
+          }
         }
       }
 

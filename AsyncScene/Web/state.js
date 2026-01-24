@@ -250,7 +250,7 @@ window.Game = window.Game || {};
   }
   function getPointsConfig(){
     const D = (Game && Game.Data) ? Game.Data : null;
-    const start = (D && Number.isFinite(D.POINTS_START)) ? (D.POINTS_START | 0) : 0;
+    const start = (D && Number.isFinite(D.POINTS_START)) ? (D.POINTS_START | 0) : 10;
     const startPlayer = (D && Number.isFinite(D.START_POINTS_PLAYER)) ? (D.START_POINTS_PLAYER | 0) : start;
     const startNpc = (D && Number.isFinite(D.START_POINTS_NPC)) ? (D.START_POINTS_NPC | 0) : start;
     const softCap = (D && Number.isFinite(D.POINTS_SOFT_CAP)) ? (D.POINTS_SOFT_CAP | 0) : 20;
