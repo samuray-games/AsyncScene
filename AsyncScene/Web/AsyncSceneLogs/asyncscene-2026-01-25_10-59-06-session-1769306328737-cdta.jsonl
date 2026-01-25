@@ -1,0 +1,4 @@
+{"ts": 1769306345033, "sessionId": "session-1769306328737-cdta", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_mkt3bd4k_085e54"}}
+{"ts": 1769306346327, "sessionId": "session-1769306328737-cdta", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mkt3bd4k_085e54"}}
+{"ts": 1769306346335, "sessionId": "session-1769306328737-cdta", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "runtime_audit_revert_points", "battleId": "battle_mkt3bd4k_085e54"}}
+{"ts": 1769306346390, "sessionId": "session-1769306328737-cdta", "type": "chat", "name": "Глеб", "text": "давай, не прячься за толпой", "system": false}

@@ -204,6 +204,7 @@
     if (r === "lose") return "Поражение";
     if (r === "draw") return "Толпа решает";
     if (r === "escaped") return "Свалил";
+    if (r === "ignored") return "Отвалил";
     if (r === "stay" || r === "blocked") return "Остался";
     return "Итог";
   }
@@ -1336,7 +1337,7 @@
 
     if (allow) {
       const mode = (v.mode || "smyt");
-      b.result = "escaped";
+      b.result = (mode === "off") ? "ignored" : "escaped";
       b.note = (mode === "off") ? "Толпа решила: отвалил." : "Толпа решила: свалил.";
       b.resultLine = (mode === "off") ? "Отвалил" : "Свалил";
       applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);
@@ -1779,7 +1780,7 @@
       if (meInf > oppInf) {
         b.resolved = true;
         b.finished = true;
-        b.result = "escaped";
+        b.result = "ignored";
         b.status = "finished";
         b.note = "Отвалил.";
         b.resultLine = "Отвалил";
@@ -1794,7 +1795,7 @@
           }
         } catch (_) {}
         announceBattleResult(b);
-        return { ok: true, battleId: b.id, outcome: "escaped", mode };
+        return { ok: true, battleId: b.id, outcome: "ignored", mode };
       }
     }
     const cost = (mode === "off") ? 0 : ((opts && typeof opts.cost === "number") ? (opts.cost | 0) : escapeCostForBattle(b));

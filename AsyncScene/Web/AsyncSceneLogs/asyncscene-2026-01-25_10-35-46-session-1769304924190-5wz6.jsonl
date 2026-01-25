@@ -1,0 +1,3 @@
+{"ts": 1769304945015, "sessionId": "session-1769304924190-5wz6", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_mkt2hcus_eld44k"}}
+{"ts": 1769304945559, "sessionId": "session-1769304924190-5wz6", "type": "chat", "name": "Слава", "text": "@Dara, ну что, готов к баттлу", "system": false}
+{"ts": 1769304945760, "sessionId": "session-1769304924190-5wz6", "type": "stat", "kind": "points", "delta": 3, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mkt2hcus_eld44k"}}

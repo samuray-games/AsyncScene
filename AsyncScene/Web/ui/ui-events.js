@@ -368,13 +368,14 @@ window.Game = window.Game || {};
 
   function canVoteOnEvent(ne, rawEvent) {
     if (!ne || !rawEvent) return false;
-    if (ne.resolved || rawEvent.resolved) return false;
+    if (ne.resolved || rawEvent.resolved || rawEvent.state === "resolved") return false;
     if (!ne.crowd) return false;
     if (isMyEvent(rawEvent)) return false;
     // One vote per player
     const meId = (S && S.me && S.me.id) ? S.me.id : "me";
     const crowd = getCrowdState(rawEvent);
     if (!crowd) return false;
+    if (crowd.decided) return false;
     return !crowd.voters[meId];
   }
 
@@ -705,7 +706,8 @@ window.Game = window.Game || {};
         rerenderEventsOnly();
       };
 
-      const resolvedNow = !!(e && e.resolved);
+      const crowdForResolve = getCrowdState(e);
+      const resolvedNow = !!(e && (e.resolved || e.state === "resolved" || (crowdForResolve && crowdForResolve.decided)));
       const metaText = resolvedNow ? "" : "";
 
       card.innerHTML = `
@@ -889,6 +891,12 @@ window.Game = window.Game || {};
         row.appendChild(mkSideBtn("b", bLabel, bVotes));
         card.appendChild(row);
 
+        const cap = Number.isFinite(crowd.cap) ? (crowd.cap | 0) : 0;
+        const capLine = document.createElement("div");
+        capLine.className = "noteLine";
+        capLine.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+        card.appendChild(capLine);
+
         const D0 = Game.Data || {};
         const extraCost = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;
         // Removed "Недоступно" buttons - they are not displayed anymore
@@ -965,6 +973,12 @@ window.Game = window.Game || {};
                 const myChoiceLabel = (myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
                 const rowChoice = document.createElement("div");
                 rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
+                info.appendChild(rowChoice);
+                try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+              }
+              if (!myVote) {
+                const rowChoice = document.createElement("div");
+                rowChoice.textContent = "Ты не голосовал";
                 info.appendChild(rowChoice);
                 try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
               }

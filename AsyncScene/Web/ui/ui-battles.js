@@ -1288,7 +1288,11 @@ UI.renderBattles = () => {
             } catch (_) {}
 
             const infoEl = document.getElementById(`escapeInfo_${bb.id}`);
-            if (infoEl) infoEl.textContent = "Голосование идёт.";
+            if (infoEl) {
+              const cap = Number.isFinite(c.cap) ? (c.cap | 0) : 0;
+              const raw = getRawCountsFromVoters(c);
+              infoEl.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+            }
 
             try {
             // Best-effort: keep local battle in sync so other UI code reads fresh numbers.
@@ -1506,7 +1510,11 @@ UI.renderBattles = () => {
             } catch (_) {}
 
             const infoEl = document.getElementById(`drawInfo_${bb.id}`);
-            if (infoEl) infoEl.textContent = "Голосование идёт.";
+            if (infoEl) {
+              const cap = Number.isFinite(c.cap) ? (c.cap | 0) : 0;
+              const raw = getRawCountsFromVoters(c);
+              infoEl.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+            }
 
             try {
               const vRow = voteRowEl;

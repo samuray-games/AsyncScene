@@ -1,0 +1,2 @@
+{"ts": 1769303126592, "sessionId": "session-1769303110297-qr1x", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_mkt1edr4_t9dx2k"}}
+{"ts": 1769303127230, "sessionId": "session-1769303110297-qr1x", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mkt1edr4_t9dx2k"}}

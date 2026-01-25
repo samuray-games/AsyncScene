@@ -1,0 +1,2 @@
+{"ts": 1769334813336, "sessionId": "session-1769334492574-k4ok", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mktk9eez_evblnb"}}
+{"ts": 1769334813337, "sessionId": "session-1769334492574-k4ok", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_mktk9eez_evblnb"}}

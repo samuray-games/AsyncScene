@@ -1,0 +1,4 @@
+{"ts": 1769309366983, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkt541kv_r4lpm6"}}
+{"ts": 1769309367006, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "battle_mkt541kv_r4lpm6"}}
+{"ts": 1769309367018, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkt541kv_r4lpm6"}}
+{"ts": 1769309367022, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "battle_mkt541kv_r4lpm6"}}

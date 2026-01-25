@@ -482,6 +482,10 @@
        return { ok: true, cost, battle: res };
      },
 
+     ignore(battleId) {
+       return this.escape(battleId, "off");
+     },
+
      requestRematch(battleId, requesterId) {
        // Support NPC auto-rematch requests: ui-loops may call requestRematch(battleId, npcId).
        const rid = (requesterId != null) ? requesterId : "me";

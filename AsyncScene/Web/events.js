@@ -263,6 +263,33 @@ window.Game ||= {};
       if (transferFromPool) transferFromPool(poolId, id, 1, refundReason, { battleId });
       else Econ.transferPoints(poolId, id, 1, refundReason, { battleId });
     });
+
+    // Distribute any remainder in the pool (events follow split rule).
+    if (!crowd._remainderApplied && Econ.getPoolBalance) {
+      const bal = Econ.getPoolBalance(poolId) | 0;
+      if (bal > 0) {
+        const aId = e.aId || null;
+        const bId = e.bId || null;
+        const half = Math.floor(bal / 2);
+        let aPart = half;
+        let bPart = half;
+        const odd = (bal % 2);
+        if (odd) {
+          if (winnerSide === "a") aPart += 1;
+          else if (winnerSide === "b") bPart += 1;
+          else aPart += 1;
+        }
+        if (aId && aPart > 0) {
+          if (transferFromPool) transferFromPool(poolId, aId, aPart, "crowd_vote_remainder_split_a", { battleId });
+          else Econ.transferPoints(poolId, aId, aPart, "crowd_vote_remainder_split_a", { battleId });
+        }
+        if (bId && bPart > 0) {
+          if (transferFromPool) transferFromPool(poolId, bId, bPart, "crowd_vote_remainder_split_b", { battleId });
+          else Econ.transferPoints(poolId, bId, bPart, "crowd_vote_remainder_split_b", { battleId });
+        }
+        crowd._remainderApplied = true;
+      }
+    }
   }
 
   function isMeId(id){
@@ -331,8 +358,26 @@ window.Game ||= {};
   function ensureCrowdCap(e){
     if (!e || !e.crowd) return;
     if (!Number.isFinite(e.crowd.cap) || e.crowd.cap <= 0) {
-      const total = getTotalPlayersCount();
-      e.crowd.cap = getCrowdVoteCap(total);
+      let eligible = 0;
+      try {
+        const npcs = getAllNpcs();
+        const aId = e.aId;
+        const bId = e.bId;
+        if (Array.isArray(npcs)) {
+          eligible += npcs.filter(p => {
+            if (!p || !p.id) return false;
+            if (p.id === aId || p.id === bId) return false;
+            const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
+            return pts > 0;
+          }).length;
+        }
+        const me = Game.State && Game.State.me ? Game.State.me : null;
+        if (me && Number.isFinite(me.points) && (me.points | 0) > 0) eligible += 1;
+      } catch (_) {}
+      const total = eligible > 0 ? eligible : getTotalPlayersCount();
+      let cap = getCrowdVoteCap(total);
+      if (eligible > 0 && cap > eligible) cap = eligible;
+      e.crowd.cap = cap;
       e.crowd.totalPlayers = total;
     }
   }
@@ -526,7 +571,14 @@ window.Game ||= {};
         const bal = Number.isFinite(p.balance) ? (p.balance | 0) : null;
         return pts > 0 && (bal == null || bal > 0);
       });
-      if (!eligible.length) return null;
+      if (!eligible.length) {
+        crowd.lastTickWhy = "no_eligible_voter";
+        crowd.eligibleNpcCount = 0;
+        crowd.alreadyVotedCount = Object.keys(voters).length | 0;
+        return null;
+      }
+      crowd.eligibleNpcCount = eligible.length;
+      crowd.alreadyVotedCount = Object.keys(voters).length | 0;
 
       // Try random sampling first.
       for (let i = 0; i < Math.max(10, eligible.length); i++){
@@ -607,7 +659,14 @@ window.Game ||= {};
 
       // Require a fresh voter; stop when exhausted.
       const voter = pickVoter();
-      if (!voter || !voter.id) break;
+      if (!voter || !voter.id) {
+        const totalVotes = getCrowdTotalVotes(crowd);
+        if (Number.isFinite(crowd.cap) && totalVotes < crowd.cap) {
+          crowd.cap = totalVotes | 0;
+          finalizeOpenEventByCap(e);
+        }
+        break;
+      }
 
       const side = decideSide();
       const w = npcVoteWeight(voter);
@@ -621,6 +680,7 @@ window.Game ||= {};
       const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
       const costCountAfter = countCrowdVoteCostLogs(voterId, voteBattleId);
       if (!ok || !ok.ok || (afterPts !== (beforePts - 1))) {
+        crowd.lastTickWhy = "payment_failed";
         const cleanupAttempted = !!(ok && ok.ok);
         let cleanupRemoved = false;
         if (ok && ok.ok && (afterPts !== (beforePts - 1))) {
@@ -654,6 +714,7 @@ window.Game ||= {};
       crowd.npcCountedIds = Array.isArray(crowd.npcCountedIds) ? crowd.npcCountedIds : [];
       const countedSoFar = crowd.npcCountedIds.length | 0;
       if (npcCap <= 0 || countedSoFar >= npcCap) {
+        crowd.lastTickWhy = "excluded_by_npc_cap";
         crowd.excludedNpcVotes = crowd.excludedNpcVotes || {};
         crowd.excludedNpcVotes[voterId] = "excluded_by_npc_cap";
         simDebugSteps.push({
@@ -682,6 +743,7 @@ window.Game ||= {};
 
       if (side === "a") crowd.aVotes = (crowd.aVotes|0) + w;
       else crowd.bVotes = (crowd.bVotes|0) + w;
+      crowd.lastTickWhy = "vote_counted";
 
       mirrorCrowdVotesToEvent(e);
       const costCountAfterOk = countCrowdVoteCostLogs(voterId, voteBattleId);
@@ -1518,6 +1580,7 @@ window.Game ||= {};
     e.text = finalLine;
     e.meta = `${aName} [${aInf}] - ${bName} [${bInf}]`;
     e.state = "resolved";
+    e.resolved = true;
     e.resolveAt = nowTs;
 
     if (!e._broadcastResolved) {

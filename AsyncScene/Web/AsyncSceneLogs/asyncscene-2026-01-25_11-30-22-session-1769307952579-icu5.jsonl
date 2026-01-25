@@ -1,0 +1,4 @@
+{"ts": 1769308221850, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1769308207504_4280"}}
+{"ts": 1769308221851, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1769308207504_4280"}}
+{"ts": 1769308222160, "sessionId": "session-1769307952579-icu5", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund", "battleId": "ed_escape_1769308207504_4280"}}
+{"ts": 1769308222588, "sessionId": "session-1769307952579-icu5", "type": "chat", "name": "Слава", "text": "ну что, готов к баттлу", "system": false}
