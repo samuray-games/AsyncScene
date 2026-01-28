@@ -1,0 +1,2 @@
+{"ts": 1769565497839, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Система", "text": "Толпа решает: Мемолог хочет, чтобы Королева отвалил.", "system": true}
+{"ts": 1769565498206, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "rematch_request_cost", "battleId": "battle_mkxdls72_pmggsq"}}

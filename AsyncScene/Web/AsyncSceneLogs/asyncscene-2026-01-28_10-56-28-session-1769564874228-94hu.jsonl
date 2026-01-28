@@ -1,0 +1,3 @@
+{"ts": 1769565386833, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_mkxdjhfg_iqn446"}
+{"ts": 1769565386853, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1769565373333_3954"}}
+{"ts": 1769565388326, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mkxdipxh_x8d53c"}}

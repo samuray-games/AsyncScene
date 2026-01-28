@@ -1,0 +1,6 @@
+{"ts": 1769565537908, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkxdmpyt_4by683"}}
+{"ts": 1769565537909, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_mkxdmpyt_4by683"}}
+{"ts": 1769565537948, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkxdm6lf_ka1cle"}}
+{"ts": 1769565537948, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_mkxdm6lf_ka1cle"}}
+{"ts": 1769565537949, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mkxdm6lf_ka1cle"}}
+{"ts": 1769565538330, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1769565521840_3585"}}
