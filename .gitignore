@@ -6,3 +6,7 @@ AsyncScene/.git.backup/
 
 # Local git bundles / snapshots
 .backups/
+
+# backups
+*.zip
+AsyncScene 4.1.zip
