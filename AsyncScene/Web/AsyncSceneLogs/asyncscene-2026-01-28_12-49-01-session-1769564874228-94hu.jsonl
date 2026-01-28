@@ -1,0 +1,4 @@
+{"ts": 1769572140139, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Мемолог", "text": "давайте без истерик", "system": false}
+{"ts": 1769572140526, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1769572136639_3643"}}
+{"ts": 1769572140527, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1769572136639_3643"}}
+{"ts": 1769572141706, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Рин", "text": "вот это было грязно", "system": false}

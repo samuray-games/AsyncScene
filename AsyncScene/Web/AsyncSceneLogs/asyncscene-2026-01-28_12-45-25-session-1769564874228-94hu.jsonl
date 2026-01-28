@@ -1,0 +1,6 @@
+{"ts": 1769571924511, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkxhey2y_f9o2zh"}}
+{"ts": 1769571924511, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "battle_mkxhey2y_f9o2zh"}}
+{"ts": 1769571924512, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mkxhey2y_f9o2zh"}}
+{"ts": 1769571924513, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "battle_mkxhey2y_f9o2zh"}}
+{"ts": 1769571925173, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "battle_mkxhey2y_f9o2zh"}}
+{"ts": 1769571925182, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Рин", "text": "давай по новой", "system": false}

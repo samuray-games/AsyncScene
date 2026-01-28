@@ -1,0 +1,4 @@
+{"ts": 1769570872078, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Королева", "text": "@Кирилл олегович, кринж зашел в чат и сел", "system": false}
+{"ts": 1769570872430, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1769570858523_1942"}}
+{"ts": 1769570872430, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1769570858523_1942"}}
+{"ts": 1769570872549, "sessionId": "session-1769564874228-94hu", "type": "chat", "name": "Королева", "text": "ну давай, удиви", "system": false}

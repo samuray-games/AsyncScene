@@ -1,0 +1,4 @@
+{"ts": 1769573313539, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1769573310236_579"}}
+{"ts": 1769573313540, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": -15, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1769573310236_579"}}
+{"ts": 1769573313540, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "influence", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1769573310236_579"}}
+{"ts": 1769573313541, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1769573310236_579"}}

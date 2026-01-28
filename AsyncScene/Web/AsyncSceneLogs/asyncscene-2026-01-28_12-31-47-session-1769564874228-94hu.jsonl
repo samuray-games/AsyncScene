@@ -1,0 +1,2 @@
+{"ts": 1769571106157, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mkxgy2j1_g5zj08"}}
+{"ts": 1769571106158, "sessionId": "session-1769564874228-94hu", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_mkxgy2j1_g5zj08"}}
