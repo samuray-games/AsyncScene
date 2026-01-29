@@ -17,7 +17,7 @@ window.Game = window.Game || {};
   }
   const D = Game.Data;
 
-  Game.State = {
+  Game.__S = {
     me: null,
     isStarted: false,
     locationId: "square",
@@ -50,7 +50,7 @@ window.Game = window.Game || {};
 
       // init players
       if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
-        Game.NPC.seedPlayers(Game.State);
+        Game.NPC.seedPlayers(Game.__S);
       } else {
         console.error("[game.js] Game.NPC.seedPlayers is missing.");
         return false;
@@ -62,7 +62,7 @@ window.Game = window.Game || {};
         : (Game.Data && Number.isFinite(Game.Data.POINTS_START))
           ? (Game.Data.POINTS_START | 0)
           : 0;
-      Game.State.players.me = {
+      Game.__S.players.me = {
         id: "me",
         name: nick,
         points: pStart,
@@ -70,29 +70,29 @@ window.Game = window.Game || {};
         wins: 0,
         winsSinceInfluence: 0,
       };
-      Game.State.me = Game.State.players.me;
+      Game.__S.me = Game.__S.players.me;
       // Initialize REP via transferRep to keep moneyLog consistent (avoid direct writes).
       try {
-        const cur = (Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0;
-        if (cur > 0 && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-          Game.StateAPI.transferRep("me", "crowd_pool", cur, "rep_init_reset", null);
+        const cur = (Game && Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0;
+        if (cur > 0 && Game.__A && typeof Game.__A.transferRep === "function") {
+          Game.__A.transferRep("me", "crowd_pool", cur, "rep_init_reset", null);
         } else {
-          // If transferRep unavailable, avoid direct Game.State.rep writes here.
+          // If transferRep unavailable, avoid direct Game.__S.rep writes here.
           // Leave initialization to State layer / StateAPI to preserve logging invariants.
         }
       } catch (_) {
-        // Swallow: avoid direct Game.State.rep writes in catch to keep transferRep as single source of truth.
+        // Swallow: avoid direct Game.__S.rep writes in catch to keep transferRep as single source of truth.
       }
-      Game.State.influence = 0;
-      Game.State.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
+      Game.__S.influence = 0;
+      Game.__S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
 
-      Game.State.locationId = "square";
-      Game.State.chat = [];
-      Game.State.dmMessages = [];
-      Game.State.battles = [];
-      Game.State.events = [];
+      Game.__S.locationId = "square";
+      Game.__S.chat = [];
+      Game.__S.dmMessages = [];
+      Game.__S.battles = [];
+      Game.__S.events = [];
 
-      Game.State.isStarted = true;
+      Game.__S.isStarted = true;
 
       // show game, hide overlay
       $("screenLogin").classList.remove("active");
@@ -127,17 +127,17 @@ window.Game = window.Game || {};
     startTickers(){
       // Safety: never double-start tickers
       try{
-        if (Game.State.timers.chat) clearTimeout(Game.State.timers.chat);
-        if (Game.State.timers.npcBattle) clearInterval(Game.State.timers.npcBattle);
-        if (Game.State.timers.events) clearInterval(Game.State.timers.events);
+        if (Game.__S.timers.chat) clearTimeout(Game.__S.timers.chat);
+        if (Game.__S.timers.npcBattle) clearInterval(Game.__S.timers.npcBattle);
+        if (Game.__S.timers.events) clearInterval(Game.__S.timers.events);
       }catch(_){ }
 
       // Chat поток NPC 0-10 сек
       const scheduleChat = () => {
         const ms = Math.floor(Math.random()*10001);
-        Game.State.timers.chat = setTimeout(() => {
+        Game.__S.timers.chat = setTimeout(() => {
           // random npc message
-          const all = Object.values(Game.State.players).filter(p => p && p.id !== "me");
+          const all = Object.values(Game.__S.players).filter(p => p && p.id !== "me");
           if (all.length && Game.UI && typeof Game.UI.pushChat === "function" && Game.NPC && typeof Game.NPC.npcTalkLine === "function"){
             const npc = all[Math.floor(Math.random()*all.length)];
             Game.UI.pushChat(npc.name, npc.influence, Game.NPC.npcTalkLine(npc), false);
@@ -148,8 +148,8 @@ window.Game = window.Game || {};
       scheduleChat();
 
       // NPC вызывает на баттл каждые 30 сек
-      Game.State.timers.npcBattle = setInterval(() => {
-        const ids = Object.keys(Game.State.players).filter(id => id !== "me");
+      Game.__S.timers.npcBattle = setInterval(() => {
+        const ids = Object.keys(Game.__S.players).filter(id => id !== "me");
         if (!ids.length) return;
         // чаще гопник и бандит
         let pool = ids.slice();
@@ -162,7 +162,7 @@ window.Game = window.Game || {};
       }, 30000);
 
       // События иногда (темп снижен)
-      Game.State.timers.events = setInterval(() => {
+      Game.__S.timers.events = setInterval(() => {
         if (Game.Events && typeof Game.Events.spawnNpcBattle === "function") {
           if (Math.random() < 0.7) Game.Events.spawnNpcBattle();
         }
@@ -172,7 +172,7 @@ window.Game = window.Game || {};
     maybeNpcRespond(){
       // лёгкий шанс, что кто-то в ответ вкинет
       if (Math.random() < 0.45){
-        const all = Object.values(Game.State.players).filter(p => p && p.id !== "me");
+        const all = Object.values(Game.__S.players).filter(p => p && p.id !== "me");
         const npc = all.length ? all[Math.floor(Math.random()*all.length)] : null;
         if (!npc) return;
         if (Game.UI && typeof Game.UI.pushChat === "function" && Game.NPC && typeof Game.NPC.npcTalkLine === "function") {
@@ -184,12 +184,12 @@ window.Game = window.Game || {};
     resetAll(){
       // мягкий ресет в рамках страницы
       try{
-        clearTimeout(Game.State.timers.chat);
-        clearInterval(Game.State.timers.npcBattle);
-        clearInterval(Game.State.timers.events);
+        clearTimeout(Game.__S.timers.chat);
+        clearInterval(Game.__S.timers.npcBattle);
+        clearInterval(Game.__S.timers.events);
       }catch(_){}
 
-      Game.State.isStarted = false;
+      Game.__S.isStarted = false;
 
       location.reload();
     }

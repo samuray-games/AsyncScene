@@ -7,7 +7,7 @@ window.Game = window.Game || {};
   const UI = {};
   Game.UI = UI;
 
-  const S = Game.State = Game.State || {
+  const S = Game.__S = Game.__S || {
     me: { id:"me", name:"", influence:0, points:10, wins:0, winsSinceInfluence:0, oneShots:[] },
     locationId: "square",
     players: {},

@@ -13,7 +13,7 @@ window.Game = window.Game || {};
         const host = (location.hostname || "").toLowerCase();
         if (host === "localhost" || host === "127.0.0.1") return true;
       }
-      if (Game && Game.Debug && Game.Debug.ENABLE_LOGGER === true) return true;
+      if (Game && Game.__D && Game.__D.ENABLE_LOGGER === true) return true;
     } catch (_) {}
     return false;
   };

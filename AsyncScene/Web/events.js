@@ -45,8 +45,8 @@ window.Game ||= {};
   const Events = {};
 
   function ensureState(){
-    Game.State ||= {};
-    Game.State.events ||= [];
+    Game.__S ||= {};
+    Game.__S.events ||= [];
   }
 
   function bumpEventBadgeIfCollapsed(){
@@ -65,7 +65,7 @@ window.Game ||= {};
     const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
     if (Econ && typeof Econ.isCirculationEnabled === "function") return Econ.isCirculationEnabled();
     const D0 = Game && Game.Data ? Game.Data : null;
-    const dbg = (Game && Game.Debug) ? Game.Debug : null;
+    const dbg = (Game && Game.__D) ? Game.__D : null;
     if (dbg && dbg.FORCE_CIRCULATION === true) {
       if (dbg._econModeLogged !== "cir") {
         dbg._econModeLogged = "cir";
@@ -132,14 +132,14 @@ window.Game ||= {};
 
   function awardCrowdVoteRep(voterId, e){
     if (!voterId) return;
-    const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function")
-      ? Game.StateAPI.transferRep
+    const transferRep = (Game.__A && typeof Game.__A.transferRep === "function")
+      ? Game.__A.transferRep
       : null;
     if (!transferRep) return;
     const repEventId = e && (e.id || e.eventId || e.refId || e.battleId || e.relatedBattleId || null);
     const res = transferRep("rep_emitter", voterId, 1, "rep_crowd_vote_participation", repEventId);
     if (!res || !res.ok) return;
-    const me = (Game.State && Game.State.me) ? Game.State.me : null;
+    const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
     if (me && me.id && me.id === voterId) {
       try {
         if (Game.UI && typeof Game.UI.pushSystem === "function") {
@@ -173,7 +173,7 @@ window.Game ||= {};
             const res = Econ.transferPoints("sink", "me", 1, "crowd_vote_refund", { battleId });
             // Fallback logging if econ path didn't emit moneyLog entries
             try {
-              const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+              const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
               dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
               const existsPts = dbg.moneyLog.some(x => x && (String(x.reason || "") === "crowd_vote_refund") && String(x.eventId||x.battleId||"") === String(e && (e.id||battleId) || ""));
               if (!existsPts) {
@@ -193,13 +193,13 @@ window.Game ||= {};
             } catch (_) {}
           }
         } else {
-          const addPts = (Game.StateAPI && typeof Game.StateAPI.addPoints === "function") ? Game.StateAPI.addPoints : null;
+          const addPts = (Game.__A && typeof Game.__A.addPoints === "function") ? Game.__A.addPoints : null;
           if (addPts) {
             addPts(1, "crowd_vote_refund");
           } else {
             // Fallback: ensure debug logs reflect the refund
             try {
-              const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+              const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
               dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
               dbg.moneyLog.push({
                 ts: Date.now(),
@@ -295,12 +295,12 @@ window.Game ||= {};
   function isMeId(id){
     if (!id) return false;
     if (id === "me") return true;
-    const me = Game.State && Game.State.me;
+    const me = Game.__S && Game.__S.me;
     return !!(me && me.id && id === me.id);
   }
 
   function getPlayerById(id){
-    return (Game.State && Game.State.players && id) ? Game.State.players[id] : null;
+    return (Game.__S && Game.__S.players && id) ? Game.__S.players[id] : null;
   }
 
   function isVillainRole(p){
@@ -320,14 +320,14 @@ window.Game ||= {};
   }
 
   function getAllNpcs(){
-    const players = (Game.State && Game.State.players) ? Game.State.players : {};
+    const players = (Game.__S && Game.__S.players) ? Game.__S.players : {};
     return Object.values(players).filter(p => p && (p.npc === true || p.type === "npc"));
   }
 
   function isActivePlayer(p){
     if (!p || !p.id) return false;
     if (p.removed === true) return false;
-    const jailed = (Game.State && Game.State.jailed) ? Game.State.jailed : null;
+    const jailed = (Game.__S && Game.__S.jailed) ? Game.__S.jailed : null;
     if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && now() < jailed[p.id].until) return false;
     if (p.id === "me" || p.isMe) return true;
     if (p.npc === true || p.type === "npc") return true;
@@ -335,7 +335,7 @@ window.Game ||= {};
   }
 
   function getTotalPlayersCount(){
-    const players = (Game.State && Game.State.players) ? Game.State.players : {};
+    const players = (Game.__S && Game.__S.players) ? Game.__S.players : {};
     let n = 0;
     for (const p of Object.values(players)) {
       if (isActivePlayer(p)) n++;
@@ -371,7 +371,7 @@ window.Game ||= {};
             return pts > 0;
           }).length;
         }
-        const me = Game.State && Game.State.me ? Game.State.me : null;
+        const me = Game.__S && Game.__S.me ? Game.__S.me : null;
         if (me && Number.isFinite(me.points) && (me.points | 0) > 0) eligible += 1;
       } catch (_) {}
       const total = eligible > 0 ? eligible : getTotalPlayersCount();
@@ -458,7 +458,7 @@ window.Game ||= {};
     if (!e) return;
     ensureEventCrowd(e);
 
-    const me = Game.State && Game.State.me ? Game.State.me : null;
+    const me = Game.__S && Game.__S.me ? Game.__S.me : null;
     const meId = (me && me.id) ? me.id : "me";
     const prevVote = e.myVote;
     const hadPlayerVote = !!e.playerVoted;
@@ -493,8 +493,8 @@ window.Game ||= {};
     if (!e.playerVoted || !e.myVote) return;
 
     const win = (winnerSide && e.myVote === winnerSide);
-    const addPts = (Game.StateAPI && typeof Game.StateAPI.addPoints === "function")
-      ? Game.StateAPI.addPoints
+    const addPts = (Game.__A && typeof Game.__A.addPoints === "function")
+      ? Game.__A.addPoints
       : null;
     if (win) {
       if (isCirculationEnabled()) {
@@ -611,7 +611,7 @@ window.Game ||= {};
     }
 
     function countCrowdVoteCostLogs(voterId, battleId){
-      const dbg = (Game && Game.Debug) ? Game.Debug : null;
+      const dbg = (Game && Game.__D) ? Game.__D : null;
       if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
       return dbg.moneyLog.reduce((count, x) => {
         if (!x) return count;
@@ -623,7 +623,7 @@ window.Game ||= {};
     }
 
     function removeCrowdVoteCostLog(voterId, battleId){
-      const dbg = (Game && Game.Debug) ? Game.Debug : null;
+      const dbg = (Game && Game.__D) ? Game.__D : null;
       if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
       let removed = 0;
       const match = (x) =>
@@ -811,8 +811,8 @@ window.Game ||= {};
       Game.UI.pushSystem(msg);
       return;
     }
-    if (Game.StateAPI && typeof Game.StateAPI.pushSystem === "function") {
-      Game.StateAPI.pushSystem(msg);
+    if (Game.__A && typeof Game.__A.pushSystem === "function") {
+      Game.__A.pushSystem(msg);
       return;
     }
     console.log(msg);
@@ -882,17 +882,17 @@ window.Game ||= {};
 
   function capEvents(max = 12){
     ensureState();
-    while (Game.State.events.length > max) Game.State.events.pop();
+    while (Game.__S.events.length > max) Game.__S.events.pop();
   }
 
   function hasEventByBattleId(battleId){
     ensureState();
-    return Game.State.events.some(e => e && (e.type === "draw" || e.kind === "draw") && e.battleId === battleId);
+    return Game.__S.events.some(e => e && (e.type === "draw" || e.kind === "draw") && e.battleId === battleId);
   }
 
   function removeEvent(id){
     ensureState();
-    Game.State.events = Game.State.events.filter(x => x.id !== id);
+    Game.__S.events = Game.__S.events.filter(x => x.id !== id);
     requestRender();
   }
 
@@ -902,9 +902,9 @@ window.Game ||= {};
 
   function makeNpcEvent(aId, bId){
     ensureState();
-    if (Game && Game.Debug && Game.Debug.PAUSE_EVENTS === true) return null;
+    if (Game && Game.__D && Game.__D.PAUSE_EVENTS === true) return null;
 
-    const players = (Game.State && Game.State.players) ? Game.State.players : {};
+    const players = (Game.__S && Game.__S.players) ? Game.__S.players : {};
 
     // Only NPC participants, exclude cop (cop never battles) and keep it generic.
     const npcs = Object.values(players).filter(p => {
@@ -998,7 +998,7 @@ window.Game ||= {};
 
   function makeNpcEscapeEvent(aId, bId){
     ensureState();
-    const players = (Game.State && Game.State.players) ? Game.State.players : {};
+    const players = (Game.__S && Game.__S.players) ? Game.__S.players : {};
     const isValidNpc = (p) => p && (p.npc === true || p.type === "npc") && !isCopRole(p);
     let a = (aId && players[aId]) ? players[aId] : null;
     let b = (bId && players[bId]) ? players[bId] : null;
@@ -1135,7 +1135,7 @@ window.Game ||= {};
     e.state ||= "open";
     if (!Number.isFinite(e.resolveAt)) e.resolveAt = 0;
 
-    Game.State.events.unshift(e);
+    Game.__S.events.unshift(e);
     capEvents();
     bumpEventBadgeIfCollapsed();
 
@@ -1154,7 +1154,7 @@ window.Game ||= {};
   function helpEvent(eventId, side){
     ensureState();
 
-    const e = Game.State.events.find(x => x.id === eventId);
+    const e = Game.__S.events.find(x => x.id === eventId);
     if (!e || e.state !== "open") return false;
 
     // Voting must never stop NPC simulation. playerVoted only blocks a second player vote.
@@ -1174,13 +1174,13 @@ window.Game ||= {};
       return false;
     }
 
-    const spend = (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function")
-      ? Game.StateAPI.spendPoints
+    const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
+      ? Game.__A.spendPoints
       : null;
     const voteCost = 1;
 
     // Record the player's vote into the crowd (weight = 1).
-    const me = (Game.State && Game.State.me) ? Game.State.me : null;
+    const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
     const meId = (me && me.id) ? me.id : "me";
     ensureEventCrowd(e);
     const crowd = e.crowd;
@@ -1214,7 +1214,7 @@ window.Game ||= {};
         return false;
       }
     } else {
-      const me2 = Game.State && Game.State.me ? Game.State.me : null;
+      const me2 = Game.__S && Game.__S.me ? Game.__S.me : null;
       if (!me2 || (me2.points | 0) < voteCost) {
         e.note = "Не хватает пойнтов.";
         requestRender();
@@ -1224,8 +1224,8 @@ window.Game ||= {};
       const afterPts = clamp0(beforePts - voteCost);
       me2.points = afterPts;
       try {
-        if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-          Game.StateAPI.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "crowd_vote_cost", battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) });
+        if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+          Game.__A.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "crowd_vote_cost", battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) });
         }
       } catch (_) {}
     }
@@ -1305,11 +1305,11 @@ window.Game ||= {};
 
   function addExtraVote(eventId, side){
     ensureState();
-    const e = Game.State.events.find(x => x && x.id === eventId);
+    const e = Game.__S.events.find(x => x && x.id === eventId);
     if (!e || e.state !== "open") return false;
 
-    const spend = (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function")
-      ? Game.StateAPI.spendPoints
+    const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
+      ? Game.__A.spendPoints
       : null;
     const D0 = Game.Data || {};
     const cost = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;
@@ -1370,12 +1370,12 @@ window.Game ||= {};
 
   function activateVoteShield(eventId){
     ensureState();
-    const e = Game.State.events.find(x => x && x.id === eventId);
+    const e = Game.__S.events.find(x => x && x.id === eventId);
     if (!e || e.state !== "open") return false;
     if (e.voteShielded) return true;
 
-    const spend = (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function")
-      ? Game.StateAPI.spendPoints
+    const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
+      ? Game.__A.spendPoints
       : null;
     const D0 = Game.Data || {};
     const cost = Number.isFinite(D0.COST_VOTE_SHIELD) ? (D0.COST_VOTE_SHIELD | 0) : 1;
@@ -1443,7 +1443,7 @@ window.Game ||= {};
   function pruneResolved(){
     ensureState();
     const nowTs = now();
-    Game.State.events = Game.State.events.filter(e => {
+    Game.__S.events = Game.__S.events.filter(e => {
       if (e.state !== "resolved") return true;
       const ra = Number(e.resolveAt || 0);
       if (!ra) return true;
@@ -1484,7 +1484,7 @@ window.Game ||= {};
   }
 
   function findBattleById(battleId){
-    const list = (Game.State && Array.isArray(Game.State.battles)) ? Game.State.battles : [];
+    const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
     return list.find(b => b && (b.id === battleId || b.battleId === battleId)) || null;
   }
 
@@ -1509,7 +1509,7 @@ window.Game ||= {};
   }
 
   function decideCrowdWinner(aInf, bInf, crowd){
-    const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
+    const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const res = resolveCrowdCore(crowd, { kind: "event" }, participants);
     if (res && res.outcome === "A_WIN") return "a";
     if (res && res.outcome === "B_WIN") return "b";
@@ -1531,7 +1531,7 @@ window.Game ||= {};
       crowd.votesB = voterCounts.b;
     }
 
-    const participants = (Game && Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
+    const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const res = resolveCrowdCore(crowd, { kind, eventId: e.id || e.eventId || e.refId || null, aId: e.aId, bId: e.bId }, participants);
     const aVotes = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : ((crowd.aVotes ?? crowd.votesA) | 0);
     const bVotes = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : ((crowd.bVotes ?? crowd.votesB) | 0);
@@ -1615,7 +1615,7 @@ window.Game ||= {};
 
     // Then, finalize any standalone open draw events
     let changed = false;
-    for (const e of Game.State.events) {
+    for (const e of Game.__S.events) {
       if (!e) continue;
       const kind = e.type || e.kind;
       const isCrowd = (kind === "draw" || kind === "escape");
@@ -1638,8 +1638,8 @@ window.Game ||= {};
 
     // Cop chatter tick (per-cop cooldown + templates live in State)
     try {
-      if (Game.StateAPI && typeof Game.StateAPI.tickCops === "function") {
-        const did = !!Game.StateAPI.tickCops(now());
+      if (Game.__A && typeof Game.__A.tickCops === "function") {
+        const did = !!Game.__A.tickCops(now());
         if (did) changed = true;
       }
     } catch (_) {}
@@ -1649,7 +1649,7 @@ window.Game ||= {};
 
   function syncDrawEvents(){
     ensureState();
-    const evs = Game.State.events;
+    const evs = Game.__S.events;
     if (!Array.isArray(evs) || !evs.length) return;
 
     for (const e of evs) {
@@ -1666,8 +1666,8 @@ window.Game ||= {};
       const { aId, bId, isClassicMeBattle } = getBattleParticipants(b);
       if (isClassicMeBattle || isMeId(aId) || isMeId(bId)) continue;
 
-      const a = Game.State.players && aId ? Game.State.players[aId] : null;
-      const bb = Game.State.players && bId ? Game.State.players[bId] : null;
+      const a = Game.__S.players && aId ? Game.__S.players[aId] : null;
+      const bb = Game.__S.players && bId ? Game.__S.players[bId] : null;
 
       const aName = e.aName || b.aName || (a && a.name) || "Игрок A";
       const bName = e.bName || b.bName || (bb && bb.name) || "Игрок B";
@@ -1736,8 +1736,8 @@ window.Game ||= {};
     if (!aId || !bId) return;
 
     // Events = only NPC-NPC draws (no real players, no me).
-    const a = Game.State.players && Game.State.players[aId];
-    const b = Game.State.players && Game.State.players[bId];
+    const a = Game.__S.players && Game.__S.players[aId];
+    const b = Game.__S.players && Game.__S.players[bId];
 
     const aIsNpc = a && (a.npc === true || a.type === "npc");
     const bIsNpc = b && (b.npc === true || b.type === "npc");
@@ -1808,12 +1808,12 @@ window.Game ||= {};
       refId: battleId,
     };
 
-    Game.State.events.unshift(e);
+    Game.__S.events.unshift(e);
     // Normalize mirrors for UI (endsAt + votes fields)
     ensureEventCrowd(e);
     mirrorCrowdVotesToEvent(e);
     // Safety: remove any older duplicates that might have slipped in
-    Game.State.events = Game.State.events.filter((x, i, arr) => {
+    Game.__S.events = Game.__S.events.filter((x, i, arr) => {
       if (!x) return false;
       if (x.id === id) return arr.findIndex(y => y && y.id === id) === i;
       if (x.type === "draw" && x.battleId === battleId) {
@@ -1855,12 +1855,12 @@ window.Game ||= {};
   Events.getAll = () => {
     ensureState();
     syncDrawEvents();
-    return Game.State.events.slice();
+    return Game.__S.events.slice();
   };
 
   Events.getCount = () => {
     ensureState();
-    return Game.State.events.length;
+    return Game.__S.events.length;
   };
 
   Game.Events = Events;

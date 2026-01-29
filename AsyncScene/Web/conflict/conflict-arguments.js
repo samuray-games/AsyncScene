@@ -194,18 +194,29 @@
   }
 
   function normalizeInfluence(battle) {
-    const me = (Game && Game.State && Game.State.me) ? Game.State.me : { influence: 0 };
+    const me = (Game && Game.__S && Game.__S.me) ? Game.__S.me : { influence: 0 };
     const base = Number(me.influence);
     const boost = battle && Number.isFinite(battle.tempInfluenceBoost) ? (battle.tempInfluenceBoost | 0) : 0;
     const inf = (Number.isFinite(base) ? base : 0) + boost;
     return Number.isFinite(inf) ? inf : 0;
   }
 
+  function hasExplicitDevQueryParam() {
+    if (typeof location === "undefined" || !location) return false;
+    const search = location.search;
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("dev") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
   function isDevFlag() {
     return (
       (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) ||
-      (typeof location !== "undefined" && location && location.hostname === "localhost") ||
-      (typeof location !== "undefined" && location && location.search && location.search.includes("dev=1"))
+      hasExplicitDevQueryParam()
     );
   }
 
@@ -397,7 +408,7 @@
       let myRole = "";
       let playerInf = 0;
       try {
-        const me = (Game && Game.State && Game.State.me) ? Game.State.me : null;
+        const me = (Game && Game.__S && Game.__S.me) ? Game.__S.me : null;
         playerInf = (me && Number.isFinite(me.influence)) ? (me.influence | 0) : 0;
         myRole = (me && me.role) ? String(me.role) : "";
       } catch (_) { myRole = ""; }
@@ -584,12 +595,12 @@
         const incoming = !!(battle && battle.fromThem === true);
         if (incoming) {
           chooserInf = level;
-          chooserRole = (Game && Game.State && Game.State.me && Game.State.me.role) ? String(Game.State.me.role) : "";
+          chooserRole = (Game && Game.__S && Game.__S.me && Game.__S.me.role) ? String(Game.__S.me.role) : "";
         } else {
           // Opponent chooser: battle.opponent may be missing; fall back to players lookup by opponentId.
           const oppObj =
             (battle && battle.opponent) ? battle.opponent :
-            ((battle && battle.opponentId && Game && Game.State && Game.State.players) ? Game.State.players[battle.opponentId] : null);
+            ((battle && battle.opponentId && Game && Game.__S && Game.__S.players) ? Game.__S.players[battle.opponentId] : null);
           chooserInf = (oppObj && Number.isFinite(oppObj.influence)) ? (oppObj.influence | 0) : 0;
           chooserRole = opponentRoleRaw || (oppObj && oppObj.role ? String(oppObj.role) : "");
         }
@@ -700,7 +711,7 @@
   A.pickIncomingAttack = function (opponentId) {
     const D = (Game && Game.Data) ? Game.Data : null;
     if (!D || typeof D.getArgCanonGroup !== "function") return null;
-    const opp = (Game.State && Game.State.players && opponentId) ? Game.State.players[opponentId] : null;
+    const opp = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
     // NPC with 0 points/balance cannot initiate a battle
     try {
       if (opp && (opp.npc === true || opp.type === "npc")) {
@@ -773,7 +784,7 @@
     // P0-1: Runtime assert для YN-ответов с "в {PLACE}"
     if (t === "yn" && q && q.match(/\b(в|на|у)\s*\{?[А-Я][а-я]+\}?/i)) {
       try {
-        if (Game.Debug && Game.Debug.WARN_YN_PLACE) {
+        if (Game.__D && Game.__D.WARN_YN_PLACE) {
           console.warn(`[YN_PLACE_BUG] YN answer contains location preposition: "${q}" (battleId: ${ctx.battleId || "unknown"})`);
         }
       } catch (_) {}

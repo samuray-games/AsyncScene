@@ -25,9 +25,9 @@ window.Game = window.Game || {};
   UI.renderMenu = UI.renderMenu || function(){};
 
   // State
-  // Важно: не перетираем уже существующий Game.State (его могли создать другие модули).
+  // Важно: не перетираем уже существующий Game.__S (его могли создать другие модули).
   // Вместо этого заполняем отсутствующие поля дефолтами.
-  const S = Game.State = Game.State || {};
+  const S = Game.__S = Game.__S || {};
 
   // Дефолты верхнего уровня
   if (!("me" in S)) S.me = null; // создаётся ТОЛЬКО в ui-boot.js после старта
@@ -96,11 +96,10 @@ window.Game = window.Game || {};
 
   function isDevBalanceEnabled(){
     try {
-      if (Game && Game.Debug && Game.Debug.SHOW_NPC_BALANCES === true) return true;
+      if (Game && Game.__D && Game.__D.SHOW_NPC_BALANCES === true) return true;
       if (typeof window !== "undefined") {
         if (window.__DEV__ === true || window.DEV === true) return true;
-        if (typeof location !== "undefined" && location && location.hostname === "localhost") return true;
-        if (typeof location !== "undefined" && location && location.search && location.search.includes("dev=1")) return true;
+        if (_hasExplicitDevQueryParam()) return true;
       }
     } catch (_) {}
     return false;
@@ -322,12 +321,23 @@ window.Game = window.Game || {};
     return "y";
   }
 
+  function _hasExplicitDevQueryParam(){
+    if (typeof location === "undefined" || !location) return false;
+    const search = location.search;
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("dev") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
   function _isDevFlag(){
     try {
       if (typeof window !== "undefined") {
         if (window.__DEV__ === true || window.DEV === true) return true;
-        if (typeof location !== "undefined" && location && location.search && location.search.includes("dev=1")) return true;
-        if (typeof location !== "undefined" && location && location.hostname === "localhost") return true;
+        if (_hasExplicitDevQueryParam()) return true;
       }
     } catch (_) {}
     return false;
@@ -574,7 +584,7 @@ window.Game = window.Game || {};
     const __logToneHUD = (() => {
       try {
         // Console spam can freeze input when DevTools is open. Log only when explicitly enabled.
-        return (_isDevFlag() && (window.__LOG_TONEHUD === true || (Game && Game.Debug && Game.Debug.LOG_TONEHUD === true)));
+        return (_isDevFlag() && (window.__LOG_TONEHUD === true || (Game && Game.__D && Game.__D.LOG_TONEHUD === true)));
       } catch (_) { return false; }
     })();
 
@@ -596,15 +606,15 @@ window.Game = window.Game || {};
   function _wrapInfluenceSync(){
     if (UI._argPillSyncWrapped) return;
     try {
-      if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-        const orig = Game.StateAPI.syncMeToPlayers;
+      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        const orig = Game.__A.syncMeToPlayers;
         if (!orig._argPillWrapped) {
-          Game.StateAPI.syncMeToPlayers = function(...args){
+          Game.__A.syncMeToPlayers = function(...args){
             const res = orig.apply(this, args);
             try { if (UI && typeof UI.updateArgStrengthPills === "function") UI.updateArgStrengthPills(); } catch (_) {}
             return res;
           };
-          Game.StateAPI.syncMeToPlayers._argPillWrapped = true;
+          Game.__A.syncMeToPlayers._argPillWrapped = true;
         }
         UI._argPillSyncWrapped = true;
         return;
@@ -1008,8 +1018,8 @@ window.Game = window.Game || {};
   // Important: ui-core MUST NOT install global key handlers that could intercept "@".
   UI.getAllMentionCandidates = function(){
     // Prefer StateAPI if it exists (single source of truth).
-    if (Game.StateAPI && typeof Game.StateAPI.getAllMentionCandidates === "function") {
-      try { return Game.StateAPI.getAllMentionCandidates(); } catch(_) {}
+    if (Game.__A && typeof Game.__A.getAllMentionCandidates === "function") {
+      try { return Game.__A.getAllMentionCandidates(); } catch(_) {}
     }
     // Fallback: derive from S.players.
     const out = [];
@@ -1414,12 +1424,12 @@ window.Game = window.Game || {};
       }
       if (mr) mr.textContent = String(S.rep || 0);
       if (mneed) {
-        const need = (Game.StateAPI && typeof Game.StateAPI.repNeedForNextInfluence === "function")
-          ? Game.StateAPI.repNeedForNextInfluence()
+        const need = (Game.__A && typeof Game.__A.repNeedForNextInfluence === "function")
+          ? Game.__A.repNeedForNextInfluence()
           : 0;
         mneed.textContent = String(need || 0);
-        const capActive = (Game.StateAPI && typeof Game.StateAPI.weeklyCapActive === "function")
-          ? Game.StateAPI.weeklyCapActive()
+        const capActive = (Game.__A && typeof Game.__A.weeklyCapActive === "function")
+          ? Game.__A.weeklyCapActive()
           : false;
         if (capActive) {
           mneed.classList.add("is-cap");
@@ -1441,8 +1451,8 @@ window.Game = window.Game || {};
       if (capLine) {
         let text = "";
         try {
-          const active = (Game.StateAPI && typeof Game.StateAPI.weeklyCapActive === "function")
-            ? Game.StateAPI.weeklyCapActive()
+          const active = (Game.__A && typeof Game.__A.weeklyCapActive === "function")
+            ? Game.__A.weeklyCapActive()
             : false;
           if (active && S.progress && S.progress.weekStartAt) {
             text = "";
@@ -1503,7 +1513,7 @@ window.Game = window.Game || {};
 
   // ------------------------------
   // Step 10: Panel sizes (collapsed / medium / max) - centralized helpers
-  // Source of truth: Game.StateAPI (preferred) -> S.flags fallback
+  // Source of truth: Game.__A (preferred) -> S.flags fallback
   const __PANEL_ORDER = ["collapsed", "medium", "max"];
 
   function __normalizePanelSize(size){
@@ -1512,10 +1522,10 @@ window.Game = window.Game || {};
   }
 
   function __getSizesFromState(){
-    // Preferred source: Game.StateAPI (state.js)
+    // Preferred source: Game.__A (state.js)
     try{
-      if (Game.StateAPI && typeof Game.StateAPI.getPanelSizes === "function") {
-        const z = Game.StateAPI.getPanelSizes();
+      if (Game.__A && typeof Game.__A.getPanelSizes === "function") {
+        const z = Game.__A.getPanelSizes();
         if (z && typeof z === "object") return z;
       }
     }catch(_){}
@@ -1553,8 +1563,8 @@ window.Game = window.Game || {};
 
     // Preferred: StateAPI setter
     try{
-      if (Game.StateAPI && typeof Game.StateAPI.setPanelSize === "function") {
-        Game.StateAPI.setPanelSize(k, s);
+      if (Game.__A && typeof Game.__A.setPanelSize === "function") {
+        Game.__A.setPanelSize(k, s);
         applyNow();
         UI.requestRenderAll();
         return;
@@ -1966,8 +1976,8 @@ window.Game = window.Game || {};
       e.preventDefault();
       e.stopPropagation();
 
-      if (!Game.State || !Game.State.flags) return;
-      Game.State.flags.menuOpen = !Game.State.flags.menuOpen;
+      if (!Game.__S || !Game.__S.flags) return;
+      Game.__S.flags.menuOpen = !Game.__S.flags.menuOpen;
 
       if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
         Game.UI.requestRenderAll();

@@ -104,11 +104,15 @@ window.Game = window.Game || {};
 
   function isDevModeActive() {
     try {
-      if (Game && Game.Debug && Game.Debug.SHOW_NPC_BALANCES === true) return true;
+      if (Game && Game.__D && Game.__D.SHOW_NPC_BALANCES === true) return true;
       if (typeof window !== "undefined") {
         if (window.__DEV__ === true || window.DEV === true) return true;
-        if (typeof location !== "undefined" && location && location.hostname === "localhost") return true;
-        if (typeof location !== "undefined" && location && location.search && location.search.includes("dev=1")) return true;
+        if (typeof location !== "undefined" && location && location.search) {
+          try {
+            const params = new URLSearchParams(location.search);
+            if (params.get("dev") === "1") return true;
+          } catch (_) {}
+        }
       }
       if (S && S.flags && S.flags.devChecks === true) return true;
     } catch (_) {}
@@ -116,7 +120,7 @@ window.Game = window.Game || {};
   }
 
   function isCirculationEnabledUI() {
-    const dbg = (Game && Game.Debug) ? Game.Debug : null;
+    const dbg = (Game && Game.__D) ? Game.__D : null;
     if (dbg && dbg.FORCE_CIRCULATION === true) return true;
     if (dbg && dbg.FORCE_CIRCULATION === false) return false;
     const D0 = (Game && Game.Data) ? Game.Data : null;
@@ -158,10 +162,10 @@ window.Game = window.Game || {};
       btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        Game.Debug = Game.Debug || {};
+        Game.__D = Game.__D || {};
         const cur = isCirculationEnabledUI();
-        Game.Debug.FORCE_CIRCULATION = !cur;
-        const next = Game.Debug.FORCE_CIRCULATION === true ? "CIR" : "LEGACY";
+        Game.__D.FORCE_CIRCULATION = !cur;
+        const next = Game.__D.FORCE_CIRCULATION === true ? "CIR" : "LEGACY";
         if (UI && typeof UI.pushSystem === "function") UI.pushSystem(`ECON switched to ${next}`);
         label.textContent = `ECON: ${next}`;
       };
@@ -348,8 +352,8 @@ window.Game = window.Game || {};
 
     const spend = (amount, reason) => {
       try {
-        if (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function") {
-          return Game.StateAPI.spendPoints(amount, reason);
+        if (Game.__A && typeof Game.__A.spendPoints === "function") {
+          return Game.__A.spendPoints(amount, reason);
         }
       } catch (_) {}
       return false;
@@ -491,8 +495,8 @@ window.Game = window.Game || {};
       return;
     }
 
-    const spend = (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function")
-      ? Game.StateAPI.spendPoints
+    const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
+      ? Game.__A.spendPoints
       : null;
     if (spend && !spend(bet, "lottery")) {
       notify("Недоступно.");
@@ -519,7 +523,7 @@ window.Game = window.Game || {};
     }
 
     try {
-      if (Game.StateAPI?.setLotteryLastRoll) Game.StateAPI.setLotteryLastRoll(win);
+      if (Game.__A?.setLotteryLastRoll) Game.__A.setLotteryLastRoll(win);
       else {
         S.lottery = S.lottery || { bet: bet, lastRoll: null, lastAt: 0, plays: 0 };
         S.lottery.lastRoll = win;
@@ -538,8 +542,8 @@ window.Game = window.Game || {};
     }
 
     if (win > 0) {
-      if (Game.StateAPI && typeof Game.StateAPI.addPoints === "function") {
-        Game.StateAPI.addPoints(win, "lottery_win");
+      if (Game.__A && typeof Game.__A.addPoints === "function") {
+        Game.__A.addPoints(win, "lottery_win");
       } else {
         S.me.points += win;
       }

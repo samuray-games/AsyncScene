@@ -115,7 +115,9 @@ window.Game = window.Game || {};
     let loops = 0;
     while ((State.rep | 0) >= repNeedForNextInfluence()) {
       const need = repNeedForNextInfluence();
-      State.rep = (State.rep | 0) - need;
+      withRepWrite(() => {
+        State.rep = (State.rep | 0) - need;
+      });
       State.me.influence = (State.me.influence | 0) + 1;
       State.progress.weeklyInfluenceGained = (State.progress.weeklyInfluenceGained | 0) + 1;
       loops++;
@@ -124,27 +126,63 @@ window.Game = window.Game || {};
     // UI side-effects are out-of-scope for state layer.
   }
 
-  function addRep(amount, reason){
+  function addRep(amount, reason, meta){
     if (!isDevFlag()) {
       try { console.warn("[REP] addRep blocked in prod", reason); } catch (_) {}
       return 0;
     }
+    if (!Security.isSafe()) {
+      Security.emit("tamper_function", { key: "addRep", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
+      return State.rep | 0;
+    }
     const n = Number(amount || 0);
     if (!Number.isFinite(n) || n === 0) return 0;
-    if (!Number.isFinite(State.rep)) State.rep = 0;
-    State.rep = (State.rep | 0) + (n | 0);
-    applyRepConversion();
-    syncMeToPlayers();
-    return State.rep | 0;
+    const rl = Security.rateLimit("rep_add", {
+      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+      reason: reason || "addRep",
+      battleId: meta && meta.battleId,
+      actionId: meta && meta.actionId
+    }, { max: 3, windowMs: 1200, burst: 2 });
+    if (!rl.ok) {
+      Security.emit("rate_limit", { action: "rep_add", reason: reason || "addRep", battleId: meta && meta.battleId, key: rl.key, resetIn: rl.resetIn });
+      return State.rep | 0;
+    }
+    if (!Number.isFinite(State.rep)) {
+      withRepWrite(() => {
+        State.rep = 0;
+      });
+    }
+    const guardMeta = {
+      reason: reason || "addRep",
+      actionId: meta && meta.actionId,
+      battleId: meta && meta.battleId,
+      context: meta && meta.context,
+    };
+    const guard = ResourceValidator.claim("rep", guardMeta);
+    if (!guard.ok) {
+      return State.rep | 0;
+    }
+    let success = false;
+    try {
+      withRepWrite(() => {
+        State.rep = (State.rep | 0) + (n | 0);
+      });
+      applyRepConversion();
+      syncMeToPlayers();
+      success = true;
+      return State.rep | 0;
+    } finally {
+      ResourceValidator.release(guard.key, success);
+    }
   }
 
   function getRepAccount(id){
     if (!id) return null;
     if (id === "crowd_pool" || id === "daily_pool") {
-      if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
-      if (!Game.Debug.repPools || typeof Game.Debug.repPools !== "object") Game.Debug.repPools = {};
-      if (!Game.Debug.repPools[id]) Game.Debug.repPools[id] = { id, rep: 1000, pool: true };
-      return Game.Debug.repPools[id];
+      if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+      if (!Game.__D.repPools || typeof Game.__D.repPools !== "object") Game.__D.repPools = {};
+      if (!Game.__D.repPools[id]) Game.__D.repPools[id] = { id, rep: 1000, pool: true };
+      return Game.__D.repPools[id];
     }
     if (id === "rep_emitter") {
       return { id: "rep_emitter", rep: Number.MAX_SAFE_INTEGER, pool: true };
@@ -163,20 +201,36 @@ window.Game = window.Game || {};
       Econ._logTx(entry);
       return;
     }
-    if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
-    if (!Array.isArray(Game.Debug.moneyLog)) Game.Debug.moneyLog = [];
-    if (!Game.Debug.moneyLogByBattle || typeof Game.Debug.moneyLogByBattle !== "object") Game.Debug.moneyLogByBattle = {};
-    Game.Debug.moneyLog.push(entry);
+    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+    if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
+    if (!Game.__D.moneyLogByBattle || typeof Game.__D.moneyLogByBattle !== "object") Game.__D.moneyLogByBattle = {};
+    Game.__D.moneyLog.push(entry);
     const bid = entry && entry.battleId ? String(entry.battleId) : "";
     if (bid) {
-      if (!Array.isArray(Game.Debug.moneyLogByBattle[bid])) Game.Debug.moneyLogByBattle[bid] = [];
-      Game.Debug.moneyLogByBattle[bid].push(entry);
+      if (!Array.isArray(Game.__D.moneyLogByBattle[bid])) Game.__D.moneyLogByBattle[bid] = [];
+      Game.__D.moneyLogByBattle[bid].push(entry);
     }
   }
 
-  function transferRep(fromId, toId, amount, reason, battleId){
+  function transferRep(fromId, toId, amount, reason, battleId, meta){
+    if (!Security.isSafe()) {
+      Security.emit("tamper_function", { key: "transferRep", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
+      return { ok: false, reason: "security_tamper" };
+    }
     const n = Number(amount || 0);
     if (!Number.isFinite(n) || n === 0) return { ok: false, reason: "bad_amount" };
+    const rl = Security.rateLimit("rep_transfer", {
+      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+      reason: reason || "rep_transfer",
+      battleId,
+      actionId: meta && meta.actionId,
+      fromId,
+      toId
+    }, { max: 6, windowMs: 1200, burst: 4 });
+    if (!rl.ok) {
+      Security.emit("rate_limit", { action: "rep_transfer", reason: reason || "rep_transfer", battleId, fromId, toId, key: rl.key, resetIn: rl.resetIn });
+      return { ok: false, reason: "rate_limited" };
+    }
     const fromAcc = getRepAccount(fromId);
     const toAcc = getRepAccount(toId);
     if (!fromAcc || !toAcc) return { ok: false, reason: "bad_account" };
@@ -198,33 +252,61 @@ window.Game = window.Game || {};
       }
       return { ok: false, reason: "insufficient_rep", available, requested: amt };
     }
+    const guardMeta = {
+      reason: reason || "rep_transfer",
+      battleId,
+      actionId: meta && meta.actionId,
+      context: meta && meta.context,
+      fromId,
+      toId,
+    };
+    const guard = ResourceValidator.claim("rep", guardMeta);
+    if (!guard.ok) {
+      return { ok: false, reason: guard.reason || "duplicate" };
+    }
+    let success = false;
     
     // Apply transfer with clipping to prevent negative (fix DUM-022 #2)
     if (!isEmitter) {
-      if (fromId === "me") State.rep = Math.max(0, (State.rep | 0) - amt);
-      else fromAcc.rep = Math.max(0, (fromAcc.rep | 0) - amt);
+      if (fromId === "me") {
+        withRepWrite(() => {
+          State.rep = Math.max(0, (State.rep | 0) - amt);
+        });
+      } else {
+        fromAcc.rep = Math.max(0, (fromAcc.rep | 0) - amt);
+      }
     }
-    if (toId === "me") State.rep = Math.max(0, (State.rep | 0) + amt);
-    else toAcc.rep = Math.max(0, (toAcc.rep | 0) + amt);
+    if (toId === "me") {
+      withRepWrite(() => {
+        State.rep = Math.max(0, (State.rep | 0) + amt);
+      });
+    } else {
+      toAcc.rep = Math.max(0, (toAcc.rep | 0) + amt);
+    }
     if (fromId === "me" || toId === "me") {
       applyRepConversion();
       syncMeToPlayers();
     }
-    logRepTransfer({
-      time: Date.now(),
-      sourceId: String(fromId),
-      targetId: String(toId),
-      amount: amt,
-      reason: String(reason || "rep_transfer"),
-      battleId: battleId || null,
-      currency: "rep",
-      before: { from: beforeFrom, to: beforeTo }
-    });
     const afterRep = (State.rep || 0) | 0;
     const afterInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
-    emitStatDelta("rep", afterRep - beforeRep, { reason: reason || "rep_transfer", battleId: battleId || null });
-    emitStatDelta("influence", afterInfluence - beforeInfluence, { reason: reason || "rep_transfer", battleId: battleId || null });
-    return { ok: true, amount: amt };
+    try {
+      logRepTransfer({
+        time: Date.now(),
+        sourceId: String(fromId),
+        targetId: String(toId),
+        amount: amt,
+        reason: String(reason || "rep_transfer"),
+        battleId: battleId || null,
+        currency: "rep",
+        before: { from: beforeFrom, to: beforeTo }
+      });
+      emitStatDelta("rep", afterRep - beforeRep, { reason: reason || "rep_transfer", battleId: battleId || null });
+      emitStatDelta("influence", afterInfluence - beforeInfluence, { reason: reason || "rep_transfer", battleId: battleId || null });
+      success = true;
+      return { ok: true, amount: amt };
+    } finally {
+      ResourceValidator.release(guard.key, success);
+    }
   }
 
   function maybeDailyRepBonus(){
@@ -266,7 +348,7 @@ window.Game = window.Game || {};
     const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
     if (Econ && typeof Econ.isCirculationEnabled === "function") return Econ.isCirculationEnabled();
     const D = (Game && Game.Data) ? Game.Data : null;
-    const dbg = (Game && Game.Debug) ? Game.Debug : null;
+    const dbg = (Game && Game.__D) ? Game.__D : null;
     if (dbg && dbg.FORCE_CIRCULATION === true) {
       if (dbg._econModeLogged !== "cir") {
         dbg._econModeLogged = "cir";
@@ -289,12 +371,73 @@ window.Game = window.Game || {};
     return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
   }
 
+  function hasExplicitDevQueryParam() {
+    if (typeof location === "undefined" || !location) return false;
+    const search = location.search;
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("dev") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
   function isDevFlag(){
     return (
       (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) ||
-      (typeof location !== "undefined" && location && location.hostname === "localhost") ||
-      (typeof location !== "undefined" && location && location.search && location.search.includes("dev=1"))
+      hasExplicitDevQueryParam()
     );
+  }
+
+  function defineGameSurfaceProp(name, internalName) {
+    if (!Game || !internalName) return;
+    if (Object.getOwnPropertyDescriptor(Game, name)) return;
+    Object.defineProperty(Game, name, {
+      configurable: false,
+      enumerable: false,
+      get() {
+        if (!isDevFlag()) {
+          emitForbiddenAccess(`Game.${name}`, "get");
+          return undefined;
+        }
+        return Game[internalName];
+      },
+      set(value) {
+        if (!isDevFlag()) {
+          emitForbiddenAccess(`Game.${name}`, "set");
+          return;
+        }
+        Game[internalName] = value;
+      }
+    });
+  }
+
+  if (typeof window !== "undefined") {
+    if (isDevFlag()) {
+      window.__defineGameSurfaceProp = window.__defineGameSurfaceProp || defineGameSurfaceProp;
+    } else if (window.__defineGameSurfaceProp === defineGameSurfaceProp) {
+      try {
+        delete window.__defineGameSurfaceProp;
+      } catch (_) {
+        window.__defineGameSurfaceProp = undefined;
+      }
+    }
+  }
+
+  function tryRemove(propTarget, propName){
+    if (!propTarget || typeof propTarget !== "object") return;
+    try {
+      delete propTarget[propName];
+    } catch (_) {
+      propTarget[propName] = undefined;
+    }
+  }
+
+  if (typeof window !== "undefined" && !isDevFlag()) {
+    tryRemove(Game, "Dev");
+    tryRemove(Game, "__DEV");
+    tryRemove(window, "__defineGameSurfaceProp");
   }
 
   let pointsWriteDepth = 0;
@@ -304,14 +447,14 @@ window.Game = window.Game || {};
   }
 
   function canWritePoints(){
-    const dbg = (Game && Game.Debug) ? Game.Debug : null;
+    const dbg = (Game && Game.__D) ? Game.__D : null;
     const allowDev = !!(dbg && (dbg.ALLOW_POINTS_WRITE === true || dbg.BYPASS_POINTS_GUARD === true));
     return !isCirculationEnabled() || pointsWriteDepth > 0 || allowDev;
   }
 
   function rejectPointsWrite(action){
     const msg = "Циркуляция: прямое изменение баланса заблокировано";
-    const dbg = (Game && Game.Debug) ? Game.Debug : null;
+    const dbg = (Game && Game.__D) ? Game.__D : null;
     if (dbg && (dbg.ALLOW_POINTS_WRITE === true || dbg.BYPASS_POINTS_GUARD === true)) {
       return true;
     }
@@ -345,30 +488,432 @@ window.Game = window.Game || {};
       set(v){
         const next = Number.isFinite(Number(v)) ? (Number(v) | 0) : 0;
         if (!canWritePoints()) {
+          const labelPath = label || "State.me.points";
+          const reason = Number.isFinite(v) ? "unauthorized_points_write" : "invalid_number";
+          emitInvalidMutation(labelPath, next, reason);
           rejectPointsWrite(label || "points");
           return;
         }
         store = next;
       }
     });
+ }
+
+  const RESOURCE_DUPLICATE_WINDOW_MS = 1400;
+  const ResourceValidator = (() => {
+    const recent = new Map();
+    const locked = new Set();
+
+    function now(){ return Date.now(); }
+
+    function cleanup(){
+      const stamp = now();
+      for (const [key, ts] of recent) {
+        if ((stamp - ts) > RESOURCE_DUPLICATE_WINDOW_MS) {
+          recent.delete(key);
+        }
+      }
+    }
+
+    function readValue(kind){
+      const runtime = (Game && Game.__S) ? Game.__S : (typeof State !== "undefined" ? State : null);
+      if (!runtime) return 0;
+      if (kind === "points") {
+        const points = runtime.me && Number.isFinite(runtime.me.points) ? (runtime.me.points | 0) : 0;
+        return points;
+      }
+      if (kind === "rep") {
+        return Number.isFinite(runtime.rep) ? (runtime.rep | 0) : 0;
+      }
+      if (kind === "influence") {
+        const inf = runtime.me && Number.isFinite(runtime.me.influence) ? (runtime.me.influence | 0) : 0;
+        return inf;
+      }
+      return 0;
+    }
+
+    function makeKey(kind, meta){
+      const reason = (meta && meta.reason) ? String(meta.reason) : "";
+      const actionId = (meta && meta.actionId) ? String(meta.actionId) : "";
+      const battleId = (meta && meta.battleId != null) ? String(meta.battleId) : "";
+      const context = (meta && meta.context) ? String(meta.context) : "";
+      const fromId = (meta && meta.fromId) ? String(meta.fromId) : "";
+      const toId = (meta && meta.toId) ? String(meta.toId) : "";
+      return `${kind}:${battleId}:${actionId}:${fromId}:${toId}:${reason}:${context}`;
+    }
+
+    return {
+      claim(kind, meta){
+        cleanup();
+        const key = makeKey(kind, meta || {});
+        const stamp = now();
+        if (recent.has(key) && (stamp - recent.get(key)) < RESOURCE_DUPLICATE_WINDOW_MS) {
+          return { ok: false, key, reason: "duplicate" };
+        }
+        if (locked.has(key)) {
+          return { ok: false, key, reason: "in_progress" };
+        }
+        locked.add(key);
+        return { ok: true, key, before: readValue(kind) };
+      },
+      release(key, success){
+        if (!key) return;
+        locked.delete(key);
+        if (success) {
+          recent.set(key, now());
+        }
+      }
+    };
+  })();
+
+  const Security = (() => {
+    const SEC = {
+      events: [],
+      notices: [],
+      maxEvents: 120,
+      maxNotices: 50,
+      lastEmit: new Map(),
+      lastNotify: new Map(),
+      buckets: new Map(),
+      methods: [],
+      handles: [],
+      tampered: false,
+      lastVerifyAt: 0,
+      bootPhase: true,
+    };
+
+    function now(){ return Date.now(); }
+    function mode(){ return isDevFlag() ? "dev" : "prod"; }
+
+    function safeStr(v){
+      if (v == null) return "";
+      try { return String(v); } catch (_) { return ""; }
+    }
+
+    function buildEventKey(type, details){
+      const base = safeStr(type);
+      const key = details && details.key ? safeStr(details.key) : "";
+      const action = details && details.action ? safeStr(details.action) : "";
+      const reason = details && details.reason ? safeStr(details.reason) : "";
+      if (key) return `${base}:${key}`;
+      if (action || reason) return `${base}:${action}:${reason}`;
+      return base;
+    }
+
+    function pushRing(arr, item, max){
+      arr.push(item);
+      if (arr.length > max) arr.splice(0, arr.length - max);
+    }
+
+    function shouldEmit(map, key, ttl){
+      const stamp = now();
+      const prev = map.get(key) || 0;
+      if ((stamp - prev) < ttl) return 0;
+      map.set(key, stamp);
+      return stamp;
+    }
+
+    function emit(type, details, opts = null){
+      if (SEC.bootPhase) return;
+      const key = buildEventKey(type, details);
+      const ttl = (opts && Number.isFinite(opts.minGapMs)) ? (opts.minGapMs | 0) : 1500;
+      const stamp = shouldEmit(SEC.lastEmit, key, ttl);
+      if (!stamp) return;
+      const ev = {
+        time: stamp,
+        type: safeStr(type),
+        details: details || {},
+        mode: mode(),
+      };
+      pushRing(SEC.events, ev, SEC.maxEvents);
+      try {
+        if (Game.__D && typeof Game.__D === "object") {
+          if (!Array.isArray(Game.__D.securityEvents)) Game.__D.securityEvents = [];
+          pushRing(Game.__D.securityEvents, ev, SEC.maxEvents);
+        }
+      } catch (_) {}
+      if (isDevFlag()) {
+        try { console.warn("[SEC]", ev.type, ev.details); } catch (_) {}
+      }
+      if (!opts || opts.notify !== false) notifyOwner(ev);
+    }
+
+    function notifyOwner(ev){
+      if (SEC.bootPhase) return;
+      const key = `notify:${safeStr(ev && ev.type)}:${safeStr(ev && ev.details && ev.details.key)}`;
+      const stamp = shouldEmit(SEC.lastNotify, key, 6000);
+      if (!stamp) return;
+      const notice = {
+        time: stamp,
+        type: safeStr(ev && ev.type),
+        details: ev && ev.details ? ev.details : {},
+      };
+      pushRing(SEC.notices, notice, SEC.maxNotices);
+      try {
+        if (Game.__D && typeof Game.__D === "object") {
+          if (!Array.isArray(Game.__D.securityNotices)) Game.__D.securityNotices = [];
+          pushRing(Game.__D.securityNotices, notice, SEC.maxNotices);
+        }
+      } catch (_) {}
+      if (isDevFlag()) {
+        try { console.warn("[SEC:notify]", notice.type, notice.details); } catch (_) {}
+      }
+    }
+
+    function buildRateKey(action, details){
+      const actorId = details && details.actorId ? safeStr(details.actorId) : "me";
+      const reason = details && details.reason ? safeStr(details.reason) : "";
+      const battleId = details && details.battleId != null ? safeStr(details.battleId) : "";
+      const eventId = details && details.eventId != null ? safeStr(details.eventId) : "";
+      const actionId = details && details.actionId ? safeStr(details.actionId) : "";
+      const fromId = details && details.fromId ? safeStr(details.fromId) : "";
+      const toId = details && details.toId ? safeStr(details.toId) : "";
+      return `${safeStr(action)}:${actorId}:${reason}:${battleId}:${eventId}:${actionId}:${fromId}:${toId}`;
+    }
+
+    function rateLimit(action, details, cfg){
+      const max = (cfg && Number.isFinite(cfg.max)) ? Number(cfg.max) : 4;
+      const windowMs = (cfg && Number.isFinite(cfg.windowMs)) ? Number(cfg.windowMs) : 1200;
+      const burst = (cfg && Number.isFinite(cfg.burst)) ? Number(cfg.burst) : max;
+      const key = buildRateKey(action, details || {});
+      const stamp = now();
+      let b = SEC.buckets.get(key);
+      if (!b) b = { tokens: burst, last: stamp };
+      const elapsed = Math.max(0, stamp - b.last);
+      const refill = (elapsed / windowMs) * max;
+      b.tokens = Math.min(burst, b.tokens + refill);
+      b.last = stamp;
+      if (b.tokens < 1) {
+        SEC.buckets.set(key, b);
+        const resetIn = Math.ceil(((1 - b.tokens) * windowMs) / max);
+        return { ok: false, key, resetIn, remaining: 0 };
+      }
+      b.tokens -= 1;
+      SEC.buckets.set(key, b);
+      return { ok: true, key, remaining: Math.floor(b.tokens) };
+    }
+
+    function finishBoot(){
+      if (!SEC.bootPhase) return;
+      SEC.bootPhase = false;
+    }
+
+    function defineHandleProp(name, value){
+      if (!Game || !name) return;
+      const desc = Object.getOwnPropertyDescriptor(Game, name);
+      if (desc && desc.get && desc.get._secHandle) return;
+      try {
+        Object.defineProperty(Game, name, {
+          configurable: false,
+          enumerable: false,
+          get() { return value; },
+      set(v){
+        if (v !== value) {
+          SEC.tampered = true;
+          emit("tamper_handle", { key: name, action: "set", mode: mode() });
+          emitTamperDetected({ key: name, action: "set_handle", mode: mode() });
+        }
+      }
+    });
+        const g = Object.getOwnPropertyDescriptor(Game, name).get;
+        if (g) g._secHandle = true;
+      } catch (_) {}
+      SEC.handles.push({ name, value });
+    }
+
+    function protectMethod(obj, key, fn, label){
+      if (!obj || !key || typeof fn !== "function") return;
+      const desc = Object.getOwnPropertyDescriptor(obj, key);
+      if (desc && desc.get && desc.get._secProtected) return;
+      try {
+        Object.defineProperty(obj, key, {
+          configurable: false,
+          enumerable: true,
+          get() { return fn; },
+      set(v){
+        if (v !== fn) {
+          SEC.tampered = true;
+          emit("tamper_function", { key: label || key, action: "set", mode: mode() });
+          emitTamperDetected({ key: label || key, action: "set_function", mode: mode() });
+        }
+      }
+    });
+        const g = Object.getOwnPropertyDescriptor(obj, key).get;
+        if (g) g._secProtected = true;
+      } catch (_) {}
+      SEC.methods.push({ obj, key, fn, label: label || key });
+    }
+
+    function verify(force){
+      const stamp = now();
+      if (!force && (stamp - SEC.lastVerifyAt) < 1500) return !SEC.tampered;
+      SEC.lastVerifyAt = stamp;
+      for (const h of SEC.handles) {
+      try {
+        if (Game[h.name] !== h.value) {
+          SEC.tampered = true;
+          emit("tamper_handle", { key: h.name, action: "swap", mode: mode() });
+          emitTamperDetected({ key: h.name, action: "swap_handle", mode: mode() });
+          defineHandleProp(h.name, h.value);
+        }
+      } catch (_) {}
+      }
+      for (const m of SEC.methods) {
+      try {
+        if (!m.obj || m.obj[m.key] !== m.fn) {
+          SEC.tampered = true;
+          emit("tamper_function", { key: m.label, action: "swap", mode: mode() });
+          emitTamperDetected({ key: m.label, action: "swap_function", mode: mode() });
+          protectMethod(m.obj, m.key, m.fn, m.label);
+        }
+      } catch (_) {}
+      }
+      return !SEC.tampered;
+    }
+
+    const store = { events: SEC.events, notices: SEC.notices, emit, notifyOwner };
+
+  return {
+      emit,
+      notifyOwner,
+      rateLimit,
+      defineHandleProp,
+      protectMethod,
+      verify,
+      isSafe: () => verify(false),
+      finishBoot,
+      store,
+    };
+  })();
+
+  function captureSecurityStack(limit = 3){
+    try {
+      const err = new Error();
+      const stack = err && err.stack ? String(err.stack) : "";
+      const lines = stack.split("\n").map(x => x.trim()).filter(Boolean);
+      return lines.slice(2, 2 + (limit || 0)).join(" | ");
+    } catch (_) {
+      return "";
+    }
   }
+
+  function securitySafeKey(value){
+    if (value == null) return "";
+    try {
+      return String(value);
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function emitForbiddenAccess(key, action){
+    Security.emit("forbidden_api_access", {
+      key: securitySafeKey(key),
+      action: securitySafeKey(action),
+      stack: captureSecurityStack(3)
+    }, { minGapMs: 1000 });
+  }
+
+  function emitInvalidMutation(path, value, reason){
+    Security.emit("invalid_state_mutation", {
+      path: securitySafeKey(path),
+      value: (typeof value === "number") ? value : securitySafeKey(value),
+      reason: securitySafeKey(reason),
+      stack: captureSecurityStack(4)
+    }, { minGapMs: 1200 });
+  }
+
+  function emitTamperDetected(details){
+    const payload = Object.assign({
+      stack: captureSecurityStack(4)
+    }, details || {});
+    Security.emit("tamper_detected", payload, { minGapMs: 1500 });
+  }
+
+  function isProtectedSurface(target){
+    if (!target) return false;
+    if (target === Game) return true;
+    const stateSurface = Game && Game.State;
+    if (stateSurface && target === stateSurface) return true;
+    const stateApiSurface = Game && Game.StateAPI;
+    if (stateApiSurface && target === stateApiSurface) return true;
+    const debugSurface = Game && Game.Debug;
+    if (debugSurface && target === debugSurface) return true;
+    const coreSurface = Game && Game._ConflictCore;
+    if (coreSurface && target === coreSurface) return true;
+    if (target === (Game && Game.ConflictCore)) return true;
+    const handleS = Game && Game.__S;
+    if (handleS && target === handleS) return true;
+    const handleA = Game && Game.__A;
+    if (handleA && target === handleA) return true;
+    const handleD = Game && Game.__D;
+    if (handleD && target === handleD) return true;
+    return false;
+  }
+
+  function describeSurface(target){
+    if (!target) return "unknown";
+    if (target === Game) return "Game";
+    if (target === (Game && Game.State)) return "Game.State";
+    if (target === (Game && Game.StateAPI)) return "Game.StateAPI";
+    if (target === (Game && Game.Debug)) return "Game.Debug";
+    if (target === (Game && Game._ConflictCore)) return "Game._ConflictCore";
+    if (target === (Game && Game.ConflictCore)) return "Game.ConflictCore";
+    if (target === (Game && Game.__S)) return "Game.__S";
+    if (target === (Game && Game.__A)) return "Game.__A";
+    if (target === (Game && Game.__D)) return "Game.__D";
+    return "protected";
+  }
+
+  function handleGlobalTamper(target, prop, action){
+    if (!isProtectedSurface(target)) return;
+    emitTamperDetected({ key: `${describeSurface(target)}.${String(prop || "<?>")}`, action });
+  }
+
+  (function wrapGlobalTamperHooks(){
+    if (typeof Object === "undefined") return;
+    if (!Object.defineProperty.__intrusionWrapped) {
+      const original = Object.defineProperty;
+      Object.defineProperty = function(target, prop, descriptor){
+        handleGlobalTamper(target, prop, "defineProperty");
+        return original.call(Object, target, prop, descriptor);
+      };
+      try { Object.defineProperty.__intrusionWrapped = true; } catch (_) {}
+    }
+    if (!Object.defineProperties.__intrusionWrapped) {
+      const original = Object.defineProperties;
+      Object.defineProperties = function(target, props){
+        handleGlobalTamper(target, Object.keys(props || {}).join(","), "defineProperties");
+        return original.call(Object, target, props);
+      };
+      try { Object.defineProperties.__intrusionWrapped = true; } catch (_) {}
+    }
+    if (!Object.setPrototypeOf.__intrusionWrapped) {
+      const original = Object.setPrototypeOf;
+      Object.setPrototypeOf = function(target, proto){
+        handleGlobalTamper(target, "__proto__", "setPrototypeOf");
+        return original.call(Object, target, proto);
+      };
+      try { Object.setPrototypeOf.__intrusionWrapped = true; } catch (_) {}
+    }
+  })();
 
   function emitStatDelta(kind, delta, meta){
     if (!kind || !Number.isFinite(Number(delta || 0))) return;
     const diff = (delta | 0);
     if (!diff) return;
     try {
-      if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
-      if (!Array.isArray(Game.Debug.toastLog)) Game.Debug.toastLog = [];
-      Game.Debug.toastLog.push({
+      if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+      if (!Array.isArray(Game.__D.toastLog)) Game.__D.toastLog = [];
+      Game.__D.toastLog.push({
         time: Date.now(),
         kind: String(kind),
         delta: diff,
         reason: meta && meta.reason ? String(meta.reason) : null,
         battleId: (meta && meta.battleId != null) ? meta.battleId : null,
       });
-      if (Game.Debug.toastLog.length > 300) {
-        Game.Debug.toastLog.splice(0, Game.Debug.toastLog.length - 300);
+      if (Game.__D.toastLog.length > 300) {
+        Game.__D.toastLog.splice(0, Game.__D.toastLog.length - 300);
       }
     } catch (_) {}
     try {
@@ -535,6 +1080,33 @@ window.Game = window.Game || {};
   };
 
   guardPointsObject(State.me, "State.me.points");
+  let _stateRepValue = Number.isFinite(State.rep) ? (State.rep | 0) : 0;
+  let _repWriteDepth = 0;
+  function withRepWrite(fn){
+    _repWriteDepth++;
+    try { return fn(); }
+    finally { _repWriteDepth = Math.max(0, _repWriteDepth - 1); }
+  }
+  function canWriteRep(){
+    return _repWriteDepth > 0 || isDevFlag();
+  }
+  function sanitizeRepValue(v){
+    return Number.isFinite(Number(v)) ? (Number(v) | 0) : 0;
+  }
+  Object.defineProperty(State, "rep", {
+    configurable: true,
+    enumerable: true,
+    get(){ return _stateRepValue; },
+    set(v){
+      const next = sanitizeRepValue(v);
+      if (!canWriteRep()) {
+        const reason = Number.isFinite(Number(v)) ? "unauthorized_rep_write" : "invalid_number";
+        emitInvalidMutation("State.rep", next, reason);
+        return;
+      }
+      _stateRepValue = Math.max(0, next);
+    }
+  });
 
   function resetAll(){
     State.isStarted = false;
@@ -553,7 +1125,9 @@ window.Game = window.Game || {};
 
       locationId: "plaza",
     };
-    State.rep = 0;
+    withRepWrite(() => {
+      State.rep = 0;
+    });
     State.influence = 0;
     State.players = {};
     State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
@@ -1274,8 +1848,8 @@ window.Game = window.Game || {};
       let wasVictimized = false;
       
       // Проверяем moneyLog на robbery/theft от этого конкретного NPC
-      if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) {
-        const theftLogs = Game.Debug.moneyLog.filter(l => 
+      if (Game.__D && Array.isArray(Game.__D.moneyLog)) {
+        const theftLogs = Game.__D.moneyLog.filter(l => 
           l && l.sourceId === "me" && l.targetId === npcId &&
           (l.reason && (l.reason.includes("toxic") || l.reason.includes("bandit") || l.reason.includes("robbery") || l.reason.includes("steal")))
         );
@@ -1297,6 +1871,20 @@ window.Game = window.Game || {};
   }
 
   function applyReportByRole(role, opts = null){
+    if (!Security.isSafe()) {
+      Security.emit("tamper_function", { key: "applyReportByRole", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
+      return { ok: false, reason: "security_tamper" };
+    }
+    const rl = Security.rateLimit("report_submit", {
+      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+      reason: "report_submit",
+      actionId: opts && opts.actionId,
+      battleId: opts && opts.battleId
+    }, { max: 1, windowMs: 4000, burst: 1 });
+    if (!rl.ok) {
+      Security.emit("rate_limit", { action: "report_submit", reason: "report_submit", key: rl.key, resetIn: rl.resetIn });
+      return { ok: false, reason: "rate_limited" };
+    }
     const raw = String(role || "").trim();
     const r = raw.toLowerCase();
     // normalize synonyms
@@ -1445,7 +2033,7 @@ window.Game = window.Game || {};
 
       // Ensure debug logs and toasts reflect the penalty even if econ path is silent.
       try {
-        const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+        const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
         dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
         dbg.moneyLog.push({
           time: Date.now(),
@@ -1505,7 +2093,7 @@ window.Game = window.Game || {};
         } catch (_) {}
         // Fallback logging: ensure debug logs / toasts reflect the rep transfer if econ didn't
         try {
-          const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+          const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
           dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
           const existsRep = dbg.moneyLog.some(x => x && String(x.reason || "") === "rep_report_true" && String(x.eventId||x.battleId||"") === String(reportId || ""));
           if (!existsRep) {
@@ -1534,7 +2122,7 @@ window.Game = window.Game || {};
         let repSum = 0;
         let ptsSum = 0;
         try {
-          const logs = (Game && Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+          const logs = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
           const bidStr = String(reportId || "");
           for (const L of logs) {
             if (!L) continue;
@@ -1572,7 +2160,7 @@ window.Game = window.Game || {};
               addPoints(returnAmount, "cop_compensation_return");
               // Fallback: log the refund in debug moneyLog/toastLog
               try {
-                const dbg = (Game && Game.Debug) ? Game.Debug : (window.Game.Debug = window.Game.Debug || {});
+                const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
                 dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
                 dbg.moneyLog.push({
                   time: Date.now(),
@@ -1589,8 +2177,8 @@ window.Game = window.Game || {};
             }
             // P0-2: grant extra +1 REP and +1 point (bonus) for victim case
             try {
-              if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-                Game.StateAPI.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
+              if (Game.__A && typeof Game.__A.transferRep === "function") {
+                Game.__A.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
               }
             } catch (_) {}
             // Apply +1 point bonus
@@ -1676,7 +2264,11 @@ window.Game = window.Game || {};
     });
   }
 
-  function addPoints(amount, reason){
+  function addPoints(amount, reason, meta){
+    if (!Security.isSafe()) {
+      Security.emit("tamper_function", { key: "addPoints", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
+      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    }
     const cfg = getPointsConfig();
     // Capture beforePoints early so circulation branch can compute overflow reliably.
     const beforePoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
@@ -1687,87 +2279,129 @@ window.Game = window.Game || {};
     };
     const n = Number(amount || 0);
     if (!Number.isFinite(n) || n === 0) return 0;
+    const rl = Security.rateLimit("points_add", {
+      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+      reason: reason || "addPoints",
+      battleId: meta && meta.battleId,
+      actionId: meta && meta.actionId
+    }, { max: 1, windowMs: 900, burst: 1 });
+    if (!rl.ok) {
+      Security.emit("rate_limit", { action: "points_add", reason: reason || "addPoints", battleId: meta && meta.battleId, key: rl.key, resetIn: rl.resetIn });
+      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    }
     if (isCirculationEnabled() && !pointsWriteDepth) {
       const r = String(reason || "").toLowerCase();
       const allow = r.startsWith("dev") || r.includes("migration") || r.includes("init") || !State.isStarted;
       if (!allow) return rejectPointsWrite(`addPoints:${reason || "unknown"}`) ? 0 : 0;
     }
-    if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
-    if (isCirculationEnabled()) {
-      withPointsWrite(() => {
-        State.me.points = (State.me.points || 0) + (n | 0);
-        State.points.overflow = 0;
-        State.points.capNote = "";
-      });
+    const guardMeta = {
+      reason: reason || "addPoints",
+      actionId: meta && meta.actionId,
+      battleId: meta && meta.battleId,
+      context: meta && meta.context,
+    };
+    const guard = ResourceValidator.claim("points", guardMeta);
+    if (!guard.ok) {
+      const current = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+      return current;
+    }
+    let success = false;
+    try {
+      if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
+      if (isCirculationEnabled()) {
+        withPointsWrite(() => {
+          State.me.points = (State.me.points || 0) + (n | 0);
+          State.points.overflow = 0;
+          State.points.capNote = "";
+        });
+        syncMeToPlayers();
+        ensureNonNegativePoints();
+        // When circulation is enabled, still support overflow->REP conversion:
+        try {
+          const cfg2 = getPointsConfig();
+          const cap2 = (cfg2 && Number.isFinite(cfg2.softCap)) ? (cfg2.softCap | 0) : ((Game.Data && Number.isFinite(Game.Data.POINTS_SOFT_CAP)) ? (Game.Data.POINTS_SOFT_CAP|0) : 20);
+          const before = (typeof beforePoints !== "undefined" && Number.isFinite(beforePoints)) ? (beforePoints | 0) : ((State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0) - (n|0);
+          const total = before + (n|0);
+          let overflow = Math.max(0, total - cap2);
+          const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP)) ? (Game.Data.OVERPOINTS_TO_REP | 0) : 5;
+          const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
+          if (repGain > 0) {
+            overflow -= (repGain * step);
+            try {
+              const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
+              if (Game && Game.__A && typeof Game.__A.transferRep === "function") {
+                Game.__A.transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
+              } else {
+                transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
+              }
+            } catch (_) {}
+            // Per spec: on conversion, reset overflow to 0.
+            overflow = 0;
+          }
+          const finalOverflow = Math.max(0, overflow | 0);
+          State.points.overflow = finalOverflow;
+          State.overPoints = finalOverflow;
+          State.pointsCapActive = ((State.me && Number.isFinite(State.me.points) ? (State.me.points|0) : 0) >= cap2);
+        } catch (_) {}
+        success = true;
+        return finalizePoints();
+      }
+      const cap = (cfg.softCap | 0);
+      let base = (State.me.points || 0) | 0;
+      let overflow = (State.points.overflow || 0) | 0;
+      const total = base + (n | 0);
+      if (total <= cap) {
+        base = total;
+      } else {
+        base = cap;
+        overflow += (total - cap);
+      }
+      // Variant B: convert overPoints to +1 ⭐ REP per N (default 5), not influence
+      const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP))
+        ? (Game.Data.OVERPOINTS_TO_REP | 0)
+        : 5;
+      const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
+      if (repGain > 0) {
+        overflow -= (repGain * step);
+        try {
+          const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
+          transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
+        } catch (_) {}
+        // Reset overflow on conversion (spec: clear overPoints after conversion)
+        overflow = 0;
+      }
+      State.me.points = base;
+      // Store final overflow (zero if conversion occurred)
+      State.points.overflow = Math.max(0, overflow | 0);
+      State.overPoints = Math.max(0, State.points.overflow | 0);
+      State.pointsCapActive = (base >= cap);
+      State.points.capNote = (base >= cap) ? "Кап: каждые 5 💰 -> +1 ⭐." : "";
       syncMeToPlayers();
       ensureNonNegativePoints();
-      // When circulation is enabled, still support overflow->REP conversion:
-      try {
-        const cfg2 = getPointsConfig();
-        const cap2 = (cfg2 && Number.isFinite(cfg2.softCap)) ? (cfg2.softCap | 0) : ((Game.Data && Number.isFinite(Game.Data.POINTS_SOFT_CAP)) ? (Game.Data.POINTS_SOFT_CAP|0) : 20);
-        const before = (typeof beforePoints !== "undefined" && Number.isFinite(beforePoints)) ? (beforePoints | 0) : ((State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0) - (n|0);
-        const total = before + (n|0);
-        let overflow = Math.max(0, total - cap2);
-        const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP)) ? (Game.Data.OVERPOINTS_TO_REP | 0) : 5;
-        const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
-        if (repGain > 0) {
-          overflow -= (repGain * step);
-          try {
-            const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
-            if (Game && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-              Game.StateAPI.transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
-            } else {
-              transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
-            }
-          } catch (_) {}
-          // Per spec: on conversion, reset overflow to 0.
-          overflow = 0;
-        }
-        const finalOverflow = Math.max(0, overflow | 0);
-        State.points.overflow = finalOverflow;
-        State.overPoints = finalOverflow;
-        State.pointsCapActive = ((State.me && Number.isFinite(State.me.points) ? (State.me.points|0) : 0) >= cap2);
-      } catch (_) {}
+      success = true;
       return finalizePoints();
+    } finally {
+      ResourceValidator.release(guard.key, success);
     }
-    const cap = (cfg.softCap | 0);
-    let base = (State.me.points || 0) | 0;
-    let overflow = (State.points.overflow || 0) | 0;
-    const total = base + (n | 0);
-    if (total <= cap) {
-      base = total;
-    } else {
-      base = cap;
-      overflow += (total - cap);
-    }
-    // Variant B: convert overPoints to +1 ⭐ REP per N (default 5), not influence
-    const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP))
-      ? (Game.Data.OVERPOINTS_TO_REP | 0)
-      : 5;
-    const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
-    if (repGain > 0) {
-      overflow -= (repGain * step);
-      try {
-        const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
-        transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
-      } catch (_) {}
-      // Reset overflow on conversion (spec: clear overPoints after conversion)
-      overflow = 0;
-    }
-    State.me.points = base;
-    // Store final overflow (zero if conversion occurred)
-    State.points.overflow = Math.max(0, overflow | 0);
-    State.overPoints = Math.max(0, State.points.overflow | 0);
-    State.pointsCapActive = (base >= cap);
-    State.points.capNote = (base >= cap) ? "Кап: каждые 5 💰 -> +1 ⭐." : "";
-    syncMeToPlayers();
-    ensureNonNegativePoints();
-    return finalizePoints();
   }
 
-  function spendPoints(amount, reason){
+  function spendPoints(amount, reason, meta){
+    if (!Security.isSafe()) {
+      Security.emit("tamper_function", { key: "spendPoints", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
+      return false;
+    }
     const n = Number(amount || 0);
     if (!Number.isFinite(n) || n <= 0) return true;
+    const rl = Security.rateLimit("points_spend", {
+      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+      reason: reason || "spendPoints",
+      battleId: meta && meta.battleId,
+      actionId: meta && meta.actionId
+    }, { max: 1, windowMs: 900, burst: 1 });
+    if (!rl.ok) {
+      Security.emit("rate_limit", { action: "points_spend", reason: reason || "spendPoints", battleId: meta && meta.battleId, key: rl.key, resetIn: rl.resetIn });
+      return false;
+    }
     if (isCirculationEnabled() && !pointsWriteDepth) {
       const r = String(reason || "").toLowerCase();
       const allow = r.startsWith("dev") || r.includes("migration") || r.includes("init") || !State.isStarted;
@@ -1776,19 +2410,33 @@ window.Game = window.Game || {};
     const cur = (State.me.points || 0) | 0;
     if (cur < n) return false;
     const beforePoints = cur;
-    withPointsWrite(() => {
-      State.me.points = cur - (n | 0);
-      if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
-      State.points.overflow = 0;
-      State.points.capNote = "";
-    });
-    State.overPoints = 0;
-    State.pointsCapActive = false;
-    syncMeToPlayers();
-    ensureNonNegativePoints();
-    const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    emitStatDelta("points", afterPoints - beforePoints, { reason: reason || "spendPoints" });
-    return true;
+    const guardMeta = {
+      reason: reason || "spendPoints",
+      actionId: meta && meta.actionId,
+      battleId: meta && meta.battleId,
+      context: meta && meta.context,
+    };
+    const guard = ResourceValidator.claim("points", guardMeta);
+    if (!guard.ok) return false;
+    let success = false;
+    try {
+      withPointsWrite(() => {
+        State.me.points = cur - (n | 0);
+        if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
+        State.points.overflow = 0;
+        State.points.capNote = "";
+      });
+      State.overPoints = 0;
+      State.pointsCapActive = false;
+      syncMeToPlayers();
+      ensureNonNegativePoints();
+      const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+      emitStatDelta("points", afterPoints - beforePoints, { reason: reason || "spendPoints" });
+      success = true;
+      return true;
+    } finally {
+      ResourceValidator.release(guard.key, success);
+    }
   }
 
   function syncMeToPlayers(){
@@ -1817,9 +2465,9 @@ window.Game = window.Game || {};
     State.me.locationId = id;
   }
 
-  Game.State = State;
+  Security.defineHandleProp("__S", State);
   Game._withPointsWrite = withPointsWrite;
-  Game.StateAPI = {
+  const StateAPI = {
     resetAll,
     seedPlayers,
     pushChat,
@@ -1950,7 +2598,7 @@ window.Game = window.Game || {};
 
     // Ensures event vote containers exist without replacing event object
     ensureEventVoteContainers: (eventId) => {
-      const ev = (typeof eventId === "object") ? eventId : (Game.StateAPI.findEventById ? Game.StateAPI.findEventById(eventId) : null);
+      const ev = (typeof eventId === "object") ? eventId : (Game.__A.findEventById ? Game.__A.findEventById(eventId) : null);
       if (!ev) return null;
       if (!ev.crowd || typeof ev.crowd !== "object") ev.crowd = {};
       if (!ev.votes || typeof ev.votes !== "object") ev.votes = { a: 0, b: 0, by: {} };
@@ -2005,6 +2653,7 @@ window.Game = window.Game || {};
       State.lottery.lastAt = Date.now();
     },
   };
+  Security.defineHandleProp("__A", StateAPI);
 
   function readCrowdCore(){
     return (Game && (Game.ConflictCore || Game._ConflictCore)) ? (Game.ConflictCore || Game._ConflictCore) : null;
@@ -2012,8 +2661,8 @@ window.Game = window.Game || {};
 
   function bindCrowdCoreFunctions(){
     const core = readCrowdCore();
-    if (!Game.StateAPI) Game.StateAPI = {};
-    Game.StateAPI.applyCrowdVoteTick = (battleId) => {
+    if (!Game.__A) Game.__A = {};
+    Game.__A.applyCrowdVoteTick = (battleId) => {
       try {
         if (!core || typeof core.applyCrowdVoteTick !== "function") return null;
         return core.applyCrowdVoteTick(battleId);
@@ -2021,7 +2670,7 @@ window.Game = window.Game || {};
         return null;
       }
     };
-    Game.StateAPI.finalizeCrowdVote = (battleId) => {
+    Game.__A.finalizeCrowdVote = (battleId) => {
       try {
         if (!core || typeof core.finalizeCrowdVote !== "function") return null;
         return core.finalizeCrowdVote(battleId);
@@ -2031,5 +2680,17 @@ window.Game = window.Game || {};
     };
   }
 
+  const debugStore = Game.__D || {};
+  Security.defineHandleProp("__D", debugStore);
+  Security.defineHandleProp("__SEC", Security.store);
+  defineGameSurfaceProp("State", "__S");
+  defineGameSurfaceProp("Debug", "__D");
+  defineGameSurfaceProp("StateAPI", "__A");
+
   bindCrowdCoreFunctions();
+  Security.protectMethod(StateAPI, "addPoints", addPoints, "StateAPI.addPoints");
+  Security.protectMethod(StateAPI, "spendPoints", spendPoints, "StateAPI.spendPoints");
+  Security.protectMethod(StateAPI, "transferRep", transferRep, "StateAPI.transferRep");
+  Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
+  Security.finishBoot();
 })();

@@ -15,7 +15,7 @@
 
   function isCirculationEnabled(){
     const D = getData();
-    const dbg = (Game && Game.Debug) ? Game.Debug : null;
+    const dbg = (Game && Game.__D) ? Game.__D : null;
     if (dbg && dbg.FORCE_CIRCULATION === true) {
       if (dbg._econModeLogged !== "cir") {
         dbg._econModeLogged = "cir";
@@ -35,26 +35,26 @@
   }
 
   function ensureDebugStore(){
-    if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
-    if (Game.Debug.moneyLog == null) {
-      Game.Debug.moneyLog = [];
-    } else if (!Array.isArray(Game.Debug.moneyLog)) {
+    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+    if (Game.__D.moneyLog == null) {
+      Game.__D.moneyLog = [];
+    } else if (!Array.isArray(Game.__D.moneyLog)) {
       try {
-        const prev = Game.Debug.moneyLog;
+        const prev = Game.__D.moneyLog;
         console.warn("[DEV] Econ moneyLog reset (was non-array)", typeof prev, prev && Object.keys(prev || {}).slice(0, 5));
       } catch (_) {}
-      Game.Debug.moneyLog = [];
+      Game.__D.moneyLog = [];
     }
-    if (Game.Debug.moneyLogByBattle == null) {
-      Game.Debug.moneyLogByBattle = {};
-    } else if (typeof Game.Debug.moneyLogByBattle !== "object" || Array.isArray(Game.Debug.moneyLogByBattle)) {
+    if (Game.__D.moneyLogByBattle == null) {
+      Game.__D.moneyLogByBattle = {};
+    } else if (typeof Game.__D.moneyLogByBattle !== "object" || Array.isArray(Game.__D.moneyLogByBattle)) {
       try {
-        const prev = Game.Debug.moneyLogByBattle;
+        const prev = Game.__D.moneyLogByBattle;
         console.warn("[DEV] Econ moneyLogByBattle reset (was non-object)", typeof prev);
       } catch (_) {}
-      Game.Debug.moneyLogByBattle = {};
+      Game.__D.moneyLogByBattle = {};
     }
-    return Game.Debug;
+    return Game.__D;
   }
 
   function normalizeCrowdKey(poolId){
@@ -104,7 +104,7 @@
     }
     if (key === "crowd") return pools.crowd;
     if (key === "sink") return pools.sink;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     if (!S) return null;
     if (key === "me") {
       if (S.players && S.players.me && typeof S.players.me.points === "number") return S.players.me;
@@ -167,7 +167,7 @@
   };
 
   E.sumPointsSnapshot = function (){
-    const S = Game.State || {};
+    const S = Game.__S || {};
     const players = S.players || {};
     let playersSum = 0;
     let npcsSum = 0;
@@ -279,7 +279,7 @@
     try {
       const r = String(reason || "");
       if (r.startsWith("battle_") && (!meta || !meta.battleId)) {
-        if (Game && Game.Debug && Game.Debug.FORCE_CIRCULATION === true) {
+        if (Game && Game.__D && Game.__D.FORCE_CIRCULATION === true) {
           let stackHead = "";
           try {
             const err = new Error();
@@ -329,7 +329,7 @@
       // UI reads points from State.me, while Econ often mutates State.players.me.
       try {
         if (isCirculationEnabled()) {
-          const S = Game.State || null;
+          const S = Game.__S || null;
           const touchMe = (String(fromId) === "me") || (String(toId) === "me");
           if (touchMe && S && S.me && S.players && S.players.me && typeof S.players.me.points === "number") {
             S.me.points = S.players.me.points;
@@ -351,10 +351,10 @@
     // Emit delta toast immediately for player points (no aggregation, no render-tick delay).
     try {
       const touchMe = (String(fromId) === "me") || (String(toId) === "me");
-      if (touchMe && Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
+      if (touchMe && Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
         const d = ((String(toId) === "me") ? (amt | 0) : 0) - ((String(fromId) === "me") ? (amt | 0) : 0);
         if (d) {
-          Game.StateAPI.emitStatDelta("points", d, { reason: reason || "points_transfer", battleId: meta && meta.battleId ? meta.battleId : null });
+          Game.__A.emitStatDelta("points", d, { reason: reason || "points_transfer", battleId: meta && meta.battleId ? meta.battleId : null });
         }
       }
     } catch (_) {}
@@ -387,7 +387,7 @@
     battle.startCostApplied = true;
     if (battle.id) startCostAppliedById[battle.id] = true;
 
-    const me = Game.State && Game.State.me ? Game.State.me : null;
+    const me = Game.__S && Game.__S.me ? Game.__S.me : null;
     if (!me) return;
 
     if (isCirculationEnabled()) {
@@ -421,8 +421,8 @@
 
     // If the battle is incoming (NPC attacked), there is no start cost in legacy mode.
     if (battle.fromThem === true) return;
-    const spend = (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function")
-      ? Game.StateAPI.spendPoints
+    const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
+      ? Game.__A.spendPoints
       : null;
     if (spend) spend(1, "battle_start");
     else {
@@ -431,18 +431,18 @@
       const after = Math.max(0, before - 1);
       me.points = after;
       try {
-        if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-          Game.StateAPI.emitStatDelta("points", (after - before) | 0, { reason: "battle_start", battleId: battle && (battle.id || battle.battleId || null) });
+        if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+          Game.__A.emitStatDelta("points", (after - before) | 0, { reason: "battle_start", battleId: battle && (battle.id || battle.battleId || null) });
         }
       } catch (_) {}
     }
 
     try {
-      if (Game.StateAPI && typeof Game.StateAPI.ensureNonNegativePoints === "function") {
-        Game.StateAPI.ensureNonNegativePoints();
+      if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
+        Game.__A.ensureNonNegativePoints();
       }
-      if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-        Game.StateAPI.syncMeToPlayers();
+      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        Game.__A.syncMeToPlayers();
       }
     } catch (_) {}
   };
@@ -459,9 +459,9 @@
     try {
       if (Game.UI && typeof Game.UI.pushSystem === "function") {
         Game.UI.pushSystem(line);
-      } else if (Game.StateAPI && typeof Game.StateAPI.pushChat === "function") {
+      } else if (Game.__A && typeof Game.__A.pushChat === "function") {
         // keep perfect punctuation for system lines
-        Game.StateAPI.pushChat("Система", line, { system: true });
+        Game.__A.pushChat("Система", line, { system: true });
       }
     } catch (_) {}
   }
@@ -533,7 +533,7 @@
     if (battle.economyApplied) return;
     battle.economyApplied = true;
 
-    const me = Game.State && Game.State.me ? Game.State.me : null;
+    const me = Game.__S && Game.__S.me ? Game.__S.me : null;
     if (!me) return;
 
     if (typeof me.points !== "number") me.points = 0;
@@ -544,21 +544,21 @@
     const res = String(battle.result || "");
 
     const D = (Game && Game.Data) ? Game.Data : null;
-    const addPts = (Game.StateAPI && typeof Game.StateAPI.addPoints === "function")
-      ? Game.StateAPI.addPoints
+    const addPts = (Game.__A && typeof Game.__A.addPoints === "function")
+      ? Game.__A.addPoints
       : null;
 
-    const transferRep = (Game.StateAPI && typeof Game.StateAPI.transferRep === "function")
-      ? Game.StateAPI.transferRep
+    const transferRep = (Game.__A && typeof Game.__A.transferRep === "function")
+      ? Game.__A.transferRep
       : null;
-    const dailyBonus = (Game.StateAPI && typeof Game.StateAPI.maybeDailyRepBonus === "function")
-      ? Game.StateAPI.maybeDailyRepBonus
+    const dailyBonus = (Game.__A && typeof Game.__A.maybeDailyRepBonus === "function")
+      ? Game.__A.maybeDailyRepBonus
       : null;
 
     function syncAndRenderNow(){
       try {
-        if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-          Game.StateAPI.syncMeToPlayers();
+        if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+          Game.__A.syncMeToPlayers();
         }
       } catch (_) {}
       // Force immediate UI update so stat counters + delta-toasts update instantly.
@@ -597,8 +597,8 @@
         try {
           const beforeWins = (me.wins | 0);
           me.wins = beforeWins + 1;
-          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-            Game.StateAPI.emitStatDelta("wins", 1, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("wins", 1, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
           }
         } catch (_) { try { me.wins += 1; } catch (_) {} }
         try { maybeUnlocks(me); } catch (_) {}
@@ -634,15 +634,15 @@
         const beforePts = (me.points | 0);
         me.points = Math.max(0, beforePts + gain);
         try {
-          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-            Game.StateAPI.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
           }
         } catch (_) {}
       }
       try {
         me.wins = (me.wins | 0) + 1;
-        if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-          Game.StateAPI.emitStatDelta("wins", 1, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
+        if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+          Game.__A.emitStatDelta("wins", 1, { reason: "battle_win", battleId: battle.id || battle.battleId || null });
         }
       } catch (_) { try { me.wins += 1; } catch (_) {} }
       
@@ -660,7 +660,7 @@
       else if (Math.abs(delta) <= 1) repGain = 1;
       else if (delta <= -2) repGain = 2;
       try {
-        const opp = (Game.State && Game.State.players && battle.opponentId) ? Game.State.players[battle.opponentId] : null;
+        const opp = (Game.__S && Game.__S.players && battle.opponentId) ? Game.__S.players[battle.opponentId] : null;
         const oppInf = (opp && Number.isFinite(opp.influence)) ? (opp.influence | 0) : 0;
         const myInf = (me && Number.isFinite(me.influence)) ? (me.influence | 0) : 0;
         const tierDiff = oppInf - myInf;
@@ -685,8 +685,8 @@
           const afterInf = Math.max(0, beforeInf - (INF_PRESSURE_WIN_COST | 0));
           me.influence = afterInf;
           try {
-            if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-              Game.StateAPI.emitStatDelta("influence", (afterInf - beforeInf) | 0, { reason: "inf_pressure_win", battleId: battle.id || battle.battleId || null });
+            if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+              Game.__A.emitStatDelta("influence", (afterInf - beforeInf) | 0, { reason: "inf_pressure_win", battleId: battle.id || battle.battleId || null });
             }
           } catch (_) {}
           if (repGain > REP_PRESSURE_WIN_CAP) repGain = REP_PRESSURE_WIN_CAP;
@@ -712,8 +712,8 @@
       maybeUnlocks(me);
 
       try {
-        if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-          Game.StateAPI.syncMeToPlayers();
+        if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+          Game.__A.syncMeToPlayers();
         }
       } catch (_) {}
 
@@ -728,8 +728,8 @@
       try {
         if (addPts) {
           addPts(2, "battle_win_points");
-        } else if (Game && Game.StateAPI && typeof Game.StateAPI.addPoints === "function") {
-          Game.StateAPI.addPoints(2, "battle_win_points");
+        } else if (Game && Game.__A && typeof Game.__A.addPoints === "function") {
+          Game.__A.addPoints(2, "battle_win_points");
         }
       } catch (_) {}
 
@@ -772,12 +772,12 @@
             transferRep("crowd_pool", "me", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
           } else if (Math.abs(delta) <= 1) {
             // Проиграл равному: -1 REP (only if available)
-            if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 1) {
+            if ((Game && Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0 >= 1) {
               transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
             }
           } else if (delta >= 2) {
             // Проиграл более слабому: -2 REP (only if available)
-            if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 2) {
+            if ((Game && Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0 >= 2) {
               transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
             }
           }
@@ -793,8 +793,8 @@
         const beforePts = (me.points | 0);
         me.points = Math.max(0, beforePts + gain);
         try {
-          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-            Game.StateAPI.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_lose", battleId: battle.id || battle.battleId || null });
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_lose", battleId: battle.id || battle.battleId || null });
           }
         } catch (_) {}
       }
@@ -807,12 +807,12 @@
           transferRep("crowd_pool", "me", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
         } else if (Math.abs(delta) <= 1) {
           // Проиграл равному: -1 REP (only if available)
-          if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 1) {
+          if ((Game && Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0 >= 1) {
             transferRep("me", "crowd_pool", 1, "rep_battle_lose_delta", battle.id || battle.battleId || null);
           }
         } else if (delta >= 2) {
           // Проиграл более слабому: -2 REP (only if available)
-          if ((Game && Game.State && Number.isFinite(Game.State.rep)) ? (Game.State.rep | 0) : 0 >= 2) {
+          if ((Game && Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0 >= 2) {
             transferRep("me", "crowd_pool", 2, "rep_battle_lose_delta", battle.id || battle.battleId || null);
           }
         }
@@ -821,8 +821,8 @@
       if (dailyBonus) dailyBonus();
 
       try {
-        if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-          Game.StateAPI.syncMeToPlayers();
+        if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+          Game.__A.syncMeToPlayers();
         }
       } catch (_) {}
 
@@ -865,8 +865,8 @@
         // Circulation mode: also grant REP for draw if configured (mirror legacy behavior).
         try {
           const repGain = (D0 && Number.isFinite(D0.REP_DRAW)) ? (D0.REP_DRAW | 0) : 0;
-          if (repGain > 0 && Game && Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-            Game.StateAPI.transferRep("crowd_pool", "me", repGain, "rep_battle_draw", battle.id || battle.battleId || null);
+          if (repGain > 0 && Game && Game.__A && typeof Game.__A.transferRep === "function") {
+            Game.__A.transferRep("crowd_pool", "me", repGain, "rep_battle_draw", battle.id || battle.battleId || null);
           }
         } catch (_) {}
         syncAndRenderNow();
@@ -879,8 +879,8 @@
         const beforePts = (me.points | 0);
         me.points = Math.max(0, beforePts + gain);
         try {
-          if (Game && Game.StateAPI && typeof Game.StateAPI.emitStatDelta === "function") {
-            Game.StateAPI.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_draw", battleId: battle.id || battle.battleId || null });
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("points", (me.points | 0) - beforePts, { reason: "battle_draw", battleId: battle.id || battle.battleId || null });
           }
         } catch (_) {}
       }
@@ -902,7 +902,7 @@
 
   // Expose helper for UI if needed
   E.maybeUnlocks = function () {
-    const me = Game.State && Game.State.me ? Game.State.me : null;
+    const me = Game.__S && Game.__S.me ? Game.__S.me : null;
     if (!me) return;
     maybeUnlocks(me);
   };

@@ -59,7 +59,7 @@ window.Game = window.Game || {};
     }
 
     function getStateSafe() {
-      return (window.Game && Game.State) ? Game.State : null;
+      return (window.Game && Game.__S) ? Game.__S : null;
     }
 
     function getNpcRuntime() {
@@ -255,9 +255,9 @@ window.Game = window.Game || {};
       } catch (_) {}
     }
 
-    // Helper: is the session started (prefer canonical Game.State)
+    // Helper: is the session started (prefer canonical Game.__S)
     const isLive = () => {
-      const st = (window.Game && Game.State) ? Game.State : null;
+      const st = (window.Game && Game.__S) ? Game.__S : null;
       if (st && st.me && st.me.name) return true;
       return !!(S && S.me && S.me.name);
     };
@@ -265,7 +265,7 @@ window.Game = window.Game || {};
     // Helper: avoid re-rendering the UI only while the player is actively choosing a button.
     // IMPORTANT: do NOT block during draw/crowd/crowdVote, otherwise timers freeze at "0s".
     const isInBattleDecision = () => {
-      const st = (window.Game && Game.State) ? Game.State : null;
+      const st = (window.Game && Game.__S) ? Game.__S : null;
       const battles = st && Array.isArray(st.battles) ? st.battles : null;
       if (!battles || battles.length === 0) return false;
       return battles.some(b => {
@@ -276,7 +276,7 @@ window.Game = window.Game || {};
 
     // Separate guard: any battle state at all (used only where we truly must pause spam)
     const hasAnyBattleState = () => {
-      const st = (window.Game && Game.State) ? Game.State : null;
+      const st = (window.Game && Game.__S) ? Game.__S : null;
       const battles = st && Array.isArray(st.battles) ? st.battles : null;
       if (!battles || battles.length === 0) return false;
       return battles.some(b => !!(b && b.status));
@@ -311,9 +311,9 @@ window.Game = window.Game || {};
 
       // Apply canonical NPC cooldowns (tempo reduced x2 vs v1.0)
       try {
-        if (Game.StateAPI && typeof Game.StateAPI.setNpcCooldowns === "function") {
+        if (Game.__A && typeof Game.__A.setNpcCooldowns === "function") {
           // Chat roughly 3-20s, actions roughly 25-55s (x2 activity)
-          Game.StateAPI.setNpcCooldowns({ chatMs: 3000, actionMs: 25000 });
+          Game.__A.setNpcCooldowns({ chatMs: 3000, actionMs: 25000 });
         }
       } catch (_) {}
       try {
@@ -357,7 +357,7 @@ window.Game = window.Game || {};
 
         // Global NPC chat cooldown guard (prevents bursts across restarts)
         try {
-          if (Game.StateAPI && typeof Game.StateAPI.canNpcChat === "function" && !Game.StateAPI.canNpcChat()) {
+          if (Game.__A && typeof Game.__A.canNpcChat === "function" && !Game.__A.canNpcChat()) {
             npcChatTimer = setTimeout(() => scheduleNpcChat(), 1200);
             return;
           }
@@ -379,7 +379,7 @@ window.Game = window.Game || {};
               }
               if (npc && npc.name) {
                 try {
-                  if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function" && Game.StateAPI.isNpcJailed(npc.id)) {
+                  if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(npc.id)) {
                     scheduleNpcChat();
                     return;
                   }
@@ -387,7 +387,7 @@ window.Game = window.Game || {};
                 const text = Game.NPC.generateChatLine(npc);
                 if (text != null && String(text).trim().length > 0) {
                   UI.pushChat({ name: npc.name, text: String(text), system: false });
-                  try { if (Game.StateAPI && typeof Game.StateAPI.markNpcChat === "function") Game.StateAPI.markNpcChat(); } catch (_) {}
+                  try { if (Game.__A && typeof Game.__A.markNpcChat === "function") Game.__A.markNpcChat(); } catch (_) {}
                 }
               }
             }
@@ -419,7 +419,7 @@ window.Game = window.Game || {};
             ? Game.NPC.pickReactingNpc()
             : null;
           if (!npc || !npc.id || !npc.name) { scheduleNpcDm(); return; }
-          if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function" && Game.StateAPI.isNpcJailed(npc.id)) {
+          if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(npc.id)) {
             scheduleNpcDm();
             return;
           }
@@ -437,8 +437,8 @@ window.Game = window.Game || {};
               text = Game.NPC.generateDmLine(npc);
             }
           }
-          if (text && Game.StateAPI && typeof Game.StateAPI.pushDm === "function") {
-            Game.StateAPI.pushDm(npc.id, npc.name, String(text), { isSystem: false, playerId: npc.id });
+          if (text && Game.__A && typeof Game.__A.pushDm === "function") {
+            Game.__A.pushDm(npc.id, npc.name, String(text), { isSystem: false, playerId: npc.id });
             st.npc.lastDmAt = Date.now();
           }
         } catch (_) {}
@@ -447,7 +447,7 @@ window.Game = window.Game || {};
     }
 
     function pickBattleOpponentId(excludeIds) {
-      const st = (window.Game && Game.State) ? Game.State : null;
+      const st = (window.Game && Game.__S) ? Game.__S : null;
       const players = st && st.players ? st.players : null;
       if (!players) return null;
 
@@ -465,7 +465,7 @@ window.Game = window.Game || {};
         if (!isNpc) return false;
         const role = (p && (p.role || p.type)) ? String(p.role || p.type) : "";
         try {
-          if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function" && Game.StateAPI.isNpcJailed(id)) return false;
+          if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(id)) return false;
         } catch (_) {}
         try {
           const cdMap = st.battleCooldowns || {};
@@ -705,28 +705,28 @@ window.Game = window.Game || {};
 
             if (battle && oppId) {
               markNpcBattleAct();
-              try { if (Game.StateAPI && typeof Game.StateAPI.markNpcAction === "function") Game.StateAPI.markNpcAction(); } catch (_) {}
+              try { if (Game.__A && typeof Game.__A.markNpcAction === "function") Game.__A.markNpcAction(); } catch (_) {}
               // If Bandit initiated, add a short local cooldown to avoid clustering
               try {
-                const st2 = (window.Game && Game.State) ? Game.State : null;
+                const st2 = (window.Game && Game.__S) ? Game.__S : null;
                 const p2 = st2 && st2.players ? st2.players[oppId] : null;
-                if (p2 && p2.role === "bandit" && Game.StateAPI && typeof Game.StateAPI.markNpcAction === "function") {
+                if (p2 && p2.role === "bandit" && Game.__A && typeof Game.__A.markNpcAction === "function") {
                   // extra mark to space out bandit appearances
-                  Game.StateAPI.markNpcAction();
+                  Game.__A.markNpcAction();
                 }
               } catch (_) {}
               // Extra spacing for Mafioso to avoid clustering
               try {
-                const st3 = (window.Game && Game.State) ? Game.State : null;
+                const st3 = (window.Game && Game.__S) ? Game.__S : null;
                 const p3 = st3 && st3.players ? st3.players[oppId] : null;
-                if (p3 && p3.role === "mafia" && Game.StateAPI && typeof Game.StateAPI.markNpcAction === "function") {
+                if (p3 && p3.role === "mafia" && Game.__A && typeof Game.__A.markNpcAction === "function") {
                   // double mark to extend cooldown window
-                  Game.StateAPI.markNpcAction();
+                  Game.__A.markNpcAction();
                 }
               } catch (_) {}
 
               // Optional: add a short NPC line when a battle is created.
-              const st = (window.Game && Game.State) ? Game.State : null;
+              const st = (window.Game && Game.__S) ? Game.__S : null;
               const p = st && st.players ? st.players[oppId] : null;
               if (p && p.name) {
                 try {
@@ -782,7 +782,7 @@ window.Game = window.Game || {};
             scheduleNpcEventTick();
             return;
           }
-          if (Game && Game.Debug && Game.Debug.PAUSE_EVENTS === true) {
+          if (Game && Game.__D && Game.__D.PAUSE_EVENTS === true) {
             scheduleNpcEventTick();
             return;
           }
@@ -824,7 +824,7 @@ window.Game = window.Game || {};
           scheduleNpcEvent();
           return;
         }
-        if (Game && Game.Debug && Game.Debug.PAUSE_EVENTS === true) {
+        if (Game && Game.__D && Game.__D.PAUSE_EVENTS === true) {
           scheduleNpcEvent();
           return;
         }
@@ -880,8 +880,8 @@ window.Game = window.Game || {};
               if (Game.Events && typeof Game.Events.addEvent === "function") {
                 Game.Events.addEvent(ev);
               }
-              added = !!(createdEventId && Game.State && Array.isArray(Game.State.events)
-                && Game.State.events.some(x => x && x.id === createdEventId));
+              added = !!(createdEventId && Game.__S && Array.isArray(Game.__S.events)
+                && Game.__S.events.some(x => x && x.id === createdEventId));
             }
           } else {
             // Fallback maker might not return an id
@@ -894,7 +894,7 @@ window.Game = window.Game || {};
             if (added) {
               const aName = a && a.name ? String(a.name) : "";
               const bName = b && b.name ? String(b.name) : "";
-              const ev = createdEventId ? (Game.State.events || []).find(x => x && (x.id === createdEventId)) : null;
+              const ev = createdEventId ? (Game.__S.events || []).find(x => x && (x.id === createdEventId)) : null;
               const isEscape = !!(ev && (ev.kind === "escape" || ev.type === "escape"));
               const extra = (aName && bName)
                 ? ("выбирай, за кого топишь: " + aName + " или " + bName + ".")
@@ -917,7 +917,7 @@ window.Game = window.Game || {};
 
           if (added) {
             markNpcEventAct();
-            try { if (Game.StateAPI && typeof Game.StateAPI.markNpcAction === "function") Game.StateAPI.markNpcAction(); } catch (_) {}
+            try { if (Game.__A && typeof Game.__A.markNpcAction === "function") Game.__A.markNpcAction(); } catch (_) {}
           }
         } catch (e) {
           warnOnce("npcEvent", "[ui-loops] NPC event loop error", e);

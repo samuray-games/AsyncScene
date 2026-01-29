@@ -12,9 +12,9 @@
      console.error("[ConflictAPI] Missing core module", { core: !!Core });
      return;
    }
-   // Args can be optional (we can still resolve using Core.computeOutcome), but warn.
+   // Args can be optional (we can still resolve using Core.resolveBattleOutcome), but warn.
    if (!Args) {
-     console.warn("[ConflictAPI] Arguments module not found, will fallback to Core.computeOutcome()");
+     console.warn("[ConflictAPI] Arguments module not found, will fallback to Core.resolveBattleOutcome()");
    }
 
    // If API already exists, do not recreate.
@@ -28,7 +28,7 @@
         Game.UI.renderBattles();
         if (Game.UI && typeof Game.UI.renderEvents === "function") Game.UI.renderEvents();
         try {
-          const S = Game.State || {};
+          const S = Game.__S || {};
           const me = S.me || {};
           const mi = document.getElementById("meInfluence");
           const mp = document.getElementById("mePoints");
@@ -39,10 +39,10 @@
           if (mi) mi.textContent = String(me.influence || 0);
           if (mp) mp.textContent = String(me.points || 0);
           if (mw) mw.textContent = String(me.wins || 0);
-          if (mr) mr.textContent = String((Game.State && Game.State.rep) || 0);
+          if (mr) mr.textContent = String((Game.__S && Game.__S.rep) || 0);
           if (mneed) {
-            const need = (Game.StateAPI && typeof Game.StateAPI.repNeedForNextInfluence === "function")
-              ? Game.StateAPI.repNeedForNextInfluence()
+            const need = (Game.__A && typeof Game.__A.repNeedForNextInfluence === "function")
+              ? Game.__A.repNeedForNextInfluence()
               : 0;
             mneed.textContent = String(need || 0);
           }
@@ -105,13 +105,13 @@
   }
 
    function findBattle(battleId) {
-     const list = (Game.State && Array.isArray(Game.State.battles)) ? Game.State.battles : [];
+     const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
      return list.find(b => b && b.id === battleId) || null;
    }
 
    function pinBattleToTop(battleId) {
      try {
-       const S = Game.State || null;
+       const S = Game.__S || null;
        if (!S || !Array.isArray(S.battles) || !battleId) return false;
 
        const idx = S.battles.findIndex(b => b && b.id === battleId);
@@ -164,7 +164,7 @@
       crowd.voters ||= {};
 
       const countCrowdVoteCostLogs = (voterId, bid) => {
-        const dbg = (Game && Game.Debug) ? Game.Debug : null;
+        const dbg = (Game && Game.__D) ? Game.__D : null;
         if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
         return dbg.moneyLog.reduce((count, x) => {
           if (!x) return count;
@@ -176,7 +176,7 @@
       };
 
       const removeCrowdVoteCostLog = (voterId, bid) => {
-        const dbg = (Game && Game.Debug) ? Game.Debug : null;
+        const dbg = (Game && Game.__D) ? Game.__D : null;
         if (!dbg || !Array.isArray(dbg.moneyLog)) return 0;
         let removed = 0;
         const match = (x) =>
@@ -206,12 +206,12 @@
         const voterId = v.voterId || voter.id;
         if (!voterId) continue;
         if (crowd.voters && crowd.voters[voterId]) continue;
-        const stateNpc = (Game.State && Game.State.players) ? Game.State.players[voterId] : null;
+        const stateNpc = (Game.__S && Game.__S.players) ? Game.__S.players[voterId] : null;
         const beforePts = Number.isFinite(stateNpc && stateNpc.points) ? (stateNpc.points | 0) : 0;
         if (beforePts <= 0) continue;
         const costCountBefore = countCrowdVoteCostLogs(voterId, battleId);
         const ok = Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId });
-        const stateNpcAfter = (Game.State && Game.State.players) ? Game.State.players[voterId] : stateNpc;
+        const stateNpcAfter = (Game.__S && Game.__S.players) ? Game.__S.players[voterId] : stateNpc;
         const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
         const costCountAfter = countCrowdVoteCostLogs(voterId, battleId);
         if (!ok || !ok.ok || (afterPts !== (beforePts - 1))) {
@@ -357,8 +357,8 @@
      let role = "";
      if (battle) {
        role = String(battle.opponentRole || battle.role || (battle.opponent && battle.opponent.role) || "").trim();
-       if (!role && battle.opponentId && Game.State && Game.State.players) {
-         const opp = Game.State.players[battle.opponentId];
+       if (!role && battle.opponentId && Game.__S && Game.__S.players) {
+         const opp = Game.__S.players[battle.opponentId];
          if (opp && opp.role) role = String(opp.role).trim();
        }
      }
@@ -394,7 +394,7 @@
    }
 
    function canPay(cost) {
-     const pts = (Game.State && Game.State.me && Number.isFinite(Game.State.me.points)) ? Game.State.me.points : 0;
+     const pts = (Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? Game.__S.me.points : 0;
      return pts >= cost;
    }
 
@@ -405,8 +405,8 @@
      startWith(opponentId) {
        // Ensure opponent role is resolved and cached before delegating to Core
        let resolvedOpponentRole = null;
-       if (Game.State && Game.State.players && opponentId) {
-         const opp = Game.State.players[opponentId];
+       if (Game.__S && Game.__S.players && opponentId) {
+         const opp = Game.__S.players[opponentId];
          if (opp && opp.role) resolvedOpponentRole = opp.role;
        }
        // Economy + creation live in Core. API only coordinates UI/state.
@@ -420,7 +420,7 @@
        if (res && res.battle) {
          const b = res.battle;
          if (!b.opponentRole) {
-           const opp = (Game.State && Game.State.players && b.opponentId) ? Game.State.players[b.opponentId] : null;
+           const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
            if (opp && opp.role) b.opponentRole = opp.role;
          }
        }
@@ -431,12 +431,12 @@
      incoming(opponentId) {
        // Ensure opponent role is resolved and cached before delegating to Core
        let resolvedOpponentRole = null;
-       if (Game.State && Game.State.players && opponentId) {
-         const opp = Game.State.players[opponentId];
+       if (Game.__S && Game.__S.players && opponentId) {
+         const opp = Game.__S.players[opponentId];
          if (opp && opp.role) resolvedOpponentRole = opp.role;
        }
        // Cop must not initiate NPC-NPC battles
-       const oppCheck = (Game.State && Game.State.players && opponentId) ? Game.State.players[opponentId] : null;
+       const oppCheck = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
        if (oppCheck && (oppCheck.role === "cop" || oppCheck.role === "police")) {
          return null;
        }
@@ -454,7 +454,7 @@
        }
        // Ensure opponentRole is set on the battle object
        if (b && !b.opponentRole) {
-         const opp = (Game.State && Game.State.players && b.opponentId) ? Game.State.players[b.opponentId] : null;
+         const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
          if (opp && opp.role) b.opponentRole = opp.role;
        }
        render();
@@ -466,7 +466,7 @@
        if (!battle) return { ok: false, error: "no_battle" };
 
        if (!battle.opponentRole) {
-         const opp = (Game.State && Game.State.players && battle.opponentId) ? Game.State.players[battle.opponentId] : null;
+         const opp = (Game.__S && Game.__S.players && battle.opponentId) ? Game.__S.players[battle.opponentId] : null;
          if (opp && opp.role) battle.opponentRole = String(opp.role);
        }
        // Normalize role casing for consistent cost lookups
@@ -506,14 +506,14 @@
     },
 
      escapeAll() {
-       const battles = (Game.State && Array.isArray(Game.State.battles))
-         ? Game.State.battles.filter(b => b && !b.resolved && !b.finished && b.status !== "finished")
+       const battles = (Game.__S && Array.isArray(Game.__S.battles))
+         ? Game.__S.battles.filter(b => b && !b.resolved && !b.finished && b.status !== "finished")
          : [];
 
        let totalCost = 0;
        for (const b of battles) {
          if (!b.opponentRole) {
-           const opp = (Game.State && Game.State.players && b.opponentId) ? Game.State.players[b.opponentId] : null;
+           const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
            if (opp && opp.role) b.opponentRole = String(opp.role);
          }
          if (b.opponentRole) b.opponentRole = String(b.opponentRole).toLowerCase();
@@ -676,7 +676,7 @@
        battle.note = "";
 
        // Schedule simulated opponent response.
-       const opp0 = (Game.State && Game.State.players && battle.opponentId) ? Game.State.players[battle.opponentId] : null;
+       const opp0 = (Game.__S && Game.__S.players && battle.opponentId) ? Game.__S.players[battle.opponentId] : null;
        const oppRole0 = (battle.opponentRole || (opp0 && opp0.role) || "").toString().toLowerCase();
        const forceLose = (oppRole0 === "toxic" || oppRole0 === "bandit");
        const delayMs = forceLose ? 0 : (900 + Math.floor(Math.random() * 700));
@@ -693,7 +693,9 @@
            if (Core && typeof Core.applyVillainPenalty === "function") {
              Core.applyVillainPenalty(battle, "outgoing");
            }
-           if (Core && typeof Core.finalize === "function") {
+           if (Core && typeof Core.resolveBattleOutcome === "function") {
+             Core.resolveBattleOutcome(battle.id, null, { forceOutcome: "lose" });
+           } else if (Core && typeof Core.finalize === "function") {
              Core.finalize(battle.id, "lose");
            } else {
              battle.resolved = true;
@@ -725,7 +727,7 @@
            }
 
            // Determine opponent power tier and role
-           const opp = (Game.State && Game.State.players && b.opponentId) ? Game.State.players[b.opponentId] : null;
+           const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
            const oppRole = (b.opponentRole || (opp && opp.role) || "").toString();
           const usable = (Args && typeof Args.myDefenseOptions === "function") ? (Args.myDefenseOptions(b) || []) : [];
           if (!usable.length) {
@@ -782,7 +784,7 @@
              // Log ConflictAPI internals ONLY when explicitly enabled.
              const devOn = !!(Game && Game.UI && Game.UI.S && Game.UI.S.flags && Game.UI.S.flags.devChecks);
              const verbose = !!(typeof window !== "undefined" && window.__LOG_CONFLICT_API === true) ||
-               !!(Game && Game.Debug && Game.Debug.LOG_CONFLICT_API === true);
+               !!(Game && Game.__D && Game.__D.LOG_CONFLICT_API === true);
              if (devOn && verbose && console && typeof console.debug === "function") {
                console.debug("[ConflictAPI] npc defense pick", {
                  battleId: b.id,
@@ -801,38 +803,38 @@
              }
            } catch (_) {}
 
-           // Determine outcome: prefer core compute if available.
            let outcome = "draw";
-           if (typeof Core.computeOutcome === "function") {
-             const raw = Core.computeOutcome(b, b.attack, defensePicked);
-             outcome = normalizeOutcome(raw).outcome;
-           } else {
-             // Worst-case fallback: if same type -> lose for attacker, else draw
-             const dt = (defensePicked && (defensePicked.type || defensePicked.group)) ? String(defensePicked.type || defensePicked.group) : "";
-             const dtn = (dt === "yesno") ? "yn" : dt;
-             outcome = (dtn === normType) ? "lose" : "draw";
+           let resolution = null;
+           if (Core && typeof Core.resolveBattleOutcome === "function") {
+             resolution = Core.resolveBattleOutcome(b.id, defensePicked);
+             if (resolution && resolution.ok && resolution.outcome) {
+               outcome = resolution.outcome;
+             }
            }
 
-           if (typeof Core.finalize === "function") {
-             Core.finalize(b.id, outcome);
+           if (!resolution || (resolution && resolution.ok === false)) {
+             if (typeof Core.finalize === "function") {
+               Core.finalize(b.id, outcome);
 
-             // Some core implementations may overwrite/normalize battle fields on finalize.
-             // Ensure we keep the opponent's chosen defense for UI (including draw state).
-             const bb = findBattle(b.id);
-             if (bb) {
-               if (!bb.attack && b.attack) bb.attack = b.attack;
-               if (!bb.defense) bb.defense = defensePicked || null;
-               if (bb.npcDefenseId == null) bb.npcDefenseId = b.npcDefenseId || null;
-               if (bb.npcDefenseText == null) bb.npcDefenseText = b.npcDefenseText || null;
-               if (bb.npcDefenseChoice == null && b.npcDefenseChoice) bb.npcDefenseChoice = b.npcDefenseChoice;
-               if (bb.lastNpcChoice == null && b.lastNpcChoice) bb.lastNpcChoice = b.lastNpcChoice;
+               // Some core implementations may overwrite/normalize battle fields on finalize.
+               const bb = findBattle(b.id);
+               if (bb) {
+                 if (!bb.attack && b.attack) bb.attack = b.attack;
+                 if (!bb.defense) bb.defense = defensePicked || null;
+                 if (bb.npcDefenseId == null) bb.npcDefenseId = b.npcDefenseId || null;
+                 if (bb.npcDefenseText == null) bb.npcDefenseText = b.npcDefenseText || null;
+                 if (bb.npcDefenseChoice == null && b.npcDefenseChoice) bb.npcDefenseChoice = b.npcDefenseChoice;
+                 if (bb.lastNpcChoice == null && b.lastNpcChoice) bb.lastNpcChoice = b.lastNpcChoice;
+               }
+               ensureCrowdVoteStarted(b.id);
+             } else {
+               b.resolved = true;
+               b.finished = true;
+               b.status = "finished";
+               b.result = outcome;
              }
-             ensureCrowdVoteStarted(b.id);
            } else {
-             b.resolved = true;
-             b.finished = true;
-             b.status = "finished";
-             b.result = outcome;
+             ensureCrowdVoteStarted(b.id);
            }
 
            render();
@@ -874,22 +876,6 @@
         try { if (Core && typeof Core.finalize === "function") Core.finalize(battleId, "draw"); } catch (_) {}
         return { ok: false, error: "non_canon_defense" };
       }
-      try {
-        const opp = (Game.State && Game.State.players) ? Game.State.players[battle.opponentId] : null;
-        const oppRole = String((opp && (opp.role || opp.type)) || "").toLowerCase();
-        if (battle.fromThem && (oppRole === "toxic" || oppRole === "bandit")) {
-          if (Game._ConflictCore && typeof Game._ConflictCore.computeOutcome === "function") {
-            const outcome = Game._ConflictCore.computeOutcome(battle, battle.attack, picked);
-            if (outcome === "lose" && Game._ConflictCore.applyVillainPenalty) {
-              Game._ConflictCore.applyVillainPenalty(battle, "defense");
-            } else if (outcome === "draw" && oppRole === "toxic") {
-              // Block instant toxic hit when the answer type was correct.
-              battle.toxicHitApplied = true;
-            }
-          }
-        }
-      } catch (_) {}
-
        // Delegate to resolver (applies economy + draw logic in Core.finalize).
        const res = this.resolveBattle(battle, picked);
        render();
@@ -927,35 +913,39 @@
          result = Args.resolve(battle, defenseArg);
        }
 
-       // Determine outcome.
        const norm = normalizeOutcome(result);
-       let outcome = norm.outcome;
-
-       // If Args.resolve did not explicitly provide an outcome, compute from core.
-       if ((!result || !norm.explicit) && typeof Core.computeOutcome === "function") {
-         outcome = Core.computeOutcome(battle, battle.attack, defenseArg);
+       const forcedOutcome = norm.explicit ? norm.outcome : null;
+       let resolution = null;
+       if (Core && typeof Core.resolveBattleOutcome === "function") {
+         resolution = Core.resolveBattleOutcome(battle.id, defenseArg, { forceOutcome: forcedOutcome });
+         if (resolution && resolution.ok === false) resolution = null;
+       }
+       const fallbackOutcome = forcedOutcome || "draw";
+       if (!resolution) {
+         if (Core && typeof Core.finalize === "function") {
+           Core.finalize(battle.id, fallbackOutcome);
+           resolution = { ok: true, outcome: fallbackOutcome };
+         } else {
+           battle.resolved = true;
+           battle.finished = true;
+           battle.status = (fallbackOutcome === "draw") ? "draw" : "finished";
+           battle.result = fallbackOutcome;
+           battle.draw = (fallbackOutcome === "draw");
+           if (!battle.resultLine) {
+             battle.resultLine = (fallbackOutcome === "draw")
+               ? "Толпа решает"
+               : (fallbackOutcome === "win")
+                 ? "Победа"
+                 : "Поражение";
+           }
+           resolution = { ok: true, outcome: fallbackOutcome };
+         }
        }
 
-       // Finalize in core (this will also start crowd vote for draws).
-       if (typeof Core.finalize === "function") {
-         Core.finalize(battle.id, outcome);
-
-         // Ensure chosen defense remains attached for UI (draw vote still needs to show it).
-         const bb = findBattle(battle.id);
-         if (bb && !bb.defense) bb.defense = defenseArg || null;
-         ensureCrowdVoteStarted(battle.id);
-       } else {
-         // Minimal fallback
-         battle.resolved = true;
-         battle.finished = true;
-         battle.status = "finished";
-         battle.result = outcome;
-       }
-
+       ensureCrowdVoteStarted(battle.id);
        render();
-       // Always return a minimal outcome payload if Args did not return anything.
-       return result || { ok: true, outcome };
-     }
+       return result || resolution;
+    }
    };
 
   // --- Replace all random NPC selection for battle initiation with the preferred biased picker ---

@@ -279,8 +279,8 @@
 
  const spendPoints = (amount, reason) => {
    try {
-     if (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function") {
-       return Game.StateAPI.spendPoints(amount, reason);
+     if (Game.__A && typeof Game.__A.spendPoints === "function") {
+       return Game.__A.spendPoints(amount, reason);
      }
    } catch (_) {}
    return false;
@@ -491,7 +491,7 @@
       // If player has no points, show a nearby toast immediately (UI-level guidance),
       // but still call core so rep_escape_click is applied and core can return its result.
       try {
-        const mePts = (Game && Game.State && Game.State.me && Number.isFinite(Game.State.me.points)) ? (Game.State.me.points | 0) : 0;
+        const mePts = (Game && Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
         if ((mePts | 0) <= 0 && opts && String(opts.mode || "").toLowerCase() !== "off") {
           const msg = "Не хватает пойнтов.";
           if (anchorBtn) {
@@ -931,8 +931,8 @@ UI.renderBattles = () => {
             if (!p) return false;
             if (p.isMe) return false;
             if (p.role === "cop") return false;
-            if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
-              try { if (Game.StateAPI.isNpcJailed(p.id)) return false; } catch (_) {}
+            if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.__A && typeof Game.__A.isNpcJailed === "function") {
+              try { if (Game.__A.isNpcJailed(p.id)) return false; } catch (_) {}
             }
             return true;
           });
@@ -989,8 +989,8 @@ UI.renderBattles = () => {
           if (!p) return false;
           if (p.isMe) return false;
           if (p.role === "cop") return false;
-          if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
-            try { if (Game.StateAPI.isNpcJailed(p.id)) return false; } catch (_) {}
+          if (p.npc && (p.role === "toxic" || p.role === "bandit") && Game.__A && typeof Game.__A.isNpcJailed === "function") {
+            try { if (Game.__A.isNpcJailed(p.id)) return false; } catch (_) {}
           }
           // Filter out players with active battle cooldown (3 minutes)
           const cdMap = S.battleCooldowns || {};
@@ -1259,13 +1259,13 @@ UI.renderBattles = () => {
           };
 
           const update = (bb) => {
-            // IMPORTANT: votes may be mutated on Game.State battles (core/api),
+            // IMPORTANT: votes may be mutated on Game.__S battles (core/api),
             // while UI.S.battles can lag until a full render is triggered (e.g. chat).
-            // During the ticker we read authoritative values from Game.State by id.
+            // During the ticker we read authoritative values from Game.__S by id.
             let freshBattle = null;
             try {
-              if (Game && Game.State && Array.isArray(Game.State.battles)) {
-                freshBattle = Game.State.battles.find(x => x && x.id === bb.id) || null;
+              if (Game && Game.__S && Array.isArray(Game.__S.battles)) {
+                freshBattle = Game.__S.battles.find(x => x && x.id === bb.id) || null;
               }
             } catch (_) {}
             const freshVote = (freshBattle && freshBattle.escapeVote) ? freshBattle.escapeVote : null;
@@ -1481,13 +1481,13 @@ UI.renderBattles = () => {
           };
 
           const update = (bb) => {
-            // IMPORTANT: votes may be mutated on Game.State battles (core/api),
+            // IMPORTANT: votes may be mutated on Game.__S battles (core/api),
             // while UI.S.battles can lag until a full render is triggered (e.g. chat).
-            // During the ticker we read authoritative values from Game.State by id.
+            // During the ticker we read authoritative values from Game.__S by id.
             let freshBattle = null;
             try {
-              if (Game && Game.State && Array.isArray(Game.State.battles)) {
-                freshBattle = Game.State.battles.find(x => x && x.id === bb.id) || null;
+              if (Game && Game.__S && Array.isArray(Game.__S.battles)) {
+                freshBattle = Game.__S.battles.find(x => x && x.id === bb.id) || null;
               }
             } catch (_) {}
             const freshCrowd = (freshBattle && freshBattle.crowd) ? freshBattle.crowd : null;
@@ -2320,9 +2320,9 @@ UI.renderBattles = () => {
  UI.updateBattleCounters = (battleId) => {
    if (!battleId) return;
    
-   // Sync crowd data from Game.State.battles to local S.battles
-   if (Game && Game.State && Array.isArray(Game.State.battles)) {
-     const freshBattle = Game.State.battles.find(x => x.id === battleId);
+   // Sync crowd data from Game.__S.battles to local S.battles
+   if (Game && Game.__S && Array.isArray(Game.__S.battles)) {
+     const freshBattle = Game.__S.battles.find(x => x.id === battleId);
      const localBattle = S && Array.isArray(S.battles) ? S.battles.find(x => x.id === battleId) : null;
      if (freshBattle && localBattle && freshBattle.crowd) {
        localBattle.crowd = localBattle.crowd || {};

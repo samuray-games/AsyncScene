@@ -15,7 +15,7 @@ window.Game = window.Game || {};
 
   // IMPORTANT: do not capture UI.S at module-load time.
   // ui-chat.js can load before ui-core.js finishes initializing UI.S.
-  const getS = () => (Game.State || UI.S || (UI.S = {}));
+  const getS = () => (Game.__S || UI.S || (UI.S = {}));
 
   // Ensure chat container exists.
   const S = getS();
@@ -38,7 +38,7 @@ window.Game = window.Game || {};
   const getPlayerByNameSafe = (name) => {
     if (!name) return null;
     if (UI.getPlayerByName) return UI.getPlayerByName(name);
-    const ps = (Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
+    const ps = (Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     return ps.find(p => p && p.name === name) || null;
   };
 
@@ -47,8 +47,8 @@ window.Game = window.Game || {};
     try {
       if (!msg || isSystemMsg(msg)) return false;
       // Prefer speakerId lookup
-      if (msg.speakerId && Game.State && Game.State.players && Game.State.players[msg.speakerId]) {
-        const p = Game.State.players[msg.speakerId];
+      if (msg.speakerId && Game.__S && Game.__S.players && Game.__S.players[msg.speakerId]) {
+        const p = Game.__S.players[msg.speakerId];
         if (p && p.npc) return true;
       }
       // Fallback by name vs NPC list
@@ -66,8 +66,8 @@ window.Game = window.Game || {};
     try {
       if (!msg || isSystemMsg(msg)) return false;
       // Prefer speakerId lookup
-      if (msg.speakerId && Game.State && Game.State.players && Game.State.players[msg.speakerId]) {
-        const p = Game.State.players[msg.speakerId];
+      if (msg.speakerId && Game.__S && Game.__S.players && Game.__S.players[msg.speakerId]) {
+        const p = Game.__S.players[msg.speakerId];
         return p && p.npc && (p.role === "cop" || p.role === "police");
       }
       // Fallback by name vs NPC list
@@ -85,8 +85,8 @@ window.Game = window.Game || {};
     try {
       if (!msg || isSystemMsg(msg)) return false;
       // Prefer speakerId lookup
-      if (msg.speakerId && Game.State && Game.State.players && Game.State.players[msg.speakerId]) {
-        const p = Game.State.players[msg.speakerId];
+      if (msg.speakerId && Game.__S && Game.__S.players && Game.__S.players[msg.speakerId]) {
+        const p = Game.__S.players[msg.speakerId];
         return p && p.npc && (p.role === "mafia" || p.role === "mafioso");
       }
       // Fallback by name vs NPC list
@@ -153,7 +153,7 @@ window.Game = window.Game || {};
     const names = D.RANDOM_NAMES || D.NAMES || null;
     if (names && Array.isArray(names) && names.length) return pick(names);
     // fall back to known players
-    const ps = (Game.State && Game.State.players) ? Object.values(Game.State.players) : [];
+    const ps = (Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const pool = ps.map(p => p && p.name).filter(Boolean);
     return pool.length ? pick(pool) : pick(["мирка", "кай", "рин", "юна", "сора", "алекс", "сен"]);
   };
@@ -188,8 +188,8 @@ window.Game = window.Game || {};
     const nameMap = Object.create(null);
     try {
       if (me) nameMap[me.toLowerCase()] = me;
-      if (Game.State && Game.State.players) {
-        Object.values(Game.State.players).forEach(p => {
+      if (Game.__S && Game.__S.players) {
+        Object.values(Game.__S.players).forEach(p => {
           if (!p || !p.name) return;
           const nm = String(p.name);
           nameMap[nm.toLowerCase()] = nm;
@@ -237,8 +237,8 @@ window.Game = window.Game || {};
     // 3) other player mentions
     try {
       const names = [];
-      if (Game.State && Game.State.players) {
-        Object.values(Game.State.players).forEach(p => {
+      if (Game.__S && Game.__S.players) {
+        Object.values(Game.__S.players).forEach(p => {
           if (!p || !p.name) return;
           const nm = String(p.name);
           if (nm === me) return;
@@ -280,8 +280,8 @@ window.Game = window.Game || {};
     const S = getS();
     const names = [];
     if (S.me && S.me.name) names.push(S.me.name);
-    if (Game.State && Game.State.players) {
-      Object.values(Game.State.players).forEach(p => {
+    if (Game.__S && Game.__S.players) {
+      Object.values(Game.__S.players).forEach(p => {
         if (p && p.name && !names.includes(p.name)) names.push(p.name);
       });
     }
@@ -364,7 +364,7 @@ window.Game = window.Game || {};
 
   if (!UI.pinBattleToTop) {
     UI.pinBattleToTop = (battleId) => {
-      const arr = (Game.State && Game.State.battles) ? Game.State.battles : (S.battles || null);
+      const arr = (Game.__S && Game.__S.battles) ? Game.__S.battles : (S.battles || null);
       if (!arr || !Array.isArray(arr)) return;
       const i = arr.findIndex(b => b && b.id === battleId);
       if (i <= 0) return;
@@ -407,7 +407,7 @@ window.Game = window.Game || {};
 
   const getPlayerByIdSafe = (id) => {
     if (!id) return null;
-    const p = (Game.State && Game.State.players) ? Game.State.players[id] : null;
+    const p = (Game.__S && Game.__S.players) ? Game.__S.players[id] : null;
     return p || null;
   };
 
@@ -672,8 +672,8 @@ window.Game = window.Game || {};
 
     // If a specific NPC is mentioned, let them reply.
     try {
-      const candidates = (Game.StateAPI && typeof Game.StateAPI.getAllMentionCandidates === "function")
-        ? Game.StateAPI.getAllMentionCandidates()
+      const candidates = (Game.__A && typeof Game.__A.getAllMentionCandidates === "function")
+        ? Game.__A.getAllMentionCandidates()
         : Object.values(S.players || {}).map(p => ({
           id: p && p.id,
           name: p && p.name,
@@ -692,7 +692,7 @@ window.Game = window.Game || {};
         const npc = (S.players && mentionedNpc.id) ? S.players[mentionedNpc.id] : null;
         if (npc && npc.name) {
           try {
-            if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function" && Game.StateAPI.isNpcJailed(npc.id)) {
+            if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(npc.id)) {
               return;
             }
           } catch (_) {}

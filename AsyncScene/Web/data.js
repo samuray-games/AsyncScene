@@ -2041,7 +2041,7 @@ K YN A9: Нет.
   Data.getPlayerNames = () => {
     const names = [];
     try {
-      const ps = (Game && Game.State && Game.State.players) ? Game.State.players : {};
+      const ps = (Game && Game.__S && Game.__S.players) ? Game.__S.players : {};
       Object.values(ps).forEach(p => {
         if (!p || !p.name) return;
         const n = String(p.name).trim();
@@ -2302,7 +2302,7 @@ K YN A9: Нет.
   };
 
   Data.selectAttackOptions = (battle) => {
-    const me = (Game && Game.State && Game.State.me) ? Game.State.me : { influence: 0 };
+    const me = (Game && Game.__S && Game.__S.me) ? Game.__S.me : { influence: 0 };
     const boost = (battle && Number.isFinite(battle.tempInfluenceBoost)) ? (battle.tempInfluenceBoost | 0) : 0;
     const inf = (Number(me.influence) || 0) + boost;
     const tierKeys = Data.tierKeysByInfluence(inf);
@@ -2323,7 +2323,7 @@ K YN A9: Нет.
   };
 
   Data.selectDefenseOptions = (attackArg) => {
-    const me = (Game && Game.State && Game.State.me) ? Game.State.me : { influence: 0 };
+    const me = (Game && Game.__S && Game.__S.me) ? Game.__S.me : { influence: 0 };
     const inf = Number(me.influence) || 0;
     const tierKeys = Data.tierKeysByInfluence(inf);
     const poolKey = (attackArg && attackArg.pool)

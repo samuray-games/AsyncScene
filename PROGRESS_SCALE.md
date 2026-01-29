@@ -30,18 +30,22 @@
 | 0 | Нулевая точка | DONE |
 | 1 | Каркас цикла игры | DONE |
 | 2 | Self-check сценарии и инварианты | DOING |
-| 3 | UX честность и обучаемость | DONE |
-| 4 | Интерактивный язык (tone profiles) | NOT_STARTED |
-| 5 | Контентный слой мира | DOING |
-| 6 | ИИ слой v1 | NOT_STARTED |
-| 7 | Munchkin DNA (контролируемый хаос) | NOT_STARTED |
-| 8 | Exploding Kittens эффекты | NOT_STARTED |
-| 9 | Альфа-тест | NOT_STARTED |
-| 10 | Бета-тест | NOT_STARTED |
-| 11 | Мягкий launch | NOT_STARTED |
-| 12 | "Вовсю играют" | NOT_STARTED |
+| 3 | Защита и целостность системы | DOING |
+| 4 | UX честность и обучаемость | DONE |
+| 5 | Интерактивный язык (tone profiles) | NOT_STARTED |
+| 6 | NPC vs NPC - реальная жизнь мира | NOT_STARTED |
+| 7 | Контентный слой мира | DOING |
+| 8 | ИИ слой v1 | NOT_STARTED |
+| 9 | Munchkin DNA (контролируемый хаос) | NOT_STARTED |
+| 10 | Mafia mechanics (социальная мафия) | NOT_STARTED |
+| 11 | Exploding Kittens эффекты (острые триггеры) | NOT_STARTED |
+| 12 | Альфа-тест (внутренняя) | NOT_STARTED |
+| 13 | Пойнт-ловушка | NOT_STARTED |
+| 14 | Бета-тест (внешняя) | NOT_STARTED |
+| 15 | Мягкий launch | NOT_STARTED |
+| 16 | "Вовсю играют" (финиш) | NOT_STARTED |
 
-**Активный этап:** 2 (Self-check сценарии и инварианты)
+**Активный этап:** 3 (Защита и целостность системы)
 
 ---
 
@@ -105,8 +109,28 @@
 
 ---
 
-## Этап 3. UX честность и обучаемость
+## Этап 3. Защита и целостность системы
 
+**Status:** DOING
+
+**Цель:** Повысить наблюдаемость и защиту ключевых инвариантов против случайных и злонамеренных нарушений.
+
+**ExitCriteria:**
+- [x] Закрытие surface доступа: `Game.State`, `Game.Debug`, `Game.StateAPI`, `Game.Dev` скрыты в prod в пользу guarded `Game.__S/__A/__D`, dev доступ только через `?dev=1`, runtime модули работают через скрытые хендлы
+- [x] Runtime-валидация инвариантов: `ResourceValidator` в `state.js` гарантирует, что `addPoints`, `spendPoints`, `transferRep`, `addRep` проходят через dedupe key, дубликаты блокируются без изменения состояния, negative значения запрещены, logs уточнены, runtime-smokes подтверждены
+- [x] Anti-injection/anti-scripting guard: tamper/macro attempts detected and blocked, rate-limits enforced, verified in prod and `?dev=1`
+- [ ] Документированы гарантии по REP/POINTS+crowd (transferRep-only, bounds, cache)
+- [ ] Есть smoke-команды/checklist, которые фиксируют эти invariants каждым запуском
+- [ ] Мониторинг/логирование ловит аномалии battle/rep/points до их распространения
+- [ ] Процесс реагирования (оповещения и фиксация) описан и проигнорировать его нельзя
+
+**Evidence:**
+- PROJECT_MEMORY.md: Stage 2 canonical checklist и инварианты transferRep/points
+- `AsyncScene/Web/dev/dev-checks.js`: runtime-harness для invariants
+
+---
+
+## Этап 4. UX честность и обучаемость
 **Status:** DONE
 
 **Цель:** Игрок понимает, что происходит и почему.
@@ -124,7 +148,7 @@
 
 ---
 
-## Этап 4. Интерактивный язык (tone profiles по году рождения)
+## Этап 5. Интерактивный язык (tone profiles по году рождения)
 
 **Status:** NOT_STARTED
 
@@ -143,7 +167,25 @@
 
 ---
 
-## Этап 5. Контентный слой мира (без хаоса)
+## Этап 6. NPC vs NPC - реальная жизнь мира
+
+**Status:** NOT_STARTED
+
+**Цель:** Сформировать ощущение автономных NPC, которые живут и реагируют друг на друга даже когда игрок не рядом.
+
+**ExitCriteria:**
+- [ ] Сценарии NPC↔NPC (копы, толпа, DM) описаны, оформлены как smoke-подходы
+- [ ] Реплики NPC выдерживаются в существующем Data-каноне без механики
+- [ ] Есть план очередей/кулдаунов, который гарантирует живой world-feel на фоне копов/мафии
+- [ ] Логирование/DM/чаты отражают NPC-события без дубликатов
+
+**Evidence:**
+- `PROJECT_MEMORY.md`: текущие факты по NPC DM, cop cooldowns и репликам
+- `AsyncScene/Web/data.js`: шаблоны NPC-ответов и копов уже готовы
+
+---
+
+## Этап 7. Контентный слой мира (без хаоса)
 
 **Status:** DOING
 
@@ -168,7 +210,7 @@
 
 ---
 
-## Этап 6. ИИ слой v1
+## Этап 8. ИИ слой v1
 
 **Status:** NOT_STARTED
 
@@ -186,7 +228,7 @@
 
 ---
 
-## Этап 7. Munchkin DNA (контролируемый хаос)
+## Этап 9. Munchkin DNA (контролируемый хаос)
 
 **Status:** NOT_STARTED
 
@@ -203,7 +245,7 @@
 
 ---
 
-## Этап 8. Mafia mechanics (социальная мафия)
+## Этап 10. Mafia mechanics (социальная мафия)
 
 **Status:** NOT_STARTED
 
@@ -219,7 +261,7 @@
 **Evidence:**
 - (пока нет артефактов)
 
-## Этап 9. Exploding Kittens эффекты (острые триггеры)
+## Этап 11. Exploding Kittens эффекты (острые триггеры)
 
 **Status:** NOT_STARTED
 
@@ -237,7 +279,7 @@
 
 ---
 
-## Этап 10. Альфа-тест (внутренняя)
+## Этап 12. Альфа-тест (внутренняя)
 
 **Status:** NOT_STARTED
 
@@ -254,7 +296,25 @@
 
 ---
 
-## Этап 11. Бета-тест (внешняя)
+## Этап 13. Пойнт-ловушка
+
+**Status:** NOT_STARTED
+
+**Цель:** Проверить, что никто не попадает в неожиданную ловушку points и понимать, как она работает.
+
+**ExitCriteria:**
+- [ ] Смоук фиксирует срабатывания ловушки (points drain, toasts, DM), инциденты не влияют на REP/Influence
+- [ ] Есть понятный пользовательский сигнал (toast/индикатор), что пойнты задействованы в ловушке
+- [ ] Логи/ProjectMemory показывают, что bounds не нарушаются, transferRep не вызывается случайно
+- [ ] Документация описывает, как игрок выбирает выход из ловушки (escape/ignore)
+
+**Evidence:**
+- `PROJECT_MEMORY.md`: наблюдения по points/escape flows и смоук-инвароитам
+- `Game.Debug.moneyLog`: сценарии с `points_escape` и `points_vote` уже доступны, служат базой
+
+---
+
+## Этап 14. Бета-тест (внешняя)
 
 **Status:** NOT_STARTED
 
@@ -271,7 +331,7 @@
 
 ---
 
-## Этап 12. Мягкий launch
+## Этап 15. Мягкий launch
 
 **Status:** NOT_STARTED
 
@@ -288,7 +348,7 @@
 
 ---
 
-## Этап 13. "Вовсю играют" (финиш)
+## Этап 16. "Вовсю играют" (финиш)
 
 **Status:** NOT_STARTED
 

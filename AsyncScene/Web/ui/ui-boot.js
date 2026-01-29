@@ -421,8 +421,8 @@ window.Game = window.Game || {};
         if (!nick) return;
         if (reportInput) reportInput.value = "";
 
-        if (Game.StateAPI && typeof Game.StateAPI.applyReportByRole === "function") {
-          Game.StateAPI.applyReportByRole(nick, {});
+        if (Game.__A && typeof Game.__A.applyReportByRole === "function") {
+          Game.__A.applyReportByRole(nick, {});
         }
 
         UI.requestRenderAll && UI.requestRenderAll();
@@ -466,8 +466,8 @@ window.Game = window.Game || {};
     S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
 
     // Build players first (includes NPCs)
-    if (Game.StateAPI && typeof Game.StateAPI.seedPlayers === "function") {
-      Game.StateAPI.seedPlayers();
+    if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
     } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
       Game.NPC.seedPlayers(S);
     }
@@ -541,12 +541,18 @@ window.Game = window.Game || {};
     try {
       UI.S.flags = UI.S.flags || {};
       if (typeof UI.S.flags.devChecks !== "boolean") {
+        let dev = false;
         const qs = (typeof location !== "undefined" && location.search) ? location.search : "";
-        const dev = qs.includes("dev=1");
+        if (qs) {
+          try {
+            const params = new URLSearchParams(qs);
+            dev = params.get("dev") === "1";
+          } catch (_) {}
+        }
         UI.S.flags.devChecks = dev;
       }
-      if (UI.S.flags.devChecks && Game.Dev && typeof Game.Dev.selfCheck === "function") {
-        setTimeout(() => { try { Game.Dev.selfCheck({ mode: "smoke", mutate: false }); } catch (_) {} }, 0);
+      if (UI.S.flags.devChecks && Game.__DEV && typeof Game.__DEV.selfCheck === "function") {
+        setTimeout(() => { try { Game.__DEV.selfCheck({ mode: "smoke", mutate: false }); } catch (_) {} }, 0);
       }
     } catch (_) {}
 

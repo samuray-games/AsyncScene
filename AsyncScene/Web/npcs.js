@@ -134,7 +134,7 @@ window.Game ||= {};
 
   const meNameMention = () => {
     try {
-      const me = Game.State && Game.State.me;
+      const me = Game.__S && Game.__S.me;
       return me && me.name ? `@${String(me.name)}` : "ты";
     } catch (_) {
       return "ты";
@@ -279,13 +279,13 @@ window.Game ||= {};
   };
 
   NPC.getAll = () => {
-    const S = Game.State;
+    const S = Game.__S;
     if (!S || !S.players) return [];
     return Object.values(S.players).filter(p => p.npc === true);
   };
 
   NPC.getById = (id) => {
-    const S = Game.State;
+    const S = Game.__S;
     if (!S || !S.players) return null;
     return S.players[id] || null;
   };
@@ -307,7 +307,7 @@ window.Game ||= {};
       if (!p) return false;
       if (p.role === "cop" || p.role === "mafia") return false;
       try {
-        if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function" && Game.StateAPI.isNpcJailed(p.id)) return false;
+        if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(p.id)) return false;
       } catch (_) {}
       return true;
     });
@@ -766,7 +766,7 @@ window.Game ||= {};
     if (!n) return "";
 
     const me = (meName && String(meName).trim()) ? String(meName).trim()
-      : (Game.State && Game.State.me && Game.State.me.name) ? String(Game.State.me.name).trim()
+      : (Game.__S && Game.__S.me && Game.__S.me.name) ? String(Game.__S.me.name).trim()
       : "";
     const mention = me ? `@${me}` : "";
 
@@ -797,12 +797,12 @@ window.Game ||= {};
     return text;
   };
 
-  // Boot hook: ensure NPCs are seeded as soon as Game.State exists.
+  // Boot hook: ensure NPCs are seeded as soon as Game.__S exists.
   // This prevents "Game.NPC.getAll is not a function" / empty NPC lists when UI starts.
   (function bootSeedNPCs(){
     const trySeed = () => {
       try {
-        if (Game && Game.State) NPC.seedPlayers(Game.State);
+        if (Game && Game.__S) NPC.seedPlayers(Game.__S);
       } catch (_) {}
     };
 
@@ -815,9 +815,9 @@ window.Game ||= {};
     const tick = () => {
       attempts += 1;
       trySeed();
-      if ((Game && Game.State && Game.State._seededNPCs) || attempts >= maxAttempts) return;
+      if ((Game && Game.__S && Game.__S._seededNPCs) || attempts >= maxAttempts) return;
       setTimeout(tick, 50);
     };
-    if (!(Game && Game.State && Game.State._seededNPCs)) setTimeout(tick, 0);
+    if (!(Game && Game.__S && Game.__S._seededNPCs)) setTimeout(tick, 0);
   })();
 })();

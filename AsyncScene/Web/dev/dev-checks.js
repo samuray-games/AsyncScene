@@ -1,39 +1,176 @@
 // dev/dev-checks.js
 window.Game = window.Game || {};
 
-(() => {
+(function () {
   const Game = window.Game;
+  function hasExplicitDevQueryParam() {
+    if (typeof location === "undefined" || !location) return false;
+    const search = location.search;
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("dev") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
   const DEV_FLAG =
     window.__DEV__ === true ||
     window.DEV === true ||
-    (typeof location !== "undefined" && location && location.hostname === "localhost") ||
-    (typeof location !== "undefined" && location && location.search && location.search.includes("dev=1"));
+    hasExplicitDevQueryParam();
+
+  const ensureDevStoreSurface = () => {
+    if (Game.__DEV && typeof Game.__DEV === "object") return Game.__DEV;
+    const store = {};
+    Object.defineProperty(Game, "__DEV", {
+      value: store,
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    });
+    if (typeof window !== "undefined" && typeof window.__defineGameSurfaceProp === "function") {
+      window.__defineGameSurfaceProp("Dev", "__DEV");
+    }
+    return store;
+  };
+
+  const addStage3SmokeHelper = (devStore) => {
+    if (typeof devStore.smokeStage3Step4Once === "function") return;
+    devStore.smokeStage3Step4Once = function (opts = {}) {
+      const mode = opts && opts.mode === "dev" ? "dev" : "prod";
+      const coreSurf = Game._ConflictCore || Game.ConflictCore || null;
+      const conflictApi = Game.Conflict || null;
+      const ui = Game.UI || null;
+      const apiSurfaceKeys = [];
+      const evidence = [];
+      const exposures = [
+        { label: "Game._ConflictCore", obj: coreSurf },
+        { label: "Game.ConflictCore", obj: Game.ConflictCore },
+        { label: "Game.Conflict", obj: conflictApi },
+        { label: "Game.UI", obj: ui },
+        { label: "Game.__A", obj: Game.__A },
+      ];
+
+      exposures.forEach(({ label, obj }) => {
+        if (!obj || typeof obj !== "object") return;
+        const keys = Object.keys(obj).sort().slice(0, 3);
+        if (keys.length) {
+          apiSurfaceKeys.push(`${label}:${keys.join(",")}`);
+        }
+      });
+
+      let hasComputeOutcome = false;
+      exposures.forEach(({ label, obj }) => {
+        if (!obj || typeof obj !== "object") {
+          evidence.push(`${label} missing`);
+          return;
+        }
+        const value = obj.computeOutcome;
+        if (typeof value === "function") {
+          hasComputeOutcome = true;
+          evidence.push(`${label}.computeOutcome exposed`);
+        } else {
+          evidence.push(`${label}.computeOutcome undefined`);
+        }
+      });
+      if (!hasComputeOutcome) {
+        evidence.push("computeOutcome hidden from public surfaces");
+      }
+
+      const state = Game.__S || {};
+      if (!Array.isArray(state.battles)) state.battles = [];
+      const econ = Game._ConflictEconomy || null;
+      const origApplyResult = econ && typeof econ.applyResult === "function" ? econ.applyResult : null;
+      if (econ && typeof econ.applyResult === "function") {
+        econ.applyResult = () => ({ ok: true });
+      }
+
+      const npcId = "npc_smoke_stage3";
+      const createdNpc = !state.players || !state.players[npcId];
+      if (!state.players) state.players = {};
+      if (createdNpc) {
+        state.players[npcId] = { id: npcId, name: "SmokeNPC", npc: true };
+      }
+
+      const battleId = `smoke_stage3_${mode}_${Date.now().toString(36).slice(-4)}`;
+      const battle = {
+        id: battleId,
+        opponentId: npcId,
+        fromThem: true,
+        status: "pickDefense",
+        attack: { id: "canon_smoke_attack", type: "yn", group: "yn", color: "y", text: "Smoke attack" },
+        defense: null,
+        resolved: false,
+        finished: false,
+        noted: "smoke",
+      };
+      state.battles.push(battle);
+
+      const defenseArg = { id: "canon_smoke_defense", type: "yn", group: "yn", color: "y", text: "Smoke defense" };
+      let resolution = null;
+      if (coreSurf && typeof coreSurf.resolveBattleOutcome === "function") {
+        resolution = coreSurf.resolveBattleOutcome(battleId, defenseArg, { forceOutcome: "win" });
+      } else {
+        evidence.push("resolveBattleOutcome unavailable");
+      }
+
+      const outcomeWorks = !!(resolution && resolution.ok && typeof resolution.outcome === "string");
+      if (outcomeWorks) {
+        evidence.push(`resolveBattleOutcome returned ${resolution.outcome}`);
+      } else {
+        evidence.push("resolveBattleOutcome failed to resolve outcome");
+      }
+
+      state.battles = state.battles.filter(b => !(b && b.id === battleId));
+      if (createdNpc && state.players && state.players[npcId]) {
+        delete state.players[npcId];
+      }
+      if (econ && typeof econ.applyResult === "function") {
+        if (origApplyResult) {
+          econ.applyResult = origApplyResult;
+        } else {
+          delete econ.applyResult;
+        }
+      }
+
+      const ok = outcomeWorks && !hasComputeOutcome;
+      return {
+        ok,
+        mode,
+        hasComputeOutcome,
+        apiSurfaceKeys,
+        outcomeWorks,
+        evidence,
+      };
+    };
+  };
 
   if (!DEV_FLAG) return;
 
-  Game.Dev = Game.Dev || {};
+  const devStore = ensureDevStoreSurface();
+  addStage3SmokeHelper(devStore);
 
   const getNow = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
 
   console.warn("[DEV] content testing hooks enabled");
 
   const getStateSafe = () => {
-    if (!Game.State || !Game.State.me) {
-      console.warn("[DEV] Game.State.me missing");
+    if (!Game.__S || !Game.__S.me) {
+      console.warn("[DEV] Game.__S.me missing");
       return null;
     }
-    return Game.State;
+    return Game.__S;
   };
 
   const sync = () => {
     try {
-      if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-        Game.StateAPI.syncMeToPlayers();
+      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        Game.__A.syncMeToPlayers();
       }
     } catch (_) {}
   };
 
-  Game.Dev.setInfluence = (value) => {
+  Game.__DEV.setInfluence = (value) => {
     if (typeof value !== "number") return;
     const S = getStateSafe();
     if (!S) return;
@@ -43,7 +180,7 @@ window.Game = window.Game || {};
     console.log("[DEV] influence =", S.me.influence);
   };
 
-  Game.Dev.addInfluence = (delta) => {
+  Game.__DEV.addInfluence = (delta) => {
     if (typeof delta !== "number") return;
     const S = getStateSafe();
     if (!S) return;
@@ -54,7 +191,7 @@ window.Game = window.Game || {};
     console.log("[DEV] influence =", S.me.influence);
   };
 
-  Game.Dev.setPoints = (value) => {
+  Game.__DEV.setPoints = (value) => {
     if (typeof value !== "number") return;
     const S = getStateSafe();
     if (!S) return;
@@ -63,7 +200,67 @@ window.Game = window.Game || {};
     console.log("[DEV] points =", S.me.points);
   };
 
-  Game.Dev.addPoints = (delta) => {
+  Game.__DEV.smokeStage3Step5Once = () => {
+    const tries = [];
+    const capture = (label, fn) => {
+      try {
+        const result = fn();
+        tries.push({ label, ok: true, result });
+      } catch (err) {
+        tries.push({ label, ok: false, error: String(err) });
+      }
+    };
+    capture("Game.State access", () => ({ value: Game.State }));
+    capture("Game.StateAPI access", () => ({ value: Game.StateAPI }));
+    capture("computeOutcome surface", () => {
+      const core = Game._ConflictCore || Game.ConflictCore || null;
+      const available = core && typeof core.computeOutcome === "function";
+      return { available, type: typeof (core && core.computeOutcome) };
+    });
+    capture("Monkey patch transferRep", () => {
+      const surface = Game.__A || Game.StateAPI || null;
+      if (!surface || typeof surface.transferRep !== "function") {
+        return { ok: false, reason: "missing_transferRep" };
+      }
+      const original = surface.transferRep;
+      surface.transferRep = function patched(...args) {
+        return original.apply(this, args);
+      };
+      surface.transferRep = original;
+      return { ok: true, action: "patched" };
+    });
+    capture("Invalid points write", () => {
+      const S = Game.__S || {};
+      const before = (S.me && Number.isFinite(S.me.points)) ? S.me.points : null;
+      if (S.me) S.me.points = -999;
+      const after = (S.me && Number.isFinite(S.me.points)) ? S.me.points : null;
+      return { before, after };
+    });
+    capture("Invalid rep write", () => {
+      const S = Game.__S || {};
+      const before = Number.isFinite(S.rep) ? S.rep : null;
+      if (S) S.rep = -999;
+      const after = Number.isFinite(S.rep) ? S.rep : null;
+      return { before, after };
+    });
+    capture("Forbidden API stack", () => {
+      const trace = [];
+      try {
+        throw new Error("smoke stack");
+      } catch (err) {
+        const lines = (err && err.stack) ? String(err.stack).split("\n").slice(0, 4).map(x => x.trim()) : [];
+        trace.push(...lines);
+      }
+      return { stack: trace };
+    });
+    return {
+      ok: true,
+      mode: "dev",
+      trials: tries
+    };
+  };
+
+  Game.__DEV.addPoints = (delta) => {
     if (typeof delta !== "number") return;
     const S = getStateSafe();
     if (!S) return;
@@ -73,9 +270,9 @@ window.Game = window.Game || {};
     console.log("[DEV] points =", S.me.points);
   };
 
-  Game.Dev.resetProfileEconomyForDebug = () => {
+  Game.__DEV.resetProfileEconomyForDebug = () => {
     const D0 = Game.Data || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     if (!D0 || !S) return { ok: false, error: "missing_state_or_data" };
     const prevFlag = D0.CIRCULATION_ENABLED === true;
     D0.CIRCULATION_ENABLED = false;
@@ -146,7 +343,7 @@ window.Game = window.Game || {};
     return { ok: true, before, after, startPlayer, startNpc, npcCount, npcSample };
   };
 
-  Game.Dev.econIntrospect = () => {
+  Game.__DEV.econIntrospect = () => {
     const Econ = Game._ConflictEconomy || null;
     const keys = Econ ? Object.keys(Econ) : [];
     return {
@@ -158,30 +355,30 @@ window.Game = window.Game || {};
     };
   };
 
-  Game.Dev.sumPointsSnapshot = () => {
+  Game.__DEV.sumPointsSnapshot = () => {
     const Econ = Game._ConflictEconomy;
     if (Econ && typeof Econ.sumPointsSnapshot === "function") return Econ.sumPointsSnapshot();
     return { total: 0, players: 0, npcs: 0, pools: 0, poolsBreakdown: {}, ts: getNow() };
   };
 
-  Game.Dev.assertNoDrift = (before, after) => {
-    const b = before || Game.Dev.sumPointsSnapshot();
-    const a = after || Game.Dev.sumPointsSnapshot();
+  Game.__DEV.assertNoDrift = (before, after) => {
+    const b = before || Game.__DEV.sumPointsSnapshot();
+    const a = after || Game.__DEV.sumPointsSnapshot();
     const diff = (a.total | 0) - (b.total | 0);
     const deltaPlayers = (a.players | 0) - (b.players | 0);
     const deltaNpcs = (a.npcs | 0) - (b.npcs | 0);
     const deltaPools = (a.pools | 0) - (b.pools | 0);
     if (diff !== 0) {
       const msg = `[DEV] circulation drift: diff=${diff} before=${b.total} after=${a.total}`;
-      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+      const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
       const tail = log.slice(Math.max(0, log.length - 10));
       console.log(msg, { before: b, after: a, lastMoneyLog: tail, deltaPlayers, deltaNpcs, deltaPools });
       if (DEV_FLAG) {
         throw new Error(`${msg}`);
       } else {
         try {
-          if (Game.StateAPI && typeof Game.StateAPI.pushSystem === "function") {
-            Game.StateAPI.pushSystem(`Дрейф баланса: diff=${diff}.`);
+          if (Game.__A && typeof Game.__A.pushSystem === "function") {
+            Game.__A.pushSystem(`Дрейф баланса: diff=${diff}.`);
           } else if (Game.UI && typeof Game.UI.pushSystem === "function") {
             Game.UI.pushSystem(`Дрейф баланса: diff=${diff}.`);
           }
@@ -195,7 +392,7 @@ window.Game = window.Game || {};
     return { ok: true, diff: 0, before: b, after: a, idsEqual, deltaPlayers, deltaNpcs, deltaPools };
   };
 
-  Game.Dev.forceArgColor = (color) => {
+  Game.__DEV.forceArgColor = (color) => {
     const allowed = ["y", "o", "r", "k"];
     if (!allowed.includes(color)) {
       console.warn("[DEV] invalid color, use y/o/r/k");
@@ -205,12 +402,12 @@ window.Game = window.Game || {};
     console.log("[DEV] forceArgColor =", color);
   };
 
-  Game.Dev.clearArgColor = () => {
+  Game.__DEV.clearArgColor = () => {
     window.DEV_FORCE_ARG_COLOR = null;
     console.log("[DEV] forceArgColor cleared");
   };
 
-  Game.Dev.info = () => {
+  Game.__DEV.info = () => {
     const S = getStateSafe();
     return {
       influence: S ? S.me.influence : null,
@@ -227,17 +424,17 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.selfCheck = (opts = {}) => {
+  Game.__DEV.selfCheck = (opts = {}) => {
     const errors = [];
     const warnings = [];
     const options = (opts && typeof opts === "object") ? opts : {};
     const mutate = options.mutate === true;
 
     if (!Game) errors.push("Game missing");
-    if (!Game.State) errors.push("Game.State missing");
+    if (!Game.__S) errors.push("Game.__S missing");
     if (!Game.UI) errors.push("Game.UI missing");
 
-    const S = Game.State || {};
+    const S = Game.__S || {};
     if (!S.flags || typeof S.flags !== "object" || Array.isArray(S.flags)) {
       errors.push("State.flags missing or not an object");
     }
@@ -337,11 +534,11 @@ window.Game = window.Game || {};
     try { return fn(); } finally { Date.now = orig; }
   }
 
-  Game.Dev.scenarioRun = () => {
+  Game.__DEV.scenarioRun = () => {
     const results = [];
     const errors = [];
 
-    const S = Game.State || {};
+    const S = Game.__S || {};
     const now0 = getNow();
 
     const runA = () => {
@@ -458,7 +655,7 @@ window.Game = window.Game || {};
 
         const runSub = (expected) => {
           if (Number(me.points || 0) <= 0) {
-            if (Game.StateAPI && typeof Game.StateAPI.addPoints === "function") Game.StateAPI.addPoints(1, "dev_scenario");
+            if (Game.__A && typeof Game.__A.addPoints === "function") Game.__A.addPoints(1, "dev_scenario");
             else me.points = 1;
           }
 
@@ -678,7 +875,7 @@ window.Game = window.Game || {};
     return { ok, results, errors };
   };
 
-  Game.Dev.circulationDriftSmoke = () => {
+  Game.__DEV.circulationDriftSmoke = () => {
     const name = "circulation_drift_smoke";
     let prevFlag = null;
     let prevPause = null;
@@ -690,15 +887,15 @@ window.Game = window.Game || {};
       const Econ = Game._ConflictEconomy || null;
       if (!Econ || typeof Econ.applyResult !== "function") return { name, ok: false, details: "Game._ConflictEconomy.applyResult missing" };
 
-      if (!Game.Debug) Game.Debug = {};
-      prevPause = Game.Debug.PAUSE_EVENTS === true;
-      Game.Debug.PAUSE_EVENTS = true;
-      prevBypass = Game.Debug.BYPASS_POINTS_GUARD === true;
-      Game.Debug.BYPASS_POINTS_GUARD = true;
-      prevAllow = Game.Debug.ALLOW_POINTS_WRITE === true;
-      Game.Debug.ALLOW_POINTS_WRITE = true;
+      if (!Game.__D) Game.__D = {};
+      prevPause = Game.__D.PAUSE_EVENTS === true;
+      Game.__D.PAUSE_EVENTS = true;
+      prevBypass = Game.__D.BYPASS_POINTS_GUARD === true;
+      Game.__D.BYPASS_POINTS_GUARD = true;
+      prevAllow = Game.__D.ALLOW_POINTS_WRITE === true;
+      Game.__D.ALLOW_POINTS_WRITE = true;
 
-      const S = Game.State || {};
+      const S = Game.__S || {};
       const players = S.players || {};
       S.battles = S.battles || [];
       const startPlayer = Number.isFinite(D0.START_POINTS_PLAYER) ? (D0.START_POINTS_PLAYER | 0) : 12;
@@ -722,13 +919,13 @@ window.Game = window.Game || {};
       if (!S.players) S.players = {};
       if (!S.me) S.me = { id: "me", points: startPlayer, influence: 0, wins: 0 };
       if (!S.players.me && S.me) S.players.me = S.me;
-      if (Game.StateAPI && typeof Game.StateAPI.seedPlayers === "function") {
-        Game.StateAPI.seedPlayers();
+      if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+        Game.__A.seedPlayers();
       } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
         Game.NPC.seedPlayers(S);
       }
-      if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-        Game.StateAPI.syncMeToPlayers();
+      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        Game.__A.syncMeToPlayers();
       }
       safeSetPoints(S.me, startPlayer);
       if (S.players && S.players.me) safeSetPoints(S.players.me, startPlayer);
@@ -738,7 +935,7 @@ window.Game = window.Game || {};
         const isNpc = (p.npc === true || p.type === "npc" || id.startsWith("npc_"));
         if (isNpc) safeSetPoints(p, startNpc);
       });
-      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      Game.__D.ALLOW_POINTS_WRITE = prevAllow;
       const poolIds = [];
       const winBattleId = "dev_win_fixed";
       const drawBattleId = "dev_draw_fixed";
@@ -762,7 +959,7 @@ window.Game = window.Game || {};
       const npcA = npcList[0];
       const npcB = npcList[1] || npcList[0];
 
-      const beforeSnapshot = Game.Dev.sumPointsSnapshot();
+      const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
 
       const winBattle = {
         id: winBattleId,
@@ -794,21 +991,21 @@ window.Game = window.Game || {};
         console.log("[Dev] driftSmoke planned pools:", poolIds.slice());
       } catch (_) {}
 
-      const afterSnapshot = Game.Dev.sumPointsSnapshot();
+      const afterSnapshot = Game.__DEV.sumPointsSnapshot();
       let assert = null;
       try {
-        assert = Game.Dev.assertNoDrift(beforeSnapshot, afterSnapshot);
+        assert = Game.__DEV.assertNoDrift(beforeSnapshot, afterSnapshot);
       } catch (e) {
         assert = { ok: false, error: String(e && e.message ? e.message : e) };
       }
 
       D0.CIRCULATION_ENABLED = prevFlag;
-      if (prevPause !== null) Game.Debug.PAUSE_EVENTS = prevPause;
-      if (prevAllow !== null) Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-      if (prevBypass !== null) Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+      if (prevPause !== null) Game.__D.PAUSE_EVENTS = prevPause;
+      if (prevAllow !== null) Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+      if (prevBypass !== null) Game.__D.BYPASS_POINTS_GUARD = prevBypass;
       const result = { name, ok: !!(assert && assert.ok), beforeSnapshot, afterSnapshot, assert };
       if (!result.ok) {
-        const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+        const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
         const tail = log.slice(Math.max(0, log.length - 100));
         const playersDump = Object.values(S.players || {}).map(p => ({
           id: p && p.id,
@@ -840,15 +1037,15 @@ window.Game = window.Game || {};
     } catch (e) {
       try {
         if (Game && Game.Data && prevFlag !== null) Game.Data.CIRCULATION_ENABLED = prevFlag;
-        if (Game && Game.Debug && prevPause !== null) Game.Debug.PAUSE_EVENTS = prevPause;
-        if (Game && Game.Debug && prevAllow !== null) Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-        if (Game && Game.Debug && prevBypass !== null) Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+        if (Game && Game.__D && prevPause !== null) Game.__D.PAUSE_EVENTS = prevPause;
+        if (Game && Game.__D && prevAllow !== null) Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+        if (Game && Game.__D && prevBypass !== null) Game.__D.BYPASS_POINTS_GUARD = prevBypass;
       } catch (_) {}
       return { name, ok: false, details: String(e && e.message ? e.message : e) };
     }
   };
 
-  Game.Dev.circulationPenaltySmoke = () => {
+  Game.__DEV.circulationPenaltySmoke = () => {
     const name = "circulation_penalty_smoke";
     let prevFlag = null;
     let prevPause = null;
@@ -861,15 +1058,15 @@ window.Game = window.Game || {};
       const Core = Game._ConflictCore || null;
       if (!Core || typeof Core.finalize !== "function") return { name, ok: false, details: "Game._ConflictCore.finalize missing" };
 
-      if (!Game.Debug) Game.Debug = {};
-      prevPause = Game.Debug.PAUSE_EVENTS === true;
-      Game.Debug.PAUSE_EVENTS = true;
-      prevBypass = Game.Debug.BYPASS_POINTS_GUARD === true;
-      Game.Debug.BYPASS_POINTS_GUARD = true;
-      prevAllow = Game.Debug.ALLOW_POINTS_WRITE === true;
-      Game.Debug.ALLOW_POINTS_WRITE = true;
+      if (!Game.__D) Game.__D = {};
+      prevPause = Game.__D.PAUSE_EVENTS === true;
+      Game.__D.PAUSE_EVENTS = true;
+      prevBypass = Game.__D.BYPASS_POINTS_GUARD === true;
+      Game.__D.BYPASS_POINTS_GUARD = true;
+      prevAllow = Game.__D.ALLOW_POINTS_WRITE === true;
+      Game.__D.ALLOW_POINTS_WRITE = true;
 
-      const S = Game.State || {};
+      const S = Game.__S || {};
       const players = S.players || {};
 
       const setRole = (p, role) => {
@@ -916,13 +1113,13 @@ window.Game = window.Game || {};
       if (!S.players) S.players = {};
       if (!S.me) S.me = { id: "me", points: startPlayer, influence: 0, wins: 0 };
       if (!S.players.me && S.me) S.players.me = S.me;
-      if (Game.StateAPI && typeof Game.StateAPI.seedPlayers === "function") {
-        Game.StateAPI.seedPlayers();
+      if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+        Game.__A.seedPlayers();
       } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
         Game.NPC.seedPlayers(S);
       }
-      if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-        Game.StateAPI.syncMeToPlayers();
+      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        Game.__A.syncMeToPlayers();
       }
       setPoints(S.me, startPlayer);
       if (S.players && S.players.me) setPoints(S.players.me, startPlayer);
@@ -932,7 +1129,7 @@ window.Game = window.Game || {};
         const isNpc = (p.npc === true || p.type === "npc" || id.startsWith("npc_"));
         if (isNpc) setPoints(p, startNpc);
       });
-      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      Game.__D.ALLOW_POINTS_WRITE = prevAllow;
       const npcList = Object.values(S.players || {}).filter(p => p && (p.npc === true || p.type === "npc" || String(p.id || "").startsWith("npc_")));
       if (npcList.length < 2) return { name, ok: false, details: "not enough NPCs" };
       const npcA = npcList[0];
@@ -944,7 +1141,7 @@ window.Game = window.Game || {};
         else if (Econ && typeof Econ.getPoolBalance === "function") Econ.getPoolBalance(id);
       });
 
-      const beforeSnapshot = Game.Dev.sumPointsSnapshot();
+      const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
 
       setRole(npcA, "toxic");
       let b = makeBattle(npcA.id, true);
@@ -967,22 +1164,22 @@ window.Game = window.Game || {};
       S.battles = [b].concat(S.battles || []);
       Core.finalize(b.id, "win");
 
-      const afterSnapshot = Game.Dev.sumPointsSnapshot();
+      const afterSnapshot = Game.__DEV.sumPointsSnapshot();
       let assert = null;
       try {
-        assert = Game.Dev.assertNoDrift(beforeSnapshot, afterSnapshot);
+        assert = Game.__DEV.assertNoDrift(beforeSnapshot, afterSnapshot);
       } catch (e) {
         assert = { ok: false, error: String(e && e.message ? e.message : e) };
       }
 
       restoreRoles();
       D0.CIRCULATION_ENABLED = prevFlag;
-      if (prevPause !== null) Game.Debug.PAUSE_EVENTS = prevPause;
-      if (prevAllow !== null) Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-      if (prevBypass !== null) Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+      if (prevPause !== null) Game.__D.PAUSE_EVENTS = prevPause;
+      if (prevAllow !== null) Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+      if (prevBypass !== null) Game.__D.BYPASS_POINTS_GUARD = prevBypass;
       const result = { name, ok: !!(assert && assert.ok), beforeSnapshot, afterSnapshot, assert };
       if (!result.ok) {
-        const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+        const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
         const tail = log.slice(Math.max(0, log.length - 50));
         const playersDump = Object.values(S.players || {}).map(p => ({
           id: p && p.id,
@@ -1005,16 +1202,16 @@ window.Game = window.Game || {};
     } catch (e) {
       try {
         if (Game && Game.Data && prevFlag !== null) Game.Data.CIRCULATION_ENABLED = prevFlag;
-        if (Game && Game.Debug && prevPause !== null) Game.Debug.PAUSE_EVENTS = prevPause;
-        if (Game && Game.Debug && prevAllow !== null) Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-        if (Game && Game.Debug && prevBypass !== null) Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
+        if (Game && Game.__D && prevPause !== null) Game.__D.PAUSE_EVENTS = prevPause;
+        if (Game && Game.__D && prevAllow !== null) Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+        if (Game && Game.__D && prevBypass !== null) Game.__D.BYPASS_POINTS_GUARD = prevBypass;
         savedRoles.forEach(r => { r.p.role = r.role; r.p.type = r.type; });
       } catch (_) {}
       return { name, ok: false, details: String(e && e.message ? e.message : e) };
     }
   };
 
-  Game.Dev.circulationChatSmoke = () => {
+  Game.__DEV.circulationChatSmoke = () => {
     const name = "circulation_chat_smoke";
     let prevFlag = null;
     try {
@@ -1022,17 +1219,17 @@ window.Game = window.Game || {};
       if (!D0) return { name, ok: false, details: "Game.Data missing" };
       const UI = Game.UI || null;
       if (!UI || typeof UI.pushChat !== "function") return { name, ok: false, details: "UI.pushChat missing" };
-      const S = Game.State || {};
+      const S = Game.__S || {};
       S.points = S.points || {};
 
       prevFlag = D0.CIRCULATION_ENABLED === true;
       D0.CIRCULATION_ENABLED = true;
       S.points.lastChatRewardAt = 0;
 
-      const before = Game.Dev.sumPointsSnapshot();
+      const before = Game.__DEV.sumPointsSnapshot();
       UI.pushChat({ name: "Ты", text: "dev chat smoke", system: false, isMe: true, playerId: "me" });
-      const after = Game.Dev.sumPointsSnapshot();
-      const res = Game.Dev.assertNoDrift(before, after);
+      const after = Game.__DEV.sumPointsSnapshot();
+      const res = Game.__DEV.assertNoDrift(before, after);
 
       D0.CIRCULATION_ENABLED = prevFlag;
       return { name, ok: res.ok, details: { diff: res.diff, before, after } };
@@ -1044,21 +1241,21 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.circulationCopSmoke = () => {
+  Game.__DEV.circulationCopSmoke = () => {
     const name = "circulation_cop_smoke";
     let prevFlag = null;
     try {
       const D0 = Game.Data || null;
       if (!D0) return { name, ok: false, details: "Game.Data missing" };
-      const S = Game.State || {};
-      if (!S.me || !Game.StateAPI || typeof Game.StateAPI.applyReportByRole !== "function") {
+      const S = Game.__S || {};
+      if (!S.me || !Game.__A || typeof Game.__A.applyReportByRole !== "function") {
         return { name, ok: false, details: "StateAPI.applyReportByRole missing" };
       }
 
       prevFlag = D0.CIRCULATION_ENABLED === true;
       D0.CIRCULATION_ENABLED = true;
 
-      const before = Game.Dev.sumPointsSnapshot();
+      const before = Game.__DEV.sumPointsSnapshot();
 
       S.reports = S.reports || { history: {}, lastAt: 0, cooldownMs: 0 };
       S.reports.history = {};
@@ -1066,16 +1263,16 @@ window.Game = window.Game || {};
       S.sightings = S.sightings || {};
       S.sightings.mafia = 0;
 
-      Game.StateAPI.applyReportByRole("mafia");
+      Game.__A.applyReportByRole("mafia");
 
       S.reports.history = {};
       S.reports.lastAt = 0;
       S.sightings.mafia = Date.now();
 
-      Game.StateAPI.applyReportByRole("mafia");
+      Game.__A.applyReportByRole("mafia");
 
-      const after = Game.Dev.sumPointsSnapshot();
-      const res = Game.Dev.assertNoDrift(before, after);
+      const after = Game.__DEV.sumPointsSnapshot();
+      const res = Game.__DEV.assertNoDrift(before, after);
 
       D0.CIRCULATION_ENABLED = prevFlag;
       return { name, ok: res.ok, details: { diff: res.diff, before, after } };
@@ -1087,28 +1284,28 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.circulationNpcSeedSmoke = () => {
+  Game.__DEV.circulationNpcSeedSmoke = () => {
     const name = "circulation_npc_seed_smoke";
     let prevFlag = null;
     try {
       const D0 = Game.Data || null;
       if (!D0) return { name, ok: false, details: "Game.Data missing" };
-      if (!Game.StateAPI || typeof Game.StateAPI.resetAll !== "function" || typeof Game.StateAPI.seedPlayers !== "function") {
+      if (!Game.__A || typeof Game.__A.resetAll !== "function" || typeof Game.__A.seedPlayers !== "function") {
         return { name, ok: false, details: "StateAPI.resetAll/seedPlayers missing" };
       }
 
       prevFlag = D0.CIRCULATION_ENABLED === true;
       D0.CIRCULATION_ENABLED = true;
 
-      Game.StateAPI.resetAll();
-      Game.StateAPI.seedPlayers();
-      if (Game.StateAPI.syncMeToPlayers) Game.StateAPI.syncMeToPlayers();
+      Game.__A.resetAll();
+      Game.__A.seedPlayers();
+      if (Game.__A.syncMeToPlayers) Game.__A.syncMeToPlayers();
 
-      const snap1 = Game.Dev.sumPointsSnapshot();
-      const snap2 = Game.Dev.sumPointsSnapshot();
-      const res = Game.Dev.assertNoDrift(snap1, snap2);
+      const snap1 = Game.__DEV.sumPointsSnapshot();
+      const snap2 = Game.__DEV.sumPointsSnapshot();
+      const res = Game.__DEV.assertNoDrift(snap1, snap2);
 
-      const players = (Game.State && Game.State.players) ? Game.State.players : {};
+      const players = (Game.__S && Game.__S.players) ? Game.__S.players : {};
       const npcs = Object.values(players).filter(p => p && (p.npc === true || p.type === "npc"));
       const maxNpc = npcs.reduce((m, p) => Math.max(m, (p.points | 0)), 0);
       const minNpc = npcs.reduce((m, p) => Math.min(m, (p.points | 0)), npcs.length ? (npcs[0].points | 0) : 0);
@@ -1125,15 +1322,15 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.drawAuditTrigger = (opts = {}) => {
+  Game.__DEV.drawAuditTrigger = (opts = {}) => {
     const name = "draw_audit_trigger";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const Core = Game.ConflictCore || Game._ConflictCore || null;
     if (!Econ || typeof Econ.transferPoints !== "function" || typeof Econ.transferFromPool !== "function") {
       return { name, ok: false, details: "Econ.transferPoints/transferFromPool missing" };
     }
-    const S = Game.State || null;
-    if (!S || !S.players || !S.me) return { name, ok: false, details: "Game.State missing" };
+    const S = Game.__S || null;
+    if (!S || !S.players || !S.me) return { name, ok: false, details: "Game.__S missing" };
 
     const active = Array.isArray(S.battles) ? S.battles.filter(b => b && b.status !== "finished" && !b.resolved) : [];
     if (active.length && !opts.allowParallel) {
@@ -1150,15 +1347,15 @@ window.Game = window.Game || {};
     let prevWeighted = null;
     let prevInfluence = null;
     try {
-      if (!Game.Debug) Game.Debug = {};
-      prevForce = Game.Debug.FORCE_CIRCULATION;
-      prevBypass = Game.Debug.BYPASS_POINTS_GUARD === true;
-      prevAllow = Game.Debug.ALLOW_POINTS_WRITE === true;
-      prevWeighted = Game.Debug.CROWD_WEIGHTED_TALLY;
-      Game.Debug.FORCE_CIRCULATION = true;
-      Game.Debug.BYPASS_POINTS_GUARD = true;
-      Game.Debug.ALLOW_POINTS_WRITE = true;
-      if (opts && opts.debugWeights) Game.Debug.CROWD_WEIGHTED_TALLY = true;
+      if (!Game.__D) Game.__D = {};
+      prevForce = Game.__D.FORCE_CIRCULATION;
+      prevBypass = Game.__D.BYPASS_POINTS_GUARD === true;
+      prevAllow = Game.__D.ALLOW_POINTS_WRITE === true;
+      prevWeighted = Game.__D.CROWD_WEIGHTED_TALLY;
+      Game.__D.FORCE_CIRCULATION = true;
+      Game.__D.BYPASS_POINTS_GUARD = true;
+      Game.__D.ALLOW_POINTS_WRITE = true;
+      if (opts && opts.debugWeights) Game.__D.CROWD_WEIGHTED_TALLY = true;
 
       const battleId = `dev_draw_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
       const oppId = (opts.oppId && S.players[opts.oppId]) ? opts.oppId : "npc_weak";
@@ -1207,7 +1404,7 @@ window.Game = window.Game || {};
       const majority = votersPool.slice(0, majorityCount).map(p => p.id);
       const minority = votersPool.slice(majorityCount, majorityCount + minorityCount).map(p => p.id);
 
-      const beforeSnapshot = Game.Dev.sumPointsSnapshot();
+      const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
 
       const battleMeta = { battleId, status: "draw", result: "draw" };
       majority.concat(minority).forEach(voterId => {
@@ -1228,7 +1425,7 @@ window.Game = window.Game || {};
         Econ.transferFromPool(poolId, oppId, share, "crowd_draw_payout_opp", battleMeta);
       }
 
-      const addRep = (Game.StateAPI && typeof Game.StateAPI.addRep === "function") ? Game.StateAPI.addRep : null;
+      const addRep = (Game.__A && typeof Game.__A.addRep === "function") ? Game.__A.addRep : null;
       let repAwardedMinority = 0;
       if (v13 && addRep) {
         minority.forEach(() => {
@@ -1237,17 +1434,17 @@ window.Game = window.Game || {};
         });
       }
 
-      const afterSnapshot = Game.Dev.sumPointsSnapshot();
+      const afterSnapshot = Game.__DEV.sumPointsSnapshot();
       let assert = null;
-      try { assert = Game.Dev.assertNoDrift(beforeSnapshot, afterSnapshot); }
+      try { assert = Game.__DEV.assertNoDrift(beforeSnapshot, afterSnapshot); }
       catch (e) { assert = { ok: false, error: String(e && e.message ? e.message : e) }; }
 
-      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
-      const byBattle = (Game.Debug && Game.Debug.moneyLogByBattle) ? (Game.Debug.moneyLogByBattle[battleId] || []) : [];
+      const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+      const byBattle = (Game.__D && Game.__D.moneyLogByBattle) ? (Game.__D.moneyLogByBattle[battleId] || []) : [];
       const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
 
       const ensureDrawBattle = () => {
-        const state = Game.State || (Game.State = {});
+        const state = Game.__S || (Game.__S = {});
         if (!Array.isArray(state.battles)) state.battles = [];
         let existing = state.battles.find(x => x && String(x.id) === String(battleId));
         if (existing) return existing;
@@ -1389,11 +1586,11 @@ window.Game = window.Game || {};
         crowdCapDebugWhy
       };
     } finally {
-      if (!Game.Debug) Game.Debug = {};
-      Game.Debug.FORCE_CIRCULATION = prevForce;
-      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
-      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-      if (prevWeighted !== null) Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (!Game.__D) Game.__D = {};
+      Game.__D.FORCE_CIRCULATION = prevForce;
+      Game.__D.BYPASS_POINTS_GUARD = prevBypass;
+      Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+      if (prevWeighted !== null) Game.__D.CROWD_WEIGHTED_TALLY = prevWeighted;
       if (prevInfluence) {
         Object.keys(prevInfluence).forEach(id => {
           if (S && S.players && S.players[id]) S.players[id].influence = prevInfluence[id];
@@ -1402,18 +1599,18 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.smokeCrowdStep2 = (opts = {}) => {
+  Game.__DEV.smokeCrowdStep2 = (opts = {}) => {
     const name = "smoke_crowd_step2";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const Core = Game.ConflictCore || Game._ConflictCore || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     if (!Econ || typeof Econ.transferPoints !== "function" || typeof Econ.transferFromPool !== "function") {
       return { name, ok: false, details: "Econ.transferPoints/transferFromPool missing" };
     }
     if (!Core || typeof Core.applyCrowdVoteTick !== "function") {
       return { name, ok: false, details: "ConflictCore.applyCrowdVoteTick missing" };
     }
-    if (!S || !S.players || !S.me) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players || !S.me) return { name, ok: false, details: "Game.__S missing" };
     if (Array.isArray(S.battles) && S.battles.some(b => b && b.status !== "finished" && !b.resolved) && !opts.allowParallel) {
       return { name, ok: false, details: "active_battle_present" };
     }
@@ -1423,13 +1620,13 @@ window.Game = window.Game || {};
     let prevAllow = null;
     const touched = [];
     try {
-      if (!Game.Debug) Game.Debug = {};
-      prevForce = Game.Debug.FORCE_CIRCULATION;
-      prevBypass = Game.Debug.BYPASS_POINTS_GUARD === true;
-      prevAllow = Game.Debug.ALLOW_POINTS_WRITE === true;
-      Game.Debug.FORCE_CIRCULATION = true;
-      Game.Debug.BYPASS_POINTS_GUARD = true;
-      Game.Debug.ALLOW_POINTS_WRITE = true;
+      if (!Game.__D) Game.__D = {};
+      prevForce = Game.__D.FORCE_CIRCULATION;
+      prevBypass = Game.__D.BYPASS_POINTS_GUARD === true;
+      prevAllow = Game.__D.ALLOW_POINTS_WRITE === true;
+      Game.__D.FORCE_CIRCULATION = true;
+      Game.__D.BYPASS_POINTS_GUARD = true;
+      Game.__D.ALLOW_POINTS_WRITE = true;
 
       const D0 = Game.Data || {};
       const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 10;
@@ -1575,8 +1772,8 @@ window.Game = window.Game || {};
           const pointsBefore = p ? (p.points | 0) : 0;
           const repBefore = p && Number.isFinite(p.rep) ? (p.rep | 0) : 0;
           Econ.transferPoints(v.id, poolId, 1, "crowd_vote_cost", { battleId });
-          if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-            Game.StateAPI.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", battleId);
+          if (Game.__A && typeof Game.__A.transferRep === "function") {
+            Game.__A.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", battleId);
           }
           const pointsAfter = p ? (p.points | 0) : 0;
           const repAfter = p && Number.isFinite(p.rep) ? (p.rep | 0) : 0;
@@ -1616,7 +1813,7 @@ window.Game = window.Game || {};
         const crowdMeta = tickResult && tickResult.crowdCapMeta ? tickResult.crowdCapMeta : null;
         const poolAfter = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
 
-        const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+        const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
         const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
         const reasons = {};
         logForBid.forEach(tx => {
@@ -1695,10 +1892,10 @@ window.Game = window.Game || {};
 
       return { name, ok, fiftyFifty, majority };
     } finally {
-      if (!Game.Debug) Game.Debug = {};
-      Game.Debug.FORCE_CIRCULATION = prevForce;
-      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
-      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
+      if (!Game.__D) Game.__D = {};
+      Game.__D.FORCE_CIRCULATION = prevForce;
+      Game.__D.BYPASS_POINTS_GUARD = prevBypass;
+      Game.__D.ALLOW_POINTS_WRITE = prevAllow;
       if (touched.length) {
         touched.forEach(t => {
           const p = S.players[t.id];
@@ -1710,14 +1907,14 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.smokeNpcCrowdEventEconomyOnce = (opts = {}) => {
+  Game.__DEV.smokeNpcCrowdEventEconomyOnce = (opts = {}) => {
     const name = "smoke_npc_crowd_event_economy_once";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     if (!Econ || typeof Econ.transferPoints !== "function") {
       return { name, ok: false, details: "Econ.transferPoints missing" };
     }
-    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
     const forceBranch = opts && opts.forceBranch ? String(opts.forceBranch).toLowerCase() : null;
     const branch = forceBranch || "fifty";
     const touched = [];
@@ -1814,8 +2011,8 @@ window.Game = window.Game || {};
       if (v.side === "a") aVotes += w;
       else bVotes += w;
       Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId: event.id });
-      if (Game.StateAPI && typeof Game.StateAPI.transferRep === "function") {
-        Game.StateAPI.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", event.id);
+      if (Game.__A && typeof Game.__A.transferRep === "function") {
+        Game.__A.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", event.id);
       }
     });
 
@@ -1828,7 +2025,7 @@ window.Game = window.Game || {};
 
     if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
 
-    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
     const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(event.id));
     const byReason = {};
     logForBid.forEach(tx => {
@@ -1865,18 +2062,18 @@ window.Game = window.Game || {};
     };
   };
 
-  Game.Dev.smokeNpcCrowdEventPaidVotesOnce = (opts = {}) => {
+  Game.__DEV.smokeNpcCrowdEventPaidVotesOnce = (opts = {}) => {
     const name = "smoke_npc_crowd_event_paid_votes_once";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const Events = Game.Events || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     if (!Econ || typeof Econ.transferPoints !== "function") {
       return { name, ok: false, details: "Econ.transferPoints missing" };
     }
     if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.tick !== "function") {
       return { name, ok: false, details: "Events.makeNpcEvent/addEvent/tick missing" };
     }
-    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
 
     const event = Events.makeNpcEvent();
     if (!event) return { name, ok: false, details: "makeNpcEvent failed" };
@@ -1946,7 +2143,7 @@ window.Game = window.Game || {};
 
     const countedNpcVotes = [];
 
-    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
     const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(event.id));
     const byReason = {};
     const npcCostLogs = logForBid.filter(tx => {
@@ -2019,7 +2216,7 @@ window.Game = window.Game || {};
       const getterAfterPts = stateAfterPts;
 
       const moneyLogLastCost = (() => {
-        const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+        const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
         for (let i = log.length - 1; i >= 0; i--) {
           const x = log[i];
           if (!x) continue;
@@ -2096,15 +2293,15 @@ window.Game = window.Game || {};
     };
   };
 
-  Game.Dev.smokeNpcCrowdMaxShareOnce = (opts = {}) => {
+  Game.__DEV.smokeNpcCrowdMaxShareOnce = (opts = {}) => {
     const name = "smoke_npc_crowd_max_share_once";
     const Events = Game.Events || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const D0 = Game.Data || null;
     if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.tick !== "function") {
       return { name, ok: false, details: "Events.makeNpcEvent/addEvent/tick missing" };
     }
-    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
     if (!D0) return { name, ok: false, details: "Game.Data missing" };
 
     const share = (opts && Number.isFinite(opts.maxNpcShare)) ? Math.max(0, Math.min(1, opts.maxNpcShare)) : 0.5;
@@ -2169,7 +2366,7 @@ window.Game = window.Game || {};
       const countedIds = Array.from(new Set((countedFromCrowd.length ? countedFromCrowd : countedFromSim))).filter(Boolean);
       const excludedIds = Array.from(new Set((excludedFromCrowd.length ? excludedFromCrowd : excludedFromSim))).filter(Boolean);
 
-      const dbg = (Game.Debug || null);
+      const dbg = (Game.__D || null);
       const logByBattle = (dbg && dbg.moneyLogByBattle) ? dbg.moneyLogByBattle : null;
       const logForBid = Array.isArray(logByBattle && logByBattle[event.id])
         ? logByBattle[event.id]
@@ -2247,15 +2444,15 @@ window.Game = window.Game || {};
     return { name, ok, limited, full };
   };
 
-  Game.Dev.smokeNpcCrowdOneEventBeforeAfterOnce = (opts = {}) => {
+  Game.__DEV.smokeNpcCrowdOneEventBeforeAfterOnce = (opts = {}) => {
     const name = "smoke_npc_crowd_one_event_before_after_once";
     const Events = Game.Events || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const D0 = Game.Data || null;
     if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.tick !== "function") {
       return { name, ok: false, details: "Events.makeNpcEvent/addEvent/tick missing" };
     }
-    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
     if (!D0) return { name, ok: false, details: "Game.Data missing" };
 
     const share = (opts && Number.isFinite(opts.maxNpcShare)) ? Math.max(0, Math.min(1, opts.maxNpcShare)) : 0.5;
@@ -2334,7 +2531,7 @@ window.Game = window.Game || {};
       return { id, points: Number.isFinite(p && p.points) ? (p.points | 0) : null };
     });
 
-    const dbg = (Game.Debug || null);
+    const dbg = (Game.__D || null);
     const logByBattle = (dbg && dbg.moneyLogByBattle) ? dbg.moneyLogByBattle : null;
     const logForBid = Array.isArray(logByBattle && logByBattle[event.id])
       ? logByBattle[event.id]
@@ -2580,7 +2777,7 @@ window.Game = window.Game || {};
   function getCrowdVoteWeightMeta(voterId){
     try {
       const D = Game && Game.Data ? Game.Data : null;
-      const S = Game && Game.State ? Game.State : null;
+      const S = Game && Game.__S ? Game.__S : null;
       const p = (voterId === "me" && S && S.me) ? S.me : (S && S.players ? S.players[voterId] : null);
       const inf = (p && Number.isFinite(p.influence)) ? (p.influence | 0) : 0;
       const role = p ? String(p.role || p.type || "").toLowerCase() : "";
@@ -2617,7 +2814,7 @@ window.Game = window.Game || {};
     opts = {},
     scopedOverride = null
   }) {
-    const dbg = (Game.Debug || null);
+    const dbg = (Game.__D || null);
     const logByBattle = (dbg && dbg.moneyLogByBattle) ? dbg.moneyLogByBattle : null;
     const logForBid = Array.isArray(scopedOverride)
       ? scopedOverride
@@ -2804,11 +3001,11 @@ window.Game = window.Game || {};
     };
   }
 
-  Game.Dev.smokeBattleCrowdOutcomeOnce = (opts = {}) => {
+  Game.__DEV.smokeBattleCrowdOutcomeOnce = (opts = {}) => {
     const name = "smoke_battle_crowd_outcome_once";
     const Core = Game.ConflictCore || Game._ConflictCore || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const diag = { builderWhy: "entered", stage: "entered", trace: [] };
     const result = { name, ok: false, details: "not_built", battleId: null, telemetry: null, diag };
     if (!Core || typeof Core.finalizeCrowdVote !== "function") {
@@ -2817,7 +3014,7 @@ window.Game = window.Game || {};
     if (!Econ || typeof Econ.transferPoints !== "function") {
       return { name, ok: false, details: "Econ.transferPoints missing" };
     }
-    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
 
     const allowParallel = (opts && typeof opts.allowParallel === "boolean") ? opts.allowParallel : true;
     if (!allowParallel) {
@@ -2825,18 +3022,18 @@ window.Game = window.Game || {};
       if (active.length) return { name, ok: false, details: "active_battle_present", activeCount: active.length };
     }
 
-    const prevForce = Game.Debug ? Game.Debug.FORCE_CIRCULATION : undefined;
-    const prevBypass = Game.Debug ? Game.Debug.BYPASS_POINTS_GUARD : undefined;
-    const prevAllow = Game.Debug ? Game.Debug.ALLOW_POINTS_WRITE : undefined;
-    const prevWeighted = Game.Debug ? Game.Debug.CROWD_WEIGHTED_TALLY : undefined;
+    const prevForce = Game.__D ? Game.__D.FORCE_CIRCULATION : undefined;
+    const prevBypass = Game.__D ? Game.__D.BYPASS_POINTS_GUARD : undefined;
+    const prevAllow = Game.__D ? Game.__D.ALLOW_POINTS_WRITE : undefined;
+    const prevWeighted = Game.__D ? Game.__D.CROWD_WEIGHTED_TALLY : undefined;
     const touched = [];
 
     try {
-      if (!Game.Debug) Game.Debug = {};
-      Game.Debug.FORCE_CIRCULATION = true;
-      Game.Debug.BYPASS_POINTS_GUARD = true;
-      Game.Debug.ALLOW_POINTS_WRITE = true;
-      Game.Debug.CROWD_WEIGHTED_TALLY = true;
+      if (!Game.__D) Game.__D = {};
+      Game.__D.FORCE_CIRCULATION = true;
+      Game.__D.BYPASS_POINTS_GUARD = true;
+      Game.__D.ALLOW_POINTS_WRITE = true;
+      Game.__D.CROWD_WEIGHTED_TALLY = true;
 
       const D0 = Game.Data || {};
       const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
@@ -3066,7 +3263,7 @@ window.Game = window.Game || {};
         return out;
       };
 
-      const beforeSnapshot = Game.Dev.sumPointsSnapshot();
+      const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
       const beforePoints = buildPointsSnapshot();
       const beforePlayersMap = (() => {
         const out = Object.create(null);
@@ -3093,7 +3290,7 @@ window.Game = window.Game || {};
       battle.crowd.totalPlayers = totalPlayers();
       battle.crowd.cap = capUsed;
 
-      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+      const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
       const logStart = log.length;
       const crowdVotersSnapshot = (battle && battle.crowd && battle.crowd.voters) ? { ...battle.crowd.voters } : null;
 
@@ -3113,7 +3310,7 @@ window.Game = window.Game || {};
       });
       const logAfter = log.slice(logStart);
 
-      const afterSnapshot = Game.Dev.sumPointsSnapshot();
+      const afterSnapshot = Game.__DEV.sumPointsSnapshot();
       const afterPoints = buildPointsSnapshot();
       const afterPlayersMap = (() => {
         const out = Object.create(null);
@@ -3315,16 +3512,16 @@ window.Game = window.Game || {};
         asserts,
         telemetry
       });
-      if (result.ok) Game.Dev.lastSmokeBattleId = battleId;
-      if (result.ok) Game.Dev.lastSmokeBattleId = battleId;
-      if (result.ok) Game.Dev.lastSmokeBattleId = battleId;
+      if (result.ok) Game.__DEV.lastSmokeBattleId = battleId;
+      if (result.ok) Game.__DEV.lastSmokeBattleId = battleId;
+      if (result.ok) Game.__DEV.lastSmokeBattleId = battleId;
       return result;
     } finally {
-      if (!Game.Debug) Game.Debug = {};
-      Game.Debug.FORCE_CIRCULATION = prevForce;
-      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
-      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-      Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (!Game.__D) Game.__D = {};
+      Game.__D.FORCE_CIRCULATION = prevForce;
+      Game.__D.BYPASS_POINTS_GUARD = prevBypass;
+      Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+      Game.__D.CROWD_WEIGHTED_TALLY = prevWeighted;
       if (touched.length) {
         touched.forEach(t => {
           const p = S.players[t.id];
@@ -3336,11 +3533,11 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.smokeEscapeCrowdOutcomeOnce = (opts = {}) => {
+  Game.__DEV.smokeEscapeCrowdOutcomeOnce = (opts = {}) => {
     const name = "smoke_escape_crowd_outcome_once";
     const Core = Game.ConflictCore || Game._ConflictCore || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const diag = { builderWhy: "entered", stage: "entered", trace: [] };
     const result = { name, ok: false, details: "not_built", battleId: null, telemetry: null, diag };
     if (!Core || typeof Core.escape !== "function" || typeof Core.finalizeEscapeVote !== "function") {
@@ -3349,7 +3546,7 @@ window.Game = window.Game || {};
     if (!Econ || typeof Econ.transferPoints !== "function") {
       return { name, ok: false, details: "Econ.transferPoints missing" };
     }
-    if (!S || !S.players) return { name, ok: false, details: "Game.State missing" };
+    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
 
     const allowParallel = !!(opts && opts.allowParallel);
     if (!allowParallel) {
@@ -3357,18 +3554,18 @@ window.Game = window.Game || {};
       if (active.length) return { name, ok: false, details: "active_battle_present", activeCount: active.length };
     }
 
-    const prevForce = Game.Debug ? Game.Debug.FORCE_CIRCULATION : undefined;
-    const prevBypass = Game.Debug ? Game.Debug.BYPASS_POINTS_GUARD : undefined;
-    const prevAllow = Game.Debug ? Game.Debug.ALLOW_POINTS_WRITE : undefined;
-    const prevWeighted = Game.Debug ? Game.Debug.CROWD_WEIGHTED_TALLY : undefined;
+    const prevForce = Game.__D ? Game.__D.FORCE_CIRCULATION : undefined;
+    const prevBypass = Game.__D ? Game.__D.BYPASS_POINTS_GUARD : undefined;
+    const prevAllow = Game.__D ? Game.__D.ALLOW_POINTS_WRITE : undefined;
+    const prevWeighted = Game.__D ? Game.__D.CROWD_WEIGHTED_TALLY : undefined;
     const touched = [];
 
     try {
-      if (!Game.Debug) Game.Debug = {};
-      Game.Debug.FORCE_CIRCULATION = true;
-      Game.Debug.BYPASS_POINTS_GUARD = true;
-      Game.Debug.ALLOW_POINTS_WRITE = true;
-      Game.Debug.CROWD_WEIGHTED_TALLY = false;
+      if (!Game.__D) Game.__D = {};
+      Game.__D.FORCE_CIRCULATION = true;
+      Game.__D.BYPASS_POINTS_GUARD = true;
+      Game.__D.ALLOW_POINTS_WRITE = true;
+      Game.__D.CROWD_WEIGHTED_TALLY = false;
 
       const D0 = Game.Data || {};
       const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
@@ -3537,7 +3734,7 @@ window.Game = window.Game || {};
       v.votesA = v.aVotes;
       v.votesB = v.bVotes;
 
-      const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+      const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
       const logStart = log.length;
 
       const res = Core.finalizeEscapeVote(battleId);
@@ -3703,11 +3900,11 @@ window.Game = window.Game || {};
       });
       return result;
     } finally {
-      if (!Game.Debug) Game.Debug = {};
-      Game.Debug.FORCE_CIRCULATION = prevForce;
-      Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
-      Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-      Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+      if (!Game.__D) Game.__D = {};
+      Game.__D.FORCE_CIRCULATION = prevForce;
+      Game.__D.BYPASS_POINTS_GUARD = prevBypass;
+      Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+      Game.__D.CROWD_WEIGHTED_TALLY = prevWeighted;
       if (touched.length) {
         touched.forEach(t => {
           const p = S.players[t.id];
@@ -3719,13 +3916,13 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.smokeIgnoreCrowdOutcomeOnce = (opts = {}) => {
-    if (Game && Game.Dev) Game.Dev.__smokeIgnoreVersion = "B2c_ignore_func_v3";
+  Game.__DEV.smokeIgnoreCrowdOutcomeOnce = (opts = {}) => {
+    if (Game && Game.__DEV) Game.__DEV.__smokeIgnoreVersion = "B2c_ignore_func_v3";
     return (function () {
       const name = "smoke_ignore_crowd_outcome_once";
       const Core = Game.ConflictCore || Game._ConflictCore || null;
       const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-      const S = Game.State || null;
+      const S = Game.__S || null;
       const result = {
         name,
         ok: false,
@@ -3753,10 +3950,10 @@ window.Game = window.Game || {};
         return result;
       }
 
-      const prevForce = Game.Debug ? Game.Debug.FORCE_CIRCULATION : undefined;
-      const prevBypass = Game.Debug ? Game.Debug.BYPASS_POINTS_GUARD : undefined;
-      const prevAllow = Game.Debug ? Game.Debug.ALLOW_POINTS_WRITE : undefined;
-      const prevWeighted = Game.Debug ? Game.Debug.CROWD_WEIGHTED_TALLY : undefined;
+      const prevForce = Game.__D ? Game.__D.FORCE_CIRCULATION : undefined;
+      const prevBypass = Game.__D ? Game.__D.BYPASS_POINTS_GUARD : undefined;
+      const prevAllow = Game.__D ? Game.__D.ALLOW_POINTS_WRITE : undefined;
+      const prevWeighted = Game.__D ? Game.__D.CROWD_WEIGHTED_TALLY : undefined;
       const touched = [];
 
       try {
@@ -3772,7 +3969,7 @@ window.Game = window.Game || {};
             break;
           }
           if (!S || !S.players) {
-            result.details = "Game.State missing";
+            result.details = "Game.__S missing";
             diag.builderWhy = "state_missing";
             break;
           }
@@ -3788,11 +3985,11 @@ window.Game = window.Game || {};
             }
           }
 
-          if (!Game.Debug) Game.Debug = {};
-          Game.Debug.FORCE_CIRCULATION = true;
-          Game.Debug.BYPASS_POINTS_GUARD = true;
-          Game.Debug.ALLOW_POINTS_WRITE = true;
-          Game.Debug.CROWD_WEIGHTED_TALLY = false;
+          if (!Game.__D) Game.__D = {};
+          Game.__D.FORCE_CIRCULATION = true;
+          Game.__D.BYPASS_POINTS_GUARD = true;
+          Game.__D.ALLOW_POINTS_WRITE = true;
+          Game.__D.CROWD_WEIGHTED_TALLY = false;
 
           const D0 = Game.Data || {};
           const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 10;
@@ -3984,7 +4181,7 @@ window.Game = window.Game || {};
           v.votesA = v.aVotes;
           v.votesB = v.bVotes;
 
-          const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
+          const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
           const logStart = log.length;
 
           const res = Core.finalizeEscapeVote(battleId);
@@ -3993,8 +4190,8 @@ window.Game = window.Game || {};
           const endedBy = crowdMeta ? crowdMeta.endedBy : null;
           const outcome = res && res.outcome ? res.outcome : (v.outcome || null);
 
-          if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) {
-            Game.Debug.moneyLog.push({
+          if (Game.__D && Array.isArray(Game.__D.moneyLog)) {
+            Game.__D.moneyLog.push({
               ts: Date.now(),
               reason: "ignore_outcome_debug",
               battleId,
@@ -4003,7 +4200,7 @@ window.Game = window.Game || {};
             });
           }
 
-          const dbgAfter = Game.Debug || {};
+          const dbgAfter = Game.__D || {};
           const mlbbAfter = dbgAfter.moneyLogByBattle || {};
           const scoped = Array.isArray(mlbbAfter[battleId]) ? mlbbAfter[battleId] : [];
           const logForBid = scoped.length ? scoped : log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
@@ -4039,7 +4236,7 @@ window.Game = window.Game || {};
           diag.stage = "after_scoped";
           diag.trace.push("after_scoped");
           if (opts && opts.debugTelemetry) {
-            const dbg = Game.Debug || {};
+            const dbg = Game.__D || {};
             const mlbb = dbg.moneyLogByBattle || {};
             const battleArr = Array.isArray(mlbb[battleId]) ? mlbb[battleId] : [];
             const undefinedArr = Array.isArray(mlbb["undefined"]) ? mlbb["undefined"] : [];
@@ -4226,11 +4423,11 @@ window.Game = window.Game || {};
           break;
         } while (false);
       } finally {
-        if (!Game.Debug) Game.Debug = {};
-        Game.Debug.FORCE_CIRCULATION = prevForce;
-        Game.Debug.BYPASS_POINTS_GUARD = prevBypass;
-        Game.Debug.ALLOW_POINTS_WRITE = prevAllow;
-        Game.Debug.CROWD_WEIGHTED_TALLY = prevWeighted;
+        if (!Game.__D) Game.__D = {};
+        Game.__D.FORCE_CIRCULATION = prevForce;
+        Game.__D.BYPASS_POINTS_GUARD = prevBypass;
+        Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+        Game.__D.CROWD_WEIGHTED_TALLY = prevWeighted;
         if (touched.length) {
           touched.forEach(t => {
             const p = S.players[t.id];
@@ -4254,12 +4451,12 @@ window.Game = window.Game || {};
 
   window.devReportTest = (opts = {}) => {
     const mode = String(opts && opts.mode ? opts.mode : "true").toLowerCase();
-    const S = Game.State || null;
+    const S = Game.__S || null;
     if (!S || !S.players || !S.me) {
-      console.warn("[DEV] devReportTest: Game.State missing");
+      console.warn("[DEV] devReportTest: Game.__S missing");
       return { ok: false, reason: "state_missing" };
     }
-    if (!Game.StateAPI || typeof Game.StateAPI.transferRep !== "function") {
+    if (!Game.__A || typeof Game.__A.transferRep !== "function") {
       console.warn("[DEV] devReportTest: StateAPI.transferRep missing");
       return { ok: false, reason: "transferRep_missing" };
     }
@@ -4282,9 +4479,9 @@ window.Game = window.Game || {};
       target: Number.isFinite(target.rep) ? (target.rep | 0) : 0
     };
     if (mode === "true") {
-      Game.StateAPI.transferRep(target.id, "me", 5, "rep_report_true", reportId);
+      Game.__A.transferRep(target.id, "me", 5, "rep_report_true", reportId);
     } else if (mode === "false") {
-      Game.StateAPI.transferRep("me", copId, 5, "rep_report_false", reportId);
+      Game.__A.transferRep("me", copId, 5, "rep_report_false", reportId);
     } else {
       console.warn("[DEV] devReportTest: invalid mode", mode);
       return { ok: false, reason: "bad_mode" };
@@ -4294,29 +4491,29 @@ window.Game = window.Game || {};
       cop: Number.isFinite(cop.rep) ? (cop.rep | 0) : 0,
       target: Number.isFinite(target.rep) ? (target.rep | 0) : 0
     };
-    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
-    const byBattle = (Game.Debug && Game.Debug.moneyLogByBattle) ? (Game.Debug.moneyLogByBattle[reportId] || []) : [];
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const byBattle = (Game.__D && Game.__D.moneyLogByBattle) ? (Game.__D.moneyLogByBattle[reportId] || []) : [];
     const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(reportId));
     console.log("[DEV] devReportTest", { mode, reportId, before, after, logForBid, byBattle });
     return { ok: true, mode, reportId, before, after, logForBid, byBattle };
   };
 
-  Game.Dev.__devChecksVersion = "B2c_ignore_telemetry_gate_v3";
-  Game.Dev.startBalanceSmoke = () => {
+  Game.__DEV.__devChecksVersion = "B2c_ignore_telemetry_gate_v3";
+  Game.__DEV.startBalanceSmoke = () => {
     const name = "start_balance_smoke";
     try {
       const D0 = Game.Data || null;
-      const S = Game.State || null;
-      if (!D0 || !S) return { name, ok: false, details: "Game.Data/Game.State missing" };
+      const S = Game.__S || null;
+      if (!D0 || !S) return { name, ok: false, details: "Game.Data/Game.__S missing" };
 
       const startPlayer = Number.isFinite(D0.START_POINTS_PLAYER) ? (D0.START_POINTS_PLAYER | 0) : 12;
       const startNpc = Number.isFinite(D0.START_POINTS_NPC) ? (D0.START_POINTS_NPC | 0) : 8;
 
       const fresh = {};
-      if (Game.StateAPI && typeof Game.StateAPI.resetAll === "function" && typeof Game.StateAPI.seedPlayers === "function") {
-        Game.StateAPI.resetAll();
-        Game.StateAPI.seedPlayers();
-        if (Game.StateAPI.syncMeToPlayers) Game.StateAPI.syncMeToPlayers();
+      if (Game.__A && typeof Game.__A.resetAll === "function" && typeof Game.__A.seedPlayers === "function") {
+        Game.__A.resetAll();
+        Game.__A.seedPlayers();
+        if (Game.__A.syncMeToPlayers) Game.__A.syncMeToPlayers();
       } else {
         if (!S.me) S.me = { id: "me", points: startPlayer, influence: 0, wins: 0 };
         if (!S.players) S.players = {};
@@ -4324,8 +4521,8 @@ window.Game = window.Game || {};
         if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
           Game.NPC.seedPlayers(S);
         }
-        if (Game.StateAPI && typeof Game.StateAPI.syncMeToPlayers === "function") {
-          Game.StateAPI.syncMeToPlayers();
+        if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+          Game.__A.syncMeToPlayers();
         }
       }
       fresh.me = (S.me && typeof S.me.points === "number") ? (S.me.points | 0) : null;
@@ -4345,7 +4542,7 @@ window.Game = window.Game || {};
         if (S.me) S.me.points = 0;
         if (S.players && S.players.me) S.players.me.points = 0;
       }
-      const restore = Game.Dev.resetProfileEconomyForDebug();
+      const restore = Game.__DEV.resetProfileEconomyForDebug();
       existing.restore = restore;
       existing.me = (S.me && typeof S.me.points === "number") ? (S.me.points | 0) : null;
       existing.playersMe = (S.players && S.players.me && typeof S.players.me.points === "number") ? (S.players.me.points | 0) : null;
@@ -4363,7 +4560,7 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.Dev.resultCardSmoke = (opts = {}) => {
+  Game.__DEV.resultCardSmoke = (opts = {}) => {
     const scenarioList = ["battle", "escape", "ignore"];
     const scenarioRaw = String(opts && opts.scenario ? opts.scenario : "battle").toLowerCase();
     const scenario = scenarioList.includes(scenarioRaw) ? scenarioRaw : "battle";
@@ -4372,13 +4569,13 @@ window.Game = window.Game || {};
     const name = "result_card_smoke";
     const debugMarker = !!(opts && opts.debugMarker);
     if (debugMarker) console.warn("DEV_RESULT_CARD_V2_LOADED", Date.now());
-    const S = Game.State || (Game.State = {});
+    const S = Game.__S || (Game.__S = {});
     S.events = Array.isArray(S.events) ? S.events : [];
-    if (!Game.Debug) Game.Debug = {};
-    if (!Array.isArray(Game.Debug.moneyLog)) Game.Debug.moneyLog = [];
-    if (!Array.isArray(Game.Debug.toastLog)) Game.Debug.toastLog = [];
+    if (!Game.__D) Game.__D = {};
+    if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
+    if (!Array.isArray(Game.__D.toastLog)) Game.__D.toastLog = [];
 
-    const existingIds = Array.isArray(Game.Dev._resultCardIds) ? Game.Dev._resultCardIds : [];
+    const existingIds = Array.isArray(Game.__DEV._resultCardIds) ? Game.__DEV._resultCardIds : [];
     if (existingIds.length) {
       S.events = S.events.filter(e => !e || !existingIds.includes(e.id));
     }
@@ -4511,11 +4708,11 @@ window.Game = window.Game || {};
     }
 
     S.events.unshift(event);
-    Game.Dev._resultCardIds = [event.id];
+    Game.__DEV._resultCardIds = [event.id];
 
-    if (!Game.Debug) Game.Debug = {};
-    if (!Array.isArray(Game.Debug.moneyLog)) Game.Debug.moneyLog = [];
-    if (!Array.isArray(Game.Debug.toastLog)) Game.Debug.toastLog = [];
+    if (!Game.__D) Game.__D = {};
+    if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
+    if (!Array.isArray(Game.__D.toastLog)) Game.__D.toastLog = [];
 
     try { if (Game.UI && typeof Game.UI.renderEvents === "function") Game.UI.renderEvents(); } catch (_) {}
     try { if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll(); } catch (_) {}
@@ -4523,9 +4720,9 @@ window.Game = window.Game || {};
     return { name, ok: true, scenario, mode, meVote, eventId: id };
   };
 
-  Game.Dev.runtimeCrowdAuditOnce = async (opts = {}) => {
+  Game.__DEV.runtimeCrowdAuditOnce = async (opts = {}) => {
     const name = "runtime_crowd_audit_once";
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const Core = Game.ConflictCore || Game._ConflictCore || null;
     const Conflict = Game.Conflict || null;
@@ -4558,8 +4755,8 @@ window.Game = window.Game || {};
     let totalPtsWorldBefore = null;
     let totalPtsWorldAfter = null;
     let expectedStart = null;
-    if (Game.StateAPI && typeof Game.StateAPI.getPointsConfig === "function") {
-      const cfg = Game.StateAPI.getPointsConfig();
+    if (Game.__A && typeof Game.__A.getPointsConfig === "function") {
+      const cfg = Game.__A.getPointsConfig();
       if (cfg && Number.isFinite(cfg.start)) expectedStart = cfg.start | 0;
     }
     if (expectedStart == null && Game.Data && Number.isFinite(Game.Data.POINTS_START)) expectedStart = Game.Data.POINTS_START | 0;
@@ -4716,17 +4913,17 @@ window.Game = window.Game || {};
     }
     if (battle && battle.crowd && battle.crowd.decided) pushStage("cap_reached");
     pushStage("finalized");
-    const endedBy = crowd.crowdCapDebug ? crowd.crowdCapDebug.endedBy : ((Game.Debug && Game.Debug.crowdCapMetaByBattle && battleId) ? (Game.Debug.crowdCapMetaByBattle[battleId] && Game.Debug.crowdCapMetaByBattle[battleId].endedBy) : null);
+    const endedBy = crowd.crowdCapDebug ? crowd.crowdCapDebug.endedBy : ((Game.__D && Game.__D.crowdCapMetaByBattle && battleId) ? (Game.__D.crowdCapMetaByBattle[battleId] && Game.__D.crowdCapMetaByBattle[battleId].endedBy) : null);
     const rawVotes = totalVotesFromCrowd(crowd);
-    const meta = (Game.Debug && Game.Debug.crowdCapMetaByBattle && battleId) ? Game.Debug.crowdCapMetaByBattle[battleId] : null;
+    const meta = (Game.__D && Game.__D.crowdCapMetaByBattle && battleId) ? Game.__D.crowdCapMetaByBattle[battleId] : null;
     const totalWeighted = meta ? ((meta.aVotes | 0) + (meta.bVotes | 0)) : ((Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0) : 0) + (Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0) : 0));
     const weightedSideCounts = { a: meta ? (meta.aVotes | 0) : (crowd.aVotes | 0), b: meta ? (meta.bVotes | 0) : (crowd.bVotes | 0), total: totalWeighted | 0 };
     const winner = crowd.winnerSide || battle.winnerSide || null;
     const timerUsed = endedBy && endedBy !== "cap";
 
-    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
-    const byBattle = (Game.Debug && Game.Debug.moneyLogByBattle && battleId && Array.isArray(Game.Debug.moneyLogByBattle[battleId]))
-      ? Game.Debug.moneyLogByBattle[battleId]
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const byBattle = (Game.__D && Game.__D.moneyLogByBattle && battleId && Array.isArray(Game.__D.moneyLogByBattle[battleId]))
+      ? Game.__D.moneyLogByBattle[battleId]
       : null;
     const scoped = byBattle || log.filter(e => String(e && e.battleId || "") === String(battleId));
     diag.moneyLogScope = {
@@ -4929,7 +5126,7 @@ window.Game = window.Game || {};
 
   const runtimeCrowdAuditEscapeIgnoreOnce = async (mode, scenario, opts = {}) => {
     const name = (scenario === "ignore") ? "runtime_crowd_audit_ignore_once" : "runtime_crowd_audit_escape_once";
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const Core = Game.ConflictCore || Game._ConflictCore || null;
     const Conflict = Game.Conflict || null;
@@ -4940,8 +5137,8 @@ window.Game = window.Game || {};
 
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     let expectedStart = null;
-    if (Game.StateAPI && typeof Game.StateAPI.getPointsConfig === "function") {
-      const cfg = Game.StateAPI.getPointsConfig();
+    if (Game.__A && typeof Game.__A.getPointsConfig === "function") {
+      const cfg = Game.__A.getPointsConfig();
       if (cfg && Number.isFinite(cfg.start)) expectedStart = cfg.start | 0;
     }
     if (expectedStart == null && Game.Data && Number.isFinite(Game.Data.POINTS_START)) expectedStart = Game.Data.POINTS_START | 0;
@@ -4968,7 +5165,7 @@ window.Game = window.Game || {};
         oppId = pick[0].id;
       }
     }
-    const prevRuntimeId = Game.Dev.__lastRuntimeAnyBattleId || null;
+    const prevRuntimeId = Game.__DEV.__lastRuntimeAnyBattleId || null;
     if (Conflict.incoming) {
       const b = Conflict.incoming(oppId);
       battle = (b && b.id) ? b : (b && b.battle && b.battle.id ? b.battle : null);
@@ -5018,7 +5215,7 @@ window.Game = window.Game || {};
         return { name, ok: false, details: "no_battle_after_create", battleId, diag };
       }
     }
-    if (battleId) Game.Dev.__lastRuntimeAnyBattleId = battleId;
+    if (battleId) Game.__DEV.__lastRuntimeAnyBattleId = battleId;
 
     const esc = (scenario === "ignore" && typeof Conflict.ignore === "function")
       ? Conflict.ignore(battleId)
@@ -5103,7 +5300,7 @@ window.Game = window.Game || {};
 
     battle = getBattle(battleId) || battle;
     if (!battle || !battle.escapeVote || !battle.escapeVote.decided) {
-      const meta0 = (Game.Debug && Game.Debug.crowdCapMetaByBattle && battleId) ? Game.Debug.crowdCapMetaByBattle[battleId] : null;
+      const meta0 = (Game.__D && Game.__D.crowdCapMetaByBattle && battleId) ? Game.__D.crowdCapMetaByBattle[battleId] : null;
       if (!meta0) {
         diag.whyNoCrowd = { status: battle ? battle.status : null, missingField: "escapeVote.decided" };
         diag.lastBattle = battle ? { id: battle.id, status: battle.status, result: battle.result, escapeVote: !!battle.escapeVote } : null;
@@ -5113,7 +5310,7 @@ window.Game = window.Game || {};
     pushStage("cap_reached");
     pushStage("finalized");
 
-    const meta = (Game.Debug && Game.Debug.crowdCapMetaByBattle && battleId) ? Game.Debug.crowdCapMetaByBattle[battleId] : null;
+    const meta = (Game.__D && Game.__D.crowdCapMetaByBattle && battleId) ? Game.__D.crowdCapMetaByBattle[battleId] : null;
     const crowd = (battle && battle.escapeVote) ? battle.escapeVote : { voters: {}, aVotes: meta ? meta.aVotes : 0, bVotes: meta ? meta.bVotes : 0, cap: meta ? meta.cap : null };
     const endedBy = meta ? meta.endedBy : "cap";
     const rawVotes = totalVotesFromCrowd(crowd);
@@ -5124,9 +5321,9 @@ window.Game = window.Game || {};
     else if (crowd.outcome === "B_WIN") winner = "defender";
     const timerUsed = endedBy && endedBy !== "cap";
 
-    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
-    const byBattle = (Game.Debug && Game.Debug.moneyLogByBattle && battleId && Array.isArray(Game.Debug.moneyLogByBattle[battleId]))
-      ? Game.Debug.moneyLogByBattle[battleId]
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const byBattle = (Game.__D && Game.__D.moneyLogByBattle && battleId && Array.isArray(Game.__D.moneyLogByBattle[battleId]))
+      ? Game.__D.moneyLogByBattle[battleId]
       : null;
     const scoped = (byBattle || log).filter(e => String(e && e.battleId || "") === String(battleId));
     diag.moneyLogScope = {
@@ -5317,13 +5514,13 @@ window.Game = window.Game || {};
     console.dir({ baselinePtsMap, beforePtsMap, afterPtsMap, netById }, { depth: null });
     console.dir({ moneyLogAgg: result.moneyLogAgg }, { depth: null });
     console.dir({ sideCounts: weightedSideCounts, winner }, { depth: null });
-    Game.Dev.__lastRuntimeAnyBattleId = battleId;
+    Game.__DEV.__lastRuntimeAnyBattleId = battleId;
     return result;
   };
 
   const runtimeCrowdAuditEventOnce = async (opts = {}) => {
     const name = "runtime_crowd_audit_event_once";
-    const S = Game.State || null;
+    const S = Game.__S || null;
     const Events = Game.Events || Game._Events || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const diag = { stageTrace: [], eventsCount: (S && Array.isArray(S.events)) ? S.events.length : 0, lastEvent: null, scenario: "event" };
@@ -5335,8 +5532,8 @@ window.Game = window.Game || {};
 
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     let expectedStart = null;
-    if (Game.StateAPI && typeof Game.StateAPI.getPointsConfig === "function") {
-      const cfg = Game.StateAPI.getPointsConfig();
+    if (Game.__A && typeof Game.__A.getPointsConfig === "function") {
+      const cfg = Game.__A.getPointsConfig();
       if (cfg && Number.isFinite(cfg.start)) expectedStart = cfg.start | 0;
     }
     if (expectedStart == null && Game.Data && Number.isFinite(Game.Data.POINTS_START)) expectedStart = Game.Data.POINTS_START | 0;
@@ -5416,9 +5613,9 @@ window.Game = window.Game || {};
     const endedBy = "cap";
     const timerUsed = false;
 
-    const log = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : [];
-    const byBattle = (Game.Debug && Game.Debug.moneyLogByBattle && eventId && Array.isArray(Game.Debug.moneyLogByBattle[eventId]))
-      ? Game.Debug.moneyLogByBattle[eventId]
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const byBattle = (Game.__D && Game.__D.moneyLogByBattle && eventId && Array.isArray(Game.__D.moneyLogByBattle[eventId]))
+      ? Game.__D.moneyLogByBattle[eventId]
       : null;
     const scoped = (byBattle || log).filter(e => {
       const bid = String(e && e.battleId || "");
@@ -5618,21 +5815,21 @@ window.Game = window.Game || {};
     return result;
   };
 
-  Game.Dev.runtimeCrowdAuditEscapeOnce = async (opts = {}) => {
+  Game.__DEV.runtimeCrowdAuditEscapeOnce = async (opts = {}) => {
     return runtimeCrowdAuditEscapeIgnoreOnce("smyt", "escape", opts);
   };
-  Game.Dev.runtimeCrowdAuditIgnoreOnce = async (opts = {}) => {
+  Game.__DEV.runtimeCrowdAuditIgnoreOnce = async (opts = {}) => {
     return runtimeCrowdAuditEscapeIgnoreOnce("off", "ignore", opts);
   };
-  Game.Dev.runtimeCrowdAuditEventOnce = async (opts = {}) => {
+  Game.__DEV.runtimeCrowdAuditEventOnce = async (opts = {}) => {
     return runtimeCrowdAuditEventOnce(opts);
   };
 
   // Dev shortcut: Ctrl+Shift+T
-  if (!Game.Dev.__shortcutBound) {
-    Game.Dev.__shortcutBound = true;
+  if (!Game.__DEV.__shortcutBound) {
+    Game.__DEV.__shortcutBound = true;
     window.addEventListener("keydown", (e) => {
-      const S = Game.State || {};
+      const S = Game.__S || {};
       const flags = S.flags || {};
       if (flags.devChecks !== true) return;
       const tag = (e && e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
@@ -5640,7 +5837,7 @@ window.Game = window.Game || {};
       if (isField) return;
       if (e && e.ctrlKey && e.shiftKey && (e.key === "T" || e.key === "t")) {
         e.preventDefault();
-        Game.Dev.scenarioRun();
+        Game.__DEV.scenarioRun();
       }
     });
   }

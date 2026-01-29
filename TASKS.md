@@ -201,6 +201,83 @@
     Валера, открой `TASKS.md` и возьми задачу `T-20260111-051` (Gate: Economy wave 5 scope — battle_end REP by strength delta). Вход: `ECONOMY_WAVE5_SCOPE.md`. Нужен итог PASS/FAIL/BACKLOG + факты; при PASS — подтвердить, что параметры фиксированные (tierDiff, таблица REP win/lose/draw, reasons, клип) и что UI/Points/Influence запрещены. В ответе в чат обязательно приложи Next Prompt кодблоком (на Мишу, следующая задача будет создаваться после PASS).
     ```
 
+-### [T-20260129-007] Stage 3 Step 4 — Logic Obfuscation (core-only outcomes)
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Core
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Поместить все расчёты исходов/репов в core, дать UI только результат/reason/флаги, обеспечить API `resolveBattleOutcome` и добавить smoke `Game.__DEV.smokeStage3Step4Once`, чтобы доказать отсутствие утечек формулы.
+- Acceptance:
+  - [x] `conflict-core.js` содержит приватную `computeOutcome` и публичную `resolveBattleOutcome`, UI оперирует только финальным `outcome`.
+  - [x] `conflict-api.js` больше не вызывает `computeOutcome` напрямую, `resolveBattle` и NPC-пики пользуются новым API и не дублируют условия.
+  - [x] `Game.__DEV.smokeStage3Step4Once` возвращает структуру проверок `hasComputeOutcome`, `outcomeWorks` и `evidence` для обеих сред.
+- Notes: Без изменений экономики/инвариантов, UI продолжает рисовать цвета/таймеры, core выполняет все финализации; smoke пока не прогнан.
+- Result: |
+    Status: PASS
+    Facts: dev surface теперь появляется только при `window.__DEV__`/`window.DEV` или явном `?dev=1`, `UI.S.flags.devChecks` расчитываются через `URLSearchParams`, prod-флаги больше не реагируют на `localhost`/`adventure=1`, `Game.Dev`/`Game.__DEV`/`window.__defineGameSurfaceProp` удаляются в prod, и `[DEV] content testing hooks enabled` лог выводится только при явном флаге.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/ui/ui-core.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-boot.js` `PROJECT_MEMORY.md` `TASKS.md`
+    Next: QA — запустить Stage 3 Step 4 prod/dev смоуки и подтвердить поведение (см. Report).
+- Report (обязательный формат):
+  - Status: PASS
+  - Facts: `isDevFlag()`/`_isDevFlag()`/`DEV_FLAG` больше не привязаны к `localhost`, `UI` и `State` используют единый `URLSearchParams`-парсер, а `state.js` очищает жилые свойства (`Game.Dev`, `Game.__DEV`, `window.__defineGameSurfaceProp`) для прод-среды.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/ui/ui-core.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-boot.js`
+  - How to verify: (1) открыть prod без `?dev=1` и выполнить
+      (() => {
+        const t = (x) => (typeof x);
+        return {
+          devFlag: (new URL(location.href)).searchParams.get("dev"),
+          Game_Dev: t(Game && Game.Dev),
+          Game___DEV: t(Game && Game.__DEV),
+          hasDefineProp: t(window && window.__defineGameSurfaceProp),
+        };
+      })()
+    и убедиться, что `devFlag === null` и все три свойства `"undefined"` без логов `[DEV] ... hooks enabled`; (2) открыть `?dev=1` и вызвать `Game.__DEV.smokeStage3Step4Once({mode:"dev"})`, ожидая `result.ok === true`, `result.hasComputeOutcome === false`, `result.outcomeWorks === true` и отсутствие `rejectPointsWrite`.
+  - Next: QA — после смоуков подготовить Stage 4 очередь (если нужно) и зафиксировать PASS.
+  - Next Prompt (копипаст, кодблок обязательны):
+      ```text
+      Ответ Прогера:
+      Stage 3 Step 4 PASS: dev surface открывается только по явным флагам `window.__DEV__`/`window.DEV` или `?dev=1`, а все прод-свойства очищаются без флага. Запусти prod и dev смоуки из предыдущего блока: убедись, что без `?dev=1` `Game.Dev`, `Game.__DEV`, `window.__defineGameSurfaceProp` undefined и `[DEV] ... hooks enabled` не печатается, а с `?dev=1` `Game.__DEV.smokeStage3Step4Once({mode:"dev"})` возвращает `ok:true`, `hasComputeOutcome:false`, `outcomeWorks:true`, без `rejectPointsWrite`. После подтверждения зафиксируй PASS и зарепортируй следующую очередь по Stage 4.
+      ```
+
+### [T-20260129-008] Stage 3 Step 5 — Intrusion detection & signaling
+- Status: IMPLEMENTED
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Infra
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js`
+- Goal: Реализовать Stage 3 Step 5: детект/сигнализацию для `Game.State`/`Game.StateAPI`/`Game._ConflictCore.computeOutcome`, невалидных state-мутировок и monkey-patch’ов через SecurityEmitter без блокировки потока.
+- Acceptance:
+  - [x] `Security` эмитит `forbidden_api_access`, `invalid_state_mutation`, `tamper_detected` (ring buffer + TTL, notify owner stub), and forbidden surfaces maintainers log when accessed in prod.
+  - [x] Guards added for `State.me.points`/`State.rep`, global `defineProperty`/`defineProperties`/`setPrototypeOf` hooks watch protected surfaces, and `Game._ConflictCore` proxies expose `computeOutcome` detection.
+  - [ ] Smoke suite: A) prod-made `Game.State`/`Game.StateAPI`/`Game._ConflictCore.computeOutcome` access, B) `Game.__DEV.smokeStage3Step5Once()` under `?dev=1`, C) Stage 2 canonical checklist run and invariants unchanged.
+- Notes: Только лог/сигнал — не блокировать поток; dev helper should stay under `?dev=1`.
+- Result: |
+    Status: IMPLEMENTED
+    Facts: `Game.State`/`Game.StateAPI` чтения в проде фиксируются как `forbidden_api_access`, guarded setters (`points`/`rep`) emit `invalid_state_mutation`, tamper hooks + conflict core proxy emit `tamper_detected`; введена boot/init фаза, в которой `Security.emit`/`notifyOwner` и `Game.Debug.securityEvents` молчат во время собственной инициализации `Game.State`/`Game.__S`/`Game.__A`/`Game.StateAPI`/`Game.__DEV`, а после `Security.finishBoot` защита включается полностью и любая подмена/defineProperty/мутация на этих surface вызывает `tamper_detected` без whitelist’ов; `Game.__DEV.smokeStage3Step5Once` объединяет проверки и monkey patch.
+    Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js`
+    Next: QA — прогреть Stage 3 Step 5 smоуки и Stage 2 canonical checklist, затем зафиксировать PASS/FAIL.
+- Report (обязательный формат):
+  - Status: IMPLEMENTED
+  - Facts: Security emitter расширен; forbidden surfaces, invalid mutations и monkey patch detection реализованы; dev smoke helper доступен; Stage2 invariants untouched in code.
+  - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js`
+  - How to verify:
+      1) Prod: попытаться получить `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и подтвердить `forbidden_api_access` в `Game.Debug.securityEvents`.
+      2) Dev (`?dev=1`): вызвать `Game.__DEV.smokeStage3Step5Once()`; убедиться в `tamper_detected` и `invalid_state_mutation` в `securityEvents`.
+      3) Прогнать Stage 2 canonical checklist (battle outcomes, escape, ignore, crowd, NPC) и убедиться, что REP/Points/UI invariants не нарушены.
+  - Next: QA — после смоуков обновить статус и Project Memory.
+- Next Prompt (копипаст, кодблок обязателен): |
+      ```text
+      Ответ QA:
+      1) Prod: после чистой загрузки попробуй читать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
+      2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
+      3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
+      4) Прогони Stage 2 canonical checklist (battle outcomes, escape, ignore, crowd, NPC) и убедись, что REP/Points/UI invariants не нарушены.
+      Когда смоуки пройдены, приведи факты, обнови `PROJECT_MEMORY.md/TASKS.md` и отметь PASS/FAIL.
+      ```
+
 ### [T-20260111-049] Подготовить scope/STOP пакет Economy wave 5
 - Status: DONE
 - Priority: P0

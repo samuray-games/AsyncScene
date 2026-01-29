@@ -628,8 +628,8 @@ window.Game = window.Game || {};
 
     // Persist count to flags for other UI blocks (if needed)
     try {
-      if (Game && Game.StateAPI && typeof Game.StateAPI.setEventCount === "function") {
-        Game.StateAPI.setEventCount(open.length);
+      if (Game && Game.__A && typeof Game.__A.setEventCount === "function") {
+        Game.__A.setEventCount(open.length);
       } else {
         S.flags = S.flags || {};
         S.flags.eventCount = open.length;
@@ -795,8 +795,8 @@ window.Game = window.Game || {};
             return;
           }
 
-          const havePts = (Game && Game.State && Game.State.me && Number.isFinite(Game.State.me.points))
-            ? (Game.State.me.points | 0)
+          const havePts = (Game && Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points))
+            ? (Game.__S.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
             const msg = "Не хватает пойнтов.";
@@ -821,9 +821,9 @@ window.Game = window.Game || {};
           try {
             if (Game && Game.Events && typeof Game.Events.helpEvent === "function") {
               ok = !!Game.Events.helpEvent(eventId, side);
-              // Sync local state from Game.State immediately after vote
-              if (ok && Game.State && Array.isArray(Game.State.events)) {
-                const freshEvent = Game.State.events.find(x => x.id === eventId);
+              // Sync local state from Game.__S immediately after vote
+              if (ok && Game.__S && Array.isArray(Game.__S.events)) {
+                const freshEvent = Game.__S.events.find(x => x.id === eventId);
                 if (freshEvent && freshEvent.crowd) {
                   const crowdLocal = getCrowdState(e);
                   if (crowdLocal) {
@@ -845,8 +845,8 @@ window.Game = window.Game || {};
           if (!ok) {
             // Show "Не хватает пойнтов." when vote failed due to insufficient points
             try {
-              if (Game && Game.State && Array.isArray(Game.State.events)) {
-                const freshEvent = Game.State.events.find(x => x && x.id === eventId);
+              if (Game && Game.__S && Array.isArray(Game.__S.events)) {
+                const freshEvent = Game.__S.events.find(x => x && x.id === eventId);
                 if (freshEvent && String(freshEvent.note || "") === "Не хватает пойнтов.") {
                   setEventNote(e, "Не хватает пойнтов.");
                   try { showVoteBtnToast(btn, "Не хватает пойнтов."); } catch (_) {}
@@ -856,11 +856,11 @@ window.Game = window.Game || {};
             } catch (_) {}
           }
 
-          // Sync battle crowd data from Game.State.battles before render
-          if (ok && Game && Game.State && Array.isArray(Game.State.battles)) {
+          // Sync battle crowd data from Game.__S.battles before render
+          if (ok && Game && Game.__S && Array.isArray(Game.__S.battles)) {
             const battleId = (e && e.battleId) || (ne && ne.battleId) || null;
             if (battleId) {
-              const freshBattle = Game.State.battles.find(x => x.id === battleId);
+              const freshBattle = Game.__S.battles.find(x => x.id === battleId);
               const localBattle = S && Array.isArray(S.battles) ? S.battles.find(x => x.id === battleId) : null;
               if (freshBattle && localBattle && freshBattle.crowd) {
                 localBattle.crowd = localBattle.crowd || {};
@@ -991,13 +991,13 @@ window.Game = window.Game || {};
           info.appendChild(rowTally);
           try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
 
-          // Line 4: single aggregated delta line from Game.Debug.moneyLog / toastLog
+          // Line 4: single aggregated delta line from Game.__D.moneyLog / toastLog
           let repSum = 0;
           let ptsSum = 0;
           try {
             const bid = ne.battleId || ne.id || null;
-            const money = (Game && Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null;
-            const toasts = (Game && Game.Debug && Array.isArray(Game.Debug.toastLog)) ? Game.Debug.toastLog : null;
+            const money = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : null;
+            const toasts = (Game && Game.__D && Array.isArray(Game.__D.toastLog)) ? Game.__D.toastLog : null;
             if (Array.isArray(money)) {
               for (const it of money) {
                 try {

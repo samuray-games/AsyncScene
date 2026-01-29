@@ -15,13 +15,11 @@
 
 ### Команда (роли)
 Источник: `AGENTS.md`, `TASKS.md`
-- Валера — gate/интеграция, решения только `PASS/FAIL/BACKLOG`
-- Миша — реализация (код) в рамках gate scope
-- Дима — read-only аудит, итог только `PASS/FAIL/INFO` + факты
-- Саша — UI/UX и тексты (без механики)
-- Игорь — AI + NPC
-- Лёша — геймдизайн баттлов/прогрессии
-- Ассистент — координатор процесса + локальная интеграция/контент (ранее: Codex-ассистент)
+- Gate — gate/интеграция, решения только `PASS/FAIL/BACKLOG`
+- Implementer — реализация (код) и обновление механики
+- Auditor — read-only аудит, итог только `PASS/FAIL/INFO` + факты
+- QA — UX/рантайм и смоук-проверки
+- Assistant — координатор процесса и локальная интеграция/контент
 
 ### Процесс (эстафета)
 Источник: `TASKS.md`
@@ -31,8 +29,8 @@
   - указывает `Next`
   - прикладывает `Next Prompt` **кодблоком**
 
-### Формат “промтов для пересылки”
-- Первая строка в `Next Prompt`: `Ответ <имя/роль>:` (пример: `Ответ Миши:` / `Ответ Валеры:` / `Ответ Димы:`)
+-### Формат “промтов для пересылки”
+- Первая строка в `Next Prompt`: `Ответ <роль>:` (пример: `Ответ Implementer:` / `Ответ Gate:` / `Ответ Auditor:`)
 - `Next Prompt` всегда в кодблоке (```text ... ```)
 
 ### Статусы фаз/волн (по фактам из `TASKS.md`)
@@ -42,24 +40,45 @@
   - wave 5: scope принят `PASS` (battle_end REP by tierDiff), реализация по `T-20260111-052`, аудит `T-20260111-053`, gate close `T-20260111-054`
 
 ### Прогресс и текущий этап
-- Stage 2 (Self-check сценарии и инварианты) — DONE: все атомарные проверки P0/P1 пройдены, лог отражает PASS/FAIL, Stage 2 checklist документирован и двигаться можно дальше.
+- Stage 2 (Self-check сценарии и инварианты) — DONE: все атомарные проверки P0/P1 пройдены, лог отражает PASS/FAIL, Stage 2 canonical checklist описан ниже и является критерием DONE.
 - Stage 3 (Runtime & integration) — PASS (см. `TEAM_LOG.md`: Runtime smoke завершён).
 - Общая шкала `PROGRESS_SCALE.md` показывает: этапы 0–3 DONE, 4–12 NOT_STARTED, значит фактически ~25 % пути до финала (щадность "вовсю играют").
 
-### Stage 2 Checklist (Self-check сценарии)
-- [A] Battle win (tier-diff outcomes): пройти бой до победы, проверить `Game.Debug.moneyLog` на `rep_battle_*`, посмотреть toast `⭐ +n`, убедиться, что tier/tones соответствуют allowed set. Команды: использовать UI, затем `Game.Debug.moneyLog.slice(-10)`/`toastLog`.
-- [B] Battle loss/draw: проиграть/ничья, проверить `rep_battle_*` (lose/draw reasons) и отсутствие `rep_escape` события, стат- toasts `💰 -1` или `⭐ 0`.
-- [C] Escape zero (points=0): вызвать `Game.Conflict.escape` с {mode:'smyt'} и `Game.State.me.points=0`, убедиться, что `rep_escape_click` есть, toast “Не хватает пойнтов.” виден рядом с кнопкой.
-- [D] Escape success refund: обеспечить `me.influence > opponent.influence`, вызвать escape {mode:'off'}, проверить `rep_escape_success_refund` entry и toast `⭐ +1` сразу после успеха.
-- [E] OverPoints conversion: установить `points≥softCap`, вызвать `Game.StateAPI.addPoints(OVERPOINTS_TO_REP+1)`, убедиться, что `rep_overpoints_convert` в moneyLog, overflow сбросился, toast `⭐ +1` от conversion.
-- [F] Cop chatter & vote toast: вызвать `Game.StateAPI.tickCops`, убедиться, что jeder cop пишет либо в чат, либо DM, без дублей, и что `toast “Не хватает пойнтов.”` появляется под кнопкой голосования при `points=0`.
-- [G] Tone invariant: проверить `Game.Data.allowedTonesByInfluence` labels (`["y","y","y/o","o/r","k","k"]`), убедиться, что veteran/influence ≠ allowed difference; запустить `Game._ConflictArguments.myDefenseOptions` с `opponentRole:'mafia'` и проверить только `k`.
-- [H] Stats toasts immediate: провести изменения (escape success / overPoints), собрать `document.querySelectorAll('.statToast')` и убедиться, что новые тосты появляются сразу, а `Game.Debug.toastLog` содержит соответствующие дельты.
+### Stage 2 canonical self-check checklist
 
-Для каждого шага:
-- записать результаты (PASS/FAIL) в `PROJECT_MEMORY.md` log как отдельную запись (внизу) и упомянуть `Stage 2` как задокументированный чек-лист.
-- показать выводы: `Game.Debug.moneyLog.slice(-20)`, `Game.Debug.toastLog.slice(-20)`, `document.querySelectorAll('.statToast')`, и любые UI-заметки (hover, toast).
-- после всех проверок отметить `Stage 2 — PASS` в `PROGRESS_SCALE.md` и `PROJECT_MEMORY.md`, обновить `Current Snapshot`.  
+1. Battle outcomes matrix (win / lose / draw)
+   - Что запускаем: `Game.Dev.smokeBattleCrowdOutcomeOnce({ winner: "a" })`, `{ winner: "b" }`, `{ winner: null }` или три ручных боя, охватывающих victory, defeat и draw.
+   - PASS: `Game.Debug.moneyLog` получает `rep_battle_win` / `rep_battle_shame_lose` / `rep_battle_draw`, экраны toasts/`Game.Debug.toastLog` показывают соответствующие `⭐`/`💰` дельты, `Game.State.me.points` списаны, но не отрицательны, и `battleId` попадает в записи `Game.Debug.moneyLog`.
+
+2. Escape flow
+   - Что запускаем: `await Game.Dev.runtimeCrowdAuditEscapeOnce()` или ручной `Game.Conflict.escape({ mode: "smyt" })` при достаточных points.
+   - PASS: в `moneyLog` появляются `rep_escape_click` / `rep_escape_success_refund`, `toastLog` фиксирует “Не хватает пойнтов.” или `⭐ +1`, `points` уменьшились на action cost и `transferRep` провёл REP-изменение.
+
+3. Ignore flow
+   - Что запускаем: `await Game.Dev.runtimeCrowdAuditIgnoreOnce()` или кнопка ignore в UI/DevTools (`Conflict.ignore`); в `Game.State` оставляем `points`/`rep`.
+   - PASS: `moneyLog` отражает `ignore_outcome_debug` / `crowd_vote_remainder_split`, нет новых `points`/`rep` без ясной причины, status `crowd.decided === "ignored"`, а `points` не становятся отрицательными.
+
+4. Crowd event
+   - Что запускаем: `await Game.Dev.runtimeCrowdAuditEventOnce()` или `Game.Dev.smokeNpcCrowdEventEconomyOnce()` с голосами толпы.
+   - PASS: event сообщает `crowd.cap`, `Game.Debug.moneyLog` содержит `points_event_*` / `rep_event_*`, `toastLog`/DM показывают итоги, `Game.State.me.points` списаны за paid votes, `crowd.cap` и `totalVotes` выровнены.
+
+5. NPC participation
+   - Что запускаем: `Game.Dev.smokeNpcCrowdEventPaidVotesOnce()` или `Game.Dev.smokeNpcCrowdMaxShareOnce()` и дождаться NPC-ответов в чат/DM.
+   - PASS: `toastLog` содержит NPC-фразы, `moneyLog` включает `rep_npc_help` / `rep_crowd_vote` с `transferRep` и `battleId`, NPC не дублируется, в chat/DM видно только одну реакцию.
+
+6. Points invariants
+   - Что запускаем: любые из сценариев выше, затем фильтруем `Game.Debug.moneyLog.filter(e => e.kind === "points")`.
+   - PASS: каждая запись points связана с action (reason `points_vote`, `points_escape`, `points_event`), не появляются положительные дельты без списаний, при возврате сумма не выходит за лимит.
+
+7. REP invariants
+   - Что запускаем: те же смоуки и `Game.Debug.moneyLog.filter(e => e.kind === "rep")`.
+   - PASS: все REP-дельты проходят через `Game.StateAPI.transferRep` (reason `rep_*`), нет `addRep` в prod, `battleId`/`reason` заполнены и итоговые REP не меньше 0.
+
+8. Bounds invariants
+   - Что запускаем: после каждого сценария читаем `Game.State.me.points`, `Game.State.me.rep`, `Game.State.me.influence`, `Game.State.me.pointsOverflow`.
+   - PASS: значения конечные (`Number.isFinite`), не отрицательные, overflow сбрасывается после конверсии, никакие поля не становятся `NaN`.
+
+Если этот чеклист пройден — Stage 2 считается DONE.
 
 ### Также
 - TEAM_LOG теперь архив: не обновляем его, используем только `PROJECT_MEMORY.md`/`PROGRESS_SCALE.md` как живой источник. `Память обновлена`.
@@ -139,6 +158,12 @@
 - Добавить инструкцию для контентной команды с полями структуры.
 - После заполнения — прогер запускает smoke: проверить UI и NPC для каждого профиля.
 
+Память обновлена
+
+### 2026-01-29 — Stage 3 Step 4 dev surface gating PASS
+- Facts: Убраны эвристики `localhost`/`dev=` substrings из `isDevFlag()`/`DEV_FLAG`/`_isDevFlag()`, `UI.S.flags.devChecks` теперь рассчитывается через `URLSearchParams`, `dev-checks.js` стартует только если флаг явно выставлен, `Game.Dev`/`Game.__DEV`/`window.__defineGameSurfaceProp` удаляются при отсутствии флага и `defineGameSurfaceProp` больше не держит surface в prod, поэтому `[DEV] content testing hooks enabled` лог не вычитается без явного `?dev=1` или глобального флага.
+- Status: PASS (smokes pending external verification)
+- Next: QA — прогнать Stage 3 Step 4 смоуки в prod/dev и подтвердить поведение, затем планировать Stage 4.
 Память обновлена
 
 ### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote cache return (pending)
@@ -251,8 +276,12 @@
 - Next: Ассистент — оформить чек‑лист и план P0 LOGIC 3 (лимиты/веса) и обозначить следующее усилие в Crowd Economy Reforge (если нужно — обновить прогресс в `PROGRESS_SCALE.md`).  
 - Next Prompt: |
     ```text
-    Ответ Ассистента:
-    P0 LOGIC 2.3 завершён PASS: helper теперь гарантирует активную draw и два смоука дают `crowdCapDebug` (без `forceCap` — pending meta, с `forceCap:true` — endedBy cap). Переходи к P0 LOGIC 3 (лимиты/веса), собери чек-лист, смоуки и требования, и обнови прогресс Crowd Economy Reforge.
+    Ответ QA:
+    1) Prod: после чистой загрузки попытайся прочитать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
+    2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
+    3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
+    4) Прогони Stage 2 canonical checklist (battle outcomes, escape, ignore, crowd, NPC) и убедись, что REP/Points/UI invariants не нарушены.
+    После смоуков зафиксируй вывод, обнови `PROJECT_MEMORY.md/TASKS.md` и поставь PASS/FAIL.
     ```
 
 Память обновлена
@@ -1239,6 +1268,150 @@ DevTools verification snippet:
     ```text
     Ответ Ассистента:
     Draw helper возвращает `battleId`, но битл скрывается из Game.State до тех пор, пока не зафиксирован `crowd`. Если получится поймать его до resolved и показать `crowd.decided`, пришли данные и лог, тогда ставим PASS/FAIL.
+    ```
+
+### 2026-01-29 — Stage 2 canonical self-check checklist
+- Facts: сформирован короткий canonical checklist (battle outcomes, escape, ignore, crowd event, NPC участие + invariants) и включён в `Current Snapshot`; `PROJECT_MEMORY.md` теперь содержит правило “если чеклист пройден — Stage 2 DONE”.
+- Changed: `PROJECT_MEMORY.md`
+- Next: использовать этот чеклист как эталон перед любыми изменениями, влияющими на Stage 2 сценарии.
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    После любой правки, затрагивающей battle/escape/crowd flows, прогоняй Stage 2 canonical checklist из PROJECT_MEMORY.md. Если одна из секций FAIL — фиксируй причину и повторяй проверку; когда всё PASS, можно считать Stage 2 DONE и двигаться дальше.
+    ```
+
+### 2026-01-29 — Stage 3 step 1 lock down runtime surface access PASS
+- Facts: Runtime surface закрыт: `Game.State`, `Game.Debug`, `Game.StateAPI`, `Game.Dev` скрыты в prod, runtime-модули работают через guarded non-enumerable `Game.__S`/`Game.__A`/`Game.__D`; dev-инструменты видны только при `?dev=1`, геймплей не изменился; тесты не запускались (не требовались).
+- Status: PASS (Stage 3 Step 1)
+- Changed: `PROGRESS_SCALE.md`
+- Next: Stage 3 smoke/monitoring checklist, чтобы зафиксировать оставшиеся exit criteria.
+- Next Prompt: |
+    ```text
+    Ответ Прогера:
+    Закрыл Step 1 Stage 3: surface доступ лимитирован, handles введены, dev‑флаги работают. Жду следующую задачу по Stage 3 (smoke/лог/инварианты) или новым инструкциям.
+    ```
+
+### 2026-01-29 — Stage 3 step 2 runtime invariant validation PASS
+- Facts: `ResourceValidator` в `state.js` охраняет `addPoints`, `spendPoints`, `transferRep`, `addRep` через dedupe key `{ reason|battleId|actionId|from|to }`; пользователь прогнал смоуки в обычном и `?dev=1` режимах, повторные вызовы становятся no-op, `transferRep` возвращает `{ok:false, reason:"duplicate"}`, `spendPoints` не уходит в минус, moneyLog/State остаются стабильными, Stage 2 invariants целы.
+- Status: PASS (Stage 3 Step 2)
+- Changed: `PROJECT_MEMORY.md`
+- Next: Stage 3 Step 3 (smoke/monitoring on broader invariants)
+- Next Prompt: |
+    ```text
+    Ответ Прогера:
+    Stage 3 Step 2 PASS: ResourceValidator в `state.js` блокирует duplicates, повторы не влияют на moneyLog/State, и Stage 2 checklist цел. Подготовь следующую задачу Step 3.
+    ```
+
+### 2026-01-29 — Stage 3 step 3 anti-injection & anti-scripting PASS
+- Facts: Tamper/macro attempts were detected and blocked, rate-limits stop macro spam; no economy/mechanics changes required; behavior confirmed in both prod and `?dev=1`; logging polish (dedupe WARNs) scheduled as follow-up.
+- Status: PASS (Stage 3 Step 3)
+- Changed: `PROJECT_MEMORY.md`
+- Next: security logging follow-up (Stage 3 Step 3a)
+- Next Prompt: |
+    ```text
+    Ответ Прогера:
+    Stage 3 Step 3 PASS: anti-tamper/rate-limit guards block injection/macro spam in prod + dev, economy untouched. Работу дополняет follow-up log polish.
+    ```
+
+### 2026-01-30 — Stage 3 Step 3a security log polish PASS
+- Facts: WARN spam deduplicated by merging repeated security entries within short windows while critical alerts still emit; no guard/economy change, visibility preserved.
+- Status: PASS (Stage 3 Step 3a)
+- Changed: `PROJECT_MEMORY.md`
+- Next: Stage 3 Step 4 prep
+- Next Prompt: |
+    ```text
+    Ответ Прогера:
+    Stage 3 Step 3a PASS: WARN noise reduced by aggregation, critical security traces still visible. Готовлю следующее Step 4 задачу.
+    ```
+
+### 2026-01-29 — Stage 3 Step 4 logic obfuscation (smoke prep)
+- Facts: `conflict-core` держит `computeOutcome` приватно и предоставляет `resolveBattleOutcome`, а также добавлен helper `Game.__DEV.smokeStage3Step4Once`, остаётся только собрать evidence по prod/dev.
+- Status: DOING (Stage 3 Step 4)
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md`
+- Next: Запустить smoke в prod/dev и зафиксировать его `evidence`.
+- Next Prompt: |
+```text
+Ответ Прогера:
+Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage3Step4Once({mode:"prod"})`, потом `{mode:"dev"}`, сложи вывод (ожидается `hasComputeOutcome=false`, `outcomeWorks=true`, массив `evidence`). После этого обнови PROJECT_MEMORY.md/TASKS.md → PASS.
+```
+
+
+### 2026-01-29 — Stage 3 Step 4 dev surface regression fix
+- Facts: Dev helpers (`Game.__DEV`, smoke helper) теперь создаются только при `isDevFlag()`; в prod surface остаются undefined, в `?dev=1` smoke доступен через `Game.__DEV.smokeStage3Step4Once`. Пока smoke не прогнан, регресс готовится к подтверждению.
+- Status: DOING (Stage 3 Step 4)
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md`
+- Next: подтвердить `Game.__DEV` недоступен в prod и smoke возвращает `hasComputeOutcome=false`, `outcomeWorks=true` в dev.
+- Next Prompt: |
+    ```text
+    Ответ Прогера:
+    Stage 3 Step 4 dev surface фикс: `Game.__DEV` регистрируется только когда `dev=1`. Проверь `typeof Game.__DEV`/`Game.Dev` без dev, потом в dev вызови `Game.__DEV.smokeStage3Step4Once({mode:"dev"})`, запиши вывод и обнови статус.
+    ```
+
+### 2026-01-29 — Stage 3 Step 4 dev debugger cleanup
+- Facts: `window.__defineGameSurfaceProp` теперь зарегистрирован только при `isDevFlag()` и убирается в чистом prod, а `Game.__DEV`/`Game.Dev` создаются по существу после валидации флага; `dev-checks` smoke helper больше не пишет напрямую `State.me.*` и не трогает `Game.__S.rep`, сохраняя invariants внешнего state.
+- Status: DOING (dev surface + helper ready, smoke still pending)
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/state.js`
+- Next: прогнать Stage 3 Step 4 смоуки (prod + dev) и зафиксировать вывод (`result.hasComputeOutcome=false`, `result.outcomeWorks=true`, никаких rejectPointsWrite).
+
+Память обновлена
+
+### 2026-01-29 — Stage 3 Step 5 — Intrusion detection & signaling (smokes pending)
+- Facts:
+  - Security emitter теперь пишет события `forbidden_api_access`, `invalid_state_mutation` и `tamper_detected` с TTL/dedupe; `State.me.points` и `State.rep` (через `withRepWrite`) отслеживаются на несанкционированные записи, глобальные хуки `defineProperty`/`defineProperties`/`setPrototypeOf` подписаны на защищённые surface, `Game._ConflictCore` прокси защищает `computeOutcome`.
+  - Введена boot/init фаза: во время конструктора `Game.State`, `Game.__S`, `Game.__A`, `Game.StateAPI`/`Game.__DEV` и прочие surface создаются, `Security.emit/notifyOwner` молчат и `Game.Debug.securityEvents` остаётся чистым; после завершения инициализации вызывается `Security.finishBoot`, защита включается в полный режим и любые `defineProperty`/подмена/мутации сразу вызывают `tamper_detected` без whitelist’ов.
+  - `Game.__DEV.smokeStage3Step5Once` объединяет доступ к закрытым API, monkey-patch и невалидные мутации для смоуков.
+- Status: DOING (smokes pending)
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js`
+- Next: QA — прогреть Stage 3 Step 5 smоуки (prod + `?dev=1`) и Stage 2 canonical checklist, затем зафиксировать PASS/FAIL.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    1) Prod: после чистой загрузки попытайся прочитать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
+    2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
+    3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
+    4) Прогони Stage 2 canonical checklist (battle outcomes, escape, ignore, crowd, NPC) и убедись, что REP/Points/UI invariants не нарушены.
+    После смоуков зафиксируй вывод, обнови `PROJECT_MEMORY.md/TASKS.md` и поставь PASS/FAIL.
+    ```
+
+Память обновлена
+
+### 2026-01-29 — P0 Runtime invariants validation
+- Facts: Добавлен `ResourceValidator` в `AsyncScene/Web/state.js`, теперь `addPoints`, `spendPoints`, `transferRep` и `addRep` проходят через единую проверку, ключи строятся по `reason|battleId|actionId|from|to`, повторные клики/submit и race-ветки блокируются, отрицательных дельт нет, невалидные операции игнорятся, документация обновлена.
+- Status: PASS (нужен read-only аудит и Stage 2 canonical smoke с focus на дубли).
+- Next: прогнать Stage 2 canonical checklist (battle outcomes, escape, ignore, crowd, NPC) с двойными кликами/повторами и зафиксировать PASS/FAIL, после чего дать read-only аудит Диме.
+Память обновлена
+
+### 2026-01-29 — P0 Найдены устаревшие упоминания ролей
+- Facts:
+  - `police` и `mafioso` больше не встречаются как `role` в `NPC.PLAYERS`, но продолжают фигурировать в `state.js`, `conflict/conflict-core.js`, `conflict/conflict-api.js`, `events.js`, `npcs.js`, `ui/ui-loops.js` и `ui/ui-chat.js` в качестве проверок/нормализаций для устаревших текстовых форм, хотя canonical authority role — только `cop`, а `mafioso` вообще отсутствует.
+  - `ui/ui-boot.js:386` остаётся ветка `target.role === "gopnik"`, но в NPC нет такой роли, поэтому она никогда не активируется; дополнительные упоминания `gopnik` присутствуют только в `conflict-old.js` и `ui-old.js`.
+  - Поиск `rg "role: ?\"(police|mafioso|gopnik)\""` не возвращает новых определений, значит эти имена можно убрать/обойти при следующей правке.
+- Status: PASS — задача “найти” исполнена и список файлов зафиксирован.
+- Next: Миша — спланировать удаление устаревших веток и переписать все проверки так, чтобы использовалась только canon-матрица ролей (crowd/toxic/bandit/cop/mafia), а старые DM/UI-отрезки не зависели от `police`/`mafioso`/`gopnik`.
+- Next Prompt: |
+    ```text
+    Ответ Миши:
+    Пройдись по state.js, conflict/conflict-core.js, conflict/conflict-api.js, events.js, npcs.js, ui/ui-loops.js, ui/ui-chat.js, ui/ui-boot.js и убери ветки с `police`/`mafioso`/`gopnik`, оставив только актуальные роли и соответствующие DM/UI-отклики. Опиши план, какие файлы и ветви переписываешь, и после правок запиши PASS/FAIL в PROJECT_MEMORY.md.
+    ```
+
+Память обновлена
+
+### 2026-01-29 — Stage 3 Step 3 anti-injection and anti-scripting
+- Facts: в `AsyncScene/Web/state.js` добавлен Security-модуль: защита `Game.__S/__A/__D` и критических методов `StateAPI.addPoints/spendPoints/transferRep/addRep` от monkey‑patch, on-call verify, детерминированный rate‑limit для points/rep/report вызовов, ring‑buffer security events в `Game.__SEC` и `Game.__D.securityEvents/securityNotices`, stub notifyOwner через dev‑лог; механика/экономика/UX не тронуты.
+- Status: PASS (код готов, смоуки нужны).
+- Changed: `AsyncScene/Web/state.js`
+- Next: прогнать SMOKE A/B в prod и dev, затем Stage 2 canonical checklist.
+
+Память обновлена
+
+### 2026-01-29 — Stage 3 Step 4 dev surface gating precision
+- Facts: `isDevFlag()` (and `_isDevFlag()`/`DEV_FLAG`) now only flips when `window.__DEV__`/`window.DEV` are set, or an explicit `dev=1` query parameter (parsed via `URLSearchParams`) appears, so stray substrings such as `adventure=1` cannot leak `Game.Dev`/`Game.__DEV`/`window.__defineGameSurfaceProp`; the same helper now lives in `conflict/conflict-arguments.js`, `ui/ui-core.js`, and `dev/dev-checks.js`.
+- Status: DOING (smokes pending)
+- Next: прогнать Stage 3 Step 4 prod/dev смоуки из TASKS.md, зафиксировать, что prod-вывод даёт `"undefined"` для всех трёх элементов, dev-helper возвращает `ok:true`, `hasComputeOutcome:false`, `outcomeWorks:true`, и только затем отметить задачу PASS.
+- Next Prompt: |
+    ```text
+    Ответ Прогера:
+    Dev surface gating теперь зависит только от явного флага — глобалов или `?dev=1`. После правки прогрей prod/dev смоуки из TASKS.md: в prod (без ?dev=1) проверь, что все `Game.Dev`, `Game.__DEV`, `window.__defineGameSurfaceProp` возвращают `"undefined"`, а в dev вызови `Game.__DEV.smokeStage3Step4Once({mode:"dev"})` и зафиксируй `ok:true`, `hasComputeOutcome:false`, `outcomeWorks:true`, без `rejectPointsWrite`. Затем обнови `PROJECT_MEMORY.md`/`TASKS.md` → PASS.
     ```
 
 Память обновлена

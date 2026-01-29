@@ -7,8 +7,8 @@ window.Game = window.Game || {};
 
   // ---------- safe state bootstrap ----------
   function ensureState() {
-    Game.State = Game.State || {};
-    const S = Game.State;
+    Game.__S = Game.__S || {};
+    const S = Game.__S;
 
     S.battles = Array.isArray(S.battles) ? S.battles : [];
     S.players = S.players || {};

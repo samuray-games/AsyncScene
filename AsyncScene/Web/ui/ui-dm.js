@@ -17,7 +17,7 @@ window.Game = window.Game || {};
     if (UI.renderMentionsLocal) return UI.renderMentionsLocal(t, opts);
     return escapeHtml(t);
   };
-  const getS = () => (Game.State || UI.S);
+  const getS = () => (Game.__S || UI.S);
 
   const requestAll = () => {
     try {
@@ -300,8 +300,8 @@ window.Game = window.Game || {};
           return;
         }
 
-        const spend = (Game.StateAPI && typeof Game.StateAPI.spendPoints === "function")
-          ? Game.StateAPI.spendPoints
+        const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
+          ? Game.__A.spendPoints
           : null;
 
           if (spend) {
@@ -728,7 +728,7 @@ window.Game = window.Game || {};
         UI.renderDM();
         return;
       }
-      if (!Game.State.battles || Game.State.battles.length === 0) return;
+      if (!Game.__S.battles || Game.__S.battles.length === 0) return;
 
       if (res.battleId && UI.pinBattleToTop) UI.pinBattleToTop(res.battleId);
       if (UI.openBattlesAndScroll) UI.openBattlesAndScroll();
@@ -825,7 +825,7 @@ window.Game = window.Game || {};
         // Prefer StateAPI candidates, fallback to UI candidates, fallback to S.players.
         let cand = [];
         try {
-          if (Game.StateAPI && typeof Game.StateAPI.getAllMentionCandidates === "function") cand = Game.StateAPI.getAllMentionCandidates();
+          if (Game.__A && typeof Game.__A.getAllMentionCandidates === "function") cand = Game.__A.getAllMentionCandidates();
           else if (UI.getAllMentionCandidates) cand = UI.getAllMentionCandidates();
         } catch(_) {}
 
@@ -1088,7 +1088,7 @@ window.Game = window.Game || {};
         }
         if (target && target.npc && target.role !== "cop" && target.role !== "mafia") {
           try {
-            if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function" && Game.StateAPI.isNpcJailed(target.id)) {
+            if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(target.id)) {
               UI.renderDM();
               dmInput.value = "";
               requestAll();
@@ -1159,13 +1159,13 @@ window.Game = window.Game || {};
             if (!p || !p.name) return false;
             if (p.isMe || p.id === "me") return false;
             try {
-              if (Game.StateAPI && typeof Game.StateAPI.isNpcJailed === "function") {
-                if (Game.StateAPI.isNpcJailed(p.id)) return false;
+              if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
+                if (Game.__A.isNpcJailed(p.id)) return false;
               }
-              if (Game.StateAPI && typeof Game.StateAPI.hasReported === "function") {
+              if (Game.__A && typeof Game.__A.hasReported === "function") {
                 const role = String(p.role || "");
                 if (role === "toxic" || role === "bandit" || role === "mafia") {
-                  if (Game.StateAPI.hasReported(p.id)) return false;
+                  if (Game.__A.hasReported(p.id)) return false;
                 }
               }
             } catch (_) {}
@@ -1351,10 +1351,10 @@ window.Game = window.Game || {};
               if (UI && typeof UI.showActionToast === "function") UI.showActionToast(submitBtn, "Выбери игрока.");
               return;
             }
-            if (!Game.StateAPI || typeof Game.StateAPI.applyReportByRole !== "function") return;
+            if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") return;
             // IMPORTANT: report is bound to the конкретному копу этой лички (per-cop cooldowns).
             const copId = (target && target.id) ? target.id : withId;
-            const result = Game.StateAPI.applyReportByRole(q0, { copId });
+            const result = Game.__A.applyReportByRole(q0, { copId });
 
             // Collapse back to the "Сдать" button
             state.open = false;
