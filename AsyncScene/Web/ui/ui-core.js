@@ -632,7 +632,7 @@ window.Game = window.Game || {};
     let lastForced = null;
     setInterval(() => {
       try {
-        const inf = Number(Game?.State?.me?.influence ?? 0);
+        const inf = Number(S?.me?.influence ?? 0);
         const forced = (typeof window !== "undefined") ? window.DEV_FORCE_ARG_COLOR : null;
         if (inf === lastInf && forced === lastForced) return;
         lastInf = inf;

@@ -402,15 +402,19 @@
      __ready: true,
 
      // Public wrappers (core owns state + economy)
-     startWith(opponentId) {
-       // Ensure opponent role is resolved and cached before delegating to Core
-       let resolvedOpponentRole = null;
+  startWith(opponentId) {
+    // Ensure opponent role is resolved and cached before delegating to Core
+    let resolvedOpponentRole = null;
        if (Game.__S && Game.__S.players && opponentId) {
          const opp = Game.__S.players[opponentId];
          if (opp && opp.role) resolvedOpponentRole = opp.role;
        }
        // Economy + creation live in Core. API only coordinates UI/state.
-       let res = Core.startWith(opponentId);
+    const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : "me";
+    if (Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "battle")) {
+      return { ok: false, reason: "security_blocked" };
+    }
+    let res = Core.startWith(opponentId);
 
        // Keep newly created battle at the top (active battles should be visible immediately).
        const bid = (res && res.battle && res.battle.id) ? res.battle.id : (res && res.battleId) ? res.battleId : null;

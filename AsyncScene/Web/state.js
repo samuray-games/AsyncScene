@@ -3,6 +3,7 @@ window.Game = window.Game || {};
 
 (() => {
   const Game = window.Game;
+  let ReactionPolicy = null;
 
   // Avoid capturing Util/Data too early: other scripts may load after state.js.
   // Always resolve dependencies at call-time and provide safe fallbacks.
@@ -131,6 +132,10 @@ window.Game = window.Game || {};
       try { console.warn("[REP] addRep blocked in prod", reason); } catch (_) {}
       return 0;
     }
+    const meId = (State.me && State.me.id) ? State.me.id : "me";
+    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy")) {
+      return State.rep | 0;
+    }
     if (!Security.isSafe()) {
       Security.emit("tamper_function", { key: "addRep", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
       return State.rep | 0;
@@ -213,6 +218,10 @@ window.Game = window.Game || {};
   }
 
   function transferRep(fromId, toId, amount, reason, battleId, meta){
+    const meId = (State.me && State.me.id) ? State.me.id : "me";
+    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy") && ((fromId === meId) || (toId === meId))) {
+      return { ok: false, reason: "security_blocked" };
+    }
     if (!Security.isSafe()) {
       Security.emit("tamper_function", { key: "transferRep", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
       return { ok: false, reason: "security_tamper" };
@@ -567,6 +576,9 @@ window.Game = window.Game || {};
   })();
 
   const Security = (() => {
+    const OWNER_DM_TARGET = "security_owner";
+    const OWNER_DM_NAME = "Служба безопасности";
+
     const SEC = {
       events: [],
       notices: [],
@@ -590,6 +602,54 @@ window.Game = window.Game || {};
       try { return String(v); } catch (_) { return ""; }
     }
 
+    function readStateSafe(){
+      try { return State; } catch (_) { return null; }
+    }
+
+    function readPlayerId(){
+      const state = readStateSafe();
+      if (state && state.me && state.me.id) return String(state.me.id);
+      const fallback = (Game && Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : null;
+      if (fallback) return String(fallback);
+      return "me";
+    }
+
+    function readSessionId(){
+      if (Game && Game.Logger && Game.Logger.sessionId) {
+        return String(Game.Logger.sessionId);
+      }
+      if (typeof window !== "undefined" && window.sessionId) {
+        return String(window.sessionId);
+      }
+      return "";
+    }
+
+    function describeEventDetails(details){
+      if (!details || typeof details !== "object") return "";
+      const parts = [];
+      if (details.key) parts.push(`key=${safeStr(details.key)}`);
+      if (details.action) parts.push(`action=${safeStr(details.action)}`);
+      if (details.reason) parts.push(`reason=${safeStr(details.reason)}`);
+      if (!parts.length && details.description) parts.push(String(details.description));
+      return parts.join("; ");
+    }
+
+    function deliverOwnerDm(ev){
+      if (!ev || !ev.time) return;
+      const state = readStateSafe();
+      if (!state || !state.dm) return;
+      const lines = [];
+      lines.push(`Тип: ${ev.type}`);
+      lines.push(`Игрок: ${ev.playerId || "unknown"}`);
+      lines.push(`Сессия: ${ev.sessionId || "—"}`);
+      lines.push(`Время: ${new Date(ev.time).toISOString()}`);
+      const desc = describeEventDetails(ev.meta);
+      if (desc) lines.push(`Описание: ${desc}`);
+      try {
+        pushDm(OWNER_DM_TARGET, OWNER_DM_NAME, lines.join("\n"), { isSystem: true });
+      } catch (_) {}
+    }
+
     function buildEventKey(type, details){
       const base = safeStr(type);
       const key = details && details.key ? safeStr(details.key) : "";
@@ -603,6 +663,45 @@ window.Game = window.Game || {};
     function pushRing(arr, item, max){
       arr.push(item);
       if (arr.length > max) arr.splice(0, arr.length - max);
+    }
+
+    const DEBUG_SECURITY_EVENTS_STORE = "__debugSecurityEventsStore";
+
+    function ensureSecurityEventsArray(){
+      if (typeof Game !== "object" || !Game) return;
+      if (!Game.__D) Game.__D = {};
+      if (!Array.isArray(Game.__D.securityEvents)) Game.__D.securityEvents = [];
+      if (!isDevFlag()) return;
+      const debugSurface = (Game && Game.Debug && typeof Game.Debug === "object") ? Game.Debug : null;
+      if (!debugSurface) return;
+      const storeExists = Object.prototype.hasOwnProperty.call(debugSurface, DEBUG_SECURITY_EVENTS_STORE);
+      if (!storeExists) {
+        const existing = Array.isArray(Game.__D.securityEvents) ? Game.__D.securityEvents : [];
+        Object.defineProperty(debugSurface, DEBUG_SECURITY_EVENTS_STORE, {
+          configurable: true,
+          enumerable: false,
+          writable: true,
+          value: existing,
+        });
+      }
+      const desc = Object.getOwnPropertyDescriptor(debugSurface, "securityEvents");
+      if (desc && desc.get) return;
+      Object.defineProperty(debugSurface, "securityEvents", {
+        configurable: true,
+        enumerable: false,
+        get() {
+          let arr = debugSurface[DEBUG_SECURITY_EVENTS_STORE];
+          if (!Array.isArray(arr)) {
+            arr = [];
+            debugSurface[DEBUG_SECURITY_EVENTS_STORE] = arr;
+          }
+          return arr;
+        },
+        set(value) {
+          if (!Array.isArray(value)) return;
+          debugSurface[DEBUG_SECURITY_EVENTS_STORE] = value;
+        },
+      });
     }
 
     function shouldEmit(map, key, ttl){
@@ -619,17 +718,28 @@ window.Game = window.Game || {};
       const ttl = (opts && Number.isFinite(opts.minGapMs)) ? (opts.minGapMs | 0) : 1500;
       const stamp = shouldEmit(SEC.lastEmit, key, ttl);
       if (!stamp) return;
+      const playerId = readPlayerId();
+      const sessionId = readSessionId();
+      const meta = (details && typeof details === "object") ? Object.assign({}, details) : {};
       const ev = {
         time: stamp,
         type: safeStr(type),
-        details: details || {},
+        playerId,
+        sessionId,
+        meta,
+        details: meta,
+        key,
         mode: mode(),
       };
       pushRing(SEC.events, ev, SEC.maxEvents);
       try {
         if (Game.__D && typeof Game.__D === "object") {
+          ensureSecurityEventsArray();
           if (!Array.isArray(Game.__D.securityEvents)) Game.__D.securityEvents = [];
           pushRing(Game.__D.securityEvents, ev, SEC.maxEvents);
+          if (ReactionPolicy && typeof ReactionPolicy.handleEvent === "function") {
+            ReactionPolicy.handleEvent(ev);
+          }
         }
       } catch (_) {}
       if (isDevFlag()) {
@@ -640,13 +750,14 @@ window.Game = window.Game || {};
 
     function notifyOwner(ev){
       if (SEC.bootPhase) return;
-      const key = `notify:${safeStr(ev && ev.type)}:${safeStr(ev && ev.details && ev.details.key)}`;
+      const detailKey = ev && ev.key ? safeStr(ev.key) : "";
+      const key = `notify:${safeStr(ev && ev.type)}:${detailKey}`;
       const stamp = shouldEmit(SEC.lastNotify, key, 6000);
       if (!stamp) return;
       const notice = {
         time: stamp,
         type: safeStr(ev && ev.type),
-        details: ev && ev.details ? ev.details : {},
+        details: ev && ev.meta ? ev.meta : {},
       };
       pushRing(SEC.notices, notice, SEC.maxNotices);
       try {
@@ -658,6 +769,7 @@ window.Game = window.Game || {};
       if (isDevFlag()) {
         try { console.warn("[SEC:notify]", notice.type, notice.details); } catch (_) {}
       }
+      deliverOwnerDm(ev);
     }
 
     function buildRateKey(action, details){
@@ -837,7 +949,7 @@ window.Game = window.Game || {};
     if (stateSurface && target === stateSurface) return true;
     const stateApiSurface = Game && Game.StateAPI;
     if (stateApiSurface && target === stateApiSurface) return true;
-    const debugSurface = Game && Game.Debug;
+    const debugSurface = isDevFlag() ? (Game && Game.Debug) : null;
     if (debugSurface && target === debugSurface) return true;
     const coreSurface = Game && Game._ConflictCore;
     if (coreSurface && target === coreSurface) return true;
@@ -856,7 +968,8 @@ window.Game = window.Game || {};
     if (target === Game) return "Game";
     if (target === (Game && Game.State)) return "Game.State";
     if (target === (Game && Game.StateAPI)) return "Game.StateAPI";
-    if (target === (Game && Game.Debug)) return "Game.Debug";
+    const debugSurface = isDevFlag() ? (Game && Game.Debug) : null;
+    if (debugSurface && target === debugSurface) return "Game.Debug";
     if (target === (Game && Game._ConflictCore)) return "Game._ConflictCore";
     if (target === (Game && Game.ConflictCore)) return "Game.ConflictCore";
     if (target === (Game && Game.__S)) return "Game.__S";
@@ -981,6 +1094,7 @@ window.Game = window.Game || {};
       open: false,
       withId: null,
       logs: {}, // withId -> messages
+      names: {}, // custom display names for system DM threads
 
       // UI toggles inside DM
       inviteOpen: false,
@@ -1073,6 +1187,7 @@ window.Game = window.Game || {};
       eventId: null,
       chatId: null,
     },
+    securityFlags: {},
 
     // Evidence that certain roles were actually seen recently (chat/battles can mark this).
     // roleKey -> lastSeenAt (ms)
@@ -1132,7 +1247,7 @@ window.Game = window.Game || {};
     State.players = {};
     State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
     State.chat = [];
-    State.dm = { open:false, withId:null, logs:{}, inviteOpen:false, teachOpen:false, agroStarted:{} };
+    State.dm = { open:false, withId:null, logs:{}, names:{}, inviteOpen:false, teachOpen:false, agroStarted:{} };
     State.battles = [];
     State.events = [];
     State.eventsMeta = { activeId: null, selectedId: null };
@@ -1177,6 +1292,10 @@ window.Game = window.Game || {};
       chatId: null,
     };
     State.sightings = {};
+    State.securityFlags = {};
+    if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
+      ReactionPolicy.restorePersistedFlags();
+    }
     State.reports = {
       lastAt: 0,
       cooldownMs: 3 * 60 * 1000,
@@ -1751,6 +1870,20 @@ window.Game = window.Game || {};
     const arr = State.dm.logs[targetId];
     if (arr.length > 120) arr.shift();
 
+    State.dm.names = State.dm.names || {};
+    const dmId = String(targetId || opts.playerId || "");
+    const safeName = name ? String(name) : dmId;
+    if (dmId) {
+      State.dm.names[dmId] = safeName;
+      State.players = State.players || {};
+      const existingPlayer = State.players[dmId];
+      if (!existingPlayer) {
+        State.players[dmId] = { id: dmId, name: safeName, influence: 0 };
+      } else if (name) {
+        existingPlayer.name = safeName;
+      }
+    }
+
     // DM tabs: incoming/outgoing line opens (or focuses) the corresponding DM thread.
     // This is the canonical place where logs[targetId] is mutated.
     try {
@@ -2265,6 +2398,10 @@ window.Game = window.Game || {};
   }
 
   function addPoints(amount, reason, meta){
+    const meId = (State.me && State.me.id) ? State.me.id : "me";
+    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy")) {
+      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    }
     if (!Security.isSafe()) {
       Security.emit("tamper_function", { key: "addPoints", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
       return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
@@ -2386,6 +2523,10 @@ window.Game = window.Game || {};
   }
 
   function spendPoints(amount, reason, meta){
+    const meId = (State.me && State.me.id) ? State.me.id : "me";
+    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy")) {
+      return false;
+    }
     if (!Security.isSafe()) {
       Security.emit("tamper_function", { key: "spendPoints", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
       return false;
@@ -2653,6 +2794,276 @@ window.Game = window.Game || {};
       State.lottery.lastAt = Date.now();
     },
   };
+
+  function createReactionPolicy(){
+    const SHORT_WINDOW_MS = 60 * 1000;
+    const TEMP_BLOCK_TTL_MS = 120 * 1000;
+    const LONG_WINDOW_MS = 10 * 60 * 1000;
+    const HARD_THRESHOLD = 5;
+    const MAX_REACTIONS = 180;
+    const HARD_TYPES = new Set(["critical_tamper", "forbidden_api_repeat"]);
+    const LEVELS = {
+      LOG_ONLY: "log_only",
+      TEMP_BLOCK: "temp_block",
+      PERMA_FLAG: "perma_flag",
+    };
+    const PRIORITY = {
+      [LEVELS.LOG_ONLY]: 0,
+      [LEVELS.TEMP_BLOCK]: 1,
+      [LEVELS.PERMA_FLAG]: 2,
+    };
+    const STORAGE_KEY = "AsyncScene_security_perma_flags_v1";
+    const storage = (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
+
+    function loadPersisted(){
+      if (!storage) return {};
+      try {
+        const raw = storage.getItem(STORAGE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") return parsed;
+      } catch (_) {}
+      return {};
+    }
+
+    let persistedPerma = loadPersisted();
+    const restoredPlayers = [];
+    const history = new Map();
+
+    function ensureStateFlags(){
+      if (!State.securityFlags || typeof State.securityFlags !== "object") {
+        State.securityFlags = {};
+      }
+    }
+
+    function cleanupExpiredFlag(playerId){
+      ensureStateFlags();
+      const flag = State.securityFlags[playerId];
+      if (!flag) return null;
+      if (flag.level === LEVELS.TEMP_BLOCK && flag.until && Date.now() >= (flag.until || 0)) {
+        delete State.securityFlags[playerId];
+        return null;
+      }
+      return flag;
+    }
+
+    function getStateFlag(playerId){
+      if (!playerId) return null;
+      return cleanupExpiredFlag(String(playerId));
+    }
+
+    function persistPermaFlags(){
+      if (!storage) return;
+      const payload = {};
+      const flags = State.securityFlags || {};
+      for (const [pid, flag] of Object.entries(flags)) {
+        if (flag && flag.level === LEVELS.PERMA_FLAG) {
+          payload[pid] = { since: Number(flag.since || Date.now()) };
+        }
+      }
+      try {
+        storage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (_) {}
+      persistedPerma = payload;
+    }
+
+    function setFlagForPlayer(playerId, level, stamp, extra = {}){
+      ensureStateFlags();
+      const key = playerId ? String(playerId) : "me";
+      const current = cleanupExpiredFlag(key);
+      const nextPriority = PRIORITY[level] || 0;
+      const currentPriority = current ? (PRIORITY[current.level] || 0) : -1;
+      if (current && current.level === LEVELS.TEMP_BLOCK && level === LEVELS.TEMP_BLOCK) {
+        current.until = Math.max(current.until || 0, Number(extra.until || 0));
+        current.since = stamp;
+        current.counts = extra.counts || current.counts;
+        return current;
+      }
+      if (current && currentPriority > nextPriority) {
+        return current;
+      }
+      const entry = {
+        level,
+        since: stamp,
+        until: (level === LEVELS.TEMP_BLOCK) ? Number(extra.until || 0) : null,
+        counts: extra.counts || null,
+        type: extra.type || null,
+      };
+      State.securityFlags[key] = entry;
+      if (level === LEVELS.PERMA_FLAG) {
+        persistedPerma = { ...persistedPerma, [key]: { since: stamp } };
+        persistPermaFlags();
+      }
+      return entry;
+    }
+
+    function restorePersistedFlags(){
+      ensureStateFlags();
+      State.securityFlags = {};
+      restoredPlayers.length = 0;
+      for (const [pid, data] of Object.entries(persistedPerma || {})) {
+        if (!pid) continue;
+        State.securityFlags[pid] = {
+          level: LEVELS.PERMA_FLAG,
+          since: Number((data && data.since) || Date.now()),
+          until: null,
+        };
+        restoredPlayers.push(pid);
+      }
+    }
+
+    const REACTION_LOG_TTL_MS = 1500;
+    const reactionLogLast = new Map();
+
+    function makeReactionLogKey(entry){
+      if (!entry) return "";
+      const playerId = entry.playerId || "me";
+      const sessionId = entry.sessionId || "";
+      const type = entry.type || "";
+      const reaction = entry.reaction || "";
+      const metaKey = entry.meta && entry.meta.key ? String(entry.meta.key) : "";
+      return [playerId, sessionId, type, reaction, metaKey].join("|");
+    }
+
+    function shouldLogReaction(key, ttl = REACTION_LOG_TTL_MS){
+      if (!key) return true;
+      const stamp = Date.now();
+      const prev = reactionLogLast.get(key) || 0;
+      if (stamp - prev < ttl) return false;
+      reactionLogLast.set(key, stamp);
+      return true;
+    }
+
+    function emitReactionConsole(entry){
+      if (!entry || !isDevFlag()) return;
+      const key = makeReactionLogKey(entry);
+      if (!shouldLogReaction(key)) return;
+      const payload = {
+        time: entry.time,
+        playerId: entry.playerId,
+        sessionId: entry.sessionId,
+        type: entry.type,
+        reaction: entry.reaction,
+        counts: entry.counts,
+        window: {
+          shortWindowMs: SHORT_WINDOW_MS,
+          longWindowMs: LONG_WINDOW_MS,
+        },
+        meta: entry.meta,
+      };
+      try {
+        console.log("[SEC:reaction]", payload);
+      } catch (_) {}
+    }
+
+    function emitRestoreEvents(){
+      if (!restoredPlayers.length) return;
+      if (!Security || typeof Security.emit !== "function") return;
+      for (const pid of restoredPlayers) {
+        Security.emit("perma_flag_restore", { restored: true, playerId: String(pid) }, { minGapMs: 1500 });
+      }
+    }
+
+    function ensureReactionArray(){
+      if (!Game.__D) Game.__D = {};
+      if (!Array.isArray(Game.__D.securityReactions)) Game.__D.securityReactions = [];
+      return Game.__D.securityReactions;
+    }
+
+    function pushReactionLog(entry){
+      if (!entry) return;
+      const arr = ensureReactionArray();
+      arr.push(entry);
+      if (arr.length > MAX_REACTIONS) {
+        arr.splice(0, arr.length - MAX_REACTIONS);
+      }
+      emitReactionConsole(entry);
+    }
+
+    function recordHistory(typeKey, timestamp){
+      let list = history.get(typeKey);
+      if (!list) {
+        list = [];
+        history.set(typeKey, list);
+      }
+      list.push(timestamp);
+      const cutoff = timestamp - LONG_WINDOW_MS;
+      while (list.length && list[0] < cutoff) {
+        list.shift();
+      }
+      return list;
+    }
+
+    function handleEvent(ev){
+      if (!ev || !ev.type) return null;
+      const stamp = Number.isFinite(ev.time) ? ev.time : Date.now();
+      const origType = String(ev.type);
+      const typeKey = origType.toLowerCase();
+      const playerId = (ev.playerId && String(ev.playerId)) ? String(ev.playerId) : "me";
+      const sessionId = (ev.sessionId && String(ev.sessionId)) ? String(ev.sessionId) : "";
+      const list = recordHistory(typeKey, stamp);
+      const shortCutoff = stamp - SHORT_WINDOW_MS;
+      let shortCount = 0;
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (list[i] >= shortCutoff) shortCount++;
+        else break;
+      }
+      const longCount = list.length;
+      let level = LEVELS.LOG_ONLY;
+      if (typeKey === "perma_flag_restore") {
+        level = LEVELS.PERMA_FLAG;
+      }
+      if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
+        level = LEVELS.PERMA_FLAG;
+      } else if (shortCount >= 2) {
+        level = LEVELS.TEMP_BLOCK;
+      }
+      const counts = { short: shortCount, long: longCount };
+      const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
+      let until = null;
+      if (level === LEVELS.TEMP_BLOCK) {
+        until = stamp + TEMP_BLOCK_TTL_MS;
+        setFlagForPlayer(playerId, level, stamp, { until, type: origType, counts });
+      } else if (level === LEVELS.PERMA_FLAG) {
+        setFlagForPlayer(playerId, level, stamp, { type: origType, counts });
+      }
+      const reactionEntry = {
+        time: stamp,
+        playerId,
+        sessionId,
+        type: origType,
+        reaction: level,
+        until: until,
+        counts,
+        meta,
+      };
+      pushReactionLog(reactionEntry);
+      return reactionEntry;
+    }
+
+    function isActionBlocked(playerId){
+      return !!getStateFlag(playerId);
+    }
+
+    function getFlag(playerId){
+      return getStateFlag(playerId);
+    }
+
+    return {
+      handleEvent,
+      isActionBlocked,
+      getFlag,
+      restorePersistedFlags,
+      emitRestoreEvents,
+    };
+  }
+
+  ReactionPolicy = createReactionPolicy();
+  Game.SecurityPolicy = ReactionPolicy;
+  if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
+    ReactionPolicy.restorePersistedFlags();
+  }
+
   Security.defineHandleProp("__A", StateAPI);
 
   function readCrowdCore(){
@@ -2693,4 +3104,7 @@ window.Game = window.Game || {};
   Security.protectMethod(StateAPI, "transferRep", transferRep, "StateAPI.transferRep");
   Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
   Security.finishBoot();
+  if (ReactionPolicy && typeof ReactionPolicy.emitRestoreEvents === "function") {
+    ReactionPolicy.emitRestoreEvents();
+  }
 })();

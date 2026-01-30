@@ -547,8 +547,17 @@ window.Game = window.Game || {};
     if (!box) return;
     if (!box.classList.contains("dmLog")) box.classList.add("dmLog");
 
-    const target = getS().players[withId];
-    if (!target) return;
+    let target = getS().players[withId];
+    if (!target) {
+      const fallbackName = (S.dm && S.dm.names && S.dm.names[withId]) ? S.dm.names[withId] : String(withId);
+      target = {
+        id: withId,
+        name: fallbackName,
+        influence: 0,
+        role: "system",
+        npc: false,
+      };
+    }
 
     // --- Tabs (chips) inside DM header ---
     try {

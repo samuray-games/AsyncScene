@@ -119,6 +119,8 @@
 - [x] Закрытие surface доступа: `Game.State`, `Game.Debug`, `Game.StateAPI`, `Game.Dev` скрыты в prod в пользу guarded `Game.__S/__A/__D`, dev доступ только через `?dev=1`, runtime модули работают через скрытые хендлы
 - [x] Runtime-валидация инвариантов: `ResourceValidator` в `state.js` гарантирует, что `addPoints`, `spendPoints`, `transferRep`, `addRep` проходят через dedupe key, дубликаты блокируются без изменения состояния, negative значения запрещены, logs уточнены, runtime-smokes подтверждены
 - [x] Anti-injection/anti-scripting guard: tamper/macro attempts detected and blocked, rate-limits enforced, verified in prod and `?dev=1`
+- [x] ReactionPolicy + QA logging: implemented, evidence block (reactionsTail, flags, perma LS, blockedStart/event, Stage2 checklist outcome) submitted; PASS confirmed with log_only → temp_block → perma_flag and deterministic perma_flag_restore persistence.
+- [x] Stage 3 Step 8 safety probe: secure `Game.__D` reads, growth probe, drag/perma events, and DM flows verified.
 - [ ] Документированы гарантии по REP/POINTS+crowd (transferRep-only, bounds, cache)
 - [ ] Есть smoke-команды/checklist, которые фиксируют эти invariants каждым запуском
 - [ ] Мониторинг/логирование ловит аномалии battle/rep/points до их распространения

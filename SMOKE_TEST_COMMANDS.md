@@ -228,3 +228,49 @@ console.table(
     }))
 );
 ```
+
+## 8. Проверка безопасности чтения `Game.__D` (Stage 3 Step 8 follow-up)
+
+### Dev (`?dev=1`)
+
+Безопасное чтение `Game.__D.securityEvents`/`securityReactions` без `RangeError` и без повторной эмиссии событий; `Game.__DEV.securityProbeOnce()` возвращает `evLen`/`rxLen`, совпадающие с результатами сниппета.
+
+```js
+(() => {
+  const ev = Game?.__D?.securityEvents ?? [];
+  const rx = Game?.__D?.securityReactions ?? [];
+  return {
+    evLen: ev.length,
+    rxLen: rx.length,
+    lastEv: ev.slice(-1)[0] ?? null,
+    lastRx: rx.slice(-1)[0] ?? null,
+  };
+})();
+```
+
+### Growth probe (5 с)
+
+```js
+(() => {
+  const snap1 = {
+    t: Date.now(),
+    ev: (Game?.__D?.securityEvents ?? []).length,
+    rx: (Game?.__D?.securityReactions ?? []).length,
+  };
+  setTimeout(() => {
+    const ev = Game?.__D?.securityEvents ?? [];
+    const rx = Game?.__D?.securityReactions ?? [];
+    console.log({
+      snap1,
+      snap2: { t: Date.now(), ev: ev.length, rx: rx.length },
+      grew: { ev: ev.length - snap1.ev, rx: rx.length - snap1.rx },
+      lastEv: ev.slice(-1)[0] ?? null,
+      lastRx: rx.slice(-1)[0] ?? null,
+    });
+  }, 5000);
+})();
+```
+
+### Prod (без `?dev=1`)
+
+Выполните первый сниппет из Dev без `?dev=1`, следите за консолью (`RangeError` не должно быть) и убедитесь, что `Game.__D.securityEvents`/`securityReactions` читаются без проблем.

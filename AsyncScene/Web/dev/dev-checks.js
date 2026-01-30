@@ -260,6 +260,24 @@ window.Game = window.Game || {};
     };
   };
 
+  Game.__DEV.securityProbeOnce = () => {
+    const dbg = (Game && Game.__D && typeof Game.__D === "object") ? Game.__D : null;
+    if (!dbg) {
+      return { ok: false, error: "missing_debug_surface" };
+    }
+    const events = Array.isArray(dbg.securityEvents) ? dbg.securityEvents : [];
+    const reactions = Array.isArray(dbg.securityReactions) ? dbg.securityReactions : [];
+    const lastEv = events.length ? events[events.length - 1] : null;
+    const lastRx = reactions.length ? reactions[reactions.length - 1] : null;
+    return {
+      ok: true,
+      evLen: events.length,
+      rxLen: reactions.length,
+      lastEv,
+      lastRx,
+    };
+  };
+
   Game.__DEV.addPoints = (delta) => {
     if (typeof delta !== "number") return;
     const S = getStateSafe();

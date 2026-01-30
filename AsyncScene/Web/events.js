@@ -1160,6 +1160,14 @@ window.Game ||= {};
     // Voting must never stop NPC simulation. playerVoted only blocks a second player vote.
     ensureEventCrowd(e);
 
+    const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
+    const meId = (me && me.id) ? me.id : "me";
+    if (Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "vote")) {
+      e.note = "Служба безопасности временно блокирует голосование.";
+      requestRender();
+      return false;
+    }
+
     e.note = "";
 
     if (side === "skip"){
@@ -1180,8 +1188,6 @@ window.Game ||= {};
     const voteCost = 1;
 
     // Record the player's vote into the crowd (weight = 1).
-    const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
-    const meId = (me && me.id) ? me.id : "me";
     ensureEventCrowd(e);
     const crowd = e.crowd;
     crowd.voters ||= {};
