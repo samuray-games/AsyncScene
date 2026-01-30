@@ -1,0 +1,2 @@
+{"ts": 1769782035381, "sessionId": "session-1769782021076-fpi4", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1769782035374_5041"}}
+{"ts": 1769782035386, "sessionId": "session-1769782021076-fpi4", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1769782035374_5041"}}

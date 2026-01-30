@@ -43,6 +43,7 @@ window.Game ||= {};
   }
 
   const Events = {};
+  let diagCrowdOutcomeRepLogged = false;
 
   function ensureState(){
     Game.__S ||= {};
@@ -146,6 +147,67 @@ window.Game ||= {};
           Game.UI.pushSystem(`+1⭐`);
         }
       } catch (_) {}
+    }
+  }
+
+  function applyCrowdVoteOutcomeRep(e, res, opts){
+    if (!e || !res) return;
+    const crowd = e.crowd;
+    if (!crowd || typeof crowd !== "object") return;
+    const outcome = res.outcome;
+    const decided = !!res.decided;
+    const resolved = !!e.resolved;
+    const winnerSide = (outcome === "A_WIN") ? "a" : (outcome === "B_WIN") ? "b" : null;
+    const votersMap = (crowd.voters && typeof crowd.voters === "object") ? crowd.voters : {};
+    const voterIds = Object.keys(votersMap);
+    const voterSideCount = voterIds.reduce((count, id) => {
+      const side = votersMap[id];
+      return (side === "a" || side === "b") ? count + 1 : count;
+    }, 0);
+    const alreadyApplied = !!crowd._repOutcomeApplied;
+
+    const transferRep = (Game.__A && typeof Game.__A.transferRep === "function")
+      ? Game.__A.transferRep
+      : null;
+    const dev = (Game && Game.__DEV) ? Game.__DEV : null;
+    const diagEnabled = !!((opts && opts.debugCrowdRep) || (dev && dev.debugCrowdRep));
+    if (diagEnabled && !diagCrowdOutcomeRepLogged) {
+      const eventId = e && (e.id || e.eventId || e.refId || null);
+      const battleId = e && (e.battleId || e.relatedBattleId || e.refId || e.id || null);
+      const diagWinnerSide = winnerSide || "tie";
+      try {
+        console.warn(`CROWD_OUTCOME_REP_DIAG eventId=${String(eventId || "")} battleId=${String(battleId || "")} decided=${decided} resolved=${resolved} winnerSide=${diagWinnerSide} voters=${voterIds.length} hasSide=${voterSideCount} alreadyApplied=${alreadyApplied}`);
+      } catch (_) {}
+      diagCrowdOutcomeRepLogged = true;
+    }
+    if (alreadyApplied) return;
+    if (!transferRep) return;
+
+    if (outcome !== "A_WIN" && outcome !== "B_WIN") {
+      if (!crowd._repOutcomeSeen) crowd._repOutcomeSeen = true;
+      return;
+    }
+    if (!voterSideCount) return;
+
+    const battleId = e && (e.battleId || e.relatedBattleId || e.refId || e.id || null);
+    let applied = false;
+    const winner = winnerSide;
+    voterIds.forEach(voterId => {
+      if (!voterId) return;
+      const side = votersMap[voterId];
+      if (side !== "a" && side !== "b") return;
+      const isWinner = (side === winner);
+      const reason = isWinner ? "rep_crowd_vote_majority" : "rep_crowd_vote_minority";
+      const delta = isWinner ? 2 : -2;
+      let transferRes = null;
+      try {
+        transferRes = transferRep("rep_emitter", voterId, delta, reason, battleId);
+      } catch (_) {}
+      if (transferRes && transferRes.ok) applied = true;
+    });
+    if (applied) {
+      crowd._repOutcomeApplied = true;
+      crowd._repOutcomeSeen = true;
     }
   }
 
@@ -438,6 +500,13 @@ window.Game ||= {};
     if (!Number.isFinite(e.endsAt)) e.endsAt = Number(e.crowd.endAt || 0);
     if (!Number.isFinite(e.crowd.endAt)) e.crowd.endAt = Number(e.endsAt || 0);
     ensureCrowdCap(e);
+
+    if (!Number.isFinite(e.crowd.eligibleNpcCount)) e.crowd.eligibleNpcCount = 0;
+    if (!Number.isFinite(e.crowd.alreadyVotedCount)) e.crowd.alreadyVotedCount = 0;
+    if (typeof e.crowd.endedBy === "undefined") e.crowd.endedBy = null;
+    if (typeof e.crowd._crowdDecisionDiagLogged !== "boolean") e.crowd._crowdDecisionDiagLogged = false;
+
+    if (typeof e.crowd._repOutcomeSeen !== "boolean") e.crowd._repOutcomeSeen = false;
   }
 
   function mirrorCrowdVotesToEvent(e){
@@ -470,6 +539,12 @@ window.Game ||= {};
     e.crowd.votesB = 0;
     e.crowd._econApplied = false;
     e.crowd._poolInit = false;
+    e.crowd._repOutcomeApplied = false;
+    e.crowd._repOutcomeSeen = false;
+    e.crowd.eligibleNpcCount = 0;
+    e.crowd.alreadyVotedCount = 0;
+    e.crowd.endedBy = null;
+    e.crowd._crowdDecisionDiagLogged = false;
 
     if (hadPlayerVote && prevVote) {
       e.crowd.voters[meId] = prevVote;
@@ -483,6 +558,7 @@ window.Game ||= {};
     e.endsAt = nextEnd;
     e.crowd.endAt = nextEnd;
     e.crowd.decided = false;
+    e.crowd.winner = null;
     e.state = "open";
     mirrorCrowdVotesToEvent(e);
     ensureCrowdCap(e);
@@ -982,6 +1058,9 @@ window.Game ||= {};
         nextNpcVoteAt: 0,
         winner: null,
         voters: {},
+        eligibleNpcCount: 0,
+        alreadyVotedCount: 0,
+        endedBy: null,
       },
 
       // UI text
@@ -1070,6 +1149,9 @@ window.Game ||= {};
         nextNpcVoteAt: 0,
         winner: null,
         voters: {},
+        eligibleNpcCount: 0,
+        alreadyVotedCount: 0,
+        endedBy: null,
       },
 
       meta: `${voteLabels.a} / ${voteLabels.b}`,
@@ -1522,8 +1604,98 @@ window.Game ||= {};
     return "tie";
   }
 
-  function finalizeOpenEventNow(e, opts){
-    if (!e || e.state !== "open") return false;
+  function getEventsArray(){
+    const stateSurface = (Game && Game.__S) ? Game.__S : ((Game && Game.State) ? Game.State : null);
+    if (!stateSurface) return [];
+    if (Array.isArray(stateSurface.events)) return stateSurface.events;
+    if (stateSurface.events && Array.isArray(stateSurface.events.list)) return stateSurface.events.list;
+    return [];
+  }
+
+  function findEventById(id){
+    if (!id) return null;
+    ensureState();
+    const events = getEventsArray();
+    for (const ev of events) {
+      if (ev && ev.id === id) return ev;
+    }
+    return null;
+  }
+
+  function determineCrowdDecisionReason(e, res){
+    if (!e || !e.crowd) return null;
+    const crowd = e.crowd;
+    const totalVotes = getCrowdTotalVotes(crowd);
+    ensureCrowdCap(e);
+    const cap = Number.isFinite(crowd.cap) ? (crowd.cap | 0) : 0;
+    const eligible = Number.isFinite(crowd.eligibleNpcCount) ? (crowd.eligibleNpcCount | 0) : null;
+    const already = (crowd.voters && typeof crowd.voters === "object")
+      ? Object.keys(crowd.voters).length
+      : totalVotes | 0;
+    crowd.alreadyVotedCount = already;
+    if (cap > 0 && totalVotes >= cap) return "cap";
+    if (eligible !== null && eligible > 0 && already >= eligible) return "eligible";
+    if (eligible === 0 && totalVotes === 0) return "no_eligible_voter";
+    if (res && res.decided) return "majority";
+    return null;
+  }
+
+  function logCrowdDecisionDiag(e, reason, opts){
+    if (!e || !e.crowd) return;
+    const crowd = e.crowd;
+    const dev = (Game && Game.__DEV) ? Game.__DEV : null;
+    const diagEnabled = !!((opts && opts.debugCrowdRep) || (dev && dev.debugCrowdRep));
+    if (!diagEnabled) return;
+    if (crowd._crowdDecisionDiagLogged) return;
+    crowd._crowdDecisionDiagLogged = true;
+    const eventId = e && (e.id || e.eventId || e.refId || null);
+    const cap = Number.isFinite(crowd.cap) ? (crowd.cap | 0) : 0;
+    const already = Number.isFinite(crowd.alreadyVotedCount) ? (crowd.alreadyVotedCount | 0) : getCrowdTotalVotes(crowd);
+    const eligible = Number.isFinite(crowd.eligibleNpcCount) ? (crowd.eligibleNpcCount | 0) : 0;
+    const winner = crowd.winner || null;
+    try {
+      console.warn(`EVENT_CROWD_DECIDED id=${String(eventId || "")} decided=${!!crowd.decided} winner=${winner || "null"} endedBy=${reason || ""} cap=${cap} alreadyVotedCount=${already} eligibleNpcCount=${eligible}`);
+    } catch (_) {}
+  }
+
+  function finalizeOpenEventNow(target, opts){
+    const dev = (Game && Game.__DEV) ? Game.__DEV : null;
+    const diagFinalize = !!((opts && opts.debugFinalize) || (dev && dev.debugFinalize));
+    const attemptedId = (typeof target === "string")
+      ? target
+      : (target && typeof target === "object" ? (target.id || null) : null);
+    let e = (typeof target === "string") ? findEventById(target) : target;
+    const diagId = (e && e.id) ? e.id : (attemptedId || "");
+    if (diagFinalize) {
+      try {
+        console.warn(`EVENT_FINALIZE_API_CALLED name=finalizeOpenEventNow id=${String(diagId || "")}`);
+      } catch (_) {}
+    }
+    if (!e || typeof e !== "object") {
+      if (diagFinalize) {
+        try {
+          console.warn(`EVENT_FINALIZE_GUARD_BLOCKED id=${String(diagId || "")} state=${String(undefined)} resolved=${String(undefined)} status=${String(undefined)}`);
+        } catch (_) {}
+      }
+      return false;
+    }
+    const guardState = (typeof e.state !== "undefined") ? e.state : undefined;
+    const guardResolved = (typeof e.resolved !== "undefined") ? e.resolved : undefined;
+    const guardStatus = (typeof e.status !== "undefined") ? e.status : undefined;
+    const stateToken = (typeof guardState !== "undefined") ? guardState
+      : (typeof guardResolved !== "undefined") ? guardResolved
+      : guardStatus;
+    const normalized = (typeof stateToken === "string") ? stateToken : (stateToken != null ? String(stateToken) : "");
+    const isOpen = normalized.toLowerCase() === "open";
+    if (!isOpen) {
+      if (diagFinalize) {
+        try {
+          console.warn(`EVENT_FINALIZE_GUARD_BLOCKED id=${String(diagId || "")} state=${String(guardState)} resolved=${String(guardResolved)} status=${String(guardStatus)}`);
+        } catch (_) {}
+      }
+      return false;
+    }
+    ensureEventCrowd(e);
     const crowd = e.crowd;
     if (!crowd || typeof crowd !== "object") return false;
     const kind = e.type || e.kind;
@@ -1556,31 +1728,37 @@ window.Game ||= {};
     const aInf = Number(e.aInf ?? 0);
     const bInf = Number(e.bInf ?? 0);
 
-    if (res && res.outcome === "TIE") {
-      applyEventCrowdEconomy(e, res);
-      restartEventCrowd(e);
-      e.playerVoted = false;
-      e.myVote = null;
-      e.bet = null;
-      e.reveal = false;
-      e.voteRewardApplied = false;
-      e.voteOutcomeApplied = false;
-      return true;
+    const decisionReason = determineCrowdDecisionReason(e, res);
+    if (!decisionReason) {
+      if (res && res.outcome === "TIE") {
+        applyEventCrowdEconomy(e, res);
+        restartEventCrowd(e);
+        e.playerVoted = false;
+        e.myVote = null;
+        e.bet = null;
+        e.reveal = false;
+        e.voteRewardApplied = false;
+        e.voteOutcomeApplied = false;
+        return true;
+      }
+      return false;
     }
 
-    const winner = (res && res.outcome === "A_WIN") ? "a" : "b";
-    crowd.decided = true;
-    crowd.winner = winner;
-
-    const winnerName = (winner === "a") ? aName : bName;
-    const loserName = (winner === "a") ? bName : aName;
-
-    let finalLine = sysNpcDrawResolvedLine(winnerName, loserName);
-    if (kind === "escape") {
-      const lines = npcEscapeResolvedLines(e, winner);
-      finalLine = lines.chatLine;
-      e.resultLine = lines.cardLine;
+    const winner = (res && res.outcome === "A_WIN") ? "a" : (res && res.outcome === "B_WIN") ? "b" : null;
+    const winnerName = (winner === "a") ? aName : ((winner === "b") ? bName : null);
+    const loserName = (winner === "a") ? bName : ((winner === "b") ? aName : null);
+    let finalLine;
+    if (winner) {
+      finalLine = sysNpcDrawResolvedLine(winnerName, loserName);
+      if (kind === "escape") {
+        const lines = npcEscapeResolvedLines(e, winner);
+        finalLine = lines.chatLine;
+        e.resultLine = lines.cardLine;
+      } else {
+        e.resultLine = finalLine;
+      }
     } else {
+      finalLine = `Голосование толпы закончилось ничьей между ${aName} и ${bName}.`;
       e.resultLine = finalLine;
     }
     e.text = finalLine;
@@ -1589,12 +1767,19 @@ window.Game ||= {};
     e.resolved = true;
     e.resolveAt = nowTs;
 
+    crowd.decided = true;
+    crowd.winner = winner;
+    crowd.endedBy = decisionReason;
+    crowd.lastTickWhy = decisionReason;
+
     if (!e._broadcastResolved) {
       e._broadcastResolved = true;
       pushSystem(finalLine);
     }
 
     applyEventCrowdEconomy(e, res);
+    applyCrowdVoteOutcomeRep(e, res, opts);
+    logCrowdDecisionDiag(e, decisionReason, opts);
     return true;
   }
 
@@ -1850,6 +2035,7 @@ window.Game ||= {};
   Events.addExtraVote = addExtraVote;
   Events.activateVoteShield = activateVoteShield;
   Events.resolveEvent = resolveEvent;
+  Events.finalizeOpenEventNow = finalizeOpenEventNow;
   Events.tick = tick;
   Events.pruneResolved = () => {
     syncDrawEvents();

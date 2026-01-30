@@ -1,0 +1,2 @@
+{"ts": 1769780954835, "sessionId": "session-1769780917132-ohax", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1769780954831_7263"}}
+{"ts": 1769780954838, "sessionId": "session-1769780917132-ohax", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1769780954831_7263"}}

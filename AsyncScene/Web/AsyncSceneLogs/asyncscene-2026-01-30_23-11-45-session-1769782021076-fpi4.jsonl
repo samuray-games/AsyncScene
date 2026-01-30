@@ -1,0 +1,2 @@
+{"ts": 1769782303509, "sessionId": "session-1769782021076-fpi4", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1769782288276_5310"}}
+{"ts": 1769782303511, "sessionId": "session-1769782021076-fpi4", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_crowd_vote_majority", "battleId": "ed_npc_1769782288276_5310"}}

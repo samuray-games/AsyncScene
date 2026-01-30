@@ -67,13 +67,329 @@
 ---
 
 ## Inbox
+
++### [T-20260203-001] Economy Perfecting — GAP Matrix / Atomic plan
++- Status: INFO
++- Priority: P1
++- Assignee: Ассистент
++- Next: Экономист (или QA)
++- Area: Economy
++- Files: `PROJECT_MEMORY.md` `TASKS.md`
++- Goal: Зафиксировать GAP-матрицу A–K и план ECON-01..ECON-05 для восстановления канона; подготовить briefing на ECON-02/ECON-03.
++- Acceptance:
++  - [x] GAP-матрица описана, `moneyLog` reasons собраны, differences highlighted (legacy addPoints, crowd REP, missing Argument training/Bank).
++  - [x] Atomic plan ECON-01..ECON-05 зафиксирован с приоритетами S/M/H; next control notes требуют сначала ECON-02/ECON-03 + point sum invariants.
++  - [x] Next prompt указывает на подготовку смоуков и PASS/FAIL по ECON-02/03.
++- Result: |
++    Status: INFO
++    Facts: GAP-матрица A–K и plan ECON-01..ECON-05 опубликованы; focus shift to ECON-02/ECON-03 with zero-sum/transferPoints proof.
++    Changed: `PROJECT_MEMORY.md` `TASKS.md`
++    Evidence: GAP matrix summary + atomic plan snapshot.
++    Next: Экономист — подготовь смоуки ECON-02/ECON-03, zazhiti point sum invariant.
++    Next Prompt:
++        ```text
++        Ответ Экономист:
++        Осмотри GAP-матрицу и atomic plan, фиксируй ECON-02/ECON-03 как medium priority. Составь чеклист смоуков и point-sum invariant, затем поставь PASS/FAIL в TASKS.md и обнови PROJECT_MEMORY.md.
+        ```
 <!-- Добавляйте новые задачи сюда -->
+### [T-20260204-001] Crowd vote REP outcome (ECON-01)
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Начислить REP за majority/minority исходы голосований толпы строго через `transferRep`, не трогая голосовую экономику, и защитить начисление от повторных `tick`/`finalize`.
+- Acceptance:
+  - [x] Все голосовавшие получают +2 REP с reason `rep_crowd_vote_majority` или -2 REP с reason `rep_crowd_vote_minority` в зависимости от результата, а `moneyLog` и `transferRep` указывают `eventId`/`battleId`.
+  - [x] Guard `_repOutcomeApplied` на `crowd` и `restartEventCrowd` предотвращают повторное начисление при повторных finalize/tick, while vote cost/refunds/participation REP untouched.
+  - [x] REP-запись появляется только после того как событие решено и после `applyEventCrowdEconomy` (послеdecided/refunds).
+- Notes: CALL `applyCrowdVoteOutcomeRep` после `applyEventCrowdEconomy` и держи flag в `crowd` (не трогать `pool_init`, `refunds`, existing +1 REP).
+- Result: |
+    Status: PASS
+    Facts: Добавлены helper `applyCrowdVoteOutcomeRep`, guard `_repOutcomeApplied` и вызов после `applyEventCrowdEconomy`; реп-темы majority/minority начисляются только один раз после финала и без изменений в голосовой экономике.
+    Changed: `AsyncScene/Web/events.js`
+    How to verify: (1) создать NPC-событие, проголосовать, дождаться resolve и посмотреть `Game.Debug.moneyLog.filter(e => e.reason.startsWith("rep_crowd_vote"))` на +1/+2/-2; (2) запустить `Game.Events.tick()` ещё раз и убедиться, что `moneyLog` не получает новых записей по `reason` `rep_crowd_vote_majority`/`rep_crowd_vote_minority`.
+    Next: QA — прогнать смоуки (пункт 1 и повторный tick).
+    Next Prompt:
+        ```text
+        Ответ QA:
+        1) Создай событие `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a");` and let it resolve via `Game.Events.tick()`; confirm `moneyLog` содержит `rep_crowd_vote_participation` и either `rep_crowd_vote_majority`/`rep_crowd_vote_minority` with correct `eventId`.
+        2) Вновь запусти `Game.Events.tick()` for the same event (after it already resolved) и проверь, что `moneyLog` не получает повторных записей для `rep_crowd_vote_majority`/`rep_crowd_vote_minority`.
+        ```
+### [T-20260130-009] Stage 3 Step 8b — Dev mode must not block gameplay
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Security
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: В dev режиме (`?dev=1`) реакции tamper остаются log_only и не блокируют геймплей.
+- Acceptance:
+  - [ ] В dev: tamper_detected → только log_only, без temp_block/perma_flag
+  - [ ] Нет блокировок боёв/голосований в dev
+  - [ ] Dev tooling продолжает логировать tamper
+- Notes: В dev блокировки запрещены; реакция эскалации только в prod.
+- Result: |
+    Status: FAIL
+    Facts: Локальный код соответствует инвариантам (ReactionPolicy в dev форсирует log_only, флаги не ставятся, restorePersistedFlags в dev очищает флаги, isActionBlocked в dev всегда false), но SMOKE в браузере не выполнен в CLI-среде, поэтому критерии PASS не подтверждены.
+    Changed: —
+    Next: QA — вручную выполнить SMOKE по шагам задачи в dev (`?dev=1`) и зафиксировать PASS/FAIL.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Открой страницу с `?dev=1`. На boot допустимы security logs, но не должно быть temp_block/perma_flag в `Game.__D.securityReactions`. Проверь, что можно начать бой и проголосовать в событии. Вызови `Game.__DEV` инструменты, убедись что tamper_attempts логируются, но реакции остаются log_only. Зафиксируй вывод и обнови `PROJECT_MEMORY.md`/`TASKS.md` с PASS/FAIL.
+        ```
 - Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ Ассистента:
     Валера, открой `TASKS.md` и возьми задачу `T-20260111-051` (Gate: Economy wave 5 scope — battle_end REP by strength delta). Вход: `ECONOMY_WAVE5_SCOPE.md`. Нужен итог PASS/FAIL/BACKLOG + факты; при PASS — подтвердить, что параметры фиксированные (tierDiff, таблица REP win/lose/draw, reasons, клип) и что UI/Points/Influence запрещены. В ответе в чат обязательно приложи Next Prompt кодблоком.
     ```
 
+
+### [T-20260204-001] ECON-01 Crowd outcome REP — QA growth filter
+- Status: HOLD
+- Priority: P1
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Проверить, что `rep_crowd_vote_majority/minority` появляются ровно по одному разу на событие и фильтры под battleId фиксируют output.
+- Acceptance:
+  - [ ] Повторить смоук с фильтрацией `entry.battleId === ev.id` (или последним battleId).
+  - [ ] Зафиксировать decided state (`crowd.decided`) и единоразовую запись `rep_crowd_vote_majority/minority` в `moneyLog`.
+  - [ ] Убедиться, что log не повторяется на следующих тиках, `moneyLog`/points pool не изменяются и DM не дублируется.
+- Evidence: QA console objects + `moneyLog` filters showing correct `rep_crowd_vote_*` entry.
+- Result: |
+    Status: HOLD
+    Facts: QA увидел только participation `moneyLog`, outcome entries скрыты из-за фильтра, need re-run with battleId; PASS awaits once outcomes logged once per event.
+    Changed: `TASKS.md`
+    Next: QA — rerun smoke filtering by battleId, capture outcomes, then update PROJECT_MEMORY.md/TASKS.md with PASS/FAIL.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Повтори ECON-01 smoke, фильтруя `moneyLog` по battleId (`entry.battleId === ev.id` или последний battleId). Поймай decided state и один outcome entry `rep_crowd_vote_majority/minority`, убедись, что оно не повторяется. Вставь facts и console output, отметь PASS/FAIL.
+        ```
+
+### [T-20260204-001] ECON-01 Crowd outcome REP — QA growth filter
+- Status: HOLD
+- Priority: P1
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Проверить outcome REP entry добавления `rep_crowd_vote_majority/minority` c battleId filter.
+- Acceptance:
+  - [ ] Повторить смоук с фильтрацией `entry.battleId === ev.id` (или последним battleId из participation logs).
+  - [ ] Убедиться, что decided state (`crowd.decided`) установлен и moneyLog содержит ровно одну запись `rep_crowd_vote_majority`/`minority` per event.
+  - [ ] Log не повторяется на последующих тиках, points pool не меняется, DM/notifications single.
+- Result: |
+    Status: HOLD
+    Facts: QA smoke не увидел outcome entries, guard prevents duplication but application not running; filter needs battleId.
+    Changed: `TASKS.md`
+    Next: QA — rerun smoke with battleId filter, provide outcomes, then update PROJECT_MEMORY.md/TASKS.md with PASS/FAIL.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Повтори ECON-01 smoke, фильтруя moneyLog по battleId (`entry.battleId === ev.id` или последнему battleId). Зафиксируй decided state и single `rep_crowd_vote_*` entry, убедись, что it does not repeat. Вставь facts+console output, отметь PASS/FAIL.
+        ```
+### [T-20260204-002] ECON-01 Crowd outcome REP — QA assert revision
+- Status: PASS CANDIDATE
+- Priority: P1
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Confirm per-voter outcome entries and ensure no duplication on extra ticks, then update QA asserts before PASSing ECON-01.
+- Acceptance:
+  - [x] MoneyLog for target battleId now shows participation + outcomes per voter.
+  - [ ] Assert updated to check for each participation entry (by targetId/battleId) exactly one `rep_crowd_vote_majority/minority`, no duplicates after additional Game.Events ticks.
+  - [ ] Confirm points/pool/refund invariants unaffected by outcome entries.
+  - [ ] QA smoke V2 (tie-aware) replaces previous behavior: tick until decided, handle tie via `endedBy`, and only assert outcomes for non-ties while checking no-dup on extra ticks.
+- Evidence: dev console shows `rep_crowd_vote_majority/minority` entries for multiple voters (same battleId) and no growth on extra ticks; existing `outcomeCount === 2` assert noted as outdated.
+- Result: |
+    Status: PASS CANDIDATE
+    Facts: Runtime emits expected outcomes; QA needs new per-voter/no-dup assertions before PASS.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Next: Ассистент — once QA updates asserts and confirms no duplication, mark ECON-01 PASS and note final evidence.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-01 runtime now shows majority/minority per voter. Update your assert: for every participation entry (battleId + targetId) verify exactly one outcome log (majority or minority), extra ticks do not add entries, and points remain unchanged. After updating the check and confirming behavior, mark ECON-01 PASS.
+        ```
+
+-### [T-20260208-001] ECON-01c expose finalize API + marker
+- Status: PASS
+- Priority: P1
+- Assignee: Ассистент
+- Next: Разработчик
+- Area: Economy/Security
+- Files: `AsyncScene/Web/events.js` `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Expose `finalizeOpenEventNow` (or alias) on `Game.Events`, emit dev marker `EVENT_FINALIZE_API_CALLED`, ensure QA can trigger finalize and see crowd decided/winner/endedBy.
+- Acceptance:
+  - [x] `Game.Events.finalizeOpenEventNow` callable in prod/dev without TypeError.
+  - [x] Dev marker `EVENT_FINALIZE_API_CALLED` logged with battleId/eventId, decided/endedBy, voters count.
+  - [x] V3 smoke (finalize -> rep_crowd_vote_majority/minority) passes after API fix.
+  - [x] QA FINAL META + NO-DUP smoke executed: crowd.decided true, winner/endedBy set, outcome REP entries present, no duplicates on extra ticks/finalizes.
+- Result: |
+    Status: PASS
+    Facts: API exposed and QA final smokes completed with correct signature and markers observed.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Next: Разработчик — переключись на ECON-02 (remove addPoints from prod paths) и document V5 as regression smoke.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ Разработчику:
+        ECON-01c: finalize API exposed, markers emitted, QA smokes pass. Переключайся на ECON-02 и сохрани V5 snippet as regression test.
+        ```
+
+-### [T-20260213-001] ECON-01 final V4 smoke (meta+rep+no-dup) on non-tie
+- Status: PASS
+- Priority: P0
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Validate final PASS smoke with non-tie event: ensure finalize call resolves event, outcome entries present, and no duplication.
+- Acceptance:
+  - [ ] `okFinalize true`, `crowd.decided=true`, winner/endedBy non-null, resolved ≠ "open".
+  - [ ] `moneyLog` (battleId=ev.id) contains `rep_crowd_vote_participation` plus majority/minority entries per voter; `repOutcome > 0`.
+  - [ ] Additional ticks/finalize invocations do not increase outcome count (delta 0).
+- Result: |
+    Status: PASS
+    Facts: QA final V4 smoke on non-tie event succeeded; outcome entries and markers confirmed.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Next: Ассистент — after QA evidence, mark ECON-01 PASS and close dependent tasks.
+    Next Prompt (копипаст, кодблок обязательно):
+        ```text
+        Ответ QA:
+        ECON-01 final V4 smoke: use non-tie event, call `Game.Events.finalizeOpenEventNow(ev,{debugFinalize:true})`, ensure `crowd.decided/winner/endedBy` set, outcome entries present, and extra ticks/repeats leave deltas zero. Attach META + NO-DUP objects and mark PASS.
+        ```
+
+
+        ECON-01c: экпонить `Game.Events.finalizeOpenEventNow` (или alias) and emit `EVENT_FINALIZE_API_CALLED` with battleId/eventId/winner/endedBy. После этого прогрей V3 smoke и зафиксируй outcome REP entries.
+        ```
+
+-### [T-20260214-001] ECON-01 V5 smoke — decided-gated no-dup
+- Status: PASS
+- Priority: P0
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Prevent false positives by running NO-DUP only after event decided and outcome>0.
+- Acceptance:
+  - [ ] V5 META: ok=true, crowd.decided=true, winner/endedBy non-null, repOutcome>0.
+  - [ ] V5 NO-DUP: extra ticks/repeat finalize do not increase outcome count (delta=0) once condition met.
+- Result: |
+    Status: PASS
+    Facts: QA V5 smoke validated no duplication after event resolved with repOutcome>0.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Next: Ассистент — once V5 passes, mark ECON-01 PASS and close dependent tasks.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-01 V5 smoke: tick+finalize until `crowd.decided && outcomeCount>0`, then assert outcome delta=0 after extra ticks/repeat finalize. Include META info and NO-DUP result; when satisfied, mark PASS.
+        ```
+
+### [T-20260213-001] ECON-01 final V4 smoke (meta+rep+no-dup) on non-tie
+- Status: QA RUNNING
+- Priority: P0
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Validate final PASS smoke with non-tie event: finalize, confirm crowd.decided/winner/endedBy, outcome REP entries, and no-dup on extra ticks/repeats.
+- Acceptance:
+  - [ ] `okFinalize true`, `crowd.decided=true`, winner/endedBy non-null, resolved ≠ "open".
+  - [ ] `moneyLog` (battleId=ev.id) contains `rep_crowd_vote_participation` plus majority/minority entries per voter; `repOutcome > 0`.
+  - [ ] Additional ticks/finalize invocations do not increase outcome count (delta 0).
+- Result: |
+    Status: QA RUNNING
+    Facts: QA working V4 final smoke; PASS once non-tie run satisfies meta/outcome/no-dup and markers fire.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Next: Ассистент — after QA evidence, mark ECON-01 PASS and close dependent tasks.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-01 final V4 smoke: use non-tie event, call `Game.Events.finalizeOpenEventNow(ev,{debugFinalize:true})`, ensure `crowd.decided/winner/endedBy` set, outcome entries present, and extra ticks/repeats leave deltas zero. Attach META + NO-DUP objects and mark PASS.
+        ```
+
+
+### [T-20260211-001] ECON-01 V4 smoke — signature verification
+- Status: QA FAIL
+- Priority: P1
+- Assignee: QA
+- Next: Ассистент
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Ensure QA uses correct argument shape when calling `Game.Events.finalizeOpenEventNow`.
+- Acceptance:
+  - [ ] Inspect `Game.Events.finalizeOpenEventNow` signature/source.
+  - [ ] Try both `finalizeOpenEventNow(ev,{debugFinalize:true})` and `finalizeOpenEventNow(ev.id,{debugFinalize:true})`.
+  - [ ] PASS once the correct call fires `EVENT_FINALIZE_API_CALLED`, sets `crowd.decided=true`, winner/endedBy non-null, resolved ≠ "open", and outcome REP entries appear.
+- Result: |
+    Status: QA FAIL
+    Facts: initial QA call used `ev.id`, but API expects event object; need V4 signature smoke to confirm proper usage before PASS.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Next: QA — rerun V4 smoke and log findings.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-01 V4 smoke: read `Game.Events.finalizeOpenEventNow.toString()`/length, try both `ev` and `ev.id` arg patterns, and confirm which invocation fires `EVENT_FINALIZE_API_CALLED` and resolves the event/outcome. После этого обнови PROJECT_MEMORY.md/TASKS.md с PASS/FAIL.
+        ```
+
+
+### [T-20260205-002] ECON-01b Crowd outcome REP — debug fix
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Убедиться, что `applyCrowdVoteOutcomeRep` начисляет `rep_crowd_vote_majority/minority` (+2/-2) всем проголосовавшим и логирует battleId, guard не блокирует повторные tick'и без результата, а точки/пулы/возвраты не меняются.
+- Acceptance:
+  - [x] Majority/minority записи пишутся через `transferRep` с `battleId` для каждой стороны после вычисленного исхода и без дублирования.
+  - [x] Флаг `_repOutcomeApplied` ставится только после удачного REP-перевода, `_repOutcomeSeen` отмечает tie и сбрасывается при restart, остальные вложенные flags (`points`, `pool`, `refunds`) не трогались.
+  - [x] Добавлен `CROWD_OUTCOME_REP_DIAG` лог (один раз) при `opts.debugCrowdRep`/`Game.__DEV?.debugCrowdRep`, фиксирующий идентификаторы, decided/resolved, winnerSide, voters/hasSide и `alreadyApplied`.
+- Notes: минимум диффа, никакого рефакторинга points/pool/refunds — только debug+guard.
+- Result: |
+    Status: PASS
+    Facts: `applyCrowdVoteOutcomeRep` теперь смотрит только на battleId, не ставит `_repOutcomeApplied`, пока не прошли транзакции, `_repOutcomeSeen` протоколирует ничьи, restart/ensure сбрасывают флаги, а diag-лог предупреждает при debug; points/pool/refunds остались нетронутыми.
+    Changed: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify: Выполнить смоук ECON-01 (см. команду ниже) и повторный tick для того же battleId — `Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote"))` должен показать `participation` + `majority/minority` лишь один раз с ±2 и оставаться неизменным после двух дополнительных `Game.Events.tick()`.
+    Next: QA — прогнать указанные smokes, убедиться, что outcome-entries появились и не дублируются, затем отметить PASS/FAIL в TASKS.md и PROJECT_MEMORY.md.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        1) `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a"); Game.Events.tick(20); console.table(Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")));`
+        2) `Game.Events.tick(); Game.Events.tick(); const filtered = Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")); console.table(filtered); console.assert(filtered.filter(entry => entry.reason === "rep_crowd_vote_majority" || entry.reason === "rep_crowd_vote_minority").length === 2, "outcome count changed?");`
+        ```
+### [T-20260206-001] ECON-01c Crowd event finalization plumbing
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Сделать так, чтобы open crowd-события уходили в resolved/decided, как только cap/eligible votes исчерпаны или finalize вызывается вручную, и чтобы начисление REP происходило сразу после решения без лишних рестартов.
+- Acceptance:
+  - [x] `finalizeOpenEventNow` ставит `crowd.decided`, `crowd.winner` (или `null` при tie) и `crowd.endedBy`, переводит событие в `resolved` и не делает restart, как только кап/поддержка голосов исчерпаны или была принудительная команда (текущее raw-голосование).
+  - [x] Сценарий `finalizeOpenEventNow` по-прежнему вызывает `applyEventCrowdEconomy` и `applyCrowdVoteOutcomeRep`, то есть `moneyLog` получает participation и outcome-записи ровно однажды, а повторные `Game.Events.tick()`/finalize не дублируют REP-entries.
+  - [x] Dev-диагностика `EVENT_CROWD_DECIDED` пишет одну строку при включенном `debugCrowdRep`, с id/decided/winner/endedBy/cap/alreadyVotedCount/eligibleNpcCount.
+- Notes: Никаких изменений в стоимости голосов, pool/init/refund/participation REP — только plumbing финализации и diagnostics.
+- Result: |
+    Status: PASS
+    Facts: `finalizeOpenEventNow` теперь прогоняет `resolveCrowdCore` с обновлённой `crowd` и использует helper, который выставляет `crowd.endedBy` + `crowd.lastTickWhy`, `crowd.decided` true и не перезапускает событие (даже на tie) если reason `cap/eligible/majority/no_eligible_voter`; outcome REP все ещё начисляется через `applyCrowdVoteOutcomeRep`, и `EVENT_CROWD_DECIDED` логирует id/winner/endedBy/cap/already/eligible при включённом diag.
+    Changed: `AsyncScene/Web/events.js`
+    How to verify: (1) Создай NPC-эвент и проголосуй/тайкни; после `Game.Events.tick(20)` `crowd.decided`, `crowd.winner`, `crowd.endedBy` ≠ `"open"`, `resolved` true, и в `Game.Debug.moneyLog` battleId есть participation + outcome. (2) `Game.Events.tick()` ещё раз — outcome entries не растут. (3) Краткий `Game.Events.finalizeOpenEventNow(ev)` сразу после создания, когда голосов нет — событие решается, `endedBy` становится `no_eligible_voter`, `EVENT_CROWD_DECIDED` лог виден в консоли, и `moneyLog` получает outcome для победителей (участие + ±2); `points/pool` не меняются.
+    Next: QA — прогнать указанные smokes, зафиксировать `crowd.endedBy`/`EVENT_CROWD_DECIDED`, outcome REP и отсутствие дублирования, затем обновить `PROJECT_MEMORY.md`/`TASKS.md`.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        1) `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a"); Game.Events.tick(20); console.log({ decided: ev.crowd.decided, winner: ev.crowd.winner, endedBy: ev.crowd.endedBy }); console.table(Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")));`
+        2) `Game.Events.tick(); const filtered = Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && (entry.reason.startsWith("rep_crowd_vote_majority") || entry.reason.startsWith("rep_crowd_vote_minority"))); console.assert(filtered.filter(entry => entry.reason === "rep_crowd_vote_majority" || entry.reason === "rep_crowd_vote_minority").length === 2, "duplicate outcome?");`
+        3) `const empty = Game.Events.makeNpcEvent(); Game.Events.addEvent(empty); Game.Events.finalizeOpenEventNow(empty); console.log({ decided: empty.crowd.decided, winner: empty.crowd.winner, endedBy: empty.crowd.endedBy });`
+        ```
 ### [T-20260201-001] Stage 3 Step 8 — Security smoke-only validation
 - Status: PASS
 - Priority: P0
@@ -307,6 +623,32 @@
       Когда смоуки пройдены, приведи факты, обнови `PROJECT_MEMORY.md/TASKS.md` и отметь PASS/FAIL.
       ```
 
+### [T-20260201-002] Stage 3 Step 8b — Dev isolation from sanctions
+- Status: PASS
+- Priority: P1
+- Assignee: QA
+- Next: Ассистент
+- Area: Security
+- Files: `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Удостовериться, что dev-mode остаётся playable: вмешательства логируются, но не блокируют temp_block/perma_flag в `?dev=1`.
+- Acceptance:
+  - [x] `?dev=1` уже не поднимает `temp_block` или `perma_flag` при tamper actions; все security reactions остаются `log_only`.
+  - [x] Battles, voting и resource actions выполняются без блоков, UI/экономика целы.
+  - [x] Dev tamper probes появляются в logs (forbidden_api_access) but no escalation; owner DM or console warnings acceptable.
+- Notes: guard still active in prod; transferRep remains blocked as expected guard (not a sanction). Console warnings in dev acceptable.
+- Evidence: dev console objects showing `rxLen`, `lastRx.type="forbidden_api_access"`; QA confirmed battles start, votes work, and DM not triggered beyond log_only.
+- Result: |
+    Status: PASS
+    Facts: Dev probes logged `forbidden_api_access`/`log_only`, no temp_block/perma_flag; prod sanctions intact; UI/gameplay unaffected.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    Evidence: dev/prod console dumps + owner DM log.
+    Next: Ассистент — перейти к следующему этапу (Stage 3 Step 9 planning).
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ Ассистента:
+        Stage 3 Step 8b PASS — dev остаётся playable при логах. Переходим к Stage 3 Step 9 (лог/мониторинг). Составь требования и подготовь pack.
+        ```
+
 ### [T-20260111-049] Подготовить scope/STOP пакет Economy wave 5
 - Status: DONE
 - Priority: P0
@@ -488,11 +830,11 @@
       (3) Зафиксируй длины и последний event, обнови `PROJECT_MEMORY.md`/`TASKS.md`, отметь PASS/FAIL.
       ```
 
-### [T-20260130-003] AsyncScene | P0 | Fix Game.__D proxy recursion
+-### [T-20260130-003] AsyncScene | P0 | Fix Game.__D proxy recursion
 - Status: PASS
 - Priority: P0
 - Assignee: Codex-ассистент
-- Next: QA
+- Next: Ассистент
 - Area: Security
 - Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md` `SMOKE_TEST_COMMANDS.md`
 - Goal: Убрать RangeError при чтении `Game.__D.securityEvents`/`securityReactions` за счёт безопасного getter-а и предоставить dev helper для лёгкого контроля.

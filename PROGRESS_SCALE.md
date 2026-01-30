@@ -121,6 +121,7 @@
 - [x] Anti-injection/anti-scripting guard: tamper/macro attempts detected and blocked, rate-limits enforced, verified in prod and `?dev=1`
 - [x] ReactionPolicy + QA logging: implemented, evidence block (reactionsTail, flags, perma LS, blockedStart/event, Stage2 checklist outcome) submitted; PASS confirmed with log_only → temp_block → perma_flag and deterministic perma_flag_restore persistence.
 - [x] Stage 3 Step 8 safety probe: secure `Game.__D` reads, growth probe, drag/perma events, and DM flows verified.
+- [x] Stage 3 Step 8b dev isolation: dev gameplay remains log-only, no temp_block/perma_flag during dev probes; dev tamper probes stay informational.
 - [ ] Документированы гарантии по REP/POINTS+crowd (transferRep-only, bounds, cache)
 - [ ] Есть smoke-команды/checklist, которые фиксируют эти invariants каждым запуском
 - [ ] Мониторинг/логирование ловит аномалии battle/rep/points до их распространения

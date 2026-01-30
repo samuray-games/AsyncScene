@@ -1,0 +1,3 @@
+{"ts": 1769770639789, "sessionId": "session-1769770552240-12rh", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml0rqe2b_7kq4bi"}}
+{"ts": 1769770639796, "sessionId": "session-1769770552240-12rh", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_split_attacker", "battleId": "battle_ml0rqe2b_7kq4bi"}}
+{"ts": 1769770639797, "sessionId": "session-1769770552240-12rh", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_ml0rqe2b_7kq4bi"}}

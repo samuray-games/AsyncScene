@@ -2898,6 +2898,12 @@ window.Game = window.Game || {};
     }
 
     function restorePersistedFlags(){
+      if (isDevFlag && isDevFlag()) {
+        ensureStateFlags();
+        State.securityFlags = {};
+        restoredPlayers.length = 0;
+        return;
+      }
       ensureStateFlags();
       State.securityFlags = {};
       restoredPlayers.length = 0;
@@ -3010,6 +3016,8 @@ window.Game = window.Game || {};
       }
       const longCount = list.length;
       let level = LEVELS.LOG_ONLY;
+      const devMode = (typeof isDevFlag === "function") ? isDevFlag() : false;
+      if (!devMode) {
       if (typeKey === "perma_flag_restore") {
         level = LEVELS.PERMA_FLAG;
       }
@@ -3018,13 +3026,14 @@ window.Game = window.Game || {};
       } else if (shortCount >= 2) {
         level = LEVELS.TEMP_BLOCK;
       }
+      }
       const counts = { short: shortCount, long: longCount };
       const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
       let until = null;
-      if (level === LEVELS.TEMP_BLOCK) {
+      if (!devMode && level === LEVELS.TEMP_BLOCK) {
         until = stamp + TEMP_BLOCK_TTL_MS;
         setFlagForPlayer(playerId, level, stamp, { until, type: origType, counts });
-      } else if (level === LEVELS.PERMA_FLAG) {
+      } else if (!devMode && level === LEVELS.PERMA_FLAG) {
         setFlagForPlayer(playerId, level, stamp, { type: origType, counts });
       }
       const reactionEntry = {
@@ -3042,10 +3051,12 @@ window.Game = window.Game || {};
     }
 
     function isActionBlocked(playerId){
+      if (isDevFlag && isDevFlag()) return false;
       return !!getStateFlag(playerId);
     }
 
     function getFlag(playerId){
+      if (isDevFlag && isDevFlag()) return null;
       return getStateFlag(playerId);
     }
 

@@ -1,0 +1,4 @@
+{"ts": 1769785496112, "sessionId": "session-1769785478153-u8ry", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1769785496103_7433"}}
+{"ts": 1769785496117, "sessionId": "session-1769785478153-u8ry", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1769785496103_7433"}}
+{"ts": 1769785496127, "sessionId": "session-1769785478153-u8ry", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1769785496103_7433"}}
+{"ts": 1769785496129, "sessionId": "session-1769785478153-u8ry", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_crowd_vote_majority", "battleId": "ed_npc_1769785496103_7433"}}

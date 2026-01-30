@@ -1,0 +1,5 @@
+{"ts": 1769786179098, "sessionId": "session-1769786153066-ei34", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1769786179089_4002"}}
+{"ts": 1769786179104, "sessionId": "session-1769786153066-ei34", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1769786179089_4002"}}
+{"ts": 1769786179117, "sessionId": "session-1769786153066-ei34", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1769786179089_4002"}}
+{"ts": 1769786179118, "sessionId": "session-1769786153066-ei34", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_crowd_vote_majority", "battleId": "ed_npc_1769786179089_4002"}}
+{"ts": 1769786180993, "sessionId": "session-1769786153066-ei34", "type": "chat", "name": "Система", "text": "Толпа решает: Рин хочет свалить от Грустный.", "system": true}

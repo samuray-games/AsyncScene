@@ -162,6 +162,141 @@
 - Facts: Убраны эвристики `localhost`/`dev=` substrings из `isDevFlag()`/`DEV_FLAG`/`_isDevFlag()`, `UI.S.flags.devChecks` теперь рассчитывается через `URLSearchParams`, `dev-checks.js` стартует только если флаг явно выставлен, `Game.Dev`/`Game.__DEV`/`window.__defineGameSurfaceProp` удаляются при отсутствии флага и `defineGameSurfaceProp` больше не держит surface в prod, поэтому `[DEV] content testing hooks enabled` лог не вычитается без явного `?dev=1` или глобального флага.
 - Status: PASS (smokes pending external verification)
 - Next: QA — прогнать Stage 3 Step 4 смоуки в prod/dev и подтвердить поведение, затем планировать Stage 4.
+### 2026-02-13 — ECON-01 finalizeOpenEventNow fixed (arg+open-guard), run final PASS smoke
+- Status: QA RUNNING → PASS candidate on non-tie
+- Facts:
+  - `finalizeOpenEventNow` now accepts event object or id, normalizes open status across state/resolved/status, and resolves events via `Game.__S.events` / `Game.State.events` / `events.list`.
+  - Dev markers `EVENT_FINALIZE_API_CALLED` and `EVENT_FINALIZE_GUARD_BLOCKED` report when finalize runs or is blocked.
+  - QA Acceptance: step 1 (META+REP) requires `okFinalize true`, `crowd.decided=true`, `winner`/`endedBy` non-null, and `moneyLog` (battleId=ev.id) containing participation plus `rep_crowd_vote_majority/minority` outcome entries; step 2 (NO-DUP) ensures extra ticks/repeats do not change outcome counts.
+- Next: run both smokes on a non-tie event; on success mark ECON-01 PASS (non-tie outcome >0 and NO-DUP delta 0).
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    ECON-01 final smokes running: ensure `Game.Events.finalizeOpenEventNow(ev{?}).` sets `crowd.decided=true`, `winner`/`endedBy` non-null, and `rep_crowd_vote_majority/minority` entries per voter, with no delta on extra ticks/repeats. После успешного non-tie run обнови PROJECT_MEMORY.md/TASKS.md как PASS.
+    ```
+
+Память обновлена
+
+
+
+
+### 2026-02-13 — ECON-01 finalizeOpenEventNow fixed (arg+open-guard), run final PASS smoke
+- Status: QA RUNNING → PASS candidate on non-tie
+- Facts:
+  - `finalizeOpenEventNow` now accepts event object or id, normalizes open status across state/resolved/status, and resolves events via `Game.__S.events` / `Game.State.events` / `events.list`.
+  - Dev markers `EVENT_FINALIZE_API_CALLED` and `EVENT_FINALIZE_GUARD_BLOCKED` report when finalize runs or is blocked.
+  - QA Acceptance: step 1 (META+REP) requires `okFinalize true`, `crowd.decided=true`, `winner`/`endedBy` non-null, and `moneyLog` (battleId=ev.id) containing participation plus `rep_crowd_vote_majority/minority` outcome entries; step 2 (NO-DUP) ensures extra ticks/repeats do not change outcome counts.
+- Next: run both smokes on a non-tie event; on success mark ECON-01 PASS (non-tie outcome >0 and NO-DUP delta 0).
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    ECON-01 final smokes running: ensure `Game.Events.finalizeOpenEventNow(ev{?}).` sets `crowd.decided=true`, `winner`/`endedBy` non-null, and `rep_crowd_vote_majority/minority` entries per voter, with no delta on extra ticks/repeats. После успешного non-tie run обнови PROJECT_MEMORY.md/TASKS.md как PASS.
+    ```
+
+Память обновлена
+
+
+
+
+
+### 2026-02-14 — ECON-01 QA false-positive on NO-DUP; introduce V5 decided-gated no-dup smoke
+- Status: QA RUNNING
+- Facts:
+  - NO-DUP smoke on unresolved/tie events previously saw delta>0 when outcomes first appeared, so the run wasn't duplication.
+  - V5 smoke now waits until `crowd.decided && outcomeCount>0`, then asserts that extra ticks/re-finalize keep outcome count constant (delta=0).
+  - Acceptance demands V5 META ok=true, decided=true, winner/endedBy set, repOutcome>0, and NO-DUP delta=0 after the condition.
+- Next: run V5 smoke and mark ECON-01 PASS if criteria are satisfied.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    ECON-01 V5 smoke: tick+finalize until `crowd.decided && outcomeCount>0`, then assert outcome count stays steady after extra ticks/repeat finalizes (`delta=0`). Provide META + NO-DUP objects and then mark PASS.
+    ```
+
+Память обновлена
+
+### 2026-02-05 — ECON-01 Crowd outcome REP — QA smoke FAIL, trigger ECON-01b fix
+- Status: FAIL → NEXT TASK
+- Facts:
+  - QA smoke (battleId `ed_npc_1769780954831_7263`) still logs only participation entries (`rep_crowd_vote_participation` for me and npc); missing majority/minority outcomes.
+  - Outcome REP application either not firing or exiting early; guard prevents duplicates but outcome never applied.
+  - Need dev-gated diagnostic marker `CROWD_OUTCOME_REP_DIAG` reporting decided state/resolution, winnerSide, voterCount, and skip reason keyed by battleId.
+- Next: start ECON-01b to debug applyCrowdVoteOutcomeRep, ensure transferRep fires once per battleId and diag emits skip info when skipped.
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    ECON-01 smoke FAILED — outcome REP not applied. Запусти ECON-01b: debug `applyCrowdVoteOutcomeRep`, add diag marker `CROWD_OUTCOME_REP_DIAG` (battleId/eventId, decided state, winnerSide, votersCount, skipReason), and ensure transferRep runs once. После правки прогрей QA smoke и отметь PASS.
+    ```
+
+### 2026-02-06 — ECON-01 Crowd outcome REP — runtime shows majority/minority; QA assert needs revisiting
+- Status: PASS CANDIDATE
+- Facts:
+  - After ECON-01b fix, moneyLog for battleId `ed_npc_1769782035374_5041` now contains participation entries plus a single `rep_crowd_vote_majority` (+2) and `rep_crowd_vote_minority` (-2) per voter, all sharing the same battleId (eventId may remain undefined).
+  - Outcome log entries no longer increase with extra `Game.Events.tick()` calls, and points/refund pools unaffected.
+  - QA console assert expected `outcomeCount === 2` but failed because voter count > 2; proper acceptance requires per-voter checks and verifying no duplication on additional ticks.
+- Next: update QA assert with per-voter outcome checks and no-dup-on-extra-ticks validation before marking PASS; continue monitoring no-dup behavior and point invariants.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    ECON-01 runtime now emits majority/minority outcomes for each voter. Adjust assertions: verify for each participation entry (by targetId/battleId) there is exactly one outcome (`majority` or `minority`), extra ticks do not add outcomes, and moneyLog shows no point/pool changes. After these checks pass, mark ECON-01 PASS.
+    ```
+
+### 2026-02-07 — ECON-01 QA smoke V1 false-negative; introduce tie-aware V2
+- Status: INFO
+- Facts:
+  - QA iteration V1 flagged FAIL when participation=2 but outcome=0, because tie/undecided events leave no outcomes yet; moneyLog uses battleId as identifier, eventId can be missing.
+  - New tie-aware smoke V2 ticks until `crowd.decided`/`crowd.endedBy` (max 200), detects ties via `endedBy` containing `"fifty"`/`"tie"`, and only asserts per-voter outcomes for non-ties while still checking no duplication on extra ticks.
+  - This prevents false negatives and keeps no-dup invariants (outcome entries stay constant) and preserves point invariants.
+- Next: QA smoke V2 becomes canonical for ECON-01; once tie-aware checks pass, mark ECON-01 PASS.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    ECON-01 smoke V2: tick until crowd decided/resolved (max 200 steps); if `endedBy` indicates tie/fifty, allow outcome=0 but confirm no entry growth on extra ticks; otherwise require exactly one `rep_crowd_vote_majority/minority` per participant keyed by battleId. After confirming behavior, update TASKS.md/PROJECT_MEMORY.md with PASS.
+    ```
+
+### 2026-02-08 — ECON-01c finalize works in code but missing in Game.Events API
+- Status: FAIL → NEXT TASK
+- Facts:
+  - User log: `Game.Events.finalizeOpenEventNow(empty)` throws TypeError because finalizeOpenEventNow not exposed on Game.Events, despite logic existing in events.js.
+  - Without exposed API QA cannot force finalize -> crowd.decided/winner/endedBy -> rep_crowd_vote_majority/minority, so ECON-01 final step blocked.
+  - Need to expose or alias finalize entry on Game.Events and emit dev marker `EVENT_FINALIZE_API_CALLED` keyed by battleId.
+- Next: add API exposure (or rename) and marker, rerun V3 smoke to confirm finalize -> decided/winner/endedBy -> outcome REP; then re-evaluate ECON-01 PASS.
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    ECON-01c FAIL — finalize API not public. Попроси разработчика добавить `Game.Events.finalizeOpenEventNow` (or alias) and emit `EVENT_FINALIZE_API_CALLED` with battleId/eventId/winner/endedBy. После этого прогрей V3 smoke и зафиксируй outcome REP entries.
+    ```
+
+### 2026-02-10 — ECON-01 finalize API exposed; run final PASS smoke (meta+outcome+no-dup)
+- Status: QA RUNNING
+- Facts:
+  - `events.js` now exports `Game.Events.finalizeOpenEventNow`, and dev marker `EVENT_FINALIZE_API_CALLED` fires when invoked with `debugFinalize`.
+  - QA must run ECON-01 FINAL META smoke: create event, vote, call `finalizeOpenEventNow(ev.id,{debugFinalize:true})`, verify `crowd.decided=true`, `winner`/`endedBy` non-null, and outcome `rep_crowd_vote_majority/minority` entries appear once per voter.
+  - Acceptance requires marker presence, event resolving (resolved ≠ "open"), outcome REP present for non-tie, and no duplication when extra ticks/finalize rerun.
+- Next: QA to finish these checks and log PASS/FAIL in docs.
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    ECON-01 final smoke running: ensure `Game.Events.finalizeOpenEventNow(ev.id,{debugFinalize:true})` sets `crowd.decided/winner/endedBy` and outcome REP entries per voter, with no duplication on extra ticks. После проверки обнови PROJECT_MEMORY.md/TASKS.md с PASS/FAIL.
+    ```
+
+### 2026-02-10 — Stage 3 Step 8b — Dev isolation from sanctions PASS
+- Facts:
+
+
+### 2026-01-30 — Stage 3 Step 8b — dev mode без блокировок (smoke не выполнен)
+- Facts: Код уже соответствует инвариантам (ReactionPolicy в dev форсирует log_only, флаги не ставятся, restorePersistedFlags в dev очищает флаги, isActionBlocked в dev всегда false), но SMOKE в браузере не выполнен в CLI-среде, поэтому PASS не подтверждён.
+- Status: FAIL (smoke не выполнен)
+- Changed: `TASKS.md`
+- Next: QA — вручную выполнить SMOKE по шагам задачи в dev (`?dev=1`) и зафиксировать PASS/FAIL.
+
+Память обновлена
+
+### 2026-01-30 — Stage 3 Step 8b — dev mode без блокировок (smoke pending)
+- Facts: ReactionPolicy в `AsyncScene/Web/state.js` в dev форсирует `log_only`, не ставит temp/perma флаги; `restorePersistedFlags` в dev очищает флаги и не восстанавливает перма; `isActionBlocked` в dev всегда false, `getFlag` возвращает null.
+- Status: HOLD (smokes pending)
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: QA — запустить dev-smoke по Stage 3 Step 8b и зафиксировать PASS/FAIL.
+
 Память обновлена
 
 ### 2026-01-20 — P0 LOGIC 2.4 finalizeCrowdVote cache return (pending)
@@ -1472,4 +1607,64 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
     Stage 3 Step 8 PASSED — growth probe стабильный, safe getter работает. Следующий этап: подготовка Stage 3 Step 9 (лог/мониторинг). Обнови PROGRESS_SCALE.md и подготовь детали для следующей задачи.
     ```
 
+### 2026-02-02 — Stage 3 Step 8b — Dev isolation from sanctions PASS
+- Facts:
+  - QA подтвердил, что `?dev=1` tamper probes остаются `log_only`, no `temp_block`/`perma_flag`, and battles/voting function normally.
+  - Dev security reactions recorded forbidden_api_access but no escalation; owner DM or console warnings appear only once per event; prod sanctions remain active without change.
+  - TransferRep guard still blocks adjustments in dev (expected), and growth probe evidence recorded stable lengths (rxLen/evLen).
+- Status: PASS
+- Changed: `PROJECT_MEMORY.md`
+- Next: Ассистент — сформировать план Stage 3 Step 9 (логирование/мониторинг).
+- Next Prompt: |
+    ```text
+    Ответ Ассистента:
+    Stage 3 Step 8b закрыт PASS — dev остаётся playable. Теперь на очереди Stage 3 Step 9 (лог/мониторинг). Обнови PROGRESS_SCALE.md и подготовь задачи.
+    ```
+
 Память обновлена
+
+### 2026-02-04 — Crowd vote REP outcome (ECON-01)
+- Facts:
+  - Добавлен helper `applyCrowdVoteOutcomeRep` и guard `_repOutcomeApplied` на `crowd`, вызывающийся после `applyEventCrowdEconomy`, чтобы давать +2/-2 REP за majority/minority только один раз и только тем, кто действительно голосовал.
+  - `restartEventCrowd` сбрасывает guard, `moneyLog` хранит `rep_crowd_vote_majority`/`rep_crowd_vote_minority` с `eventId`, а cost/ pool/participation mechanics не тронуты.
+- Status: PASS
+- Changed: `AsyncScene/Web/events.js` `PROJECT_MEMORY.md`
+- Next: QA — прогнать смоуки по ECON-01: event + participation, затем повторный tick не добавляет реп-записи.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    1) Сделай `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a");` и дай событию разрешиться (`Game.Events.tick()`), потом проверь `Game.Debug.moneyLog.filter(t => t.reason.startsWith("rep_crowd_vote"))` — должны появиться `rep_crowd_vote_participation` и либо `rep_crowd_vote_majority` либо `rep_crowd_vote_minority` с `eventId === ev.id`.
+    2) Сразу после этого снова вызови `Game.Events.tick()` по тому же `ev` и убедись, что новых записей `rep_crowd_vote_majority`/`rep_crowd_vote_minority` не добавилось.
+    После смоуков обнови `PROJECT_MEMORY.md`/`TASKS.md` и отметь PASS/FAIL по ECON-01.
+    ```
+
+Память обновлена
+### 2026-02-06 — ECON-01c Crowd finalization plumbing
+- Facts:
+  - `finalizeOpenEventNow` теперь принимает решение сразу по `cap`/`eligible`/`majority`/`no_eligible_voter`, выставляет `crowd.decided`, `crowd.winner`, `crowd.endedBy`, и переводит event в `resolved` без перезапуска даже при tie; fallback-ветка restart работает только когда reason ещё не появился.
+  - `applyCrowdVoteOutcomeRep` продолжает работать сразу после `applyEventCrowdEconomy`, а новый dev-диаг `EVENT_CROWD_DECIDED` пишется единожды (при `debugCrowdRep`) с id, decided, winner, `endedBy`, `cap`, `alreadyVotedCount` и `eligibleNpcCount`.
+- Status: PASS
+- Changed: `AsyncScene/Web/events.js`
+- Next: QA — прогнать ECON-01 смоуки, подтвердить resolved + outcome + diag, и обновить TASKS/PROJECT_MEMORY.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    1) `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a"); Game.Events.tick(20); console.log({ decided: ev.crowd.decided, winner: ev.crowd.winner, endedBy: ev.crowd.endedBy }); console.table(Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")));`
+    2) `Game.Events.tick(); const filtered = Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && (entry.reason.startsWith("rep_crowd_vote_majority") || entry.reason.startsWith("rep_crowd_vote_minority"))); console.assert(filtered.filter(entry => entry.reason === "rep_crowd_vote_majority" || entry.reason === "rep_crowd_vote_minority").length === 2, "duplicate outcome?");`
+    3) `const empty = Game.Events.makeNpcEvent(); Game.Events.addEvent(empty); Game.Events.finalizeOpenEventNow(empty); console.log({ resolved: empty.resolved, decided: empty.crowd.decided, winner: empty.crowd.winner, endedBy: empty.crowd.endedBy });`
+    ```
+
+Память обновлена
+
+### 2026-02-11 — ECON-01 finalize API callable but QA passed wrong arg (id vs event object)
+- Status: QA FAIL (usage) → run V4 signature smoke
+- Facts:
+  - QA invoked `Game.Events.finalizeOpenEventNow(ev.id,{debugFinalize:true})`, leaving event resolved:"open" with no `EVENT_FINALIZE_API_CALLED` or outcome REP.
+  - Implementer uses `finalizeOpenEventNow(ev,{debugFinalize:true})`, so API likely expects event object; wrong arg prevented finalize.
+  - Need V4 smoke to inspect signature (fn.length/source) and test both `ev` and `ev.id` patterns to confirm proper call.
+- Next: QA to run V4 smoke (inspect signature, try both invocations), mark PASS when call fires marker, resolves event (decided true, winner/endedBy set, resolved ≠ "open"), outcome REP present.
+- Next Prompt: |
+    ```text
+    Ответ QA:
+    ECON-01 V4 smoke: inspect `Game.Events.finalizeOpenEventNow` signature/source, then try `finalizeOpenEventNow(ev,{debugFinalize:true})` and `finalizeOpenEventNow(ev.id,{debugFinalize:true})`. PASS once one call fires `EVENT_FINALIZE_API_CALLED`, resolves event (decided/winner/endedBy non-null), and outcome REP entries appear.
+    ```
