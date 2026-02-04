@@ -1,0 +1,8 @@
+{"ts": 1770223277667, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223277663_9136"}}
+{"ts": 1770223277667, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223277663_9136"}}
+{"ts": 1770223277669, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223277663_9136"}}
+{"ts": 1770223277673, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770223277673_1698"}}
+{"ts": 1770223277675, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223277674_5913"}}
+{"ts": 1770223277675, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223277674_5913"}}
+{"ts": 1770223277676, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223277674_5913"}}
+{"ts": 1770223278835, "sessionId": "session-1770223244907-wn9q", "type": "chat", "name": "Слава", "text": "не мажь, отвечай по делу", "system": false}

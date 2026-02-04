@@ -1,0 +1,10 @@
+{"ts": 1770222377563, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377564, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377568, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377568, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377576, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770222377576_4429"}}
+{"ts": 1770222377579, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377580, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377580, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377580, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377581, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770222377579_113"}}

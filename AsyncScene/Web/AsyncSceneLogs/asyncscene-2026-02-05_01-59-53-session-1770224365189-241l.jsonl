@@ -1,0 +1,10 @@
+{"ts": 1770224392489, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392491, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392501, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392501, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392507, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770224392507_2858"}}
+{"ts": 1770224392510, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392510, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392510, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392511, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392511, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770224392509_5933"}}

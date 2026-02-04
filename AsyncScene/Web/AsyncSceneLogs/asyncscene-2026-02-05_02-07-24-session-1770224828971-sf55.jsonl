@@ -1,0 +1,10 @@
+{"ts": 1770224844908, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844910, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844915, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844916, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844922, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770224844922_4017"}}
+{"ts": 1770224844927, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844927, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844928, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844928, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844928, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770224844926_3026"}}

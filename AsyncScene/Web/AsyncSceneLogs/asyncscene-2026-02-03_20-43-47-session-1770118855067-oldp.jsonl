@@ -1,0 +1,3 @@
+{"ts": 1770119025404, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Рин", "text": "@Ксю, мне скучно, дайте движ", "system": false}
+{"ts": 1770119026752, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_ml6j52k6_v65zig"}}
+{"ts": 1770119027083, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Юна", "text": "@Рин, скибиди вайб на площади", "system": false}

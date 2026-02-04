@@ -175,7 +175,30 @@
     const countedNpcIds = [];
     const countedPoolIds = [];
     const duplicatesDetected = [];
+    const byId = Object.create(null);
     const seen = new Set();
+
+    const addById = (id, pts, bucket) => {
+      const key = String(id || "");
+      if (!key) return false;
+      if (Object.prototype.hasOwnProperty.call(byId, key)) {
+        duplicatesDetected.push(key);
+        return false;
+      }
+      const val = (pts | 0);
+      byId[key] = val;
+      if (bucket === "npc") {
+        npcsSum += val;
+        countedNpcIds.push(key);
+      } else if (bucket === "player") {
+        playersSum += val;
+        countedPlayerIds.push(key);
+      } else if (bucket === "pool") {
+        if (key === "sink" || key === "crowd") countedPoolIds.push(key);
+        else if (key.startsWith("crowd:")) countedPoolIds.push(key.slice("crowd:".length));
+      }
+      return true;
+    };
 
     Object.values(players).forEach(p => {
       if (!p) return;
@@ -186,11 +209,9 @@
         seen.add(id);
       }
       if (isNpc) {
-        npcsSum += (p.points | 0);
-        if (id) countedNpcIds.push(id);
+        addById(id, p.points, "npc");
       } else {
-        playersSum += (p.points | 0);
-        if (id) countedPlayerIds.push(id);
+        addById(id, p.points, "player");
       }
     });
 
@@ -208,8 +229,7 @@
           if (seen.has(mid)) duplicatesDetected.push(mid);
           seen.add(mid);
         }
-        playersSum += (S.me.points | 0);
-        if (mid) countedPlayerIds.push(mid);
+        addById(mid, S.me.points, "player");
         meSource = "state.me";
         mePoints_used = (S.me.points | 0);
       } else {
@@ -234,27 +254,28 @@
         if (seen.has(id)) return;
         seen.add(id);
       }
-      npcsSum += (n.points | 0);
-      if (id) countedNpcIds.push(id);
+      addById(id, n.points, "npc");
     });
 
     const sink = (pools.sink && typeof pools.sink.points === "number") ? (pools.sink.points | 0) : 0;
     const crowd = (pools.crowd && typeof pools.crowd.points === "number") ? (pools.crowd.points | 0) : 0;
     let crowdMapTotal = 0;
     const crowdById = {};
-    if (pools.sink) countedPoolIds.push("sink");
-    if (pools.crowd) countedPoolIds.push("crowd");
+    if (pools.sink) addById("sink", sink, "pool");
+    if (pools.crowd) addById("crowd", crowd, "pool");
     Object.keys(pools.crowdMap || {}).forEach(k => {
       const acc = pools.crowdMap[k];
       const v = acc && typeof acc.points === "number" ? (acc.points | 0) : 0;
       crowdMapTotal += v;
       crowdById[k] = v;
-      countedPoolIds.push(k);
+      addById(`crowd:${k}`, v, "pool");
     });
 
     const poolsSum = sink + crowd + crowdMapTotal;
+    const total = Object.values(byId).reduce((s, v) => s + (v | 0), 0);
     return {
-      total: playersSum + npcsSum + poolsSum,
+      total,
+      byId,
       players: playersSum,
       npcs: npcsSum,
       pools: poolsSum,

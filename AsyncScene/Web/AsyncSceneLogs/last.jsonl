@@ -5494,3 +5494,362 @@
 {"ts": 1769786185745, "sessionId": "session-1769786153066-ei34", "type": "chat", "name": "Слава", "text": "@Троль, слыш, ты кто такой тут", "system": false}
 {"ts": 1769786200668, "sessionId": "session-1769786153066-ei34", "type": "chat", "name": "Макс", "text": "@Владимир иванович, ну что, решился или дрогнул", "system": false}
 {"ts": 1769786203128, "sessionId": "session-1769786153066-ei34", "type": "chat", "name": "Мемолог", "text": "@Слава, кринж на площади, но я остаюсь", "system": false}
+{"ts": 1770118862622, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770118869831, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j2lae_tgwp2v"}}
+{"ts": 1770118872881, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j2lae_tgwp2v"}}
+{"ts": 1770118872883, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-02-03"}}
+{"ts": 1770118877917, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Рин", "text": "@Владимир иванович, что-то накаляется", "system": false}
+{"ts": 1770118882158, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j2usu_iwtgw5"}}
+{"ts": 1770118884559, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j2usu_iwtgw5"}}
+{"ts": 1770118884560, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_ml6j2usu_iwtgw5"}}
+{"ts": 1770118886478, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "rematch_request_cost", "battleId": "battle_ml6j2usu_iwtgw5"}}
+{"ts": 1770118886625, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770118890464, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Грустный", "text": "давай ещё раз", "system": false}
+{"ts": 1770118898618, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770118886624_7527"}}
+{"ts": 1770118898618, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1770118886624_7527"}}
+{"ts": 1770118900523, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770118886624_7527"}}
+{"ts": 1770118900524, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_crowd_vote_majority", "battleId": "ed_npc_1770118886624_7527"}}
+{"ts": 1770118907212, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Kai, не мажь, отвечай по делу", "system": false}
+{"ts": 1770118907936, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j317g_ljshxj"}}
+{"ts": 1770118907936, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": -1, "meta": {"reason": "rep_battle_lose_delta", "battleId": "battle_ml6j317g_ljshxj"}}
+{"ts": 1770118910630, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770118913994, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ксю", "text": "@Слава, не пытайся юлить", "system": false}
+{"ts": 1770118916163, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770118910630_1436"}}
+{"ts": 1770118916163, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1770118910630_1436"}}
+{"ts": 1770118925761, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund", "battleId": "ed_npc_1770118910630_1436"}}
+{"ts": 1770118926173, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Егор, давай, не прячься за толпой", "system": false}
+{"ts": 1770118933491, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "сейчас проверим кто тут главный", "system": false}
+{"ts": 1770118934647, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Рин хочет, чтобы Горячий отвалил.", "system": true}
+{"ts": 1770118939522, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770118934645_9618"}}
+{"ts": 1770118939522, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1770118934645_9618"}}
+{"ts": 1770118942809, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ксю", "text": "@Рин, давай без цирка, отвечай", "system": false}
+{"ts": 1770118949204, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund", "battleId": "ed_escape_1770118934645_9618"}}
+{"ts": 1770118951968, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_ml6j45l7_d4gymr"}}
+{"ts": 1770118958656, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Грустный хочет, чтобы Юна отвалил.", "system": true}
+{"ts": 1770118958958, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Рин", "text": "@Kai, интересно, чем это закончится", "system": false}
+{"ts": 1770118961780, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_ml6j45l7_d4gymr"}}
+{"ts": 1770118965139, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Ксю, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770118968735, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Kai, слыш, ты кто такой тут", "system": false}
+{"ts": 1770118969546, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770118958655_1112"}}
+{"ts": 1770118969547, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_escape_1770118958655_1112"}}
+{"ts": 1770118973242, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund", "battleId": "ed_escape_1770118958655_1112"}}
+{"ts": 1770118982581, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j50ad_bzz3j2"}}
+{"ts": 1770118984773, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j50ad_bzz3j2"}
+{"ts": 1770118985529, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Королева, ну что, готов к баттлу", "system": false}
+{"ts": 1770118990111, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_ml6j52k6_v65zig"}}
+{"ts": 1770118991619, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ветеран", "text": "@Мемолог, щас будет жарко", "system": false}
+{"ts": 1770119004799, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j50ad_bzz3j2"}}
+{"ts": 1770119004800, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_ml6j50ad_bzz3j2"}}
+{"ts": 1770119004803, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 5, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "battle_ml6j50ad_bzz3j2"}}
+{"ts": 1770119004841, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_ml6j50ad_bzz3j2"}}
+{"ts": 1770119013439, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_ml6j52k6_v65zig"}}
+{"ts": 1770119017051, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j5qvv_ixshnt"}}
+{"ts": 1770119019413, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j5qvv_ixshnt"}
+{"ts": 1770119025404, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Рин", "text": "@Ксю, мне скучно, дайте движ", "system": false}
+{"ts": 1770119026752, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_ml6j52k6_v65zig"}}
+{"ts": 1770119027083, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Юна", "text": "@Рин, скибиди вайб на площади", "system": false}
+{"ts": 1770119031651, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j5ymb_acsici"}
+{"ts": 1770119033662, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Горячий хочет, чтобы Ветеран отвалил.", "system": true}
+{"ts": 1770119035421, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j5qvv_ixshnt"}}
+{"ts": 1770119035421, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_ml6j5qvv_ixshnt"}}
+{"ts": 1770119035422, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "battle_ml6j5qvv_ixshnt"}}
+{"ts": 1770119035422, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_ml6j5qvv_ixshnt"}}
+{"ts": 1770119045010, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Kai, че по 💰, при бабле", "system": false}
+{"ts": 1770119046661, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119033661_228"}}
+{"ts": 1770119048316, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "слыш, ты кто такой тут", "system": false}
+{"ts": 1770119048947, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119033661_228"}}
+{"ts": 1770119054666, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j5ymb_acsici"}}
+{"ts": 1770119054667, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_ml6j5ymb_acsici"}}
+{"ts": 1770119057664, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Ветеран хочет свалить от Рин.", "system": true}
+{"ts": 1770119060483, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ксю", "text": "@Слабак, давай без цирка, отвечай", "system": false}
+{"ts": 1770119066731, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Королева", "text": "@Горячий, ну че кто первый вбросит", "system": false}
+{"ts": 1770119067143, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Королева", "text": "@Троль, кто-то сейчас словит ответку", "system": false}
+{"ts": 1770119074637, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119057664_9919"}}
+{"ts": 1770119074789, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119057664_9919"}}
+{"ts": 1770119082151, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j6tj5_9wujn4"}
+{"ts": 1770119082181, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770119090312, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j7bew_4df7bc"}}
+{"ts": 1770119092316, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j7bew_4df7bc"}}
+{"ts": 1770119096558, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ветеран", "text": "@Троль, ой все", "system": false}
+{"ts": 1770119097976, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "rematch_request_cost", "battleId": "battle_ml6j7bew_4df7bc"}}
+{"ts": 1770119100168, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j6tj5_9wujn4"}}
+{"ts": 1770119100168, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_ml6j6tj5_9wujn4"}}
+{"ts": 1770119100170, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_ml6j6tj5_9wujn4"}}
+{"ts": 1770119100171, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_ml6j6tj5_9wujn4"}}
+{"ts": 1770119102828, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слабак", "text": "не, хватит", "system": false}
+{"ts": 1770119104061, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Троль", "text": "баттл это просто разговор с адреналином", "system": false}
+{"ts": 1770119106200, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "battle_ml6j6tj5_9wujn4"}}
+{"ts": 1770119106208, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Королева", "text": "ещё раз?", "system": false}
+{"ts": 1770119115692, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j7qil_y13x84"}
+{"ts": 1770119119381, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j7m0m_qeiey0"}
+{"ts": 1770119127254, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Kai, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770119132669, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119132731, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j7qil_y13x84"}}
+{"ts": 1770119132731, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_ml6j7qil_y13x84"}}
+{"ts": 1770119132732, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_ml6j7qil_y13x84"}}
+{"ts": 1770119132732, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_ml6j7qil_y13x84"}}
+{"ts": 1770119138794, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119132669_1243"}}
+{"ts": 1770119142689, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Егор, слыш, ты кто такой тут", "system": false}
+{"ts": 1770119149333, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770119132669_1243"}}
+{"ts": 1770119153416, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j8o3s_e9szo2"}}
+{"ts": 1770119155582, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6j8o3s_e9szo2"}}
+{"ts": 1770119156679, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Ветеран хочет свалить от Слабак.", "system": true}
+{"ts": 1770119157752, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слабак", "text": "сегодня пахнет баттлами", "system": false}
+{"ts": 1770119158636, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Горячий", "text": "@Кирилл олегович, ну че кто первый вбросит", "system": false}
+{"ts": 1770119160855, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119156679_2615"}}
+{"ts": 1770119167006, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j8s4p_h832at"}
+{"ts": 1770119170361, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119156679_2615"}}
+{"ts": 1770119176455, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ксю", "text": "ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770119180682, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Юна хочет, чтобы Ветеран отвалил.", "system": true}
+{"ts": 1770119182525, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Королева", "text": "@Kai, кринж зашел в чат и сел", "system": false}
+{"ts": 1770119184405, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119180682_6981"}}
+{"ts": 1770119192843, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Троль", "text": "щас будет жарко", "system": false}
+{"ts": 1770119195597, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119180682_6981"}}
+{"ts": 1770119203995, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770119204686, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119206739, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6j9t8z_m8yshv"}}
+{"ts": 1770119208817, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6j9t8z_m8yshv"}
+{"ts": 1770119209506, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "ну что, готов к баттлу", "system": false}
+{"ts": 1770119214905, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_ml6j9vdm_lhhy19"}}
+{"ts": 1770119219705, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119204685_8697"}}
+{"ts": 1770119222056, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770119204685_8697"}}
+{"ts": 1770119223588, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "че по 💰, при бабле", "system": false}
+{"ts": 1770119228687, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Грустный хочет, чтобы Юна отвалил.", "system": true}
+{"ts": 1770119230495, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Троль", "text": "@Мемолог, ну че кто первый вбросит", "system": false}
+{"ts": 1770119232104, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119228687_6934"}}
+{"ts": 1770119236013, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Королева", "text": "ладно, разгоняем", "system": false}
+{"ts": 1770119244285, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119228687_6934"}}
+{"ts": 1770119245887, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Kai, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770119246961, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ветеран", "text": "@Kai, сегодня пахнет баттлами", "system": false}
+{"ts": 1770119254054, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jaoa3_yobdn5"}
+{"ts": 1770119264715, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Королева", "text": "площадь как тикток, листаешь и не можешь остановиться", "system": false}
+{"ts": 1770119273942, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "слыш, ты кто такой тут", "system": false}
+{"ts": 1770119279254, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "battle_ml6jb93h_d6ixgp"}}
+{"ts": 1770119282869, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Kai, ты ща ответишь, не тяни", "system": false}
+{"ts": 1770119294370, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Егор, ну что, готов к баттлу", "system": false}
+{"ts": 1770119303692, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Мемолог хочет свалить от Слабак.", "system": true}
+{"ts": 1770119307539, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119303691_8853"}}
+{"ts": 1770119317355, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Юна", "text": "@Kai, площадь как тикток, листаешь и не можешь остановиться", "system": false}
+{"ts": 1770119317575, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119303691_8853"}}
+{"ts": 1770119325117, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Троль", "text": "@Юна, я в шоке, но читаю дальше", "system": false}
+{"ts": 1770119331481, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jccl4_olh5g3"}
+{"ts": 1770119336062, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Горячий", "text": "не дави", "system": false}
+{"ts": 1770119349203, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Кирилл олегович, не умничай, просто скажи", "system": false}
+{"ts": 1770119353197, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119353432, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Грустный", "text": "ну давай, удиви", "system": false}
+{"ts": 1770119357773, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119353197_5995"}}
+{"ts": 1770119367440, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770119353197_5995"}}
+{"ts": 1770119368837, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jcyfn_caobzq"}
+{"ts": 1770119377201, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Грустный хочет, чтобы Юна отвалил.", "system": true}
+{"ts": 1770119379495, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Юна, не умничай, просто скажи", "system": false}
+{"ts": 1770119381637, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119377200_9545"}}
+{"ts": 1770119383327, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Слабак, не мажь, отвечай по делу", "system": false}
+{"ts": 1770119384336, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слабак", "text": "@Аркадий петрович, кринж зашел в чат и сел", "system": false}
+{"ts": 1770119390271, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119377200_9545"}}
+{"ts": 1770119403468, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jdma1_otcybp"}
+{"ts": 1770119408848, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Грустный", "text": "@Слабак, я в шоке, но читаю дальше", "system": false}
+{"ts": 1770119411824, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Юна", "text": "@Ветеран, я внимательно читаю", "system": false}
+{"ts": 1770119418983, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6je7hj_gukjga"}
+{"ts": 1770119423727, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Мемолог", "text": "💰 на стол", "system": false}
+{"ts": 1770119426792, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119427762, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слабак", "text": "я тут ради лулзов", "system": false}
+{"ts": 1770119434372, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Горячий", "text": "@Мемолог, скибиди вайб на площади", "system": false}
+{"ts": 1770119451227, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Мемолог хочет, чтобы Ветеран отвалил.", "system": true}
+{"ts": 1770119460816, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Горячий", "text": "@Ксю, вот это было грязно", "system": false}
+{"ts": 1770119475364, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Мемолог хочет, чтобы Горячий отвалил.", "system": true}
+{"ts": 1770119481308, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Рин", "text": "@Горячий, скибиди вайб на площади", "system": false}
+{"ts": 1770119488643, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Мемолог", "text": "я тут чисто посмотреть", "system": false}
+{"ts": 1770119538226, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jfurc_khdotg"}
+{"ts": 1770119542616, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6jh0ew_pc0n9k"}}
+{"ts": 1770119546479, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6jh0ew_pc0n9k"}}
+{"ts": 1770119546852, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Kai, не умничай, просто скажи", "system": false}
+{"ts": 1770119556803, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119562131, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119556802_5885"}}
+{"ts": 1770119564461, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770119556802_5885"}}
+{"ts": 1770119565943, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Рин", "text": "@Владимир иванович, мне смешно, но грустно", "system": false}
+{"ts": 1770119580808, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119583822, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119580806_145"}}
+{"ts": 1770119584437, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Аркадий петрович, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770119590296, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770119580806_145"}}
+{"ts": 1770119590879, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "пошли выйдем, побазарим", "system": false}
+{"ts": 1770119604814, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Горячий хочет, чтобы Королева отвалил.", "system": true}
+{"ts": 1770119623151, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6jiqjz_wqrd7r"}}
+{"ts": 1770119626719, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6jiqjz_wqrd7r"}}
+{"ts": 1770119628818, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119631311, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119628817_2203"}}
+{"ts": 1770119637829, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_npc_1770119628817_2203"}}
+{"ts": 1770119642276, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слабак", "text": "ладно, разгоняем", "system": false}
+{"ts": 1770119646904, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Королева, че по 💰, при бабле", "system": false}
+{"ts": 1770119649280, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_ml6jjaps_yxmyux"}}
+{"ts": 1770119652579, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_ml6jjaps_yxmyux"}}
+{"ts": 1770119652821, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет, чтобы Королева отвалил.", "system": true}
+{"ts": 1770119655338, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Ветеран", "text": "кто следующий", "system": false}
+{"ts": 1770119662690, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119652820_5567"}}
+{"ts": 1770119664872, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119652820_5567"}}
+{"ts": 1770119694976, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jjfdv_m8l8yf"}
+{"ts": 1770119702325, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Ветеран хочет свалить от Мемолог.", "system": true}
+{"ts": 1770119705141, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Троль", "text": "вот это было грязно", "system": false}
+{"ts": 1770119708020, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119702324_8246"}}
+{"ts": 1770119709936, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119702324_8246"}}
+{"ts": 1770119732929, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_ml6jkhta_1me99h"}
+{"ts": 1770119744917, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "пошли выйдем, побазарим", "system": false}
+{"ts": 1770119750098, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Слава", "text": "@Кирилл олегович, не умничай, просто скажи", "system": false}
+{"ts": 1770119751830, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770119755509, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770119751830_7914"}}
+{"ts": 1770119761189, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Троль", "text": "кто орет тот и неправ", "system": false}
+{"ts": 1770119775834, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Система", "text": "Толпа решает: Королева хочет свалить от Слабак.", "system": true}
+{"ts": 1770119780486, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "ну что, готов к баттлу", "system": false}
+{"ts": 1770119780619, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_escape_1770119775834_883"}}
+{"ts": 1770119780823, "sessionId": "session-1770118855067-oldp", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_refund_majority", "battleId": "ed_escape_1770119775834_883"}}
+{"ts": 1770119797853, "sessionId": "session-1770118855067-oldp", "type": "chat", "name": "Глеб", "text": "@Kai, не умничай, просто скажи", "system": false}
+{"ts": 1770220544560, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770220559497, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Глеб", "text": "сейчас проверим кто тут главный", "system": false}
+{"ts": 1770220562847, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Глеб", "text": "не мажь, отвечай по делу", "system": false}
+{"ts": 1770220568566, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Система", "text": "Толпа решает: Королева хочет свалить от Грустный.", "system": true}
+{"ts": 1770220570390, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Слабак", "text": "@Boss, я тут чисто посмотреть", "system": false}
+{"ts": 1770220580442, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Королева", "text": "@Юна, ну че кто первый вбросит", "system": false}
+{"ts": 1770220584571, "sessionId": "session-1770220542175-iug5", "type": "chat", "name": "Королева", "text": "интересно, чем это закончится", "system": false}
+{"ts": 1770221226530, "sessionId": "session-1770221221580-y9xd", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770221233341, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770221233330_1716"}}
+{"ts": 1770221233341, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770221233330_1716"}}
+{"ts": 1770221233344, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770221233330_1716"}}
+{"ts": 1770221233375, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770221233330_1716"}}
+{"ts": 1770221233380, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770221233379_2707"}}
+{"ts": 1770221233381, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770221233381_3035"}}
+{"ts": 1770221233382, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770221233381_3035"}}
+{"ts": 1770221233382, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770221233381_3035"}}
+{"ts": 1770221233382, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770221233381_3035"}}
+{"ts": 1770221233382, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770221233381_3035"}}
+{"ts": 1770221259028, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770221259023_2942"}}
+{"ts": 1770221259028, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770221259023_2942"}}
+{"ts": 1770221259030, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770221259023_2942"}}
+{"ts": 1770221259037, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770221259037_2417"}}
+{"ts": 1770221259039, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770221259039_1103"}}
+{"ts": 1770221259040, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770221259039_1103"}}
+{"ts": 1770221259040, "sessionId": "session-1770221221580-y9xd", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770221259039_1103"}}
+{"ts": 1770221262906, "sessionId": "session-1770221221580-y9xd", "type": "chat", "name": "Глеб", "text": "ну что, готов к баттлу", "system": false}
+{"ts": 1770221263310, "sessionId": "session-1770221221580-y9xd", "type": "chat", "name": "Рин", "text": "@Грустный, давайте культурно, ну почти", "system": false}
+{"ts": 1770222366696, "sessionId": "session-1770222361197-nm11", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770222377563, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377564, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377568, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377568, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770222377549_4702"}}
+{"ts": 1770222377576, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770222377576_4429"}}
+{"ts": 1770222377579, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377580, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377580, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377580, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222377581, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770222377579_113"}}
+{"ts": 1770222399116, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770222399113_2919"}}
+{"ts": 1770222399116, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770222399113_2919"}}
+{"ts": 1770222399120, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770222399113_2919"}}
+{"ts": 1770222399127, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770222399126_1452"}}
+{"ts": 1770222399129, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770222399129_700"}}
+{"ts": 1770222399129, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770222399129_700"}}
+{"ts": 1770222399130, "sessionId": "session-1770222361197-nm11", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770222399129_700"}}
+{"ts": 1770222403564, "sessionId": "session-1770222361197-nm11", "type": "chat", "name": "Юна", "text": "кто-то сейчас словит ответку", "system": false}
+{"ts": 1770222407348, "sessionId": "session-1770222361197-nm11", "type": "chat", "name": "Глеб", "text": "@Слабак, че по 💰, при бабле", "system": false}
+{"ts": 1770222413523, "sessionId": "session-1770222361197-nm11", "type": "chat", "name": "Ксю", "text": "ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770223250882, "sessionId": "session-1770223244907-wn9q", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770223266282, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223266275_7335"}}
+{"ts": 1770223266286, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223266275_7335"}}
+{"ts": 1770223266292, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223266275_7335"}}
+{"ts": 1770223266293, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770223266275_7335"}}
+{"ts": 1770223266299, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770223266298_3945"}}
+{"ts": 1770223266301, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223266301_7667"}}
+{"ts": 1770223266302, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223266301_7667"}}
+{"ts": 1770223266302, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223266301_7667"}}
+{"ts": 1770223266302, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770223266301_7667"}}
+{"ts": 1770223266303, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770223266301_7667"}}
+{"ts": 1770223277667, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223277663_9136"}}
+{"ts": 1770223277667, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223277663_9136"}}
+{"ts": 1770223277669, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223277663_9136"}}
+{"ts": 1770223277673, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770223277673_1698"}}
+{"ts": 1770223277675, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223277674_5913"}}
+{"ts": 1770223277675, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223277674_5913"}}
+{"ts": 1770223277676, "sessionId": "session-1770223244907-wn9q", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223277674_5913"}}
+{"ts": 1770223278835, "sessionId": "session-1770223244907-wn9q", "type": "chat", "name": "Слава", "text": "не мажь, отвечай по делу", "system": false}
+{"ts": 1770223287579, "sessionId": "session-1770223244907-wn9q", "type": "chat", "name": "Глеб", "text": "@Королева, ну что, готов к баттлу", "system": false}
+{"ts": 1770223299819, "sessionId": "session-1770223244907-wn9q", "type": "chat", "name": "Ветеран", "text": "@Рин, кто-то сейчас словит ответку", "system": false}
+{"ts": 1770223827111, "sessionId": "session-1770223822008-ghiw", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770223833359, "sessionId": "session-1770223822008-ghiw", "type": "chat", "name": "Юна", "text": "@Рин, кто следующий", "system": false}
+{"ts": 1770223837536, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223837528_5790"}}
+{"ts": 1770223837537, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223837528_5790"}}
+{"ts": 1770223837540, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223837528_5790"}}
+{"ts": 1770223837540, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770223837528_5790"}}
+{"ts": 1770223837550, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770223837550_8484"}}
+{"ts": 1770223837553, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223837553_9308"}}
+{"ts": 1770223837553, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223837553_9308"}}
+{"ts": 1770223837554, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223837553_9308"}}
+{"ts": 1770223837554, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770223837553_9308"}}
+{"ts": 1770223837555, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770223837553_9308"}}
+{"ts": 1770223854218, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223854211_2865"}}
+{"ts": 1770223854219, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223854211_2865"}}
+{"ts": 1770223854221, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223854211_2865"}}
+{"ts": 1770223854226, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770223854226_2492"}}
+{"ts": 1770223854228, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770223854228_815"}}
+{"ts": 1770223854228, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770223854228_815"}}
+{"ts": 1770223854229, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770223854228_815"}}
+{"ts": 1770223854230, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "dev_rematch_seed_cost", "battleId": "dev_battle_crowd_1770223854228_815"}}
+{"ts": 1770223854230, "sessionId": "session-1770223822008-ghiw", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770223854228_815"}}
+{"ts": 1770224369616, "sessionId": "session-1770224365189-241l", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770224381766, "sessionId": "session-1770224365189-241l", "type": "chat", "name": "Ксю", "text": "не тяни, скажи прямо", "system": false}
+{"ts": 1770224392489, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392491, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392501, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392501, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224392479_9185"}}
+{"ts": 1770224392507, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770224392507_2858"}}
+{"ts": 1770224392510, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392510, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392510, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392511, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224392511, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770224392509_5933"}}
+{"ts": 1770224405183, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224405179_1123"}}
+{"ts": 1770224405184, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224405179_1123"}}
+{"ts": 1770224405186, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224405179_1123"}}
+{"ts": 1770224405190, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770224405190_4621"}}
+{"ts": 1770224405192, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224405192_7747"}}
+{"ts": 1770224405193, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224405192_7747"}}
+{"ts": 1770224405193, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224405192_7747"}}
+{"ts": 1770224405194, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "dev_rematch_seed_cost", "battleId": "dev_battle_crowd_1770224405192_7747"}}
+{"ts": 1770224405194, "sessionId": "session-1770224365189-241l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770224405192_7747"}}
+{"ts": 1770224833709, "sessionId": "session-1770224828971-sf55", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770224844908, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844910, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844915, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844916, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224844901_1574"}}
+{"ts": 1770224844922, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770224844922_4017"}}
+{"ts": 1770224844927, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844927, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844928, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844928, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224844928, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770224844926_3026"}}
+{"ts": 1770224861911, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224861908_9896"}}
+{"ts": 1770224861913, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224861908_9896"}}
+{"ts": 1770224861916, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224861908_9896"}}
+{"ts": 1770224861920, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770224861920_8597"}}
+{"ts": 1770224861923, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770224861922_9764"}}
+{"ts": 1770224861923, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770224861922_9764"}}
+{"ts": 1770224861923, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770224861922_9764"}}
+{"ts": 1770224861924, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "dev_rematch_seed_cost", "battleId": "dev_battle_crowd_1770224861922_9764"}}
+{"ts": 1770224861925, "sessionId": "session-1770224828971-sf55", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770224861922_9764"}}
+{"ts": 1770225482801, "sessionId": "session-1770225479905-hyio", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770225497693, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770225497686_6525"}}
+{"ts": 1770225497693, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770225497686_6525"}}
+{"ts": 1770225497700, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770225497686_6525"}}
+{"ts": 1770225497700, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770225497686_6525"}}
+{"ts": 1770225497708, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770225497707_7595"}}
+{"ts": 1770225497711, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770225497710_7638"}}
+{"ts": 1770225497711, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770225497710_7638"}}
+{"ts": 1770225497712, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770225497710_7638"}}
+{"ts": 1770225497712, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770225497710_7638"}}
+{"ts": 1770225497712, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770225497710_7638"}}
+{"ts": 1770225511777, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770225511767_8807"}}
+{"ts": 1770225511777, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770225511767_8807"}}
+{"ts": 1770225511781, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770225511767_8807"}}
+{"ts": 1770225511793, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770225511793_13"}}
+{"ts": 1770225511795, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770225511795_3818"}}
+{"ts": 1770225511795, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770225511795_3818"}}
+{"ts": 1770225511796, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770225511795_3818"}}
+{"ts": 1770225511796, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "dev_rematch_seed_cost", "battleId": "dev_battle_crowd_1770225511795_3818"}}
+{"ts": 1770225511796, "sessionId": "session-1770225479905-hyio", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_battle_crowd_1770225511795_3818"}}

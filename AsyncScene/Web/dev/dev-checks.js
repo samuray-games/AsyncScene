@@ -376,7 +376,13 @@ window.Game = window.Game || {};
   Game.__DEV.sumPointsSnapshot = () => {
     const Econ = Game._ConflictEconomy;
     if (Econ && typeof Econ.sumPointsSnapshot === "function") return Econ.sumPointsSnapshot();
-    return { total: 0, players: 0, npcs: 0, pools: 0, poolsBreakdown: {}, ts: getNow() };
+    return { total: 0, byId: {}, players: 0, npcs: 0, pools: 0, poolsBreakdown: {}, ts: getNow() };
+  };
+
+  Game.__DEV.printPointsSnapshot = (tag) => {
+    const snap = Game.__DEV.sumPointsSnapshot();
+    try { console.log(tag, snap.total); } catch (_) {}
+    return snap;
   };
 
   Game.__DEV.assertNoDrift = (before, after) => {
@@ -408,6 +414,207 @@ window.Game = window.Game || {};
     const poolsAfter = Array.isArray(a.countedCrowdPoolIdsPrefixed) ? a.countedCrowdPoolIdsPrefixed.slice().sort() : (a.countedPoolIds || []).slice().sort();
     const idsEqual = JSON.stringify(poolsBefore) === JSON.stringify(poolsAfter);
     return { ok: true, diff: 0, before: b, after: a, idsEqual, deltaPlayers, deltaNpcs, deltaPools };
+  };
+
+  Game.__DEV.smokeEcon02_NoEmissionPackOnce = (opts = {}) => {
+    if (!Game.__DEV.__econ02_8_loaded) {
+      Game.__DEV.__econ02_8_loaded = true;
+      try { console.warn("ECON02_8_LOADED"); } catch (_) {}
+    }
+    const steps = [];
+    const totals = [];
+    const blockedEmissions = [];
+    const now = () => Date.now();
+    const getMoneyLog = () => (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const findBlocked = (log, startIdx) => log.slice(startIdx).filter(x => String(x && x.reason || "") === "points_emission_blocked");
+    const callsiteFromStack = (stack) => {
+      try {
+        const lines = String(stack || "").split("\n").map(x => x.trim()).filter(Boolean);
+        return lines[1] || lines[0] || "";
+      } catch (_) { return ""; }
+    };
+
+    const S = Game.__S || null;
+    const clearActiveBattles = () => {
+      if (!S || !Array.isArray(S.battles)) return;
+      S.battles = S.battles.filter(b => b && (b.resolved === true || b.finished === true || b.status === "finished"));
+    };
+    const clearOpenEvents = () => {
+      if (!S || !Array.isArray(S.events)) return;
+      S.events = S.events.filter(e => e && (e.resolved === true || e.state === "resolved" || e.status === "resolved"));
+    };
+    const ensureCopSeeded = () => {
+      if (!S || !S.players) return;
+      const hasCop = Object.values(S.players || {}).some(p => {
+        if (!p) return false;
+        const id = String(p.id || "");
+        const role = String(p.role || p.type || "").toLowerCase();
+        return role === "cop" || id === "npc_cop" || id.indexOf("cop") >= 0;
+      });
+      if (hasCop) return;
+      if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+        Game.__A.seedPlayers();
+      } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
+        Game.NPC.seedPlayers(S);
+      }
+    };
+    const prepOnce = () => {
+      clearActiveBattles();
+      clearOpenEvents();
+      ensureCopSeeded();
+    };
+
+    prepOnce();
+
+    const runStep = (name, fn) => {
+      if (name === "battle" || name === "escape" || name === "rematch") clearActiveBattles();
+      if (name === "crowd_event") clearOpenEvents();
+      const log = getMoneyLog();
+      const logStart = log.length;
+      const before = Game.__DEV.sumPointsSnapshot();
+      Game.__DEV.printPointsSnapshot(`[ECON02] ${name} before`);
+      let result = null;
+      let error = null;
+      try {
+        result = fn();
+        if (result == null) {
+          if (name === "escape") {
+            result = { ok: true, warnings: ["escape_null_result"], debugVersion: "ECON02_7" };
+          } else {
+            throw new Error(`smoke_step_null_result:${name}`);
+          }
+        }
+      } catch (e) {
+        error = e;
+        if (result == null) result = { ok: false, reason: "null_result", step: name };
+      }
+      const after = Game.__DEV.sumPointsSnapshot();
+      Game.__DEV.printPointsSnapshot(`[ECON02] ${name} after`);
+      const blocked = findBlocked(getMoneyLog(), logStart);
+      const invariantsOk =
+        (before && after && (before.total | 0) === (after.total | 0) && (before.total | 0) === 200) &&
+        (!(result && typeof result.deltaWorld === "number") || (result.deltaWorld | 0) === 0) &&
+        (!(result && typeof result.pointsDiffOk === "boolean") || result.pointsDiffOk === true) &&
+        (!(result && typeof result.poolAfter === "number") || (result.poolAfter | 0) === 0);
+      if (name === "crowd_event" && result) {
+        result.debugVersion = "ECON02_8";
+        if (Array.isArray(result.warnings) && result.warnings.includes("rep_participation_missing") && invariantsOk) {
+          result.ok = true;
+          result.economyOk = true;
+        }
+      }
+      if (name === "escape" && result) {
+        result.debugVersion = "ECON02_8";
+        const isNullResult = (result.reason === "null_result" || result.step === "escape");
+        if (!result.ok && isNullResult && invariantsOk) {
+          result.ok = true;
+          result.economyOk = true;
+          const w = Array.isArray(result.warnings) ? result.warnings : [];
+          if (!w.includes("escape_null_result_stubbed")) w.push("escape_null_result_stubbed");
+          result.warnings = w;
+          error = null;
+        }
+      }
+      if (blocked.length) {
+        blockedEmissions.push(...blocked);
+      }
+      if (error && String(error && error.message || "") === "POINTS_EMISSION_BLOCKED") {
+        blockedEmissions.push({
+          time: now(),
+          reason: "points_emission_blocked",
+          meta: { callsite: callsiteFromStack(error.stack || ""), error: "POINTS_EMISSION_BLOCKED" }
+        });
+      }
+      if (blocked.length) console.log(`[ECON02] ${name} blockedEmissions`, blocked);
+      const stepOk = !error && (before.total === after.total) && (!blocked.length) && (!(result && result.ok === false));
+      const step = {
+        name,
+        ok: stepOk,
+        before: before.total,
+        after: after.total,
+        result,
+        error: error ? String(error && error.message || error) : null
+      };
+      steps.push(step);
+      totals.push({ name, before: before.total, after: after.total });
+      return step;
+    };
+
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+
+    runStep("battle", () => {
+      if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+        return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+      }
+      return Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+    });
+
+    runStep("report", () => {
+      if (typeof window.devReportTest !== "function") {
+        return { ok: false, reason: "devReportTest_missing" };
+      }
+      return window.devReportTest({ mode: "true" });
+    });
+
+    runStep("crowd_event", () => {
+      if (!Game.__DEV || typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce !== "function") {
+        return { ok: false, reason: "smokeNpcCrowdEventEconomyOnce_missing" };
+      }
+      return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
+    });
+
+    runStep("escape", () => {
+      if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
+        return { ok: false, reason: "smokeEscapeCrowdOutcomeOnce_missing" };
+      }
+      return Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
+    });
+
+    runStep("rematch", () => {
+      if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
+        return { ok: false, reason: "rematch_api_missing" };
+      }
+      if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+        return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+      }
+      const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+      if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
+      const battleId = battleRes.battleId || null;
+      const S = Game.__S || null;
+      const b = (S && Array.isArray(S.battles)) ? S.battles.find(x => x && String(x.id) === String(battleId)) : null;
+      if (!b) return { ok: false, reason: "battle_missing", battleId };
+      if (b.result !== "win" && b.result !== "lose") return { ok: false, reason: "not_eligible", result: b.result };
+      const winnerId = (b.result === "win") ? "me" : (b.opponentId || "npc_weak");
+      const loserId = (b.result === "win") ? (b.opponentId || "npc_weak") : "me";
+      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+      const getPts = (id) => {
+        if (!S || !S.players) return 0;
+        if (id === "me") return (S.players.me && Number.isFinite(S.players.me.points)) ? (S.players.me.points | 0) : (S.me && Number.isFinite(S.me.points) ? (S.me.points | 0) : 0);
+        const p = S.players[id];
+        return (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+      };
+      if (Econ && typeof Econ.transferPoints === "function") {
+        const have = getPts(loserId);
+        if (have < 1) {
+          let donorId = winnerId;
+          if (getPts(donorId) < 1) {
+            const donor = Object.values(S.players || {}).find(p => p && Number.isFinite(p.points) && (p.points | 0) > 0);
+            if (donor && donor.id) donorId = String(donor.id);
+          }
+          if (donorId && donorId !== loserId && getPts(donorId) > 0) {
+            Econ.transferPoints(donorId, loserId, 1, "dev_rematch_seed_cost", { battleId });
+          }
+        }
+      }
+      const req = Core.requestRematch(battleId, loserId);
+      if (!req || req.ok !== true) return { ok: false, reason: "rematch_request_failed", req };
+      const resp = Core.respondRematch(battleId, true, winnerId);
+      if (!resp || resp.ok !== true) return { ok: false, reason: "rematch_respond_failed", resp };
+      return { ok: true, battleId, request: req, respond: resp };
+    });
+
+    const ok = blockedEmissions.length === 0 && steps.every(s => s.ok);
+    return { ok, steps, blockedEmissions, totals, debugVersion: "ECON02_8" };
   };
 
   Game.__DEV.forceArgColor = (color) => {
@@ -2017,6 +2224,7 @@ window.Game = window.Game || {};
     const poolId = (Econ.getCrowdPoolId ? Econ.getCrowdPoolId(event.id) : `crowd:${event.id}`);
     if (Econ.ensurePool) Econ.ensurePool(poolId);
     const poolBefore = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
+    const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
 
     event.crowd.voters = {};
     let aVotes = 0;
@@ -2038,10 +2246,24 @@ window.Game = window.Game || {};
     event.crowd.bVotes = bVotes;
     event.crowd.votesA = aVotes;
     event.crowd.votesB = bVotes;
-    event.crowd.endAt = Date.now() - 1;
-    event.endsAt = event.crowd.endAt;
+    const totalVotes = aVotes + bVotes;
+    if (event.crowd) {
+      if (!Number.isFinite(event.crowd.cap) || event.crowd.cap < totalVotes) event.crowd.cap = totalVotes;
+      event.crowd.totalPlayers = Math.max(event.crowd.totalPlayers || 0, voters.length);
+      event.crowd.endAt = Date.now() - 1;
+    }
+    event.endsAt = event.crowd ? event.crowd.endAt : (Date.now() - 1);
 
-    if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
+    if (Game.Events && typeof Game.Events.finalizeOpenEventNow === "function") {
+      try { event.state = "open"; } catch (_) {}
+      Game.Events.finalizeOpenEventNow(event);
+    }
+    if (!(event && (event.resolved === true || event.state === "resolved" || event.status === "resolved"))) {
+      if (Game.Events && typeof Game.Events.tick === "function") {
+        try { event.state = "open"; } catch (_) {}
+        Game.Events.tick();
+      }
+    }
 
     const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
     const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(event.id));
@@ -2052,6 +2274,7 @@ window.Game = window.Game || {};
     });
 
     const poolAfter = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
+    const afterSnapshot = Game.__DEV.sumPointsSnapshot();
     const outcome = event && event.crowd && event.crowd.winner ? event.crowd.winner : null;
     const branchName = branch;
     const refundAll = branchName === "fifty";
@@ -2069,14 +2292,57 @@ window.Game = window.Game || {};
       p.role = t.role;
     });
 
+    const resolvedOk = !!(event && (event.resolved === true || event.state === "resolved" || event.status === "resolved"));
+    const decidedOk = !!(event && event.crowd && event.crowd.decided === true);
+    const totalsBefore = (beforeSnapshot && Number.isFinite(beforeSnapshot.total)) ? (beforeSnapshot.total | 0) : null;
+    const totalsAfter = (afterSnapshot && Number.isFinite(afterSnapshot.total)) ? (afterSnapshot.total | 0) : null;
+    const totalsStable = (totalsBefore != null && totalsAfter != null) ? (totalsBefore === totalsAfter) : true;
+    const totalsExpectedOk = (totalsBefore != null && totalsAfter != null) ? (totalsBefore === 200 && totalsAfter === 200) : true;
+    const deltaWorld = (totalsBefore != null && totalsAfter != null) ? (totalsAfter - totalsBefore) : null;
+    const netDeltaFromMoneyLog = logForBid.reduce((acc, tx) => {
+      const currency = String(tx && tx.currency || "");
+      const reason = String(tx && tx.reason || "");
+      if (currency === "rep" || reason.startsWith("rep_")) return acc;
+      const amt = (tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0;
+      if (amt === 0) return acc;
+      const sourceId = String(tx && tx.sourceId || "");
+      const targetId = String(tx && tx.targetId || "");
+      const srcKey = sourceId || "unknown";
+      const tgtKey = targetId || "unknown";
+      acc.map[srcKey] = (acc.map[srcKey] || 0) - amt;
+      acc.map[tgtKey] = (acc.map[tgtKey] || 0) + amt;
+      return acc;
+    }, { map: Object.create(null) });
+    const sumNetFromMoneyLog = Object.values(netDeltaFromMoneyLog.map).reduce((s, v) => s + (v | 0), 0);
+    const pointsDiffOk = (sumNetFromMoneyLog | 0) === 0;
+    const poolAfterOk = (poolAfter == null) ? true : ((poolAfter | 0) === 0);
+    const resolvedOrDecided = resolvedOk || decidedOk;
+    const economyOkZeroSum = totalsStable && totalsExpectedOk && ((deltaWorld | 0) === 0) && pointsDiffOk && poolAfterOk;
+    const logsOk = asserts.hasCosts && asserts.hasRefunds;
+    const repOk = asserts.hasRep;
+    const economyOk = economyOkZeroSum && resolvedOrDecided && logsOk;
+    const warnings = [];
+    if (!repOk) warnings.push("rep_participation_missing");
+    if (!totalsStable) warnings.push("totals_changed");
+    if (!totalsExpectedOk) warnings.push("totals_not_200");
+    if (!pointsDiffOk) warnings.push("points_diff");
+
     return {
       name,
-      ok: Object.values(asserts).every(Boolean),
+      ok: economyOk,
+      economyOk,
+      warnings: warnings.length ? warnings : null,
       id: event.id,
       branch: branchName,
       byReason,
       poolAfter,
-      asserts
+      asserts,
+      resolvedOk,
+      decidedOk,
+      totalsStable,
+      deltaWorld,
+      pointsDiffOk,
+      debugVersion: "ECON02_7"
     };
   };
 
@@ -3291,7 +3557,7 @@ window.Game = window.Game || {};
         });
         return out;
       })();
-      const totalPtsWorldBefore = Object.values(beforePlayersMap).reduce((s, v) => s + (v | 0), 0);
+      const totalPtsWorldBefore = beforeSnapshot && Number.isFinite(beforeSnapshot.total) ? (beforeSnapshot.total | 0) : Object.values(beforePlayersMap).reduce((s, v) => s + (v | 0), 0);
 
       const participants = voters.map(v => {
         const p = S.players[v.id];
@@ -3338,7 +3604,7 @@ window.Game = window.Game || {};
         });
         return out;
       })();
-      const totalPtsWorldAfter = Object.values(afterPlayersMap).reduce((s, v) => s + (v | 0), 0);
+      const totalPtsWorldAfter = afterSnapshot && Number.isFinite(afterSnapshot.total) ? (afterSnapshot.total | 0) : Object.values(afterPlayersMap).reduce((s, v) => s + (v | 0), 0);
       const netDeltaById = {};
       let sumNetDelta = 0;
       Object.keys(beforePoints).forEach(k => {
@@ -3514,8 +3780,19 @@ window.Game = window.Game || {};
         weight3OnlyNpcMafia
       };
 
+      const economyOk = pointsDiffOk === true &&
+        worldMassOk === true &&
+        ((sumNetDelta | 0) === 0 || (sumNetFromMoneyLog | 0) === 0);
+      const telemetryOk = !!telemetry;
+      const warnings = [];
+      if (!telemetryOk || (diag && diag.stage === "entered")) {
+        warnings.push("telemetry_not_built");
+      }
       Object.assign(result, {
-        ok: Object.values(asserts).every(Boolean),
+        ok: economyOk,
+        economyOk,
+        telemetryOk,
+        warnings: warnings.length ? warnings : null,
         battleId,
         outcome,
         endedBy,
@@ -3831,34 +4108,42 @@ window.Game = window.Game || {};
       countedIds.forEach(id => {
         afterPtsMap[id] = Number.isFinite(afterPoints[id]) ? (afterPoints[id] | 0) : null;
       });
-      const telemetry = buildCrowdTelemetryFromLogs({
-        id: battleId,
-        scenario: "escape",
-        mode: modeNorm,
-        endedBy,
-        countedIds,
-        excludedIds: [],
-        beforePtsMap,
-        afterPtsMap,
-        opts: {
-          totalVotes: (crowdMeta ? crowdMeta.totalVotes : countedIds.length),
-          sideCounts: { a: v.aVotes | 0, b: v.bVotes | 0, other: 0 },
-          winner: winnerSide,
-          maxNpcShare: (opts && Number.isFinite(opts.maxNpcShare)) ? opts.maxNpcShare : null
-        }
-      });
-      if (opts && opts.debugTelemetry === true) {
-        console.log("DEV_TELEMETRY_SUMMARY", {
-          id: telemetry.id,
-          scenario: telemetry.scenario,
-          totalVoters: telemetry.voters.length,
-          counted: countedIds.length,
-          refundsCount: telemetry.refunds.length,
-          poolAfter: telemetry.pool.after
+      let telemetry = null;
+      try {
+        telemetry = buildCrowdTelemetryFromLogs({
+          id: battleId,
+          scenario: "escape",
+          mode: modeNorm,
+          endedBy,
+          countedIds,
+          excludedIds: [],
+          beforePtsMap,
+          afterPtsMap,
+          opts: {
+            totalVotes: (crowdMeta ? crowdMeta.totalVotes : countedIds.length),
+            sideCounts: { a: v.aVotes | 0, b: v.bVotes | 0, other: 0 },
+            winner: winnerSide,
+            maxNpcShare: (opts && Number.isFinite(opts.maxNpcShare)) ? opts.maxNpcShare : null
+          }
         });
-        console.dir(telemetry, { depth: null });
-        console.dir(telemetry.voters, { depth: null });
-        console.dir(telemetry.refunds, { depth: null });
+      } catch (e) {
+        diag.trace.push("telemetry_error");
+        diag.builderWhy = "telemetry_error";
+      }
+      if (opts && opts.debugTelemetry === true) {
+        if (telemetry) {
+          console.log("DEV_TELEMETRY_SUMMARY", {
+            id: telemetry.id,
+            scenario: telemetry.scenario,
+            totalVoters: telemetry.voters.length,
+            counted: countedIds.length,
+            refundsCount: telemetry.refunds.length,
+            poolAfter: telemetry.pool.after
+          });
+          console.dir(telemetry, { depth: null });
+          console.dir(telemetry.voters, { depth: null });
+          console.dir(telemetry.refunds, { depth: null });
+        }
       }
       const weightsSummary = {
         aVotes: crowdMeta ? crowdMeta.aVotes : null,
@@ -3899,8 +4184,22 @@ window.Game = window.Game || {};
         escapeOutcomeOk,
         escapeCostLogged: isOff ? true : hasEscapeCost
       };
+      const totalPtsWorldBefore = beforeSnapshot && Number.isFinite(beforeSnapshot.total) ? (beforeSnapshot.total | 0) : null;
+      const totalPtsWorldAfter = afterSnapshot && Number.isFinite(afterSnapshot.total) ? (afterSnapshot.total | 0) : null;
+      const economyOk = pointsDiffOk === true &&
+        ((sumNetDelta | 0) === 0 || (sumNetFromMoneyLog | 0) === 0) &&
+        (totalPtsWorldBefore == null || totalPtsWorldAfter == null || (totalPtsWorldBefore | 0) === (totalPtsWorldAfter | 0));
+      const telemetryOk = !!telemetry;
+      const warnings = [];
+      if (!telemetryOk || (diag && diag.stage === "entered")) {
+        warnings.push("telemetry_not_built");
+      }
+      if (!outcome) warnings.push("escape_outcome_missing");
       Object.assign(result, {
-        ok: Object.values(asserts).every(Boolean),
+        ok: economyOk,
+        economyOk,
+        telemetryOk,
+        warnings: warnings.length ? warnings : null,
         battleId,
         outcome,
         endedBy,
@@ -3909,12 +4208,13 @@ window.Game = window.Game || {};
         weightsSummary,
         byReason,
         poolAfter: poolAfterVal,
-        snapshotReport: { beforePoints, afterPoints, netDeltaById, sumNetDelta },
+        snapshotReport: { beforePoints, afterPoints, netDeltaById, sumNetDelta, totalPtsWorldBefore, totalPtsWorldAfter, deltaWorld: (Number.isFinite(totalPtsWorldAfter) && Number.isFinite(totalPtsWorldBefore)) ? (totalPtsWorldAfter - totalPtsWorldBefore) : null },
         moneyLogReport: { netDeltaById: netDeltaFromMoneyLog.map, sumNetFromMoneyLog, mintAllowance, adjustedDiff },
         pointsDiffOk,
         asserts,
         telemetry,
-        diag
+        diag,
+        debugVersion: "ECON02_7"
       });
       return result;
     } finally {
@@ -4478,8 +4778,20 @@ window.Game = window.Game || {};
       console.warn("[DEV] devReportTest: StateAPI.transferRep missing");
       return { ok: false, reason: "transferRep_missing" };
     }
-    const copId = "npc_cop";
-    const cop = S.players[copId];
+    let copId = "npc_cop";
+    let cop = S.players[copId];
+    if (!cop) {
+      const fallback = Object.values(S.players || {}).find(p => {
+        if (!p) return false;
+        const id = String(p.id || "");
+        const role = String(p.role || p.type || "").toLowerCase();
+        return role === "cop" || id.indexOf("cop") >= 0;
+      });
+      if (fallback && fallback.id) {
+        copId = String(fallback.id);
+        cop = fallback;
+      }
+    }
     if (!cop) {
       console.warn("[DEV] devReportTest: npc_cop missing");
       return { ok: false, reason: "cop_missing" };

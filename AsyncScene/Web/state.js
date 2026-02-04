@@ -217,6 +217,50 @@ window.Game = window.Game || {};
     }
   }
 
+  function getPointsEmissionCallsite(){
+    try {
+      const err = new Error("POINTS_EMISSION_BLOCKED");
+      const lines = String(err && err.stack ? err.stack : "").split("\n").map(x => x.trim()).filter(Boolean);
+      return lines[3] || lines[2] || lines[1] || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function logPointsEmissionBlocked(callsite, amount, reason, meta, targetId){
+    const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
+    const amt = Number.isFinite(amount) ? (amount | 0) : 0;
+    const entry = {
+      time: Date.now(),
+      reason: "points_emission_blocked",
+      currency: "points",
+      amount: amt,
+      sourceId: "emitter",
+      targetId: targetId || "me",
+      battleId: meta && meta.battleId ? meta.battleId : null,
+      eventId: meta && meta.eventId ? meta.eventId : null,
+      meta: {
+        callsite: callsite || "",
+        amount: amt,
+        targetId: targetId || "me",
+        reason: reason || "addPoints"
+      }
+    };
+    if (Econ && typeof Econ._logTx === "function") {
+      Econ._logTx(entry);
+      return;
+    }
+    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+    if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
+    if (!Game.__D.moneyLogByBattle || typeof Game.__D.moneyLogByBattle !== "object") Game.__D.moneyLogByBattle = {};
+    Game.__D.moneyLog.push(entry);
+    const bid = entry && entry.battleId ? String(entry.battleId) : "";
+    if (bid) {
+      if (!Array.isArray(Game.__D.moneyLogByBattle[bid])) Game.__D.moneyLogByBattle[bid] = [];
+      Game.__D.moneyLogByBattle[bid].push(entry);
+    }
+  }
+
   function transferRep(fromId, toId, amount, reason, battleId, meta){
     const meId = (State.me && State.me.id) ? State.me.id : "me";
     if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy") && ((fromId === meId) || (toId === meId))) {
@@ -2416,6 +2460,16 @@ window.Game = window.Game || {};
     };
     const n = Number(amount || 0);
     if (!Number.isFinite(n) || n === 0) return 0;
+    if (n > 0) {
+      const callsite = getPointsEmissionCallsite();
+      if (isDevFlag()) {
+        const err = new Error("POINTS_EMISSION_BLOCKED");
+        if (callsite) err.stack = `Error: POINTS_EMISSION_BLOCKED\n${callsite}`;
+        throw err;
+      }
+      logPointsEmissionBlocked(callsite, n, reason, meta || {}, meId);
+      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    }
     const rl = Security.rateLimit("points_add", {
       actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
       reason: reason || "addPoints",
