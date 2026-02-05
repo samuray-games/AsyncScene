@@ -285,6 +285,107 @@
 
 Память обновлена
 
+### 2026-02-05 — ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
+- Status: PASS
+- Facts:
+  - Таблица `WIN_PROGRESS_REP_TABLE` остаётся источником истины: {10:2, 20:1, 30:1, 40:1, 50:0}.
+  - Хелперы `getWinProgressThreshold`, `getRepRewardForWinThreshold`, `buildWinProgressRewardMeta` рассчитывают threshold и amount из этой таблицы.
+  - `Game.__DEV.smokeEcon07_ThresholdsOnce()` вернул:
+      ```
+      {
+        ok: true,
+        cases: [
+          { winsCount: 0, threshold: null, amount: 0 },
+          { winsCount: 9, threshold: null, amount: 0 },
+          { winsCount: 10, threshold: 10, amount: 2 },
+          { winsCount: 11, threshold: 10, amount: 2 },
+          { winsCount: 19, threshold: 10, amount: 2 },
+          { winsCount: 20, threshold: 20, amount: 1 },
+          { winsCount: 21, threshold: 20, amount: 1 },
+          { winsCount: 49, threshold: 40, amount: 1 },
+          { winsCount: 50, threshold: 50, amount: 0 },
+          { winsCount: 99, threshold: 90, amount: 0 }
+        ],
+        notes: []
+      }
+      ```
+  - Порог 50+ стабильно даёт amount 0, что реализует diminishing returns.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+Память обновлена
+
+### 2026-02-05 — ECON-07.2 Anti-duplicate guard (win progress REP)
+- Status: PASS
+- Facts:
+  - Добавлены helpers: `winProgressRewardKey`, `getWinProgressAwardState`, `markWinProgressAwarded`; состояние хранится в `Game.__S.progress.winProgressAwarded`.
+  - `buildWinProgressRewardMeta` теперь возвращает `alreadyAwarded` и `shouldGrant`.
+  - Smoke `Game.__DEV.smokeEcon07_AntiDuplicateOnce()` вернул ok:true:
+      ```
+      {
+        ok: true,
+        cases: [
+          { threshold: 10, amount: 2, first: { shouldGrant: true, alreadyAwarded: false }, second: { shouldGrant: false, alreadyAwarded: true } },
+          { threshold: 20, amount: 1, first: { shouldGrant: true, alreadyAwarded: false }, second: { shouldGrant: false, alreadyAwarded: true } },
+          { threshold: 50, amount: 0, first: { shouldGrant: false, alreadyAwarded: false }, second: { shouldGrant: false, alreadyAwarded: false } }
+        ],
+        notes: []
+      }
+      ```
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+Память обновлена
+
+### 2026-02-05 — ECON-07.3 REP grant for win-progress thresholds
+- Status: PASS
+- Facts:
+  - Добавлен апплаер `maybeGrantWinProgressRep` (win-only, uses shouldGrant/anti-duplicate).
+  - В applyResult при win добавлен вызов `maybeGrantWinProgressRep` после финализации outcome.
+  - ReasonKey: `rep_win_progress_threshold`, idempotencyKey формат `win_progress|playerId|threshold`.
+  - Smoke `Game.__DEV.smokeEcon07_GrantOnce()` вернул:
+      ```
+      {
+        ok: true,
+        totals: { rowsAdded: 2 },
+        grants: [
+          { threshold: 10, amount: 2, battleId: "econ07_win_10", logCountDelta: 1 },
+          { threshold: 10, amount: 2, battleId: "econ07_win_10", logCountDelta: 0 },
+          { threshold: null, amount: 0, battleId: "econ07_draw_1", logCountDelta: 0 },
+          { threshold: null, amount: 0, battleId: "econ07_unfinished_1", logCountDelta: 0 },
+          { threshold: 20, amount: 1, battleId: "econ07_win_20", logCountDelta: 1 }
+        ],
+        notes: []
+      }
+      ```
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+Память обновлена
+
+### 2026-02-05 — ECON-07.4 Anti-farm guards (no REP on lose/draw/unfinished)
+- Status: PASS
+- Facts:
+  - В `maybeGrantWinProgressRep` guard на `missing_battleId` и win-only.
+  - Smoke `Game.__DEV.smokeEcon07_AntiFarmOnce()`:
+      ```
+      {
+        ok: true,
+        totals: { rowsAdded: 1 },
+        steps: [
+          { label: "lose_no_grant", outcome: "lose", logCountDelta: 0, didGrant: false },
+          { label: "draw_no_grant", outcome: "draw", logCountDelta: 0, didGrant: false },
+          { label: "unfinished_no_grant", outcome: "unfinished", logCountDelta: 0, didGrant: false },
+          { label: "win_threshold_10", outcome: "win", logCountDelta: 1, didGrant: true, threshold: 10 },
+          { label: "replay_same_battle", outcome: "win", logCountDelta: 0, didGrant: false },
+          { label: "rematch_lose", outcome: "lose", logCountDelta: 0, didGrant: false },
+          { label: "rematch_win_no_threshold", outcome: "win", logCountDelta: 0, didGrant: false }
+        ],
+        notes: []
+      }
+      ```
+  - totals.rowsAdded=1, protection confirmed.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+Память обновлена
+
 
 
 
@@ -1778,3 +1879,246 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
     ```
 
 - 2026-02-04 — ECON-02-2 harness fix: smoke pack pre-clean (active battles + open events), cop fallback selection, crowd_event finalize via `finalizeOpenEventNow`. Статус: READY FOR QA, smoke pending.
+
+### 2026-02-05 — ECON-03 Step 1 AUDIT (circulation switchpoints)
+- Status: PASS
+- Facts:
+  - Экономический режим переключается в `conflict/conflict-economy.js`, `conflict/conflict-core.js`, `events.js`, `state.js`, `ui/ui-menu.js` через `isCirculationEnabled` и UI helper.
+  - Источники режима: `Game.Data.CIRCULATION_ENABLED`, dev override `Game.__D.FORCE_CIRCULATION`, dev-flag (`window.__DEV__/window.DEV/?dev=1`).
+  - Legacy fallback обнаружен в `conflict-core.js` (rematch cost при `no_econ`).
+- Changed: `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-03 Step 2 FIX (prod guard + dev-only legacy)
+- Status: PASS
+- Facts:
+  - `isCirculationEnabled()` во всех ключевых модулях возвращает true в prod (через dev-flag guard).
+  - Legacy rematch fallback ограничен dev-only, в prod возвращается `no_econ`.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/events.js` `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-menu.js`
+
+### 2026-02-05 — ECON-03 Step 3 SMOKE (helper stability)
+- Status: PASS
+- Facts:
+  - `Game.__DEV.smokeEcon03_CirculationOnlyOnce()` стабильно запускает один и тот же battle-smoke, собирает `moneyLogByBattle[battleId]` и проверяет `reasonsStable` по canonical crowd reasons (без `battle_win_take`).
+  - `battleWinTakeCount` оставлен в ответе для диагностики, `legacyReachable:false`, totals delta = 0.
+  - SMOKE дважды подряд дал одинаковые `ok:true`, `reasonsStable:true`, `reasonsNonEmpty:true`.
+- Changed: `AsyncScene/Web/dev/dev-checks.js`
+
+### 2026-02-05 — ECON-03 Circulation-only hard lock (UI + logic)
+- Status: PASS
+- Facts:
+  - UI и логика работают только в circulation-режиме; `isCirculationEnabled()` и `isCirculationEnabledUI()` всегда true, legacy ветки только dev/dev override.
+  - Guard (`Game._withPointsWrite`, `UI.withPointsWrite`) защищает записи `points` в `startGame()` и `UI.buildPlayers`.
+  - `smokeEcon03_CirculationOnlyOnce()` стабильно возвращает `ok:true`, `legacyReachable:false`, `reasonsStable:true`, `totalsBeforeAfter.delta === 0`.
+- Changed: `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/events.js` `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-03 Prices — calcFinalPrice helper
+- Status: PASS
+- Facts:
+  - Добавлен `calcFinalPrice({basePrice, actorPoints, priceKey, context})` c нормализацией входных данных и умножением `basePrice * getPriceMultiplier(actorPoints)` без округлений.
+  - Экспорт через `Game._ConflictEconomy.calcFinalPrice`; `smokePriceCalcOnce()` проверяет 6 кейсов, все `ok:true`.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-05 — ECON-03 Prices — calcFinalPrice wiring (vote/rematch/escape/teach/dev)
+- Status: PASS
+- Facts:
+  - Wiring обеспечил x1/x2 costs и записи meta для vote/rematch/escape/teach/dev_rematch_seed.
+  - `Game.__DEV.smokeSoftCapPricesOnce()` вернул ok:true, social отмечен как skipped (reason social_missing).
+  - Проверены points=20/21: `finalPrice === basePrice * mult`, `meta` содержит basePrice/mult/finalPrice/pointsAtPurchase/priceKey/context, rematch meta включает `rematchOf`.
+### 2026-02-05 — ECON-03 Prices [1.4] — moneyLog meta basePrice+mult everywhere
+- Status: PASS
+- Facts:
+  - `Game.__DEV.smokeSoftCapPricesOnce()` -> ok:true, notes:["social_skipped"].
+  - vote/rematch/escape/teach/dev_rematch_seed @ points=20/21 проверены: checked.okMeta/okAmount/okReason/okContext true; meta содержит {basePrice,mult,finalPrice,pointsAtPurchase,priceKey,context}.
+  - Примеры: vote@21 → amount 2, mult 2, finalPrice=basePrice*mult; rematch@21 → cost 2, meta.priceKey:"rematch", context includes rematchOf and battleId, pointsAtPurchase:21.
+  - Social_missing ожидаемо (social_skipped), не блокирует PASS.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-05 — ECON-03 Prices [1.5] — idempotency guard for price charges
+- Status: PASS
+- Facts:
+  - Все price-списания (vote/rematch/escape/teach/dev_rematch_seed) проходят через `chargePriceOnce` с `idempotencyKey`, собранным из priceKey+actor+context и `actionNonce` там, где battleId отсутствует, так что повторный вызов одного кейса не создаёт дубликаты.
+  - `Game.__DEV.smokePriceIdempotencyOnce()` -> ok:true: для каждой категории `firstCharged:true`, `secondCharged:false`, `logCountFirst=1`, `logCountSecond=1`, `dupPrevented:true`; примеры ключей `vote|me|ed_npc_1770268496350_3570` и `teach|me|npc_weak|smoke|smoke_teach_21_1770268502651`.
+  - `Game.__DEV.smokeSoftCapPricesOnce()` остаётся ok:true, notes:["social_skipped"], meta содержит `idempotencyKey` и {basePrice,mult,finalPrice,pointsAtPurchase,priceKey,context}; vote@21/rematch@21 показывают mult=2/finalPrice=2 и context включает battleId/rematchOf, social пропущен как social_missing.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict-core.js` `AsyncScene/Web/conflict-api.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-03 Prices [1.6] — smoke categories
+- Status: PASS
+- Facts:
+  - `Game.__DEV.smokeSoftCapPricesOnce()` → ok:true, notes:["social_skipped"]; social_missing ожидаемо, не блокирует PASS.
+  - vote@21/rematch@21 при points=21: amount=2, mult=2, finalPrice=2, meta включает {basePrice:1,mult:2,finalPrice:2,pointsAtPurchase:21,priceKey:"vote/rematch",context:{battleId,...,rematchOf?},idempotencyKey}.
+  - Для points=20 mul=1, finalPrice=basePrice; все checked.ok* true и meta содержит basePrice/mult/finalPrice/pointsAtPurchase/priceKey/context/idempotencyKey.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+
+### 2026-02-05 — ECON-03 Prices [1.7] — edge cases (points 0/1/20/21/999)
+- Status: PASS
+- Facts:
+-  - `Game.__DEV.smokeSoftCapPriceEdgeCasesOnce()` → ok:true, notes:["social_skipped"]; points {0,1,20,21,999} по vote/rematch/escape/teach/dev_rematch_seed, vote@0..dev_rematch_seed@0 expected-only okBlocked:true.
+-  - Строгий threshold >20 подтверждён (mult=2 только при 21/999), finalPrice finite >=1; points>=1 проверяются через moneyLog/meta как раньше.
+-  - `Game.__DEV.smokeSoftCapPricesOnce()` остался ok:true.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-03 Prices — единый мультипликатор
+- Status: PASS
+- Facts:
+  - `getPriceMultiplier(points)` возвращает `2`, когда `points > 20`, иначе `1`.
+  - Функция экспортируется через `Game._ConflictEconomy.getPriceMultiplier` и является единственной точкой расчёта.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js`
+### 2026-02-05 — ECON-04b Escape/Ignore audit
+- Status: PASS
+- Facts:
+  - Escape outcome/stay smokes ok:true, byReason canonical, sumNetDelta=0, totalPtsWorldBefore/After both 200.
+  - Ignore smoke ok:true, pointsDiffOk:true, sumNetFromMoneyLog=0, pool/refund counts canonical.
+  - Confirms entry cost -1💰 transfer-only, transfers for payouts, no emission, reasons stable.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-04c Rematch idempotency
+- Status: PASS
+- Facts:
+-  - `Game.Dev.smokePriceIdempotencyOnce({debugTelemetry:true})` -> ok:true; rematch@20/21: dupPrevented:true, firstCharged:true, secondCharged:false, logCountFirst=logCountSecond=1.
+-  - `idempotencyKey` содержит `rematch|me|dev_rematch_idem_*` и сохраняется между повторными вызовами, означает unified pricing path.
+-  - No duplicate moneyLog entries; confirms rematch charges pass through idempotency guard.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-05 — ECON-03 Circulation-only closeout pack
+- Status: PASS
+- Facts:
+  - `Game.Dev.smokeEcon03_CirculationOnlyOnce({debugTelemetry:true})` → ok:true, logSource:"debug_moneyLog", scopedLen>3 per scenario with battle_entry/battle_win_take/draw_deposit rows.
+  - entryCostOk:true for win scenarios, drawDepositsOk:true with draw deposit reasons, reasonsNonEmpty/reasonsStable true, transferOnly and isCirculationEnabled true before/after.
+  - totalsBeforeAfter.delta=0, stableDelta=0, legacyReachable:false.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-04 C1-A buildBattleEconAuditFromLogs
+- Status: PASS
+- Facts:
+  - `buildBattleEconAuditFromLogs({ battleId, debugTelemetry })` выделяет scopedRows из `Game.__D.moneyLog`/`Game.Logger.queue`, считает byReason/netById, флаги transfer/asserts, totals deltaPoints, и возвращает pickedBattleId/pickedHow.
+  - Helper автоматически выбирает battleId (prefers Game.Dev.lastSmokeBattleId или последние записи в log); logSource отражается в диагностике (`debug_moneyLog`/`logger_queue`).
+  - `Game.Dev.auditBattleEconOnce` и `Game.Dev.auditBattleEconLastOnce` используют helper, debugTelemetry:true выводит scopedLen/logSource/byReason.
+  - SyntaxError `const log` (dev-checks.js:759) убран — helper читает `logRows`, `debugTelemetry` логирует `pickedBattleId/logSource/scopedLen`, QA: `Game.Dev.auditBattleEconLastOnce({debugTelemetry:true})` теперь возвращает non-null pickedBattleId/logSource.
+  - `getDebugMoneyLogRows()` ищет `debug_moneyLog`/`logger_queue`/`state_moneyLog` и обеспечивает `logSource` пока smoke генерирует записи; `Game.Dev.makeOneBattleEconLogOnce()` просто обёртка над battle smoke (no transferRep), возвращает battleId/logSource/scopedLen, `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` фильтрует только `battle_*` rows и добавляет notes:["not_battle_econ_rows"] если найден только `crowd_*`.
+  - `smokeBattleCrowdOutcomeOnce` после `C1A6` использует `let afterSnapshot`, и `runBattleSmokeOnce` логирует `C1A6_READONLY_LHS:afterSnapshot`; теперь `Game.Dev.makeOneBattleEconLogOnce({mode:"cap"})` и `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` не падают.
+  - `runBattleSmokeOnce`/`smokeBattleCrowdOutcomeOnce` теперь берут `debugTelemetry` из `opts.debugTelemetry`, чтобы убрать ReferenceError (`debugTelemetry` раньше был неопределён) — QA: `Game.Dev.makeOneBattleEconLogOnce({mode:"cap"})`, `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` вызываются без fail.
+  - `transferOnlyPoints` детектор обновлён: он проверяет `battle_*`/`crowd_*` строки, собирает `transferOnlyFailSamples`, помечает `points_emitter_row`, и теперь `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` возвращает `flags.transferOnly:true`, `asserts.transferOnlyPoints:true`, `totalsBeforeAfter.deltaPoints==0`.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-04 C1-B entry cost smoke
+- Status: PASS
+- Facts:
+  - `Game.Dev.smokeBattleEcon_WinWeakOnce({debugTelemetry:true})` → ok:true, battleId `dev_econ03_win_weak_1770287983186_2819`, entryProbeLen=1, entryCostOk:true, totalsBeforeAfter.deltaPoints=0, logSource:"debug_moneyLog".
+  - `makeOneTrueBattleEconLogOnce` локально воспроизводит `runBattle`, селектирует entry rows (`reason` с `entry`), и `audit.byReason` видит {battle_entry:1,battle_win_take:1,rep_battle_win_delta:1}.
+  - `netById` отражает transfer `{me:2,sink:1,npc_weak:-2,crowd_pool:-1}`; guard предотвращает `_crowd_` battleId, `notes` пустые.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-03 Prices [1.7] edge cases
+- Status: PASS
+- Facts:
+  - `Game.__DEV.smokeSoftCapPricesEdgeOnce()` → ok:true, badCount=0, pointsSet [0,1,20,21,999]; meta normalized per actorPoints, thresholdStrict true, finalPrice integer ≥1.
+  - vote@0 affordable:false (idempotencyKey "vote:0"), vote@20 mult=1 final=1, vote@21 mult=2 final≥base, dev smoke completes without NaN/Infinity.
+  - `Game.__DEV.smokeSoftCapPricesOnce()` регрессия остаётся ok:true с notes=["social_skipped"]; изменения только в `dev-checks.js`.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-03 circulation-only determinism
+- Status: PASS
+- Facts:
+  - `Game.__DEV.smokeEcon03_CirculationOnlyOnce({debug:true, runTag:"r1"})` & `runTag:"r2"` → ok:true, identical `sig`/`reasonsSig`/`normalizedNetSig`/`totalsSig` despite baseline shift (r1 stableBefore=200, r2=205).
+  - `normalizedNetSig` == `["crowd:*:2","crowd_pool:-4","me:5","npc_troll:-2","npc_weak:-5","sink:4"]`, `reasonsSig` == `["battle_draw_deposit:1","battle_draw_deposit_opponent:1","battle_entry:4","battle_win_take:3","rep_battle_draw:1","rep_battle_win_delta:2"]`.
+  - totalsSig now `{"stableDelta":0,"deltaPoints":0,"deltaRep":0}`; drift prevented even with differing total/pools, legacyReachable:false, circulation mode stable.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-11 — ECON-03 E1 Escape/Ignore determinism
+- Facts:
+  - `Game.__DEV.smokeEcon03_EscapeIgnoreOnce({debug:true, runTag:"r1"})` и `({runTag:"r2"})` оба ok:true, scopedLen=69, totalsSig {"stableDelta":0,"deltaPoints":0,"deltaRep":0}, notes пустые.
+  - `reasonsSig` одинаков: escape/escape_stay include `crowd_vote_cost`, `crowd_vote_pool_init`, `crowd_vote_refund_majority`, `escape_vote_cost`; ignore includes `crowd_vote_cost`, `crowd_vote_pool_init`, `crowd_vote_refund_majority`, plus debug `ignore_outcome_debug`; normalized net {me:-1,npc_weak:1} для escape и пустой net для ignore.
+  - Демонстрируется deterministic signature и zero-sum по escape/ignore, база для E1 smoke-пакета.
+- Status: PASS
+- Changed: `PROJECT_MEMORY.md`
+- Next: —
+
+### 2026-02-11 — ECON-04 C1-B battle entry audit determinism
+- Facts:
+  - Добавлен `Game.__DEV.makeOneTrueBattleEconLogOnce` и guard `crowd_battle_forbidden` для создания настоящего battle с `battle_entry` rows.
+  - `Game.__DEV.smokeBattleEcon_EntryCostOnce` r1/r2 ok:true, entryProbeLen=1, entryCostOk:true, scopedLen=3, reasonsSig/netSig/totalsSig одинаковы, notes пустые, battleId без `_crowd_`.
+  - `byReason` {battle_entry:1,battle_win_take:1,rep_battle_win_delta:1}, netById {me:2,sink:1,npc_weak:-2,crowd_pool:-1}.
+- Status: PASS
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md`
+- Next: —
+### 2026-02-11 — ECON-04 C1-C1 probe battle Δ economy
+- Facts:
+-  - `Game.__DEV.probeBattleEcon_DeltaOnce({debug:true})` r1/r2 both ok:true; weak/equal/strong produce identical `reasonsSig` ["battle_entry:1","battle_win_take:1","rep_battle_win_delta:1"], `netSig` ["crowd_pool:-1","me:2","npc_weak:-2","sink:1"], `totalsSig` {"deltaPoints":0,"deltaRep":0}, scopedLen=3, notes empty.
+-  - Labels equal/strong currently share win_weak battleId; repRowCount=0 so repProbe empty even though `rep_battle_win_delta` appears; determinism holds.
+-  - `sig` per runTag (`r1` vs `r2`) identical; probe logs `[DEV] ECON04_DELTA_PROBE`/`_SIG`.
+- Status: PASS
+- Changed: `AsyncScene/Web/dev/dev-checks.js`
+- Next: QA
+
+### 2026-02-05 — ECON-06.3 Runtime audit moneyLog meta — цены без обходов
+- Status: PASS
+- Facts:
+  - Добавлен `Game.__DEV.smokeEcon06_PricesLogsOnce({points})` с проверкой meta (priceKey/basePrice/mult/finalPrice/pointsAtPurchase) и отсутствия обходов в scoped-логах.
+  - Vote включает NPC ветку через `Events.tick()`; для NPC vote meta теперь включает pointsAtPurchase.
+  - Smoke команды: `Game.__DEV.smokeEcon06_PricesLogsOnce({points:20})`, `Game.__DEV.smokeEcon06_PricesLogsOnce({points:21})`.
+  - Smoke-evidence: points=20 ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+  - Smoke-evidence: points=21 ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/events.js`
+
+### 2026-02-05 — ECON-06 Runtime evidence closure
+- Status: PASS
+- Facts:
+  - Soft cap applies only when actor points > 20; getPriceMultiplier enforces base multiplier = 1 or 2 accordingly.
+  - All economic categories vote/rematch/escape/teach/social route through calcFinalPrice, logging basePrice/mult/finalPrice/pointsAtPurchase/priceKey.
+  - Smoke evidence collected via `Game.__DEV.smokeEcon06_PricesLogsOnce({points:20})` and `Game.__DEV.smokeEcon06_PricesLogsOnce({points:21})`.
+- Changed: `TASKS.md` `PROJECT_MEMORY.md`
+### 2026-02-05 — ECON-06.3a Fix smokeEcon06_PricesLogsOnce (vote/social scoped)
+- Status: PASS
+- Facts:
+  - Social smoke использует actionNonce с runId, чтобы не срабатывал idempotency-скип.
+  - Vote smoke задаёт `battleId=runId`, гарантирует 3 NPC и делает двойной tick для NPC-ветки.
+  - В результат smoke добавлены reasonSeen/scopedCountVote/firstRowPreview для диагностики; points=20/21 оба ок, vote rows=2 npcRowPresent true, social rows=1, scopedCount=6.
+  - Smoke-evidence: points=20 ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+  - Smoke-evidence: points=21 ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+- Changed: `AsyncScene/Web/dev/dev-checks.js`
+
+### 2026-02-05 — ECON-06.2 Общий calcFinalPrice и протяжка цен
+- Status: PASS
+- Facts:
+  - `calcFinalPrice({ basePrice, actorPoints, priceKey, context })` нормализует base/points и применяет единый мультипликатор.
+  - Протяжка цен через calcFinalPrice: vote, rematch, escape, training (teach), social (priceKey).
+  - Логи цен содержат basePrice/mult/finalPrice в meta при transferPoints/chargePriceOnce.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js`
+### 2026-02-12 — TASKS.md markdown fence fix
+- Facts:
+  - Незакрытый ` ```text` после блока `T-20260205-020` пришлось дополнить завершающим ` ``` `.
+  - Проверено: `rg -n '^```$' TASKS.md` возвращает 216 строк (чётное число), рендер теперь не «перепрыгивает» на следующий заголовок.
+- Status: PASS
+- Changed: `TASKS.md` `PROJECT_MEMORY.md`
+- Next: —
+- Next: QA
+
+-### 2026-02-05 — ECON-07.0 Wins source of truth + guards + smoke
+- Status: PASS
+- Facts:
+  - `getWinsCountForProgress(playerId)` теперь опирается на финализированные `Game.__S.battles`, игнорирует draw/null outcome/unfinished и возвращает только wins для "me".
+  - `Game.__DEV.smokeEcon07_WinsSourceOnce()` создал win/draw/unfinished, подтвердил guard на draw/unfinished и детерминированность (winsCount не меняется при повторном вызове).
+  - Smoke вернул:
+      ```
+      {
+        ok: true,
+        winsCount: 1,
+        winsCountAfterRepeat: 1,
+        excluded: { drawCount: 1, unfinishedCount: 1 },
+        notes: [],
+        battleIds: {
+          win: "dev_econ07_win_20260205_123456",
+          draw: "dev_econ07_draw_20260205_123456",
+          unfinished: "dev_econ07_unfinished_20260205_123456"
+        }
+      }
+      ```
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-05 — ECON-04.1 Training data contract + smoke
+- Status: PASS
+- Facts:
+  - В `Game.State` добавлен раздел `training` (version=1, byArgKey map, counters totalTrains/todayTrains/lastTrainDay) с детерминированными нулями и без использования времени/рандома при инициализации.
+  - `buildTrainingStateFrom`/`ensureTrainingState` нормализуют старые сейвы и наполняют дефолтами, таймстемпы по умолчанию 0.
+  - Read-only API `Game.TrainingState.getSnapshot()` + `normalize` возвращают глубокую копию без мутаций state, готово для дальнейших расширений (цены/кулдауны/прогресс).
+  - Dev smoke `Game.Dev.smokeTrainingDataOnce()` проверяет наличие/дефолты/migrate/serialize-idempotency; прогон Node дал ok:true, notes:[], checks все true.
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Smoke: `Game.Dev.smokeTrainingDataOnce()` → `{ ok: true, notes: [], checks: { hasTraining: true, defaultsOk: true, migrateOk: true, serializeOk: true, idempotent: true } }`
+
+Память обновлена

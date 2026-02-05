@@ -13,25 +13,16 @@
     return (Game && Game.Data) ? Game.Data : null;
   }
 
+  function markLegacyEconHit(tag){
+    try {
+      const dbg = (Game && Game.__D) ? Game.__D : (Game.__D = {});
+      const arr = Array.isArray(dbg.__legacyEconHits) ? dbg.__legacyEconHits : (dbg.__legacyEconHits = []);
+      arr.push({ time: Date.now(), tag: String(tag || "legacy") });
+    } catch (_) {}
+  }
+
   function isCirculationEnabled(){
-    const D = getData();
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    if (dbg && dbg.FORCE_CIRCULATION === true) {
-      if (dbg._econModeLogged !== "cir") {
-        dbg._econModeLogged = "cir";
-        try { console.log("[DEV] ECON: CIR"); } catch (_) {}
-      }
-      return true;
-    }
-    if (dbg && dbg.FORCE_CIRCULATION === false) {
-      if (dbg._econModeLogged !== "legacy") {
-        dbg._econModeLogged = "legacy";
-        try { console.log("[DEV] ECON: LEGACY"); } catch (_) {}
-      }
-      return false;
-    }
-    const v = D && D.CIRCULATION_ENABLED;
-    return v === true || v === 1 || v === "true" || v === "1";
+    return true;
   }
 
   function ensureDebugStore(){
@@ -120,10 +111,113 @@
     return fn();
   }
 
+  function getPriceMultiplier(points){
+    const p = Number.isFinite(points) ? points : 0;
+    return p > 20 ? 2 : 1;
+  }
+
+  function calcFinalPrice(opts = {}){
+    const baseRaw = Number.isFinite(opts.basePrice) ? (opts.basePrice | 0) : 0;
+    const pointsRaw = Number.isFinite(opts.actorPoints) ? (opts.actorPoints | 0) : 0;
+    const base = Math.max(0, baseRaw);
+    const points = Math.max(0, pointsRaw);
+    const multiplier = getPriceMultiplier(points);
+    const finalPrice = base * multiplier;
+    return {
+      basePrice: base,
+      mult: multiplier,
+      finalPrice,
+      priceKey: opts.priceKey || null,
+      context: opts.context || null
+    };
+  }
+
+  function buildIdempotencyKey(opts){
+    const key = String(opts && opts.priceKey || "price");
+    const actorId = String(opts && opts.actorId || "");
+    const ctx = (opts && opts.context && typeof opts.context === "object") ? opts.context : {};
+    const battleId = String(ctx.battleId || opts.battleId || "");
+    const rematchOf = String(ctx.rematchOf || opts.rematchOf || "");
+    const mode = String(ctx.mode || opts.mode || "");
+    const targetId = String(ctx.targetId || opts.targetId || "");
+    const argKey = String(ctx.argKey || opts.argKey || "");
+    const actionNonce = String(ctx.actionNonce || opts.actionNonce || "");
+    const parts = [key, actorId, battleId, rematchOf, mode, targetId, argKey, actionNonce].filter(Boolean);
+    return parts.join("|");
+  }
+
+  function findDupEntry(reason, idempotencyKey, battleId){
+    const dbg = Game && Game.__D ? Game.__D : null;
+    if (!dbg) return null;
+    const bid = battleId ? String(battleId) : "";
+    const list = bid && dbg.moneyLogByBattle && Array.isArray(dbg.moneyLogByBattle[bid])
+      ? dbg.moneyLogByBattle[bid]
+      : (Array.isArray(dbg.moneyLog) ? dbg.moneyLog : []);
+    for (let i = list.length - 1; i >= 0; i--) {
+      const x = list[i];
+      if (!x) continue;
+      if (String(x.reason || "") !== String(reason || "")) continue;
+      const m = x.meta || {};
+      if (String(m.idempotencyKey || "") === String(idempotencyKey || "")) return x;
+    }
+    return null;
+  }
+
+  function chargePriceOnce(opts = {}){
+    const fromId = (opts && opts.fromId != null) ? String(opts.fromId) : "me";
+    const toId = (opts && opts.toId != null) ? String(opts.toId) : "sink";
+    const actorId = (opts && opts.actorId != null) ? String(opts.actorId) : fromId;
+    const reason = String(opts.reason || "price_charge");
+    const battleId = opts.battleId ? String(opts.battleId) : null;
+    const context = (opts.context && typeof opts.context === "object") ? opts.context : {};
+    const idempotencyKey = opts.idempotencyKey || buildIdempotencyKey({
+      priceKey: opts.priceKey,
+      actorId,
+      battleId,
+      rematchOf: opts.rematchOf,
+      mode: opts.mode,
+      targetId: opts.targetId,
+      argKey: opts.argKey,
+      context
+    });
+    const existing = findDupEntry(reason, idempotencyKey, battleId || context.battleId);
+    if (existing) {
+      return { ok: true, dedup: true, charged: false, idempotencyKey, existing };
+    }
+    const price = calcFinalPrice({
+      basePrice: opts.basePrice,
+      actorPoints: opts.actorPoints,
+      priceKey: opts.priceKey,
+      context
+    });
+    const amount = price.finalPrice;
+    const meta = {
+      battleId: battleId || (context && context.battleId ? context.battleId : null),
+      basePrice: price.basePrice,
+      mult: price.mult,
+      finalPrice: price.finalPrice,
+      priceKey: price.priceKey || opts.priceKey || null,
+      pointsAtPurchase: Number.isFinite(opts.actorPoints) ? opts.actorPoints : 0,
+      context,
+      idempotencyKey
+    };
+    if (opts.rematchOf) meta.rematchOf = opts.rematchOf;
+    if (opts.extraMeta && typeof opts.extraMeta === "object") {
+      Object.keys(opts.extraMeta).forEach(k => { meta[k] = opts.extraMeta[k]; });
+    }
+    const tx = E.transferPoints(fromId, toId, amount, reason, meta);
+    if (!tx || tx.ok !== true) return { ok: false, reason: (tx && tx.reason) || "transfer_failed", idempotencyKey, meta };
+    return { ok: true, charged: true, idempotencyKey, meta, price };
+  }
+
   E.getCrowdPoolId = function (battleId){
     if (!battleId) return "crowd";
     return `crowd:${battleId}`;
   };
+
+  E.getPriceMultiplier = getPriceMultiplier;
+  E.calcFinalPrice = calcFinalPrice;
+  E.chargePriceOnce = chargePriceOnce;
 
   E.ensurePool = function (poolId){
     const id = String(poolId || "");
@@ -399,6 +493,153 @@
     };
   }
 
+  function getWinsCountForProgress(playerId){
+    const S = Game.__S || null;
+    const list = (S && Array.isArray(S.battles)) ? S.battles : [];
+    if (!list.length) return 0;
+    const pid = (playerId != null) ? String(playerId) : "me";
+    let wins = 0;
+    for (const b of list) {
+      if (!b) continue;
+      const resolved = !!(b.finished || b.resolved || b.status === "finished");
+      if (!resolved) continue;
+      const outcome = String(b.result || "").toLowerCase();
+      if (!outcome || outcome === "draw") continue;
+      if (outcome !== "win" && outcome !== "lose") continue;
+      if (pid === "me") {
+        if (outcome === "win") wins += 1;
+      } else {
+        const oppId = b.opponentId != null ? String(b.opponentId) : "";
+        if (oppId && oppId === pid && outcome === "lose") wins += 1;
+      }
+    }
+    return wins;
+  }
+
+  const WIN_PROGRESS_REP_TABLE = Object.freeze({
+    10: 2,
+    20: 1,
+    30: 1,
+    40: 1,
+    50: 0
+  });
+
+  function getWinProgressThreshold(winsCount){
+    const wins = Number.isFinite(winsCount) ? (winsCount | 0) : 0;
+    if (wins < 10) return null;
+    const threshold = Math.floor(wins / 10) * 10;
+    return threshold >= 10 ? threshold : null;
+  }
+
+  function getRepRewardForWinThreshold(threshold){
+    const key = Number.isFinite(threshold) ? (threshold | 0) : 0;
+    if (!key) return 0;
+    return Number.isFinite(WIN_PROGRESS_REP_TABLE[key]) ? (WIN_PROGRESS_REP_TABLE[key] | 0) : 0;
+  }
+
+  function buildWinProgressRewardMeta({ playerId, winsCount } = {}){
+    const pid = (playerId != null) ? String(playerId) : "me";
+    const wins = Number.isFinite(winsCount) ? (winsCount | 0) : getWinsCountForProgress(pid);
+    const threshold = getWinProgressThreshold(wins);
+    const amount = getRepRewardForWinThreshold(threshold);
+    const state = getWinProgressAwardState(pid);
+    const alreadyAwarded = !!(state && state.thresholds && state.thresholds[threshold]);
+    const shouldGrant = !!(threshold && amount > 0 && !alreadyAwarded);
+    return {
+      eligible: !!(threshold && amount > 0),
+      threshold,
+      amount,
+      alreadyAwarded,
+      shouldGrant,
+      reasonKey: "rep_win_progress_threshold",
+      notes: []
+    };
+  }
+
+  function winProgressRewardKey(playerId, threshold){
+    const pid = (playerId != null) ? String(playerId) : "me";
+    const t = Number.isFinite(threshold) ? (threshold | 0) : 0;
+    return `win_progress|${pid}|${t}`;
+  }
+
+  function getWinProgressAwardState(playerId){
+    const S = Game.__S || (Game.__S = {});
+    if (!S.progress || typeof S.progress !== "object") S.progress = {};
+    const store = S.progress.winProgressAwarded && typeof S.progress.winProgressAwarded === "object"
+      ? S.progress.winProgressAwarded
+      : (S.progress.winProgressAwarded = {});
+    const pid = (playerId != null) ? String(playerId) : "me";
+    const entry = (store[pid] && typeof store[pid] === "object") ? store[pid] : (store[pid] = {});
+    if (!entry.thresholds || typeof entry.thresholds !== "object") entry.thresholds = {};
+    if (!entry.meta || typeof entry.meta !== "object") entry.meta = {};
+    return entry;
+  }
+
+  function markWinProgressAwarded(playerId, threshold, meta){
+    const t = Number.isFinite(threshold) ? (threshold | 0) : 0;
+    if (!t) return false;
+    const state = getWinProgressAwardState(playerId);
+    state.thresholds[t] = true;
+    const info = Object.assign({}, meta || {});
+    if (!info.ts) info.ts = Date.now();
+    state.meta[t] = info;
+    return true;
+  }
+
+  function maybeGrantWinProgressRep({ playerId, battleId, outcome } = {}){
+    const pid = (playerId != null) ? String(playerId) : "me";
+    const out = String(outcome || "").toLowerCase();
+    const result = { didGrant: false, threshold: null, amount: 0, reason: "rep_win_progress_threshold", idempotencyKey: null, notes: [] };
+    if (out !== "win") return result;
+    const bid = battleId != null ? String(battleId) : "";
+    if (!bid) {
+      result.notes.push("missing_battleId");
+      return result;
+    }
+    if (bid) {
+      const S = Game.__S || null;
+      const list = (S && Array.isArray(S.battles)) ? S.battles : [];
+      const b = list.find(x => x && String(x.id || x.battleId || "") === bid) || null;
+      if (b && !(b.finished || b.resolved || b.status === "finished")) {
+        result.notes.push("battle_not_resolved");
+        return result;
+      }
+    }
+    const meta = buildWinProgressRewardMeta({ playerId: pid });
+    result.threshold = meta.threshold;
+    result.amount = meta.amount | 0;
+    result.idempotencyKey = winProgressRewardKey(pid, meta.threshold);
+    if (!meta.shouldGrant) {
+      result.notes.push(meta.alreadyAwarded ? "already_awarded" : "not_eligible");
+      return result;
+    }
+    if (!(meta.amount > 0)) return result;
+    const transferRep = (Game.__A && typeof Game.__A.transferRep === "function")
+      ? Game.__A.transferRep
+      : null;
+    if (!transferRep) {
+      result.notes.push("transferRep_missing");
+      return result;
+    }
+    const winsCount = getWinsCountForProgress(pid);
+    const grantMeta = {
+      playerId: pid,
+      battleId: bid || null,
+      winsCount,
+      threshold: meta.threshold,
+      amount: meta.amount,
+      idempotencyKey: result.idempotencyKey
+    };
+    const tx = transferRep("rep_emitter", pid, meta.amount, result.reason, bid || null, grantMeta);
+    if (tx && tx.ok === false) {
+      result.notes.push("transferRep_failed");
+      return result;
+    }
+    markWinProgressAwarded(pid, meta.threshold, { battleId: bid || null, winsCount });
+    result.didGrant = true;
+    return result;
+  }
+
   // Start cost: starting a battle costs 1 point.
   // Applied exactly once per battle, and only when the player initiates the battle.
   E.applyStart = function (battle) {
@@ -440,6 +681,7 @@
       return;
     }
 
+    markLegacyEconHit("conflict_economy.applyStart.legacy");
     // If the battle is incoming (NPC attacked), there is no start cost in legacy mode.
     if (battle.fromThem === true) return;
     const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
@@ -623,6 +865,13 @@
           }
         } catch (_) { try { me.wins += 1; } catch (_) {} }
         try { maybeUnlocks(me); } catch (_) {}
+        try {
+          maybeGrantWinProgressRep({
+            playerId: "me",
+            battleId: battle.id || battle.battleId || null,
+            outcome: "win"
+          });
+        } catch (_) {}
         
         // Task A: REP за исход по разнице сил Δ (победа)
         if (transferRep) {
@@ -640,6 +889,7 @@
         if (dailyBonus) dailyBonus();
         return;
       } else {
+      markLegacyEconHit("conflict_economy.applyResult.win.legacy");
       const prog = getProgression();
 
       const PRESSURE_HIGH_TONE = new Set(["r", "k"]);
@@ -731,6 +981,13 @@
       }
       
       maybeUnlocks(me);
+      try {
+        maybeGrantWinProgressRep({
+          playerId: "me",
+          battleId: battle.id || battle.battleId || null,
+          outcome: "win"
+        });
+      } catch (_) {}
 
       try {
         if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
@@ -808,6 +1065,7 @@
         if (dailyBonus) dailyBonus();
         return;
       } else {
+      markLegacyEconHit("conflict_economy.applyResult.lose.legacy");
       const gain = (D && Number.isFinite(D.POINTS_LOSE)) ? (D.POINTS_LOSE | 0) : 1;
       if (addPts) addPts(gain, "battle_lose");
       else {
@@ -894,6 +1152,7 @@
         if (dailyBonus) dailyBonus();
         return;
       } else {
+      markLegacyEconHit("conflict_economy.applyResult.draw.legacy");
       const gain = (D && Number.isFinite(D.POINTS_DRAW)) ? (D.POINTS_DRAW | 0) : 2;
       if (addPts) addPts(gain, "battle_draw");
       else {
@@ -928,6 +1187,15 @@
     maybeUnlocks(me);
   };
 
+  E.getWinsCountForProgress = getWinsCountForProgress;
+  E.getWinProgressThreshold = getWinProgressThreshold;
+  E.getRepRewardForWinThreshold = getRepRewardForWinThreshold;
+  E.buildWinProgressRewardMeta = buildWinProgressRewardMeta;
+  E.winProgressRewardKey = winProgressRewardKey;
+  E.getWinProgressAwardState = getWinProgressAwardState;
+  E.markWinProgressAwarded = markWinProgressAwarded;
+  E.maybeGrantWinProgressRep = maybeGrantWinProgressRep;
+  E.WIN_PROGRESS_REP_TABLE = WIN_PROGRESS_REP_TABLE;
   E.isCirculationEnabled = E.isCirculationEnabled || isCirculationEnabled;
   E._logTx = E._logTx || logTransfer;
   Game._ConflictEconomy = E;

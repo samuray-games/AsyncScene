@@ -1,0 +1,14 @@
+{"ts": 1770295400652, "sessionId": "session-1770295373494-50w2", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770295400779, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_battle_econ_win_weak_1770295400779_4188"}}
+{"ts": 1770295400780, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_econ_win_weak_1770295400779_4188"}}
+{"ts": 1770295400780, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_econ_win_weak_1770295400779_4188"}}
+{"ts": 1770295400780, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_econ_win_weak_1770295400779_4188"}}
+{"ts": 1770295400782, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_battle_econ_win_weak_1770295400782_2272"}}
+{"ts": 1770295400782, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_econ_win_weak_1770295400782_2272"}}
+{"ts": 1770295400782, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_econ_win_weak_1770295400782_2272"}}
+{"ts": 1770295400782, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_econ_win_weak_1770295400782_2272"}}
+{"ts": 1770295400783, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_battle_econ_win_weak_1770295400783_4677"}}
+{"ts": 1770295400784, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_econ_win_weak_1770295400783_4677"}}
+{"ts": 1770295400784, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_econ_win_weak_1770295400783_4677"}}
+{"ts": 1770295400784, "sessionId": "session-1770295373494-50w2", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_econ_win_weak_1770295400783_4677"}}
+{"ts": 1770295401017, "sessionId": "session-1770295373494-50w2", "type": "chat", "name": "Олег", "text": "@Ветеран, 💰 на стол", "system": false}

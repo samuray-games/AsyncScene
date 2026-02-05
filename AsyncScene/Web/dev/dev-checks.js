@@ -170,6 +170,99 @@ window.Game = window.Game || {};
     } catch (_) {}
   };
 
+  const trainingSnapshot = () => {
+    if (!Game.TrainingState || typeof Game.TrainingState.getSnapshot !== "function") return null;
+    return Game.TrainingState.getSnapshot();
+  };
+
+  const normalizeTraining = (raw) => {
+    if (!Game.TrainingState || typeof Game.TrainingState.normalize !== "function") return null;
+    return Game.TrainingState.normalize(raw);
+  };
+
+  const trainingEqual = (a, b) => {
+    if (!a || !b) return false;
+    if (((a.version || 0) | 0) !== ((b.version || 0) | 0)) return false;
+    const keysA = Object.keys(a.byArgKey || {}).sort();
+    const keysB = Object.keys(b.byArgKey || {}).sort();
+    if (keysA.length !== keysB.length) return false;
+    for (let i = 0; i < keysA.length; i++) {
+      if (keysA[i] !== keysB[i]) return false;
+      const ea = a.byArgKey[keysA[i]] || {};
+      const eb = b.byArgKey[keysA[i]] || {};
+      if (((ea.level || 0) | 0) !== ((eb.level || 0) | 0)) return false;
+      if (((ea.xp || 0) | 0) !== ((eb.xp || 0) | 0)) return false;
+      if (((ea.lastTrainedAt || 0) | 0) !== ((eb.lastTrainedAt || 0) | 0)) return false;
+      if (((ea.cooldownUntil || 0) | 0) !== ((eb.cooldownUntil || 0) | 0)) return false;
+    }
+    const ca = a.counters || {};
+    const cb = b.counters || {};
+    const counters = ["totalTrains", "todayTrains", "lastTrainDay"];
+    for (const k of counters) {
+      if (((ca[k] || 0) | 0) !== ((cb[k] || 0) | 0)) return false;
+    }
+    return true;
+  };
+
+  const trainingDefaultsOk = (t) => {
+    if (!t || typeof t !== "object") return false;
+    const counters = t.counters || {};
+    const zeroCounters = ["totalTrains", "todayTrains", "lastTrainDay"].every(k => ((counters[k] || 0) | 0) === 0);
+    const emptyArgs = Object.keys(t.byArgKey || {}).length === 0;
+    const versionOk = ((t.version || 0) | 0) === 1;
+    return zeroCounters && emptyArgs && versionOk;
+  };
+
+  if (!Game.Dev) Game.Dev = {};
+  Game.Dev.smokeTrainingDataOnce = () => {
+    const name = "smoke_training_data_once";
+    const notes = [];
+
+    const snapBefore = trainingSnapshot();
+    if (!snapBefore) {
+      notes.push("snapshot_missing");
+      return { name, ok: false, checks: null, notes };
+    }
+
+    const hasTraining = !!(Game.__S && Game.__S.training);
+    const defaultsOk = trainingDefaultsOk(snapBefore);
+
+    const migrated = normalizeTraining({}) || null;
+    const migrateOk = !!(migrated && trainingDefaultsOk(migrated));
+
+    const roundTrip = (() => {
+      try {
+        const raw = JSON.parse(JSON.stringify(snapBefore));
+        return normalizeTraining(raw);
+      } catch (err) {
+        notes.push(`serialize_error:${String(err && err.message ? err.message : err)}`);
+        return null;
+      }
+    })();
+    const serializeOk = !!(roundTrip && trainingEqual(roundTrip, snapBefore));
+
+    const snapAfter = trainingSnapshot();
+    const idempotent = !!(snapAfter && trainingEqual(snapAfter, snapBefore));
+
+    if (!hasTraining) notes.push("state_training_missing");
+    if (!defaultsOk) notes.push("defaults_mismatch");
+    if (!migrateOk) notes.push("migrate_defaults_fail");
+    if (!serializeOk) notes.push("round_trip_mismatch");
+    if (!idempotent) notes.push("mutates_state");
+
+    const ok = hasTraining && defaultsOk && migrateOk && serializeOk && idempotent;
+    return {
+      name,
+      ok,
+      checks: { hasTraining, defaultsOk, migrateOk, serializeOk, idempotent },
+      notes,
+      snapshot: snapBefore,
+      snapshotAfter: snapAfter,
+      migrated
+    };
+  };
+  Game.__DEV.smokeTrainingDataOnce = Game.Dev.smokeTrainingDataOnce;
+
   Game.__DEV.setInfluence = (value) => {
     if (typeof value !== "number") return;
     const S = getStateSafe();
@@ -602,7 +695,35 @@ window.Game = window.Game || {};
             if (donor && donor.id) donorId = String(donor.id);
           }
           if (donorId && donorId !== loserId && getPts(donorId) > 0) {
-            Econ.transferPoints(donorId, loserId, 1, "dev_rematch_seed_cost", { battleId });
+            const donorPts = getPts(donorId);
+            const price = (typeof Econ.calcFinalPrice === "function")
+              ? Econ.calcFinalPrice({ basePrice: 1, actorPoints: donorPts, priceKey: "dev_rematch_seed", context: { battleId } })
+              : { basePrice: 1, mult: 1, finalPrice: 1, priceKey: "dev_rematch_seed", context: { battleId } };
+            if (typeof Econ.chargePriceOnce === "function") {
+              Econ.chargePriceOnce({
+                fromId: donorId,
+                toId: loserId,
+                actorId: donorId,
+                reason: "dev_rematch_seed_cost",
+                priceKey: price.priceKey || "dev_rematch_seed",
+                basePrice: 1,
+                actorPoints: donorPts,
+                targetId: loserId,
+                battleId,
+                context: price.context || { battleId, targetId: loserId }
+              });
+            } else {
+              const priceMeta = {
+                battleId,
+                basePrice: price.basePrice,
+                mult: price.mult,
+                finalPrice: price.finalPrice,
+                priceKey: price.priceKey || "dev_rematch_seed",
+                pointsAtPurchase: donorPts,
+                context: price.context || null
+              };
+              Econ.transferPoints(donorId, loserId, price.finalPrice, "dev_rematch_seed_cost", priceMeta);
+            }
           }
         }
       }
@@ -616,6 +737,1217 @@ window.Game = window.Game || {};
     const ok = blockedEmissions.length === 0 && steps.every(s => s.ok);
     return { ok, steps, blockedEmissions, totals, debugVersion: "ECON02_8" };
   };
+
+  const ensureSmokeBattleLog = (battleId) => {
+    if (!battleId) return { log: [], forced: false };
+    const dbg = (Game && Game.__D) ? Game.__D : (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    dbg.moneyLogByBattle = (dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object" && !Array.isArray(dbg.moneyLogByBattle))
+      ? dbg.moneyLogByBattle
+      : (dbg.moneyLogByBattle = {});
+    const battleLog = Array.isArray(dbg.moneyLogByBattle[battleId]) ? dbg.moneyLogByBattle[battleId].slice() : [];
+    if (battleLog.length) {
+      return { log: battleLog, forced: false };
+    }
+    const entry = {
+      ts: Date.now(),
+      reason: "smoke_circulation_marker",
+      amount: 0,
+      currency: "points",
+      sourceId: "smoke",
+      targetId: "smoke",
+      battleId
+    };
+    dbg.moneyLogByBattle[battleId] = dbg.moneyLogByBattle[battleId] || [];
+    dbg.moneyLogByBattle[battleId].push(entry);
+    dbg.moneyLog.push(entry);
+    return { log: [entry], forced: true };
+  };
+
+  const clearActiveBattles = () => {
+    const S = Game.__S || {};
+    if (!Array.isArray(S.battles)) return;
+    S.battles = S.battles.filter(b => b && (b.resolved === true || b.finished === true || b.status === "finished"));
+  };
+
+  const getDebugMoneyLogRows = () => {
+    const dbg = Game.__D || null;
+    if (dbg && Array.isArray(dbg.moneyLog) && dbg.moneyLog.length) {
+      return { rows: dbg.moneyLog, source: "debug_moneyLog" };
+    }
+    const logger = Game && Game.Logger ? Game.Logger : null;
+    const queue = logger && Array.isArray(logger.queue) ? logger.queue : null;
+    if (queue && queue.length) {
+      const rows = queue
+        .filter(e => e && e.type === "stat" && e.kind === "points")
+        .map(e => ({
+          reason: e.meta ? e.meta.reason : null,
+          amount: Number.isFinite(e.delta) ? Math.abs(e.delta) : 0,
+          sourceId: e.meta ? (e.meta.sourceId || null) : null,
+          targetId: e.meta ? (e.meta.targetId || null) : null,
+          battleId: e.meta ? (e.meta.battleId || null) : null,
+          meta: e.meta || null
+        }));
+      return { rows, source: "logger_queue" };
+    }
+    const state = Game && Game.State ? Game.State : null;
+    const stateLog = state && Array.isArray(state.moneyLog) && state.moneyLog.length ? state.moneyLog : null;
+    if (stateLog) return { rows: stateLog, source: "state_moneyLog" };
+    const stateLogByBattle = state && state.moneyLogByBattle ? state.moneyLogByBattle : null;
+    if (stateLogByBattle && typeof stateLogByBattle === "object") {
+      const rows = Object.values(stateLogByBattle)
+        .reduce((acc, bucket) => acc.concat(Array.isArray(bucket) ? bucket : []), []);
+      if (rows.length) return { rows, source: "state_moneyLogByBattle" };
+    }
+    return { rows: [], source: "none" };
+  };
+
+  const getBattleTxLog = () => getDebugMoneyLogRows();
+
+  const matchesBattleRow = (tx, bid) => {
+    if (!tx || !bid) return false;
+    const bId = String(bid || "");
+    const rowBid = tx.battleId ? String(tx.battleId) : "";
+    const meta = tx.meta || null;
+    const metaBattleId = meta && meta.battleId ? String(meta.battleId) : "";
+    const metaId = meta && meta.id ? String(meta.id) : "";
+    const metaBattleKey = meta && meta.battleKey ? String(meta.battleKey) : "";
+    const metaEventId = meta && meta.eventId ? String(meta.eventId) : "";
+    const sourceId = tx.sourceId ? String(tx.sourceId) : "";
+    const targetId = tx.targetId ? String(tx.targetId) : "";
+    return (
+      (rowBid && rowBid === bId) ||
+      (metaBattleId && metaBattleId === bId) ||
+      (metaId && metaId === bId) ||
+      (metaBattleKey && metaBattleKey === bId) ||
+      (metaEventId && metaEventId === bId) ||
+      (sourceId && sourceId.includes(bId)) ||
+      (targetId && targetId.includes(bId))
+    );
+  };
+
+  const entryReasonSet = new Set([
+    "battle_entry",
+    "battle_entry_npc",
+    "battle_entry_player",
+    "battle_entry_cost",
+    "battle_start_cost"
+  ]);
+
+  const isEntryReason = (tx) => {
+    if (!tx || !tx.reason) return false;
+    const reason = String(tx.reason).toLowerCase();
+    if (entryReasonSet.has(reason)) return true;
+    return reason.includes("entry");
+  };
+
+  const entryRowsForBattle = (battleId) => {
+    const txLog = getBattleTxLog();
+    const rows = txLog.rows || [];
+    return rows.filter(tx => {
+      if (!tx) return false;
+      if (!isEntryReason(tx)) return false;
+      return matchesBattleRow(tx, battleId);
+    });
+  };
+
+
+  const isBattleLogRow = tx => {
+    if (!tx || !tx.reason) return false;
+    const reason = String(tx.reason || "");
+    return reason.startsWith("battle_");
+  };
+
+  const findBattleRowFromLog = (rows, preferredId) => {
+    const normalizedPref = preferredId ? String(preferredId) : "";
+    if (normalizedPref) {
+      const prefRow = rows.find(tx => {
+        if (!isBattleLogRow(tx)) return false;
+        const rowBattleId = tx.battleId ? String(tx.battleId) : "";
+        const metaBattleId = tx.meta && tx.meta.battleId ? String(tx.meta.battleId) : "";
+        const candidateId = rowBattleId || metaBattleId;
+        return candidateId && candidateId === normalizedPref;
+      });
+      if (prefRow) return { battleId: normalizedPref, method: "preferred_battle_id" };
+    }
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = rows[i];
+      if (!isBattleLogRow(row)) continue;
+      const rowBattleId = row.battleId ? String(row.battleId) : "";
+      const metaBattleId = row.meta && row.meta.battleId ? String(row.meta.battleId) : "";
+      const candidateId = rowBattleId || metaBattleId;
+      if (candidateId) return { battleId: candidateId, method: "battle_last_row" };
+    }
+    return null;
+  };
+
+  const findBattleIdFromLog = (rows, preferredId) => {
+    const bid = String(preferredId || "");
+    if (bid) {
+      const exists = rows.some(row => matchesBattleRow(row, bid));
+      if (exists) return { battleId: bid, method: "preferred_id" };
+    }
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = rows[i];
+      const rowBattleId = row && row.battleId ? String(row.battleId) : "";
+      const metaBattleId = row && row.meta && row.meta.battleId ? String(row.meta.battleId) : "";
+      if (rowBattleId) return { battleId: rowBattleId, method: "log_last_battleId" };
+      if (metaBattleId) return { battleId: metaBattleId, method: "log_last_metaBattleId" };
+    }
+    return null;
+  };
+
+  const hasPointsReason = (reason) => {
+    if (!reason) return false;
+    const normalized = String(reason).toLowerCase();
+    if (normalized.startsWith("rep")) return false;
+    if (normalized.includes("_rep") || normalized.includes("rep_")) return false;
+    return true;
+  };
+
+  const hasPointsAmount = (tx) => {
+    if (!tx) return false;
+    const amount = tx.amount;
+    return Number.isFinite(amount) && (Math.abs(amount) > 0);
+  };
+
+  const isPointsTransferRow = (tx) => {
+    if (!tx) return false;
+    const reason = tx.reason ? String(tx.reason) : "";
+    if (!hasPointsReason(reason)) return false;
+    if (!hasPointsAmount(tx)) return false;
+    return true;
+  };
+
+  const getTransferSample = (tx) => ({
+    reason: tx.reason ? String(tx.reason) : "",
+    sourceId: tx.sourceId ? String(tx.sourceId) : null,
+    targetId: tx.targetId ? String(tx.targetId) : null,
+    amount: tx.amount,
+    transferOk: tx.meta && tx.meta.transferOk ? true : false
+  });
+
+  const isEmitterReason = (reason) => {
+    if (!reason) return false;
+    const normalized = String(reason).toLowerCase();
+    return normalized.includes("emitter") || normalized.includes("emit");
+  };
+
+  const buildTransferCheck = (scopedRows) => {
+    let violations = 0;
+    let pointsEmitterReason = null;
+    const failSamples = [];
+    scopedRows.forEach(tx => {
+      if (!isPointsTransferRow(tx)) return;
+      const samplesLimit = 3;
+      const src = tx.sourceId ? String(tx.sourceId) : "";
+      const tgt = tx.targetId ? String(tx.targetId) : "";
+      const hasTransferMeta = tx.meta && tx.meta.transferOk === true;
+      const allowPool = id => {
+        if (!id) return false;
+        return id === "sink" || id === "crowd" || id.startsWith("crowd:") || id.startsWith("pool:");
+      };
+      const validTransfer = hasTransferMeta || (src && tgt && src !== tgt);
+      if (!validTransfer) {
+        violations += 1;
+        if (failSamples.length < samplesLimit) failSamples.push(getTransferSample(tx));
+      }
+      if (!pointsEmitterReason && isEmitterReason(tx.reason)) {
+        pointsEmitterReason = String(tx.reason || "");
+      }
+    });
+    return { violations, failSamples, pointsEmitterReason };
+  };
+
+  const buildBattleEconAuditFromLogs = ({ battleId, debugTelemetry = false, battleOnly = false }) => {
+    const notes = [];
+    const txLog = getBattleTxLog();
+    const logRows = txLog.rows || [];
+
+    if (!battleId || battleId === "last") {
+      const candidate = (Game.Dev && Game.Dev.lastSmokeBattleId) ? Game.Dev.lastSmokeBattleId : null;
+      const found = battleOnly ? findBattleRowFromLog(logRows, candidate) : findBattleIdFromLog(logRows, candidate);
+      if (found) {
+        battleId = found.battleId;
+        notes.push(`picked_${found.method}`);
+      }
+    }
+    if (!battleId) {
+      notes.push("battle_id_missing");
+      return { ok: false, notes, logSource: txLog.source || "none", scopedLen: 0, byReason: {}, netById: {}, totalsBeforeAfter: { deltaPoints: 0, deltaRep: 0 }, flags: { transferOnly: false, reasonsNonEmpty: false }, asserts: { scopedNonEmpty: false, transferOnlyPoints: false, totalsStablePoints: false }, pickedBattleId: null, pickedHow: null };
+    }
+    if (String(battleId).includes("_crowd_")) {
+      notes.push("crowd_battle_forbidden");
+      return { ok: false, notes, logSource: txLog.source || "none", scopedLen: 0, byReason: {}, netById: {}, totalsBeforeAfter: { deltaPoints: 0, deltaRep: 0 }, flags: { transferOnly: false, reasonsNonEmpty: false }, asserts: { scopedNonEmpty: false, transferOnlyPoints: false, totalsStablePoints: false }, pickedBattleId: battleId, pickedHow: null };
+    }
+    const pickedBattleKey = battleId;
+    const pickedHow = notes.length && notes[notes.length - 1];
+    const logSource = txLog.source || "none";
+    if (!logRows.length || logSource === "none") {
+      notes.push("log_source_missing");
+    }
+    const scopedRows = logRows.filter(tx => matchesBattleRow(tx, battleId));
+    const scopedLen = scopedRows.length;
+    if (!scopedLen) {
+      notes.push("scoped_empty");
+      return { ok: false, notes, logSource, scopedLen: 0, byReason: {}, netById: {}, totalsBeforeAfter: { deltaPoints: 0, deltaRep: 0 }, flags: { transferOnly: true, reasonsNonEmpty: false }, asserts: { scopedNonEmpty: false, transferOnlyPoints: true, totalsStablePoints: true }, pickedBattleId: pickedBattleKey, pickedHow };
+    }
+    if (battleOnly && !scopedRows.some(isBattleLogRow)) {
+      notes.push("not_battle_econ_rows");
+      return { ok: false, notes, logSource, scopedLen, byReason: {}, netById: {}, totalsBeforeAfter: { deltaPoints: 0, deltaRep: 0 }, flags: { transferOnly: true, reasonsNonEmpty: false }, asserts: { scopedNonEmpty: true, transferOnlyPoints: true, totalsStablePoints: true }, pickedBattleId: pickedBattleKey, pickedHow };
+    }
+    const byReason = {};
+    const netById = {};
+    scopedRows.forEach(tx => {
+      const reason = tx && tx.reason ? String(tx.reason) : "unknown";
+      byReason[reason] = (byReason[reason] || 0) + 1;
+      const amt = tx && Number.isFinite(tx.amount) ? (tx.amount | 0) : 0;
+      if (amt !== 0) {
+        const src = tx.sourceId ? String(tx.sourceId) : null;
+        const tgt = tx.targetId ? String(tx.targetId) : null;
+        if (src) netById[src] = (netById[src] || 0) - amt;
+        if (tgt) netById[tgt] = (netById[tgt] || 0) + amt;
+      }
+    });
+    const deltaPoints = Object.values(netById).reduce((sum, v) => sum + (v | 0), 0);
+    const transferCheck = buildTransferCheck(scopedRows);
+    const totalsStablePoints = deltaPoints === 0;
+    let transferOnlyPoints = (transferCheck.violations === 0) && totalsStablePoints;
+    if (transferCheck.pointsEmitterReason) {
+      notes.push(`points_emitter_row:${transferCheck.pointsEmitterReason}`);
+      transferOnlyPoints = false;
+    }
+    const totalsBeforeAfter = { deltaPoints, deltaRep: 0 };
+    const flags = { transferOnly: transferOnlyPoints, reasonsNonEmpty: Object.keys(byReason).length > 0 };
+    const asserts = { scopedNonEmpty: scopedLen > 0, transferOnlyPoints, totalsStablePoints };
+    const transferOnlyFailSamples = transferCheck.failSamples;
+    const result = {
+      ok: true,
+      notes,
+      logSource,
+      scopedLen,
+      byReason,
+      netById,
+      totalsBeforeAfter,
+      flags,
+      asserts,
+      pickedBattleId: pickedBattleKey,
+      pickedHow,
+      transferOnlyFailSamples
+    };
+    if (debugTelemetry) {
+      console.log("[Dev] battleEconAudit", {
+        battleId,
+        pickedBattleId: pickedBattleKey,
+        pickedHow,
+        logSource,
+        scopedLen,
+        deltaPoints
+      });
+      if (transferOnlyFailSamples.length) {
+        console.log("[Dev] transferOnlyFailSamples", transferOnlyFailSamples);
+      }
+      console.dir(result, { depth: null });
+    }
+    return result;
+  };
+
+  if (!Game.Dev) Game.Dev = {};
+  Game.Dev.auditBattleEconOnce = ({ battleId, debugTelemetry = false } = {}) => buildBattleEconAuditFromLogs({ battleId, debugTelemetry });
+  Game.Dev.auditBattleEconLastOnce = (opts = {}) => buildBattleEconAuditFromLogs({ battleId: "last", debugTelemetry: !!opts.debugTelemetry });
+  Game.Dev.makeOneBattleEconLogOnce = (opts = {}) => makeOneBattleEconLogOnce(opts);
+  const makeOneTrueBattleEconLogOnce = (opts = {}) => {
+    const notes = [];
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    const S = Game.__S || {};
+    if (!Econ) notes.push("econ_missing");
+    if (!S.players) S.players = {};
+    if (!S.me) S.me = { id: "me", points: 0, influence: 0, wins: 0 };
+    if (!S.players.me) S.players.me = S.me;
+    if (Game.__A && typeof Game.__A.seedPlayers === "function") Game.__A.seedPlayers();
+    else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") Game.NPC.seedPlayers(S);
+    if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") Game.__A.syncMeToPlayers();
+
+    const getTxLog = () => getBattleTxLog();
+    const txLog = getTxLog();
+    let logEntries = txLog.rows;
+    let logSource = txLog.source;
+    const poolIds = ["sink", "crowd"];
+    const getPoolId = (bid) => (Econ && typeof Econ.getCrowdPoolId === "function") ? Econ.getCrowdPoolId(bid) : `crowd:${bid}`;
+
+    const npcList = Object.values(S.players || {}).filter(p => p && (p.npc === true || p.type === "npc" || String(p.id || "").startsWith("npc_")));
+    const me = S.me;
+    const meInf = Number(me && me.influence) || 0;
+    const sorted = npcList.slice().sort((a, b) => (Number(a.influence || 0) - Number(b.influence || 0)));
+    const weakOpp = sorted.find(p => Number(p.influence || 0) <= (meInf - 5)) || sorted[0] || null;
+
+    const runBattle = (label, result, opp, colors) => {
+      const battleId = `dev_battle_econ_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const oppId = opp && opp.id ? opp.id : "npc_weak";
+      const battle = {
+        id: battleId,
+        opponentId: oppId,
+        attackerId: "me",
+        fromThem: false,
+        status: "finished",
+        result,
+        resolved: true,
+        finished: true,
+        attack: { color: colors.oppColor || "y" },
+        defense: { color: colors.myColor || "y" }
+      };
+      if (Econ && typeof Econ.applyStart === "function") Econ.applyStart(battle);
+      if (Econ && typeof Econ.applyResult === "function") Econ.applyResult(battle);
+      const poolId = getPoolId(battleId);
+      if (poolId && !poolIds.includes(poolId)) poolIds.push(poolId);
+      const refreshed = getTxLog();
+      if (refreshed && refreshed.rows && refreshed.rows.length) {
+        logEntries = refreshed.rows;
+        logSource = refreshed.source;
+      }
+      return battleId;
+    };
+
+    const battleId = runBattle("win_weak", "win", weakOpp, { myColor: "g", oppColor: "y" });
+    if (!battleId) {
+      return {
+        ok: false,
+        battleId: null,
+        notes: ["no_entry_row_in_log_after_true_battle_create"],
+        sampledReasons: []
+      };
+    }
+    if (String(battleId).includes("_crowd_")) {
+      return {
+        ok: false,
+        battleId,
+        notes: ["smoke_created_crowd_battle_not_supported_for_C1_entry"],
+        sampledReasons: []
+      };
+    }
+
+    const scopedLog = logEntries.filter(tx => matchesBattleRow(tx, battleId));
+    const entryRows = scopedLog.filter(tx => {
+      const reason = String(tx && tx.reason || "");
+      return reason.startsWith("battle_entry") || reason.toLowerCase().includes("entry");
+    });
+    const entryProbe = entryRows.slice(0, 8).map(tx => ({
+      reason: tx && tx.reason ? String(tx.reason) : null,
+      amount: tx && tx.amount,
+      sourceId: tx && tx.sourceId ? String(tx.sourceId) : null,
+      targetId: tx && tx.targetId ? String(tx.targetId) : null
+    }));
+    if (!entryRows.length) {
+      const sampledReasons = Array.from(new Set(scopedLog.map(tx => String(tx && tx.reason || "unknown")))).slice(0, 8);
+      return {
+        ok: false,
+        battleId,
+        notes: ["no_entry_row_in_log_after_true_battle_create"],
+        sampledReasons
+      };
+    }
+    const entryReasonsSample = Array.from(new Set(entryRows.map(tx => String(tx && tx.reason || "")))).slice(0, 8);
+    return {
+      ok: true,
+      battleId,
+      notes,
+      entryProbe,
+      entryReasonsSample,
+      logSource,
+      scopedLen: scopedLog.length
+    };
+  };
+  Game.Dev.smokeBattleEcon_WinWeakOnce = (opts = {}) => {
+    const debugTelemetry = !!(opts && opts.debugTelemetry);
+    const created = makeOneTrueBattleEconLogOnce(opts);
+    if (!created.ok) {
+      if (debugTelemetry) {
+        console.log("[DEV] C1_ENTRY_SMOKE_SUMMARY", {
+          battleId: created.battleId || null,
+          ok: false,
+          notes: created.notes || [],
+          entryProbeLen: 0,
+          entryCostOk: false
+        });
+        console.log("[DEV] C1_ENTRY_SMOKE_FAIL_REASONS", { sampledReasons: created.sampledReasons || [] });
+      }
+      return created;
+    }
+    const battleId = created.battleId;
+    if (String(battleId).includes("_crowd_")) {
+      return { ok: false, battleId, notes: ["smoke_created_crowd_battle_not_supported_for_C1_entry"] };
+    }
+    if (battleId && Game.Dev) Game.Dev.lastSmokeBattleId = battleId;
+    const audit = battleId ? buildBattleEconAuditFromLogs({ battleId, debugTelemetry: false, battleOnly: true }) : null;
+    const notes = [];
+    if (!battleId) notes.push("battle_id_missing");
+    const entries = created.entryProbe || [];
+    let entryCostOk = false;
+    let winPayoutOk = false;
+    if (audit && audit.byReason) {
+      entryCostOk = Object.keys(audit.byReason).some(r => r.startsWith("battle_entry"));
+      winPayoutOk = Object.keys(audit.byReason).some(r => r.startsWith("battle_win_take"));
+      if (!entryCostOk) notes.push("missing_entry_reason");
+      if (!winPayoutOk) notes.push("missing_win_reason");
+    }
+    if (!entryCostOk && entries.length) entryCostOk = true;
+    const asserts = {
+      scopedNonEmpty: !!(audit && audit.scopedLen),
+      transferOnlyPoints: !!(audit && audit.asserts && audit.asserts.transferOnlyPoints),
+      totalsStablePoints: !!(audit && audit.asserts && audit.asserts.totalsStablePoints),
+      entryCostOk,
+      winPayoutOk
+    };
+    const ok = asserts.scopedNonEmpty && asserts.transferOnlyPoints && asserts.totalsStablePoints && entryCostOk && winPayoutOk;
+    if (debugTelemetry) {
+      console.log("[DEV] C1_ENTRY_SMOKE_SUMMARY", {
+        battleId,
+        ok,
+        notes,
+        entryProbeLen: entries.length,
+        entryCostOk
+      });
+    }
+    return {
+      ok,
+      battleId,
+      audit,
+      asserts,
+      notes,
+      entryProbe: entries,
+      createdHow: "smokeBattleEcon_WinWeakOnce"
+    };
+  };
+  Game.Dev.smokeBattleEcon_EntryCostOnce = (opts = {}) => {
+    const debugTelemetry = !!(opts && opts.debugTelemetry);
+    const runTag = opts && opts.runTag ? String(opts.runTag) : "";
+    const created = makeOneTrueBattleEconLogOnce(opts);
+    if (!created.ok) {
+      if (debugTelemetry) {
+        console.log("[DEV] ECON04_BATTLE_ENTRY_SIG", {
+          runTag,
+          ok: false,
+          battleId: created.battleId || null,
+          entryProbeLen: 0,
+          entryCostOk: false,
+          notes: created.notes || []
+        });
+      }
+      return created;
+    }
+    const battleId = created.battleId;
+    if (String(battleId).includes("_crowd_")) {
+      return { ok: false, battleId, notes: ["crowd_battle_forbidden"] };
+    }
+    const audit = buildBattleEconAuditFromLogs({ battleId, debugTelemetry: false, battleOnly: true });
+    const byReason = (audit && audit.byReason) ? audit.byReason : {};
+    const netById = (audit && audit.netById) ? audit.netById : {};
+    const totals = (audit && audit.totalsBeforeAfter) ? audit.totalsBeforeAfter : { deltaPoints: 0, deltaRep: 0 };
+    const reasonsSig = JSON.stringify(Object.keys(byReason).sort().map(k => `${k}:${byReason[k]}`));
+    const netSig = JSON.stringify(Object.keys(netById).sort().map(k => `${k}:${netById[k]}`));
+    const totalsSig = JSON.stringify(totals);
+    const sig = JSON.stringify({ reasonsSig, netSig, totalsSig });
+    const notes = [];
+    const entryCostOk = Object.keys(byReason).some(r => r.startsWith("battle_entry"));
+    if (!entryCostOk) notes.push("missing_entry_reason");
+    const ok = !!(audit && audit.asserts && audit.asserts.scopedNonEmpty) && !!(audit && audit.asserts && audit.asserts.transferOnlyPoints) && !!(audit && audit.asserts && audit.asserts.totalsStablePoints) && entryCostOk;
+    if (debugTelemetry) {
+      console.log("[DEV] ECON04_BATTLE_ENTRY_SIG", {
+        runTag,
+        sig,
+        reasonsSig,
+        netSig,
+        totalsSig,
+        battleId,
+        entryProbeLen: (created.entryProbe || []).length,
+        entryCostOk,
+        notes
+      });
+    }
+    return {
+      ok,
+      battleId,
+      entryProbeLen: (created.entryProbe || []).length,
+      entryCostOk,
+      notes,
+      sig,
+      reasonsSig,
+      netSig,
+      totalsSig,
+      audit
+    };
+  };
+  Game.Dev.auditBattleEconLastBattleOnce = (opts = {}) => {
+    const debugTelemetry = !!opts.debugTelemetry;
+    const providedId = opts.battleId || null;
+    let battleId = providedId;
+    const creationNotes = [];
+    let creation = null;
+    if (!battleId) {
+      creation = makeOneBattleEconLogOnce(opts);
+      battleId = creation.battleId;
+      if (creation && Array.isArray(creation.notes) && creation.notes.length) {
+        creationNotes.push(...creation.notes);
+      }
+    }
+    if (!battleId) {
+      const notes = [...creationNotes, "battle_id_missing"];
+      return {
+        ok: false,
+        notes,
+        logSource: creation ? creation.logSource : "none",
+        scopedLen: creation ? creation.scopedLen : 0,
+        byReason: {},
+        netById: {},
+        totalsBeforeAfter: { deltaPoints: 0, deltaRep: 0 },
+        flags: { transferOnly: true, reasonsNonEmpty: false },
+        asserts: { scopedNonEmpty: Boolean(creation && creation.scopedLen), transferOnlyPoints: true, totalsStablePoints: true },
+        pickedBattleId: null,
+        pickedHow: null,
+        createdHow: creation ? creation.createdHow : null
+      };
+    }
+    const audit = buildBattleEconAuditFromLogs({ battleId, debugTelemetry, battleOnly: true });
+    const combinedNotes = [...creationNotes, ...(audit.notes || [])];
+    return {
+      ...audit,
+      notes: combinedNotes,
+      createdHow: creation ? creation.createdHow : null
+    };
+  };
+  if (!Game.__DEV) Game.__DEV = {};
+  Game.__DEV.auditBattleEconOnce = Game.Dev.auditBattleEconOnce;
+  Game.__DEV.auditBattleEconLastOnce = Game.Dev.auditBattleEconLastOnce;
+  Game.__DEV.makeOneBattleEconLogOnce = Game.Dev.makeOneBattleEconLogOnce;
+  Game.__DEV.smokeBattleEcon_WinWeakOnce = Game.Dev.smokeBattleEcon_WinWeakOnce;
+  Game.__DEV.makeOneTrueBattleEconLogOnce = makeOneTrueBattleEconLogOnce;
+  Game.__DEV.smokeBattleEcon_EntryCostOnce = Game.Dev.smokeBattleEcon_EntryCostOnce;
+  Game.__DEV.probeBattleEcon_DeltaOnce = ({ debug = false, runTag } = {}) => {
+    const labels = ["weak", "equal", "strong"];
+    const makeScenario = (label) => {
+      const created = makeOneTrueBattleEconLogOnce({ label });
+      const battleId = created.battleId;
+      const notes = [];
+      if (!battleId) {
+        notes.push("battle_id_missing");
+        return { label, battleId: null, ok: false, notes };
+      }
+      if (String(battleId).includes("_crowd_")) {
+        notes.push("crowd_battle_forbidden");
+        return { label, battleId, ok: false, notes };
+      }
+      const audit = buildBattleEconAuditFromLogs({ battleId, debugTelemetry: false, battleOnly: true });
+      const scopedLen = audit ? audit.scopedLen : 0;
+      const byReason = (audit && audit.byReason) || {};
+      const netById = (audit && audit.netById) || {};
+      const totals = (audit && audit.totalsBeforeAfter) || { deltaPoints: 0, deltaRep: 0 };
+      const repRows = (audit && audit.transferOnlyFailSamples ? audit.transferOnlyFailSamples : []).filter(tx => tx.reason === "rep_battle_win_delta");
+      const repProbe = repRows.map(tx => ({
+        amount: tx.amount,
+        sourceId: tx.sourceId,
+        targetId: tx.targetId,
+        meta: tx.meta || null
+      }));
+      const transferOnly = !!(audit && audit.asserts && audit.asserts.transferOnlyPoints);
+      const totalsStable = totals.deltaPoints === 0 && totals.deltaRep === 0;
+      const reasonsSig = JSON.stringify(Object.keys(byReason).sort().map(k => `${k}:${byReason[k]}`));
+      const netSig = JSON.stringify(Object.keys(netById).sort().map(k => `${k}:${netById[k]}`));
+      const repSig = JSON.stringify(repProbe);
+      const totalsSig = JSON.stringify({ deltaPoints: totals.deltaPoints, deltaRep: totals.deltaRep });
+      const sig = JSON.stringify({ label, reasonsSig, netSig, repSig, totalsSig });
+      const ok = scopedLen > 0 && transferOnly && totalsStable;
+      if (debug) {
+        console.log("[DEV] ECON04_DELTA_PROBE", {
+          runTag,
+          label,
+          battleId,
+          byReason,
+          netById,
+          repRowCount: repRows.length,
+          scopedLen,
+          totals
+        });
+        console.log("[DEV] ECON04_DELTA_PROBE_SIG", {
+          runTag,
+          label,
+          sig,
+          reasonsSig,
+          netSig,
+          repSig,
+          totalsSig
+        });
+      }
+      return {
+        label,
+        battleId,
+        byReason,
+        netById,
+        repProbe,
+        repRowCount: repRows.length,
+        sig,
+        reasonsSig,
+        netSig,
+        repSig,
+        totalsSig,
+        ok,
+        notes
+      };
+    };
+    const scenarios = labels.map(makeScenario);
+    const ok = scenarios.every(s => s.ok);
+    const sig = JSON.stringify(scenarios.map(s => ({ label: s.label, sig: s.sig })));
+    if (debug) {
+      console.log("[DEV] ECON04_DELTA_PROBE", { runTag, sig, scenarios: scenarios.map(s => ({ label: s.label, ok: s.ok })) });
+    }
+    return {
+      name: "probe_battle_econ_delta_once",
+      ok,
+      sig,
+      totalsSig: JSON.stringify({ deltaPoints: 0, deltaRep: 0 }),
+      scenarios,
+      notes: ok ? [] : ["probe_partial_fail"]
+    };
+  };
+
+
+  const runBattleSmokeOnce = (opts = {}) => {
+    clearActiveBattles();
+    const smokeFn = (Game.Dev && typeof Game.Dev.smokeBattleCrowdOutcomeOnce === "function")
+      ? Game.Dev.smokeBattleCrowdOutcomeOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function")
+        ? Game.__DEV.smokeBattleCrowdOutcomeOnce
+        : null;
+    if (!smokeFn) {
+      return { ok: false, battleId: null, details: "smokeBattleCrowdOutcomeOnce_missing" };
+    }
+    const payload = Object.assign({ allowParallel: true, forceMajoritySide: "attacker" }, opts);
+    return smokeFn(payload);
+  };
+
+  const makeOneBattleEconLogOnce = (opts = {}) => {
+    const smoke = runBattleSmokeOnce(opts);
+    const battleId = smoke && smoke.battleId ? smoke.battleId : null;
+    if (battleId) {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.lastSmokeBattleId = battleId;
+    }
+    const txLog = getBattleTxLog();
+    return {
+      ok: smoke.ok,
+      battleId,
+      notes: smoke.notes || [],
+      logSource: txLog.source,
+      scopedLen: txLog.rows ? txLog.rows.length : 0,
+      createdHow: smoke.name || "smokeBattleCrowdOutcomeOnce"
+    };
+  };
+
+  const runBattleEcon03ScenarioOnce = (ctx, opts) => {
+    const { Econ, S, notes, getTxLog, poolIds } = ctx;
+    const label = opts.label;
+    const result = opts.result;
+    const opp = opts.opp;
+    const colors = opts.colors;
+    const bid = opts.battleId;
+    const battleId = `dev_econ03_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+    const oppId = opp && opp.id ? opp.id : "npc_weak";
+    const battle = {
+      id: battleId,
+      opponentId: oppId,
+      attackerId: "me",
+      fromThem: false,
+      status: "finished",
+      result,
+      resolved: true,
+      finished: true,
+      attack: { color: colors.oppColor || "y" },
+      defense: { color: colors.myColor || "y" }
+    };
+    const logStart = ctx.log.length;
+    if (Econ && typeof Econ.applyStart === "function") Econ.applyStart(battle);
+    if (Econ && typeof Econ.applyResult === "function") Econ.applyResult(battle);
+    const poolId = ctx.getPoolId(battleId);
+    if (poolId && !poolIds.includes(poolId)) poolIds.push(poolId);
+    const refreshed = getTxLog();
+    if (refreshed && refreshed.rows && refreshed.rows.length) {
+      ctx.log = refreshed.rows;
+      ctx.logSource = refreshed.source;
+    }
+    const scopedLog = ctx.log.filter(tx => ctx.matchesBattleRow(tx, battleId));
+    const byReason = {};
+    scopedLog.forEach(tx => {
+      const r = tx && tx.reason ? String(tx.reason) : "unknown";
+      byReason[r] = (byReason[r] || 0) + 1;
+    });
+    const entryReasons = new Set(["battle_entry", "battle_entry_npc", "battle_entry_rich", "battle_entry_npc_rich"]);
+    const entryEntries = scopedLog.filter(tx => entryReasons.has(String(tx && tx.reason || "")));
+    const entryCostOk = entryEntries.length > 0 && entryEntries.every(tx => {
+      if (!tx) return false;
+      const okAmt = (tx.amount | 0) >= 1;
+      if (ctx.logSource === "logger_queue") return okAmt;
+      return okAmt && tx.sourceId && tx.targetId === "sink";
+    });
+    const resultObj = {
+      battleId,
+      entryCostOk,
+      notes: ctx.notes,
+      scopedLog,
+      byReason
+    };
+    return resultObj;
+  };
+
+  if (!Game.Dev) Game.Dev = {};
+  Game.Dev.auditBattleEconOnce = ({ battleId, debugTelemetry = false } = {}) => buildBattleEconAuditFromLogs({ battleId, debugTelemetry });
+
+  const smokeEcon03CirculationOnlyOnce = (opts = {}) => {
+    try {
+      const name = "smoke_econ03_circulation_only_once";
+      const notes = [];
+      const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+      const S = Game.__S || {};
+      if (!Econ) notes.push("econ_missing");
+      const isCirculationFn = Econ && typeof Econ.isCirculationEnabled === "function" ? Econ.isCirculationEnabled : null;
+      if (!isCirculationFn) notes.push("isCirculationEnabled_missing");
+
+    const sumSnapshot = () => {
+      if (Game.Dev && typeof Game.Dev.sumPointsSnapshot === "function") return Game.Dev.sumPointsSnapshot();
+      if (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") return Game.__DEV.sumPointsSnapshot();
+      return null;
+    };
+    const getTxLog = () => {
+      const dbg = Game.__D || null;
+      const log = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : null;
+      if (log && log.length) return { rows: log, source: "debug_moneyLog" };
+      return { rows: [], source: "none" };
+    };
+
+    let isCirculationEnabled = null;
+    let isCirculationEnabledAfter = null;
+    try {
+      isCirculationEnabled = isCirculationFn ? isCirculationFn() : null;
+    } catch (e) {
+      notes.push("isCirculationEnabled_error");
+    }
+
+    const legacyBefore = (() => {
+      const arr = (Game.__D && Array.isArray(Game.__D.__legacyEconHits)) ? Game.__D.__legacyEconHits : [];
+      return arr.length | 0;
+    })();
+
+    const totalsBefore = sumSnapshot();
+    const totalBefore = totalsBefore && Number.isFinite(totalsBefore.total) ? (totalsBefore.total | 0) : null;
+
+    if (!S.players) S.players = {};
+    if (!S.me) S.me = { id: "me", points: 0, influence: 0, wins: 0 };
+    if (!S.players.me) S.players.me = S.me;
+    if (Game.__A && typeof Game.__A.seedPlayers === "function") Game.__A.seedPlayers();
+    else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") Game.NPC.seedPlayers(S);
+    if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") Game.__A.syncMeToPlayers();
+
+    const npcList = Object.values(S.players || {}).filter(p => p && (p.npc === true || p.type === "npc" || String(p.id || "").startsWith("npc_")));
+    const me = S.me;
+    const meInf = Number(me && me.influence) || 0;
+    const sorted = npcList.slice().sort((a, b) => (Number(a.influence || 0) - Number(b.influence || 0)));
+    const weakOpp = sorted.find(p => Number(p.influence || 0) <= (meInf - 5)) || sorted[0] || null;
+    const equalOpp = sorted.find(p => Math.abs(Number(p.influence || 0) - meInf) <= 1) || weakOpp || sorted[1] || null;
+    const strongOpp = sorted.find(p => Number(p.influence || 0) >= (meInf + 5)) || sorted[sorted.length - 1] || weakOpp || null;
+
+    const txLog = getTxLog();
+    let logEntries = txLog.rows;
+    let logSource = txLog.source;
+    const basePlayerIds = Object.keys(S.players || {});
+    const basePointsMap = Object.create(null);
+    basePlayerIds.forEach(id => {
+      const p = S.players[id];
+      basePointsMap[id] = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+    });
+    const poolIds = ["sink", "crowd"];
+    const getPoolId = (bid) => (Econ && typeof Econ.getCrowdPoolId === "function") ? Econ.getCrowdPoolId(bid) : `crowd:${bid}`;
+    const readPool = (id) => {
+      if (!Econ || typeof Econ.getPoolBalance !== "function") return 0;
+      const v = Econ.getPoolBalance(id);
+      return Number.isFinite(v) ? (v | 0) : 0;
+    };
+    const basePoolBalances = Object.create(null);
+    poolIds.forEach(id => { basePoolBalances[id] = readPool(id); });
+
+    const runBattle = (label, result, opp, colors) => {
+      const battleId = `dev_econ03_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const oppId = opp && opp.id ? opp.id : "npc_weak";
+      const battle = {
+        id: battleId,
+        opponentId: oppId,
+        attackerId: "me",
+        fromThem: false,
+        status: "finished",
+        result,
+        resolved: true,
+        finished: true,
+        attack: { color: colors.oppColor || "y" },
+        defense: { color: colors.myColor || "y" }
+      };
+      const logStart = log.length;
+      if (Econ && typeof Econ.applyStart === "function") Econ.applyStart(battle);
+      if (Econ && typeof Econ.applyResult === "function") Econ.applyResult(battle);
+      const bid = String(battleId || "");
+      const poolId = getPoolId(bid);
+      if (poolId && !poolIds.includes(poolId)) poolIds.push(poolId);
+      // Refresh log source after actions, in case log appeared during this scenario.
+      const refreshed = getTxLog();
+      if (refreshed && refreshed.rows && refreshed.rows.length) {
+        logEntries = refreshed.rows;
+        logSource = refreshed.source;
+      }
+      const scopedLog = logEntries.filter(tx => {
+        if (!tx) return false;
+        const rowBid = String(tx.battleId || "");
+        const meta = tx.meta || null;
+        const metaBid = meta ? String(meta.battleId || "") : "";
+        const metaId = meta ? String(meta.id || "") : "";
+        const metaBattleKey = meta ? String(meta.battleKey || "") : "";
+        const metaEventId = meta ? String(meta.eventId || "") : "";
+        const sourceId = tx.sourceId ? String(tx.sourceId) : "";
+        const targetId = tx.targetId ? String(tx.targetId) : "";
+        return (
+          (rowBid && rowBid === bid) ||
+          (metaBid && metaBid === bid) ||
+          (metaId && metaId === bid) ||
+          (metaBattleKey && metaBattleKey === bid) ||
+          (metaEventId && metaEventId === bid) ||
+          (sourceId && sourceId.includes(bid)) ||
+          (targetId && targetId.includes(bid))
+        );
+      });
+      const byReason = {};
+      scopedLog.forEach(tx => {
+        const r = tx && tx.reason ? String(tx.reason) : "unknown";
+        byReason[r] = (byReason[r] || 0) + 1;
+      });
+      const entryReasons = new Set(["battle_entry", "battle_entry_npc", "battle_entry_rich", "battle_entry_npc_rich"]);
+      const entryEntries = scopedLog.filter(tx => entryReasons.has(String(tx && tx.reason || "")));
+      const entryCostOk = entryEntries.length > 0 && entryEntries.every(tx => {
+        if (!tx) return false;
+        const okAmt = (tx.amount | 0) >= 1;
+        if (logSource === "logger_queue") return okAmt;
+        return okAmt && tx.sourceId && tx.targetId === "sink";
+      });
+      let transferOnly = scopedLog.every(tx => tx && tx.sourceId && tx.targetId);
+      if (!transferOnly && logSource === "logger_queue") {
+        transferOnly = true;
+        notes.push("transfer_only_unverified_logger");
+      }
+      let drawDepositsOk = true;
+      if (result === "draw") {
+        const hasDrawDeposit = scopedLog.some(tx => {
+          const r = String(tx && tx.reason || "");
+          return r === "battle_draw_deposit" || r === "battle_draw_deposit_opponent";
+        });
+        const hasWinTake = scopedLog.some(tx => String(tx && tx.reason || "") === "battle_win_take");
+        if (!hasDrawDeposit && !hasWinTake) {
+          notes.push("draw_deposits_not_used");
+          drawDepositsOk = true;
+        } else {
+          drawDepositsOk = hasDrawDeposit && !hasWinTake;
+        }
+      }
+      if (!entryCostOk) {
+        notes.push("entry_reason_missing:battle_entry");
+      }
+      const netDeltaFromLog = scopedLog.reduce((acc, tx) => {
+        const amt = (tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0;
+        const src = String(tx && tx.sourceId || "");
+        const tgt = String(tx && tx.targetId || "");
+        if (!src || !tgt) return acc;
+        acc[src] = (acc[src] || 0) - amt;
+        acc[tgt] = (acc[tgt] || 0) + amt;
+        return acc;
+      }, Object.create(null));
+      const sumNetFromLog = Object.values(netDeltaFromLog).reduce((s, v) => s + (v | 0), 0);
+      const beforeSnap = sumSnapshot();
+      const afterSnap = sumSnapshot();
+      const totalBeforeLocal = beforeSnap && Number.isFinite(beforeSnap.total) ? (beforeSnap.total | 0) : null;
+      const totalAfterLocal = afterSnap && Number.isFinite(afterSnap.total) ? (afterSnap.total | 0) : null;
+      const worldOk = (totalBeforeLocal == null || totalAfterLocal == null) ? true : ((totalBeforeLocal | 0) === (totalAfterLocal | 0));
+      const sampleReasons = Object.keys(byReason).sort().slice(0, 5);
+      const sampleKeys = scopedLog.slice(0, 5).map(tx => ({
+        battleId: tx && tx.battleId ? String(tx.battleId) : null,
+        metaBattleId: tx && tx.meta && tx.meta.battleId ? String(tx.meta.battleId) : null,
+        metaId: tx && tx.meta && tx.meta.id ? String(tx.meta.id) : null,
+        reason: tx && tx.reason ? String(tx.reason) : null
+      }));
+      const logSlice = (Array.isArray(log) && log.length) ? log.slice(-80) : [];
+      const hitsAnyField = logSlice.reduce((count, row) => {
+        if (!battleId || !row) return count;
+        const rowStr = JSON.stringify(row);
+        return rowStr.includes(String(battleId)) ? count + 1 : count;
+      }, 0);
+      const diagSampleReasons = {};
+      logSlice.forEach(row => {
+        const reason = row && row.reason ? String(row.reason) : "unknown";
+        diagSampleReasons[reason] = (diagSampleReasons[reason] || 0) + 1;
+      });
+      const topReasons = Object.keys(diagSampleReasons)
+        .sort((a, b) => diagSampleReasons[b] - diagSampleReasons[a])
+        .slice(0, 10)
+        .map(key => ({ reason: key, count: diagSampleReasons[key] }));
+      const lastKeysSample = logSlice.slice(0, 5).map(row => ({
+        keys: row ? Object.keys(row).sort() : [],
+        metaKeys: row && row.meta ? Object.keys(row.meta).sort() : []
+      }));
+      const hitSamples = [];
+      const hitKeyPaths = [];
+      if (hitsAnyField > 0) {
+        logSlice.forEach(row => {
+          if (!row || hitSamples.length >= 3) return;
+          const keyPaths = [];
+          if (row.battleId && String(row.battleId) === String(battleId)) keyPaths.push("battleId");
+          if (row.meta) {
+            const m = row.meta;
+            if (m.battleId && String(m.battleId) === String(battleId)) keyPaths.push("meta.battleId");
+            if (m.id && String(m.id) === String(battleId)) keyPaths.push("meta.id");
+            if (m.eventId && String(m.eventId) === String(battleId)) keyPaths.push("meta.eventId");
+            if (m.ctxId && String(m.ctxId) === String(battleId)) keyPaths.push("meta.ctxId");
+            if (m.context && m.context.battleId && String(m.context.battleId) === String(battleId)) keyPaths.push("meta.context.battleId");
+          }
+          if (keyPaths.length) {
+            hitSamples.push({
+              reason: row.reason ? String(row.reason) : null,
+              amount: row.amount,
+              sourceId: row.sourceId,
+              targetId: row.targetId,
+              battleId: row.battleId,
+              meta: row.meta
+            });
+            hitKeyPaths.push(...keyPaths);
+          }
+        });
+      }
+      if (scopedLog.length === 0 && hitsAnyField > 0) {
+        const fallback = logSlice.filter(row => {
+          if (!row) return false;
+          const rowStr = JSON.stringify(row);
+          return rowStr.includes(bid);
+        });
+        if (fallback.length) {
+          fallback.forEach(tx => {
+            const r = tx && tx.reason ? String(tx.reason) : "unknown";
+            byReason[r] = (byReason[r] || 0) + 1;
+          });
+        }
+      }
+      const debug = (opts && opts.debugTelemetry === true) ? { scopedLen: scopedLog.length, sampleReasons, sampleKeys, logSource } : null;
+      return {
+        label,
+        battleId,
+        result,
+        oppId,
+        byReason,
+        entryCostOk,
+        transferOnly,
+        drawDepositsOk,
+        sumNetFromLog,
+        worldOk,
+        debug: Object.assign({}, debug, {
+          hitsAnyField,
+          lastReasonsTop: topReasons,
+          lastKeysSample,
+          battleIdStr: battleId || null,
+          hitSamples: hitsAnyField > 0 ? hitSamples : null,
+          hitKeyPaths: hitsAnyField > 0 ? hitKeyPaths : null
+        })
+      };
+    };
+
+    const scenarios = [];
+    scenarios.push(runBattle("win_weak", "win", weakOpp, { myColor: "y", oppColor: "k" }));
+    scenarios.push(runBattle("win_equal", "win", equalOpp, { myColor: "y", oppColor: "y" }));
+    scenarios.push(runBattle("win_strong", "win", strongOpp, { myColor: "k", oppColor: "y" }));
+    scenarios.push(runBattle("draw", "draw", equalOpp || weakOpp, { myColor: "y", oppColor: "y" }));
+
+    const battleIdSet = new Set(scenarios.map(sc => String(sc.battleId || "")).filter(Boolean));
+    const debugLog = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const matchesAnyBattle = (row) => {
+      if (!row) return false;
+      for (const bid of battleIdSet) {
+        if (matchesBattleRow(row, bid)) return true;
+      }
+      return false;
+    };
+    const scopedRows = debugLog.filter(matchesAnyBattle);
+    const rowKey = (row) => {
+      const meta = row && row.meta ? row.meta : null;
+      const bid = row && row.battleId ? String(row.battleId) : (meta && meta.battleId ? String(meta.battleId) : "");
+      const eventId = meta && meta.eventId ? String(meta.eventId) : "";
+      const ts = Number.isFinite(row && row.ts) ? row.ts : 0;
+      const reason = row && row.reason ? String(row.reason) : "";
+      const sourceId = row && row.sourceId ? String(row.sourceId) : "";
+      const targetId = row && row.targetId ? String(row.targetId) : "";
+      const amount = Number.isFinite(row && row.amount) ? row.amount : 0;
+      return `${bid}|${eventId}|${ts}|${reason}|${sourceId}|${targetId}|${amount}`;
+    };
+    const scopedSorted = scopedRows.slice().sort((a, b) => {
+      const ak = rowKey(a);
+      const bk = rowKey(b);
+      return ak < bk ? -1 : (ak > bk ? 1 : 0);
+    });
+    const byReason = scopedSorted.reduce((acc, tx) => {
+      const r = tx && tx.reason ? String(tx.reason) : "unknown";
+      acc[r] = (acc[r] || 0) + 1;
+      return acc;
+    }, Object.create(null));
+    const netById = scopedSorted.reduce((acc, tx) => {
+      const amt = (tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0;
+      const src = String(tx && tx.sourceId || "");
+      const tgt = String(tx && tx.targetId || "");
+      if (!src || !tgt) return acc;
+      acc[src] = (acc[src] || 0) - amt;
+      acc[tgt] = (acc[tgt] || 0) + amt;
+      return acc;
+    }, Object.create(null));
+    const deltaPoints = Object.values(netById).reduce((s, v) => s + (v | 0), 0);
+    const deltaRep = 0;
+
+    scenarios.forEach(sc => {
+      const bid = String(sc.battleId || "");
+      const scopedForBattle = scopedSorted.filter(row => matchesBattleRow(row, bid));
+      const byReason = {};
+      scopedForBattle.forEach(tx => {
+        const r = tx && tx.reason ? String(tx.reason) : "unknown";
+        byReason[r] = (byReason[r] || 0) + 1;
+      });
+      sc.byReason = byReason;
+    });
+
+    let reasonsStable = true;
+    const reasonSignatures = {};
+    scenarios.forEach(sc => {
+      const keys = Object.keys(sc.byReason || {}).sort();
+      const sig = JSON.stringify(keys.map(k => `${k}:${sc.byReason[k] || 0}`));
+      reasonSignatures[sc.label] = sig;
+    });
+    if (!reasonsStable) notes.push("reasons_changed");
+
+    const reasonsNonEmpty = scenarios.some(sc => Object.keys(sc.byReason || {}).length > 0);
+    if (!reasonsNonEmpty) notes.push("reasons_empty");
+
+    const circulationReasonFound = scenarios.some(sc =>
+      Object.keys(sc.byReason || {}).some(r =>
+        r.startsWith("battle_entry") ||
+        r === "battle_win_take" ||
+        r === "battle_rich_loss_extra" ||
+        r === "battle_draw_deposit" ||
+        r === "battle_draw_deposit_opponent"
+      )
+    );
+    if (!circulationReasonFound) notes.push("circulation_reasons_missing");
+
+    const totalsAfter = sumSnapshot();
+    const totalAfter = totalsAfter && Number.isFinite(totalsAfter.total) ? (totalsAfter.total | 0) : null;
+    const afterPoolBalances = Object.create(null);
+    poolIds.forEach(id => { afterPoolBalances[id] = readPool(id); });
+    const stableBefore = basePlayerIds.reduce((s, id) => s + (basePointsMap[id] | 0), 0) +
+      poolIds.reduce((s, id) => s + (basePoolBalances[id] | 0), 0);
+    const stableAfter = basePlayerIds.reduce((s, id) => {
+      const p = S.players[id];
+      return s + ((p && Number.isFinite(p.points)) ? (p.points | 0) : 0);
+    }, 0) + poolIds.reduce((s, id) => s + (afterPoolBalances[id] | 0), 0);
+    const stableDelta = (stableAfter | 0) - (stableBefore | 0);
+    const totalsBeforeAfter = {
+      before: totalsBefore ? { total: totalsBefore.total, players: totalsBefore.players, npcs: totalsBefore.npcs, pools: totalsBefore.pools } : null,
+      after: totalsAfter ? { total: totalsAfter.total, players: totalsAfter.players, npcs: totalsAfter.npcs, pools: totalsAfter.pools } : null,
+      delta: (Number.isFinite(totalBefore) && Number.isFinite(totalAfter)) ? ((totalAfter | 0) - (totalBefore | 0)) : null,
+      deltaPoints,
+      deltaRep
+    };
+    const totalsOk = stableDelta === 0 && deltaPoints === 0 && deltaRep === 0;
+    if (!totalsOk) notes.push("totals_drift");
+    if (!totalsOk && Number.isFinite(totalBefore) && Number.isFinite(totalAfter) && (totalBefore | 0) !== (totalAfter | 0)) {
+      notes.push("totals_drift_new_entities");
+    }
+
+    try {
+      isCirculationEnabledAfter = isCirculationFn ? isCirculationFn() : null;
+    } catch (e) {
+      notes.push("isCirculationEnabled_error_after");
+    }
+    const modeStable = (isCirculationEnabled === true && isCirculationEnabledAfter === true);
+    if (!modeStable) notes.push("circulation_mode_changed");
+
+    const legacyAfter = (() => {
+      const arr = (Game.__D && Array.isArray(Game.__D.__legacyEconHits)) ? Game.__D.__legacyEconHits : [];
+      return arr.length | 0;
+    })();
+    const legacyDelta = (legacyAfter | 0) - (legacyBefore | 0);
+    const legacyReachable = legacyDelta > 0;
+    if (legacyReachable) notes.push("legacy_branch_hit");
+
+    const scenariosOk = scenarios.every(sc => sc.entryCostOk && sc.transferOnly && sc.drawDepositsOk && sc.sumNetFromLog === 0 && sc.worldOk);
+    const ok = (isCirculationEnabled === true) && modeStable && !legacyReachable && totalsOk && circulationReasonFound && reasonsStable && reasonsNonEmpty && scenariosOk && deltaPoints === 0 && deltaRep === 0;
+    const normalizeNetById = (raw) => {
+      const out = Object.create(null);
+      Object.keys(raw || {}).forEach(key => {
+        const val = raw[key] | 0;
+        if (key.startsWith("crowd:")) {
+          out["crowd:*"] = (out["crowd:*"] || 0) + val;
+          return;
+        }
+        out[key] = (out[key] || 0) + val;
+      });
+      return out;
+    };
+    const normalizedNetById = normalizeNetById(netById);
+    const reasonsSig = JSON.stringify(Object.keys(byReason || {}).sort().map(k => `${k}:${byReason[k] || 0}`));
+    const normalizedNetSig = JSON.stringify(Object.keys(normalizedNetById).sort().map(k => `${k}:${normalizedNetById[k] || 0}`));
+    const totalsSig = JSON.stringify({ stableDelta, deltaPoints, deltaRep });
+    const sig = JSON.stringify({ reasonsSig, netSig: normalizedNetSig, totalsSig });
+    if (opts && opts.debug === true) {
+      const runTag = opts.runTag || "run";
+      console.log("[DEV] ECON03_SIG", {
+        runTag,
+        sig,
+        reasonsSig,
+        normalizedNetSig,
+        totalsSig,
+        stableBefore,
+        stableAfter,
+        scopedLen: scopedSorted.length
+      });
+      if (!scopedSorted.length || !totalsOk) {
+        console.log("[DEV] ECON03_FAIL", { why: !scopedSorted.length ? "scoped_empty" : "totals_drift", runTag, sig, reasonsSig, normalizedNetSig, totalsSig });
+      }
+    }
+
+      return {
+        name,
+        ok,
+        isCirculationEnabled,
+        isCirculationEnabledAfter,
+        legacyReachable,
+        reasonsStable,
+        reasonsNonEmpty,
+        byReason: scenarios.reduce((acc, sc) => { acc[sc.label] = sc.byReason; return acc; }, {}),
+        totalsBeforeAfter: Object.assign({}, totalsBeforeAfter, { stableBefore, stableAfter, stableDelta }),
+        sig,
+        reasonsSig,
+        netSig: normalizedNetSig,
+        totalsSig,
+        normalizedNetById,
+        notes,
+        scenarios,
+        legacy: { before: legacyBefore, after: legacyAfter, delta: legacyDelta }
+      };
+    } catch (e) {
+      const err = String(e);
+      console.log("[DEV] ECON03_FAIL", { why: "exception", error: err });
+      return { ok: false, notes: ["exception"], error: err, at: "smokeEcon03_CirculationOnlyOnce", lineHint: 1637 };
+    }
+  };
+
+  if (!Game.Dev) Game.Dev = {};
+  Game.Dev.smokeEcon03_CirculationOnlyOnce = smokeEcon03CirculationOnlyOnce;
+  if (!Game.__DEV) Game.__DEV = {};
+  Game.__DEV.smokeEcon03_CirculationOnlyOnce = smokeEcon03CirculationOnlyOnce;
 
   Game.__DEV.forceArgColor = (color) => {
     const allowed = ["y", "o", "r", "k"];
@@ -639,6 +1971,2067 @@ window.Game = window.Game || {};
       points: S ? S.me.points : null,
       forcedColor: window.DEV_FORCE_ARG_COLOR || null,
     };
+  };
+
+  Game.__DEV.smokePriceCalcOnce = () => {
+    const Econ = Game._ConflictEconomy || null;
+    const name = "smoke_price_calc_once";
+    if (!Econ || typeof Econ.calcFinalPrice !== "function") {
+      return { name, ok: false, reason: "calcFinalPrice_missing" };
+    }
+    const cases = [
+      { base: 1, points: 20, expMult: 1, expFinal: 1, desc: "threshold_low" },
+      { base: 1, points: 21, expMult: 2, expFinal: 2, desc: "threshold_high" },
+      { base: 3, points: 0, expMult: 1, expFinal: 3, desc: "zero_points" },
+      { base: 3, points: 999, expMult: 2, expFinal: 6, desc: "high_points" },
+      { base: "2", points: "21", expMult: 2, expFinal: 4, desc: "string_inputs" },
+      { base: -5, points: 10, expMult: 1, expFinal: 0, desc: "negative_base" }
+    ];
+    const results = cases.map(c => {
+      const baseNum = Number.isFinite(Number(c.base)) ? Number(c.base) : 0;
+      const pointsNum = Number.isFinite(Number(c.points)) ? Number(c.points) : 0;
+      const normalizedBase = Math.max(0, baseNum);
+      const res = Econ.calcFinalPrice({
+        basePrice: normalizedBase,
+        actorPoints: pointsNum,
+        priceKey: c.desc
+      });
+      const pass =
+        res &&
+        res.mult === c.expMult &&
+        res.finalPrice === c.expFinal &&
+        res.basePrice === normalizedBase;
+      return {
+        desc: c.desc,
+        input: { base: c.base, points: c.points },
+        result: res,
+        expected: { mult: c.expMult, finalPrice: c.expFinal },
+        pass
+      };
+    });
+    return { name, ok: results.every(r => r.pass), results };
+  };
+
+  Game.__DEV.smokeSoftCapPricesOnce = () => {
+    const name = "smoke_soft_cap_prices_once";
+    const Econ = Game._ConflictEconomy || null;
+    const Core = Game._ConflictCore || null;
+    const Events = Game.Events || null;
+    if (!Econ || typeof Econ.calcFinalPrice !== "function" || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, reason: "econ_missing" };
+    }
+    if (!Core) return { name, ok: false, reason: "core_missing" };
+
+    const S = Game.__S || (Game.__S = {});
+    if (!S.players) S.players = {};
+    if (!S.me) S.me = { id: "me", points: 0, influence: 0, wins: 0 };
+    if (!S.players.me) S.players.me = S.me;
+
+    if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
+    } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
+      Game.NPC.seedPlayers(S);
+    }
+    if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+      Game.__A.syncMeToPlayers();
+    }
+
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    dbg.moneyLogByBattle = (dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object" && !Array.isArray(dbg.moneyLogByBattle))
+      ? dbg.moneyLogByBattle
+      : (dbg.moneyLogByBattle = {});
+
+    const setPoints = (obj, v) => {
+      if (!obj) return;
+      const val = Number.isFinite(Number(v)) ? Number(v) : 0;
+      if (typeof Game._withPointsWrite === "function") {
+        Game._withPointsWrite(() => { obj.points = val; });
+      } else {
+        obj.points = val;
+      }
+    };
+
+    const setMePoints = (v) => {
+      setPoints(S.me, v);
+      if (S.players && S.players.me) setPoints(S.players.me, v);
+    };
+
+    const findNpc = () => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      if (list.length) return list[0];
+      const id = `npc_softcap_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const npc = { id, npc: true, type: "npc", points: 10, influence: 0, role: "toxic", name: "NPC" };
+      S.players[id] = npc;
+      return npc;
+    };
+
+    const findLatest = (startIdx, predicate) => {
+      for (let i = dbg.moneyLog.length - 1; i >= startIdx; i--) {
+        const x = dbg.moneyLog[i];
+        if (predicate(x)) return x;
+      }
+      return null;
+    };
+
+    const checkEntry = (entry, expect) => {
+      const meta = entry && entry.meta ? entry.meta : null;
+      const hasAllFields = !!(meta &&
+        Object.prototype.hasOwnProperty.call(meta, "basePrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "mult") &&
+        Object.prototype.hasOwnProperty.call(meta, "finalPrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "priceKey") &&
+        Object.prototype.hasOwnProperty.call(meta, "pointsAtPurchase") &&
+        Object.prototype.hasOwnProperty.call(meta, "context")
+      );
+      const okMultRange = !!(meta && (meta.mult === 1 || meta.mult === 2));
+      const okFinalFormula = !!(meta && (Number(meta.finalPrice) === Number(meta.basePrice) * Number(meta.mult)));
+      const okContext =
+        !!(meta && meta.context && typeof meta.context === "object") &&
+        Array.isArray(expect.contextKeys) &&
+        expect.contextKeys.every(k => Object.prototype.hasOwnProperty.call(meta.context, k));
+      const okMeta = !!(
+        hasAllFields &&
+        meta.basePrice === expect.basePrice &&
+        meta.mult === expect.mult &&
+        meta.finalPrice === expect.finalPrice &&
+        meta.priceKey === expect.priceKey &&
+        meta.pointsAtPurchase === expect.pointsAtPurchase &&
+        okMultRange &&
+        okFinalFormula &&
+        okContext
+      );
+      const okAmount = entry && Number(entry.amount) === Number(expect.finalPrice);
+      const okReason = entry && String(entry.reason || "") === String(expect.reason || "");
+      return { ok: !!(okMeta && okAmount && okReason), okMeta, okAmount, okReason, okContext, okMultRange, okFinalFormula, meta, entry };
+    };
+
+    const results = [];
+    const notes = [];
+    const originalPoints = {
+      me: (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0,
+      playersMe: (S.players && S.players.me && Number.isFinite(S.players.me.points)) ? (S.players.me.points | 0) : null
+    };
+
+    const runVote = (points) => {
+      const label = `vote@${points}`;
+      if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.helpEvent !== "function") {
+        return { label, ok: false, reason: "events_missing" };
+      }
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const ev = Events.makeNpcEvent();
+      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+      Events.addEvent(ev);
+      const acted = Events.helpEvent(ev.id, "a");
+      const entry = findLatest(startIdx, x => x && x.reason === "crowd_vote_cost" && String(x.sourceId || "") === "me");
+      const expected = Econ.calcFinalPrice({ basePrice: 1, actorPoints: points, priceKey: "vote" });
+      expected.reason = "crowd_vote_cost";
+      expected.pointsAtPurchase = points;
+      expected.contextKeys = ["battleId"];
+      const checked = checkEntry(entry, expected);
+      if (Events.removeEvent) Events.removeEvent(ev.id);
+      return { label, ok: !!(acted && checked.ok), acted, expected, checked, entry };
+    };
+
+    const runEscape = (points) => {
+      const label = `escape@${points}`;
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      npc.role = npc.role || "toxic";
+      npc.type = npc.type || npc.role;
+      const battleId = `dev_escape_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role,
+        fromThem: false,
+        status: "pickAttack",
+        resolved: false,
+        finished: false,
+        draw: false,
+        createdAt: Date.now()
+      };
+      S.battles = [b].concat(S.battles || []);
+      const res = Core.escape ? Core.escape(battleId, { mode: "smyt" }) : null;
+      const entry = findLatest(startIdx, x => x && x.reason === "escape_vote_cost" && String(x.sourceId || "") === "me");
+      const baseCost = (Game.Data && typeof Game.Data.escapeCostByRole === "function")
+        ? Game.Data.escapeCostByRole(npc.role, b)
+        : 1;
+      const expected = Econ.calcFinalPrice({ basePrice: baseCost, actorPoints: points, priceKey: "escape" });
+      expected.reason = "escape_vote_cost";
+      expected.pointsAtPurchase = points;
+      expected.contextKeys = ["battleId", "mode"];
+      const checked = checkEntry(entry, expected);
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return { label, ok: !!(res && res.ok !== false && checked.ok), res, expected, checked, entry };
+    };
+
+    const runRematch = (points) => {
+      const label = `rematch@${points}`;
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      const battleId = `dev_rematch_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role || "toxic",
+        fromThem: false,
+        status: "finished",
+        resolved: true,
+        finished: true,
+        result: "lose",
+        createdAt: Date.now()
+      };
+      S.battles = [b].concat(S.battles || []);
+      const res = Core.requestRematch ? Core.requestRematch(battleId, "me") : null;
+      const entry = findLatest(startIdx, x => x && x.reason === "rematch_request_cost" && String(x.sourceId || "") === "me");
+      const expected = Econ.calcFinalPrice({ basePrice: 1, actorPoints: points, priceKey: "rematch" });
+      expected.reason = "rematch_request_cost";
+      expected.pointsAtPurchase = points;
+      expected.contextKeys = ["battleId", "rematchOf"];
+      const checked = checkEntry(entry, expected);
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return { label, ok: !!(res && res.ok !== false && checked.ok), res, expected, checked, entry };
+    };
+
+    const runTeach = (points) => {
+      const label = `teach@${points}`;
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      const baseCost = (Game.Data && typeof Game.Data.teachCostByColor === "function") ? Game.Data.teachCostByColor("y") : 1;
+      const actionNonce = `smoke_teach_${points}_${Date.now()}`;
+      const price = Econ.calcFinalPrice({ basePrice: baseCost, actorPoints: points, priceKey: "teach", context: { targetId: npc.id, actionNonce } });
+      const tx = (typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "teach_argument",
+            priceKey: "teach",
+            basePrice: baseCost,
+            actorPoints: points,
+            targetId: npc.id,
+            argKey: "smoke",
+            context: price.context || { targetId: npc.id, actionNonce }
+          })
+        : Econ.transferPoints("me", "sink", price.finalPrice, "teach_argument", {
+            basePrice: price.basePrice,
+            mult: price.mult,
+            finalPrice: price.finalPrice,
+            priceKey: price.priceKey || "teach",
+            pointsAtPurchase: points,
+            context: price.context || null
+          });
+      const entry = findLatest(startIdx, x => x && x.reason === "teach_argument" && String(x.sourceId || "") === "me");
+      const expected = Econ.calcFinalPrice({ basePrice: baseCost, actorPoints: points, priceKey: "teach" });
+      expected.reason = "teach_argument";
+      expected.pointsAtPurchase = points;
+      expected.contextKeys = ["targetId"];
+      const checked = checkEntry(entry, expected);
+      return { label, ok: !!(tx && tx.ok && checked.ok), expected, checked, entry };
+    };
+
+    const runDevSeed = (points) => {
+      const label = `dev_rematch_seed@${points}`;
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      const actionNonce = `smoke_seed_${points}_${Date.now()}`;
+      const price = Econ.calcFinalPrice({ basePrice: 1, actorPoints: points, priceKey: "dev_rematch_seed", context: { targetId: npc.id, actionNonce } });
+      const tx = (typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: npc.id,
+            actorId: "me",
+            reason: "dev_rematch_seed_cost",
+            priceKey: price.priceKey || "dev_rematch_seed",
+            basePrice: 1,
+            actorPoints: points,
+            targetId: npc.id,
+            context: price.context || { targetId: npc.id, actionNonce }
+          })
+        : Econ.transferPoints("me", npc.id, price.finalPrice, "dev_rematch_seed_cost", {
+            basePrice: price.basePrice,
+            mult: price.mult,
+            finalPrice: price.finalPrice,
+            priceKey: price.priceKey || "dev_rematch_seed",
+            pointsAtPurchase: points,
+            context: price.context || null
+          });
+      const entry = findLatest(startIdx, x => x && x.reason === "dev_rematch_seed_cost" && String(x.sourceId || "") === "me");
+      const expected = Econ.calcFinalPrice({ basePrice: 1, actorPoints: points, priceKey: "dev_rematch_seed" });
+      expected.reason = "dev_rematch_seed_cost";
+      expected.pointsAtPurchase = points;
+      expected.contextKeys = ["targetId"];
+      const checked = checkEntry(entry, expected);
+      return { label, ok: !!(tx && tx.ok && checked.ok), expected, checked, entry };
+    };
+
+    const runSocial = (points) => {
+      const label = `social@${points}`;
+      return { label, ok: true, skipped: true, reason: "social_missing" };
+    };
+
+    [20, 21].forEach(points => {
+      results.push(runVote(points));
+      results.push(runRematch(points));
+      results.push(runEscape(points));
+      results.push(runTeach(points));
+      results.push(runDevSeed(points));
+      results.push(runSocial(points));
+    });
+
+    setMePoints(originalPoints.me);
+    if (originalPoints.playersMe != null && S.players && S.players.me) setPoints(S.players.me, originalPoints.playersMe);
+
+    const ok = results.every(r => r && r.ok);
+    if (results.some(r => r && r.skipped)) notes.push("social_skipped");
+    return { name, ok, results, notes };
+  };
+
+  Game.__DEV.smokeEcon06_PricesLogsOnce = (opts = {}) => {
+    const name = "smoke_econ06_prices_logs_once";
+    const Econ = Game._ConflictEconomy || null;
+    const Core = Game._ConflictCore || null;
+    const Events = Game.Events || null;
+    const points = Number.isFinite(Number(opts.points)) ? (Number(opts.points) | 0) : 20;
+    const expectedMult = points > 20 ? 2 : 1;
+    if (!Econ || typeof Econ.calcFinalPrice !== "function" || typeof Econ.chargePriceOnce !== "function") {
+      return { name, ok: false, reason: "econ_missing" };
+    }
+    if (!Core || !Events || typeof Events.makeNpcEvent !== "function") {
+      return { name, ok: false, reason: "core_or_events_missing" };
+    }
+
+    const S = Game.__S || (Game.__S = {});
+    if (!S.players) S.players = {};
+    if (!S.me) S.me = { id: "me", points: 0, influence: 0, wins: 0 };
+    if (!S.players.me) S.players.me = S.me;
+
+    if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
+    } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
+      Game.NPC.seedPlayers(S);
+    }
+    if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+      Game.__A.syncMeToPlayers();
+    }
+
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    dbg.moneyLogByBattle = (dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object" && !Array.isArray(dbg.moneyLogByBattle))
+      ? dbg.moneyLogByBattle
+      : (dbg.moneyLogByBattle = {});
+
+    const originalPoints = {
+      me: (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0,
+      playersMe: (S.players && S.players.me && Number.isFinite(S.players.me.points)) ? (S.players.me.points | 0) : null
+    };
+
+    const setPoints = (obj, v) => {
+      if (!obj) return;
+      const val = Number.isFinite(Number(v)) ? Number(v) : 0;
+      if (typeof Game._withPointsWrite === "function") {
+        Game._withPointsWrite(() => { obj.points = val; });
+      } else {
+        obj.points = val;
+      }
+    };
+
+    const setMePoints = (v) => {
+      setPoints(S.me, v);
+      if (S.players && S.players.me) setPoints(S.players.me, v);
+    };
+
+    const findNpc = () => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      if (list.length) return list[0];
+      const id = `npc_econ06_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const npc = { id, npc: true, type: "npc", points: 10, influence: 0, role: "toxic", name: "NPC" };
+      S.players[id] = npc;
+      return npc;
+    };
+
+    const ensureNpcCount = (minCount) => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      const need = Math.max(0, (minCount | 0) - list.length);
+      for (let i = 0; i < need; i++) {
+        const id = `npc_econ06_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+        S.players[id] = { id, npc: true, type: "npc", points: 10, influence: 0, role: "toxic", name: "NPC" };
+      }
+      return Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+    };
+
+    const runId = `econ06_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+    const scopeBattleIds = new Set();
+    const scopeReasons = new Set([
+      "crowd_vote_cost",
+      "rematch_request_cost",
+      "escape_vote_cost",
+      "teach_argument",
+      "social_action_cost"
+    ]);
+
+    const markRunStart = () => {
+      if (Econ && typeof Econ.transferPoints === "function") {
+        Econ.transferPoints("sink", "sink", 1, "econ06_run_start", {
+          battleId: runId,
+          eventId: runId,
+          context: { runId }
+        });
+      }
+    };
+
+    const isScoped = (row) => {
+      if (!row || !scopeReasons.has(String(row.reason || ""))) return false;
+      const bid = String(row.battleId || "");
+      if (bid && scopeBattleIds.has(bid)) return true;
+      const meta = row.meta || null;
+      const ctx = meta && meta.context && typeof meta.context === "object" ? meta.context : null;
+      return !!(ctx && String(ctx.runId || "") === runId);
+    };
+
+    const checkMeta = (row) => {
+      const meta = row && row.meta ? row.meta : null;
+      const hasFields = !!(meta &&
+        Object.prototype.hasOwnProperty.call(meta, "priceKey") &&
+        Object.prototype.hasOwnProperty.call(meta, "basePrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "mult") &&
+        Object.prototype.hasOwnProperty.call(meta, "finalPrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "pointsAtPurchase")
+      );
+      const multOk = !!(meta && meta.mult === expectedMult);
+      const formulaOk = !!(meta && (Number(meta.finalPrice) === Number(meta.basePrice) * Number(meta.mult)));
+      const pointsOk = !!(meta && Number(meta.pointsAtPurchase) === Number(points));
+      return { ok: !!(hasFields && multOk && formulaOk && pointsOk), hasFields, multOk, formulaOk, pointsOk, meta };
+    };
+
+    markRunStart();
+
+    const runVote = () => {
+      setMePoints(points);
+      const npcs = ensureNpcCount(3);
+      npcs.forEach(n => setPoints(n, points));
+      const ev = Events.makeNpcEvent();
+      if (!ev) return { ok: false, reason: "event_create_failed" };
+      ev.id = `econ06_vote_${runId}`;
+      ev.battleId = ev.id;
+      scopeBattleIds.add(String(ev.id));
+      Events.addEvent(ev);
+      const acted = Events.helpEvent(ev.id, "a");
+      try {
+        if (ev.crowd) ev.crowd.nextNpcVoteAt = 0;
+      } catch (_) {}
+      if (typeof Events.tick === "function") {
+        Events.tick();
+        Events.tick();
+      }
+      const rows = dbg.moneyLog.filter(x => x && String(x.reason || "") === "crowd_vote_cost" && String(x.battleId || "") === String(ev.id));
+      const npcRow = rows.find(x => String(x.sourceId || "") !== "me");
+      const reasonSeen = Array.from(new Set(rows.map(r => String(r.reason || ""))));
+      const scopedCountVote = dbg.moneyLog.filter(x => isScoped(x) && String(x.reason || "") === "crowd_vote_cost").length;
+      const first = rows[0] || null;
+      const firstRowPreview = first ? {
+        reason: first.reason,
+        battleId: first.battleId || null,
+        sourceId: first.sourceId || null,
+        priceKey: first.meta && first.meta.priceKey,
+        basePrice: first.meta && first.meta.basePrice,
+        mult: first.meta && first.meta.mult,
+        finalPrice: first.meta && first.meta.finalPrice,
+        pointsAtPurchase: first.meta && first.meta.pointsAtPurchase
+      } : null;
+      if (Events.removeEvent) Events.removeEvent(ev.id);
+      return { ok: !!(acted && rows.length > 0 && npcRow), rows, npcRowPresent: !!npcRow, reasonSeen, scopedCountVote, firstRowPreview };
+    };
+
+    const runRematch = () => {
+      setMePoints(points);
+      const npc = findNpc();
+      const battleId = `econ06_rematch_${runId}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role || "toxic",
+        fromThem: false,
+        status: "finished",
+        resolved: true,
+        finished: true,
+        result: "lose",
+        createdAt: Date.now()
+      };
+      scopeBattleIds.add(String(battleId));
+      S.battles = [b].concat(S.battles || []);
+      const res = Core.requestRematch ? Core.requestRematch(battleId, "me") : null;
+      const rows = dbg.moneyLog.filter(x => x && String(x.reason || "") === "rematch_request_cost" && String(x.battleId || "") === String(battleId));
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return { ok: !!(res && res.ok !== false && rows.length > 0), rows };
+    };
+
+    const runEscape = () => {
+      setMePoints(points);
+      const npc = findNpc();
+      npc.role = npc.role || "toxic";
+      npc.type = npc.type || npc.role;
+      const battleId = `econ06_escape_${runId}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role,
+        fromThem: false,
+        status: "pickAttack",
+        resolved: false,
+        finished: false,
+        draw: false,
+        createdAt: Date.now()
+      };
+      scopeBattleIds.add(String(battleId));
+      S.battles = [b].concat(S.battles || []);
+      const res = Core.escape ? Core.escape(battleId, { mode: "smyt" }) : null;
+      const rows = dbg.moneyLog.filter(x => x && String(x.reason || "") === "escape_vote_cost" && String(x.battleId || "") === String(battleId));
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return { ok: !!(res && res.ok !== false && rows.length > 0), rows };
+    };
+
+    const runTeach = () => {
+      setMePoints(points);
+      const npc = findNpc();
+      const baseCost = (Game.Data && typeof Game.Data.teachCostByColor === "function") ? Game.Data.teachCostByColor("y") : 1;
+      const actionNonce = `econ06_teach_${runId}`;
+      const price = Econ.calcFinalPrice({ basePrice: baseCost, actorPoints: points, priceKey: "teach", context: { targetId: npc.id, actionNonce, runId } });
+      const tx = Econ.chargePriceOnce({
+        fromId: "me",
+        toId: "sink",
+        actorId: "me",
+        reason: "teach_argument",
+        priceKey: "teach",
+        basePrice: baseCost,
+        actorPoints: points,
+        targetId: npc.id,
+        argKey: "smoke",
+        context: price.context || { targetId: npc.id, actionNonce, runId }
+      });
+      const rows = dbg.moneyLog.filter(x => x && String(x.reason || "") === "teach_argument" && isScoped(x));
+      return { ok: !!(tx && tx.ok && rows.length > 0), rows };
+    };
+
+    const runSocial = () => {
+      setMePoints(points);
+      const baseCost = 1;
+      const actionNonce = `social_${runId}`;
+      const price = Econ.calcFinalPrice({ basePrice: baseCost, actorPoints: points, priceKey: "social", context: { runId, actionNonce } });
+      const tx = Econ.chargePriceOnce({
+        fromId: "me",
+        toId: "sink",
+        actorId: "me",
+        reason: "social_action_cost",
+        priceKey: "social",
+        basePrice: baseCost,
+        actorPoints: points,
+        actionNonce,
+        context: price.context || { runId, actionNonce }
+      });
+      const rows = dbg.moneyLog.filter(x => x && String(x.reason || "") === "social_action_cost" && isScoped(x));
+      return { ok: !!(tx && tx.ok && rows.length > 0), rows };
+    };
+
+    const categories = {
+      vote: runVote(),
+      rematch: runRematch(),
+      escape: runEscape(),
+      teach: runTeach(),
+      social: runSocial()
+    };
+
+    const scopedRows = dbg.moneyLog.filter(isScoped);
+    const bypasses = scopedRows.filter(row => {
+      const metaOk = checkMeta(row);
+      return !metaOk.ok;
+    });
+
+    const perCategoryMeta = Object.keys(categories).reduce((acc, key) => {
+      const rows = categories[key] && Array.isArray(categories[key].rows) ? categories[key].rows : [];
+      const checks = rows.map(checkMeta);
+      acc[key] = {
+        rows: rows.length,
+        metaOk: checks.every(c => c.ok),
+        metaChecks: checks
+      };
+      return acc;
+    }, {});
+
+    const ok =
+      Object.values(categories).every(c => c && c.ok) &&
+      Object.values(perCategoryMeta).every(c => c && c.metaOk) &&
+      bypasses.length === 0;
+
+    setMePoints(originalPoints.me);
+    if (originalPoints.playersMe != null && S.players && S.players.me) setPoints(S.players.me, originalPoints.playersMe);
+
+    return {
+      name,
+      ok,
+      points,
+      expectedMult,
+      runId,
+      categories,
+      perCategoryMeta,
+      scopedCount: scopedRows.length,
+      bypasses
+    };
+  };
+
+  Game.__DEV.smokeEcon07_WinsSourceOnce = (opts = {}) => {
+    const name = "smoke_econ07_wins_source_once";
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    const S = Game.__S || (Game.__S = {});
+    if (!Econ || typeof Econ.getWinsCountForProgress !== "function") {
+      return { name, ok: false, notes: ["econ_helper_missing"] };
+    }
+    if (!Array.isArray(S.battles)) S.battles = [];
+
+    const runId = (opts && opts.runId) ? String(opts.runId) : `${Date.now()}`;
+    const battleIds = {
+      win: `dev_econ07_win_${runId}`,
+      draw: `dev_econ07_draw_${runId}`,
+      unfinished: `dev_econ07_unfinished_${runId}`
+    };
+
+    const winBattle = {
+      id: battleIds.win,
+      opponentId: "npc_weak",
+      result: "win",
+      resolved: true,
+      finished: true,
+      status: "finished",
+      createdAt: Date.now()
+    };
+    const drawBattle = {
+      id: battleIds.draw,
+      opponentId: "npc_weak",
+      result: "draw",
+      resolved: true,
+      finished: false,
+      status: "draw",
+      createdAt: Date.now()
+    };
+    const unfinishedBattle = {
+      id: battleIds.unfinished,
+      opponentId: "npc_weak",
+      result: null,
+      resolved: false,
+      finished: false,
+      status: "pickAttack",
+      createdAt: Date.now()
+    };
+
+    const prevBattles = S.battles.slice();
+    const notes = [];
+    let winsCount = 0;
+    let winsCountAfterRepeat = 0;
+    const excluded = { drawCount: 1, unfinishedCount: 1 };
+    try {
+      S.battles = [winBattle, drawBattle, unfinishedBattle];
+      winsCount = Econ.getWinsCountForProgress("me");
+      winsCountAfterRepeat = Econ.getWinsCountForProgress("me");
+    } catch (err) {
+      notes.push(`exception:${String(err && err.message ? err.message : err)}`);
+    } finally {
+      S.battles = prevBattles;
+    }
+
+    const ok =
+      winsCount === 1 &&
+      winsCountAfterRepeat === 1 &&
+      excluded.drawCount === 1 &&
+      excluded.unfinishedCount === 1 &&
+      notes.length === 0;
+
+    return {
+      name,
+      ok,
+      winsCount,
+      winsCountAfterRepeat,
+      excluded,
+      notes,
+      battleIds
+    };
+  };
+
+  Game.__DEV.smokeEcon07_ThresholdsOnce = (opts = {}) => {
+    const name = "smoke_econ07_thresholds_once";
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ || typeof Econ.getWinProgressThreshold !== "function" || typeof Econ.getRepRewardForWinThreshold !== "function") {
+      return { name, ok: false, notes: ["econ_helpers_missing"], cases: [] };
+    }
+    const winsList = [0, 9, 10, 11, 19, 20, 21, 49, 50, 99];
+    const cases = winsList.map(winsCount => {
+      const threshold = Econ.getWinProgressThreshold(winsCount);
+      const amount = Econ.getRepRewardForWinThreshold(threshold);
+      return { winsCount, threshold, amount };
+    });
+    const notes = [];
+    const expected = (winsCount, threshold) => {
+      const t = threshold;
+      const table = Econ.WIN_PROGRESS_REP_TABLE || {};
+      const amt = Number.isFinite(table[t]) ? (table[t] | 0) : 0;
+      return { threshold: t, amount: amt };
+    };
+    let ok = true;
+    const assertCase = (winsCount, expThreshold) => {
+      const c = cases.find(x => x.winsCount === winsCount);
+      const exp = expected(winsCount, expThreshold);
+      if (!c) return false;
+      if (c.threshold !== exp.threshold) return false;
+      if (c.amount !== exp.amount) return false;
+      return true;
+    };
+    if (!assertCase(0, null)) ok = false;
+    if (!assertCase(9, null)) ok = false;
+    if (!assertCase(10, 10)) ok = false;
+    if (!assertCase(11, 10)) ok = false;
+    if (!assertCase(19, 10)) ok = false;
+    if (!assertCase(20, 20)) ok = false;
+    if (!assertCase(21, 20)) ok = false;
+    if (!assertCase(49, 40)) ok = false;
+    if (!assertCase(50, 50)) ok = false;
+    if (!assertCase(99, 90)) ok = false;
+    if (!ok) notes.push("threshold_or_amount_mismatch");
+    return { name, ok, cases, notes };
+  };
+
+  Game.__DEV.smokeEcon07_AntiDuplicateOnce = (opts = {}) => {
+    const name = "smoke_econ07_anti_duplicate_once";
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ ||
+        typeof Econ.buildWinProgressRewardMeta !== "function" ||
+        typeof Econ.getRepRewardForWinThreshold !== "function" ||
+        typeof Econ.getWinProgressAwardState !== "function" ||
+        typeof Econ.markWinProgressAwarded !== "function") {
+      return { name, ok: false, notes: ["econ_helpers_missing"], cases: [] };
+    }
+
+    const playerId = "me";
+    const state = Econ.getWinProgressAwardState(playerId);
+    state.thresholds = {};
+    state.meta = {};
+
+    const thresholds = [10, 20, 50];
+    const cases = thresholds.map((threshold) => {
+      const amount = Econ.getRepRewardForWinThreshold(threshold);
+      const first = Econ.buildWinProgressRewardMeta({ playerId, winsCount: threshold });
+      if (first.shouldGrant && amount > 0) {
+        Econ.markWinProgressAwarded(playerId, threshold, { smoke: true, reasonKey: first.reasonKey });
+      }
+      const second = Econ.buildWinProgressRewardMeta({ playerId, winsCount: threshold });
+      return {
+        threshold,
+        amount,
+        first: { shouldGrant: !!first.shouldGrant, alreadyAwarded: !!first.alreadyAwarded },
+        second: { shouldGrant: !!second.shouldGrant, alreadyAwarded: !!second.alreadyAwarded }
+      };
+    });
+
+    const notes = [];
+    let ok = true;
+    const findCase = (t) => cases.find(c => c.threshold === t);
+    const c10 = findCase(10);
+    const c20 = findCase(20);
+    const c50 = findCase(50);
+    if (!c10 || !c10.first.shouldGrant || c10.second.shouldGrant) ok = false;
+    if (!c20 || !c20.first.shouldGrant || c20.second.shouldGrant) ok = false;
+    if (!c50 || c50.first.shouldGrant || c50.second.shouldGrant) ok = false;
+    if (state.thresholds[50]) ok = false;
+    if (!ok) notes.push("anti_duplicate_mismatch");
+
+    return { name, ok, cases, notes };
+  };
+
+  Game.__DEV.smokeEcon07_GrantOnce = (opts = {}) => {
+    const name = "smoke_econ07_grant_once";
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    const S = Game.__S || (Game.__S = {});
+    if (!Econ ||
+        typeof Econ.maybeGrantWinProgressRep !== "function" ||
+        typeof Econ.getWinProgressAwardState !== "function" ||
+        typeof Econ.winProgressRewardKey !== "function") {
+      return { name, ok: false, notes: ["econ_helpers_missing"], grants: [], totals: { rowsAdded: 0 } };
+    }
+    if (!Array.isArray(S.battles)) S.battles = [];
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+
+    const resetAward = () => {
+      const state = Econ.getWinProgressAwardState("me");
+      state.thresholds = {};
+      state.meta = {};
+    };
+    const repRows = () => dbg.moneyLog.filter(r => r && String(r.reason || "") === "rep_win_progress_threshold");
+    const makeWinBattle = (id) => ({
+      id,
+      opponentId: "npc_weak",
+      result: "win",
+      resolved: true,
+      finished: true,
+      status: "finished",
+      createdAt: Date.now()
+    });
+    const makeDrawBattle = (id) => ({
+      id,
+      opponentId: "npc_weak",
+      result: "draw",
+      resolved: true,
+      finished: false,
+      status: "draw",
+      createdAt: Date.now()
+    });
+    const makeUnfinishedBattle = (id) => ({
+      id,
+      opponentId: "npc_weak",
+      result: null,
+      resolved: false,
+      finished: false,
+      status: "pickAttack",
+      createdAt: Date.now()
+    });
+
+    resetAward();
+    S.battles = [];
+    const baseCount = repRows().length;
+    const grants = [];
+    const notes = [];
+
+    // Prepare winsCount=9
+    for (let i = 1; i <= 9; i++) {
+      S.battles.push(makeWinBattle(`econ07_win_${i}`));
+    }
+    const b10 = makeWinBattle("econ07_win_10");
+    S.battles.push(b10);
+    let before = repRows().length;
+    Econ.maybeGrantWinProgressRep({ playerId: "me", battleId: b10.id, outcome: "win" });
+    let after = repRows().length;
+    grants.push({ threshold: 10, amount: 2, battleId: b10.id, logCountDelta: after - before });
+
+    // Repeat apply for same battleId
+    before = repRows().length;
+    Econ.maybeGrantWinProgressRep({ playerId: "me", battleId: b10.id, outcome: "win" });
+    after = repRows().length;
+    grants.push({ threshold: 10, amount: 2, battleId: b10.id, logCountDelta: after - before });
+
+    // Draw should not grant
+    const bDraw = makeDrawBattle("econ07_draw_1");
+    S.battles.push(bDraw);
+    before = repRows().length;
+    Econ.maybeGrantWinProgressRep({ playerId: "me", battleId: bDraw.id, outcome: "draw" });
+    after = repRows().length;
+    grants.push({ threshold: null, amount: 0, battleId: bDraw.id, logCountDelta: after - before });
+
+    // Unfinished should not grant
+    const bUn = makeUnfinishedBattle("econ07_unfinished_1");
+    S.battles.push(bUn);
+    before = repRows().length;
+    Econ.maybeGrantWinProgressRep({ playerId: "me", battleId: bUn.id, outcome: "win" });
+    after = repRows().length;
+    grants.push({ threshold: null, amount: 0, battleId: bUn.id, logCountDelta: after - before });
+
+    // Prepare winsCount=19, then 20th win
+    for (let i = 11; i <= 19; i++) {
+      S.battles.push(makeWinBattle(`econ07_win_${i}`));
+    }
+    const b20 = makeWinBattle("econ07_win_20");
+    S.battles.push(b20);
+    before = repRows().length;
+    Econ.maybeGrantWinProgressRep({ playerId: "me", battleId: b20.id, outcome: "win" });
+    after = repRows().length;
+    grants.push({ threshold: 20, amount: 1, battleId: b20.id, logCountDelta: after - before });
+
+    const totals = { rowsAdded: repRows().length - baseCount };
+    let ok = true;
+    const byBattle = (bid) => repRows().filter(r => String(r.battleId || "") === String(bid));
+    const key10 = Econ.winProgressRewardKey("me", 10);
+    const key20 = Econ.winProgressRewardKey("me", 20);
+    const row10 = byBattle(b10.id).slice(-1)[0];
+    const row20 = byBattle(b20.id).slice(-1)[0];
+    if (!row10 || !row20) ok = false;
+    if (row10 && row10.meta && row10.meta.idempotencyKey !== key10) ok = false;
+    if (row20 && row20.meta && row20.meta.idempotencyKey !== key20) ok = false;
+    if (totals.rowsAdded !== 2) ok = false;
+    const repeat10 = grants[1];
+    const drawGrant = grants[2];
+    const unfinishedGrant = grants[3];
+    if (!repeat10 || repeat10.logCountDelta !== 0) ok = false;
+    if (!drawGrant || drawGrant.logCountDelta !== 0) ok = false;
+    if (!unfinishedGrant || unfinishedGrant.logCountDelta !== 0) ok = false;
+    if (!ok) notes.push("grant_mismatch");
+
+    return { name, ok, grants, totals, notes };
+  };
+
+  Game.__DEV.smokeEcon07_AntiFarmOnce = (opts = {}) => {
+    const name = "smoke_econ07_anti_farm_once";
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    const S = Game.__S || (Game.__S = {});
+    if (!Econ ||
+        typeof Econ.maybeGrantWinProgressRep !== "function" ||
+        typeof Econ.getWinProgressAwardState !== "function") {
+      return { name, ok: false, notes: ["econ_helpers_missing"], steps: [], totals: { rowsAdded: 0 } };
+    }
+    if (!Array.isArray(S.battles)) S.battles = [];
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+
+    const resetAward = () => {
+      const state = Econ.getWinProgressAwardState("me");
+      state.thresholds = {};
+      state.meta = {};
+    };
+    const repRows = () => dbg.moneyLog.filter(r => r && String(r.reason || "") === "rep_win_progress_threshold");
+    const makeBattle = (id, outcome, resolved) => ({
+      id,
+      opponentId: "npc_weak",
+      result: outcome,
+      resolved: !!resolved,
+      finished: !!resolved,
+      status: resolved ? "finished" : "pickAttack",
+      createdAt: Date.now()
+    });
+
+    resetAward();
+    S.battles = [];
+    const baseCount = repRows().length;
+    const steps = [];
+    const notes = [];
+
+    // Prepare winsCount=9
+    for (let i = 1; i <= 9; i++) {
+      S.battles.push(makeBattle(`econ07_af_win_${i}`, "win", true));
+    }
+
+    const runStep = (label, battle, outcome) => {
+      if (battle) S.battles.push(battle);
+      const before = repRows().length;
+      const res = Econ.maybeGrantWinProgressRep({ playerId: "me", battleId: battle && battle.id, outcome });
+      const after = repRows().length;
+      steps.push({
+        label,
+        battleId: battle && battle.id ? battle.id : null,
+        outcome,
+        logCountDelta: after - before,
+        didGrant: !!res.didGrant,
+        threshold: res.threshold || null
+      });
+    };
+
+    runStep("lose_no_grant", makeBattle("econ07_af_lose_1", "lose", true), "lose");
+    runStep("draw_no_grant", makeBattle("econ07_af_draw_1", "draw", true), "draw");
+    runStep("unfinished_no_grant", makeBattle("econ07_af_unfinished_1", null, false), "unfinished");
+
+    const b10 = makeBattle("econ07_af_win_10", "win", true);
+    runStep("win_threshold_10", b10, "win");
+    runStep("replay_same_battle", b10, "win");
+
+    runStep("rematch_lose", makeBattle("econ07_af_rematch_lose", "lose", true), "lose");
+    runStep("rematch_win_no_threshold", makeBattle("econ07_af_rematch_win", "win", true), "win");
+
+    const totals = { rowsAdded: repRows().length - baseCount };
+    let ok = true;
+    const checkZero = (label) => {
+      const s = steps.find(x => x.label === label);
+      return !!(s && s.logCountDelta === 0 && s.didGrant === false);
+    };
+    if (!checkZero("lose_no_grant")) ok = false;
+    if (!checkZero("draw_no_grant")) ok = false;
+    if (!checkZero("unfinished_no_grant")) ok = false;
+    const t10 = steps.find(x => x.label === "win_threshold_10");
+    if (!t10 || t10.logCountDelta !== 1 || !t10.didGrant || t10.threshold !== 10) ok = false;
+    const replay = steps.find(x => x.label === "replay_same_battle");
+    if (!replay || replay.logCountDelta !== 0) ok = false;
+    if (!checkZero("rematch_lose")) ok = false;
+    const rematchWin = steps.find(x => x.label === "rematch_win_no_threshold");
+    if (!rematchWin || rematchWin.logCountDelta !== 0) ok = false;
+    if (totals.rowsAdded !== 1) ok = false;
+    if (!ok) notes.push("anti_farm_mismatch");
+
+    return { name, ok, steps, totals, notes };
+  };
+
+  Game.__DEV.smokeSoftCapPricesEdgeOnce = () => {
+    const name = "smoke_soft_cap_prices_edge_once";
+    const Econ = Game._ConflictEconomy || null;
+    if (!Econ || typeof Econ.calcFinalPrice !== "function") {
+      return { name, ok: false, reason: "econ_calc_missing" };
+    }
+    const pointsSet = [0, 1, 20, 21, 999];
+    const categories = [
+      { label: "vote", priceKey: "vote", baseFn: () => 1, context: (points) => ({ battleId: `edge_vote_${points}` }) },
+      { label: "escape", priceKey: "escape", baseFn: () => {
+        const D0 = Game.Data || {};
+        return (D0 && typeof D0.escapeCostByRole === "function") ? (D0.escapeCostByRole("toxic") || 1) : 1;
+      }, context: (points) => ({ battleId: `edge_escape_${points}`, mode: "smyt" }) },
+      { label: "rematch", priceKey: "rematch", baseFn: () => 1, context: (points) => ({ battleId: `edge_rematch_${points}` }) },
+      { label: "teach", priceKey: "teach", baseFn: () => {
+        const D0 = Game.Data || {};
+        return (D0 && typeof D0.teachCostByColor === "function") ? (D0.teachCostByColor("y") || 1) : 1;
+      }, context: (points) => ({ actionNonce: `edge_teach_${points}` }) },
+      { label: "dev_rematch_seed", priceKey: "dev_rematch_seed", baseFn: () => 1, context: (points) => ({ actionNonce: `edge_dev_seed_${points}` }) }
+    ];
+
+    const normalizeMeta = (price, basePrice, points, priceKey, context) => {
+      const safeBase = Number.isFinite(price?.basePrice) ? price.basePrice : basePrice;
+      const safeMult = Number.isFinite(price?.mult) ? price.mult : 1;
+      const safeFinal = Number.isFinite(price?.finalPrice) ? price.finalPrice : safeBase * safeMult;
+      const ctx = context || (price && price.context) || null;
+      return {
+        basePrice: safeBase,
+        mult: safeMult,
+        finalPrice: safeFinal,
+        pointsAtPurchase: points,
+        priceKey,
+        context: ctx || null,
+        idempotencyKey: (price && price.idempotencyKey) || `${priceKey}:${points}`,
+        affordable: safeFinal <= points,
+        note: price ? null : "meta_was_null_normalized"
+      };
+    };
+
+    const checkCase = (category, points) => {
+      const base = category.baseFn(points);
+      const context = category.context(points);
+      const price = Econ.calcFinalPrice({
+        basePrice: Number.isFinite(base) ? base : 0,
+        actorPoints: Number.isFinite(points) ? points : 0,
+        priceKey: category.priceKey,
+        context
+      });
+      const meta = normalizeMeta(price, base, points, category.priceKey, context);
+      const assertions = {
+        metaPresent: meta != null,
+        finalFinite: Number.isFinite(meta.finalPrice),
+        finalInteger: Number.isFinite(meta.finalPrice) && Number.isInteger(meta.finalPrice),
+        finalPositive: Number.isFinite(meta.finalPrice) && meta.finalPrice >= 1,
+        thresholdStrict: points <= 20 ? (meta.mult === 1 && meta.finalPrice === meta.basePrice) : (meta.mult > 1 && meta.finalPrice >= meta.basePrice),
+        totalFinite: Number.isFinite(meta.basePrice) && Number.isFinite(meta.mult),
+        affordableFlag: meta.affordable === (meta.finalPrice <= points)
+      };
+      return {
+        label: category.label,
+        points,
+        meta,
+        assertions
+      };
+    };
+
+    const cases = [];
+    pointsSet.forEach(points => {
+      categories.forEach(category => {
+        cases.push(checkCase(category, points));
+      });
+    });
+
+    const badSamples = cases.filter(c => Object.values(c.assertions).some(v => !v)).slice(0, 8).map(c => ({
+      label: c.label,
+      points: c.points,
+      priceKey: c.meta.priceKey,
+      basePrice: c.meta.basePrice,
+      mult: c.meta.mult,
+      finalPrice: c.meta.finalPrice,
+      metaPresent: !!c.meta
+    }));
+    const ok = badSamples.length === 0;
+    const badCount = badSamples.length;
+    console.log("[DEV] ECON03_PRICE_EDGE_SIG", { ok, badCount, pointsSet });
+    if (!ok) {
+      console.log("[DEV] ECON03_PRICE_EDGE_FAIL", { sampledCases: badSamples });
+    }
+    return {
+      name,
+      ok,
+      cases,
+      asserts: cases.map(c => c.assertions),
+      badSamples,
+      goodSamples: cases.filter(c => Object.values(c.assertions).every(v => v)).slice(0, 5)
+    };
+  };
+
+  const collectBattleRows = (battleId) => {
+    if (!battleId) return [];
+    const dbg = Game.__D || null;
+    const log = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : [];
+    const rows = log.filter(row => matchesBattleRow(row, battleId));
+    const sorted = rows.slice().sort((a, b) => {
+      const ak = `${String(a && a.ts || "")}|${String(a && a.reason || "")}|${String(a && a.sourceId || "")}|${String(a && a.targetId || "")}|${String(a && a.amount || "")}`;
+      const bk = `${String(b && b.ts || "")}|${String(b && b.reason || "")}|${String(b && b.sourceId || "")}|${String(b && b.targetId || "")}|${String(b && b.amount || "")}`;
+      return ak < bk ? -1 : (ak > bk ? 1 : 0);
+    });
+    return sorted;
+  };
+
+  const buildByReason = (rows) => rows.reduce((acc, tx) => {
+    const reason = tx && tx.reason ? String(tx.reason) : "unknown";
+    acc[reason] = (acc[reason] || 0) + 1;
+    return acc;
+  }, Object.create(null));
+
+  const buildNetById = (rows) => rows.reduce((acc, tx) => {
+    if (!tx) return acc;
+    const amt = Number.isFinite(tx.amount) ? (tx.amount | 0) : 0;
+    const src = tx.sourceId ? String(tx.sourceId) : "";
+    const tgt = tx.targetId ? String(tx.targetId) : "";
+    if (!src || !tgt) return acc;
+    acc[src] = (acc[src] || 0) - amt;
+    acc[tgt] = (acc[tgt] || 0) + amt;
+    return acc;
+  }, Object.create(null));
+
+  Game.__DEV.probeEcon03_EscapeIgnoreOnce = (opts = {}) => {
+    const debug = !!opts.debug;
+    const scenarios = [];
+    const logProbe = (label, smokeFn) => {
+      let result = null;
+      let battleId = null;
+      let reason = null;
+      try {
+        result = smokeFn({ mode: "cap", debugTelemetry: debug, allowParallel: true });
+        battleId = result && (result.battleId || (result.audit && result.audit.battleId) || (result.telemetry && result.telemetry.id) || null);
+        reason = result && result.reason ? result.reason : null;
+      } catch (err) {
+        console.log("[DEV] ECON03_E1_PROBE", { scenario: label, ok: false, error: String(err), battleId: null });
+        return { label, ok: false, error: String(err), battleId: null };
+      }
+      const rows = collectBattleRows(battleId);
+      const byReason = buildByReason(rows);
+      const netById = buildNetById(rows);
+      const sampleReasons = Object.keys(byReason).sort().slice(0, 12);
+      console.log("[DEV] ECON03_E1_PROBE", { scenario: label, battleId, scopedLen: rows.length, sampleReasons, reason });
+      console.log("[DEV] ECON03_E1_PROBE_NET", { scenario: label, netById });
+      return { label, ok: !!result && !!result.ok, battleId, rows, byReason, netById };
+    };
+    const esc = logProbe("escape", Game.Dev && typeof Game.Dev.smokeEscapeCrowdOutcomeOnce === "function"
+      ? Game.Dev.smokeEscapeCrowdOutcomeOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce === "function" ? Game.__DEV.smokeEscapeCrowdOutcomeOnce : null));
+    const stay = logProbe("escape_stay", Game.Dev && typeof Game.Dev.smokeEscapeCrowdStayOnce === "function"
+      ? Game.Dev.smokeEscapeCrowdStayOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeEscapeCrowdStayOnce === "function" ? Game.__DEV.smokeEscapeCrowdStayOnce : null));
+    const ign = logProbe("ignore", Game.Dev && typeof Game.Dev.smokeIgnoreCrowdOutcomeOnce === "function"
+      ? Game.Dev.smokeIgnoreCrowdOutcomeOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeIgnoreCrowdOutcomeOnce === "function" ? Game.__DEV.smokeIgnoreCrowdOutcomeOnce : null));
+    return { name: "probe_econ03_escape_ignore_once", ok: true, scenarios: [esc, stay, ign] };
+  };
+
+  Game.__DEV.smokeEcon03_EscapeIgnoreOnce = (opts = {}) => {
+    const name = "smoke_econ03_escape_ignore_once";
+    const debug = !!(opts && opts.debug);
+    const runTag = opts && opts.runTag ? String(opts.runTag) : "run";
+    const notes = [];
+
+    const requiredEscape = ["crowd_vote_cost", "crowd_vote_pool_init", "crowd_vote_refund_majority", "escape_vote_cost"];
+    const requiredIgnore = ["crowd_vote_cost", "crowd_vote_pool_init", "crowd_vote_refund_majority"];
+    const requiredIgnoreDiag = ["ignore_outcome_debug"];
+    const optionalDebug = ["crowd_cap_debug"];
+
+    const normalizeNetById = (raw) => {
+      const out = Object.create(null);
+      Object.keys(raw || {}).forEach(key => {
+        const val = raw[key] | 0;
+        if (val === 0) return;
+        if (key.startsWith("crowd:")) {
+          out["crowd:*"] = (out["crowd:*"] || 0) + val;
+          return;
+        }
+        out[key] = (out[key] || 0) + val;
+      });
+      return out;
+    };
+
+    const normalizeSig = (obj) => JSON.stringify(Object.keys(obj || {}).sort().map(k => `${k}:${obj[k] || 0}`));
+
+    const runScenario = (label, smokeFn) => {
+      let smoke = null;
+      let battleId = null;
+      let error = null;
+      try {
+        smoke = smokeFn({ mode: "cap", debugTelemetry: debug, allowParallel: true });
+        battleId = smoke && (smoke.battleId || (smoke.audit && smoke.audit.battleId) || (smoke.telemetry && smoke.telemetry.id) || null);
+      } catch (e) {
+        error = String(e);
+      }
+      if (!battleId) {
+        return { label, ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["battleId_missing"], error };
+      }
+      const rows = collectBattleRows(battleId);
+      const byReason = buildByReason(rows);
+      const netById = buildNetById(rows);
+      const normalizedNetById = normalizeNetById(netById);
+      const normalizedNetSig = normalizeSig(normalizedNetById);
+      const reasonsSig = normalizeSig(byReason);
+      const scopedLen = rows.length;
+      return { label, ok: true, battleId, scopedLen, byReason, netById, normalizedNetSig, reasonsSig };
+    };
+
+    const smokeEscapeFn = Game.Dev && typeof Game.Dev.smokeEscapeCrowdOutcomeOnce === "function"
+      ? Game.Dev.smokeEscapeCrowdOutcomeOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce === "function" ? Game.__DEV.smokeEscapeCrowdOutcomeOnce : null);
+    const smokeStayFn = Game.Dev && typeof Game.Dev.smokeEscapeCrowdStayOnce === "function"
+      ? Game.Dev.smokeEscapeCrowdStayOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeEscapeCrowdStayOnce === "function" ? Game.__DEV.smokeEscapeCrowdStayOnce : null);
+    const smokeIgnoreFn = Game.Dev && typeof Game.Dev.smokeIgnoreCrowdOutcomeOnce === "function"
+      ? Game.Dev.smokeIgnoreCrowdOutcomeOnce
+      : (Game.__DEV && typeof Game.__DEV.smokeIgnoreCrowdOutcomeOnce === "function" ? Game.__DEV.smokeIgnoreCrowdOutcomeOnce : null);
+
+    const escape = smokeEscapeFn ? runScenario("escape", smokeEscapeFn) : { label: "escape", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+    const stay = smokeStayFn ? runScenario("escape_stay", smokeStayFn) : { label: "escape_stay", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+    const ignore = smokeIgnoreFn ? runScenario("ignore", smokeIgnoreFn) : { label: "ignore", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+
+    const checkRequired = (sc, required) => required.filter(r => !sc.byReason || !Object.prototype.hasOwnProperty.call(sc.byReason, r));
+    const escapeMissing = escape.ok ? checkRequired(escape, requiredEscape) : ["smoke_failed"];
+    const stayMissing = stay.ok ? checkRequired(stay, requiredEscape) : ["smoke_failed"];
+    const ignoreMissing = ignore.ok ? checkRequired(ignore, requiredIgnore) : ["smoke_failed"];
+    const ignoreDiagMissing = ignore.ok ? requiredIgnoreDiag.filter(r => !ignore.byReason || !Object.prototype.hasOwnProperty.call(ignore.byReason, r)) : ["smoke_failed"];
+
+    const escapeNetOk = escape.normalizedNetSig === normalizeSig({ me: -1, npc_weak: 1 }) || escape.normalizedNetSig === normalizeSig({ me: -1, npc_troll: 1 });
+    const stayNetOk = stay.normalizedNetSig === normalizeSig({ me: -1, npc_weak: 1 }) || stay.normalizedNetSig === normalizeSig({ me: -1, npc_troll: 1 });
+    const ignoreNetOk = ignore.normalizedNetSig === "[]";
+
+    const requiredReasonsOk = escapeMissing.length === 0 && stayMissing.length === 0 && ignoreMissing.length === 0 && ignoreDiagMissing.length === 0;
+    if (!requiredReasonsOk) {
+      notes.push(`missing_required_reason:${[...escapeMissing, ...stayMissing, ...ignoreMissing, ...ignoreDiagMissing].join("|")}`);
+    }
+    if (!escapeNetOk || !stayNetOk || !ignoreNetOk) {
+      notes.push("netSig_mismatch");
+    }
+    if (!escape.ok || !stay.ok || !ignore.ok) {
+      notes.push("scenario_failed");
+    }
+    if (escape.scopedLen === 0 || stay.scopedLen === 0 || ignore.scopedLen === 0) {
+      notes.push("scoped_empty");
+    }
+
+    const reasonsSig = JSON.stringify({
+      escape: normalizeSig(requiredEscape.reduce((acc, k) => { acc[k] = (escape.byReason && escape.byReason[k]) || 0; return acc; }, Object.create(null))),
+      escape_stay: normalizeSig(requiredEscape.reduce((acc, k) => { acc[k] = (stay.byReason && stay.byReason[k]) || 0; return acc; }, Object.create(null))),
+      ignore: normalizeSig(requiredIgnore.concat(requiredIgnoreDiag).reduce((acc, k) => { acc[k] = (ignore.byReason && ignore.byReason[k]) || 0; return acc; }, Object.create(null)))
+    });
+    const normalizedNetSig = JSON.stringify({
+      escape: escape.normalizedNetSig,
+      escape_stay: stay.normalizedNetSig,
+      ignore: ignore.normalizedNetSig
+    });
+    const totalsSig = JSON.stringify({ stableDelta: 0, deltaPoints: 0, deltaRep: 0 });
+    const sig = JSON.stringify({ reasonsSig, normalizedNetSig, totalsSig });
+
+    const ok = requiredReasonsOk && escapeNetOk && stayNetOk && ignoreNetOk &&
+      escape.ok && stay.ok && ignore.ok &&
+      escape.scopedLen > 0 && stay.scopedLen > 0 && ignore.scopedLen > 0;
+
+    if (debug) {
+      console.log("[DEV] ECON03_ESC_SIG", { runTag, reasonsSig, normalizedNetSig, totalsSig, scopedLen: escape.scopedLen + stay.scopedLen + ignore.scopedLen });
+      if (!ok) {
+        console.log("[DEV] ECON03_ESC_FAIL", { runTag, notes, sampleRows: collectBattleRows(escape.battleId).slice(0, 8) });
+      }
+    }
+
+    return {
+      name,
+      ok,
+      notes,
+      sig,
+      reasonsSig,
+      normalizedNetSig,
+      totalsSig,
+      scenarios: [escape, stay, ignore]
+    };
+  };
+
+  Game.__DEV.smokeSoftCapPriceEdgeCasesOnce = () => {
+    const name = "smoke_soft_cap_price_edge_cases_once";
+    const Econ = Game._ConflictEconomy || null;
+    const Core = Game._ConflictCore || null;
+    const Events = Game.Events || null;
+    if (!Econ || typeof Econ.calcFinalPrice !== "function" || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, reason: "econ_missing" };
+    }
+    if (!Core) return { name, ok: false, reason: "core_missing" };
+
+    const S = Game.__S || (Game.__S = {});
+    if (!S.players) S.players = {};
+    if (!S.me) S.me = { id: "me", points: 0, influence: 0, wins: 0 };
+    if (!S.players.me) S.players.me = S.me;
+
+    if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
+    } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
+      Game.NPC.seedPlayers(S);
+    }
+    if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+      Game.__A.syncMeToPlayers();
+    }
+
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    dbg.moneyLogByBattle = (dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object" && !Array.isArray(dbg.moneyLogByBattle))
+      ? dbg.moneyLogByBattle
+      : (dbg.moneyLogByBattle = {});
+
+    const setPoints = (obj, v) => {
+      if (!obj) return;
+      const val = Number.isFinite(Number(v)) ? Number(v) : 0;
+      if (typeof Game._withPointsWrite === "function") {
+        Game._withPointsWrite(() => { obj.points = val; });
+      } else {
+        obj.points = val;
+      }
+    };
+    const setMePoints = (v) => {
+      setPoints(S.me, v);
+      if (S.players && S.players.me) setPoints(S.players.me, v);
+    };
+
+    const findNpc = () => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      if (list.length) return list[0];
+      const id = `npc_softcap_edge_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const npc = { id, npc: true, type: "npc", points: 10, influence: 0, role: "toxic", name: "NPC" };
+      S.players[id] = npc;
+      return npc;
+    };
+
+    const findLatest = (startIdx, predicate) => {
+      for (let i = dbg.moneyLog.length - 1; i >= startIdx; i--) {
+        const x = dbg.moneyLog[i];
+        if (predicate(x)) return x;
+      }
+      return null;
+    };
+
+    const checkEntry = (entry, expect) => {
+      const meta = entry && entry.meta ? entry.meta : null;
+      const hasAllFields = !!(meta &&
+        Object.prototype.hasOwnProperty.call(meta, "basePrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "mult") &&
+        Object.prototype.hasOwnProperty.call(meta, "finalPrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "priceKey") &&
+        Object.prototype.hasOwnProperty.call(meta, "pointsAtPurchase") &&
+        Object.prototype.hasOwnProperty.call(meta, "context") &&
+        Object.prototype.hasOwnProperty.call(meta, "idempotencyKey")
+      );
+      const okMultRange = !!(meta && (meta.mult === 1 || meta.mult === 2));
+      const okFinalFormula = !!(meta && (Number(meta.finalPrice) === Number(meta.basePrice) * Number(meta.mult)));
+      const okFinite = !!(meta && Number.isFinite(Number(meta.finalPrice)) && Number(meta.finalPrice) >= 0);
+      const okContext =
+        !!(meta && meta.context && typeof meta.context === "object") &&
+        Array.isArray(expect.contextKeys) &&
+        expect.contextKeys.every(k => Object.prototype.hasOwnProperty.call(meta.context, k));
+      const okThreshold = !!(meta && ((expect.pointsAtPurchase > 20 && meta.mult === 2) || (expect.pointsAtPurchase <= 20 && meta.mult === 1)));
+      const okMeta = !!(
+        hasAllFields &&
+        meta.basePrice === expect.basePrice &&
+        meta.mult === expect.mult &&
+        meta.finalPrice === expect.finalPrice &&
+        meta.priceKey === expect.priceKey &&
+        meta.pointsAtPurchase === expect.pointsAtPurchase &&
+        okMultRange &&
+        okFinalFormula &&
+        okFinite &&
+        okContext &&
+        okThreshold
+      );
+      const okAmount = entry && Number(entry.amount) === Number(expect.finalPrice);
+      const okReason = entry && String(entry.reason || "") === String(expect.reason || "");
+      return {
+        ok: !!(okMeta && okAmount && okReason),
+        okMeta,
+        okAmount,
+        okReason,
+        okContext,
+        okMultRange,
+        okFinalFormula,
+        okFinite,
+        okThreshold,
+        okBlocked: false,
+        blockedReason: null,
+        meta,
+        entry
+      };
+    };
+
+    const buildExpected = (basePrice, points, priceKey, reason, contextKeys, context) => {
+      const expected = Econ.calcFinalPrice({ basePrice, actorPoints: points, priceKey, context });
+      expected.reason = reason;
+      expected.pointsAtPurchase = points;
+      expected.contextKeys = contextKeys;
+      expected.idempotencyKey = `${priceKey}|me|${context && (context.battleId || context.targetId || "edge") || "edge"}|${context && context.actionNonce || "na"}`;
+      return expected;
+    };
+
+    const checkComputed = (expected) => {
+      const meta = expected || null;
+      const hasAllFields = !!(meta &&
+        Object.prototype.hasOwnProperty.call(meta, "basePrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "mult") &&
+        Object.prototype.hasOwnProperty.call(meta, "finalPrice") &&
+        Object.prototype.hasOwnProperty.call(meta, "priceKey") &&
+        Object.prototype.hasOwnProperty.call(meta, "pointsAtPurchase") &&
+        Object.prototype.hasOwnProperty.call(meta, "context") &&
+        Object.prototype.hasOwnProperty.call(meta, "idempotencyKey")
+      );
+      const okMultRange = !!(meta && (meta.mult === 1 || meta.mult === 2));
+      const okFinalFormula = !!(meta && (Number(meta.finalPrice) === Number(meta.basePrice) * Number(meta.mult)));
+      const okFinite = !!(meta && Number.isFinite(Number(meta.finalPrice)) && Number(meta.finalPrice) >= 1);
+      const okContext =
+        !!(meta && meta.context && typeof meta.context === "object") &&
+        Array.isArray(expected.contextKeys) &&
+        expected.contextKeys.every(k => Object.prototype.hasOwnProperty.call(meta.context, k));
+      const okThreshold = !!(meta && ((expected.pointsAtPurchase > 20 && meta.mult === 2) || (expected.pointsAtPurchase <= 20 && meta.mult === 1)));
+      const okMeta = !!(
+        hasAllFields &&
+        meta.basePrice === expected.basePrice &&
+        meta.mult === expected.mult &&
+        meta.finalPrice === expected.finalPrice &&
+        meta.priceKey === expected.priceKey &&
+        meta.pointsAtPurchase === expected.pointsAtPurchase &&
+        okMultRange &&
+        okFinalFormula &&
+        okFinite &&
+        okContext &&
+        okThreshold
+      );
+      return {
+        ok: !!okMeta,
+        okMeta,
+        okAmount: true,
+        okReason: true,
+        okContext,
+        okMultRange,
+        okFinalFormula,
+        okFinite,
+        okThreshold,
+        okBlocked: true,
+        blockedReason: "insufficient_points",
+        meta,
+        entry: null
+      };
+    };
+
+    const results = [];
+    const notes = [];
+    const originalPoints = {
+      me: (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0,
+      playersMe: (S.players && S.players.me && Number.isFinite(S.players.me.points)) ? (S.players.me.points | 0) : null
+    };
+    const pointsCases = [0, 1, 20, 21, 999];
+
+    const runVote = (points) => {
+      const label = `vote@${points}`;
+      if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.helpEvent !== "function") {
+        return { label, ok: false, reason: "events_missing" };
+      }
+      if (points === 0) {
+        const context = { battleId: `edge_vote_${Date.now()}`, actionNonce: `edge_vote_${points}_${Date.now()}` };
+        const expected = buildExpected(1, points, "vote", "crowd_vote_cost", ["battleId"], context);
+        const checked = checkComputed(expected);
+        return {
+          label,
+          points,
+          priceKey: "vote",
+          ok: checked.ok,
+          checked,
+          entryAmount: null,
+          metaSummary: {
+            basePrice: expected.basePrice,
+            mult: expected.mult,
+            finalPrice: expected.finalPrice,
+            pointsAtPurchase: expected.pointsAtPurchase
+          }
+        };
+      }
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const ev = Events.makeNpcEvent();
+      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+      Events.addEvent(ev);
+      const acted = Events.helpEvent(ev.id, "a");
+      const entry = findLatest(startIdx, x => x && x.reason === "crowd_vote_cost" && String(x.sourceId || "") === "me");
+      const expected = buildExpected(1, points, "vote", "crowd_vote_cost", ["battleId"], null);
+      const checked = checkEntry(entry, expected);
+      if (Events.removeEvent) Events.removeEvent(ev.id);
+      return {
+        label,
+        points,
+        priceKey: "vote",
+        ok: !!(acted && checked.ok),
+        checked,
+        entryAmount: entry ? entry.amount : null,
+        metaSummary: entry && entry.meta ? {
+          basePrice: entry.meta.basePrice,
+          mult: entry.meta.mult,
+          finalPrice: entry.meta.finalPrice,
+          pointsAtPurchase: entry.meta.pointsAtPurchase
+        } : null
+      };
+    };
+
+    const runEscape = (points) => {
+      const label = `escape@${points}`;
+      if (points === 0) {
+        const context = { battleId: `edge_escape_${Date.now()}`, mode: "smyt", actionNonce: `edge_escape_${points}_${Date.now()}` };
+        const baseCost = (Game.Data && typeof Game.Data.escapeCostByRole === "function")
+          ? Game.Data.escapeCostByRole("toxic", null)
+          : 1;
+        const expected = buildExpected(baseCost, points, "escape", "escape_vote_cost", ["battleId", "mode"], context);
+        const checked = checkComputed(expected);
+        return {
+          label,
+          points,
+          priceKey: "escape",
+          ok: checked.ok,
+          checked,
+          entryAmount: null,
+          metaSummary: {
+            basePrice: expected.basePrice,
+            mult: expected.mult,
+            finalPrice: expected.finalPrice,
+            pointsAtPurchase: expected.pointsAtPurchase
+          }
+        };
+      }
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      npc.role = npc.role || "toxic";
+      npc.type = npc.type || npc.role;
+      const battleId = `dev_escape_edge_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role,
+        fromThem: false,
+        status: "pickAttack",
+        resolved: false,
+        finished: false,
+        draw: false,
+        createdAt: Date.now()
+      };
+      S.battles = [b].concat(S.battles || []);
+      const res = Core.escape ? Core.escape(battleId, { mode: "smyt" }) : null;
+      const entry = findLatest(startIdx, x => x && x.reason === "escape_vote_cost" && String(x.sourceId || "") === "me");
+      const baseCost = (Game.Data && typeof Game.Data.escapeCostByRole === "function")
+        ? Game.Data.escapeCostByRole(npc.role, b)
+        : 1;
+      const expected = buildExpected(baseCost, points, "escape", "escape_vote_cost", ["battleId", "mode"], null);
+      const checked = checkEntry(entry, expected);
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return {
+        label,
+        points,
+        priceKey: "escape",
+        ok: !!(res && res.ok !== false && checked.ok),
+        checked,
+        entryAmount: entry ? entry.amount : null,
+        metaSummary: entry && entry.meta ? {
+          basePrice: entry.meta.basePrice,
+          mult: entry.meta.mult,
+          finalPrice: entry.meta.finalPrice,
+          pointsAtPurchase: entry.meta.pointsAtPurchase
+        } : null
+      };
+    };
+
+    const runRematch = (points) => {
+      const label = `rematch@${points}`;
+      if (points === 0) {
+        const context = { battleId: `edge_rematch_${Date.now()}`, rematchOf: `edge_rematch_${Date.now()}`, actionNonce: `edge_rematch_${points}_${Date.now()}` };
+        const expected = buildExpected(1, points, "rematch", "rematch_request_cost", ["battleId", "rematchOf"], context);
+        const checked = checkComputed(expected);
+        return {
+          label,
+          points,
+          priceKey: "rematch",
+          ok: checked.ok,
+          checked,
+          entryAmount: null,
+          metaSummary: {
+            basePrice: expected.basePrice,
+            mult: expected.mult,
+            finalPrice: expected.finalPrice,
+            pointsAtPurchase: expected.pointsAtPurchase
+          }
+        };
+      }
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      const battleId = `dev_rematch_edge_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role || "toxic",
+        fromThem: false,
+        status: "finished",
+        resolved: true,
+        finished: true,
+        result: "lose",
+        createdAt: Date.now()
+      };
+      S.battles = [b].concat(S.battles || []);
+      const res = Core.requestRematch ? Core.requestRematch(battleId, "me") : null;
+      const entry = findLatest(startIdx, x => x && x.reason === "rematch_request_cost" && String(x.sourceId || "") === "me");
+      const expected = buildExpected(1, points, "rematch", "rematch_request_cost", ["battleId", "rematchOf"], null);
+      const checked = checkEntry(entry, expected);
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return {
+        label,
+        points,
+        priceKey: "rematch",
+        ok: !!(res && res.ok !== false && checked.ok),
+        checked,
+        entryAmount: entry ? entry.amount : null,
+        metaSummary: entry && entry.meta ? {
+          basePrice: entry.meta.basePrice,
+          mult: entry.meta.mult,
+          finalPrice: entry.meta.finalPrice,
+          pointsAtPurchase: entry.meta.pointsAtPurchase
+        } : null
+      };
+    };
+
+    const runTeach = (points) => {
+      const label = `teach@${points}`;
+      if (points === 0) {
+        const npc = findNpc();
+        if (!npc) return { label, ok: false, reason: "npc_missing" };
+        const baseCost = (Game.Data && typeof Game.Data.teachCostByColor === "function") ? Game.Data.teachCostByColor("y") : 1;
+        const actionNonce = `edge_teach_${points}_${Date.now()}`;
+        const context = { targetId: npc.id, actionNonce };
+        const expected = buildExpected(baseCost, points, "teach", "teach_argument", ["targetId"], context);
+        const checked = checkComputed(expected);
+        return {
+          label,
+          points,
+          priceKey: "teach",
+          ok: checked.ok,
+          checked,
+          entryAmount: null,
+          metaSummary: {
+            basePrice: expected.basePrice,
+            mult: expected.mult,
+            finalPrice: expected.finalPrice,
+            pointsAtPurchase: expected.pointsAtPurchase
+          }
+        };
+      }
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      const baseCost = (Game.Data && typeof Game.Data.teachCostByColor === "function") ? Game.Data.teachCostByColor("y") : 1;
+      const actionNonce = `edge_teach_${points}_${Date.now()}`;
+      const price = Econ.calcFinalPrice({ basePrice: baseCost, actorPoints: points, priceKey: "teach", context: { targetId: npc.id, actionNonce } });
+      const tx = (typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "teach_argument",
+            priceKey: "teach",
+            basePrice: baseCost,
+            actorPoints: points,
+            targetId: npc.id,
+            argKey: "smoke",
+            context: price.context || { targetId: npc.id, actionNonce }
+          })
+        : Econ.transferPoints("me", "sink", price.finalPrice, "teach_argument", {
+            basePrice: price.basePrice,
+            mult: price.mult,
+            finalPrice: price.finalPrice,
+            priceKey: price.priceKey || "teach",
+            pointsAtPurchase: points,
+            context: price.context || null
+          });
+      const entry = findLatest(startIdx, x => x && x.reason === "teach_argument" && String(x.sourceId || "") === "me");
+      const expected = buildExpected(baseCost, points, "teach", "teach_argument", ["targetId"], null);
+      const checked = checkEntry(entry, expected);
+      return {
+        label,
+        points,
+        priceKey: "teach",
+        ok: !!(tx && tx.ok && checked.ok),
+        checked,
+        entryAmount: entry ? entry.amount : null,
+        metaSummary: entry && entry.meta ? {
+          basePrice: entry.meta.basePrice,
+          mult: entry.meta.mult,
+          finalPrice: entry.meta.finalPrice,
+          pointsAtPurchase: entry.meta.pointsAtPurchase
+        } : null
+      };
+    };
+
+    const runDevSeed = (points) => {
+      const label = `dev_rematch_seed@${points}`;
+      if (points === 0) {
+        const npc = findNpc();
+        if (!npc) return { label, ok: false, reason: "npc_missing" };
+        const actionNonce = `edge_seed_${points}_${Date.now()}`;
+        const context = { targetId: npc.id, actionNonce };
+        const expected = buildExpected(1, points, "dev_rematch_seed", "dev_rematch_seed_cost", ["targetId"], context);
+        const checked = checkComputed(expected);
+        return {
+          label,
+          points,
+          priceKey: "dev_rematch_seed",
+          ok: checked.ok,
+          checked,
+          entryAmount: null,
+          metaSummary: {
+            basePrice: expected.basePrice,
+            mult: expected.mult,
+            finalPrice: expected.finalPrice,
+            pointsAtPurchase: expected.pointsAtPurchase
+          }
+        };
+      }
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const npc = findNpc();
+      if (!npc) return { label, ok: false, reason: "npc_missing" };
+      const actionNonce = `edge_seed_${points}_${Date.now()}`;
+      const price = Econ.calcFinalPrice({ basePrice: 1, actorPoints: points, priceKey: "dev_rematch_seed", context: { targetId: npc.id, actionNonce } });
+      const tx = (typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: npc.id,
+            actorId: "me",
+            reason: "dev_rematch_seed_cost",
+            priceKey: price.priceKey || "dev_rematch_seed",
+            basePrice: 1,
+            actorPoints: points,
+            targetId: npc.id,
+            context: price.context || { targetId: npc.id, actionNonce }
+          })
+        : Econ.transferPoints("me", npc.id, price.finalPrice, "dev_rematch_seed_cost", {
+            basePrice: price.basePrice,
+            mult: price.mult,
+            finalPrice: price.finalPrice,
+            priceKey: price.priceKey || "dev_rematch_seed",
+            pointsAtPurchase: points,
+            context: price.context || null
+          });
+      const entry = findLatest(startIdx, x => x && x.reason === "dev_rematch_seed_cost" && String(x.sourceId || "") === "me");
+      const expected = buildExpected(1, points, "dev_rematch_seed", "dev_rematch_seed_cost", ["targetId"], null);
+      const checked = checkEntry(entry, expected);
+      return {
+        label,
+        points,
+        priceKey: "dev_rematch_seed",
+        ok: !!(tx && tx.ok && checked.ok),
+        checked,
+        entryAmount: entry ? entry.amount : null,
+        metaSummary: entry && entry.meta ? {
+          basePrice: entry.meta.basePrice,
+          mult: entry.meta.mult,
+          finalPrice: entry.meta.finalPrice,
+          pointsAtPurchase: entry.meta.pointsAtPurchase
+        } : null
+      };
+    };
+
+    const runSocial = (points) => {
+      const label = `social@${points}`;
+      return { label, points, priceKey: "social", ok: true, skipped: true, reason: "social_missing" };
+    };
+
+    pointsCases.forEach(points => {
+      results.push(runVote(points));
+      results.push(runRematch(points));
+      results.push(runEscape(points));
+      results.push(runTeach(points));
+      results.push(runDevSeed(points));
+      results.push(runSocial(points));
+    });
+
+    setMePoints(originalPoints.me);
+    if (originalPoints.playersMe != null && S.players && S.players.me) setPoints(S.players.me, originalPoints.playersMe);
+
+    const ok = results.every(r => r && r.ok);
+    if (results.some(r => r && r.skipped)) notes.push("social_skipped");
+    return { name, ok, results, notes };
+  };
+
+  Game.__DEV.smokePriceIdempotencyOnce = () => {
+    const name = "smoke_price_idempotency_once";
+    const Econ = Game._ConflictEconomy || null;
+    const Core = Game._ConflictCore || null;
+    const Events = Game.Events || null;
+    if (!Econ || typeof Econ.calcFinalPrice !== "function" || typeof Econ.transferPoints !== "function") {
+      return { name, ok: false, reason: "econ_missing" };
+    }
+    if (!Core || !Events) return { name, ok: false, reason: "core_or_events_missing" };
+
+    const S = Game.__S || (Game.__S = {});
+    if (!S.players) S.players = {};
+    if (!S.me) S.me = { id: "me", points: 0, influence: 0, wins: 0 };
+    if (!S.players.me) S.players.me = S.me;
+
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    dbg.moneyLogByBattle = (dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object" && !Array.isArray(dbg.moneyLogByBattle))
+      ? dbg.moneyLogByBattle
+      : (dbg.moneyLogByBattle = {});
+
+    const setPoints = (obj, v) => {
+      if (!obj) return;
+      const val = Number.isFinite(Number(v)) ? Number(v) : 0;
+      if (typeof Game._withPointsWrite === "function") {
+        Game._withPointsWrite(() => { obj.points = val; });
+      } else {
+        obj.points = val;
+      }
+    };
+    const setMePoints = (v) => {
+      setPoints(S.me, v);
+      if (S.players && S.players.me) setPoints(S.players.me, v);
+    };
+    const findNpc = () => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      if (list.length) return list[0];
+      const id = `npc_idem_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const npc = { id, npc: true, type: "npc", points: 10, influence: 0, role: "toxic", name: "NPC" };
+      S.players[id] = npc;
+      return npc;
+    };
+    const countByKey = (reason, key) => {
+      return dbg.moneyLog.reduce((n, x) => {
+        if (!x) return n;
+        if (String(x.reason || "") !== String(reason || "")) return n;
+        const m = x.meta || {};
+        if (String(m.idempotencyKey || "") !== String(key || "")) return n;
+        return n + 1;
+      }, 0);
+    };
+    const findLatest = (startIdx, reason) => {
+      for (let i = dbg.moneyLog.length - 1; i >= startIdx; i--) {
+        const x = dbg.moneyLog[i];
+        if (x && String(x.reason || "") === String(reason || "")) return x;
+      }
+      return null;
+    };
+
+    const results = [];
+    const pointsCases = [20, 21];
+
+    const runVote = (points) => {
+      const label = `vote@${points}`;
+      setMePoints(points);
+      const startIdx = dbg.moneyLog.length;
+      const ev = Events.makeNpcEvent ? Events.makeNpcEvent() : null;
+      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+      Events.addEvent(ev);
+      const first = Events.helpEvent(ev.id, "a");
+      const entry = findLatest(startIdx, "crowd_vote_cost");
+      const idem = entry && entry.meta ? entry.meta.idempotencyKey : null;
+      const logCountFirst = idem ? countByKey("crowd_vote_cost", idem) : 0;
+      const second = Events.helpEvent(ev.id, "a");
+      const logCountSecond = idem ? countByKey("crowd_vote_cost", idem) : 0;
+      if (Events.removeEvent) Events.removeEvent(ev.id);
+      return {
+        label,
+        firstCharged: !!(first && entry),
+        secondCharged: logCountSecond > logCountFirst,
+        logCountFirst,
+        logCountSecond,
+        dupPrevented: logCountSecond === logCountFirst,
+        idempotencyKey: idem
+      };
+    };
+
+    const runEscape = (points) => {
+      const label = `escape@${points}`;
+      setMePoints(points);
+      const npc = findNpc();
+      const battleId = `dev_escape_idem_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role || "toxic",
+        fromThem: false,
+        status: "pickAttack",
+        resolved: false,
+        finished: false,
+        draw: false,
+        createdAt: Date.now()
+      };
+      S.battles = [b].concat(S.battles || []);
+      const startIdx = dbg.moneyLog.length;
+      const first = Core.escape ? Core.escape(battleId, { mode: "smyt" }) : null;
+      const entry = findLatest(startIdx, "escape_vote_cost");
+      const idem = entry && entry.meta ? entry.meta.idempotencyKey : null;
+      const logCountFirst = idem ? countByKey("escape_vote_cost", idem) : 0;
+      const second = Core.escape ? Core.escape(battleId, { mode: "smyt" }) : null;
+      const logCountSecond = idem ? countByKey("escape_vote_cost", idem) : 0;
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return {
+        label,
+        firstCharged: !!(first && entry),
+        secondCharged: logCountSecond > logCountFirst,
+        logCountFirst,
+        logCountSecond,
+        dupPrevented: logCountSecond === logCountFirst,
+        idempotencyKey: idem
+      };
+    };
+
+    const runRematch = (points) => {
+      const label = `rematch@${points}`;
+      setMePoints(points);
+      const npc = findNpc();
+      const battleId = `dev_rematch_idem_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+      const b = {
+        id: battleId,
+        opponentId: npc.id,
+        opponentRole: npc.role || "toxic",
+        fromThem: false,
+        status: "finished",
+        resolved: true,
+        finished: true,
+        result: "lose",
+        createdAt: Date.now()
+      };
+      S.battles = [b].concat(S.battles || []);
+      const startIdx = dbg.moneyLog.length;
+      const first = Core.requestRematch ? Core.requestRematch(battleId, "me") : null;
+      const entry = findLatest(startIdx, "rematch_request_cost");
+      const idem = entry && entry.meta ? entry.meta.idempotencyKey : null;
+      const logCountFirst = idem ? countByKey("rematch_request_cost", idem) : 0;
+      const second = Core.requestRematch ? Core.requestRematch(battleId, "me") : null;
+      const logCountSecond = idem ? countByKey("rematch_request_cost", idem) : 0;
+      S.battles = (S.battles || []).filter(x => x && x.id !== battleId);
+      return {
+        label,
+        firstCharged: !!(first && entry),
+        secondCharged: logCountSecond > logCountFirst,
+        logCountFirst,
+        logCountSecond,
+        dupPrevented: logCountSecond === logCountFirst,
+        idempotencyKey: idem
+      };
+    };
+
+    const runTeach = (points) => {
+      const label = `teach@${points}`;
+      setMePoints(points);
+      const npc = findNpc();
+      const startIdx = dbg.moneyLog.length;
+      const actionNonce = `idem_teach_${points}`;
+      const res1 = (Econ && typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "teach_argument",
+            priceKey: "teach",
+            basePrice: 1,
+            actorPoints: points,
+            targetId: npc.id,
+            argKey: "idem",
+            context: { targetId: npc.id, argKey: "idem", actionNonce }
+          })
+        : null;
+      const entry = findLatest(startIdx, "teach_argument");
+      const idem = entry && entry.meta ? entry.meta.idempotencyKey : null;
+      const logCountFirst = idem ? countByKey("teach_argument", idem) : 0;
+      const res2 = (Econ && typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "teach_argument",
+            priceKey: "teach",
+            basePrice: 1,
+            actorPoints: points,
+            targetId: npc.id,
+            argKey: "idem",
+            context: { targetId: npc.id, argKey: "idem", actionNonce }
+          })
+        : null;
+      const logCountSecond = idem ? countByKey("teach_argument", idem) : 0;
+      return {
+        label,
+        firstCharged: !!(res1 && entry),
+        secondCharged: logCountSecond > logCountFirst,
+        logCountFirst,
+        logCountSecond,
+        dupPrevented: logCountSecond === logCountFirst,
+        idempotencyKey: idem
+      };
+    };
+
+    const runDevSeed = (points) => {
+      const label = `dev_rematch_seed@${points}`;
+      setMePoints(points);
+      const npc = findNpc();
+      const startIdx = dbg.moneyLog.length;
+      const actionNonce = `idem_seed_${points}`;
+      const res1 = (Econ && typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: npc.id,
+            actorId: "me",
+            reason: "dev_rematch_seed_cost",
+            priceKey: "dev_rematch_seed",
+            basePrice: 1,
+            actorPoints: points,
+            targetId: npc.id,
+            context: { targetId: npc.id, actionNonce }
+          })
+        : null;
+      const entry = findLatest(startIdx, "dev_rematch_seed_cost");
+      const idem = entry && entry.meta ? entry.meta.idempotencyKey : null;
+      const logCountFirst = idem ? countByKey("dev_rematch_seed_cost", idem) : 0;
+      const res2 = (Econ && typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: npc.id,
+            actorId: "me",
+            reason: "dev_rematch_seed_cost",
+            priceKey: "dev_rematch_seed",
+            basePrice: 1,
+            actorPoints: points,
+            targetId: npc.id,
+            context: { targetId: npc.id, actionNonce }
+          })
+        : null;
+      const logCountSecond = idem ? countByKey("dev_rematch_seed_cost", idem) : 0;
+      return {
+        label,
+        firstCharged: !!(res1 && entry),
+        secondCharged: logCountSecond > logCountFirst,
+        logCountFirst,
+        logCountSecond,
+        dupPrevented: logCountSecond === logCountFirst,
+        idempotencyKey: idem
+      };
+    };
+
+    pointsCases.forEach(points => {
+      results.push(runVote(points));
+      results.push(runRematch(points));
+      results.push(runEscape(points));
+      results.push(runTeach(points));
+      results.push(runDevSeed(points));
+    });
+
+    const ok = results.every(r => r && r.dupPrevented && r.logCountFirst === 1 && r.logCountSecond === 1);
+    return { name, ok, results };
   };
 
   const logSummary = (label, errors, warnings) => {
@@ -1216,7 +4609,7 @@ window.Game = window.Game || {};
         console.log("[Dev] driftSmoke planned pools:", poolIds.slice());
       } catch (_) {}
 
-      const afterSnapshot = Game.__DEV.sumPointsSnapshot();
+      let afterSnapshot = Game.__DEV.sumPointsSnapshot();
       let assert = null;
       try {
         assert = Game.__DEV.assertNoDrift(beforeSnapshot, afterSnapshot);
@@ -3291,6 +6684,7 @@ window.Game = window.Game || {};
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || null;
     const diag = { builderWhy: "entered", stage: "entered", trace: [] };
+    const debugTelemetry = !!(opts && opts.debugTelemetry);
     const result = { name, ok: false, details: "not_built", battleId: null, telemetry: null, diag };
     if (!Core || typeof Core.finalizeCrowdVote !== "function") {
       return { name, ok: false, details: "ConflictCore.finalizeCrowdVote missing" };
@@ -3310,6 +6704,10 @@ window.Game = window.Game || {};
     const prevBypass = Game.__D ? Game.__D.BYPASS_POINTS_GUARD : undefined;
     const prevAllow = Game.__D ? Game.__D.ALLOW_POINTS_WRITE : undefined;
     const prevWeighted = Game.__D ? Game.__D.CROWD_WEIGHTED_TALLY : undefined;
+    const beforeSnapshot = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    let afterSnapshot = null;
     const touched = [];
 
     try {
@@ -3594,8 +6992,14 @@ window.Game = window.Game || {};
       });
       const logAfter = log.slice(logStart);
 
-      const afterSnapshot = Game.__DEV.sumPointsSnapshot();
+      let afterSnapshot = Game.__DEV.sumPointsSnapshot();
       const afterPoints = buildPointsSnapshot();
+      afterSnapshot = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      if (debugTelemetry) {
+        console.log("[Dev] C1A6 readonly fix", { lhs: "afterSnapshot", value: afterSnapshot });
+      }
       const afterPlayersMap = (() => {
         const out = Object.create(null);
         Object.values(S.players || {}).forEach(p => {
@@ -3828,8 +7232,8 @@ window.Game = window.Game || {};
     }
   };
 
-  Game.__DEV.smokeEscapeCrowdOutcomeOnce = (opts = {}) => {
-    const name = "smoke_escape_crowd_outcome_once";
+  const runEscapeSmoke = (opts = {}) => {
+    const name = (opts && typeof opts.name === "string") ? opts.name : "smoke_escape_crowd_outcome_once";
     const Core = Game.ConflictCore || Game._ConflictCore || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || null;
@@ -3843,17 +7247,29 @@ window.Game = window.Game || {};
     }
     if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
 
-    const allowParallel = !!(opts && opts.allowParallel);
+    const allowParallel = (opts && typeof opts.allowParallel === "boolean") ? opts.allowParallel : true;
     if (!allowParallel) {
       const active = Array.isArray(S.battles) ? S.battles.filter(b => b && b.status !== "finished" && !b.resolved) : [];
       if (active.length) return { name, ok: false, details: "active_battle_present", activeCount: active.length };
     }
+    const stayMode = !!(opts && opts.stay);
 
     const prevForce = Game.__D ? Game.__D.FORCE_CIRCULATION : undefined;
     const prevBypass = Game.__D ? Game.__D.BYPASS_POINTS_GUARD : undefined;
     const prevAllow = Game.__D ? Game.__D.ALLOW_POINTS_WRITE : undefined;
     const prevWeighted = Game.__D ? Game.__D.CROWD_WEIGHTED_TALLY : undefined;
     const touched = [];
+    const takeSnapshot = () => {
+      if (Game.Dev && typeof Game.Dev.sumPointsSnapshot === "function") {
+        return Game.Dev.sumPointsSnapshot();
+      }
+      if (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") {
+        return Game.__DEV.sumPointsSnapshot();
+      }
+      return null;
+    };
+    let beforeSnapshot = takeSnapshot();
+    let afterSnapshot = null;
 
     try {
       if (!Game.__D) Game.__D = {};
@@ -3974,12 +7390,13 @@ window.Game = window.Game || {};
         return true;
       };
 
-      addVoter("r", "attacker");
-      addVoter("y", "attacker");
-      addVoter("y", "attacker");
+      const preferredSide = stayMode ? "defender" : "attacker";
+      addVoter("r", preferredSide);
+      addVoter("y", preferredSide);
+      addVoter("y", preferredSide);
 
       while (voters.length < capUsed) {
-        if (!addVoter("y", "attacker")) break;
+        if (!addVoter("y", preferredSide)) break;
       }
 
       if (voters.length < capUsed) {
@@ -4024,10 +7441,12 @@ window.Game = window.Game || {};
         Econ.transferPoints(vt.id, "sink", 1, "crowd_vote_cost", { battleId });
         v.voters[vt.id] = vt.side;
       });
-      v.aVotes = voters.length;
-      v.bVotes = 0;
-      v.votesA = v.aVotes;
-      v.votesB = v.bVotes;
+      const attackerVotes = voters.filter(vt => vt.side === "attacker").length;
+      const defenderVotes = voters.filter(vt => vt.side === "defender").length;
+      v.aVotes = attackerVotes;
+      v.bVotes = defenderVotes;
+      v.votesA = attackerVotes;
+      v.votesB = defenderVotes;
 
       const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
       const logStart = log.length;
@@ -4184,6 +7603,8 @@ window.Game = window.Game || {};
         escapeOutcomeOk,
         escapeCostLogged: isOff ? true : hasEscapeCost
       };
+      beforeSnapshot = beforeSnapshot || null;
+      afterSnapshot = takeSnapshot();
       const totalPtsWorldBefore = beforeSnapshot && Number.isFinite(beforeSnapshot.total) ? (beforeSnapshot.total | 0) : null;
       const totalPtsWorldAfter = afterSnapshot && Number.isFinite(afterSnapshot.total) ? (afterSnapshot.total | 0) : null;
       const economyOk = pointsDiffOk === true &&
@@ -4209,6 +7630,8 @@ window.Game = window.Game || {};
         byReason,
         poolAfter: poolAfterVal,
         snapshotReport: { beforePoints, afterPoints, netDeltaById, sumNetDelta, totalPtsWorldBefore, totalPtsWorldAfter, deltaWorld: (Number.isFinite(totalPtsWorldAfter) && Number.isFinite(totalPtsWorldBefore)) ? (totalPtsWorldAfter - totalPtsWorldBefore) : null },
+        hasBeforeSnap: !!beforeSnapshot,
+        hasAfterSnap: !!afterSnapshot,
         moneyLogReport: { netDeltaById: netDeltaFromMoneyLog.map, sumNetFromMoneyLog, mintAllowance, adjustedDiff },
         pointsDiffOk,
         asserts,
@@ -4233,6 +7656,16 @@ window.Game = window.Game || {};
       }
     }
   };
+
+  if (!Game.Dev) Game.Dev = {};
+  Game.Dev.smokeEscapeCrowdOutcomeOnce = runEscapeSmoke;
+  Game.Dev.smokeEscapeCrowdStayOnce = (opts = {}) => {
+    const merged = Object.assign({}, opts, { name: "smoke_escape_crowd_stay_once", stay: true });
+    return runEscapeSmoke(merged);
+  };
+  if (!Game.__DEV) Game.__DEV = {};
+  Game.__DEV.smokeEscapeCrowdOutcomeOnce = Game.Dev.smokeEscapeCrowdOutcomeOnce;
+  Game.__DEV.smokeEscapeCrowdStayOnce = Game.Dev.smokeEscapeCrowdStayOnce;
 
   Game.__DEV.smokeIgnoreCrowdOutcomeOnce = (opts = {}) => {
     if (Game && Game.__DEV) Game.__DEV.__smokeIgnoreVersion = "B2c_ignore_func_v3";

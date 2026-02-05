@@ -1,0 +1,5 @@
+{"ts": 1770260849280, "sessionId": "session-1770260826655-6zw9", "type": "chat", "name": "Ксю", "text": "@Егор, я тебя внимательно слушаю", "system": false}
+{"ts": 1770260850050, "sessionId": "session-1770260826655-6zw9", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770260850044_3784"}}
+{"ts": 1770260850051, "sessionId": "session-1770260826655-6zw9", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770260850044_3784"}}
+{"ts": 1770260850053, "sessionId": "session-1770260826655-6zw9", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770260850044_3784"}}
+{"ts": 1770260850054, "sessionId": "session-1770260826655-6zw9", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770260850044_3784"}}

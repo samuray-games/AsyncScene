@@ -1,0 +1,5 @@
+{"ts": 1770294775191, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_battle_econ_win_weak_1770294775189_3186"}}
+{"ts": 1770294775193, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_econ_win_weak_1770294775189_3186"}}
+{"ts": 1770294775194, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_econ_win_weak_1770294775189_3186"}}
+{"ts": 1770294775196, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_econ_win_weak_1770294775189_3186"}}
+{"ts": 1770294775197, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-02-05"}}

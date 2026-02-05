@@ -62,27 +62,39 @@ window.Game ||= {};
     return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
   }
 
+  function calcFinalPrice(opts = {}){
+    const Econ = getEcon();
+    const base = Number.isFinite(opts.basePrice) ? (opts.basePrice | 0) : 0;
+    const points = Number.isFinite(opts.actorPoints) ? (opts.actorPoints | 0) : 0;
+    const baseNorm = Math.max(0, base);
+    const pointsNorm = Math.max(0, points);
+    if (Econ && typeof Econ.calcFinalPrice === "function") {
+      return Econ.calcFinalPrice({
+        basePrice: baseNorm,
+        actorPoints: pointsNorm,
+        priceKey: opts.priceKey,
+        context: opts.context
+      });
+    }
+    return {
+      basePrice: baseNorm,
+      mult: 1,
+      finalPrice: baseNorm,
+      priceKey: opts.priceKey || null,
+      context: opts.context || null
+    };
+  }
+
+  function markLegacyEconHit(tag){
+    try {
+      const dbg = (Game && Game.__D) ? Game.__D : (Game.__D = {});
+      const arr = Array.isArray(dbg.__legacyEconHits) ? dbg.__legacyEconHits : (dbg.__legacyEconHits = []);
+      arr.push({ time: Date.now(), tag: String(tag || "legacy") });
+    } catch (_) {}
+  }
+
   function isCirculationEnabled(){
-    const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
-    if (Econ && typeof Econ.isCirculationEnabled === "function") return Econ.isCirculationEnabled();
-    const D0 = Game && Game.Data ? Game.Data : null;
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    if (dbg && dbg.FORCE_CIRCULATION === true) {
-      if (dbg._econModeLogged !== "cir") {
-        dbg._econModeLogged = "cir";
-        try { console.log("[DEV] ECON: CIR"); } catch (_) {}
-      }
-      return true;
-    }
-    if (dbg && dbg.FORCE_CIRCULATION === false) {
-      if (dbg._econModeLogged !== "legacy") {
-        dbg._econModeLogged = "legacy";
-        try { console.log("[DEV] ECON: LEGACY"); } catch (_) {}
-      }
-      return false;
-    }
-    const v = D0 && D0.CIRCULATION_ENABLED;
-    return v === true || v === 1 || v === "true" || v === "1";
+    return true;
   }
 
   function getCrowdPoolId(e){
@@ -255,6 +267,7 @@ window.Game ||= {};
             } catch (_) {}
           }
         } else {
+          markLegacyEconHit("events.payoutCrowdPool.legacy");
           const addPts = (Game.__A && typeof Game.__A.addPoints === "function") ? Game.__A.addPoints : null;
           if (addPts) {
             addPts(1, "crowd_vote_refund");
@@ -585,6 +598,7 @@ window.Game ||= {};
           e.betMessage = "Итог зафиксирован.";
         }
       } else {
+        markLegacyEconHit("events.applyBetOutcome.legacy");
         if (addPts) addPts(1, "tie_pick_win");
         e.betMessage = "Итог зафиксирован.";
       }
@@ -750,12 +764,23 @@ window.Game ||= {};
       const stateNpc = getPlayerById(voterId) || voter;
       const beforePts = Number.isFinite(stateNpc && stateNpc.points) ? (stateNpc.points | 0) : 0;
       const voteBattleId = e && (e.battleId || e.relatedBattleId || e.refId || e.id || null);
+      const actionNonce = `npc_vote_${voterId}_${votesEmitted}_${Date.now()}`;
+      const price = calcFinalPrice({ basePrice: 1, actorPoints: beforePts, priceKey: "vote", context: { battleId: voteBattleId, actionNonce } });
+      const cost = price.finalPrice;
       const costCountBefore = countCrowdVoteCostLogs(voterId, voteBattleId);
-      const ok = Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId: voteBattleId });
+      const ok = Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+        battleId: voteBattleId,
+        basePrice: price.basePrice,
+        mult: price.mult,
+        finalPrice: price.finalPrice,
+        priceKey: price.priceKey || "vote",
+        pointsAtPurchase: beforePts,
+        context: price.context || { battleId: voteBattleId, actionNonce }
+      });
       const stateNpcAfter = getPlayerById(voterId) || stateNpc;
       const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
       const costCountAfter = countCrowdVoteCostLogs(voterId, voteBattleId);
-      if (!ok || !ok.ok || (afterPts !== (beforePts - 1))) {
+      if (!ok || !ok.ok || (afterPts !== (beforePts - cost))) {
         crowd.lastTickWhy = "payment_failed";
         const cleanupAttempted = !!(ok && ok.ok);
         let cleanupRemoved = false;
@@ -1267,7 +1292,11 @@ window.Game ||= {};
     const spend = (Game.__A && typeof Game.__A.spendPoints === "function")
       ? Game.__A.spendPoints
       : null;
-    const voteCost = 1;
+    const basePrice = 1;
+    const battleId = e && (e.battleId || e.relatedBattleId || e.refId || null);
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPrice({ basePrice, actorPoints: mePoints, priceKey: "vote", context: { battleId } });
+    const voteCost = price.finalPrice;
 
     // Record the player's vote into the crowd (weight = 1).
     ensureEventCrowd(e);
@@ -1287,8 +1316,18 @@ window.Game ||= {};
 
     if (isCirculationEnabled()) {
       const Econ = getEcon();
-      const ok = Econ && typeof Econ.transferPoints === "function"
-        ? Econ.transferPoints("me", "sink", voteCost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
+      const ok = Econ && typeof Econ.chargePriceOnce === "function"
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "crowd_vote_cost",
+            priceKey: price.priceKey || "vote",
+            basePrice: basePrice,
+            actorPoints: mePoints,
+            battleId,
+            context: price.context || { battleId }
+          })
         : null;
       if (!ok || !ok.ok) {
         e.note = "Не хватает пойнтов.";
@@ -1296,12 +1335,14 @@ window.Game ||= {};
         return false;
       }
     } else if (spend) {
+      markLegacyEconHit("events.voteCost.spendPoints");
       if (!spend(voteCost, "crowd_vote_cost")) {
         e.note = "Не хватает пойнтов.";
         requestRender();
         return false;
       }
     } else {
+      markLegacyEconHit("events.voteCost.directPoints");
       const me2 = Game.__S && Game.__S.me ? Game.__S.me : null;
       if (!me2 || (me2.points | 0) < voteCost) {
         e.note = "Не хватает пойнтов.";
@@ -1337,10 +1378,10 @@ window.Game ||= {};
       return true;
     }
 
-    // Toast on click: -1💰 only (REP participation is applied on resolve)
+    // Toast on click: reflect price (REP participation is applied on resolve)
     try {
       if (Game.UI && typeof Game.UI.pushSystem === "function") {
-        Game.UI.pushSystem(`-1💰`);
+        Game.UI.pushSystem(`-${voteCost}💰`);
       }
       if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
         Game.UI.requestRenderAll();
@@ -1353,7 +1394,7 @@ window.Game ||= {};
     }
 
     // Persist into battle crowd too, if this event is backed by a battle.
-    const battleId = e.battleId || e.relatedBattleId || e.refId;
+    const battleCrowdId = e.battleId || e.relatedBattleId || e.refId;
     if (battleId) {
       const b = findBattleById(battleId);
       if (b && b.crowd && typeof b.crowd === "object") {
@@ -1373,9 +1414,9 @@ window.Game ||= {};
         // Immediate cap check for battle-backed draw.
         try {
           const Core = (Game && (Game.ConflictCore || Game._ConflictCore)) ? (Game.ConflictCore || Game._ConflictCore) : null;
-          if (Core && typeof Core.applyCrowdVoteTick === "function") {
-            Core.applyCrowdVoteTick(battleId);
-          }
+        if (Core && typeof Core.applyCrowdVoteTick === "function") {
+          Core.applyCrowdVoteTick(battleCrowdId);
+        }
         } catch (_) {}
       }
     }
@@ -1400,11 +1441,26 @@ window.Game ||= {};
       ? Game.__A.spendPoints
       : null;
     const D0 = Game.Data || {};
-    const cost = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;
+    const basePrice = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;
+    const eventBattleId = e && (e.battleId || e.relatedBattleId || e.refId || null);
+    const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPrice({ basePrice, actorPoints: mePoints, priceKey: "vote_extra", context: { battleId: eventBattleId } });
+    const cost = price.finalPrice;
     if (isCirculationEnabled()) {
       const Econ = getEcon();
-      const ok = Econ && typeof Econ.transferPoints === "function"
-        ? Econ.transferPoints("me", "sink", cost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
+      const ok = Econ && typeof Econ.chargePriceOnce === "function"
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "crowd_vote_cost",
+            priceKey: price.priceKey || "vote_extra",
+            basePrice: basePrice,
+            actorPoints: mePoints,
+            battleId: eventBattleId,
+            context: price.context || { battleId: eventBattleId, eventId: e && e.id ? e.id : null }
+          })
         : null;
       if (!ok || !ok.ok) {
         e.note = "Не прокает: нет P.";
@@ -1412,6 +1468,7 @@ window.Game ||= {};
         return false;
       }
     } else if (spend && !spend(cost, "crowd_vote_cost")) {
+      markLegacyEconHit("events.addExtraVote.spendPoints");
       e.note = "Не прокает: нет P.";
       requestRender();
       return false;
@@ -1432,7 +1489,7 @@ window.Game ||= {};
     }
 
     // Sync to battle-backed crowd too
-    const battleId = e.battleId || e.relatedBattleId || e.refId;
+    const battleRef = e.battleId || e.relatedBattleId || e.refId;
     if (battleId) {
       const b = findBattleById(battleId);
       if (b && b.crowd && typeof b.crowd === "object") {
@@ -1447,7 +1504,7 @@ window.Game ||= {};
       try {
         const Core = (Game && (Game.ConflictCore || Game._ConflictCore)) ? (Game.ConflictCore || Game._ConflictCore) : null;
         if (Core && typeof Core.applyCrowdVoteTick === "function") {
-          Core.applyCrowdVoteTick(battleId);
+          Core.applyCrowdVoteTick(battleRef);
         }
       } catch (_) {}
     }
@@ -1466,11 +1523,26 @@ window.Game ||= {};
       ? Game.__A.spendPoints
       : null;
     const D0 = Game.Data || {};
-    const cost = Number.isFinite(D0.COST_VOTE_SHIELD) ? (D0.COST_VOTE_SHIELD | 0) : 1;
+    const basePrice = Number.isFinite(D0.COST_VOTE_SHIELD) ? (D0.COST_VOTE_SHIELD | 0) : 1;
+    const battleId = e && (e.battleId || e.relatedBattleId || e.refId || null);
+    const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPrice({ basePrice, actorPoints: mePoints, priceKey: "vote_shield", context: { battleId } });
+    const cost = price.finalPrice;
     if (isCirculationEnabled()) {
       const Econ = getEcon();
-      const ok = Econ && typeof Econ.transferPoints === "function"
-        ? Econ.transferPoints("me", getCrowdPoolId(e), cost, "crowd_vote_cost", { battleId: e && (e.battleId || e.relatedBattleId || e.refId || null) })
+      const ok = Econ && typeof Econ.chargePriceOnce === "function"
+        ? Econ.chargePriceOnce({
+            fromId: "me",
+            toId: getCrowdPoolId(e),
+            actorId: "me",
+            reason: "crowd_vote_cost",
+            priceKey: price.priceKey || "vote_shield",
+            basePrice: basePrice,
+            actorPoints: mePoints,
+            battleId,
+            context: price.context || { battleId }
+          })
         : null;
       if (!ok || !ok.ok) {
         e.note = "Не прокает: нет P.";
@@ -1478,6 +1550,7 @@ window.Game ||= {};
         return false;
       }
     } else if (spend && !spend(cost, "tie_vote_shield")) {
+      markLegacyEconHit("events.activateVoteShield.spendPoints");
       e.note = "Не прокает: нет P.";
       requestRender();
       return false;

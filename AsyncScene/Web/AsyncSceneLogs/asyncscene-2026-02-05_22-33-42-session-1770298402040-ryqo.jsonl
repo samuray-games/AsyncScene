@@ -1,0 +1,5 @@
+{"ts": 1770298420692, "sessionId": "session-1770298402040-ryqo", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770298420692_1529"}}
+{"ts": 1770298420693, "sessionId": "session-1770298402040-ryqo", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "econ06_vote_econ06_1770298420691_8210"}}
+{"ts": 1770298420696, "sessionId": "session-1770298402040-ryqo", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "rematch_request_cost", "battleId": "econ06_rematch_econ06_1770298420691_8210"}}
+{"ts": 1770298420696, "sessionId": "session-1770298402040-ryqo", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "escape_vote_cost", "battleId": "econ06_escape_econ06_1770298420691_8210"}}
+{"ts": 1770298420696, "sessionId": "session-1770298402040-ryqo", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "teach_argument", "battleId": null}}

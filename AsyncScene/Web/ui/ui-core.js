@@ -988,26 +988,40 @@ window.Game = window.Game || {};
   };
 
   // Players
+  UI.withPointsWrite = (fn) => {
+    if (typeof fn !== "function") return;
+    if (typeof Game._withPointsWrite === "function") {
+      Game._withPointsWrite(fn);
+    } else {
+      fn();
+    }
+  };
+
   UI.buildPlayers = () => {
     S.players = S.players || {};
     if (S.me) {
-      S.players["me"] = S.players["me"] || {
-        id:"me",
-        name: S.me.name,
-        influence: Number.isFinite(S.me.influence) ? S.me.influence : (parseInt(S.me.influence,10) || 0),
-        points: Number.isFinite(S.me.points) ? S.me.points : (parseInt(S.me.points,10) || 0),
-        wins: Number.isFinite(S.me.wins) ? S.me.wins : (parseInt(S.me.wins,10) || 0),
-        role:"me"
-      };
+      UI.withPointsWrite(() => {
+        S.players["me"] = S.players["me"] || {
+          id:"me",
+          name: S.me.name,
+          influence: Number.isFinite(S.me.influence) ? S.me.influence : (parseInt(S.me.influence,10) || 0),
+          points: Number.isFinite(S.me.points) ? S.me.points : (parseInt(S.me.points,10) || 0),
+          wins: Number.isFinite(S.me.wins) ? S.me.wins : (parseInt(S.me.wins,10) || 0),
+          role:"me"
+        };
+      });
     }
 
     const npcs = (Game.NPC && Game.NPC.getAll) ? Game.NPC.getAll() : [];
     npcs.forEach(n => {
       if (!S.players[n.id]) {
-        S.players[n.id] = { ...n };
+        UI.withPointsWrite(() => {
+          S.players[n.id] = { ...n };
+        });
       } else {
-        // Мягкое обновление полей NPC
-        Object.assign(S.players[n.id], n);
+        UI.withPointsWrite(() => {
+          Object.assign(S.players[n.id], n);
+        });
       }
     });
     UI.requestRenderAll();

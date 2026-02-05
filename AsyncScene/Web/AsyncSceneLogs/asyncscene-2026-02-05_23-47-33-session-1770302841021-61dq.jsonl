@@ -1,0 +1,2 @@
+{"ts": 1770302852836, "sessionId": "session-1770302841021-61dq", "type": "chat", "name": "Ксю", "text": "@Рин, не тяни, скажи прямо", "system": false}
+{"ts": 1770302853185, "sessionId": "session-1770302841021-61dq", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_win_progress_threshold", "battleId": "econ07_af_win_10"}}

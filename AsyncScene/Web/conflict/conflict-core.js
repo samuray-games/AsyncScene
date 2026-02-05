@@ -126,27 +126,25 @@
     return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
   }
 
+  function calcFinalPriceForActor(basePrice, actorPoints, priceKey, context){
+    const Econ = getEcon();
+    const base = Number.isFinite(basePrice) ? (basePrice | 0) : 0;
+    const points = Number.isFinite(actorPoints) ? (actorPoints | 0) : 0;
+    const baseNorm = Math.max(0, base);
+    const pointsNorm = Math.max(0, points);
+    if (Econ && typeof Econ.calcFinalPrice === "function") {
+      return Econ.calcFinalPrice({
+        basePrice: baseNorm,
+        actorPoints: pointsNorm,
+        priceKey,
+        context
+      });
+    }
+    return { basePrice: baseNorm, mult: 1, finalPrice: baseNorm, priceKey, context };
+  }
+
   function isCirculationEnabled(){
-    const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
-    if (Econ && typeof Econ.isCirculationEnabled === "function") return Econ.isCirculationEnabled();
-    const D = (Game && Game.Data) ? Game.Data : null;
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    if (dbg && dbg.FORCE_CIRCULATION === true) {
-      if (dbg._econModeLogged !== "cir") {
-        dbg._econModeLogged = "cir";
-        try { console.log("[DEV] ECON: CIR"); } catch (_) {}
-      }
-      return true;
-    }
-    if (dbg && dbg.FORCE_CIRCULATION === false) {
-      if (dbg._econModeLogged !== "legacy") {
-        dbg._econModeLogged = "legacy";
-        try { console.log("[DEV] ECON: LEGACY"); } catch (_) {}
-      }
-      return false;
-    }
-    const v = D && D.CIRCULATION_ENABLED;
-    return v === true || v === 1 || v === "true" || v === "1";
+    return true;
   }
 
   function econTransfer(fromId, toId, amount, reason, meta){
@@ -1409,11 +1407,33 @@
             const Econ = getEcon();
             const battleId = b.id || b.battleId || null;
             const beforePts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
-            const ok = (Econ && typeof Econ.transferPoints === "function")
-              ? Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId })
-              : { ok: false };
+            const price = calcFinalPriceForActor(1, beforePts, "vote", { battleId });
+            const cost = price.finalPrice;
+            const ok = (Econ && typeof Econ.chargePriceOnce === "function")
+              ? Econ.chargePriceOnce({
+                  fromId: voterId,
+                  toId: "sink",
+                  actorId: voterId,
+                  reason: "crowd_vote_cost",
+                  priceKey: price.priceKey || "vote",
+                  basePrice: 1,
+                  actorPoints: beforePts,
+                  battleId,
+                  context: price.context || { battleId }
+                })
+              : (Econ && typeof Econ.transferPoints === "function")
+                ? Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+                    battleId,
+                    basePrice: price.basePrice,
+                    mult: price.mult,
+                    finalPrice: price.finalPrice,
+                    priceKey: price.priceKey || "vote",
+                    pointsAtPurchase: beforePts,
+                    context: price.context || { battleId }
+                  })
+                : { ok: false };
             const afterPts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
-            if (ok && ok.ok && (afterPts === (beforePts - 1))) {
+            if (ok && ok.ok && (afterPts === (beforePts - cost))) {
               v.voters[voterId] = (side === "attacker") ? "a" : "b";
               let w = 1;
               if (typeof getVoteWeight === "function") {
@@ -1424,7 +1444,7 @@
               }
               if (side === "attacker") v.votesA = (v.votesA|0) + w;
               else if (side === "defender") v.votesB = (v.votesB|0) + w;
-            } else if (ok && ok.ok && (afterPts !== (beforePts - 1))) {
+            } else if (ok && ok.ok && (afterPts !== (beforePts - cost))) {
               try {
                 const dbg = Game && Game.__D ? Game.__D : null;
                 if (dbg && Array.isArray(dbg.moneyLog)) {
@@ -1538,28 +1558,47 @@
       };
     }
     const modeNorm = mode || "smyt";
-    const costNorm = (cost != null) ? (cost | 0) : escapeCostForBattle(b);
-    if (modeNorm !== "off" && costNorm > 0) {
-      const me = Game.__S && Game.__S.me;
-      const opp = getPlayer(b.opponentId);
+    const costBase = (cost != null) ? (cost | 0) : escapeCostForBattle(b);
+    const me = Game.__S && Game.__S.me;
+    const opp = getPlayer(b.opponentId);
+    const battleRef = b.id || b.battleId || `escape_${Date.now()}`;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPriceForActor(costBase, mePoints, "escape", { battleId: battleRef, mode: modeNorm });
+    const costFinal = price.finalPrice;
+    if (modeNorm !== "off" && costFinal > 0) {
       ensurePointsField(me);
       ensurePointsField(opp);
       if (isCirculationEnabled()) {
         if (me && opp && opp.id) {
-          econTransfer("me", opp.id, costNorm, "escape_vote_cost", { battleId: b.id || b.battleId || null });
+          const Econ = getEcon();
+          if (Econ && typeof Econ.chargePriceOnce === "function") {
+            Econ.chargePriceOnce({
+              fromId: "me",
+              toId: opp.id,
+              actorId: "me",
+              reason: "escape_vote_cost",
+              priceKey: price.priceKey || "escape",
+              basePrice: costBase,
+              actorPoints: mePoints,
+              battleId: battleRef,
+              context: price.context || { battleId: battleRef, mode: modeNorm }
+            });
+          } else {
+            econTransfer("me", opp.id, costFinal, "escape_vote_cost", { battleId: battleRef });
+          }
         }
       } else {
         if (me) {
           const beforePts = (me.points | 0);
-          const afterPts = clamp0(beforePts - costNorm);
+          const afterPts = clamp0(beforePts - costFinal);
           me.points = afterPts;
           try {
             if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
-              Game.__A.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "escape_vote_cost", battleId: b.id || b.battleId || null });
+              Game.__A.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "escape_vote_cost", battleId: battleRef });
             }
           } catch (_) {}
         }
-        if (opp) opp.points = clamp0((opp.points|0) + costNorm);
+        if (opp) opp.points = clamp0((opp.points|0) + costFinal);
       }
     }
     b.escapeVote = {
@@ -1570,7 +1609,7 @@
       voters: {},
       decided: false,
       mode: modeNorm,
-      cost: costNorm,
+      cost: costFinal,
       attackerId,
       defenderId
     };
@@ -1798,11 +1837,15 @@
         return { ok: true, battleId: b.id, outcome: "ignored", mode };
       }
     }
-    const cost = (mode === "off") ? 0 : ((opts && typeof opts.cost === "number") ? (opts.cost | 0) : escapeCostForBattle(b));
-    if (mode !== "off" && (me.points|0) <= 0) return { ok: false, reason: "no_points", cost, have: (me.points|0) };
-    if ((me.points|0) < cost) return { ok: false, reason: "no_points", cost, have: (me.points|0) };
+    const baseCost = (mode === "off") ? 0 : ((opts && typeof opts.cost === "number") ? (opts.cost | 0) : escapeCostForBattle(b));
+    const battleRef = b.id || b.battleId || null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPriceForActor(baseCost, mePoints, "escape", { battleId: battleRef, mode });
+    const costFinal = (mode === "off") ? 0 : price.finalPrice;
+    if (mode !== "off" && (me.points|0) <= 0) return { ok: false, reason: "no_points", cost: costFinal, have: (me.points|0) };
+    if ((me.points|0) < costFinal) return { ok: false, reason: "no_points", cost: costFinal, have: (me.points|0) };
 
-    return startEscapeVote(b, mode, cost);
+    return startEscapeVote(b, mode, baseCost);
   };
 
   C.escapeAll = function () {
@@ -1812,9 +1855,19 @@
     const active = Game.__S.battles.filter(b => b && !b.resolved);
     if (!active.length) return { ok: true, closed: 0, failed: [] };
 
-    // Compute total cost first.
+    // Compute total cost first (sequential, applying multiplier per current points).
     let total = 0;
-    for (const b of active) total += escapeCostForBattle(b);
+    let tempPoints = (me.points | 0);
+    const costByBattle = [];
+    for (const b of active) {
+      const baseCost = escapeCostForBattle(b);
+      const bid = b.id || b.battleId || null;
+      const price = calcFinalPriceForActor(baseCost, tempPoints, "escape", { battleId: bid, mode: "smyt" });
+      const costFinal = price.finalPrice;
+      costByBattle.push({ battleId: bid, baseCost, costFinal });
+      total += costFinal;
+      tempPoints = Math.max(0, tempPoints - costFinal);
+    }
 
     if (total > 0 && (me.points|0) <= 0) {
       return { ok: false, reason: "no_points", cost: total, have: (me.points|0) };
@@ -1823,22 +1876,29 @@
       // Not enough for all - close as many as possible from top to bottom.
       const failed = [];
       let closed = 0;
-      for (const b of active) {
-        const cost = escapeCostForBattle(b);
-        if ((me.points|0) < cost) {
-          failed.push({ battleId: b.id, cost });
+      let runningPoints = (me.points | 0);
+      for (const item of costByBattle) {
+        if (runningPoints < item.costFinal) {
+          failed.push({ battleId: item.battleId, cost: item.costFinal });
           continue;
         }
-        const started = startEscapeVote(b, "smyt", cost);
-        if (started && started.ok) closed++;
+        const started = startEscapeVote(
+          Game.__S.battles.find(x => (x && (x.id || x.battleId)) === item.battleId),
+          "smyt",
+          item.baseCost
+        );
+        if (started && started.ok) {
+          closed++;
+          runningPoints = Math.max(0, runningPoints - item.costFinal);
+        }
       }
       return { ok: failed.length === 0, closed, failed, totalNeeded: total, have: (me.points|0) };
     }
 
     // Enough for all.
-    for (const b of active) {
-      const cost = escapeCostForBattle(b);
-      startEscapeVote(b, "smyt", cost);
+    for (const item of costByBattle) {
+      const b = Game.__S.battles.find(x => (x && (x.id || x.battleId)) === item.battleId);
+      startEscapeVote(b, "smyt", item.baseCost);
     }
 
     return { ok: true, closed: active.length, failed: [] };
@@ -2192,11 +2252,32 @@
 
     // Escalating cost: track rematch request count on the battle.
     b.rematchRequestCount = (b.rematchRequestCount || 0) + 1;
-    const cost = b.rematchRequestCount;
+    const baseCost = b.rematchRequestCount;
+    const battleRef = b.id || b.battleId || null;
+    const loserPts =
+      (loserId === "me")
+        ? ((Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0)
+        : ((getPlayer(loserId) && Number.isFinite(getPlayer(loserId).points)) ? (getPlayer(loserId).points | 0) : 0);
+    const price = calcFinalPriceForActor(baseCost, loserPts, "rematch", { battleId: battleRef, rematchOf: b.id });
+    const cost = price.finalPrice;
 
     // Cost: escalating point transfer loser -> winner. Must be loggable with battleId.
     try {
-      const tx = econTransfer(loserId, winnerId, cost, "rematch_request_cost", { battleId: b.id, rematchOf: b.id });
+      const Econ = getEcon();
+      const tx = (Econ && typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: loserId,
+            toId: winnerId,
+            actorId: loserId,
+            reason: "rematch_request_cost",
+            priceKey: price.priceKey || "rematch",
+            basePrice: baseCost,
+            actorPoints: loserPts,
+            battleId: battleRef,
+            rematchOf: b.id,
+            context: price.context || { battleId: battleRef, rematchOf: b.id, requestedBy: loserId }
+          })
+        : econTransfer(loserId, winnerId, cost, "rematch_request_cost", { battleId: battleRef, rematchOf: b.id });
       if (!tx || tx.ok !== true) {
         // If econ is present but refuses due to insufficient points, do NOT apply legacy fallback.
         const have =
@@ -2208,15 +2289,7 @@
           return { ok: false, reason: "no_points", cost, have };
         }
 
-        // No econ: apply safe legacy transfer with a strict funds check.
-        const loser = (loserId === "me") ? (Game.__S && Game.__S.me) : getPlayer(loserId);
-        const winner = (winnerId === "me") ? (Game.__S && Game.__S.me) : getPlayer(winnerId);
-        ensurePointsField(loser);
-        ensurePointsField(winner);
-        if (!loser || !winner) return { ok: false, reason: "no_points", cost, have };
-        if ((loser.points | 0) < cost) return { ok: false, reason: "no_points", cost, have: (loser.points | 0) };
-        loser.points = clamp0((loser.points | 0) - cost);
-        winner.points = clamp0((winner.points | 0) + cost);
+        return { ok: false, reason: "no_econ", cost, have };
       }
     } catch (_) {}
 

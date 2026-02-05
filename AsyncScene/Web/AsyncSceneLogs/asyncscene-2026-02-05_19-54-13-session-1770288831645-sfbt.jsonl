@@ -1,0 +1,16 @@
+{"ts": 1770288852837, "sessionId": "session-1770288831645-sfbt", "type": "chat", "name": "Глеб", "text": "че по 💰, при бабле", "system": false}
+{"ts": 1770288853273, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_win_weak_1770288853272_6837"}}
+{"ts": 1770288853276, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_econ03_win_weak_1770288853272_6837"}}
+{"ts": 1770288853277, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_econ03_win_weak_1770288853272_6837"}}
+{"ts": 1770288853278, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_econ03_win_weak_1770288853272_6837"}}
+{"ts": 1770288853279, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-02-05"}}
+{"ts": 1770288853279, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_win_equal_1770288853279_7610"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_econ03_win_equal_1770288853279_7610"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_econ03_win_equal_1770288853279_7610"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_econ03_win_equal_1770288853279_7610"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_win_strong_1770288853280_9790"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_econ03_win_strong_1770288853280_9790"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_econ03_win_strong_1770288853280_9790"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_draw_1770288853280_1076"}}
+{"ts": 1770288853280, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_draw_deposit", "battleId": "dev_econ03_draw_1770288853280_1076"}}
+{"ts": 1770288853281, "sessionId": "session-1770288831645-sfbt", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_draw", "battleId": "dev_econ03_draw_1770288853280_1076"}}

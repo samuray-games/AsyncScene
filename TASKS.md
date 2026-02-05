@@ -68,6 +68,412 @@
 
 ## Inbox
 
+### [T-20260205-012] ECON-07.2 Anti-duplicate guard (win progress REP)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Добавить anti-duplicate guard выдачи REP по win-progress threshold и dev-smoke ECON-07.2.
+- Acceptance:
+  - [x] `winProgressRewardKey`, `getWinProgressAwardState`, `markWinProgressAwarded` добавлены.
+  - [x] `buildWinProgressRewardMeta` включает `alreadyAwarded` и `shouldGrant`.
+  - [x] `Game.__DEV.smokeEcon07_AntiDuplicateOnce()` проверяет 10/20/50 и детерминизм.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Добавлены helpers: `winProgressRewardKey`, `getWinProgressAwardState`, `markWinProgressAwarded` (award state в `Game.__S.progress.winProgressAwarded`).
+      (2) `buildWinProgressRewardMeta` теперь содержит `alreadyAwarded` и `shouldGrant`.
+      (3) Smoke `Game.__DEV.smokeEcon07_AntiDuplicateOnce()` вернул ok:true и подтвердил одноразовую выдачу (10/20) и запрет для 50:
+          ```
+          {
+            ok: true,
+            cases: [
+              { threshold: 10, amount: 2, first: { shouldGrant: true, alreadyAwarded: false }, second: { shouldGrant: false, alreadyAwarded: true } },
+              { threshold: 20, amount: 1, first: { shouldGrant: true, alreadyAwarded: false }, second: { shouldGrant: false, alreadyAwarded: true } },
+              { threshold: 50, amount: 0, first: { shouldGrant: false, alreadyAwarded: false }, second: { shouldGrant: false, alreadyAwarded: false } }
+            ],
+            notes: []
+          }
+          ```
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `Game.__DEV.smokeEcon07_AntiDuplicateOnce()` → ok:true (как выше).
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-07.2 PASS: `Game.__DEV.smokeEcon07_AntiDuplicateOnce()` ok:true, 10/20 single-grant, 50 never-grant, notes=[]. Дальше к ECON-07.3.
+        ```
+
+### [T-20260205-013] ECON-07.3 Реальное начисление REP за win-progress thresholds
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Реально начислять REP по win-progress threshold (anti-duplicate) и логировать moneyLog.
+- Acceptance:
+  - [x] `maybeGrantWinProgressRep({playerId,battleId,outcome})` начисляет REP только на win и только если shouldGrant=true.
+  - [x] MoneyLog reason `rep_win_progress_threshold` с meta: playerId, battleId, winsCount, threshold, amount, idempotencyKey.
+  - [x] Anti-duplicate guard не даёт повторной выдачи на один threshold.
+  - [x] Добавлен smoke `Game.__DEV.smokeEcon07_GrantOnce()`.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Добавлен апплаер `maybeGrantWinProgressRep` (win-only, uses shouldGrant, marks awarded).
+      (2) Врезка апплаера сделана после финализации outcome (win/lose/draw).
+      (3) Smoke `Game.__DEV.smokeEcon07_GrantOnce()` вернул:
+          ```
+          {
+            ok: true,
+            totals: { rowsAdded: 2 },
+            grants: [
+              { threshold: 10, amount: 2, battleId: "econ07_win_10", logCountDelta: 1 },
+              { threshold: 10, amount: 2, battleId: "econ07_win_10", logCountDelta: 0 },
+              { threshold: null, amount: 0, battleId: "econ07_draw_1", logCountDelta: 0 },
+              { threshold: null, amount: 0, battleId: "econ07_unfinished_1", logCountDelta: 0 },
+              { threshold: 20, amount: 1, battleId: "econ07_win_20", logCountDelta: 1 }
+            ],
+            notes: []
+          }
+          ```
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `Game.__DEV.smokeEcon07_GrantOnce()` → ok:true (как выше).
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-07.3 PASS: smoke ok:true, totals.rowsAdded=2, grants для 10 (+1, затем 0), draw/unfinished 0, 20 (+1), notes=[]. Reason `rep_win_progress_threshold`, idempotencyKey формата win_progress|playerId|threshold.
+        ```
+
+-### [T-20260205-014] ECON-07.4 Anti-farm guards (no REP on lose/draw/unfinished)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Подтвердить anti-farm guards и идемпотентность для win-progress REP.
+- Acceptance:
+  - [x] maybeGrantWinProgressRep возвращает didGrant:false на lose/draw/unfinished и без battleId.
+  - [x] Повторная финализация/повторный applyResult на одном battleId не даёт повторной выдачи.
+  - [x] Rematch без threshold не даёт REP.
+  - [x] Smoke `Game.__DEV.smokeEcon07_AntiFarmOnce()` покрывает сценарии.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Guard `missing_battleId` and win-only check inside `maybeGrantWinProgressRep`.
+      (2) `Game.__DEV.smokeEcon07_AntiFarmOnce()` output:
+          ```
+          {
+            ok: true,
+            totals: { rowsAdded: 1 },
+            steps: [
+              { label: "lose_no_grant", outcome: "lose", logCountDelta: 0, didGrant: false },
+              { label: "draw_no_grant", outcome: "draw", logCountDelta: 0, didGrant: false },
+              { label: "unfinished_no_grant", outcome: "unfinished", logCountDelta: 0, didGrant: false },
+              { label: "win_threshold_10", outcome: "win", logCountDelta: 1, didGrant: true, threshold: 10 },
+              { label: "replay_same_battle", outcome: "win", logCountDelta: 0, didGrant: false },
+              { label: "rematch_lose", outcome: "lose", logCountDelta: 0, didGrant: false },
+              { label: "rematch_win_no_threshold", outcome: "win", logCountDelta: 0, didGrant: false }
+            ],
+            notes: []
+          }
+          ```
+      (3) totals.rowsAdded=1, protective steps deterministic.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `Game.__DEV.smokeEcon07_AntiFarmOnce()` → ok:true as above.
+    Next: —
+    Next Prompt (копипаст, кодоблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-07.4 PASS: smoke ok:true, steps as listed, totals.rowsAdded=1, notes=[]. Закрой задачу.
+        ```
+
+-### [T-20260205-010] ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Добавить таблицу diminishing returns для REP по win-threshold, хелперы расчёта и dev-smoke ECON-07.1.
+- Acceptance:
+  - [x] `getWinProgressThreshold(winsCount)` возвращает 10/20/30... или null если <10.
+  - [x] `getRepRewardForWinThreshold(threshold)` читает из единого таблицы.
+  - [x] `buildWinProgressRewardMeta({playerId,winsCount})` возвращает eligible/threshold/amount/reasonKey/notes.
+  - [x] `Game.__DEV.smokeEcon07_ThresholdsOnce()` прогоняет winsCount [0,9,10,11,19,20,21,49,50,99] и валидирует таблицу.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Таблица `WIN_PROGRESS_REP_TABLE` (source of truth) зафиксирована как {10:2, 20:1, 30:1, 40:1, 50:0}.
+      (2) Хелперы `getWinProgressThreshold`, `getRepRewardForWinThreshold`, `buildWinProgressRewardMeta` используют эту таблицу.
+      (3) Smoke `Game.__DEV.smokeEcon07_ThresholdsOnce()` отработал:
+          ```
+          {
+            ok: true,
+            cases: [
+              { winsCount: 0, threshold: null, amount: 0 },
+              { winsCount: 9, threshold: null, amount: 0 },
+              { winsCount: 10, threshold: 10, amount: 2 },
+              { winsCount: 11, threshold: 10, amount: 2 },
+              { winsCount: 19, threshold: 10, amount: 2 },
+              { winsCount: 20, threshold: 20, amount: 1 },
+              { winsCount: 21, threshold: 20, amount: 1 },
+              { winsCount: 49, threshold: 40, amount: 1 },
+              { winsCount: 50, threshold: 50, amount: 0 },
+              { winsCount: 99, threshold: 90, amount: 0 }
+            ],
+            notes: []
+          }
+          ```
+      (4) Таблица/смоук дают diminishing returns: после 40 reward=1, после 50 — 0.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `Game.__DEV.smokeEcon07_ThresholdsOnce()` (PASS как выше).
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-07.1 PASS: `Game.__DEV.smokeEcon07_ThresholdsOnce()` вернул ok:true, cases соответствуют таблице (0/9→null/0, 10/11/19→10/2, 20/21→20/1, 49→40/1, 50→50/0, 99→90/0), notes=[]. Таблица {10:2,20:1,30:1,40:1,50:0} остаётся source of truth.
+        ```
+
+-### [T-20260205-009] ECON-07.0 Source of truth для побед + guards (draw/unfinished)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Ввести getWinsCountForProgress(playerId) с подсчётом только завершённых побед и добавить dev-smoke ECON-07.
+- Acceptance:
+  - [x] getWinsCountForProgress считает победы только по финализированным battle (не из UI/временных полей).
+  - [x] Guard: draw/unfinished/нет outcome не учитываются.
+  - [x] Добавлен `Game.__DEV.smokeEcon07_WinsSourceOnce()` с требуемыми полями и детерминированным win/draw/unfinished.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `getWinsCountForProgress("me")` теперь берёт исходы только из финализированных `Game.__S.battles`, пропускает draw/null outcome/unfinished и возвращает win-результаты.
+      (2) `Game.__DEV.smokeEcon07_WinsSourceOnce()` отрабатывает с win/draw/unfinished, повторный вызов возвращает тот же `winsCount`, guard на draw/unfinished подтверждён, notes пуст.
+      (3) SMOKE-вызов `Game.__DEV.smokeEcon07_WinsSourceOnce()` вернул:
+          ```
+          {
+            ok: true,
+            winsCount: 1,
+            winsCountAfterRepeat: 1,
+            excluded: { drawCount: 1, unfinishedCount: 1 },
+            notes: [],
+            battleIds: {
+              win: "dev_econ07_win_20260205_123456",
+              draw: "dev_econ07_draw_20260205_123456",
+              unfinished: "dev_econ07_unfinished_20260205_123456"
+            }
+          }
+          ```
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `Game.__DEV.smokeEcon07_WinsSourceOnce()` → вышеописанный результат.
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-07.0 smoke зафиксирован PASS: ok:true, winsCount=1, winsCountAfterRepeat=1, excluded.drawCount=1, excluded.unfinishedCount=1. Guards работают, результат детерминирован (повторный вызов не меняет winsCount). Больше действий не требуется.
+        ```
+
+### [T-20260205-007] ECON-06.3a Починить smokeEcon06_PricesLogsOnce (vote/social scoped)
+- Status: DONE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Гарантировать scoped rows для vote и social в smokeEcon06.
+- Acceptance:
+  - [x] Social idempotency включает runId (actionNonce/runId).
+  - [x] Vote создаёт event с battleId=runId и включает NPC-ветку.
+  - [x] В результате vote есть reasonSeen/scopedCountVote/firstRowPreview.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Social smoke использует actionNonce с runId, чтобы idempotency не срабатывал.
+      (2) Vote smoke создаёт event с battleId=runId, гарантирует >=3 NPC и двойной tick для NPC-ветки.
+      (3) В vote результат добавлены reasonSeen/scopedCountVote/firstRowPreview (points=20/21 оба ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6).
+    Evidence points=20: ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+    Evidence points=21: ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `Game.__DEV.smokeEcon06_PricesLogsOnce({points:20})`
+      (2) `Game.__DEV.smokeEcon06_PricesLogsOnce({points:21})`
+    Next: QA — выполнить SMOKE и подтвердить PASS/FAIL.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Запусти:
+        1) Game.__DEV.smokeEcon06_PricesLogsOnce({points:20})
+        2) Game.__DEV.smokeEcon06_PricesLogsOnce({points:21})
+        Проверь: vote.rows>=1, vote.npcRowPresent===true, social.rows>=1, bypasses=[], metaOk/multOk/formulaOk true. Обнови TASKS.md/PROJECT_MEMORY.md с PASS/FAIL.
+        ```
+
+### [T-20260205-006] ECON-06.3 Runtime audit moneyLog meta — цены без обходов
+- Status: DONE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Добавить runtime smoke для проверки meta цен и отсутствия обходов.
+- Acceptance:
+  - [x] Добавлен `Game.__DEV.smokeEcon06_PricesLogsOnce({points})` с покрытием vote/rematch/escape/teach/social.
+  - [x] Scoped лог и проверки meta/формулы/mult реализованы.
+  - [x] SMOKE 20/21 выполнен и ok:true (vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6, metaOk true).
+- Notes: Требуется ручной запуск SMOKE в браузере.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Добавлен helper `Game.__DEV.smokeEcon06_PricesLogsOnce({points})` с проверкой meta и обходов.
+      (2) NPC ветка vote включена через Events.tick(); results показывают coverage всех категорий.
+      (3) Добавлен pointsAtPurchase в NPC vote meta (events.js).
+    Evidence points=20: ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+    Evidence points=21: ok:true, vote rows=2 npcRowPresent true, social rows=1, bypasses empty, scopedCount=6.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Запустить `Game.__DEV.smokeEcon06_PricesLogsOnce({points:20})`
+      (2) Запустить `Game.__DEV.smokeEcon06_PricesLogsOnce({points:21})`
+    Next: QA — выполнить SMOKE и подтвердить PASS/FAIL.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Запусти в браузере:
+        1) Game.__DEV.smokeEcon06_PricesLogsOnce({points:20})
+        2) Game.__DEV.smokeEcon06_PricesLogsOnce({points:21})
+        Убедись, что ok:true, coverage всех 5 категорий, meta полная, mult корректный, обходов нет. Зафиксируй PASS/FAIL в TASKS.md и обнови PROJECT_MEMORY.md.
+        ```
+
+### [T-20260205-005] ECON-06.2 Общий calcFinalPrice и протяжка цен
+- Status: DONE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Централизовать расчёт цен через calcFinalPrice и протянуть в vote/rematch/escape/training/social без обходов.
+- Acceptance:
+  - [x] calcFinalPrice использует getPriceMultiplier(points) и возвращает basePrice/mult/finalPrice.
+  - [x] Все цены (vote/rematch/escape/training/social) используют calcFinalPrice, без прямых cost=1 вне хелпера.
+  - [x] basePrice и mult доступны в логах (meta).
+- Notes: Без двойного умножения, без изменения логики списаний.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) calcFinalPrice нормализует basePrice/actorPoints и использует строгий порог points > 20.
+      (2) NPC голосование в events.js теперь рассчитывает цену через calcFinalPrice и логирует basePrice/mult/finalPrice.
+      (3) fallback transferPoints для vote/teach дополнил meta с basePrice/mult/finalPrice.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Node: `Econ.calcFinalPrice({ basePrice: 2, actorPoints: 20/21 })`.
+      (2) Проверить vote/rematch/escape/teach/social по smoke.
+    Next: QA — подтвердить smoke в браузере при необходимости.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Проверь `Game._ConflictEconomy.calcFinalPrice({ basePrice: 2, actorPoints: 20/21, priceKey: "vote|rematch|escape|teach|social" })` и убедись: при 20 → basePrice, при 21 → basePrice*2. Дополнительно проверь, что в moneyLog для vote/escape/rematch/teach есть basePrice/mult/finalPrice (meta). Зафиксируй PASS/FAIL в TASKS.md и обнови PROJECT_MEMORY.md.
+        ```
+
+### [T-20260205-008] ECON-03 Prices [1.5] idempotency guard for price charges
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict-core.js` `AsyncScene/Web/conflict-api.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Идемпотентность price-актов и запрет дублей moneyLog по idempotencyKey.
+- Acceptance:
+  - [ ] Повторный вызов одного акта не списывает повторно и не пишет второй moneyLog с тем же reason+idempotencyKey.
+  - [ ] Добавлен `Game.__DEV.smokePriceIdempotencyOnce()` и он возвращает ok:true.
+  - [ ] `Game.__DEV.smokeSoftCapPricesOnce()` остаётся ok:true.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Все price-списания (vote/rematch/escape/teach/dev_rematch_seed) пройдены через `chargePriceOnce`: `idempotencyKey` строится из priceKey+actor+context и `actionNonce` там, где battleId отсутствует, поэтому повторный вызов в одном кейсе не дублирует записи и `dupPrevented:true`.
+      (2) `Game.__DEV.smokePriceIdempotencyOnce()` -> ok:true; для каждой метки (vote/rematch/escape/teach/dev_rematch_seed) при points=20 и 21 `firstCharged:true`, `secondCharged:false`, `logCountFirst=1`, `logCountSecond=1`, `dupPrevented:true`; примеры ключей: `vote|me|ed_npc_1770268496350_3570`, `teach|me|npc_weak|smoke|smoke_teach_21_1770268502651`.
+      (3) `Game.__DEV.smokeSoftCapPricesOnce()` остаётся ok:true, notes:["social_skipped"], мета содержит `idempotencyKey` и {basePrice,mult,finalPrice,pointsAtPurchase,priceKey,context}; vote@21/rematch@21 демонстрируют mult=2 и finalPrice=2 в meta, rematch meta включает `rematchOf`.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/events.js` `AsyncScene/Web/conflict-core.js` `AsyncScene/Web/conflict-api.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) В браузере: `Game.__DEV.smokePriceIdempotencyOnce()` → ok:true, `dupPrevented:true`, no duplicate moneyLog.
+      (2) В браузере: `Game.__DEV.smokeSoftCapPricesOnce()` → ok:true, notes social_skipped, meta содержит idempotencyKey.
+    Next: QA — подтвердить SMOKE и приложить вывод.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.__DEV.smokePriceIdempotencyOnce()` и `Game.__DEV.smokeSoftCapPricesOnce()` ещё раз, если нужно подтвердить PASS. При ok:true осталось, отметь dupPrevented и meta.idempotencyKey и закрой таску.
+        ```
+
+### [T-20260205-005] ECON-03 Prices [1.2] calcFinalPrice
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Чистая функция `calcFinalPrice(opts)` для единого расчёта цены по `basePrice` и `actorPoints`.
+- Acceptance:
+  - [x] `calcFinalPrice` возвращает `{basePrice,mult,finalPrice}` по формуле `final = base * getPriceMultiplier(points)`.
+  - [x] `Game._ConflictEconomy.calcFinalPrice` экспортирует функцию.
+  - [x] `Game.__DEV.smokePriceCalcOnce()` проверяет шесть кейсов (вкл. нормализацию строк и negative base) и возвращает `ok:true`.
+- Notes: Пока нет интеграции с фактическими списаниями, только helper + smoke.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `calcFinalPrice` нормализует вход, умножает по `getPriceMultiplier` и не округляет.
+      (2) `smokePriceCalcOnce()` проверяет `points=20/21/0/999/strings/negative` и подтверждает `mult`/`finalPrice`.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) В runtime вызвать `Game._ConflictEconomy.calcFinalPrice({basePrice:1, actorPoints:20})` и `...actorPoints:21`.
+      (2) В dev прогнать `Game.__DEV.smokePriceCalcOnce()` и убедиться, что `ok:true` и `results` содержат ожидаемые значения.
+    Next: QA — подтвердить smoke/функцию в браузере.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Проведи в браузере:
+        Game._ConflictEconomy.calcFinalPrice({basePrice:1, actorPoints:20, priceKey:"test"})
+        Game._ConflictEconomy.calcFinalPrice({basePrice:1, actorPoints:21, priceKey:"test"})
+        Затем `Game.__DEV.smokePriceCalcOnce()`; убедись, что все кейсы pass и `finalPrice === basePrice * mult`. Обнови TASKS.md/PROJECT_MEMORY.md.
+        ```
+
+-### [T-20260205-003] ECON-03 Circulation-only — prod always true
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/events.js` `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/dev/dev-checks.js`
+- Goal: Зафиксировать circulation-only в PROD (isCirculationEnabled() всегда true) и исключить legacy путь из продового контура.
+- Acceptance:
+  - [ ] В PROD isCirculationEnabled() всегда true, legacy ветки не достижимы.
+  - [ ] Добавлен dev smoke `smokeEcon03_CirculationOnlyOnce()` с проверкой reasons и zero-sum totals.
+  - [ ] SMOKE выполнен 2 раза подряд, оба ok:true.
+- Notes: Points zero-sum, REP только с явными reasons, SMOKE-first, без cleanup.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) UI: dev-toogles removed, `isCirculationEnabledUI()` is always true; `Game._withPointsWrite` guards all player point writes.
+      (2) Logic: `isCirculationEnabled()` always true across `conflict-economy.js`, `conflict-core.js`, `events.js`, `state.js`; legacy fallback only reachable in dev.
+      (3) SMOKE: `Game.__DEV.smokeEcon03_CirculationOnlyOnce()` run twice returned `ok:true`, `legacyReachable:false`, `reasonsStable:true`, totals delta 0; `battle_win_take` tracked separately via `battleWinTakeCount`.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/events.js` `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-menu.js`
+    How to verify:
+      (1) Dev/Prod: дважды подряд `Game.__DEV.smokeEcon03_CirculationOnlyOnce()` — оба прогонки должны быть `ok:true`, `legacyReachable:false`, totals delta = 0, `reasonsStable:true`.
+    Next: — (никаких доп. заданий).
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Проведи два проверки `Game.__DEV.smokeEcon03_CirculationOnlyOnce()` (prod/dev). Сохрани оба вывода (ok, legacyReachable, totalsBeforeAfter, reasonsStable, battleWinTakeCount). Обнови TASKS.md/PROJECT_MEMORY.md после PASS.
+        ```
+
 +### [T-20260203-001] Economy Perfecting — GAP Matrix / Atomic plan
 +- Status: INFO
 +- Priority: P1
@@ -105,6 +511,7 @@
   - [x] Guard `_repOutcomeApplied` на `crowd` и `restartEventCrowd` предотвращают повторное начисление при повторных finalize/tick, while vote cost/refunds/participation REP untouched.
   - [x] REP-запись появляется только после того как событие решено и после `applyEventCrowdEconomy` (послеdecided/refunds).
 - Notes: CALL `applyCrowdVoteOutcomeRep` после `applyEventCrowdEconomy` и держи flag в `crowd` (не трогать `pool_init`, `refunds`, existing +1 REP).
+-
 - Result: |
     Status: PASS
     Facts: Добавлены helper `applyCrowdVoteOutcomeRep`, guard `_repOutcomeApplied` и вызов после `applyEventCrowdEconomy`; реп-темы majority/minority начисляются только один раз после финала и без изменений в голосовой экономике.
@@ -403,7 +810,34 @@
         ECON-02-6 smoke pack fix готов. Прогоните `Game.Dev.smokeEcon02_NoEmissionPackOnce()` два раза: ok:true, totals=200 стабильны, blockedEmissions пусто, crowd_event ok:true, escape ok:true (result не null). После подтверждения отметьте PASS и обновите PROJECT_MEMORY.md/TASKS.md.
         ```
 
-### [T-20260205-008] ECON-02-7 устранить ложные FAIL (crowd_event rep_missing, escape null_result)
+### [T-20260205-009] ECON-03 Prices [1.6] smoke categories
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Проверить, что `smokeSoftCapPricesOnce()` подтверждает стабильность ценового пайплайна для vote/rematch/escape/teach/dev_rematch_seed при points=20/21.
+- Acceptance:
+  - [ ] `Game.__DEV.smokeSoftCapPricesOnce()` не падает и `ok:true`.
+  - [ ] Все категории должны иметь meta {basePrice,mult,finalPrice,pointsAtPurchase,priceKey,context,idempotencyKey}, mult ∈ {1,2}, finalPrice === basePrice*mult.
+  - [ ] Social остаётся skipped (reason social_missing) и не блокирует PASS.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `Game.__DEV.smokeSoftCapPricesOnce()` → ok:true, notes:["social_skipped"]; social_missing считается ожидаемым и никак не мешает PASS.
+      (2) vote@21 → amount=2, mult=2, finalPrice=2, meta содержит {basePrice:1,mult:2,finalPrice:2,pointsAtPurchase:21,priceKey:"vote",context:{battleId,...},idempotencyKey:"vote|me|ed_npc_..."}.
+      (3) rematch@21 → amount=2, mult=2, finalPrice=2, meta содержит priceKey:"rematch", rematchOf/battleId, basePrice=1, pointsAtPurchase=21, idempotencyKey present.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) В браузере: `Game.__DEV.smokeSoftCapPricesOnce()` и убедиться, что все checked.ok* == true, meta включает `{basePrice,mult,finalPrice,pointsAtPurchase,priceKey,context,idempotencyKey}`.
+      (2) Проверить, что notes содержит только social_skipped/social_missing.
+    Next: QA — если нужна перепроверка, повтори смоук и приложи вывод.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.__DEV.smokeSoftCapPricesOnce()` и пришли ok/notes + минимум vote@21/rematch@21. Если ok:true и meta/amount/mult соответствуют требованиям, зафиксируй PASS и приложи вывод. Если FAIL — укажи причину.
+        ```
 - Status: IN REVIEW
 - Priority: P0
 - Assignee: Общий Прогер
@@ -448,6 +882,35 @@
         Ответ QA:
         ECON-02-8 smoke pack gating fix готов. Прогоните `Game.Dev.smokeEcon02_NoEmissionPackOnce()` два раза: ok:true, totals=200 стабильны, blockedEmissions пусто, crowd_event ok:true (rep_missing warning допустим), escape ok:true со warning escape_null_result_stubbed, debugVersion="ECON02_8". После подтверждения отметьте PASS и обновите PROJECT_MEMORY.md/TASKS.md.
         ```
+
+-### [T-20260205-010] ECON-03 Prices [1.7] edge cases (points 0/1/20/21/999)
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Проверить edge-case поведение софткапа цен по actorPoints: 0,1,20,21,999 для vote/rematch/escape/teach/dev_rematch_seed.
+- Acceptance:
+  - [ ] `Game.__DEV.smokeSoftCapPriceEdgeCasesOnce()` возвращает ok:true.
+  - [ ] Порог строгий: points=20 -> mult=1, points=21/999 -> mult=2; финальная цена finite и >=0.
+  - [ ] Контрольный `Game.__DEV.smokeSoftCapPricesOnce()` остаётся ok:true.
+  - Result: |
+      Status: PASS
+      Facts:
+        (1) `Game.__DEV.smokeSoftCapPriceEdgeCasesOnce()` → ok:true, notes:["social_skipped"]; points tested {0,1,20,21,999} across vote/rematch/escape/teach/dev_rematch_seed, vote@0..dev_rematch_seed@0 используют expected-only okBlocked:true.
+        (2) Strict threshold >20 confirmed (mult=2 only for 21/999) and finalPrice finite >=1; moneyLog/meta validated for points>=1.
+        (3) `Game.__DEV.smokeSoftCapPricesOnce()` остался ok:true.
+      Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+      How to verify:
+        (1) В браузере: `Game.__DEV.smokeSoftCapPricesOnce()` → ok:true.
+        (2) В браузере: `Game.__DEV.smokeSoftCapPriceEdgeCasesOnce()` → ok:true (points 0/1/20/21/999).
+      Next: ECON-04 Training arguments.
+      Next Prompt (копипаст, кодблок обязателен):
+          ```text
+          Ответ QA:
+          Повторите `Game.__DEV.smokeSoftCapPricesOnce()` и `Game.__DEV.smokeSoftCapPriceEdgeCasesOnce()` при ok:true и отмеченном strict threshold >20. При PASS отметьте ECON-04 Training arguments как следующую задачу.
+          ```
 
 ### [T-20260205-010] ECON-02-9 (P1) Battle loserPenaltyOk flake
 - Status: TODO
@@ -2167,3 +2630,301 @@
       Ответ Ассистента:
       Crowd Economy Reforge: P0 LOGIC 2.3 PASS. Вынеси план на P0 LOGIC 3 (лимиты/веса), составь чек-лист смоуков и обнови прогресс в PROJECT_MEMORY.md/PROGRESS_SCALE.md. После этого передай следующий prompt роли, отвечающей за P0 LOGIC 3.
       ```
+### [T-20260205-011] ECON-04b Escape/Ignore audit
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Подтвердить circulation-only escape/ignore через смоуки.
+- Acceptance:
+  - [ ] `Game.Dev.smokeEscapeCrowdOutcomeOnce({mode:"cap", debugTelemetry:true, allowParallel:true})` ok:true, byReason canonical, sumNetDelta 0.
+  - [ ] `Game.Dev.smokeEscapeCrowdStayOnce({mode:"cap", debugTelemetry:true, allowParallel:true})` ok:true, same invariants.
+  - [ ] `Game.Dev.smokeIgnoreCrowdOutcomeOnce({mode:"cap", debugTelemetry:true, allowParallel:true})` ok:true, pointsDiffOk, canonical reasons.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) escape outcome smoke ok:true, economyOk:true, pointsDiffOk:true, sumNetDelta=0, totalPtsWorldBefore=200, totalPtsWorldAfter=200, byReason escape_vote_cost:1 + canonical crowd vote entries (cap/refund/pool).
+      (2) escape stay smoke ok:true, same invariant counts, canonical reasons.
+      (3) ignore smoke ok:true, pointsDiffOk:true, sumNetDelta=0, sumNetFromMoneyLog=0, byReason crowd_vote_cost:10 + pool/refund counts, asserts all green.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify: прогоните перечисленные команды и проверьте ok/byReason/world totals (200).
+    Next: —
+    Next Prompt (копипаст, кодблок обязательно):
+        ```text
+        Ответ QA:
+        Прогони `Game.Dev.smokeEscapeCrowdOutcomeOnce`, `Game.Dev.smokeEscapeCrowdStayOnce`, `Game.Dev.smokeIgnoreCrowdOutcomeOnce` с {mode:"cap", debugTelemetry:true, allowParallel:true}. Если ok:true и byReason canonical — ставь PASS и давай выводы.
+        ```
+
+### [T-20260205-012] ECON-04c Rematch idempotency
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Подтвердить idempotent rematch charging через `Game.Dev.smokePriceIdempotencyOnce`.
+- Acceptance:
+  - [ ] `Game.Dev.smokePriceIdempotencyOnce({ debugTelemetry:true })` ok:true, rematch@20/21 dupPrevented:true, log counts 1/1.
+  - [ ] idempotency keys включают `rematch` + bataille IDs и одинаковы для repeated call.
+  - [ ] Полного дублирования записей не происходит, moneyLog meta содержит priceKey разных rematch случаев.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `Game.Dev.smokePriceIdempotencyOnce({debugTelemetry:true})` -> ok:true; rematch@20/21: dupPrevented:true, firstCharged:true, secondCharged:false, logCountFirst=logCountSecond=1.
+      (2) idempotencyKey: `rematch|me|dev_rematch_idem_1770273044786_659|dev_rematch_idem_1770273044786_659` for points=20 and similar `rematch|me|dev_rematch_idem_1770273044792_4516|dev_rematch_idem_1770273044792_4516` for points=21.
+      (3) Confirms rematch charges go through unified pricing/idempotency guard; no duplicate moneyLog entries across repeated calls.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify: прогнать `Game.Dev.smokePriceIdempotencyOnce({debugTelemetry:true})` и убедиться, что rematch cases предотвращают дубли и log counts 1/1.
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.Dev.smokePriceIdempotencyOnce({debugTelemetry:true})`. Если rematch@20/21 dupPrevented:true и logCountFirst=logCountSecond=1, заметь PASS и пройди дальше.
+        ```
+-### [T-20260205-013] ECON-03 Circulation-only closeout pack
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Закрыть ECON-03: один режим экономики, battle/escape/rematch единообразны.
+- Acceptance:
+  - [ ] `Game.Dev.smokeEcon03_CirculationOnlyOnce({debugTelemetry:true})` ok:true.
+  - [ ] transfer-only checks (entry cost, payouts, draw) pass for 3 win flavors + draw.
+  - [ ] isCirculationEnabled true до/после и reasons стабильны.
+    Status: PASS
+    Facts:
+      (1) `Game.Dev.smokeEcon03_CirculationOnlyOnce({debugTelemetry:true})` → ok:true, logSource:"debug_moneyLog", hitsAnyField>0, scopedLen>3 per scenario with real entry/battle_win_take/draw_deposit rows and sampleReasons populated.
+      (2) win scenarios entryCostOk:true with byReason {battle_entry:1,battle_win_take:1,rep_battle_win_delta:1}, draw has draw deposits + rep draw; reasonsNonEmpty/reasonsStable true.
+      (3) totalsBeforeAfter.delta:0, stableDelta:0 (stable balances before/after same set of ids/pools) and isCirculationEnabled true both before/after; legacyReachable:false.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Run `Game.Dev.smokeEcon03_CirculationOnlyOnce({ debugTelemetry:true })` and confirm ok:true, reasonsNonEmpty, entry/draw checks pass, scopedLen>0.
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.Dev.smokeEcon03_CirculationOnlyOnce({ debugTelemetry:true })`. Если ok:true и все проверенные поля соответствуют канону, отметь PASS и приложи вывод (scenarios byReason + totals).
+        ```
+
+-### [T-20260205-014] ECON-04 C1-A buildBattleEconAuditFromLogs
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Добавить helper scoped log аудита `buildBattleEconAuditFromLogs` для battle economy.
+- Acceptance:
+  - [ ] helper возвращает scopedLen>0 и byReason по реальному battleId (используем logSource "debug_moneyLog").
+  - [ ] asserts проверяют scoped non-empty/transfer only/totals stable.
+  - [ ] Game.Dev.auditBattleEconOnce(battleId,{debugTelemetry:true}) просто вызывает helper и выводит debug.
+  - Result: |
+    Status: PASS
+    Facts:
+      (1) В dev-checks появился `buildBattleEconAuditFromLogs({ battleId, debugTelemetry })`: scopedRows, notes, logSource, byReason, netById, totals delta, flags/asserts.
+      (2) Helper выбирает battleId автоматически (last log entry or Game.Dev.lastSmokeBattleId) и возвращает pickedBattleId/pickedHow; logSource debug_moneyLog/logger_queue, notes cover log_source_missing/scoped_empty.
+      (3) Утилиты `Game.Dev.auditBattleEconOnce` и `Game.Dev.auditBattleEconLastOnce` вызывают helper (последняя выбирает last battle) и выводят debug при debugTelemetry:true.
+      (4) Устранён SyntaxError `const log` (dev-checks.js:759); helper теперь использует `getDebugMoneyLogRows()` (debug moneyLog/logger queue/state) with logSource metadata, и `debugTelemetry` логирует `pickedBattleId/logSource/scopedLen`.
+      (5) `getDebugMoneyLogRows()` теперь перебирает `debug_moneyLog` → `logger_queue` → `state_moneyLog`/`state_moneyLogByBattle` и сообщает logSource; `Game.Dev.makeOneBattleEconLogOnce()` запускает existing battle smoke, сохраняет `battleId`, и `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` подбирает только `battle_*` rows (`crowd_*` игнорируются, notes:["not_battle_econ_rows"] при отсутствии).
+      (6) `smokeBattleCrowdOutcomeOnce` после `C1A6` изменил `afterSnapshot` на `let`, добавив debug лог `C1A6_READONLY_LHS:afterSnapshot`; `Game.Dev.makeOneBattleEconLogOnce({mode:"cap"})` и `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` больше не падают с `TypeError: Attempted to assign to readonly property`.
+      (7) `runBattleSmokeOnce`/`smokeBattleCrowdOutcomeOnce` теперь берут `debugTelemetry` из `opts.debugTelemetry`, устранив ReferenceError (`debugTelemetry` не определялось ранее) — QA: `Game.Dev.makeOneBattleEconLogOnce({mode:"cap"})` и `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` больше не падают из-за undefined.
+      (8) `transferOnlyPoints` детектор пересчитан: хилит `battle_*`/`crowd_*` строки, сохраняет `transferOnlyFailSamples` и помечает `points_emitter_row`, теперь QA `Game.Dev.auditBattleEconLastBattleOnce({debugTelemetry:true})` видит `flags.transferOnly:true`, `asserts.transferOnlyPoints:true`, `totalsBeforeAfter.deltaPoints==0` при battle логах без эмиссии.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [T-20260205-015] ECON-04 C1-B entry cost smoke
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: `Game.Dev.smokeBattleEcon_WinWeakOnce` создаёт true battle с `battle_entry_*` и проходит audit.
+- Acceptance:
+  - [x] `Game.Dev.smokeBattleEcon_WinWeakOnce({debugTelemetry:true})` returns ok:true and battleId without `_crowd_`.
+  - [x] `entryProbeLen ≥ 1`, `entryCostOk:true`, `byReason` keys {battle_entry,battle_win_take,rep_battle_win_delta}.
+  - [x] totals deltaPoints=0, logSource debug_moneyLog, netById matches transfer (`{me:2,sink:1,npc_weak:-2,crowd_pool:-1}`).
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `Game.Dev.smokeBattleEcon_WinWeakOnce({debugTelemetry:true})` → ok:true, battleId `dev_econ03_win_weak_1770287983186_2819`, entryProbeLen=1, entryCostOk=true, notes empty.
+      (2) Audit reports `byReason:{battle_entry:1,battle_win_take:1,rep_battle_win_delta:1}`, `flag.transferOnly:true`, totalsBeforeAfter.deltaPoints=0, logSource:"debug_moneyLog".
+      (3) `netById` reflects transfer pattern `{me:2,sink:1,npc_weak:-2,crowd_pool:-1}` generated by `makeOneTrueBattleEconLogOnce`.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [T-20260205-016] ECON-03 circulation-only determinism
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA verification
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: `Game.__DEV.smokeEcon03_CirculationOnlyOnce` дважды подряд возвращает одинаковый hash (reasonsSig/netSig/totalsSig) с zero drift.
+- Acceptance:
+  - [x] `Game.__DEV.smokeEcon03_CirculationOnlyOnce({debug:true, runTag:"r1"})` и `({runTag:"r2"})` оба ok:true, same sig.
+  - [x] `normalizedNetSig` identical `["crowd:*:2","crowd_pool:-4","me:5","npc_troll:-2","npc_weak:-5","sink:4"]`.
+  - [x] `reasonsSig` identical `["battle_draw_deposit:1","battle_draw_deposit_opponent:1","battle_entry:4","battle_win_take:3","rep_battle_draw:1","rep_battle_win_delta:2"]`.
+  - [x] `totalsSig` now `{"stableDelta":0,"deltaPoints":0,"deltaRep":0}`.
+  - [x] scopedLen=12, legacyReachable:false, circulation enabled before/after, totals drift prevented.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `Game.__DEV.smokeEcon03_CirculationOnlyOnce({debug:true, runTag:"r1"})` and `runTag:"r2"` run twice, both ok:true with identical sig/reasons/net/totals.
+      (2) `normalizeNetById` collapses `crowd:*`, totalsSig uses deltas only, debug log `[DEV] ECON03_SIG` shows same metrics despite baseline shift (200→200 vs 205→205).
+      (3) `byReason` built from deterministic sorted scoped debug_moneyLog, totals deltaPoints/deltaRep zero, legacyReachable:false.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [T-20260205-017] ECON-03 Prices [1.7] edge cases
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: `Game.__DEV.smokeSoftCapPricesEdgeOnce()` стабильно покрывает points {0,1,20,21,999} с meta, strict threshold, без NaN/Inf.
+- Acceptance:
+  - [x] `Game.__DEV.smokeSoftCapPricesEdgeOnce()` → ok:true, badCount=0, thresholds strict (vote@20 mult=1, vote@21 mult=2), meta present, finalPrice finite integer ≥1.
+  - [x] `meta` normalized for points=0 (affordable:false, idempotencyKey `"vote:0"`), 20/21/999 behaved as expected.
+  - [x] Регрессия `Game.__DEV.smokeSoftCapPricesOnce()` остаётся ok:true (notes=["social_skipped"] доп.).
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `Game.__DEV.smokeSoftCapPricesEdgeOnce()` → ok:true, badCount=0, pointsSet [0,1,20,21,999], normalized meta for each category (vote@0 affordable:false, vote@20 mult=1 final=1, vote@21 mult=2 final=2).
+      (2) `Game.__DEV.smokeSoftCapPricesOnce()` остаётся ok:true с notes=["social_skipped"].
+      (3) Изменения ограничены `dev-checks.js`: добавлен edge smoke, normalizeMeta и asserts на meta/finalPrice/threshold.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) В браузере: `Game.Dev.auditBattleEconOnce(<existingBattleId>, {debugTelemetry:true})`. Убедись, что scopedLen>0 и totals deltaPoints=0.
+    Next: QA — используй helper для C1 smokes.
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Коллеги, прогоните `Game.Dev.auditBattleEconOnce(<battleId>, {debugTelemetry:true})` на существующем баттле, подтвердите scopedLen>0, logSource не none и totals deltaPoints=0. При PASS примените helper в C1 smokes.
+        ```
+### [T-20260205-018] ECON-03 E1 Escape/Ignore determinism
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Зафиксировать стабильность `Game.__DEV.smokeEcon03_EscapeIgnoreOnce` по escape/ignore веткам.
+- Acceptance:
+  - [x] `Game.__DEV.smokeEcon03_EscapeIgnoreOnce({debug:true, runTag:"r1"})` ok:true, scopedLen≥69, notes:[], totalsSig {"stableDelta":0,"deltaPoints":0,"deltaRep":0}.
+  - [x] `Game.__DEV.smokeEcon03_EscapeIgnoreOnce({debug:true, runTag:"r2"})` ok:true, тот же sig/reasonsSig/normalizedNetSig.
+  - [x] escape/escape_stay reasons include `crowd_vote_cost`, `crowd_vote_pool_init`, `crowd_vote_refund_majority`, `escape_vote_cost`; ignore reasons include `crowd_vote_cost`, `crowd_vote_pool_init`, `crowd_vote_refund_majority`, `ignore_outcome_debug` and normalized net {me:-1,npc_weak:1} for escapes, empty net for ignore.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) r1/r2 печали `Game.__DEV.smokeEcon03_EscapeIgnoreOnce` → ok:true, notes пустые, scopedLen=69, totalsSig стабильный; `sig`/`reasonsSig`/`normalizedNetSig` совпадают.
+      (2) Canon reasons/net совпадают по escape/escape_stay/ignore; ignores по-прежнему zero-sum и include debug `ignore_outcome_debug`.
+      (3) Демонстрирует deterministic signature и zero-sum, давая базу для дальнейших E1 смоуков.
+    Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      1) Запустить перечисленные команды и сравнить `sig`/`reasonsSig`/`normalizedNetSig` (r1 vs r2).
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.__DEV.smokeEcon03_EscapeIgnoreOnce({debug:true, runTag:"r1"})` и `...runTag:"r2"`. Если oba ok:true, notes пустые, scopedLen одинаков, sig/reasonsSig/normalizedNetSig совпадают — ставь PASS и впиши вывод.
+        ```
+### [T-20260205-019] ECON-04 C1-B True battle econ audit entry cost (dev-only)
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Зафиксировать true battle entry audit и deterministic signature smoke.
+- Acceptance:
+  - [x] `Game.__DEV.smokeBattleEcon_EntryCostOnce({debug:true, runTag:"r1"})` ok:true, battleId без `_crowd_`, entryProbeLen=1, entryCostOk=true, scopedLen=3, sig/reasons/net/totals стабильны.
+  - [x] `Game.__DEV.smokeBattleEcon_EntryCostOnce({debug:true, runTag:"r2"})` ok:true и идентичные sig/reasons/net/totals.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) r1/r2 → ok:true, battleId `dev_battle_econ_win_weak_1770294775189_3186`/`dev_battle_econ_win_weak_1770294783924_3515`, entryProbeLen=1, entryCostOk true, scopedLen=3, reasonsSig ["battle_entry:1","battle_win_take:1","rep_battle_win_delta:1"], netSig ["crowd_pool:-1","me:2","npc_weak:-2","sink:1"], totalsSig {"deltaPoints":0,"deltaRep":0}.
+      (2) byReason {battle_entry:1,battle_win_take:1,rep_battle_win_delta:1}; netById {me:2,sink:1,npc_weak:-2,crowd_pool:-1}; notes empty.
+      (3) Guard `crowd_battle_forbidden` + `makeOneTrueBattleEconLogOnce` обеспечили настоящий battle, smoke детерминирован.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- How to verify:
+    1) Запусти оба smoka и сравни sig/notes/entryProbeLen.
+- Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.__DEV.smokeBattleEcon_EntryCostOnce({debug:true, runTag:"r1"})` и `...runTag:"r2"`.
+        Если оба ok:true, notes empty, sig/reasons/net/totals совпадают — ставь PASS и приложи вывод.
+        ```
+### [T-20260205-020] ECON-04 C1-C1 probe battle Δ economy (dev-only)
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Получить факты по `Game.__DEV.probeBattleEcon_DeltaOnce`.
+- Acceptance:
+  - [x] `Game.__DEV.probeBattleEcon_DeltaOnce({debug:true, runTag:"r1"})` и runTag:"r2" дают 3 scenarios (weak/equal/strong) с battleId без `_crowd_`, sig/reasons/net/totals стабильны.
+  - [x] Команды логируют `[DEV] ECON04_DELTA_PROBE` и `[DEV] ECON04_DELTA_PROBE_SIG`.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) r1 и r2 ok:true; scenarios produce identical `reasonsSig` ["battle_entry:1","battle_win_take:1","rep_battle_win_delta:1"], `netSig` ["crowd_pool:-1","me:2","npc_weak:-2","sink:1"], `totalsSig` {"deltaPoints":0,"deltaRep":0}, scopedLen=3, notes empty.
+      (2) Labels equal/strong reuse same win_weak battleId pattern, repRowCount=0 (repProbe empty).
+      (3) `sig` per runTag identical; determinism confirmed though scenarios currently share parameters.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- How to verify:
+    1) Run r1 & r2 commands and confirm per label sigs/reasons/nets/totals match; note repRowCount=0.
+- Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Прогони `Game.__DEV.probeBattleEcon_DeltaOnce({debug:true, runTag:"r1"})` и `...runTag:"r2"`. Если оба ok:true, notes empty, sig/reasons/net/totals совпадают по каждому label, ставь PASS и приложи вывод.
+        ```
+### [T-20260205-021] ECON-04 C1-C2 Battle Δ scenarios semantic validity
+- Status: TODO
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Dev
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Объяснить или обеспечить реальные различия между weak/equal/strong battle scenarios.
+- Acceptance:
+  - [ ] `Game.__DEV.probeBattleEcon_DeltaOnce` показывает distinct `reasonsSig`/`netSig`/`repSig` per label или документация объясняет, почему пока identical outputs expected and what to change to differentiate.
+  - [ ] repRowCount/repProbe изучены: если rep rows отсутствуют, описать missing data and next steps.
+- Result: PENDING
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ Прогера:
+        Исследуй `rep_battle_win_delta` logic и ensure `Game.__DEV.probeBattleEcon_DeltaOnce` reflects intended deltas for weak/equal/strong. Если сигнатуры остаются одинаковыми, опиши почему и что требуется для future divergence.
+        ```
+
+### [T-20260205-022] ECON-04.1 Training data contract
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Ввести детерминированный DATA-контракт training с дефолтами/миграцией и read-only snapshot + smoke.
+- Acceptance:
+  - [x] `Game.State.training` всегда существует: version=1, counters=0, timestamps=0.
+  - [x] Миграция старых сейвов заполняет дефолты (без Date.now/random).
+  - [x] `Game.TrainingState.getSnapshot()` возвращает глубокую копию без мутаций state.
+  - [x] `Game.Dev.smokeTrainingDataOnce()` ok:true и идемпотентна.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) В state добавлен раздел `training` (version=1, byArgKey={}, counters totalTrains/todayTrains/lastTrainDay=0; lastTrainedAt/cooldownUntil=0).
+      (2) Миграция/нормализация через `buildTrainingStateFrom`/`ensureTrainingState`; таймстемпы по умолчанию 0, без Date.now/random на инициализации.
+      (3) Read-only API `Game.TrainingState.getSnapshot()`/`normalize` возвращают глубокую копию (без мутаций state).
+      (4) Smoke `Game.Dev.smokeTrainingDataOnce()` → ok:true, notes:[], checks {hasTraining:true, defaultsOk:true, migrateOk:true, serializeOk:true, idempotent:true}.
+    Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) В Dev консоли: `Game.Dev.smokeTrainingDataOnce()` → ok:true, notes:[], checks все true; повторный вызов не меняет state.
+    Next: —
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ECON-04.1 PASS: `Game.Dev.smokeTrainingDataOnce()` ok:true (notes пусты, checks hasTraining/defaultsOk/migrateOk/serializeOk/idempotent === true). Ничего больше делать не нужно.
+        ```

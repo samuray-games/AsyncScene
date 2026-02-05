@@ -1,0 +1,15 @@
+{"ts": 1770275787279, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_win_weak_1770275787278_1717"}}
+{"ts": 1770275787280, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_econ03_win_weak_1770275787278_1717"}}
+{"ts": 1770275787281, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_econ03_win_weak_1770275787278_1717"}}
+{"ts": 1770275787282, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_econ03_win_weak_1770275787278_1717"}}
+{"ts": 1770275787283, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-02-05"}}
+{"ts": 1770275787287, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_win_equal_1770275787286_3375"}}
+{"ts": 1770275787287, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_econ03_win_equal_1770275787286_3375"}}
+{"ts": 1770275787287, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_econ03_win_equal_1770275787286_3375"}}
+{"ts": 1770275787287, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_econ03_win_equal_1770275787286_3375"}}
+{"ts": 1770275787288, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_win_strong_1770275787288_698"}}
+{"ts": 1770275787288, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_econ03_win_strong_1770275787288_698"}}
+{"ts": 1770275787288, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_econ03_win_strong_1770275787288_698"}}
+{"ts": 1770275787288, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_econ03_draw_1770275787288_22"}}
+{"ts": 1770275787289, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_draw_deposit", "battleId": "dev_econ03_draw_1770275787288_22"}}
+{"ts": 1770275787289, "sessionId": "session-1770275779148-5ah0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_draw", "battleId": "dev_econ03_draw_1770275787288_22"}}

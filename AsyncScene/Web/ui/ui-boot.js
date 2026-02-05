@@ -456,14 +456,21 @@ window.Game = window.Game || {};
       : (Game.Data && Number.isFinite(Game.Data.POINTS_START))
         ? (Game.Data.POINTS_START | 0)
         : 0;
-    S.me.points = startPoints;
-    S.me.influence = 0;
-    S.me.wins = 0;
-    S.me.winsSinceInfluence = 0;
-    S.me.oneShots = [];
-    S.rep = 0;
-    S.influence = 0;
-    S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
+    const resetPlayerState = () => {
+      S.me.points = startPoints;
+      S.me.influence = 0;
+      S.me.wins = 0;
+      S.me.winsSinceInfluence = 0;
+      S.me.oneShots = [];
+      S.rep = 0;
+      S.influence = 0;
+      S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
+    };
+    if (typeof Game._withPointsWrite === "function") {
+      Game._withPointsWrite(resetPlayerState);
+    } else {
+      resetPlayerState();
+    }
 
     // Build players first (includes NPCs)
     if (Game.__A && typeof Game.__A.seedPlayers === "function") {
@@ -474,10 +481,17 @@ window.Game = window.Game || {};
     UI.buildPlayers && UI.buildPlayers();
 
     if (S.players && S.players["me"]) {
-      S.players["me"].name = name;
-      S.players["me"].influence = 0;
-      S.players["me"].points = (S.me.points | 0);
-      S.players["me"].wins = 0;
+      const updatePlayer = () => {
+        S.players["me"].name = name;
+        S.players["me"].influence = 0;
+        S.players["me"].points = (S.me.points | 0);
+        S.players["me"].wins = 0;
+      };
+      if (UI && typeof UI.withPointsWrite === "function") {
+        UI.withPointsWrite(updatePlayer);
+      } else {
+        updatePlayer();
+      }
     }
 
     S.locationId = "square";

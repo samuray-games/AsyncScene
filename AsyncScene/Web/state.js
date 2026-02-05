@@ -398,26 +398,7 @@ window.Game = window.Game || {};
   }
 
   function isCirculationEnabled(){
-    const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
-    if (Econ && typeof Econ.isCirculationEnabled === "function") return Econ.isCirculationEnabled();
-    const D = (Game && Game.Data) ? Game.Data : null;
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    if (dbg && dbg.FORCE_CIRCULATION === true) {
-      if (dbg._econModeLogged !== "cir") {
-        dbg._econModeLogged = "cir";
-        try { console.log("[DEV] ECON: CIR"); } catch (_) {}
-      }
-      return true;
-    }
-    if (dbg && dbg.FORCE_CIRCULATION === false) {
-      if (dbg._econModeLogged !== "legacy") {
-        dbg._econModeLogged = "legacy";
-        try { console.log("[DEV] ECON: LEGACY"); } catch (_) {}
-      }
-      return false;
-    }
-    const v = D && D.CIRCULATION_ENABLED;
-    return v === true || v === 1 || v === "true" || v === "1";
+    return true;
   }
 
   function getEcon(){
@@ -1091,6 +1072,55 @@ window.Game = window.Game || {};
     return "y";
   }
 
+  // --- Training state (data contract only, deterministic defaults) ---
+  const TRAINING_VERSION = 1;
+
+  function sanitizeNonNegativeInt(v){
+    if (!Number.isFinite(v)) return 0;
+    const n = (v | 0);
+    return n < 0 ? 0 : n;
+  }
+
+  function sanitizeTimestamp(v){
+    return sanitizeNonNegativeInt(v);
+  }
+
+  function cloneTrainingEntry(raw){
+    const entry = raw && typeof raw === "object" ? raw : {};
+    return {
+      level: sanitizeNonNegativeInt(entry.level),
+      xp: sanitizeNonNegativeInt(entry.xp),
+      lastTrainedAt: sanitizeTimestamp(entry.lastTrainedAt),
+      cooldownUntil: sanitizeTimestamp(entry.cooldownUntil),
+    };
+  }
+
+  function buildTrainingStateFrom(raw){
+    const src = raw && typeof raw === "object" ? raw : {};
+    const byArgKeySrc = (src.byArgKey && typeof src.byArgKey === "object") ? src.byArgKey : {};
+    const countersSrc = (src.counters && typeof src.counters === "object") ? src.counters : {};
+    const byArgKey = {};
+    for (const key of Object.keys(byArgKeySrc)) {
+      if (!key) continue;
+      byArgKey[String(key)] = cloneTrainingEntry(byArgKeySrc[key]);
+    }
+    const counters = {
+      totalTrains: sanitizeNonNegativeInt(countersSrc.totalTrains),
+      todayTrains: sanitizeNonNegativeInt(countersSrc.todayTrains),
+      lastTrainDay: sanitizeNonNegativeInt(countersSrc.lastTrainDay),
+    };
+    const versionRaw = Number.isFinite(src.version) ? (src.version | 0) : TRAINING_VERSION;
+    const version = versionRaw > 0 ? versionRaw : TRAINING_VERSION;
+    return { version, byArgKey, counters };
+  }
+
+  function ensureTrainingState(target){
+    const tgt = (target && typeof target === "object") ? target : null;
+    const next = buildTrainingStateFrom(tgt && tgt.training);
+    if (tgt) tgt.training = next;
+    return next;
+  }
+
   const State = {
     isStarted: false,
 
@@ -1132,6 +1162,8 @@ window.Game = window.Game || {};
     points: {
       lastChatRewardAt: 0,
     },
+
+    training: buildTrainingStateFrom({}),
 
     chat: [], // {id,t,name,text,isSystem,isMe,playerId}
     dm: {
@@ -1290,6 +1322,7 @@ window.Game = window.Game || {};
     State.influence = 0;
     State.players = {};
     State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
+    State.training = buildTrainingStateFrom({});
     State.chat = [];
     State.dm = { open:false, withId:null, logs:{}, names:{}, inviteOpen:false, teachOpen:false, agroStarted:{} };
     State.battles = [];
@@ -2659,6 +2692,12 @@ window.Game = window.Game || {};
   function setLocation(id){
     State.me.locationId = id;
   }
+
+  const TrainingStateAPI = {
+    getSnapshot: () => buildTrainingStateFrom(ensureTrainingState(State)),
+    normalize: (raw) => buildTrainingStateFrom(raw),
+  };
+  Game.TrainingState = Object.assign(Game.TrainingState || {}, TrainingStateAPI);
 
   Security.defineHandleProp("__S", State);
   Game._withPointsWrite = withPointsWrite;

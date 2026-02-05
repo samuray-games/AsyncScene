@@ -120,57 +120,7 @@ window.Game = window.Game || {};
   }
 
   function isCirculationEnabledUI() {
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    if (dbg && dbg.FORCE_CIRCULATION === true) return true;
-    if (dbg && dbg.FORCE_CIRCULATION === false) return false;
-    const D0 = (Game && Game.Data) ? Game.Data : null;
-    const v = D0 && D0.CIRCULATION_ENABLED;
-    return v === true || v === 1 || v === "true" || v === "1";
-  }
-
-  function ensureEconDevControls() {
-    if (!isDevModeActive()) return;
-    const block = getMenuBlock();
-    if (!block) return;
-    const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
-    if (!body) return;
-
-    let wrap = document.getElementById("devEconControls");
-    if (!wrap) {
-      wrap = document.createElement("div");
-      wrap.id = "devEconControls";
-      wrap.className = "eventRow";
-      body.appendChild(wrap);
-    }
-
-    const modeNow = isCirculationEnabledUI() ? "CIR" : "LEGACY";
-    let label = document.getElementById("devEconLabel");
-    if (!label) {
-      label = document.createElement("div");
-      label.id = "devEconLabel";
-      label.className = "pill";
-      wrap.appendChild(label);
-    }
-    label.textContent = `ECON: ${modeNow}`;
-
-    let btn = document.getElementById("devEconToggle");
-    if (!btn) {
-      btn = document.createElement("button");
-      btn.id = "devEconToggle";
-      btn.className = "btn small";
-      btn.textContent = "Переключить ECON";
-      btn.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        Game.__D = Game.__D || {};
-        const cur = isCirculationEnabledUI();
-        Game.__D.FORCE_CIRCULATION = !cur;
-        const next = Game.__D.FORCE_CIRCULATION === true ? "CIR" : "LEGACY";
-        if (UI && typeof UI.pushSystem === "function") UI.pushSystem(`ECON switched to ${next}`);
-        label.textContent = `ECON: ${next}`;
-      };
-      wrap.appendChild(btn);
-    }
+    return true;
   }
 
   function ensureLoggerControls() {
@@ -462,7 +412,6 @@ window.Game = window.Game || {};
     applyMenuLabels();
     if (S.flags && S.flags.menuOpen) ensureMenuHeaderHasCloseX();
     ensureManifestControls();
-    ensureEconDevControls();
     ensureLoggerControls();
   };
 

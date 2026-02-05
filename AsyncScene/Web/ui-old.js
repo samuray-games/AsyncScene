@@ -281,13 +281,55 @@ window.Game = window.Game || {};
         const to = S.players[targetId];
         if (!to) return;
 
-        if ((S.me.points || 0) < cost) {
+        const Econ = Game._ConflictEconomy || null;
+        const mePoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+        const argKey = p && p.id ? String(p.id) : (p && p.text ? String(p.text) : null);
+        const price = (Econ && typeof Econ.calcFinalPrice === "function")
+          ? Econ.calcFinalPrice({
+            basePrice: cost,
+            actorPoints: mePoints,
+            priceKey: "teach",
+            context: { targetId, argKey }
+          })
+          : { basePrice: cost, mult: 1, finalPrice: cost, priceKey: "teach", context: { targetId, argKey } };
+        const finalCost = price.finalPrice;
+        let paidOk = true;
+
+        if (Econ && typeof Econ.chargePriceOnce === "function") {
+          const ok = Econ.chargePriceOnce({
+            fromId: "me",
+            toId: "sink",
+            actorId: "me",
+            reason: "teach_argument",
+            priceKey: price.priceKey || "teach",
+            basePrice: cost,
+            actorPoints: mePoints,
+            targetId,
+            argKey,
+            context: price.context || { targetId, argKey }
+          });
+          paidOk = !!(ok && ok.ok);
+        } else if (Econ && typeof Econ.transferPoints === "function") {
+          const ok = Econ.transferPoints("me", "sink", finalCost, "teach_argument", {
+            basePrice: price.basePrice,
+            mult: price.mult,
+            finalPrice: price.finalPrice,
+            priceKey: price.priceKey || "teach",
+            pointsAtPurchase: mePoints,
+            context: price.context || { targetId, argKey }
+          });
+          paidOk = !!(ok && ok.ok);
+        } else if ((mePoints | 0) < finalCost) {
+          paidOk = false;
+        } else {
+          S.me.points = Math.max(0, (S.me.points || 0) - finalCost);
+        }
+
+        if (!paidOk) {
           dmPushLine(targetId, "Система", "Не хватает 💰 на обучение.");
           renderDM();
           return;
         }
-
-        S.me.points = Math.max(0, (S.me.points || 0) - cost);
 
         to.oneShots = to.oneShots || [];
         to.oneShots.push({
@@ -299,8 +341,8 @@ window.Game = window.Game || {};
         });
 
         // DM line + duplicate to chat
-        dmPushLine(targetId, "Система", Game.Data.SYS.youTaughtDm(to.name, p.text, cost));
-        UI.pushSystem(Game.Data.SYS.teachGiven(to.name, p.text, cost));
+        dmPushLine(targetId, "Система", Game.Data.SYS.youTaughtDm(to.name, p.text, finalCost));
+        UI.pushSystem(Game.Data.SYS.teachGiven(to.name, p.text, finalCost));
 
         panel.classList.add("hidden");
         panel.innerHTML = "";

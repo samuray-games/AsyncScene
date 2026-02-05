@@ -104,6 +104,27 @@
     return out;
   }
 
+  function getEcon(){
+    return (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
+  }
+
+  function calcFinalPriceForActor(basePrice, actorPoints, priceKey, context){
+    const Econ = getEcon();
+    const base = Number.isFinite(basePrice) ? (basePrice | 0) : 0;
+    const points = Number.isFinite(actorPoints) ? (actorPoints | 0) : 0;
+    const baseNorm = Math.max(0, base);
+    const pointsNorm = Math.max(0, points);
+    if (Econ && typeof Econ.calcFinalPrice === "function") {
+      return Econ.calcFinalPrice({
+        basePrice: baseNorm,
+        actorPoints: pointsNorm,
+        priceKey,
+        context
+      });
+    }
+    return { basePrice: baseNorm, mult: 1, finalPrice: baseNorm, priceKey, context };
+  }
+
    function findBattle(battleId) {
      const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
      return list.find(b => b && b.id === battleId) || null;
@@ -139,7 +160,7 @@
      try {
        if (!isDrawWithCrowd(battle)) return 0;
       if (!Game.NPC || typeof Game.NPC.getAll !== "function" || typeof Game.NPC.voteInDraw !== "function") return 0;
-      const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
+      const Econ = getEcon();
       if (!Econ || typeof Econ.transferPoints !== "function") return 0;
 
        const now = Date.now();
@@ -210,12 +231,34 @@
         const beforePts = Number.isFinite(stateNpc && stateNpc.points) ? (stateNpc.points | 0) : 0;
         if (beforePts <= 0) continue;
         const costCountBefore = countCrowdVoteCostLogs(voterId, battleId);
-        const ok = Econ.transferPoints(voterId, "sink", 1, "crowd_vote_cost", { battleId });
+        const price = calcFinalPriceForActor(1, beforePts, "vote", { battleId });
+        const cost = price.finalPrice;
+        const ok = (Econ && typeof Econ.chargePriceOnce === "function")
+          ? Econ.chargePriceOnce({
+              fromId: voterId,
+              toId: "sink",
+              actorId: voterId,
+              reason: "crowd_vote_cost",
+              priceKey: price.priceKey || "vote",
+              basePrice: 1,
+              actorPoints: beforePts,
+              battleId,
+              context: price.context || { battleId }
+            })
+          : Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+              battleId,
+              basePrice: price.basePrice,
+              mult: price.mult,
+              finalPrice: price.finalPrice,
+              priceKey: price.priceKey || "vote",
+              pointsAtPurchase: beforePts,
+              context: price.context || { battleId }
+            });
         const stateNpcAfter = (Game.__S && Game.__S.players) ? Game.__S.players[voterId] : stateNpc;
         const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
         const costCountAfter = countCrowdVoteCostLogs(voterId, battleId);
-        if (!ok || !ok.ok || (afterPts !== (beforePts - 1))) {
-          if (ok && ok.ok && (afterPts !== (beforePts - 1))) {
+        if (!ok || !ok.ok || (afterPts !== (beforePts - cost))) {
+          if (ok && ok.ok && (afterPts !== (beforePts - cost))) {
             removeCrowdVoteCostLog(voterId, battleId);
           }
           continue;
@@ -476,14 +519,18 @@
        // Normalize role casing for consistent cost lookups
        if (battle.opponentRole) battle.opponentRole = String(battle.opponentRole).toLowerCase();
        const isFree = String(mode || "") === "off";
-       const cost = isFree ? 0 : getEscapeCostForBattle(battle);
-       if (!canPay(cost)) {
-         return { ok: false, error: "not_enough_points", cost };
+       const baseCost = isFree ? 0 : getEscapeCostForBattle(battle);
+       const battleRef = battle.id || battle.battleId || null;
+       const mePoints = (Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
+       const price = calcFinalPriceForActor(baseCost, mePoints, "escape", { battleId: battleRef, mode });
+       const costFinal = isFree ? 0 : price.finalPrice;
+       if (!canPay(costFinal)) {
+         return { ok: false, error: "not_enough_points", cost: costFinal };
        }
 
-       const res = Core.escape(battleId, { cost, mode });
+       const res = Core.escape(battleId, { cost: baseCost, mode });
        render();
-       return { ok: true, cost, battle: res };
+       return { ok: true, cost: costFinal, battle: res };
      },
 
      ignore(battleId) {
@@ -515,13 +562,19 @@
          : [];
 
        let totalCost = 0;
+       let tempPoints = (Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
        for (const b of battles) {
          if (!b.opponentRole) {
            const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
            if (opp && opp.role) b.opponentRole = String(opp.role);
          }
          if (b.opponentRole) b.opponentRole = String(b.opponentRole).toLowerCase();
-         totalCost += getEscapeCostForBattle(b);
+         const baseCost = getEscapeCostForBattle(b);
+         const bid = b.id || b.battleId || null;
+         const price = calcFinalPriceForActor(baseCost, tempPoints, "escape", { battleId: bid, mode: "smyt" });
+         const costFinal = price.finalPrice;
+         totalCost += costFinal;
+         tempPoints = Math.max(0, tempPoints - costFinal);
        }
 
        if (!canPay(totalCost)) {

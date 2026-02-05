@@ -1,0 +1,5 @@
+{"ts": 1770274577585, "sessionId": "session-1770274520757-gin6", "type": "chat", "name": "Рин", "text": "@Haru, я молчу, но осуждаю", "system": false}
+{"ts": 1770274578605, "sessionId": "session-1770274520757-gin6", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770274578597_7030"}}
+{"ts": 1770274578606, "sessionId": "session-1770274520757-gin6", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770274578597_7030"}}
+{"ts": 1770274578607, "sessionId": "session-1770274520757-gin6", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770274578597_7030"}}
+{"ts": 1770274578607, "sessionId": "session-1770274520757-gin6", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770274578597_7030"}}

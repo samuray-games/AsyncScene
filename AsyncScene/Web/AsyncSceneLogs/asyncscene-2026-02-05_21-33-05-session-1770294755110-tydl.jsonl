@@ -1,0 +1,4 @@
+{"ts": 1770294783924, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "dev_battle_econ_win_weak_1770294783924_3515"}}
+{"ts": 1770294783925, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_econ_win_weak_1770294783924_3515"}}
+{"ts": 1770294783925, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_econ_win_weak_1770294783924_3515"}}
+{"ts": 1770294783925, "sessionId": "session-1770294755110-tydl", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_battle_win_delta", "battleId": "dev_battle_econ_win_weak_1770294783924_3515"}}

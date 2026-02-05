@@ -1,0 +1,12 @@
+{"ts": 1770268496357, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770268496350_3570"}}
+{"ts": 1770268496361, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1770268496350_3570"}}
+{"ts": 1770268496368, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "rematch_request_cost", "battleId": "dev_rematch_idem_1770268496367_8048"}}
+{"ts": 1770268496368, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_idem_1770268496368_3231"}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "teach_argument", "battleId": null}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "dev_rematch_seed_cost", "battleId": null}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_cost", "battleId": "ed_npc_1770268496369_4997"}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_crowd_vote_participation", "battleId": "ed_npc_1770268496369_4997"}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "rematch_request_cost", "battleId": "dev_rematch_idem_1770268496369_9914"}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_idem_1770268496369_1722"}}
+{"ts": 1770268496369, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "teach_argument", "battleId": null}}
+{"ts": 1770268496370, "sessionId": "session-1770268483498-56n0", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "dev_rematch_seed_cost", "battleId": null}}
