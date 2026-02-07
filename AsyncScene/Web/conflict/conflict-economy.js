@@ -1,9 +1,11 @@
 // Web/conflict/conflict-economy.js
 (function () {
   const E = {};
+  const BANK_ACCOUNT_ID = "bank";
   const pools = {
     crowd: { id: "crowd", points: 0 },
     sink: { id: "sink", points: 0 },
+    bank: { id: BANK_ACCOUNT_ID, points: 0 },
     crowdMap: Object.create(null),
     crowdPaid: Object.create(null),
   };
@@ -95,6 +97,7 @@
     }
     if (key === "crowd") return pools.crowd;
     if (key === "sink") return pools.sink;
+    if (key === BANK_ACCOUNT_ID) return pools.bank;
     const S = Game.__S || null;
     if (!S) return null;
     if (key === "me") {
@@ -130,6 +133,77 @@
       priceKey: opts.priceKey || null,
       context: opts.context || null
     };
+  }
+
+  const TRAINING_BASE_PRICE = 1;
+  function getTrainingBasePrice(){
+    return TRAINING_BASE_PRICE;
+  }
+
+  function sanitizeNonNegativeInt(v){
+    if (!Number.isFinite(v)) return 0;
+    const n = (v | 0);
+    return n < 0 ? 0 : n;
+  }
+
+  function computeTrainingLevel(xp){
+    const n = sanitizeNonNegativeInt(xp);
+    return Math.floor(n / 3);
+  }
+
+  function getDayIndex(){
+    const S = Game.__S || {};
+    const d = Number.isFinite(S.dayIndex) ? (S.dayIndex | 0) : 0;
+    if (!Number.isFinite(S.dayIndex)) S.dayIndex = d;
+    return d;
+  }
+
+  function ensureTrainingState(){
+    const S = Game.__S || {};
+    let t = S.training;
+    if (!t || typeof t !== "object") {
+      if (Game.TrainingState && typeof Game.TrainingState.normalize === "function") {
+        t = Game.TrainingState.normalize(t);
+      } else {
+        t = { version: 1, byArgKey: {}, counters: { totalTrains: 0, todayTrains: 0, lastTrainDay: 0 } };
+      }
+      S.training = t;
+    }
+    if (!t.byArgKey || typeof t.byArgKey !== "object") t.byArgKey = {};
+    if (!t.counters || typeof t.counters !== "object") {
+      t.counters = { totalTrains: 0, todayTrains: 0, lastTrainDay: 0 };
+    }
+    t.counters.totalTrains = sanitizeNonNegativeInt(t.counters.totalTrains);
+    t.counters.todayTrains = sanitizeNonNegativeInt(t.counters.todayTrains);
+    t.counters.lastTrainDay = sanitizeNonNegativeInt(t.counters.lastTrainDay);
+    return t;
+  }
+
+  function ensureTrainingEntry(argKey){
+    const t = ensureTrainingState();
+    const key = String(argKey || "").trim();
+    if (!key) return null;
+    let e = t.byArgKey[key];
+    if (!e || typeof e !== "object") e = {};
+    e.level = sanitizeNonNegativeInt(e.level);
+    e.xp = sanitizeNonNegativeInt(e.xp);
+    e.lastTrainedAt = sanitizeNonNegativeInt(e.lastTrainedAt);
+    e.cooldownUntil = sanitizeNonNegativeInt(e.cooldownUntil);
+    t.byArgKey[key] = e;
+    return e;
+  }
+
+  function isDevFlag(){
+    try {
+      if (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) return true;
+    } catch (_) {}
+    try {
+      if (typeof location !== "undefined" && location && location.search) {
+        const params = new URLSearchParams(location.search);
+        return params.get("dev") === "1";
+      }
+    } catch (_) {}
+    return false;
   }
 
   function buildIdempotencyKey(opts){
@@ -218,6 +292,7 @@
   E.getPriceMultiplier = getPriceMultiplier;
   E.calcFinalPrice = calcFinalPrice;
   E.chargePriceOnce = chargePriceOnce;
+  E.getTrainingBasePrice = getTrainingBasePrice;
 
   E.ensurePool = function (poolId){
     const id = String(poolId || "");
@@ -233,7 +308,7 @@
   };
 
   E.getAllPoolIds = function (){
-    const ids = ["sink","crowd"];
+    const ids = ["sink","crowd", BANK_ACCOUNT_ID];
     Object.keys(pools.crowdMap || {}).forEach(k => ids.push(k));
     return ids;
   };
@@ -288,7 +363,7 @@
         playersSum += val;
         countedPlayerIds.push(key);
       } else if (bucket === "pool") {
-        if (key === "sink" || key === "crowd") countedPoolIds.push(key);
+        if (key === "sink" || key === "crowd" || key === BANK_ACCOUNT_ID) countedPoolIds.push(key);
         else if (key.startsWith("crowd:")) countedPoolIds.push(key.slice("crowd:".length));
       }
       return true;
@@ -353,10 +428,12 @@
 
     const sink = (pools.sink && typeof pools.sink.points === "number") ? (pools.sink.points | 0) : 0;
     const crowd = (pools.crowd && typeof pools.crowd.points === "number") ? (pools.crowd.points | 0) : 0;
+    const bank = (pools.bank && typeof pools.bank.points === "number") ? (pools.bank.points | 0) : 0;
     let crowdMapTotal = 0;
     const crowdById = {};
     if (pools.sink) addById("sink", sink, "pool");
     if (pools.crowd) addById("crowd", crowd, "pool");
+    if (pools.bank) addById(BANK_ACCOUNT_ID, bank, "pool");
     Object.keys(pools.crowdMap || {}).forEach(k => {
       const acc = pools.crowdMap[k];
       const v = acc && typeof acc.points === "number" ? (acc.points | 0) : 0;
@@ -365,7 +442,7 @@
       addById(`crowd:${k}`, v, "pool");
     });
 
-    const poolsSum = sink + crowd + crowdMapTotal;
+    const poolsSum = sink + crowd + bank + crowdMapTotal;
     const total = Object.values(byId).reduce((s, v) => s + (v | 0), 0);
     return {
       total,
@@ -373,7 +450,7 @@
       players: playersSum,
       npcs: npcsSum,
       pools: poolsSum,
-      poolsBreakdown: { sink, crowd, crowdMap: crowdMapTotal, crowdById },
+      poolsBreakdown: { sink, crowd, bank, crowdMap: crowdMapTotal, crowdById },
       countedPlayerIds,
       countedNpcIds,
       countedPoolIds,
@@ -1200,4 +1277,331 @@
   E._logTx = E._logTx || logTransfer;
   Game._ConflictEconomy = E;
   Game.ConflictEconomy = E;
+
+  const bankState = { override: null };
+
+  function readDevBankConfigFlag(){
+    if (!isDevFlag()) return null;
+    try {
+      const devCfg = (Game && Game.Dev && Game.Dev.config) ? Game.Dev.config : null;
+      if (devCfg && typeof devCfg.bankEnabled !== "undefined") {
+        return devCfg.bankEnabled === true;
+      }
+    } catch (_) {}
+    try {
+      const devSurf = (Game && Game.__DEV) ? Game.__DEV : null;
+      if (devSurf && typeof devSurf.bankEnabled !== "undefined") {
+        return devSurf.bankEnabled === true;
+      }
+    } catch (_) {}
+    try {
+      if (typeof window !== "undefined" && window.__DEV_CONFIG__ && typeof window.__DEV_CONFIG__.bankEnabled !== "undefined") {
+        return window.__DEV_CONFIG__.bankEnabled === true;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function resolveBankEnabled(){
+    if (bankState.override != null) return bankState.override === true;
+    const configFlag = readDevBankConfigFlag();
+    if (configFlag != null) return configFlag === true;
+    return false;
+  }
+
+  function logBankDisabledAttempt(operation, ctx = {}){
+    try {
+      const fromId = String(ctx.fromId || ctx.sourceId || "me");
+      const toId = String(ctx.toId || ctx.targetId || BANK_ACCOUNT_ID);
+      const logMeta = Object.assign({}, ctx.meta || {});
+      logMeta.operation = operation;
+      logMeta.status = "bank_disabled";
+      logMeta.bankEnabled = false;
+      if (typeof ctx.amount !== "undefined") logMeta.amount = ctx.amount;
+      logTransfer({
+        time: Date.now(),
+        sourceId: fromId,
+        targetId: toId,
+        amount: 0,
+        reason: "bank_disabled_attempt",
+        meta: logMeta
+      });
+    } catch (_) {}
+  }
+
+  const Bank = {
+    get enabled(){
+      return resolveBankEnabled();
+    },
+    isEnabled(){
+      return this.enabled;
+    },
+    setEnabledForDev(value){
+      if (!isDevFlag()) return { ok: false, reason: "not_dev" };
+      bankState.override = value === true;
+      return { ok: true, enabled: this.enabled };
+    },
+    clearOverride(){
+      if (!isDevFlag()) return { ok: false, reason: "not_dev" };
+      bankState.override = null;
+      return { ok: true, enabled: this.enabled };
+    },
+    transfer(fromId, toId, amount, reason, meta){
+      if (!this.enabled) {
+        logBankDisabledAttempt("transfer", { fromId, toId, amount, meta });
+        return { ok: false, reason: "bank_disabled" };
+      }
+      return E.transferPoints(fromId, toId, amount, reason, meta);
+    },
+    deposit(opts = {}){
+      const ownerId = String(opts.ownerId || opts.actorId || "me");
+      const rawAmount = Number.isFinite(opts.amount) ? (opts.amount | 0) : null;
+      if (rawAmount == null) {
+        return { ok: false, reason: "invalid_amount" };
+      }
+      const amount = rawAmount < 0 ? 0 : rawAmount;
+      if (amount < 1) {
+        return { ok: false, reason: "invalid_amount" };
+      }
+      if (!this.enabled) {
+        logBankDisabledAttempt("deposit", { fromId: ownerId, amount, meta: opts.meta });
+        return { ok: false, reason: "bank_disabled" };
+      }
+      const ownerAcc = getAccount(ownerId);
+      const ownerPoints = ownerAcc && Number.isFinite(ownerAcc.points) ? (ownerAcc.points | 0) : 0;
+      if (ownerPoints < amount) {
+        return { ok: false, reason: "insufficient_points", have: ownerPoints, need: amount };
+      }
+
+      const transferMeta = Object.assign({}, opts.meta || {}, {
+        amount,
+        ownerId,
+        bankAccountId: BANK_ACCOUNT_ID
+      });
+      const userReason = String(opts.reason || "").trim();
+      if (userReason) transferMeta.userReason = userReason;
+
+      return E.transferPoints(ownerId, BANK_ACCOUNT_ID, amount, "bank_deposit", transferMeta);
+    },
+    withdraw(opts = {}){
+      const ownerId = String(opts.ownerId || opts.actorId || "me");
+      const rawAmount = Number.isFinite(opts.amount) ? (opts.amount | 0) : null;
+      if (rawAmount == null) {
+        return { ok: false, reason: "invalid_amount" };
+      }
+      const amount = rawAmount < 0 ? 0 : rawAmount;
+      if (amount < 1) {
+        return { ok: false, reason: "invalid_amount" };
+      }
+      if (!this.enabled) {
+        logBankDisabledAttempt("withdraw", { fromId: BANK_ACCOUNT_ID, toId: ownerId, amount, meta: opts.meta });
+        return { ok: false, reason: "bank_disabled" };
+      }
+      const snap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
+      const bankBalance = snap && snap.byId && typeof snap.byId === "object" && Number.isFinite(snap.byId[BANK_ACCOUNT_ID])
+        ? (snap.byId[BANK_ACCOUNT_ID] | 0)
+        : 0;
+      if (bankBalance < amount) {
+        return { ok: false, reason: "insufficient_bank_funds", have: bankBalance, need: amount };
+      }
+
+      const transferMeta = Object.assign({}, opts.meta || {}, {
+        amount,
+        ownerId,
+        bankAccountId: BANK_ACCOUNT_ID
+      });
+      const userReason = String(opts.reason || "").trim();
+      if (userReason) transferMeta.userReason = userReason;
+
+      return E.transferPoints(BANK_ACCOUNT_ID, ownerId, amount, "bank_withdraw", transferMeta);
+    },
+    snapshot(opts = {}){
+      const ownerId = String(opts.ownerId || "me");
+      const snap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
+      let bankBalance = 0;
+      if (snap && snap.byId && typeof snap.byId === "object" && Number.isFinite(snap.byId[BANK_ACCOUNT_ID])) {
+        bankBalance = snap.byId[BANK_ACCOUNT_ID] | 0;
+      }
+      const ownerAcc = getAccount(ownerId);
+      const ownerPoints = ownerAcc && Number.isFinite(ownerAcc.points) ? (ownerAcc.points | 0) : 0;
+      return {
+        ok: true,
+        bankEnabled: this.enabled,
+        bankBalance,
+        ownerId,
+        ownerPoints,
+        snapshot: snap || null
+      };
+    }
+  };
+
+  Game._Bank = Bank;
+  Game.Bank = Bank;
+
+  const TrainingAPI = {
+    status: (opts = {}) => {
+      const argKey = String(opts.argKey || "").trim();
+      if (!argKey) return { ok: false, reason: "argKey_missing" };
+
+      const entry = ensureTrainingEntry(argKey);
+      if (!entry) return { ok: false, reason: "argKey_missing" };
+      const t = ensureTrainingState();
+      const counters = t.counters || { totalTrains: 0, todayTrains: 0, lastTrainDay: 0 };
+      const dayIndex = getDayIndex();
+      const actorId = "me";
+      const meAcc = getAccount(actorId);
+      const actorPoints = meAcc && Number.isFinite(meAcc.points) ? (meAcc.points | 0) : 0;
+      const basePrice = getTrainingBasePrice();
+      const price = calcFinalPrice({ basePrice, actorPoints, priceKey: "training", context: { argKey } });
+
+      const cooldownUntilDay = sanitizeNonNegativeInt(entry.cooldownUntil);
+      const onCooldown = dayIndex < cooldownUntilDay;
+      const insufficient = actorPoints < price.finalPrice;
+      const canTrain = !onCooldown && !insufficient;
+      let whyBlocked = null;
+      if (insufficient) whyBlocked = "insufficient_points";
+      else if (onCooldown) whyBlocked = "cooldown";
+
+      const todayTrains = (counters.lastTrainDay === dayIndex) ? (counters.todayTrains | 0) : 0;
+      const xp = sanitizeNonNegativeInt(entry.xp);
+      const level = computeTrainingLevel(xp);
+
+      return {
+        ok: true,
+        argKey,
+        dayIndex,
+        price: price.finalPrice,
+        priceMeta: price,
+        canTrain,
+        whyBlocked,
+        cooldownUntilDay,
+        remainingDays: onCooldown ? (cooldownUntilDay - dayIndex) : 0,
+        progress: { xp, level },
+        counters: {
+          totalTrains: sanitizeNonNegativeInt(counters.totalTrains),
+          todayTrains,
+          lastTrainDay: sanitizeNonNegativeInt(counters.lastTrainDay)
+        }
+      };
+    },
+    trainCost: (opts = {}) => {
+      const argKey = String(opts.argKey || "").trim();
+      const trainId = String(opts.trainId || "").trim();
+      if (!argKey) return { ok: false, reason: "argKey_missing" };
+      if (!trainId) return { ok: false, reason: "trainId_missing" };
+
+      const actorId = "me";
+      const meAcc = getAccount(actorId);
+      const actorPoints = meAcc && Number.isFinite(meAcc.points) ? (meAcc.points | 0) : 0;
+      const basePrice = getTrainingBasePrice();
+      const idempotencyKey = `training|${actorId}|${trainId}`;
+      const context = { argKey, trainId };
+      const extraMeta = { argKey, trainId };
+
+      const res = chargePriceOnce({
+        fromId: actorId,
+        toId: "sink",
+        actorId,
+        priceKey: "training",
+        basePrice,
+        actorPoints,
+        reason: "training_cost",
+        context,
+        idempotencyKey,
+        extraMeta
+      });
+
+      if (!res || res.ok !== true) {
+        return { ok: false, reason: (res && res.reason) || "transfer_failed" };
+      }
+      return {
+        ok: true,
+        charged: !!res.charged,
+        cacheHit: !!res.dedup,
+        idempotencyKey: res.idempotencyKey,
+        price: res.price || null,
+        meta: res.meta || null
+      };
+    },
+    train: (opts = {}) => {
+      const argKey = String(opts.argKey || "").trim();
+      const trainId = String(opts.trainId || "").trim();
+      if (!argKey) return { ok: false, reason: "argKey_missing" };
+      if (!trainId) return { ok: false, reason: "trainId_missing" };
+
+      const dedupKey = `training|me|${trainId}`;
+      const existing = findDupEntry("training_cost", dedupKey, null);
+      if (existing) {
+        const snap = TrainingAPI.status({ argKey });
+        return {
+          ok: true,
+          charged: false,
+          cacheHit: true,
+          status: snap,
+          cost: { ok: true, charged: false, cacheHit: true, idempotencyKey: dedupKey, existing },
+          snapshotAfter: snap
+        };
+      }
+
+      const status = TrainingAPI.status({ argKey });
+      if (!status.ok) return { ok: false, reason: status.reason || "status_failed", status };
+      if (!status.canTrain) return { ok: false, reason: status.whyBlocked, status };
+
+      const costRes = TrainingAPI.trainCost({ argKey, trainId });
+      if (!costRes || costRes.ok !== true) {
+        return { ok: false, reason: (costRes && costRes.reason) || "cost_failed", status };
+      }
+      if (costRes.cacheHit) {
+        return { ok: true, charged: false, cacheHit: true, status, cost: costRes, snapshotAfter: TrainingAPI.status({ argKey }) };
+      }
+
+      const t = ensureTrainingState();
+      const entry = ensureTrainingEntry(argKey);
+      const counters = t.counters;
+      const dayIndex = getDayIndex();
+
+      const xpBefore = sanitizeNonNegativeInt(entry.xp);
+      const levelBefore = computeTrainingLevel(xpBefore);
+      const xpAfter = xpBefore + 1;
+      const levelAfter = computeTrainingLevel(xpAfter);
+
+      entry.xp = xpAfter;
+      entry.level = levelAfter;
+      entry.lastTrainedAt = dayIndex;
+      entry.cooldownUntil = dayIndex + 1;
+
+      if (counters.lastTrainDay !== dayIndex) counters.todayTrains = 0;
+      counters.totalTrains = sanitizeNonNegativeInt(counters.totalTrains) + 1;
+      counters.todayTrains = sanitizeNonNegativeInt(counters.todayTrains) + 1;
+      counters.lastTrainDay = dayIndex;
+
+      if (isDevFlag()) {
+        const dbg = ensureDebugStore();
+        if (!Array.isArray(dbg.trainingLog)) dbg.trainingLog = [];
+        dbg.trainingLog.push({
+          reason: "training_progress",
+          meta: {
+            argKey,
+            trainId,
+            xpBefore,
+            xpAfter,
+            levelBefore,
+            levelAfter,
+            dayIndex
+          }
+        });
+        if (dbg.trainingLog.length > 200) dbg.trainingLog.shift();
+      }
+
+      return {
+        ok: true,
+        charged: true,
+        cacheHit: false,
+        status,
+        cost: costRes,
+        snapshotAfter: TrainingAPI.status({ argKey })
+      };
+    }
+  };
+  Game.TrainingAPI = Object.assign(Game.TrainingAPI || {}, TrainingAPI);
 })();

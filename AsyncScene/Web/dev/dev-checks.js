@@ -214,6 +214,290 @@ window.Game = window.Game || {};
   };
 
   if (!Game.Dev) Game.Dev = {};
+  if (!Game.Dev.config || typeof Game.Dev.config !== "object") Game.Dev.config = {};
+  Game.Dev.setBankEnabled = (value) => {
+    if (!Game.Bank || typeof Game.Bank.setEnabledForDev !== "function") {
+      return { ok: false, reason: "bank_missing" };
+    }
+    return Game.Bank.setEnabledForDev(value === true);
+  };
+  Game.Dev.clearBankOverride = () => {
+    if (!Game.Bank || typeof Game.Bank.clearOverride !== "function") {
+      return { ok: false, reason: "bank_missing" };
+    }
+    return Game.Bank.clearOverride();
+  };
+  const getMoneyLog = () => {
+    const dbg = Game.__D;
+    if (!dbg || !Array.isArray(dbg.moneyLog)) return [];
+    return dbg.moneyLog;
+  };
+  const getMoneyLogSlice = (tail) => {
+    const log = getMoneyLog();
+    if (!log.length) return [];
+    return log.slice(tail);
+  };
+  const takeSnapshot = () => {
+    const econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (econ && typeof econ.sumPointsSnapshot === "function") {
+      return econ.sumPointsSnapshot();
+    }
+    return null;
+  };
+  const extractPoints = (snap, id) => {
+    if (!snap || !snap.byId) return 0;
+    const key = String(id || "");
+    const raw = snap.byId[key];
+    return Number.isFinite(raw) ? (raw | 0) : 0;
+  };
+
+  const smokeEcon05BankOnce = (opts = {}) => {
+    const name = opts.name || "smoke_econ05_bank_once";
+    const ownerId = String(opts.ownerId || "me");
+    const result = {
+      ok: true,
+      failed: [],
+      details: { name, ownerId },
+      totals: { before: null, after: null },
+      deltas: { me: null, bank: null },
+      rows: { disabledAttempts: 0, deposits: 0, withdraws: 0 },
+      notes: []
+    };
+    const econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!econ || !Game.Bank) {
+      result.failed.push("setup_missing");
+      result.notes.push("bank or econ missing");
+      result.ok = false;
+      return result;
+    }
+    const initialSnap = takeSnapshot();
+    const recordTotal = (snap) => (snap && Number.isFinite(snap.total)) ? (snap.total | 0) : null;
+    result.totals.before = recordTotal(initialSnap);
+    const initialBank = extractPoints(initialSnap, "bank");
+    const initialOwner = extractPoints(initialSnap, ownerId);
+    let finalSnap = null;
+
+    const ensureTotalsStable = (before, after) => {
+      if (before == null || after == null) return true;
+      if (before !== after) {
+        if (!result.failed.includes("totals_drift")) result.failed.push("totals_drift");
+        result.ok = false;
+        return false;
+      }
+      return true;
+    };
+
+    const expectDisabledLogs = (rows) => {
+      const disabledRows = rows.filter(r => r && r.reason === "bank_disabled_attempt");
+      if (disabledRows.length !== 2 || rows.length !== 2) {
+        if (!result.failed.includes("disabled_log_missing")) result.failed.push("disabled_log_missing");
+        result.ok = false;
+      }
+      result.rows.disabledAttempts = disabledRows.length;
+      disabledRows.forEach(row => {
+        if (!row.meta || row.meta.status !== "bank_disabled") {
+          if (!result.failed.includes("disabled_meta_missing")) result.failed.push("disabled_meta_missing");
+          result.ok = false;
+        }
+      });
+      return disabledRows;
+    };
+
+    try {
+      const disabledTail = getMoneyLog().length;
+      Game.Dev.setBankEnabled(false);
+      const disabledDeposit = Game.Bank.deposit({ ownerId, amount: 1, reason: "smoke_disabled_deposit" });
+      const disabledWithdraw = Game.Bank.withdraw({ ownerId, amount: 1, reason: "smoke_disabled_withdraw" });
+      const disabledSnap = takeSnapshot();
+      ensureTotalsStable(result.totals.before, recordTotal(disabledSnap));
+      const disabledRows = expectDisabledLogs(getMoneyLogSlice(disabledTail));
+      if (!disabledDeposit || disabledDeposit.ok !== false || disabledDeposit.reason !== "bank_disabled"
+        || !disabledWithdraw || disabledWithdraw.ok !== false || disabledWithdraw.reason !== "bank_disabled") {
+        if (!result.failed.includes("disabled_should_block")) result.failed.push("disabled_should_block");
+        result.ok = false;
+      }
+      result.details.disabled = {
+        deposit: disabledDeposit,
+        withdraw: disabledWithdraw,
+        rows: disabledRows,
+        totalBefore: result.totals.before,
+        totalAfter: recordTotal(disabledSnap)
+      };
+
+      Game.Dev.setBankEnabled(true);
+      const snapshotBeforeEnabled = takeSnapshot();
+      const depositReason = "smoke_deposit_2";
+      const withdrawReason = "smoke_withdraw_1";
+      const depositTail = getMoneyLog().length;
+      const depositSuccess = Game.Bank.deposit({ ownerId, amount: 2, reason: depositReason });
+      const depositRows = getMoneyLogSlice(depositTail);
+      const snapshotAfterDeposit = takeSnapshot();
+      const withdrawTail = getMoneyLog().length;
+      const withdrawSuccess = Game.Bank.withdraw({ ownerId, amount: 1, reason: withdrawReason });
+      const withdrawRows = getMoneyLogSlice(withdrawTail);
+      const snapshotAfterWithdraw = takeSnapshot();
+      result.rows.deposits = depositRows.filter(r => r && r.reason === "bank_deposit").length;
+      result.rows.withdraws = withdrawRows.filter(r => r && r.reason === "bank_withdraw").length;
+      ensureTotalsStable(recordTotal(snapshotBeforeEnabled), recordTotal(snapshotAfterDeposit));
+      ensureTotalsStable(recordTotal(snapshotAfterDeposit), recordTotal(snapshotAfterWithdraw));
+
+      const depositRow = depositRows[0] || null;
+      if (!depositSuccess || depositSuccess.ok !== true) {
+        if (!result.failed.includes("deposit_failed")) result.failed.push("deposit_failed");
+        result.ok = false;
+      }
+      if (!depositRow || depositRow.reason !== "bank_deposit" || depositRow.amount !== 2
+        || depositRow.sourceId !== ownerId || depositRow.targetId !== "bank") {
+        if (!result.failed.includes("deposit_log_missing")) result.failed.push("deposit_log_missing");
+        result.ok = false;
+      }
+      if (!depositRow || !depositRow.meta || depositRow.meta.userReason !== depositReason
+        || depositRow.meta.ownerId !== ownerId || depositRow.meta.bankAccountId !== "bank"
+        || depositRow.meta.amount !== 2) {
+        if (!result.failed.includes("deposit_meta_invalid")) result.failed.push("deposit_meta_invalid");
+        result.ok = false;
+      }
+
+      const withdrawRow = withdrawRows[0] || null;
+      if (!withdrawSuccess || withdrawSuccess.ok !== true) {
+        if (!result.failed.includes("withdraw_failed")) result.failed.push("withdraw_failed");
+        result.ok = false;
+      }
+      if (!withdrawRow || withdrawRow.reason !== "bank_withdraw" || withdrawRow.amount !== 1
+        || withdrawRow.sourceId !== "bank" || withdrawRow.targetId !== ownerId) {
+        if (!result.failed.includes("withdraw_log_missing")) result.failed.push("withdraw_log_missing");
+        result.ok = false;
+      }
+      if (!withdrawRow || !withdrawRow.meta || withdrawRow.meta.userReason !== withdrawReason
+        || withdrawRow.meta.ownerId !== ownerId || withdrawRow.meta.bankAccountId !== "bank"
+        || withdrawRow.meta.amount !== 1) {
+        if (!result.failed.includes("withdraw_meta_invalid")) result.failed.push("withdraw_meta_invalid");
+        result.ok = false;
+      }
+
+      const bankBefore = extractPoints(snapshotBeforeEnabled, "bank");
+      const ownerBefore = extractPoints(snapshotBeforeEnabled, ownerId);
+      const bankAfterDeposit = extractPoints(snapshotAfterDeposit, "bank");
+      const ownerAfterDeposit = extractPoints(snapshotAfterDeposit, ownerId);
+      const bankAfterWithdraw = extractPoints(snapshotAfterWithdraw, "bank");
+      const ownerAfterWithdraw = extractPoints(snapshotAfterWithdraw, ownerId);
+      if (bankAfterDeposit !== bankBefore + 2 || ownerAfterDeposit !== ownerBefore - 2) {
+        if (!result.failed.includes("positive_deposit_delta")) result.failed.push("positive_deposit_delta");
+        result.ok = false;
+      }
+      if (bankAfterWithdraw !== bankAfterDeposit - 1 || ownerAfterWithdraw !== ownerAfterDeposit + 1) {
+        if (!result.failed.includes("positive_withdraw_delta")) result.failed.push("positive_withdraw_delta");
+        result.ok = false;
+      }
+
+      const negDepositTail = getMoneyLog().length;
+      const depositBig = Game.Bank.deposit({ ownerId, amount: 999, reason: "smoke_deposit_big" });
+      const negDepositRows = getMoneyLogSlice(negDepositTail);
+      const snapshotAfterNegDeposit = takeSnapshot();
+      if (!depositBig || depositBig.ok !== false || depositBig.reason !== "insufficient_points") {
+        if (!result.failed.includes("deposit_insufficient_missing")) result.failed.push("deposit_insufficient_missing");
+        result.ok = false;
+      }
+      if (negDepositRows.length > 0) {
+        if (!result.failed.includes("deposit_negative_log")) result.failed.push("deposit_negative_log");
+        result.ok = false;
+      }
+      if (recordTotal(snapshotAfterNegDeposit) !== recordTotal(snapshotAfterWithdraw)
+        || extractPoints(snapshotAfterNegDeposit, "bank") !== bankAfterWithdraw
+        || extractPoints(snapshotAfterNegDeposit, ownerId) !== ownerAfterWithdraw) {
+        if (!result.failed.includes("deposit_negative_mutation")) result.failed.push("deposit_negative_mutation");
+        result.ok = false;
+      }
+
+      const negWithdrawTail = getMoneyLog().length;
+      const withdrawBig = Game.Bank.withdraw({ ownerId, amount: 999, reason: "smoke_withdraw_big" });
+      const negWithdrawRows = getMoneyLogSlice(negWithdrawTail);
+      const snapshotAfterNegWithdraw = takeSnapshot();
+      if (!withdrawBig || withdrawBig.ok !== false || withdrawBig.reason !== "insufficient_bank_funds") {
+        if (!result.failed.includes("withdraw_overdraft_allowed")) result.failed.push("withdraw_overdraft_allowed");
+        result.ok = false;
+      }
+      if (negWithdrawRows.length > 0) {
+        if (!result.failed.includes("withdraw_negative_log")) result.failed.push("withdraw_negative_log");
+        result.ok = false;
+      }
+      if (recordTotal(snapshotAfterNegWithdraw) !== recordTotal(snapshotAfterWithdraw)
+        || extractPoints(snapshotAfterNegWithdraw, "bank") !== bankAfterWithdraw
+        || extractPoints(snapshotAfterNegWithdraw, ownerId) !== ownerAfterWithdraw) {
+        if (!result.failed.includes("withdraw_negative_mutation")) result.failed.push("withdraw_negative_mutation");
+        result.ok = false;
+      }
+
+      result.details.enabled = {
+        deposit: depositSuccess,
+        withdraw: withdrawSuccess,
+        depositRows,
+        withdrawRows
+      };
+      result.details.negatives = {
+        deposit: depositBig,
+        withdraw: withdrawBig,
+        depositRows: negDepositRows,
+        withdrawRows: negWithdrawRows
+      };
+
+      finalSnap = snapshotAfterNegWithdraw;
+      result.totals.after = recordTotal(finalSnap);
+      result.deltas.bank = extractPoints(finalSnap, "bank") - initialBank;
+      result.deltas.me = extractPoints(finalSnap, ownerId) - initialOwner;
+      result.details.finalSnapshot = finalSnap;
+      result.details.snapshots = {
+        before: initialSnap,
+        afterDisabled: disabledSnap,
+        beforeEnabled: snapshotBeforeEnabled,
+        afterDeposit: snapshotAfterDeposit,
+        afterWithdraw: snapshotAfterWithdraw
+      };
+    } finally {
+      if (Game.Dev && typeof Game.Dev.clearBankOverride === "function") {
+        Game.Dev.clearBankOverride();
+      }
+    }
+    result.ok = result.failed.length === 0;
+    return result;
+  };
+  Game.Dev.smokeEcon05BankOnce = smokeEcon05BankOnce;
+  devStore.smokeEcon05BankOnce = smokeEcon05BankOnce;
+  if (!Game.__DEV) Game.__DEV = {};
+  Game.__DEV.smokeEcon05_BankOnce = smokeEcon05BankOnce;
+  const seedTrainingPoints = (minPoints, tag) => {
+    const S = Game.__S || {};
+    if (!S.players) S.players = {};
+    const donors = [];
+    Object.values(S.players || {}).forEach(p => {
+      if (!p || !p.id) return;
+      if (p.id === "me") return;
+      const id = String(p.id || "");
+      const isNpc = (p.npc === true || p.type === "npc" || id.startsWith("npc_"));
+      if (!isNpc) return;
+      const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
+      if (pts > 0) donors.push({ id, points: pts });
+    });
+    const needPoints = Math.max(0, (minPoints | 0) - ((S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0));
+    if (needPoints <= 0) return { ok: true, seeded: 0 };
+    let remaining = needPoints;
+    let seeded = 0;
+    const Econ = Game._ConflictEconomy || null;
+    for (const donor of donors) {
+      if (remaining <= 0) break;
+      const amt = Math.min(remaining, donor.points | 0);
+      if (amt <= 0) continue;
+      if (!Econ || typeof Econ.transferPoints !== "function") break;
+      const tx = Econ.transferPoints(donor.id, "me", amt, "dev_seed_points", { tag: tag || "training_seed" });
+      if (tx && tx.ok === true) {
+        remaining -= amt;
+        seeded += amt;
+      }
+    }
+    if (remaining > 0) return { ok: false, reason: "seed_insufficient", seeded };
+    return { ok: true, seeded };
+  };
+
   Game.Dev.smokeTrainingDataOnce = () => {
     const name = "smoke_training_data_once";
     const notes = [];
@@ -262,6 +546,437 @@ window.Game = window.Game || {};
     };
   };
   Game.__DEV.smokeTrainingDataOnce = Game.Dev.smokeTrainingDataOnce;
+
+  Game.Dev.smokeTrainingCostOnce = () => {
+    const name = "smoke_training_cost_once";
+    const notes = [];
+    const Econ = Game._ConflictEconomy || null;
+    const api = Game.TrainingAPI || null;
+    const S = Game.__S || {};
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+
+    if (!Econ || typeof Econ.transferPoints !== "function" || !api || typeof api.trainCost !== "function") {
+      return { name, ok: false, notes: ["training_api_missing"] };
+    }
+
+    if ((!S.players || !S.players.me) && Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
+    }
+
+    const runId = `train_cost_${Date.now().toString(36)}`;
+    const argKey = "smoke_training_arg";
+    const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
+    const seeded = seedTrainingPoints(2, "smokeTrainingCostOnce");
+    if (!seeded.ok) {
+      notes.push(seeded.reason || "seed_failed");
+      return { name, ok: false, notes };
+    }
+    const beforePoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const logBefore = dbg.moneyLog.filter(r => r && r.reason === "training_cost" && r.meta && r.meta.trainId === runId).length;
+
+    const first = api.trainCost({ argKey, trainId: runId });
+    const afterPoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const afterSnapshot = Game.__DEV.sumPointsSnapshot();
+    const logAfter = dbg.moneyLog.filter(r => r && r.reason === "training_cost" && r.meta && r.meta.trainId === runId).length;
+    const price = (first && first.price && Number.isFinite(first.price.finalPrice)) ? (first.price.finalPrice | 0) : 0;
+    const pointsDiff = afterPoints - beforePoints;
+    const worldDiff = (afterSnapshot.total | 0) - (beforeSnapshot.total | 0);
+
+    const secondBeforePoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const secondLogBefore = dbg.moneyLog.filter(r => r && r.reason === "training_cost" && r.meta && r.meta.trainId === runId).length;
+    const second = api.trainCost({ argKey, trainId: runId });
+    const secondAfterPoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const secondLogAfter = dbg.moneyLog.filter(r => r && r.reason === "training_cost" && r.meta && r.meta.trainId === runId).length;
+
+    const ok =
+      first && first.ok === true &&
+      pointsDiff === -price &&
+      worldDiff === 0 &&
+      logAfter - logBefore === 1 &&
+      second && second.ok === true &&
+      second.cacheHit === true &&
+      secondAfterPoints === secondBeforePoints &&
+      secondLogAfter === secondLogBefore;
+
+    if (pointsDiff !== -price) notes.push("points_diff_mismatch");
+    if (worldDiff !== 0) notes.push("world_diff_nonzero");
+    if (logAfter - logBefore !== 1) notes.push("moneylog_missing_or_duplicate");
+    if (!second || second.cacheHit !== true) notes.push("cache_hit_missing");
+    if (secondAfterPoints !== secondBeforePoints) notes.push("repeat_charge_detected");
+    if (secondLogAfter !== secondLogBefore) notes.push("repeat_log_detected");
+
+    return {
+      name,
+      ok,
+      notes,
+      first,
+      second,
+      pointsDiff,
+      price,
+      worldDiff,
+      moneyLogDelta: logAfter - logBefore
+    };
+  };
+  Game.__DEV.smokeTrainingCostOnce = Game.Dev.smokeTrainingCostOnce;
+
+  Game.Dev.smokeTrainingProgressOnce = () => {
+    const name = "smoke_training_progress_once";
+    const notes = [];
+    const Econ = Game._ConflictEconomy || null;
+    const api = Game.TrainingAPI || null;
+    const S = Game.__S || {};
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    dbg.trainingLog = Array.isArray(dbg.trainingLog) ? dbg.trainingLog : (dbg.trainingLog = []);
+
+    if (!Econ || !api || typeof api.status !== "function" || typeof api.train !== "function") {
+      return { name, ok: false, notes: ["training_api_missing"] };
+    }
+
+    if ((!S.players || !S.players.me) && Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
+    }
+
+    const countCostLogs = (trainId) => {
+      return dbg.moneyLog.filter(r => r && r.reason === "training_cost" && r.meta && r.meta.trainId === trainId).length;
+    };
+
+    const countProgressLogs = (trainId) => {
+      return dbg.trainingLog.filter(r => r && r.reason === "training_progress" && r.meta && r.meta.trainId === trainId).length;
+    };
+
+    S.dayIndex = 0;
+    const seedRes = seedTrainingPoints(2, "smokeTrainingProgressOnce");
+    if (!seedRes.ok) {
+      notes.push(seedRes.reason || "seed_failed");
+      return { name, ok: false, notes };
+    }
+
+    const runId = `train_prog_${Date.now().toString(36)}`;
+    const argKey = `smoke_training_arg_${runId}`;
+    const trainIdA = `train_${runId}_a`;
+    const trainIdB = `train_${runId}_b`;
+    const trainIdC = `train_${runId}_c`;
+
+    const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
+    const countersBefore = (S.training && S.training.counters) ? {
+      totalTrains: S.training.counters.totalTrains | 0,
+      todayTrains: S.training.counters.todayTrains | 0,
+      lastTrainDay: S.training.counters.lastTrainDay | 0
+    } : { totalTrains: 0, todayTrains: 0, lastTrainDay: 0 };
+
+    const status0 = api.status({ argKey });
+    const status0Ok = !!(status0 && status0.ok && status0.canTrain === true);
+    if (!status0Ok) notes.push("status0_blocked");
+
+    const price = (status0 && Number.isFinite(status0.price)) ? (status0.price | 0) : 1;
+
+    const beforePointsA = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costBeforeA = countCostLogs(trainIdA);
+    const progBeforeA = countProgressLogs(trainIdA);
+    const resA = api.train({ argKey, trainId: trainIdA });
+    const afterPointsA = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costAfterA = countCostLogs(trainIdA);
+    const progAfterA = countProgressLogs(trainIdA);
+    const entryA = (S.training && S.training.byArgKey) ? S.training.byArgKey[argKey] : null;
+    const countersA = (S.training && S.training.counters) ? S.training.counters : {};
+    const pointsDiffA = afterPointsA - beforePointsA;
+    const xpAfterA = entryA ? (entryA.xp | 0) : null;
+    const levelAfterA = entryA ? (entryA.level | 0) : null;
+    const countersAfterA = {
+      totalTrains: (countersA.totalTrains | 0),
+      todayTrains: (countersA.todayTrains | 0),
+      lastTrainDay: (countersA.lastTrainDay | 0)
+    };
+
+    const expectedTodayA = (countersBefore.lastTrainDay === 0) ? ((countersBefore.todayTrains | 0) + 1) : 1;
+    const expectedTotalA = (countersBefore.totalTrains | 0) + 1;
+
+    const stepAOk =
+      resA && resA.ok === true && resA.charged === true && resA.cacheHit === false &&
+      pointsDiffA === -price &&
+      costAfterA - costBeforeA === 1 &&
+      progAfterA - progBeforeA === 1 &&
+      entryA && xpAfterA === ((status0 && status0.progress && Number.isFinite(status0.progress.xp)) ? (status0.progress.xp | 0) + 1 : 1) &&
+      levelAfterA === 0 &&
+      entryA.cooldownUntil === 1 &&
+      entryA.lastTrainedAt === 0 &&
+      (countersA.totalTrains | 0) === expectedTotalA &&
+      (countersA.todayTrains | 0) === expectedTodayA &&
+      (countersA.lastTrainDay | 0) === 0;
+
+    if (!stepAOk) notes.push("step_a_mismatch");
+
+    const beforePointsA2 = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costBeforeA2 = countCostLogs(trainIdA);
+    const progBeforeA2 = countProgressLogs(trainIdA);
+    const resA2 = api.train({ argKey, trainId: trainIdA });
+    const afterPointsA2 = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costAfterA2 = countCostLogs(trainIdA);
+    const progAfterA2 = countProgressLogs(trainIdA);
+    const entryA2 = (S.training && S.training.byArgKey) ? S.training.byArgKey[argKey] : null;
+    const countersA2 = (S.training && S.training.counters) ? S.training.counters : {};
+
+    const stepA2Ok =
+      resA2 && resA2.ok === true && resA2.cacheHit === true && resA2.charged === false &&
+      afterPointsA2 === beforePointsA2 &&
+      costAfterA2 === costBeforeA2 &&
+      progAfterA2 === progBeforeA2 &&
+      entryA2 && xpAfterA != null && entryA2.xp === xpAfterA &&
+      (countersA2.totalTrains | 0) === countersAfterA.totalTrains &&
+      (countersA2.todayTrains | 0) === countersAfterA.todayTrains;
+
+    if (!stepA2Ok) notes.push("step_a2_mismatch");
+
+    const beforePointsB = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costBeforeB = countCostLogs(trainIdB);
+    const resB = api.train({ argKey, trainId: trainIdB });
+    const afterPointsB = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costAfterB = countCostLogs(trainIdB);
+    const entryB = (S.training && S.training.byArgKey) ? S.training.byArgKey[argKey] : null;
+    const countersB = (S.training && S.training.counters) ? S.training.counters : {};
+
+    const stepBOk =
+      resB && resB.ok === false && resB.reason === "cooldown" &&
+      afterPointsB === beforePointsB &&
+      costAfterB === costBeforeB &&
+      entryB && entryA && entryB.xp === entryA.xp &&
+      (countersB.totalTrains | 0) === (countersA.totalTrains | 0);
+
+    if (!stepBOk) notes.push("step_b_mismatch");
+
+    S.dayIndex = 1;
+    const status1 = api.status({ argKey });
+    const status1Ok = !!(status1 && status1.ok && status1.canTrain === true);
+    if (!status1Ok) notes.push("status1_blocked");
+
+    const beforePointsC = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costBeforeC = countCostLogs(trainIdC);
+    const progBeforeC = countProgressLogs(trainIdC);
+    const resC = api.train({ argKey, trainId: trainIdC });
+    const afterPointsC = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const costAfterC = countCostLogs(trainIdC);
+    const progAfterC = countProgressLogs(trainIdC);
+    const entryC = (S.training && S.training.byArgKey) ? S.training.byArgKey[argKey] : null;
+    const countersC = (S.training && S.training.counters) ? S.training.counters : {};
+
+    const pointsDiffC = afterPointsC - beforePointsC;
+    const expectedTotalC = countersAfterA.totalTrains + 1;
+
+    const stepCOk =
+      resC && resC.ok === true && resC.charged === true && resC.cacheHit === false &&
+      pointsDiffC === -price &&
+      costAfterC - costBeforeC === 1 &&
+      progAfterC - progBeforeC === 1 &&
+      entryC && entryC.xp === ((xpAfterA != null) ? (xpAfterA | 0) + 1 : 2) &&
+      entryC.level === 0 &&
+      entryC.cooldownUntil === 2 &&
+      entryC.lastTrainedAt === 1 &&
+      (countersC.totalTrains | 0) === expectedTotalC &&
+      (countersC.todayTrains | 0) === 1 &&
+      (countersC.lastTrainDay | 0) === 1;
+
+    if (!stepCOk) notes.push("step_c_mismatch");
+
+    const afterSnapshot = Game.__DEV.sumPointsSnapshot();
+    const worldDiff = (afterSnapshot.total | 0) - (beforeSnapshot.total | 0);
+    if (worldDiff !== 0) notes.push("world_diff_nonzero");
+
+    const ok = notes.length === 0;
+    return {
+      name,
+      ok,
+      notes,
+      price,
+      pointsDiffA,
+      pointsDiffC,
+      worldDiff,
+      status0,
+      status1,
+      resA,
+      resA2,
+      resB,
+      resC
+    };
+  };
+  Game.__DEV.smokeTrainingProgressOnce = Game.Dev.smokeTrainingProgressOnce;
+
+  Game.Dev.smokeTrainingUIOnce = () => {
+    const name = "smoke_training_ui_once";
+    const notes = [];
+    const UI = Game.UI || null;
+    const Econ = Game._ConflictEconomy || null;
+    const S = Game.__S || {};
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
+
+    if (!UI) {
+      notes.push("ui_missing");
+      return { name, ok: false, notes };
+    }
+
+    if ((!S.players || !S.players.me) && Game.__A && typeof Game.__A.seedPlayers === "function") {
+      Game.__A.seedPlayers();
+    }
+
+    const doc = (typeof document !== "undefined") ? document : null;
+    if (doc) {
+      const existingControls = doc.getElementById("trainingControls");
+      if (existingControls) existingControls.remove();
+    }
+    if (UI && UI.trainingControls) delete UI.trainingControls;
+
+    const ensureMenuOpen = () => {
+      if (UI.trainingControls) return true;
+      if (typeof UI.showMenu !== "function") return false;
+      try {
+        UI.showMenu();
+      } catch (err) {
+        notes.push("menu_show_failed");
+        return false;
+      }
+      return !!UI.trainingControls;
+    };
+
+    const menuFlags = S.flags || (S.flags = {});
+    const menuWasOpen = !!menuFlags.menuOpen;
+    const closeMenuIfNeeded = () => {
+      if (!menuWasOpen && typeof UI.hideMenu === "function") {
+        UI.hideMenu();
+      }
+    };
+    const controlsReady = ensureMenuOpen();
+    if (!controlsReady) {
+      notes.push("training_controls_missing");
+      closeMenuIfNeeded();
+      return { name, ok: false, notes };
+    }
+
+    const controls = UI.trainingControls;
+    if (!controls || typeof controls.refresh !== "function" || typeof controls.performAction !== "function") {
+      notes.push("training_controls_invalid");
+      closeMenuIfNeeded();
+      return { name, ok: false, notes };
+    }
+
+    const argKey = controls.argKey || "menu_training_arg";
+    const trainingState = S.training || (S.training = { version: 1, byArgKey: {}, counters: { totalTrains: 0, todayTrains: 0, lastTrainDay: 0 } });
+    trainingState.byArgKey = trainingState.byArgKey || {};
+    const originalEntry = trainingState.byArgKey[argKey] ? { ...trainingState.byArgKey[argKey] } : null;
+    const originalCounters = trainingState.counters ? { ...trainingState.counters } : null;
+    const restoreEntry = () => {
+      if (!trainingState.byArgKey) return;
+      if (originalEntry) trainingState.byArgKey[argKey] = originalEntry;
+      else delete trainingState.byArgKey[argKey];
+    };
+    const restoreCounters = () => {
+      if (!trainingState) return;
+      if (originalCounters) trainingState.counters = originalCounters;
+      else delete trainingState.counters;
+    };
+
+    trainingState.byArgKey[argKey] = { level: 0, xp: 0, lastTrainedAt: 0, cooldownUntil: 0 };
+    trainingState.counters = { totalTrains: 0, todayTrains: 0, lastTrainDay: 0 };
+    S.dayIndex = 0;
+
+    const seeded = seedTrainingPoints(2, "smokeTrainingUIOnce");
+    if (!seeded.ok) {
+      notes.push(seeded.reason || "seed_failed");
+      restoreEntry();
+      restoreCounters();
+      closeMenuIfNeeded();
+      return { name, ok: false, notes };
+    }
+
+    const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
+    const beforePoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const moneyLogBefore = dbg.moneyLog.length;
+
+    controls.refresh();
+    const status0 = controls.latestStatus;
+    const price = (status0 && Number.isFinite(status0.price)) ? (status0.price | 0) : 1;
+    const status0Ok = !!(status0 && status0.ok && status0.canTrain === true);
+    if (!status0Ok) notes.push("status0_blocked");
+
+    const resA = controls.performAction();
+    const afterPointsA = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const pointsDiffA = afterPointsA - beforePoints;
+    const moneyLogAfterA = dbg.moneyLog.length;
+    const moneyLogDeltaA = moneyLogAfterA - moneyLogBefore;
+    const resAOk =
+      resA && resA.ok === true && resA.charged === true && resA.cacheHit === false;
+    if (!resAOk) notes.push("first_action_failed");
+    if (pointsDiffA !== -price) notes.push("points_diff_mismatch");
+    if (moneyLogDeltaA !== 1) notes.push("moneylog_delta_mismatch");
+
+    controls.refresh();
+    const resCooldown = controls.performAction();
+    const afterPointsCooldown = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const moneyLogAfterCooldown = dbg.moneyLog.length;
+    const cooldownLogDelta = moneyLogAfterCooldown - moneyLogAfterA;
+    const resCooldownOk =
+      resCooldown && resCooldown.ok === false && resCooldown.reason === "cooldown" &&
+      afterPointsCooldown === afterPointsA &&
+      cooldownLogDelta === 0;
+    if (!resCooldownOk) notes.push("cooldown_block_mismatch");
+
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      notes.push("econ_missing");
+      restoreEntry();
+      restoreCounters();
+      closeMenuIfNeeded();
+      return { name, ok: false, notes };
+    }
+
+    const drainAmount = Math.max(0, (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
+    if (drainAmount > 0) {
+      const drain = Econ.transferPoints("me", "sink", drainAmount, "dev_zero_points", { tag: "smokeTrainingUIOnce" });
+      if (!drain || drain.ok !== true) notes.push("drain_failed");
+    }
+
+    const expectedInsuffReason = "insufficient_points";
+    controls.refresh();
+    const resInsuff = controls.performAction();
+    const afterPointsInsuff = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+    const moneyLogAfterInsuff = dbg.moneyLog.length;
+    const insuffLogDelta = moneyLogAfterInsuff - moneyLogAfterCooldown;
+    const resInsuffOk =
+      resInsuff && resInsuff.ok === false && resInsuff.reason === expectedInsuffReason &&
+      afterPointsInsuff === afterPointsCooldown &&
+      insuffLogDelta === 0;
+    if (!resInsuffOk && !(resInsuff && resInsuff.reason === expectedInsuffReason)) notes.push("insuff_block_mismatch");
+
+    const afterSnapshot = Game.__DEV.sumPointsSnapshot();
+    const worldDiff = (afterSnapshot.total | 0) - (beforeSnapshot.total | 0);
+    if (worldDiff !== 0) notes.push("world_diff_nonzero");
+
+    restoreEntry();
+    restoreCounters();
+    closeMenuIfNeeded();
+
+    const ok =
+      notes.length === 0 &&
+      worldDiff === 0 &&
+      moneyLogDeltaA === 1 &&
+      pointsDiffA === -price &&
+      resCooldown && resCooldown.reason === "cooldown" &&
+      resInsuff && resInsuff.reason === expectedInsuffReason;
+
+    return {
+      name,
+      ok,
+      notes,
+      resA,
+      resCooldown,
+      resInsuff,
+      pointsDiffA,
+      price,
+      worldDiff,
+      moneyLogDelta: moneyLogDeltaA
+    };
+  };
+  Game.__DEV.smokeTrainingUIOnce = Game.Dev.smokeTrainingUIOnce;
 
   Game.__DEV.setInfluence = (value) => {
     if (typeof value !== "number") return;
@@ -803,6 +1518,947 @@ window.Game = window.Game || {};
   };
 
   const getBattleTxLog = () => getDebugMoneyLogRows();
+
+  const getPointsMoneyLogSnapshot = (opts = {}) => {
+    const prefer = opts && opts.prefer ? String(opts.prefer) : "debug_moneyLog";
+    const dbg = Game.__D || null;
+    const debugLog = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : null;
+    if (prefer === "debug_moneyLog" && debugLog && debugLog.length) {
+      return { rows: debugLog, logSource: "debug_moneyLog" };
+    }
+    const logger = Game && Game.Logger ? Game.Logger : null;
+    const queue = logger && Array.isArray(logger.queue) ? logger.queue : null;
+    if (queue && queue.length) {
+      const rows = queue
+        .filter(e => e && e.type === "stat" && e.kind === "points")
+        .map(e => ({
+          ts: e.ts || null,
+          reason: e.meta ? e.meta.reason : null,
+          amount: Number.isFinite(e.delta) ? Math.abs(e.delta) : 0,
+          sourceId: e.meta ? (e.meta.sourceId || null) : null,
+          targetId: e.meta ? (e.meta.targetId || null) : null,
+          battleId: e.meta ? (e.meta.battleId || null) : null,
+          eventId: e.meta ? (e.meta.eventId || null) : null,
+          meta: e.meta || null,
+          currency: (e.meta && e.meta.currency) ? e.meta.currency : null
+        }));
+      return { rows, logSource: "logger_queue" };
+    }
+    if (debugLog && debugLog.length) {
+      return { rows: debugLog, logSource: "debug_moneyLog" };
+    }
+    const state = Game && Game.State ? Game.State : null;
+    const stateLog = state && Array.isArray(state.moneyLog) ? state.moneyLog : null;
+    if (stateLog && stateLog.length) return { rows: stateLog, logSource: "state_moneyLog" };
+    const stateLogByBattle = state && state.moneyLogByBattle ? state.moneyLogByBattle : null;
+    if (stateLogByBattle && typeof stateLogByBattle === "object") {
+      const rows = Object.values(stateLogByBattle)
+        .reduce((acc, bucket) => acc.concat(Array.isArray(bucket) ? bucket : []), []);
+      if (rows.length) return { rows, logSource: "state_moneyLogByBattle" };
+    }
+    return { rows: [], logSource: "none" };
+  };
+
+  const buildMoneyLogDiag = () => {
+    const hasGame = typeof Game === "object" && !!Game;
+    const dbg = hasGame ? Game.__D : null;
+    const debugLog = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog : null;
+    const debugMoneyLogLen = debugLog ? debugLog.length : 0;
+    const debugByBattle = dbg && dbg.moneyLogByBattle ? dbg.moneyLogByBattle : null;
+    const byBattleKeys = debugByBattle && typeof debugByBattle === "object" ? Object.keys(debugByBattle) : [];
+    const logger = hasGame ? Game.Logger : null;
+    const loggerQueue = logger && Array.isArray(logger.queue) ? logger.queue : null;
+    const state = hasGame ? Game.State : null;
+    const stateMoneyLog = state && Array.isArray(state.moneyLog) ? state.moneyLog : null;
+    const stateMoneyLogLen = stateMoneyLog ? stateMoneyLog.length : 0;
+    let lastKnownBattleId = null;
+    let byBattleHasLast = false;
+    try {
+      const battles = Game.__S && Array.isArray(Game.__S.battles) ? Game.__S.battles : [];
+      const last = battles.length ? battles[battles.length - 1] : null;
+      lastKnownBattleId = last && last.id ? String(last.id) : null;
+      if (lastKnownBattleId && debugByBattle && Array.isArray(debugByBattle[lastKnownBattleId])) {
+        byBattleHasLast = debugByBattle[lastKnownBattleId].length > 0;
+      }
+    } catch (_) {}
+    return {
+      hasGame,
+      hasGameDebug: !!dbg,
+      hasDebugMoneyLog: !!debugLog,
+      debugMoneyLogLen,
+      hasDebugMoneyLogByBattle: !!debugByBattle,
+      moneyLogByBattleKeysCount: byBattleKeys.length,
+      hasLogger: !!logger,
+      hasLoggerQueue: !!loggerQueue,
+      loggerQueueLen: loggerQueue ? loggerQueue.length : 0,
+      hasMoneyLog: !!stateMoneyLog,
+      moneyLogLen: stateMoneyLogLen,
+      lastKnownBattleId,
+      byBattleHasLast
+    };
+  };
+
+  const refreshMoneyLogSnapshot = () => {
+    try {
+      const logger = Game && Game.Logger ? Game.Logger : null;
+      if (logger && typeof logger.forceFlush === "function") {
+        logger.forceFlush();
+      } else if (logger && typeof logger.flush === "function") {
+        logger.flush(true);
+      }
+    } catch (_) {}
+    try {
+      const dbg = Game.__D || null;
+      if (dbg && typeof dbg.refreshMoneyLog === "function") {
+        dbg.refreshMoneyLog();
+      }
+    } catch (_) {}
+    try {
+      const dbg = Game.__D || null;
+      if (dbg && typeof dbg.refresh === "function") {
+        dbg.refresh();
+      }
+    } catch (_) {}
+  };
+
+  const normalizeAuditRow = (row) => {
+    const r = row || {};
+    const meta = r.meta || null;
+    const amtRaw = Number(r.amount);
+    const amount = Number.isFinite(amtRaw) ? Math.abs(amtRaw) : 0;
+    const rawCurrency = r.currency != null ? String(r.currency) : null;
+    const currency = rawCurrency ? rawCurrency : null;
+    const isPoints = !currency || currency === "points";
+    return {
+      ts: Number.isFinite(r.ts) ? r.ts : (Number.isFinite(meta && meta.ts) ? meta.ts : null),
+      reason: r.reason != null ? String(r.reason) : "unknown",
+      amount,
+      sourceId: r.sourceId != null ? String(r.sourceId) : "",
+      targetId: r.targetId != null ? String(r.targetId) : "",
+      battleId: r.battleId != null ? String(r.battleId) : (meta && meta.battleId != null ? String(meta.battleId) : ""),
+      eventId: r.eventId != null ? String(r.eventId) : (meta && meta.eventId != null ? String(meta.eventId) : ""),
+      currency,
+      isPoints,
+      meta
+    };
+  };
+
+  const matchesScopeId = (row, id) => {
+    if (!row || !id) return false;
+    const key = String(id || "");
+    if (!key) return false;
+    if (row.battleId && row.battleId === key) return true;
+    if (row.eventId && row.eventId === key) return true;
+    const meta = row.meta || null;
+    const metaBattleId = meta && meta.battleId ? String(meta.battleId) : "";
+    const metaEventId = meta && meta.eventId ? String(meta.eventId) : "";
+    const metaId = meta && meta.id ? String(meta.id) : "";
+    const metaBattleKey = meta && meta.battleKey ? String(meta.battleKey) : "";
+    if (metaBattleId && metaBattleId === key) return true;
+    if (metaEventId && metaEventId === key) return true;
+    if (metaId && metaId === key) return true;
+    if (metaBattleKey && metaBattleKey === key) return true;
+    const sourceId = row.sourceId || "";
+    const targetId = row.targetId || "";
+    const crowdKey = `crowd:${key}`;
+    return (
+      (sourceId && sourceId.includes(crowdKey)) ||
+      (targetId && targetId.includes(crowdKey)) ||
+      (sourceId && sourceId.includes(key)) ||
+      (targetId && targetId.includes(key))
+    );
+  };
+
+  const buildNpcIdSet = () => {
+    const S = Game.__S || {};
+    const players = S.players || {};
+    const npcIds = new Set();
+    Object.keys(players).forEach(id => {
+      const p = players[id];
+      if (!p) return;
+      const pid = String(p.id || id || "");
+      if (!pid) return;
+      if (p.npc === true || p.type === "npc" || pid.startsWith("npc_")) npcIds.add(pid);
+    });
+    return npcIds;
+  };
+
+  const buildPlayerIdSet = () => {
+    const S = Game.__S || {};
+    const players = S.players || {};
+    const playerIds = new Set();
+    Object.keys(players).forEach(id => {
+      const p = players[id];
+      if (!p) return;
+      const pid = String(p.id || id || "");
+      if (!pid) return;
+      if (!(p.npc === true || p.type === "npc" || pid.startsWith("npc_"))) playerIds.add(pid);
+    });
+    return playerIds;
+  };
+
+  const collectAutoAccounts = (snap, npcIds, playerIds) => {
+    const ids = new Set();
+    const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? String(Game.__S.me.id) : "me";
+    if (meId) ids.add(meId);
+    npcIds.forEach(id => ids.add(id));
+    playerIds.forEach(id => ids.add(id));
+    const byId = snap && snap.byId ? snap.byId : {};
+    Object.keys(byId).forEach(id => {
+      if (id === "sink" || id === "bank" || id === "crowd" || id === "crowd_pool") {
+        ids.add(id);
+        return;
+      }
+      if (id.startsWith("crowd:") || id.startsWith("crowd_pool") || id.startsWith("pool:")) ids.add(id);
+    });
+    ids.add("sink");
+    ids.add("bank");
+    return Array.from(ids).map(x => String(x)).filter(Boolean).sort();
+  };
+
+  const classifyBucket = (id, npcIds, playerIds) => {
+    if (!id) return "others";
+    if (id === "sink") return "sink";
+    if (id === "bank") return "bank";
+    if (id.startsWith("crowd:") || id.startsWith("crowd_pool") || id.startsWith("pool:") || id === "crowd" || id === "crowd_pool") {
+      return "pools";
+    }
+    if (npcIds.has(id) || id.startsWith("npc_")) return "npcs";
+    if (playerIds.has(id) || id === "me") return "players";
+    return "others";
+  };
+
+  const ALLOWED_NET_TO_SINK_REASONS = new Set([
+    "crowd_vote_cost",
+    "crowd_vote_pool_init",
+    "battle_entry_npc"
+  ]);
+  const DEV_ONLY_IGNORED_NET_TO_SINK_REASONS = new Set([
+    "dev_paid_vote_probe"
+  ]);
+
+  Game.__DEV.auditNpcWorldBalanceOnce = (opts = {}) => {
+    const windowOpts = (opts && typeof opts.window === "object" && opts.window) ? opts.window : {};
+    const refreshEnabled = opts.refresh !== false;
+    const allowEmpty = opts.allowEmpty === true;
+    const includeAccounts = opts && opts.includeAccounts ? opts.includeAccounts : "auto";
+    const debug = !!(opts && opts.debug);
+    const notes = [];
+    const nanFields = new Set();
+    const markNaN = (field) => {
+      if (!nanFields.has(field)) {
+        nanFields.add(field);
+        notes.push(`nan_detected:${field}`);
+      }
+      return 0;
+    };
+    const toNum = (v, field) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : markNaN(field);
+    };
+
+    const buildNormalizedRows = (rows) => (Array.isArray(rows) ? rows.map(normalizeAuditRow) : []);
+    const { type: scopeType, value: scopeValue, desc: scopeString } = (() => {
+      if (windowOpts && windowOpts.battleId) {
+        const bid = String(windowOpts.battleId);
+        return { type: "battle", value: bid, desc: `battleId=${bid}` };
+      }
+      if (windowOpts && windowOpts.eventId) {
+        const eid = String(windowOpts.eventId);
+        return { type: "event", value: eid, desc: `eventId=${eid}` };
+      }
+      if (windowOpts && Number.isFinite(windowOpts.newerThanTs)) {
+        const ts = Number(windowOpts.newerThanTs);
+        return { type: "newerThan", value: ts, desc: `newerThanTs>=${ts}` };
+      }
+      if (windowOpts && Number.isFinite(windowOpts.lastN)) {
+        const lastN = Math.max(0, windowOpts.lastN | 0);
+        return { type: "lastN", value: lastN, desc: `lastN=${lastN}` };
+      }
+      return { type: "all", value: null, desc: "all" };
+    })();
+
+    const applyScope = (rows) => {
+      if (!Array.isArray(rows)) return [];
+      switch (scopeType) {
+        case "battle":
+          return rows.filter(row => matchesScopeId(row, scopeValue));
+        case "event":
+          return rows.filter(row => matchesScopeId(row, scopeValue));
+        case "newerThan":
+          return rows.filter(row => Number.isFinite(row.ts) && row.ts >= scopeValue);
+        case "lastN":
+          if (scopeValue <= 0) return [];
+          return rows.slice(Math.max(0, rows.length - scopeValue));
+        default:
+          return rows.slice();
+      }
+    };
+
+    const fetchNormalizedRows = () => {
+      const bundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+      return { bundle, rows: buildNormalizedRows(bundle.rows || []) };
+    };
+
+    let { bundle: logBundle, rows: normalizedRows } = fetchNormalizedRows();
+    let scopedRows = applyScope(normalizedRows);
+    if (refreshEnabled) {
+      refreshMoneyLogSnapshot();
+      ({ bundle: logBundle, rows: normalizedRows } = fetchNormalizedRows());
+      scopedRows = applyScope(normalizedRows);
+    }
+    const scopeDesc = scopeString || "all";
+    const logSource = logBundle.logSource || "none";
+    const sampleLogHeads = normalizedRows.slice(0, 3);
+    const diag = buildMoneyLogDiag();
+    const diagVersion = "npc_audit_diag_v1";
+
+    const getSnapshot = () => {
+      if (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") return Game.__DEV.sumPointsSnapshot();
+      if (Game.Dev && typeof Game.Dev.sumPointsSnapshot === "function") return Game.Dev.sumPointsSnapshot();
+      return { total: 0, byId: {}, players: 0, npcs: 0, pools: 0, ts: getNow() };
+    };
+
+    const snapBefore = getSnapshot();
+    const snapAfter = getSnapshot();
+
+    const npcIds = buildNpcIdSet();
+    const playerIds = buildPlayerIdSet();
+    const accountsIncluded = Array.isArray(includeAccounts)
+      ? includeAccounts.map(x => String(x)).filter(Boolean).sort()
+      : collectAutoAccounts(snapBefore, npcIds, playerIds);
+
+    const beforePtsMap = Object.create(null);
+    const afterPtsMap = Object.create(null);
+    accountsIncluded.forEach(id => {
+      const b = snapBefore && snapBefore.byId ? snapBefore.byId[id] : 0;
+      const a = snapAfter && snapAfter.byId ? snapAfter.byId[id] : 0;
+      beforePtsMap[id] = toNum(b, `beforePts:${id}`);
+      afterPtsMap[id] = toNum(a, `afterPts:${id}`);
+    });
+    const sinkBalanceBefore = toNum(beforePtsMap["sink"] || 0, "sinkBalanceBefore");
+    const sinkBalanceAfter = toNum(afterPtsMap["sink"] || 0, "sinkBalanceAfter");
+
+    const worldBeforeTotal = accountsIncluded.reduce((s, id) => s + toNum(beforePtsMap[id], `worldBefore:${id}`), 0);
+    const worldAfterTotal = accountsIncluded.reduce((s, id) => s + toNum(afterPtsMap[id], `worldAfter:${id}`), 0);
+    const worldDelta = toNum(worldAfterTotal - worldBeforeTotal, "worldDelta");
+
+    const byBucket = { players: 0, npcs: 0, pools: 0, sink: 0, bank: 0, others: 0 };
+    accountsIncluded.forEach(id => {
+      const bucket = classifyBucket(id, npcIds, playerIds);
+      byBucket[bucket] = toNum(byBucket[bucket] + toNum(afterPtsMap[id], `bucket:${bucket}:${id}`), `bucketSum:${bucket}`);
+    });
+
+    const npcList = Array.from(npcIds).sort();
+    const pointsScopedRows = scopedRows.filter(row => row && row.isPoints);
+    let netToSinkScoped = 0;
+
+    const npcSummaries = npcList.map(npcId => {
+      let sumIn = 0;
+      let sumOut = 0;
+      const byReason = Object.create(null);
+    pointsScopedRows.forEach(row => {
+      if (!row) return;
+      const amt = toNum(row.amount, `rowAmount:${row.reason}`);
+      if (amt <= 0) return;
+        let involved = false;
+        if (row.targetId === npcId) {
+          sumIn += amt;
+          involved = true;
+          const key = row.reason || "unknown";
+          const entry = byReason[key] || (byReason[key] = { reason: key, count: 0, sumIn: 0, sumOut: 0, net: 0 });
+          entry.sumIn = toNum(entry.sumIn + amt, `npcReasonSumIn:${npcId}:${key}`);
+          entry.count += 1;
+        }
+        if (row.sourceId === npcId) {
+          sumOut += amt;
+          involved = true;
+          const key = row.reason || "unknown";
+          const entry = byReason[key] || (byReason[key] = { reason: key, count: 0, sumIn: 0, sumOut: 0, net: 0 });
+          entry.sumOut = toNum(entry.sumOut + amt, `npcReasonSumOut:${npcId}:${key}`);
+          entry.count += 1;
+        }
+        if (!involved) return;
+      });
+
+      const reasons = Object.values(byReason).map(r => {
+        const net = toNum(r.sumIn - r.sumOut, `npcReasonNet:${npcId}:${r.reason}`);
+        return {
+          reason: r.reason,
+          count: r.count | 0,
+          sumIn: toNum(r.sumIn, `npcReasonSumInFinal:${npcId}:${r.reason}`),
+          sumOut: toNum(r.sumOut, `npcReasonSumOutFinal:${npcId}:${r.reason}`),
+          net
+        };
+      });
+      reasons.sort((a, b) => {
+        const an = Math.abs(a.net);
+        const bn = Math.abs(b.net);
+        if (bn !== an) return bn - an;
+        if (b.count !== a.count) return b.count - a.count;
+        if (a.reason < b.reason) return -1;
+        if (a.reason > b.reason) return 1;
+        return 0;
+      });
+      const topReasons = reasons.slice(0, 5);
+      const beforePts = toNum(beforePtsMap[npcId] || 0, `beforeNpc:${npcId}`);
+      const afterPts = toNum(afterPtsMap[npcId] || 0, `afterNpc:${npcId}`);
+      const netDelta = toNum(afterPts - beforePts, `npcNet:${npcId}`);
+      return {
+        npcId,
+        beforePts,
+        afterPts,
+        netDelta,
+        topReasons
+      };
+    });
+
+    if (pointsScopedRows.length > 0) {
+      const anyNpcRows = pointsScopedRows.some(row => row && (npcIds.has(row.sourceId) || npcIds.has(row.targetId)));
+      if (!anyNpcRows) notes.push("no_npc_rows_in_scope");
+    }
+
+    const sinkMap = Object.create(null);
+    const sinkMapNpc = Object.create(null);
+    const sinkMapNonNpc = Object.create(null);
+    const startsWithNpcId = (value) => typeof value === "string" && value.startsWith("npc_");
+    const isNpcSinkActorRow = (row) => {
+      if (!row) return false;
+      const meta = row.meta || {};
+      const check = (value) => startsWithNpcId(value);
+      return (
+        check(row.sourceId) ||
+        check(row.actorId) ||
+        check(row.fromId) ||
+        check(meta.actorId) ||
+        check(meta.fromId) ||
+        check(meta.sourceId)
+      );
+    };
+    pointsScopedRows.forEach(row => {
+      if (!row || row.amount <= 0) return;
+      const inflow = row.targetId === "sink" ? row.amount : 0;
+      const outflow = row.sourceId === "sink" ? row.amount : 0;
+      if (!inflow && !outflow) return;
+      netToSinkScoped = toNum(netToSinkScoped + (inflow - outflow), `sinkNetScoped:${row.reason}`);
+      const delta = toNum(inflow - outflow, `sinkRow:${row.reason}`);
+      const key = row.reason || "unknown";
+      const entry = sinkMap[key] || (sinkMap[key] = { reason: key, count: 0, netToSink: 0 });
+      entry.count += 1;
+      entry.netToSink = toNum(entry.netToSink + delta, `sinkNet:${key}`);
+      const isNpcRow = isNpcSinkActorRow(row);
+      const targetMap = isNpcRow ? sinkMapNpc : sinkMapNonNpc;
+      const spec = targetMap[key] || (targetMap[key] = { reason: key, count: 0, netToSink: 0 });
+      spec.count += 1;
+      spec.netToSink = toNum(spec.netToSink + delta, `sinkNet:${key}:${isNpcRow ? "npc" : "nonNpc"}`);
+    });
+    const toSink = Object.values(sinkMap)
+      .filter(entry => Math.abs(entry.netToSink) >= 1)
+      .map(entry => ({
+        reason: entry.reason,
+        count: entry.count,
+        netToSink: entry.netToSink
+      }))
+      .sort((a, b) => {
+        if (Math.abs(b.netToSink) !== Math.abs(a.netToSink)) return Math.abs(b.netToSink) - Math.abs(a.netToSink);
+        if (a.reason < b.reason) return -1;
+        if (a.reason > b.reason) return 1;
+        return 0;
+      });
+
+    const npcSinkEntries = Object.values(sinkMapNpc)
+      .filter(entry => Math.abs(entry.netToSink) >= 1);
+    const devIgnoredToSink = npcSinkEntries
+      .filter(entry => DEV_ONLY_IGNORED_NET_TO_SINK_REASONS.has(entry.reason) && entry.netToSink !== 0)
+      .slice(0, 5);
+    const unexpectedToSink = npcSinkEntries
+      .filter(entry => !ALLOWED_NET_TO_SINK_REASONS.has(entry.reason) && !DEV_ONLY_IGNORED_NET_TO_SINK_REASONS.has(entry.reason) && entry.netToSink !== 0)
+      .slice(0, 5);
+    const nonNpcToSinkSkipped = Object.values(sinkMapNonNpc)
+      .filter(entry => Math.abs(entry.netToSink) >= 1)
+      .map(entry => ({
+        reason: entry.reason,
+        count: entry.count,
+        netToSink: entry.netToSink
+      }));
+    const nonNpcToSinkSkippedSum = nonNpcToSinkSkipped.reduce((sum, entry) => sum + entry.netToSink, 0);
+
+    const emissionsMap = Object.create(null);
+    const emissionRx = /emit|emission|addPoints|mint/i;
+    pointsScopedRows.forEach(row => {
+      if (!row) return;
+      const meta = row.meta || {};
+      const status = meta && meta.status ? String(meta.status) : "";
+      const reason = row.reason || "unknown";
+      const match = emissionRx.test(reason) || emissionRx.test(status);
+      if (!match) return;
+      const entry = emissionsMap[reason] || (emissionsMap[reason] = { reason, count: 0, amount: 0, example: null });
+      entry.count += 1;
+      entry.amount = toNum(entry.amount + (row.amount || 0), `emission:${reason}`);
+      if (!entry.example) {
+        entry.example = {
+          reason,
+          amount: row.amount || 0,
+          sourceId: row.sourceId || null,
+          targetId: row.targetId || null,
+          battleId: row.battleId || null,
+          eventId: row.eventId || null,
+          status: status || null
+        };
+      }
+    });
+    const emissionsSuspect = Object.values(emissionsMap).sort((a, b) => {
+      if (b.amount !== a.amount) return b.amount - a.amount;
+      if (a.reason < b.reason) return -1;
+      if (a.reason > b.reason) return 1;
+      return 0;
+    });
+
+    const classifyBucketSimple = (id) => {
+      if (!id) return "others";
+      if (id === "sink") return "sink";
+      if (id === "bank") return "bank";
+      if (id === "me") return "players";
+      if (id.startsWith("npc_")) return "npcs";
+      if (id === "crowd" || id.startsWith("crowd:")) return "pools";
+      return "others";
+    };
+
+    const ensureBucketTotals = (obj) => {
+      if (!obj.players) obj.players = 0;
+      if (!obj.npcs) obj.npcs = 0;
+      if (!obj.pools) obj.pools = 0;
+      if (!obj.bank) obj.bank = 0;
+      if (!obj.sink) obj.sink = 0;
+      if (!obj.others) obj.others = 0;
+      return obj;
+    };
+
+    const perNpcMap = Object.create(null);
+    const totals = {
+      inTotal: 0,
+      outTotal: 0,
+      netDelta: 0
+    };
+    const byReason = Object.create(null);
+    const byCounterparty = Object.create(null);
+
+    pointsScopedRows.forEach(row => {
+      if (!row || row.amount <= 0) return;
+      const amt = toNum(row.amount, `flowAmount:${row.reason}`);
+      const sourceId = row.sourceId || "";
+      const targetId = row.targetId || "";
+      const sourceIsNpc = npcIds.has(sourceId) || sourceId.startsWith("npc_");
+      const targetIsNpc = npcIds.has(targetId) || targetId.startsWith("npc_");
+      if (!sourceIsNpc && !targetIsNpc) return;
+
+      if (sourceIsNpc) {
+        const npcId = sourceId;
+        const entry = perNpcMap[npcId] || (perNpcMap[npcId] = {
+          npcId,
+          inByBucket: ensureBucketTotals({}),
+          outByBucket: ensureBucketTotals({}),
+          inTotal: 0,
+          outTotal: 0,
+          netDelta: 0
+        });
+        const bucket = classifyBucketSimple(targetId);
+        entry.outByBucket[bucket] = toNum(entry.outByBucket[bucket] + amt, `flowOut:${npcId}:${bucket}`);
+        entry.outTotal = toNum(entry.outTotal + amt, `flowOutTotal:${npcId}`);
+        entry.netDelta = toNum(entry.inTotal - entry.outTotal, `flowNet:${npcId}`);
+        totals.outTotal = toNum(totals.outTotal + amt, "flowTotalsOut");
+        const cp = targetId || "unknown";
+        byCounterparty[cp] = toNum((byCounterparty[cp] || 0) + amt, `flowCounterparty:${cp}`);
+      }
+
+      if (targetIsNpc) {
+        const npcId = targetId;
+        const entry = perNpcMap[npcId] || (perNpcMap[npcId] = {
+          npcId,
+          inByBucket: ensureBucketTotals({}),
+          outByBucket: ensureBucketTotals({}),
+          inTotal: 0,
+          outTotal: 0,
+          netDelta: 0
+        });
+        const bucket = classifyBucketSimple(sourceId);
+        entry.inByBucket[bucket] = toNum(entry.inByBucket[bucket] + amt, `flowIn:${npcId}:${bucket}`);
+        entry.inTotal = toNum(entry.inTotal + amt, `flowInTotal:${npcId}`);
+        entry.netDelta = toNum(entry.inTotal - entry.outTotal, `flowNet:${npcId}`);
+        totals.inTotal = toNum(totals.inTotal + amt, "flowTotalsIn");
+        const cp = sourceId || "unknown";
+        byCounterparty[cp] = toNum((byCounterparty[cp] || 0) + amt, `flowCounterparty:${cp}`);
+      }
+
+      const reason = row.reason || "unknown";
+      byReason[reason] = toNum((byReason[reason] || 0) + amt, `flowReason:${reason}`);
+    });
+
+    const perNpc = Object.values(perNpcMap).sort((a, b) => {
+      if (a.npcId < b.npcId) return -1;
+      if (a.npcId > b.npcId) return 1;
+      return 0;
+    });
+    const perNpcNetSum = perNpc.reduce((s, entry) => s + toNum(entry.netDelta, `flowNetSum:${entry.npcId}`), 0);
+    totals.netDelta = toNum(totals.inTotal - totals.outTotal, "flowTotalsNet");
+
+    const byReasonTop = Object.keys(byReason)
+      .map(reason => ({ reason, amount: byReason[reason] }))
+      .sort((a, b) => {
+        if (b.amount !== a.amount) return b.amount - a.amount;
+        if (a.reason < b.reason) return -1;
+        if (a.reason > b.reason) return 1;
+        return 0;
+      })
+      .slice(0, 5);
+
+    const byCounterpartyTop = Object.keys(byCounterparty)
+      .map(id => ({ id, amount: byCounterparty[id] }))
+      .sort((a, b) => {
+        if (b.amount !== a.amount) return b.amount - a.amount;
+        if (a.id < b.id) return -1;
+        if (a.id > b.id) return 1;
+        return 0;
+      })
+      .slice(0, 5);
+
+    const sinkNet = toSink.reduce((s, entry) => s + toNum(entry.netToSink, `flowSinkNet:${entry.reason}`), 0);
+    const sinkBalanceDelta = toNum(sinkBalanceAfter - sinkBalanceBefore, "sinkBalanceDelta");
+    let sinkBalanceExplained = null;
+    if (Number.isFinite(sinkBalanceBefore) && Number.isFinite(sinkBalanceAfter)) {
+      if (sinkBalanceDelta === netToSinkScoped) {
+        sinkBalanceExplained = true;
+      } else if (sinkBalanceDelta === 0 && netToSinkScoped !== 0) {
+        sinkBalanceExplained = null;
+        notes.push("balances_unavailable");
+      } else {
+        sinkBalanceExplained = false;
+      }
+    }
+    const invariants = {
+      totalsNetOk: totals.netDelta === perNpcNetSum,
+      totalsBalanceOk: totals.inTotal === (totals.outTotal + totals.netDelta),
+      sinkNetMatchesDelta: sinkNet === netToSinkScoped,
+      sinkBalanceExplained
+    };
+    const leaksNetSum = toSink.reduce((s, entry) => s + toNum(entry.netToSink, `leaksNet:${entry.reason}`), 0);
+
+    const rowsScopedCount = scopedRows.length;
+    const emptyScope = rowsScopedCount === 0;
+    const refreshFailed = refreshEnabled && emptyScope;
+    let ok = nanFields.size === 0;
+    if (Math.abs(leaksNetSum - netToSinkScoped) >= 1e-9) {
+      notes.push("net_to_sink_mismatch");
+      ok = false;
+    }
+    if (unexpectedToSink.length) {
+      notes.push("unexpected_net_to_sink_reason");
+      ok = false;
+    } else if (devIgnoredToSink.length) {
+      notes.push("dev_ignored_reasons_present");
+    }
+    if (!Object.keys(sinkMapNpc).length && nonNpcToSinkSkipped.length) {
+      if (!notes.includes("only_non_npc_to_sink_rows_in_scope")) {
+        notes.push("only_non_npc_to_sink_rows_in_scope");
+      }
+    }
+    if (refreshFailed) {
+      if (!notes.includes("no_scoped_rows_after_refresh")) {
+        notes.push("no_scoped_rows_after_refresh");
+      }
+    }
+    if (!allowEmpty && emptyScope) {
+      ok = false;
+    }
+    if (refreshFailed) {
+      ok = false;
+    }
+    if (debug) {
+      try {
+        console.log("[DEV] ECON_NPC_WORLD_BALANCE", {
+          ok,
+          rowsScoped: scopedRows.length,
+          logSource,
+          worldDelta
+        });
+      } catch (_) {}
+    }
+
+    const meta = {
+      logSource,
+      rowsScoped: rowsScopedCount | 0,
+      scopeDesc,
+      sinkDelta: netToSinkScoped,
+      sinkNetScoped: netToSinkScoped,
+      sinkBalanceBefore,
+      sinkBalanceAfter,
+      refreshAttempted: refreshEnabled,
+      diag,
+      diagVersion,
+      allowlistSize: ALLOWED_NET_TO_SINK_REASONS.size,
+      unexpectedCount: unexpectedToSink.length,
+      unexpectedToSink,
+      devIgnoredToSink,
+      nonNpcToSinkSkipped,
+      nonNpcToSinkSkippedSum
+    };
+    if (refreshFailed) {
+      meta.sampleLogHeads = sampleLogHeads;
+    }
+    return {
+      ok,
+      notes,
+      meta,
+      world: {
+        beforeTotal: toNum(worldBeforeTotal, "worldBeforeTotal"),
+        afterTotal: toNum(worldAfterTotal, "worldAfterTotal"),
+        delta: toNum(worldDelta, "worldDeltaFinal"),
+        byBucket,
+        accountsIncluded
+      },
+      flowSummary: {
+        perNpc,
+        totals,
+        byReasonTop,
+        byCounterpartyTop,
+        invariants
+      },
+      npcs: npcSummaries,
+      leaks: {
+        toSink,
+        emissionsSuspect
+      }
+    };
+  };
+
+  Game.__DEV.auditNpcSinkAllowlistOnce = (opts = {}) => {
+    const windowOpts = opts.window ? { window: opts.window } : { window: { lastN: 200 } };
+    const audit = Game.__DEV.auditNpcWorldBalanceOnce(windowOpts);
+    const ok = !!audit && audit.ok === true && audit.meta && audit.meta.rowsScoped > 0 && audit.meta.unexpectedCount === 0;
+    return {
+      ok,
+      notes: audit && audit.notes ? audit.notes.slice() : [],
+      rowsScoped: audit && audit.meta ? audit.meta.rowsScoped : 0,
+      allowlistSize: audit && audit.meta ? audit.meta.allowlistSize : 0,
+      unexpectedCount: audit && audit.meta ? audit.meta.unexpectedCount : 0,
+      unexpectedToSink: audit && audit.meta ? audit.meta.unexpectedToSink : [],
+      topLeakReasons: (audit && audit.leaks && audit.leaks.toSink) ? audit.leaks.toSink.slice(0, 5).map(x => x.reason) : [],
+      audit
+    };
+  };
+
+  Game.__DEV.smokeEconNpc_AllowlistOnce = (opts = {}) => {
+    const res = Game.__DEV.auditNpcSinkAllowlistOnce(opts);
+    try {
+      console.log("[DEV] ECON_NPC_ALLOWLIST", {
+        ok: res.ok,
+        rowsScoped: res.rowsScoped,
+        allowlistSize: res.allowlistSize,
+        unexpectedCount: res.unexpectedCount,
+        topLeakReasons: res.topLeakReasons
+      });
+    } catch (_) {}
+    return res;
+  };
+
+  Game.__DEV.smokeEconNpc_AllowlistStabilityOnce = (opts = {}) => {
+    const runCount = Number.isFinite(opts.runs) ? Math.max(1, opts.runs | 0) : 3;
+    const windowOpts = opts.window || { lastN: 200 };
+    const notes = [];
+    const meta = { runs: runCount, window: windowOpts };
+
+    const ensureNpcPointsActivity = () => {
+      if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
+        const res = Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
+        return { ok: !!(res && res.ok), method: "smokeNpcCrowdEventEconomyOnce", details: res || null };
+      }
+      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+      const S = Game.__S || null;
+      if (!Econ || typeof Econ.transferPoints !== "function") {
+        return { ok: false, method: "transferPoints", details: "Econ.transferPoints missing" };
+      }
+      if (!S || !S.players) return { ok: false, method: "transferPoints", details: "Game.__S missing" };
+      const npc = Object.values(S.players || {}).find(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      if (!npc) return { ok: false, method: "transferPoints", details: "npc_missing" };
+      const npcId = String(npc.id);
+      const npcPts = Number.isFinite(npc.points) ? (npc.points | 0) : 0;
+      if (npcPts < 1) {
+        let donorId = null;
+        if (S.players.bank && Number.isFinite(S.players.bank.points) && (S.players.bank.points | 0) > 0) donorId = "bank";
+        else if (S.players.me && Number.isFinite(S.players.me.points) && (S.players.me.points | 0) > 0) donorId = "me";
+        else {
+          const donor = Object.values(S.players || {}).find(p => p && p.id && Number.isFinite(p.points) && (p.points | 0) > 0 && String(p.id) !== npcId);
+          if (donor && donor.id) donorId = String(donor.id);
+        }
+        if (donorId) {
+          try { Econ.transferPoints(donorId, npcId, 1, "dev_seed_npc_points", { reason: "dev_seed_npc_points" }); } catch (_) {}
+        }
+      }
+      try {
+        Econ.transferPoints(npcId, "sink", 1, "battle_entry_npc", { reason: "battle_entry_npc" });
+        return { ok: true, method: "transferPoints", details: { npcId, reason: "battle_entry_npc" } };
+      } catch (e) {
+        return { ok: false, method: "transferPoints", details: String(e && e.message || e) };
+      }
+    };
+
+    const activity = ensureNpcPointsActivity();
+    meta.activity = activity;
+    if (!activity.ok) notes.push("npc_activity_failed");
+
+    const runs = [];
+    let ok = activity.ok;
+    let allowlistStable = true;
+    let unexpectedStable = true;
+    let baseAllowlist = null;
+    let baseUnexpected = null;
+    let anyMismatch = false;
+    let anyUnexpected = false;
+    let anyInvariantFail = false;
+
+    for (let i = 0; i < runCount; i++) {
+      const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts });
+      runs.push({ i, audit });
+      if (!audit || audit.ok !== true) {
+        ok = false;
+        notes.push(`audit_failed_${i}`);
+      }
+      const metaA = audit && audit.meta ? audit.meta : {};
+      const allowlistSize = metaA.allowlistSize || 0;
+      const unexpectedCount = metaA.unexpectedCount || 0;
+      if (baseAllowlist === null) baseAllowlist = allowlistSize;
+      else if (allowlistSize !== baseAllowlist) allowlistStable = false;
+      if (baseUnexpected === null) baseUnexpected = unexpectedCount;
+      else if (unexpectedCount !== baseUnexpected) unexpectedStable = false;
+      if (allowlistSize !== 3) {
+        ok = false;
+        notes.push(`allowlist_size_unexpected_${i}`);
+      }
+      if (unexpectedCount !== 0) {
+        ok = false;
+        anyUnexpected = true;
+        notes.push(`unexpected_count_${i}`);
+      }
+      if (audit && Array.isArray(audit.notes)) {
+        if (audit.notes.includes("net_to_sink_mismatch")) {
+          ok = false;
+          anyMismatch = true;
+        }
+        if (audit.notes.includes("unexpected_net_to_sink_reason")) {
+          ok = false;
+          anyUnexpected = true;
+        }
+      }
+      const inv = audit && audit.flowSummary && audit.flowSummary.invariants ? audit.flowSummary.invariants : null;
+      if (!inv || inv.totalsNetOk !== true || inv.totalsBalanceOk !== true || inv.sinkNetMatchesDelta !== true) {
+        ok = false;
+        anyInvariantFail = true;
+        notes.push(`invariants_failed_${i}`);
+      }
+    }
+
+    const allowlistSmoke = Game.__DEV.smokeEconNpc_AllowlistOnce({ window: windowOpts });
+    if (!allowlistSmoke || allowlistSmoke.ok !== true) {
+      ok = false;
+      notes.push("allowlist_smoke_failed");
+    }
+    if (!allowlistStable) notes.push("allowlist_size_flap");
+    if (!unexpectedStable) notes.push("unexpected_count_flap");
+    if (anyMismatch) notes.push("net_to_sink_mismatch");
+    if (anyUnexpected) notes.push("unexpected_net_to_sink_reason");
+    if (anyInvariantFail) notes.push("invariants_failed");
+
+    const stable = {
+      allowlistStable,
+      unexpectedStable,
+      summary: runs.map(run => {
+        const a = run.audit || {};
+        const m = a.meta || {};
+        return {
+          i: run.i,
+          rowsScoped: m.rowsScoped || 0,
+          sinkNetScoped: Number.isFinite(m.sinkNetScoped) ? m.sinkNetScoped : 0,
+          nonNpcToSinkSkippedSum: Number.isFinite(m.nonNpcToSinkSkippedSum) ? m.nonNpcToSinkSkippedSum : 0
+        };
+      })
+    };
+
+    const result = { ok, notes, meta, runs, allowlistSmoke, stable };
+    try {
+      console.log("[DEV] ECON_NPC_ALLOWLIST_STABILITY", {
+        ok: result.ok,
+        stable: result.stable,
+        runs: stable.summary
+      });
+    } catch (_) {}
+    return result;
+  };
+
+  // dev-only QA helper: run auditNpcWorldBalanceOnce multiple times with stability summary.
+  Game.__DEV.auditNpcWorldBalance3Once = (opts = {}) => {
+    const windowOpts = opts.window || { lastN: 200 };
+    const runCount = Number.isFinite(opts.runs) ? Math.max(1, opts.runs | 0) : 3;
+    const runs = [];
+    let ok = true;
+    let baseRowsScoped = null;
+    let baseSinkNet = null;
+    let baseAllowlist = null;
+    let baseUnexpected = null;
+    let stableRowsScoped = true;
+    let stableSinkNet = true;
+    let stableAllowlist = true;
+    let stableUnexpected = true;
+
+    for (let i = 0; i < runCount; i++) {
+      const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts });
+      const m = (audit && audit.meta) ? audit.meta : {};
+      runs.push({
+        ok: !!audit && audit.ok === true,
+        rowsScoped: m.rowsScoped || 0,
+        sinkNetScoped: Number.isFinite(m.sinkNetScoped) ? m.sinkNetScoped : 0,
+        allowlistSize: m.allowlistSize || 0,
+        unexpectedCount: m.unexpectedCount || 0,
+        nonNpcToSinkSkippedSum: Number.isFinite(m.nonNpcToSinkSkippedSum) ? m.nonNpcToSinkSkippedSum : 0,
+        worldDelta: audit && audit.world ? audit.world.delta : 0,
+        notes: Array.isArray(audit && audit.notes) ? audit.notes.slice() : []
+      });
+      if (!audit || audit.ok !== true) ok = false;
+      if (baseRowsScoped === null) baseRowsScoped = m.rowsScoped || 0;
+      else if (baseRowsScoped !== (m.rowsScoped || 0)) ok = false;
+      const sinkNet = Number.isFinite(m.sinkNetScoped) ? m.sinkNetScoped : 0;
+      if (baseSinkNet === null) baseSinkNet = sinkNet;
+      else if (baseSinkNet !== sinkNet) stableSinkNet = false;
+      if (baseAllowlist === null) baseAllowlist = m.allowlistSize || 0;
+      else if (baseAllowlist !== (m.allowlistSize || 0)) stableAllowlist = false;
+      if (baseUnexpected === null) baseUnexpected = m.unexpectedCount || 0;
+      else if (baseUnexpected !== (m.unexpectedCount || 0)) stableUnexpected = false;
+      if (baseRowsScoped === null) baseRowsScoped = m.rowsScoped || 0;
+      else if (baseRowsScoped !== (m.rowsScoped || 0)) stableRowsScoped = false;
+    }
+
+    const stable = {
+      sameRowsScoped: stableRowsScoped,
+      sameSinkNetScoped: stableSinkNet,
+      sameAllowlistSize: stableAllowlist,
+      sameUnexpectedCount: stableUnexpected
+    };
+
+    const summary = runs.length ? {
+      rowsScoped: runs[0].rowsScoped,
+      sinkNetScoped: runs[0].sinkNetScoped,
+      allowlistSize: runs[0].allowlistSize,
+      unexpectedCount: runs[0].unexpectedCount,
+      nonNpcToSinkSkippedSum: runs[0].nonNpcToSinkSkippedSum,
+      worldDelta: runs[0].worldDelta
+    } : null;
+    const result = {
+      ok: ok && stable.sameAllowlistSize && stable.sameUnexpectedCount,
+      runs,
+      stable,
+      summary
+    };
+    return result;
+  };
 
   const matchesBattleRow = (tx, bid) => {
     if (!tx || !bid) return false;

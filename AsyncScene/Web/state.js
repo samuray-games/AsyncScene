@@ -1164,6 +1164,7 @@ window.Game = window.Game || {};
     },
 
     training: buildTrainingStateFrom({}),
+    dayIndex: 0,
 
     chat: [], // {id,t,name,text,isSystem,isMe,playerId}
     dm: {
@@ -1323,6 +1324,7 @@ window.Game = window.Game || {};
     State.players = {};
     State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
     State.training = buildTrainingStateFrom({});
+    State.dayIndex = 0;
     State.chat = [];
     State.dm = { open:false, withId:null, logs:{}, names:{}, inviteOpen:false, teachOpen:false, agroStarted:{} };
     State.battles = [];

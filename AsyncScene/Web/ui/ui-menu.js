@@ -10,6 +10,7 @@ window.Game = window.Game || {};
     const S = UI.S;
 
   const getMenuBlock = () => document.getElementById("menuBlock");
+  const TRAINING_UI_ARG_KEY = "menu_training_arg";
 
   function applyMenuLabels() {
     const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
@@ -288,62 +289,107 @@ window.Game = window.Game || {};
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
     if (!body) return;
 
-    const existing = document.getElementById("pointsActions");
+    const existing = document.getElementById("trainingControls");
     if (existing && existing.parentElement === body) return;
     if (existing) existing.remove();
 
     const wrap = document.createElement("div");
-    wrap.id = "pointsActions";
+    wrap.id = "trainingControls";
     wrap.className = "actions";
+    wrap.style.display = "flex";
+    wrap.style.flexDirection = "column";
+    wrap.style.gap = "8px";
 
-    const D0 = Game.Data || {};
-    const costForce = Number.isFinite(D0.COST_FORCE_NPC_EVENT) ? (D0.COST_FORCE_NPC_EVENT | 0) : 5;
-    const costIntervene = Number.isFinite(D0.COST_INTERVENE_CONFLICT) ? (D0.COST_INTERVENE_CONFLICT | 0) : 4;
+    const statusText = document.createElement("div");
+    statusText.id = "trainingStatusText";
+    statusText.className = "trainingStatus";
+    statusText.textContent = "Загрузка тренировки...";
 
-    const spend = (amount, reason) => {
-      try {
-        if (Game.__A && typeof Game.__A.spendPoints === "function") {
-          return Game.__A.spendPoints(amount, reason);
-        }
-      } catch (_) {}
-      return false;
-    };
+    const btn = document.createElement("button");
+    btn.id = "trainingActionBtn";
+    btn.type = "button";
+    btn.className = "btn small";
+    btn.textContent = "Тренировка аргумента";
 
-    const btnForce = document.createElement("button");
-    btnForce.className = "btn small";
-    btnForce.textContent = "Недоступно";
-    btnForce.disabled = true;
-    btnForce.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-    wrap.appendChild(btnForce);
+    const resultText = document.createElement("div");
+    resultText.id = "trainingResultText";
+    resultText.className = "trainingResult";
+    resultText.textContent = "xp: 0, уровень: 0";
 
-    const interveneWrap = document.createElement("div");
-    interveneWrap.style.display = "flex";
-    interveneWrap.style.gap = "8px";
-    interveneWrap.style.alignItems = "center";
-
-    const inp = document.createElement("input");
-    inp.type = "text";
-    inp.className = "input";
-    inp.placeholder = "ID баттла или ник";
-    inp.style.flex = "1 1 auto";
-
-    const btnIntervene = document.createElement("button");
-    btnIntervene.className = "btn small";
-    btnIntervene.textContent = "Недоступно";
-    btnIntervene.disabled = true;
-    btnIntervene.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    interveneWrap.appendChild(inp);
-    interveneWrap.appendChild(btnIntervene);
-    wrap.appendChild(interveneWrap);
-
+    wrap.appendChild(statusText);
+    wrap.appendChild(btn);
+    wrap.appendChild(resultText);
     body.appendChild(wrap);
+
+    const trainingControls = {
+      argKey: TRAINING_UI_ARG_KEY,
+      button: btn,
+      statusEl: statusText,
+      resultEl: resultText,
+      latestStatus: null,
+      refresh: updateTrainingStatus,
+      performAction: handleTrainingAction
+    };
+    Game.UI.trainingControls = trainingControls;
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleTrainingAction();
+    });
+
+    function formatCooldownText(status) {
+      if (!status) return "";
+      if (status.whyBlocked === "cooldown") return `Кулдаун до дня ${status.cooldownUntilDay} (ещё ${status.remainingDays || 0} дн.)`;
+      if (status.whyBlocked === "insufficient_points") return "Не хватает 💰";
+      return "Готово к тренировке";
+    }
+
+    function updateTrainingStatus() {
+      const api = Game.TrainingAPI || null;
+      if (!api || typeof api.status !== "function") {
+        trainingControls.latestStatus = null;
+        trainingControls.statusEl.textContent = "Тренинг недоступен.";
+        trainingControls.resultEl.textContent = "";
+        trainingControls.button.disabled = true;
+        return;
+      }
+      const status = api.status({ argKey: TRAINING_UI_ARG_KEY });
+      trainingControls.latestStatus = status;
+      if (!status || !status.ok) {
+        trainingControls.statusEl.textContent = "Статус тренинга недоступен.";
+        trainingControls.button.disabled = true;
+        trainingControls.resultEl.textContent = "";
+        return;
+      }
+      const price = Number.isFinite(status.price) ? (status.price | 0) : 0;
+      trainingControls.button.textContent = `Тренировка аргумента (${price} 💰)`;
+      trainingControls.button.disabled = !status.canTrain;
+      trainingControls.statusEl.textContent = `Цена ${price} 💰 • ${status.canTrain ? "доступно" : formatCooldownText(status)}`;
+      const xp = status.progress && Number.isFinite(status.progress.xp) ? (status.progress.xp | 0) : 0;
+      const level = status.progress && Number.isFinite(status.progress.level) ? (status.progress.level | 0) : 0;
+      trainingControls.resultEl.textContent = `XP ${xp}, уровень ${level}`;
+    }
+
+    function handleTrainingAction() {
+      updateTrainingStatus();
+      const status = trainingControls.latestStatus;
+      if (!status || !status.ok || !status.canTrain) {
+        return { ok: false, reason: status ? status.whyBlocked : "blocked" };
+      }
+      const trainId = `ui_train_${Date.now().toString(36)}`;
+      const res = Game.TrainingAPI.train({ argKey: TRAINING_UI_ARG_KEY, trainId });
+      if (res && res.snapshotAfter) {
+        const snap = res.snapshotAfter;
+        const xp = snap.progress && Number.isFinite(snap.progress.xp) ? (snap.progress.xp | 0) : 0;
+        const level = snap.progress && Number.isFinite(snap.progress.level) ? (snap.progress.level | 0) : 0;
+        trainingControls.resultEl.textContent = `XP ${xp}, уровень ${level}, кулдаун до дня ${snap.cooldownUntilDay}`;
+      }
+      setTimeout(updateTrainingStatus, 0);
+      return res;
+    }
+
+    updateTrainingStatus();
   }
 
   UI.showMenu = () => {
@@ -368,6 +414,9 @@ window.Game = window.Game || {};
     ensureLotteryControls();
     ensurePointsActions();
     ensureManifestControls();
+    if (UI.trainingControls && typeof UI.trainingControls.refresh === "function") {
+      UI.trainingControls.refresh();
+    }
 
     // Re-measure after injecting controls so layout push is correct
     const right2 = document.getElementById("right");

@@ -2121,4 +2121,206 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Smoke: `Game.Dev.smokeTrainingDataOnce()` → `{ ok: true, notes: [], checks: { hasTraining: true, defaultsOk: true, migrateOk: true, serializeOk: true, idempotent: true } }`
 
+### 2026-02-05 — ECON-04.2 Training cost (economy core)
+- Status: PASS
+- Facts:
+  - В `conflict-economy.js` добавлен источник истины `TRAINING_BASE_PRICE=1` и `Game.TrainingAPI.trainCost` использует `E.transferPoints` через `chargePriceOnce` с reason `training_cost`.
+  - Идемпотентность обеспечена `idempotencyKey` на `trainId`: повторный вызов возвращает `cacheHit:true` и не списывает повторно.
+  - Dev smoke `Game.Dev.smokeTrainingCostOnce()` проверяет pointsDiff, zero-sum, moneyLog и повторный вызов; результат ok:true.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Smoke: `Game.Dev.smokeTrainingCostOnce()` → ok:true
+
+### 2026-02-05 — ECON-04.2a smokeTrainingCostOnce seed via transfer (no direct points write)
+- Status: PASS
+- Facts:
+  - Исправлено: `Game.Dev.smokeTrainingCostOnce()` больше не пишет `State.*.points` напрямую; сидинг через `Econ.transferPoints` от NPC (reason `dev_seed_points`, meta tag).
+  - Убраны прямые присваивания points и обходы guard; SEC invalid_state_mutation не возникает.
+  - Smoke `Game.Dev.smokeTrainingCostOnce()` → ok:true, pointsDiff=-1, worldDiff=0, moneyLogDelta=1, repeat cacheHit:true.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Smoke:
+  ```
+  {
+    name: "smoke_training_cost_once",
+    ok: true,
+    notes: [],
+    pointsDiff: -1,
+    price: 1,
+    worldDiff: 0,
+    moneyLogDelta: 1,
+    first: { ok: true, charged: true, cacheHit: false },
+    second: { ok: true, charged: false, cacheHit: true }
+  }
+  ```
+
+### 2026-02-05 — ECON-04.3 Training progress + cooldown + status/train API
+- Status: PASS
+- Facts:
+  - Добавлен детерминированный `State.dayIndex=0` (без Date.now) и кулдаун тренинга по dayIndex.
+  - `Game.TrainingAPI.status()` возвращает price/canTrain/whyBlocked/cooldownUntilDay/progress/counters; `train()` применяет xp/level/counters/cooldown только при charged:true и строго идемпотентен по trainId.
+  - Dev-log `training_progress` пишется в `Game.__D.trainingLog` без изменения points.
+  - Smoke `Game.Dev.smokeTrainingProgressOnce()` → ok:true (xp 0→1→2, cooldown, todayTrains reset, zero-sum, idempotency).
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Smoke:
+  ```
+  {
+    name: "smoke_training_progress_once",
+    ok: true,
+    notes: [],
+    pointsDiffA: -1,
+    pointsDiffC: -1,
+    worldDiff: 0
+  }
+  ```
+
+### 2026-02-05 — ECON-04.4 Training UI hook + smoke
+- Status: PASS
+- Facts:
+  - UI-меню «Тренировка аргумента» (в `AsyncScene/Web/ui/ui-menu.js`) читает `Game.TrainingAPI.status()`/`whyBlocked`/`remainingDays` и отображает цену, текст блокировки и enabled/disabled button, не вычисляя логику самостоятельно.
+  - Добавлен `Game.Dev.smokeTrainingUIOnce()`: он сидит игрока через transfer, вызывает один `Game.TrainingAPI.train()` (charge 1 💰), проверяет, что повторный клик блокируется по `cooldown`, а при `insufficient_points` ничего не списывается и `moneyLog` не растёт, и фиксирует zero-sum (`worldDiff=0`, `moneyLogDelta=1`).
+  - Smoke доступен для прогонки в Dev-консоли: `Game.Dev.smokeTrainingUIOnce()` возвращает `{ ok:true, resA, resCooldown, resInsuff, pointsDiffA, price, worldDiff, moneyLogDelta: 1 }`, если всё по канону.
+-  - `TrainingAPI.status()` теперь отдаёт `whyBlocked="insufficient_points"` при недостатке поинтов и `cooldown` только если хватало денег, но активен кулдаун; это гарантирует, что smoke и UI различают кейсы.
+-  - Smoke `Game.Dev.smokeTrainingUIOnce()` возвращает `ok:true`, `notes:[]` и `resInsuff.reason==="insufficient_points"`, потому что `insuff_block_mismatch` больше не добавляется.
+-  - Последняя версия smoke вычисляет `ok` только на основе пустого `notes`, `worldDiff=0`, `moneyLogDelta=1`, `pointsDiffA=-price`, `resCooldown.reason==="cooldown"` и `resInsuff.reason==="insufficient_points"`, что превращает `ok:true` при канонном прогоне.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Smoke:
+  ```
+  {
+    name: "smoke_training_ui_once",
+    ok: true,
+    notes: [],
+    pointsDiffA: -1,
+    price: 1,
+    worldDiff: 0,
+    moneyLogDelta: 1
+  }
+  ```
+
+### ECON-04 Training — PASS
+- Training включён в 100% экономики, вариант A принят.
+- Стоимость списывается через `transferPoints` с `reason="training_cost"` (idempotent по `trainId`, `moneyLogDelta=1`, zero-sum `worldDiff=0`).
+- Прогресс и кулдаун детерминированы через `dayIndex`, counters и `training_progress` dev-log.
+- UI использует только `TrainingAPI.status()`/`train()` для цены, `whyBlocked`, `remainingDays` и результата; прямые записи points отсутствуют.
+- Все smokes PASS: `Game.Dev.smokeTrainingDataOnce()`, `Game.Dev.smokeTrainingCostOnce()`, `Game.Dev.smokeTrainingProgressOnce()`, `Game.Dev.smokeTrainingUIOnce()` (`ok:true`, `notes:[]`, `resCooldown.reason==="cooldown"`, `resInsuff.reason==="insufficient_points"`).
+- ECON-04 считается закрытым и не блокирует последующие этапы экономики.
+
+### 2026-02-06 — ECON-05 Bank enable gate (dev-only)
+- Status: PASS
+- Facts:
+  - Добавлен `Game.Bank` с `enabled=false` по умолчанию, `Bank.transfer` логирует `bank_disabled_attempt`/`bank_disabled` и не вызывает `transferPoints`, когда флаг выключен.
+  - Dev API (`Game.Dev.setBankEnabled`, `Game.Dev.clearBankOverride`), `Game.Dev.config.bankEnabled` и `window.__DEV_CONFIG__.bankEnabled` позволяют явно включать банк без prod-разрешения; `SMOKE_TEST_COMMANDS.md` обновлён с инструкциями.
+  - Документы — `SMOKE_TEST_COMMANDS.md`, `PROJECT_MEMORY.md`, `TASKS.md` — отражают gate, QA знает, как прогонять prod/dev смоки.
+- Evidence:
+  - PROD smoke (см. SMOKE TEST COMMANDS §8 prod snippet): `Bank.enabled === false`, `depositRes/withdrawRes === {ok:false, reason:"bank_disabled"}`, sumPointsSnapshot before.total === after.total, `moneyLog` tail включает 2 записи `reason:"bank_disabled_attempt"`, `amount:0`, `meta.status==="bank_disabled"`.
+  - DEV smoke (same section): `bank_off` logged `false`, `bank_on` logged `true`, после `Game.Dev.setBankEnabled(true)` deposit/withdraw возвращают `ok:true`, `Game.Dev.clearBankOverride()` выполнен.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `TASKS.md`
+
+### 2026-02-07 — ECON-05 Step 1 Bank snapshot (read-only)
+- Status: TODO
+- Facts:
+  - `Game.Bank.snapshot({ownerId})` читает canonical bank balance из `Game.ConflictEconomy.sumPointsSnapshot()` и `getAccount(ownerId)` без мутаций, отдавая `{ok:true, bankEnabled, bankBalance, ownerId, ownerPoints, snapshot}`.
+  - Bank balance source строго `sumPointsSnapshot.byId.bank`, snapshot не пишет в `moneyLog` и не вызывает `transferPoints`.
+  - SMOKE instructions (`SMOKE TEST COMMANDS §9`) проверяют before/mid totals и отсутствие новых `moneyLog` записей `reason.startsWith("bank_")`.
+- Evidence:
+  - SMOKE snippet (§9): ожидается `s1.ok===true`, `before.total===mid.total`, `before.byId.bank===mid.byId.bank`, и в `moneyLog` tail нет новых записей `reason.startsWith("bank_")`.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `SMOKE_TEST_COMMANDS.md` `TASKS.md`
+
+### 2026-02-07 — ECON-05 Step 2 Bank deposit (zero-sum)
+- Status: PASS
+- Facts:
+  - SMOKE (07.02.2026 §10): `Game.Dev.setBankEnabled(true)` → `b0_total=200`, `bank0=0`, `me0=10`; deposit amount=2 → `r={ok:true}`, `b1_total=200`, `bank1=2`, `me1=8`, `newRows1` len=1 (`reason:"bank_deposit"`, `amount=2`, `sourceId:"me"`, `targetId:"bank"`, `meta.amount=2`).
+  - Negative check: `r2={ok:false, reason:"insufficient_points", have:8, need:999}`, `newRows2` empty, `b2_total=200`, `bank2=2`, `me2=8`, world total unchanged.
+  - `moneyLog` receives exactly one `bank_deposit` entry with meta amount=2.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `SMOKE_TEST_COMMANDS.md` `TASKS.md`
+### 2026-02-07 — ECON-05 Step 3 Withdraw FIX (overdraft + canonical reason/meta)
+- Status: PASS
+- Facts:
+  - SMOKE (07.02.2026 §11): `Game.Dev.setBankEnabled(true)` and seed deposit 2 -> withdraw 1. `b0_total=200`, `bank0=2`, `me0=8`; `r={ok:true}`, `bank1=1`, `me1=9`, `b1_total=200`, `newRows1` 1 entry `reason:"bank_withdraw"`, `amount=1`, `sourceId:"bank"`, `targetId:"me"`, `meta.amount=1`, `meta.ownerId="me"`, `meta.bankAccountId="bank"`, `meta.userReason="smoke_withdraw_1"`.
+  - Overdraft guard: withdraw 999 → `r2={ok:false, reason:"insufficient_bank_funds", have:1, need:999}` with `newRows2` empty, `bank2=1`, `me2=9`, `b2_total=200`; world total unchanged, no extra moneyLog rows.
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-08 — ECON-05 Step 4 Bank regression smoke pack (dev-only)
+- Status: PASS
+- Facts:
+  - `Game.__DEV.smokeEcon05_BankOnce` (alias `Game.Dev.smokeEcon05BankOnce`) теперь прогоняет disabled-path (две записи `bank_disabled_attempt` с `meta.status="bank_disabled"`), положительный путь (deposit=2/withdraw=1 с `bank_deposit`/`bank_withdraw`, canonical reason и `meta.userReason`), и негативные сценарии (`insufficient_points`/`insufficient_bank_funds`), возвращая `{ok, failed, totals, deltas, rows, details}` для QA.
+  - SMOKE (08.02.2026): `ok:true`, `failed:[]`, `totals.before===totals.after===10`, `rows.disabledAttempts=2`, `rows.deposits=1`, `rows.withdraws=1`, `deltas.bank=1`, `deltas.me=-1`, disabled rows contain `reason:"bank_disabled_attempt"`, enabled rows log `bank_deposit`/`bank_withdraw` with `meta.userReason`, negative deposit/withdraw report `insufficient_points (have:9, need:999)` / `insufficient_bank_funds (have:1, need:999)` without extra moneyLog rows, final snapshot — `bank=1`, `me=9`, `total=10`.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md`
+- Notes:
+  - Bank remains a **BACKLOG skeleton** for ECON-05 while zero-sum stabilizes; the regression pack can re-run `Game.__DEV.smokeEcon05_BankOnce()` as the canonical smoke for this branch.
+
+### 2026-02-07 — ECON-NPC [1.1] NPC world balance audit (dev-only)
+- Status: PASS
+- Facts:
+  - `Game.__DEV.auditNpcWorldBalanceOnce(opts)` теперь фильтрует только points-операции (currency missing/"points"), считает `meta.sinkDelta`, собирает npc topReasons и `leaks.toSink`/`leaks.emissionsSuspect` по net-значениям и добавляет NaN-guard для всех чисел.
+  - SMOKE: `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`.
+  - Evidence (run #0): `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=41`, `meta.sinkDelta=0`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `npcCount=19`, `accountsIncludedCount=23 (bank,crowd,me,19 npcs,sink)`, `leaks.toSink=[]`, `leaks.emissionsSuspect=[]`, npc topReasons now list only points reasons (no `rep_*`).
+  - Note: `leaks.toSink` netSum equals `meta.sinkDelta`, so QA can trust the audit even when both inflows and outflows hit `sink`.
+- Key output fields: logSource=debug_moneyLog, rowsScoped=41, sinkDelta=0, world.delta=0, npcCount=19, leaks empty, accountsIncludedCount=23.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-07 — ECON-NPC [1.1b] auditNpcWorldBalanceOnce refresh guard (dev-only)
+- Status: PASS
+- Facts:
+  - `Game.__DEV.auditNpcWorldBalanceOnce` теперь по умолчанию вызывает `refreshMoneyLogSnapshot()` (logger.forceFlush + `Game.__D.refresh*`), пересчитывает `rowsScoped`, и записывает `meta.refreshAttempted`.
+  - Если `rowsScoped===0` после refresh аудит возвращает `ok:false`, `notes:["no_scoped_rows_after_refresh"]`, `meta.sampleLogHeads`, и `meta.logSource` отражает лучший доступный источник.
+  - `opts.allowEmpty` отключает это guard только при явной `true`, остальные случаи требуют `rowsScoped>0`.
+  - Evidence: `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))` → console object `{ meta:{logSource:"debug_moneyLog",rowsScoped:41,scopeDesc:"lastN=200",sinkDelta:0,refreshAttempted:true}, world:{delta:0}, leaks:{toSink:[],emissionsSuspect:[]} }`.
+- Key output fields: logSource=debug_moneyLog, rowsScoped=41, sinkDelta=0, world.delta=0, leaks empty, sampleLogHeads when empty, refreshAttempted=true.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-07 — ECON-NPC [1.1c] auditNpcWorldBalanceOnce diag + canonical snapshot (dev-only)
+- Status: FAIL (smoke not rerun)
+- Facts:
+  - Введён canonical helper `getPointsMoneyLogSnapshot({prefer:"debug_moneyLog"})`; audit использует его вместо разрозненных источников.
+  - meta.diag + meta.diagVersion добавлены всегда (debug moneyLog, moneyLogByBattle, logger queue, state moneyLog), refresh пытается `Game.Logger.forceFlush` и `Game.__D.refresh*`, затем повторяет снимок.
+  - Если scope пуст после refresh, audit возвращает `ok:false`, `notes:["no_scoped_rows_after_refresh"]`, `meta.sampleLogHeads`.
+- Smoke (browser console):
+  - `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`
+  - Result: НЕ ВЫПОЛНЕНО в этой среде; текущий runtime smoke (со слов QA) показывает `ok:false`, `meta.logSource="none"`, `rowsScoped=0`, `sampleLogHeads=[]` (meta.diag не зафиксирован).
+- Key output fields: logSource=none, rowsScoped=0, notes include no_scoped_rows_after_refresh, meta.diag pending.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-07 — ECON-NPC [1.1] auditNpcWorldBalanceOnce PASS evidence
+- Status: PASS
+- Facts:
+  - Runtime smoke after a points transfer yields `ok:true`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=41`, `meta.sinkDelta=0`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `meta.diagVersion="npc_audit_diag_v1"`.
+  - Требует хотя бы одного points-трансфера; иначе `ok:false` с `no_scoped_rows_after_refresh` (ожидаемо).
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+-### 2026-02-07 — ECON-NPC [1.2] NPC flows classification (dev-only)
+- Status: PASS
+- Facts:
+  - QA evidence: `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=2`, `meta.scopeDesc="lastN=200"`, `meta.sinkDelta=1`, `meta.sinkNetScoped=1`, `meta.sinkBalanceBefore=1`, `meta.sinkBalanceAfter=1`, `meta.diagVersion="npc_audit_diag_v1"`.
+  - World totals: `beforeTotal=200`, `afterTotal=200`, `delta=0`; `rowsScoped>0`, `net_to_sink_mismatch` отсутствует.
+  - `leaks.toSink` net sum: `crowd_vote_cost 1`.
+  - `flowSummary.invariants`: `totalsNetOk=true`, `totalsBalanceOk=true`, `sinkNetMatchesDelta=true`, `sinkBalanceExplained=null`.
+- Key output fields: logSource=debug_moneyLog, rowsScoped=2, sinkNetScoped=1, world.delta=0, invariants true.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-07 — ECON-NPC [1.3] Sink allowlist regression guard (dev-only)
+- Status: PASS
+- Facts:
+  - QA evidence: `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=53`, `meta.sinkDelta=2`, `meta.sinkNetScoped=2`, `meta.sinkBalanceBefore=2`, `meta.sinkBalanceAfter=2`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.unexpectedToSink=[]`, `meta.devIgnoredToSink=[]`, `meta.nonNpcToSinkSkipped=[{reason:"battle_entry",count:1,netToSink:1},{reason:"crowd_vote_pool_init",count:10,netToSink:-10}]`.
+  - `leaks.toSink` includes NPC-safe `battle_entry_npc` + non-NPC `battle_entry`, but only NPC entries processed by allowlist; `unexpected_net_to_sink_reason` and `net_to_sink_mismatch` отсутствуют.
+  - World totals: `beforeTotal=200`, `afterTotal=200`, `delta=0`; `flowSummary.invariants`: `totalsNetOk=true`, `totalsBalanceOk=true`, `sinkNetMatchesDelta=true`, `sinkBalanceExplained=null`.
+- Smoke (browser console):
+  - `Game.__DEV.smokeEconNpc_AllowlistOnce({window:{lastN:200}})`
+  - Result: PASS with rowsScoped=53, allowlistSize=3, unexpectedCount=0.
+- Key output fields: logSource=debug_moneyLog, rowsScoped=53, sinkNetScoped=2, allowlistSize=3, unexpectedCount=0, world.delta=0, invariants true.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+-### 2026-02-07 — ECON-NPC [1.4] Allowlist stability 3-run (dev-only)
+- Status: PASS
+- Facts:
+  - Evidence A (Console.txt, 3 runs): `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=26`, `meta.sinkDelta=6`, `meta.sinkNetScoped=6`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkippedSum=-4`, `world.delta=0`, `flowSummary.invariants`: all true, `sinkBalanceExplained=null`, `leaks.toSink`: `crowd_vote_cost +10`, `crowd_vote_pool_init -4`.
+  - Evidence B (Console.txt, 3 runs): `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=50`, `meta.sinkDelta=1`, `meta.sinkNetScoped=1`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkippedSum=-10`, `world.delta=0`, `flowSummary.invariants`: all true, `sinkBalanceExplained=null`, `leaks.toSink`: `crowd_vote_cost +10`, `crowd_vote_pool_init -4`.
+  - Stability: allowlistSize/unexpectedCount стабильны в обоих evidence; `net_to_sink_mismatch` отсутствует; SMOKE не перезапускался для этой правки.
+- Smoke (для QA): `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`, `Game.__DEV.smokeEconNpc_AllowlistStabilityOnce({window:{lastN:200}, runs:3})`, `Game.__DEV.auditNpcWorldBalance3Once({window:{lastN:200}, runs:3})`.
+- Source: Console.txt (3 identical runs `auditNpcWorldBalanceOnce` lastN=200).
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+### 2026-02-07 — ECON-NPC [1.2a] sinkNetMatchesDelta invariant (dev-only)
+- Status: PASS
+- Facts:
+  - `meta.sinkDelta`/`meta.sinkNetScoped` равны netToSinkScoped (сумма scoped rows), `meta.sinkBalanceBefore=1`, `meta.sinkBalanceAfter=1`, `meta.diagVersion="npc_audit_diag_v1"`.
+  - `flowSummary.invariants` все true, особенно `sinkNetMatchesDelta` и `sinkBalanceExplained`, `leaks.toSink` netToSink totals (`+10/-10/+1`) суммируются в `sinkNetScoped=1`.
+  - Runtime smoke: `ok:true`, `rowsScoped=41`, `meta.logSource="debug_moneyLog"`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `notes` не содержат `net_to_sink_mismatch`.
+- Key output fields: logSource=debug_moneyLog, rowsScoped=41, sinkNetScoped=1, sinkBalanceBefore=1, sinkBalanceAfter=1, sinkBalanceExplained=true, flowSummary.invariants true, leaks sum 1.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 Память обновлена

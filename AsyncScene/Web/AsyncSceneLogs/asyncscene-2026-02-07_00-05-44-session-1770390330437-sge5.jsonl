@@ -1,0 +1,2 @@
+{"ts": 1770390342815, "sessionId": "session-1770390330437-sge5", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770390342816, "sessionId": "session-1770390330437-sge5", "type": "stat", "kind": "points", "delta": -9, "meta": {"reason": "dev_zero_points", "battleId": null}}

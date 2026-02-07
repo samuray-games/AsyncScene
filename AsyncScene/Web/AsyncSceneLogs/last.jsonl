@@ -6897,3 +6897,281 @@
 {"ts": 1770302844150, "sessionId": "session-1770302841021-61dq", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
 {"ts": 1770302852836, "sessionId": "session-1770302841021-61dq", "type": "chat", "name": "Ксю", "text": "@Рин, не тяни, скажи прямо", "system": false}
 {"ts": 1770302853185, "sessionId": "session-1770302841021-61dq", "type": "stat", "kind": "rep", "delta": 2, "meta": {"reason": "rep_win_progress_threshold", "battleId": "econ07_af_win_10"}}
+{"ts": 1770305519709, "sessionId": "session-1770305516470-sv97", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770305537027, "sessionId": "session-1770305516470-sv97", "type": "chat", "name": "Ветеран", "text": "@Грустный, кто орет тот и неправ", "system": false}
+{"ts": 1770305543719, "sessionId": "session-1770305516470-sv97", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770305547910, "sessionId": "session-1770305516470-sv97", "type": "chat", "name": "Ксю", "text": "давай без цирка, отвечай", "system": false}
+{"ts": 1770305556839, "sessionId": "session-1770305516470-sv97", "type": "chat", "name": "Мемолог", "text": "@Kai, ну давай, тащи", "system": false}
+{"ts": 1770305963214, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770305975960, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Королева", "text": "я внимательно читаю", "system": false}
+{"ts": 1770305976216, "sessionId": "session-1770305959848-tc9g", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770305987217, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770305992995, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Слабак", "text": "щас будет жарко", "system": false}
+{"ts": 1770306002957, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Мемолог", "text": "@Горячий, я в шоке, но читаю дальше", "system": false}
+{"ts": 1770306012085, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Ксю", "text": "@Аркадий петрович, не пытайся юлить", "system": false}
+{"ts": 1770306017630, "sessionId": "session-1770305959848-tc9g", "type": "chat", "name": "Грустный", "text": "@Королева, ну давай, тащи", "system": false}
+{"ts": 1770306405423, "sessionId": "session-1770306401819-a5oj", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770306412975, "sessionId": "session-1770306401819-a5oj", "type": "chat", "name": "Рин", "text": "я тут ради лулзов", "system": false}
+{"ts": 1770306438614, "sessionId": "session-1770306401819-a5oj", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770306454234, "sessionId": "session-1770306445781-q9li", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770306466303, "sessionId": "session-1770306445781-q9li", "type": "chat", "name": "Глеб", "text": "@Грустный, а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770306467101, "sessionId": "session-1770306445781-q9li", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770306476792, "sessionId": "session-1770306445781-q9li", "type": "chat", "name": "Горячий", "text": "@Ветеран, я молчу, но осуждаю", "system": false}
+{"ts": 1770306478240, "sessionId": "session-1770306445781-q9li", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770306499564, "sessionId": "session-1770306445781-q9li", "type": "chat", "name": "Королева", "text": "не дави", "system": false}
+{"ts": 1770388371448, "sessionId": "session-1770388367683-7smd", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770388385266, "sessionId": "session-1770388367683-7smd", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770388385324, "sessionId": "session-1770388367683-7smd", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770388393826, "sessionId": "session-1770388367683-7smd", "type": "chat", "name": "Слава", "text": "слыш, ты кто такой тут", "system": false}
+{"ts": 1770388409438, "sessionId": "session-1770388367683-7smd", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770388409741, "sessionId": "session-1770388367683-7smd", "type": "chat", "name": "Слава", "text": "@Глеб, ну что, готов к баттлу", "system": false}
+{"ts": 1770388426755, "sessionId": "session-1770388367683-7smd", "type": "chat", "name": "Юна", "text": "я молчу, но осуждаю", "system": false}
+{"ts": 1770390082778, "sessionId": "session-1770390077363-yjjp", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770390099804, "sessionId": "session-1770390077363-yjjp", "type": "chat", "name": "Глеб", "text": "@Слабак, слыш, ты кто такой тут", "system": false}
+{"ts": 1770390137012, "sessionId": "session-1770390077363-yjjp", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770390137020, "sessionId": "session-1770390077363-yjjp", "type": "chat", "name": "Слава", "text": "не мажь, отвечай по делу", "system": false}
+{"ts": 1770390137136, "sessionId": "session-1770390077363-yjjp", "type": "chat", "name": "Слабак", "text": "@Алексей петрович, щас будет жарко", "system": false}
+{"ts": 1770390143082, "sessionId": "session-1770390077363-yjjp", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770390143082, "sessionId": "session-1770390077363-yjjp", "type": "stat", "kind": "points", "delta": -9, "meta": {"reason": "dev_zero_points", "battleId": null}}
+{"ts": 1770390333991, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770390338221, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Грустный", "text": "@Ветеран, кто-то сейчас словит ответку", "system": false}
+{"ts": 1770390342815, "sessionId": "session-1770390330437-sge5", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770390342816, "sessionId": "session-1770390330437-sge5", "type": "stat", "kind": "points", "delta": -9, "meta": {"reason": "dev_zero_points", "battleId": null}}
+{"ts": 1770390354913, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Глеб", "text": "пошли выйдем, побазарим", "system": false}
+{"ts": 1770390357998, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770390364342, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Слабак", "text": "щас будет жарко", "system": false}
+{"ts": 1770390370088, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Глеб", "text": "@Егор, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770390382105, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770390385074, "sessionId": "session-1770390330437-sge5", "type": "chat", "name": "Грустный", "text": "ну и ладно", "system": false}
+{"ts": 1770391108916, "sessionId": "session-1770391105636-klhb", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770391119506, "sessionId": "session-1770391105636-klhb", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770391119507, "sessionId": "session-1770391105636-klhb", "type": "stat", "kind": "points", "delta": -9, "meta": {"reason": "dev_zero_points", "battleId": null}}
+{"ts": 1770391122082, "sessionId": "session-1770391105636-klhb", "type": "chat", "name": "Слабак", "text": "@Ohmylord, ну давай, тащи", "system": false}
+{"ts": 1770391132921, "sessionId": "session-1770391105636-klhb", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770391136150, "sessionId": "session-1770391105636-klhb", "type": "chat", "name": "Ветеран", "text": "я молчу, но осуждаю", "system": false}
+{"ts": 1770391146735, "sessionId": "session-1770391105636-klhb", "type": "chat", "name": "Ветеран", "text": "@Горячий, ну че кто первый вбросит", "system": false}
+{"ts": 1770391429188, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770391436142, "sessionId": "session-1770391425148-pe7w", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770391436143, "sessionId": "session-1770391425148-pe7w", "type": "stat", "kind": "points", "delta": -9, "meta": {"reason": "dev_zero_points", "battleId": null}}
+{"ts": 1770391438504, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Юна", "text": "кто орет тот и неправ", "system": false}
+{"ts": 1770391442888, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Мемолог", "text": "ну давай, тащи", "system": false}
+{"ts": 1770391453193, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Система", "text": "Толпа решает: Ветеран хочет, чтобы Троль отвалил.", "system": true}
+{"ts": 1770391457137, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Олег", "text": "@Троль, давай без героизма", "system": false}
+{"ts": 1770391465968, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Глеб", "text": "@Samuray, слыш, ты кто такой тут", "system": false}
+{"ts": 1770391486202, "sessionId": "session-1770391425148-pe7w", "type": "chat", "name": "Мемолог", "text": "@Рин, давайте культурно, ну почти", "system": false}
+{"ts": 1770392799960, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770392812299, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Юна", "text": "@Грустный, ну че кто первый вбросит", "system": false}
+{"ts": 1770392819306, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Грустный", "text": "@Макс, ну че кто первый вбросит", "system": false}
+{"ts": 1770392823966, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770392847228, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Слава", "text": "@Рин, не мажь, отвечай по делу", "system": false}
+{"ts": 1770392848185, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770392850318, "sessionId": "session-1770392796813-9cis", "type": "chat", "name": "Рин", "text": "вот это было красиво", "system": false}
+{"ts": 1770392867485, "sessionId": "session-1770392864272-vqz3", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770392872425, "sessionId": "session-1770392864272-vqz3", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "smoke_bank_dev", "battleId": null}}
+{"ts": 1770392872426, "sessionId": "session-1770392864272-vqz3", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "smoke_bank_dev", "battleId": null}}
+{"ts": 1770392882922, "sessionId": "session-1770392864272-vqz3", "type": "chat", "name": "Глеб", "text": "@Макс, ну что, готов к баттлу", "system": false}
+{"ts": 1770392891667, "sessionId": "session-1770392864272-vqz3", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет, чтобы Ветеран отвалил.", "system": true}
+{"ts": 1770392899214, "sessionId": "session-1770392864272-vqz3", "type": "chat", "name": "Макс", "text": "@Грустный, я не торгуюсь долго", "system": false}
+{"ts": 1770392939109, "sessionId": "session-1770392864272-vqz3", "type": "chat", "name": "Юна", "text": "@Memelord, атмосфера напряженная", "system": false}
+{"ts": 1770393510800, "sessionId": "session-1770393506895-6pb3", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770393517067, "sessionId": "session-1770393506895-6pb3", "type": "chat", "name": "Глеб", "text": "сейчас проверим кто тут главный", "system": false}
+{"ts": 1770393534807, "sessionId": "session-1770393506895-6pb3", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770393535470, "sessionId": "session-1770393506895-6pb3", "type": "chat", "name": "Ветеран", "text": "@Королева, ну давай, тащи", "system": false}
+{"ts": 1770393539201, "sessionId": "session-1770393506895-6pb3", "type": "chat", "name": "Егор", "text": "ну что, решился или дрогнул", "system": false}
+{"ts": 1770393541602, "sessionId": "session-1770393506895-6pb3", "type": "chat", "name": "Слава", "text": "@Троль, ты ща ответишь, не тяни", "system": false}
+{"ts": 1770393576015, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770393586454, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Егор", "text": "@Dara, сейчас проверим сколько ты стоишь", "system": false}
+{"ts": 1770393598604, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Ксю", "text": "не тяни, скажи прямо", "system": false}
+{"ts": 1770393600019, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770393604533, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Ветеран", "text": "@Dara, кринж зашел в чат и сел", "system": false}
+{"ts": 1770393607742, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Егор", "text": "@Dara, я не торгуюсь долго", "system": false}
+{"ts": 1770393618869, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Глеб", "text": "@Мемолог, че по 💰, при бабле", "system": false}
+{"ts": 1770393619003, "sessionId": "session-1770393568743-tuuj", "type": "chat", "name": "Глеб", "text": "@Dara, слыш, ты кто такой тут", "system": false}
+{"ts": 1770393721772, "sessionId": "session-1770393716112-nvxa", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770393730632, "sessionId": "session-1770393716112-nvxa", "type": "chat", "name": "Глеб", "text": "ты ща ответишь, не тяни", "system": false}
+{"ts": 1770393745777, "sessionId": "session-1770393716112-nvxa", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770393746652, "sessionId": "session-1770393716112-nvxa", "type": "chat", "name": "Ксю", "text": "@Ветеран, не тяни, скажи прямо", "system": false}
+{"ts": 1770393751747, "sessionId": "session-1770393716112-nvxa", "type": "chat", "name": "Троль", "text": "ну и ладно", "system": false}
+{"ts": 1770394055537, "sessionId": "session-1770394052260-2tob", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770394060082, "sessionId": "session-1770394052260-2tob", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "bank_deposit", "battleId": null}}
+{"ts": 1770394065942, "sessionId": "session-1770394052260-2tob", "type": "chat", "name": "Слава", "text": "@Kai, давай, не прячься за толпой", "system": false}
+{"ts": 1770394070112, "sessionId": "session-1770394052260-2tob", "type": "chat", "name": "Слава", "text": "слыш, ты кто такой тут", "system": false}
+{"ts": 1770394079546, "sessionId": "session-1770394052260-2tob", "type": "chat", "name": "Система", "text": "Толпа решает: Грустный хочет свалить от Рин.", "system": true}
+{"ts": 1770394088122, "sessionId": "session-1770394052260-2tob", "type": "chat", "name": "Глеб", "text": "@Ксю, не умничай, просто скажи", "system": false}
+{"ts": 1770394094174, "sessionId": "session-1770394052260-2tob", "type": "chat", "name": "Мемолог", "text": "@Kai, давайте культурно, ну почти", "system": false}
+{"ts": 1770394352137, "sessionId": "session-1770394348693-8tnb", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770394355941, "sessionId": "session-1770394348693-8tnb", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "bank_deposit", "battleId": null}}
+{"ts": 1770394355943, "sessionId": "session-1770394348693-8tnb", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "smoke_withdraw_1", "battleId": null}}
+{"ts": 1770394355944, "sessionId": "session-1770394348693-8tnb", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "smoke_withdraw_999", "battleId": null}}
+{"ts": 1770394361042, "sessionId": "session-1770394348693-8tnb", "type": "chat", "name": "Королева", "text": "@Мемолог, атмосфера напряженная", "system": false}
+{"ts": 1770394371730, "sessionId": "session-1770394348693-8tnb", "type": "chat", "name": "Слава", "text": "не умничай, просто скажи", "system": false}
+{"ts": 1770394376142, "sessionId": "session-1770394348693-8tnb", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770394386952, "sessionId": "session-1770394348693-8tnb", "type": "chat", "name": "Ксю", "text": "@Королева, не тяни, скажи прямо", "system": false}
+{"ts": 1770394387212, "sessionId": "session-1770394348693-8tnb", "type": "chat", "name": "Королева", "text": "@Ray, атмосфера напряженная", "system": false}
+{"ts": 1770394573399, "sessionId": "session-1770394569476-ohv5", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770394577539, "sessionId": "session-1770394569476-ohv5", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "bank_deposit", "battleId": null}}
+{"ts": 1770394577541, "sessionId": "session-1770394569476-ohv5", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "bank_withdraw", "battleId": null}}
+{"ts": 1770394582508, "sessionId": "session-1770394569476-ohv5", "type": "chat", "name": "Рин", "text": "кринж зашел в чат и сел", "system": false}
+{"ts": 1770394597404, "sessionId": "session-1770394569476-ohv5", "type": "chat", "name": "Система", "text": "Толпа решает: Грустный хочет свалить от Мемолог.", "system": true}
+{"ts": 1770394598875, "sessionId": "session-1770394569476-ohv5", "type": "chat", "name": "Макс", "text": "@Слава, не дергайся, это в твоих интересах", "system": false}
+{"ts": 1770394604305, "sessionId": "session-1770394569476-ohv5", "type": "chat", "name": "Троль", "text": "@Королева, давайте без истерик", "system": false}
+{"ts": 1770394616241, "sessionId": "session-1770394569476-ohv5", "type": "chat", "name": "Юна", "text": "интересно, чем это закончится", "system": false}
+{"ts": 1770395673497, "sessionId": "session-1770395669112-k9h8", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770395681736, "sessionId": "session-1770395669112-k9h8", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "bank_deposit", "battleId": null}}
+{"ts": 1770395681737, "sessionId": "session-1770395669112-k9h8", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "bank_withdraw", "battleId": null}}
+{"ts": 1770395685662, "sessionId": "session-1770395669112-k9h8", "type": "chat", "name": "Глеб", "text": "ну что, готов к баттлу", "system": false}
+{"ts": 1770395693240, "sessionId": "session-1770395669112-k9h8", "type": "chat", "name": "Слава", "text": "@Рин, не мажь, отвечай по делу", "system": false}
+{"ts": 1770395697502, "sessionId": "session-1770395669112-k9h8", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770395701716, "sessionId": "session-1770395669112-k9h8", "type": "chat", "name": "Ксю", "text": "не пытайся юлить", "system": false}
+{"ts": 1770395719308, "sessionId": "session-1770395669112-k9h8", "type": "chat", "name": "Ветеран", "text": "@Королева, 💰 не пахнут", "system": false}
+{"ts": 1770469667064, "sessionId": "session-1770469663927-ezsd", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770469676401, "sessionId": "session-1770469663927-ezsd", "type": "chat", "name": "Слабак", "text": "@Мемолог, кто-то сейчас словит ответку", "system": false}
+{"ts": 1770469691071, "sessionId": "session-1770469663927-ezsd", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770469695046, "sessionId": "session-1770469663927-ezsd", "type": "chat", "name": "Горячий", "text": "@Владимир иванович, кто-то сегодня токсик, не я", "system": false}
+{"ts": 1770469701580, "sessionId": "session-1770469663927-ezsd", "type": "chat", "name": "Юна", "text": "@Aki, я внимательно читаю", "system": false}
+{"ts": 1770470726066, "sessionId": "session-1770470722399-3wgx", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770470736515, "sessionId": "session-1770470722399-3wgx", "type": "chat", "name": "Глеб", "text": "ну что, готов к баттлу", "system": false}
+{"ts": 1770470749696, "sessionId": "session-1770470722399-3wgx", "type": "chat", "name": "Олег", "text": "@Kai, сделай шаг назад и послушай", "system": false}
+{"ts": 1770470750069, "sessionId": "session-1770470722399-3wgx", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770470757209, "sessionId": "session-1770470722399-3wgx", "type": "chat", "name": "Слава", "text": "ты ща ответишь, не тяни", "system": false}
+{"ts": 1770472386786, "sessionId": "session-1770472379292-p4up", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770472391406, "sessionId": "session-1770472379292-p4up", "type": "chat", "name": "Ксю", "text": "@Королева, давай без цирка, отвечай", "system": false}
+{"ts": 1770472399160, "sessionId": "session-1770472379292-p4up", "type": "chat", "name": "Грустный", "text": "💰 не пахнут", "system": false}
+{"ts": 1770472410791, "sessionId": "session-1770472379292-p4up", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770472416253, "sessionId": "session-1770472379292-p4up", "type": "chat", "name": "Макс", "text": "@Mika, если полезешь в ответ, останешься без всего", "system": false}
+{"ts": 1770472421256, "sessionId": "session-1770472379292-p4up", "type": "chat", "name": "Королева", "text": "@Mika, сегодня пахнет баттлами", "system": false}
+{"ts": 1770472671849, "sessionId": "session-1770472667422-8byc", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770472684002, "sessionId": "session-1770472667422-8byc", "type": "chat", "name": "Рин", "text": "@Aki, ну че кто первый вбросит", "system": false}
+{"ts": 1770472692178, "sessionId": "session-1770472667422-8byc", "type": "chat", "name": "Макс", "text": "если полезешь в ответ, останешься без всего", "system": false}
+{"ts": 1770472695853, "sessionId": "session-1770472667422-8byc", "type": "chat", "name": "Система", "text": "Толпа решает: Горячий хочет, чтобы Троль отвалил.", "system": true}
+{"ts": 1770472698662, "sessionId": "session-1770472667422-8byc", "type": "chat", "name": "Ветеран", "text": "@Aki, кто-то сегодня токсик, не я", "system": false}
+{"ts": 1770473853132, "sessionId": "session-1770473846697-46xj", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770473864783, "sessionId": "session-1770473846697-46xj", "type": "chat", "name": "Глеб", "text": "@Ветеран, давай, не прячься за толпой", "system": false}
+{"ts": 1770473875271, "sessionId": "session-1770473846697-46xj", "type": "chat", "name": "Слава", "text": "@Tori, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770473877247, "sessionId": "session-1770473846697-46xj", "type": "chat", "name": "Система", "text": "Толпа решает: Ветеран хочет, чтобы Королева отвалил.", "system": true}
+{"ts": 1770473889316, "sessionId": "session-1770473846697-46xj", "type": "chat", "name": "Рин", "text": "@Горячий, вот это было красиво", "system": false}
+{"ts": 1770473891960, "sessionId": "session-1770473846697-46xj", "type": "chat", "name": "Ксю", "text": "не тяни, скажи прямо", "system": false}
+{"ts": 1770474348039, "sessionId": "session-1770474344116-n61c", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770474359195, "sessionId": "session-1770474344116-n61c", "type": "chat", "name": "Глеб", "text": "@Мемолог, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770474372050, "sessionId": "session-1770474344116-n61c", "type": "chat", "name": "Система", "text": "Толпа решает: Мемолог хочет свалить от Грустный.", "system": true}
+{"ts": 1770474378957, "sessionId": "session-1770474344116-n61c", "type": "chat", "name": "Слава", "text": "@Грустный, че по 💰, при бабле", "system": false}
+{"ts": 1770474388469, "sessionId": "session-1770474344116-n61c", "type": "chat", "name": "Слабак", "text": "я тут ради лулзов", "system": false}
+{"ts": 1770475049772, "sessionId": "session-1770475045382-csvk", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770475073882, "sessionId": "session-1770475045382-csvk", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770475129001, "sessionId": "session-1770475045382-csvk", "type": "chat", "name": "Юна", "text": "@Слава, вы вообще читаете что пишете", "system": false}
+{"ts": 1770475129024, "sessionId": "session-1770475045382-csvk", "type": "chat", "name": "Королева", "text": "@Ray, ладно, разгоняем", "system": false}
+{"ts": 1770475142170, "sessionId": "session-1770475138288-lpbb", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770475148970, "sessionId": "session-1770475138288-lpbb", "type": "chat", "name": "Ксю", "text": "давай без цирка, отвечай", "system": false}
+{"ts": 1770475154378, "sessionId": "session-1770475138288-lpbb", "type": "chat", "name": "Грустный", "text": "@Zzz, включите мозг", "system": false}
+{"ts": 1770475166176, "sessionId": "session-1770475138288-lpbb", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770475168277, "sessionId": "session-1770475138288-lpbb", "type": "chat", "name": "Ксю", "text": "@Королева, я тебя внимательно слушаю", "system": false}
+{"ts": 1770475177005, "sessionId": "session-1770475138288-lpbb", "type": "chat", "name": "Ксю", "text": "@Олег, давай без цирка, отвечай", "system": false}
+{"ts": 1770475629773, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770475641419, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Рин", "text": "я тебя понял", "system": false}
+{"ts": 1770475653781, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770475657374, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Слабак", "text": "сегодня пахнет баттлами", "system": false}
+{"ts": 1770475676764, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Слава", "text": "сейчас проверим кто тут главный", "system": false}
+{"ts": 1770475677792, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770475680556, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Троль", "text": "мне смешно, но грустно", "system": false}
+{"ts": 1770475681528, "sessionId": "session-1770475626350-7vta", "type": "chat", "name": "Юна", "text": "@Fox, ну давай, удиви", "system": false}
+{"ts": 1770476423772, "sessionId": "session-1770476420073-vaph", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770476431669, "sessionId": "session-1770476420073-vaph", "type": "chat", "name": "Троль", "text": "@Владимир иванович, кто следующий", "system": false}
+{"ts": 1770476447793, "sessionId": "session-1770476420073-vaph", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет, чтобы Королева отвалил.", "system": true}
+{"ts": 1770476454736, "sessionId": "session-1770476420073-vaph", "type": "chat", "name": "Троль", "text": "@Королева, я тебя понял", "system": false}
+{"ts": 1770476769071, "sessionId": "session-1770476765781-v1lz", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770476779792, "sessionId": "session-1770476765781-v1lz", "type": "chat", "name": "Глеб", "text": "не умничай, просто скажи", "system": false}
+{"ts": 1770476792227, "sessionId": "session-1770476765781-v1lz", "type": "chat", "name": "Ксю", "text": "я тебя внимательно слушаю", "system": false}
+{"ts": 1770476793083, "sessionId": "session-1770476765781-v1lz", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770476805673, "sessionId": "session-1770476765781-v1lz", "type": "chat", "name": "Мемолог", "text": "@Глеб, давайте без истерик", "system": false}
+{"ts": 1770476869998, "sessionId": "session-1770476765781-v1lz", "type": "chat", "name": "Грустный", "text": "@Слабак, я тебя понял", "system": false}
+{"ts": 1770476880122, "sessionId": "session-1770476765781-v1lz", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770476880111_43"}}
+{"ts": 1770476880123, "sessionId": "session-1770476765781-v1lz", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770476880111_43"}}
+{"ts": 1770476880128, "sessionId": "session-1770476765781-v1lz", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770476880111_43"}}
+{"ts": 1770476880128, "sessionId": "session-1770476765781-v1lz", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770476880111_43"}}
+{"ts": 1770476890783, "sessionId": "session-1770476765781-v1lz", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770476890781_1324"}}
+{"ts": 1770476942446, "sessionId": "session-1770476939042-atbf", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770476960552, "sessionId": "session-1770476939042-atbf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770476960541_688"}}
+{"ts": 1770476960553, "sessionId": "session-1770476939042-atbf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770476960541_688"}}
+{"ts": 1770476960556, "sessionId": "session-1770476939042-atbf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770476960541_688"}}
+{"ts": 1770476960556, "sessionId": "session-1770476939042-atbf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770476960541_688"}}
+{"ts": 1770476961412, "sessionId": "session-1770476939042-atbf", "type": "chat", "name": "Егор", "text": "@Грустный, сейчас проверим сколько ты стоишь", "system": false}
+{"ts": 1770476965515, "sessionId": "session-1770476939042-atbf", "type": "chat", "name": "Егор", "text": "@Владимир иванович, я тебя вижу", "system": false}
+{"ts": 1770476966449, "sessionId": "session-1770476939042-atbf", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770476968288, "sessionId": "session-1770476939042-atbf", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "escape_vote_cost", "battleId": "dev_escape_crowd_1770476968286_718"}}
+{"ts": 1770476977133, "sessionId": "session-1770476939042-atbf", "type": "chat", "name": "Грустный", "text": "@Ветеран, ну че кто первый вбросит", "system": false}
+{"ts": 1770477216525, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770477224238, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Слава", "text": "@Егор, а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770477227960, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Слава", "text": "не умничай, просто скажи", "system": false}
+{"ts": 1770477240655, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Система", "text": "Толпа решает: Рин хочет свалить от Мемолог.", "system": true}
+{"ts": 1770477247084, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Горячий", "text": "@Fox, не дави", "system": false}
+{"ts": 1770477301212, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Слабак", "text": "кринж на площади, но я остаюсь", "system": false}
+{"ts": 1770477301233, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770477301332, "sessionId": "session-1770477213326-kv2v", "type": "chat", "name": "Мемолог", "text": "@Горячий, я тут чисто посмотреть", "system": false}
+{"ts": 1770477389442, "sessionId": "session-1770477386339-4o52", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770477396005, "sessionId": "session-1770477386339-4o52", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_mlcgj1us_9uljkf"}}
+{"ts": 1770478024146, "sessionId": "session-1770478019415-w0z7", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770478033290, "sessionId": "session-1770478019415-w0z7", "type": "chat", "name": "Олег", "text": "@Ohmylord, не дергайся, это в твоих интересах", "system": false}
+{"ts": 1770478048159, "sessionId": "session-1770478019415-w0z7", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770478048456, "sessionId": "session-1770478019415-w0z7", "type": "chat", "name": "Макс", "text": "я не торгуюсь долго", "system": false}
+{"ts": 1770478068228, "sessionId": "session-1770478019415-w0z7", "type": "chat", "name": "Макс", "text": "давай без героизма", "system": false}
+{"ts": 1770478071773, "sessionId": "session-1770478019415-w0z7", "type": "chat", "name": "Горячий", "text": "@Троль, ну давай, тащи", "system": false}
+{"ts": 1770478100215, "sessionId": "session-1770478095788-x8dd", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770478112053, "sessionId": "session-1770478095788-x8dd", "type": "chat", "name": "Слабак", "text": "щас будет жарко", "system": false}
+{"ts": 1770478124228, "sessionId": "session-1770478095788-x8dd", "type": "chat", "name": "Система", "text": "Толпа решает: Рин хочет, чтобы Горячий отвалил.", "system": true}
+{"ts": 1770478131143, "sessionId": "session-1770478095788-x8dd", "type": "chat", "name": "Мемолог", "text": "кто следующий", "system": false}
+{"ts": 1770478147567, "sessionId": "session-1770478095788-x8dd", "type": "chat", "name": "Рин", "text": "@Слабак, что-то накаляется", "system": false}
+{"ts": 1770478189288, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770478206571, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Слава", "text": "@Haru, а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770478212549, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Глеб", "text": "а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770478213294, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770478221176, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Грустный", "text": "@Королева, кринж зашел в чат и сел", "system": false}
+{"ts": 1770478224918, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Слава", "text": "@Мемолог, а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770478290881, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770478290911, "sessionId": "session-1770478184735-07s1", "type": "chat", "name": "Слабак", "text": "@Горячий, площадь как тикток, листаешь и не можешь остановиться", "system": false}
+{"ts": 1770478458568, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770478477115, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Горячий", "text": "@Ветеран, кто орет тот и неправ", "system": false}
+{"ts": 1770478482586, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770478486243, "sessionId": "session-1770478455191-6hjf", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_mlch6f36_t625op"}}
+{"ts": 1770478488434, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_mlch6f36_t625op"}
+{"ts": 1770478490671, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Ветеран", "text": "@Mika, включите мозг", "system": false}
+{"ts": 1770478495073, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Глеб", "text": "@Макс, ты ща ответишь, не тяни", "system": false}
+{"ts": 1770478496564, "sessionId": "session-1770478455191-6hjf", "type": "chat", "name": "Ксю", "text": "@Макс, я тебя внимательно слушаю", "system": false}
+{"ts": 1770478510463, "sessionId": "session-1770478455191-6hjf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mlch6f36_t625op"}}
+{"ts": 1770478510464, "sessionId": "session-1770478455191-6hjf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mlch6f36_t625op"}}
+{"ts": 1770478510466, "sessionId": "session-1770478455191-6hjf", "type": "stat", "kind": "points", "delta": 4, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "battle_mlch6f36_t625op"}}
+{"ts": 1770478510466, "sessionId": "session-1770478455191-6hjf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mlch6f36_t625op"}}
+{"ts": 1770478764342, "sessionId": "session-1770478761053-8lkk", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770478781758, "sessionId": "session-1770478761053-8lkk", "type": "chat", "name": "Егор", "text": "@Rin, ну что, решился или дрогнул", "system": false}
+{"ts": 1770478791053, "sessionId": "session-1770478788196-dtft", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770478800601, "sessionId": "session-1770478788196-dtft", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_mlchd5na_4chlbu"}}
+{"ts": 1770478804647, "sessionId": "session-1770478788196-dtft", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mlchd5na_4chlbu"}}
+{"ts": 1770478804652, "sessionId": "session-1770478788196-dtft", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-02-08"}}
+{"ts": 1770478809779, "sessionId": "session-1770478788196-dtft", "type": "chat", "name": "Троль", "text": "баттл это просто разговор с адреналином", "system": false}
+{"ts": 1770478815064, "sessionId": "session-1770478788196-dtft", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770478824196, "sessionId": "session-1770478788196-dtft", "type": "chat", "name": "Глеб", "text": "ты ща ответишь, не тяни", "system": false}
+{"ts": 1770479075230, "sessionId": "session-1770479071137-xbww", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770479101567, "sessionId": "session-1770479098412-3jex", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770479106467, "sessionId": "session-1770479098412-3jex", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_entry", "battleId": "battle_mlchjpnl_oi2a9m"}}
+{"ts": 1770479109331, "sessionId": "session-1770479098412-3jex", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mlchjpnl_oi2a9m"}}
+{"ts": 1770479109333, "sessionId": "session-1770479098412-3jex", "type": "stat", "kind": "rep", "delta": 1, "meta": {"reason": "rep_daily_bonus", "battleId": "daily_2026-02-08"}}
+{"ts": 1770479117717, "sessionId": "session-1770479098412-3jex", "type": "chat", "name": "Глеб", "text": "не мажь, отвечай по делу", "system": false}
+{"ts": 1770479125576, "sessionId": "session-1770479098412-3jex", "type": "chat", "name": "Система", "text": "Толпа решает: Слабак хочет свалить от Рин.", "system": true}
+{"ts": 1770479129004, "sessionId": "session-1770479098412-3jex", "type": "chat", "name": "Ксю", "text": "@Слабак, ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770479136532, "sessionId": "session-1770479098412-3jex", "type": "chat", "name": "Горячий", "text": "@Рин, щас будет жарко", "system": false}
+{"ts": 1770479500976, "sessionId": "session-1770479496305-929q", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770479512656, "sessionId": "session-1770479496305-929q", "type": "chat", "name": "Глеб", "text": "@Егор, давай, не прячься за толпой", "system": false}
+{"ts": 1770479518896, "sessionId": "session-1770479496305-929q", "type": "chat", "name": "Глеб", "text": "@Макс, слыш, ты кто такой тут", "system": false}
+{"ts": 1770479524979, "sessionId": "session-1770479496305-929q", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770479530895, "sessionId": "session-1770479496305-929q", "type": "chat", "name": "Слава", "text": "че по 💰, при бабле", "system": false}
+{"ts": 1770479537347, "sessionId": "session-1770479496305-929q", "type": "chat", "name": "Ксю", "text": "@Троль, я тебя внимательно слушаю", "system": false}
+{"ts": 1770479773076, "sessionId": "session-1770479766834-rtl1", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770479782561, "sessionId": "session-1770479766834-rtl1", "type": "chat", "name": "Глеб", "text": "@Алексей петрович, сейчас проверим кто тут главный", "system": false}
+{"ts": 1770479797186, "sessionId": "session-1770479766834-rtl1", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет свалить от Слабак.", "system": true}
+{"ts": 1770479804938, "sessionId": "session-1770479766834-rtl1", "type": "chat", "name": "Мемолог", "text": "кринж на площади, но я остаюсь", "system": false}
+{"ts": 1770480006615, "sessionId": "session-1770479766834-rtl1", "type": "chat", "name": "Юна", "text": "@Ксю, что-то накаляется", "system": false}
+{"ts": 1770480197136, "sessionId": "session-1770480194102-9lhp", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770480224543, "sessionId": "session-1770480220620-elz4", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770480240047, "sessionId": "session-1770480236187-r7vg", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770480252780, "sessionId": "session-1770480236187-r7vg", "type": "chat", "name": "Троль", "text": "@Мемолог, баттл это просто разговор с адреналином", "system": false}
+{"ts": 1770480264050, "sessionId": "session-1770480236187-r7vg", "type": "chat", "name": "Система", "text": "Толпа решает: Грустный хочет свалить от Мемолог.", "system": true}
+{"ts": 1770480279316, "sessionId": "session-1770480236187-r7vg", "type": "chat", "name": "Ветеран", "text": "@Макс, 💰 на стол", "system": false}

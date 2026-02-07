@@ -1,0 +1,2 @@
+{"ts": 1770391119506, "sessionId": "session-1770391105636-klhb", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "training_cost", "battleId": null}}
+{"ts": 1770391119507, "sessionId": "session-1770391105636-klhb", "type": "stat", "kind": "points", "delta": -9, "meta": {"reason": "dev_zero_points", "battleId": null}}

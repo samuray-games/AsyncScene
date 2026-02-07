@@ -1,0 +1,3 @@
+{"ts": 1770394355941, "sessionId": "session-1770394348693-8tnb", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "bank_deposit", "battleId": null}}
+{"ts": 1770394355943, "sessionId": "session-1770394348693-8tnb", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "smoke_withdraw_1", "battleId": null}}
+{"ts": 1770394355944, "sessionId": "session-1770394348693-8tnb", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "smoke_withdraw_999", "battleId": null}}
