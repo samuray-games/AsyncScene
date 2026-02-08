@@ -2,10 +2,13 @@
 (function () {
   const E = {};
   const BANK_ACCOUNT_ID = "bank";
+  const WORLD_BANK_ID = "worldBank";
+  const WORLD_BANK_SOFT_CAP = 20;
   const pools = {
     crowd: { id: "crowd", points: 0 },
     sink: { id: "sink", points: 0 },
     bank: { id: BANK_ACCOUNT_ID, points: 0 },
+    worldBank: { id: WORLD_BANK_ID, points: 0 },
     crowdMap: Object.create(null),
     crowdPaid: Object.create(null),
   };
@@ -98,6 +101,7 @@
     if (key === "crowd") return pools.crowd;
     if (key === "sink") return pools.sink;
     if (key === BANK_ACCOUNT_ID) return pools.bank;
+    if (key === WORLD_BANK_ID) return pools.worldBank;
     const S = Game.__S || null;
     if (!S) return null;
     if (key === "me") {
@@ -107,6 +111,11 @@
     if (S.players && S.players[key]) return S.players[key];
     if (S.me && S.me.id === key) return S.me;
     return null;
+  }
+
+  function getWorldBankBalance(){
+    if (pools.worldBank && Number.isFinite(pools.worldBank.points)) return (pools.worldBank.points | 0);
+    return 0;
   }
 
   function withPointsWrite(fn){
@@ -308,7 +317,7 @@
   };
 
   E.getAllPoolIds = function (){
-    const ids = ["sink","crowd", BANK_ACCOUNT_ID];
+    const ids = ["sink","crowd", BANK_ACCOUNT_ID, WORLD_BANK_ID];
     Object.keys(pools.crowdMap || {}).forEach(k => ids.push(k));
     return ids;
   };
@@ -429,11 +438,13 @@
     const sink = (pools.sink && typeof pools.sink.points === "number") ? (pools.sink.points | 0) : 0;
     const crowd = (pools.crowd && typeof pools.crowd.points === "number") ? (pools.crowd.points | 0) : 0;
     const bank = (pools.bank && typeof pools.bank.points === "number") ? (pools.bank.points | 0) : 0;
+    const worldBank = (pools.worldBank && typeof pools.worldBank.points === "number") ? (pools.worldBank.points | 0) : 0;
     let crowdMapTotal = 0;
     const crowdById = {};
     if (pools.sink) addById("sink", sink, "pool");
     if (pools.crowd) addById("crowd", crowd, "pool");
     if (pools.bank) addById(BANK_ACCOUNT_ID, bank, "pool");
+    if (pools.worldBank) addById(WORLD_BANK_ID, worldBank, "pool");
     Object.keys(pools.crowdMap || {}).forEach(k => {
       const acc = pools.crowdMap[k];
       const v = acc && typeof acc.points === "number" ? (acc.points | 0) : 0;
@@ -442,7 +453,7 @@
       addById(`crowd:${k}`, v, "pool");
     });
 
-    const poolsSum = sink + crowd + bank + crowdMapTotal;
+    const poolsSum = sink + crowd + bank + worldBank + crowdMapTotal;
     const total = Object.values(byId).reduce((s, v) => s + (v | 0), 0);
     return {
       total,
@@ -450,7 +461,7 @@
       players: playersSum,
       npcs: npcsSum,
       pools: poolsSum,
-      poolsBreakdown: { sink, crowd, bank, crowdMap: crowdMapTotal, crowdById },
+      poolsBreakdown: { sink, crowd, bank, worldBank, crowdMap: crowdMapTotal, crowdById },
       countedPlayerIds,
       countedNpcIds,
       countedPoolIds,
@@ -551,6 +562,122 @@
       }
     } catch (_) {}
     return { ok: true };
+  };
+
+  E.transferCrowdVoteCost = function (fromId, toId, amount, meta = {}) {
+    const cost = Number(amount || 0);
+    if (!Number.isFinite(cost) || cost <= 0) return { ok: false, reason: "bad_amount" };
+    let taxAmount = cost >= 1 ? 1 : 0;
+    const bankBal = getWorldBankBalance();
+    if (taxAmount > 0 && bankBal >= WORLD_BANK_SOFT_CAP) taxAmount = 0;
+    const netCost = Math.max(0, (cost | 0) - taxAmount);
+    const baseMeta = Object.assign({}, meta || {});
+    const taxMeta = Object.assign({}, baseMeta, {
+      kind: "world_tax",
+      fromReason: "crowd_vote_cost",
+      taxKind: "fixed",
+      taxAmount,
+      originalCost: cost
+    });
+    if (taxAmount === 0 && cost >= 1 && bankBal >= WORLD_BANK_SOFT_CAP) {
+      taxMeta.skipReason = "bank_soft_cap";
+      taxMeta.bankSoftCap = WORLD_BANK_SOFT_CAP;
+      taxMeta.bankBalance = bankBal;
+    }
+    if (baseMeta && baseMeta.battleId) taxMeta.battleId = baseMeta.battleId;
+    const netMeta = Object.assign({}, baseMeta, {
+      originalCost: cost,
+      netCost,
+      taxAmount,
+      taxKind: "fixed"
+    });
+    let taxRes = { ok: true, skipped: true };
+    if (taxAmount > 0) {
+      taxRes = E.transferPoints(fromId, WORLD_BANK_ID, taxAmount, "world_tax_in", taxMeta);
+      if (!taxRes || taxRes.ok !== true) return taxRes;
+    }
+    if (netCost > 0) {
+      return E.transferPoints(fromId, toId, netCost, "crowd_vote_cost", netMeta);
+    }
+    return { ok: true, taxOnly: true, taxAmount, netCost };
+  };
+
+  E.getWorldBankBalance = function (){
+    return getWorldBankBalance();
+  };
+
+  E.getWorldBankSoftCap = function (){
+    return WORLD_BANK_SOFT_CAP;
+  };
+
+  E.maybeWorldStipendTick = function (opts = {}) {
+    const npcIds = Array.isArray(opts.npcIds) ? opts.npcIds.map(id => String(id)) : [];
+    const stipendAmount = Number.isFinite(opts.stipendAmount) ? Math.max(1, opts.stipendAmount | 0) : 1;
+    const stipendThreshold = Number.isFinite(opts.stipendThreshold) ? (opts.stipendThreshold | 0) : 0;
+    const zeroStreakById = (opts.zeroStreakById && typeof opts.zeroStreakById === "object") ? opts.zeroStreakById : null;
+    const zeroStreakThreshold = Number.isFinite(opts.zeroStreakThreshold) ? Math.max(1, opts.zeroStreakThreshold | 0) : null;
+    const maxRecipients = Number.isFinite(opts.maxRecipientsPerTick) ? Math.max(1, opts.maxRecipientsPerTick | 0) : 5;
+    const tick = Number.isFinite(opts.tick) ? (opts.tick | 0) : null;
+    const seed = (opts.seed != null) ? opts.seed : null;
+    const notes = [];
+    const bankBefore = getWorldBankBalance();
+    if (bankBefore < stipendAmount) {
+      notes.push("bank_empty");
+      return { ok: true, notes, paidIds: [], eligibleCount: 0, bankBefore, bankAfter: bankBefore };
+    }
+    if (!npcIds.length) {
+      notes.push("no_npcs");
+      return { ok: true, notes, paidIds: [], eligibleCount: 0, bankBefore, bankAfter: bankBefore };
+    }
+
+    const eligible = [];
+    for (const id of npcIds) {
+      const acc = getAccount(id);
+      const pts = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
+      const z = zeroStreakById ? (zeroStreakById[id] | 0) : 0;
+      if (pts <= stipendThreshold) {
+        eligible.push(id);
+        continue;
+      }
+      if (zeroStreakById && zeroStreakThreshold != null && z >= zeroStreakThreshold) {
+        eligible.push(id);
+      }
+    }
+    if (!eligible.length) {
+      notes.push("no_eligible");
+      return { ok: true, notes, paidIds: [], eligibleCount: 0, bankBefore, bankAfter: bankBefore };
+    }
+
+    const list = eligible.slice();
+    if (seed != null) list.sort(() => Math.random() - 0.5);
+    const selected = list.slice(0, maxRecipients);
+    let bankBal = bankBefore;
+    const paidIds = [];
+    selected.forEach(id => {
+      if (bankBal < stipendAmount) {
+        if (!notes.includes("bank_insufficient")) notes.push("bank_insufficient");
+        return;
+      }
+      const acc = getAccount(id);
+      const pts = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
+      const z = zeroStreakById ? (zeroStreakById[id] | 0) : 0;
+      const res = E.transferPoints(WORLD_BANK_ID, id, stipendAmount, "world_stipend_out", {
+        tick,
+        seed,
+        threshold: stipendThreshold,
+        amount: stipendAmount,
+        eligibility: (pts <= stipendThreshold ? "zero" : "streak"),
+        zeroStreak: zeroStreakById ? z : null,
+        bankBefore: bankBal,
+        bankAfter: bankBal - stipendAmount
+      });
+      if (res && res.ok) {
+        paidIds.push(id);
+        bankBal -= stipendAmount;
+      }
+    });
+    const bankAfter = getWorldBankBalance();
+    return { ok: true, notes, paidIds, eligibleCount: eligible.length, bankBefore, bankAfter };
   };
 
   function getProgression() {

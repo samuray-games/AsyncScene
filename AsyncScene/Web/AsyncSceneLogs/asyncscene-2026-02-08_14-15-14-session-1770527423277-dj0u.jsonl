@@ -1,0 +1,5 @@
+{"ts": 1770527713215, "sessionId": "session-1770527423277-dj0u", "type": "chat", "name": "Система", "text": "Толпа решает.", "system": true, "battleId": "battle_mldahdr8_ptmudw"}
+{"ts": 1770527713574, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mldah587_4fnq3z"}}
+{"ts": 1770527713574, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mldah587_4fnq3z"}}
+{"ts": 1770527713579, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 4, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "battle_mldah587_4fnq3z"}}
+{"ts": 1770527713580, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mldah587_4fnq3z"}}

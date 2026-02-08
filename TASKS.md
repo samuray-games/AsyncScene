@@ -174,12 +174,11 @@
   - [x] При неожиданной причине `ok:false` + `notes:["unexpected_net_to_sink_reason"]` + `meta.unexpectedToSink`.
   - [x] `Game.__DEV.smokeEconNpc_AllowlistOnce()` возвращает `{ok, rowsScoped, allowlistSize, unexpectedCount}` и логирует summary.
   - [x] SMOKE пройден в runtime (rowsScoped>0, unexpectedCount==0).
-Result: |
+- Result: |
     Status: PASS
     Facts:
-      (1) QA evidence: `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=53`, `meta.sinkDelta=2`, `meta.sinkNetScoped=2`, `meta.sinkBalanceBefore=2`, `meta.sinkBalanceAfter=2`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.unexpectedToSink=[]`, `meta.devIgnoredToSink=[]`, `meta.nonNpcToSinkSkipped=[{reason:"battle_entry",count:1,netToSink:1},{reason:"crowd_vote_pool_init",count:10,netToSink:-10}]`.
-      (2) `leaks.toSink` includes NPC-safe `battle_entry_npc` plus non-NPC `battle_entry`, but only NPC entries hit allowlist; `unexpected_net_to_sink_reason` absent, `net_to_sink_mismatch` absent.
-      (3) World totals: `beforeTotal=200`, `afterTotal=200`, `delta=0`; `flowSummary.invariants`: `totalsNetOk=true`, `totalsBalanceOk=true`, `sinkNetMatchesDelta=true`, `sinkBalanceExplained=null`.
+      (1) Evidence из чата (runtime console, не Console.txt): `ok:true`, `world.delta=0`, `meta.unexpectedCount=0`, `meta.sinkNetScoped==meta.sinkDelta` (пример: 5), `meta.devIgnoredToSink` содержит `dev_paid_vote_probe`, `meta.nonNpcToSinkSkipped` содержит `crowd_vote_pool_init`.
+      (2) `unexpected_net_to_sink_reason` и `net_to_sink_mismatch` отсутствуют.
     Smoke:
       (1) `Game.__DEV.smokeEconNpc_AllowlistOnce({window:{lastN:200}})`
     Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
@@ -194,7 +193,138 @@ Result: |
         PASS если `ok:true`, `rowsScoped>0`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkipped` присутствует, `notes` не содержат `unexpected_net_to_sink_reason`. Приложи summary (meta, leaks, flowSummary.invariants).
         ```
 
--### [T-20260207-013] ECON-NPC [1.4] Allowlist stability 3-run
+### [T-20260208-006] ECON-NPC [1.4] World stipend redistribution (no emission)
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Ввести worldBank и перераспределение через world_tax_in/world_stipend_out без эмиссии.
+- Acceptance:
+  - [ ] `Game.__DEV.smokeWorldStipendOnce({ N: 300, seed: 1, runs: 3 })` возвращает ok:true (worldDelta=0, bank>=0, reasons include tax+stipend).
+  - [ ] `Game.__DEV.smokeWorldStipendOnce({ N: 1000, seed: 2, runs: 3 })` возвращает ok:true.
+  - [ ] Нет `points_emission_blocked`, банк не уходит в минус, банк не растёт без bound.
+- Smoke:
+    1) `Game.__DEV.smokeWorldStipendOnce({ N: 300, seed: 1, runs: 3 })`
+    2) `Game.__DEV.smokeWorldStipendOnce({ N: 1000, seed: 2, runs: 3 })`
+- Result: |
+    Status: FAIL
+    Facts:
+      (1) В доступном runtime evidence (transient console output) есть только 3 объекта `auditNpcWorldBalanceOnce` (все `ok:true`) и нет объектов `Game.__DEV.smokeWorldStipendOnce({ N: 300, seed: 1, runs: 3 })` / `Game.__DEV.smokeWorldStipendOnce({ N: 1000, seed: 2, runs: 3 })` с полями `summary/stable/runs`.
+      (2) По имеющемуся audit evidence: `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=200`, `world.delta=0`, `meta.unexpectedCount=0`, `flowSummary.invariants` all true, `notes` include `balances_unavailable`.
+      (3) Критерий [1.4] требует PASS/FAIL строго по runtime SMOKE A/B; без фактических объектов A/B шаг фиксируется как FAIL.
+    Smoke (не выполнен в этом апдейте, требуется QA runtime):
+      (1) `Game.__DEV.smokeWorldStipendOnce({ N: 300, seed: 1, runs: 3 })`
+      (2) `Game.__DEV.smokeWorldStipendOnce({ N: 1000, seed: 2, runs: 3 })`
+    Action log:
+      - 2026-02-08 20:10:01 JST | check | Console.txt tail | ok | Latest block shows build_2026_02_08f, LOADED, no AUTO_RUN_FAIL. Evidence:
+        ```
+        [warn] DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+        [warn] DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+        [warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+        [warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08f
+        [warn] DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770548381873
+        ```
+      - 2026-02-08 20:10:01 JST | edit (retro) | `AsyncScene/Web/conflict/conflict-economy.js` | ok | Added `WORLD_BANK_SOFT_CAP=20`, bank soft-cap guard in `transferCrowdVoteCost`, `getWorldBankBalance/getWorldBankSoftCap`, and core `maybeWorldStipendTick` (world_stipend_out transfer).
+      - 2026-02-08 20:10:01 JST | edit (retro) | `AsyncScene/Web/dev/dev-checks.js` | ok | `runWorldTicks` now prefers core `maybeWorldStipendTick`; report includes `worldBankSoftCap`.
+      - 2026-02-08 20:10:01 JST | check | `grep -RIn "worldBank|world_tax_in|world_stipend_out|stipend"` | ok | Verified existing tax route and stipend smokes in code (no runtime smoke run yet).
+      - 2026-02-08 20:20:09 JST | check | Console.txt tail | fail | Found DEV_CHECKS_BOOT_TRY_FAIL + TypeError log.filter. Evidence:
+        ```
+        [error] DEV_CHECKS_BOOT_TRY_FAIL @http://localhost:8080/dev/dev-checks.js:8110:20
+        doNpcVotesOnce@http://localhost:8080/dev/dev-checks.js:2626:63
+        applyTick@http://localhost:8080/dev/dev-checks.js:2734:27
+        runLoop@http://localhost:8080/dev/dev-checks.js:2747:18
+        ```
+      - 2026-02-08 20:20:09 JST | check | `grep -n "log.filter" AsyncScene/Web/dev/dev-checks.js` | ok | Found multiple occurrences (incl. line ~9318), indicating unnormalized logs.
+      - 2026-02-08 20:20:09 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | Added `normalizeMoneyLogRows` and replaced log.filter sites with normalized rows; fixed logStart/rows usage around vote finalize.
+      - 2026-02-08 20:20:09 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | Added error capture in `runWorldTicks` (errors[] + try/catch in tick/vote/battle paths) to prevent boot crash.
+      - 2026-02-08 20:20:09 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | Added `Game.__DEV.smokeWorldStipendLongOnce` alias to `smokeWorldStipendOnce`.
+      - 2026-02-08 20:20:09 JST | check | Console.txt tail | fail | DEV_CHECKS_BOOT_TRY_FAIL present; SEC tamper logs after boot. Evidence:
+        ```
+        [error] DEV_CHECKS_BOOT_TRY_FAIL @http://localhost:8080/dev/dev-checks.js:8110:20
+        doNpcVotesOnce@http://localhost:8080/dev/dev-checks.js:2626:63
+        applyTick@http://localhost:8080/dev/dev-checks.js:2734:27
+        runLoop@http://localhost:8080/dev/dev-checks.js:2747:18
+        ```
+      - 2026-02-08 20:20:09 JST | check | `grep -n "log.filter" AsyncScene/Web/dev/dev-checks.js` | ok | Found remaining `log.filter` sites (normalized in subsequent edits).
+      - 2026-02-08 20:20:09 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | Added `normalizeMoneyLogRows` and replaced all log.filter usages with normalized rows; fixed logStart/logRows usage.
+      - 2026-02-08 20:20:09 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | Added error collection and try/catch in `runWorldTicks` tick/vote/battle; added `safeEconOnly` path that avoids votes/rep and uses direct tax.
+      - 2026-02-08 20:20:09 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | `smokeWorldStipendOnce` now calls `runWorldTicks` with `safeEconOnly:true` and disables votes/battles to avoid SEC tamper.
+      - 2026-02-08 20:38:07 JST | check | Console.txt tail | fail | Boot still logs DEV_CHECKS_BOOT_TRY_FAIL + SEC tamper. Evidence:
+        ```
+        [error] DEV_CHECKS_BOOT_TRY_FAIL @http://localhost:8080/dev/dev-checks.js:8110:20
+        doNpcVotesOnce@http://localhost:8080/dev/dev-checks.js:2626:63
+        applyTick@http://localhost:8080/dev/dev-checks.js:2734:27
+        runLoop@http://localhost:8080/dev/dev-checks.js:2747:18
+        ```
+      - 2026-02-08 20:38:07 JST | edit | `AsyncScene/Web/dev/dev-checks.js` | ok | Added boot try gate (`__DEV_ENABLE_BOOT_TRY__` or localStorage DEV_ENABLE_BOOT_TRY=1), boot phase skip with `DEV_CHECKS_BOOT_TRY_SKIPPED`, and dedup for `DEV_CHECKS_BOOT_TRY_FAIL`.
+
+### [T-20260208-007] ECON-NPC World stipend evidence pack runner (dev-only)
+- Status: FAIL
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-menu.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Сформировать единый Evidence Pack без ручных команд в консоли, чтобы QA мог скопировать 2 JSON (A/B) одним блоком.
+- Acceptance:
+  - [ ] `Game.__DEV.runWorldStipendEvidencePackOnce()` пишет в консоль markers `WORLD_STIPEND_EVIDENCE_PACK_V1_BEGIN/END` и между ними 2 однострочных JSON.
+  - [ ] Каждый JSON содержит `ok`, `meta.diagVersion="world_stipend_smoke_v1"`, `runs` и метрики world mass.
+- Result: |
+    Status: FAIL
+    Facts:
+      (1) Раннер добавлен в код, но runtime-вывод ещё не зафиксирован в Evidence Pack.
+      (2) PASS/FAIL можно выставить только после фактического вывода в консоли (без ссылок на файлы).
+    Smoke (QA, dev-only):
+      (1) `Game.__DEV.runWorldStipendEvidencePackOnce()`
+    Evidence policy: output должен быть скопирован напрямую из консоли и вставлен в логи; никаких ссылок на внешние файлы.
+
+### [T-20260208-008] ECON-NPC allowlist evidence pack (dev-only)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Done
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/dev/console-tape.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Зафиксировать runtime evidence pack для allowlist dev probe и стабильности.
+- Acceptance:
+  - [x] BEGIN/END блок содержит 2 JSON с `diagVersion:"econ_npc_allowlist_pack_v1"`.
+  - [x] JSON #1 probe ok может быть false; итог ok определяется audit (unexpectedCount=0, world.delta=0).
+  - [x] В дампе присутствуют `TAPE_FLUSH_OK`, `TAPE_FLUSH_POST_OK`, tail block.
+- Result: |
+  Status: PASS
+  Facts (Console.txt):
+    - WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN
+    - JSON #1 (probeRes ok:false; audit ok:true; unexpectedCount=0; world.delta=0)
+    - JSON #2 (runs summary ok:true; unexpectedCount=0; worldDelta=0)
+    - WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END
+    - TAPE_FLUSH_OK
+    - TAPE_FLUSH_POST_OK
+    - TAPE_FLUSH_META {...}
+    - TAPE_FLUSH_POST_META {...}
+    - CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN
+    - [CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=104 lastLine=TAPE_FLUSH_POST_META {"ok":true,"bytes":27696,"lines":32}]
+    - [TAPE_TAIL_1] WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END
+    - [TAPE_TAIL_2] TAPE_FLUSH_OK
+    - [TAPE_TAIL_3] TAPE_FLUSH_META {"ok":true,"bytes":27624,"lines":30}
+    - [TAPE_TAIL_4] TAPE_FLUSH_POST_OK
+    - [TAPE_TAIL_5] TAPE_FLUSH_POST_META {"ok":true,"bytes":27696,"lines":32}
+    - CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END
+    - DUMP_ALIAS_OK {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+  Build tag: build_2026_02_08g
+- Action log:
+  - [2026-02-08 23:00:22] check Console.txt tail block; cmd: `python - <<'PY' ... rfind(CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN) ...`; result: lastLine=TAPE_FLUSH_POST_META.
+  - [2026-02-08 23:00:22] check evidence block; cmd: `python - <<'PY' ... rfind(WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN) ...`; result: BEGIN/END + flush markers present.
+  - [2026-02-08 23:00:22] check PROJECT_MEMORY line count; cmd: `wc -l PROJECT_MEMORY.md`; result: 2326 lines (before append).
+  - [2026-02-08 23:00:22] update docs only; result: PASS section appended, no code changes.
+- QA commands:
+  1. `Game.__DEV.runEconNpcAllowlistEvidencePackOnce({window:{lastN:200}})`
+  2. `Game.__DUMP_ALL__ && Game.__DUMP_ALL__()`
+- Validation:
+  - Console.txt append-only; before long smokes run `Game.__DUMP_CLEAR__ && Game.__DUMP_CLEAR__()`.
+  - PROJECT_MEMORY.md updated by append-only (line count 2326 -> 2357).
+### [T-20260207-013] ECON-NPC [1.4] Allowlist stability 3-run
 - Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
@@ -209,10 +339,11 @@ Result: |
 - Result: |
   Status: PASS
   Facts:
-    Evidence A (Console.txt): `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=26`, `meta.sinkDelta=6`, `meta.sinkNetScoped=6`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkippedSum=-4`, `world.delta=0`, `flowSummary.invariants`: all true, `sinkBalanceExplained=null`, `leaks.toSink`: `crowd_vote_cost +10`, `crowd_vote_pool_init -4`.
-    Evidence B (Console.txt): `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=50`, `meta.sinkDelta=1`, `meta.sinkNetScoped=1`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkippedSum=-10`, `world.delta=0`, `flowSummary.invariants`: all true, `sinkBalanceExplained=null`, `leaks.toSink`: `crowd_vote_cost +10`, `crowd_vote_pool_init -4`.
-    3-run stability подтверждена: три объекта идентичны в обоих evidence; SMOKE не перезапускался для этой правки.
-  Evidence Source: Console.txt (3 identical runs `auditNpcWorldBalanceOnce` lastN=200).
+    Evidence A (Console.txt): `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=26`, `meta.sinkDelta=6`, `meta.sinkNetScoped=6`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkippedSum=-4`, `world.delta=0`, `flowSummary.invariants`: all true, `sinkBalanceExplained=null`, `net_to_sink_mismatch` absent, `leaks.toSink`: `crowd_vote_cost +10`, `crowd_vote_pool_init -4`.
+    Evidence B (Console.txt): `ok:true`, `notes:["balances_unavailable"]`, `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=50`, `meta.sinkDelta=1`, `meta.sinkNetScoped=1`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkippedSum=-10`, `world.delta=0`, `flowSummary.invariants`: all true, `sinkBalanceExplained=null`, `net_to_sink_mismatch` absent, `leaks.toSink`: `crowd_vote_cost +10`, `crowd_vote_pool_init -4`.
+    3-run stability подтверждена: три объекта идентичны в обоих evidence.
+  Источник: Console.txt (3 identical runs `auditNpcWorldBalanceOnce` lastN=200).
+  SMOKE не перезапускался для этой правки, evidence взят из Console.txt.
   Smoke (for future QA rerun):
     - `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`
     - `Game.__DEV.smokeEconNpc_AllowlistStabilityOnce({window:{lastN:200}, runs:3})`

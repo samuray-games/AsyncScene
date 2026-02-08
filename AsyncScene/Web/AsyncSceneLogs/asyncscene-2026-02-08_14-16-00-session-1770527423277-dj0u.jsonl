@@ -1,0 +1,4 @@
+{"ts": 1770527759428, "sessionId": "session-1770527423277-dj0u", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770527760029, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "battle_win_take", "battleId": "battle_mldahxcx_3tkjfp"}}
+{"ts": 1770527760042, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": -1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "battle_mldahxcx_3tkjfp"}}
+{"ts": 1770527760061, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": -2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mldahxcx_3tkjfp"}}

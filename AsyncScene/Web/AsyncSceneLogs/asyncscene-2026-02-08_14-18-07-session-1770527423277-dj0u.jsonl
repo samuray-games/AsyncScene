@@ -1,0 +1,5 @@
+{"ts": 1770527886073, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mldakopb_nvptig"}}
+{"ts": 1770527886077, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mldakopb_nvptig"}}
+{"ts": 1770527886083, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mldakopb_nvptig"}}
+{"ts": 1770527886084, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mldakopb_nvptig"}}
+{"ts": 1770527886793, "sessionId": "session-1770527423277-dj0u", "type": "chat", "name": "Глеб", "text": "@Sora, сейчас проверим кто тут главный", "system": false}

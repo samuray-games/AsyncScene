@@ -184,6 +184,85 @@ window.Game = window.Game || {};
       notify("Logger flush triggered.");
     });
 
+    makeButton("Econ NPC allowlist evidence pack", "Run allowlist evidence pack (dev-only)", () => {
+      const G = window.Game || null;
+      const fn =
+        (G && G.__DEV && typeof G.__DEV.runEconNpcAllowlistEvidencePackOnce === "function" && G.__DEV.runEconNpcAllowlistEvidencePackOnce) ||
+        (G && G.Dev && typeof G.Dev.runEconNpcAllowlistEvidencePackOnce === "function" && G.Dev.runEconNpcAllowlistEvidencePackOnce) ||
+        (G && G.__DEV && typeof G.__DEV.runAllowlistEvidencePackOnce === "function" && G.__DEV.runAllowlistEvidencePackOnce) ||
+        (G && G.Dev && typeof G.Dev.runAllowlistEvidencePackOnce === "function" && G.Dev.runAllowlistEvidencePackOnce);
+      if (!fn) {
+        console.error("ECON_NPC_ALLOWLIST_PACK_V1_MISSING_FN");
+        if (G && G.__DEV && typeof G.__DEV.diagEconNpcAllowlistPackOnce === "function") {
+          G.__DEV.diagEconNpcAllowlistPackOnce();
+        }
+        notify("Allowlist pack helper missing.");
+        return;
+      }
+      fn();
+      if (G && G.__DEV && G.__DEV.lastEconNpcAllowlistEvidencePack) {
+        console.log("ECON_NPC_ALLOWLIST_PACK_V1_LAST", G.__DEV.lastEconNpcAllowlistEvidencePack);
+      }
+      console.warn("AFTER CLICK: search console for WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN");
+      notify("Allowlist pack logged to console.");
+    });
+    makeButton("Print last allowlist pack", "Re-print stored allowlist evidence pack", () => {
+      const G = window.Game || null;
+      const pack = G && G.__DEV && G.__DEV.lastEconNpcAllowlistEvidencePack ? G.__DEV.lastEconNpcAllowlistEvidencePack : null;
+      if (!pack) {
+        console.warn("ECON_NPC_ALLOWLIST_PACK_V1_NO_LAST");
+        notify("No stored allowlist pack yet.");
+        return;
+      }
+      console.log("WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN");
+      pack.results.forEach(obj => console.log(JSON.stringify(obj || null)));
+      console.log("WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END");
+      notify("Replayed last allowlist pack.");
+    });
+
+    makeButton("Dump console to Console.txt", "Copy full console tape to Console.txt (dev-only)", async () => {
+      const dumpFn = (typeof window !== "undefined" && typeof window.__DUMP_ALL__ === "function") ? window.__DUMP_ALL__ : null;
+      if (!dumpFn) {
+        console.error("CONSOLE_DUMP_NO_TAPE");
+        notify("Console tape missing.");
+        return;
+      }
+      const text = dumpFn();
+      if (!text) {
+        console.error("CONSOLE_DUMP_NO_TAPE");
+        notify("Console tape empty.");
+        return;
+      }
+      const postUrl = "/__dev/console-dump";
+      console.warn("CONSOLE_DUMP_POSTING_TO", postUrl);
+      try {
+        const resp = await fetch(postUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, meta: { clientEpochMs: Date.now() } })
+        });
+        console.warn("CONSOLE_DUMP_HTTP_STATUS", resp.status);
+        const data = await resp.json().catch(() => null);
+        if (resp.ok && data && data.ok) {
+          console.warn("CONSOLE_DUMP_WRITE_OK", data);
+          if (data && data.dumpAtLocal && data.dumpAtEpochMs) {
+            console.warn("CONSOLE_DUMP_AT", `[${data.dumpAtLocal}]`, data.dumpAtEpochMs);
+          }
+          notify("Console.txt updated.");
+        } else {
+          let textResp = "";
+          try {
+            textResp = await resp.text();
+          } catch (_) {}
+          console.error("CONSOLE_DUMP_WRITE_FAIL", resp.status, data || textResp);
+          notify("Console.txt write failed.");
+        }
+      } catch (err) {
+        console.error("CONSOLE_DUMP_WRITE_FAIL", err);
+        notify("Console.txt write failed.");
+      }
+    });
+
     const updateStatus = (value) => {
       if (!status) return;
       const label = value === "connected" ? "connected" : value === "disconnected" ? "disconnected" : "unknown";

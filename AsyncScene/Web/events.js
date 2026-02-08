@@ -768,15 +768,25 @@ window.Game ||= {};
       const price = calcFinalPrice({ basePrice: 1, actorPoints: beforePts, priceKey: "vote", context: { battleId: voteBattleId, actionNonce } });
       const cost = price.finalPrice;
       const costCountBefore = countCrowdVoteCostLogs(voterId, voteBattleId);
-      const ok = Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
-        battleId: voteBattleId,
-        basePrice: price.basePrice,
-        mult: price.mult,
-        finalPrice: price.finalPrice,
-        priceKey: price.priceKey || "vote",
-        pointsAtPurchase: beforePts,
-        context: price.context || { battleId: voteBattleId, actionNonce }
-      });
+      const ok = (Econ && typeof Econ.transferCrowdVoteCost === "function")
+        ? Econ.transferCrowdVoteCost(voterId, "sink", cost, {
+          battleId: voteBattleId,
+          basePrice: price.basePrice,
+          mult: price.mult,
+          finalPrice: price.finalPrice,
+          priceKey: price.priceKey || "vote",
+          pointsAtPurchase: beforePts,
+          context: price.context || { battleId: voteBattleId, actionNonce }
+        })
+        : Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+          battleId: voteBattleId,
+          basePrice: price.basePrice,
+          mult: price.mult,
+          finalPrice: price.finalPrice,
+          priceKey: price.priceKey || "vote",
+          pointsAtPurchase: beforePts,
+          context: price.context || { battleId: voteBattleId, actionNonce }
+        });
       const stateNpcAfter = getPlayerById(voterId) || stateNpc;
       const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
       const costCountAfter = countCrowdVoteCostLogs(voterId, voteBattleId);

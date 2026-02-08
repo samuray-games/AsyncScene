@@ -8,6 +8,17 @@
 // ui-boot.js
 window.Game = window.Game || {};
 
+(function () {
+  const head = document.head || document.documentElement;
+  if (head && !window.__CONSOLE_TAPE_SCRIPT_LOADED__) {
+    window.__CONSOLE_TAPE_SCRIPT_LOADED__ = true;
+    const tapeScript = document.createElement("script");
+    tapeScript.src = "/dev/console-tape.js";
+    tapeScript.async = false;
+    head.insertBefore(tapeScript, head.firstChild);
+  }
+})();
+
 (() => {
   // Boot must run only when:
   // 1) DOM is ready

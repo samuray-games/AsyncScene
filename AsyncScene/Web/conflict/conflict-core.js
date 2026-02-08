@@ -1422,15 +1422,25 @@
                   context: price.context || { battleId }
                 })
               : (Econ && typeof Econ.transferPoints === "function")
-                ? Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
-                    battleId,
-                    basePrice: price.basePrice,
-                    mult: price.mult,
-                    finalPrice: price.finalPrice,
-                    priceKey: price.priceKey || "vote",
-                    pointsAtPurchase: beforePts,
-                    context: price.context || { battleId }
-                  })
+                ? (Econ && typeof Econ.transferCrowdVoteCost === "function"
+                    ? Econ.transferCrowdVoteCost(voterId, "sink", cost, {
+                        battleId,
+                        basePrice: price.basePrice,
+                        mult: price.mult,
+                        finalPrice: price.finalPrice,
+                        priceKey: price.priceKey || "vote",
+                        pointsAtPurchase: beforePts,
+                        context: price.context || { battleId }
+                      })
+                    : Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+                        battleId,
+                        basePrice: price.basePrice,
+                        mult: price.mult,
+                        finalPrice: price.finalPrice,
+                        priceKey: price.priceKey || "vote",
+                        pointsAtPurchase: beforePts,
+                        context: price.context || { battleId }
+                      }))
                 : { ok: false };
             const afterPts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
             if (ok && ok.ok && (afterPts === (beforePts - cost))) {

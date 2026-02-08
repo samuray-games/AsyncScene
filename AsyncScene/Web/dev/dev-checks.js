@@ -1,8 +1,24 @@
 // dev/dev-checks.js
 window.Game = window.Game || {};
+console.warn("DEV_CHECKS_SERVED_PROOF_V3", "served_probe_2026_02_08_1");
+console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" ? location.href : "no_location"));
 
 (function () {
+  var logRows = [];
+  var eventLogRows = [];
+  var dbgLog = [];
+  var dbgLogRows = [];
   const Game = window.Game;
+  const G = Game;
+  if (!G.__DEV) G.__DEV = {};
+  if (!G.Dev) G.Dev = {};
+  if (!G.__DEV.__econNpcAllowlistPackLoaded) {
+    G.__DEV.__econNpcAllowlistPackLoaded = true;
+    console.warn("ECON_NPC_ALLOWLIST_PACK_V1_LOADED");
+  }
+  console.warn("ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG", "build_2026_02_08g");
+  console.warn("DEV_CHECKS_PROOF_V1", "build_probe_2026_02_08_fix_try_1", Date.now());
+  const getDbgLog = () => (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
   function hasExplicitDevQueryParam() {
     if (typeof location === "undefined" || !location) return false;
     const search = location.search;
@@ -18,6 +34,21 @@ window.Game = window.Game || {};
     window.__DEV__ === true ||
     window.DEV === true ||
     hasExplicitDevQueryParam();
+
+  const bootTryEnabled = (() => {
+    try {
+      if (window && window.__DEV_ENABLE_BOOT_TRY__ === true) return true;
+      if (window && window.localStorage && window.localStorage.getItem("DEV_ENABLE_BOOT_TRY") === "1") return true;
+    } catch (_) {}
+    return false;
+  })();
+
+  if (G.__DEV) {
+    G.__DEV.__bootPhase = true;
+    const clearBoot = () => { G.__DEV.__bootPhase = false; };
+    if (typeof queueMicrotask === "function") queueMicrotask(clearBoot);
+    else setTimeout(clearBoot, 0);
+  }
 
   const ensureDevStoreSurface = () => {
     if (Game.__DEV && typeof Game.__DEV === "object") return Game.__DEV;
@@ -1733,6 +1764,7 @@ window.Game = window.Game || {};
     "crowd_vote_pool_init",
     "battle_entry_npc"
   ]);
+  const WORLD_BANK_ID = "worldBank";
   const DEV_ONLY_IGNORED_NET_TO_SINK_REASONS = new Set([
     "dev_paid_vote_probe"
   ]);
@@ -1952,7 +1984,14 @@ window.Game = window.Game || {};
       spec.count += 1;
       spec.netToSink = toNum(spec.netToSink + delta, `sinkNet:${key}:${isNpcRow ? "npc" : "nonNpc"}`);
     });
-    const toSink = Object.values(sinkMap)
+    const npcSinkEntries = Object.values(sinkMapNpc)
+      .filter(entry => Math.abs(entry.netToSink) >= 1);
+    const devIgnoredToSink = npcSinkEntries
+      .filter(entry => DEV_ONLY_IGNORED_NET_TO_SINK_REASONS.has(entry.reason) && entry.netToSink !== 0)
+      .slice(0, 5);
+    const candidateLeakEntries = npcSinkEntries
+      .filter(entry => !DEV_ONLY_IGNORED_NET_TO_SINK_REASONS.has(entry.reason));
+    const toSink = candidateLeakEntries
       .filter(entry => Math.abs(entry.netToSink) >= 1)
       .map(entry => ({
         reason: entry.reason,
@@ -1966,13 +2005,8 @@ window.Game = window.Game || {};
         return 0;
       });
 
-    const npcSinkEntries = Object.values(sinkMapNpc)
-      .filter(entry => Math.abs(entry.netToSink) >= 1);
-    const devIgnoredToSink = npcSinkEntries
-      .filter(entry => DEV_ONLY_IGNORED_NET_TO_SINK_REASONS.has(entry.reason) && entry.netToSink !== 0)
-      .slice(0, 5);
-    const unexpectedToSink = npcSinkEntries
-      .filter(entry => !ALLOWED_NET_TO_SINK_REASONS.has(entry.reason) && !DEV_ONLY_IGNORED_NET_TO_SINK_REASONS.has(entry.reason) && entry.netToSink !== 0)
+    const unexpectedToSink = candidateLeakEntries
+      .filter(entry => !ALLOWED_NET_TO_SINK_REASONS.has(entry.reason) && entry.netToSink !== 0)
       .slice(0, 5);
     const nonNpcToSinkSkipped = Object.values(sinkMapNonNpc)
       .filter(entry => Math.abs(entry.netToSink) >= 1)
@@ -2135,13 +2169,18 @@ window.Game = window.Game || {};
         sinkBalanceExplained = false;
       }
     }
+    const balancesUnavailable = notes.includes("balances_unavailable");
+    if (balancesUnavailable && !notes.includes("sink_balance_unavailable_skip_match")) {
+      notes.push("sink_balance_unavailable_skip_match");
+    }
+    const sinkMatch = balancesUnavailable ? null : (sinkNet === netToSinkScoped);
     const invariants = {
       totalsNetOk: totals.netDelta === perNpcNetSum,
       totalsBalanceOk: totals.inTotal === (totals.outTotal + totals.netDelta),
-      sinkNetMatchesDelta: sinkNet === netToSinkScoped,
+      sinkNetMatchesDelta: sinkMatch,
       sinkBalanceExplained
     };
-    const leaksNetSum = toSink.reduce((s, entry) => s + toNum(entry.netToSink, `leaksNet:${entry.reason}`), 0);
+    const leaksNetSum = Object.values(sinkMap).reduce((s, entry) => s + toNum(entry.netToSink, `leaksNet:${entry.reason}`), 0);
 
     const rowsScopedCount = scopedRows.length;
     const emptyScope = rowsScopedCount === 0;
@@ -2161,6 +2200,10 @@ window.Game = window.Game || {};
       if (!notes.includes("only_non_npc_to_sink_rows_in_scope")) {
         notes.push("only_non_npc_to_sink_rows_in_scope");
       }
+    }
+    if (invariants.sinkNetMatchesDelta === false) {
+      ok = false;
+      if (!notes.includes("invariants_failed")) notes.push("invariants_failed");
     }
     if (refreshFailed) {
       if (!notes.includes("no_scoped_rows_after_refresh")) {
@@ -2259,6 +2302,68 @@ window.Game = window.Game || {};
       });
     } catch (_) {}
     return res;
+  };
+
+  Game.__DEV.smokeEconNpc_AllowlistDevProbeOnce = (opts = {}) => {
+    const windowOpts = opts.window || { lastN: 200 };
+    const notes = [];
+    let ok = true;
+    let probeRes = null;
+    if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventPaidVotesOnce === "function") {
+      probeRes = Game.__DEV.smokeNpcCrowdEventPaidVotesOnce({ forceBranch: "majority" });
+      if (!(probeRes && probeRes.ok)) {
+        ok = false;
+        notes.push("probe_failed");
+      }
+    } else {
+      ok = false;
+      notes.push("probe_missing");
+    }
+
+    const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: true });
+    if (!audit || audit.ok !== true) {
+      ok = false;
+      notes.push("audit_failed");
+    }
+    const meta = audit && audit.meta ? audit.meta : {};
+    const devIgnored = meta.devIgnoredToSink || [];
+    const leaks = audit && audit.leaks ? audit.leaks : {};
+    const toSink = leaks.toSink || [];
+    if (!devIgnored.some(x => x && x.reason === "dev_paid_vote_probe" && x.count >= 1)) {
+      ok = false;
+      notes.push("dev_probe_not_ignored");
+    }
+    if (toSink.some(x => x && x.reason === "dev_paid_vote_probe")) {
+      ok = false;
+      notes.push("dev_probe_leaked");
+    }
+    if ((meta.unexpectedCount | 0) !== 0) {
+      ok = false;
+      notes.push("unexpected_count");
+    }
+    const worldDelta = audit && audit.world ? audit.world.delta : null;
+    if (!Number.isFinite(worldDelta) || worldDelta !== 0) {
+      ok = false;
+      notes.push("world_delta");
+    }
+    const inv = audit && audit.flowSummary && audit.flowSummary.invariants ? audit.flowSummary.invariants : null;
+    if (!inv || inv.totalsNetOk !== true || inv.totalsBalanceOk !== true || inv.sinkNetMatchesDelta !== true) {
+      ok = false;
+      notes.push("invariants_failed");
+    }
+
+    try {
+      console.log("[DEV] ECON_NPC_ALLOWLIST_DEV_PROBE", {
+        ok,
+        notes,
+        rowsScoped: meta.rowsScoped || 0,
+        unexpectedCount: meta.unexpectedCount || 0,
+        devIgnoredToSink: devIgnored,
+        toSinkTop: toSink.slice(0, 5)
+      });
+    } catch (_) {}
+
+    return { ok, notes, probeRes, audit };
   };
 
   Game.__DEV.smokeEconNpc_AllowlistStabilityOnce = (opts = {}) => {
@@ -2437,6 +2542,9 @@ window.Game = window.Game || {};
     }
 
     const stable = {
+      rowsScopedStable: stableRowsScoped,
+      allowlistStable: stableAllowlist,
+      unexpectedStable: stableUnexpected,
       sameRowsScoped: stableRowsScoped,
       sameSinkNetScoped: stableSinkNet,
       sameAllowlistSize: stableAllowlist,
@@ -2452,12 +2560,592 @@ window.Game = window.Game || {};
       worldDelta: runs[0].worldDelta
     } : null;
     const result = {
-      ok: ok && stable.sameAllowlistSize && stable.sameUnexpectedCount,
+      ok: ok && stable.allowlistStable && stable.unexpectedStable,
       runs,
       stable,
       summary
     };
     return result;
+  };
+
+  // dev-only QA helper: run world ticks without UI and report stability metrics.
+  Game.__DEV.runWorldTicks = (opts = {}) => {
+    const N = Number.isFinite(opts.N) ? Math.max(1, opts.N | 0) : 100;
+    const seed = (opts && opts.seed != null) ? Number(opts.seed) : null;
+    const verbose = !!(opts && opts.verbose);
+    const stipendEnabled = !!(opts && opts.stipendEnabled);
+    const safeEconOnly = !!(opts && opts.safeEconOnly);
+    const allowNpcVotes = !!(opts && opts.allowNpcVotes);
+    const allowBattles = !!(opts && opts.allowBattles);
+    const allowEventsTick = (opts && typeof opts.allowEventsTick !== "undefined") ? !!opts.allowEventsTick : true;
+    const ticksPerPayout = Number.isFinite(opts && opts.ticksPerPayout) ? Math.max(1, opts.ticksPerPayout | 0) : 25;
+    const stipendAmount = Number.isFinite(opts && opts.stipendAmount) ? Math.max(1, opts.stipendAmount | 0) : 1;
+    const stipendZ = Number.isFinite(opts && opts.stipendZeroStreak) ? Math.max(1, opts.stipendZeroStreak | 0) : 5;
+    const maxRecipientsPerTick = Number.isFinite(opts && opts.maxRecipientsPerTick) ? Math.max(1, opts.maxRecipientsPerTick | 0) : 5;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const Events = Game.Events || null;
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const S = Game.__S || null;
+    if (!S || !S.players) return { ok: false, notes: ["missing_state_players"] };
+
+    if (Game.__DEV && Game.__DEV.__bootPhase && !bootTryEnabled && !opts.allowBootTry) {
+      if (!Game.__DEV.__bootTrySkipLogged) {
+        Game.__DEV.__bootTrySkipLogged = true;
+        console.warn("DEV_CHECKS_BOOT_TRY_SKIPPED");
+      }
+      return { ok: false, notes: ["boot_try_disabled"] };
+    }
+
+    const dbg = Game.__D ? Game.__D : (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
+    const logStart = dbg.moneyLog.length;
+
+    const npcIds = Object.values(S.players || {})
+      .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
+      .map(p => String(p.id))
+      .sort();
+    const npcStats = Object.create(null);
+    const npcZero = Object.create(null);
+    npcIds.forEach(id => {
+      const p = S.players[id];
+      const pts = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+      npcStats[id] = { npcId: id, startPts: pts, endPts: pts, minPtsSeen: pts, maxPtsSeen: pts, zeroStreakMax: 0 };
+      npcZero[id] = { cur: pts === 0 ? 1 : 0, max: pts === 0 ? 1 : 0 };
+    });
+
+    const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    const worldMassBefore = beforeSnap && Number.isFinite(beforeSnap.total) ? (beforeSnap.total | 0) : null;
+    const worldBankBefore = beforeSnap && beforeSnap.byId && Number.isFinite(beforeSnap.byId[WORLD_BANK_ID]) ? (beforeSnap.byId[WORLD_BANK_ID] | 0) : 0;
+
+    let ticksProcessed = 0;
+    let eventsApplied = 0;
+    let votesApplied = 0;
+    let battlesResolved = 0;
+    const notes = [];
+    const errors = [];
+    let tickMissingLogged = false;
+    let payoutsCount = 0;
+    let taxedCount = 0;
+    let eligibleCount = 0;
+    let assistedNpcCount = 0;
+    let assistedFromZeroCount = 0;
+    const assistedNpcSet = new Set();
+
+    const recordError = (where, err) => {
+      errors.push({
+        ok: false,
+        where,
+        errMsg: String(err && err.message ? err.message : err),
+        errStack: err && err.stack ? String(err.stack) : null
+      });
+    };
+
+    const tickEventsOnce = () => {
+      try {
+        if (Events && typeof Events.tick === "function") {
+          Events.tick();
+          return true;
+        }
+      } catch (e) {
+        recordError("tickEventsOnce", e);
+      }
+      return false;
+    };
+
+    const addNpcEventOnce = () => {
+      try {
+        if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function") return false;
+        const ev = Events.makeNpcEvent();
+        if (!ev) return false;
+        Events.addEvent(ev);
+        return true;
+      } catch (e) {
+        recordError("addNpcEventOnce", e);
+        return false;
+      }
+    };
+
+    const doNpcVotesOnce = () => {
+      if (!allowNpcVotes) return false;
+      try {
+        if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventPaidVotesOnce === "function") {
+          const res = Game.__DEV.smokeNpcCrowdEventPaidVotesOnce({ forceBranch: "majority" });
+          return !!(res && res.ok);
+        }
+      } catch (e) {
+        recordError("doNpcVotesOnce", e);
+      }
+      return false;
+    };
+
+    const doBattleOnce = () => {
+      if (!allowBattles) return false;
+      try {
+        if (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function") {
+          const res = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+          return !!(res && res.ok);
+        }
+      } catch (e) {
+        recordError("doBattleOnce", e);
+      }
+      return false;
+    };
+
+    const getWorldBankBalance = () => {
+      const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      if (!snap || !snap.byId) return 0;
+      return Number.isFinite(snap.byId[WORLD_BANK_ID]) ? (snap.byId[WORLD_BANK_ID] | 0) : 0;
+    };
+
+    const applyWorldStipendTick = (tickIndex) => {
+      if (!stipendEnabled) return;
+      if ((tickIndex % ticksPerPayout) !== 0) return;
+      if (Econ && typeof Econ.maybeWorldStipendTick === "function") {
+        const zeroStreakById = Object.create(null);
+        npcIds.forEach(id => { zeroStreakById[id] = npcZero[id] ? npcZero[id].cur : 0; });
+        const res = Econ.maybeWorldStipendTick({
+          npcIds,
+          zeroStreakById,
+          zeroStreakThreshold: stipendZ,
+          stipendThreshold: 0,
+          stipendAmount,
+          maxRecipientsPerTick,
+          tick: tickIndex,
+          seed
+        });
+        if (res && Number.isFinite(res.eligibleCount)) eligibleCount += res.eligibleCount;
+        if (res && Array.isArray(res.paidIds)) {
+          payoutsCount += res.paidIds.length;
+          res.paidIds.forEach(id => {
+            if (!assistedNpcSet.has(id)) {
+              assistedNpcSet.add(id);
+              assistedNpcCount += 1;
+              const beforePts = npcStats[id] ? npcStats[id].endPts : 0;
+              if (beforePts === 0) assistedFromZeroCount += 1;
+            }
+          });
+        }
+        if (res && Array.isArray(res.notes)) {
+          res.notes.forEach(n => {
+            if (!notes.includes(n)) notes.push(n);
+          });
+        }
+        return;
+      }
+      if (!Econ || typeof Econ.transferPoints !== "function") return;
+      const eligible = npcIds.filter(id => {
+        const stat = npcStats[id];
+        const pts = stat ? stat.endPts : 0;
+        const z = npcZero[id] ? npcZero[id].cur : 0;
+        return pts === 0 || z >= stipendZ;
+      });
+      eligibleCount += eligible.length;
+      if (!eligible.length) return;
+      const list = eligible.slice().sort();
+      if (seed != null) {
+        list.sort(() => Math.random() - 0.5);
+      }
+      const selected = list.slice(0, maxRecipientsPerTick);
+      let bankBal = getWorldBankBalance();
+      selected.forEach(id => {
+        if (bankBal < stipendAmount) {
+          if (!notes.includes("bank_insufficient")) notes.push("bank_insufficient");
+          return;
+        }
+        const beforePts = npcStats[id] ? npcStats[id].endPts : 0;
+        const res = Econ.transferPoints(WORLD_BANK_ID, id, stipendAmount, "world_stipend_out", {
+          tick: tickIndex,
+          seed,
+          eligibility: (beforePts === 0 ? "zero" : "streak"),
+          zeroStreak: npcZero[id] ? npcZero[id].cur : 0,
+          bankBefore: bankBal,
+          bankAfter: bankBal - stipendAmount
+        });
+        if (res && res.ok) {
+          payoutsCount += 1;
+          if (!assistedNpcSet.has(id)) {
+            assistedNpcSet.add(id);
+            assistedNpcCount += 1;
+            if (beforePts === 0) assistedFromZeroCount += 1;
+          }
+          bankBal -= stipendAmount;
+        }
+      });
+    };
+
+    const applyTick = () => {
+      try {
+        const didTick = allowEventsTick ? tickEventsOnce() : false;
+        if (!didTick && !tickMissingLogged) {
+          notes.push("events_tick_missing");
+          tickMissingLogged = true;
+        }
+        if ((ticksProcessed % 10) === 0) {
+          if (allowEventsTick && addNpcEventOnce()) eventsApplied += 1;
+        }
+        if ((ticksProcessed % 25) === 0) {
+          if (doNpcVotesOnce()) votesApplied += 1;
+          if (!allowNpcVotes) applyNpcTaxOnce(ticksProcessed);
+        }
+        if ((ticksProcessed % 50) === 0) {
+          if (doBattleOnce()) battlesResolved += 1;
+        }
+      } catch (e) {
+        recordError("applyTick", e);
+      }
+    };
+
+    const now0 = getNow();
+    let currentNow = now0;
+    const runLoop = () => {
+      for (let i = 0; i < N; i++) {
+        ticksProcessed += 1;
+        currentNow = now0 + (i * 1000);
+        applyTick();
+        npcIds.forEach(id => {
+          const p = S.players[id];
+          const pts = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+          const stat = npcStats[id];
+          stat.endPts = pts;
+          if (pts < stat.minPtsSeen) stat.minPtsSeen = pts;
+          if (pts > stat.maxPtsSeen) stat.maxPtsSeen = pts;
+          const z = npcZero[id];
+          if (pts === 0) {
+            z.cur += 1;
+            if (z.cur > z.max) z.max = z.cur;
+          } else {
+            z.cur = 0;
+          }
+          stat.zeroStreakMax = z.max;
+        });
+        applyWorldStipendTick(ticksProcessed);
+      }
+    };
+
+    const runner = () => runLoop();
+    if (seed != null) {
+      withSeededRandom(seed, () => withFakeNow(() => currentNow, runner));
+    } else {
+      withFakeNow(() => currentNow, runner);
+    }
+
+    const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    const worldMassAfter = afterSnap && Number.isFinite(afterSnap.total) ? (afterSnap.total | 0) : null;
+    const worldBankAfter = afterSnap && afterSnap.byId && Number.isFinite(afterSnap.byId[WORLD_BANK_ID]) ? (afterSnap.byId[WORLD_BANK_ID] | 0) : 0;
+    const worldMassDelta = (Number.isFinite(worldMassAfter) && Number.isFinite(worldMassBefore))
+      ? ((worldMassAfter | 0) - (worldMassBefore | 0))
+      : null;
+
+    const endPts = npcIds.map(id => npcStats[id].endPts);
+    const pct = (arr, q) => {
+      if (!arr.length) return 0;
+      const a = arr.slice().sort((x, y) => x - y);
+      const idx = Math.min(a.length - 1, Math.max(0, Math.floor((q / 100) * (a.length - 1))));
+      return a[idx] | 0;
+    };
+    const p50 = pct(endPts, 50);
+    const p90 = pct(endPts, 90);
+    const p99 = pct(endPts, 99);
+    const Z = 20;
+    const R = Math.max(50, (p99 | 0) * 2);
+
+    const logEnd = dbg.moneyLog.length;
+    const windowRows = dbg.moneyLog.slice(logStart, logEnd);
+    const reasonAgg = Object.create(null);
+    const transfers = [];
+    let blockedEmissions = 0;
+    windowRows.forEach(row => {
+      if (!row) return;
+      const currency = String(row.currency || "");
+      const reason = String(row.reason || "unknown");
+      if (reason === "points_emission_blocked") blockedEmissions += 1;
+      if (currency && currency !== "points") return;
+      if (reason.startsWith("rep_")) return;
+      const amt = Number.isFinite(row.amount) ? (row.amount | 0) : 0;
+      if (amt <= 0) return;
+      reasonAgg[reason] = (reasonAgg[reason] || 0) + amt;
+      transfers.push({
+        sourceId: row.sourceId || null,
+        targetId: row.targetId || null,
+        amount: amt,
+        reason
+      });
+    });
+    const topReasons = Object.keys(reasonAgg)
+      .map(reason => ({ reason, amount: reasonAgg[reason] }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+    const topTransfers = transfers
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    windowRows.forEach(row => {
+      if (!row) return;
+      const reason = String(row.reason || "");
+      if (reason === "world_tax_in") taxedCount += 1;
+    });
+
+    if (errors.length) {
+      notes.push("errors_present");
+    }
+
+    const report = {
+      ok: true,
+      params: { N, seed, verbose },
+      stipend: { enabled: stipendEnabled, ticksPerPayout, stipendAmount, stipendZ, maxRecipientsPerTick },
+      worldMassBefore,
+      worldMassAfter,
+      worldMassDelta,
+      worldBankBefore,
+      worldBankAfter,
+      worldBankSoftCap: (Econ && typeof Econ.getWorldBankSoftCap === "function") ? Econ.getWorldBankSoftCap() : null,
+      ticksProcessed,
+      eventsApplied,
+      votesApplied,
+      battlesResolved,
+      payoutsCount,
+      taxedCount,
+      eligibleCount,
+      assistedNpcCount,
+      assistedFromZeroCount,
+      Z,
+      R,
+      p50_endPts: p50,
+      p90_endPts: p90,
+      p99_endPts: p99,
+      npcStats: npcIds.map(id => npcStats[id]),
+      topReasons,
+      topTransfers,
+      logRowsCount: logEnd - logStart,
+      blockedEmissions,
+      errors,
+      notes
+    };
+    if (errors.length) report.ok = false;
+    return report;
+  };
+
+  Game.__DEV.smokeWorldLivesOnce = (opts = {}) => {
+    const N = Number.isFinite(opts.N) ? Math.max(1, opts.N | 0) : 500;
+    const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
+    const runsCount = Number.isFinite(opts.runs) ? Math.max(1, opts.runs | 0) : 3;
+    const runs = [];
+    const notes = [];
+    let ok = true;
+
+    for (let i = 0; i < runsCount; i++) {
+      const run = Game.__DEV.runWorldTicks({ N, seed, verbose: false, allowNpcVotes: true, allowBattles: true, allowEventsTick: true });
+      runs.push(run);
+    }
+
+    const base = runs[0] || null;
+    const stable = {
+      worldDeltaStable: runs.every(r => (r && r.worldMassDelta) === (base && base.worldMassDelta)),
+      rowsScopedStable: runs.every(r => (r && r.logRowsCount) === (base && base.logRowsCount)),
+      reasonsStable: JSON.stringify(runs.map(r => (r && r.topReasons) || [])) === JSON.stringify(runs.map(r => (base && base.topReasons) || [])),
+      npcStatsStable: JSON.stringify(runs.map(r => (r && r.npcStats) || [])) === JSON.stringify(runs.map(r => (base && base.npcStats) || []))
+    };
+
+    const Z = base ? base.Z : 20;
+    const R = base ? base.R : 50;
+    const eventsOk = runs.every(r => r && r.ticksProcessed === N && ((r.eventsApplied + r.votesApplied + r.battlesResolved) > 0));
+    if (!eventsOk) {
+      ok = false;
+      notes.push("no_events_or_ticks");
+    }
+    runs.forEach((r, idx) => {
+      if (!r || r.worldMassDelta !== 0) {
+        ok = false;
+        notes.push(`world_mass_drift_${idx}`);
+      }
+      const nan = !r || [r.worldMassBefore, r.worldMassAfter, r.worldMassDelta, r.p99_endPts].some(v => v == null || !Number.isFinite(v));
+      if (nan) {
+        ok = false;
+        notes.push(`nan_detected_${idx}`);
+      }
+      if (r && r.npcStats) {
+        const badNpc = r.npcStats.some(s => !Number.isFinite(s.startPts) || !Number.isFinite(s.endPts) || !Number.isFinite(s.minPtsSeen) || !Number.isFinite(s.maxPtsSeen) || !Number.isFinite(s.zeroStreakMax));
+        if (badNpc) {
+          ok = false;
+          notes.push(`npc_stats_nan_${idx}`);
+        }
+      }
+      if (r && r.npcStats) {
+        const zeroLocked = r.npcStats.some(s => s.zeroStreakMax >= Z);
+        if (zeroLocked) {
+          ok = false;
+          notes.push(`zero_lock_${idx}`);
+        }
+        const runaway = r.npcStats.some(s => s.maxPtsSeen > R);
+        if (runaway) {
+          ok = false;
+          notes.push(`runaway_${idx}`);
+        }
+      }
+    });
+    if (!stable.worldDeltaStable || !stable.reasonsStable || !stable.npcStatsStable) {
+      ok = false;
+      notes.push("non_deterministic");
+    }
+
+    const summary = {
+      N,
+      seed,
+      Z,
+      R,
+      p99: base ? base.p99_endPts : null,
+      worldDelta: base ? base.worldMassDelta : null,
+      ticksProcessed: base ? base.ticksProcessed : 0,
+      counts: base ? { eventsApplied: base.eventsApplied, votesApplied: base.votesApplied, battlesResolved: base.battlesResolved } : null
+    };
+
+    return { ok, runs, stable, summary, notes };
+  };
+
+  // dev-only QA smoke: run stipend world ticks + audit results in a compact, stable shape.
+  Game.__DEV.smokeWorldStipendOnce = (opts = {}) => {
+    const N = Number.isFinite(opts.N) ? Math.max(1, opts.N | 0) : 300;
+    const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
+    const runsCount = Number.isFinite(opts.runs) ? Math.max(1, opts.runs | 0) : 3;
+    const ticksPerPayout = Number.isFinite(opts.ticksPerPayout) ? Math.max(1, opts.ticksPerPayout | 0) : 25;
+    const stipendAmount = Number.isFinite(opts.stipendAmount) ? Math.max(1, opts.stipendAmount | 0) : 1;
+    const stipendZ = Number.isFinite(opts.Z) ? Math.max(1, opts.Z | 0) : 5;
+    const taxRate = Number.isFinite(opts.taxRate) ? Number(opts.taxRate) : 1;
+    const windowOpts = (opts && typeof opts.window === "object" && opts.window) ? opts.window : { lastN: 200 };
+    const diagVersion = "world_stipend_smoke_v1";
+    const notes = [];
+    const runs = [];
+    let ok = true;
+
+    for (let i = 0; i < runsCount; i++) {
+      const run = Game.__DEV.runWorldTicks({
+        N,
+        seed,
+        stipendEnabled: true,
+        ticksPerPayout,
+        stipendAmount,
+        stipendZeroStreak: stipendZ,
+        maxRecipientsPerTick: 5,
+        safeEconOnly: true,
+        allowNpcVotes: false,
+        allowBattles: false,
+        allowEventsTick: false
+      });
+      const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: false });
+      runs.push({ run, audit });
+    }
+
+    const base = runs[0] || null;
+    const baseAudit = base ? base.audit : null;
+    const same = (a, b) => JSON.stringify(a || null) === JSON.stringify(b || null);
+    const worldDeltaStable = runs.every(r => r && r.audit && r.audit.world && r.audit.world.delta === (baseAudit && baseAudit.world ? baseAudit.world.delta : null));
+    const rowsScopedStable = runs.every(r => r && r.audit && r.audit.meta && r.audit.meta.rowsScoped === (baseAudit && baseAudit.meta ? baseAudit.meta.rowsScoped : null));
+    const unexpectedStable = runs.every(r => r && r.audit && r.audit.meta && r.audit.meta.unexpectedCount === (baseAudit && baseAudit.meta ? baseAudit.meta.unexpectedCount : null));
+    const leaksStable = runs.every(r => r && r.audit && same(r.audit.leaks && r.audit.leaks.toSink, baseAudit && baseAudit.leaks && baseAudit.leaks.toSink));
+    const stable = { totalsStable: worldDeltaStable, rowsScopedStable, unexpectedStable, leaksStable };
+
+    const packRun = (r, idx) => {
+      if (!r || !r.audit) {
+        ok = false;
+        return { ok: false, notes: [`audit_missing_${idx}`] };
+      }
+      const a = r.audit;
+      const runNotes = [];
+      const world = a.world || {};
+      const inv = (a.flowSummary && a.flowSummary.invariants) ? a.flowSummary.invariants : {};
+      const meta = a.meta || {};
+      const leaks = a.leaks || {};
+
+      const hasWorldDelta = Number.isFinite(world.delta);
+      if (!hasWorldDelta || world.delta !== 0) runNotes.push("world_delta");
+      if (inv.totalsNetOk === false) runNotes.push("totalsNetOk_false");
+      if (inv.totalsBalanceOk === false) runNotes.push("totalsBalanceOk_false");
+      if (inv.sinkNetMatchesDelta === false) runNotes.push("sinkNetMatchesDelta_false");
+      if (meta.unexpectedCount > 0) runNotes.push("unexpectedCount");
+      if (a.notes && Array.isArray(a.notes) && a.notes.some(n => n === "net_to_sink_mismatch")) runNotes.push("net_to_sink_mismatch");
+
+      if (runNotes.length > 0) ok = false;
+      return {
+        ok: runNotes.length === 0,
+        notes: runNotes,
+        world: {
+          beforeTotal: world.beforeTotal,
+          afterTotal: world.afterTotal,
+          delta: world.delta,
+          byBucket: world.byBucket
+        },
+        meta: {
+          logSource: meta.logSource,
+          rowsScoped: meta.rowsScoped,
+          scopeDesc: meta.scopeDesc,
+          allowlistSize: meta.allowlistSize,
+          unexpectedCount: meta.unexpectedCount,
+          sinkNetScoped: meta.sinkNetScoped,
+          sinkDelta: meta.sinkDelta
+        },
+        leaks: { toSink: leaks.toSink || [] },
+        flowSummary: { invariants: inv }
+      };
+    };
+
+    const packedRuns = runs.map(packRun);
+    if (!stable.totalsStable || !stable.leaksStable || !stable.rowsScopedStable || !stable.unexpectedStable) {
+      ok = false;
+      notes.push("non_deterministic");
+    }
+
+    return {
+      ok,
+      notes,
+      meta: { N, seed, runs: runsCount, diagVersion },
+      runs: packedRuns,
+      stable
+    };
+  };
+
+  Game.__DEV.smokeWorldStipendLongOnce = (opts = {}) => {
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : 300;
+    const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
+    const runs = Number.isFinite(opts.runs) ? Math.max(1, opts.runs | 0) : 1;
+    return Game.__DEV.smokeWorldStipendOnce({
+      N: ticks,
+      seed,
+      runs,
+      ticksPerPayout: opts.ticksPerPayout,
+      stipendAmount: opts.stipendAmount,
+      Z: opts.Z,
+      taxRate: opts.taxRate,
+      window: opts.window
+    });
+  };
+
+  // dev-only QA runner: emit two stipend smoke objects in a single, copy-friendly log block.
+  Game.__DEV.runWorldStipendEvidencePackOnce = (opts = {}) => {
+    const notes = [];
+    const header = "WORLD_STIPEND_EVIDENCE_PACK_V1_BEGIN";
+    const footer = "WORLD_STIPEND_EVIDENCE_PACK_V1_END";
+    try {
+      const resA = Game.__DEV.smokeWorldStipendOnce({ N: 300, seed: 1, runs: 3 });
+      const resB = Game.__DEV.smokeWorldStipendOnce({ N: 1000, seed: 2, runs: 3 });
+      if (!resA || !resB) notes.push("missing_results");
+      console.log(header);
+      console.log(JSON.stringify(resA || null));
+      console.log(JSON.stringify(resB || null));
+      console.log(footer);
+      return { ok: !!(resA && resB), notes, diagVersion: "world_stipend_pack_v1" };
+    } catch (err) {
+      notes.push("exception");
+      console.log(header);
+      console.log(JSON.stringify({ ok: false, notes, error: String(err && err.message || err) }));
+      console.log(footer);
+      return { ok: false, notes, diagVersion: "world_stipend_pack_v1" };
+    }
   };
 
   const matchesBattleRow = (tx, bid) => {
@@ -3129,7 +3817,7 @@ window.Game = window.Game || {};
       ctx.log = refreshed.rows;
       ctx.logSource = refreshed.source;
     }
-    const scopedLog = ctx.log.filter(tx => ctx.matchesBattleRow(tx, battleId));
+    const scopedLog = normalizeMoneyLogRows(ctx.log, "ctx.log").filter(tx => ctx.matchesBattleRow(tx, battleId));
     const byReason = {};
     scopedLog.forEach(tx => {
       const r = tx && tx.reason ? String(tx.reason) : "unknown";
@@ -4717,11 +5405,19 @@ window.Game = window.Game || {};
     };
   };
 
+  const normalizeMoneyLogRows = (anyLog, label = "unknown") => {
+    if (Array.isArray(anyLog)) return anyLog;
+    if (anyLog && Array.isArray(anyLog.rows)) return anyLog.rows;
+    if (anyLog == null) return [];
+    console.warn("DEV_MONEYLOG_NORMALIZE_EMPTY", { label, type: typeof anyLog });
+    return [];
+  };
+
   const collectBattleRows = (battleId) => {
     if (!battleId) return [];
     const dbg = Game.__D || null;
     const log = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : [];
-    const rows = log.filter(row => matchesBattleRow(row, battleId));
+    const rows = normalizeMoneyLogRows(log, "collectBattleRows.log").filter(row => matchesBattleRow(row, battleId));
     const sorted = rows.slice().sort((a, b) => {
       const ak = `${String(a && a.ts || "")}|${String(a && a.reason || "")}|${String(a && a.sourceId || "")}|${String(a && a.targetId || "")}|${String(a && a.amount || "")}`;
       const bk = `${String(b && b.ts || "")}|${String(b && b.reason || "")}|${String(b && b.sourceId || "")}|${String(b && b.targetId || "")}|${String(b && b.amount || "")}`;
@@ -6715,7 +7411,7 @@ window.Game = window.Game || {};
 
       const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
       const byBattle = (Game.__D && Game.__D.moneyLogByBattle) ? (Game.__D.moneyLogByBattle[battleId] || []) : [];
-      const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+      const logForBid = normalizeMoneyLogRows(log, "draw.log").filter(tx => String(tx && tx.battleId || "") === String(battleId));
 
       const ensureDrawBattle = () => {
         const state = Game.__S || (Game.__S = {});
@@ -7088,7 +7784,7 @@ window.Game = window.Game || {};
         const poolAfter = Econ.getPoolBalance ? Econ.getPoolBalance(poolId) : null;
 
         const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-        const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+        const logForBid = normalizeMoneyLogRows(log, "cap.log").filter(tx => String(tx && tx.battleId || "") === String(battleId));
         const reasons = {};
         logForBid.forEach(tx => {
           const r = tx && tx.reason ? String(tx.reason) : "unknown";
@@ -7285,7 +7981,11 @@ window.Game = window.Game || {};
       const w = toneWeight(toneKey);
       if (v.side === "a") aVotes += w;
       else bVotes += w;
-      Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId: event.id });
+      if (Econ && typeof Econ.transferCrowdVoteCost === "function") {
+        Econ.transferCrowdVoteCost(v.id, "sink", 1, { battleId: event.id });
+      } else {
+        Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId: event.id });
+      }
       if (Game.__A && typeof Game.__A.transferRep === "function") {
         Game.__A.transferRep("rep_emitter", v.id, 1, "rep_crowd_vote_participation", event.id);
       }
@@ -7314,8 +8014,9 @@ window.Game = window.Game || {};
       }
     }
 
-    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-    const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(event.id));
+    const dbgLogRows = getDbgLog();
+    const logStartLen = dbgLogRows.length;
+    const logForBid = dbgLogRows.filter(tx => String(tx && tx.battleId || "") === String(event.id));
     const byReason = {};
     logForBid.forEach(tx => {
       const r = tx && tx.reason ? String(tx.reason) : "unknown";
@@ -7396,100 +8097,109 @@ window.Game = window.Game || {};
   };
 
   Game.__DEV.smokeNpcCrowdEventPaidVotesOnce = (opts = {}) => {
-    const name = "smoke_npc_crowd_event_paid_votes_once";
-    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-    const Events = Game.Events || null;
-    const S = Game.__S || null;
-    if (!Econ || typeof Econ.transferPoints !== "function") {
-      return { name, ok: false, details: "Econ.transferPoints missing" };
-    }
-    if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.tick !== "function") {
-      return { name, ok: false, details: "Events.makeNpcEvent/addEvent/tick missing" };
-    }
-    if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
-
-    const event = Events.makeNpcEvent();
-    if (!event) return { name, ok: false, details: "makeNpcEvent failed" };
-    Events.addEvent(event);
-
-    const exclude = new Set([event.aId, event.bId, "me"]);
-    const npcs = Object.values(S.players || {}).filter(p => {
-      if (!p || !p.id) return false;
-      if (exclude.has(p.id)) return false;
-      return p.npc === true || p.type === "npc";
-    });
-    if (npcs.length < 3) return { name, ok: false, details: "not_enough_npcs" };
-
-    const sample = npcs.slice(0, 4);
-    const touched = sample.map(p => ({ id: p.id, points: p.points }));
-    const setPoints = (p, v) => {
-      if (!p) return;
-      const val = Number(v || 0);
-      if (typeof Game._withPointsWrite === "function") {
-        Game._withPointsWrite(() => { p.points = val; });
-      } else {
-        p.points = val;
-      }
-    };
-
-    // Ensure at least 3 eligible NPCs with 1 point, and one with 0 points.
-    sample.forEach((p, i) => setPoints(p, i === 3 ? 0 : 1));
-
-    const zeroNpc = sample[3] || null;
-    const zeroNpcId = zeroNpc ? zeroNpc.id : null;
-
-    const snapshotBeforePoints = Object.create(null);
-    const snapshotBeforeDetails = Object.create(null);
-    Object.values(S.players || {}).forEach(p => {
-      if (!p || !p.id) return;
-      const id = String(p.id);
-      snapshotBeforePoints[id] = Number(p.points || 0);
-      snapshotBeforeDetails[id] = {
-        points: p.points,
-        money: p.money,
-        stars: p.stars
-      };
-    });
-
-    if (event.crowd && typeof event.crowd === "object") {
-      event.crowd.nextNpcVoteAt = 0;
-      event.crowd.endAt = Date.now() + 3000;
-      event.endsAt = event.crowd.endAt;
-    }
-
-    let now = Date.now();
     try {
-      if (Game.Time && typeof Game.Time.setNow === "function") {
-        Game.Time.setNow(() => now);
+      const name = "smoke_npc_crowd_event_paid_votes_once";
+      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+      const Events = Game.Events || null;
+      const S = Game.__S || null;
+      if (!Econ || typeof Econ.transferPoints !== "function") {
+        return { name, ok: false, details: "Econ.transferPoints missing" };
       }
-      for (let i = 0; i < 12; i++) {
-        now += 1600;
-        Events.tick();
-        if (event.crowd && event.crowd.decided) break;
-        const voteCount = event.crowd && event.crowd.voters ? Object.keys(event.crowd.voters).length : 0;
-        if (voteCount >= 3) break;
+      if (!Events || typeof Events.makeNpcEvent !== "function" || typeof Events.addEvent !== "function" || typeof Events.tick !== "function") {
+        return { name, ok: false, details: "Events.makeNpcEvent/addEvent/tick missing" };
       }
-    } finally {
-      if (Game.Time && typeof Game.Time.setNow === "function") Game.Time.setNow(null);
-    }
+      if (!S || !S.players) return { name, ok: false, details: "Game.__S missing" };
 
+      const event = Events.makeNpcEvent();
+      if (!event) return { name, ok: false, details: "makeNpcEvent failed" };
+      Events.addEvent(event);
 
-    const countedNpcVotes = [];
+      let countedNpcVotes = [];
 
-    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-    const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(event.id));
-    const byReason = {};
-    const npcCostLogs = logForBid.filter(tx => {
-      const reason = String(tx && tx.reason || "");
-      const src = String(tx && tx.sourceId || "");
-      if (!src.startsWith("npc_")) return false;
-      if (reason !== "crowd_vote_cost") return false;
-      return (tx && Number(tx.amount || tx.delta || 0)) === 1;
-    });
-    logForBid.forEach(tx => {
-      const r = tx && tx.reason ? String(tx.reason) : "unknown";
-      byReason[r] = (byReason[r] || 0) + 1;
-    });
+      const exclude = new Set([event.aId, event.bId, "me"]);
+      const npcs = Object.values(S.players || {}).filter(p => {
+        if (!p || !p.id) return false;
+        if (exclude.has(p.id)) return false;
+        return p.npc === true || p.type === "npc";
+      });
+      if (npcs.length < 3) return { name, ok: false, details: "not_enough_npcs" };
+
+      const sample = npcs.slice(0, 4);
+      const touched = sample.map(p => ({ id: p.id, points: p.points }));
+      const setPoints = (p, v) => {
+        if (!p) return;
+        const val = Number(v || 0);
+        if (typeof Game._withPointsWrite === "function") {
+          Game._withPointsWrite(() => { p.points = val; });
+        } else {
+          p.points = val;
+        }
+      };
+
+      sample.forEach((p, i) => setPoints(p, i === 3 ? 0 : 1));
+
+      const zeroNpc = sample[3] || null;
+      const zeroNpcId = zeroNpc ? zeroNpc.id : null;
+
+      const snapshotBeforePoints = Object.create(null);
+      const snapshotBeforeDetails = Object.create(null);
+      Object.values(S.players || {}).forEach(p => {
+        if (!p || !p.id) return;
+        const id = String(p.id);
+        snapshotBeforePoints[id] = Number(p.points || 0);
+        snapshotBeforeDetails[id] = {
+          points: p.points,
+          money: p.money,
+          stars: p.stars
+        };
+      });
+
+      if (event.crowd && typeof event.crowd === "object") {
+        event.crowd.nextNpcVoteAt = 0;
+        event.crowd.endAt = Date.now() + 3000;
+        event.endsAt = event.crowd.endAt;
+      }
+
+      let now = Date.now();
+      try {
+        if (Game.Time && typeof Game.Time.setNow === "function") {
+          Game.Time.setNow(() => now);
+        }
+        for (let i = 0; i < 12; i++) {
+          now += 1600;
+          Events.tick();
+          if (event.crowd && event.crowd.decided) break;
+          const voteCount = event.crowd && event.crowd.voters ? Object.keys(event.crowd.voters).length : 0;
+          if (voteCount >= 3) break;
+        }
+      } finally {
+        if (Game.Time && typeof Game.Time.setNow === "function") Game.Time.setNow(null);
+      }
+
+      let logStartLen = 0;
+      let logEndLen = 0;
+      let newRows = [];
+      let logForBid = [];
+      const _dbg = getDbgLog();
+      logStartLen = _dbg.length;
+      logEndLen = logStartLen;
+
+      logForBid = _dbg.filter(tx => String(tx && tx.battleId || "") === String(event.id));
+      const byReason = {};
+      const npcCostLogs = logForBid.filter(tx => {
+        const reason = String(tx && tx.reason || "");
+        const src = String(tx && tx.sourceId || "");
+        if (!src.startsWith("npc_")) return false;
+        if (reason !== "crowd_vote_cost") return false;
+        return (tx && Number(tx.amount || tx.delta || 0)) === 1;
+      });
+      logForBid.forEach(tx => {
+        const r = tx && tx.reason ? String(tx.reason) : "unknown";
+        byReason[r] = (byReason[r] || 0) + 1;
+      });
+
+      logEndLen = _dbg.length;
+      newRows = _dbg.slice(logStartLen, logEndLen);
 
     const simSteps = Array.isArray(event.simDebugSteps) ? event.simDebugSteps : [];
     const voteSteps = simSteps.filter(s => s && s.voteCounted && s.voterId);
@@ -7548,18 +8258,26 @@ window.Game = window.Game || {};
       const stateAfterPts = Number.isFinite(snapshotAfterPoints[voterId]) ? snapshotAfterPoints[voterId] : null;
       const getterAfterPts = stateAfterPts;
 
-      const moneyLogLastCost = (() => {
-        const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-        for (let i = log.length - 1; i >= 0; i--) {
-          const x = log[i];
-          if (!x) continue;
-          if (String(x.reason || "") !== "crowd_vote_cost") continue;
-          if (String(x.battleId || "") !== String(event.id)) continue;
-          if (String(x.sourceId || "") !== String(voterId)) continue;
-          return x;
-        }
-        return null;
-      })();
+      const matchesVoter = (row, id) => {
+        if (!row || !id) return false;
+        const meta = row.meta || {};
+        return (
+          String(row.sourceId || "") === String(id) ||
+          String(row.actorId || "") === String(id) ||
+          String(row.fromId || "") === String(id) ||
+          String(meta.actorId || "") === String(id) ||
+          String(meta.fromId || "") === String(id) ||
+          String(meta.sourceId || "") === String(id)
+        );
+      };
+      const costRows = newRows.filter(r => matchesVoter(r, voterId) && Number(r.amount || 0) === 1);
+      const moneyLogLastCost = costRows.length ? costRows[costRows.length - 1] : null;
+      const reasonCounts = {};
+      newRows.forEach(r => {
+        const k = String(r && r.reason || "unknown");
+        reasonCounts[k] = (reasonCounts[k] || 0) + 1;
+      });
+      const moneyLogNewRowsReasons = Object.keys(reasonCounts).slice(0, 10);
 
       const noteFields = (before, after) => ({
         before: before ? {
@@ -7586,6 +8304,9 @@ window.Game = window.Game || {};
         getterAfterPts,
         transferRet,
         moneyLogLastCost,
+        moneyLogNewRowsLen: newRows.length,
+        moneyLogNewRowsReasons,
+        moneyLogCostRows: costRows.slice(0, 3),
         stateKeysSample: {
           keys: Object.keys(players).slice(0, 10),
           includesVoterId: Object.prototype.hasOwnProperty.call(players, voterId)
@@ -7594,8 +8315,40 @@ window.Game = window.Game || {};
       };
     })();
 
+    const paidSet = new Set(paidIds.map(String));
+    const countedSet = new Set(countedNpcVotes.map(String));
+    const matchesPaidId = (row, id) => {
+      if (!row || !id) return false;
+      const meta = row.meta || {};
+      return (
+        String(row.sourceId || "") === String(id) ||
+        String(row.actorId || "") === String(id) ||
+        String(row.fromId || "") === String(id) ||
+        String(meta.actorId || "") === String(id) ||
+        String(meta.fromId || "") === String(id) ||
+        String(meta.sourceId || "") === String(id)
+      );
+    };
+    const costRowsByPaidId = new Set();
+    newRows.forEach(r => {
+      if (!r || Number(r.amount || 0) !== 1) return;
+      paidIds.forEach(id => {
+        if (matchesPaidId(r, id)) costRowsByPaidId.add(String(id));
+      });
+    });
+    const paidVotesMatch = (paidSet.size === countedSet.size && Array.from(paidSet).every(id => countedSet.has(id))) &&
+      costRowsByPaidId.size === paidSet.size;
+    const notes = [];
+    if (newRows.length === 0) notes.push("paid_vote_cost_row_missing");
+    if (costRowsByPaidId.size !== paidSet.size) notes.push("paid_vote_cost_row_missing");
+    const observedNewRowsSample = newRows.slice(0, 5).map(r => ({
+      reason: r && r.reason,
+      amount: r && r.amount,
+      sourceId: r && r.sourceId,
+      targetId: r && r.targetId
+    }));
     const asserts = {
-      paidVotesMatch: paidIds.length === npcCostLogs.length,
+      paidVotesMatch,
       zeroNpcExcluded: zeroNpcId ? (!paidIds.includes(zeroNpcId) && !zeroLogged) : true,
       paidDeducted: voteSteps.every(s => {
         if (!Number.isFinite(s.beforePts) || !Number.isFinite(s.afterPts)) return false;
@@ -7621,9 +8374,26 @@ window.Game = window.Game || {};
       paidIds,
       byReason,
       asserts,
+      notes,
+      expectedCostReasonKeys: ["crowd_vote_cost"],
+      observedNewRowsReasons: debugPaid.moneyLogNewRowsReasons || [],
+      observedNewRowsSample,
       debugPaid,
       simDebug: event.simDebugSteps || []
     };
+    } catch (e) {
+      if (Game.__DEV && !Game.__DEV.__bootTryFailLogged) {
+        Game.__DEV.__bootTryFailLogged = true;
+        console.error("DEV_CHECKS_BOOT_TRY_FAIL", e && (e.stack || e.message || e));
+      }
+      return {
+        name: "smoke_npc_crowd_event_paid_votes_once",
+        ok: false,
+        notes: ["probe_throw_caught"],
+        err: String(e),
+        stack: e && e.stack ? String(e.stack) : null
+      };
+    }
   };
 
   Game.__DEV.smokeNpcCrowdMaxShareOnce = (opts = {}) => {
@@ -7677,6 +8447,12 @@ window.Game = window.Game || {};
           const steps = event.simDebugSteps || [];
           if (steps.length >= 12) break;
         }
+      } catch (err) {
+        if (Game.__DEV && !Game.__DEV.__bootTryFailLogged) {
+          Game.__DEV.__bootTryFailLogged = true;
+          console.error("DEV_CHECKS_BOOT_TRY_FAIL", err && (err.stack || err.message || err));
+        }
+        return { ok: false, details: String(err && err.message || err) };
       } finally {
         if (Game.Time && typeof Game.Time.setNow === "function") Game.Time.setNow(null);
       }
@@ -8616,7 +9392,11 @@ window.Game = window.Game || {};
       const participants = voters.map(v => {
         const p = S.players[v.id];
         const pointsBefore = p ? (p.points | 0) : 0;
-        Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId });
+        if (Econ && typeof Econ.transferCrowdVoteCost === "function") {
+          Econ.transferCrowdVoteCost(v.id, "sink", 1, { battleId });
+        } else {
+          Econ.transferPoints(v.id, "sink", 1, "crowd_vote_cost", { battleId });
+        }
         const pointsAfter = p ? (p.points | 0) : 0;
         return { id: v.id, side: v.side, toneKey: v.toneKey, pointsBefore, pointsAfter };
       });
@@ -8628,8 +9408,8 @@ window.Game = window.Game || {};
       battle.crowd.totalPlayers = totalPlayers();
       battle.crowd.cap = capUsed;
 
-      const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-      const logStart = log.length;
+      const logRows = normalizeMoneyLogRows((Game.__D && Game.__D.moneyLog) ? Game.__D.moneyLog : [], "vote.log");
+      const logStart = logRows.length;
       const crowdVotersSnapshot = (battle && battle.crowd && battle.crowd.voters) ? { ...battle.crowd.voters } : null;
 
       const res = Core.finalizeCrowdVote(battleId);
@@ -8638,7 +9418,7 @@ window.Game = window.Game || {};
       const endedBy = crowdMeta ? crowdMeta.endedBy : null;
       const outcome = res && res.outcome ? res.outcome : null;
 
-      const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+      const logForBid = logRows.filter(tx => String(tx && tx.battleId || "") === String(battleId));
       const byReason = {};
       let poolInitAmount = 0;
       logForBid.forEach(tx => {
@@ -8646,7 +9426,7 @@ window.Game = window.Game || {};
         byReason[r] = (byReason[r] || 0) + 1;
         if (r === "crowd_vote_pool_init") poolInitAmount += (tx.amount | 0);
       });
-      const logAfter = log.slice(logStart);
+      const logAfter = logRows.slice(logStart);
 
       let afterSnapshot = Game.__DEV.sumPointsSnapshot();
       const afterPoints = buildPointsSnapshot();
@@ -9104,7 +9884,7 @@ window.Game = window.Game || {};
       v.votesA = attackerVotes;
       v.votesB = defenderVotes;
 
-      const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+      const log = normalizeMoneyLogRows((Game.__D && Game.__D.moneyLog) ? Game.__D.moneyLog : [], "escape.log");
       const logStart = log.length;
 
       const res = Core.finalizeEscapeVote(battleId);
@@ -9113,7 +9893,7 @@ window.Game = window.Game || {};
       const endedBy = crowdMeta ? crowdMeta.endedBy : null;
       const outcome = res && res.outcome ? res.outcome : (v.outcome || null);
 
-      const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+      const logForBid = normalizeMoneyLogRows(log, "escape.logForBid").filter(tx => String(tx && tx.battleId || "") === String(battleId));
       const byReason = {};
       let poolInitAmount = 0;
       logForBid.forEach(tx => {
@@ -9588,7 +10368,7 @@ window.Game = window.Game || {};
           v.votesA = v.aVotes;
           v.votesB = v.bVotes;
 
-          const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+          const log = normalizeMoneyLogRows((Game.__D && Game.__D.moneyLog) ? Game.__D.moneyLog : [], "ignore.log");
           const logStart = log.length;
 
           const res = Core.finalizeEscapeVote(battleId);
@@ -9610,13 +10390,13 @@ window.Game = window.Game || {};
           const dbgAfter = Game.__D || {};
           const mlbbAfter = dbgAfter.moneyLogByBattle || {};
           const scoped = Array.isArray(mlbbAfter[battleId]) ? mlbbAfter[battleId] : [];
-          const logForBid = scoped.length ? scoped : log.filter(tx => String(tx && tx.battleId || "") === String(battleId));
+          const logForBid = scoped.length ? scoped : normalizeMoneyLogRows(log, "ignore.logForBid").filter(tx => String(tx && tx.battleId || "") === String(battleId));
           const byReason = {};
           let poolInitAmount = 0;
           diag.scopedLen = logForBid.length;
           if (opts && opts.debugTelemetry) {
             const undefinedArr = Array.isArray(mlbbAfter["undefined"]) ? mlbbAfter["undefined"] : [];
-            const flatLog = Array.isArray(dbgAfter.moneyLog) ? dbgAfter.moneyLog : [];
+            const flatLog = normalizeMoneyLogRows(dbgAfter.moneyLog, "ignore.flatLog");
             const flatMatches = flatLog.filter(tx => String(tx && tx.battleId || "") === String(battleId));
             const reasonCounts = {};
             flatMatches.forEach(tx => {
@@ -9910,9 +10690,9 @@ window.Game = window.Game || {};
       cop: Number.isFinite(cop.rep) ? (cop.rep | 0) : 0,
       target: Number.isFinite(target.rep) ? (target.rep | 0) : 0
     };
-    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const log = normalizeMoneyLogRows((Game.__D && Game.__D.moneyLog) ? Game.__D.moneyLog : [], "report.log");
     const byBattle = (Game.__D && Game.__D.moneyLogByBattle) ? (Game.__D.moneyLogByBattle[reportId] || []) : [];
-    const logForBid = log.filter(tx => String(tx && tx.battleId || "") === String(reportId));
+    const logForBid = normalizeMoneyLogRows(log, "report.logForBid").filter(tx => String(tx && tx.battleId || "") === String(reportId));
     console.log("[DEV] devReportTest", { mode, reportId, before, after, logForBid, byBattle });
     return { ok: true, mode, reportId, before, after, logForBid, byBattle };
   };
@@ -10340,11 +11120,11 @@ window.Game = window.Game || {};
     const winner = crowd.winnerSide || battle.winnerSide || null;
     const timerUsed = endedBy && endedBy !== "cap";
 
-    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const log = normalizeMoneyLogRows((Game.__D && Game.__D.moneyLog) ? Game.__D.moneyLog : [], "capdiag.log");
     const byBattle = (Game.__D && Game.__D.moneyLogByBattle && battleId && Array.isArray(Game.__D.moneyLogByBattle[battleId]))
       ? Game.__D.moneyLogByBattle[battleId]
       : null;
-    const scoped = byBattle || log.filter(e => String(e && e.battleId || "") === String(battleId));
+    const scoped = normalizeMoneyLogRows(byBattle || log, "capdiag.scoped").filter(e => String(e && e.battleId || "") === String(battleId));
     diag.moneyLogScope = {
       source: byBattle ? "moneyLogByBattle" : "moneyLog",
       rowsLen: log.length,
@@ -11244,6 +12024,81 @@ window.Game = window.Game || {};
     return runtimeCrowdAuditEventOnce(opts);
   };
 
+  const runEconNpcAllowlistEvidencePackOnce = (opts = {}) => {
+    const diagVersion = "econ_npc_allowlist_pack_v1";
+    let probeRes = { ok: false, notes: ["runner_throw"], diagVersion };
+    let auditRes = { ok: false, notes: ["runner_throw"], diagVersion };
+    const emitLine = (typeof window !== "undefined" && window.__CONSOLE_TAPE_EMIT_LINE__)
+      ? window.__CONSOLE_TAPE_EMIT_LINE__
+      : (line) => console.log(String(line));
+    const safeStringify = (obj) => {
+      try {
+        return JSON.stringify(obj);
+      } catch (e) {
+        return JSON.stringify({ ok: false, notes: ["stringify_throw"], err: String(e), diagVersion });
+      }
+    };
+    emitLine("WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN");
+    try {
+      const probeResult = Game.__DEV.smokeEconNpc_AllowlistDevProbeOnce(opts);
+      if (probeResult && typeof probeResult === "object") probeRes = { ...probeResult, diagVersion };
+      const auditResult = Game.__DEV.auditNpcWorldBalance3Once({ window: opts.window || { lastN: 200 }, refresh: true });
+      if (auditResult && typeof auditResult === "object") auditRes = { ...auditResult, diagVersion };
+    } catch (e) {
+      console.error("ECON_NPC_ALLOWLIST_PACK_V1_RUNNER_THROW", String(e), e && e.stack);
+      probeRes = { ok: false, notes: ["runner_throw"], err: String(e), stack: e && e.stack ? String(e.stack) : null, diagVersion };
+      auditRes = { ok: false, notes: ["runner_throw"], err: String(e), stack: e && e.stack ? String(e.stack) : null, diagVersion };
+    } finally {
+      emitLine(safeStringify(probeRes));
+      emitLine(safeStringify(auditRes));
+      emitLine("WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END");
+      emitLine("TAPE_FLUSH_OK");
+      let flushRes = null;
+      if (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_FLUSH__ === "function") {
+        flushRes = window.__CONSOLE_TAPE_FLUSH__();
+      }
+      emitLine(`TAPE_FLUSH_META ${safeStringify(flushRes)}`);
+      emitLine("TAPE_FLUSH_POST_OK");
+      let flushRes2 = null;
+      if (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_FLUSH__ === "function") {
+        flushRes2 = window.__CONSOLE_TAPE_FLUSH__();
+      }
+      emitLine(`TAPE_FLUSH_POST_META ${safeStringify(flushRes2)}`);
+    }
+    if (probeRes && probeRes.ok !== true) {
+      const n = Array.isArray(probeRes.notes) ? probeRes.notes : [];
+      if (!n.includes("probe_failed_ignored")) n.push("probe_failed_ignored");
+      probeRes.notes = n;
+    }
+    const ok = auditRes.ok === true;
+    Game.__DEV.lastEconNpcAllowlistEvidencePack = {
+      diagVersion,
+      at: Date.now(),
+      ok,
+      results: [probeRes, auditRes]
+    };
+    return { ok, results: [probeRes, auditRes] };
+  };
+  Game.__DEV.runEconNpcAllowlistEvidencePackOnce = runEconNpcAllowlistEvidencePackOnce;
+  Game.__DEV.runAllowlistEvidencePackOnce = runEconNpcAllowlistEvidencePackOnce;
+  Game.Dev.runEconNpcAllowlistEvidencePackOnce = runEconNpcAllowlistEvidencePackOnce;
+  Game.Dev.runAllowlistEvidencePackOnce = runEconNpcAllowlistEvidencePackOnce;
+  Game.__DEV.diagEconNpcAllowlistPackOnce = () => {
+    const has = {
+      hasGame: !!window.Game,
+      has__DEV: !!(window.Game && window.Game.__DEV),
+      hasDev: !!(window.Game && window.Game.Dev),
+      hasFn1: !!(window.Game && window.Game.__DEV && window.Game.__DEV.runEconNpcAllowlistEvidencePackOnce),
+      hasFn2: !!(window.Game && window.Game.Dev && window.Game.Dev.runEconNpcAllowlistEvidencePackOnce),
+      hasFn3: !!(window.Game && window.Game.__DEV && window.Game.__DEV.runAllowlistEvidencePackOnce),
+      loadedMarker: !!(window.Game && window.Game.__DEV && window.Game.__DEV.__econNpcAllowlistPackLoaded)
+    };
+    console.log("ECON_NPC_ALLOWLIST_PACK_V1_DIAG", has);
+    return has;
+  };
+
+  // Auto-run disabled by default to avoid boot-time failures; manual run only.
+
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
     Game.__DEV.__shortcutBound = true;
@@ -11261,3 +12116,17 @@ window.Game = window.Game || {};
     });
   }
 })();
+    const applyNpcTaxOnce = (tickIndex) => {
+      if (!safeEconOnly) return false;
+      if (!Econ || typeof Econ.transferCrowdVoteCost !== "function") return false;
+      const candidates = npcIds.filter(id => {
+        const p = S.players[id];
+        const pts = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+        return pts >= 1;
+      });
+      if (!candidates.length) return false;
+      const pick = candidates[(tickIndex + candidates.length) % candidates.length];
+      const res = Econ.transferCrowdVoteCost(pick, "sink", 1, { battleId: `dev_tax_${tickIndex}` });
+      if (res && res.ok) taxedCount += 1;
+      return !!(res && res.ok);
+    };

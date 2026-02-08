@@ -245,15 +245,25 @@
               battleId,
               context: price.context || { battleId }
             })
-          : Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
-              battleId,
-              basePrice: price.basePrice,
-              mult: price.mult,
-              finalPrice: price.finalPrice,
-              priceKey: price.priceKey || "vote",
-              pointsAtPurchase: beforePts,
-              context: price.context || { battleId }
-            });
+          : (Econ && typeof Econ.transferCrowdVoteCost === "function")
+            ? Econ.transferCrowdVoteCost(voterId, "sink", cost, {
+                battleId,
+                basePrice: price.basePrice,
+                mult: price.mult,
+                finalPrice: price.finalPrice,
+                priceKey: price.priceKey || "vote",
+                pointsAtPurchase: beforePts,
+                context: price.context || { battleId }
+              })
+            : Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+                battleId,
+                basePrice: price.basePrice,
+                mult: price.mult,
+                finalPrice: price.finalPrice,
+                priceKey: price.priceKey || "vote",
+                pointsAtPurchase: beforePts,
+                context: price.context || { battleId }
+              });
         const stateNpcAfter = (Game.__S && Game.__S.players) ? Game.__S.players[voterId] : stateNpc;
         const afterPts = Number.isFinite(stateNpcAfter && stateNpcAfter.points) ? (stateNpcAfter.points | 0) : 0;
         const costCountAfter = countCrowdVoteCostLogs(voterId, battleId);

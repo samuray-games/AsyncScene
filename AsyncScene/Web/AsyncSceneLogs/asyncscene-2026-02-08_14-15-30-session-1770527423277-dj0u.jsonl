@@ -1,0 +1,4 @@
+{"ts": 1770527730229, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "battle_mldahdr8_ptmudw"}}
+{"ts": 1770527730230, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "battle_mldahdr8_ptmudw"}}
+{"ts": 1770527730235, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_remainder_split_defender", "battleId": "battle_mldahdr8_ptmudw"}}
+{"ts": 1770527730237, "sessionId": "session-1770527423277-dj0u", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "battle_mldahdr8_ptmudw"}}

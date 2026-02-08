@@ -2324,3 +2324,34 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Key output fields: logSource=debug_moneyLog, rowsScoped=41, sinkNetScoped=1, sinkBalanceBefore=1, sinkBalanceAfter=1, sinkBalanceExplained=true, flowSummary.invariants true, leaks sum 1.
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 Память обновлена
+
+### 2026-02-08 — ECON-NPC allowlist evidence pack dump reliability (PASS)
+- Status: PASS
+- Evidence (Console.txt):
+  - WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN
+  - ... two JSON lines (probeRes ok:false allowed; audit ok:true; unexpectedCount=0; world.delta=0)
+  - WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END
+  - TAPE_FLUSH_OK
+  - TAPE_FLUSH_POST_OK
+  - TAPE_FLUSH_META {"ok":true,"bytes":...,"lines":...}
+  - TAPE_FLUSH_POST_META {"ok":true,"bytes":...,"lines":...}
+  - CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN
+  - [CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=104 lastLine=TAPE_FLUSH_POST_META {"ok":true,"bytes":27696,"lines":32}]
+  - [TAPE_TAIL_1] WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END
+  - [TAPE_TAIL_2] TAPE_FLUSH_OK
+  - [TAPE_TAIL_3] TAPE_FLUSH_META {"ok":true,"bytes":27624,"lines":30}
+  - [TAPE_TAIL_4] TAPE_FLUSH_POST_OK
+  - [TAPE_TAIL_5] TAPE_FLUSH_POST_META {"ok":true,"bytes":27696,"lines":32}
+  - CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END
+- Note: probe may be ok:false (probe_failed/invariants_failed), pack ok determined by audit (unexpectedCount=0, world.delta=0).
+
+### 2026-02-08 — Console dump alias (DUMP_ALIAS_OK)
+- Status: PASS
+- Evidence (Console.txt): DUMP_ALIAS_OK {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+- Result: window.__DUMP_ALL__ and Game.__DUMP_ALL__ both available.
+
+### 2026-02-08 — PROJECT_MEMORY incident restore + protection
+- Status: PASS
+- Evidence (git): восстановлено из коммита 74d06d8 (fmm).
+- Evidence (chat): добавлен pre-commit hook, блокирующий удаление/пустой PROJECT_MEMORY.md.
+- Ordering note: предыдущие записи могли быть добавлены нестрого по времени; новые записи добавляются только в конец.

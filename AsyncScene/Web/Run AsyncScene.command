@@ -35,13 +35,21 @@ fi
 
 # ---- start web server ----
 if lsof -i :8080 >/dev/null 2>&1; then
-  echo "▶ Web server already running on :8080"
-else
-  echo "▶ Starting web server..."
-  cd "$WEB_DIR"
-  python3 -m http.server 8080 >> "$LOG_DIR/web.out.log" 2>&1 &
-  echo "▶ Web server started"
+  echo "▶ Web server already running on :8080 - stopping old server"
+  OLD_PID=$(lsof -t -i :8080 | head -n 1)
+  if [ -n "$OLD_PID" ]; then
+    kill "$OLD_PID" || true
+    sleep 0.3
+  fi
 fi
+
+echo "▶ Starting web server..."
+cd "$WEB_DIR"
+python3 dev/dev-server.py 8080 >> "$LOG_DIR/web.out.log" 2>&1 &
+SERVER_PID=$!
+echo "RUN_ASYNCSCENE_SERVER_PID $SERVER_PID"
+echo "RUN_ASYNCSCENE_SERVER_PORT 8080"
+echo "▶ Web server started"
 
 sleep 0.3
 
