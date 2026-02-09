@@ -789,5 +789,12 @@
   - В moneyLog есть reason `world_tax_in`.
 - Smoke command:
   - `Game.__DEV.smokeNpcWealthTaxOnce({ticks:200, seedRichNpc:true, debugTelemetry:true})`
+- PASS checklist (Console.txt):
+  - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
+  - JSON smoke с `ok:true` и `asserts.worldDeltaZero === true`
+  - `world.delta === 0`
+  - `tax.totalTaxInWindow > 0` при `seedRichNpc:true`
+  - `tax.reasonsTop` содержит `world_tax_in` с `amount > 0`
+  - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
 - Code refs (search):
   - `applyNpcWealthTaxIfNeeded`, `battle_entry_npc`, `battle_win_take`, `world_tax_in`.

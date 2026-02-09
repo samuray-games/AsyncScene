@@ -2362,4 +2362,5 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Добавлен налог на активность богатых NPC через transferPoints в worldBank (reason `world_tax_in`).
   - Вызовы налога: `E.applyStart` (NPC battle entry) и `res === "lose"` (NPC win take).
   - Введён dev smoke `Game.__DEV.smokeNpcWealthTaxOnce({ticks:200, seedRichNpc:true, debugTelemetry:true})`.
+  - Добавлен evidence pack раннер `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:200, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})`.
 - Evidence: UNKNOWN (no runtime dump yet).
