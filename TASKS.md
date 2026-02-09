@@ -858,6 +858,8 @@
   - `{"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization."...}`
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
 - Update (2026-02-09): moved seed threshold/margin + seedApplied/seedWhy initialization before log-source early returns to avoid `threshold` TDZ crash. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): Variant A econ-account migration added in `AsyncScene/Web/conflict/conflict-economy.js`. `getAccount` now falls back to `Game.State.players` and `ensureNpcAccountsFromState` creates/links missing npc_* accounts (dev marker `ECON_NPC_ACCOUNT_MIGRATE_V1`). `applyNpcWealthTaxIfNeeded` now ensures npc accounts exist before tax. Wealth-tax pack JSON now includes `npcAccountCount`, `npcAccountSample`, `npcAccountsMissingLen`, `npcAccountsMissingSample`. Status remains FAIL pending runtime evidence.
+- Runtime evidence baseline (Console.txt 2026-02-09): no `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN/END` block present; manual probes show `npc_account_missing` and `[ACC missing count] 19 in `=== ECON NPC ACCOUNT PROBE ===` tail. 
 - QA smoke command:
   ```
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})

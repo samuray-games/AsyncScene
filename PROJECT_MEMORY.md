@@ -2412,3 +2412,8 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 2026-02-09 — ECON-NPC [1.5] wealth-tax pack runtime FAIL (threshold TDZ).
 - Console.txt shows `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN` with `ok:false` and error `Cannot access 'threshold' before initialization.` followed by END/DUMP_DONE.
 - Fix applied in dev-checks.js: seed threshold/margin and seedApplied/seedWhy now initialized before log-source early returns to avoid TDZ. Runtime PASS still pending.
+
+2026-02-09 — ECON-NPC [1.5] Variant A econ-account migration (core).
+- Added `ensureNpcAccountsFromState` in `AsyncScene/Web/conflict/conflict-economy.js` and `getAccount` fallback to `Game.State.players`, so npc_* accounts exist in Econ and `applyNpcWealthTaxIfNeeded` can log `world_tax_in`. Dev marker: `ECON_NPC_ACCOUNT_MIGRATE_V1 {count,movedTotal,mode}`.
+- Wealth-tax pack JSON now includes `npcAccountCount`, `npcAccountSample`, `npcAccountsMissingLen`, `npcAccountsMissingSample`.
+- Runtime PASS still pending; QA commands unchanged (see TASKS.md). LOGGED EVEN IF FAIL.

@@ -61,6 +61,73 @@
     return id.startsWith("crowd:") ? id.slice("crowd:".length) : id;
   }
 
+  function getStateHandle(){
+    if (Game && Game.__S) return Game.__S;
+    if (Game && Game.State) return Game.State;
+    if (typeof State !== "undefined") return State;
+    return null;
+  }
+
+  function isNpcId(id){
+    const s = String(id || "");
+    return s.startsWith("npc_");
+  }
+
+  function ensureNpcAccountFromState(id){
+    const key = String(id || "");
+    if (!key) return null;
+    const S = getStateHandle();
+    if (!S) return null;
+    if (!S.players) S.players = {};
+    if (S.players[key]) return S.players[key];
+    const St = (Game && Game.State) ? Game.State : null;
+    if (St && St.players && St.players[key]) {
+      S.players[key] = St.players[key];
+      return S.players[key];
+    }
+    S.players[key] = { id: key, points: 0, npc: true };
+    return S.players[key];
+  }
+
+  let npcAccountMigrateLogged = false;
+  function ensureNpcAccountsFromState(opts = {}){
+    const S = getStateHandle();
+    if (!S || !S.players) return { ok: false, reason: "state_missing" };
+    const St = (Game && Game.State) ? Game.State : null;
+    const sourcePlayers = (St && St.players) ? St.players : S.players;
+    const createdIds = [];
+    let movedTotal = 0;
+    const npcList = Object.values(sourcePlayers || {}).filter(p => {
+      if (!p) return false;
+      const pid = String(p.id || "");
+      return p.npc === true || p.type === "npc" || pid.startsWith("npc_");
+    });
+    npcList.forEach(p => {
+      const id = String(p.id || "");
+      if (!id) return;
+      if (!S.players[id]) {
+        if (St && St.players && St.players[id]) {
+          S.players[id] = St.players[id];
+          if (Number.isFinite(St.players[id].points)) movedTotal += (St.players[id].points | 0);
+        } else {
+          S.players[id] = { id, points: 0, npc: true };
+        }
+        createdIds.push(id);
+      }
+    });
+    if (isDevFlag() && createdIds.length && !npcAccountMigrateLogged) {
+      npcAccountMigrateLogged = true;
+      try {
+        console.warn("ECON_NPC_ACCOUNT_MIGRATE_V1", {
+          count: createdIds.length,
+          movedTotal,
+          mode: (St && St.players) ? "sync" : "migrate"
+        });
+      } catch (_) {}
+    }
+    return { ok: true, count: createdIds.length, movedTotal, createdIds };
+  }
+
   function logTransfer(entry){
     const dbg = ensureDebugStore();
     const log = dbg.moneyLog;
@@ -104,7 +171,7 @@
     if (key === "sink") return pools.sink;
     if (key === BANK_ACCOUNT_ID) return pools.bank;
     if (key === WORLD_BANK_ID) return pools.worldBank;
-    const S = Game.__S || null;
+    const S = getStateHandle();
     if (!S) return null;
     if (key === "me") {
       if (S.players && S.players.me && typeof S.players.me.points === "number") return S.players.me;
@@ -112,6 +179,13 @@
     }
     if (S.players && S.players[key]) return S.players[key];
     if (S.me && S.me.id === key) return S.me;
+    if (isNpcId(key)) return ensureNpcAccountFromState(key);
+    const St = (Game && Game.State) ? Game.State : null;
+    if (St && St.players && St.players[key]) {
+      S.players = S.players || {};
+      S.players[key] = St.players[key];
+      return S.players[key];
+    }
     return null;
   }
 
@@ -618,6 +692,7 @@
       res.notes.push("npc_missing");
       return res;
     }
+    ensureNpcAccountsFromState();
     const acc = getAccount(id);
     if (!acc) {
       res.notes.push("npc_account_missing");
@@ -676,6 +751,10 @@
 
   E.getWorldBankSoftCap = function (){
     return WORLD_BANK_SOFT_CAP;
+  };
+
+  E.ensureNpcAccountsFromState = function (opts = {}) {
+    return ensureNpcAccountsFromState(opts);
   };
 
   E.maybeWorldStipendTick = function (opts = {}) {
@@ -1492,6 +1571,7 @@
   E._logTx = E._logTx || logTransfer;
   Game._ConflictEconomy = E;
   Game.ConflictEconomy = E;
+  try { ensureNpcAccountsFromState({ reason: "init" }); } catch (_) {}
 
   const bankState = { override: null };
 

@@ -3216,6 +3216,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || null;
     if (!Econ || !S || !S.players) return { ok: false, notes: ["missing_econ_or_state"] };
+    let threshold = null;
+    let seedMargin = null;
+    let seedApplied = false;
+    let seedWhy = null;
+    let seedNeed = 0;
+    let seedCollected = 0;
+    let seedDonorsCount = 0;
 
     const worldContractName = "econ_npc_world_contract_v1";
     const getEconNpcWorldContractV1 = econ_npc_world_contract_v1;
@@ -3300,13 +3307,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const logSource = logBeforeSnap.logSource || "debug_moneyLog";
     const logStart = Array.isArray(logBeforeSnap.rows) ? logBeforeSnap.rows.length : 0;
     const lenBefore = logStart;
-    const threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
-    const seedMargin = 5;
-    let seedApplied = false;
-    let seedWhy = null;
-    let seedNeed = 0;
-    let seedCollected = 0;
-    let seedDonorsCount = 0;
+    threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
+    seedMargin = 5;
     const hasDebugMoneyLog = !!(Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length);
     const hasLoggerQueue = !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length);
     if (logSource === "none") {
@@ -3347,7 +3349,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           hasLoggerQueue,
           scopeWindowLastN,
           taxProbe: { attempted: false, applied: false, taxAmount: 0, why: "balances_unavailable" },
-          auditReadOnly: true
+          auditReadOnly: false
         }
       };
     }
@@ -3389,7 +3391,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           hasLoggerQueue,
           scopeWindowLastN,
           taxProbe: { attempted: false, applied: false, taxAmount: 0, why: "balances_unavailable" },
-          auditReadOnly: true
+          auditReadOnly: false
         }
       };
     }
@@ -3727,7 +3729,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         hasLoggerQueue: !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length),
         scopeWindowLastN,
         seedTransfer,
-        auditReadOnly: true,
+        auditReadOnly: false,
         massDriftBreakdown: (worldMassDelta !== 0 && worldMassDelta != null) ? {
           worldTaxInSum: totalTaxInWindow,
           bankDelta: (Number.isFinite(bankAfter) && Number.isFinite(bankBefore)) ? (bankAfter - bankBefore) : null,
@@ -3770,6 +3772,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let accountsIncludedHash = null;
     let addedAccounts = [];
     let fixedAccounts = [];
+    let npcAccountCount = null;
+    let npcAccountSample = [];
+    let npcAccountsMissingLen = null;
+    let npcAccountsMissingSample = [];
     let logSourceChosen = "none";
     let rowsScoped = 0;
     let taxProbe = { attempted: false, applied: false, taxAmount: 0, why: "uninit" };
@@ -3784,22 +3790,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       return { accountsIncluded: [], accountsIncludedLen: 0, accountsIncludedHash: null, hasTotals: !!snapById, missing: ["contract_fn_missing"] };
     };
-    const ensureContractAccountsExist = (contract) => {
+    const ensureContractAccountsExist = () => {
       const added = [];
-      const fixed = [];
-      const S = Game.__S || (Game.__S = {});
-      if (!S.players) S.players = {};
-      (contract.accountsIncluded || []).forEach(id => {
-        if (!id) return;
-        if (!S.players[id]) {
-          S.players[id] = { id, points: 0 };
-          added.push(id);
-        } else if (!Number.isFinite(S.players[id].points)) {
-          S.players[id].points = 0;
-          fixed.push(id);
-        }
-      });
-      return { addedAccounts: added, fixedAccounts: fixed };
+      if (Game.ConflictEconomy && typeof Game.ConflictEconomy.ensureNpcAccountsFromState === "function") {
+        const res = Game.ConflictEconomy.ensureNpcAccountsFromState({ reason: "wealth_tax_pack" });
+        if (res && Array.isArray(res.createdIds)) added.push(...res.createdIds);
+      }
+      return { addedAccounts: added, fixedAccounts: [] };
     };
     const emitLine = (line) => {
       try {
@@ -3823,6 +3820,28 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const ensured = ensureContractAccountsExist(contract);
       addedAccounts = ensured.addedAccounts;
       fixedAccounts = ensured.fixedAccounts;
+      const npcDiagSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const npcDiagById = npcDiagSnap && npcDiagSnap.byId ? npcDiagSnap.byId : null;
+      const npcDiagPlayers = (Game.State && Game.State.players) ? Game.State.players : (Game.__S && Game.__S.players) ? Game.__S.players : {};
+      const npcDiagIds = Object.values(npcDiagPlayers || {})
+        .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
+        .map(p => String(p.id));
+      const npcDiagMissing = [];
+      const npcDiagPresent = [];
+      if (npcDiagById) {
+        npcDiagIds.forEach(id => {
+          if (Number.isFinite(npcDiagById[id])) npcDiagPresent.push(id);
+          else npcDiagMissing.push(id);
+        });
+      } else {
+        npcDiagMissing.push(...npcDiagIds);
+      }
+      npcAccountCount = npcDiagPresent.length;
+      npcAccountSample = npcDiagPresent.slice(0, 3);
+      npcAccountsMissingLen = npcDiagMissing.length;
+      npcAccountsMissingSample = npcDiagMissing.slice(0, 3);
       smokeRes = Game.__DEV.smokeNpcWealthTaxOnce(opts);
       if (smokeRes && smokeRes.notes && Array.isArray(smokeRes.notes) && addedAccounts.length) {
         smokeRes.notes.push("world_contract_missing_accounts");
@@ -3832,6 +3851,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeRes.diag.fixedAccounts = fixedAccounts;
         smokeRes.diag.accountsIncludedLen = accountsIncludedLen;
         smokeRes.diag.accountsIncludedHash = accountsIncludedHash;
+        smokeRes.diag.npcAccountCount = npcAccountCount;
+        smokeRes.diag.npcAccountSample = npcAccountSample;
+        smokeRes.diag.npcAccountsMissingLen = npcAccountsMissingLen;
+        smokeRes.diag.npcAccountsMissingSample = npcAccountsMissingSample;
         threshold = Number.isFinite(smokeRes.diag.seedThreshold) ? smokeRes.diag.seedThreshold : threshold;
         seedMargin = Number.isFinite(smokeRes.diag.seedMargin) ? smokeRes.diag.seedMargin : seedMargin;
         seedApplied = !!smokeRes.diag.seedApplied;
@@ -3867,6 +3890,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           worldContractName: smokeRes.diag ? smokeRes.diag.worldContractName : null,
           worldContractUsed: smokeRes.diag ? smokeRes.diag.worldContractUsed : null,
           worldContractExportKey: smokeRes.diag ? smokeRes.diag.worldContractExportKey : null,
+          npcAccountCount: smokeRes.diag ? smokeRes.diag.npcAccountCount : null,
+          npcAccountSample: smokeRes.diag ? smokeRes.diag.npcAccountSample : null,
+          npcAccountsMissingLen: smokeRes.diag ? smokeRes.diag.npcAccountsMissingLen : null,
+          npcAccountsMissingSample: smokeRes.diag ? smokeRes.diag.npcAccountsMissingSample : null,
           seedSourceId: smokeRes.diag ? smokeRes.diag.seedSourceId : null,
           seedFailureReason: smokeRes.diag ? smokeRes.diag.seedFailureReason : null,
           seedThreshold: smokeRes.diag ? smokeRes.diag.seedThreshold : null,
@@ -3912,6 +3939,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           accountsIncludedHash,
           addedAccounts,
           fixedAccounts,
+          npcAccountCount,
+          npcAccountSample,
+          npcAccountsMissingLen,
+          npcAccountsMissingSample,
           worldContractUsed: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractUsed : null,
           worldContractExportKey: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractExportKey : "econNpcWorldContractV1",
           logSource: logSourceChosen,
@@ -3939,6 +3970,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           accountsIncludedHash,
           addedAccounts,
           fixedAccounts,
+          npcAccountCount,
+          npcAccountSample,
+          npcAccountsMissingLen,
+          npcAccountsMissingSample,
           taxProbe,
           worldContractUsed: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractUsed : null,
           worldContractExportKey: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractExportKey : "econNpcWorldContractV1"
