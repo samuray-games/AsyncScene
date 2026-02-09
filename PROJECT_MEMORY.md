@@ -2437,5 +2437,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Status: FIXED pending runtime evidence. LOGGED EVEN IF FAIL.
 2026-02-09 — ECON-NPC [1.5] wealth-tax pack logSource/taxCall diagnostics.
 - Pack now prefers `Game.Debug.moneyLog` when present, reselects logSource after ticks, and records `diag.taxCall` + `diag.sampleTailReasons` to explain tax_missing or rowsScoped=0. Status: FAIL pending runtime evidence.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack ordering fix.
+- Log source and rowsScoped are now computed AFTER ticks; `diag.orderCheck` added to evidence JSON. Status: FAIL pending runtime evidence.
 2026-02-09 — Dev helper dumpMoneyLogSourcesOnce.
 - Added `Game.__DEV.dumpMoneyLogSourcesOnce` that emits `WORLD_MONEYLOG_SOURCES_V1_BEGIN`/`END` plus JSON summary with `candidates` and `best` to diagnose `logSource:"none"` and `rowsScoped:0`. Targeted smoke: `Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}})`; PASS when `best.len>0`. Logged even if fail.

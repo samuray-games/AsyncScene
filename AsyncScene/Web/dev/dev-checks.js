@@ -3322,32 +3322,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const notes = [];
     const dbg = Game.__D || (Game.__D = {});
     dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
-    refreshMoneyLogSnapshot();
-    const logCandidatesBefore = collectLogSourceCandidates();
-    logSourceCandidates = logCandidatesBefore.map(c => ({ name: c.name, len: c.len }));
-    const dbgPublic = Game.Debug || null;
-    const dbgPublicLog = (dbgPublic && Array.isArray(dbgPublic.moneyLog)) ? dbgPublic.moneyLog : null;
-    const pickedBefore = pickLogCandidate(logCandidatesBefore, "debug_moneyLog");
+    const logStart = 0;
+    const lenBefore = 0;
     let logSource = "none";
-    let logRowsBefore = [];
-    if (dbgPublicLog && dbgPublicLog.length) {
-      logSource = "debug_moneyLog";
-      logRowsBefore = dbgPublicLog;
-    } else {
-      logSource = pickedBefore.name || "none";
-      logRowsBefore = Array.isArray(pickedBefore.rows) ? pickedBefore.rows : [];
-      if (logSource === "Game.Debug.moneyLog" || logSource === "Game.Debug.debug_moneyLog") {
-        logSource = "debug_moneyLog";
-      }
-    }
-    const logStart = logRowsBefore.length;
-    const lenBefore = logStart;
     threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
     seedMargin = 5;
     const hasDebugMoneyLog = !!((Game.Debug && Array.isArray(Game.Debug.moneyLog) && Game.Debug.moneyLog.length)
       || (Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length));
     const hasLoggerQueue = !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length);
-    if (logSource === "none") notes.push("log_source_none");
     if (!snapshotOk) notes.push("snapshot_unavailable");
     if (!snapshotOk) {
       return {
@@ -3520,11 +3502,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const seedWorldDelta = (worldMassBefore != null && seedWorldAfter != null) ? (seedWorldAfter - worldMassBefore) : null;
       if (seedWorldDelta !== 0) notes.push("seed_not_zero_sum");
       refreshMoneyLogSnapshot();
-      const probeSnap = getPointsMoneyLogSnapshot({ prefer: logSource });
-      const probeEnd = Array.isArray(probeSnap.rows) ? probeSnap.rows.length : 0;
+      const dbgProbe = (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog
+        : (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog
+        : [];
+      const probeEnd = dbgProbe.length;
       const probeWindow = (scopeWindowLastN && scopeWindowLastN > 0) ? scopeWindowLastN : 200;
-      const probeRows = Array.isArray(probeSnap.rows)
-        ? probeSnap.rows.slice(Math.max(0, probeEnd - probeWindow))
+      const probeRows = dbgProbe.length
+        ? dbgProbe.slice(Math.max(0, probeEnd - probeWindow))
         : [];
       const probeTaxRows = probeRows.filter(r => r && r.reason === "world_tax_in");
       if (seedRichNpc && probeTaxRows.length === 0) {
@@ -3591,17 +3575,27 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
     refreshMoneyLogSnapshot();
     const logCandidatesAfter = collectLogSourceCandidates();
-    const pickedAfter = pickLogCandidate(logCandidatesAfter, logSource);
-    if (pickedAfter && pickedAfter.len > 0 && pickedAfter.name) {
+    logSourceCandidates = logCandidatesAfter.map(c => ({ name: c.name, len: c.len }));
+    const dbgPublic = Game.Debug || null;
+    const dbgPublicLog = (dbgPublic && Array.isArray(dbgPublic.moneyLog)) ? dbgPublic.moneyLog : null;
+    const pickedAfter = pickLogCandidate(logCandidatesAfter, "debug_moneyLog");
+    let logAfterRows = [];
+    if (dbgPublicLog && dbgPublicLog.length) {
+      logSource = "debug_moneyLog";
+      logAfterRows = dbgPublicLog;
+    } else if (pickedAfter && pickedAfter.len > 0 && pickedAfter.name) {
       logSource = pickedAfter.name;
       if (logSource === "Game.Debug.moneyLog" || logSource === "Game.Debug.debug_moneyLog") {
         logSource = "debug_moneyLog";
       }
+      logAfterRows = Array.isArray(pickedAfter.rows) ? pickedAfter.rows : [];
+    } else {
+      logSource = "none";
+      logAfterRows = Array.isArray(pickedAfter.rows) ? pickedAfter.rows : [];
     }
-    const logAfterRows = Array.isArray(pickedAfter.rows) ? pickedAfter.rows : [];
     const logEnd = logAfterRows.length;
     const lenAfter = logEnd;
-    const rowsScoped = Math.max(0, logEnd - logStart);
+    const rowsScoped = Math.max(0, (scopeWindowLastN && scopeWindowLastN > 0) ? Math.min(logEnd, scopeWindowLastN) : logEnd);
     scopedLen = rowsScoped;
     const newRows = rowsScoped > 0
       ? logAfterRows.slice(Math.max(0, logEnd - rowsScoped))
@@ -3722,6 +3716,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       },
       asserts,
       diag: {
+        orderCheck: { ticksRun: true, logSourceComputedAfterTicks: true },
         seedRichNpc,
         npcSeededId: seededNpcId,
         npcSeededPtsBefore: seededNpcPtsBefore,

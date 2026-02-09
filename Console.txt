@@ -1,4 +1,4 @@
-[DUMP_AT] [2026-02-10 00:04:18] (epoch_ms=1770649458909)
+[DUMP_AT] [2026-02-10 00:21:53] (epoch_ms=1770650513875)
 [warn] [DUMP] moneyLogLen
 [warn] 200
 [warn] [DUMP] lastSlice
@@ -1670,11 +1670,109 @@ CONSOLE_TAPE_V1_READY
 [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
 [warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"h5f7410d4","hasTotals":true,"missingCount":0}
 [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":261189,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-10 00:04:18","dumpAtEpochMs":1770649458909}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-10 00:04:18]
+[warn] 1770649458909
+[warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"h5f7410d4","hasTotals":true,"missingCount":0}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_BEGIN
+[warn] {"ok":false,"buildTag":"build_2026_02_09b","diagVersion":"econ_npc_wealth_tax_pack_v1","runs":{"r50":null,"r10a":null,"r10b":null},"asserts":{"noTotalsNullAll":false,"noWorldMassDriftAll":false,"noExceptionAll":false,"seededNpcAppliedAtLeastOnce":false,"hasWorldTaxInAtLeastOnce":false},"notes":["exception"],"errorMessage":"Can't find variable: logSourceCandidates","errorStack":"@http://localhost:8080/dev/dev-checks.js:4048:49\n@http://localhost:8080/dev/dev-checks.js:4141:53\nglobal code@"}
+[warn] {"r50":null,"r10a":null,"r10b":null}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":262728,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-10 00:05:59","dumpAtEpochMs":1770649559851}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-10 00:05:59]
+[warn] 1770649559851
+CONSOLE_TAPE_V1_READY
+[warn] CONSOLE_TAPE_V1_READY
+[warn] REPL_TAPE_V1_READY use __RUN__("...") to capture manual commands
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770649713654
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770649713656
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ACCOUNT_MIGRATE_V1
+[warn] {"count":19,"movedTotal":0,"mode":"sync"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770649713679
+[log] [ConflictAPI] ready
+[warn] DUMP_ALIAS_OK
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770649713694
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770649713695
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","hasTotals":true,"missingCount":0}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":265035,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-10 00:14:05","dumpAtEpochMs":1770650045869}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-10 00:14:05]
+[warn] 1770650045869
+[warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"hc7d5890b","hasTotals":true,"missingCount":0}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
 CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN
-[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=1671 lastLine=[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN]
-[TAPE_TAIL_1] [warn] WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END
-[TAPE_TAIL_2] [warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"h5f7410d4","hasTotals":true,"missingCount":0}
-[TAPE_TAIL_3] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
-[TAPE_TAIL_4] [warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"h5f7410d4","hasTotals":true,"missingCount":0}
+[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=1769 lastLine=[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN]
+[TAPE_TAIL_1] [warn] CONSOLE_DUMP_AT
+[TAPE_TAIL_2] [warn] [2026-02-10 00:14:05]
+[TAPE_TAIL_3] [warn] 1770650045869
+[TAPE_TAIL_4] [warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"hc7d5890b","hasTotals":true,"missingCount":0}
 [TAPE_TAIL_5] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
 CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END
