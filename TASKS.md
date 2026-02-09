@@ -771,3 +771,23 @@
         Ответ QA:
         Прочитай SMOKE TEST COMMANDS §11: Bank описан как BACKLOG skeleton, canonical smoke `Game.__DEV.smokeEcon05_BankOnce({ ownerId:"me" })`. Подтверди, что PROJECT_MEMORY содержит Step 4 PASS с_totals=10→10_, `rows`=2/1/1 и `deltas`=-1/+1, и что pack hook не требовался (нет общего smokeEconPack). Сообщи PASS/FAIL и ссылку на разделы.
         ```
+
+### [T-20260209-001] ECON-NPC [1.5] NPC activity tax (world_tax_in)
+- Status: FAIL (нет runtime evidence)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Налог на активность богатых NPC через transferPoints в worldBank (reason `world_tax_in`), без эмиссий, без отрицательных балансов и с soft cap.
+- Implementation:
+  - Добавлен `applyNpcWealthTaxIfNeeded` и вызовы в `E.applyStart` (NPC start cost) и `res === "lose"` (NPC win take).
+  - Добавлен smoke `Game.__DEV.smokeNpcWealthTaxOnce({ticks:200, seedRichNpc:true, debugTelemetry:true})`.
+- Evidence: PENDING (runtime не запускался).
+- PASS criteria:
+  - `worldMassDelta == 0`, `totalTaxInWindow > 0` при `seedRichNpc:true`, `bankAfter >= 0`, `npc_negative_balance` отсутствует.
+  - В moneyLog есть reason `world_tax_in`.
+- Smoke command:
+  - `Game.__DEV.smokeNpcWealthTaxOnce({ticks:200, seedRichNpc:true, debugTelemetry:true})`
+- Code refs (search):
+  - `applyNpcWealthTaxIfNeeded`, `battle_entry_npc`, `battle_win_take`, `world_tax_in`.

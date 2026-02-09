@@ -4,6 +4,8 @@
   const BANK_ACCOUNT_ID = "bank";
   const WORLD_BANK_ID = "worldBank";
   const WORLD_BANK_SOFT_CAP = 20;
+  const NPC_TAX_SOFT_CAP = 20;
+  const NPC_TAX_MAX_PER_TXN = 2;
   const pools = {
     crowd: { id: "crowd", points: 0 },
     sink: { id: "sink", points: 0 },
@@ -602,6 +604,72 @@
     return { ok: true, taxOnly: true, taxAmount, netCost };
   };
 
+  function applyNpcWealthTaxIfNeeded(npcId, npcPtsBefore, ctx = {}) {
+    const res = {
+      ok: true,
+      taxApplied: false,
+      taxAmount: 0,
+      threshold: NPC_TAX_SOFT_CAP,
+      npcPtsBefore: Number.isFinite(npcPtsBefore) ? (npcPtsBefore | 0) : 0,
+      notes: []
+    };
+    const id = String(npcId || "");
+    if (!id) {
+      res.notes.push("npc_missing");
+      return res;
+    }
+    const acc = getAccount(id);
+    if (!acc) {
+      res.notes.push("npc_account_missing");
+      return res;
+    }
+    const isNpc = !!(acc.npc === true || acc.type === "npc" || id.startsWith("npc_"));
+    if (!isNpc) {
+      res.notes.push("not_npc");
+      return res;
+    }
+    const before = Number.isFinite(npcPtsBefore) ? (npcPtsBefore | 0) : (acc.points | 0);
+    res.npcPtsBefore = before;
+    if (before <= NPC_TAX_SOFT_CAP) {
+      res.notes.push("below_threshold");
+      return res;
+    }
+    const bankBal = getWorldBankBalance();
+    if (bankBal >= WORLD_BANK_SOFT_CAP) {
+      res.notes.push("bank_soft_cap");
+      res.bankBalance = bankBal;
+      return res;
+    }
+    let taxAmount = 1;
+    if (before >= (NPC_TAX_SOFT_CAP + 10)) taxAmount = Math.min(NPC_TAX_MAX_PER_TXN, 2);
+    if (taxAmount <= 0) {
+      res.notes.push("tax_zero");
+      return res;
+    }
+    const curPts = (acc.points | 0);
+    if (curPts < taxAmount) {
+      res.notes.push("npc_insufficient");
+      return res;
+    }
+    const meta = Object.assign({}, ctx || {}, {
+      kind: "npc_activity_tax",
+      threshold: NPC_TAX_SOFT_CAP,
+      taxAmount,
+      npcPtsBefore: before,
+      bankSoftCap: WORLD_BANK_SOFT_CAP,
+      bankBalance: bankBal
+    });
+    const tx = E.transferPoints(id, WORLD_BANK_ID, taxAmount, "world_tax_in", meta);
+    if (!tx || tx.ok !== true) {
+      res.ok = false;
+      res.notes.push("tax_transfer_failed");
+      return res;
+    }
+    res.taxApplied = true;
+    res.taxAmount = taxAmount;
+    return res;
+  }
+
   E.getWorldBankBalance = function (){
     return getWorldBankBalance();
   };
@@ -882,6 +950,14 @@
         ? (isNpc ? "battle_entry_npc_rich" : "battle_entry_rich")
         : (isNpc ? "battle_entry_npc" : "battle_entry");
       E.transferPoints(initiatorId, "sink", amount, reason, { battleId: battle.id || battle.battleId || null, status: battle.status || null, phase: battle.phase || null });
+      if (isNpc) {
+        applyNpcWealthTaxIfNeeded(initiatorId, before, {
+          sourceReason: reason,
+          battleId: battle.id || battle.battleId || null,
+          status: battle.status || null,
+          phase: battle.phase || null
+        });
+      }
       return;
     }
 
@@ -1230,6 +1306,8 @@
         const oppId = battle.opponentId || null;
         const winnerId = oppId || "opponent";
         const loserId = "me";
+        const winner = getAccount(winnerId);
+        const winnerBefore = winner ? (winner.points | 0) : 0;
         const loser = getAccount(loserId);
         const before = loser ? (loser.points | 0) : 0;
         if (loser && before > 0) {
@@ -1244,6 +1322,14 @@
               E.transferPoints(loserId, winnerId, extra, "battle_rich_loss_extra", { battleId: battle.id || battle.battleId || null, status: battle.status || null, result: battle.result || null });
             }
           }
+        }
+        if (winner && (winner.npc === true || winner.type === "npc" || String(winnerId).startsWith("npc_"))) {
+          applyNpcWealthTaxIfNeeded(winnerId, winnerBefore, {
+            sourceReason: "battle_win_take",
+            battleId: battle.id || battle.battleId || null,
+            status: battle.status || null,
+            result: battle.result || null
+          });
         }
         
         // Task A: REP за исход по разнице сил Δ (поражение)
@@ -1400,6 +1486,8 @@
   E.markWinProgressAwarded = markWinProgressAwarded;
   E.maybeGrantWinProgressRep = maybeGrantWinProgressRep;
   E.WIN_PROGRESS_REP_TABLE = WIN_PROGRESS_REP_TABLE;
+  E.applyNpcWealthTaxIfNeeded = applyNpcWealthTaxIfNeeded;
+  E.NPC_TAX_SOFT_CAP = NPC_TAX_SOFT_CAP;
   E.isCirculationEnabled = E.isCirculationEnabled || isCirculationEnabled;
   E._logTx = E._logTx || logTransfer;
   Game._ConflictEconomy = E;

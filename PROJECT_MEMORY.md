@@ -2355,3 +2355,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Evidence (git): восстановлено из коммита 74d06d8 (fmm).
 - Evidence (chat): добавлен pre-commit hook, блокирующий удаление/пустой PROJECT_MEMORY.md.
 - Ordering note: предыдущие записи могли быть добавлены нестрого по времени; новые записи добавляются только в конец.
+
+### 2026-02-09 — ECON-NPC [1.5] NPC activity tax (world_tax_in)
+- Status: PENDING (нет runtime evidence)
+- Facts:
+  - Добавлен налог на активность богатых NPC через transferPoints в worldBank (reason `world_tax_in`).
+  - Вызовы налога: `E.applyStart` (NPC battle entry) и `res === "lose"` (NPC win take).
+  - Введён dev smoke `Game.__DEV.smokeNpcWealthTaxOnce({ticks:200, seedRichNpc:true, debugTelemetry:true})`.
+- Evidence: UNKNOWN (no runtime dump yet).

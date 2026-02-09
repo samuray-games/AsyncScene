@@ -3125,6 +3125,117 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     });
   };
 
+  // dev-only QA smoke: NPC wealth tax (world_tax_in) should trigger without emissions.
+  Game.__DEV.smokeNpcWealthTaxOnce = (opts = {}) => {
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : 200;
+    const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
+    const seedRichNpc = opts.seedRichNpc !== false;
+    const debugTelemetry = !!opts.debugTelemetry;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.__S || null;
+    if (!Econ || !S || !S.players) return { ok: false, notes: ["missing_econ_or_state"] };
+
+    const snapBefore = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    const worldMassBefore = snapBefore && Number.isFinite(snapBefore.total) ? (snapBefore.total | 0) : null;
+    const bankBefore = snapBefore && snapBefore.byId && Number.isFinite(snapBefore.byId.worldBank)
+      ? (snapBefore.byId.worldBank | 0)
+      : (typeof Econ.getWorldBankBalance === "function" ? (Econ.getWorldBankBalance() | 0) : 0);
+
+    const dbg = Game.__D ? Game.__D : (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
+    const logStart = dbg.moneyLog.length;
+
+    const npcIds = Object.values(S.players || {})
+      .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
+      .map(p => String(p.id));
+    const notes = [];
+
+    if (seedRichNpc && npcIds.length) {
+      const targetId = npcIds[0];
+      const acc = S.players[targetId];
+      const current = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
+      const threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
+      const desired = threshold + 5;
+      if (current < desired) {
+        const need = desired - current;
+        const seedTx = Econ.transferPoints("me", targetId, need, "dev_seed_rich_npc", { seed: true });
+        if (!seedTx || seedTx.ok !== true) notes.push("seed_rich_npc_failed");
+      }
+    }
+
+    const run = Game.__DEV.runWorldTicks({
+      N: ticks,
+      seed,
+      allowNpcVotes: true,
+      allowBattles: true,
+      allowEventsTick: true
+    });
+
+    const logEnd = dbg.moneyLog.length;
+    const newRows = dbg.moneyLog.slice(logStart, logEnd);
+    const taxRows = newRows.filter(r => r && r.reason === "world_tax_in" && String(r.sourceId || "").startsWith("npc_"));
+    const totalTaxInWindow = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
+    const byNpc = Object.create(null);
+    taxRows.forEach(r => {
+      const id = String(r.sourceId || "");
+      byNpc[id] = (byNpc[id] || 0) + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0);
+    });
+    const topTaxedNpcs = Object.keys(byNpc)
+      .map(id => ({ npcId: id, tax: byNpc[id] }))
+      .sort((a, b) => b.tax - a.tax)
+      .slice(0, 3);
+
+    const snapAfter = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    const worldMassAfter = snapAfter && Number.isFinite(snapAfter.total) ? (snapAfter.total | 0) : null;
+    const worldMassDelta = (worldMassBefore != null && worldMassAfter != null) ? (worldMassAfter - worldMassBefore) : null;
+    const bankAfter = snapAfter && snapAfter.byId && Number.isFinite(snapAfter.byId.worldBank)
+      ? (snapAfter.byId.worldBank | 0)
+      : (typeof Econ.getWorldBankBalance === "function" ? (Econ.getWorldBankBalance() | 0) : 0);
+    const softCap = (typeof Econ.getWorldBankSoftCap === "function") ? (Econ.getWorldBankSoftCap() | 0) : null;
+
+    const negativeNpc = npcIds.some(id => {
+      const p = S.players[id];
+      return p && Number.isFinite(p.points) && p.points < 0;
+    });
+    if (negativeNpc) notes.push("npc_negative_balance");
+    if (worldMassDelta != null && worldMassDelta !== 0) notes.push("world_mass_drift");
+    if (seedRichNpc && totalTaxInWindow <= 0) notes.push("tax_missing");
+    if (softCap != null && bankAfter > (softCap | 0)) notes.push("bank_above_soft_cap");
+
+    const ok = notes.length === 0;
+    const result = {
+      ok,
+      notes,
+      meta: {
+        ticks,
+        seed,
+        seedRichNpc,
+        logRowsDelta: logEnd - logStart,
+        debugTelemetry
+      },
+      world: {
+        massBefore: worldMassBefore,
+        massAfter: worldMassAfter,
+        massDelta: worldMassDelta,
+        bankBefore,
+        bankAfter,
+        bankSoftCap: softCap
+      },
+      tax: {
+        threshold: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20,
+        totalTaxInWindow,
+        topTaxedNpcs
+      },
+      runSummary: run && run.summary ? run.summary : null
+    };
+    if (debugTelemetry) result.debug = { taxRows };
+    return result;
+  };
+
   // dev-only QA runner: emit two stipend smoke objects in a single, copy-friendly log block.
   Game.__DEV.runWorldStipendEvidencePackOnce = (opts = {}) => {
     const notes = [];
