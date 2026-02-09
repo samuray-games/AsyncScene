@@ -2390,6 +2390,19 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 2026-02-09 — ECON-NPC [1.5] wealth-tax pack TDZ hardening (dev-checks only).
 - `runEconNpcWealthTaxEvidencePackOnce` now pre-initializes all diagnostic vars (threshold/seedMargin/maxPerTxn/etc.) and always prints BEGIN/JSON/JSON/END in `finally`.
 - Runtime PASS still pending; QA must rerun the same command and confirm exception-free evidence block in Console.txt.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack seed zero-sum hardening (dev-checks only).
+- Seed now collects from NPC donors into `sink` (`world_seed_collect`) and grants to target (`world_seed_grant`) so world mass is conserved; logs `seedNeed/seedCollected/seedDonorsCount`.
+- New diagnostics: `points_emission_suspected`, `worldbank_nonzero_without_transfer`, `seed_not_zero_sum` if invariants fail.
+- Runtime PASS still pending; QA must confirm via Console.txt (see TASKS.md).
+2026-02-09 — ECON-NPC [1.5] world contract helper exported (dev-checks only).
+- Added `Game.__DEV.econNpcWorldContractV1` and marker `ECON_NPC_WORLD_CONTRACT_V1_READY` with `accountsIncludedLen/hash` and `hasTotals`.
+- This is intended to prevent `world_contract_mismatch` when totals are available; runtime PASS still pending.
+2026-02-09 — ECON-NPC [1.5] world contract export/diagnostics update (dev-checks only).
+- Export marker `ECON_NPC_WORLD_CONTRACT_V1_EXPORTED` added; JSON#1 includes `worldContractUsed/worldContractExportKey/debugMoneyLogLen`.
+- `world_contract_mismatch` now only when `Game.State` missing; otherwise `totals_null` for missing totals. Runtime PASS still pending.
+2026-02-09 — ECON-NPC [1.5] evidence pack read-only mode (dev-checks only).
+- Contract helper no longer mutates `Game.State.players`; missing accounts are treated as 0 for totals.
+- `balances_unavailable` used when logs are missing; runtime PASS still pending.
 2026-02-09 — ECON-NPC [1.5] wealth-tax pack runtime FAIL (threshold TDZ).
 - Console.txt shows `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN` with `ok:false` and error `Cannot access 'threshold' before initialization.` followed by END/DUMP_DONE.
 - Fix applied in dev-checks.js: seed threshold/margin and seedApplied/seedWhy now initialized before log-source early returns to avoid TDZ. Runtime PASS still pending.

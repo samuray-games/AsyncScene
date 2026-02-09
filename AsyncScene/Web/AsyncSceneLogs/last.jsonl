@@ -9830,3 +9830,20 @@
 {"ts": 1770615677860, "sessionId": "session-1770615644098-s69e", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет свалить от Мемолог.", "system": true}
 {"ts": 1770615680794, "sessionId": "session-1770615644098-s69e", "type": "chat", "name": "Слава", "text": "@Юна, давай, не прячься за толпой", "system": false}
 {"ts": 1770615681363, "sessionId": "session-1770615644098-s69e", "type": "chat", "name": "Ветеран", "text": "@Макс, вы вообще читаете что пишете", "system": false}
+{"ts": 1770616348001, "sessionId": "session-1770616344463-wc6u", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770616364109, "sessionId": "session-1770616344463-wc6u", "type": "chat", "name": "Мемолог", "text": "я тебя понял", "system": false}
+{"ts": 1770616372017, "sessionId": "session-1770616344463-wc6u", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770616378623, "sessionId": "session-1770616344463-wc6u", "type": "chat", "name": "Юна", "text": "@Горячий, кринж зашел в чат и сел", "system": false}
+{"ts": 1770616779289, "sessionId": "session-1770616775884-vgz6", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770616788249, "sessionId": "session-1770616775884-vgz6", "type": "chat", "name": "Слава", "text": "@Алексей петрович, не мажь, отвечай по делу", "system": false}
+{"ts": 1770616801009, "sessionId": "session-1770616775884-vgz6", "type": "chat", "name": "Мемолог", "text": "я в шоке, но читаю дальше", "system": false}
+{"ts": 1770616880957, "sessionId": "session-1770616775884-vgz6", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770616881067, "sessionId": "session-1770616775884-vgz6", "type": "chat", "name": "Олег", "text": "либо отвечаешь, либо платишь", "system": false}
+{"ts": 1770616881077, "sessionId": "session-1770616775884-vgz6", "type": "chat", "name": "Ксю", "text": "@Макс, ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770617511697, "sessionId": "session-1770617507946-9tlj", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770617528615, "sessionId": "session-1770617507946-9tlj", "type": "chat", "name": "Слава", "text": "@Рин, слыш, ты кто такой тут", "system": false}
+{"ts": 1770617557647, "sessionId": "session-1770617507946-9tlj", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770617557666, "sessionId": "session-1770617507946-9tlj", "type": "chat", "name": "Мемолог", "text": "я в шоке, но читаю дальше", "system": false}
+{"ts": 1770617557693, "sessionId": "session-1770617507946-9tlj", "type": "chat", "name": "Ветеран", "text": "ну давай, тащи", "system": false}
+{"ts": 1770618837332, "sessionId": "session-1770618833964-a9bt", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770618842504, "sessionId": "session-1770618833964-a9bt", "type": "chat", "name": "Ксю", "text": "@Мемолог, ты вообще понимаешь где находишься", "system": false}

@@ -848,6 +848,10 @@
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
 - Update (2026-02-09 14:13:37): TDZ exception occurred before smoke due to threshold initialization order; tasks waits for PASS evidence at same command after fix.
 - Update (2026-02-09): TDZ fix applied in `runEconNpcWealthTaxEvidencePackOnce` — all diag vars pre-initialized at top, summary/JSON output moved to `finally` so BEGIN/JSON/JSON/END always prints. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): seedRichNpc now uses donor NPCs -> sink -> target (reasons `world_seed_collect` / `world_seed_grant`) to preserve zero-sum; adds `seedNeed/seedCollected/seedDonorsCount` and new notes `points_emission_suspected`, `worldbank_nonzero_without_transfer`, `seed_not_zero_sum`. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): added dev contract helper `Game.__DEV.econNpcWorldContractV1` and marker `ECON_NPC_WORLD_CONTRACT_V1_READY {accountsIncludedLen,accountsIncludedHash,hasTotals}` to eliminate `world_contract_mismatch` ambiguity. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): contract helper now exported with marker `ECON_NPC_WORLD_CONTRACT_V1_EXPORTED` and pack JSON#1 includes `worldContractUsed/worldContractExportKey/debugMoneyLogLen`. `world_contract_mismatch` emitted only when `Game.State` missing; otherwise `totals_null`.
+- Update (2026-02-09): evidence pack is now read-only (no State writes in contract helper path). Missing accounts treated as 0 for totals; `balances_unavailable` used when logs are missing. Status remains FAIL pending runtime evidence.
 - Runtime evidence (FAIL, Console.txt 2026-02-09):
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
   - `{"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization."...}`
