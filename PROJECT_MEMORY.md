@@ -2364,3 +2364,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Введён dev smoke `Game.__DEV.smokeNpcWealthTaxOnce({ticks:200, seedRichNpc:true, debugTelemetry:true})`.
   - Добавлен evidence pack раннер `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:200, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})`.
 - Evidence: UNKNOWN (no runtime dump yet).
+
+### 2026-02-09 — DEV-CACHE-01 dev-checks cache bust
+- Status: PENDING
+- Facts:
+  - Добавлены headers `Cache-Control`, `Pragma`, `Expires` для `/dev/*` в `dev-server.py`.
+  - `index.html` грузит `dev/dev-checks.js?v=build_2026_02_09b`.
+  - В топ-level `dev-checks.js` печатаются маркеры `DEV_CHECKS_SERVED_PROOF_V4`, `ECON_NPC_WEALTH_TAX_PACK_V1_LOADED` и `READY_FLAG`.
+- Evidence: need Console.txt showing those markers (currently missing; runtime needed).

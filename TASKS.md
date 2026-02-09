@@ -772,7 +772,19 @@
         Прочитай SMOKE TEST COMMANDS §11: Bank описан как BACKLOG skeleton, canonical smoke `Game.__DEV.smokeEcon05_BankOnce({ ownerId:"me" })`. Подтверди, что PROJECT_MEMORY содержит Step 4 PASS с_totals=10→10_, `rows`=2/1/1 и `deltas`=-1/+1, и что pack hook не требовался (нет общего smokeEconPack). Сообщи PASS/FAIL и ссылку на разделы.
         ```
 
-### [T-20260209-001] ECON-NPC [1.5] NPC activity tax (world_tax_in)
+-### [DEV-CACHE-01] ECON-NPC dev-checks cache bust
+- Status: FAIL (marks missing)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Dev infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/dev/dev-server.py` `AsyncScene/Web/index.html` `PROJECT_MEMORY.md`
+- Goal: ensure `dev-checks.js` reloads fresh (V4/New build) so wealth-tax pack markers appear.
+- Acceptance evidence:
+  - Console.txt must contain: `DEV_CHECKS_SERVED_PROOF_V4`, `DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b`, `ECON_NPC_WEALTH_TAX_PACK_V1_LOADED`, `ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b`, `ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true`.
+- Smoke commands:
+  1. Reload dev=1 page; grep Console.txt for the markers above.
+  2. Run `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:200, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})` and check `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_*` block.
 - Status: FAIL (нет runtime evidence)
 - Priority: P0
 - Assignee: Codex-ассистент
@@ -796,5 +808,6 @@
   - `tax.totalTaxInWindow > 0` при `seedRichNpc:true`
   - `tax.reasonsTop` содержит `world_tax_in` с `amount > 0`
   - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+  - Допустим дамп через `window.__DUMP_ALL__`, если `Game.__DUMP_ALL__` отсутствует
 - Code refs (search):
   - `applyNpcWealthTaxIfNeeded`, `battle_entry_npc`, `battle_win_take`, `world_tax_in`.

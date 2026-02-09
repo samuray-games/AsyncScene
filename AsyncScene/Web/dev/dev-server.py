@@ -22,6 +22,14 @@ class DevHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def end_headers(self):
+        path = self.path or ""
+        if path.startswith("/dev/") or path.startswith("dev/"):
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+        super().end_headers()
+
     def do_POST(self):
         if self.path in ("/console-dump", "console-dump"):
             self._json(404, {"ok": False, "err": "wrong_path_use___dev_console_dump"})

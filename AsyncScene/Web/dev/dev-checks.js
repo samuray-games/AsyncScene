@@ -17,6 +17,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     console.warn("ECON_NPC_ALLOWLIST_PACK_V1_LOADED");
   }
   console.warn("ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG", "build_2026_02_08g");
+  console.warn("DEV_CHECKS_SERVED_PROOF_V4");
+  console.warn("DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG", "build_2026_02_09b");
+  console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_LOADED");
+  console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG", "build_2026_02_09b");
+  window.__DEV_WEALTH_TAX_PACK_READY__ = true;
+  console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG", !!window.__DEV_WEALTH_TAX_PACK_READY__);
   console.warn("DEV_CHECKS_PROOF_V1", "build_probe_2026_02_08_fix_try_1", Date.now());
   const getDbgLog = () => (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
   function hasExplicitDevQueryParam() {
@@ -3240,6 +3246,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         seedRichNpc,
         logSource: "debug_moneyLog",
         rowsScoped: logEnd - logStart,
+        scopeDesc: `ticks=${ticks}`,
         debugTelemetry
       },
       world: {
@@ -3286,11 +3293,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const footer = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END";
     const emitLine = (line) => {
       try {
-        if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
-          Game.__DEV.emitLine(String(line));
-        } else {
-          console.log(String(line));
-        }
+  if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
+    Game.__DEV.emitLine(String(line));
+  } else {
+    console.warn(String(line));
+  }
       } catch (_) {}
     };
     const safeStringify = (obj) => {
@@ -3325,12 +3332,31 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       emitLine(safeStringify({ ok: false, notes, diagVersion }));
     } finally {
       emitLine(footer);
-      if (Game.__DUMP_ALL__ && typeof Game.__DUMP_ALL__ === "function") {
+      const canGameDump = !!(window.Game && Game.__DUMP_ALL__ && typeof Game.__DUMP_ALL__ === "function");
+      const canWinDump = !!(window.__DUMP_ALL__ && typeof window.__DUMP_ALL__ === "function");
+      if (canGameDump) {
         try { Game.__DUMP_ALL__(); } catch (_) {}
+      } else if (canWinDump) {
+        try { window.__DUMP_ALL__(); } catch (_) {}
+      } else {
+        emitLine(safeStringify({
+          ok: false,
+          notes: ["dump_missing"],
+          winDumpAll: canWinDump,
+          gameDumpAll: canGameDump,
+          dumpKeys: typeof window !== "undefined" ? Object.keys(window).filter(k => k.startsWith("__DUMP_")) : []
+        }));
       }
-      Game.__DEV.lastEconNpcWealthTaxEvidencePack = { smoke: smokeRes, summary, notes, diagVersion };
+      emitLine("WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE");
+      Game.__DEV.lastEconNpcWealthTaxEvidencePack = { smoke: smokeRes, summary, notes, diagVersion, ts: Date.now() };
     }
     return { ok: !!(smokeRes && smokeRes.ok), notes, diagVersion };
+  };
+
+  Game.__DEV.wealthTaxPackProbe = function wealthTaxPackProbe() {
+    const ready = !!(window.__DEV_WEALTH_TAX_PACK_READY__);
+    console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_PROBE_CALL", { readyFlag: ready });
+    return { ok: true, readyFlag: ready };
   };
 
   // dev-only QA runner: emit two stipend smoke objects in a single, copy-friendly log block.
