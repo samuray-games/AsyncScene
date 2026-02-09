@@ -79,10 +79,17 @@
     const S = getStateHandle();
     if (!S) return null;
     if (!S.players) S.players = {};
-    if (S.players[key]) return S.players[key];
+    if (S.players[key]) {
+      if (!Number.isFinite(S.players[key].points)) S.players[key].points = 0;
+      return S.players[key];
+    }
     const St = (Game && Game.State) ? Game.State : null;
     if (St && St.players && St.players[key]) {
       S.players[key] = St.players[key];
+      if (!Number.isFinite(S.players[key].points)) {
+        const stPts = St.players[key] && Number.isFinite(St.players[key].points) ? (St.players[key].points | 0) : 0;
+        S.players[key].points = stPts;
+      }
       return S.players[key];
     }
     S.players[key] = { id: key, points: 0, npc: true };
@@ -109,11 +116,18 @@
       if (!S.players[id]) {
         if (St && St.players && St.players[id]) {
           S.players[id] = St.players[id];
+          if (!Number.isFinite(S.players[id].points)) {
+            const stPts = Number.isFinite(St.players[id].points) ? (St.players[id].points | 0) : 0;
+            S.players[id].points = stPts;
+          }
           syncedIds.push(id);
         } else {
           S.players[id] = { id, points: 0, npc: true };
           createdIds.push(id);
         }
+      } else if (!Number.isFinite(S.players[id].points)) {
+        S.players[id].points = Number.isFinite(p.points) ? (p.points | 0) : 0;
+        syncedIds.push(id);
       }
     });
     const afterSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
@@ -194,7 +208,10 @@
     }
     if (S.players && S.players[key]) return S.players[key];
     if (S.me && S.me.id === key) return S.me;
-    if (isNpcId(key)) return ensureNpcAccountFromState(key);
+    if (isNpcId(key)) {
+      try { ensureNpcAccountsFromState({ reason: "getAccount" }); } catch (_) {}
+      return ensureNpcAccountFromState(key);
+    }
     const St = (Game && Game.State) ? Game.State : null;
     if (St && St.players && St.players[key]) {
       S.players = S.players || {};
@@ -724,7 +741,18 @@
       res.notes.push("not_npc");
       return res;
     }
-    const before = Number.isFinite(npcPtsBefore) ? (npcPtsBefore | 0) : (acc.points | 0);
+    let before = Number.isFinite(npcPtsBefore) ? (npcPtsBefore | 0) : (acc.points | 0);
+    if (!Number.isFinite(npcPtsBefore) || npcPtsBefore <= 0) {
+      if (Number.isFinite(acc.points) && (acc.points | 0) > 0) {
+        before = acc.points | 0;
+      } else {
+        const St = (Game && Game.State) ? Game.State : null;
+        const stPts = (St && St.players && St.players[id] && Number.isFinite(St.players[id].points))
+          ? (St.players[id].points | 0)
+          : null;
+        if (stPts != null) before = stPts;
+      }
+    }
     res.npcPtsBefore = before;
     if (before <= NPC_TAX_SOFT_CAP) {
       res.notes.push("below_threshold");

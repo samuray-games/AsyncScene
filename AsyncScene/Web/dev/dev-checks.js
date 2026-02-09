@@ -3207,6 +3207,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   Game.__DEV.econNpcWorldContractV1 = econ_npc_world_contract_v1;
   console.warn("ECON_NPC_WORLD_CONTRACT_V1_EXPORTED", "econNpcWorldContractV1");
 
+  const getEconSnapshot = () => {
+    if (Game.ConflictEconomy && typeof Game.ConflictEconomy.sumPointsSnapshot === "function") {
+      return Game.ConflictEconomy.sumPointsSnapshot();
+    }
+    if (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") {
+      return Game.__DEV.sumPointsSnapshot();
+    }
+    return null;
+  };
+
   Game.__DEV.smokeNpcWealthTaxOnce = (opts = {}) => {
     const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : 200;
     const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
@@ -3223,12 +3233,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let seedNeed = 0;
     let seedCollected = 0;
     let seedDonorsCount = 0;
+    let logSourceCandidates = [];
+    let snapshotOk = false;
+    let snapshotWhy = null;
+    let scopedLen = 0;
 
     const worldContractName = "econ_npc_world_contract_v1";
     const getEconNpcWorldContractV1 = econ_npc_world_contract_v1;
     const snapBefore = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
       ? Game.__DEV.sumPointsSnapshot()
       : null;
+    snapshotOk = !!(snapBefore && snapBefore.byId);
+    if (!snapshotOk) snapshotWhy = "sumPointsSnapshot_missing_or_null";
     const fallbackById = Object.create(null);
     Object.keys((S && S.players) ? S.players : {}).forEach(id => {
       const p = S.players[id];
@@ -3269,8 +3285,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           worldContractExportKey,
           logSource: "none",
           rowsScoped: 0,
-        accountsIncludedLen,
-        addedAccounts: [],
+          logSourceCandidates,
+          snapshotOk,
+          snapshotWhy,
+          scopedLen,
+          accountsIncludedLen,
+          addedAccounts: [],
           accountsIncludedHash,
           worldContractName,
           lenBefore: 0,
@@ -3303,22 +3323,27 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const dbg = Game.__D || (Game.__D = {});
     dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
     refreshMoneyLogSnapshot();
-    const logBeforeSnap = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
-    const logSource = logBeforeSnap.logSource || "debug_moneyLog";
-    const logStart = Array.isArray(logBeforeSnap.rows) ? logBeforeSnap.rows.length : 0;
+    const logCandidatesBefore = collectLogSourceCandidates();
+    logSourceCandidates = logCandidatesBefore.map(c => ({ name: c.name, len: c.len }));
+    const pickedBefore = pickLogCandidate(logCandidatesBefore, "debug_moneyLog");
+    let logSource = pickedBefore.name || "none";
+    const logRowsBefore = Array.isArray(pickedBefore.rows) ? pickedBefore.rows : [];
+    const logStart = logRowsBefore.length;
     const lenBefore = logStart;
     threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
     seedMargin = 5;
     const hasDebugMoneyLog = !!(Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length);
     const hasLoggerQueue = !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length);
-    if (logSource === "none") {
+    if (logSource === "none") notes.push("log_source_none");
+    if (!snapshotOk) notes.push("snapshot_unavailable");
+    if (!snapshotOk) {
       return {
         ok: false,
-        notes: ["balances_unavailable"],
+        notes,
         meta: { ticks, seed, seedRichNpc, logSource, rowsScoped: 0, scopeDesc: `ticks=${ticks}`, debugTelemetry },
         world: { beforeTotal: worldMassBefore, afterTotal: null, delta: null, byBucket: null },
         bank: { accountId: "worldBank", beforePts: bankBefore, afterPts: null, delta: null, softCap: null },
-        tax: { threshold: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20, maxPerTxn: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2, totalTaxInWindow: 0, rowsCount: 0, appliedCount: 0, topTaxedNpcs: [], reasonsTop: [] },
+        tax: { threshold, maxPerTxn: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2, totalTaxInWindow: 0, rowsCount: 0, appliedCount: 0, topTaxedNpcs: [], reasonsTop: [] },
         asserts: { worldDeltaZero: false, taxPositiveWhenSeeded: false, noNpcNegative: true, hasWorldTaxInRows: false, bankNonNegative: true, rowsScopedPositive: false },
         diag: {
           seedRichNpc,
@@ -3327,7 +3352,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           npcSeededPtsAfter: null,
           seedSourceId: null,
           seedFailureReason: null,
-          NPC_TAX_SOFT_CAP: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20,
+          NPC_TAX_SOFT_CAP: threshold,
           NPC_TAX_MAX_PER_TXN: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2,
           seedThreshold: threshold,
           seedMargin,
@@ -3338,6 +3363,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedDonorsCount,
           logSource,
           rowsScoped: 0,
+          logSourceCandidates,
+          snapshotOk,
+          snapshotWhy,
+          scopedLen,
           accountsIncludedLen,
           accountsIncludedHash,
           worldContractName,
@@ -3348,53 +3377,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           hasDebugMoneyLog,
           hasLoggerQueue,
           scopeWindowLastN,
-          taxProbe: { attempted: false, applied: false, taxAmount: 0, why: "balances_unavailable" },
+          taxProbe: { attempted: false, applied: false, taxAmount: 0, why: "snapshot_unavailable" },
           auditReadOnly: false
         }
       };
     }
-    if (hasDebugMoneyLog && logSource !== "debug_moneyLog") {
-      return {
-        ok: false,
-        notes: ["balances_unavailable"],
-        meta: { ticks, seed, seedRichNpc, logSource, rowsScoped: 0, scopeDesc: `ticks=${ticks}`, debugTelemetry },
-        world: { beforeTotal: worldMassBefore, afterTotal: null, delta: null, byBucket: null },
-        bank: { accountId: "worldBank", beforePts: bankBefore, afterPts: null, delta: null, softCap: null },
-        tax: { threshold: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20, maxPerTxn: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2, totalTaxInWindow: 0, rowsCount: 0, appliedCount: 0, topTaxedNpcs: [], reasonsTop: [] },
-        asserts: { worldDeltaZero: false, taxPositiveWhenSeeded: false, noNpcNegative: true, hasWorldTaxInRows: false, bankNonNegative: true, rowsScopedPositive: false },
-        diag: {
-          seedRichNpc,
-          npcSeededId: null,
-          npcSeededPtsBefore: null,
-          npcSeededPtsAfter: null,
-          seedSourceId: null,
-          seedFailureReason: null,
-          NPC_TAX_SOFT_CAP: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20,
-          NPC_TAX_MAX_PER_TXN: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2,
-          seedThreshold: threshold,
-          seedMargin,
-          seedApplied,
-          seedWhy,
-          seedNeed,
-          seedCollected,
-          seedDonorsCount,
-          logSource,
-          rowsScoped: 0,
-          accountsIncludedLen,
-          accountsIncludedHash,
-          worldContractName,
-          lenBefore,
-          lenAfter: lenBefore,
-          logStart,
-          logEnd: logStart,
-          hasDebugMoneyLog,
-          hasLoggerQueue,
-          scopeWindowLastN,
-          taxProbe: { attempted: false, applied: false, taxAmount: 0, why: "balances_unavailable" },
-          auditReadOnly: false
-        }
-      };
-    }
+    // If log source is empty at start, proceed; we will re-select after ticks.
 
     const npcIds = Object.values(S.players || {})
       .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
@@ -3549,6 +3537,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedDonorsCount,
           logSource,
           rowsScoped: 0,
+          logSourceCandidates,
+          snapshotOk,
+          snapshotWhy,
+          scopedLen,
           accountsIncludedLen,
           accountsIncludedHash,
           worldContractName,
@@ -3577,12 +3569,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     });
 
     refreshMoneyLogSnapshot();
-    const logAfterSnap = getPointsMoneyLogSnapshot({ prefer: logSource });
-    const logEnd = Array.isArray(logAfterSnap.rows) ? logAfterSnap.rows.length : 0;
+    const logCandidatesAfter = collectLogSourceCandidates();
+    const pickedAfter = pickLogCandidate(logCandidatesAfter, logSource);
+    if (pickedAfter && pickedAfter.len > 0 && pickedAfter.name) {
+      logSource = pickedAfter.name;
+    }
+    const logAfterRows = Array.isArray(pickedAfter.rows) ? pickedAfter.rows : [];
+    const logEnd = logAfterRows.length;
     const lenAfter = logEnd;
     const rowsScoped = Math.max(0, logEnd - logStart);
-    const newRows = rowsScoped > 0 && Array.isArray(logAfterSnap.rows)
-      ? logAfterSnap.rows.slice(Math.max(0, logEnd - rowsScoped))
+    scopedLen = rowsScoped;
+    const newRows = rowsScoped > 0
+      ? logAfterRows.slice(Math.max(0, logEnd - rowsScoped))
       : [];
     const taxRows = newRows.filter(r => r && r.reason === "world_tax_in" && String(r.sourceId || "").startsWith("npc_"));
     const totalTaxInWindow = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
@@ -3714,6 +3712,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         worldContractExportKey,
         logSource,
         rowsScoped,
+        logSourceCandidates,
+        snapshotOk,
+        snapshotWhy,
+        scopedLen,
         accountsIncludedLen: accountsIncludedLenAfter,
         accountsIncludedHash,
         worldContractName,
@@ -3904,6 +3906,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         diag: {
           logSourceChosen: smokeRes.meta ? smokeRes.meta.logSource : (smokeRes.diag ? smokeRes.diag.logSource : null),
           buildTag,
+          logSourceCandidates: smokeRes.diag ? smokeRes.diag.logSourceCandidates : null,
+          snapshotOk: smokeRes.diag ? smokeRes.diag.snapshotOk : null,
+          snapshotWhy: smokeRes.diag ? smokeRes.diag.snapshotWhy : null,
+          scopedLen: smokeRes.diag ? smokeRes.diag.scopedLen : null,
           lenBefore: smokeRes.diag ? smokeRes.diag.lenBefore : null,
           lenAfter: smokeRes.diag ? smokeRes.diag.lenAfter : null,
           rowsScoped: smokeRes.meta ? smokeRes.meta.rowsScoped : null,
@@ -3985,6 +3991,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           worldContractExportKey: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractExportKey : "econNpcWorldContractV1",
           logSource: logSourceChosen,
           rowsScoped,
+          logSourceCandidates,
+          snapshotOk,
+          snapshotWhy,
+          scopedLen,
           taxProbe,
           debugMoneyLogLen: smokeRes && smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null
         }
@@ -4014,7 +4024,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           npcAccountsMissingSample,
           taxProbe,
           worldContractUsed: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractUsed : null,
-          worldContractExportKey: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractExportKey : "econNpcWorldContractV1"
+          worldContractExportKey: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractExportKey : "econNpcWorldContractV1",
+          logSourceCandidates,
+          snapshotOk,
+          snapshotWhy,
+          scopedLen
         }
       };
       emitLine(safeStringify(json1));
@@ -6515,6 +6529,117 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     if (anyLog == null) return [];
     console.warn("DEV_MONEYLOG_NORMALIZE_EMPTY", { label, type: typeof anyLog });
     return [];
+  };
+
+  const collectLogSourceCandidates = () => {
+    const candidates = [];
+    const addCandidate = (rows, name) => {
+      const normalized = normalizeMoneyLogRows(rows, `logSource:${name}`);
+      candidates.push({ name, rows: normalized, len: normalized.length });
+    };
+    const dbg = Game.__D || null;
+    const dbgByBattle = (dbg && dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object")
+      ? dbg.moneyLogByBattle
+      : null;
+    addCandidate((dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : [], "debug_moneyLog");
+    if (dbgByBattle) {
+      const rows = Object.values(dbgByBattle)
+        .reduce((acc, bucket) => acc.concat(Array.isArray(bucket) ? bucket : []), []);
+      addCandidate(rows, "debug_moneyLogByBattle");
+    } else {
+      addCandidate([], "debug_moneyLogByBattle");
+    }
+    const dbg2 = Game.Debug || null;
+    const dbg2ByBattle = (dbg2 && dbg2.debug_moneyLogByBattle && typeof dbg2.debug_moneyLogByBattle === "object")
+      ? dbg2.debug_moneyLogByBattle
+      : null;
+    if (dbg2ByBattle) {
+      const rows = Object.values(dbg2ByBattle)
+        .reduce((acc, bucket) => acc.concat(Array.isArray(bucket) ? bucket : []), []);
+      addCandidate(rows, "Game.Debug.debug_moneyLogByBattle");
+    } else {
+      addCandidate([], "Game.Debug.debug_moneyLogByBattle");
+    }
+    const logger = Game && Game.Logger ? Game.Logger : null;
+    const queue = logger && Array.isArray(logger.queue) ? logger.queue : null;
+    addCandidate(queue || [], "logger_queue");
+    const state = Game && Game.State ? Game.State : null;
+    const stateLog = state && Array.isArray(state.moneyLog) ? state.moneyLog : null;
+    addCandidate(stateLog || [], "state_moneyLog");
+    const stateLogByBattle = state && state.moneyLogByBattle ? state.moneyLogByBattle : null;
+    if (stateLogByBattle && typeof stateLogByBattle === "object") {
+      const rows = Object.values(stateLogByBattle)
+        .reduce((acc, bucket) => acc.concat(Array.isArray(bucket) ? bucket : []), []);
+      addCandidate(rows, "state_moneyLogByBattle");
+    } else {
+      addCandidate([], "state_moneyLogByBattle");
+    }
+    addCandidate([], "none");
+    return candidates;
+  };
+
+  // QA helper for dumping log sources (command: Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}}))
+  Game.__DEV.dumpMoneyLogSourcesOnce = (opts = {}) => {
+    const header = "WORLD_MONEYLOG_SOURCES_V1_BEGIN";
+    const footer = "WORLD_MONEYLOG_SOURCES_V1_END";
+    const buildTag = "build_2026_02_09b";
+    const emit = (line) => {
+      try {
+        if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
+          Game.__DEV.emitLine(String(line));
+        } else {
+          console.warn(String(line));
+        }
+      } catch (_) {}
+    };
+    const safeStringify = (obj) => {
+      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
+    };
+    let summary = null;
+    try {
+      const candidates = collectLogSourceCandidates();
+      const mapped = candidates.map(c => {
+        const rowType = Array.isArray(c.rows) ? "array" : (c.rows && typeof c.rows === "object" ? "object" : null);
+        const len = Array.isArray(c.rows) ? c.rows.length : (c.rows && typeof c.rows.length === "number" ? c.rows.length : null);
+        const sample = Array.isArray(c.rows) && c.rows.length ? c.rows[len - 1] : null;
+        return {
+          name: c.name,
+          present: !!len,
+          type: rowType,
+          len,
+          sample
+        };
+      });
+      const bestRow = mapped.find(m => m.len && m.len > 0) || null;
+      const best = bestRow ? { name: bestRow.name, why: "non_empty", len: bestRow.len } : { name: null, why: "none", len: null };
+      const ok = !!bestRow;
+      const notes = ok ? [] : ["no_log_sources"];
+      summary = { ok, buildTag, candidates: mapped, best, notes };
+    } catch (err) {
+      summary = {
+        ok: false,
+        buildTag,
+        candidates: [],
+        best: { name: null, why: "exception", len: null },
+        notes: ["exception", String(err && err.message ? err.message : err)]
+      };
+    } finally {
+      emit(header);
+      emit(`BUILD_TAG=${buildTag}`);
+      emit(safeStringify(summary));
+      emit(footer);
+    }
+    return summary;
+  };
+
+  const pickLogCandidate = (candidates, preferName) => {
+    if (!Array.isArray(candidates) || !candidates.length) return { name: "none", rows: [], len: 0 };
+    if (preferName) {
+      const match = candidates.find(c => c.name === preferName);
+      if (match) return match;
+    }
+    const nonEmpty = candidates.find(c => c.len > 0);
+    return nonEmpty || candidates[0];
   };
 
   const collectBattleRows = (battleId) => {

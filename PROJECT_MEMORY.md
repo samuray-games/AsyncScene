@@ -2422,3 +2422,15 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Added `Game.__DEV.smokeNpcAccountsEnsureOnce({window:{lastN:200}})` to verify npc econ-account ensure is idempotent and read-only (`worldDelta==0`, `moneyLogDelta==0`, `missingAfterEnsureLen==0`).
 - Wealth-tax pack now reports `diag.npcAccounts.*` (ensureCalled/migrateMarkerSeen/createdNowCount/syncedNowCount/missingAfterEnsureLen/ensureIdempotentOk).
 - Runtime PASS still pending; QA must run both commands (see TASKS.md). LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack log-source fallback (dev-checks only).
+- Pack now chooses log source via candidate list (debug_moneyLog, debug_moneyLogByBattle, logger_queue, state_moneyLog) and no longer hard-fails with `balances_unavailable` when log source is empty; instead it records `diag.logSourceCandidates`, `diag.snapshotOk`, `diag.snapshotWhy`, `diag.scopedLen` in both JSONs.
+- Status: FAIL pending runtime evidence; QA must confirm `logSource != "none"`, `snapshotOk == true`, `rowsScoped > 0` on the standard command in TASKS.md. LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] Variant A runtime hardening (conflict-economy.js).
+- NPC econ-accounts are now guaranteed at runtime via `ensureNpcAccountsFromState` sync + `getAccount` NPC path; points remain zero-sum and no moneyLog/transfer is emitted during ensure.
+- Wealth-tax pack now treats `snapshot_unavailable` and `log_source_none` as hard FAIL (no masking), while keeping BEGIN/JSON/JSON/END in finally.
+- Status: FAIL pending runtime evidence; QA must confirm `world.delta == 0`, `logSource != "none"`, `snapshotOk == true`, and `hasWorldTaxInRows == true`. LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] Variant A root-cause fix (npc_account_missing).
+- `applyNpcWealthTaxIfNeeded` now derives `npcPtsBefore` from econ-account points and falls back to `Game.State.players[npcId].points` when input is missing/0, so npc_* with points no longer report `npc_account_missing`.
+- Status: FIXED pending runtime evidence (QA command in TASKS.md). LOGGED EVEN IF FAIL.
+2026-02-09 — Dev helper dumpMoneyLogSourcesOnce.
+- Added `Game.__DEV.dumpMoneyLogSourcesOnce` that emits `WORLD_MONEYLOG_SOURCES_V1_BEGIN`/`END` plus JSON summary with `candidates` and `best` to diagnose `logSource:"none"` and `rowsScoped:0`. Targeted smoke: `Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}})`; PASS when `best.len>0`. Logged even if fail.

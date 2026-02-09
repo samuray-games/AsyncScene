@@ -832,6 +832,8 @@
   - JSON#1 `ok:true`, `notes:[]`, `diag.accountsIncludedLen`/`hash` filled, `diag.addedAccounts` present
   - `world.beforeTotal`, `world.afterTotal` numbers, `world.delta == 0`
   - `bank.beforePts`, `bank.afterPts`, `bank.delta` numbers
+  - `diag.logSourceCandidates` reported; `diag.logSource` / `diag.logSourceChosen` != `"none"`
+  - `diag.snapshotOk == true`, `diag.scopedLen > 0`
   - `totalTaxInWindow > 0`, `hasWorldTaxInRows:true`, `seedRichNpc:true`
   - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
   - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE` (+ optional `TAPE_FLUSH_OK`)
@@ -858,6 +860,10 @@
   - `{"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization."...}`
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
 - Update (2026-02-09): moved seed threshold/margin + seedApplied/seedWhy initialization before log-source early returns to avoid `threshold` TDZ crash. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): wealth-tax pack now uses log-source fallback candidates (`debug_moneyLog`, `debug_moneyLogByBattle`, `logger_queue`, `state_moneyLog*`) and removes `balances_unavailable` early-return. Added diag fields `logSourceCandidates`, `snapshotOk`, `snapshotWhy`, `scopedLen` in both JSONs. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): Variant A runtime hardening — NPC econ-accounts now guaranteed in `conflict-economy.js` (syncs npc_* into econ accounts; points remain zero-sum), and wealth-tax pack hard-fails on `snapshot_unavailable` or `log_source_none` (no masking). Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): Variant A root-cause fix — applyNpcWealthTaxIfNeeded now falls back to econ-account points (or Game.State.players points) when npcPtsBefore is missing/0, eliminating `npc_account_missing` path when npc_* exist. Status: FIXED pending QA evidence.
+- Update (2026-02-09): added `Game.__DEV.dumpMoneyLogSourcesOnce` helper that emits `WORLD_MONEYLOG_SOURCES_V1_BEGIN/END` + JSON summary of all log candidates before running other smokes. PASS when summary.ok true and `best.len>0`. Smoke command for QA: `Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}})`. Status: FAIL until Console.txt shows the markers.
 - Update (2026-02-09): Variant A econ-account migration added in `AsyncScene/Web/conflict/conflict-economy.js`. `getAccount` now falls back to `Game.State.players` and `ensureNpcAccountsFromState` creates/links missing npc_* accounts (dev marker `ECON_NPC_ACCOUNT_MIGRATE_V1`). `applyNpcWealthTaxIfNeeded` now ensures npc accounts exist before tax. Wealth-tax pack JSON now includes `npcAccountCount`, `npcAccountSample`, `npcAccountsMissingLen`, `npcAccountsMissingSample`. Status remains FAIL pending runtime evidence.
 - Runtime evidence baseline (Console.txt 2026-02-09): no `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN/END` block present; manual probes show `npc_account_missing` and `[ACC missing count] 19 in `=== ECON NPC ACCOUNT PROBE ===` tail. 
 - Update (2026-02-09): Added `Game.__DEV.smokeNpcAccountsEnsureOnce` QA command to verify npc econ-account ensure is idempotent and read-only. Added wealth-tax pack diag fields under `diag.npcAccounts.*`:
