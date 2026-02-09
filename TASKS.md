@@ -811,3 +811,27 @@
   - Допустим дамп через `window.__DUMP_ALL__`, если `Game.__DUMP_ALL__` отсутствует
 - Code refs (search):
   - `applyNpcWealthTaxIfNeeded`, `battle_entry_npc`, `battle_win_take`, `world_tax_in`.
+### [T-20260209-001] ECON-NPC [1.5] wealth tax pack — world contract stabilization (dev-checks only)
+- Status: FAIL (pending runtime evidence)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Goal: stabilize `econ_npc_world_contract_v1` (accountsIncluded pulled from `sumPointsSnapshot().byId`, always includes `me`, `sink`, `worldBank`, `crowd:*`; missing State players auto-created) so totals/buckets never `null`.
+- Acceptance:
+  - [ ] `diag.accountsIncludedLen`, `diag.accountsIncludedHash`, `diag.addedAccounts[]` always reported.
+  - [ ] Totals for world/bank derived directly from contract (no `null` values).
+  - [ ] Smoke does not fail on `world_contract_mismatch`; `world.delta` measured over contract values.
+- Smoke command:
+  ```
+  Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})
+  ```
+- PASS checklist (Console.txt):
+  - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
+  - JSON#1 `ok:true`, `notes:[]`, `diag.accountsIncludedLen`/`hash` filled, `diag.addedAccounts` present
+  - `world.beforeTotal`, `world.afterTotal` numbers, `world.delta == 0`
+  - `bank.beforePts`, `bank.afterPts`, `bank.delta` numbers
+  - `totalTaxInWindow > 0`, `hasWorldTaxInRows:true`, `seedRichNpc:true`
+  - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+  - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE` (+ optional `TAPE_FLUSH_OK`)

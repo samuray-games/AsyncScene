@@ -3186,8 +3186,25 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ? Game.__DEV.sumPointsSnapshot()
       : null;
     const worldContractName = "econ_npc_world_contract_v1";
-    const accountsIncluded = snapBefore && snapBefore.byId ? Object.keys(snapBefore.byId) : null;
-    const accountsIncludedLen = accountsIncluded ? accountsIncluded.length : null;
+    const ensurePlayerAccount = (id) => {
+      const key = String(id || "");
+      if (!key) return;
+      const S = Game.__S || (Game.__S = {});
+      if (!S.players) S.players = {};
+      if (S.players[key]) return;
+      S.players[key] = { id: key, points: 0, npc: key.startsWith("npc_"), type: key.startsWith("npc_") ? "npc" : "player" };
+    };
+    const intrinsicAccounts = new Set(["me", "sink", "worldBank"]);
+    const playersFromState = (S.players && Object.keys(S.players)) ? Object.keys(S.players) : [];
+    playersFromState.forEach(a => intrinsicAccounts.add(a));
+    if (Game.Debug && Game.Debug.debug_moneyLogByBattle) {
+      Object.keys(Game.Debug.debug_moneyLogByBattle).forEach(bid => {
+        if (typeof bid === "string" && bid.length) intrinsicAccounts.add(`crowd:${bid}`);
+      });
+    }
+    intrinsicAccounts.forEach(accId => ensurePlayerAccount(accId));
+    const accountsIncluded = Array.from(intrinsicAccounts);
+    const accountsIncludedLen = accountsIncluded.length;
     let accountsIncludedHash = null;
     if (accountsIncluded && accountsIncluded.length) {
       const input = accountsIncluded.slice().sort().join("|");
@@ -3208,6 +3225,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         tax: { threshold: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20, maxPerTxn: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2, totalTaxInWindow: 0, rowsCount: 0, appliedCount: 0, topTaxedNpcs: [], reasonsTop: [] },
         asserts: { worldDeltaZero: false, taxPositiveWhenSeeded: false, noNpcNegative: true, hasWorldTaxInRows: false, bankNonNegative: true, rowsScopedPositive: false },
         diag: {
+          addedAccounts: accountsIncluded.slice(),
           seedRichNpc,
           npcSeededId: null,
           npcSeededPtsBefore: null,
@@ -3218,7 +3236,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           NPC_TAX_MAX_PER_TXN: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2,
           logSource: "none",
           rowsScoped: 0,
-          accountsIncludedLen,
+        accountsIncludedLen,
+        addedAccounts: accountsIncluded.slice(),
           accountsIncludedHash,
           worldContractName,
           lenBefore: 0,

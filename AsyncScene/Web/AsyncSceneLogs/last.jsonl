@@ -9779,3 +9779,17 @@
 {"ts": 1770612920724, "sessionId": "session-1770612912220-6tl2", "type": "chat", "name": "Егор", "text": "@Слава, ну что, решился или дрогнул", "system": false}
 {"ts": 1770612934133, "sessionId": "session-1770612912220-6tl2", "type": "chat", "name": "Слава", "text": "не мажь, отвечай по делу", "system": false}
 {"ts": 1770612940283, "sessionId": "session-1770612912220-6tl2", "type": "chat", "name": "Система", "text": "Толпа решает: Ветеран хочет, чтобы Горячий отвалил.", "system": true}
+{"ts": 1770613004565, "sessionId": "session-1770612912220-6tl2", "type": "chat", "name": "Горячий", "text": "кринж на площади, но я остаюсь", "system": false}
+{"ts": 1770613195608, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770613210888, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Слава", "text": "@Кирилл олегович, давай, не прячься за толпой", "system": false}
+{"ts": 1770613219621, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770613233131, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Глеб", "text": "давай, не прячься за толпой", "system": false}
+{"ts": 1770613336710, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Макс", "text": "@Владимир иванович, я тебя вижу", "system": false}
+{"ts": 1770613336895, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Система", "text": "Толпа решает: Юна хочет, чтобы Королева отвалил.", "system": true}
+{"ts": 1770613336920, "sessionId": "session-1770613192137-tniv", "type": "chat", "name": "Рин", "text": "@Кирилл олегович, баттл это просто разговор с адреналином", "system": false}
+{"ts": 1770613467134, "sessionId": "session-1770613464094-0k3a", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770613473563, "sessionId": "session-1770613464094-0k3a", "type": "chat", "name": "Ксю", "text": "не пытайся юлить", "system": false}
+{"ts": 1770613486670, "sessionId": "session-1770613464094-0k3a", "type": "chat", "name": "Слава", "text": "че по 💰, при бабле", "system": false}
+{"ts": 1770613489736, "sessionId": "session-1770613464094-0k3a", "type": "chat", "name": "Юна", "text": "я внимательно читаю", "system": false}
+{"ts": 1770613491140, "sessionId": "session-1770613464094-0k3a", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770613503248, "sessionId": "session-1770613464094-0k3a", "type": "chat", "name": "Слава", "text": "@Кирилл олегович, ты ща ответишь, не тяни", "system": false}

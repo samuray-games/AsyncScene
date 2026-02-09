@@ -2372,3 +2372,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `index.html` грузит `dev/dev-checks.js?v=build_2026_02_09b`.
   - В топ-level `dev-checks.js` печатаются маркеры `DEV_CHECKS_SERVED_PROOF_V4`, `ECON_NPC_WEALTH_TAX_PACK_V1_LOADED` и `READY_FLAG`.
 - Evidence: need Console.txt showing those markers (currently missing; runtime needed).
+2026-02-09 — World contract v1 stabilization in dev-checks.js (ECON-NPC [1.5]):
+- Proof: `accountsIncluded` rebuilt from `sumPointsSnapshot().byId` plus guaranteed `me`, `sink`, `worldBank`, `crowd:*`. Missing State players auto-created at 0 so totals/buckets never null.
+- diag now logs `accountsIncludedLen`, `accountsIncludedHash`, `addedAccounts[]`, `worldContractName` so QA can see who was added before running pack.
+- Runtime not yet executed; smoke command (see TASKS.md) must show PASS evidence before status flips. LOGGED EVEN IF FAIL.
