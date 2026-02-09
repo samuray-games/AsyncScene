@@ -2403,6 +2403,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 2026-02-09 — ECON-NPC [1.5] evidence pack read-only mode (dev-checks only).
 - Contract helper no longer mutates `Game.State.players`; missing accounts are treated as 0 for totals.
 - `balances_unavailable` used when logs are missing; runtime PASS still pending.
+2026-02-09 — ECON-NPC [1.5] world contract stabilization (dev-checks only, updated).
+- Contract helper now creates missing `Game.State.players[id]={id,points:0}` for contract ids so totals are non-null and include worldBank; intended to eliminate `world_contract_mismatch`.
+- Runtime PASS still pending; QA must confirm via Console.txt (see TASKS.md).
+2026-02-09 — ECON-NPC [1.5] contract stability self-smoke helper (dev-checks only).
+- Added `Game.__DEV.smokeEconNpcWealthTaxContractStabilityOnce({window:{lastN:400}})` which runs 3 packs (50/10/10 ticks) and emits `WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_BEGIN/END` with summary JSON.
+- Runtime PASS still pending; LOGGED EVEN IF FAIL.
 2026-02-09 — ECON-NPC [1.5] wealth-tax pack runtime FAIL (threshold TDZ).
 - Console.txt shows `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN` with `ok:false` and error `Cannot access 'threshold' before initialization.` followed by END/DUMP_DONE.
 - Fix applied in dev-checks.js: seed threshold/margin and seedApplied/seedWhy now initialized before log-source early returns to avoid TDZ. Runtime PASS still pending.

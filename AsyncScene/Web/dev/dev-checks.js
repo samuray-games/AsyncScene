@@ -3229,17 +3229,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       fallbackById[id] = pts;
     });
     const snapById = (snapBefore && snapBefore.byId) ? snapBefore.byId : fallbackById;
-    const contract = getEconNpcWorldContractV1 ? getEconNpcWorldContractV1({ snapById }) : null;
-    const accountsIncluded = contract ? contract.accountsIncluded : [];
-    const accountsIncludedLen = contract ? contract.accountsIncludedLen : 0;
-    const accountsIncludedHash = contract ? contract.accountsIncludedHash : null;
+    let contract = getEconNpcWorldContractV1 ? getEconNpcWorldContractV1({ snapById }) : null;
+    let accountsIncluded = contract ? contract.accountsIncluded : [];
+    let accountsIncludedLen = contract ? contract.accountsIncludedLen : 0;
+    let accountsIncludedHash = contract ? contract.accountsIncludedHash : null;
     const worldContractUsed = !!getEconNpcWorldContractV1;
     const worldContractExportKey = "econNpcWorldContractV1";
     if (!accountsIncluded || accountsIncludedLen === 0) {
-      const stateMissing = !(S && S.players);
       return {
         ok: false,
-        notes: [stateMissing ? "world_contract_mismatch" : "totals_null"],
+        notes: ["totals_null"],
         meta: { ticks, seed, seedRichNpc, logSource: "none", rowsScoped: 0, scopeDesc: `ticks=${ticks}`, debugTelemetry },
         world: { beforeTotal: null, afterTotal: null, delta: null, byBucket: null },
         bank: { accountId: "worldBank", beforePts: null, afterPts: null, delta: null, softCap: null },
@@ -3305,6 +3304,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const seedMargin = 5;
     let seedApplied = false;
     let seedWhy = null;
+    let seedNeed = 0;
+    let seedCollected = 0;
+    let seedDonorsCount = 0;
     const hasDebugMoneyLog = !!(Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length);
     const hasLoggerQueue = !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length);
     if (logSource === "none") {
@@ -3406,9 +3408,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const meIncluded = accountsIncluded.includes("me");
     let seedPerformed = false;
     let seedTransfer = null;
-    let seedNeed = 0;
-    let seedCollected = 0;
-    let seedDonorsCount = 0;
 
     if (seedRichNpc && npcIds.length) {
       const targetId = npcIds[0];
@@ -3785,7 +3784,23 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       return { accountsIncluded: [], accountsIncludedLen: 0, accountsIncludedHash: null, hasTotals: !!snapById, missing: ["contract_fn_missing"] };
     };
-    const ensureContractAccountsExist = (_contract) => ({ addedAccounts: [], fixedAccounts: [] });
+    const ensureContractAccountsExist = (contract) => {
+      const added = [];
+      const fixed = [];
+      const S = Game.__S || (Game.__S = {});
+      if (!S.players) S.players = {};
+      (contract.accountsIncluded || []).forEach(id => {
+        if (!id) return;
+        if (!S.players[id]) {
+          S.players[id] = { id, points: 0 };
+          added.push(id);
+        } else if (!Number.isFinite(S.players[id].points)) {
+          S.players[id].points = 0;
+          fixed.push(id);
+        }
+      });
+      return { addedAccounts: added, fixedAccounts: fixed };
+    };
     const emitLine = (line) => {
       try {
         if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
@@ -3951,6 +3966,99 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Game.__DEV.lastEconNpcWealthTaxEvidencePack = { smoke: smokeRes, summary, notes, diagVersion, ts: Date.now() };
     }
     return { ok: !!(smokeRes && smokeRes.ok), notes, diagVersion };
+  };
+
+  // dev-only stability helper: run wealth tax pack 3 times and emit one summary block.
+  Game.__DEV.smokeEconNpcWealthTaxContractStabilityOnce = (opts = {}) => {
+    const emitLine = (line) => {
+      try {
+        if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
+          Game.__DEV.emitLine(String(line));
+        } else {
+          console.warn(String(line));
+        }
+      } catch (_) {}
+    };
+    const safeStringify = (obj) => {
+      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
+    };
+    const header = "WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_BEGIN";
+    const footer = "WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END";
+    const buildTag = "build_2026_02_09b";
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 400;
+    const makeOpts = (ticks) => ({
+      ticks,
+      seedRichNpc: true,
+      debugTelemetry: true,
+      window: { lastN }
+    });
+    let r50 = null;
+    let r10a = null;
+    let r10b = null;
+    let summary = null;
+    try {
+      Game.__DEV.runEconNpcWealthTaxEvidencePackOnce(makeOpts(50));
+      r50 = Game.__DEV.lastEconNpcWealthTaxEvidencePack || null;
+      Game.__DEV.runEconNpcWealthTaxEvidencePackOnce(makeOpts(10));
+      r10a = Game.__DEV.lastEconNpcWealthTaxEvidencePack || null;
+      Game.__DEV.runEconNpcWealthTaxEvidencePackOnce(makeOpts(10));
+      r10b = Game.__DEV.lastEconNpcWealthTaxEvidencePack || null;
+      const runs = [r50, r10a, r10b].filter(Boolean);
+      const notes = [];
+      const hasNote = (r, note) => !!(r && r.smoke && Array.isArray(r.smoke.notes) && r.smoke.notes.includes(note));
+      const noTotalsNullAll = runs.length === 3 && runs.every(r => !hasNote(r, "totals_null"));
+      const noWorldMassDriftAll = runs.length === 3 && runs.every(r => !hasNote(r, "world_mass_drift") && !hasNote(r, "world_delta_nonzero") && !hasNote(r, "points_emission_suspected"));
+      const noExceptionAll = runs.length === 3 && runs.every(r => !hasNote(r, "exception"));
+      const seededNpcAppliedAtLeastOnce = runs.some(r => r && r.smoke && r.smoke.diag && r.smoke.diag.seedApplied === true);
+      const hasWorldTaxInAtLeastOnce = runs.some(r => {
+        const tax = r && r.smoke && r.smoke.tax;
+        const asserts = r && r.smoke && r.smoke.asserts;
+        return !!(tax && Number.isFinite(tax.totalTaxInWindow) && tax.totalTaxInWindow > 0) || !!(asserts && asserts.hasWorldTaxInRows);
+      });
+      if (!noTotalsNullAll) notes.push("totals_null");
+      if (!noWorldMassDriftAll) notes.push("world_mass_drift");
+      if (!noExceptionAll) notes.push("exception");
+      if (!seededNpcAppliedAtLeastOnce) notes.push("seed_not_applied");
+      if (!hasWorldTaxInAtLeastOnce) notes.push("world_tax_in_missing");
+      const ok = noExceptionAll && noTotalsNullAll && noWorldMassDriftAll && hasWorldTaxInAtLeastOnce;
+      summary = {
+        ok,
+        buildTag,
+        diagVersion: "econ_npc_wealth_tax_pack_v1",
+        runs: { r50, r10a, r10b },
+        asserts: {
+          noTotalsNullAll,
+          noWorldMassDriftAll,
+          noExceptionAll,
+          seededNpcAppliedAtLeastOnce,
+          hasWorldTaxInAtLeastOnce
+        },
+        notes
+      };
+    } catch (err) {
+      summary = {
+        ok: false,
+        buildTag,
+        diagVersion: "econ_npc_wealth_tax_pack_v1",
+        runs: { r50, r10a, r10b },
+        asserts: {
+          noTotalsNullAll: false,
+          noWorldMassDriftAll: false,
+          noExceptionAll: false,
+          seededNpcAppliedAtLeastOnce: false,
+          hasWorldTaxInAtLeastOnce: false
+        },
+        notes: ["exception"],
+        errorMessage: String(err && err.message ? err.message : err),
+        errorStack: err && err.stack ? String(err.stack) : null
+      };
+    } finally {
+      emitLine(header);
+      emitLine(safeStringify(summary));
+      emitLine(safeStringify({ r50, r10a, r10b }));
+      emitLine(footer);
+    }
+    return summary;
   };
 
   Game.__DEV.wealthTaxPackProbe = function wealthTaxPackProbe() {

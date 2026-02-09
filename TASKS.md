@@ -852,6 +852,7 @@
 - Update (2026-02-09): added dev contract helper `Game.__DEV.econNpcWorldContractV1` and marker `ECON_NPC_WORLD_CONTRACT_V1_READY {accountsIncludedLen,accountsIncludedHash,hasTotals}` to eliminate `world_contract_mismatch` ambiguity. Status remains FAIL pending runtime evidence.
 - Update (2026-02-09): contract helper now exported with marker `ECON_NPC_WORLD_CONTRACT_V1_EXPORTED` and pack JSON#1 includes `worldContractUsed/worldContractExportKey/debugMoneyLogLen`. `world_contract_mismatch` emitted only when `Game.State` missing; otherwise `totals_null`.
 - Update (2026-02-09): evidence pack is now read-only (no State writes in contract helper path). Missing accounts treated as 0 for totals; `balances_unavailable` used when logs are missing. Status remains FAIL pending runtime evidence.
+- Update (2026-02-09): contract stabilization now creates missing `Game.State.players[id]={id,points:0}` for ids in contract (dev-only) so totals never null and worldBank included in before/after. Status remains FAIL pending runtime evidence.
 - Runtime evidence (FAIL, Console.txt 2026-02-09):
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
   - `{"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization."...}`
@@ -862,3 +863,14 @@
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})
   ```
 - PASS evidence (Console.txt): ok:true, world.delta==0, rowsScoped>0, totalTaxInWindow>0, hasWorldTaxInRows:true, diag.accountsIncludedLen/hash + addedAccounts/fixedAccounts present; no world_contract_mismatch.
+- Subtask: contract stability self-smoke helper (dev-checks only)
+  - Status: FAIL (pending runtime evidence)
+  - Command:
+    ```
+    Game.__DEV.smokeEconNpcWealthTaxContractStabilityOnce({window:{lastN:400}})
+    ```
+  - PASS checklist (Console.txt):
+    - `WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_BEGIN`
+    - JSON#1 `ok:true`, asserts `noTotalsNullAll/noWorldMassDriftAll/noExceptionAll/hasWorldTaxInAtLeastOnce` true
+    - JSON#2 contains `r50`, `r10a`, `r10b`
+    - `WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END`
