@@ -3325,14 +3325,27 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     refreshMoneyLogSnapshot();
     const logCandidatesBefore = collectLogSourceCandidates();
     logSourceCandidates = logCandidatesBefore.map(c => ({ name: c.name, len: c.len }));
+    const dbgPublic = Game.Debug || null;
+    const dbgPublicLog = (dbgPublic && Array.isArray(dbgPublic.moneyLog)) ? dbgPublic.moneyLog : null;
     const pickedBefore = pickLogCandidate(logCandidatesBefore, "debug_moneyLog");
-    let logSource = pickedBefore.name || "none";
-    const logRowsBefore = Array.isArray(pickedBefore.rows) ? pickedBefore.rows : [];
+    let logSource = "none";
+    let logRowsBefore = [];
+    if (dbgPublicLog && dbgPublicLog.length) {
+      logSource = "debug_moneyLog";
+      logRowsBefore = dbgPublicLog;
+    } else {
+      logSource = pickedBefore.name || "none";
+      logRowsBefore = Array.isArray(pickedBefore.rows) ? pickedBefore.rows : [];
+      if (logSource === "Game.Debug.moneyLog" || logSource === "Game.Debug.debug_moneyLog") {
+        logSource = "debug_moneyLog";
+      }
+    }
     const logStart = logRowsBefore.length;
     const lenBefore = logStart;
     threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
     seedMargin = 5;
-    const hasDebugMoneyLog = !!(Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length);
+    const hasDebugMoneyLog = !!((Game.Debug && Array.isArray(Game.Debug.moneyLog) && Game.Debug.moneyLog.length)
+      || (Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length));
     const hasLoggerQueue = !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length);
     if (logSource === "none") notes.push("log_source_none");
     if (!snapshotOk) notes.push("snapshot_unavailable");
@@ -3481,6 +3494,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       if (typeof Econ.applyNpcWealthTaxIfNeeded === "function") {
         const afterSeed = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
+        const accPoints = acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0;
+        const stPoints = (Game.State && Game.State.players && Game.State.players[targetId] && Number.isFinite(Game.State.players[targetId].points))
+          ? (Game.State.players[targetId].points | 0)
+          : null;
+        const hasAcc = !!acc;
+        if (!taxProbe || typeof taxProbe !== "object") taxProbe = { attempted: false, applied: false, taxAmount: 0, why: "uninit" };
+        taxProbe.attempted = true;
+        taxProbe.taxCall = { npcId: targetId, npcPtsBefore: afterSeed, hasAcc, accPoints, statePoints: stPoints };
         const taxRes = Econ.applyNpcWealthTaxIfNeeded(targetId, afterSeed, {
           baseReason: "dev_tax_probe_cost",
           tick: "dev_tax_probe"
@@ -3573,6 +3594,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const pickedAfter = pickLogCandidate(logCandidatesAfter, logSource);
     if (pickedAfter && pickedAfter.len > 0 && pickedAfter.name) {
       logSource = pickedAfter.name;
+      if (logSource === "Game.Debug.moneyLog" || logSource === "Game.Debug.debug_moneyLog") {
+        logSource = "debug_moneyLog";
+      }
     }
     const logAfterRows = Array.isArray(pickedAfter.rows) ? pickedAfter.rows : [];
     const logEnd = logAfterRows.length;
@@ -3582,6 +3606,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const newRows = rowsScoped > 0
       ? logAfterRows.slice(Math.max(0, logEnd - rowsScoped))
       : [];
+    let sampleTailReasons = [];
+    if (rowsScoped === 0 && logAfterRows.length) {
+      sampleTailReasons = logAfterRows.slice(Math.max(0, logAfterRows.length - 5))
+        .map(r => String(r && r.reason || ""));
+    }
     const taxRows = newRows.filter(r => r && r.reason === "world_tax_in" && String(r.sourceId || "").startsWith("npc_"));
     const totalTaxInWindow = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
     const byNpc = Object.create(null);
@@ -3730,6 +3759,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         debugMoneyLogLen: (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0,
         hasLoggerQueue: !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length),
         scopeWindowLastN,
+        sampleTailReasons,
         seedTransfer,
         auditReadOnly: false,
         massDriftBreakdown: (worldMassDelta !== 0 && worldMassDelta != null) ? {
@@ -3801,6 +3831,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
     const ensureContractAccountsExist = () => {
       const added = [];
+      const ensureMissing = [];
+      let createdCount = 0;
+      let syncedCount = 0;
       if (Game.ConflictEconomy && typeof Game.ConflictEconomy.ensureNpcAccountsFromState === "function") {
         npcAccountsEnsureCalled = true;
         const resA = Game.ConflictEconomy.ensureNpcAccountsFromState({ reason: "wealth_tax_pack" }) || {};
@@ -3808,6 +3841,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const syncedA = Number.isFinite(resA.syncedNowCount) ? resA.syncedNowCount : 0;
         npcAccountsCreatedNowCount += createdA;
         npcAccountsSyncedNowCount += syncedA;
+        createdCount += createdA;
+        syncedCount += syncedA;
         if (Array.isArray(resA.createdIds)) added.push(...resA.createdIds);
         const resB = Game.ConflictEconomy.ensureNpcAccountsFromState({ reason: "wealth_tax_pack_idempotent" }) || {};
         const createdB = Number.isFinite(resB.createdNowCount) ? resB.createdNowCount : 0;
@@ -3815,7 +3850,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         npcAccountsEnsureIdempotentOk = (createdB === 0 && syncedB === 0);
       }
       npcAccountsMigrateMarkerSeen = !!(Game.__D && Game.__D.__npcAccountMigrateSeen);
-      return { addedAccounts: added, fixedAccounts: [] };
+      const S = Game.__S || Game.State || {};
+      const players = S.players || {};
+      const ids = Object.keys(players).filter(id => typeof id === "string" && id.startsWith("npc_"));
+      ids.forEach(id => {
+        try {
+          const acc = (Game.ConflictEconomy && typeof Game.ConflictEconomy.getAccount === "function")
+            ? Game.ConflictEconomy.getAccount(id)
+            : null;
+          if (!acc) ensureMissing.push(id);
+        } catch (_) {}
+      });
+      return { addedAccounts: added, fixedAccounts: [], createdCount, syncedCount, missingNpcIds: ensureMissing };
     };
     const emitLine = (line) => {
       try {
@@ -3839,6 +3885,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const ensured = ensureContractAccountsExist(contract);
       addedAccounts = ensured.addedAccounts;
       fixedAccounts = ensured.fixedAccounts;
+      const createdNowCount = Number.isFinite(ensured.createdCount) ? ensured.createdCount : 0;
+      const syncedNowCount = Number.isFinite(ensured.syncedCount) ? ensured.syncedCount : 0;
+      npcAccountsCreatedNowCount += createdNowCount;
+      npcAccountsSyncedNowCount += syncedNowCount;
+      const missingNpcIds = ensured.missingNpcIds || [];
       const npcDiagSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
         : null;
@@ -3879,11 +3930,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeRes.diag.npcAccounts = {
           ensureCalled: npcAccountsEnsureCalled,
           migrateMarkerSeen: npcAccountsMigrateMarkerSeen,
-          createdNowCount: npcAccountsCreatedNowCount,
-          syncedNowCount: npcAccountsSyncedNowCount,
+          createdNowCount,
+          syncedNowCount,
           missingAfterEnsureLen: npcAccountsMissingAfterEnsureLen,
           missingAfterEnsureSample: npcAccountsMissingAfterEnsureSample,
-          ensureIdempotentOk: npcAccountsEnsureIdempotentOk
+          ensureIdempotentOk: npcAccountsEnsureIdempotentOk,
+          missingAfterEnsureLenNpcAccounts: missingNpcIds.length,
+          missingAfterEnsureSampleNpcAccounts: missingNpcIds.slice(0, 5)
         };
         threshold = Number.isFinite(smokeRes.diag.seedThreshold) ? smokeRes.diag.seedThreshold : threshold;
         seedMargin = Number.isFinite(smokeRes.diag.seedMargin) ? smokeRes.diag.seedMargin : seedMargin;
@@ -3910,6 +3963,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           snapshotOk: smokeRes.diag ? smokeRes.diag.snapshotOk : null,
           snapshotWhy: smokeRes.diag ? smokeRes.diag.snapshotWhy : null,
           scopedLen: smokeRes.diag ? smokeRes.diag.scopedLen : null,
+          sampleTailReasons: smokeRes.diag ? smokeRes.diag.sampleTailReasons : null,
           lenBefore: smokeRes.diag ? smokeRes.diag.lenBefore : null,
           lenAfter: smokeRes.diag ? smokeRes.diag.lenAfter : null,
           rowsScoped: smokeRes.meta ? smokeRes.meta.rowsScoped : null,
@@ -6538,6 +6592,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       candidates.push({ name, rows: normalized, len: normalized.length });
     };
     const dbg = Game.__D || null;
+    const dbgPublic = Game.Debug || null;
+    addCandidate((dbgPublic && Array.isArray(dbgPublic.moneyLog)) ? dbgPublic.moneyLog : [], "Game.Debug.moneyLog");
+    addCandidate((dbgPublic && Array.isArray(dbgPublic.debug_moneyLog)) ? dbgPublic.debug_moneyLog : [], "Game.Debug.debug_moneyLog");
+    addCandidate((typeof window !== "undefined" && Array.isArray(window.debug_moneyLog)) ? window.debug_moneyLog : [], "window.debug_moneyLog");
     const dbgByBattle = (dbg && dbg.moneyLogByBattle && typeof dbg.moneyLogByBattle === "object")
       ? dbg.moneyLogByBattle
       : null;

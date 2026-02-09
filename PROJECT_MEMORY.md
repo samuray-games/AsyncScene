@@ -2432,5 +2432,10 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 2026-02-09 — ECON-NPC [1.5] Variant A root-cause fix (npc_account_missing).
 - `applyNpcWealthTaxIfNeeded` now derives `npcPtsBefore` from econ-account points and falls back to `Game.State.players[npcId].points` when input is missing/0, so npc_* with points no longer report `npc_account_missing`.
 - Status: FIXED pending runtime evidence (QA command in TASKS.md). LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] Variant A ensureNpcEconAccount.
+- Added `ensureNpcEconAccount(npcId)` in conflict-economy to guarantee econ-account existence for npc_*, syncing points from Game.State.players without transfers/moneyLog and without changing world mass totals.
+- Status: FIXED pending runtime evidence. LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack logSource/taxCall diagnostics.
+- Pack now prefers `Game.Debug.moneyLog` when present, reselects logSource after ticks, and records `diag.taxCall` + `diag.sampleTailReasons` to explain tax_missing or rowsScoped=0. Status: FAIL pending runtime evidence.
 2026-02-09 — Dev helper dumpMoneyLogSourcesOnce.
 - Added `Game.__DEV.dumpMoneyLogSourcesOnce` that emits `WORLD_MONEYLOG_SOURCES_V1_BEGIN`/`END` plus JSON summary with `candidates` and `best` to diagnose `logSource:"none"` and `rowsScoped:0`. Targeted smoke: `Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}})`; PASS when `best.len>0`. Logged even if fail.

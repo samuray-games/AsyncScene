@@ -9955,3 +9955,12 @@
 {"ts": 1770648549339, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
 {"ts": 1770648564579, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Ветеран", "text": "@Аркадий петрович, ладно, разгоняем", "system": false}
 {"ts": 1770648567294, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Рин", "text": "баттл это просто разговор с адреналином", "system": false}
+{"ts": 1770649072287, "sessionId": "session-1770649063612-kwlg", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770649096257, "sessionId": "session-1770649063612-kwlg", "type": "chat", "name": "Макс", "text": "@Слабак, либо отвечаешь, либо платишь", "system": false}
+{"ts": 1770649096428, "sessionId": "session-1770649063612-kwlg", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет, чтобы Ветеран отвалил.", "system": true}
+{"ts": 1770649188436, "sessionId": "session-1770649063612-kwlg", "type": "chat", "name": "Ветеран", "text": "@Слава, ну че кто первый вбросит", "system": false}
+{"ts": 1770649367800, "sessionId": "session-1770649363246-g60x", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770649379056, "sessionId": "session-1770649363246-g60x", "type": "chat", "name": "Королева", "text": "@Владимир иванович, вот это было грязно", "system": false}
+{"ts": 1770649420289, "sessionId": "session-1770649363246-g60x", "type": "chat", "name": "Слава", "text": "не мажь, отвечай по делу", "system": false}
+{"ts": 1770649420294, "sessionId": "session-1770649363246-g60x", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770649420377, "sessionId": "session-1770649363246-g60x", "type": "chat", "name": "Слабак", "text": "@Samuray, вот это было грязно", "system": false}

@@ -73,6 +73,26 @@
     return s.startsWith("npc_");
   }
 
+  function ensureNpcEconAccount(npcId, opts = {}){
+    const id = String(npcId || "");
+    if (!id || !isNpcId(id)) return { ok: false, why: "not_npc", npcId: id };
+    const S = getStateHandle();
+    if (!S) return { ok: false, why: "state_missing", npcId: id };
+    if (!S.players) S.players = {};
+    const St = (Game && Game.State) ? Game.State : null;
+    const stPts = (St && St.players && St.players[id] && Number.isFinite(St.players[id].points))
+      ? (St.players[id].points | 0)
+      : 0;
+    let hadToCreate = false;
+    if (!S.players[id]) {
+      S.players[id] = { id, points: stPts, npc: true };
+      hadToCreate = true;
+    } else if (!Number.isFinite(S.players[id].points) || (S.players[id].points | 0) !== stPts) {
+      S.players[id].points = stPts;
+    }
+    return { ok: true, npcId: id, pointsSynced: stPts, hadToCreate };
+  }
+
   function ensureNpcAccountFromState(id){
     const key = String(id || "");
     if (!key) return null;
@@ -113,21 +133,10 @@
     npcList.forEach(p => {
       const id = String(p.id || "");
       if (!id) return;
-      if (!S.players[id]) {
-        if (St && St.players && St.players[id]) {
-          S.players[id] = St.players[id];
-          if (!Number.isFinite(S.players[id].points)) {
-            const stPts = Number.isFinite(St.players[id].points) ? (St.players[id].points | 0) : 0;
-            S.players[id].points = stPts;
-          }
-          syncedIds.push(id);
-        } else {
-          S.players[id] = { id, points: 0, npc: true };
-          createdIds.push(id);
-        }
-      } else if (!Number.isFinite(S.players[id].points)) {
-        S.players[id].points = Number.isFinite(p.points) ? (p.points | 0) : 0;
-        syncedIds.push(id);
+      const res = ensureNpcEconAccount(id, { reason: opts.reason || "ensure_all" });
+      if (res && res.ok === true) {
+        if (res.hadToCreate) createdIds.push(id);
+        else if (Number.isFinite(res.pointsSynced)) syncedIds.push(id);
       }
     });
     const afterSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
@@ -210,6 +219,8 @@
     if (S.me && S.me.id === key) return S.me;
     if (isNpcId(key)) {
       try { ensureNpcAccountsFromState({ reason: "getAccount" }); } catch (_) {}
+      const ensured = ensureNpcEconAccount(key, { reason: "getAccount" });
+      if (ensured && ensured.ok === true && S.players && S.players[key]) return S.players[key];
       return ensureNpcAccountFromState(key);
     }
     const St = (Game && Game.State) ? Game.State : null;
