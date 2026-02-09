@@ -3776,6 +3776,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let npcAccountSample = [];
     let npcAccountsMissingLen = null;
     let npcAccountsMissingSample = [];
+    let npcAccountsEnsureCalled = false;
+    let npcAccountsMigrateMarkerSeen = false;
+    let npcAccountsCreatedNowCount = 0;
+    let npcAccountsSyncedNowCount = 0;
+    let npcAccountsMissingAfterEnsureLen = null;
+    let npcAccountsMissingAfterEnsureSample = [];
+    let npcAccountsEnsureIdempotentOk = false;
     let logSourceChosen = "none";
     let rowsScoped = 0;
     let taxProbe = { attempted: false, applied: false, taxAmount: 0, why: "uninit" };
@@ -3793,9 +3800,19 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const ensureContractAccountsExist = () => {
       const added = [];
       if (Game.ConflictEconomy && typeof Game.ConflictEconomy.ensureNpcAccountsFromState === "function") {
-        const res = Game.ConflictEconomy.ensureNpcAccountsFromState({ reason: "wealth_tax_pack" });
-        if (res && Array.isArray(res.createdIds)) added.push(...res.createdIds);
+        npcAccountsEnsureCalled = true;
+        const resA = Game.ConflictEconomy.ensureNpcAccountsFromState({ reason: "wealth_tax_pack" }) || {};
+        const createdA = Number.isFinite(resA.createdNowCount) ? resA.createdNowCount : 0;
+        const syncedA = Number.isFinite(resA.syncedNowCount) ? resA.syncedNowCount : 0;
+        npcAccountsCreatedNowCount += createdA;
+        npcAccountsSyncedNowCount += syncedA;
+        if (Array.isArray(resA.createdIds)) added.push(...resA.createdIds);
+        const resB = Game.ConflictEconomy.ensureNpcAccountsFromState({ reason: "wealth_tax_pack_idempotent" }) || {};
+        const createdB = Number.isFinite(resB.createdNowCount) ? resB.createdNowCount : 0;
+        const syncedB = Number.isFinite(resB.syncedNowCount) ? resB.syncedNowCount : 0;
+        npcAccountsEnsureIdempotentOk = (createdB === 0 && syncedB === 0);
       }
+      npcAccountsMigrateMarkerSeen = !!(Game.__D && Game.__D.__npcAccountMigrateSeen);
       return { addedAccounts: added, fixedAccounts: [] };
     };
     const emitLine = (line) => {
@@ -3842,6 +3859,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       npcAccountSample = npcDiagPresent.slice(0, 3);
       npcAccountsMissingLen = npcDiagMissing.length;
       npcAccountsMissingSample = npcDiagMissing.slice(0, 3);
+      npcAccountsMissingAfterEnsureLen = npcAccountsMissingLen;
+      npcAccountsMissingAfterEnsureSample = npcAccountsMissingSample.slice(0, 3);
       smokeRes = Game.__DEV.smokeNpcWealthTaxOnce(opts);
       if (smokeRes && smokeRes.notes && Array.isArray(smokeRes.notes) && addedAccounts.length) {
         smokeRes.notes.push("world_contract_missing_accounts");
@@ -3855,6 +3874,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeRes.diag.npcAccountSample = npcAccountSample;
         smokeRes.diag.npcAccountsMissingLen = npcAccountsMissingLen;
         smokeRes.diag.npcAccountsMissingSample = npcAccountsMissingSample;
+        smokeRes.diag.npcAccounts = {
+          ensureCalled: npcAccountsEnsureCalled,
+          migrateMarkerSeen: npcAccountsMigrateMarkerSeen,
+          createdNowCount: npcAccountsCreatedNowCount,
+          syncedNowCount: npcAccountsSyncedNowCount,
+          missingAfterEnsureLen: npcAccountsMissingAfterEnsureLen,
+          missingAfterEnsureSample: npcAccountsMissingAfterEnsureSample,
+          ensureIdempotentOk: npcAccountsEnsureIdempotentOk
+        };
         threshold = Number.isFinite(smokeRes.diag.seedThreshold) ? smokeRes.diag.seedThreshold : threshold;
         seedMargin = Number.isFinite(smokeRes.diag.seedMargin) ? smokeRes.diag.seedMargin : seedMargin;
         seedApplied = !!smokeRes.diag.seedApplied;
@@ -3894,6 +3922,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           npcAccountSample: smokeRes.diag ? smokeRes.diag.npcAccountSample : null,
           npcAccountsMissingLen: smokeRes.diag ? smokeRes.diag.npcAccountsMissingLen : null,
           npcAccountsMissingSample: smokeRes.diag ? smokeRes.diag.npcAccountsMissingSample : null,
+          npcAccounts: smokeRes.diag ? smokeRes.diag.npcAccounts : null,
           seedSourceId: smokeRes.diag ? smokeRes.diag.seedSourceId : null,
           seedFailureReason: smokeRes.diag ? smokeRes.diag.seedFailureReason : null,
           seedThreshold: smokeRes.diag ? smokeRes.diag.seedThreshold : null,
@@ -3943,6 +3972,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           npcAccountSample,
           npcAccountsMissingLen,
           npcAccountsMissingSample,
+          npcAccounts: {
+            ensureCalled: npcAccountsEnsureCalled,
+            migrateMarkerSeen: npcAccountsMigrateMarkerSeen,
+            createdNowCount: npcAccountsCreatedNowCount,
+            syncedNowCount: npcAccountsSyncedNowCount,
+            missingAfterEnsureLen: npcAccountsMissingAfterEnsureLen,
+            missingAfterEnsureSample: npcAccountsMissingAfterEnsureSample,
+            ensureIdempotentOk: npcAccountsEnsureIdempotentOk
+          },
           worldContractUsed: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractUsed : null,
           worldContractExportKey: smokeRes && smokeRes.diag ? smokeRes.diag.worldContractExportKey : "econNpcWorldContractV1",
           logSource: logSourceChosen,
@@ -4094,6 +4132,95 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       emitLine(footer);
     }
     return summary;
+  };
+
+  // dev-only QA: ensure NPC econ accounts exist without mutating balances.
+  Game.__DEV.smokeNpcAccountsEnsureOnce = (opts = {}) => {
+    const emitLine = (line) => {
+      try {
+        if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
+          Game.__DEV.emitLine(String(line));
+        } else {
+          console.warn(String(line));
+        }
+      } catch (_) {}
+    };
+    const safeStringify = (obj) => {
+      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
+    };
+    const header = "WORLD_ECON_NPC_ACCOUNTS_ENSURE_BEGIN";
+    const footer = "WORLD_ECON_NPC_ACCOUNTS_ENSURE_END";
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    const beforeTotal = (beforeSnap && Number.isFinite(beforeSnap.total)) ? (beforeSnap.total | 0) : null;
+    const beforeLogLen = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
+    let resA = null;
+    let resB = null;
+    let notes = [];
+    let ok = false;
+    let missingAfterEnsureLen = null;
+    let missingAfterEnsureSample = [];
+    let migrateMarkerSeen = !!(Game.__D && Game.__D.__npcAccountMigrateSeen);
+    let worldDelta = null;
+    let moneyLogDelta = null;
+    try {
+      if (!Econ || typeof Econ.ensureNpcAccountsFromState !== "function") {
+        notes.push("ensure_missing");
+      } else {
+        resA = Econ.ensureNpcAccountsFromState({ reason: "smoke_npc_accounts_ensure" }) || {};
+        resB = Econ.ensureNpcAccountsFromState({ reason: "smoke_npc_accounts_ensure_idempotent" }) || {};
+      }
+      const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const afterTotal = (afterSnap && Number.isFinite(afterSnap.total)) ? (afterSnap.total | 0) : null;
+      if (beforeTotal != null && afterTotal != null) worldDelta = afterTotal - beforeTotal;
+      const afterLogLen = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
+      moneyLogDelta = afterLogLen - beforeLogLen;
+      const players = (Game.State && Game.State.players) ? Game.State.players : (Game.__S && Game.__S.players) ? Game.__S.players : {};
+      const npcIds = Object.values(players || {})
+        .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
+        .map(p => String(p.id));
+      const byId = (afterSnap && afterSnap.byId) ? afterSnap.byId : null;
+      const missing = [];
+      if (byId) {
+        npcIds.forEach(id => {
+          if (!Number.isFinite(byId[id])) missing.push(id);
+        });
+      } else {
+        missing.push(...npcIds);
+      }
+      missingAfterEnsureLen = missing.length;
+      missingAfterEnsureSample = missing.slice(0, 3);
+      migrateMarkerSeen = !!(Game.__D && Game.__D.__npcAccountMigrateSeen);
+      if (moneyLogDelta !== 0) notes.push("money_log_changed");
+      if (worldDelta !== 0) notes.push("world_delta_nonzero");
+      if (missingAfterEnsureLen > 0) notes.push("npc_accounts_missing");
+      ok = notes.length === 0;
+    } catch (err) {
+      notes.push("exception");
+      notes.push(String(err && err.message ? err.message : err));
+    } finally {
+      emitLine(header);
+      emitLine(safeStringify({
+        ok,
+        notes,
+        worldDelta,
+        moneyLogDelta,
+        migrateMarkerSeen,
+        ensureCalled: !!resA,
+        createdNowCount: resA && Number.isFinite(resA.createdNowCount) ? resA.createdNowCount : 0,
+        syncedNowCount: resA && Number.isFinite(resA.syncedNowCount) ? resA.syncedNowCount : 0,
+        missingAfterEnsureLen,
+        missingAfterEnsureSample,
+        ensureIdempotentOk: resB ? ((resB.createdNowCount | 0) === 0 && (resB.syncedNowCount | 0) === 0) : false
+      }));
+      emitLine(safeStringify({ resA, resB }));
+      emitLine(footer);
+    }
+    return { ok, notes, worldDelta, moneyLogDelta, migrateMarkerSeen };
   };
 
   Game.__DEV.wealthTaxPackProbe = function wealthTaxPackProbe() {

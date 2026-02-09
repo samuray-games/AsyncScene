@@ -860,6 +860,18 @@
 - Update (2026-02-09): moved seed threshold/margin + seedApplied/seedWhy initialization before log-source early returns to avoid `threshold` TDZ crash. Status remains FAIL pending runtime evidence.
 - Update (2026-02-09): Variant A econ-account migration added in `AsyncScene/Web/conflict/conflict-economy.js`. `getAccount` now falls back to `Game.State.players` and `ensureNpcAccountsFromState` creates/links missing npc_* accounts (dev marker `ECON_NPC_ACCOUNT_MIGRATE_V1`). `applyNpcWealthTaxIfNeeded` now ensures npc accounts exist before tax. Wealth-tax pack JSON now includes `npcAccountCount`, `npcAccountSample`, `npcAccountsMissingLen`, `npcAccountsMissingSample`. Status remains FAIL pending runtime evidence.
 - Runtime evidence baseline (Console.txt 2026-02-09): no `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN/END` block present; manual probes show `npc_account_missing` and `[ACC missing count] 19 in `=== ECON NPC ACCOUNT PROBE ===` tail. 
+- Update (2026-02-09): Added `Game.__DEV.smokeNpcAccountsEnsureOnce` QA command to verify npc econ-account ensure is idempotent and read-only. Added wealth-tax pack diag fields under `diag.npcAccounts.*`:
+  - `ensureCalled`, `migrateMarkerSeen`, `createdNowCount`, `syncedNowCount`, `missingAfterEnsureLen`, `missingAfterEnsureSample`, `ensureIdempotentOk`.
+- QA commands (exact):
+  ```
+  Game.__DEV.smokeNpcAccountsEnsureOnce({window:{lastN:200}})
+  ```
+  ```
+  Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})
+  ```
+- PASS checklist (Console.txt):
+  - For `WORLD_ECON_NPC_ACCOUNTS_ENSURE_*`: `ok:true`, `missingAfterEnsureLen==0`, `worldDelta==0`, `moneyLogDelta==0`, and `migrateMarkerSeen` true on cold run or `createdNowCount==0` on warm run.
+  - For wealth-tax pack: `diag.npcAccounts.ensureCalled==true`, `diag.npcAccounts.migrateMarkerSeen` true or `createdNowCount==0`, `diag.npcAccounts.missingAfterEnsureLen==0`, `world.delta==0`, `totalTaxInWindow>0`, `hasWorldTaxInRows:true`.
 - QA smoke command:
   ```
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})

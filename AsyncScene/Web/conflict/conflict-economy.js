@@ -96,36 +96,51 @@
     const St = (Game && Game.State) ? Game.State : null;
     const sourcePlayers = (St && St.players) ? St.players : S.players;
     const createdIds = [];
-    let movedTotal = 0;
+    const syncedIds = [];
     const npcList = Object.values(sourcePlayers || {}).filter(p => {
       if (!p) return false;
       const pid = String(p.id || "");
       return p.npc === true || p.type === "npc" || pid.startsWith("npc_");
     });
+    const beforeSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
     npcList.forEach(p => {
       const id = String(p.id || "");
       if (!id) return;
       if (!S.players[id]) {
         if (St && St.players && St.players[id]) {
           S.players[id] = St.players[id];
-          if (Number.isFinite(St.players[id].points)) movedTotal += (St.players[id].points | 0);
+          syncedIds.push(id);
         } else {
           S.players[id] = { id, points: 0, npc: true };
+          createdIds.push(id);
         }
-        createdIds.push(id);
       }
     });
-    if (isDevFlag() && createdIds.length && !npcAccountMigrateLogged) {
+    const afterSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
+    if (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total)) {
+      const delta = (afterSnap.total | 0) - (beforeSnap.total | 0);
+      if (delta !== 0) {
+        throw new Error(`ECON_NPC_ACCOUNT_MIGRATE_WORLD_DELTA:${delta}`);
+      }
+    }
+    if (isDevFlag() && (createdIds.length || syncedIds.length) && !npcAccountMigrateLogged) {
       npcAccountMigrateLogged = true;
       try {
         console.warn("ECON_NPC_ACCOUNT_MIGRATE_V1", {
-          count: createdIds.length,
-          movedTotal,
+          count: createdIds.length + syncedIds.length,
+          movedTotal: 0,
           mode: (St && St.players) ? "sync" : "migrate"
         });
+        if (Game.__D) Game.__D.__npcAccountMigrateSeen = true;
       } catch (_) {}
     }
-    return { ok: true, count: createdIds.length, movedTotal, createdIds };
+    return {
+      ok: true,
+      createdNowCount: createdIds.length,
+      syncedNowCount: syncedIds.length,
+      createdIds,
+      syncedIds
+    };
   }
 
   function logTransfer(entry){
@@ -692,7 +707,13 @@
       res.notes.push("npc_missing");
       return res;
     }
-    ensureNpcAccountsFromState();
+    try {
+      ensureNpcAccountsFromState();
+    } catch (e) {
+      res.notes.push("npc_account_migrate_failed");
+      res.error = String(e && e.message ? e.message : e);
+      return res;
+    }
     const acc = getAccount(id);
     if (!acc) {
       res.notes.push("npc_account_missing");

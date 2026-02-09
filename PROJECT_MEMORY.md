@@ -2417,3 +2417,8 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Added `ensureNpcAccountsFromState` in `AsyncScene/Web/conflict/conflict-economy.js` and `getAccount` fallback to `Game.State.players`, so npc_* accounts exist in Econ and `applyNpcWealthTaxIfNeeded` can log `world_tax_in`. Dev marker: `ECON_NPC_ACCOUNT_MIGRATE_V1 {count,movedTotal,mode}`.
 - Wealth-tax pack JSON now includes `npcAccountCount`, `npcAccountSample`, `npcAccountsMissingLen`, `npcAccountsMissingSample`.
 - Runtime PASS still pending; QA commands unchanged (see TASKS.md). LOGGED EVEN IF FAIL.
+
+2026-02-09 — ECON-NPC [1.5] NPC account ensure QA (dev-only).
+- Added `Game.__DEV.smokeNpcAccountsEnsureOnce({window:{lastN:200}})` to verify npc econ-account ensure is idempotent and read-only (`worldDelta==0`, `moneyLogDelta==0`, `missingAfterEnsureLen==0`).
+- Wealth-tax pack now reports `diag.npcAccounts.*` (ensureCalled/migrateMarkerSeen/createdNowCount/syncedNowCount/missingAfterEnsureLen/ensureIdempotentOk).
+- Runtime PASS still pending; QA must run both commands (see TASKS.md). LOGGED EVEN IF FAIL.
