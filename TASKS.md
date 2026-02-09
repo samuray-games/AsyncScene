@@ -835,3 +835,15 @@
   - `totalTaxInWindow > 0`, `hasWorldTaxInRows:true`, `seedRichNpc:true`
   - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
   - `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE` (+ optional `TAPE_FLUSH_OK`)
+- Runtime evidence (FAIL, Console.txt 2026-02-09):
+  - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
+  - `{"ok":false,"notes":["world_mass_drift","tax_missing"],"world":{"delta":2},"tax":{"totalTaxInWindow":0}}`
+  - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+
+- Update (2026-02-09): wealth-tax pack now ensures contract accounts exist in State before smoke (dev-only). Added diag.addedAccounts/fixedAccounts + accountsIncludedLen/hash for evidence. Status remains FAIL pending runtime Console.txt.
+- Update (2026-02-09): seedRichNpc now targets `threshold + seedMargin(5)` and logs `seedApplied/seedWhy/seedThreshold/seedMargin`, runs a 1-step tax wake probe, and adds explicit FAIL notes: `totals_null`, `world_delta_nonzero`, `rows_scoped_empty`, `world_tax_in_missing`, `world_tax_total_zero`, `tax_probe_missing_after_seed`. Status remains FAIL pending runtime evidence.
+- QA smoke command:
+  ```
+  Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})
+  ```
+- PASS evidence (Console.txt): ok:true, world.delta==0, rowsScoped>0, totalTaxInWindow>0, hasWorldTaxInRows:true, diag.accountsIncludedLen/hash + addedAccounts/fixedAccounts present; no world_contract_mismatch.

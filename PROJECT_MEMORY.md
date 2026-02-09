@@ -2376,3 +2376,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Proof: `accountsIncluded` rebuilt from `sumPointsSnapshot().byId` plus guaranteed `me`, `sink`, `worldBank`, `crowd:*`. Missing State players auto-created at 0 so totals/buckets never null.
 - diag now logs `accountsIncludedLen`, `accountsIncludedHash`, `addedAccounts[]`, `worldContractName` so QA can see who was added before running pack.
 - Runtime not yet executed; smoke command (see TASKS.md) must show PASS evidence before status flips. LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] wealth tax pack runtime evidence still FAIL:
+- Console.txt shows `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN` with `ok:false`, `notes:["world_mass_drift","tax_missing"]`, `world.delta=2`, `totalTaxInWindow=0` (evidence captured before latest fix).
+- Next QA: run `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})` and verify `ok:true`, `world.delta==0`, `totalTaxInWindow>0`, `rowsScoped>0`.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack: dev-checks now pre-creates missing contract accounts in State (dev-only) and logs added/fixed accounts + contract hash. Runtime PASS still pending; QA must confirm via Console.txt (see TASKS.md).
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack: deterministic seed + tax wake probe (dev-checks only).
+- Seed now targets `threshold + 5`, logs `seedApplied/seedWhy/seedThreshold/seedMargin`, and performs a 1-step tax probe after seed (adds `tax_probe_missing_after_seed` if no `world_tax_in`).
+- Ok-gate tightened: `totals_null`, `world_delta_nonzero`, `rows_scoped_empty`, `world_tax_in_missing`, `world_tax_total_zero` notes emitted when failing.
+- Runtime PASS still pending; QA must confirm via Console.txt (see TASKS.md). LOGGED EVEN IF FAIL.
