@@ -1,4 +1,4 @@
-[DUMP_AT] [2026-02-09 23:48:52] (epoch_ms=1770648532082)
+[DUMP_AT] [2026-02-09 23:51:32] (epoch_ms=1770648692295)
 [warn] [DUMP] moneyLogLen
 [warn] 200
 [warn] [DUMP] lastSlice
@@ -1355,11 +1355,178 @@ CONSOLE_TAPE_V1_READY
 [warn] {"ok":false,"worldDelta":14,"totalTaxInWindow":1,"reasonsTop":[{"reason":"rep_crowd_vote_majority","amount":56},{"reason":"crowd_vote_cost","amount":45},{"reason":"crowd_vote_pool_init","amount":40},{"reason":"crowd_vote_refund_majority","amount":36},{"reason":"rep_crowd_vote_participation","amount":35}],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":20,"delta":20,"softCap":20},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":true,"noNpcNegative":true,"hasWorldTaxInRows":true,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"logSourceChosen":"debug_moneyLog","buildTag":"build_2026_02_09b","logSourceCandidates":[{"name":"debug_moneyLog","len":0},{"name":"debug_moneyLogByBattle","len":0},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":201,"lenBefore":0,"lenAfter":201,"rowsScoped":201,"logStart":0,"logEnd":201,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true},"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","taxProbe":{"attempted":true,"applied":true,"taxAmount":1,"why":null},"missingAccounts":[],"availableCount":24,"missingCount":0,"addedAccounts":[],"seedTransfer":{"ok":true,"amount":15,"sourcePtsBefore":0,"sourcePtsAfter":-15,"fromId":"sink"},"massDriftBreakdown":{"worldTaxInSum":1,"bankDelta":20,"sinkDelta":9,"crowdDelta":0,"reasonsTop":[{"reason":"rep_crowd_vote_majority","amount":56},{"reason":"crowd_vote_cost","amount":45},{"reason":"crowd_vote_pool_init","amount":40},{"reason":"crowd_vote_refund_majority","amount":36},{"reason":"rep_crowd_vote_participation","amount":35}]},"debugMoneyLogLen":201},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
 [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
 [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":241264,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-09 23:48:52","dumpAtEpochMs":1770648532082}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-09 23:48:52]
+[warn] 1770648532082
+[log] [SEC:reaction]
+[log] {"time":1770648677947,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":1,"long":3},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648679786,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":2,"long":4},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648681598,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":3,"long":5},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648683412,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":4,"long":6},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648685224,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":5,"long":7},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":32,"accountsIncludedHash":"he8c17cd9","hasTotals":true,"missingCount":0}
+[log] [SEC:reaction]
+[log] {"time":1770648687585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":6,"long":8},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648689585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":7,"long":9},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648696585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":8,"long":10},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648698585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":9,"long":11},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648700585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":10,"long":12},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648702585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":11,"long":13},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648704585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":12,"long":14},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648706585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":13,"long":15},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648708585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":14,"long":16},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648710585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":15,"long":17},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648716585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":16,"long":18},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648718585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":17,"long":19},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648720585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":18,"long":20},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648722585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":19,"long":21},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648724585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":20,"long":22},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648726585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":21,"long":23},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648728585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":22,"long":24},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648730585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":23,"long":25},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648732585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":24,"long":26},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[log] [SEC:reaction]
+[log] {"time":1770648734585,"playerId":"me","sessionId":"session-1770648521957-rkgb","type":"tamper_function","reaction":"log_only","counts":{"short":25,"long":27},"window":{"shortWindowMs":60000,"longWindowMs":600000},"meta":{"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}}
+[warn] [SEC]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] [SEC:notify]
+[warn] tamper_function
+[warn] {"key":"transferRep","action":"call","reason":"blocked","mode":"dev"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] {"ok":false,"notes":["tax_probe_failed","tax_probe_missing_after_seed","world_delta_nonzero","world_tax_total_zero","world_tax_in_missing","points_emission_suspected","rows_scoped_empty","log_scope_miss"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"debug_moneyLog","rowsScoped":0,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":214,"afterTotal":218,"delta":4,"byBucket":{"sink":18,"crowd":0,"bank":0,"worldBank":20,"crowdMap":0,"crowdById":{"ed_npc_1770648537662_4257":0,"ed_npc_1770648547662_2393":0,"ed_npc_1770648552662_6926":0,"ed_npc_1770648557662_2727":0,"dev_battle_crowd_1770648577662_7125":0,"ed_npc_1770648567662_3121":0,"ed_npc_1770648549337_7798":0,"ed_npc_1770648577662_1414":0,"ed_npc_1770648577662_5679":0,"ed_npc_1770648695585_2474":0,"ed_npc_1770648705585_5762":0,"ed_npc_1770648710585_5100":0,"ed_npc_1770648715585_1201":0}}},"bank":{"accountId":"worldBank","beforePts":20,"afterPts":20,"delta":0,"softCap":20},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"seedRichNpc":true,"npcSeededId":"npc_weak","npcSeededPtsBefore":14,"npcSeededPtsAfter":25,"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","seedNeed":11,"seedCollected":11,"seedDonorsCount":11,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","logSource":"debug_moneyLog","rowsScoped":0,"logSourceCandidates":[{"name":"debug_moneyLog","len":201},{"name":"debug_moneyLogByBattle","len":309},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":0,"accountsIncludedLen":32,"accountsIncludedHash":"he8c17cd9","worldContractName":"econ_npc_world_contract_v1","missingAccounts":[],"availableCount":32,"missingCount":0,"lenBefore":201,"lenAfter":201,"logStart":201,"logEnd":201,"hasDebugMoneyLog":true,"debugMoneyLogLen":201,"hasLoggerQueue":false,"scopeWindowLastN":400,"seedTransfer":{"ok":true,"amount":11,"sourcePtsBefore":13,"sourcePtsAfter":2,"fromId":"sink"},"auditReadOnly":false,"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":5,"crowdDelta":0,"reasonsTop":[]},"taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"addedAccounts":[],"fixedAccounts":[],"npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true}},"runSummary":null,"debug":{"taxRows":[],"newRowsCount":0,"logSource":"debug_moneyLog","logStart":201,"logEnd":201}}
+[warn] {"ok":false,"worldDelta":4,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":20,"afterPts":20,"delta":0,"softCap":20},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"logSourceChosen":"debug_moneyLog","buildTag":"build_2026_02_09b","logSourceCandidates":[{"name":"debug_moneyLog","len":201},{"name":"debug_moneyLogByBattle","len":309},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":0,"lenBefore":201,"lenAfter":201,"rowsScoped":0,"logStart":201,"logEnd":201,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":32,"accountsIncludedHash":"he8c17cd9","worldContractName":"econ_npc_world_contract_v1","worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true},"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"missingAccounts":[],"availableCount":32,"missingCount":0,"addedAccounts":[],"seedTransfer":{"ok":true,"amount":11,"sourcePtsBefore":13,"sourcePtsAfter":2,"fromId":"sink"},"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":5,"crowdDelta":0,"reasonsTop":[]},"debugMoneyLogLen":201},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
 CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN
-[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=1356 lastLine=[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE]
+[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=1523 lastLine=[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE]
 [TAPE_TAIL_1] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
-[TAPE_TAIL_2] [warn] {"ok":false,"notes":["world_delta_nonzero","points_emission_suspected"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"debug_moneyLog","rowsScoped":201,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":200,"afterTotal":214,"delta":14,"byBucket":{"sink":9,"crowd":0,"bank":0,"worldBank":20,"crowdMap":0,"crowdById":{"ed_npc_1770648537662_4257":0,"ed_npc_1770648547662_2393":0,"ed_npc_1770648552662_6926":0,"ed_npc_1770648557662_2727":0,"dev_battle_crowd_1770648577662_7125":0}}},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":20,"delta":20,"softCap":20},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":1,"rowsCount":1,"appliedCount":1,"topTaxedNpcs":[{"npcId":"npc_hot","taxSum":1}],"reasonsTop":[{"reason":"rep_crowd_vote_majority","amount":56},{"reason":"crowd_vote_cost","amount":45},{"reason":"crowd_vote_pool_init","amount":40},{"reason":"crowd_vote_refund_majority","amount":36},{"reason":"rep_crowd_vote_participation","amount":35}]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":true,"noNpcNegative":true,"hasWorldTaxInRows":true,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"seedRichNpc":true,"npcSeededId":"npc_weak","npcSeededPtsBefore":10,"npcSeededPtsAfter":25,"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","seedNeed":15,"seedCollected":15,"seedDonorsCount":15,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","logSource":"debug_moneyLog","rowsScoped":201,"logSourceCandidates":[{"name":"debug_moneyLog","len":0},{"name":"debug_moneyLogByBattle","len":0},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":201,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","missingAccounts":[],"availableCount":24,"missingCount":0,"lenBefore":0,"lenAfter":201,"logStart":0,"logEnd":201,"hasDebugMoneyLog":true,"debugMoneyLogLen":201,"hasLoggerQueue":false,"scopeWindowLastN":400,"seedTransfer":{"ok":true,"amount":15,"sourcePtsBefore":0,"sourcePtsAfter":-15,"fromId":"sink"},"auditReadOnly":false,"massDriftBreakdown":{"worldTaxInSum":1,"bankDelta":20,"sinkDelta":9,"crowdDelta":0,"reasonsTop":[{"reason":"rep_crowd_vote_majority","amount":56},{"reason":"crowd_vote_cost","amount":45},{"reason":"crowd_vote_pool_init","amount":40},{"reason":"crowd_vote_refund_majority","amount":36},{"reason":"rep_crowd_vote_participation","amount":35}]},"taxProbe":{"attempted":true,"applied":true,"taxAmount":1,"why":null},"addedAccounts":[],"fixedAccounts":[],"npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true}},"runSummary":null,"debug":{"taxRows":[{"time":1770648558662,"sourceId":"npc_hot","targetId":"worldBank","amount":1,"reason":"world_tax_in","battleId":"ed_npc_1770648557662_2727","status":null,"phase":null,"meta":{"battleId":"ed_npc_1770648557662_2727","basePrice":1,"mult":1,"finalPrice":1,"priceKey":"vote","pointsAtPurchase":9,"context":{"battleId":"ed_npc_1770648557662_2727","actionNonce":"npc_vote_npc_hot_0_1770648558662"},"kind":"world_tax","fromReason":"crowd_vote_cost","taxKind":"fixed","taxAmount":1,"originalCost":1}}],"newRowsCount":201,"logSource":"debug_moneyLog","logStart":0,"logEnd":201}}
-[TAPE_TAIL_3] [warn] {"ok":false,"worldDelta":14,"totalTaxInWindow":1,"reasonsTop":[{"reason":"rep_crowd_vote_majority","amount":56},{"reason":"crowd_vote_cost","amount":45},{"reason":"crowd_vote_pool_init","amount":40},{"reason":"crowd_vote_refund_majority","amount":36},{"reason":"rep_crowd_vote_participation","amount":35}],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":20,"delta":20,"softCap":20},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":true,"noNpcNegative":true,"hasWorldTaxInRows":true,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"logSourceChosen":"debug_moneyLog","buildTag":"build_2026_02_09b","logSourceCandidates":[{"name":"debug_moneyLog","len":0},{"name":"debug_moneyLogByBattle","len":0},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":201,"lenBefore":0,"lenAfter":201,"rowsScoped":201,"logStart":0,"logEnd":201,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true},"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","taxProbe":{"attempted":true,"applied":true,"taxAmount":1,"why":null},"missingAccounts":[],"availableCount":24,"missingCount":0,"addedAccounts":[],"seedTransfer":{"ok":true,"amount":15,"sourcePtsBefore":0,"sourcePtsAfter":-15,"fromId":"sink"},"massDriftBreakdown":{"worldTaxInSum":1,"bankDelta":20,"sinkDelta":9,"crowdDelta":0,"reasonsTop":[{"reason":"rep_crowd_vote_majority","amount":56},{"reason":"crowd_vote_cost","amount":45},{"reason":"crowd_vote_pool_init","amount":40},{"reason":"crowd_vote_refund_majority","amount":36},{"reason":"rep_crowd_vote_participation","amount":35}]},"debugMoneyLogLen":201},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[TAPE_TAIL_2] [warn] {"ok":false,"notes":["tax_probe_failed","tax_probe_missing_after_seed","world_delta_nonzero","world_tax_total_zero","world_tax_in_missing","points_emission_suspected","rows_scoped_empty","log_scope_miss"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"debug_moneyLog","rowsScoped":0,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":214,"afterTotal":218,"delta":4,"byBucket":{"sink":18,"crowd":0,"bank":0,"worldBank":20,"crowdMap":0,"crowdById":{"ed_npc_1770648537662_4257":0,"ed_npc_1770648547662_2393":0,"ed_npc_1770648552662_6926":0,"ed_npc_1770648557662_2727":0,"dev_battle_crowd_1770648577662_7125":0,"ed_npc_1770648567662_3121":0,"ed_npc_1770648549337_7798":0,"ed_npc_1770648577662_1414":0,"ed_npc_1770648577662_5679":0,"ed_npc_1770648695585_2474":0,"ed_npc_1770648705585_5762":0,"ed_npc_1770648710585_5100":0,"ed_npc_1770648715585_1201":0}}},"bank":{"accountId":"worldBank","beforePts":20,"afterPts":20,"delta":0,"softCap":20},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"seedRichNpc":true,"npcSeededId":"npc_weak","npcSeededPtsBefore":14,"npcSeededPtsAfter":25,"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","seedNeed":11,"seedCollected":11,"seedDonorsCount":11,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","logSource":"debug_moneyLog","rowsScoped":0,"logSourceCandidates":[{"name":"debug_moneyLog","len":201},{"name":"debug_moneyLogByBattle","len":309},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":0,"accountsIncludedLen":32,"accountsIncludedHash":"he8c17cd9","worldContractName":"econ_npc_world_contract_v1","missingAccounts":[],"availableCount":32,"missingCount":0,"lenBefore":201,"lenAfter":201,"logStart":201,"logEnd":201,"hasDebugMoneyLog":true,"debugMoneyLogLen":201,"hasLoggerQueue":false,"scopeWindowLastN":400,"seedTransfer":{"ok":true,"amount":11,"sourcePtsBefore":13,"sourcePtsAfter":2,"fromId":"sink"},"auditReadOnly":false,"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":5,"crowdDelta":0,"reasonsTop":[]},"taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"addedAccounts":[],"fixedAccounts":[],"npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true}},"runSummary":null,"debug":{"taxRows":[],"newRowsCount":0,"logSource":"debug_moneyLog","logStart":201,"logEnd":201}}
+[TAPE_TAIL_3] [warn] {"ok":false,"worldDelta":4,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":20,"afterPts":20,"delta":0,"softCap":20},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"logSourceChosen":"debug_moneyLog","buildTag":"build_2026_02_09b","logSourceCandidates":[{"name":"debug_moneyLog","len":201},{"name":"debug_moneyLogByBattle","len":309},{"name":"Game.Debug.debug_moneyLogByBattle","len":0},{"name":"logger_queue","len":0},{"name":"state_moneyLog","len":0},{"name":"state_moneyLogByBattle","len":0},{"name":"none","len":0}],"snapshotOk":true,"snapshotWhy":null,"scopedLen":0,"lenBefore":201,"lenAfter":201,"rowsScoped":0,"logStart":201,"logEnd":201,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":32,"accountsIncludedHash":"he8c17cd9","worldContractName":"econ_npc_world_contract_v1","worldContractUsed":true,"worldContractExportKey":"econNpcWorldContractV1","npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true},"seedSourceId":"sink","seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":true,"seedWhy":"seed_transfer_ok","taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"missingAccounts":[],"availableCount":32,"missingCount":0,"addedAccounts":[],"seedTransfer":{"ok":true,"amount":11,"sourcePtsBefore":13,"sourcePtsAfter":2,"fromId":"sink"},"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":5,"crowdDelta":0,"reasonsTop":[]},"debugMoneyLogLen":201},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
 [TAPE_TAIL_4] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
 [TAPE_TAIL_5] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
 CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END

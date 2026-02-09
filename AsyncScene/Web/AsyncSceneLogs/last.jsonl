@@ -9953,3 +9953,5 @@
 {"ts": 1770648542052, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Глеб", "text": "че по 💰, при бабле", "system": false}
 {"ts": 1770648546125, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Рин", "text": "ой все", "system": false}
 {"ts": 1770648549339, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770648564579, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Ветеран", "text": "@Аркадий петрович, ладно, разгоняем", "system": false}
+{"ts": 1770648567294, "sessionId": "session-1770648521957-rkgb", "type": "chat", "name": "Рин", "text": "баттл это просто разговор с адреналином", "system": false}

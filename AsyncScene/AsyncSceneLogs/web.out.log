@@ -7352,3 +7352,62 @@ DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=72147 fir
 127.0.0.1 - - [09/Feb/2026 23:48:42] code 404, message File not found
 127.0.0.1 - - [09/Feb/2026 23:48:42] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [09/Feb/2026 23:48:52] "POST /__dev/console-dump HTTP/1.1" 200 -
+
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=73839 firstLine=[DUMP_AT] [2026-02-09 18:56:53] (epoch_ms=1770631013197)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=74434 firstLine=[DUMP_AT] [2026-02-09 19:03:29] (epoch_ms=1770631409152)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=77436 firstLine=[DUMP_AT] [2026-02-09 19:05:02] (epoch_ms=1770631502724)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=553642 mtime=1770632193524 sha1=5c463a684289ea8c2bb95e49c548a08145ee5b3e
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=553642 mtime=1770632193524 sha1=5c463a684289ea8c2bb95e49c548a08145ee5b3e
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=553642 mtime=1770632193524 sha1=5c463a684289ea8c2bb95e49c548a08145ee5b3e
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=553642 mtime=1770632193524 sha1=5c463a684289ea8c2bb95e49c548a08145ee5b3e
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=108816 firstLine=[DUMP_AT] [2026-02-09 19:19:02] (epoch_ms=1770632342198)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=115332 firstLine=[DUMP_AT] [2026-02-09 19:26:44] (epoch_ms=1770632804718)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=123737 firstLine=[DUMP_AT] [2026-02-09 19:29:42] (epoch_ms=1770632982824)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560015 mtime=1770632720233 sha1=99e16cb0e327dd6d94b759699cd67675c0390871
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=127732 firstLine=[DUMP_AT] [2026-02-09 19:34:13] (epoch_ms=1770633253555)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=561998 mtime=1770645738378 sha1=f890892543b8fd6de01b0852ff3314e46e61d380
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=561998 mtime=1770645738378 sha1=f890892543b8fd6de01b0852ff3314e46e61d380
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=561998 mtime=1770645738378 sha1=f890892543b8fd6de01b0852ff3314e46e61d380
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=561998 mtime=1770645738378 sha1=f890892543b8fd6de01b0852ff3314e46e61d380
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=173574 firstLine=[DUMP_AT] [2026-02-09 23:07:06] (epoch_ms=1770646026962)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560449 mtime=1770646337813 sha1=fbb68fda120cd3b91d69d7ae58ece091422b696a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560449 mtime=1770646337813 sha1=fbb68fda120cd3b91d69d7ae58ece091422b696a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560449 mtime=1770646337813 sha1=fbb68fda120cd3b91d69d7ae58ece091422b696a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=560449 mtime=1770646337813 sha1=fbb68fda120cd3b91d69d7ae58ece091422b696a
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=175186 firstLine=[DUMP_AT] [2026-02-09 23:19:22] (epoch_ms=1770646762401)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=192901 firstLine=[DUMP_AT] [2026-02-09 23:24:26] (epoch_ms=1770647066133)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=210493 firstLine=[DUMP_AT] [2026-02-09 23:26:53] (epoch_ms=1770647213370)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564161 mtime=1770646983471 sha1=76dcf899794764504cb66142492bd21823be5c7a
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=211378 firstLine=[DUMP_AT] [2026-02-09 23:29:59] (epoch_ms=1770647399854)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=566279 mtime=1770647539321 sha1=28c65448e3193ab17ca1f882d318e5178433c4b5
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=566279 mtime=1770647539321 sha1=28c65448e3193ab17ca1f882d318e5178433c4b5
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=566279 mtime=1770647539321 sha1=28c65448e3193ab17ca1f882d318e5178433c4b5
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=566279 mtime=1770647539321 sha1=28c65448e3193ab17ca1f882d318e5178433c4b5
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=215378 firstLine=[DUMP_AT] [2026-02-09 23:33:19] (epoch_ms=1770647599289)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=217565 firstLine=[DUMP_AT] [2026-02-09 23:34:51] (epoch_ms=1770647691242)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=220353 firstLine=[DUMP_AT] [2026-02-09 23:42:18] (epoch_ms=1770648138941)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=222472 firstLine=[DUMP_AT] [2026-02-09 23:44:12] (epoch_ms=1770648252837)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=564607 mtime=1770647982843 sha1=c57028dc44937c4812592c6f3ba7781aeab26790
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=241264 firstLine=[DUMP_AT] [2026-02-09 23:48:52] (epoch_ms=1770648532082)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=257775 firstLine=[DUMP_AT] [2026-02-09 23:51:32] (epoch_ms=1770648692295)127.0.0.1 - - [09/Feb/2026 23:51:32] "POST /__dev/console-dump HTTP/1.1" 200 -
