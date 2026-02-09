@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 import os
 import sys
 import time
+import urllib.parse
 from datetime import datetime, timezone, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -103,7 +105,38 @@ class DevHandler(SimpleHTTPRequestHandler):
         if self.path == "/__dev/console-dump":
             self._json(405, {"ok": False, "err": "method_not_allowed"}, {"Allow": "POST"})
             return
-        return super().do_GET()
+        served = self.serve_dev_checks()
+        if not served:
+            return super().do_GET()
+
+    def serve_dev_checks(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        if path != "/dev/dev-checks.js":
+            return False
+        real_path = self.translate_path(path)
+        if not os.path.isfile(real_path):
+            return False
+        try:
+            with open(real_path, "rb") as f:
+                data = f.read()
+        except Exception:
+            return False
+        sha1 = hashlib.sha1(data).hexdigest()
+        mtime = int(os.path.getmtime(real_path) * 1000)
+        self.send_response(200)
+        self.send_header("Content-Type", "application/javascript")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        self.send_header("X-DEV-CHECKS-BUILD", "build_2026_02_09b")
+        self.send_header("X-DEV-CHECKS-MTIME", str(mtime))
+        self.send_header("X-DEV-CHECKS-SHA1", sha1)
+        self.end_headers()
+        self.wfile.write(data)
+        print(f"SERVE_DEV_CHECKS path={self.path} bytes={len(data)} mtime={mtime} sha1={sha1}")
+        return True
 
 
 def main():

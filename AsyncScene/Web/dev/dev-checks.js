@@ -19,6 +19,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   console.warn("ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG", "build_2026_02_08g");
   console.warn("DEV_CHECKS_SERVED_PROOF_V4");
   console.warn("DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG", "build_2026_02_09b");
+  console.warn("DEV_CHECKS_RUNTIME_PROOF_V4", "build_2026_02_09b", "url", (document.currentScript && document.currentScript.src) || null, Date.now());
   console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_LOADED");
   console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG", "build_2026_02_09b");
   window.__DEV_WEALTH_TAX_PACK_READY__ = true;
@@ -40,6 +41,45 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     window.__DEV__ === true ||
     window.DEV === true ||
     hasExplicitDevQueryParam();
+
+  if (!G.__DEV.devChecksFetchProbeOnce) {
+    G.__DEV.devChecksFetchProbeOnce = async function devChecksFetchProbeOnce(opts = {}) {
+      const url = (opts && typeof opts.url === "string") ? opts.url : "/dev/dev-checks.js";
+      const expect = (opts && typeof opts.expect === "string") ? opts.expect : "DEV_CHECKS_RUNTIME_PROOF_V4";
+      try {
+        const resp = await fetch(`${url}?cacheBust=${Date.now()}&probe=1`, { cache: "no-store" });
+        const text = await resp.text();
+        const hasMarker = text.includes(expect);
+        const mtime = resp.headers.get("X-DEV-CHECKS-MTIME");
+        const sha1 = resp.headers.get("X-DEV-CHECKS-SHA1");
+        const payload = {
+          ok: resp.ok && hasMarker,
+          status: resp.status,
+          mtime: mtime || null,
+          sha1: sha1 || null,
+          url: resp.url,
+          hasMarker,
+          len: text.length
+        };
+        if (window && window.console && typeof window.console.warn === "function") {
+          window.console.warn("DEV_CHECKS_FETCH_PROBE_V1", payload);
+        }
+        return payload;
+      } catch (err) {
+        const payload = {
+          ok: false,
+          status: null,
+          errorMessage: String(err && err.message ? err.message : err),
+          errorStack: err && err.stack ? err.stack : null,
+          hasMarker: false
+        };
+        if (window && window.console && typeof window.console.warn === "function") {
+          window.console.warn("DEV_CHECKS_FETCH_PROBE_V1", payload);
+        }
+        return payload;
+      }
+    };
+  }
 
   const bootTryEnabled = (() => {
     try {
@@ -2795,7 +2835,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         }
         if ((ticksProcessed % 25) === 0) {
           if (doNpcVotesOnce()) votesApplied += 1;
-          if (!allowNpcVotes) applyNpcTaxOnce(ticksProcessed);
+          if (!allowNpcVotes) applyNpcWealthTaxTick(ticksProcessed);
         }
         if ((ticksProcessed % 50) === 0) {
           if (doBattleOnce()) battlesResolved += 1;
@@ -12350,7 +12390,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     });
   }
 })();
-    const applyNpcTaxOnce = (tickIndex) => {
+  const applyNpcWealthTaxTick = (tickIndex) => {
       if (!safeEconOnly) return false;
       if (!Econ || typeof Econ.transferCrowdVoteCost !== "function") return false;
       const candidates = npcIds.filter(id => {
