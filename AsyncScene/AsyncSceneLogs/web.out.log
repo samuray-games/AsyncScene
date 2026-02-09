@@ -6655,3 +6655,123 @@ SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=545544 mtime=
 127.0.0.1 - - [09/Feb/2026 15:50:28] "GET /apple-touch-icon.png HTTP/1.1" 404 -
 127.0.0.1 - - [09/Feb/2026 15:50:28] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [09/Feb/2026 15:50:37] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:22] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] code 404, message File not found
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] code 404, message File not found
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] code 404, message File not found
+127.0.0.1 - - [09/Feb/2026 15:59:23] code 404, message File not found
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [09/Feb/2026 15:59:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [09/Feb/2026 15:59:49] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 16:01:17] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 16:02:11] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 16:03:24] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 16:04:23] "POST /__dev/console-dump HTTP/1.1" 200 -
+
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=545544 mtime=1770616265834 sha1=5bdd36f0083570cf0487310140411646e48df492
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=545544 mtime=1770616265834 sha1=5bdd36f0083570cf0487310140411646e48df492
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=159179 firstLine=[DUMP_AT] [2026-02-09 14:52:37] (epoch_ms=1770616357413)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=167118 firstLine=[DUMP_AT] [2026-02-09 14:55:32] (epoch_ms=1770616532686)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=546211 mtime=1770616699135 sha1=c426188be2622133d356b946e705f1cfd5924f9f
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=546211 mtime=1770616699135 sha1=c426188be2622133d356b946e705f1cfd5924f9f
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=546211 mtime=1770616699135 sha1=c426188be2622133d356b946e705f1cfd5924f9f
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=546211 mtime=1770616699135 sha1=c426188be2622133d356b946e705f1cfd5924f9f
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=167811 firstLine=[DUMP_AT] [2026-02-09 14:59:47] (epoch_ms=1770616787270)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=177580 firstLine=[DUMP_AT] [2026-02-09 15:01:30] (epoch_ms=1770616890951)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547686 mtime=1770617059051 sha1=b89a8bddf96b1fb7ef7001adae8949b7ea924eaa
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547686 mtime=1770617059051 sha1=b89a8bddf96b1fb7ef7001adae8949b7ea924eaa
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547686 mtime=1770617059051 sha1=b89a8bddf96b1fb7ef7001adae8949b7ea924eaa
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547686 mtime=1770617059051 sha1=b89a8bddf96b1fb7ef7001adae8949b7ea924eaa
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=177920 firstLine=[DUMP_AT] [2026-02-09 15:11:58] (epoch_ms=1770617518563)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=186013 firstLine=[DUMP_AT] [2026-02-09 15:12:46] (epoch_ms=1770617566445)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=190583 firstLine=[DUMP_AT] [2026-02-09 15:15:43] (epoch_ms=1770617743198)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=191794 firstLine=[DUMP_AT] [2026-02-09 15:34:03] (epoch_ms=1770618843959)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=200033 firstLine=[DUMP_AT] [2026-02-09 15:35:09] (epoch_ms=1770618909769)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547188 mtime=1770618710092 sha1=35f0916aaaeed02db99fd20ae2f522aac74d9296
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=200952 firstLine=[DUMP_AT] [2026-02-09 15:37:30] (epoch_ms=1770619050317)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547572 mtime=1770619177066 sha1=60fd394b2f5ce274d9d77a3d441f077ce7d79136
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547572 mtime=1770619177066 sha1=60fd394b2f5ce274d9d77a3d441f077ce7d79136
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547572 mtime=1770619177066 sha1=60fd394b2f5ce274d9d77a3d441f077ce7d79136
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=547572 mtime=1770619177066 sha1=60fd394b2f5ce274d9d77a3d441f077ce7d79136
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=206650 firstLine=[DUMP_AT] [2026-02-09 15:41:08] (epoch_ms=1770619268127)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=245190 firstLine=[DUMP_AT] [2026-02-09 15:45:29] (epoch_ms=1770619529759)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=270282 firstLine=[DUMP_AT] [2026-02-09 15:49:10] (epoch_ms=1770619750316)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=295374 firstLine=[DUMP_AT] [2026-02-09 15:50:37] (epoch_ms=1770619837379)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=551630 mtime=1770619462192 sha1=7982c134c277275079c3ddd04148874d8e5d2b90
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=320466 firstLine=[DUMP_AT] [2026-02-09 15:59:49] (epoch_ms=1770620389113)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=21722 firstLine=[DUMP_AT] [2026-02-09 16:01:17] (epoch_ms=1770620477486)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=61574 firstLine=[DUMP_AT] [2026-02-09 16:02:11] (epoch_ms=1770620531748)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=53041 firstLine=[DUMP_AT] [2026-02-09 16:03:23] (epoch_ms=1770620603940)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=75596 firstLine=[DUMP_AT] [2026-02-09 16:04:23] (epoch_ms=1770620663686)
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=72147 firstLine=[DUMP_AT] [2026-02-09 16:05:44] (epoch_ms=1770620744473)127.0.0.1 - - [09/Feb/2026 16:05:44] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 18:56:53] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 19:03:29] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [09/Feb/2026 19:05:02] "POST /__dev/console-dump HTTP/1.1" 200 -

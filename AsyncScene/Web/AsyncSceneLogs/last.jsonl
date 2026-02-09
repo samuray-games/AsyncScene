@@ -9879,3 +9879,10 @@
 {"ts": 1770620099633, "sessionId": "session-1770619828384-oti0", "type": "chat", "name": "Олег", "text": "@Neko, лучший ход для тебя это смыться", "system": false}
 {"ts": 1770620099643, "sessionId": "session-1770619828384-oti0", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
 {"ts": 1770620099698, "sessionId": "session-1770619828384-oti0", "type": "chat", "name": "Горячий", "text": "щас будет жарко", "system": false}
+{"ts": 1770620365899, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770620380502, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Юна", "text": "@Dara, давайте посмотрим что будет", "system": false}
+{"ts": 1770620386585, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Слава", "text": "@Dara, не мажь, отвечай по делу", "system": false}
+{"ts": 1770620389909, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Система", "text": "Толпа решает: Юна хочет, чтобы Троль отвалил.", "system": true}
+{"ts": 1770620397771, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Мемолог", "text": "@Рин, мне скучно, дайте движ", "system": false}
+{"ts": 1770620413970, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770620417314, "sessionId": "session-1770620363253-vuzu", "type": "chat", "name": "Горячий", "text": "ладно, разгоняем", "system": false}
