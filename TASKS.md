@@ -842,6 +842,17 @@
 
 - Update (2026-02-09): wealth-tax pack now ensures contract accounts exist in State before smoke (dev-only). Added diag.addedAccounts/fixedAccounts + accountsIncludedLen/hash for evidence. Status remains FAIL pending runtime Console.txt.
 - Update (2026-02-09): seedRichNpc now targets `threshold + seedMargin(5)` and logs `seedApplied/seedWhy/seedThreshold/seedMargin`, runs a 1-step tax wake probe, and adds explicit FAIL notes: `totals_null`, `world_delta_nonzero`, `rows_scoped_empty`, `world_tax_in_missing`, `world_tax_total_zero`, `tax_probe_missing_after_seed`. Status remains FAIL pending runtime evidence.
+- Runtime evidence (FAIL, Console.txt 2026-02-09 14:13:37):
+  - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
+  - `{"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization.","diagVersion":"econ_npc_wealth_tax_pack_v1"}`
+  - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+- Update (2026-02-09 14:13:37): TDZ exception occurred before smoke due to threshold initialization order; tasks waits for PASS evidence at same command after fix.
+- Update (2026-02-09): TDZ fix applied in `runEconNpcWealthTaxEvidencePackOnce` — all diag vars pre-initialized at top, summary/JSON output moved to `finally` so BEGIN/JSON/JSON/END always prints. Status remains FAIL pending runtime evidence.
+- Runtime evidence (FAIL, Console.txt 2026-02-09):
+  - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
+  - `{"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization."...}`
+  - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+- Update (2026-02-09): moved seed threshold/margin + seedApplied/seedWhy initialization before log-source early returns to avoid `threshold` TDZ crash. Status remains FAIL pending runtime evidence.
 - QA smoke command:
   ```
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})

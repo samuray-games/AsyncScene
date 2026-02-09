@@ -3267,6 +3267,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const logSource = logBeforeSnap.logSource || "debug_moneyLog";
     const logStart = Array.isArray(logBeforeSnap.rows) ? logBeforeSnap.rows.length : 0;
     const lenBefore = logStart;
+    const threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
+    const seedMargin = 5;
+    let seedApplied = false;
+    let seedWhy = null;
     const hasDebugMoneyLog = !!(Game.__D && Array.isArray(Game.__D.moneyLog) && Game.__D.moneyLog.length);
     const hasLoggerQueue = !!(Game.Logger && Array.isArray(Game.Logger.queue) && Game.Logger.queue.length);
     if (logSource === "none") {
@@ -3354,10 +3358,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let seededNpcPtsAfter = null;
     let seedSourceId = null;
     let seedFailureReason = null;
-    let seedApplied = false;
-    let seedWhy = null;
-    const threshold = (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20;
-    const seedMargin = 5;
+    seedApplied = false;
+    seedWhy = null;
     const sinkIncluded = accountsIncluded.includes("sink");
     const meIncluded = accountsIncluded.includes("me");
     let seedPerformed = false;
@@ -3668,6 +3670,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const buildTag = "build_2026_02_09b";
     const header = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN";
     const footer = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END";
+    let threshold = null;
+    let seedMargin = null;
+    let maxPerTxn = null;
+    let seedApplied = false;
+    let seedWhy = null;
+    let seedSourceId = null;
+    let seedFailureReason = null;
+    let accountsIncludedLen = null;
+    let accountsIncludedHash = null;
+    let addedAccounts = [];
+    let fixedAccounts = [];
+    let logSourceChosen = "none";
+    let rowsScoped = 0;
+    let taxProbe = { attempted: false, applied: false, taxAmount: 0, why: "uninit" };
+    let exception = null;
     const buildWealthTaxContract = () => {
       const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
@@ -3694,8 +3711,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
     };
     const ensureContractAccountsExist = (contract) => {
-      const addedAccounts = [];
-      const fixedAccounts = [];
+      const added = [];
+      const fixed = [];
       const S = Game.__S || (Game.__S = {});
       if (!S.players) S.players = {};
       (contract.accountsIncluded || []).forEach(id => {
@@ -3708,21 +3725,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
             role: id.startsWith("npc_") ? "npc" : "player",
             npc: id.startsWith("npc_")
           };
-          addedAccounts.push(id);
+          added.push(id);
         } else if (!Number.isFinite(S.players[id].points)) {
           S.players[id].points = 0;
-          fixedAccounts.push(id);
+          fixed.push(id);
         }
       });
-      return { addedAccounts, fixedAccounts };
+      return { addedAccounts: added, fixedAccounts: fixed };
     };
     const emitLine = (line) => {
       try {
-  if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
-    Game.__DEV.emitLine(String(line));
-  } else {
-    console.warn(String(line));
-  }
+        if (typeof Game !== "undefined" && Game.__DEV && typeof Game.__DEV.emitLine === "function") {
+          Game.__DEV.emitLine(String(line));
+        } else {
+          console.warn(String(line));
+        }
       } catch (_) {}
     };
     const safeStringify = (obj) => {
@@ -3730,28 +3747,32 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
     let smokeRes = null;
     let summary = null;
-    let contractDiag = null;
     try {
       const contract = buildWealthTaxContract();
-      contractDiag = {
-        accountsIncludedLen: contract.accountsIncludedLen,
-        accountsIncludedHash: contract.accountsIncludedHash,
-        addedAccounts: [],
-        fixedAccounts: []
-      };
+      accountsIncludedLen = contract.accountsIncludedLen;
+      accountsIncludedHash = contract.accountsIncludedHash;
       const ensured = ensureContractAccountsExist(contract);
-      contractDiag.addedAccounts = ensured.addedAccounts;
-      contractDiag.fixedAccounts = ensured.fixedAccounts;
-      emitLine(header);
+      addedAccounts = ensured.addedAccounts;
+      fixedAccounts = ensured.fixedAccounts;
       smokeRes = Game.__DEV.smokeNpcWealthTaxOnce(opts);
-      if (smokeRes && smokeRes.notes && Array.isArray(smokeRes.notes) && contractDiag.addedAccounts.length) {
+      if (smokeRes && smokeRes.notes && Array.isArray(smokeRes.notes) && addedAccounts.length) {
         smokeRes.notes.push("world_contract_missing_accounts");
       }
       if (smokeRes && smokeRes.diag) {
-        smokeRes.diag.addedAccounts = contractDiag.addedAccounts;
-        smokeRes.diag.fixedAccounts = contractDiag.fixedAccounts;
-        smokeRes.diag.accountsIncludedLen = contractDiag.accountsIncludedLen;
-        smokeRes.diag.accountsIncludedHash = contractDiag.accountsIncludedHash;
+        smokeRes.diag.addedAccounts = addedAccounts;
+        smokeRes.diag.fixedAccounts = fixedAccounts;
+        smokeRes.diag.accountsIncludedLen = accountsIncludedLen;
+        smokeRes.diag.accountsIncludedHash = accountsIncludedHash;
+        threshold = Number.isFinite(smokeRes.diag.seedThreshold) ? smokeRes.diag.seedThreshold : threshold;
+        seedMargin = Number.isFinite(smokeRes.diag.seedMargin) ? smokeRes.diag.seedMargin : seedMargin;
+        seedApplied = !!smokeRes.diag.seedApplied;
+        seedWhy = smokeRes.diag.seedWhy || seedWhy;
+        seedSourceId = smokeRes.diag.seedSourceId || seedSourceId;
+        seedFailureReason = smokeRes.diag.seedFailureReason || seedFailureReason;
+        maxPerTxn = Number.isFinite(smokeRes.diag.NPC_TAX_MAX_PER_TXN) ? smokeRes.diag.NPC_TAX_MAX_PER_TXN : maxPerTxn;
+        taxProbe = smokeRes.diag.taxProbe || taxProbe;
+        logSourceChosen = smokeRes.diag.logSource || logSourceChosen;
+        rowsScoped = Number.isFinite(smokeRes.meta && smokeRes.meta.rowsScoped) ? smokeRes.meta.rowsScoped : rowsScoped;
       }
       summary = smokeRes ? {
         ok: !!smokeRes.ok,
@@ -3785,26 +3806,69 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           missingAccounts: smokeRes.diag ? smokeRes.diag.missingAccounts : null,
           availableCount: smokeRes.diag ? smokeRes.diag.availableCount : null,
           missingCount: smokeRes.diag ? smokeRes.diag.missingCount : null,
-          addedAccounts: smokeRes.diag ? smokeRes.diag.addedAccounts : (contractDiag ? contractDiag.addedAccounts : null),
+          addedAccounts: smokeRes.diag ? smokeRes.diag.addedAccounts : addedAccounts,
           seedTransfer: smokeRes.diag ? smokeRes.diag.seedTransfer : null,
           massDriftBreakdown: smokeRes.diag ? smokeRes.diag.massDriftBreakdown : null
         },
         diagVersion
       } : { ok: false, notes: ["missing_smoke"], diagVersion };
-      emitLine(safeStringify(smokeRes));
-      emitLine(safeStringify(summary));
     } catch (err) {
       notes.push("exception");
-      const errObj = {
-        ok: false,
-        notes,
-        errorMessage: String(err && err.message ? err.message : err),
-        errorStack: err && err.stack ? String(err.stack) : null,
-        diagVersion
+      exception = {
+        message: String(err && err.message ? err.message : err),
+        stack: err && err.stack ? String(err.stack) : null,
+        stage: "runEconNpcWealthTaxEvidencePackOnce"
       };
-      emitLine(safeStringify(errObj));
-      emitLine(safeStringify({ ok: false, notes, diagVersion }));
     } finally {
+      emitLine(header);
+      const json1 = smokeRes ? smokeRes : {
+        ok: false,
+        notes: notes.slice(),
+        errorMessage: exception ? exception.message : null,
+        errorStack: exception ? exception.stack : null,
+        diagVersion,
+        diag: {
+          buildTag,
+          threshold,
+          seedMargin,
+          maxPerTxn,
+          seedApplied,
+          seedWhy,
+          seedSourceId,
+          seedFailureReason,
+          accountsIncludedLen,
+          accountsIncludedHash,
+          addedAccounts,
+          fixedAccounts,
+          logSource: logSourceChosen,
+          rowsScoped,
+          taxProbe
+        }
+      };
+      const json2 = summary ? summary : {
+        ok: false,
+        notes: notes.slice(),
+        diagVersion,
+        diag: {
+          buildTag,
+          logSourceChosen,
+          rowsScoped,
+          threshold,
+          seedMargin,
+          maxPerTxn,
+          seedApplied,
+          seedWhy,
+          seedSourceId,
+          seedFailureReason,
+          accountsIncludedLen,
+          accountsIncludedHash,
+          addedAccounts,
+          fixedAccounts,
+          taxProbe
+        }
+      };
+      emitLine(safeStringify(json1));
+      emitLine(safeStringify(json2));
       emitLine(footer);
       const canGameDump = !!(window.Game && Game.__DUMP_ALL__ && typeof Game.__DUMP_ALL__ === "function");
       const canWinDump = !!(window.__DUMP_ALL__ && typeof window.__DUMP_ALL__ === "function");

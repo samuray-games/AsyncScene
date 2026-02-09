@@ -1,4 +1,4 @@
-[DUMP_AT] [2026-02-09 14:23:42] (epoch_ms=1770614622323)
+[DUMP_AT] [2026-02-09 14:42:33] (epoch_ms=1770615753858)
 [warn] RUNTIME_URL
 [warn] http://localhost:8080/index.html?dev=1
 [warn] HAS_GAME
@@ -998,11 +998,356 @@ CONSOLE_TAPE_V1_READY
 [warn] {"ok":false,"notes":["exception"],"diagVersion":"econ_npc_wealth_tax_pack_v1"}
 [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
 [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":129070,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-09 14:23:42","dumpAtEpochMs":1770614622323}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-09 14:23:42]
+[warn] 1770614622323
+CONSOLE_TAPE_V1_READY
+[warn] CONSOLE_TAPE_V1_READY
+[warn] REPL_TAPE_V1_READY use __RUN__("...") to capture manual commands
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770614803974
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770614803976
+[warn] [DEV] content testing hooks enabled
+[warn] DUMP_ALIAS_OK
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770614804009
+[log] [ConflictAPI] ready
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770614804031
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770614804031
+[warn] [DEV] content testing hooks enabled
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] {"ok":false,"notes":["log_source_none","world_contract_missing_accounts"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"none","rowsScoped":0,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":200,"afterTotal":null,"delta":null,"byBucket":null},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"seedRichNpc":true,"npcSeededId":null,"npcSeededPtsBefore":null,"npcSeededPtsAfter":null,"seedSourceId":null,"seedFailureReason":null,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"logSource":"none","rowsScoped":0,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","lenBefore":0,"lenAfter":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"],"fixedAccounts":[]}}
+[warn] {"ok":false,"worldDelta":null,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"logSourceChosen":"none","buildTag":"build_2026_02_09b","lenBefore":0,"lenAfter":0,"rowsScoped":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","seedSourceId":null,"seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"]},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":135751,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-09 14:26:53","dumpAtEpochMs":1770614813661}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-09 14:26:53]
+[warn] 1770614813661
+CONSOLE_TAPE_V1_READY
+[warn] CONSOLE_TAPE_V1_READY
+[warn] REPL_TAPE_V1_READY use __RUN__("...") to capture manual commands
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615091933
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615091934
+[warn] [DEV] content testing hooks enabled
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770615091949
+[log] [ConflictAPI] ready
+[warn] DUMP_ALIAS_OK
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615091965
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615091965
+[warn] [DEV] content testing hooks enabled
+CONSOLE_TAPE_V1_READY
+[warn] CONSOLE_TAPE_V1_READY
+[warn] REPL_TAPE_V1_READY use __RUN__("...") to capture manual commands
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615115248
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615115250
+[warn] [DEV] content testing hooks enabled
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770615115279
+[log] [ConflictAPI] ready
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615115292
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615115293
+[warn] [DEV] content testing hooks enabled
+[warn] DUMP_ALIAS_OK
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] {"ok":false,"notes":["log_source_none","world_contract_missing_accounts"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"none","rowsScoped":0,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":200,"afterTotal":null,"delta":null,"byBucket":null},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"seedRichNpc":true,"npcSeededId":null,"npcSeededPtsBefore":null,"npcSeededPtsAfter":null,"seedSourceId":null,"seedFailureReason":null,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"logSource":"none","rowsScoped":0,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","lenBefore":0,"lenAfter":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"],"fixedAccounts":[]}}
+[warn] {"ok":false,"worldDelta":null,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"logSourceChosen":"none","buildTag":"build_2026_02_09b","lenBefore":0,"lenAfter":0,"rowsScoped":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","seedSourceId":null,"seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"]},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":142411,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-09 14:32:20","dumpAtEpochMs":1770615140680}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-09 14:32:20]
+[warn] 1770615140680
+CONSOLE_TAPE_V1_READY
+[warn] CONSOLE_TAPE_V1_READY
+[warn] REPL_TAPE_V1_READY use __RUN__("...") to capture manual commands
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615389591
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615389591
+[warn] [DEV] content testing hooks enabled
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770615389609
+[log] [ConflictAPI] ready
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615389620
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615389621
+[warn] [DEV] content testing hooks enabled
+[warn] DUMP_ALIAS_OK
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] {"ok":false,"notes":["log_source_none","world_contract_missing_accounts"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"none","rowsScoped":0,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":200,"afterTotal":null,"delta":null,"byBucket":null},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"seedRichNpc":true,"npcSeededId":null,"npcSeededPtsBefore":null,"npcSeededPtsAfter":null,"seedSourceId":null,"seedFailureReason":null,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"logSource":"none","rowsScoped":0,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","lenBefore":0,"lenAfter":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"],"fixedAccounts":[]}}
+[warn] {"ok":false,"worldDelta":null,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"logSourceChosen":"none","buildTag":"build_2026_02_09b","lenBefore":0,"lenAfter":0,"rowsScoped":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","seedSourceId":null,"seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"]},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":147162,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-09 14:36:39","dumpAtEpochMs":1770615399228}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-09 14:36:39]
+[warn] 1770615399228
+CONSOLE_TAPE_V1_READY
+[warn] CONSOLE_TAPE_V1_READY
+[warn] REPL_TAPE_V1_READY use __RUN__("...") to capture manual commands
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615644076
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615644076
+[warn] [DEV] content testing hooks enabled
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770615644092
+[log] [ConflictAPI] ready
+[warn] DEV_CHECKS_SERVED_PROOF_V3
+[warn] served_probe_2026_02_08_1
+[warn] DEV_CHECKS_SERVED_PROOF_V3_URL
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] DEV_CHECKS_SERVED_PROOF_V4
+[warn] DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] DEV_CHECKS_RUNTIME_PROOF_V4
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770615644104
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] DEV_CHECKS_PROOF_V1
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770615644104
+[warn] [DEV] content testing hooks enabled
+[warn] DUMP_ALIAS_OK
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] {"ok":false,"notes":["log_source_none","world_contract_missing_accounts"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"none","rowsScoped":0,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":200,"afterTotal":null,"delta":null,"byBucket":null},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"seedRichNpc":true,"npcSeededId":null,"npcSeededPtsBefore":null,"npcSeededPtsAfter":null,"seedSourceId":null,"seedFailureReason":null,"NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"logSource":"none","rowsScoped":0,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","lenBefore":0,"lenAfter":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"],"fixedAccounts":[]}}
+[warn] {"ok":false,"worldDelta":null,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":null,"delta":null,"softCap":null},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false},"diag":{"logSourceChosen":"none","buildTag":"build_2026_02_09b","lenBefore":0,"lenAfter":0,"rowsScoped":0,"logStart":0,"logEnd":0,"hasDebugMoneyLog":false,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","worldContractName":"econ_npc_world_contract_v1","seedSourceId":null,"seedFailureReason":null,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":null,"taxProbe":{"attempted":false,"applied":false,"taxAmount":0,"why":"log_source_none"},"addedAccounts":["bank","crowd","sink","worldBank"]},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
+[warn] CONSOLE_DUMP_POSTING_TO
+[warn] /__dev/console-dump
+[warn] CONSOLE_DUMP_HTTP_STATUS
+[warn] 200
+[warn] CONSOLE_DUMP_WRITE_OK
+[warn] {"ok":true,"bytes":151913,"path":"/Users/User/Documents/created apps/AsyncScene/Console.txt","marker":"DEV_SERVER_V1_READY","dumpAtLocal":"2026-02-09 14:40:55","dumpAtEpochMs":1770615655485}
+[warn] CONSOLE_DUMP_AT
+[warn] [2026-02-09 14:40:55]
+[warn] 1770615655485
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
+[warn] {"ok":false,"notes":["seed_skipped_insufficient_source","tax_probe_failed","world_delta_nonzero","world_tax_total_zero","world_tax_in_missing","world_contract_missing_accounts"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"debug_moneyLog","rowsScoped":159,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":199,"afterTotal":181,"delta":-18,"byBucket":{"sink":12,"crowd":0,"bank":0,"worldBank":20,"crowdMap":0,"crowdById":{"ed_escape_1770615677857_547":0,"ed_npc_1770615741963_6127":0,"ed_npc_1770615751963_6580":0,"ed_npc_1770615756963_2384":0,"ed_npc_1770615761963_8079":0}}},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":0,"delta":0,"softCap":20},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"seedRichNpc":true,"npcSeededId":"npc_weak","npcSeededPtsBefore":10,"npcSeededPtsAfter":10,"seedSourceId":null,"seedFailureReason":"seed_source_insufficient","seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":"seed_source_insufficient","NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"logSource":"debug_moneyLog","rowsScoped":159,"accountsIncludedLen":25,"accountsIncludedHash":"hb5b1f9b","worldContractName":"econ_npc_world_contract_v1","missingAccounts":[],"availableCount":25,"missingCount":0,"lenBefore":41,"lenAfter":200,"logStart":41,"logEnd":200,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"seedTransfer":null,"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":0,"crowdDelta":0,"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}]},"taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"addedAccounts":["crowd:ed_escape_1770615677857_547"],"fixedAccounts":[]},"runSummary":null,"debug":{"taxRows":[],"newRowsCount":159,"logSource":"debug_moneyLog","logStart":41,"logEnd":200}}
+[warn] {"ok":false,"worldDelta":-18,"totalTaxInWindow":0,"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":0,"delta":0,"softCap":20},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"logSourceChosen":"debug_moneyLog","buildTag":"build_2026_02_09b","lenBefore":41,"lenAfter":200,"rowsScoped":159,"logStart":41,"logEnd":200,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":25,"accountsIncludedHash":"hb5b1f9b","worldContractName":"econ_npc_world_contract_v1","seedSourceId":null,"seedFailureReason":"seed_source_insufficient","seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":"seed_source_insufficient","taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"missingAccounts":[],"availableCount":25,"missingCount":0,"addedAccounts":["crowd:ed_escape_1770615677857_547"],"seedTransfer":null,"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":0,"crowdDelta":0,"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}]}},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
+[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
 CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN
-[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=999 lastLine=[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE]
+[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=1344 lastLine=[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE]
 [TAPE_TAIL_1] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN
-[TAPE_TAIL_2] [warn] {"ok":false,"notes":["exception"],"errorMessage":"Cannot access 'threshold' before initialization.","errorStack":"@http://localhost:8080/dev/dev-checks.js:3290:35\n@http://localhost:8080/dev/dev-checks.js:3746:50\nglobal code@","diagVersion":"econ_npc_wealth_tax_pack_v1"}
-[TAPE_TAIL_3] [warn] {"ok":false,"notes":["exception"],"diagVersion":"econ_npc_wealth_tax_pack_v1"}
+[TAPE_TAIL_2] [warn] {"ok":false,"notes":["seed_skipped_insufficient_source","tax_probe_failed","world_delta_nonzero","world_tax_total_zero","world_tax_in_missing","world_contract_missing_accounts"],"meta":{"ticks":50,"seed":1,"seedRichNpc":true,"logSource":"debug_moneyLog","rowsScoped":159,"scopeDesc":"ticks=50","debugTelemetry":true},"world":{"beforeTotal":199,"afterTotal":181,"delta":-18,"byBucket":{"sink":12,"crowd":0,"bank":0,"worldBank":20,"crowdMap":0,"crowdById":{"ed_escape_1770615677857_547":0,"ed_npc_1770615741963_6127":0,"ed_npc_1770615751963_6580":0,"ed_npc_1770615756963_2384":0,"ed_npc_1770615761963_8079":0}}},"bank":{"accountId":"worldBank","beforePts":0,"afterPts":0,"delta":0,"softCap":20},"tax":{"threshold":20,"maxPerTxn":2,"totalTaxInWindow":0,"rowsCount":0,"appliedCount":0,"topTaxedNpcs":[],"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}]},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"seedRichNpc":true,"npcSeededId":"npc_weak","npcSeededPtsBefore":10,"npcSeededPtsAfter":10,"seedSourceId":null,"seedFailureReason":"seed_source_insufficient","seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":"seed_source_insufficient","NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"logSource":"debug_moneyLog","rowsScoped":159,"accountsIncludedLen":25,"accountsIncludedHash":"hb5b1f9b","worldContractName":"econ_npc_world_contract_v1","missingAccounts":[],"availableCount":25,"missingCount":0,"lenBefore":41,"lenAfter":200,"logStart":41,"logEnd":200,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"seedTransfer":null,"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":0,"crowdDelta":0,"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}]},"taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"addedAccounts":["crowd:ed_escape_1770615677857_547"],"fixedAccounts":[]},"runSummary":null,"debug":{"taxRows":[],"newRowsCount":159,"logSource":"debug_moneyLog","logStart":41,"logEnd":200}}
+[TAPE_TAIL_3] [warn] {"ok":false,"worldDelta":-18,"totalTaxInWindow":0,"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}],"bank":{"accountId":"worldBank","beforePts":0,"afterPts":0,"delta":0,"softCap":20},"asserts":{"worldDeltaZero":false,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":true},"diag":{"logSourceChosen":"debug_moneyLog","buildTag":"build_2026_02_09b","lenBefore":41,"lenAfter":200,"rowsScoped":159,"logStart":41,"logEnd":200,"hasDebugMoneyLog":true,"hasLoggerQueue":false,"scopeWindowLastN":400,"windowLastNUsed":400,"accountsIncludedLen":25,"accountsIncludedHash":"hb5b1f9b","worldContractName":"econ_npc_world_contract_v1","seedSourceId":null,"seedFailureReason":"seed_source_insufficient","seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":"seed_source_insufficient","taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"tax_missing"},"missingAccounts":[],"availableCount":25,"missingCount":0,"addedAccounts":["crowd:ed_escape_1770615677857_547"],"seedTransfer":null,"massDriftBreakdown":{"worldTaxInSum":0,"bankDelta":0,"sinkDelta":0,"crowdDelta":0,"reasonsTop":[{"reason":"crowd_vote_cost","amount":39},{"reason":"rep_crowd_vote_participation","amount":39},{"reason":"crowd_vote_pool_init","amount":30},{"reason":"rep_crowd_vote_majority","amount":26},{"reason":"crowd_vote_refund_majority","amount":13}]}},"diagVersion":"econ_npc_wealth_tax_pack_v1"}
 [TAPE_TAIL_4] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END
 [TAPE_TAIL_5] [warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_DUMP_DONE
 CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END

@@ -2384,3 +2384,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Seed now targets `threshold + 5`, logs `seedApplied/seedWhy/seedThreshold/seedMargin`, and performs a 1-step tax probe after seed (adds `tax_probe_missing_after_seed` if no `world_tax_in`).
 - Ok-gate tightened: `totals_null`, `world_delta_nonzero`, `rows_scoped_empty`, `world_tax_in_missing`, `world_tax_total_zero` notes emitted when failing.
 - Runtime PASS still pending; QA must confirm via Console.txt (see TASKS.md). LOGGED EVEN IF FAIL.
+2026-02-09 (14:13:37) — wealth-tax evidence smoke still failed.
+- Evidence: Console.txt shows exception `Cannot access 'threshold' before initialization` before summary JSON; ok:false, notes:["exception"], world.delta null.
+- Status remains FAIL; QA should rerun same command after fix to show ok:true world.delta=0 totalTaxInWindow>0. LOGGED EVEN IF FAIL.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack TDZ hardening (dev-checks only).
+- `runEconNpcWealthTaxEvidencePackOnce` now pre-initializes all diagnostic vars (threshold/seedMargin/maxPerTxn/etc.) and always prints BEGIN/JSON/JSON/END in `finally`.
+- Runtime PASS still pending; QA must rerun the same command and confirm exception-free evidence block in Console.txt.
+2026-02-09 — ECON-NPC [1.5] wealth-tax pack runtime FAIL (threshold TDZ).
+- Console.txt shows `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN` with `ok:false` and error `Cannot access 'threshold' before initialization.` followed by END/DUMP_DONE.
+- Fix applied in dev-checks.js: seed threshold/margin and seedApplied/seedWhy now initialized before log-source early returns to avoid TDZ. Runtime PASS still pending.
