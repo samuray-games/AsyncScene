@@ -2450,3 +2450,9 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Second run shows `logSource:"none"` and `rowsScoped:0` with `seedFailureReason:"seed_target_not_reached"`.
 - Status: FAIL (await runtime PASS).
 - После двух pack и smoke tail: `WEALTH_TAX_EVIDENCE_BEGIN`…`FLUSH_POST` выводится, `diag.ensureNpcAccounts.createdCount=0` и `missingAfterCount=19`, `logSource:"debug_moneyLog"`, `rowsScoped=206`, `world.delta` 2/6, `totalTaxInWindow=0`, `notes` include `tax_probe_missing_after_seed`, `world_tax_total_zero`, `world_tax_in_missing`. No `world_tax_in/world_tax_out` rows and world delta non-zero → FAIL.
+2026-02-10 — ECON-NPC [1.5] mass diagnostics (Console.txt, build_2026_02_09b):
+- `WORLD_MASS_V2 beforeSeed`: totals 200/200/190/0, `topChangedIds` empty.
+- `WORLD_MASS_V2 afterSeed`: totals 200/199/189/1, delta still 0; `topChangedIds` highlight npc_weak(+14) versus several npc_*-1; `scopedMoneyLogAgg` dominated by `world_seed_collect`/`world_seed_grant`.
+- `WORLD_MASS_V2 afterTicks`: totals 213/184/168/29 (delta +13), `topChangedIds` show worldBank(+19), sink(+9), me(+6), npc_weak(-8), npc_yuna(-3); `scopedMoneyLogAgg.byReasonTop5` still crowd-vote heavy, meaning ticks injected mass before tax.
+- `WORLD_MASS_V2 afterTax`: totals unchanged (213/184/168/29), so applyNpcWealthTaxIfNeeded never recovered delta; `scopedMoneyLogAgg` identical to afterTicks, further `points_emission_suspected` flags.
+- Conclusion: delta originates during ticks (before tax), so fix must zero-out tick transfers (worldBank/sink/service paths) so rescue occurs before evidence pack finishes. Status remains FAIL; Next: inspect tick-phase transfer pairs to ensure each service inflow has matching outflow.

@@ -99,6 +99,7 @@
       branch: null,
       returnReason: null,
       storageKey: null,
+      storageKeyUsed: null,
       hasGameStatePlayers: !!(St && St.players),
       hasSPlayers: !!(S && S.players),
       playersKeyCountGame: St && St.players ? Object.keys(St.players).length : 0,
@@ -118,25 +119,30 @@
       ensureDiag.returnReason = "state_missing";
       ensureDiag.branch = "skip_no_players";
       ensureDiag.storageKey = "none";
+      ensureDiag.storageKeyUsed = "none";
       return { ok: false, reason: "state_missing", branch: "skip_no_players", ensureDiag };
     }
     let playersCreated = false;
     if (!S.players) {
       if (St && St.players) {
-        S.players = {};
-        Object.keys(St.players).forEach((id) => {
-          const p = St.players[id];
-          const pts = p && Number.isFinite(p.points) ? (p.points | 0) : 0;
-          S.players[id] = { id: String(id), points: pts, npc: !!(p && (p.npc === true || p.type === "npc")) };
-        });
-        ensureDiag.storageKey = "S.players<-Game.State.players";
+        S.players = St.players;
+        ensureDiag.storageKey = "S.players<-Game.State.players(link)";
+        ensureDiag.storageKeyUsed = "Game.State.players";
       } else {
         S.players = {};
         ensureDiag.storageKey = "S.players(empty)";
+        ensureDiag.storageKeyUsed = "S.players";
       }
       playersCreated = true;
     } else {
-      ensureDiag.storageKey = "S.players";
+      if (St && St.players && S.players !== St.players) {
+        S.players = St.players;
+        ensureDiag.storageKey = "S.players<-Game.State.players(link)";
+        ensureDiag.storageKeyUsed = "Game.State.players";
+      } else {
+        ensureDiag.storageKey = "S.players";
+        ensureDiag.storageKeyUsed = "S.players";
+      }
     }
     const sourcePlayers = (St && St.players) ? St.players : S.players;
     const npcIds = Object.keys(sourcePlayers || {}).filter(id => {
@@ -250,6 +256,13 @@
           missingAfterCount,
           branch,
           reason: String(opts.reason || "ensure_npc_accounts")
+        });
+        console.warn("ECON_NPC_ACCOUNTS_CANON", {
+          npcSeen: npcIds.length,
+          createdCount,
+          afterCount: econAccountsAfter,
+          missingAfterCount,
+          storageKeyUsed: ensureDiag.storageKeyUsed || ensureDiag.storageKey || "unknown"
         });
       } catch (_) {}
     }

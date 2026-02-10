@@ -841,6 +841,12 @@
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
   - `{"ok":false,"notes":["world_mass_drift","tax_missing"],"world":{"delta":2},"tax":{"totalTaxInWindow":0}}`
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+- Runtime evidence (FAIL, Console.txt 2026-02-10 19:15:42):
+    - First run emits `WEALTH_TAX_ATTEMPT_DIAG` showing `taxApplied:true`, `worldTaxRowsInWindow:{"world_tax_in":2,"world_tax_out":0}`, but JSON#1 notes still include `"world_delta_nonzero"` and `world.delta` stays 15 (ok:false)
+    - Second run emits `WEALTH_TAX_ATTEMPT_DIAG` with `taxApplied:false`, `worldTaxRowsInWindow:{"world_tax_in":0}`, `notes:["tax_probe_failed","tax_probe_missing_after_seed","world_delta_nonzero"]`
+    - `WEALTH_TAX_EVIDENCE_JSON_2` exposes `notes:["world_delta_nonzero","points_emission_suspected"]` and `taxAttempt` flagged `softCapHit` while `bank.softCap` equals 20
+    - `WORLD_MASS_V2` markers prove delta arises between `afterSeed` and `afterTicks` (+13 totalPtsAll) with `topChangedIds` spotlighting `worldBank`, `sink`, `me`, `npc_weak`, `npc_yuna` and `scopedMoneyLogAgg.byReasonTop5` dominated by crowd votes; `afterTax` shows no further change so tax stage never rebalances
+    - Next: adjust the seed+worldBank transfer path so `world.delta == 0` before pack concludes and remove `points_emission_suspected` by ensuring seed transfers sink⇢worldBank are net-zero when tax rows emit
 
 - Update (2026-02-09): wealth-tax pack now ensures contract accounts exist in State before smoke (dev-only). Added diag.addedAccounts/fixedAccounts + accountsIncludedLen/hash for evidence. Status remains FAIL pending runtime Console.txt.
 - Update (2026-02-09): seedRichNpc now targets `threshold + seedMargin(5)` and logs `seedApplied/seedWhy/seedThreshold/seedMargin`, runs a 1-step tax wake probe, and adds explicit FAIL notes: `totals_null`, `world_delta_nonzero`, `rows_scoped_empty`, `world_tax_in_missing`, `world_tax_total_zero`, `tax_probe_missing_after_seed`. Status remains FAIL pending runtime evidence.

@@ -2624,6 +2624,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const allowNpcVotes = !!(opts && opts.allowNpcVotes);
     const allowBattles = !!(opts && opts.allowBattles);
     const allowEventsTick = (opts && typeof opts.allowEventsTick !== "undefined") ? !!opts.allowEventsTick : true;
+    const massTrace = !!(opts && opts.massTrace);
     const ticksPerPayout = Number.isFinite(opts && opts.ticksPerPayout) ? Math.max(1, opts.ticksPerPayout | 0) : 25;
     const stipendAmount = Number.isFinite(opts && opts.stipendAmount) ? Math.max(1, opts.stipendAmount | 0) : 1;
     const stipendZ = Number.isFinite(opts && opts.stipendZeroStreak) ? Math.max(1, opts.stipendZeroStreak | 0) : 5;
@@ -2645,6 +2646,97 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const dbg = Game.__D ? Game.__D : (Game.__D = {});
     dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
     const logStart = dbg.moneyLog.length;
+    const emitLine = (line) => {
+      try {
+        if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+          Game.__DEV._dumpLine(String(line));
+          return;
+        }
+      } catch (_) {}
+      try { console.warn(String(line)); } catch (_) {}
+    };
+    const getServiceFlag = (id) => {
+      if (!id) return false;
+      if (id === "sink" || id === "worldBank" || id === "bank" || id === "crowd") return true;
+      if (id.startsWith("crowd:") || id.startsWith("crowd_") || id.startsWith("crowdPool") || id.startsWith("crowd_pool")) return true;
+      return false;
+    };
+    const getByIdSnapshot = () => {
+      const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      if (snap && snap.byId) return snap.byId;
+      const byId = Object.create(null);
+      Object.keys(S.players || {}).forEach(id => {
+        const p = S.players[id];
+        const pts = p && Number.isFinite(p.points) ? (p.points | 0) : 0;
+        byId[id] = pts;
+      });
+      return byId;
+    };
+    const buildPhase = (stage, byId, prevById) => {
+      const ids = Object.keys(byId || {});
+      let totalPtsAll = 0;
+      let totalPtsNpc = 0;
+      let totalPtsService = 0;
+      ids.forEach(id => {
+        const pts = Number.isFinite(byId[id]) ? (byId[id] | 0) : 0;
+        totalPtsAll += pts;
+        if (String(id).startsWith("npc_")) totalPtsNpc += pts;
+        if (getServiceFlag(String(id))) totalPtsService += pts;
+      });
+      const totalPtsPlayers = totalPtsAll - totalPtsService;
+      const totalWorldBank = Number.isFinite(byId.worldBank) ? (byId.worldBank | 0) : 0;
+      const totalSink = Number.isFinite(byId.sink) ? (byId.sink | 0) : 0;
+      const totalBank = Number.isFinite(byId.bank) ? (byId.bank | 0) : 0;
+      const totalCrowd = Number.isFinite(byId.crowd) ? (byId.crowd | 0) : 0;
+      const topChangedIds = [];
+      if (prevById) {
+        const allIds = new Set([...Object.keys(prevById), ...ids]);
+        allIds.forEach(id => {
+          const before = Number.isFinite(prevById[id]) ? (prevById[id] | 0) : 0;
+          const after = Number.isFinite(byId[id]) ? (byId[id] | 0) : 0;
+          const delta = after - before;
+          if (delta !== 0) topChangedIds.push({ id, before, after, delta });
+        });
+        topChangedIds.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+      }
+      const lastN = 400;
+      const tail = dbg.moneyLog.length ? dbg.moneyLog.slice(Math.max(0, dbg.moneyLog.length - lastN)) : [];
+      const byReason = Object.create(null);
+      let sumNet = 0;
+      tail.forEach(r => {
+        const amt = (r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0;
+        sumNet += amt;
+        const reason = String(r && r.reason || "");
+        if (!reason) return;
+        byReason[reason] = (byReason[reason] || 0) + amt;
+      });
+      const byReasonTop5 = Object.keys(byReason)
+        .map(reason => ({ reason, amount: byReason[reason] }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5);
+      emitLine(`WORLD_MASS_V2_PHASE ${JSON.stringify({ stage, totalsVersion: "all_accounts", totals: { totalPtsAll, totalPtsPlayers, totalPtsNpc, totalPtsService, totalWorldBank, totalSink, totalBank, totalCrowd }, deltaByAccountType: { players: totalPtsPlayers, npcs: totalPtsNpc, service: totalPtsService }, topChangedIds: topChangedIds.slice(0, 5), scopedMoneyLogAgg: { sumNet, byReasonTop5 } })}`);
+      return { totalPtsAll };
+    };
+    let phasePrevById = null;
+    let baseById = null;
+    const emitPhaseOnce = (stage) => {
+      const byId = getByIdSnapshot();
+      const res = buildPhase(stage, byId, phasePrevById);
+      phasePrevById = byId;
+      phaseLastTotals = res;
+    };
+    let crowdPhaseEmitted = false;
+    let worldBankPhaseEmitted = false;
+    let sinkPhaseEmitted = false;
+    let leakEmitted = false;
+    if (massTrace) {
+      emitLine("WORLD_MASS_V2_PHASES_BEGIN");
+      baseById = getByIdSnapshot();
+      buildPhase("beforeTicks", baseById, null);
+      phasePrevById = baseById;
+    }
 
     const npcIds = Object.values(S.players || {})
       .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
@@ -2834,7 +2926,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           if (allowEventsTick && addNpcEventOnce()) eventsApplied += 1;
         }
         if ((ticksProcessed % 25) === 0) {
-          if (doNpcVotesOnce()) votesApplied += 1;
+          if (doNpcVotesOnce()) {
+            votesApplied += 1;
+            if (massTrace && !crowdPhaseEmitted) {
+              emitPhaseOnce("afterCrowdSim");
+              crowdPhaseEmitted = true;
+            }
+          }
           if (!allowNpcVotes) applyNpcWealthTaxTick(ticksProcessed);
         }
         if ((ticksProcessed % 50) === 0) {
@@ -2882,6 +2980,49 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
       ? Game.__DEV.sumPointsSnapshot()
       : null;
+    if (massTrace) {
+      if (!crowdPhaseEmitted) emitPhaseOnce("afterCrowdSim");
+      const byIdNow = getByIdSnapshot();
+      if (!worldBankPhaseEmitted && Number.isFinite(byIdNow.worldBank) && baseById && byIdNow.worldBank !== baseById.worldBank) {
+        buildPhase("afterAnyTransfersToWorldBank", byIdNow, phasePrevById);
+        phasePrevById = byIdNow;
+        worldBankPhaseEmitted = true;
+      }
+      if (!sinkPhaseEmitted && Number.isFinite(byIdNow.sink) && baseById && byIdNow.sink !== baseById.sink) {
+        buildPhase("afterAnyTransfersToSink", byIdNow, phasePrevById);
+        phasePrevById = byIdNow;
+        sinkPhaseEmitted = true;
+      }
+      const afterAllById = getByIdSnapshot();
+      buildPhase("afterAllTicks", afterAllById, phasePrevById);
+      if (!leakEmitted && baseById && afterAllById) {
+        const sumBefore = Object.keys(baseById).reduce((s, id) => s + (Number.isFinite(baseById[id]) ? (baseById[id] | 0) : 0), 0);
+        const sumAfter = Object.keys(afterAllById).reduce((s, id) => s + (Number.isFinite(afterAllById[id]) ? (afterAllById[id] | 0) : 0), 0);
+        const sumDelta = sumAfter - sumBefore;
+        if (sumDelta !== 0) {
+          const allIds = new Set([...Object.keys(baseById), ...Object.keys(afterAllById)]);
+          const topDeltaAccounts = [];
+          allIds.forEach(id => {
+            const before = Number.isFinite(baseById[id]) ? (baseById[id] | 0) : 0;
+            const after = Number.isFinite(afterAllById[id]) ? (afterAllById[id] | 0) : 0;
+            const delta = after - before;
+            if (delta !== 0) topDeltaAccounts.push({ id, before, after, delta });
+          });
+          topDeltaAccounts.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+          const tail = dbg.moneyLog.slice(Math.max(0, dbg.moneyLog.length - 10));
+          const lastNMoneyLogReasons = tail.map(r => String(r && r.reason || ""));
+          const lastNTransfers = tail.map(r => ({
+            sourceId: r && r.sourceId ? r.sourceId : null,
+            targetId: r && r.targetId ? r.targetId : null,
+            amount: r && Number.isFinite(r.amount) ? (r.amount | 0) : 0,
+            reason: r && r.reason ? r.reason : null
+          }));
+          emitLine(`TICK_LEAK_DETECTED ${JSON.stringify({ phase: "afterAllTicks", sumDelta, topDeltaAccounts: topDeltaAccounts.slice(0, 5), lastNMoneyLogReasons, lastNTransfers })}`);
+          leakEmitted = true;
+        }
+      }
+      emitLine("WORLD_MASS_V2_PHASES_END");
+    }
     const worldMassAfter = afterSnap && Number.isFinite(afterSnap.total) ? (afterSnap.total | 0) : null;
     const worldBankAfter = afterSnap && afterSnap.byId && Number.isFinite(afterSnap.byId[WORLD_BANK_ID]) ? (afterSnap.byId[WORLD_BANK_ID] | 0) : 0;
     const worldMassDelta = (Number.isFinite(worldMassAfter) && Number.isFinite(worldMassBefore))
@@ -3241,6 +3382,82 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
     const worldContractName = "econ_npc_world_contract_v1";
     const getEconNpcWorldContractV1 = econ_npc_world_contract_v1;
+    const emitLine = (line) => {
+      try {
+        if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+          Game.__DEV._dumpLine(String(line));
+          return;
+        }
+      } catch (_) {}
+      try {
+        console.warn(String(line));
+      } catch (_) {}
+    };
+    const maxAbs = (a, b) => Math.abs(a) - Math.abs(b);
+    const getByIdSnapshot = () => {
+      const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      if (snap && snap.byId) return snap.byId;
+      const byId = Object.create(null);
+      Object.keys(S.players || {}).forEach(id => {
+        const p = S.players[id];
+        const pts = p && Number.isFinite(p.points) ? (p.points | 0) : 0;
+        byId[id] = pts;
+      });
+      return byId;
+    };
+    const getServiceFlag = (id) => {
+      if (!id) return false;
+      if (id === "sink" || id === "worldBank" || id === "bank" || id === "crowd") return true;
+      if (id.startsWith("crowd:") || id.startsWith("crowd_") || id.startsWith("crowdPool") || id.startsWith("crowd_pool")) return true;
+      return false;
+    };
+    let lastByIdForMass = null;
+    const buildMassMarker = (stage, byId) => {
+      const ids = Object.keys(byId || {});
+      let totalPtsAll = 0;
+      let totalPtsNpc = 0;
+      let totalPtsService = 0;
+      ids.forEach(id => {
+        const pts = Number.isFinite(byId[id]) ? (byId[id] | 0) : 0;
+        totalPtsAll += pts;
+        if (String(id).startsWith("npc_")) totalPtsNpc += pts;
+        if (getServiceFlag(String(id))) totalPtsService += pts;
+      });
+      const totalPtsPlayers = totalPtsAll - totalPtsService;
+      const topChangedIds = [];
+      if (lastByIdForMass) {
+        const allIds = new Set([...Object.keys(lastByIdForMass), ...ids]);
+        allIds.forEach(id => {
+          const before = Number.isFinite(lastByIdForMass[id]) ? (lastByIdForMass[id] | 0) : 0;
+          const after = Number.isFinite(byId[id]) ? (byId[id] | 0) : 0;
+          const delta = after - before;
+          if (delta !== 0) topChangedIds.push({ id, before, after, delta });
+        });
+        topChangedIds.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+      }
+      lastByIdForMass = byId;
+      const lastN = (scopeWindowLastN && scopeWindowLastN > 0) ? scopeWindowLastN : 200;
+      const logRows = (Game.Debug && Array.isArray(Game.Debug.moneyLog))
+        ? Game.Debug.moneyLog
+        : (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+      const tail = logRows.length ? logRows.slice(Math.max(0, logRows.length - lastN)) : [];
+      const byReason = Object.create(null);
+      let sumNet = 0;
+      tail.forEach(r => {
+        const amt = (r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0;
+        sumNet += amt;
+        const reason = String(r && r.reason || "");
+        if (!reason) return;
+        byReason[reason] = (byReason[reason] || 0) + amt;
+      });
+      const byReasonTop5 = Object.keys(byReason)
+        .map(reason => ({ reason, amount: byReason[reason] }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5);
+      emitLine(`WORLD_MASS_V2 ${JSON.stringify({ stage, totals: { totalPtsAll, totalPtsPlayers, totalPtsNpc, totalPtsService }, topChangedIds: topChangedIds.slice(0, 5), scopedMoneyLogAgg: { sumNet, byReasonTop5 } })}`);
+    };
     const snapBefore = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
       ? Game.__DEV.sumPointsSnapshot()
       : null;
@@ -3253,6 +3470,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       fallbackById[id] = pts;
     });
     const snapById = (snapBefore && snapBefore.byId) ? snapBefore.byId : fallbackById;
+    buildMassMarker("beforeSeed", snapById);
     let contract = getEconNpcWorldContractV1 ? getEconNpcWorldContractV1({ snapById }) : null;
     let accountsIncluded = contract ? contract.accountsIncluded : [];
     let accountsIncludedLen = contract ? contract.accountsIncludedLen : 0;
@@ -3516,6 +3734,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         notes.push("tax_probe_missing_after_seed");
       }
     }
+    buildMassMarker("afterSeed", getByIdSnapshot());
     if (seedRichNpc && notes.includes("seed_rich_npc_failed")) {
       return {
         ok: false,
@@ -3573,6 +3792,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       allowBattles: true,
       allowEventsTick: true
     });
+    buildMassMarker("afterTicks", getByIdSnapshot());
 
     refreshMoneyLogSnapshot();
     const logCandidatesAfter = collectLogSourceCandidates();
@@ -3633,6 +3853,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const snapAfter = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
       ? Game.__DEV.sumPointsSnapshot()
       : null;
+    if (snapAfter && snapAfter.byId) buildMassMarker("afterTax", snapAfter.byId);
     const worldMassAfter = snapAfter && snapAfter.byId ? accountsIncluded.reduce((sum, id) => {
       return sum + (Number.isFinite(snapAfter.byId[id]) ? (snapAfter.byId[id] | 0) : 0);
     }, 0) : null;
@@ -4287,6 +4508,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       hasGameStatePlayers: !!(St && St.players),
       hasSPlayers: !!(S && S.players),
       npcCount: npcIds.length,
+      npcAccountsAfterCount: accounts.length,
       econAccountsCount: accounts.length,
       missingNpcIdsSample: missing.slice(0, 5),
       buildTag: "build_2026_02_09b"
