@@ -92,23 +92,91 @@
 
   function ensureNpcEconAccounts(opts = {}){
     const S = getStateHandle();
-    if (!S || !S.players) return { ok: false, reason: "state_missing" };
     const St = (Game && Game.State) ? Game.State : null;
+    if (Game && !Game.__D) Game.__D = {};
+    const ensureDiag = {
+      called: true,
+      branch: null,
+      returnReason: null,
+      storageKey: null,
+      hasGameStatePlayers: !!(St && St.players),
+      hasSPlayers: !!(S && S.players),
+      playersKeyCountGame: St && St.players ? Object.keys(St.players).length : 0,
+      playersKeyCountS: S && S.players ? Object.keys(S.players).length : 0,
+      npcIdsSeenCount: 0,
+      npcIdsSeenSample: [],
+      createdIdsCount: 0,
+      createdIdsSample: [],
+      missingAfterCount: 0,
+      missingAfterIdsSample: [],
+      econAccountKeysCountS: S && S.players ? Object.keys(S.players).length : 0,
+      afterCount: 0,
+      whyNotCreated: null
+    };
+    if (Game && Game.__D) Game.__D.__lastEnsureNpcEconAccounts = ensureDiag;
+    if (!S) {
+      ensureDiag.returnReason = "state_missing";
+      ensureDiag.branch = "skip_no_players";
+      ensureDiag.storageKey = "none";
+      return { ok: false, reason: "state_missing", branch: "skip_no_players", ensureDiag };
+    }
+    let playersCreated = false;
+    if (!S.players) {
+      if (St && St.players) {
+        S.players = {};
+        Object.keys(St.players).forEach((id) => {
+          const p = St.players[id];
+          const pts = p && Number.isFinite(p.points) ? (p.points | 0) : 0;
+          S.players[id] = { id: String(id), points: pts, npc: !!(p && (p.npc === true || p.type === "npc")) };
+        });
+        ensureDiag.storageKey = "S.players<-Game.State.players";
+      } else {
+        S.players = {};
+        ensureDiag.storageKey = "S.players(empty)";
+      }
+      playersCreated = true;
+    } else {
+      ensureDiag.storageKey = "S.players";
+    }
     const sourcePlayers = (St && St.players) ? St.players : S.players;
     const npcIds = Object.keys(sourcePlayers || {}).filter(id => {
       const p = sourcePlayers[id];
       const pid = String(id || "");
       return pid.startsWith("npc_") || (p && (p.npc === true || p.type === "npc"));
     });
+    ensureDiag.npcIdsSeenCount = npcIds.length;
+    ensureDiag.npcIdsSeenSample = npcIds.slice(0, 5);
+    ensureDiag.playersKeyCountS = S.players ? Object.keys(S.players).length : 0;
+    ensureDiag.econAccountKeysCountS = ensureDiag.playersKeyCountS;
+    if (npcIds.length === 0) {
+      ensureDiag.branch = "skip_no_players";
+      ensureDiag.afterCount = ensureDiag.econAccountKeysCountS;
+      ensureDiag.whyNotCreated = "no_npc_ids";
+      return { ok: true, npcCount: 0, createdCount: 0, syncedCount: 0, skippedCount: 0, sampleIds: [], createdIds: [], syncedIds: [], skippedIds: [], errors: [], beforeTotal: null, afterTotal: null, delta: null, missingAfterCount: 0, branch: "skip_no_players", ensureDiag };
+    }
     const createdIds = [];
     const syncedIds = [];
     const skippedIds = [];
     const errors = [];
+    const missingBefore = [];
+    const econAccountsBefore = Object.keys(S.players || {}).filter(k => isNpcId(k)).length;
     const beforeSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
     const beforeTotal = (beforeSnap && Number.isFinite(beforeSnap.total)) ? (beforeSnap.total | 0) : null;
-    if (ensuringNpcAccounts) return { ok: false, reason: "reentrant" };
+    if (ensuringNpcAccounts) {
+      ensureDiag.returnReason = "reentrant";
+      ensureDiag.branch = "already_ok";
+      ensureDiag.whyNotCreated = "reentrant_guard";
+      ensureDiag.afterCount = ensureDiag.econAccountKeysCountS;
+      return { ok: false, reason: "reentrant", ensureDiag };
+    }
     ensuringNpcAccounts = true;
     try {
+      npcIds.forEach(id => {
+        const pid = String(id || "");
+        if (!pid) return;
+        if (!S.players[pid]) missingBefore.push(pid);
+        E.transferPoints("sink", pid, 0, "npc_account_init", { npcId: pid, reason: String(opts.reason || "ensure_npc_accounts") });
+      });
       npcIds.forEach(id => {
         const pid = String(id || "");
         if (!pid) return;
@@ -144,10 +212,51 @@
     }
     const afterSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
     const afterTotal = (afterSnap && Number.isFinite(afterSnap.total)) ? (afterSnap.total | 0) : null;
+    const delta = (beforeTotal != null && afterTotal != null) ? (afterTotal - beforeTotal) : null;
+    const missingAfterIds = npcIds.filter(id => {
+      const pid = String(id || "");
+      return !S.players[pid];
+    });
+    const missingAfterCount = missingAfterIds.length;
+    ensureDiag.missingAfterCount = missingAfterCount;
+    ensureDiag.missingAfterIdsSample = missingAfterIds.slice(0, 5);
+    const createdCount = missingBefore.filter(id => !missingAfterIds.includes(id)).length;
+    let branch = "already_ok";
+    if (playersCreated) branch = "created_s_players";
+    if (missingBefore.length > 0) branch = "created_missing_npc_accounts";
+    ensureDiag.branch = branch;
+    ensureDiag.createdIdsCount = createdCount;
+    ensureDiag.createdIdsSample = missingBefore.slice(0, 5);
+    ensureDiag.econAccountKeysCountS = S.players ? Object.keys(S.players).length : 0;
+    ensureDiag.afterCount = ensureDiag.econAccountKeysCountS;
+    if (createdCount === 0) {
+      ensureDiag.whyNotCreated = (missingBefore.length === 0) ? "already_present" : "create_failed";
+    }
+    if (isDevFlag()) {
+      try {
+        const econAccountsAfter = Object.keys(S.players || {}).filter(k => isNpcId(k)).length;
+        console.warn("ECON_NPC_ENSURE_V2", {
+          called: true,
+          npcIdsSeen: npcIds.length,
+          econAccountsBefore,
+          econAccountsAfter,
+          createdIds: createdIds.slice(0, 5),
+          createdCount,
+          syncedCount: syncedIds.length,
+          skippedCount: skippedIds.length,
+          beforeTotal,
+          afterTotal,
+          delta,
+          missingAfterCount,
+          branch,
+          reason: String(opts.reason || "ensure_npc_accounts")
+        });
+      } catch (_) {}
+    }
     return {
       ok: true,
       npcCount: npcIds.length,
-      createdCount: createdIds.length,
+      createdCount,
       syncedCount: syncedIds.length,
       skippedCount: skippedIds.length,
       sampleIds: npcIds.slice(0, 5),
@@ -156,7 +265,11 @@
       skippedIds,
       errors,
       beforeTotal,
-      afterTotal
+      afterTotal,
+      delta,
+      missingAfterCount,
+      branch,
+      ensureDiag
     };
   }
 
@@ -642,9 +755,27 @@
   E.transferPoints = function (fromId, toId, amount, reason, meta = {}) {
     ensureDebugStore();
     const n = Number(amount || 0);
-    if (!Number.isFinite(n) || n <= 0) return { ok: false, reason: "bad_amount" };
+    const r0 = String(reason || "");
+    if (!Number.isFinite(n) || n <= 0) {
+      if (n === 0 && r0 === "npc_account_init") {
+        const from = getAccount(fromId);
+        const to = getAccount(toId);
+        if (!from || !to) return { ok: false, reason: "bad_account" };
+        logTransfer({
+          time: Date.now(),
+          sourceId: String(fromId),
+          targetId: String(toId),
+          amount: 0,
+          reason: r0,
+          battleId: meta && meta.battleId ? meta.battleId : null,
+          meta: meta || null
+        });
+        return { ok: true, noop: true, reason: "npc_account_init" };
+      }
+      return { ok: false, reason: "bad_amount" };
+    }
     try {
-      const r = String(reason || "");
+      const r = r0;
       if (r.startsWith("battle_") && (!meta || !meta.battleId)) {
         if (Game && Game.__D && Game.__D.FORCE_CIRCULATION === true) {
           let stackHead = "";
@@ -778,62 +909,77 @@
     const id = String(npcId || "");
     if (!id) {
       res.notes.push("npc_missing");
+      res.taxAttempt = { npcId: id, npcPtsBefore: 0, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     try {
       if (typeof ensureNpcEconAccounts === "function") {
-        ensureNpcEconAccounts({ reason: "wealth_tax" });
+        const ensureRes = ensureNpcEconAccounts({ reason: "wealth_tax" }) || null;
+        if (ensureRes && Number.isFinite(ensureRes.missingAfterCount) && ensureRes.missingAfterCount > 0) {
+          res.notes.push("npc_accounts_missing_after_ensure");
+          res.ensureMissingAfterCount = ensureRes.missingAfterCount;
+          res.taxAttempt = { npcId: id, npcPtsBefore: res.npcPtsBefore, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+          if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
+          return res;
+        }
       } else {
         ensureNpcAccountsFromState();
       }
     } catch (e) {
       res.notes.push("npc_account_migrate_failed");
       res.error = String(e && e.message ? e.message : e);
+      res.taxAttempt = { npcId: id, npcPtsBefore: res.npcPtsBefore, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     const acc = getAccount(id);
     if (!acc) {
       res.notes.push("npc_account_missing");
       res.stage = "npc_account_missing";
+      res.taxAttempt = { npcId: id, npcPtsBefore: res.npcPtsBefore, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     const isNpc = !!(acc.npc === true || acc.type === "npc" || id.startsWith("npc_"));
     if (!isNpc) {
       res.notes.push("not_npc");
+      res.taxAttempt = { npcId: id, npcPtsBefore: res.npcPtsBefore, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     let before = Number.isFinite(npcPtsBefore) ? (npcPtsBefore | 0) : (acc.points | 0);
     if (!Number.isFinite(npcPtsBefore) || npcPtsBefore <= 0) {
-      if (Number.isFinite(acc.points) && (acc.points | 0) > 0) {
-        before = acc.points | 0;
-      } else {
-        const St = (Game && Game.State) ? Game.State : null;
-        const stPts = (St && St.players && St.players[id] && Number.isFinite(St.players[id].points))
-          ? (St.players[id].points | 0)
-          : null;
-        if (stPts != null) before = stPts;
-      }
+      before = acc.points | 0;
     }
     res.npcPtsBefore = before;
     if (before <= NPC_TAX_SOFT_CAP) {
       res.notes.push("below_threshold");
+      res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     const bankBal = getWorldBankBalance();
     if (bankBal >= WORLD_BANK_SOFT_CAP) {
       res.notes.push("bank_soft_cap");
       res.bankBalance = bankBal;
+      res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: true, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     let taxAmount = 1;
     if (before >= (NPC_TAX_SOFT_CAP + 10)) taxAmount = Math.min(NPC_TAX_MAX_PER_TXN, 2);
     if (taxAmount <= 0) {
       res.notes.push("tax_zero");
+      res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     const curPts = (acc.points | 0);
     if (curPts < taxAmount) {
       res.notes.push("npc_insufficient");
+      res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     const meta = Object.assign({}, ctx || {}, {
@@ -848,10 +994,14 @@
     if (!tx || tx.ok !== true) {
       res.ok = false;
       res.notes.push("tax_transfer_failed");
+      res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+      if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
     res.taxApplied = true;
     res.taxAmount = taxAmount;
+    res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
+    if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
     return res;
   }
 
