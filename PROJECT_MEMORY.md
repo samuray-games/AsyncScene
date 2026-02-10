@@ -2443,3 +2443,10 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Added `Game.__DEV.dumpMoneyLogSourcesOnce` that emits `WORLD_MONEYLOG_SOURCES_V1_BEGIN`/`END` plus JSON summary with `candidates` and `best` to diagnose `logSource:"none"` and `rowsScoped:0`. Targeted smoke: `Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}})`; PASS when `best.len>0`. Logged even if fail.
 2026-02-10 — ECON-NPC [1.5] Variant A ensureNpcEconAccounts.
 - Added `ensureNpcEconAccounts` in `AsyncScene/Web/conflict/conflict-economy.js` to reconcile npc_* econ accounts via `npc_account_sync` transfers to/from `sink` (zero-sum) and wired `ensureNpcAccountsFromState`/`applyNpcWealthTaxIfNeeded` to call it. Wealth-tax pack now includes `diag.ensureNpcAccounts`. Runtime status: FAIL pending QA (latest Console.txt shows `Can't find variable: taxProbe`, `logSource:"none"`, `rowsScoped:0`).
+2026-02-11 — ECON-NPC [1.5] wealth-tax evidence FAIL (runtime).
+2026-02-10 — ECON-NPC [1.5] wealth-tax evidence FAIL (Console.txt, build_2026_02_09b):
+- Markers present: `WEALTH_TAX_EVIDENCE_BEGIN` → chunked JSON parts → `WEALTH_TAX_EVIDENCE_END` → `WEALTH_TAX_EVIDENCE_FLUSH`/`FLUSH_POST`.
+- Evidence: `diag.ensureNpcAccounts.createdCount=0`, `missingAfterCount=19`, `totalTaxInWindow=0`, `world.delta=-1`, no `world_tax_in/out`.
+- Second run shows `logSource:"none"` and `rowsScoped:0` with `seedFailureReason:"seed_target_not_reached"`.
+- Status: FAIL (await runtime PASS).
+- После двух pack и smoke tail: `WEALTH_TAX_EVIDENCE_BEGIN`…`FLUSH_POST` выводится, `diag.ensureNpcAccounts.createdCount=0` и `missingAfterCount=19`, `logSource:"debug_moneyLog"`, `rowsScoped=206`, `world.delta` 2/6, `totalTaxInWindow=0`, `notes` include `tax_probe_missing_after_seed`, `world_tax_total_zero`, `world_tax_in_missing`. No `world_tax_in/world_tax_out` rows and world delta non-zero → FAIL.

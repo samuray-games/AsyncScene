@@ -897,5 +897,13 @@
     - JSON#1 `ok:true`, asserts `noTotalsNullAll/noWorldMassDriftAll/noExceptionAll/hasWorldTaxInAtLeastOnce` true
     - JSON#2 contains `r50`, `r10a`, `r10b`
     - `WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END`
-- Update (2026-02-10): Variant A infra — добавлен `ensureNpcEconAccounts` (sync через `npc_account_sync` transfer с `sink` для сохранения zero-sum), `ensureNpcAccountsFromState` теперь использует его, `applyNpcWealthTaxIfNeeded` вызывает ensure перед налогом. Evidence pack пишет `diag.ensureNpcAccounts`. Status: FAIL pending QA.
-- Runtime evidence baseline (Console.txt 2026-02-10): `WEALTH_TAX_EVIDENCE_*` показывает `notes:["exception"]` с `Can't find variable: taxProbe`, `logSource:"none"`, `rowsScoped:0`. Требуется новый smoke после фикса.
++ Update (2026-02-10): Variant A infra — добавлен `ensureNpcEconAccounts` (sync через `npc_account_sync` transfer с `sink` для сохранения zero-sum), `ensureNpcAccountsFromState` теперь использует его, `applyNpcWealthTaxIfNeeded` вызывает ensure перед налогом. Evidence pack пишет `diag.ensureNpcAccounts`. Status: FAIL (latest Console.txt shows 2 packs & smoke, but `totalTaxInWindow=0`, `world.delta=2`/`6`, `notes` include `tax_probe_missing_after_seed`, `world_tax_in_missing`, flush markers present).
++ Mini-check (P0 QA coverage, dump markers): маркеры `WEALTH_TAX_EVIDENCE_BEGIN`…`FLUSH_POST` реализованы, flush вызывает `__CONSOLE_TAPE_FLUSH__` и логирует `FLUSH_POST`. Статус: PASS (code confirmed); runtime evidence missing due to tax_missing.
++ Runtime evidence (Console.txt 2026-02-11): two packs show `logSource:"debug_moneyLog"`, `rowsScoped:206`, `worldDelta` ≠0, `totalTaxInWindow:0`, `diag.ensureNpcAccounts.createdCount=0`, `notes` include `world_tax_total_zero`, `tax_missing`. No `world_tax_in/world_tax_out`. Need targetded fix.
+ Update (2026-02-10): runtime FAIL (Console.txt, build_2026_02_09b) after ensureNpcEconAccounts v2:
+  - `WEALTH_TAX_EVIDENCE_BEGIN`
+  - `WEALTH_TAX_EVIDENCE_JSON_1_PART ... "world":{"beforeTotal":211,"afterTotal":210,"delta":-1} ... "tax":{"totalTaxInWindow":0} ... "diag":{"logSource":"debug_moneyLog","rowsScoped":206,"ensureNpcAccounts":{"createdCount":0,"missingAfterCount":19} ... "taxProbe":{"why":"tax_missing"}}`
+  - `WEALTH_TAX_EVIDENCE_JSON_2_PART ... "worldDelta":-1 ... "diag":{"logSourceChosen":"debug_moneyLog","rowsScoped":206,"ensureNpcAccounts":{"createdCount":0,"missingAfterCount":19}}`
+  - `WEALTH_TAX_EVIDENCE_END` + `WEALTH_TAX_EVIDENCE_FLUSH` + `WEALTH_TAX_EVIDENCE_FLUSH_POST`
+  - Second run in same tail shows `logSource:"none"`, `rowsScoped:0`, `seedFailureReason:"seed_target_not_reached"`, `ensureNpcAccounts.createdCount=0`, `missingAfterCount=19`.
+  - Status: FAIL (accounts not created in ensure path, tax missing, world.delta != 0).

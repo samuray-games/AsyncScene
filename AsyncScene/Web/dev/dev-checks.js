@@ -3607,6 +3607,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         .map(r => String(r && r.reason || ""));
     }
     const taxRows = newRows.filter(r => r && r.reason === "world_tax_in" && String(r.sourceId || "").startsWith("npc_"));
+    const taxOutRows = newRows.filter(r => r && r.reason === "world_tax_out");
     const totalTaxInWindow = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
     const byNpc = Object.create(null);
     taxRows.forEach(r => {
@@ -3741,6 +3742,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         snapshotOk,
         snapshotWhy,
         scopedLen,
+        worldTaxRowsInWindow: {
+          world_tax_in: taxRows.length,
+          world_tax_out: taxOutRows.length
+        },
         accountsIncludedLen: accountsIncludedLenAfter,
         accountsIncludedHash,
         worldContractName,
@@ -4208,6 +4213,26 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
     dumpLine("WEALTH_TAX_EVIDENCE_BEGIN");
+    try {
+      const ensureDiag = npcEnsureDiag && npcEnsureDiag.ensureDiag ? npcEnsureDiag.ensureDiag : null;
+      const attempt = (smokeRes && smokeRes.diag && smokeRes.diag.taxAttempt) ? smokeRes.diag.taxAttempt
+        : (Game.__D && Game.__D.__lastNpcWealthTaxAttempt) ? Game.__D.__lastNpcWealthTaxAttempt
+        : null;
+      const probe = smokeRes && smokeRes.diag && smokeRes.diag.taxProbe ? smokeRes.diag.taxProbe : null;
+      const worldTaxRows = smokeRes && smokeRes.diag && smokeRes.diag.worldTaxRowsInWindow ? smokeRes.diag.worldTaxRowsInWindow : null;
+      const attemptDiag = {
+        taxAttempted: !!(probe && probe.attempted),
+        taxApplied: !!(probe && probe.applied),
+        npcAccountsAfterCount: Number.isFinite(ensureDiag && ensureDiag.afterCount) ? ensureDiag.afterCount : (Number.isFinite(npcAccountCount) ? npcAccountCount : 0),
+        missingNpcAccountsAfterCount: Number.isFinite(ensureDiag && ensureDiag.missingAfterCount) ? ensureDiag.missingAfterCount : (npcAccountsMissingLen || 0),
+        seedRichNpc: !!(smokeRes && smokeRes.diag && smokeRes.diag.seedRichNpc),
+        topGateReason: (probe && probe.why) ? String(probe.why) : (attempt && Array.isArray(attempt.notes) && attempt.notes.length ? String(attempt.notes[0]) : "unknown"),
+        windowLastN: (smokeRes && smokeRes.diag && Number.isFinite(smokeRes.diag.scopeWindowLastN)) ? smokeRes.diag.scopeWindowLastN : (opts && opts.window && Number.isFinite(opts.window.lastN) ? (opts.window.lastN | 0) : null),
+        rowsScoped: Number.isFinite(smokeRes && smokeRes.meta && smokeRes.meta.rowsScoped) ? smokeRes.meta.rowsScoped : rowsScoped,
+        worldTaxRowsInWindow: worldTaxRows || { world_tax_in: 0, world_tax_out: 0 }
+      };
+      dumpLine(`WEALTH_TAX_ATTEMPT_DIAG ${JSON.stringify(attemptDiag)}`);
+    } catch (_) {}
     const json1Rows = chunkString(JSON.stringify(json1));
     json1Rows.forEach((chunk, index) => {
       dumpLine(`WEALTH_TAX_EVIDENCE_JSON_1_PART ${index + 1}/${json1Rows.length} ${chunk}`);
