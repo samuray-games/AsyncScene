@@ -10606,3 +10606,446 @@
 {"ts": 1770720396114, "sessionId": "session-1770720362119-a8ef", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
 {"ts": 1770720406506, "sessionId": "session-1770720362119-a8ef", "type": "chat", "name": "Ксю", "text": "@Кирилл олегович, не тяни, скажи прямо", "system": false}
 {"ts": 1770720411160, "sessionId": "session-1770720362119-a8ef", "type": "chat", "name": "Юна", "text": "@Neko, вот это было красиво", "system": false}
+{"ts": 1770720585957, "sessionId": "session-1770720582298-buww", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720638575_6808"}}
+{"ts": 1770720638575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770720638575_6808"}}
+{"ts": 1770720638575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720638575_6808"}}
+{"ts": 1770720638575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720638575_6808"}}
+{"ts": 1770720638575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720638575_6808"}}
+{"ts": 1770720688575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720688575_6390"}}
+{"ts": 1770720688575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770720688575_6390"}}
+{"ts": 1770720688575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720688575_6390"}}
+{"ts": 1770720688575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720688575_6390"}}
+{"ts": 1770720688575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720688575_6390"}}
+{"ts": 1770720738575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720738575_1279"}}
+{"ts": 1770720738575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720738575_1279"}}
+{"ts": 1770720738575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720738575_1279"}}
+{"ts": 1770720738575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720738575_1279"}}
+{"ts": 1770720788575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720788575_2142"}}
+{"ts": 1770720788575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720788575_2142"}}
+{"ts": 1770720788575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720788575_2142"}}
+{"ts": 1770720788575, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720788575_2142"}}
+{"ts": 1770720633851, "sessionId": "session-1770720582298-buww", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770720635479, "sessionId": "session-1770720582298-buww", "type": "chat", "name": "Королева", "text": "кто орет тот и неправ", "system": false}
+{"ts": 1770722323392, "sessionId": "session-1770722318489-ktva", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770722376076, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722376076_7125"}}
+{"ts": 1770722376076, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770722376076_7125"}}
+{"ts": 1770722376076, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722376076_7125"}}
+{"ts": 1770722376076, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722376076_7125"}}
+{"ts": 1770722376076, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722376076_7125"}}
+{"ts": 1770722376317, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722376317_146"}}
+{"ts": 1770722376317, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770722376317_146"}}
+{"ts": 1770722376317, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722376317_146"}}
+{"ts": 1770722376317, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722376317_146"}}
+{"ts": 1770722376317, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722376317_146"}}
+{"ts": 1770722376443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722376443_6808"}}
+{"ts": 1770722376443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770722376443_6808"}}
+{"ts": 1770722376443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722376443_6808"}}
+{"ts": 1770722376443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722376443_6808"}}
+{"ts": 1770722376443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722376443_6808"}}
+{"ts": 1770722426443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722426443_7359"}}
+{"ts": 1770722426443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770722426443_7359"}}
+{"ts": 1770722426443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722426443_7359"}}
+{"ts": 1770722426443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722426443_7359"}}
+{"ts": 1770722426443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722426443_7359"}}
+{"ts": 1770722476443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722476443_3730"}}
+{"ts": 1770722476443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722476443_3730"}}
+{"ts": 1770722476443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722476443_3730"}}
+{"ts": 1770722476443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722476443_3730"}}
+{"ts": 1770722526443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722526443_8967"}}
+{"ts": 1770722526443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722526443_8967"}}
+{"ts": 1770722526443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722526443_8967"}}
+{"ts": 1770722526443, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722526443_8967"}}
+{"ts": 1770722389476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722389476_6808"}}
+{"ts": 1770722389476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770722389476_6808"}}
+{"ts": 1770722389476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722389476_6808"}}
+{"ts": 1770722389476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722389476_6808"}}
+{"ts": 1770722389476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722389476_6808"}}
+{"ts": 1770722439476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722439476_4842"}}
+{"ts": 1770722439476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722439476_4842"}}
+{"ts": 1770722439476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722439476_4842"}}
+{"ts": 1770722439476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722439476_4842"}}
+{"ts": 1770722489476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722489476_6244"}}
+{"ts": 1770722489476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722489476_6244"}}
+{"ts": 1770722489476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722489476_6244"}}
+{"ts": 1770722489476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722489476_6244"}}
+{"ts": 1770722539476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722539476_8839"}}
+{"ts": 1770722539476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722539476_8839"}}
+{"ts": 1770722539476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722539476_8839"}}
+{"ts": 1770722539476, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722539476_8839"}}
+{"ts": 1770722393562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722393562_6808"}}
+{"ts": 1770722393562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770722393562_6808"}}
+{"ts": 1770722393562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722393562_6808"}}
+{"ts": 1770722393562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722393562_6808"}}
+{"ts": 1770722393562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722393562_6808"}}
+{"ts": 1770722443562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722443562_4842"}}
+{"ts": 1770722443562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722443562_4842"}}
+{"ts": 1770722443562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722443562_4842"}}
+{"ts": 1770722443562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722443562_4842"}}
+{"ts": 1770722493562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722493562_6244"}}
+{"ts": 1770722493562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722493562_6244"}}
+{"ts": 1770722493562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722493562_6244"}}
+{"ts": 1770722493562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722493562_6244"}}
+{"ts": 1770722543562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770722543562_8017"}}
+{"ts": 1770722543562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770722543562_8017"}}
+{"ts": 1770722543562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770722543562_8017"}}
+{"ts": 1770722543562, "sessionId": "session-1770722318489-ktva", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770722543562_8017"}}
+{"ts": 1770722366382, "sessionId": "session-1770722318489-ktva", "type": "chat", "name": "Олег", "text": "@Ксю, не тяни, я не люблю ожидание", "system": false}
+{"ts": 1770722366387, "sessionId": "session-1770722318489-ktva", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770722366519, "sessionId": "session-1770722318489-ktva", "type": "chat", "name": "Слава", "text": "@Кирилл олегович, че по 💰, при бабле", "system": false}
+{"ts": 1770723041668, "sessionId": "session-1770723037340-x19p", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770723101483, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723101483_7125"}}
+{"ts": 1770723101483, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723101483_7125"}}
+{"ts": 1770723101483, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723101483_7125"}}
+{"ts": 1770723101483, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723101483_7125"}}
+{"ts": 1770723101483, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723101483_7125"}}
+{"ts": 1770723101944, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723101944_146"}}
+{"ts": 1770723101944, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723101944_146"}}
+{"ts": 1770723101944, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723101944_146"}}
+{"ts": 1770723101944, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723101944_146"}}
+{"ts": 1770723101944, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723101944_146"}}
+{"ts": 1770723102045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723102045_6808"}}
+{"ts": 1770723102045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723102045_6808"}}
+{"ts": 1770723102045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723102045_6808"}}
+{"ts": 1770723102045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723102045_6808"}}
+{"ts": 1770723102045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723102045_6808"}}
+{"ts": 1770723152045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723152045_8249"}}
+{"ts": 1770723152045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723152045_8249"}}
+{"ts": 1770723152045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723152045_8249"}}
+{"ts": 1770723152045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723152045_8249"}}
+{"ts": 1770723152045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723152045_8249"}}
+{"ts": 1770723202045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723202045_260"}}
+{"ts": 1770723202045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723202045_260"}}
+{"ts": 1770723202045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723202045_260"}}
+{"ts": 1770723202045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723202045_260"}}
+{"ts": 1770723252045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723252045_8404"}}
+{"ts": 1770723252045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723252045_8404"}}
+{"ts": 1770723252045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723252045_8404"}}
+{"ts": 1770723252045, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723252045_8404"}}
+{"ts": 1770723147453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723147453_6808"}}
+{"ts": 1770723147453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723147453_6808"}}
+{"ts": 1770723147453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723147453_6808"}}
+{"ts": 1770723147453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723147453_6808"}}
+{"ts": 1770723147453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723147453_6808"}}
+{"ts": 1770723197453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723197453_4842"}}
+{"ts": 1770723197453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723197453_4842"}}
+{"ts": 1770723197453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723197453_4842"}}
+{"ts": 1770723197453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723197453_4842"}}
+{"ts": 1770723247453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723247453_6244"}}
+{"ts": 1770723247453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723247453_6244"}}
+{"ts": 1770723247453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723247453_6244"}}
+{"ts": 1770723247453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723247453_6244"}}
+{"ts": 1770723297453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723297453_6480"}}
+{"ts": 1770723297453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723297453_6480"}}
+{"ts": 1770723297453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723297453_6480"}}
+{"ts": 1770723297453, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723297453_6480"}}
+{"ts": 1770723148387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723148387_6808"}}
+{"ts": 1770723148387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723148387_6808"}}
+{"ts": 1770723148387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723148387_6808"}}
+{"ts": 1770723148387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723148387_6808"}}
+{"ts": 1770723148387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723148387_6808"}}
+{"ts": 1770723198387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723198387_4842"}}
+{"ts": 1770723198387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723198387_4842"}}
+{"ts": 1770723198387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723198387_4842"}}
+{"ts": 1770723198387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723198387_4842"}}
+{"ts": 1770723248387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723248387_6244"}}
+{"ts": 1770723248387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723248387_6244"}}
+{"ts": 1770723248387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723248387_6244"}}
+{"ts": 1770723248387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723248387_6244"}}
+{"ts": 1770723298387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723298387_8017"}}
+{"ts": 1770723298387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723298387_8017"}}
+{"ts": 1770723298387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723298387_8017"}}
+{"ts": 1770723298387, "sessionId": "session-1770723037340-x19p", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723298387_8017"}}
+{"ts": 1770723101327, "sessionId": "session-1770723037340-x19p", "type": "chat", "name": "Грустный", "text": "кринж на площади, но я остаюсь", "system": false}
+{"ts": 1770723101331, "sessionId": "session-1770723037340-x19p", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770723101415, "sessionId": "session-1770723037340-x19p", "type": "chat", "name": "Горячий", "text": "кто-то сегодня токсик, не я", "system": false}
+{"ts": 1770723335715, "sessionId": "session-1770723331243-mykf", "type": "chat", "name": "Владимир Иванович", "text": "Коп на связи. Держим порядок.", "system": false}
+{"ts": 1770723394038, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723394038_7125"}}
+{"ts": 1770723394038, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723394038_7125"}}
+{"ts": 1770723394038, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723394038_7125"}}
+{"ts": 1770723394038, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723394038_7125"}}
+{"ts": 1770723394038, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723394038_7125"}}
+{"ts": 1770723394288, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723394288_146"}}
+{"ts": 1770723394288, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723394288_146"}}
+{"ts": 1770723394288, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723394288_146"}}
+{"ts": 1770723394288, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723394288_146"}}
+{"ts": 1770723394288, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723394288_146"}}
+{"ts": 1770723394412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723394412_6808"}}
+{"ts": 1770723394412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723394412_6808"}}
+{"ts": 1770723394412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723394412_6808"}}
+{"ts": 1770723394412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723394412_6808"}}
+{"ts": 1770723394412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723394412_6808"}}
+{"ts": 1770723444412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723444412_8903"}}
+{"ts": 1770723444412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723444412_8903"}}
+{"ts": 1770723444412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723444412_8903"}}
+{"ts": 1770723444412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723444412_8903"}}
+{"ts": 1770723444412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723444412_8903"}}
+{"ts": 1770723494412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723494412_1190"}}
+{"ts": 1770723494412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723494412_1190"}}
+{"ts": 1770723494412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723494412_1190"}}
+{"ts": 1770723494412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723494412_1190"}}
+{"ts": 1770723544412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723544412_5595"}}
+{"ts": 1770723544412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723544412_5595"}}
+{"ts": 1770723544412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723544412_5595"}}
+{"ts": 1770723544412, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723544412_5595"}}
+{"ts": 1770723423915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723423915_6808"}}
+{"ts": 1770723423915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723423915_6808"}}
+{"ts": 1770723423915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723423915_6808"}}
+{"ts": 1770723423915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723423915_6808"}}
+{"ts": 1770723423915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723423915_6808"}}
+{"ts": 1770723473915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723473915_4842"}}
+{"ts": 1770723473915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723473915_4842"}}
+{"ts": 1770723473915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723473915_4842"}}
+{"ts": 1770723473915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723473915_4842"}}
+{"ts": 1770723523915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723523915_6244"}}
+{"ts": 1770723523915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723523915_6244"}}
+{"ts": 1770723523915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723523915_6244"}}
+{"ts": 1770723523915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723523915_6244"}}
+{"ts": 1770723573915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723573915_3584"}}
+{"ts": 1770723573915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723573915_3584"}}
+{"ts": 1770723573915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723573915_3584"}}
+{"ts": 1770723573915, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723573915_3584"}}
+{"ts": 1770723424952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723424952_6808"}}
+{"ts": 1770723424952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723424952_6808"}}
+{"ts": 1770723424952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723424952_6808"}}
+{"ts": 1770723424952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723424952_6808"}}
+{"ts": 1770723424952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723424952_6808"}}
+{"ts": 1770723474952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723474952_4842"}}
+{"ts": 1770723474952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723474952_4842"}}
+{"ts": 1770723474952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723474952_4842"}}
+{"ts": 1770723474952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723474952_4842"}}
+{"ts": 1770723524952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723524952_6244"}}
+{"ts": 1770723524952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723524952_6244"}}
+{"ts": 1770723524952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723524952_6244"}}
+{"ts": 1770723524952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723524952_6244"}}
+{"ts": 1770723574952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723574952_8017"}}
+{"ts": 1770723574952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723574952_8017"}}
+{"ts": 1770723574952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723574952_8017"}}
+{"ts": 1770723574952, "sessionId": "session-1770723331243-mykf", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723574952_8017"}}
+{"ts": 1770723376564, "sessionId": "session-1770723331243-mykf", "type": "chat", "name": "Глеб", "text": "@Олег, пошли выйдем, побазарим", "system": false}
+{"ts": 1770723376565, "sessionId": "session-1770723331243-mykf", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770723382646, "sessionId": "session-1770723331243-mykf", "type": "chat", "name": "Горячий", "text": "@Слабак, я тебя понял", "system": false}
+{"ts": 1770723385860, "sessionId": "session-1770723331243-mykf", "type": "chat", "name": "Троль", "text": "щас будет жарко", "system": false}
+{"ts": 1770723817529, "sessionId": "session-1770723813427-vo7l", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770723875580, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723875580_7125"}}
+{"ts": 1770723875580, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723875580_7125"}}
+{"ts": 1770723875580, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723875580_7125"}}
+{"ts": 1770723875580, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723875580_7125"}}
+{"ts": 1770723875580, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723875580_7125"}}
+{"ts": 1770723875855, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723875855_146"}}
+{"ts": 1770723875855, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723875855_146"}}
+{"ts": 1770723875855, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723875855_146"}}
+{"ts": 1770723875855, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723875855_146"}}
+{"ts": 1770723875855, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723875855_146"}}
+{"ts": 1770723875947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723875947_6808"}}
+{"ts": 1770723875947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723875947_6808"}}
+{"ts": 1770723875947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723875947_6808"}}
+{"ts": 1770723875947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723875947_6808"}}
+{"ts": 1770723875947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723875947_6808"}}
+{"ts": 1770723925947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723925947_8903"}}
+{"ts": 1770723925947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723925947_8903"}}
+{"ts": 1770723925947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723925947_8903"}}
+{"ts": 1770723925947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723925947_8903"}}
+{"ts": 1770723925947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723925947_8903"}}
+{"ts": 1770723975947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723975947_260"}}
+{"ts": 1770723975947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723975947_260"}}
+{"ts": 1770723975947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723975947_260"}}
+{"ts": 1770723975947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723975947_260"}}
+{"ts": 1770724025947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724025947_4563"}}
+{"ts": 1770724025947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724025947_4563"}}
+{"ts": 1770724025947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724025947_4563"}}
+{"ts": 1770724025947, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724025947_4563"}}
+{"ts": 1770723945892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723945892_6808"}}
+{"ts": 1770723945892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770723945892_6808"}}
+{"ts": 1770723945892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723945892_6808"}}
+{"ts": 1770723945892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723945892_6808"}}
+{"ts": 1770723945892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723945892_6808"}}
+{"ts": 1770723995892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770723995892_4842"}}
+{"ts": 1770723995892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770723995892_4842"}}
+{"ts": 1770723995892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770723995892_4842"}}
+{"ts": 1770723995892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770723995892_4842"}}
+{"ts": 1770724045892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724045892_1799"}}
+{"ts": 1770724045892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724045892_1799"}}
+{"ts": 1770724045892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724045892_1799"}}
+{"ts": 1770724045892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724045892_1799"}}
+{"ts": 1770724095892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724095892_1239"}}
+{"ts": 1770724095892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724095892_1239"}}
+{"ts": 1770724095892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724095892_1239"}}
+{"ts": 1770724095892, "sessionId": "session-1770723813427-vo7l", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724095892_1239"}}
+{"ts": 1770723906793, "sessionId": "session-1770723813427-vo7l", "type": "chat", "name": "Горячий", "text": "сегодня пахнет баттлами", "system": false}
+{"ts": 1770723906838, "sessionId": "session-1770723813427-vo7l", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770723907578, "sessionId": "session-1770723813427-vo7l", "type": "chat", "name": "Слабак", "text": "я тебя понял", "system": false}
+{"ts": 1770724495029, "sessionId": "session-1770724491227-8upo", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770724553219, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724553219_7125"}}
+{"ts": 1770724553219, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724553219_7125"}}
+{"ts": 1770724553219, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724553219_7125"}}
+{"ts": 1770724553219, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724553219_7125"}}
+{"ts": 1770724553219, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724553219_7125"}}
+{"ts": 1770724553499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724553499_146"}}
+{"ts": 1770724553499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724553499_146"}}
+{"ts": 1770724553499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724553499_146"}}
+{"ts": 1770724553499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724553499_146"}}
+{"ts": 1770724553499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724553499_146"}}
+{"ts": 1770724603499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724603499_2177"}}
+{"ts": 1770724603499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724603499_2177"}}
+{"ts": 1770724603499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724603499_2177"}}
+{"ts": 1770724603499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724603499_2177"}}
+{"ts": 1770724653499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724653499_2910"}}
+{"ts": 1770724653499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724653499_2910"}}
+{"ts": 1770724653499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724653499_2910"}}
+{"ts": 1770724653499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724653499_2910"}}
+{"ts": 1770724703499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724703499_8967"}}
+{"ts": 1770724703499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724703499_8967"}}
+{"ts": 1770724703499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724703499_8967"}}
+{"ts": 1770724703499, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724703499_8967"}}
+{"ts": 1770724606046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724606046_6808"}}
+{"ts": 1770724606046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724606046_6808"}}
+{"ts": 1770724606046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724606046_6808"}}
+{"ts": 1770724606046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724606046_6808"}}
+{"ts": 1770724606046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724606046_6808"}}
+{"ts": 1770724656046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724656046_4842"}}
+{"ts": 1770724656046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724656046_4842"}}
+{"ts": 1770724656046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724656046_4842"}}
+{"ts": 1770724656046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724656046_4842"}}
+{"ts": 1770724706046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724706046_1799"}}
+{"ts": 1770724706046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724706046_1799"}}
+{"ts": 1770724706046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724706046_1799"}}
+{"ts": 1770724706046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724706046_1799"}}
+{"ts": 1770724756046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724756046_6480"}}
+{"ts": 1770724756046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724756046_6480"}}
+{"ts": 1770724756046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724756046_6480"}}
+{"ts": 1770724756046, "sessionId": "session-1770724491227-8upo", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724756046_6480"}}
+{"ts": 1770724559421, "sessionId": "session-1770724491227-8upo", "type": "chat", "name": "Ксю", "text": "@Горячий, ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770724559426, "sessionId": "session-1770724491227-8upo", "type": "chat", "name": "Система", "text": "Толпа решает: Юна хочет свалить от Грустный.", "system": true}
+{"ts": 1770724559607, "sessionId": "session-1770724491227-8upo", "type": "chat", "name": "Ветеран", "text": "сегодня пахнет баттлами", "system": false}
+{"ts": 1770724858816, "sessionId": "session-1770724854710-6g9s", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770724866863, "sessionId": "session-1770724854710-6g9s", "type": "chat", "name": "Королева", "text": "@Троль, кринж зашел в чат и сел", "system": false}
+{"ts": 1770724917201, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724917201_7125"}}
+{"ts": 1770724917201, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724917201_7125"}}
+{"ts": 1770724917201, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724917201_7125"}}
+{"ts": 1770724917201, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724917201_7125"}}
+{"ts": 1770724917201, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724917201_7125"}}
+{"ts": 1770724917405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724917405_146"}}
+{"ts": 1770724917405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724917405_146"}}
+{"ts": 1770724917405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724917405_146"}}
+{"ts": 1770724917405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724917405_146"}}
+{"ts": 1770724917405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724917405_146"}}
+{"ts": 1770724967405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724967405_8822"}}
+{"ts": 1770724967405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724967405_8822"}}
+{"ts": 1770724967405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724967405_8822"}}
+{"ts": 1770724967405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724967405_8822"}}
+{"ts": 1770724967405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724967405_8822"}}
+{"ts": 1770725017405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725017405_260"}}
+{"ts": 1770725017405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725017405_260"}}
+{"ts": 1770725017405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725017405_260"}}
+{"ts": 1770725017405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725017405_260"}}
+{"ts": 1770725067405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725067405_8967"}}
+{"ts": 1770725067405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725067405_8967"}}
+{"ts": 1770725067405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725067405_8967"}}
+{"ts": 1770725067405, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725067405_8967"}}
+{"ts": 1770724936286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724936286_6808"}}
+{"ts": 1770724936286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724936286_6808"}}
+{"ts": 1770724936286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724936286_6808"}}
+{"ts": 1770724936286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724936286_6808"}}
+{"ts": 1770724936286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724936286_6808"}}
+{"ts": 1770724986286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724986286_4842"}}
+{"ts": 1770724986286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724986286_4842"}}
+{"ts": 1770724986286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724986286_4842"}}
+{"ts": 1770724986286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724986286_4842"}}
+{"ts": 1770725036286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725036286_6244"}}
+{"ts": 1770725036286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725036286_6244"}}
+{"ts": 1770725036286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725036286_6244"}}
+{"ts": 1770725036286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725036286_6244"}}
+{"ts": 1770725086286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725086286_5672"}}
+{"ts": 1770725086286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725086286_5672"}}
+{"ts": 1770725086286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725086286_5672"}}
+{"ts": 1770725086286, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725086286_5672"}}
+{"ts": 1770724974675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724974675_6808"}}
+{"ts": 1770724974675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724974675_6808"}}
+{"ts": 1770724974675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724974675_6808"}}
+{"ts": 1770724974675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724974675_6808"}}
+{"ts": 1770724974675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724974675_6808"}}
+{"ts": 1770725024675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725024675_4842"}}
+{"ts": 1770725024675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725024675_4842"}}
+{"ts": 1770725024675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725024675_4842"}}
+{"ts": 1770725024675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725024675_4842"}}
+{"ts": 1770725074675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725074675_6244"}}
+{"ts": 1770725074675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725074675_6244"}}
+{"ts": 1770725074675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725074675_6244"}}
+{"ts": 1770725074675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725074675_6244"}}
+{"ts": 1770725124675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725124675_6480"}}
+{"ts": 1770725124675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725124675_6480"}}
+{"ts": 1770725124675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725124675_6480"}}
+{"ts": 1770725124675, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725124675_6480"}}
+{"ts": 1770724975376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770724975376_6808"}}
+{"ts": 1770724975376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770724975376_6808"}}
+{"ts": 1770724975376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770724975376_6808"}}
+{"ts": 1770724975376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770724975376_6808"}}
+{"ts": 1770724975376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770724975376_6808"}}
+{"ts": 1770725025376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725025376_4842"}}
+{"ts": 1770725025376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725025376_4842"}}
+{"ts": 1770725025376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725025376_4842"}}
+{"ts": 1770725025376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725025376_4842"}}
+{"ts": 1770725075376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725075376_6244"}}
+{"ts": 1770725075376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725075376_6244"}}
+{"ts": 1770725075376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725075376_6244"}}
+{"ts": 1770725075376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725075376_6244"}}
+{"ts": 1770725125376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770725125376_8017"}}
+{"ts": 1770725125376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770725125376_8017"}}
+{"ts": 1770725125376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770725125376_8017"}}
+{"ts": 1770725125376, "sessionId": "session-1770724854710-6g9s", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770725125376_8017"}}
+{"ts": 1770724927729, "sessionId": "session-1770724854710-6g9s", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет, чтобы Горячий отвалил.", "system": true}
+{"ts": 1770724927802, "sessionId": "session-1770724854710-6g9s", "type": "chat", "name": "Королева", "text": "@Грустный, кто орет тот и неправ", "system": false}
+{"ts": 1770726598580, "sessionId": "session-1770726594756-1rx7", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770726613049, "sessionId": "session-1770726594756-1rx7", "type": "chat", "name": "Рин", "text": "@Юна, кто орет тот и неправ", "system": false}
+{"ts": 1770726622713, "sessionId": "session-1770726594756-1rx7", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770726683294, "sessionId": "session-1770726594756-1rx7", "type": "chat", "name": "Юна", "text": "@Кирилл олегович, интересно, чем это закончится", "system": false}
+{"ts": 1770726728891, "sessionId": "session-1770726725016-sxkw", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770726734056, "sessionId": "session-1770726725016-sxkw", "type": "chat", "name": "Ксю", "text": "я тебя внимательно слушаю", "system": false}
+{"ts": 1770726749274, "sessionId": "session-1770726725016-sxkw", "type": "chat", "name": "Ксю", "text": "@Грустный, ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770726752952, "sessionId": "session-1770726725016-sxkw", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770726757462, "sessionId": "session-1770726725016-sxkw", "type": "chat", "name": "Ксю", "text": "@Юна, я тебя внимательно слушаю", "system": false}
+{"ts": 1770727036738, "sessionId": "session-1770727032957-zsa4", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770727040382, "sessionId": "session-1770727032957-zsa4", "type": "chat", "name": "Слава", "text": "@Ray, а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770727054584, "sessionId": "session-1770727032957-zsa4", "type": "chat", "name": "Королева", "text": "@Ray, баттл это просто разговор с адреналином", "system": false}
+{"ts": 1770727105461, "sessionId": "session-1770727032957-zsa4", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770727105622, "sessionId": "session-1770727032957-zsa4", "type": "chat", "name": "Олег", "text": "@Алексей петрович, ну что, решился или дрогнул", "system": false}
+{"ts": 1770727105708, "sessionId": "session-1770727032957-zsa4", "type": "chat", "name": "Королева", "text": "@Аркадий петрович, атмосфера напряженная", "system": false}
+{"ts": 1770727118716, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Владимир Иванович", "text": "Не лезь к агрессивным.", "system": false}
+{"ts": 1770727127815, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Ксю", "text": "@Dara, ты вообще понимаешь где находишься", "system": false}
+{"ts": 1770727134864, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Слабак", "text": "@Dara, площадь как тикток, листаешь и не можешь остановиться", "system": false}
+{"ts": 1770727142822, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770727179443, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Глеб", "text": "@Грустный, а ну-ка, покажи аргумент", "system": false}
+{"ts": 1770727179444, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770727179547, "sessionId": "session-1770727114493-f92s", "type": "chat", "name": "Мемолог", "text": "я тебя понял", "system": false}
+{"ts": 1770727299678, "sessionId": "session-1770727295323-trt5", "type": "chat", "name": "Владимир Иванович", "text": "Фиксирую нарушение. Не лезьте.", "system": false}
+{"ts": 1770727316493, "sessionId": "session-1770727295323-trt5", "type": "chat", "name": "Слава", "text": "@Глеб, слыш, ты кто такой тут", "system": false}
+{"ts": 1770727324022, "sessionId": "session-1770727295323-trt5", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770727374876, "sessionId": "session-1770727295323-trt5", "type": "chat", "name": "Система", "text": "Толпа решает: Королева хочет свалить от Мемолог.", "system": true}
+{"ts": 1770727375007, "sessionId": "session-1770727295323-trt5", "type": "chat", "name": "Мемолог", "text": "ну и ладно", "system": false}
+{"ts": 1770727430328, "sessionId": "session-1770727426436-7dzr", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770727445227, "sessionId": "session-1770727426436-7dzr", "type": "chat", "name": "Глеб", "text": "ты ща ответишь, не тяни", "system": false}
+{"ts": 1770727454513, "sessionId": "session-1770727426436-7dzr", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770727456063, "sessionId": "session-1770727426436-7dzr", "type": "chat", "name": "Грустный", "text": "@Sigma, я в шоке, но читаю дальше", "system": false}
+{"ts": 1770727530437, "sessionId": "session-1770727426436-7dzr", "type": "chat", "name": "Егор", "text": "@Мемолог, либо отвечаешь, либо платишь", "system": false}
+{"ts": 1770727530562, "sessionId": "session-1770727426436-7dzr", "type": "chat", "name": "Слабак", "text": "мне смешно, но грустно", "system": false}
+{"ts": 1770727600081, "sessionId": "session-1770727593870-qx10", "type": "chat", "name": "Владимир Иванович", "text": "Увидел токсика/бандита — пиши в личку.", "system": false}
+{"ts": 1770727607312, "sessionId": "session-1770727593870-qx10", "type": "chat", "name": "Грустный", "text": "мне смешно, но грустно", "system": false}
+{"ts": 1770727699682, "sessionId": "session-1770727593870-qx10", "type": "chat", "name": "Макс", "text": "@Владимир иванович, я не торгуюсь долго", "system": false}
+{"ts": 1770727699685, "sessionId": "session-1770727593870-qx10", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770727699902, "sessionId": "session-1770727593870-qx10", "type": "chat", "name": "Грустный", "text": "щас будет жарко", "system": false}
+{"ts": 1770728874641, "sessionId": "session-1770728866520-hmrh", "type": "chat", "name": "Владимир Иванович", "text": "Провокации — мимо.", "system": false}
+{"ts": 1770728884051, "sessionId": "session-1770728866520-hmrh", "type": "chat", "name": "Юна", "text": "@Троль, атмосфера напряженная", "system": false}
+{"ts": 1770728898382, "sessionId": "session-1770728866520-hmrh", "type": "chat", "name": "Ксю", "text": "@Олег, не пытайся юлить", "system": false}
+{"ts": 1770728898645, "sessionId": "session-1770728866520-hmrh", "type": "chat", "name": "Система", "text": "Толпа решает. Вписывайся - кликни на имя в событиях. Вписывайся - кликни на имя, за кого ты.", "system": true}
+{"ts": 1770728906371, "sessionId": "session-1770728866520-hmrh", "type": "chat", "name": "Мемолог", "text": "@Юна, щас будет жарко", "system": false}

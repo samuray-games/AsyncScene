@@ -2456,3 +2456,26 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - `WORLD_MASS_V2 afterTicks`: totals 213/184/168/29 (delta +13), `topChangedIds` show worldBank(+19), sink(+9), me(+6), npc_weak(-8), npc_yuna(-3); `scopedMoneyLogAgg.byReasonTop5` still crowd-vote heavy, meaning ticks injected mass before tax.
 - `WORLD_MASS_V2 afterTax`: totals unchanged (213/184/168/29), so applyNpcWealthTaxIfNeeded never recovered delta; `scopedMoneyLogAgg` identical to afterTicks, further `points_emission_suspected` flags.
 - Conclusion: delta originates during ticks (before tax), so fix must zero-out tick transfers (worldBank/sink/service paths) so rescue occurs before evidence pack finishes. Status remains FAIL; Next: inspect tick-phase transfer pairs to ensure each service inflow has matching outflow.
+2026-02-10 — ECON-NPC [1.5] phases runner FAIL (Console.txt latest):
+- `WEALTH_TAX_PHASES_SUMMARY_BEGIN`/`END` block logged with summary.ok=true but `totalTaxInWindow=0`, `leakDetected=false`, `leakPhase=null`.
+- `WEALTH_TAX_EVIDENCE_JSON*` still report `world.delta=23`, `worldTaxRowsInWindow:{"world_tax_in":0,"world_tax_out":0}`, notes include `tax_probe_failed`, `world_delta_nonzero`, `points_emission_suspected`, `taxAttempt` notes `bank_soft_cap`.
+- `WORLD_MASS_V2 afterTicks` totals 237/177/133/60 with `afterTax` identical; `TICK_LEAK_DETECTED` not fired, so drift is real tick-side increase, not miscount.
+- Status: FAIL; NEXT: add or adjust world_tax transfer path (or tick transfers) so pack reliably emits `world_tax_in/out` and `totalTaxInWindow > 0` before summary.
+### 2026-02-10 — ECON-NPC [1.5] wealth-tax fail (runtime)
+- Status: FAIL
+- Facts:
+  - `DUMP_AT] [2026-02-10 20:56:08]` → `WEALTH_TAX_EVIDENCE_BEGIN` block includes `seedSourceId:"sink"`, `seedTransfer.fromId:"sink"`, `seedTransfer.sourcePtsAfter:-15`, `seedUsesSink:true`.
+  - `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `taxProbe.applied:false why:"tax_missing"`, `notes` list `["points_emission_suspected","world_delta_nonzero"]`.
+  - `world.delta=12`, `worldTaxRowsInWindow` shows `world_tax_in:0`, `world_tax_out:0`, taxRows array empty despite probe; no `TICK_DRIFT_TOP_REASONS` even though `worldDeltaAfterTicks != 0`.
+- Evidence: JSON slices in `WEALTH_TAX_EVIDENCE_JSON_1_PART/JSON_2_PART` plus flush markers at that timestamp.
+ - Changed: `AsyncScene/Web/dev/dev-checks.js`, `TASKS.md`
+
+### 2026-02-10 — ECON-NPC [1.5] Boot crash fix: emitLine helper
+- Status: PASS
+- Facts:
+  - Канонический helper `emitLine` появился в начале `dev-checks.js`, все локальные объявления (runWorldTicks, smoke packs, evidence runners и прочее) удалены, так что файл теперь содержит только одну `const emitLine`.
+  - `node --check AsyncScene/Web/dev/dev-checks.js` прошёл без `SyntaxError: Cannot declare a const variable twice: 'emitLine'`, поэтому файл сможет стартовать без immediate crash.
+  - `taxRows`/`taxOutRows` объявляются вне `try`, что даёт access в `finally` и убирает `ReferenceError: Can't find variable: taxRows` при парсинге evidence pack.
+- Key output fields: canonical helper `emitLine`, QA-ждать `[ConflictAPI] ready` / `WORLD_ECON_*` маркеры, `node --check` ok.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Next: QA (перезагрузить `http://localhost:8080/index.html?dev=1` и подтвердить отсутствие ошибки в консоли)

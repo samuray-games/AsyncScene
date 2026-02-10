@@ -1,0 +1,10 @@
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720637989, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720637989_7125"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "battle_win_take", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "battle_rich_loss_extra", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "wins", "delta": 1, "meta": {"reason": "battle_win", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 1, "meta": {"reason": "crowd_vote_remainder_win", "battleId": "dev_battle_crowd_1770720638247_146"}}
+{"ts": 1770720638247, "sessionId": "session-1770720582298-buww", "type": "stat", "kind": "points", "delta": 2, "meta": {"reason": "crowd_vote_loser_penalty", "battleId": "dev_battle_crowd_1770720638247_146"}}

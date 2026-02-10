@@ -339,6 +339,7 @@
     const dbg = ensureDebugStore();
     const log = dbg.moneyLog;
     const meta = entry && entry.meta ? entry.meta : null;
+    if (meta && meta.txId && !entry.txId) entry.txId = meta.txId;
     let bid = entry ? String(entry.battleId || (meta && meta.battleId) || entry.eventId || (meta && meta.eventId) || "") : "";
     if (!bid && entry) {
       const src = String(entry.sourceId || "");
@@ -995,22 +996,41 @@
       if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
+    const txId = (ctx && ctx.txId) ? ctx.txId : `npc_tax_${Date.now()}_${id}`;
     const meta = Object.assign({}, ctx || {}, {
       kind: "npc_activity_tax",
       threshold: NPC_TAX_SOFT_CAP,
       taxAmount,
       npcPtsBefore: before,
       bankSoftCap: WORLD_BANK_SOFT_CAP,
-      bankBalance: bankBal
+      bankBalance: bankBal,
+      txId
     });
-    const tx = E.transferPoints(id, WORLD_BANK_ID, taxAmount, "world_tax_in", meta);
-    if (!tx || tx.ok !== true) {
+    const metaOut = Object.assign({}, meta, { phase: "tax", direction: "out" });
+    const metaIn = Object.assign({}, meta, { phase: "tax", direction: "in", mirror: true });
+    const txOut = E.transferPoints(id, WORLD_BANK_ID, taxAmount, "world_tax_out", metaOut);
+    if (!txOut || txOut.ok !== true) {
       res.ok = false;
       res.notes.push("tax_transfer_failed");
       res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };
       if (Game && Game.__D) Game.__D.__lastNpcWealthTaxAttempt = res.taxAttempt;
       return res;
     }
+    try {
+      if (typeof E._logTx === "function") {
+        E._logTx({
+          time: Date.now(),
+          sourceId: String(id),
+          targetId: String(WORLD_BANK_ID),
+          amount: taxAmount,
+          reason: "world_tax_in",
+          battleId: metaIn && metaIn.battleId ? metaIn.battleId : null,
+          status: metaIn && metaIn.status ? metaIn.status : null,
+          phase: metaIn && metaIn.phase ? metaIn.phase : null,
+          meta: metaIn
+        });
+      }
+    } catch (_) {}
     res.taxApplied = true;
     res.taxAmount = taxAmount;
     res.taxAttempt = { npcId: id, npcPtsBefore: before, softCapHit: false, notes: res.notes.slice(), eligibleNpcCount: ctx.eligibleNpcCount ?? null, taxedNpcCount: ctx.taxedNpcCount ?? null, totalTaxInWindow: ctx.totalTaxInWindow ?? null };

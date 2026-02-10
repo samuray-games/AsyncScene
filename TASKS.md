@@ -68,6 +68,34 @@
 
 ## Inbox
 
+### [T-20260210-001] ECON-NPC [1.5] Boot crash fix: duplicate emitLine
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Убрать все повторные объявления `emitLine`, оставить единый helper и убрать TDZ-падение при старте dev-checks.js.
+- Acceptance:
+  - [x] `emitLine` объявлен ровно один раз (канонический helper) и используется во всех агентских pack/смоуках вместо локальных объявлений.
+  - [x] `node --check AsyncScene/Web/dev/dev-checks.js` проходит без ошибок.
+  - [ ] QA: перезагрузить `http://localhost:8080/index.html?dev=1`, удостовериться, что синтаксическая ошибка не возвращается и смоуки логируются.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Канонический helper `emitLine` появился в начале `dev-checks.js`, все локальные `emitLine` удалены (включая `Game.__DEV.smokeNpcWealthTaxOnce` и `runEconNpcWealthTaxEvidencePackOnce`), так что файл теперь содержит ровно одну константу.
+      (2) `node --check AsyncScene/Web/dev/dev-checks.js` подтверждает, что файл парсится без `SyntaxError: Cannot declare a const variable twice: 'emitLine'`.
+      (3) `taxRows`/`taxOutRows` и `totalTaxInWindow` теперь объявляются вне `try` и доступны в `finally`, предотвращая `ReferenceError: Can't find variable: taxRows`.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Перезагрузить `http://localhost:8080/index.html?dev=1`, убедиться, что dev-checks логирует `[ConflictAPI] ready` и `WORLD_ECON_*` без SyntaxError в консоли.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        Перезагрузи http://localhost:8080/index.html?dev=1 и наблюдай консоль. PASS если после загрузки отсутствует `SyntaxError: Cannot declare a const variable twice: 'emitLine'`, `dev-checks.js` печатает `[ConflictAPI] ready` или схожие runtime-маркеры, и начальный пакет идет до конца без падения. FAIL если ошибка все еще появляется или dev-checks не завершает блок `WORLD_ECON_*`.
+        ```
+
 ### [T-20260207-007] ECON-NPC [1.1] NPC world balance audit
 - Status: PASS
 - Priority: P1
@@ -785,7 +813,7 @@
 - Smoke commands:
   1. Reload dev=1 page; grep Console.txt for the markers above.
   2. Run `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:200, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})` and check `WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_*` block.
-- Status: FAIL (нет runtime evidence)
+- Status: FAIL (runtime из Console.txt [2026-02-10 20:56:08])
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
@@ -812,7 +840,7 @@
 - Code refs (search):
   - `applyNpcWealthTaxIfNeeded`, `battle_entry_npc`, `battle_win_take`, `world_tax_in`.
 ### [T-20260209-001] ECON-NPC [1.5] wealth tax pack — world contract stabilization (dev-checks only)
-- Status: FAIL (pending runtime evidence)
+- Status: FAIL (runtime в Console.txt [2026-02-10 20:56:08])
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
@@ -841,6 +869,16 @@
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN`
   - `{"ok":false,"notes":["world_mass_drift","tax_missing"],"world":{"delta":2},"tax":{"totalTaxInWindow":0}}`
   - `[warn] WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END`
+- Runtime evidence (FAIL, Console.txt 2026-02-10 latest):
+- `WEALTH_TAX_PHASES_SUMMARY_BEGIN`/`END` block present, summary.ok=true but `totalTaxInWindow` still 0; leakDetected=false yet world delta non-zero
+- `WEALTH_TAX_EVIDENCE_JSON*` continue to report `notes:["tax_probe_failed","world_delta_nonzero","world_tax_total_zero","points_emission_suspected"]`, `rowsScoped=206`, `worldTaxRowsInWindow` zero
+- `WORLD_MASS_V2 afterTicks` totals 237/177/133/60 and `afterTax` unchanged—drift occurs before tax; `TICK_LEAK_DETECTED` absent meaning no sum mismatch but missing tax rows
+- Summary flush markers (FLUSH_OK, FLUSH_POST) exist; fail criterion remains `totalTaxInWindow == 0`
+- Runtime evidence (FAIL, Console.txt [2026-02-10 20:56:08]):
+- `WEALTH_TAX_EVIDENCE_BEGIN` → seedSourceId:"sink", seedTransfer.fromId:"sink", sourcePtsAfter:-15, tax.totalTaxInWindow:0, taxProbe.applied:false why:"tax_missing", notes includes ["points_emission_suspected","world_delta_nonzero"].
+- taxRows empty, `worldTaxRowsInWindow` zero, `world.delta` 12. `TICK_DRIFT_TOP_REASONS` отсутствует despite `worldDeltaAfterTicks != 0`.
+- Drift track: `seedTransfer.fromId` stays "sink"; sinkDelta=11 and bankDelta=17 show worldBank/sink moved while tax rows never rebalanced.
+    - Next: make sure at least one `world_tax_in/out` row emits (tick or tax path) so total tax becomes positive while keeping zero-sum
 - Runtime evidence (FAIL, Console.txt 2026-02-10 19:15:42):
     - First run emits `WEALTH_TAX_ATTEMPT_DIAG` showing `taxApplied:true`, `worldTaxRowsInWindow:{"world_tax_in":2,"world_tax_out":0}`, but JSON#1 notes still include `"world_delta_nonzero"` and `world.delta` stays 15 (ok:false)
     - Second run emits `WEALTH_TAX_ATTEMPT_DIAG` with `taxApplied:false`, `worldTaxRowsInWindow:{"world_tax_in":0}`, `notes:["tax_probe_failed","tax_probe_missing_after_seed","world_delta_nonzero"]`
