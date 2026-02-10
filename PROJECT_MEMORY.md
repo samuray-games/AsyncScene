@@ -2441,3 +2441,5 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Log source and rowsScoped are now computed AFTER ticks; `diag.orderCheck` added to evidence JSON. Status: FAIL pending runtime evidence.
 2026-02-09 — Dev helper dumpMoneyLogSourcesOnce.
 - Added `Game.__DEV.dumpMoneyLogSourcesOnce` that emits `WORLD_MONEYLOG_SOURCES_V1_BEGIN`/`END` plus JSON summary with `candidates` and `best` to diagnose `logSource:"none"` and `rowsScoped:0`. Targeted smoke: `Game.__DEV.dumpMoneyLogSourcesOnce({window:{lastN:200}})`; PASS when `best.len>0`. Logged even if fail.
+2026-02-10 — ECON-NPC [1.5] Variant A ensureNpcEconAccounts.
+- Added `ensureNpcEconAccounts` in `AsyncScene/Web/conflict/conflict-economy.js` to reconcile npc_* econ accounts via `npc_account_sync` transfers to/from `sink` (zero-sum) and wired `ensureNpcAccountsFromState`/`applyNpcWealthTaxIfNeeded` to call it. Wealth-tax pack now includes `diag.ensureNpcAccounts`. Runtime status: FAIL pending QA (latest Console.txt shows `Can't find variable: taxProbe`, `logSource:"none"`, `rowsScoped:0`).

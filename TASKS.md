@@ -897,3 +897,5 @@
     - JSON#1 `ok:true`, asserts `noTotalsNullAll/noWorldMassDriftAll/noExceptionAll/hasWorldTaxInAtLeastOnce` true
     - JSON#2 contains `r50`, `r10a`, `r10b`
     - `WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END`
+- Update (2026-02-10): Variant A infra — добавлен `ensureNpcEconAccounts` (sync через `npc_account_sync` transfer с `sink` для сохранения zero-sum), `ensureNpcAccountsFromState` теперь использует его, `applyNpcWealthTaxIfNeeded` вызывает ensure перед налогом. Evidence pack пишет `diag.ensureNpcAccounts`. Status: FAIL pending QA.
+- Runtime evidence baseline (Console.txt 2026-02-10): `WEALTH_TAX_EVIDENCE_*` показывает `notes:["exception"]` с `Can't find variable: taxProbe`, `logSource:"none"`, `rowsScoped:0`. Требуется новый smoke после фикса.

@@ -67,12 +67,22 @@
     warn: console.warn,
     error: console.error,
     info: console.info,
-    debug: console.debug
+    debug: console.debug,
+    groupCollapsed: console.groupCollapsed ? console.groupCollapsed : null,
+    groupEnd: console.groupEnd ? console.groupEnd : null
   };
   const patch = (method) => {
     const orig = origConsole[method];
     console[method] = function (...args) {
-      if (!args.length) {
+      if (method === "groupCollapsed") {
+        if (!args.length) {
+          appendLine("[GROUP_START]");
+        } else {
+          appendLine(`[GROUP_START] ${formatArg(args[0])}`);
+        }
+      } else if (method === "groupEnd") {
+        appendLine("[GROUP_END]");
+      } else if (!args.length) {
         appendLine(`[${method}]`);
       } else {
         args.forEach(arg => appendLine(`[${method}] ${formatArg(arg)}`));
@@ -82,7 +92,11 @@
       }
     };
   };
-  ["log", "warn", "error", "info", "debug"].forEach(patch);
+  ["log", "warn", "error", "info", "debug", "groupCollapsed", "groupEnd"].forEach((method) => {
+    if (method === "groupCollapsed" && !origConsole.groupCollapsed) return;
+    if (method === "groupEnd" && !origConsole.groupEnd) return;
+    patch(method);
+  });
   const dump = () => {
     try {
       if (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_FLUSH__ === "function") {
@@ -156,6 +170,19 @@
   window.__CONSOLE_TAPE_READ__ = read;
   window.__CONSOLE_TAPE_FLUSH__ = flushTape;
   window.__CONSOLE_TAPE_LAST__ = () => ({ lastLine, linesCount });
+  const dumpTapeTailOnce = (opts = {}) => {
+    const lastN = (opts && Number.isFinite(opts.lastN)) ? Math.max(1, opts.lastN | 0) : 50;
+    let lines = [];
+    try {
+      lines = read().split("\n").filter(Boolean);
+    } catch (_) {}
+    const tail = lines.slice(-lastN);
+    tail.forEach(line => {
+      if (origConsole && origConsole.log) origConsole.log(line);
+    });
+    return { ok: true, lastN, lines: tail.length };
+  };
+  window.__CONSOLE_TAPE_DUMP_TAIL_ONCE__ = dumpTapeTailOnce;
   window.__DUMP_ALL__ = dump;
   window.__DUMP_CLEAR__ = clear;
   appendLine("CONSOLE_TAPE_V1_READY");
@@ -165,6 +192,11 @@
     if (installed) {
       console.warn("DUMP_ALIAS_OK", safeStringify({ hasGame: !!window.Game, gameDumpAll: !!(window.Game && window.Game.__DUMP_ALL__), gameDumpClear: !!(window.Game && window.Game.__DUMP_CLEAR__) }));
     }
+    try {
+      if (window.Game && window.Game.__DEV && typeof window.Game.__DEV.dumpTapeTailOnce !== "function") {
+        window.Game.__DEV.dumpTapeTailOnce = dumpTapeTailOnce;
+      }
+    } catch (_) {}
     return installed;
   };
   if (!triggerAlias()) {

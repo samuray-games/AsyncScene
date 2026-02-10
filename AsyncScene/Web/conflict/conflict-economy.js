@@ -73,24 +73,91 @@
     return s.startsWith("npc_");
   }
 
+  let ensuringNpcAccounts = false;
+
   function ensureNpcEconAccount(npcId, opts = {}){
     const id = String(npcId || "");
     if (!id || !isNpcId(id)) return { ok: false, why: "not_npc", npcId: id };
     const S = getStateHandle();
     if (!S) return { ok: false, why: "state_missing", npcId: id };
     if (!S.players) S.players = {};
-    const St = (Game && Game.State) ? Game.State : null;
-    const stPts = (St && St.players && St.players[id] && Number.isFinite(St.players[id].points))
-      ? (St.players[id].points | 0)
-      : 0;
     let hadToCreate = false;
     if (!S.players[id]) {
-      S.players[id] = { id, points: stPts, npc: true };
+      S.players[id] = { id, points: 0, npc: true };
       hadToCreate = true;
-    } else if (!Number.isFinite(S.players[id].points) || (S.players[id].points | 0) !== stPts) {
-      S.players[id].points = stPts;
     }
-    return { ok: true, npcId: id, pointsSynced: stPts, hadToCreate };
+    if (!Number.isFinite(S.players[id].points)) S.players[id].points = 0;
+    return { ok: true, npcId: id, pointsSynced: (S.players[id].points | 0), hadToCreate };
+  }
+
+  function ensureNpcEconAccounts(opts = {}){
+    const S = getStateHandle();
+    if (!S || !S.players) return { ok: false, reason: "state_missing" };
+    const St = (Game && Game.State) ? Game.State : null;
+    const sourcePlayers = (St && St.players) ? St.players : S.players;
+    const npcIds = Object.keys(sourcePlayers || {}).filter(id => {
+      const p = sourcePlayers[id];
+      const pid = String(id || "");
+      return pid.startsWith("npc_") || (p && (p.npc === true || p.type === "npc"));
+    });
+    const createdIds = [];
+    const syncedIds = [];
+    const skippedIds = [];
+    const errors = [];
+    const beforeSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
+    const beforeTotal = (beforeSnap && Number.isFinite(beforeSnap.total)) ? (beforeSnap.total | 0) : null;
+    if (ensuringNpcAccounts) return { ok: false, reason: "reentrant" };
+    ensuringNpcAccounts = true;
+    try {
+      npcIds.forEach(id => {
+        const pid = String(id || "");
+        if (!pid) return;
+        if (!S.players[pid]) {
+          S.players[pid] = { id: pid, points: 0, npc: true };
+          createdIds.push(pid);
+        }
+        const acc = S.players[pid];
+        if (!Number.isFinite(acc.points)) acc.points = 0;
+        const stPts = (sourcePlayers && sourcePlayers[pid] && Number.isFinite(sourcePlayers[pid].points))
+          ? (sourcePlayers[pid].points | 0)
+          : 0;
+        const cur = (acc.points | 0);
+        if (cur === stPts) {
+          skippedIds.push(pid);
+          return;
+        }
+        const diff = stPts - cur;
+        const meta = {
+          npcId: pid,
+          desiredPts: stPts,
+          beforePts: cur,
+          reason: String(opts.reason || "ensure_npc_accounts")
+        };
+        let tx = null;
+        if (diff > 0) tx = E.transferPoints("sink", pid, diff, "npc_account_sync", meta);
+        else if (diff < 0) tx = E.transferPoints(pid, "sink", -diff, "npc_account_sync", meta);
+        if (tx && tx.ok === true) syncedIds.push(pid);
+        else errors.push({ npcId: pid, diff, reason: (tx && tx.reason) || "transfer_failed" });
+      });
+    } finally {
+      ensuringNpcAccounts = false;
+    }
+    const afterSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
+    const afterTotal = (afterSnap && Number.isFinite(afterSnap.total)) ? (afterSnap.total | 0) : null;
+    return {
+      ok: true,
+      npcCount: npcIds.length,
+      createdCount: createdIds.length,
+      syncedCount: syncedIds.length,
+      skippedCount: skippedIds.length,
+      sampleIds: npcIds.slice(0, 5),
+      createdIds,
+      syncedIds,
+      skippedIds,
+      errors,
+      beforeTotal,
+      afterTotal
+    };
   }
 
   function ensureNpcAccountFromState(id){
@@ -121,36 +188,12 @@
     const S = getStateHandle();
     if (!S || !S.players) return { ok: false, reason: "state_missing" };
     const St = (Game && Game.State) ? Game.State : null;
-    const sourcePlayers = (St && St.players) ? St.players : S.players;
-    const createdIds = [];
-    const syncedIds = [];
-    const npcList = Object.values(sourcePlayers || {}).filter(p => {
-      if (!p) return false;
-      const pid = String(p.id || "");
-      return p.npc === true || p.type === "npc" || pid.startsWith("npc_");
-    });
-    const beforeSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
-    npcList.forEach(p => {
-      const id = String(p.id || "");
-      if (!id) return;
-      const res = ensureNpcEconAccount(id, { reason: opts.reason || "ensure_all" });
-      if (res && res.ok === true) {
-        if (res.hadToCreate) createdIds.push(id);
-        else if (Number.isFinite(res.pointsSynced)) syncedIds.push(id);
-      }
-    });
-    const afterSnap = (E && typeof E.sumPointsSnapshot === "function") ? E.sumPointsSnapshot() : null;
-    if (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total)) {
-      const delta = (afterSnap.total | 0) - (beforeSnap.total | 0);
-      if (delta !== 0) {
-        throw new Error(`ECON_NPC_ACCOUNT_MIGRATE_WORLD_DELTA:${delta}`);
-      }
-    }
-    if (isDevFlag() && (createdIds.length || syncedIds.length) && !npcAccountMigrateLogged) {
+    const res = ensureNpcEconAccounts({ reason: opts.reason || "ensure_all" }) || {};
+    if (isDevFlag() && ((res.createdCount || 0) || (res.syncedCount || 0)) && !npcAccountMigrateLogged) {
       npcAccountMigrateLogged = true;
       try {
         console.warn("ECON_NPC_ACCOUNT_MIGRATE_V1", {
-          count: createdIds.length + syncedIds.length,
+          count: (res.createdCount || 0) + (res.syncedCount || 0),
           movedTotal: 0,
           mode: (St && St.players) ? "sync" : "migrate"
         });
@@ -159,10 +202,10 @@
     }
     return {
       ok: true,
-      createdNowCount: createdIds.length,
-      syncedNowCount: syncedIds.length,
-      createdIds,
-      syncedIds
+      createdNowCount: Number.isFinite(res.createdCount) ? res.createdCount : 0,
+      syncedNowCount: Number.isFinite(res.syncedCount) ? res.syncedCount : 0,
+      createdIds: Array.isArray(res.createdIds) ? res.createdIds : [],
+      syncedIds: Array.isArray(res.syncedIds) ? res.syncedIds : []
     };
   }
 
@@ -218,7 +261,9 @@
     if (S.players && S.players[key]) return S.players[key];
     if (S.me && S.me.id === key) return S.me;
     if (isNpcId(key)) {
-      try { ensureNpcAccountsFromState({ reason: "getAccount" }); } catch (_) {}
+      if (!ensuringNpcAccounts) {
+        try { ensureNpcAccountsFromState({ reason: "getAccount" }); } catch (_) {}
+      }
       const ensured = ensureNpcEconAccount(key, { reason: "getAccount" });
       if (ensured && ensured.ok === true && S.players && S.players[key]) return S.players[key];
       return ensureNpcAccountFromState(key);
@@ -736,7 +781,11 @@
       return res;
     }
     try {
-      ensureNpcAccountsFromState();
+      if (typeof ensureNpcEconAccounts === "function") {
+        ensureNpcEconAccounts({ reason: "wealth_tax" });
+      } else {
+        ensureNpcAccountsFromState();
+      }
     } catch (e) {
       res.notes.push("npc_account_migrate_failed");
       res.error = String(e && e.message ? e.message : e);
@@ -745,6 +794,7 @@
     const acc = getAccount(id);
     if (!acc) {
       res.notes.push("npc_account_missing");
+      res.stage = "npc_account_missing";
       return res;
     }
     const isNpc = !!(acc.npc === true || acc.type === "npc" || id.startsWith("npc_"));
@@ -811,6 +861,10 @@
 
   E.getWorldBankSoftCap = function (){
     return WORLD_BANK_SOFT_CAP;
+  };
+
+  E.ensureNpcEconAccounts = function (opts = {}) {
+    return ensureNpcEconAccounts(opts);
   };
 
   E.ensureNpcAccountsFromState = function (opts = {}) {
