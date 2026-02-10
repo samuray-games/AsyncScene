@@ -2479,3 +2479,40 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Key output fields: canonical helper `emitLine`, QA-ждать `[ConflictAPI] ready` / `WORLD_ECON_*` маркеры, `node --check` ok.
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
 - Next: QA (перезагрузить `http://localhost:8080/index.html?dev=1` и подтвердить отсутствие ошибки в консоли)
+
+### 2026-02-10 — Boot log sink disable when unreachable
+- Status: PASS
+- Facts:
+  - `AsyncScene/Web/ui/logger.js` теперь требует явного флага (`Game.__D.ENABLE_LOGGER`, `window.__ENABLE_LOG_SINK__`, `?enableLogSink=1`) и не включает sink без проверки.
+  - При enable sink делается один `ping`; если он падает, `disableSink` очищает очередь и выводит `DEV_LOG_SINK_DISABLED reason=connect_fail url=http://localhost:17321/log`, после чего `/log` больше не запрашивается.
+- Key output fields: `DEV_LOG_SINK_DISABLED reason=connect_fail url=http://localhost:17321/log`, Network чист от повторяющихся `/log`, Logger статус `DISCONNECTED`.
+- Changed: `AsyncScene/Web/ui/logger.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: QA (перезагрузить `http://localhost:8080/index.html?dev=1`, убедиться в отсутствии `/log`)
+
+### 2026-02-10 — ECON-NPC [1.5] Wealth tax pack seedTransfer guard
+- Status: PASS
+- Facts:
+  - `runEconNpcWealthTaxEvidencePackOnce` теперь объявляет `seedTransfer` рядом с `taxRows`/`notes` и присваивает `smokeRes.diag.seedTransfer`.
+  - `finally` использует эту переменную, из-за чего `ReferenceError: Can't find variable: seedTransfer` больше не возникает даже если `smokeRes.diag` отсутствует.
+- `evidenceSeedDonorsSample` собирает `smokeRes.diag.seedDonorsSample`, чтобы `diag`/`summary` не ссылались на несуществующий `seedDonorsSample`.
+- Key output fields: `seedTransfer`, `seedDonorsSample` в `diag`, `JSON` лог без ошибок.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: QA (`Game.__DEV.runEconNpcWealthTaxEvidencePackOnce()`)
+
+### 2026-02-10 — ECON-NPC [1.5] Seed donor filter + ensureNpcAccounts reconcile
+- Status: FAIL (smoke not run here)
+- Facts:
+  - Seed donor selection в `runEconNpcWealthTaxEvidencePackOnce` теперь npc-only; при отсутствии доноров выставляется `seedWhy="seed_no_npc_donors"` и трансферы не выполняются.
+  - `ensureNpcEconAccountsExist` берёт `missingAfterCount`/`missingAfterIdsSample` из `ensureNpcEconAccounts`/`ensureDiag` (единый источник), fallback через `getAccount` только при отсутствии данных.
+- Key output fields: `seedWhy`, `seedSourceId`, `seedTransfer.fromId`, `ensureNpcAccounts.createdCount`, `missingAfterCount`, `world.delta`.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: QA (двойной pack + dump смоук из TASKS.md)
+
+### 2026-02-10 — ECON-NPC [1.5] Seed donor filter runtime dump
+- Status: FAIL
+- Facts:
+  - `Console.txt` DUMP_AT `2026-02-10 23:06:21` (epoch 1770732381569) shows `buildTag=build_2026_02_09b`, `seedSourceId=null`, `seedApplied=false`, `seedWhy=null`, no `seedTransfer.fromId`, `ensureNpcAccounts.createdCount=0`, `missingAfterCount=0`, `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`.
+- Key output fields: see above; worldTaxRowsInWindow shows zero counts so `hasWorldTaxInRows=false`.
+- Key output fields: `seedSourceId`, `seedWhy`, `seedTransfer.fromId`, `ensureNpcAccounts.createdCount`, `missingAfterCount`, `tax.totalTaxInWindow`, `tax.rowsCount`, `world.delta`.
+- Changed: `TASKS.md` `PROJECT_MEMORY.md`
+- Next: QA (see updated TASKS.md entry)

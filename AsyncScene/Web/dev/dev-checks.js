@@ -3625,6 +3625,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const meIncluded = accountsIncluded.includes("me");
     let seedPerformed = false;
     let seedTransfer = null;
+    let evidenceSeedDonorsSample = [];
     let seedDonorsSample = [];
 
     if (seedRichNpc && npcIds.length) {
@@ -3648,7 +3649,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       seedNeed = need;
       needTotal = need;
       seedSourceId = "npc_only";
-      const donorIds = npcIds.filter(id => id !== targetId);
+      const donorIds = npcIds.filter(id => id !== targetId && String(id).startsWith("npc_"));
+      if (donorIds.length === 0) {
+        seedFailureReason = "seed_no_npc_donors";
+        seedWhy = "seed_no_npc_donors";
+        seedSourceId = "npc_only_failed";
+        seedApplied = false;
+        notes.push("seed_rich_npc_failed");
+        notes.push("seed_no_npc_donors");
+      }
       const donorVersionPayload = {
         buildTag: buildTag || null,
         file: "dev-checks.js",
@@ -3669,7 +3678,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const donorPts = donorAcc && Number.isFinite(donorAcc.points) ? (donorAcc.points | 0) : 0;
         if (donorPts > 1) available += (donorPts | 0) - 1;
       });
-      if (available < need) {
+      if (donorIds.length === 0) {
+        // already flagged above; avoid transfers
+      } else if (available < need) {
         seedFailureReason = "seed_npc_only_insufficient";
         seedWhy = "seed_npc_only_insufficient";
         seedSourceId = "npc_only_failed";
@@ -4043,25 +4054,26 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         scopeWindowLastN,
         sampleTailReasons,
         seedTransfer,
-        auditReadOnly: false,
-        massDriftBreakdown: (worldMassDelta !== 0 && worldMassDelta != null) ? {
-          worldTaxInSum: totalTaxInWindow,
-          bankDelta: (Number.isFinite(bankAfter) && Number.isFinite(bankBefore)) ? (bankAfter - bankBefore) : null,
-          sinkDelta: (snapAfter && snapAfter.byId && snapBefore && snapBefore.byId && Number.isFinite(snapAfter.byId.sink) && Number.isFinite(snapBefore.byId.sink))
-            ? ((snapAfter.byId.sink | 0) - (snapBefore.byId.sink | 0))
-            : null,
-          crowdDelta: (snapAfter && snapAfter.byId && snapBefore && snapBefore.byId && Number.isFinite(snapAfter.byId.crowd) && Number.isFinite(snapBefore.byId.crowd))
-            ? ((snapAfter.byId.crowd | 0) - (snapBefore.byId.crowd | 0))
-            : null,
-          reasonsTop
-        } : null,
-        taxProbe: {
-          attempted: seedRichNpc === true,
-          applied: hasWorldTaxPairRows,
-          taxAmount: totalTaxInWindow,
-          why: hasWorldTaxPairRows ? null : "tax_missing"
-        }
-      },
+          auditReadOnly: false,
+          massDriftBreakdown: (worldMassDelta !== 0 && worldMassDelta != null) ? {
+            worldTaxInSum: totalTaxInWindow,
+            bankDelta: (Number.isFinite(bankAfter) && Number.isFinite(bankBefore)) ? (bankAfter - bankBefore) : null,
+            sinkDelta: (snapAfter && snapAfter.byId && snapBefore && snapBefore.byId && Number.isFinite(snapAfter.byId.sink) && Number.isFinite(snapBefore.byId.sink))
+              ? ((snapAfter.byId.sink | 0) - (snapBefore.byId.sink | 0))
+              : null,
+            crowdDelta: (snapAfter && snapAfter.byId && snapBefore && snapBefore.byId && Number.isFinite(snapAfter.byId.crowd) && Number.isFinite(snapBefore.byId.crowd))
+              ? ((snapAfter.byId.crowd | 0) - (snapBefore.byId.crowd | 0))
+              : null,
+            reasonsTop
+          } : null,
+          taxProbe: {
+            attempted: seedRichNpc === true,
+            applied: hasWorldTaxPairRows,
+            taxAmount: totalTaxInWindow,
+            why: hasWorldTaxPairRows ? null : "tax_missing"
+          }
+        },
+        ensureNpcAccountsOk,
       runSummary: run && run.summary ? run.summary : null
     };
     if (debugTelemetry) result.debug = { taxRows, newRowsCount: newRows.length, logSource, logStart, logEnd };
@@ -4135,12 +4147,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let sampleTailReasons = [];
     let rowsScoped = 0;
     let taxProbe = { attempted: false, applied: false, taxAmount: 0, why: "uninit" };
+    let ensureNpcAccountsOk = true;
     let exception = null;
     let taxRows = [];
     let taxOutRows = [];
     let totalTaxInWindow = 0;
     let topTaxedNpcs = [];
     let reasonsTop = [];
+    let seedTransfer = null;
+    let evidenceSeedDonorsSample = [];
     const buildWealthTaxContract = () => {
       const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
@@ -4190,7 +4205,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const S = Game.__S || Game.State || {};
       const players = S.players || {};
       const npcIds = Object.keys(players).filter(id => typeof id === "string" && id.startsWith("npc_"));
-      const missingIds = [];
+      let missingIds = [];
+      let missingAfterCount = null;
+      let sampleMissingIds = [];
       const statePoints = {};
       let createdCount = 0;
       let syncedCount = 0;
@@ -4202,30 +4219,44 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         skippedCount = Number.isFinite(res.skippedCount) ? res.skippedCount : 0;
         var branch = res.branch || null;
         var ensureDiag = res.ensureDiag || (Game.__D && Game.__D.__lastEnsureNpcEconAccounts) || null;
+        if (Number.isFinite(res.missingAfterCount)) missingAfterCount = res.missingAfterCount;
+        if (ensureDiag && Array.isArray(ensureDiag.missingAfterIdsSample)) {
+          sampleMissingIds = ensureDiag.missingAfterIdsSample.slice(0, 5);
+        }
       } else if (econ && typeof econ.ensureNpcAccountsFromState === "function") {
         const res = econ.ensureNpcAccountsFromState({ reason: "wealth_tax_pack_precheck" }) || {};
         createdCount = Number.isFinite(res.createdNowCount) ? res.createdNowCount : 0;
         syncedCount = Number.isFinite(res.syncedNowCount) ? res.syncedNowCount : 0;
         var branch = null;
         var ensureDiag = (Game.__D && Game.__D.__lastEnsureNpcEconAccounts) || null;
+        if (Number.isFinite(res.missingAfterCount)) missingAfterCount = res.missingAfterCount;
+        if (ensureDiag && Array.isArray(ensureDiag.missingAfterIdsSample)) {
+          sampleMissingIds = ensureDiag.missingAfterIdsSample.slice(0, 5);
+        }
       }
       npcIds.forEach((id) => {
         const p = players[id];
         const pts = p && Number.isFinite(p.points) ? (p.points | 0) : 0;
         statePoints[id] = pts;
-        let acc = null;
-        if (econ && typeof econ.getAccount === "function") {
-          try { acc = econ.getAccount(id); } catch (_) { acc = null; }
-        }
-        if (!acc) missingIds.push(id);
       });
+      if (missingAfterCount == null) {
+        npcIds.forEach((id) => {
+          let acc = null;
+          if (econ && typeof econ.getAccount === "function") {
+            try { acc = econ.getAccount(id); } catch (_) { acc = null; }
+          }
+          if (!acc) missingIds.push(id);
+        });
+        missingAfterCount = missingIds.length;
+        if (!sampleMissingIds.length) sampleMissingIds = missingIds.slice(0, 5);
+      }
       return {
         npcCount: npcIds.length,
         createdCount,
         syncedCount,
         skippedCount,
-        missingAfterCount: missingIds.length,
-        sampleMissingIds: missingIds.slice(0, 5),
+        missingAfterCount: missingAfterCount,
+        sampleMissingIds: sampleMissingIds,
         statePointsSample: Object.keys(statePoints).slice(0, 3).map(id => ({ id, points: statePoints[id] })),
         branch: branch || null,
         ensureDiag: ensureDiag || null
@@ -4245,6 +4276,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const npcEnsure = ensureNpcEconAccountsExist();
       npcEnsureDiag = npcEnsure;
       if (!npcEnsureDiag || !npcEnsureDiag.ensureDiag) notes.push("ensure_diag_missing");
+      const npcCount = Number.isFinite(npcEnsure && npcEnsure.npcCount) ? npcEnsure.npcCount : 0;
+      const ensureDiag = npcEnsureDiag && npcEnsureDiag.ensureDiag ? npcEnsureDiag.ensureDiag : null;
+      const ensureAccountsBefore = ensureDiag && Number.isFinite(ensureDiag.playersKeyCountS) ? ensureDiag.playersKeyCountS : null;
+      const ensureAccountsAfter = ensureDiag && Number.isFinite(ensureDiag.afterCount) ? ensureDiag.afterCount : null;
+      const currentNpcAccountCount = Number.isFinite(npcAccountCount) ? npcAccountCount : null;
+      const hasAllAccounts = (currentNpcAccountCount != null && currentNpcAccountCount === npcCount)
+        || (ensureAccountsAfter != null && ensureAccountsAfter === npcCount);
+      const needsCreation = ensureAccountsBefore != null && npcCount != null && ensureAccountsBefore < npcCount;
+      const createdOk = !needsCreation || (Number.isFinite(npcEnsure.createdCount) && npcEnsure.createdCount > 0);
+      const missingAfterZero = Number.isFinite(npcEnsure.missingAfterCount) ? (npcEnsure.missingAfterCount === 0) : true;
+      ensureNpcAccountsOk = missingAfterZero && hasAllAccounts && createdOk;
+      if (!ensureNpcAccountsOk) notes.push("ensure_npc_accounts_missing_after");
       emitLine(`WEALTH_TAX_PRECHECK ${safeStringify(npcEnsure)}`);
       addedAccounts = ensured.addedAccounts;
       fixedAccounts = ensured.fixedAccounts;
@@ -4319,6 +4362,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         taxProbe = smokeRes.diag.taxProbe || taxProbe;
         logSourceChosen = smokeRes.diag.logSource || logSourceChosen;
         rowsScoped = Number.isFinite(smokeRes.meta && smokeRes.meta.rowsScoped) ? smokeRes.meta.rowsScoped : rowsScoped;
+        seedTransfer = smokeRes.diag.seedTransfer || seedTransfer;
+        evidenceSeedDonorsSample = smokeRes.diag.seedDonorsSample || evidenceSeedDonorsSample;
       }
       summary = smokeRes ? {
         ok: !!smokeRes.ok,
@@ -4369,7 +4414,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           addedAccounts: smokeRes.diag ? smokeRes.diag.addedAccounts : addedAccounts,
           seedTransfer: smokeRes.diag ? smokeRes.diag.seedTransfer : null,
           massDriftBreakdown: smokeRes.diag ? smokeRes.diag.massDriftBreakdown : null,
-          debugMoneyLogLen: smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null
+          debugMoneyLogLen: smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null,
+          ensureNpcAccountsOk
         },
         diagVersion
       } : { ok: false, notes: ["missing_smoke"], diagVersion };
@@ -4407,7 +4453,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedWhy,
           seedSourceId,
           seedFailureReason,
-          seedDonorsSample,
+          seedDonorsSample: (smokeRes && smokeRes.diag) ? smokeRes.diag.seedDonorsSample : null,
           accountsIncludedLen,
           accountsIncludedHash,
           addedAccounts,
@@ -4439,7 +4485,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           taxRowsCounts: { out: taxOutRows.length, in: taxRows.length },
           taxTxIdsSample,
           seedUsesSink,
-          debugMoneyLogLen: smokeRes && smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null
+          debugMoneyLogLen: smokeRes && smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null,
+          ensureNpcAccountsOk
         }
       };
       const json2 = summary ? summary : {
@@ -4457,7 +4504,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedWhy,
           seedSourceId,
           seedFailureReason,
-          seedDonorsSample,
+          seedDonorsSample: evidenceSeedDonorsSample,
           accountsIncludedLen,
           accountsIncludedHash,
           addedAccounts,

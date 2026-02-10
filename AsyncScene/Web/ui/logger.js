@@ -7,19 +7,27 @@ window.Game = window.Game || {};
   const BACKOFF_BASE = 1000;
   const BACKOFF_MAX = 20000;
   const STATUS = { CONNECTED: "connected", DISCONNECTED: "disconnected", UNKNOWN: "unknown" };
-  const isDevHost = () => {
+  const LOG_SINK_QUERY_FLAGS = ["enableLogSink", "logSink", "enableLogSinkDev"];
+  const LOG_SINK_DISABLE_MARKER = "DEV_LOG_SINK_DISABLED";
+
+  const hasLogSinkFlag = () => {
     try {
-      if (typeof location !== "undefined") {
-        const host = (location.hostname || "").toLowerCase();
-        if (host === "localhost" || host === "127.0.0.1") return true;
-      }
       if (Game && Game.__D && Game.__D.ENABLE_LOGGER === true) return true;
+      if (typeof window !== "undefined" && window.__ENABLE_LOG_SINK__ === true) return true;
+      if (typeof location !== "undefined") {
+        const params = new URLSearchParams(location.search || "");
+        for (const key of LOG_SINK_QUERY_FLAGS) {
+          if (params.get(key) === "1" || params.get(key) === "true") return true;
+        }
+      }
     } catch (_) {}
     return false;
   };
 
+  const shouldEnableLogger = () => hasLogSinkFlag();
+
   const logger = {
-    enabled: isDevHost(),
+    enabled: shouldEnableLogger(),
     queue: [],
     timer: null,
     sending: false,
@@ -29,10 +37,13 @@ window.Game = window.Game || {};
     sessionId: `session-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     lastTs: null,
     endpoint: "http://localhost:17321/log",
+    sinkDisabled: false,
+    disableLogged: false,
 
     init(){
       if (!this.enabled) return;
       this.setStatus(STATUS.DISCONNECTED);
+      this.runInitialProbe();
       this.ensureTimer();
     },
 
@@ -57,7 +68,7 @@ window.Game = window.Game || {};
     },
 
     flush(force=false){
-      if (!this.enabled) return;
+      if (!this.enabled || this.sinkDisabled) return;
       if (this.sending && !force) return;
       if (!this.queue.length) return;
       this.sending = true;
@@ -77,9 +88,7 @@ window.Game = window.Game || {};
         this.setStatus(STATUS.CONNECTED);
       }).catch(() => {
         this.queue = batch.concat(this.queue);
-        this.setStatus(STATUS.DISCONNECTED);
-        setTimeout(() => this.flush(false), Math.min(this.backoff, BACKOFF_MAX));
-        this.backoff = Math.min(BACKOFF_MAX, this.backoff * 2);
+        this.disableSink("connect_fail");
       }).finally(() => {
         this.sending = false;
       });
@@ -101,6 +110,30 @@ window.Game = window.Game || {};
         this.setStatus(STATUS.DISCONNECTED);
         return false;
       });
+    },
+
+    runInitialProbe(){
+      if (!this.enabled || this.sinkDisabled) return;
+      this.ping().then(ok => {
+        if (!ok) this.disableSink("connect_fail");
+      }).catch(() => {
+        this.disableSink("connect_fail");
+      });
+    },
+
+    disableSink(reason){
+      if (this.sinkDisabled) return;
+      this.sinkDisabled = true;
+      this.enabled = false;
+      this.clearTimer();
+      this.setStatus(STATUS.DISCONNECTED);
+      this.queue = [];
+      if (!this.disableLogged) {
+        this.disableLogged = true;
+        try {
+          console.warn(`${LOG_SINK_DISABLE_MARKER} reason=${reason} url=${this.endpoint}`);
+        } catch (_) {}
+      }
     },
 
     setStatus(next){

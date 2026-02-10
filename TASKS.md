@@ -91,9 +91,95 @@
       (1) Перезагрузить `http://localhost:8080/index.html?dev=1`, убедиться, что dev-checks логирует `[ConflictAPI] ready` и `WORLD_ECON_*` без SyntaxError в консоли.
     Next: QA
     Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Перезагрузи http://localhost:8080/index.html?dev=1 и наблюдай консоль. PASS если после загрузки отсутствует `SyntaxError: Cannot declare a const variable twice: 'emitLine'`, `dev-checks.js` печатает `[ConflictAPI] ready` или схожие runtime-маркеры, и начальный пакет идет до конца без падения. FAIL если ошибка все еще появляется или dev-checks не завершает блок `WORLD_ECON_*`.
+    ```
+
+### [T-20260210-002] Boot log sink: disable when unreachable
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Boot
+- Files: `AsyncScene/Web/ui/logger.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Отключить постоянный `fetch http://localhost:17321/log` при отсутствии лог-сервера и позволить его включать только явно (лог-флаг/параметр).
+- Acceptance:
+  - [x] `Logger` включается только при явном флаге (`Game.__D.ENABLE_LOGGER`, `window.__ENABLE_LOG_SINK__`, or URL param) и не стартует автоматически.
+  - [x] При включённом sink делается один probe (ping) и при неудаче логгер отключается, больше fetch-ов не идёт.
+  - [x] Консоль логирует единственный маркер `DEV_LOG_SINK_DISABLED reason=connect_fail url=http://localhost:17321/log`.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) `AsyncScene/Web/ui/logger.js` теперь проверяет флаги `enableLogSink/logSink`/`window.__ENABLE_LOG_SINK__`, делает один `ping` и отключается на `connect_fail`, больше запросов не выполняется.
+      (2) В `disableSink` выводится маркер `DEV_LOG_SINK_DISABLED reason=connect_fail url=http://localhost:17321/log`, а `flush` прекращает отправку после отключения.
+    Changed: `AsyncScene/Web/ui/logger.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Перезагрузить `http://localhost:8080/index.html?dev=1` без лог-сервера и подтвердить, что Network больше не шлёт /log, консоль содержит ровно один маркер `DEV_LOG_SINK_DISABLED ...`, и игра стартует без сбоев.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+```text
+Ответ QA:
+Перезагрузи http://localhost:8080/index.html?dev=1 (лог-сервер не поднят). PASS если после загрузки Network не показывает повторяющихся запросов на `http://localhost:17321/log`, в консоли есть только один `DEV_LOG_SINK_DISABLED reason=connect_fail url=http://localhost:17321/log`, и игра загружается без ошибок. FAIL если запрос всё ещё спамит сеть или логгер продолжает писать ошибки.
+```
+
+### [T-20260210-003] ECON-NPC [1.5] Wealth tax pack: seedTransfer guard
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Заставить `runEconNpcWealthTaxEvidencePackOnce` безопасно обращаться к `seedTransfer`, чтобы не падало на undefined при неудачном `smokeRes`.
+- Acceptance:
+  - [x] `seedTransfer` объявлен вне `try` и обновляется из `smokeRes.diag` перед `finally`.
+  - [x] `finally` больше не кидает `ReferenceError` в отсутствие `smokeRes.diag`.
+  - [x] `seedDonorsSample` объявлен рядом и берётся из `smokeRes.diag`, предотвращая ReferenceError.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Добавлен `let seedTransfer = null;` рядом с другими контекстными переменными в `runEconNpcWealthTaxEvidencePackOnce`, и он обновляется из `smokeRes.diag.seedTransfer`.
+      (2) Новый `let evidenceSeedDonorsSample = [];` собирает `smokeRes.diag.seedDonorsSample`, и `diag`/`summary` используют его вместо несуществующей переменной.
+      (3) `finally` теперь может безопасно ссылаться на `seedTransfer`/`evidenceSeedDonorsSample`, поэтому `ReferenceError: Can't find variable: seedTransfer`/`seedDonorsSample` исчезают.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) `node --check AsyncScene/Web/dev/dev-checks.js`
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
         ```text
         Ответ QA:
-        Перезагрузи http://localhost:8080/index.html?dev=1 и наблюдай консоль. PASS если после загрузки отсутствует `SyntaxError: Cannot declare a const variable twice: 'emitLine'`, `dev-checks.js` печатает `[ConflictAPI] ready` или схожие runtime-маркеры, и начальный пакет идет до конца без падения. FAIL если ошибка все еще появляется или dev-checks не завершает блок `WORLD_ECON_*`.
+        Запусти `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce()` и посмотри в консоль/дебаг. PASS если блоки BEGIN/END проходят без `ReferenceError`, `seedTransfer`-поля остаются `null` или содержат JSON, и evidence pack печатает JSON без ошибок. FAIL если ошибка `seedTransfer` возвращается.
+        ```
+
+### [T-20260210-004] ECON-NPC [1.5] Seed donor filter + ensureNpcAccounts reconcile
+- Status: FAIL (NO-SMOKE → runtime evidence)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: SeedRichNpc должен быть npc-only (без sink/worldBank), а диагностика ensureNpcAccounts должна показывать согласованные missingAfterCount/sampleMissingIds.
+- Acceptance:
+  - [x] Seed использует только доноров `npc_*`; при отсутствии доноров seedApplied=false и seedWhy="seed_no_npc_donors".
+  - [x] missingAfterCount/sampleMissingIds берутся из `ensureNpcEconAccounts`/`ensureDiag` (единый источник), без расхождений.
+  - [ ] SMOKE (2x pack + dump) выполнен и PASS по условиям задачи.
+- Result: |
+    Status: FAIL
+    Facts:
+      (1) DUMP_AT 2026-02-10 23:06:21 → `date=2026-02-10 23:06:21`, `seedSourceId=null`, `seedApplied=false`, `seedWhy=null`, `seedTransfer.fromId=null`, `ensureNpcAccounts.createdCount=0`, `ensureNpcAccounts.missingAfterCount=0`, `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `hasWorldTaxInRows=false`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `asserts.ensureNpcAccountsOk=false`.
+      (2) Criteria B still fails due to `createdCount=0` even though world delta zero, so task stays FAIL.
+    Changed: `TASKS.md` `PROJECT_MEMORY.md`
+    How to verify:
+      (1) Повторить SMOKE (2 пакета + dump) и убедиться, что `asserts.ensureNpcAccountsOk=true`, `missingAfterCount=0`, и `createdCount>0` если `econAccountsBefore<npcCount`.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+        ```text
+        Ответ QA:
+        ДВА раза подряд запусти:
+        Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})
+        Затем:
+        Game.__DEV.smokeWealthTaxDumpOnce()
+        PASS если в последнем DUMP_AT `asserts.ensureNpcAccountsOk=true`, seedSourceId != "sink" (или seedApplied=false c seedWhy="seed_no_npc_donors"), ensureNpcAccounts.createdCount > 0 и missingAfterCount=0 (за исключением idempotent run с `econAccountsBefore=npcCount`), tax.totalTaxInWindow>0 сопровождается парными world_tax_rows, и world.delta=0. FAIL если хотя бы одно условие нарушено (укажи поля).
         ```
 
 ### [T-20260207-007] ECON-NPC [1.1] NPC world balance audit
