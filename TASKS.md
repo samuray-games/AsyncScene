@@ -152,7 +152,7 @@
         ```
 
 ### [T-20260210-004] ECON-NPC [1.5] Seed donor filter + ensureNpcAccounts reconcile
-- Status: FAIL (NO-SMOKE → runtime evidence)
+- Status: BLOCKED (runtime evidence needed)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -162,25 +162,25 @@
 - Acceptance:
   - [x] Seed использует только доноров `npc_*`; при отсутствии доноров seedApplied=false и seedWhy="seed_no_npc_donors".
   - [x] missingAfterCount/sampleMissingIds берутся из `ensureNpcEconAccounts`/`ensureDiag` (единый источник), без расхождений.
-  - [ ] SMOKE (2x pack + dump) выполнен и PASS по условиям задачи.
+  - [ ] SMOKE (`Game.__DEV.smokeWealthTaxDumpOnce()`) выполнен и PASS по условиям задачи.
 - Result: |
-    Status: FAIL
+    Status: BLOCKED (ждём новый DUMP_AT)
     Facts:
-      (1) DUMP_AT 2026-02-10 23:06:21 → `date=2026-02-10 23:06:21`, `seedSourceId=null`, `seedApplied=false`, `seedWhy=null`, `seedTransfer.fromId=null`, `ensureNpcAccounts.createdCount=0`, `ensureNpcAccounts.missingAfterCount=0`, `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `hasWorldTaxInRows=false`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `asserts.ensureNpcAccountsOk=false`.
-      (2) Criteria B still fails due to `createdCount=0` even though world delta zero, so task stays FAIL.
-    Changed: `TASKS.md` `PROJECT_MEMORY.md`
+      (1) `ensureNpcEconAccountsExist` теперь проходит списком `npc_*`, поскольку `missingAfterCount` и `sampleMissingIds` вычисляются локально через `econ.getAccount` и/или `Game.State.players`, так что возвращаемая `ensureDiag`/`ensureNpcAccounts` всегда отражают реальные пропущенные аккаунты (и `missingNpcIds` попадает в `diag.npcAccounts`).
+      (2) После `smokeRes` из `Game.__DEV.smokeNpcWealthTaxOnce` мы отсекаем любые `seedTransfer.fromId` `sink`/`worldBank`: печатаем `SEED_RICH_NPC_V2_GUARD_BLOCKED`, `seedApplied=false`, `seedWhy="seed_from_sink_forbidden"`, `seedFailureReason="donor_forbidden"`, `seedSourceId="npc_only_failed"` и устанавливаем `seedTransfer.fromId=null`.
+      (3) Последний DUMP_AT (2026-02-10 23:54:00) всё ещё фиксирует `seedSourceId:"sink"`, `seedTransfer.fromId:"sink"`, `ensureNpcAccounts.missingAfterCount=19`, `asserts.ensureNpcAccountsOk=false`, `world.delta=15`, поэтому QA должен собрать новую evidence-последовательность.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
-      (1) Повторить SMOKE (2 пакета + dump) и убедиться, что `asserts.ensureNpcAccountsOk=true`, `missingAfterCount=0`, и `createdCount>0` если `econAccountsBefore<npcCount`.
+      (1) Выполнить `Game.__DEV.smokeWealthTaxDumpOnce()` и дождаться нового блока `WEALTH_TAX_EVIDENCE_*` + `DUMP_AT`.
+      (2) В новом `DUMP_AT` убедиться, что `diag.seedSourceId != "sink"` (или `seedApplied=false` с `seedWhy="seed_no_npc_donors"`), `diag.seedTransfer.fromId == null`, `ensureNpcAccounts.missingAfterCount == 0`, `asserts.ensureNpcAccountsOk == true`, `world.delta == 0`, и `tax.totalTaxInWindow > 0` сопровождается парами `world_tax_in`/`world_tax_out`.
     Next: QA
     Next Prompt (копипаст, кодблок обязателен):
-        ```text
-        Ответ QA:
-        ДВА раза подряд запусти:
-        Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ticks:50, seedRichNpc:true, debugTelemetry:true, window:{lastN:400}})
-        Затем:
-        Game.__DEV.smokeWealthTaxDumpOnce()
-        PASS если в последнем DUMP_AT `asserts.ensureNpcAccountsOk=true`, seedSourceId != "sink" (или seedApplied=false c seedWhy="seed_no_npc_donors"), ensureNpcAccounts.createdCount > 0 и missingAfterCount=0 (за исключением idempotent run с `econAccountsBefore=npcCount`), tax.totalTaxInWindow>0 сопровождается парными world_tax_rows, и world.delta=0. FAIL если хотя бы одно условие нарушено (укажи поля).
-        ```
+    ```text
+    Ответ QA:
+    Очисти консоль, затем запусти:
+    Game.__DEV.smokeWealthTaxDumpOnce()
+    PASS если в следующем DUMP_AT `diag.seedSourceId != "sink"` (или seedApplied=false с `seedWhy="seed_no_npc_donors"`), `diag.seedTransfer.fromId == null`, `ensureNpcAccounts.missingAfterCount == 0`, `asserts.ensureNpcAccountsOk == true`, `world.delta == 0` и `tax.totalTaxInWindow > 0` сопровождается `world_tax_in`/`world_tax_out` (одинаковые txId). FAIL если хоть одно поле не укладывается.
+    ```
 
 ### [T-20260207-007] ECON-NPC [1.1] NPC world balance audit
 - Status: PASS

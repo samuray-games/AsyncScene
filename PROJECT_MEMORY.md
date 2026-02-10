@@ -2511,8 +2511,17 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 ### 2026-02-10 — ECON-NPC [1.5] Seed donor filter runtime dump
 - Status: FAIL
 - Facts:
-  - `Console.txt` DUMP_AT `2026-02-10 23:06:21` (epoch 1770732381569) shows `buildTag=build_2026_02_09b`, `seedSourceId=null`, `seedApplied=false`, `seedWhy=null`, no `seedTransfer.fromId`, `ensureNpcAccounts.createdCount=0`, `missingAfterCount=0`, `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`.
-- Key output fields: see above; worldTaxRowsInWindow shows zero counts so `hasWorldTaxInRows=false`.
-- Key output fields: `seedSourceId`, `seedWhy`, `seedTransfer.fromId`, `ensureNpcAccounts.createdCount`, `missingAfterCount`, `tax.totalTaxInWindow`, `tax.rowsCount`, `world.delta`.
+  - `Console.txt` DUMP_AT `2026-02-10 23:06:21` (epoch 1770732381569) logs `buildTag=build_2026_02_09b`, `seedSourceId=null`, `seedApplied=false`, `seedWhy=null`, `seedTransfer.fromId=null`, `ensureNpcAccounts.createdCount=0`, `ensureNpcAccounts.missingAfterCount=0`, `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `hasWorldTaxInRows=false`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `asserts.ensureNpcAccountsOk=false`.
+  - Key output fields: see above.
 - Changed: `TASKS.md` `PROJECT_MEMORY.md`
 - Next: QA (see updated TASKS.md entry)
+### 2026-02-13 — ECON-NPC [1.5] wealth tax diag guard + ensure reconciliation
+- Status: BLOCKED (ждём свежий DUMP_AT)
+- Facts:
+  - `ensureNpcEconAccountsExist` теперь вычисляет `missingAfterCount/sampleMissingIds` из единого источника, прогоняя `npcIds` через `econ.getAccount`/`Game.State.players`, чтобы `ensureDiag` и `diag.npcAccounts` всегда видели одинаковую выборку `missingNpcIds`.
+  - После `smokeRes` обрабатываем любые ``seedTransfer.fromId`` вроде `sink`/`worldBank`: печатаем `SEED_RICH_NPC_V2_GUARD_BLOCKED`, `seedApplied=false`, `seedWhy="seed_from_sink_forbidden"`, `seedFailureReason="donor_forbidden"`, `seedSourceId="npc_only_failed"` и оставляем `seedTransfer.fromId=null`, чтобы расхождения с diag исчезли.
+  - Последний фиксированный DUMP_AT (2026-02-10 23:54:00) по-прежнему показывает `seedSourceId:"sink"`, `seedTransfer.fromId:"sink"`, `ensureNpcAccounts.missingAfterCount=19`, `asserts.ensureNpcAccountsOk=false`, `world.delta=15`, поэтому нужен новый доказательный прогон.
+- Key output fields to catch: `diag.seedTransfer`, `ensureNpcAccounts.missingAfterCount`, `ensured.missingNpcIds`, `asserts.ensureNpcAccountsOk`, `world.delta`, `tax.totalTaxInWindow`, `world_tax_in/out` rows.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: QA (run `Game.__DEV.smokeWealthTaxDumpOnce()` и зафиксировать новый DUMP)
+Память обновлена

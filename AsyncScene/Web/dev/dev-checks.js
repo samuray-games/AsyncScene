@@ -3692,11 +3692,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         let seedGuardBlocked = false;
         for (let i = 0; i < donorIds.length && collected < need; i += 1) {
           const donorId = donorIds[i];
-          if (donorId === "sink" || donorId === "worldBank") {
-            emitLine(`SEED_RICH_NPC_V2_GUARD_BLOCKED sourceId=${donorId}`);
-            seedGuardBlocked = true;
-            break;
-          }
+        if (donorId === "sink" || donorId === "worldBank") {
+          emitLine(`SEED_RICH_NPC_V2_GUARD_BLOCKED sourceId=${donorId}`);
+          seedGuardBlocked = true;
+          break;
+        }
           const donorAcc = (Econ && typeof Econ.getAccount === "function") ? Econ.getAccount(donorId) : S.players[donorId];
           const donorPts = donorAcc && Number.isFinite(donorAcc.points) ? (donorAcc.points | 0) : 0;
           if (!donorId || !String(donorId).startsWith("npc_")) {
@@ -3723,7 +3723,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedWhy = "seed_from_sink_forbidden";
           seedSourceId = "npc_only_failed";
           seedApplied = false;
-          seedTransfer = null;
+          seedTransfer = { ok: false, fromId: null, sourcePtsAfter: null };
           notes.push("seed_from_sink_forbidden");
         }
         seedCollected = collected;
@@ -3742,7 +3742,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
             seedTransfer = {
               ok: true,
               amount: collected,
-              fromId: "npc_only"
+              fromId: "npc_only",
+              sourcePtsAfter: null
             };
             if (debugTelemetry) {
               try {
@@ -4206,60 +4207,57 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const players = S.players || {};
       const npcIds = Object.keys(players).filter(id => typeof id === "string" && id.startsWith("npc_"));
       let missingIds = [];
-      let missingAfterCount = null;
-      let sampleMissingIds = [];
       const statePoints = {};
       let createdCount = 0;
       let syncedCount = 0;
       let skippedCount = 0;
+      let branch = null;
+      let ensureDiag = null;
       if (econ && typeof econ.ensureNpcEconAccounts === "function") {
         const res = econ.ensureNpcEconAccounts({ reason: "wealth_tax_pack_precheck" }) || {};
         createdCount = Number.isFinite(res.createdCount) ? res.createdCount : 0;
         syncedCount = Number.isFinite(res.syncedCount) ? res.syncedCount : 0;
         skippedCount = Number.isFinite(res.skippedCount) ? res.skippedCount : 0;
-        var branch = res.branch || null;
-        var ensureDiag = res.ensureDiag || (Game.__D && Game.__D.__lastEnsureNpcEconAccounts) || null;
-        if (Number.isFinite(res.missingAfterCount)) missingAfterCount = res.missingAfterCount;
-        if (ensureDiag && Array.isArray(ensureDiag.missingAfterIdsSample)) {
-          sampleMissingIds = ensureDiag.missingAfterIdsSample.slice(0, 5);
-        }
+        branch = res.branch || null;
+        ensureDiag = res.ensureDiag || (Game.__D && Game.__D.__lastEnsureNpcEconAccounts) || null;
       } else if (econ && typeof econ.ensureNpcAccountsFromState === "function") {
         const res = econ.ensureNpcAccountsFromState({ reason: "wealth_tax_pack_precheck" }) || {};
         createdCount = Number.isFinite(res.createdNowCount) ? res.createdNowCount : 0;
         syncedCount = Number.isFinite(res.syncedNowCount) ? res.syncedNowCount : 0;
-        var branch = null;
-        var ensureDiag = (Game.__D && Game.__D.__lastEnsureNpcEconAccounts) || null;
-        if (Number.isFinite(res.missingAfterCount)) missingAfterCount = res.missingAfterCount;
-        if (ensureDiag && Array.isArray(ensureDiag.missingAfterIdsSample)) {
-          sampleMissingIds = ensureDiag.missingAfterIdsSample.slice(0, 5);
-        }
+        skippedCount = Number.isFinite(res.skippedCount) ? res.skippedCount : 0;
+        branch = res.branch || null;
+        ensureDiag = (res.ensureDiag || (Game.__D && Game.__D.__lastEnsureNpcEconAccounts)) || null;
       }
       npcIds.forEach((id) => {
         const p = players[id];
         const pts = p && Number.isFinite(p.points) ? (p.points | 0) : 0;
         statePoints[id] = pts;
+        let account = null;
+        if (econ && typeof econ.getAccount === "function") {
+          try { account = econ.getAccount(id); } catch (_) { account = null; }
+        }
+        if (!account && !p) {
+          missingIds.push(id);
+        } else if (!account) {
+          missingIds.push(id);
+        }
       });
-      if (missingAfterCount == null) {
-        npcIds.forEach((id) => {
-          let acc = null;
-          if (econ && typeof econ.getAccount === "function") {
-            try { acc = econ.getAccount(id); } catch (_) { acc = null; }
-          }
-          if (!acc) missingIds.push(id);
-        });
-        missingAfterCount = missingIds.length;
-        if (!sampleMissingIds.length) sampleMissingIds = missingIds.slice(0, 5);
-      }
+      const missingAfterCount = missingIds.length;
+      const sampleMissingIds = missingIds.slice(0, 5);
+      const normalizedEnsureDiag = ensureDiag ? Object.assign({}, ensureDiag) : {};
+      normalizedEnsureDiag.missingAfterCount = missingAfterCount;
+      normalizedEnsureDiag.missingAfterIdsSample = sampleMissingIds.slice();
       return {
         npcCount: npcIds.length,
         createdCount,
         syncedCount,
         skippedCount,
-        missingAfterCount: missingAfterCount,
-        sampleMissingIds: sampleMissingIds,
+        missingAfterCount,
+        sampleMissingIds,
         statePointsSample: Object.keys(statePoints).slice(0, 3).map(id => ({ id, points: statePoints[id] })),
         branch: branch || null,
-        ensureDiag: ensureDiag || null
+        ensureDiag: normalizedEnsureDiag,
+        missingNpcIds: missingIds
       };
     };
     const safeStringify = (obj) => {
@@ -4364,6 +4362,22 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         rowsScoped = Number.isFinite(smokeRes.meta && smokeRes.meta.rowsScoped) ? smokeRes.meta.rowsScoped : rowsScoped;
         seedTransfer = smokeRes.diag.seedTransfer || seedTransfer;
         evidenceSeedDonorsSample = smokeRes.diag.seedDonorsSample || evidenceSeedDonorsSample;
+      }
+      const blockSinkSeeds = () => {
+        const fromId = seedTransfer && seedTransfer.fromId;
+        if (fromId === "sink" || fromId === "worldBank") {
+          emitLine(`SEED_RICH_NPC_V2_GUARD_BLOCKED sourceId=${fromId}`);
+          seedFailureReason = seedFailureReason || "donor_forbidden";
+          seedWhy = "seed_from_sink_forbidden";
+          seedSourceId = "npc_only_failed";
+          seedApplied = false;
+          seedTransfer = { ok: false, fromId: null, sourcePtsAfter: null };
+          if (!notes.includes("seed_from_sink_forbidden")) {
+            notes.push("seed_from_sink_forbidden");
+          }
+        }
+      };
+      blockSinkSeeds();
       }
       summary = smokeRes ? {
         ok: !!smokeRes.ok,
