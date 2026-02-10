@@ -10056,3 +10056,4 @@
 {"ts": 1770713945061, "sessionId": "session-1770713913374-hxnn", "type": "chat", "name": "Троль", "text": "кринж зашел в чат и сел", "system": false}
 {"ts": 1770713954714, "sessionId": "session-1770713913374-hxnn", "type": "chat", "name": "Глеб", "text": "@Ohmylord, а ну-ка, покажи аргумент", "system": false}
 {"ts": 1770713965602, "sessionId": "session-1770713913374-hxnn", "type": "chat", "name": "Система", "text": "Толпа решает: Троль хочет свалить от Грустный.", "system": true}
+{"ts": 1770713970429, "sessionId": "session-1770713913374-hxnn", "type": "chat", "name": "Королева", "text": "@Слава, мне скучно, дайте движ", "system": false}
