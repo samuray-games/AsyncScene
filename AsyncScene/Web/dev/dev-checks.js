@@ -42,6 +42,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     window.DEV === true ||
     hasExplicitDevQueryParam();
 
+  const WEALTH_TAX_DUMP_BUILD_TAG = "wt_dump_guard_v3_2026_02_11_01";
+  if (typeof window !== "undefined") window.__WT_DUMP_BUILD_TAG__ = WEALTH_TAX_DUMP_BUILD_TAG;
   const emitLine = (line) => {
     const text = String(line);
     try {
@@ -4113,7 +4115,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce = (opts = {}) => {
     const notes = [];
     const diagVersion = "econ_npc_wealth_tax_pack_v1";
-    const buildTag = "build_2026_02_09b";
+    const buildTagLocal = (typeof window !== "undefined" && window.__WT_DUMP_BUILD_TAG__)
+      || (typeof window !== "undefined" && window.__DEV_CHECKS_RUNTIME_PROOF_V4_BUILD_TAG)
+      || (typeof window !== "undefined" && window.__DEV_CHECKS_PROOF_V4_BUILD_TAG)
+      || "build_2026_02_09b";
+    const buildTag = buildTagLocal;
     const header = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN";
       emitLine("SEED_RICH_NPC_V2_ACTIVE");
     const footer = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END";
@@ -4293,7 +4299,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const syncedNowCountLocal = Number.isFinite(ensured.syncedCount) ? ensured.syncedCount : 0;
       npcAccountsCreatedNowCount += createdNowCountLocal;
       npcAccountsSyncedNowCount += syncedNowCountLocal;
-      const missingNpcIds = ensured.missingNpcIds || [];
+      const missingNpcIds = (npcEnsure && Array.isArray(npcEnsure.missingNpcIds))
+        ? npcEnsure.missingNpcIds
+        : (ensured.missingNpcIds || []);
       const npcDiagSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
         : null;
@@ -4302,22 +4310,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const npcDiagIds = Object.values(npcDiagPlayers || {})
         .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
         .map(p => String(p.id));
-      const npcDiagMissing = [];
       const npcDiagPresent = [];
       if (npcDiagById) {
         npcDiagIds.forEach(id => {
           if (Number.isFinite(npcDiagById[id])) npcDiagPresent.push(id);
-          else npcDiagMissing.push(id);
         });
-      } else {
-        npcDiagMissing.push(...npcDiagIds);
       }
       npcAccountCount = npcDiagPresent.length;
       npcAccountSample = npcDiagPresent.slice(0, 3);
-      npcAccountsMissingLen = npcDiagMissing.length;
-      npcAccountsMissingSample = npcDiagMissing.slice(0, 3);
-      npcAccountsMissingAfterEnsureLen = npcAccountsMissingLen;
-      npcAccountsMissingAfterEnsureSample = npcAccountsMissingSample.slice(0, 3);
+      npcAccountsMissingLen = missingNpcIds.length;
+      npcAccountsMissingSample = missingNpcIds.slice(0, 3);
+      npcAccountsMissingAfterEnsureLen = missingNpcIds.length;
+      npcAccountsMissingAfterEnsureSample = missingNpcIds.slice(0, 3);
       smokeRes = Game.__DEV.smokeNpcWealthTaxOnce(opts);
       if (smokeRes && smokeRes.notes && Array.isArray(smokeRes.notes) && addedAccounts.length) {
         smokeRes.notes.push("world_contract_missing_accounts");
@@ -4364,21 +4368,37 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         evidenceSeedDonorsSample = smokeRes.diag.seedDonorsSample || evidenceSeedDonorsSample;
       }
       const blockSinkSeeds = () => {
-        const fromId = seedTransfer && seedTransfer.fromId;
-        if (fromId === "sink" || fromId === "worldBank") {
-          emitLine(`SEED_RICH_NPC_V2_GUARD_BLOCKED sourceId=${fromId}`);
-          seedFailureReason = seedFailureReason || "donor_forbidden";
-          seedWhy = "seed_from_sink_forbidden";
-          seedSourceId = "npc_only_failed";
-          seedApplied = false;
-          seedTransfer = { ok: false, fromId: null, sourcePtsAfter: null };
-          if (!notes.includes("seed_from_sink_forbidden")) {
-            notes.push("seed_from_sink_forbidden");
+      const fromId = seedTransfer && seedTransfer.fromId;
+      const amount = seedTransfer && Number.isFinite(seedTransfer.amount) ? (seedTransfer.amount | 0) : null;
+      const sourcePtsBefore = seedTransfer && Number.isFinite(seedTransfer.sourcePtsBefore) ? (seedTransfer.sourcePtsBefore | 0) : null;
+      const sourcePtsAfter = seedTransfer && Number.isFinite(seedTransfer.sourcePtsAfter) ? (seedTransfer.sourcePtsAfter | 0) : null;
+      const isSinkDonation = fromId === "sink" || fromId === "worldBank";
+      const insufficientDonor = !isSinkDonation && amount != null && sourcePtsBefore != null && sourcePtsBefore < amount;
+      const negativeAfter = sourcePtsAfter != null && sourcePtsAfter < 0;
+        if (isSinkDonation || insufficientDonor || negativeAfter) {
+          if (isSinkDonation) {
+            emitLine(`SEED_RICH_NPC_V2_GUARD_BLOCKED sourceId=${fromId}`);
           }
+          console.log("WT_SEED_WIPED", { why: seedWhy, failure: seedFailureReason });
+        const reason = isSinkDonation ? "donor_forbidden" : (negativeAfter ? "negative_after" : "insufficient_donor");
+        seedFailureReason = seedFailureReason || reason;
+        seedWhy = isSinkDonation ? "seed_from_sink_forbidden" : (negativeAfter ? "seed_negative_after" : "seed_insufficient_donor");
+        seedSourceId = "npc_only_failed";
+        seedApplied = false;
+        seedTransfer = { ok: false, fromId: null, sourcePtsAfter: null };
+        if (!notes.includes("seed_rich_npc_failed")) notes.push("seed_rich_npc_failed");
+        if (isSinkDonation && !notes.includes("seed_from_sink_forbidden")) notes.push("seed_from_sink_forbidden");
+        if (insufficientDonor && !notes.includes("seed_insufficient_donor")) notes.push("seed_insufficient_donor");
+        if (smokeRes && smokeRes.diag) {
+          smokeRes.diag.seedApplied = false;
+          smokeRes.diag.seedWhy = seedWhy;
+          smokeRes.diag.seedFailureReason = seedFailureReason;
+          smokeRes.diag.seedSourceId = seedSourceId;
+          smokeRes.diag.seedTransfer = { ok: false, fromId: null, sourcePtsAfter: null };
         }
-      };
-      blockSinkSeeds();
       }
+    };
+    blockSinkSeeds();
       summary = smokeRes ? {
         ok: !!smokeRes.ok,
         worldDelta: smokeRes.world ? smokeRes.world.delta : null,
@@ -4648,6 +4668,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   };
 
   Game.__DEV.smokeWealthTaxDumpOnce = (opts = {}) => {
+    console.log("WT_DUMP_BUILD_TAG", window.__WT_DUMP_BUILD_TAG__);
     let res1 = null;
     let res2 = null;
     try {

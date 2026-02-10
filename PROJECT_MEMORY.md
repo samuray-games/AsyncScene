@@ -285,6 +285,16 @@
 
 Память обновлена
 
+### 2026-02-11 — Dev server Console.txt stack dump filter
+- Status: PASS
+- Facts:
+  - Фильтрация применяется к `raw_payload_text` из запроса (`CONSOLE_DUMP_*`, `CONSOLE_DUMP_INCLUDED_TAPE_TAIL*`, `/__dev/console-dump`, `[TAPE_TAIL_*]`, `REPL_TAPE_V1_READY`, `CONSOLE_TAPE_V1_READY`, `DEV_CHECKS_*`, `DEV_SERVER_*`, `[DUMP_AT]`) и пропускает BEGIN/END tape-tail region, поэтому в свежем блоке остаются только чистые runtime-логи.
+  - `Console.txt` верхние блоки `[DUMP_AT] [2026-02-11 02:03:59]` и `[2026-02-11 02:03:57]` подтверждают отсутствие banned-строк и вложенных `[DUMP_AT]`, а между ними — ровно один пустой разделитель.
+  - Запись делается атомарно через `tmp` + `os.replace`, новые блоки prepend-ятся с двумя переводами строки и старый контент не пересекается; сервер логирует `DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 ...`.
+- Key output fields: `header=[DUMP_AT] ...`, `filtered_payload` (без banned-сообщений), лог `DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=… kept_lines=… skipped_lines=… skippedTapeTailRegion=…`.
+- Changed: `AsyncScene/Web/dev/dev-server.py` `TASKS.md` `PROJECT_MEMORY.md`
+- Next: QA (следить за следующими дампами — новые `DUMP_AT` должны оставаться чистыми)
+
 ### 2026-02-05 — ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
 - Status: PASS
 - Facts:
@@ -2524,4 +2534,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Key output fields to catch: `diag.seedTransfer`, `ensureNpcAccounts.missingAfterCount`, `ensured.missingNpcIds`, `asserts.ensureNpcAccountsOk`, `world.delta`, `tax.totalTaxInWindow`, `world_tax_in/out` rows.
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Next: QA (run `Game.__DEV.smokeWealthTaxDumpOnce()` и зафиксировать новый DUMP)
+-### 2026-02-11 — ECON-NPC [1.5] wealth tax diag sink guard FAIL
+- Status: FAIL
+- Facts:
+  - DUMP_AT 2026-02-11 00:44:55 — `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=0`, `asserts.hasWorldTaxInRows=false`.
+  - DUMP_AT 2026-02-11 00:59:15 — `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `diag.seedTransfer.sourcePtsBefore=0`, `diag.seedTransfer.sourcePtsAfter=-15`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=0`, `world.delta=13`, `bank.beforePts=0` → `afterPts=20`.
+-  - BUILD TAG CHECK pending until `WT_DUMP_BUILD_TAG wt_dump_guard_v3_2026_02_11_01` appears in Console.txt.
+- Next: QA (повторить `Game.__DEV.smokeWealthTaxDumpOnce()` после фикса guard/ensure)
 Память обновлена

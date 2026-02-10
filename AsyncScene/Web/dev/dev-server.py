@@ -9,6 +9,20 @@ from datetime import datetime, timezone, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 STORE_PATH = "/Users/User/Documents/created apps/AsyncScene/Console.txt"
+BANNED_PAYLOAD_SUBSTRINGS = [
+    "CONSOLE_DUMP_",
+    "CONSOLE_DUMP_INCLUDED_TAPE_TAIL",
+    "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_",
+    "[TAPE_TAIL_",
+    "CONSOLE_TAPE_V1_READY",
+    "REPL_TAPE_V1_READY",
+    "DUMP_ALIAS_OK",
+    "[DUMP_AT]",
+    "DEV_CHECKS_",
+    "DEV_SERVER_",
+    "/__dev/console-dump",
+]
+FILTER_BUILD_TAG = "FILTER_V4_2026_02_11_02"
 MAX_CHARS = 2_000_000
 
 
@@ -74,9 +88,54 @@ class DevHandler(SimpleHTTPRequestHandler):
             dump_local = datetime.fromtimestamp(dumpAtEpochMs / 1000, zone)
             dumpAtLocal = dump_local.strftime("%Y-%m-%d %H:%M:%S")
             header = f"[DUMP_AT] [{dumpAtLocal}] (epoch_ms={dumpAtEpochMs})\n"
-            payload = header + text
-            with open(STORE_PATH, "w", encoding="utf-8") as f:
-                f.write(payload)
+            old_content = ""
+            try:
+                with open(STORE_PATH, "r", encoding="utf-8") as f:
+                    old_content = f.read()
+            except FileNotFoundError:
+                old_content = ""
+            raw_payload_text = text
+            raw_lines = 0
+            kept_lines = 0
+            skipped_lines = 0
+            skipped_tape_tail_region = False
+            skip_tape_tail = False
+            filtered_parts = []
+            for line in raw_payload_text.splitlines(True):
+                raw_lines += 1
+                if skip_tape_tail:
+                    skipped_lines += 1
+                    skipped_tape_tail_region = True
+                    if "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END" in line:
+                        skip_tape_tail = False
+                    continue
+                if "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN" in line:
+                    skipped_lines += 1
+                    skipped_tape_tail_region = True
+                    skip_tape_tail = True
+                    if "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END" in line:
+                        skip_tape_tail = False
+                    continue
+                if any(keyword in line for keyword in BANNED_PAYLOAD_SUBSTRINGS):
+                    skipped_lines += 1
+                    continue
+                filtered_parts.append(line)
+                kept_lines += 1
+            filtered_payload = "".join(filtered_parts).strip("\n")
+            print(
+                "DEV_SERVER_FILTER_DUMP",
+                FILTER_BUILD_TAG,
+                f"raw_lines={raw_lines}",
+                f"kept_lines={kept_lines}",
+                f"skipped_lines={skipped_lines}",
+                f"skippedTapeTailRegion={skipped_tape_tail_region}"
+            )
+            new_block = header + filtered_payload + "\n\n"
+            new_content = new_block + old_content.lstrip("\n")
+            tmp_path = STORE_PATH + ".tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            os.replace(tmp_path, STORE_PATH)
         except Exception as exc:
             self._json(500, {"ok": False, "err": str(exc)})
             return
@@ -153,6 +212,7 @@ def main():
     print("DEV_SERVER_V1_READY")
     print("DEV_SERVER_V1_ROUTE /__dev/health GET")
     print("DEV_SERVER_V1_ROUTE /__dev/console-dump POST enabled")
+    print("DEV_SERVER_FILTER_ACTIVE", FILTER_BUILD_TAG)
     server.serve_forever()
 
 

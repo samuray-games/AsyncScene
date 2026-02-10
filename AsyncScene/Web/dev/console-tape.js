@@ -3,6 +3,7 @@
   if (window.__CONSOLE_TAPE_INSTALLED__) return;
   window.__CONSOLE_TAPE_INSTALLED__ = true;
   const STORE_KEY = "__CONSOLE_TAPE__V1";
+  const DUMP_STATE_KEY = "DEV_CONSOLE_DUMP_STATE_V1";
   const MAX_CHARS = 2_000_000;
   const safeStorage = () => {
     try {

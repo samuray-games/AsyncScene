@@ -68,6 +68,36 @@
 
 ## Inbox
 
+### [T-20260211-011] Dev server Console.txt stack dump cleaning
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Dev Infra
+- Files: `AsyncScene/Web/dev/dev-server.py` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: обезопасить prepend-логи dev-server так, чтобы каждый свежий `[DUMP_AT]` блок в `Console.txt` включал только чистый payload (один заголовок, никаких banned service-lines или вложенных `[DUMP_AT]`, и старый контент оставался ниже через `\n\n`).
+- Acceptance:
+  - [x] каждый POST строит отдельный заголовок `[DUMP_AT] …` и не пропускает его через фильтр, а добавляет его в `Console.txt` перед очищенным payload;
+  - [x] `raw_payload_text` фильтруется по `BANNED_PAYLOAD_SUBSTRINGS`, пропускаются tape-tail region (BEGIN…END) и строки `/__dev/console-dump`, после чего `filtered_payload` чистый; payload пишется через `new_block = header + filtered_payload.strip("\n") + "\n\n"`;
+  - [x] запись идёт атомарно (`tmp` + `os.replace`), новый блок сразу перед старым контентом, в файл попадает только то, что осталось после фильтра, а сервер логирует `DEV_SERVER_FILTER_DUMP …` для телеметрии.
+- Notes: PASS после двух дампов с чистыми верхними блоками (DUMP_AT 2026-02-11 02:03:59 / 02:03:57) без banned-маркеров, остальные блоки ниже могут остаться нетронутыми.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Два свежих блока в `Console.txt` (`[DUMP_AT] [2026-02-11 02:03:59]` и `[2026-02-11 02:03:57]`) содержат только обычные логи и ни одной строки с banned-подстрокой `CONSOLE_DUMP_*`, `CONSOLE_DUMP_INCLUDED_TAPE_TAIL_*`, `[TAPE_TAIL_*]`, `REPL_TAPE_V1_READY`, `CONSOLE_TAPE_V1_READY`, `DEV_CHECKS_`, `DEV_SERVER_`, `/__dev/console-dump` или `[DUMP_AT]`, поэтому свежий stack-формат выполняется.
+      (2) `new_block = header + filtered_payload.strip("\n") + "\n\n"` перестаёт копировать старый мусор, и `Console.txt` теперь показывает чистый блок поверх предыдущего, а сервер выводит фильтрационные лог-маркеры `DEV_SERVER_FILTER_DUMP`.
+    Changed: `AsyncScene/Web/dev/dev-server.py` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) После перезапуска `dev-server` выполнить два дампа (`dev=1` page + usual dump trigger).
+      (2) Открыть `/Users/User/Documents/created apps/AsyncScene/Console.txt`, убедиться, что верхний блок `[DUMP_AT] [2026-02-11 02:03:59]` + следующий пустой разделитель не содержат banned-строк и что следующий `[DUMP_AT] [2026-02-11 02:03:57]` идёт сразу после пустой строки.
+      (3) В логе dev-server увидеть `DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 ...` и отсутствие старых tape-tail строк в payload, то есть фильтр сработал.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Перезапусти dev=1, сделай два дампа и посмотри `/Users/User/Documents/created apps/AsyncScene/Console.txt`. PASS если новый верхний `[DUMP_AT]`-блок (2026-02-11 02:03:59) не содержит banned-строк (CONSOLE_DUMP_*, [TAPE_TAIL_*, REPL_TAPE_V1_READY, CONSOLE_TAPE_V1_READY, DEV_* и `/__dev/console-dump`) и следующий `[DUMP_AT]` идёт сразу после пустой строки. FAIL если появилась хотя бы одна banned-строка или вложенный `[DUMP_AT]`.
+    ```
+
 ### [T-20260210-001] ECON-NPC [1.5] Boot crash fix: duplicate emitLine
 - Status: PASS
 - Priority: P0
@@ -151,8 +181,8 @@
         Запусти `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce()` и посмотри в консоль/дебаг. PASS если блоки BEGIN/END проходят без `ReferenceError`, `seedTransfer`-поля остаются `null` или содержат JSON, и evidence pack печатает JSON без ошибок. FAIL если ошибка `seedTransfer` возвращается.
         ```
 
-### [T-20260210-004] ECON-NPC [1.5] Seed donor filter + ensureNpcAccounts reconcile
-- Status: BLOCKED (runtime evidence needed)
+-### [T-20260210-004] ECON-NPC [1.5] Seed donor filter + ensureNpcAccounts reconcile
+- Status: FAIL (runtime evidence)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -163,23 +193,23 @@
   - [x] Seed использует только доноров `npc_*`; при отсутствии доноров seedApplied=false и seedWhy="seed_no_npc_donors".
   - [x] missingAfterCount/sampleMissingIds берутся из `ensureNpcEconAccounts`/`ensureDiag` (единый источник), без расхождений.
   - [ ] SMOKE (`Game.__DEV.smokeWealthTaxDumpOnce()`) выполнен и PASS по условиям задачи.
+  - [ ] BUILD TAG CHECK: `WT_DUMP_BUILD_TAG wt_dump_guard_v3_2026_02_11_01` появляется в Console.txt после smoke.
 - Result: |
-    Status: BLOCKED (ждём новый DUMP_AT)
+    Status: FAIL
     Facts:
-      (1) `ensureNpcEconAccountsExist` теперь проходит списком `npc_*`, поскольку `missingAfterCount` и `sampleMissingIds` вычисляются локально через `econ.getAccount` и/или `Game.State.players`, так что возвращаемая `ensureDiag`/`ensureNpcAccounts` всегда отражают реальные пропущенные аккаунты (и `missingNpcIds` попадает в `diag.npcAccounts`).
-      (2) После `smokeRes` из `Game.__DEV.smokeNpcWealthTaxOnce` мы отсекаем любые `seedTransfer.fromId` `sink`/`worldBank`: печатаем `SEED_RICH_NPC_V2_GUARD_BLOCKED`, `seedApplied=false`, `seedWhy="seed_from_sink_forbidden"`, `seedFailureReason="donor_forbidden"`, `seedSourceId="npc_only_failed"` и устанавливаем `seedTransfer.fromId=null`.
-      (3) Последний DUMP_AT (2026-02-10 23:54:00) всё ещё фиксирует `seedSourceId:"sink"`, `seedTransfer.fromId:"sink"`, `ensureNpcAccounts.missingAfterCount=19`, `asserts.ensureNpcAccountsOk=false`, `world.delta=15`, поэтому QA должен собрать новую evidence-последовательность.
+      (1) DUMP_AT `2026-02-11 00:44:55` зафиксировал `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `ensureNpcAccounts.missingAfterCount=19` (при `npcAccountsMissingLen=0`), `asserts.ensureNpcAccountsOk=false`, `asserts.hasWorldTaxInRows=false`, `world.delta=0`.
+      (2) DUMP_AT `2026-02-11 00:59:15` снова показывал `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `diag.seedTransfer.sourcePtsBefore=0`, `diag.seedTransfer.sourcePtsAfter=-15`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=0`, `world.delta=13`, `bank.beforePts=0` → `bank.afterPts=20`, подтверждая, что guard пока никак не влияет на JSON, и `missingAfter` метки перестали совпадать.
     Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
-      (1) Выполнить `Game.__DEV.smokeWealthTaxDumpOnce()` и дождаться нового блока `WEALTH_TAX_EVIDENCE_*` + `DUMP_AT`.
-      (2) В новом `DUMP_AT` убедиться, что `diag.seedSourceId != "sink"` (или `seedApplied=false` с `seedWhy="seed_no_npc_donors"`), `diag.seedTransfer.fromId == null`, `ensureNpcAccounts.missingAfterCount == 0`, `asserts.ensureNpcAccountsOk == true`, `world.delta == 0`, и `tax.totalTaxInWindow > 0` сопровождается парами `world_tax_in`/`world_tax_out`.
+      (1) Выполнить `Game.__DEV.smokeWealthTaxDumpOnce()` и дождаться нового `WEALTH_TAX_EVIDENCE` + `DUMP_AT`.
+      (2) Выполнить PASS-проверки (seed source != sink, guard маркеры, ensure missing=0, asserts ensure ok, world.delta=0, world_tax rows с totalTax>0).
     Next: QA
     Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ QA:
-    Очисти консоль, затем запусти:
+    Очисти консоль и запусти:
     Game.__DEV.smokeWealthTaxDumpOnce()
-    PASS если в следующем DUMP_AT `diag.seedSourceId != "sink"` (или seedApplied=false с `seedWhy="seed_no_npc_donors"`), `diag.seedTransfer.fromId == null`, `ensureNpcAccounts.missingAfterCount == 0`, `asserts.ensureNpcAccountsOk == true`, `world.delta == 0` и `tax.totalTaxInWindow > 0` сопровождается `world_tax_in`/`world_tax_out` (одинаковые txId). FAIL если хоть одно поле не укладывается.
+    PASS если в следующем DUMP_AT `diag.seedSourceId != "sink"`, `diag.seedTransfer.fromId == null`, `ensureNpcAccounts.missingAfterCount == 0`, `asserts.ensureNpcAccountsOk == true`, `world.delta == 0`, и если `tax.totalTaxInWindow > 0`, то в `world_tax_rows` есть мирные пары. FAIL если хоть одно условие нарушено.
     ```
 
 ### [T-20260207-007] ECON-NPC [1.1] NPC world balance audit
