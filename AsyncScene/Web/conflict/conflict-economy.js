@@ -104,39 +104,134 @@
     return Number.isFinite(p90) ? (p90 | 0) : NPC_TAX_SOFT_CAP;
   }
 
+  function resolveNpcActivitySoftCap(softCapOverride){
+    if (Number.isFinite(softCapOverride)) return { softCap: (softCapOverride | 0), reason: "override" };
+    const p90 = getNpcSoftCapP90();
+    if (Number.isFinite(p90)) return { softCap: (p90 | 0), reason: "p90" };
+    try {
+      const cfg = (Game && Game.__A && typeof Game.__A.getPointsConfig === "function") ? Game.__A.getPointsConfig() : null;
+      if (cfg && Number.isFinite(cfg.softCap)) return { softCap: (cfg.softCap | 0), reason: "points_config" };
+    } catch (_) {}
+    return { softCap: 20, reason: "fallback_static_20" };
+  }
+
   let applyingNpcActivityTax = false;
+  let npcActivityTaxGuardTick = null;
+  let npcActivityTaxGuardSeen = null;
+  function shouldSkipNpcActivityTaxForTick(tickId, npcId){
+    if (tickId == null) return false;
+    const t = String(tickId);
+    if (npcActivityTaxGuardTick !== t) {
+      npcActivityTaxGuardTick = t;
+      npcActivityTaxGuardSeen = Object.create(null);
+    }
+    if (npcActivityTaxGuardSeen && npcActivityTaxGuardSeen[npcId]) return true;
+    if (npcActivityTaxGuardSeen) npcActivityTaxGuardSeen[npcId] = true;
+    return false;
+  }
+
+  function npcActivityTaxLog(tag, payload){
+    const gate = (Game && Game.__D && Game.__D.__npcActivityTaxLogGate) ? Game.__D.__npcActivityTaxLogGate : null;
+    if (gate && gate.runId) {
+      const agg = gate.agg || (gate.agg = Object.create(null));
+      const slot = agg[tag] || (agg[tag] = { count: 0, first: null, last: null });
+      slot.count += 1;
+      if (!slot.first) slot.first = payload;
+      slot.last = payload;
+      return;
+    }
+    console.warn(tag, payload);
+  }
   function maybeApplyNpcActivityTax(toId, gainPoints, toBefore, reason, meta, softCapOverride){
-    if (applyingNpcActivityTax) return { ok: false, skipped: true, reason: "reentrant" };
-    if (!Number.isFinite(gainPoints) || gainPoints <= 0) return { ok: false, skipped: true, reason: "no_gain" };
     const id = String(toId || "");
-    if (!id) return { ok: false, skipped: true, reason: "no_id" };
     const r = String(reason || "");
+    const gain = Number(gainPoints || 0);
+    const softCapMeta = resolveNpcActivitySoftCap(softCapOverride);
+    const softCapNpc = softCapMeta.softCap;
+    const acc = id ? getAccount(id) : null;
+    const isNpcTarget = !!(acc && (acc.npc === true || acc.type === "npc" || id.startsWith("npc_")));
+    const before = Number.isFinite(toBefore) ? (toBefore | 0) : (acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0);
+    try {
+      npcActivityTaxLog("NPC_ACTIVITY_TAX_PRECHECK", {
+        mode: meta && meta.mode ? String(meta.mode) : null,
+        targetId: id || null,
+        softCap: softCapNpc,
+        softCapReason: softCapMeta.reason
+      });
+    } catch (_) {}
+    if (isNpcTarget && gain > 0) {
+      try {
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_DEBUG", {
+          targetId: id || null,
+          gainPoints: (gain | 0),
+          npcPointsBefore: before,
+          softCapBefore: softCapNpc,
+          conditionPassed: (isNpcTarget && (gain | 0) > 0 && before > softCapNpc)
+        });
+      } catch (_) {}
+    }
+    if (applyingNpcActivityTax) return { ok: false, skipped: true, reason: "reentrant" };
+    if (!Number.isFinite(gain) || gain <= 0) return { ok: false, skipped: true, reason: "no_gain" };
+    if (!id) return { ok: false, skipped: true, reason: "no_id" };
     if (r === "npc_activity_tax" || r.startsWith("world_tax_")) return { ok: false, skipped: true, reason: "skip_reason" };
     if (r === "bank_deposit" || r === "bank_withdraw") return { ok: false, skipped: true, reason: "skip_reason" };
     if (r.startsWith("npc_account_") || r.startsWith("world_seed_")) return { ok: false, skipped: true, reason: "skip_reason" };
     if (meta && meta.activityTaxSkip) return { ok: false, skipped: true, reason: "skip_meta" };
-    const acc = getAccount(id);
-    const isNpc = !!(acc && (acc.npc === true || acc.type === "npc" || id.startsWith("npc_")));
-    if (!isNpc) return { ok: false, skipped: true, reason: "not_npc" };
-    const before = Number.isFinite(toBefore) ? (toBefore | 0) : (acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0);
-    const softCapNpc = Number.isFinite(softCapOverride) ? (softCapOverride | 0) : getNpcSoftCapP90();
+    if (!isNpcTarget) return { ok: false, skipped: true, reason: "not_npc" };
     if (before <= softCapNpc) return { ok: false, skipped: true, reason: "below_softcap" };
-    const rawTax = Math.floor((gainPoints | 0) * NPC_ACTIVITY_TAX_RATE);
-    const tax = Math.min(Math.max(1, rawTax), (gainPoints | 0));
+    const tickId = (meta && meta.tickId != null) ? meta.tickId
+      : (meta && Number.isFinite(meta.tick)) ? (meta.tick | 0)
+        : null;
+    if (shouldSkipNpcActivityTaxForTick(tickId, id)) {
+      try {
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_DEBUG", {
+          targetId: id || null,
+          tickId: tickId != null ? String(tickId) : null,
+          guardSkip: true
+        });
+      } catch (_) {}
+      return { ok: false, skipped: true, reason: "tick_guard" };
+    }
+    const overCap = Math.max(0, (before | 0) - (softCapNpc | 0));
+    const rawTax = Math.floor(overCap * NPC_ACTIVITY_TAX_RATE);
+    const tax = Math.min(Math.max(1, rawTax), (before | 0));
     if (!Number.isFinite(tax) || tax <= 0) return { ok: false, skipped: true, reason: "tax_zero" };
     const taxMeta = Object.assign({}, meta || {}, {
       kind: "npc_activity_tax",
+      cap: softCapNpc,
+      rate: NPC_ACTIVITY_TAX_RATE,
+      npcPtsBefore: before,
       softCapNpc,
       npcPointsBefore: before,
       gainPoints: (gainPoints | 0),
       taxRate: NPC_ACTIVITY_TAX_RATE,
       tax,
       sourceReason: r || null,
-      activityTaxSkip: true
+      activityTaxSkip: true,
+      idempotencyKey: (tickId != null) ? `npc_activity_tax|${String(tickId)}|${id}` : null
     });
     applyingNpcActivityTax = true;
     try {
-      return E.transferPoints(id, WORLD_BANK_ID, tax, "npc_activity_tax", taxMeta);
+      try {
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_TAX", {
+          targetId: id,
+          gainPoints: (gain | 0),
+          npcPointsBefore: before,
+          softCapBefore: softCapNpc,
+          taxAmount: tax
+        });
+      } catch (_) {}
+      const res = E.transferPoints(id, WORLD_BANK_ID, tax, "npc_activity_tax", taxMeta);
+      try {
+        const accAfter = getAccount(id);
+        const bankAfter = getAccount(WORLD_BANK_ID);
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_POST", {
+          targetId: id,
+          npcPointsAfter: accAfter && Number.isFinite(accAfter.points) ? (accAfter.points | 0) : null,
+          worldBankAfter: bankAfter && Number.isFinite(bankAfter.points) ? (bankAfter.points | 0) : null
+        });
+      } catch (_) {}
+      return res;
     } finally {
       applyingNpcActivityTax = false;
     }
@@ -606,6 +701,28 @@
     return null;
   }
 
+  function logNpcSkipLowFunds(meta = {}){
+    const npcId = String(meta.npcId || "");
+    if (!npcId) return { ok: false, reason: "no_npc" };
+    const tickId = (meta.tickId != null) ? String(meta.tickId) : "";
+    const actionKey = String(meta.actionKey || "");
+    const idempotencyKey = meta.idempotencyKey || `npc_skip_low_funds|${tickId}|${npcId}|${actionKey}`;
+    const contextId = meta.contextId ? String(meta.contextId) : "";
+    const existing = findDupEntry("npc_skip_low_funds", idempotencyKey, contextId);
+    if (existing) return { ok: true, dedup: true, idempotencyKey, existing };
+    const entry = {
+      time: Date.now(),
+      sourceId: npcId,
+      targetId: "sink",
+      amount: 0,
+      reason: "npc_skip_low_funds",
+      battleId: contextId || null,
+      meta: Object.assign({}, meta, { idempotencyKey })
+    };
+    logTransfer(entry);
+    return { ok: true, logged: true, idempotencyKey };
+  }
+
   function chargePriceOnce(opts = {}){
     const fromId = (opts && opts.fromId != null) ? String(opts.fromId) : "me";
     const toId = (opts && opts.toId != null) ? String(opts.toId) : "sink";
@@ -633,6 +750,10 @@
       priceKey: opts.priceKey,
       context
     });
+    const acc = getAccount(actorId);
+    const ptsBefore = Number.isFinite(opts.actorPoints)
+      ? (opts.actorPoints | 0)
+      : (acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0);
     const amount = price.finalPrice;
     const meta = {
       battleId: battleId || (context && context.battleId ? context.battleId : null),
@@ -644,6 +765,29 @@
       context,
       idempotencyKey
     };
+    const isNpcActor = acc && (acc.npc === true || acc.type === "npc" || String(actorId).startsWith("npc_"));
+    if (isNpcActor && (ptsBefore <= 0 || ptsBefore < amount)) {
+      const tickId = (opts && opts.tickId != null)
+        ? opts.tickId
+        : (context && context.tickId != null)
+          ? context.tickId
+          : (opts && opts.tick != null)
+            ? opts.tick
+            : null;
+      const actionKey = String(opts.actionKey || price.priceKey || reason || "");
+      logNpcSkipLowFunds({
+        npcId: actorId,
+        ptsBefore,
+        need: amount,
+        actionKey,
+        priceKey: price.priceKey || opts.priceKey || null,
+        mult: price.mult,
+        contextId: meta.battleId || null,
+        tickId,
+        idempotencyKey: `npc_skip_low_funds|${String(tickId || "")}|${actorId}|${actionKey}`
+      });
+      return { ok: false, skipped: true, reason: "npc_skip_low_funds", idempotencyKey, meta };
+    }
     if (opts.rematchOf) meta.rematchOf = opts.rematchOf;
     if (opts.extraMeta && typeof opts.extraMeta === "object") {
       Object.keys(opts.extraMeta).forEach(k => { meta[k] = opts.extraMeta[k]; });
@@ -661,6 +805,7 @@
   E.getPriceMultiplier = getPriceMultiplier;
   E.calcFinalPrice = calcFinalPrice;
   E.chargePriceOnce = chargePriceOnce;
+  E.logNpcSkipLowFunds = logNpcSkipLowFunds;
   E.getTrainingBasePrice = getTrainingBasePrice;
 
   E.ensurePool = function (poolId){
@@ -835,8 +980,20 @@
     };
   };
 
+  E.getNpcActivitySoftCapMeta = function(){
+    return resolveNpcActivitySoftCap();
+  };
+
   E.transferPoints = function (fromId, toId, amount, reason, meta = {}) {
     ensureDebugStore();
+    try {
+      npcActivityTaxLog("NPC_ACTIVITY_TAX_ENTRY", {
+        sourceId: String(fromId || ""),
+        targetId: String(toId || ""),
+        reason: String(reason || ""),
+        amount: Number(amount || 0)
+      });
+    } catch (_) {}
     const n = Number(amount || 0);
     const r0 = String(reason || "");
     if (!Number.isFinite(n) || n <= 0) {
@@ -932,6 +1089,15 @@
       meta: meta || null
     });
     try {
+      const probeIsNpcTarget = !!(String(toId || "").startsWith("npc_"));
+      npcActivityTaxLog("NPC_ACTIVITY_TAX_V1_PROBE", {
+        sourceId: String(fromId || ""),
+        targetId: String(toId || ""),
+        reason: r0,
+        gainPoints: amt,
+        isNpcTarget: probeIsNpcTarget,
+        softCapBefore
+      });
       maybeApplyNpcActivityTax(toId, amt, toBefore, r0, meta, softCapBefore);
     } catch (_) {}
     // Emit delta toast immediately for player points (no aggregation, no render-tick delay).
@@ -950,6 +1116,25 @@
   E.transferCrowdVoteCost = function (fromId, toId, amount, meta = {}) {
     const cost = Number(amount || 0);
     if (!Number.isFinite(cost) || cost <= 0) return { ok: false, reason: "bad_amount" };
+    const fromAcc = getAccount(fromId);
+    const isNpc = fromAcc && (fromAcc.npc === true || fromAcc.type === "npc" || String(fromId || "").startsWith("npc_"));
+    const ptsBefore = fromAcc && Number.isFinite(fromAcc.points) ? (fromAcc.points | 0) : 0;
+    if (isNpc && (ptsBefore <= 0 || ptsBefore < cost)) {
+      const actionKey = "crowd_vote_cost";
+      const tickId = (meta && meta.tickId != null) ? meta.tickId : (meta && meta.tick != null) ? meta.tick : null;
+      logNpcSkipLowFunds({
+        npcId: String(fromId || ""),
+        ptsBefore,
+        need: cost,
+        actionKey,
+        priceKey: meta && meta.priceKey ? String(meta.priceKey) : "vote",
+        mult: meta && Number.isFinite(meta.mult) ? (meta.mult | 0) : 1,
+        contextId: meta && meta.battleId ? String(meta.battleId) : null,
+        tickId,
+        idempotencyKey: `npc_skip_low_funds|${String(tickId || "")}|${String(fromId || "")}|${actionKey}`
+      });
+      return { ok: false, skipped: true, reason: "npc_skip_low_funds" };
+    }
     let taxAmount = cost >= 1 ? 1 : 0;
     const bankBal = getWorldBankBalance();
     if (taxAmount > 0 && bankBal >= WORLD_BANK_SOFT_CAP) taxAmount = 0;
@@ -1399,6 +1584,26 @@
       const reason = rich
         ? (isNpc ? "battle_entry_npc_rich" : "battle_entry_rich")
         : (isNpc ? "battle_entry_npc" : "battle_entry");
+      const required = rich ? (base + richExtra) : base;
+      const tickId = (battle && battle.tickId != null)
+        ? battle.tickId
+        : (battle && battle.tick != null)
+          ? battle.tick
+          : null;
+      if (isNpc && (before <= 0 || before < required)) {
+        logNpcSkipLowFunds({
+          npcId: initiatorId,
+          ptsBefore: before,
+          need: required,
+          actionKey: "battle_entry",
+          priceKey: reason,
+          mult: 1,
+          contextId: battle.id || battle.battleId || null,
+          tickId,
+          idempotencyKey: `npc_skip_low_funds|${String(tickId || "")}|${String(initiatorId || "")}|battle_entry`
+        });
+        return;
+      }
       E.transferPoints(initiatorId, "sink", amount, reason, { battleId: battle.id || battle.battleId || null, status: battle.status || null, phase: battle.phase || null });
       if (isNpc) {
         applyNpcWealthTaxIfNeeded(initiatorId, before, {

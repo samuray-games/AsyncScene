@@ -68,6 +68,111 @@
 
 ## Inbox
 
+### [T-20260211-014] ECON-NPC [1.6] NPC LowFunds Behavioral Limiters
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: ограничить платные NPC-действия при low funds, без нарушения zero-sum и без лавины логов.
+- Acceptance:
+  - [ ] evidencePack.ok == true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true
+  - [ ] regressionPack.ok == true (старые смоуки не сломаны)
+- Result: |
+    Status: FAIL
+    Evidence (PASS evidence pending, QA run by user 2026-02-11 JST):
+      - Commands:
+        (1) `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 200, seedLowFunds: true, debugTelemetry: true, window: { lastN: 1200 } })`
+        (2) `Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })`
+        (3) `Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: 50, seedLowFunds: true, debugTelemetry: true })`
+      - Expected evidence fields:
+        `worldDelta`, `skippedCount`, `insufficientCount`, `minNpcPts`, `eventsApplied/votesApplied/battlesResolved`, `logSource`, `rowsScoped`
+    Facts:
+      (1) Added `npc_skip_low_funds` logging with dedup idempotency per npc/tick/actionKey via `logNpcSkipLowFunds`, used in NPC crowd votes, price charge, and battle entry.
+      (2) Added dev helpers: `smokeNpcLowFundsPolicyOnce`, `runEconNpcLowFundsEvidencePackOnce`, `runEconNpcLowFundsRegressionPackOnce`.
+    Changed: `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Run the three commands above.
+      (2) PASS if evidencePack.ok==true, regressionPack.ok==true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Запусти в консоли:
+    (1) Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 200, seedLowFunds: true, debugTelemetry: true, window: { lastN: 1200 } })
+    (2) Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })
+    (3) Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: 50, seedLowFunds: true, debugTelemetry: true })
+    PASS если evidencePack.ok==true, regressionPack.ok==true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true; иначе FAIL.
+    ```
+
+### [T-20260211-013] ECON-NPC [1.5] Activity Tax — 100% Evidence Pack (long-run + regression)
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: dev-only evidence pack для long-run + regression, чтобы закрыть [1.5] без изменения gameplay логики.
+- Acceptance:
+  - [ ] evidencePack.ok == true (long-run, tail clamp ok, worldDelta==0, tax>0)
+  - [ ] regressionPack.ok == true (старые смоуки не ломаются)
+- Result: |
+    Status: FAIL
+    Evidence (PASS evidence pending, QA run by user 2026-02-11 JST):
+      - Commands:
+        (1) `Game.__DEV.runEconNpcActivityTaxEvidencePackOnce({ ticks: 200, seedRichNpc: true, debugTelemetry: true, window: { lastN: 1200 } })`
+        (2) `Game.__DEV.runEconNpcActivityTaxRegressionPackOnce({ seedRichNpc: true })`
+        (3) `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })`
+      - Expected evidence fields:
+        `worldDelta`, `taxRowsCount`, `totalTax`, `p99Before/After`, `maxBefore/After`, `logSource`, `rowsScoped`
+    Facts:
+      (1) Added `runEconNpcActivityTaxEvidencePackOnce` (long-run) with BEGIN/JSON/JSON/END, tail clamp, zero-sum check, and tax rows on lastN window.
+      (2) Added `runEconNpcActivityTaxRegressionPackOnce` calling existing smoke pack and verifying worldDelta==0 plus taxRowsCount/totalTax sanity.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Execute the two pack commands above in dev console.
+      (2) Confirm `evidencePack.ok==true`, `regressionPack.ok==true`, `worldDelta==0`, `taxRowsCount>0`, `totalTax>0`, `tailOk==true`.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Запусти в консоли:
+    (1) Game.__DEV.runEconNpcActivityTaxEvidencePackOnce({ ticks: 200, seedRichNpc: true, debugTelemetry: true, window: { lastN: 1200 } })
+    (2) Game.__DEV.runEconNpcActivityTaxRegressionPackOnce({ seedRichNpc: true })
+    (3) Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })
+    PASS если evidencePack.ok == true, regressionPack.ok == true, worldDelta == 0, taxRowsCount > 0, totalTax > 0, tailOk == true; иначе FAIL.
+    ```
+
+### [T-20260211-012] ECON-NPC [1.5] Activity Tax (tax_only) — seed + logging gate
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Gate
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: гарантировать срабатывание npc activity tax в tax_only, детерминированно обеспечить богатого NPC, zero-sum без эмиссии, и оставить только 1 SUMMARY + по 1 агрегатному ENTRY/PRECHECK/DEBUG/TAX/POST на запуск.
+- Acceptance:
+  - [x] `NPC_ACTIVITY_TAX_SUMMARY.ok === true` при двух прогонах подряд (tax_only).
+  - [x] `totalTax > 0`, `taxRowsCount > 0`, `worldDelta === 0`.
+  - [x] В верхнем `Console.txt` ровно 1 `NPC_ACTIVITY_TAX_SUMMARY` на запуск и по 1 строке `NPC_ACTIVITY_TAX_ENTRY/PRECHECK/DEBUG/TAX/POST` (агрегаты).
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Guard/idempotency fixed: `runTickId` is unique per smoke and `npc_activity_tax|<tickId>|<npcId>` avoids collisions; guard skip now sets `NPC_ACTIVITY_TAX_DEBUG.note="guard_skip"`.
+      (2) QA run by user 2026-02-11 JST; command `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })` executed twice in one session, both returning `{ok:true,...,taxRowsCount:1,totalTax:1}` and both worldDelta=0.
+      (3) PASS evidence: `moneyLog.filter(r => r.reason === "npc_activity_tax").length` grew 4→5→6 across before/run1/run2, proving incremental tax rows.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Confirm `Game.Debug.moneyLog.filter(r => r.reason === "npc_activity_tax").length` goes 4 → 5 → 6 when repeating the smoke twice.
+      (2) Each `NPC_ACTIVITY_TAX_SUMMARY` reports `ok:true`, `taxRowsCount:1`, `totalTax:1`, `worldDelta:0`, with exactly one aggregated ENTRY/PRECHECK/DEBUG/TAX/POST per run.
+    Next: Gate
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Gate:
+    ECON-NPC [1.5] Activity Tax is PASS: `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })` ran twice in one session on 2026-02-11 JST, both `ok:true` with `taxRowsCount=1,totalTax=1`, `moneyLog` length went 4→5→6, and only aggregated markers logged. Please accept PASS.
+    ```
+
 ### [T-20260211-011] Dev server Console.txt stack dump cleaning
 - Status: PASS
 - Priority: P0
@@ -1014,6 +1119,7 @@
 - Runtime evidence (FAIL, Console.txt [2026-02-11 15:22:45]): `NPC_ACTIVITY_TAX_V1_SUMMARY {"ok":false,"worldDelta":16,...,"totalTax":5,"taxRowsCount":5}` + отмечен риск фриза из-за лавины `[SEC] tamper_function transferRep blocked` (smoke дергал ticks/crowd).
 - Runtime evidence (FAIL, Console.txt [2026-02-11 15:32:17]): два последних `NPC_ACTIVITY_TAX_V1_SUMMARY` с `worldDelta` 10 и 8 (ok:false), что подтверждает drift даже в tax_only.
 - Runtime evidence (FAIL, Console.txt [2026-02-11 15:39:44]): `NPC_ACTIVITY_TAX_V1_SUMMARY` с `worldDelta` 16 и `[SEC] tamper_function/transferRep blocked` рядом, smoke всё ещё фиксирует drift и SEC‑лавину.
+- Console.txt checked (FAIL, DUMP_AT 2026-02-11 19:38:05): `NPC_ACTIVITY_TAX_SEED_DEBUG {"richestId":"npc_weak","richestPoints":10,"softCap":null}` и `NPC_ACTIVITY_TAX_V1_SUMMARY {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}`; PRECHECK/DEBUG отсутствуют.
 - Update (2026-02-11): добавлен `Game.__DEV.smokeConsoleThrottleProofOnce()` и `__CONSOLE_TAPE_EMIT_TAGGED_WARN__` для проверки throttling без тиков; Safe smoke по умолчанию заблокирован флагом `window.__ALLOW_WEALTH_TAX_SAFE_SMOKE__!==true`. Статус PENDING до user-proof.
 - Runtime evidence (FAIL, Console.txt 2026-02-10 19:15:42):
     - First run emits `WEALTH_TAX_ATTEMPT_DIAG` showing `taxApplied:true`, `worldTaxRowsInWindow:{"world_tax_in":2,"world_tax_out":0}`, but JSON#1 notes still include `"world_delta_nonzero"` and `world.delta` stays 15 (ok:false)

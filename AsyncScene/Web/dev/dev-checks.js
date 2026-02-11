@@ -4961,41 +4961,743 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   Game.__DEV.smokeNpcActivityTax_StabilityOnce = (opts = {}) => {
     const mode = (opts && typeof opts.mode === "string") ? String(opts.mode) : "tax_only";
+    const seedRichNpc = (opts && typeof opts.seedRichNpc === "boolean") ? opts.seedRichNpc : true;
     const S = Game.__S || Game.State || null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     if (!S || !S.players || !Econ) return { ok: false, reason: "state_missing" };
     if (mode !== "tax_only") return { ok: false, reason: "mode_not_tax_only" };
     if (typeof Econ.sumPointsSnapshot !== "function") return { ok: false, reason: "sumPointsSnapshot_missing" };
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
+    const logGate = { runId: `npc_activity_tax_${Date.now()}`, agg: Object.create(null), extra: Object.create(null) };
+    dbg.__npcActivityTaxLogGate = logGate;
     const npcList = Object.values(S.players || {})
       .filter(p => p && (p.npc === true || p.type === "npc" || String(p.id || "").startsWith("npc_")))
       .map(p => ({ id: String(p.id || ""), points: (Number.isFinite(p.points) ? (p.points | 0) : 0) }))
       .filter(p => p.id);
     const richest = npcList.slice().sort((a, b) => b.points - a.points)[0] || null;
-    const dbg = Game.__D || (Game.__D = {});
-    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
     const logStart = dbg.moneyLog.length;
+    const notes = [];
+    const runTickId = `tax_only_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+    const flushNpcActivityTaxLogs = (gate) => {
+      if (!gate) return;
+      const tags = [
+        "NPC_ACTIVITY_TAX_ENTRY",
+        "NPC_ACTIVITY_TAX_PRECHECK",
+        "NPC_ACTIVITY_TAX_DEBUG",
+        "NPC_ACTIVITY_TAX_TAX",
+        "NPC_ACTIVITY_TAX_POST"
+      ];
+      tags.forEach((tag) => {
+        const slot = gate.agg && gate.agg[tag] ? gate.agg[tag] : null;
+        const extra = gate.extra && gate.extra[tag] ? gate.extra[tag] : null;
+        const payload = Object.assign({
+          count: slot ? slot.count : 0,
+          first: slot ? slot.first : null,
+          last: slot ? slot.last : null
+        }, extra || {});
+        try { console.warn(tag, payload); } catch (_) {}
+      });
+    };
+    const ensureWorldBankInState = () => {
+      if (!S.players) S.players = {};
+      const had = !!S.players.worldBank;
+      if (!S.players.worldBank) {
+        S.players.worldBank = { id: "worldBank", points: 0 };
+      }
+      if (!Number.isFinite(S.players.worldBank.points)) S.players.worldBank.points = 0;
+      const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function")
+        ? (Econ.getWorldBankBalance() | 0)
+        : (S.players.worldBank.points | 0);
+      S.players.worldBank.points = bankBal;
+      return { ok: true, created: !had, points: bankBal };
+    };
+    const bankEnsure = ensureWorldBankInState();
+    if (bankEnsure && bankEnsure.created) notes.push("worldbank_created_in_state");
+    logGate.extra.NPC_ACTIVITY_TAX_DEBUG = Object.assign({}, logGate.extra.NPC_ACTIVITY_TAX_DEBUG || {}, {
+      worldBankEnsure: bankEnsure
+    });
     const beforeSnap = Econ.sumPointsSnapshot();
     const beforeTotal = beforeSnap && Number.isFinite(beforeSnap.total) ? (beforeSnap.total | 0) : null;
+    if (Game.__DEV && typeof Game.__DEV.econNpcWorldContractV1 === "function" && beforeSnap && beforeSnap.byId) {
+      try {
+        const contract = Game.__DEV.econNpcWorldContractV1({ snapById: beforeSnap.byId }) || {};
+        const accounts = Array.isArray(contract.accountsIncluded) ? contract.accountsIncluded : [];
+        const hasWorldBank = accounts.includes("worldBank");
+        if (!hasWorldBank) notes.push("worldbank_missing_in_contract");
+        logGate.extra.NPC_ACTIVITY_TAX_DEBUG = Object.assign({}, logGate.extra.NPC_ACTIVITY_TAX_DEBUG || {}, {
+          worldContract: {
+            hasWorldBank,
+            accountsIncludedLen: Number.isFinite(contract.accountsIncludedLen) ? contract.accountsIncludedLen : accounts.length,
+            accountsIncludedHash: contract.accountsIncludedHash || null
+          }
+        });
+      } catch (_) {
+        notes.push("world_contract_check_failed");
+      }
+    }
     if (!richest) {
-      const resultNoNpc = { ok: false, worldDelta: 0, totalTax: 0, taxRowsCount: 0, reason: "no_npc" };
-      try { console.log("NPC_ACTIVITY_TAX_V1_SUMMARY", resultNoNpc); } catch (_) {}
+      notes.push("no_npc");
+      flushNpcActivityTaxLogs(logGate);
+      const resultNoNpc = {
+        ok: false,
+        ticks: 0,
+        softCap: null,
+        rate: 0.25,
+        taxableNpcCount: 0,
+        taxRowsCount: 0,
+        totalTax: 0,
+        worldBefore: beforeTotal,
+        worldAfter: beforeTotal,
+        worldDelta: 0,
+        notes
+      };
+      try { console.log("NPC_ACTIVITY_TAX_SUMMARY", resultNoNpc); } catch (_) {}
+      if (dbg.__npcActivityTaxLogGate === logGate) delete dbg.__npcActivityTaxLogGate;
       return resultNoNpc;
     }
+    let softCapSeen = null;
+    let precheckReason = null;
+    const gainPoints = 5;
+    const rate = 0.25;
+    let conditionPassed = false;
+    let taxableNpcCount = 0;
+    let fundedFromMe = 0;
+    let targetNpcId = richest.id;
     try {
-      Econ.transferPoints("worldBank", richest.id, 50, "npc_seed_rich_smoke");
-      Econ.transferPoints("worldBank", richest.id, 10, "npc_activity_gain_smoke");
+      const softCapMeta = (Econ && typeof Econ.getNpcActivitySoftCapMeta === "function") ? Econ.getNpcActivitySoftCapMeta() : null;
+      if (softCapMeta && Number.isFinite(softCapMeta.softCap)) {
+        softCapSeen = (softCapMeta.softCap | 0);
+        precheckReason = String(softCapMeta.reason || "softcap");
+      } else {
+        precheckReason = (softCapMeta && softCapMeta.reason) ? String(softCapMeta.reason) : "softcap_null";
+        softCapSeen = 20;
+        notes.push("softcap_fallback_20");
+      }
+      const cfg = (Game.__A && typeof Game.__A.getPointsConfig === "function") ? Game.__A.getPointsConfig() : null;
+      const pointsConfigSnapshot = cfg ? { softCap: cfg.softCap, startNpc: cfg.startNpc } : null;
+      const mafia = npcList.find(p => p && p.id === "npc_mafia");
+      const target = mafia || richest;
+      targetNpcId = target ? target.id : targetNpcId;
+      const richestPoints = Number.isFinite(target.points) ? (target.points | 0) : 0;
+      const softCapValue = Number.isFinite(softCapSeen) ? softCapSeen : null;
+      let needSeed = 0;
+      if (softCapValue != null) {
+        taxableNpcCount = npcList.filter(p => Number.isFinite(p.points) && (p.points | 0) > softCapValue).length;
+        if (seedRichNpc && taxableNpcCount === 0) {
+          const seedTarget = softCapValue + 5;
+          needSeed = Math.max(0, seedTarget - richestPoints);
+        }
+        conditionPassed = (richestPoints + needSeed) > softCapValue;
+      }
+      try {
+        console.warn("NPC_ACTIVITY_TAX_SEED_DEBUG", {
+          richestId: targetNpcId,
+          richestPoints,
+          softCapSource: precheckReason,
+          softCapValue: softCapSeen,
+          pointsConfigSnapshot
+        });
+      } catch (_) {}
+      if (softCapSeen != null) {
+        taxableNpcCount = npcList.filter(p => Number.isFinite(p.points) && (p.points | 0) > softCapSeen).length;
+      }
+      if (softCapSeen != null && needSeed > 0) {
+        const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : 0;
+        const required = Math.max(0, (needSeed + gainPoints) - bankBal);
+        if (required > 0) {
+        const fundRes = Econ.transferPoints("me", "worldBank", required, "npc_activity_seed_fund_smoke", { activityTaxSkip: true, mode });
+          if (fundRes && fundRes.ok) {
+            fundedFromMe = required;
+            notes.push("seed_funded_from_me");
+          } else {
+            notes.push("seed_fund_failed");
+          }
+        }
+        Econ.transferPoints("worldBank", targetNpcId, needSeed, "npc_seed_rich_smoke", { mode, activityTaxSkip: true });
+        const targetAfterSeed = (S.players[targetNpcId] && Number.isFinite(S.players[targetNpcId].points)) ? (S.players[targetNpcId].points | 0) : (richestPoints + needSeed);
+        taxableNpcCount = (softCapSeen != null)
+          ? npcList.map(p => (p.id === targetNpcId ? Object.assign({}, p, { points: targetAfterSeed }) : p))
+            .filter(p => Number.isFinite(p.points) && (p.points | 0) > softCapSeen).length
+          : taxableNpcCount;
+      }
+      Econ.transferPoints("worldBank", targetNpcId, gainPoints, "npc_activity_gain_smoke", { mode, tickId: runTickId });
     } catch (_) {}
-    const afterSnap = Econ.sumPointsSnapshot();
-    const afterTotal = afterSnap && Number.isFinite(afterSnap.total) ? (afterSnap.total | 0) : null;
-    const worldDelta = (beforeTotal != null && afterTotal != null) ? (afterTotal - beforeTotal) : null;
     const tail = dbg.moneyLog.slice(logStart);
     const taxRows = tail.filter(r => r && r.reason === "npc_activity_tax");
     const totalTax = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
     const taxRowsCount = taxRows.length;
+    if (fundedFromMe > 0) {
+      const revertAmount = Math.max(0, fundedFromMe - totalTax);
+      if (revertAmount > 0) {
+        Econ.transferPoints(targetNpcId, "me", revertAmount, "npc_activity_seed_revert_smoke", { activityTaxSkip: true, mode });
+        notes.push("seed_revert_applied");
+      }
+    }
+    ensureWorldBankInState();
+    const afterSnap = Econ.sumPointsSnapshot();
+    const afterTotal = afterSnap && Number.isFinite(afterSnap.total) ? (afterSnap.total | 0) : null;
+    const worldDelta = (beforeTotal != null && afterTotal != null) ? (afterTotal - beforeTotal) : null;
+    const intendedTax = Math.min(Math.max(1, Math.floor(gainPoints * rate)), gainPoints);
+    const appliedTax = totalTax;
+    const didTransfer = taxRowsCount > 0;
+    const transferOk = didTransfer && appliedTax > 0;
+    const debugSlot = logGate.agg && logGate.agg.NPC_ACTIVITY_TAX_DEBUG ? logGate.agg.NPC_ACTIVITY_TAX_DEBUG : null;
+    const guardSkip = !!(debugSlot && debugSlot.last && debugSlot.last.guardSkip === true);
+    logGate.extra.NPC_ACTIVITY_TAX_DEBUG = Object.assign({}, logGate.extra.NPC_ACTIVITY_TAX_DEBUG || {}, {
+      intendedTax,
+      appliedTax,
+      didTransfer,
+      transferOk,
+      conditionPassed,
+      note: guardSkip ? "guard_skip" : ((conditionPassed && appliedTax === 0) ? "tax_zero_when_condition_true" : null),
+      runTickId
+    });
+    if (guardSkip) notes.push("guard_skip");
+    if (conditionPassed && appliedTax === 0 && !guardSkip) notes.push("tax_missing");
+    if (worldDelta !== 0 && worldDelta != null) notes.push("world_delta_nonzero");
+    if (taxRowsCount === 0) notes.push("tax_rows_empty");
+    if (seedRichNpc && taxableNpcCount === 0) notes.push("no_taxable_after_seed");
+    flushNpcActivityTaxLogs(logGate);
     const ok = (worldDelta === 0 && totalTax > 0 && taxRowsCount > 0);
-    const result = { ok, worldDelta, totalTax, taxRowsCount };
-    try { console.log("NPC_ACTIVITY_TAX_V1_SUMMARY", result); } catch (_) {}
+    const result = {
+      ok,
+      ticks: 1,
+      softCap: softCapSeen,
+      rate,
+      taxableNpcCount,
+      taxRowsCount,
+      totalTax,
+      worldBefore: beforeTotal,
+      worldAfter: afterTotal,
+      worldDelta,
+      notes
+    };
+    try { console.log("NPC_ACTIVITY_TAX_SUMMARY", result); } catch (_) {}
+    if (dbg.__npcActivityTaxLogGate === logGate) delete dbg.__npcActivityTaxLogGate;
     return result;
+  };
+
+  Game.__DEV.runEconNpcActivityTaxEvidencePackOnce = (opts = {}) => {
+    const defaultOpts = { ticks: 200, window: { lastN: 1200 }, seed: 1, debugTelemetry: true };
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : defaultOpts.ticks;
+    const seed = (opts && typeof opts.seed !== "undefined") ? opts.seed : defaultOpts.seed;
+    const debugTelemetry = (opts && typeof opts.debugTelemetry !== "undefined") ? !!opts.debugTelemetry : defaultOpts.debugTelemetry;
+    const seedRichNpc = (opts && typeof opts.seedRichNpc !== "undefined") ? !!opts.seedRichNpc : true;
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? Math.max(1, opts.window.lastN | 0) : defaultOpts.window.lastN;
+    const allowedDrift = Number.isFinite(opts.allowedDrift) ? Math.max(0, opts.allowedDrift | 0) : 2;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.__S || Game.State || null;
+    const buildTag = (typeof window !== "undefined") ? (window.__BUILD_TAG__ || window.__WT_DUMP_BUILD_TAG__ || null) : null;
+    const notes = [];
+    let result = null;
+    let summary = null;
+    let before = null;
+    let after = null;
+    let taxRowsCount = 0;
+    let totalTax = 0;
+    let worldDelta = null;
+    let logSource = "none";
+    let rowsScoped = 0;
+    let exception = null;
+    const getNpcPointStats = () => {
+      const players = (S && S.players) ? S.players : {};
+      const arr = [];
+      let richestId = null;
+      let richestPoints = null;
+      Object.keys(players).forEach(id => {
+        const p = players[id];
+        if (!p) return;
+        const pid = String(p.id || id || "");
+        if (!pid || !pid.startsWith("npc_")) return;
+        const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
+        arr.push({ id: pid, points: pts });
+        if (richestPoints == null || pts > richestPoints) {
+          richestPoints = pts;
+          richestId = pid;
+        }
+      });
+      const vals = arr.map(x => x.points).sort((a, b) => a - b);
+      const percentile = (q) => {
+        if (!vals.length) return null;
+        const idx = Math.min(vals.length - 1, Math.max(0, Math.floor(((q / 100) * (vals.length - 1)))));
+        return vals[idx] | 0;
+      };
+      return {
+        count: vals.length,
+        min: vals.length ? (vals[0] | 0) : null,
+        p50: percentile(50),
+        p90: percentile(90),
+        p95: percentile(95),
+        p99: percentile(99),
+        max: vals.length ? (vals[vals.length - 1] | 0) : null,
+        richestId,
+        richestPoints
+      };
+    };
+    const getBuckets = (snap) => {
+      if (!snap) return null;
+      const byId = snap.byId || {};
+      return {
+        total: Number.isFinite(snap.total) ? (snap.total | 0) : null,
+        players: Number.isFinite(snap.players) ? (snap.players | 0) : null,
+        npcs: Number.isFinite(snap.npcs) ? (snap.npcs | 0) : null,
+        pools: Number.isFinite(snap.pools) ? (snap.pools | 0) : null,
+        worldBank: Number.isFinite(byId.worldBank) ? (byId.worldBank | 0) : null,
+        sink: Number.isFinite(byId.sink) ? (byId.sink | 0) : null
+      };
+    };
+    const getLogSource = () => {
+      const candidates = [
+        { name: "debug_moneyLog", rows: (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null },
+        { name: "dev_moneyLog", rows: (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : null },
+        { name: "state_moneyLog", rows: (Game.State && Array.isArray(Game.State.moneyLog)) ? Game.State.moneyLog : null },
+        { name: "logger_queue", rows: (Game.Logger && Array.isArray(Game.Logger.queue)) ? Game.Logger.queue : null }
+      ];
+      for (const c of candidates) {
+        if (c.rows && c.rows.length) return c;
+      }
+      return candidates.find(c => c.rows) || { name: "none", rows: [] };
+    };
+    const seedRichNpcIfNeeded = () => {
+      if (!seedRichNpc || !Econ || !S || !S.players) return { ok: false, reason: "seed_skipped" };
+      const softCapMeta = (Econ && typeof Econ.getNpcActivitySoftCapMeta === "function") ? Econ.getNpcActivitySoftCapMeta() : null;
+      const softCap = (softCapMeta && Number.isFinite(softCapMeta.softCap)) ? (softCapMeta.softCap | 0) : 20;
+      const npcList = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => ({ id: String(p.id || ""), points: Number.isFinite(p.points) ? (p.points | 0) : 0 }))
+        .filter(p => p.id);
+      if (!npcList.length) return { ok: false, reason: "no_npcs" };
+      const richest = npcList.slice().sort((a, b) => b.points - a.points)[0] || null;
+      const target = npcList.find(p => p.id === "npc_mafia") || richest;
+      const taxableCount = npcList.filter(p => (p.points | 0) > softCap).length;
+      if (!target || taxableCount > 0) return { ok: true, reason: "already_rich", targetId: target ? target.id : null };
+      const need = Math.max(0, (softCap + 5) - (target.points | 0));
+      if (need <= 0) return { ok: true, reason: "already_over_softcap", targetId: target.id };
+      const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : 0;
+      const required = Math.max(0, need - bankBal);
+      if (required > 0) {
+        const fundRes = Econ.transferPoints("me", "worldBank", required, "npc_activity_seed_fund_evidence", { activityTaxSkip: true, mode: "activity_tax_evidence" });
+        if (!fundRes || fundRes.ok !== true) notes.push("seed_fund_failed");
+      }
+      Econ.transferPoints("worldBank", target.id, need, "npc_activity_seed_evidence", { activityTaxSkip: true, mode: "activity_tax_evidence" });
+      return { ok: true, reason: "seed_applied", targetId: target.id, need };
+    };
+    const computeTailOk = (beforeStats, afterStats) => {
+      if (!beforeStats || !afterStats || beforeStats.count === 0 || afterStats.count === 0) return { ok: false, reason: "no_npc_stats" };
+      const p99Before = beforeStats.p99;
+      const p99After = afterStats.p99;
+      const maxBefore = beforeStats.max;
+      const maxAfter = afterStats.max;
+      const ok = (p99After <= (p99Before + allowedDrift)) && (maxAfter <= (maxBefore + allowedDrift));
+      return { ok, p99Before, p99After, maxBefore, maxAfter, allowedDrift };
+    };
+    const emitBlock = (tag, payload) => {
+      try { emitLine(`${tag} ${safeStringify(payload)}`); } catch (_) {}
+    };
+    try {
+      emitLine("ECON_NPC_ACTIVITY_TAX_EVIDENCE_BEGIN");
+      if (!Econ || !S || !S.players || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+        notes.push("missing_state_or_snapshot");
+        summary = { ok: false, notes };
+        return summary;
+      }
+      const snapBefore = Game.__DEV.sumPointsSnapshot();
+      const npcStatsBefore = getNpcPointStats();
+      before = { snap: getBuckets(snapBefore), npcStats: npcStatsBefore };
+      const seedRes = seedRichNpcIfNeeded();
+      if (!seedRes || seedRes.ok !== true) notes.push(seedRes ? seedRes.reason : "seed_failed");
+      const tickRes = (Game.__DEV && typeof Game.__DEV.runWorldTicks === "function")
+        ? Game.__DEV.runWorldTicks({ N: ticks, seed, allowNpcVotes: true, allowBattles: true, allowEventsTick: true, stipendEnabled: true, safeEconOnly: false })
+        : { ok: false, notes: ["runWorldTicks_missing"] };
+      if (!tickRes || tickRes.ok !== true) notes.push("ticks_failed");
+      const snapAfter = Game.__DEV.sumPointsSnapshot();
+      const npcStatsAfter = getNpcPointStats();
+      after = { snap: getBuckets(snapAfter), npcStats: npcStatsAfter };
+      worldDelta = (before.snap && after.snap && before.snap.total != null && after.snap.total != null)
+        ? (after.snap.total - before.snap.total)
+        : null;
+      const source = getLogSource();
+      logSource = source.name;
+      const rows = source.rows || [];
+      const tail = rows.slice(Math.max(0, rows.length - lastN));
+      rowsScoped = tail.length;
+      const taxRows = tail.filter(r => r && r.reason === "npc_activity_tax");
+      taxRowsCount = taxRows.length;
+      totalTax = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
+      const tailCheck = computeTailOk(npcStatsBefore, npcStatsAfter);
+      const worldDeltaOk = (worldDelta === 0);
+      const tailOk = !!tailCheck.ok;
+      const ok = worldDeltaOk && tailOk && taxRowsCount > 0 && totalTax > 0;
+      summary = {
+        ok,
+        notes: notes.slice(),
+        before: { snap: before.snap, npcStats: before.npcStats },
+        after: { snap: after.snap, npcStats: after.npcStats },
+        tax: { taxRowsCount, totalTax },
+        invariants: { worldDelta, worldDeltaOk, tailOk, tail: tailCheck },
+        meta: { buildTag, logSource, rowsScoped, ticks, seed, debugTelemetry }
+      };
+      result = summary;
+    } catch (e) {
+      exception = e;
+      summary = {
+        ok: false,
+        notes: notes.concat(["exception"]),
+        errorMessage: String(e && e.message ? e.message : e),
+        meta: { buildTag, logSource, rowsScoped, ticks, seed, debugTelemetry }
+      };
+      result = summary;
+    } finally {
+      if (Game.__DEV) Game.__DEV.lastEconNpcActivityTaxEvidencePack = result;
+      emitBlock("ECON_NPC_ACTIVITY_TAX_EVIDENCE_JSON_1", summary || { ok: false, notes: ["missing_summary"] });
+      emitBlock("ECON_NPC_ACTIVITY_TAX_EVIDENCE_JSON_2", {
+        ok: !!(summary && summary.ok),
+        worldDelta,
+        taxRowsCount,
+        totalTax,
+        logSource,
+        rowsScoped,
+        exception: exception ? String(exception && exception.message ? exception.message : exception) : null
+      });
+      emitLine("ECON_NPC_ACTIVITY_TAX_EVIDENCE_END");
+    }
+    return summary;
+  };
+
+  Game.__DEV.runEconNpcActivityTaxRegressionPackOnce = (opts = {}) => {
+    const seedRichNpc = (opts && typeof opts.seedRichNpc !== "undefined") ? !!opts.seedRichNpc : true;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.__S || Game.State || null;
+    const notes = [];
+    let summary = null;
+    let worldDelta = null;
+    let taxRowsCount = 0;
+    let totalTax = 0;
+    let logSource = "none";
+    let rowsScoped = 0;
+    const getLogSource = () => {
+      const candidates = [
+        { name: "debug_moneyLog", rows: (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null },
+        { name: "dev_moneyLog", rows: (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : null },
+        { name: "state_moneyLog", rows: (Game.State && Array.isArray(Game.State.moneyLog)) ? Game.State.moneyLog : null },
+        { name: "logger_queue", rows: (Game.Logger && Array.isArray(Game.Logger.queue)) ? Game.Logger.queue : null }
+      ];
+      for (const c of candidates) {
+        if (c.rows && c.rows.length) return c;
+      }
+      return candidates.find(c => c.rows) || { name: "none", rows: [] };
+    };
+    const seedRichNpcIfNeeded = () => {
+      if (!seedRichNpc || !Econ || !S || !S.players) return { ok: false, reason: "seed_skipped" };
+      const softCapMeta = (Econ && typeof Econ.getNpcActivitySoftCapMeta === "function") ? Econ.getNpcActivitySoftCapMeta() : null;
+      const softCap = (softCapMeta && Number.isFinite(softCapMeta.softCap)) ? (softCapMeta.softCap | 0) : 20;
+      const npcList = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => ({ id: String(p.id || ""), points: Number.isFinite(p.points) ? (p.points | 0) : 0 }))
+        .filter(p => p.id);
+      if (!npcList.length) return { ok: false, reason: "no_npcs" };
+      const richest = npcList.slice().sort((a, b) => b.points - a.points)[0] || null;
+      const target = npcList.find(p => p.id === "npc_mafia") || richest;
+      const taxableCount = npcList.filter(p => (p.points | 0) > softCap).length;
+      if (!target || taxableCount > 0) return { ok: true, reason: "already_rich", targetId: target ? target.id : null };
+      const need = Math.max(0, (softCap + 5) - (target.points | 0));
+      if (need <= 0) return { ok: true, reason: "already_over_softcap", targetId: target.id };
+      const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : 0;
+      if (bankBal < need) return { ok: false, reason: "bank_insufficient" };
+      Econ.transferPoints("worldBank", target.id, need, "npc_activity_seed_regression", { activityTaxSkip: true, mode: "activity_tax_regression" });
+      return { ok: true, reason: "seed_applied", targetId: target.id, need };
+    };
+    try {
+      emitLine("ECON_NPC_ACTIVITY_TAX_REGRESSION_BEGIN");
+      if (!Econ || !S || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+        notes.push("missing_state_or_snapshot");
+        summary = { ok: false, notes };
+        return summary;
+      }
+      const beforeSnap = Game.__DEV.sumPointsSnapshot();
+      seedRichNpcIfNeeded();
+      let smokeRes = null;
+      if (Game.__DEV && typeof Game.__DEV.smokeEcon02_NoEmissionPackOnce === "function") {
+        smokeRes = Game.__DEV.smokeEcon02_NoEmissionPackOnce();
+      } else {
+        notes.push("smokeEcon02_NoEmissionPackOnce_missing");
+        smokeRes = { ok: false, reason: "smoke_missing" };
+      }
+      const afterSnap = Game.__DEV.sumPointsSnapshot();
+      worldDelta = (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total))
+        ? ((afterSnap.total | 0) - (beforeSnap.total | 0))
+        : null;
+      const source = getLogSource();
+      logSource = source.name;
+      const rows = source.rows || [];
+      const tail = rows.slice(Math.max(0, rows.length - 400));
+      rowsScoped = tail.length;
+      const taxRows = tail.filter(r => r && r.reason === "npc_activity_tax");
+      taxRowsCount = taxRows.length;
+      totalTax = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
+      const worldDeltaOk = (worldDelta === 0);
+      const taxOk = (taxRowsCount === 0) ? true : (totalTax > 0);
+      const ok = !!(smokeRes && smokeRes.ok === true) && worldDeltaOk && taxOk;
+      summary = {
+        ok,
+        notes,
+        smoke: smokeRes,
+        tax: { taxRowsCount, totalTax },
+        invariants: { worldDelta, worldDeltaOk, taxOk },
+        meta: { logSource, rowsScoped }
+      };
+    } catch (e) {
+      summary = { ok: false, notes: notes.concat(["exception"]), errorMessage: String(e && e.message ? e.message : e) };
+    } finally {
+      emitLine(`ECON_NPC_ACTIVITY_TAX_REGRESSION_JSON ${safeStringify(summary || { ok: false, notes: ["missing_summary"] })}`);
+      emitLine("ECON_NPC_ACTIVITY_TAX_REGRESSION_END");
+    }
+    return summary;
+  };
+
+  Game.__DEV.smokeNpcLowFundsPolicyOnce = (opts = {}) => {
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : 50;
+    const seedLowFunds = (opts && typeof opts.seedLowFunds !== "undefined") ? !!opts.seedLowFunds : true;
+    const debugTelemetry = !!(opts && opts.debugTelemetry);
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.__S || Game.State || null;
+    if (!Econ || !S || !S.players || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+      return { ok: false, reason: "missing_state_or_snapshot" };
+    }
+    const seedLowFundsOnce = () => {
+      if (!seedLowFunds) return { ok: true, reason: "seed_skipped" };
+      const npcList = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => ({ id: String(p.id || ""), points: Number.isFinite(p.points) ? (p.points | 0) : 0 }))
+        .filter(p => p.id);
+      const richest = npcList.slice().sort((a, b) => b.points - a.points).slice(0, 5);
+      let seededCount = 0;
+      richest.forEach(npc => {
+        if (!npc || npc.points <= 0) return;
+        const res = Econ.transferPoints(npc.id, "sink", npc.points, "npc_low_funds_seed", { activityTaxSkip: true, mode: "npc_low_funds_seed" });
+        if (res && res.ok) seededCount += 1;
+      });
+      return { ok: true, reason: "seed_applied", seededCount };
+    };
+    const beforeSnap = Game.__DEV.sumPointsSnapshot();
+    const seedRes = seedLowFundsOnce();
+    const tickRes = (Game.__DEV && typeof Game.__DEV.runWorldTicks === "function")
+      ? Game.__DEV.runWorldTicks({ N: ticks, seed: 1, allowNpcVotes: true, allowBattles: true, allowEventsTick: true, stipendEnabled: true, safeEconOnly: false })
+      : { ok: false, notes: ["runWorldTicks_missing"] };
+    const afterSnap = Game.__DEV.sumPointsSnapshot();
+    const worldDelta = (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total))
+      ? ((afterSnap.total | 0) - (beforeSnap.total | 0))
+      : null;
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const tail = log.slice(Math.max(0, log.length - 400));
+    const skippedCount = tail.filter(r => r && r.reason === "npc_skip_low_funds").length;
+    const insufficientCount = tail.filter(r => r && typeof r.reason === "string" && r.reason.indexOf("insufficient") >= 0).length;
+    const npcPoints = Object.values(S.players || {})
+      .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+      .map(p => (Number.isFinite(p.points) ? (p.points | 0) : 0));
+    const minNpcPts = npcPoints.length ? Math.min(...npcPoints) : null;
+    const eventsApplied = Number.isFinite(tickRes && tickRes.eventsApplied) ? tickRes.eventsApplied : 0;
+    const votesApplied = Number.isFinite(tickRes && tickRes.votesApplied) ? tickRes.votesApplied : 0;
+    const battlesResolved = Number.isFinite(tickRes && tickRes.battlesResolved) ? tickRes.battlesResolved : 0;
+    const activityOk = (eventsApplied + votesApplied + battlesResolved) > 0;
+    const ok = !!(tickRes && tickRes.ok) && worldDelta === 0 && insufficientCount === 0 && (minNpcPts == null || minNpcPts >= 0) && activityOk;
+    return {
+      ok,
+      seed: seedRes,
+      ticks,
+      debugTelemetry,
+      worldDelta,
+      skippedCount,
+      insufficientCount,
+      activity: { eventsApplied, votesApplied, battlesResolved, activityOk },
+      minNpcPts
+    };
+  };
+
+  Game.__DEV.runEconNpcLowFundsEvidencePackOnce = (opts = {}) => {
+    const defaultOpts = { ticks: 200, window: { lastN: 1200 }, seed: 1, debugTelemetry: true };
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : defaultOpts.ticks;
+    const seed = (opts && typeof opts.seed !== "undefined") ? opts.seed : defaultOpts.seed;
+    const debugTelemetry = (opts && typeof opts.debugTelemetry !== "undefined") ? !!opts.debugTelemetry : defaultOpts.debugTelemetry;
+    const seedLowFunds = (opts && typeof opts.seedLowFunds !== "undefined") ? !!opts.seedLowFunds : true;
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? Math.max(1, opts.window.lastN | 0) : defaultOpts.window.lastN;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.__S || Game.State || null;
+    const notes = [];
+    let result = null;
+    let summary = null;
+    let exception = null;
+    const getLogSource = () => {
+      const candidates = [
+        { name: "debug_moneyLog", rows: (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null },
+        { name: "dev_moneyLog", rows: (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : null },
+        { name: "state_moneyLog", rows: (Game.State && Array.isArray(Game.State.moneyLog)) ? Game.State.moneyLog : null },
+        { name: "logger_queue", rows: (Game.Logger && Array.isArray(Game.Logger.queue)) ? Game.Logger.queue : null }
+      ];
+      for (const c of candidates) {
+        if (c.rows && c.rows.length) return c;
+      }
+      return candidates.find(c => c.rows) || { name: "none", rows: [] };
+    };
+    const seedLowFundsOnce = () => {
+      if (!seedLowFunds || !Econ || !S || !S.players) return { ok: true, reason: "seed_skipped" };
+      const npcList = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => ({ id: String(p.id || ""), points: Number.isFinite(p.points) ? (p.points | 0) : 0 }))
+        .filter(p => p.id);
+      const richest = npcList.slice().sort((a, b) => b.points - a.points).slice(0, 5);
+      let seededCount = 0;
+      richest.forEach(npc => {
+        if (!npc || npc.points <= 0) return;
+        const res = Econ.transferPoints(npc.id, "sink", npc.points, "npc_low_funds_seed", { activityTaxSkip: true, mode: "npc_low_funds_seed" });
+        if (res && res.ok) seededCount += 1;
+      });
+      return { ok: true, reason: "seed_applied", seededCount };
+    };
+    try {
+      emitLine("ECON_NPC_LOW_FUNDS_EVIDENCE_BEGIN");
+      if (!Econ || !S || !S.players || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+        notes.push("missing_state_or_snapshot");
+        summary = { ok: false, notes };
+        return summary;
+      }
+      const beforeSnap = Game.__DEV.sumPointsSnapshot();
+      const seedRes = seedLowFundsOnce();
+      const tickRes = (Game.__DEV && typeof Game.__DEV.runWorldTicks === "function")
+        ? Game.__DEV.runWorldTicks({ N: ticks, seed, allowNpcVotes: true, allowBattles: true, allowEventsTick: true, stipendEnabled: true, safeEconOnly: false })
+        : { ok: false, notes: ["runWorldTicks_missing"] };
+      const afterSnap = Game.__DEV.sumPointsSnapshot();
+      const worldDelta = (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total))
+        ? ((afterSnap.total | 0) - (beforeSnap.total | 0))
+        : null;
+      const source = getLogSource();
+      const logSource = source.name;
+      const rows = source.rows || [];
+      const tail = rows.slice(Math.max(0, rows.length - lastN));
+      const rowsScoped = tail.length;
+      const skippedCount = tail.filter(r => r && r.reason === "npc_skip_low_funds").length;
+      const insufficientCount = tail.filter(r => r && typeof r.reason === "string" && r.reason.indexOf("insufficient") >= 0).length;
+      const npcPoints = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => (Number.isFinite(p.points) ? (p.points | 0) : 0));
+      const minNpcPts = npcPoints.length ? Math.min(...npcPoints) : null;
+      const eventsApplied = Number.isFinite(tickRes && tickRes.eventsApplied) ? tickRes.eventsApplied : 0;
+      const votesApplied = Number.isFinite(tickRes && tickRes.votesApplied) ? tickRes.votesApplied : 0;
+      const battlesResolved = Number.isFinite(tickRes && tickRes.battlesResolved) ? tickRes.battlesResolved : 0;
+      const activityOk = (eventsApplied + votesApplied + battlesResolved) > 0;
+      const worldDeltaOk = (worldDelta === 0);
+      const ok = !!(tickRes && tickRes.ok) && worldDeltaOk && insufficientCount === 0 && skippedCount > 0 && (minNpcPts == null || minNpcPts >= 0) && activityOk;
+      summary = {
+        ok,
+        notes: notes.slice(),
+        before: { total: beforeSnap.total, byId: beforeSnap.byId || null },
+        after: { total: afterSnap.total, byId: afterSnap.byId || null },
+        invariants: { worldDelta, worldDeltaOk, minNpcPts, activityOk },
+        activity: { eventsApplied, votesApplied, battlesResolved },
+        skippedCount,
+        insufficientCount,
+        meta: { logSource, rowsScoped, ticks, seed, debugTelemetry, seedRes }
+      };
+      result = summary;
+    } catch (e) {
+      exception = e;
+      summary = { ok: false, notes: notes.concat(["exception"]), errorMessage: String(e && e.message ? e.message : e) };
+      result = summary;
+    } finally {
+      if (Game.__DEV) Game.__DEV.lastEconNpcLowFundsEvidencePack = result;
+      emitLine(`ECON_NPC_LOW_FUNDS_EVIDENCE_JSON_1 ${safeStringify(summary || { ok: false, notes: ["missing_summary"] })}`);
+      emitLine(`ECON_NPC_LOW_FUNDS_EVIDENCE_JSON_2 ${safeStringify({
+        ok: !!(summary && summary.ok),
+        worldDelta: summary && summary.invariants ? summary.invariants.worldDelta : null,
+        skippedCount: summary ? summary.skippedCount : null,
+        insufficientCount: summary ? summary.insufficientCount : null,
+        logSource: summary && summary.meta ? summary.meta.logSource : null,
+        rowsScoped: summary && summary.meta ? summary.meta.rowsScoped : null,
+        exception: exception ? String(exception && exception.message ? exception.message : exception) : null
+      })}`);
+      emitLine("ECON_NPC_LOW_FUNDS_EVIDENCE_END");
+    }
+    return summary;
+  };
+
+  Game.__DEV.runEconNpcLowFundsRegressionPackOnce = (opts = {}) => {
+    const seedLowFunds = (opts && typeof opts.seedLowFunds !== "undefined") ? !!opts.seedLowFunds : true;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    const S = Game.__S || Game.State || null;
+    const notes = [];
+    let summary = null;
+    const seedLowFundsOnce = () => {
+      if (!seedLowFunds || !Econ || !S || !S.players) return { ok: true, reason: "seed_skipped" };
+      const npcList = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => ({ id: String(p.id || ""), points: Number.isFinite(p.points) ? (p.points | 0) : 0 }))
+        .filter(p => p.id);
+      const richest = npcList.slice().sort((a, b) => b.points - a.points).slice(0, 3);
+      let seededCount = 0;
+      richest.forEach(npc => {
+        if (!npc || npc.points <= 0) return;
+        const res = Econ.transferPoints(npc.id, "sink", npc.points, "npc_low_funds_seed", { activityTaxSkip: true, mode: "npc_low_funds_seed" });
+        if (res && res.ok) seededCount += 1;
+      });
+      return { ok: true, reason: "seed_applied", seededCount };
+    };
+    const getLogSource = () => {
+      const candidates = [
+        { name: "debug_moneyLog", rows: (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null },
+        { name: "dev_moneyLog", rows: (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : null },
+        { name: "state_moneyLog", rows: (Game.State && Array.isArray(Game.State.moneyLog)) ? Game.State.moneyLog : null },
+        { name: "logger_queue", rows: (Game.Logger && Array.isArray(Game.Logger.queue)) ? Game.Logger.queue : null }
+      ];
+      for (const c of candidates) {
+        if (c.rows && c.rows.length) return c;
+      }
+      return candidates.find(c => c.rows) || { name: "none", rows: [] };
+    };
+    try {
+      emitLine("ECON_NPC_LOW_FUNDS_REGRESSION_BEGIN");
+      if (!Econ || !S || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+        summary = { ok: false, notes: ["missing_state_or_snapshot"] };
+        return summary;
+      }
+      const beforeSnap = Game.__DEV.sumPointsSnapshot();
+      seedLowFundsOnce();
+      let smokeRes = null;
+      if (Game.__DEV && typeof Game.__DEV.smokeEcon02_NoEmissionPackOnce === "function") {
+        smokeRes = Game.__DEV.smokeEcon02_NoEmissionPackOnce();
+      } else {
+        notes.push("smokeEcon02_NoEmissionPackOnce_missing");
+        smokeRes = { ok: false, reason: "smoke_missing" };
+      }
+      const afterSnap = Game.__DEV.sumPointsSnapshot();
+      const worldDelta = (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total))
+        ? ((afterSnap.total | 0) - (beforeSnap.total | 0))
+        : null;
+      const source = getLogSource();
+      const logSource = source.name;
+      const rows = source.rows || [];
+      const tail = rows.slice(Math.max(0, rows.length - 400));
+      const rowsScoped = tail.length;
+      const skippedCount = tail.filter(r => r && r.reason === "npc_skip_low_funds").length;
+      const insufficientCount = tail.filter(r => r && typeof r.reason === "string" && r.reason.indexOf("insufficient") >= 0).length;
+      const worldDeltaOk = (worldDelta === 0);
+      const ok = !!(smokeRes && smokeRes.ok === true) && worldDeltaOk && insufficientCount === 0;
+      summary = {
+        ok,
+        notes,
+        smoke: smokeRes,
+        skippedCount,
+        insufficientCount,
+        invariants: { worldDelta, worldDeltaOk },
+        meta: { logSource, rowsScoped }
+      };
+    } catch (e) {
+      summary = { ok: false, notes: notes.concat(["exception"]), errorMessage: String(e && e.message ? e.message : e) };
+    } finally {
+      emitLine(`ECON_NPC_LOW_FUNDS_REGRESSION_JSON ${safeStringify(summary || { ok: false, notes: ["missing_summary"] })}`);
+      emitLine("ECON_NPC_LOW_FUNDS_REGRESSION_END");
+    }
+    return summary;
   };
 
   Game.__DEV.smokeWealthTaxWithPhasesOnce = (opts = {}) => {

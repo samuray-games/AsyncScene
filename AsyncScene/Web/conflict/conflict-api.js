@@ -229,10 +229,26 @@
         if (crowd.voters && crowd.voters[voterId]) continue;
         const stateNpc = (Game.__S && Game.__S.players) ? Game.__S.players[voterId] : null;
         const beforePts = Number.isFinite(stateNpc && stateNpc.points) ? (stateNpc.points | 0) : 0;
-        if (beforePts <= 0) continue;
         const costCountBefore = countCrowdVoteCostLogs(voterId, battleId);
         const price = calcFinalPriceForActor(1, beforePts, "vote", { battleId });
         const cost = price.finalPrice;
+        if (beforePts <= 0 || beforePts < cost) {
+          if (Econ && typeof Econ.logNpcSkipLowFunds === "function") {
+            const tickId = (crowd && crowd.tickId != null) ? crowd.tickId : Date.now();
+            Econ.logNpcSkipLowFunds({
+              npcId: voterId,
+              ptsBefore: beforePts,
+              need: cost,
+              actionKey: "crowd_vote_cost",
+              priceKey: price.priceKey || "vote",
+              mult: price.mult,
+              contextId: battleId,
+              tickId,
+              idempotencyKey: `npc_skip_low_funds|${String(tickId || "")}|${String(voterId || "")}|crowd_vote_cost`
+            });
+          }
+          continue;
+        }
         const ok = (Econ && typeof Econ.chargePriceOnce === "function")
           ? Econ.chargePriceOnce({
               fromId: voterId,
@@ -243,7 +259,9 @@
               basePrice: 1,
               actorPoints: beforePts,
               battleId,
-              context: price.context || { battleId }
+              context: price.context || { battleId },
+              tickId: (crowd && crowd.tickId != null) ? crowd.tickId : null,
+              actionKey: "crowd_vote_cost"
             })
           : (Econ && typeof Econ.transferCrowdVoteCost === "function")
             ? Econ.transferCrowdVoteCost(voterId, "sink", cost, {
