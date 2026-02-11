@@ -39,6 +39,44 @@
       write(next);
     }
   };
+  const tapeRecords = [];
+  const MAX_RECORDS = 2000;
+  const serializeArg = (arg, seen = new WeakSet()) => {
+    try {
+      if (typeof arg === "string") return arg;
+      if (typeof arg === "number" || typeof arg === "boolean") return String(arg);
+      if (arg === null) return "null";
+      if (typeof arg === "undefined") return "undefined";
+      if (typeof arg === "bigint") return `${arg.toString()}n`;
+      if (typeof arg === "symbol") return arg.toString();
+      if (typeof arg === "function") return `[Function ${arg.name || "anonymous"}]`;
+      if (arg instanceof Error) return arg.stack || arg.message || String(arg);
+      if (typeof arg === "object") {
+        if (seen.has(arg)) return "[Circular]";
+        seen.add(arg);
+        const primitive = JSON.stringify(arg);
+        seen.delete(arg);
+        if (primitive !== undefined) return primitive;
+        return `[Unserializable ${arg.constructor && arg.constructor.name ? arg.constructor.name : "Object"}]`;
+      }
+      return String(arg);
+    } catch (_) {
+      return `[Unserializable ${arg && arg.constructor ? arg.constructor.name : "Unknown"}]`;
+    }
+  };
+  const recordEntry = (level, args = [], meta = {}) => {
+    const entry = {
+      ts: Date.now(),
+      level,
+      args: args.map(arg => serializeArg(arg)),
+      ...meta
+    };
+    tapeRecords.push(entry);
+    if (tapeRecords.length > MAX_RECORDS) {
+      tapeRecords.shift();
+    }
+    return entry;
+  };
   const flushTape = () => {
     try {
       const current = read();
@@ -69,6 +107,7 @@
     error: console.error,
     info: console.info,
     debug: console.debug,
+    group: console.group,
     groupCollapsed: console.groupCollapsed ? console.groupCollapsed : null,
     groupEnd: console.groupEnd ? console.groupEnd : null
   };
@@ -103,28 +142,67 @@
     console[method] = function (...args) {
       if (shouldSuppress(args, method)) return;
       if (method === "groupCollapsed") {
-        if (!args.length) {
-          appendLine("[GROUP_START]");
-        } else {
-          appendLine(`[GROUP_START] ${formatArg(args[0])}`);
-        }
+        appendLine(args.length ? `[GROUP_START] ${formatArg(args[0])}` : "[GROUP_START]");
+        recordEntry("groupCollapsed", args);
+      } else if (method === "group") {
+        appendLine(args.length ? `[GROUP_START] ${formatArg(args[0])}` : "[GROUP_START]");
+        recordEntry("group", args);
       } else if (method === "groupEnd") {
         appendLine("[GROUP_END]");
+        recordEntry("groupEnd");
       } else if (!args.length) {
         appendLine(`[${method}]`);
+        recordEntry(method, []);
       } else {
         args.forEach(arg => appendLine(`[${method}] ${formatArg(arg)}`));
+        recordEntry(method, args);
       }
       if (orig) {
         orig.apply(console, args);
       }
     };
   };
-  ["log", "warn", "error", "info", "debug", "groupCollapsed", "groupEnd"].forEach((method) => {
+  ["log", "warn", "error", "info", "debug", "group", "groupCollapsed", "groupEnd"].forEach((method) => {
     if (method === "groupCollapsed" && !origConsole.groupCollapsed) return;
     if (method === "groupEnd" && !origConsole.groupEnd) return;
     patch(method);
   });
+  window.addEventListener("error", (event) => {
+    recordEntry("onerror", [event.message, event.filename, event.lineno, event.colno, event.error]);
+  });
+  window.addEventListener("unhandledrejection", (event) => {
+    recordEntry("unhandledrejection", [event.reason]);
+  });
+  const snapshotTape = () => tapeRecords.slice();
+
+  const formatRecord = (record) => {
+    const parts = record.args.length ? record.args : [];
+    switch (record.level) {
+      case "groupCollapsed":
+        return `GROUP:collapsed ${parts[0] || ""}`.trim();
+      case "group":
+        return `GROUP ${parts[0] || ""}`.trim();
+      case "groupEnd":
+        return "ENDGROUP";
+      case "error":
+        return `ERROR ${parts.join(" ")}`.trim();
+      case "warn":
+        return `WARN ${parts.join(" ")}`.trim();
+      case "info":
+        return `INFO ${parts.join(" ")}`.trim();
+      case "debug":
+        return `DEBUG ${parts.join(" ")}`.trim();
+      case "log":
+        return `LOG ${parts.join(" ")}`.trim();
+      case "onerror":
+        return `ERROR_EVENT ${parts.join(" ")}`.trim();
+      case "unhandledrejection":
+        return `UNHANDLED_REJECTION ${parts.join(" ")}`.trim();
+      default:
+        return `${record.level.toUpperCase()} ${parts.join(" ")}`.trim();
+    }
+  };
+
   const dump = () => {
     try {
       if (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_FLUSH__ === "function") {
@@ -135,32 +213,12 @@
         origConsole.log("TAPE_FLUSH_FAIL", String(e), e && e.stack ? String(e.stack) : null);
       }
     }
-    let text = "";
-    let lines = [];
-    let tail = [];
-    let meta = { linesCount: 0, lastLine: "(missing)" };
     try {
-      text = read();
-      lines = text.split("\n").filter(Boolean);
-      tail = lines.slice(-5);
-      meta = { linesCount: lines.length, lastLine: (tail[tail.length - 1] || lastLine || "(missing)").replace(/\n/g, "\\n") };
-    } catch (e) {
-      if (origConsole && origConsole.log) {
-        origConsole.log("TAPE_READ_FAIL", String(e), e && e.stack ? String(e.stack) : null);
-      }
-    }
-    const tailBlock = [
-      "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN",
-      `[CONSOLE_DUMP_INCLUDED_TAPE_TAIL count=${meta.linesCount} lastLine=${meta.lastLine}]`,
-      `[TAPE_TAIL_1] ${tail[0] || ""}`,
-      `[TAPE_TAIL_2] ${tail[1] || ""}`,
-      `[TAPE_TAIL_3] ${tail[2] || ""}`,
-      `[TAPE_TAIL_4] ${tail[3] || ""}`,
-      `[TAPE_TAIL_5] ${tail[4] || ""}`,
-      "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END"
-    ].join("\n");
-    const base = text || "";
-    const payload = base + (base.endsWith("\n") || base.length === 0 ? "" : "\n") + tailBlock + "\n";
+      // ensure tape flush ensures all entries recorded
+    } catch (_) {}
+    const records = snapshotTape();
+    const payloadLines = records.map(formatRecord);
+    const payload = payloadLines.join("\n");
     if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
       navigator.clipboard.writeText(payload).catch(() => {});
     }
@@ -198,6 +256,7 @@
   window.__CONSOLE_TAPE_READ__ = read;
   window.__CONSOLE_TAPE_FLUSH__ = flushTape;
   window.__CONSOLE_TAPE_LAST__ = () => ({ lastLine, linesCount });
+  window.__CONSOLE_TAPE_SNAPSHOT__ = snapshotTape;
   const dumpTapeTailOnce = (opts = {}) => {
     const lastN = (opts && Number.isFinite(opts.lastN)) ? Math.max(1, opts.lastN | 0) : 50;
     let lines = [];

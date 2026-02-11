@@ -1857,6 +1857,26 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const n = Number(v);
       return Number.isFinite(n) ? n : markNaN(field);
     };
+    const makeMetaShort = (meta) => {
+      if (!meta || typeof meta !== "object") return null;
+      const keys = Object.keys(meta).sort();
+      const shortMeta = {};
+      keys.slice(0, 4).forEach(key => {
+        const val = meta[key];
+        if (val == null) return;
+        if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
+          shortMeta[key] = val;
+          return;
+        }
+        try {
+          shortMeta[key] = String(val);
+        } catch (_) {
+          shortMeta[key] = "[object]";
+        }
+      });
+      return Object.keys(shortMeta).length ? shortMeta : null;
+    };
+    const safeId = (value) => (value && typeof value === "string") ? value : null;
 
     const buildNormalizedRows = (rows) => (Array.isArray(rows) ? rows.map(normalizeAuditRow) : []);
     const { type: scopeType, value: scopeValue, desc: scopeString } = (() => {
@@ -1913,6 +1933,226 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const sampleLogHeads = normalizedRows.slice(0, 3);
     const diag = buildMoneyLogDiag();
     const diagVersion = "npc_audit_diag_v1";
+    const buildExplainability = (rows, beforeMap, afterMap, npcIdsSet) => {
+      const explain = {
+        byReasonDetailed: Object.create(null),
+        topTransfers: [],
+        perNpc: [],
+        anomalies: []
+      };
+      if (!Array.isArray(rows) || rows.length === 0) return {
+        ...explain,
+        rowsWithoutDirection: 0
+      };
+      const reasonCounterparties = Object.create(null);
+      const directionSums = Object.create(null);
+      const perNpcMap = Object.create(null);
+      const unknownCounterpartyRows = [];
+      const sinkFlowsByNpc = Object.create(null);
+      const sanitized = rows
+        .map(row => {
+          const amount = toNum(row && row.amount, `explainRow:${row && row.reason}`);
+          return {
+            reason: String(row && row.reason || "unknown"),
+            amount,
+            absAmount: Math.abs(amount),
+            sourceId: safeId(row && row.sourceId),
+            targetId: safeId(row && row.targetId),
+            battleId: safeId(row && row.battleId),
+            eventId: safeId(row && row.eventId),
+            metaShort: makeMetaShort(row && row.meta),
+            original: row
+          };
+        })
+        .filter(r => r && r.amount !== 0);
+      if (!sanitized.length) return { ...explain, rowsWithoutDirection: 0 };
+      sanitized.forEach(row => {
+        const reason = row.reason;
+        const reasonEntry = explain.byReasonDetailed[reason] || (explain.byReasonDetailed[reason] = {
+          reason,
+          count: 0,
+          sumAbs: 0,
+          sumNetByDirection: { direction: null, netAmount: 0, note: "no_direction" },
+          topCounterparties: []
+        });
+        reasonEntry.count += 1;
+        reasonEntry.sumAbs = toNum(reasonEntry.sumAbs + row.absAmount, `explainReasonSum:${reason}`);
+        if (row.sourceId && row.targetId) {
+          const dirKey = `${row.sourceId}->${row.targetId}`;
+          const dirEntry = directionSums[reason] || (directionSums[reason] = Object.create(null));
+          dirEntry[dirKey] = toNum((dirEntry[dirKey] || 0) + row.amount, `explainDir:${reason}:${dirKey}`);
+        }
+        const cpKey = `${row.sourceId || "unknown"}|${row.targetId || "unknown"}`;
+        const reasonCp = reasonCounterparties[reason] || (reasonCounterparties[reason] = { map: Object.create(null) });
+        const cpEntry = reasonCp.map[cpKey] || {
+          sourceId: row.sourceId,
+          targetId: row.targetId,
+          sum: 0,
+          count: 0
+        };
+        cpEntry.sum = toNum(cpEntry.sum + row.absAmount, `explainReasonCp:${reason}:${cpKey}`);
+        cpEntry.count += 1;
+        reasonCp.map[cpKey] = cpEntry;
+        const markNpc = (npcId, otherId, direction) => {
+          if (!npcId) return;
+          const entry = perNpcMap[npcId] || (perNpcMap[npcId] = {
+            npcId,
+            startPts: toNum(beforeMap[npcId] || 0, `explainStart:${npcId}`),
+            endPts: toNum(afterMap[npcId] || 0, `explainEnd:${npcId}`),
+            reasonMap: Object.create(null),
+            counterparties: Object.create(null),
+            rows: []
+          });
+          entry.reasonMap[reason] = toNum((entry.reasonMap[reason] || 0) + row.absAmount, `npcReason:${npcId}:${reason}`);
+          const cpKey = `${direction}|${otherId || "unknown"}`;
+          const cpEntry = entry.counterparties[cpKey] || { counterpartyId: otherId || "unknown", direction, absSum: 0, count: 0 };
+          cpEntry.absSum = toNum(cpEntry.absSum + row.absAmount, `npcCp:${npcId}:${cpKey}`);
+          cpEntry.count += 1;
+          entry.counterparties[cpKey] = cpEntry;
+          if (entry.rows.length < 5) entry.rows.push(row);
+        };
+        if (row.sourceId && (npcIdsSet.has(row.sourceId) || row.sourceId.startsWith("npc_"))) {
+          markNpc(row.sourceId, row.targetId, "out");
+        }
+        if (row.targetId && (npcIdsSet.has(row.targetId) || row.targetId.startsWith("npc_"))) {
+          markNpc(row.targetId, row.sourceId, "in");
+        }
+        if (!row.sourceId || !row.targetId) {
+          unknownCounterpartyRows.push(row);
+        }
+        if (row.sourceId === "sink" || row.targetId === "sink") {
+          const ids = [];
+          if (row.sourceId && row.sourceId.startsWith("npc_")) ids.push(row.sourceId);
+          if (row.targetId && row.targetId.startsWith("npc_")) ids.push(row.targetId);
+          ids.forEach(npcId => {
+            const arr = sinkFlowsByNpc[npcId] || (sinkFlowsByNpc[npcId] = []);
+            if (arr.length < 5) arr.push(row);
+          });
+        }
+      });
+      Object.keys(explain.byReasonDetailed).forEach(reason => {
+        const reasonEntry = explain.byReasonDetailed[reason];
+        const dirEntry = directionSums[reason];
+        if (dirEntry) {
+          const sorted = Object.keys(dirEntry)
+            .map(key => ({ direction: key, netAmount: dirEntry[key] }))
+            .sort((a, b) => {
+              const an = Math.abs(a.netAmount);
+              const bn = Math.abs(b.netAmount);
+              if (bn !== an) return bn - an;
+              if (a.direction < b.direction) return -1;
+              if (a.direction > b.direction) return 1;
+              return 0;
+            });
+          if (sorted.length) {
+            reasonEntry.sumNetByDirection = { direction: sorted[0].direction, netAmount: sorted[0].netAmount, note: "directional" };
+          }
+        }
+        const cpMap = (reasonCounterparties[reason] && reasonCounterparties[reason].map) || Object.create(null);
+        reasonEntry.topCounterparties = Object.keys(cpMap)
+          .map(key => cpMap[key])
+          .sort((a, b) => {
+            if (b.sum !== a.sum) return b.sum - a.sum;
+            if ((a.sourceId || "") < (b.sourceId || "")) return -1;
+            if ((a.sourceId || "") > (b.sourceId || "")) return 1;
+            if ((a.targetId || "") < (b.targetId || "")) return -1;
+            if ((a.targetId || "") > (b.targetId || "")) return 1;
+            return 0;
+          })
+          .slice(0, 5);
+      });
+      explain.topTransfers = sanitized.slice()
+        .sort((a, b) => {
+          const am = Math.abs(a.amount);
+          const bm = Math.abs(b.amount);
+          if (bm !== am) return bm - am;
+          if (b.reason !== a.reason) return a.reason < b.reason ? -1 : 1;
+          if ((a.sourceId || "") !== (b.sourceId || "")) return (a.sourceId || "") < (b.sourceId || "") ? -1 : 1;
+          if ((a.targetId || "") !== (b.targetId || "")) return (a.targetId || "") < (b.targetId || "") ? -1 : 1;
+          return 0;
+        })
+        .slice(0, 5)
+        .map(row => ({
+          reason: row.reason,
+          amount: row.amount,
+          sourceId: row.sourceId,
+          targetId: row.targetId,
+          battleId: row.battleId,
+          eventId: row.eventId,
+          metaShort: row.metaShort
+        }));
+      const perNpcList = Object.keys(perNpcMap).sort().map(npcId => {
+        const entry = perNpcMap[npcId];
+        const netDelta = toNum(entry.endPts - entry.startPts, `explainNpcNet:${npcId}`);
+        const topReasons = Object.keys(entry.reasonMap)
+          .map(reason => ({ reason, absSum: entry.reasonMap[reason] }))
+          .sort((a, b) => {
+            if (b.absSum !== a.absSum) return b.absSum - a.absSum;
+            if (a.reason < b.reason) return -1;
+            if (a.reason > b.reason) return 1;
+            return 0;
+          })
+          .slice(0, 5);
+        const topCounterparties = Object.keys(entry.counterparties)
+          .map(key => entry.counterparties[key])
+          .sort((a, b) => {
+            if (b.absSum !== a.absSum) return b.absSum - a.absSum;
+            if (a.counterpartyId < b.counterpartyId) return -1;
+            if (a.counterpartyId > b.counterpartyId) return 1;
+            if (a.direction < b.direction) return -1;
+            if (a.direction > b.direction) return 1;
+            return 0;
+          })
+          .slice(0, 5);
+        return {
+          npcId,
+          startPts: entry.startPts,
+          endPts: entry.endPts,
+          netDelta,
+          topReasons,
+          topCounterparties,
+          rowSamples: entry.rows.slice(0, 3)
+        };
+      });
+      explain.perNpc = perNpcList;
+      const recordEvidence = (row) => ({
+        reason: row.reason,
+        amount: row.amount,
+        sourceId: row.sourceId,
+        targetId: row.targetId,
+        metaShort: row.metaShort
+      });
+      perNpcList.forEach(entry => {
+        if (Math.abs(entry.netDelta) >= 5) {
+          explain.anomalies.push({
+            npcId: entry.npcId,
+            kind: "large_delta",
+            shortWhy: `netDelta=${entry.netDelta}`,
+            evidence: (entry.rowSamples || []).map(recordEvidence)
+          });
+        }
+      });
+      Object.keys(sinkFlowsByNpc).forEach(npcId => {
+        explain.anomalies.push({
+          npcId,
+          kind: "sink_flow",
+          shortWhy: "involves sink transfer",
+          evidence: sinkFlowsByNpc[npcId].slice(0, 3).map(recordEvidence)
+        });
+      });
+      if (unknownCounterpartyRows.length) {
+        explain.anomalies.push({
+          npcId: null,
+          kind: "unknown_counterparty",
+          shortWhy: "missing source/target",
+          evidence: unknownCounterpartyRows.slice(0, 3).map(recordEvidence)
+        });
+      }
+      return {
+        ...explain,
+        rowsWithoutDirection: sanitized.filter(row => !(row.sourceId && row.targetId)).length
+      };
+    };
 
     const getSnapshot = () => {
       if (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") return Game.__DEV.sumPointsSnapshot();
@@ -2356,6 +2596,37 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       unexpectedToSink: audit && audit.meta ? audit.meta.unexpectedToSink : [],
       topLeakReasons: (audit && audit.leaks && audit.leaks.toSink) ? audit.leaks.toSink.slice(0, 5).map(x => x.reason) : [],
       audit
+    };
+  };
+
+  Game.__DEV.smokeNpcWorldAuditExplainableOnce = (opts = {}) => {
+    const windowOpts = (opts && opts.window && typeof opts.window === "object") ? opts.window : { lastN: 200 };
+    const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: true });
+    const explain = audit && audit.explainability;
+    const rowsScoped = audit && audit.meta ? (audit.meta.rowsScoped || 0) : 0;
+    const topTransfersLen = explain && Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0;
+    const anomaliesLen = explain && Array.isArray(explain.anomalies) ? explain.anomalies.length : 0;
+    const perNpcHasCounterparties = explain && Array.isArray(explain.perNpc)
+      ? explain.perNpc.some(entry => Array.isArray(entry.topCounterparties) && entry.topCounterparties.length > 0)
+      : false;
+    const failed = [];
+    if (!explain) failed.push("explainability_missing");
+    if (rowsScoped > 0 && explain && Object.keys(explain.byReasonDetailed || {}).length === 0) failed.push("reasons_missing");
+    if (rowsScoped > 0 && topTransfersLen === 0) failed.push("top_transfers_empty");
+    const ok = !!audit && audit.ok === true && failed.length === 0;
+    return {
+      ok,
+      failed,
+      audit,
+      explainability: explain,
+      asserts: {
+        explainabilityPresent: !!explain,
+        topTransfersLen,
+        anomaliesLen,
+        byReasonDetailedNonEmptyWhenRows: rowsScoped === 0 || (!!explain && Object.keys(explain.byReasonDetailed || {}).length > 0),
+        perNpcHasCounterparties,
+        explainabilityTrace: audit && audit.meta ? audit.meta.explainabilityTrace || null : null
+      }
     };
   };
 
@@ -3971,6 +4242,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const newRows = rowsScoped > 0
       ? logAfterRows.slice(Math.max(0, logEnd - rowsScoped))
       : [];
+    const explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds);
+    const explainabilityTrace = {
+      scopeWindow: scopeDesc,
+      logSource,
+      rowsScoped,
+      scopeType,
+      scopeValue,
+      directedFields: ["sourceId", "targetId"],
+      rowsWithoutDirection: explainability.rowsWithoutDirection || 0
+    };
     let sampleTailReasons = [];
     if (rowsScoped === 0 && logAfterRows.length) {
       sampleTailReasons = logAfterRows.slice(Math.max(0, logAfterRows.length - 5))
@@ -4067,7 +4348,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         logSource,
         rowsScoped,
         scopeDesc: `ticks=${ticks}`,
-        debugTelemetry
+        debugTelemetry,
+        explainabilityTrace
       },
       world: {
         beforeTotal: worldMassBefore,
@@ -4091,6 +4373,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         topTaxedNpcs,
         reasonsTop
       },
+      explainability,
       asserts,
       diag: {
         orderCheck: { ticksRun: true, logSourceComputedAfterTicks: true },
@@ -5515,13 +5798,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
-  Game.__DEV.runEconNpcLowFundsEvidencePackOnce = (opts = {}) => {
+  Game.__DEV.runEconNpcLowFundsEvidencePackOnce = async (opts = {}) => {
     const defaultOpts = { ticks: 200, window: { lastN: 1200 }, seed: 1, debugTelemetry: true };
     const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : defaultOpts.ticks;
     const seed = (opts && typeof opts.seed !== "undefined") ? opts.seed : defaultOpts.seed;
     const debugTelemetry = (opts && typeof opts.debugTelemetry !== "undefined") ? !!opts.debugTelemetry : defaultOpts.debugTelemetry;
     const seedLowFunds = (opts && typeof opts.seedLowFunds !== "undefined") ? !!opts.seedLowFunds : true;
     const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? Math.max(1, opts.window.lastN | 0) : defaultOpts.window.lastN;
+    const maxMs = Number.isFinite(opts.maxMs) ? Math.max(50, opts.maxMs | 0) : 800;
+    const batchSize = Number.isFinite(opts.batchSize) ? Math.max(1, opts.batchSize | 0) : 10;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || Game.State || null;
     const notes = [];
@@ -5555,6 +5840,73 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       });
       return { ok: true, reason: "seed_applied", seededCount };
     };
+    const buildAccountsIncluded = (snap) => {
+      const list = [];
+      const push = (id) => {
+        const key = String(id || "");
+        if (!key || list.includes(key)) return;
+        list.push(key);
+      };
+      const byId = (snap && snap.byId) ? snap.byId : {};
+      Object.keys(byId).forEach(id => push(id));
+      push("worldBank");
+      push("sink");
+      push("bank");
+      push("crowd");
+      Object.keys(byId).forEach(id => {
+        if (String(id).startsWith("crowd:")) push(id);
+      });
+      if (Object.prototype.hasOwnProperty.call(byId, "security_owner")) push("security_owner");
+      return list.sort();
+    };
+    const hashList = (list) => {
+      let h = 5381;
+      const s = list.join("|");
+      for (let i = 0; i < s.length; i++) {
+        h = ((h << 5) + h) + s.charCodeAt(i);
+        h |= 0;
+      }
+      return `h${(h >>> 0).toString(16)}`;
+    };
+    const sumByAccounts = (snap, accounts) => {
+      const byId = (snap && snap.byId) ? snap.byId : {};
+      let total = 0;
+      accounts.forEach(id => {
+        const v = Number.isFinite(byId[id]) ? (byId[id] | 0) : 0;
+        total += v;
+      });
+      return total;
+    };
+    const forceLowFundsAttempt = () => {
+      if (!Econ || !S || !S.players || typeof Econ.chargePriceOnce !== "function") return { ok: false, reason: "chargePriceOnce_missing" };
+      const npcList = Object.values(S.players || {})
+        .filter(p => p && p.id && String(p.id).startsWith("npc_"))
+        .map(p => ({ id: String(p.id || ""), points: Number.isFinite(p.points) ? (p.points | 0) : 0 }))
+        .filter(p => p.id);
+      let target = npcList.find(n => n.points === 0) || null;
+      if (!target) {
+        const richest = npcList.slice().sort((a, b) => b.points - a.points)[0] || null;
+        if (richest && richest.points > 0 && Econ && typeof Econ.transferPoints === "function") {
+          Econ.transferPoints(richest.id, "sink", richest.points, "npc_low_funds_seed", { activityTaxSkip: true, mode: "npc_low_funds_seed" });
+          target = { id: richest.id, points: 0 };
+        }
+      }
+      if (!target) return { ok: false, reason: "no_npc_target" };
+      const res = Econ.chargePriceOnce({
+        fromId: target.id,
+        toId: "sink",
+        actorId: target.id,
+        reason: "npc_low_funds_probe",
+        priceKey: "low_funds_probe",
+        basePrice: 1,
+        actorPoints: 0,
+        context: { contextId: "low_funds_probe", tickId: "low_funds_probe" },
+        tickId: "low_funds_probe",
+        actionKey: "low_funds_probe",
+        extraMeta: { contextId: "low_funds_probe" }
+      });
+      return { ok: true, targetId: target.id, res };
+    };
     try {
       emitLine("ECON_NPC_LOW_FUNDS_EVIDENCE_BEGIN");
       if (!Econ || !S || !S.players || typeof Game.__DEV.sumPointsSnapshot !== "function") {
@@ -5563,13 +5915,40 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         return summary;
       }
       const beforeSnap = Game.__DEV.sumPointsSnapshot();
+      const accountsIncluded = buildAccountsIncluded(beforeSnap);
+      const accountsIncludedHash = hashList(accountsIncluded);
       const seedRes = seedLowFundsOnce();
-      const tickRes = (Game.__DEV && typeof Game.__DEV.runWorldTicks === "function")
-        ? Game.__DEV.runWorldTicks({ N: ticks, seed, allowNpcVotes: true, allowBattles: true, allowEventsTick: true, stipendEnabled: true, safeEconOnly: false })
-        : { ok: false, notes: ["runWorldTicks_missing"] };
+      const forceRes = forceLowFundsAttempt();
+      if (!forceRes || forceRes.ok !== true) notes.push(forceRes ? forceRes.reason : "force_low_funds_failed");
+      let ticksDone = 0;
+      let eventsApplied = 0;
+      let votesApplied = 0;
+      let battlesResolved = 0;
+      let tickResOk = true;
+      const startedAt = Date.now();
+      while (ticksDone < ticks) {
+        if ((Date.now() - startedAt) > maxMs) {
+          notes.push("time_budget_exceeded");
+          break;
+        }
+        const batch = Math.min(batchSize, ticks - ticksDone);
+        const runRes = (Game.__DEV && typeof Game.__DEV.runWorldTicks === "function")
+          ? Game.__DEV.runWorldTicks({ N: batch, seed: seed != null ? (seed + ticksDone) : seed, allowNpcVotes: true, allowBattles: true, allowEventsTick: true, stipendEnabled: true, safeEconOnly: false })
+          : { ok: false, notes: ["runWorldTicks_missing"] };
+        if (!runRes || runRes.ok !== true) tickResOk = false;
+        eventsApplied += Number.isFinite(runRes && runRes.eventsApplied) ? runRes.eventsApplied : 0;
+        votesApplied += Number.isFinite(runRes && runRes.votesApplied) ? runRes.votesApplied : 0;
+        battlesResolved += Number.isFinite(runRes && runRes.battlesResolved) ? runRes.battlesResolved : 0;
+        ticksDone += batch;
+        if (ticksDone < ticks) {
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
       const afterSnap = Game.__DEV.sumPointsSnapshot();
-      const worldDelta = (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total))
-        ? ((afterSnap.total | 0) - (beforeSnap.total | 0))
+      const beforeTotal = sumByAccounts(beforeSnap, accountsIncluded);
+      const afterTotal = sumByAccounts(afterSnap, accountsIncluded);
+      const worldDelta = (Number.isFinite(beforeTotal) && Number.isFinite(afterTotal))
+        ? ((afterTotal | 0) - (beforeTotal | 0))
         : null;
       const source = getLogSource();
       const logSource = source.name;
@@ -5582,22 +5961,19 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         .filter(p => p && p.id && String(p.id).startsWith("npc_"))
         .map(p => (Number.isFinite(p.points) ? (p.points | 0) : 0));
       const minNpcPts = npcPoints.length ? Math.min(...npcPoints) : null;
-      const eventsApplied = Number.isFinite(tickRes && tickRes.eventsApplied) ? tickRes.eventsApplied : 0;
-      const votesApplied = Number.isFinite(tickRes && tickRes.votesApplied) ? tickRes.votesApplied : 0;
-      const battlesResolved = Number.isFinite(tickRes && tickRes.battlesResolved) ? tickRes.battlesResolved : 0;
       const activityOk = (eventsApplied + votesApplied + battlesResolved) > 0;
       const worldDeltaOk = (worldDelta === 0);
-      const ok = !!(tickRes && tickRes.ok) && worldDeltaOk && insufficientCount === 0 && skippedCount > 0 && (minNpcPts == null || minNpcPts >= 0) && activityOk;
+      const ok = tickResOk && worldDeltaOk && insufficientCount === 0 && skippedCount > 0 && (minNpcPts == null || minNpcPts >= 0) && activityOk;
       summary = {
         ok,
         notes: notes.slice(),
-        before: { total: beforeSnap.total, byId: beforeSnap.byId || null },
-        after: { total: afterSnap.total, byId: afterSnap.byId || null },
+        before: { total: beforeTotal, byId: beforeSnap.byId || null, accountsIncludedHash },
+        after: { total: afterTotal, byId: afterSnap.byId || null, accountsIncludedHash },
         invariants: { worldDelta, worldDeltaOk, minNpcPts, activityOk },
         activity: { eventsApplied, votesApplied, battlesResolved },
         skippedCount,
         insufficientCount,
-        meta: { logSource, rowsScoped, ticks, seed, debugTelemetry, seedRes }
+        meta: { logSource, rowsScoped, ticks, seed, debugTelemetry, seedRes, accountsIncludedHash, maxMs, batchSize, ticksDone }
       };
       result = summary;
     } catch (e) {
@@ -5627,6 +6003,43 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const S = Game.__S || Game.State || null;
     const notes = [];
     let summary = null;
+    const buildAccountsIncluded = (snap) => {
+      const list = [];
+      const push = (id) => {
+        const key = String(id || "");
+        if (!key || list.includes(key)) return;
+        list.push(key);
+      };
+      const byId = (snap && snap.byId) ? snap.byId : {};
+      Object.keys(byId).forEach(id => push(id));
+      push("worldBank");
+      push("sink");
+      push("bank");
+      push("crowd");
+      Object.keys(byId).forEach(id => {
+        if (String(id).startsWith("crowd:")) push(id);
+      });
+      if (Object.prototype.hasOwnProperty.call(byId, "security_owner")) push("security_owner");
+      return list.sort();
+    };
+    const hashList = (list) => {
+      let h = 5381;
+      const s = list.join("|");
+      for (let i = 0; i < s.length; i++) {
+        h = ((h << 5) + h) + s.charCodeAt(i);
+        h |= 0;
+      }
+      return `h${(h >>> 0).toString(16)}`;
+    };
+    const sumByAccounts = (snap, accounts) => {
+      const byId = (snap && snap.byId) ? snap.byId : {};
+      let total = 0;
+      accounts.forEach(id => {
+        const v = Number.isFinite(byId[id]) ? (byId[id] | 0) : 0;
+        total += v;
+      });
+      return total;
+    };
     const seedLowFundsOnce = () => {
       if (!seedLowFunds || !Econ || !S || !S.players) return { ok: true, reason: "seed_skipped" };
       const npcList = Object.values(S.players || {})
@@ -5661,6 +6074,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         return summary;
       }
       const beforeSnap = Game.__DEV.sumPointsSnapshot();
+      const accountsIncluded = buildAccountsIncluded(beforeSnap);
+      const accountsIncludedHash = hashList(accountsIncluded);
       seedLowFundsOnce();
       let smokeRes = null;
       if (Game.__DEV && typeof Game.__DEV.smokeEcon02_NoEmissionPackOnce === "function") {
@@ -5670,8 +6085,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeRes = { ok: false, reason: "smoke_missing" };
       }
       const afterSnap = Game.__DEV.sumPointsSnapshot();
-      const worldDelta = (beforeSnap && afterSnap && Number.isFinite(beforeSnap.total) && Number.isFinite(afterSnap.total))
-        ? ((afterSnap.total | 0) - (beforeSnap.total | 0))
+      const beforeTotal = sumByAccounts(beforeSnap, accountsIncluded);
+      const afterTotal = sumByAccounts(afterSnap, accountsIncluded);
+      const worldDelta = (Number.isFinite(beforeTotal) && Number.isFinite(afterTotal))
+        ? ((afterTotal | 0) - (beforeTotal | 0))
         : null;
       const source = getLogSource();
       const logSource = source.name;
@@ -5689,7 +6106,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         skippedCount,
         insufficientCount,
         invariants: { worldDelta, worldDeltaOk },
-        meta: { logSource, rowsScoped }
+        before: { total: beforeTotal, accountsIncludedHash },
+        after: { total: afterTotal, accountsIncludedHash },
+        meta: { logSource, rowsScoped, accountsIncludedHash }
       };
     } catch (e) {
       summary = { ok: false, notes: notes.concat(["exception"]), errorMessage: String(e && e.message ? e.message : e) };

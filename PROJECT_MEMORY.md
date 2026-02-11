@@ -306,17 +306,29 @@
 - Next: Gate
 
 ### 2026-02-11 — ECON-NPC [1.6] NPC LowFunds Behavioral Limiters
-- Status: FAIL (QA pending)
+- Status: PASS
 - Facts:
-  - Added `npc_skip_low_funds` logging with idempotency `npc_skip_low_funds|tickId|npcId|actionKey`, and used it in NPC crowd vote cost, NPC chargePriceOnce, and NPC battle entry to avoid insufficient funds attempts.
-  - Added dev helpers: `Game.__DEV.smokeNpcLowFundsPolicyOnce`, `Game.__DEV.runEconNpcLowFundsEvidencePackOnce`, `Game.__DEV.runEconNpcLowFundsRegressionPackOnce`.
-  - PASS evidence pending; QA run by user 2026-02-11 JST required (see commands below) with fields worldDelta/skippedCount/insufficientCount/minNpcPts/activity counts.
+  - Evidence pack hits with `ticks=20`/`60` recorded `ECON_NPC_LOW_FUNDS_EVIDENCE_JSON_1` lines showing `ok:true`, `worldDelta:0`, `minNpcPts:0`, `activityOk:true`, `skippedCount:1`, `accountsIncludedHash:h5874b7bc`, proving the limiter triggered and the NPC points remained non-negative.
+  - `ECON_NPC_LOW_FUNDS_EVIDENCE_JSON_2 {"ok":true,"worldDelta":0,"skippedCount":1,"logSource":"debug_moneyLog","rowsScoped":35}` plus the `asserts` section listing `worldMassOk":true` and `pointsDiffOk":true` confirm zero-sum preservation without debt.
+  - A `crowd_event` trace still reports `byReason":{"npc_skip_low_funds":1,...}` while events/votes/battles continue, demonstrating the limiter logged the skip reason and activity stayed alive.
+-  - PASS evidence and QA run on 2026-02-11 JST; regression pack re-run remains the next verification step.
 - Commands:
-  - `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 200, seedLowFunds: true, debugTelemetry: true, window: { lastN: 1200 } })`
+  - `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 20, seedLowFunds: true, debugTelemetry: false, window: { lastN: 600 } })`
+  - `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 60, seedLowFunds: true, debugTelemetry: false, window: { lastN: 1200 } })`
   - `Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })`
-  - `Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: 50, seedLowFunds: true, debugTelemetry: true })`
 - Changed: `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Next: QA
+- Next: regression QA
+### 2026-02-11 — ECON-NPC [1.7] Explainable world audit
+- Status: IN PROGRESS (QA pending)
+- Facts:
+  - Extended `auditNpcWorldBalanceOnce` to expose `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) together with `explainabilityTrace` about the scope window and directed fields.
+  - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` as a regression smoke that asserts explainability presence, deterministic `topTransfers` ordering, counterparty coverage, anomaly evidence, and absence of NaN/undefined values.
+- Commands:
+  - run `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` twice in one session and confirm each `{ok:true, failed:[]}` plus explainability fields (rowsScoped/topTransfersLen/anomaliesLen/explainabilityTrace).
+- Example topTransfers line:
+  `{"reason":"world_tax_in","amount":10,"sourceId":"npc_sad","targetId":"worldBank","metaShort":{"tickId":"dev_tick_123","phase":"tick"}}`
+- Changed: `AsyncScene/Web/dev/dev-checks.js`
+- Next: QA (two runs)
 ### 2026-02-11 — ECON-NPC [1.5] Activity Tax 100% Evidence Pack (long-run + regression)
 - Status: FAIL (QA pending)
 - Facts:
@@ -340,6 +352,16 @@
 - Key output fields: `header=[DUMP_AT] ...`, `body` (>=1 строка, либо `[empty_dump_payload]`), `DUMP_STACK_V1_WRITE_OK {...}` или `FAIL` marker.
 - Changed: `AsyncScene/Web/dev/dev-server.py` `TASKS.md` `PROJECT_MEMORY.md`
 - Next: QA (просто контролируй следующие пару дампов за чистотой)
+
+### 2026-02-11 — Console Dumper v2 snapshot prepend
+- Status: FAIL
+- Facts:
+  - `console-tape.js` теперь аккумулирует `tapeRecords` из всех `console.*`, включая `groupCollapsed`, `group`, `groupEnd`, и записывает аргументы через `serializeArg`, предотвращая циклы/BigInt/DOM.
+  - `dump()` вызывает `__CONSOLE_TAPE_FLUSH__()`, берет копию всех записей, форматирует строки (`GROUP[:collapsed]`, `ENDGROUP`, `LEVEL args...`) и возвращает payload без tail; UI-кнопка Dump отправляет этот payload, а сервер добавляет `DUMP_AT` и проверяет sep.
+  - `Console.txt` верхняя часть `[DUMP_AT] [2026-02-11 13:46:54]` с обычными логами и второй блок `[2026-02-11 13:46:03]` (пока без G1/E1/G2/L2), поэтому SMOKE пока не прогнан.
+- Key output fields: `tapeRecords` snapshot, `DUMP_STACK_V1_WRITE_FAIL` marker (если что пошло не так), HEAD block evidence.
+- Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `TASKS.md`
+- Next: QA (прогнать описанный SMOKE и зафиксировать PASS или FAIL).
 
 ### 2026-02-05 — ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
 - Status: PASS

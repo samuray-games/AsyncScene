@@ -151,25 +151,6 @@
     const acc = id ? getAccount(id) : null;
     const isNpcTarget = !!(acc && (acc.npc === true || acc.type === "npc" || id.startsWith("npc_")));
     const before = Number.isFinite(toBefore) ? (toBefore | 0) : (acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0);
-    try {
-      npcActivityTaxLog("NPC_ACTIVITY_TAX_PRECHECK", {
-        mode: meta && meta.mode ? String(meta.mode) : null,
-        targetId: id || null,
-        softCap: softCapNpc,
-        softCapReason: softCapMeta.reason
-      });
-    } catch (_) {}
-    if (isNpcTarget && gain > 0) {
-      try {
-        npcActivityTaxLog("NPC_ACTIVITY_TAX_DEBUG", {
-          targetId: id || null,
-          gainPoints: (gain | 0),
-          npcPointsBefore: before,
-          softCapBefore: softCapNpc,
-          conditionPassed: (isNpcTarget && (gain | 0) > 0 && before > softCapNpc)
-        });
-      } catch (_) {}
-    }
     if (applyingNpcActivityTax) return { ok: false, skipped: true, reason: "reentrant" };
     if (!Number.isFinite(gain) || gain <= 0) return { ok: false, skipped: true, reason: "no_gain" };
     if (!id) return { ok: false, skipped: true, reason: "no_id" };
@@ -178,18 +159,42 @@
     if (r.startsWith("npc_account_") || r.startsWith("world_seed_")) return { ok: false, skipped: true, reason: "skip_reason" };
     if (meta && meta.activityTaxSkip) return { ok: false, skipped: true, reason: "skip_meta" };
     if (!isNpcTarget) return { ok: false, skipped: true, reason: "not_npc" };
+    const logEnabled = (r === "npc_activity_tax") || (meta && meta.activityTaxMode === true);
+    if (logEnabled) {
+      try {
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_PRECHECK", {
+          mode: meta && meta.mode ? String(meta.mode) : null,
+          targetId: id || null,
+          softCap: softCapNpc,
+          softCapReason: softCapMeta.reason
+        });
+      } catch (_) {}
+      if (gain > 0) {
+        try {
+          npcActivityTaxLog("NPC_ACTIVITY_TAX_DEBUG", {
+            targetId: id || null,
+            gainPoints: (gain | 0),
+            npcPointsBefore: before,
+            softCapBefore: softCapNpc,
+            conditionPassed: (isNpcTarget && (gain | 0) > 0 && before > softCapNpc)
+          });
+        } catch (_) {}
+      }
+    }
     if (before <= softCapNpc) return { ok: false, skipped: true, reason: "below_softcap" };
     const tickId = (meta && meta.tickId != null) ? meta.tickId
       : (meta && Number.isFinite(meta.tick)) ? (meta.tick | 0)
         : null;
     if (shouldSkipNpcActivityTaxForTick(tickId, id)) {
-      try {
-        npcActivityTaxLog("NPC_ACTIVITY_TAX_DEBUG", {
-          targetId: id || null,
-          tickId: tickId != null ? String(tickId) : null,
-          guardSkip: true
-        });
-      } catch (_) {}
+      if (logEnabled) {
+        try {
+          npcActivityTaxLog("NPC_ACTIVITY_TAX_DEBUG", {
+            targetId: id || null,
+            tickId: tickId != null ? String(tickId) : null,
+            guardSkip: true
+          });
+        } catch (_) {}
+      }
       return { ok: false, skipped: true, reason: "tick_guard" };
     }
     const overCap = Math.max(0, (before | 0) - (softCapNpc | 0));
@@ -212,25 +217,29 @@
     });
     applyingNpcActivityTax = true;
     try {
-      try {
-        npcActivityTaxLog("NPC_ACTIVITY_TAX_TAX", {
-          targetId: id,
-          gainPoints: (gain | 0),
-          npcPointsBefore: before,
-          softCapBefore: softCapNpc,
-          taxAmount: tax
-        });
-      } catch (_) {}
+      if (logEnabled) {
+        try {
+          npcActivityTaxLog("NPC_ACTIVITY_TAX_TAX", {
+            targetId: id,
+            gainPoints: (gain | 0),
+            npcPointsBefore: before,
+            softCapBefore: softCapNpc,
+            taxAmount: tax
+          });
+        } catch (_) {}
+      }
       const res = E.transferPoints(id, WORLD_BANK_ID, tax, "npc_activity_tax", taxMeta);
-      try {
-        const accAfter = getAccount(id);
-        const bankAfter = getAccount(WORLD_BANK_ID);
-        npcActivityTaxLog("NPC_ACTIVITY_TAX_POST", {
-          targetId: id,
-          npcPointsAfter: accAfter && Number.isFinite(accAfter.points) ? (accAfter.points | 0) : null,
-          worldBankAfter: bankAfter && Number.isFinite(bankAfter.points) ? (bankAfter.points | 0) : null
-        });
-      } catch (_) {}
+      if (logEnabled) {
+        try {
+          const accAfter = getAccount(id);
+          const bankAfter = getAccount(WORLD_BANK_ID);
+          npcActivityTaxLog("NPC_ACTIVITY_TAX_POST", {
+            targetId: id,
+            npcPointsAfter: accAfter && Number.isFinite(accAfter.points) ? (accAfter.points | 0) : null,
+            worldBankAfter: bankAfter && Number.isFinite(bankAfter.points) ? (bankAfter.points | 0) : null
+          });
+        } catch (_) {}
+      }
       return res;
     } finally {
       applyingNpcActivityTax = false;
@@ -987,12 +996,17 @@
   E.transferPoints = function (fromId, toId, amount, reason, meta = {}) {
     ensureDebugStore();
     try {
-      npcActivityTaxLog("NPC_ACTIVITY_TAX_ENTRY", {
-        sourceId: String(fromId || ""),
-        targetId: String(toId || ""),
-        reason: String(reason || ""),
-        amount: Number(amount || 0)
-      });
+      const toKey = String(toId || "");
+      const r0 = String(reason || "");
+      const logEnabled = (r0 === "npc_activity_tax") || (meta && meta.activityTaxMode === true);
+      if (logEnabled) {
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_ENTRY", {
+          sourceId: String(fromId || ""),
+          targetId: toKey,
+          reason: r0,
+          amount: Number(amount || 0)
+        });
+      }
     } catch (_) {}
     const n = Number(amount || 0);
     const r0 = String(reason || "");
@@ -1089,15 +1103,19 @@
       meta: meta || null
     });
     try {
-      const probeIsNpcTarget = !!(String(toId || "").startsWith("npc_"));
-      npcActivityTaxLog("NPC_ACTIVITY_TAX_V1_PROBE", {
-        sourceId: String(fromId || ""),
-        targetId: String(toId || ""),
-        reason: r0,
-        gainPoints: amt,
-        isNpcTarget: probeIsNpcTarget,
-        softCapBefore
-      });
+      const toKey = String(toId || "");
+      const probeIsNpcTarget = !!(toKey.startsWith("npc_"));
+      const logEnabled = (r0 === "npc_activity_tax") || (meta && meta.activityTaxMode === true);
+      if (logEnabled) {
+        npcActivityTaxLog("NPC_ACTIVITY_TAX_V1_PROBE", {
+          sourceId: String(fromId || ""),
+          targetId: toKey,
+          reason: r0,
+          gainPoints: amt,
+          isNpcTarget: probeIsNpcTarget,
+          softCapBefore
+        });
+      }
       maybeApplyNpcActivityTax(toId, amt, toBefore, r0, meta, softCapBefore);
     } catch (_) {}
     // Emit delta toast immediately for player points (no aggregation, no render-tick delay).

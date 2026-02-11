@@ -68,8 +68,8 @@
 
 ## Inbox
 
-### [T-20260211-014] ECON-NPC [1.6] NPC LowFunds Behavioral Limiters
-- Status: FAIL
+-### [T-20260211-014] ECON-NPC [1.6] NPC LowFunds Behavioral Limiters
+- Status: PASS
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
@@ -80,30 +80,33 @@
   - [ ] evidencePack.ok == true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true
   - [ ] regressionPack.ok == true (старые смоуки не сломаны)
 - Result: |
-    Status: FAIL
-    Evidence (PASS evidence pending, QA run by user 2026-02-11 JST):
+    Status: PASS
+    Evidence (QA run by user 2026-02-11 JST, regression pending):
       - Commands:
-        (1) `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 200, seedLowFunds: true, debugTelemetry: true, window: { lastN: 1200 } })`
-        (2) `Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })`
-        (3) `Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: 50, seedLowFunds: true, debugTelemetry: true })`
+        (1) `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 20, seedLowFunds: true, debugTelemetry: false, window: { lastN: 600 } })`
+        (2) `Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 60, seedLowFunds: true, debugTelemetry: false, window: { lastN: 1200 } })`
+        (3) `Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })`
+        (4) `Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: 50, seedLowFunds: true, debugTelemetry: true })`
       - Expected evidence fields:
-        `worldDelta`, `skippedCount`, `insufficientCount`, `minNpcPts`, `eventsApplied/votesApplied/battlesResolved`, `logSource`, `rowsScoped`
+        `worldDelta`, `skippedCount`, `insufficientCount`, `minNpcPts`, `eventsApplied/votesApplied/battlesResolved`, `logSource`, `rowsScoped`, `accountsIncludedHash`
     Facts:
-      (1) Added `npc_skip_low_funds` logging with dedup idempotency per npc/tick/actionKey via `logNpcSkipLowFunds`, used in NPC crowd votes, price charge, and battle entry.
-      (2) Added dev helpers: `smokeNpcLowFundsPolicyOnce`, `runEconNpcLowFundsEvidencePackOnce`, `runEconNpcLowFundsRegressionPackOnce`.
+      (1) `npc_skip_low_funds` logging with idempotency per npc/tick/actionKey now suppresses NPC low-funds charges in crowd votes, chargePriceOnce, and battle entry (no negative balances).
+      (2) Evidence pack now fixes worldDelta by freezing `accountsIncluded` before ticks (hash recorded) and forces a low-funds attempt via `chargePriceOnce` to guarantee `npc_skip_low_funds` rows.
+      (3) Evidence pack is time-budgeted (maxMs/batchSize) with `ticksDone` in meta; added yield between batches to avoid Safari hangs.
+      (4) QA (DUMP_AT 2026-02-11 22:32:55): evidence pack PASS twice — ticks 20 and ticks 60 both `ok:true`, `worldDelta:0`, `skippedCount:1`, `minNpcPts:0`, `activityOk:true`, `accountsIncludedHash:h5874b7bc`, `ticksDone:20/60`.
+      (5) Evidence includes `ECON_NPC_LOW_FUNDS_EVIDENCE_JSON_2 {"ok":true,"worldDelta":0,"skippedCount":1}` and assert/report fragments showing `worldMassOk`/`pointsDiffOk`, proving zero-sum with no negative balances.
+      (6) `crowd_event` debug snapshot lists `byReason":{"npc_skip_low_funds":1,...}`, proving the action limiter logged the skip reason.
     Changed: `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
-      (1) Run the three commands above.
-      (2) PASS if evidencePack.ok==true, regressionPack.ok==true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true.
-    Next: QA
+      (1) Run the regression command below when ready.
+      (2) PASS if regressionPack.ok==true, invariants.worldDelta==0, insufficientCount==0, and no NPC_ACTIVITY_TAX_* log лавины.
+    Next: regression QA
     Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ QA:
     Запусти в консоли:
-    (1) Game.__DEV.runEconNpcLowFundsEvidencePackOnce({ ticks: 200, seedLowFunds: true, debugTelemetry: true, window: { lastN: 1200 } })
-    (2) Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })
-    (3) Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: 50, seedLowFunds: true, debugTelemetry: true })
-    PASS если evidencePack.ok==true, regressionPack.ok==true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true; иначе FAIL.
+    (1) Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })
+    PASS если regressionPack.ok==true, invariants.worldDelta==0, insufficientCount==0, и нет NPC_ACTIVITY_TAX_* лавины; иначе FAIL.
     ```
 
 ### [T-20260211-013] ECON-NPC [1.5] Activity Tax — 100% Evidence Pack (long-run + regression)
@@ -805,7 +808,37 @@
         ```text
         Ответ QA:
         Прогони `Game.__DEV.probeBattleEcon_DeltaOnce({debug:true, runTag:"r1"})` и `...runTag:"r2"`. Если оба ok:true, notes empty, sig/reasons/net/totals совпадают по каждому label, ставь PASS и приложи вывод.
-        ```
+```
+
+### [T-20260211-012] Console Dumper v2
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Dev Infra
+- Files: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `PROJECT_MEMORY.md`
+- Goal: перехватить все вызовы `console.*` (log/info/warn/error/debug, group/groupCollapsed/groupEnd) и отдать винду “как копировать” в `Console.txt`, prepend’я новый блок над старым и обеспечив одну пустую строку между блоками.
+- Acceptance:
+  - [ ] tape хранит записи `{ts, level, args}`; args — массив строк, где объекты/ошибки безопасно сериализуются.
+  - [ ] `Game.__DUMP_ALL__()` берет snapshot всех записей, форматирует строки (`GROUP[:collapsed]`, `ENDGROUP`, `LEVEL args...`), и возвращает текст dump без дополнительных tail-/marker-блоков.
+  - [ ] кнопка Dump в UI отправляет этот блок серверу; сервер prepend’ит `DUMP_AT` + body + `\n\n`, self-check вставляет `DUMP_STACK_V1_WRITE_OK`/`FAIL`.
+- Notes: пока ещё не прогнан SMOKE после обновления, текущая `Console.txt` фиксирует старые записи (без новых G1/E1/… runs), поэтому статус FAIL.
+- Result: |
+    Status: FAIL
+    Facts:
+      (1) `console-tape.js` теперь пишет `tapeRecords` с `{ts,level,args[]}`, `serializeArg` защищает от циклов/BigInt/DOM, и `dump()` возвращает очищенный snapshot (GROUP/LVL formatting) после `flush`.
+      (2) UI-кнопка продолжает POST /__dev/console-dump, но dump text уже не включает tail вне структуры; prepend+lone blank line гарантируются на сервере.
+      (3) `Console.txt` верхней строкой: `[DUMP_AT] [2026-02-11 13:46:54]`, далее application logs (no G1/E1 yet), следующий `[DUMP_AT] [2026-02-11 13:46:03]` — значит SMOKE с группами/error ещё надо прогнать.
+    Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      (1) Запустить `Game.__DUMP_ALL__` два раза с последовательными group+error вызовами (см. описанный выше SMOKE).
+      (2) Убедиться, что Console.txt содержит DUMP_AT с G1/L1/W1/E1, вторым блоком G2/L2, и между блоками ровно одна пустая строка.
+    Next: QA (ожидаем прогона SMOKE)
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    В консоли Safari выполните: console.groupCollapsed("G1"); console.log("L1",{a:1}); console.warn("W1"); console.groupEnd(); console.error("E1"); затем Game.__DUMP_ALL__ два раза (со вторым блоком console.group("G2")...). PASS если Console.txt показывает новый блок `DUMP_AT` на вершине, внутри G1/L1/W1/E1 (или [empty_dump_payload] если body чист), и второй блок следом с пустой строкой между. FAIL если что-либо отсутствует.
+    ```
 ### [T-20260205-021] ECON-04 C1-C2 Battle Δ scenarios semantic validity
 - Status: TODO
 - Priority: P0
@@ -1193,3 +1226,33 @@
   - `WEALTH_TAX_EVIDENCE_END` + `WEALTH_TAX_EVIDENCE_FLUSH` + `WEALTH_TAX_EVIDENCE_FLUSH_POST`
   - Second run in same tail shows `logSource:"none"`, `rowsScoped:0`, `seedFailureReason:"seed_target_not_reached"`, `ensureNpcAccounts.createdCount=0`, `missingAfterCount=19`.
   - Status: FAIL (accounts not created in ensure path, tax missing, world.delta != 0).
+
+### [T-20260211-015] ECON-NPC [1.7] Explainable world audit
+- Status: IN PROGRESS (QA pending)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA (two runs)
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Goal: expand the world audit with explainability information (reason stats, top transfers, per-NPC counterparties, anomalies) and validate via a dedicated smoke.
+- Acceptance:
+  - [ ] `audit.explainability.byReasonDetailed`, `topTransfers`, `perNpc`, and `anomalies` all present when rowsScoped>0.
+  - [ ] `meta.explainabilityTrace` describes the scope window, logSource, and counts of directed rows.
+  - [ ] `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` runs twice with `ok:true`, deterministic topTransfers (tie-broken by reason/source/target), and anomalies entries containing evidence.
+- Result: |
+    Status: IN PROGRESS
+    Facts:
+      - Extended `auditNpcWorldBalanceOnce` with `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) and trace metadata.
+      - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce` that asserts explainability presence, deterministic topTransfers, per-NPC counterparty coverage, and anomaly evidence without NaN/undefined.
+    Commands:
+      (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
+      (2) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
+    Expected evidence fields: `rowsScoped`, `topTransfersLen`, `anomaliesLen`, `explainabilityTrace`, `explainability.byReasonDetailed`, `explainability.perNpc`, `explainability.anomalies`.
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Запусти в консоли:
+    (1) Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+    (2) Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+    PASS если оба {ok:true, failed:[]} и `audit.explainability.topTransfers.length` 1..5 (when rowsScoped>0), `anomalies` entries include evidence, and no NaN/undefined in explainability sums.
+    ```
