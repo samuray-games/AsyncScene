@@ -9,6 +9,51 @@
   <title>AsyncScene</title>
   <link rel="stylesheet" href="style.css" />
   <script>
+    (function () {
+      if (typeof window === "undefined" || window.__CONSOLE_TAPE_BOOTSTRAPPED__) return;
+      const cap = 5000;
+      const buf = [];
+      const tape = {
+        buf,
+        cap,
+        push(level, args) {
+          const entry = { ts: Date.now(), level, args: Array.from(args) };
+          buf.push(entry);
+          if (buf.length > cap) {
+            buf.splice(0, buf.length - cap);
+          }
+          return entry;
+        }
+      };
+      const orig = {};
+      const wrap = (method) => {
+        const original = console[method];
+        if (typeof original !== "function") return;
+        orig[method] = original;
+        console[method] = function (...args) {
+          tape.push(method, args);
+          return original.apply(this, args);
+        };
+      };
+      ["log", "info", "warn", "error", "debug", "group", "groupCollapsed", "groupEnd"].forEach(wrap);
+      window.addEventListener("error", (event) => {
+        tape.push("onerror", [
+          event.message,
+          event.filename,
+          event.lineno,
+          event.colno,
+          event.error
+        ]);
+      });
+      window.addEventListener("unhandledrejection", (event) => {
+        tape.push("unhandledrejection", [event.reason]);
+      });
+      window.__CONSOLE_TAPE__ = tape;
+      window.__CONSOLE_TAPE_ORIG__ = orig;
+      window.__CONSOLE_TAPE_BOOTSTRAPPED__ = true;
+    })();
+  </script>
+  <script>
     console.warn("DEV_INDEX_HTML_PROOF_V1", "build_2026_02_09b", location.href, Date.now());
     console.warn("DEV_SW_DISABLED", true);
   </script>
