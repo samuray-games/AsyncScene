@@ -3383,6 +3383,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return null;
   };
 
+  const getWealthTaxBuildTag = () => {
+    if (typeof window !== "undefined" && window.__WT_DUMP_BUILD_TAG__) {
+      return window.__WT_DUMP_BUILD_TAG__;
+    }
+    if (typeof window !== "undefined" && window.Game && window.Game.__D && window.Game.__D.buildTag) {
+      return window.Game.__D.buildTag;
+    }
+    return "unknown_build";
+  };
+
   Game.__DEV.smokeNpcWealthTaxOnce = (opts = {}) => {
     const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : 200;
     const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
@@ -3391,9 +3401,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const scopeWindowLastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || null;
-    const buildTag = (typeof window !== "undefined" && window.__WT_DUMP_BUILD_TAG__)
-      || (typeof window !== "undefined" && window.Game && window.Game.__D && window.Game.__D.buildTag)
-      || "build_2026_02_09b";
+    const buildTagLocal = getWealthTaxBuildTag();
     if (!Econ || !S || !S.players) return { ok: false, notes: ["missing_econ_or_state"] };
     let threshold = null;
     let seedMargin = null;
@@ -3664,7 +3672,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         notes.push("seed_no_npc_donors");
       }
       const donorVersionPayload = {
-        buildTag: buildTag || null,
+        buildTag: buildTagLocal || null,
         file: "dev-checks.js",
         mode: "npc_only",
         need,
@@ -4100,6 +4108,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   Game.__DEV.forceDumpOnce = (label, payload) => {
     const tag = String(label || "UNLABELED");
+    const safeStringify = (obj) => {
+      try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
+    };
     emitLine(`FORCE_DUMP_BEGIN:${tag}`);
     emitLine(safeStringify(payload));
     emitLine(`FORCE_DUMP_END:${tag}`);
@@ -4115,12 +4126,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce = (opts = {}) => {
     const notes = [];
     const diagVersion = "econ_npc_wealth_tax_pack_v1";
-    const buildTagLocal = (typeof window !== "undefined" && window.__WT_DUMP_BUILD_TAG__)
-      ? window.__WT_DUMP_BUILD_TAG__
-      : (typeof window !== "undefined" && window.Game && window.Game.__D && window.Game.__D.buildTag)
-        ? window.Game.__D.buildTag
-        : "build_2026_02_09b";
-    const buildTag = buildTagLocal;
+    const safeStringify = (obj) => {
+      try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
+    };
+    const buildTagLocal = getWealthTaxBuildTag();
     const header = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN";
       emitLine("SEED_RICH_NPC_V2_ACTIVE");
     const footer = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_END";
@@ -4164,9 +4173,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let reasonsTop = [];
     let seedTransfer = null;
     let evidenceSeedDonorsSample = [];
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
-    };
     const buildWealthTaxContract = () => {
       const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
@@ -4446,7 +4452,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         asserts: smokeRes.asserts || null,
         diag: {
           logSourceChosen: smokeRes.meta ? smokeRes.meta.logSource : (smokeRes.diag ? smokeRes.diag.logSource : null),
-          buildTag,
+          buildTag: buildTagLocal,
           logSourceCandidates: smokeRes.diag ? smokeRes.diag.logSourceCandidates : null,
           snapshotOk: smokeRes.diag ? smokeRes.diag.snapshotOk : null,
           snapshotWhy: smokeRes.diag ? smokeRes.diag.snapshotWhy : null,
@@ -4517,7 +4523,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         errorStack: exception ? exception.stack : null,
         diagVersion,
         diag: {
-          buildTag,
+          buildTag: buildTagLocal,
           threshold,
           seedMargin,
           maxPerTxn,
@@ -4566,7 +4572,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         notes: notes.slice(),
         diagVersion,
         diag: {
-          buildTag,
+          buildTag: buildTagLocal,
           logSourceChosen,
           rowsScoped,
           threshold,
@@ -4615,6 +4621,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       return result;
     };
+    dumpLine(`WEALTH_TAX_BUILD_TAG_LOCAL ${buildTagLocal}`);
+    dumpLine("WEALTH_TAX_SAFE_STRINGIFY_OK true");
     dumpLine("WEALTH_TAX_EVIDENCE_BEGIN");
     try {
       const ensureDiag = npcEnsureDiag && npcEnsureDiag.ensureDiag ? npcEnsureDiag.ensureDiag : null;
