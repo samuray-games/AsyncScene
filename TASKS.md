@@ -1008,6 +1008,13 @@
     - После `WEALTH_TAX_EVIDENCE_END` снова `ECON_NPC_WORLD_CONTRACT_V1_READY` с другим `accountsIncludedLen/hash` (24/h5874b7bc → 54/hea0766e0).
     - Ниже в логе есть `ECON_NPC_WEALTH_TAX_APPLY_V1` с `taxApplied:true` и `reasonIn/out` = `world_tax_in/out` (apply-path жив).
 - Update (2026-02-11): исправлен SyntaxError duplicate let `ensureNpcAccountsOkFromEnsure` в `dev-checks.js` (без изменения логики). Smoke/DUMP_AT ещё не зафиксирован — требуется новый `DUMP_AT` после `Game.__DEV.smokeWealthTaxDumpOnce()`.
+- Update (2026-02-11): добавлен safe-дамп `Game.__DEV.smokeWealthTaxDumpOnce_Safe` с жёсткими лимитами вывода, kill-switch и запретом таймеров; прежний helper переименован в `..._UNSAFE`. Smoke локально не запускался (требуется ручной прогон).
+- Update (2026-02-11): P0 throttle PASS. Evidence (Console.txt DUMP_AT 2026-02-11 15:12:43): `THROTTLE_PROOF_V1 {"attempted":10,"printed":2,"suppressed":8,"minIntervalMs":400,"maxCount":20}`.
+- Update (2026-02-11): добавлен npc activity tax (reason `npc_activity_tax`) и UI softcap-red без клипа; добавлен smoke `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ticks:300, seedRichNpc:true})`. Статус PENDING до smoke evidence.
+- Runtime evidence (FAIL, Console.txt [2026-02-11 15:22:45]): `NPC_ACTIVITY_TAX_V1_SUMMARY {"ok":false,"worldDelta":16,...,"totalTax":5,"taxRowsCount":5}` + отмечен риск фриза из-за лавины `[SEC] tamper_function transferRep blocked` (smoke дергал ticks/crowd).
+- Runtime evidence (FAIL, Console.txt [2026-02-11 15:32:17]): два последних `NPC_ACTIVITY_TAX_V1_SUMMARY` с `worldDelta` 10 и 8 (ok:false), что подтверждает drift даже в tax_only.
+- Runtime evidence (FAIL, Console.txt [2026-02-11 15:39:44]): `NPC_ACTIVITY_TAX_V1_SUMMARY` с `worldDelta` 16 и `[SEC] tamper_function/transferRep blocked` рядом, smoke всё ещё фиксирует drift и SEC‑лавину.
+- Update (2026-02-11): добавлен `Game.__DEV.smokeConsoleThrottleProofOnce()` и `__CONSOLE_TAPE_EMIT_TAGGED_WARN__` для проверки throttling без тиков; Safe smoke по умолчанию заблокирован флагом `window.__ALLOW_WEALTH_TAX_SAFE_SMOKE__!==true`. Статус PENDING до user-proof.
 - Runtime evidence (FAIL, Console.txt 2026-02-10 19:15:42):
     - First run emits `WEALTH_TAX_ATTEMPT_DIAG` showing `taxApplied:true`, `worldTaxRowsInWindow:{"world_tax_in":2,"world_tax_out":0}`, but JSON#1 notes still include `"world_delta_nonzero"` and `world.delta` stays 15 (ok:false)
     - Second run emits `WEALTH_TAX_ATTEMPT_DIAG` with `taxApplied:false`, `worldTaxRowsInWindow:{"world_tax_in":0}`, `notes:["tax_probe_failed","tax_probe_missing_after_seed","world_delta_nonzero"]`

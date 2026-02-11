@@ -4839,7 +4839,45 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return payload;
   };
 
-  Game.__DEV.smokeWealthTaxDumpOnce = (opts = {}) => {
+  Game.__DEV.smokeConsoleThrottleProofOnce = (opts = {}) => {
+    const loops = Number.isFinite(opts && opts.N) ? Math.max(3, Math.min(5, opts.N | 0)) : 5;
+    const emitTagged = (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_EMIT_TAGGED_WARN__ === "function")
+      ? window.__CONSOLE_TAPE_EMIT_TAGGED_WARN__
+      : null;
+    let attempted = 0;
+    let printed = 0;
+    let suppressed = 0;
+    for (let i = 0; i < loops; i += 1) {
+      attempted += 1;
+      const resA = emitTagged ? emitTagged("ECON_NPC_ENSURE_V2", { proof: true }) : null;
+      if (resA && resA.printed) printed += 1; else suppressed += 1;
+      attempted += 1;
+      const resB = emitTagged ? emitTagged("ECON_NPC_ACCOUNTS_CANON", { proof: true }) : null;
+      if (resB && resB.printed) printed += 1; else suppressed += 1;
+      if (!emitTagged) {
+        try { console.warn("ECON_NPC_ENSURE_V2", { proof: true }); } catch (_) {}
+        try { console.warn("ECON_NPC_ACCOUNTS_CANON", { proof: true }); } catch (_) {}
+        printed += 2;
+      }
+    }
+    const throttleState = (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_THROTTLE_STATE__ === "function")
+      ? window.__CONSOLE_TAPE_THROTTLE_STATE__()
+      : { minIntervalMs: null, maxCount: null };
+    const summary = {
+      attempted,
+      printed,
+      suppressed,
+      minIntervalMs: throttleState.minIntervalMs,
+      maxCount: throttleState.maxCount
+    };
+    try { console.warn("THROTTLE_PROOF_V1", summary); } catch (_) {}
+    return summary;
+  };
+
+  Game.__DEV.smokeWealthTaxDumpOnce_UNSAFE = (opts = {}) => {
+    if (typeof window !== "undefined" && window.__DEV_DUMPS_DISABLED__ !== false) {
+      return { ok: false, reason: "dumps_disabled" };
+    }
     console.log("WT_DUMP_BUILD_TAG", window.__WT_DUMP_BUILD_TAG__);
     let res1 = null;
     let res2 = null;
@@ -4857,6 +4895,107 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       } catch (_) {}
     }
     return { ok: true, res1, res2 };
+  };
+
+  Game.__DEV.smokeWealthTaxDumpOnce_Safe = (opts = {}) => {
+    if (typeof window !== "undefined" && window.__DEV_DUMPS_DISABLED__ === true) {
+      return { ok: false, reason: "dumps_disabled" };
+    }
+    if (typeof window !== "undefined" && window.__ALLOW_WEALTH_TAX_SAFE_SMOKE__ !== true) {
+      return { ok: false, reason: "blocked_by_default" };
+    }
+    const MAX_LINES = 120;
+    const MAX_CHARS = 20000;
+    const now = Date.now();
+    const spam = (Game.__DEV && Game.__DEV.__dumpSpamGuard) ? Game.__DEV.__dumpSpamGuard : { ts: 0, count: 0 };
+    if (spam.ts === now && spam.count >= MAX_LINES) {
+      return { ok: false, reason: "dump_spam_guard" };
+    }
+    spam.ts = (spam.ts === now) ? spam.ts : now;
+    spam.count = (spam.ts === now) ? spam.count : 0;
+    if (Game.__DEV) Game.__DEV.__dumpSpamGuard = spam;
+
+    const originalDumpLine = (Game.__DEV && typeof Game.__DEV._dumpLine === "function") ? Game.__DEV._dumpLine : null;
+    const lines = [];
+    let chars = 0;
+    let truncated = false;
+    const pushLine = (line) => {
+      if (truncated) return;
+      const text = String(line);
+      spam.count += 1;
+      if (spam.count > MAX_LINES || (chars + text.length) > MAX_CHARS) {
+        truncated = true;
+        return;
+      }
+      lines.push(text);
+      chars += text.length;
+    };
+    if (Game.__DEV) {
+      Game.__DEV._dumpLine = pushLine;
+    }
+    let res1 = null;
+    const safeTicks = Number.isFinite(opts && opts.ticks) ? Math.min(5, Math.max(1, opts.ticks | 0)) : 5;
+    const safeOpts = Object.assign({}, opts, { ticks: safeTicks });
+    try {
+      res1 = Game.__DEV.dumpWealthTaxEvidenceOnce(safeOpts);
+    } finally {
+      if (Game.__DEV) {
+        Game.__DEV._dumpLine = originalDumpLine;
+      }
+    }
+    const payload = {
+      label: "WEALTH_TAX_DUMP_SAFE",
+      buildTag: (typeof window !== "undefined") ? window.__WT_DUMP_BUILD_TAG__ : null,
+      ts: Date.now(),
+      truncated,
+      lines,
+      notes: truncated ? ["dump_truncated"] : [],
+      ok: true,
+      res1Ok: !!(res1 && res1.ok)
+    };
+    try {
+      console.warn(JSON.stringify(payload));
+    } catch (_) {}
+    return { ok: true, truncated, res1 };
+  };
+
+  Game.__DEV.smokeNpcActivityTax_StabilityOnce = (opts = {}) => {
+    const mode = (opts && typeof opts.mode === "string") ? String(opts.mode) : "tax_only";
+    const S = Game.__S || Game.State || null;
+    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+    if (!S || !S.players || !Econ) return { ok: false, reason: "state_missing" };
+    if (mode !== "tax_only") return { ok: false, reason: "mode_not_tax_only" };
+    if (typeof Econ.sumPointsSnapshot !== "function") return { ok: false, reason: "sumPointsSnapshot_missing" };
+    const npcList = Object.values(S.players || {})
+      .filter(p => p && (p.npc === true || p.type === "npc" || String(p.id || "").startsWith("npc_")))
+      .map(p => ({ id: String(p.id || ""), points: (Number.isFinite(p.points) ? (p.points | 0) : 0) }))
+      .filter(p => p.id);
+    const richest = npcList.slice().sort((a, b) => b.points - a.points)[0] || null;
+    const dbg = Game.__D || (Game.__D = {});
+    dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
+    const logStart = dbg.moneyLog.length;
+    const beforeSnap = Econ.sumPointsSnapshot();
+    const beforeTotal = beforeSnap && Number.isFinite(beforeSnap.total) ? (beforeSnap.total | 0) : null;
+    if (!richest) {
+      const resultNoNpc = { ok: false, worldDelta: 0, totalTax: 0, taxRowsCount: 0, reason: "no_npc" };
+      try { console.log("NPC_ACTIVITY_TAX_V1_SUMMARY", resultNoNpc); } catch (_) {}
+      return resultNoNpc;
+    }
+    try {
+      Econ.transferPoints("worldBank", richest.id, 50, "npc_seed_rich_smoke");
+      Econ.transferPoints("worldBank", richest.id, 10, "npc_activity_gain_smoke");
+    } catch (_) {}
+    const afterSnap = Econ.sumPointsSnapshot();
+    const afterTotal = afterSnap && Number.isFinite(afterSnap.total) ? (afterSnap.total | 0) : null;
+    const worldDelta = (beforeTotal != null && afterTotal != null) ? (afterTotal - beforeTotal) : null;
+    const tail = dbg.moneyLog.slice(logStart);
+    const taxRows = tail.filter(r => r && r.reason === "npc_activity_tax");
+    const totalTax = taxRows.reduce((s, r) => s + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0), 0);
+    const taxRowsCount = taxRows.length;
+    const ok = (worldDelta === 0 && totalTax > 0 && taxRowsCount > 0);
+    const result = { ok, worldDelta, totalTax, taxRowsCount };
+    try { console.log("NPC_ACTIVITY_TAX_V1_SUMMARY", result); } catch (_) {}
+    return result;
   };
 
   Game.__DEV.smokeWealthTaxWithPhasesOnce = (opts = {}) => {
@@ -4925,7 +5064,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         window: { lastN: 400 },
         ...opts
       });
-      Game.__DEV.smokeWealthTaxDumpOnce();
+      if (typeof Game.__DEV.smokeWealthTaxDumpOnce_Safe === "function") {
+        Game.__DEV.smokeWealthTaxDumpOnce_Safe();
+      }
       const lastPack = Game.__DEV.lastEconNpcWealthTaxEvidencePack;
       const lastSummary = lastPack && lastPack.summary ? lastPack.summary : null;
       const lastDiag = lastSummary && lastSummary.diag ? lastSummary.diag : null;

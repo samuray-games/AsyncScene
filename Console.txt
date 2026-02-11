@@ -1,40 +1,741 @@
-[DUMP_AT] [2026-02-11 14:25:12] (epoch_ms=1770787512597)
-[warn] 200
-[warn] [2026-02-11 14:23:27]
-[warn] 1770787407948
-[warn] 200
-[warn] [2026-02-11 14:23:47]
-[warn] 1770787427573
+[DUMP_AT] [2026-02-11 16:12:16] (epoch_ms=1770793936908)
+DUMP_STACK_V1_WRITE_FAIL {"dumpAtCount":1,"bannedCount":1}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614530
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614530
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
 [warn] ECON_NPC_ENSURE_V2
 [warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
 [warn] ECON_NPC_ACCOUNTS_CANON
 [warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
 [log] [AttackChoices] conflict-arguments loaded
-[log] 1770787461362
+[log] 1770792614542
 [log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614566
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614566
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
 [warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809773
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809774
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
 [warn] ECON_NPC_ENSURE_V2
 [warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
 [warn] ECON_NPC_ACCOUNTS_CANON
 [warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
 [log] [AttackChoices] conflict-arguments loaded
-[log] 1770787467795
+[log] 1770792809788
 [log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809799
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809799
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
 [warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
-[warn] ECON_NPC_ENSURE_V2
-[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
-[warn] ECON_NPC_ACCOUNTS_CANON
-[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
-[log] [AttackChoices] conflict-arguments loaded
-[log] 1770787472220
-[log] [ConflictAPI] ready
-[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
-
-[DUMP_AT] [2026-02-11 14:23:47] (epoch_ms=1770787427573)
 [warn] 200
-[warn] [2026-02-11 14:23:27]
-[warn] 1770787407948
+[warn] [2026-02-11 15:53:46]
+[warn] 1770792826150
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793267276
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793267277
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770793267298
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793267314
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793267315
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
+[warn] 200
+[warn] [2026-02-11 16:01:17]
+[warn] 1770793277589
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793471513
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793471513
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770793471534
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793471544
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793471545
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
+[warn] 200
+[warn] [2026-02-11 16:04:43]
+[warn] 1770793483056
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793921090
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793921090
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770793921112
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793921126
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793921126
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
 
-[DUMP_AT] [2026-02-11 14:23:27] (epoch_ms=1770787407948)
+[DUMP_AT] [2026-02-11 16:04:43] (epoch_ms=1770793483056)
+DUMP_STACK_V1_WRITE_FAIL {"dumpAtCount":1,"bannedCount":1}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614530
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614530
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770792614542
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614566
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614566
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809773
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809774
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770792809788
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809799
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809799
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] 200
+[warn] [2026-02-11 15:53:46]
+[warn] 1770792826150
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793267276
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793267277
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770793267298
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793267314
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793267315
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
+[warn] 200
+[warn] [2026-02-11 16:01:17]
+[warn] 1770793277589
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793471513
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793471513
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770793471534
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793471544
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793471545
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
 
+[DUMP_AT] [2026-02-11 16:01:17] (epoch_ms=1770793277589)
+DUMP_STACK_V1_WRITE_FAIL {"dumpAtCount":1,"bannedCount":1}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614530
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614530
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770792614542
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614566
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614566
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809773
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809774
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770792809788
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809799
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809799
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] 200
+[warn] [2026-02-11 15:53:46]
+[warn] 1770792826150
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793267276
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793267277
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770793267298
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770793267314
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770793267315
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[log] NPC_ACTIVITY_TAX_V1_SUMMARY
+[log] {"ok":false,"worldDelta":0,"totalTax":0,"taxRowsCount":0}
 
+[DUMP_AT] [2026-02-11 15:53:46] (epoch_ms=1770792826150)
+DUMP_STACK_V1_WRITE_FAIL {"sepOk":false,"detail":"missing_or_extra_blank_line"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614530
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614530
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770792614542
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792614566
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792614566
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"wealth_tax"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809773
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809774
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] ECON_NPC_ENSURE_V2
+[warn] {"called":true,"npcIdsSeen":19,"econAccountsBefore":19,"econAccountsAfter":19,"createdIds":[],"createdCount":0,"syncedCount":0,"skippedCount":19,"beforeTotal":200,"afterTotal":200,"delta":0,"missingAfterCount":0,"branch":"already_ok","reason":"init"}
+[warn] ECON_NPC_ACCOUNTS_CANON
+[warn] {"npcSeen":19,"createdCount":0,"afterCount":19,"missingAfterCount":0,"storageKeyUsed":"S.players"}
+[log] [AttackChoices] conflict-arguments loaded
+[log] 1770792809788
+[log] [ConflictAPI] ready
+[warn] served_probe_2026_02_08_1
+[warn] http://localhost:8080/index.html?dev=1
+[warn] ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG
+[warn] build_2026_02_08g
+[warn] build_2026_02_09b
+[warn] build_2026_02_09b
+[warn] url
+[warn] http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b
+[warn] 1770792809799
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG
+[warn] build_2026_02_09b
+[warn] ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG
+[warn] true
+[warn] build_probe_2026_02_08_fix_try_1
+[warn] 1770792809799
+[warn] [DEV] content testing hooks enabled
+[warn] ECON_NPC_WORLD_CONTRACT_V1_EXPORTED
+[warn] econNpcWorldContractV1
+[warn] {"hasGame":true,"gameDumpAll":true,"gameDumpClear":true}

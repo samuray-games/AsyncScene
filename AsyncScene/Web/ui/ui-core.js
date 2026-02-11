@@ -1388,13 +1388,13 @@ window.Game = window.Game || {};
         const overflow = Number.isFinite(S.overPoints)
           ? (S.overPoints | 0)
           : ((S.points && Number.isFinite(S.points.overflow)) ? (S.points.overflow | 0) : 0);
-        if (pts >= cap) {
-          mp.textContent = String(cap);
-          mp.classList.add("is-cap");
+        if (pts > cap) {
+          mp.textContent = String(pts);
+          mp.classList.add("points-softcap");
           mp.style.color = "#ff3b30";
         } else {
           mp.textContent = String(pts);
-          mp.classList.remove("is-cap");
+          mp.classList.remove("points-softcap");
           mp.style.color = "";
         }
         if (mpOverflow) {

@@ -881,6 +881,41 @@
 - Status: PENDING (нужен свежий DUMP_AT после `Game.__DEV.smokeWealthTaxDumpOnce()`).
 - Changed: `PROJECT_MEMORY.md`
 
+### 2026-02-11 — ECON-NPC [1.5] wealth tax pack: smoke dump hard-cap (safe variant)
+- Facts: добавлен `Game.__DEV.smokeWealthTaxDumpOnce_Safe` с лимитами `MAX_LINES=120`/`MAX_CHARS=20000`, kill-switch `window.__DEV_DUMPS_DISABLED__`, и блоком одного вывода; прежний helper переименован в `..._UNSAFE`.
+- Status: PENDING (smoke не запускался в этом окружении).
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] ensure spam throttle (console-tape)
+- Facts: добавлен hard-throttle для `ECON_NPC_ENSURE_V2`/`ECON_NPC_ACCOUNTS_CANON` в `console-tape.js` (minIntervalMs=400, maxCount=20, suppression после лимита), плюс Safe smoke ограничен `ticks<=5`.
+- Status: PASS (Console.txt DUMP_AT 2026-02-11 15:12:43: `THROTTLE_PROOF_V1 {"attempted":10,"printed":2,"suppressed":8,"minIntervalMs":400,"maxCount":20}`).
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] throttle proof helper + safe smoke gate
+- Facts: добавлен `Game.__DEV.smokeConsoleThrottleProofOnce()` и `__CONSOLE_TAPE_EMIT_TAGGED_WARN__` для проверки throttling без тиков; `smokeWealthTaxDumpOnce_Safe` теперь блокируется флагом `window.__ALLOW_WEALTH_TAX_SAFE_SMOKE__!==true`.
+- Status: PENDING (ожидается user-proof без фриза).
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] activity tax + softcap-red UI (pending smoke)
+- Facts: добавлен npc activity tax (reason `npc_activity_tax`) как доп. трансфер npc→worldBank при gain>0 и npcPointsBefore>softCap(P90), без изменения базовых исходов; UI points теперь показывает реальное значение >20 и краснеет без клипа; добавлен smoke `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ticks:300, seedRichNpc:true})`.
+- Status: PENDING (нужны smoke evidence и world.delta==0).
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] activity tax smoke FAIL (worldDelta!=0)
+- Facts (Console.txt DUMP_AT 2026-02-11 15:22:45): `NPC_ACTIVITY_TAX_V1_SUMMARY {"ok":false,"worldDelta":16,...,"totalTax":5,"taxRowsCount":5}`; отмечен риск фриза из-за лавины `[SEC] tamper_function transferRep blocked` при tick/crowd.
+- Status: FAIL (smoke evidence)
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] activity tax smoke FAIL (tax_only drift)
+- Facts (Console.txt DUMP_AT 2026-02-11 15:32:17): два последних `NPC_ACTIVITY_TAX_V1_SUMMARY` с `worldDelta` 10 и 8, `ok:false` в режиме tax_only.
+- Status: FAIL (smoke evidence)
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] activity tax smoke FAIL (SEC spam + worldDelta)
+- Facts (Console.txt DUMP_AT 2026-02-11 15:39:44): `NPC_ACTIVITY_TAX_V1_SUMMARY {"ok":false,"worldDelta":16,...}` и рядом `[SEC] tamper_function transferRep blocked` в консоли.
+- Status: FAIL (smoke evidence)
+- Changed: `PROJECT_MEMORY.md`
+
 ## Team Sections (обновляет каждый сам)
 
 ### Валера (gate/интеграция)

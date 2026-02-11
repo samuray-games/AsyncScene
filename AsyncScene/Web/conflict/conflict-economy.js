@@ -6,6 +6,7 @@
   const WORLD_BANK_SOFT_CAP = 20;
   const NPC_TAX_SOFT_CAP = 20;
   const NPC_TAX_MAX_PER_TXN = 2;
+  const NPC_ACTIVITY_TAX_RATE = 0.25;
   const pools = {
     crowd: { id: "crowd", points: 0 },
     sink: { id: "sink", points: 0 },
@@ -71,6 +72,74 @@
   function isNpcId(id){
     const s = String(id || "");
     return s.startsWith("npc_");
+  }
+
+  function getNpcPointsArray(){
+    const S = getStateHandle();
+    const players = (S && S.players) ? S.players : {};
+    const pts = [];
+    Object.keys(players).forEach((id) => {
+      const p = players[id];
+      const pid = String(id || "");
+      if (!pid) return;
+      const isNpc = pid.startsWith("npc_") || (p && (p.npc === true || p.type === "npc" || p.isNpc === true));
+      if (!isNpc) return;
+      const v = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+      pts.push(v);
+    });
+    return pts;
+  }
+
+  function percentileSorted(arr, q){
+    if (!arr.length) return 0;
+    const idx = Math.min(arr.length - 1, Math.max(0, Math.floor(((q / 100) * (arr.length - 1)))));
+    return arr[idx] | 0;
+  }
+
+  function getNpcSoftCapP90(){
+    const pts = getNpcPointsArray();
+    if (!pts.length) return NPC_TAX_SOFT_CAP;
+    pts.sort((a, b) => a - b);
+    const p90 = percentileSorted(pts, 90);
+    return Number.isFinite(p90) ? (p90 | 0) : NPC_TAX_SOFT_CAP;
+  }
+
+  let applyingNpcActivityTax = false;
+  function maybeApplyNpcActivityTax(toId, gainPoints, toBefore, reason, meta, softCapOverride){
+    if (applyingNpcActivityTax) return { ok: false, skipped: true, reason: "reentrant" };
+    if (!Number.isFinite(gainPoints) || gainPoints <= 0) return { ok: false, skipped: true, reason: "no_gain" };
+    const id = String(toId || "");
+    if (!id) return { ok: false, skipped: true, reason: "no_id" };
+    const r = String(reason || "");
+    if (r === "npc_activity_tax" || r.startsWith("world_tax_")) return { ok: false, skipped: true, reason: "skip_reason" };
+    if (r === "bank_deposit" || r === "bank_withdraw") return { ok: false, skipped: true, reason: "skip_reason" };
+    if (r.startsWith("npc_account_") || r.startsWith("world_seed_")) return { ok: false, skipped: true, reason: "skip_reason" };
+    if (meta && meta.activityTaxSkip) return { ok: false, skipped: true, reason: "skip_meta" };
+    const acc = getAccount(id);
+    const isNpc = !!(acc && (acc.npc === true || acc.type === "npc" || id.startsWith("npc_")));
+    if (!isNpc) return { ok: false, skipped: true, reason: "not_npc" };
+    const before = Number.isFinite(toBefore) ? (toBefore | 0) : (acc && Number.isFinite(acc.points) ? (acc.points | 0) : 0);
+    const softCapNpc = Number.isFinite(softCapOverride) ? (softCapOverride | 0) : getNpcSoftCapP90();
+    if (before <= softCapNpc) return { ok: false, skipped: true, reason: "below_softcap" };
+    const rawTax = Math.floor((gainPoints | 0) * NPC_ACTIVITY_TAX_RATE);
+    const tax = Math.min(Math.max(1, rawTax), (gainPoints | 0));
+    if (!Number.isFinite(tax) || tax <= 0) return { ok: false, skipped: true, reason: "tax_zero" };
+    const taxMeta = Object.assign({}, meta || {}, {
+      kind: "npc_activity_tax",
+      softCapNpc,
+      npcPointsBefore: before,
+      gainPoints: (gainPoints | 0),
+      taxRate: NPC_ACTIVITY_TAX_RATE,
+      tax,
+      sourceReason: r || null,
+      activityTaxSkip: true
+    });
+    applyingNpcActivityTax = true;
+    try {
+      return E.transferPoints(id, WORLD_BANK_ID, tax, "npc_activity_tax", taxMeta);
+    } finally {
+      applyingNpcActivityTax = false;
+    }
   }
 
   let ensuringNpcAccounts = false;
@@ -818,6 +887,7 @@
       return { ok: true, noop: true };
     }
     const fromPts = (from.points | 0);
+    const toBefore = (to.points | 0);
     let amt = (n | 0);
     if (isCirculationEnabled()) {
       const fromKey = String(fromId || "");
@@ -831,6 +901,7 @@
     } else {
       if (fromPts < amt) return { ok: false, reason: "insufficient", have: fromPts, need: amt };
     }
+    const softCapBefore = (String(toId || "").startsWith("npc_")) ? getNpcSoftCapP90() : null;
     // IMPORTANT: any points write must happen inside withPointsWrite() while circulation is enabled.
     // Otherwise State's points-guard may reject the assignment (even for internal sync like S.players.me -> S.me).
     withPointsWrite(() => {
@@ -860,6 +931,9 @@
       phase: meta && meta.phase ? meta.phase : null,
       meta: meta || null
     });
+    try {
+      maybeApplyNpcActivityTax(toId, amt, toBefore, r0, meta, softCapBefore);
+    } catch (_) {}
     // Emit delta toast immediately for player points (no aggregation, no render-tick delay).
     try {
       const touchMe = (String(fromId) === "me") || (String(toId) === "me");

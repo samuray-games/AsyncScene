@@ -72,9 +72,36 @@
     groupCollapsed: console.groupCollapsed ? console.groupCollapsed : null,
     groupEnd: console.groupEnd ? console.groupEnd : null
   };
+  const throttleState = window.__CONSOLE_TAPE_THROTTLE__ || (window.__CONSOLE_TAPE_THROTTLE__ = {
+    minIntervalMs: 400,
+    maxCount: 20,
+    keys: Object.create(null)
+  });
+  const shouldSuppress = (args, method) => {
+    if (!args || !args.length) return false;
+    const key = (typeof args[0] === "string") ? args[0] : null;
+    if (key !== "ECON_NPC_ENSURE_V2" && key !== "ECON_NPC_ACCOUNTS_CANON") return false;
+    const now = Date.now();
+    const entry = throttleState.keys[key] || { lastTs: 0, count: 0, suppressed: false };
+    if (entry.count >= throttleState.maxCount || (now - entry.lastTs) < throttleState.minIntervalMs) {
+      if (!entry.suppressed) {
+        entry.suppressed = true;
+        if (origConsole && origConsole.warn) {
+          origConsole.warn(`${key}_THROTTLED`, { max: throttleState.maxCount, minIntervalMs: throttleState.minIntervalMs });
+        }
+      }
+      throttleState.keys[key] = entry;
+      return true;
+    }
+    entry.lastTs = now;
+    entry.count += 1;
+    throttleState.keys[key] = entry;
+    return false;
+  };
   const patch = (method) => {
     const orig = origConsole[method];
     console[method] = function (...args) {
+      if (shouldSuppress(args, method)) return;
       if (method === "groupCollapsed") {
         if (!args.length) {
           appendLine("[GROUP_START]");
@@ -184,6 +211,18 @@
     return { ok: true, lastN, lines: tail.length };
   };
   window.__CONSOLE_TAPE_DUMP_TAIL_ONCE__ = dumpTapeTailOnce;
+  const emitTaggedWarn = (tag, payload) => {
+    const args = [tag, payload];
+    if (shouldSuppress(args, "warn")) return { printed: false, suppressed: true };
+    args.forEach(arg => appendLine(`[warn] ${formatArg(arg)}`));
+    if (origConsole && origConsole.warn) origConsole.warn(tag, payload);
+    return { printed: true, suppressed: false };
+  };
+  window.__CONSOLE_TAPE_EMIT_TAGGED_WARN__ = emitTaggedWarn;
+  window.__CONSOLE_TAPE_THROTTLE_STATE__ = () => ({
+    minIntervalMs: throttleState.minIntervalMs,
+    maxCount: throttleState.maxCount
+  });
   window.__DUMP_ALL__ = dump;
   window.__DUMP_CLEAR__ = clear;
   appendLine("CONSOLE_TAPE_V1_READY");
