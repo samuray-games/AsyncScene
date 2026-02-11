@@ -3391,6 +3391,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const scopeWindowLastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || null;
+    const buildTag = (typeof window !== "undefined" && window.__WT_DUMP_BUILD_TAG__)
+      || (typeof window !== "undefined" && window.Game && window.Game.__D && window.Game.__D.buildTag)
+      || "build_2026_02_09b";
     if (!Econ || !S || !S.players) return { ok: false, notes: ["missing_econ_or_state"] };
     let threshold = null;
     let seedMargin = null;
@@ -4096,9 +4099,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   };
 
   Game.__DEV.forceDumpOnce = (label, payload) => {
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
-    };
     const tag = String(label || "UNLABELED");
     emitLine(`FORCE_DUMP_BEGIN:${tag}`);
     emitLine(safeStringify(payload));
@@ -4116,9 +4116,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const notes = [];
     const diagVersion = "econ_npc_wealth_tax_pack_v1";
     const buildTagLocal = (typeof window !== "undefined" && window.__WT_DUMP_BUILD_TAG__)
-      || (typeof window !== "undefined" && window.__DEV_CHECKS_RUNTIME_PROOF_V4_BUILD_TAG)
-      || (typeof window !== "undefined" && window.__DEV_CHECKS_PROOF_V4_BUILD_TAG)
-      || "build_2026_02_09b";
+      ? window.__WT_DUMP_BUILD_TAG__
+      : (typeof window !== "undefined" && window.Game && window.Game.__D && window.Game.__D.buildTag)
+        ? window.Game.__D.buildTag
+        : "build_2026_02_09b";
     const buildTag = buildTagLocal;
     const header = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN";
       emitLine("SEED_RICH_NPC_V2_ACTIVE");
@@ -4163,6 +4164,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let reasonsTop = [];
     let seedTransfer = null;
     let evidenceSeedDonorsSample = [];
+    const safeStringify = (obj) => {
+      try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
+    };
     const buildWealthTaxContract = () => {
       const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
@@ -4282,6 +4286,46 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       if (!npcEnsureDiag || !npcEnsureDiag.ensureDiag) notes.push("ensure_diag_missing");
       const npcCount = Number.isFinite(npcEnsure && npcEnsure.npcCount) ? npcEnsure.npcCount : 0;
       const ensureDiag = npcEnsureDiag && npcEnsureDiag.ensureDiag ? npcEnsureDiag.ensureDiag : null;
+      const storageForMissing = (() => {
+        if (ensureDiag && ensureDiag.storageKeyUsed === "S.players") {
+          return (Game.__S && Game.__S.players) || {};
+        }
+        return (Game.State && Game.State.players) || {};
+      })();
+      const allPlayersForDiag = Object.assign(
+        {},
+        (Game.State && Game.State.players) || {},
+        (Game.__S && Game.__S.players) || {}
+      );
+      const diagNpcIds = Object.values(allPlayersForDiag || {})
+        .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
+        .map(p => String(p.id));
+      const missingNpcIds = diagNpcIds.filter(id => !storageForMissing[id]);
+      const sampleMissingIds = missingNpcIds.slice(0, 5);
+      const getAccountFn = (Game.ConflictEconomy && typeof Game.ConflictEconomy.getAccount === "function")
+        ? Game.ConflictEconomy.getAccount
+        : null;
+      const missingByGetAccount = [];
+      if (getAccountFn) {
+        diagNpcIds.forEach(id => {
+          try {
+            const account = getAccountFn(id);
+            if (!account) missingByGetAccount.push(id);
+          } catch (_) {
+            missingByGetAccount.push(id);
+          }
+        });
+      }
+      if (npcEnsure) {
+        npcEnsure.missingAfterCount = missingNpcIds.length;
+        npcEnsure.sampleMissingIds = sampleMissingIds.slice();
+        npcEnsure.missingNpcIds = missingNpcIds.slice();
+        if (missingByGetAccount.length) npcEnsure.missingByGetAccount = missingByGetAccount.slice(0, 5);
+      }
+      if (ensureDiag) {
+        ensureDiag.missingAfterCount = missingNpcIds.length;
+        ensureDiag.missingAfterIdsSample = sampleMissingIds.slice();
+      }
       const ensureAccountsBefore = ensureDiag && Number.isFinite(ensureDiag.playersKeyCountS) ? ensureDiag.playersKeyCountS : null;
       const ensureAccountsAfter = ensureDiag && Number.isFinite(ensureDiag.afterCount) ? ensureDiag.afterCount : null;
       const currentNpcAccountCount = Number.isFinite(npcAccountCount) ? npcAccountCount : null;
@@ -4292,27 +4336,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const missingAfterZero = Number.isFinite(npcEnsure.missingAfterCount) ? (npcEnsure.missingAfterCount === 0) : true;
       ensureNpcAccountsOk = missingAfterZero && hasAllAccounts && createdOk;
       if (!ensureNpcAccountsOk) notes.push("ensure_npc_accounts_missing_after");
-      emitLine(`WEALTH_TAX_PRECHECK ${safeStringify(npcEnsure)}`);
       addedAccounts = ensured.addedAccounts;
       fixedAccounts = ensured.fixedAccounts;
       const createdNowCountLocal = Number.isFinite(ensured.createdCount) ? ensured.createdCount : 0;
       const syncedNowCountLocal = Number.isFinite(ensured.syncedCount) ? ensured.syncedCount : 0;
       npcAccountsCreatedNowCount += createdNowCountLocal;
       npcAccountsSyncedNowCount += syncedNowCountLocal;
-      const missingNpcIds = (npcEnsure && Array.isArray(npcEnsure.missingNpcIds))
-        ? npcEnsure.missingNpcIds
-        : (ensured.missingNpcIds || []);
+      emitLine(`WEALTH_TAX_PRECHECK ${safeStringify(npcEnsure)}`);
       const npcDiagSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
         : null;
       const npcDiagById = npcDiagSnap && npcDiagSnap.byId ? npcDiagSnap.byId : null;
       const npcDiagPlayers = (Game.State && Game.State.players) ? Game.State.players : (Game.__S && Game.__S.players) ? Game.__S.players : {};
-      const npcDiagIds = Object.values(npcDiagPlayers || {})
-        .filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")))
-        .map(p => String(p.id));
       const npcDiagPresent = [];
       if (npcDiagById) {
-        npcDiagIds.forEach(id => {
+        diagNpcIds.forEach(id => {
           if (Number.isFinite(npcDiagById[id])) npcDiagPresent.push(id);
         });
       }

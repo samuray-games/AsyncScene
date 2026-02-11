@@ -2522,6 +2522,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Status: FAIL
 - Facts:
   - `Console.txt` DUMP_AT `2026-02-10 23:06:21` (epoch 1770732381569) logs `buildTag=build_2026_02_09b`, `seedSourceId=null`, `seedApplied=false`, `seedWhy=null`, `seedTransfer.fromId=null`, `ensureNpcAccounts.createdCount=0`, `ensureNpcAccounts.missingAfterCount=0`, `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `hasWorldTaxInRows=false`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `asserts.ensureNpcAccountsOk=false`.
+  - Повторный DUMP_AT `2026-02-11 11:35:58` уже печатает `WT_DUMP_BUILD_TAG wt_dump_guard_v3_2026_02_11_01`, но JSON всё ещё падает с `errorMessage="Can't find variable: buildTag"`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=19`, `ensureNpcAccountsOk=false`, так что runtime FAIL сохраняется.
   - Key output fields: see above.
 - Changed: `TASKS.md` `PROJECT_MEMORY.md`
 - Next: QA (see updated TASKS.md entry)

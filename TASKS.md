@@ -199,6 +199,7 @@
     Facts:
       (1) DUMP_AT `2026-02-11 00:44:55` зафиксировал `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `ensureNpcAccounts.missingAfterCount=19` (при `npcAccountsMissingLen=0`), `asserts.ensureNpcAccountsOk=false`, `asserts.hasWorldTaxInRows=false`, `world.delta=0`.
       (2) DUMP_AT `2026-02-11 00:59:15` снова показывал `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `diag.seedTransfer.sourcePtsBefore=0`, `diag.seedTransfer.sourcePtsAfter=-15`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=0`, `world.delta=13`, `bank.beforePts=0` → `bank.afterPts=20`, подтверждая, что guard пока никак не влияет на JSON, и `missingAfter` метки перестали совпадать.
+      (3) DUMP_AT `2026-02-11 11:35:58` показывает `WT_DUMP_BUILD_TAG wt_dump_guard_v3_2026_02_11_01`, но JSON всё ещё падает с `errorMessage="Can't find variable: buildTag"`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=19`, `ensureNpcAccountsOk=false`, поэтому runtime FAIL держится.
     Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
       (1) Выполнить `Game.__DEV.smokeWealthTaxDumpOnce()` и дождаться нового `WEALTH_TAX_EVIDENCE` + `DUMP_AT`.
