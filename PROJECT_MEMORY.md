@@ -288,12 +288,12 @@
 ### 2026-02-11 — Dev server Console.txt stack dump filter
 - Status: PASS
 - Facts:
-  - Фильтрация применяется к `raw_payload_text` из запроса (`CONSOLE_DUMP_*`, `CONSOLE_DUMP_INCLUDED_TAPE_TAIL*`, `/__dev/console-dump`, `[TAPE_TAIL_*]`, `REPL_TAPE_V1_READY`, `CONSOLE_TAPE_V1_READY`, `DEV_CHECKS_*`, `DEV_SERVER_*`, `[DUMP_AT]`) и пропускает BEGIN/END tape-tail region, поэтому в свежем блоке остаются только чистые runtime-логи.
-  - `Console.txt` верхние блоки `[DUMP_AT] [2026-02-11 02:03:59]` и `[2026-02-11 02:03:57]` подтверждают отсутствие banned-строк и вложенных `[DUMP_AT]`, а между ними — ровно один пустой разделитель.
-  - Запись делается атомарно через `tmp` + `os.replace`, новые блоки prepend-ятся с двумя переводами строки и старый контент не пересекается; сервер логирует `DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 ...`.
-- Key output fields: `header=[DUMP_AT] ...`, `filtered_payload` (без banned-сообщений), лог `DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=… kept_lines=… skipped_lines=… skippedTapeTailRegion=…`.
+  - Каждый POST теперь write header/body as `DUMP_AT` + filtered payload + blank line; payload фильтруется по banned-субстрокам и любые `[TAPE_TAIL_]`, `[DUMP_AT]` строки отбрасываются, а пустой dump заменяется на `[empty_dump_payload]`.
+  - После записи self-check проверяет, что top block содержит ровно один `[DUMP_AT]`, среди строк нет banned-маркеров и между первым и вторым блоком есть одна пустая строка; на успехе сразу добавляется `DUMP_STACK_V1_WRITE_OK {"dumpAtCount":1,"bannedCount":0,"emptyBody":false}`, при сбое вставляется `DUMP_STACK_V1_WRITE_FAIL {...}`.
+  - `Console.txt` верхние блоки (`[2026-02-11 13:46:54]` и `[2026-02-11 13:46:03]`) подтверждают: единственный `[DUMP_AT]` в каждом, ровно одна пустая строка между блоками, второй блок не пустой, и строки `[warn] ...` — это application logs без banned-маркеров.
+- Key output fields: `header=[DUMP_AT] ...`, `body` (>=1 строка, либо `[empty_dump_payload]`), `DUMP_STACK_V1_WRITE_OK {...}` или `FAIL` marker.
 - Changed: `AsyncScene/Web/dev/dev-server.py` `TASKS.md` `PROJECT_MEMORY.md`
-- Next: QA (следить за следующими дампами — новые `DUMP_AT` должны оставаться чистыми)
+- Next: QA (просто контролируй следующие пару дампов за чистотой)
 
 ### 2026-02-05 — ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
 - Status: PASS
@@ -854,9 +854,32 @@
 6) Дополнение: компенсация после ограбления (если применимо)
 - Если игрок пострадал от злодея (токсик/бандит снял points), и немедленно успешно сдаёт его копу:
   - украденные points возвращаются от злодея обратно игроку
-  - плюс дополнительно 3 points от злодея
+- плюс дополнительно 3 points от злодея
 
 ---
+
+### 2026-02-11 — ECON-NPC [1.5] wealth tax pack: runtime FAIL evidence (determinism + tax_missing)
+- Facts (Console.txt DUMP_AT 2026-02-11 14:03:40):
+  - `WEALTH_TAX_EVIDENCE_JSON_1_PART` содержит `ensureNpcAccountsOk:true`, но `WEALTH_TAX_EVIDENCE_JSON_2_PART` фиксирует `ensureNpcAccountsOk:false` (вердикт не детерминирован).
+  - `world.beforeTotal=200`, `world.afterTotal=206`, `world.delta=6`, notes включают `points_emission_suspected`.
+  - `WEALTH_TAX_ATTEMPT_DIAG` показывает `taxApplied:false`, `worldTaxRowsInWindow:{"world_tax_in":0,"world_tax_out":0}`, `taxProbe.why:"tax_missing"`.
+  - Контракт меняется внутри одного pack: `accountsIncludedLen:24 hash:h5874b7bc` → `accountsIncludedLen:54 hash:hea0766e0`.
+- Status: FAIL (runtime evidence)
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] wealth tax pack: runtime FAIL evidence (crowd ticks + contract change)
+- Facts (Console.txt DUMP_AT 2026-02-11 14:16:18):
+  - `world.beforeTotal=200`, `world.afterTotal=206`, `world.delta=6`, `reasonsTop` доминируют `crowd_vote_*` (ticks не изолированы).
+  - `WEALTH_TAX_EVIDENCE_JSON_1_PART` содержит `ensureNpcAccountsOk:true`, но `WEALTH_TAX_EVIDENCE_JSON_2_PART` фиксирует `ensureNpcAccountsOk:false`.
+  - После `WEALTH_TAX_EVIDENCE_END` снова `ECON_NPC_WORLD_CONTRACT_V1_READY` с другим `accountsIncludedLen/hash` (24/h5874b7bc → 54/hea0766e0).
+  - Ниже в логе есть `ECON_NPC_WEALTH_TAX_APPLY_V1` с `taxApplied:true` и `reasonIn/out` = `world_tax_in/out` (apply-path жив).
+- Status: FAIL (runtime evidence)
+- Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-11 — ECON-NPC [1.5] wealth tax pack: SyntaxError fixed (awaiting smoke)
+- Facts: удалён дубликат `let ensureNpcAccountsOkFromEnsure` в `dev-checks.js`, чтобы убрать `SyntaxError: Cannot declare ... twice` (без изменения логики).
+- Status: PENDING (нужен свежий DUMP_AT после `Game.__DEV.smokeWealthTaxDumpOnce()`).
+- Changed: `PROJECT_MEMORY.md`
 
 ## Team Sections (обновляет каждый сам)
 

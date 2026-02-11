@@ -61,6 +61,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     try { console.warn(text); } catch (_) {}
   };
 
+  const safeStringify = (obj) => {
+    try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
+  };
+
   if (!G.__DEV.devChecksFetchProbeOnce) {
     G.__DEV.devChecksFetchProbeOnce = async function devChecksFetchProbeOnce(opts = {}) {
       const url = (opts && typeof opts.url === "string") ? opts.url : "/dev/dev-checks.js";
@@ -3398,6 +3402,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const seed = (opts && opts.seed != null) ? Number(opts.seed) : 1;
     const seedRichNpc = opts.seedRichNpc !== false;
     const debugTelemetry = !!opts.debugTelemetry;
+    const ticksMode = (opts && typeof opts.ticksMode === "string") ? String(opts.ticksMode) : null;
+    const taxOnlyTicks = !!(opts && opts.taxOnlyTicks) || ticksMode === "wealth_tax_only";
     const scopeWindowLastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : null;
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
     const S = Game.__S || null;
@@ -3416,6 +3422,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let snapshotWhy = null;
     let scopedLen = 0;
     let taxProbe = { attempted: false, applied: false, taxAmount: 0, why: "uninit" };
+    let ensureNpcAccountsOk = true;
+    let ensureNpcAccountsOkFromEnsure = null;
+    let ensureNpcAccountsOkFromSmoke = null;
+    let ensureNpcAccountsOkMismatch = false;
 
     const worldContractName = "econ_npc_world_contract_v1";
     const getEconNpcWorldContractV1 = econ_npc_world_contract_v1;
@@ -3497,12 +3507,26 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     });
     const snapById = (snapBefore && snapBefore.byId) ? snapBefore.byId : fallbackById;
     buildMassMarker("beforeSeed", snapById);
-    let contract = getEconNpcWorldContractV1 ? getEconNpcWorldContractV1({ snapById }) : null;
+    const contractFrozen = (opts && opts.contractFrozen && Array.isArray(opts.contractFrozen.accountsIncluded))
+      ? opts.contractFrozen
+      : null;
+    let contract = contractFrozen
+      ? {
+        accountsIncluded: contractFrozen.accountsIncluded.slice(),
+        accountsIncludedLen: Number.isFinite(contractFrozen.accountsIncludedLen) ? contractFrozen.accountsIncludedLen : contractFrozen.accountsIncluded.length,
+        accountsIncludedHash: contractFrozen.accountsIncludedHash || null,
+        hasTotals: true,
+        missing: []
+      }
+      : (getEconNpcWorldContractV1 ? getEconNpcWorldContractV1({ snapById }) : null);
     let accountsIncluded = contract ? contract.accountsIncluded : [];
     let accountsIncludedLen = contract ? contract.accountsIncludedLen : 0;
     let accountsIncludedHash = contract ? contract.accountsIncludedHash : null;
     const worldContractUsed = !!getEconNpcWorldContractV1;
     const worldContractExportKey = "econNpcWorldContractV1";
+    const contractFrozenUsed = !!contractFrozen;
+    const accountsIncludedLenFrozen = contractFrozen ? (Number.isFinite(contractFrozen.accountsIncludedLen) ? contractFrozen.accountsIncludedLen : contractFrozen.accountsIncluded.length) : null;
+    const accountsIncludedHashFrozen = contractFrozen ? contractFrozen.accountsIncludedHash || null : null;
     if (!accountsIncluded || accountsIncludedLen === 0) {
       return {
         ok: false,
@@ -3527,6 +3551,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedApplied,
           seedWhy,
           worldContractUsed,
+          contractFrozen: contractFrozenUsed,
+          accountsIncludedLenFrozen,
+          accountsIncludedHashFrozen,
           worldContractExportKey,
           logSource: "none",
           rowsScoped: 0,
@@ -3788,8 +3815,24 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           baseReason: "dev_tax_probe_cost",
           tick: "dev_tax_probe"
         });
+        emitLine(`ECON_NPC_WEALTH_TAX_APPLY_V1 ${safeStringify({
+          npcId: targetId,
+          npcPtsBefore: afterSeed,
+          npcPtsAfter: acc && Number.isFinite(acc.points) ? (acc.points | 0) : null,
+          taxResOk: !!(taxRes && taxRes.ok === true),
+          taxApplied: !!(taxRes && taxRes.taxApplied === true),
+          taxAmount: (taxRes && Number.isFinite(taxRes.taxAmount)) ? (taxRes.taxAmount | 0) : null,
+          reasonIn: "world_tax_in",
+          reasonOut: "world_tax_out"
+        })}`);
         if (!taxRes || taxRes.ok !== true || taxRes.taxApplied !== true) notes.push("tax_probe_failed");
       } else {
+        emitLine(`ECON_NPC_WEALTH_TAX_APPLY_V1 ${safeStringify({
+          npcId: targetId,
+          npcPtsBefore: acc && Number.isFinite(acc.points) ? (acc.points | 0) : null,
+          willCall: false,
+          reason: "missing_apply_fn"
+        })}`);
         notes.push("tax_probe_failed");
       }
       const seedSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
@@ -3866,13 +3909,39 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
     }
 
-    const run = Game.__DEV.runWorldTicks({
-      N: ticks,
-      seed,
-      allowNpcVotes: true,
-      allowBattles: true,
-      allowEventsTick: true
-    });
+    const runWealthTaxOnlyTicks = () => {
+      const applyTickFn = (Econ && typeof Econ.applyNpcWealthTaxTick === "function") ? Econ.applyNpcWealthTaxTick : null;
+      const applyIfNeeded = (Econ && typeof Econ.applyNpcWealthTaxIfNeeded === "function") ? Econ.applyNpcWealthTaxIfNeeded : null;
+      for (let i = 0; i < ticks; i += 1) {
+        const tickIndex = i + 1;
+        if (applyTickFn) {
+          try { applyTickFn(tickIndex); } catch (_) {}
+          continue;
+        }
+        if (!applyIfNeeded) continue;
+        npcIds.forEach(id => {
+          let pts = 0;
+          try {
+            const acc = Econ.getAccount ? Econ.getAccount(id) : null;
+            if (acc && Number.isFinite(acc.points)) pts = (acc.points | 0);
+            else if (S.players && S.players[id] && Number.isFinite(S.players[id].points)) pts = (S.players[id].points | 0);
+          } catch (_) {}
+          try {
+            applyIfNeeded(id, pts, { baseReason: "dev_tax_only_tick", tick: tickIndex });
+          } catch (_) {}
+        });
+      }
+      return { ok: true, ticksProcessed: ticks };
+    };
+    const run = taxOnlyTicks
+      ? runWealthTaxOnlyTicks()
+      : Game.__DEV.runWorldTicks({
+        N: ticks,
+        seed,
+        allowNpcVotes: true,
+        allowBattles: true,
+        allowEventsTick: true
+      });
     buildMassMarker("afterTicks", getByIdSnapshot());
 
     refreshMoneyLogSnapshot();
@@ -3979,6 +4048,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       notes.push("totals_null");
     }
 
+    ensureNpcAccountsOk = missingAccounts.length === 0;
     const ok = asserts.worldDeltaZero
       && asserts.rowsScopedPositive
       && asserts.noNpcNegative
@@ -4038,9 +4108,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         seedCollected,
         seedDonorsCount,
         seedDonorsSample,
+        ticksMode: taxOnlyTicks ? "wealth_tax_only" : "world_ticks",
         NPC_TAX_SOFT_CAP: (Econ.NPC_TAX_SOFT_CAP != null) ? (Econ.NPC_TAX_SOFT_CAP | 0) : 20,
         NPC_TAX_MAX_PER_TXN: (Econ.NPC_TAX_MAX_PER_TXN != null) ? (Econ.NPC_TAX_MAX_PER_TXN | 0) : 2,
         worldContractUsed,
+        contractFrozen: contractFrozenUsed,
+        accountsIncludedLenFrozen,
+        accountsIncludedHashFrozen,
         worldContractExportKey,
         logSource,
         rowsScoped,
@@ -4108,9 +4182,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   Game.__DEV.forceDumpOnce = (label, payload) => {
     const tag = String(label || "UNLABELED");
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
-    };
     emitLine(`FORCE_DUMP_BEGIN:${tag}`);
     emitLine(safeStringify(payload));
     emitLine(`FORCE_DUMP_END:${tag}`);
@@ -4126,9 +4197,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   Game.__DEV.runEconNpcWealthTaxEvidencePackOnce = (opts = {}) => {
     const notes = [];
     const diagVersion = "econ_npc_wealth_tax_pack_v1";
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return "[unstringifiable]"; }
-    };
     const buildTagLocal = getWealthTaxBuildTag();
     const header = "WORLD_ECON_NPC_WEALTH_TAX_EVIDENCE_BEGIN";
       emitLine("SEED_RICH_NPC_V2_ACTIVE");
@@ -4173,6 +4241,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     let reasonsTop = [];
     let seedTransfer = null;
     let evidenceSeedDonorsSample = [];
+    let contractFrozen = null;
     const buildWealthTaxContract = () => {
       const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
@@ -4276,13 +4345,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         missingNpcIds: missingIds
       };
     };
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
-    };
     let smokeRes = null;
     let summary = null;
     try {
       const contract = buildWealthTaxContract();
+      contractFrozen = {
+        accountsIncluded: Array.isArray(contract && contract.accountsIncluded) ? contract.accountsIncluded.slice() : [],
+        accountsIncludedLen: Number.isFinite(contract && contract.accountsIncludedLen) ? contract.accountsIncludedLen : 0,
+        accountsIncludedHash: contract ? contract.accountsIncludedHash : null
+      };
       emitLine(`ECON_NPC_WORLD_CONTRACT_V1_READY ${safeStringify({ accountsIncludedLen: contract.accountsIncludedLen, accountsIncludedHash: contract.accountsIncludedHash, hasTotals: !!contract.hasTotals, missingCount: contract.missing ? contract.missing.length : 0 })}`);
       accountsIncludedLen = contract.accountsIncludedLen;
       accountsIncludedHash = contract.accountsIncludedHash;
@@ -4332,16 +4403,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ensureDiag.missingAfterCount = missingNpcIds.length;
         ensureDiag.missingAfterIdsSample = sampleMissingIds.slice();
       }
-      const ensureAccountsBefore = ensureDiag && Number.isFinite(ensureDiag.playersKeyCountS) ? ensureDiag.playersKeyCountS : null;
-      const ensureAccountsAfter = ensureDiag && Number.isFinite(ensureDiag.afterCount) ? ensureDiag.afterCount : null;
-      const currentNpcAccountCount = Number.isFinite(npcAccountCount) ? npcAccountCount : null;
-      const hasAllAccounts = (currentNpcAccountCount != null && currentNpcAccountCount === npcCount)
-        || (ensureAccountsAfter != null && ensureAccountsAfter === npcCount);
-      const needsCreation = ensureAccountsBefore != null && npcCount != null && ensureAccountsBefore < npcCount;
-      const createdOk = !needsCreation || (Number.isFinite(npcEnsure.createdCount) && npcEnsure.createdCount > 0);
-      const missingAfterZero = Number.isFinite(npcEnsure.missingAfterCount) ? (npcEnsure.missingAfterCount === 0) : true;
-      ensureNpcAccountsOk = missingAfterZero && hasAllAccounts && createdOk;
-      if (!ensureNpcAccountsOk) notes.push("ensure_npc_accounts_missing_after");
+      const missingAfterCountNumeric = Number.isFinite(npcEnsure.missingAfterCount)
+        ? npcEnsure.missingAfterCount
+        : (Array.isArray(missingNpcIds) ? missingNpcIds.length : 0);
+      const missingIdsLen = Array.isArray(missingNpcIds) ? missingNpcIds.length : 0;
+      const ensureDiagMissing = (ensureDiag && Number.isFinite(ensureDiag.missingAfterCount)) ? ensureDiag.missingAfterCount : null;
+      let ensureOkByMissing = (missingAfterCountNumeric === 0 && missingIdsLen === 0);
+      if (ensureDiagMissing != null && ensureDiagMissing !== missingIdsLen) {
+        ensureOkByMissing = false;
+        if (!notes.includes("ensureNpcAccountsOk_mismatch")) notes.push("ensureNpcAccountsOk_mismatch");
+      }
+      ensureNpcAccountsOkFromEnsure = ensureOkByMissing;
+      ensureNpcAccountsOk = ensureOkByMissing;
+      if (!ensureNpcAccountsOk && missingAfterCountNumeric > 0 && !notes.includes("ensure_npc_accounts_missing_after")) {
+        notes.push("ensure_npc_accounts_missing_after");
+      }
       addedAccounts = ensured.addedAccounts;
       fixedAccounts = ensured.fixedAccounts;
       const createdNowCountLocal = Number.isFinite(ensured.createdCount) ? ensured.createdCount : 0;
@@ -4366,15 +4442,32 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       npcAccountsMissingSample = missingNpcIds.slice(0, 3);
       npcAccountsMissingAfterEnsureLen = missingNpcIds.length;
       npcAccountsMissingAfterEnsureSample = missingNpcIds.slice(0, 3);
-      smokeRes = Game.__DEV.smokeNpcWealthTaxOnce(opts);
+      const ticksMode = (opts && typeof opts.ticksMode === "string") ? String(opts.ticksMode) : "wealth_tax_only";
+      const smokeOpts = Object.assign({}, opts, { contractFrozen, ticksMode });
+      smokeRes = Game.__DEV.smokeNpcWealthTaxOnce(smokeOpts);
       if (smokeRes && smokeRes.notes && Array.isArray(smokeRes.notes) && addedAccounts.length) {
         smokeRes.notes.push("world_contract_missing_accounts");
+      }
+      const contractAfter = buildWealthTaxContract();
+      const contractChanged = !!(contractAfter
+        && ((contractAfter.accountsIncludedLen !== contractFrozen.accountsIncludedLen)
+          || (contractAfter.accountsIncludedHash !== contractFrozen.accountsIncludedHash)));
+      if (contractChanged) {
+        if (!notes.includes("world_contract_changed_during_pack")) notes.push("world_contract_changed_during_pack");
+        if (smokeRes) {
+          if (!Array.isArray(smokeRes.notes)) smokeRes.notes = [];
+          if (!smokeRes.notes.includes("world_contract_changed_during_pack")) smokeRes.notes.push("world_contract_changed_during_pack");
+          smokeRes.ok = false;
+        }
       }
       if (smokeRes && smokeRes.diag) {
         smokeRes.diag.addedAccounts = addedAccounts;
         smokeRes.diag.fixedAccounts = fixedAccounts;
         smokeRes.diag.accountsIncludedLen = accountsIncludedLen;
         smokeRes.diag.accountsIncludedHash = accountsIncludedHash;
+        smokeRes.diag.contractFrozen = true;
+        smokeRes.diag.accountsIncludedLenFrozen = contractFrozen.accountsIncludedLen;
+        smokeRes.diag.accountsIncludedHashFrozen = contractFrozen.accountsIncludedHash;
         smokeRes.diag.ensureNpcAccounts = npcEnsureDiag;
         if (!smokeRes.diag.ensureNpcAccounts || !smokeRes.diag.ensureNpcAccounts.ensureDiag) {
           if (!Array.isArray(smokeRes.notes)) smokeRes.notes = [];
@@ -4410,6 +4503,20 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         rowsScoped = Number.isFinite(smokeRes.meta && smokeRes.meta.rowsScoped) ? smokeRes.meta.rowsScoped : rowsScoped;
         seedTransfer = smokeRes.diag.seedTransfer || seedTransfer;
         evidenceSeedDonorsSample = smokeRes.diag.seedDonorsSample || evidenceSeedDonorsSample;
+      }
+      if (smokeRes) {
+        ensureNpcAccountsOkFromSmoke = !!smokeRes.ensureNpcAccountsOk;
+        if (ensureNpcAccountsOkFromEnsure != null && ensureNpcAccountsOkFromSmoke !== ensureNpcAccountsOkFromEnsure) {
+          ensureNpcAccountsOkMismatch = true;
+          if (!notes.includes("ensureNpcAccountsOk_mismatch")) notes.push("ensureNpcAccountsOk_mismatch");
+          smokeRes.ok = false;
+          ensureNpcAccountsOk = false;
+        } else {
+          ensureNpcAccountsOk = (ensureNpcAccountsOkFromEnsure != null) ? ensureNpcAccountsOkFromEnsure : ensureNpcAccountsOkFromSmoke;
+        }
+        smokeRes.ensureNpcAccountsOk = ensureNpcAccountsOk;
+        if (smokeRes.asserts) smokeRes.asserts.ensureNpcAccountsOk = ensureNpcAccountsOk;
+        if (smokeRes.diag) smokeRes.diag.ensureNpcAccountsOk = ensureNpcAccountsOk;
       }
       const blockSinkSeeds = () => {
       const fromId = seedTransfer && seedTransfer.fromId;
@@ -4469,6 +4576,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           windowLastNUsed: smokeRes.diag ? smokeRes.diag.scopeWindowLastN : null,
           accountsIncludedLen: smokeRes.diag ? smokeRes.diag.accountsIncludedLen : null,
           accountsIncludedHash: smokeRes.diag ? smokeRes.diag.accountsIncludedHash : null,
+          contractFrozen: smokeRes.diag ? smokeRes.diag.contractFrozen : null,
+          accountsIncludedLenFrozen: smokeRes.diag ? smokeRes.diag.accountsIncludedLenFrozen : (contractFrozen ? contractFrozen.accountsIncludedLen : null),
+          accountsIncludedHashFrozen: smokeRes.diag ? smokeRes.diag.accountsIncludedHashFrozen : (contractFrozen ? contractFrozen.accountsIncludedHash : null),
           worldContractName: smokeRes.diag ? smokeRes.diag.worldContractName : null,
           worldContractUsed: smokeRes.diag ? smokeRes.diag.worldContractUsed : null,
           worldContractExportKey: smokeRes.diag ? smokeRes.diag.worldContractExportKey : null,
@@ -4493,7 +4603,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedTransfer: smokeRes.diag ? smokeRes.diag.seedTransfer : null,
           massDriftBreakdown: smokeRes.diag ? smokeRes.diag.massDriftBreakdown : null,
           debugMoneyLogLen: smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null,
-          ensureNpcAccountsOk
+          ensureNpcAccountsOk,
+          ensureNpcAccountsOkFromEnsure,
+          ensureNpcAccountsOkFromSmoke,
+          ensureNpcAccountsOkMismatch
         },
         diagVersion
       } : { ok: false, notes: ["missing_smoke"], diagVersion };
@@ -4534,6 +4647,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedDonorsSample: (smokeRes && smokeRes.diag) ? smokeRes.diag.seedDonorsSample : null,
           accountsIncludedLen,
           accountsIncludedHash,
+          contractFrozen: contractFrozen ? true : null,
+          accountsIncludedLenFrozen: contractFrozen ? contractFrozen.accountsIncludedLen : null,
+          accountsIncludedHashFrozen: contractFrozen ? contractFrozen.accountsIncludedHash : null,
           addedAccounts,
           fixedAccounts,
           npcAccountCount,
@@ -4564,7 +4680,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           taxTxIdsSample,
           seedUsesSink,
           debugMoneyLogLen: smokeRes && smokeRes.diag ? smokeRes.diag.debugMoneyLogLen : null,
-          ensureNpcAccountsOk
+          ensureNpcAccountsOk,
+          ensureNpcAccountsOkFromEnsure,
+          ensureNpcAccountsOkFromSmoke,
+          ensureNpcAccountsOkMismatch
         }
       };
       const json2 = summary ? summary : {
@@ -4585,6 +4704,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           seedDonorsSample: evidenceSeedDonorsSample,
           accountsIncludedLen,
           accountsIncludedHash,
+          contractFrozen: contractFrozen ? true : null,
+          accountsIncludedLenFrozen: contractFrozen ? contractFrozen.accountsIncludedLen : null,
+          accountsIncludedHashFrozen: contractFrozen ? contractFrozen.accountsIncludedHash : null,
           addedAccounts,
           fixedAccounts,
           npcAccountCount,
@@ -4601,7 +4723,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           logSourceCandidates,
           snapshotOk,
           snapshotWhy,
-          scopedLen
+          scopedLen,
+          ensureNpcAccountsOk,
+          ensureNpcAccountsOkFromEnsure,
+          ensureNpcAccountsOkFromSmoke,
+          ensureNpcAccountsOkMismatch
         }
       };
     const dumpLine = (line) => {
@@ -4885,9 +5011,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   // dev-only stability helper: run wealth tax pack 3 times and emit one summary block.
   Game.__DEV.smokeEconNpcWealthTaxContractStabilityOnce = (opts = {}) => {
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
-    };
     const header = "WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_BEGIN";
     const footer = "WORLD_ECON_NPC_WEALTH_TAX_CONTRACT_STABILITY_END";
     const buildTag = "build_2026_02_09b";
@@ -4969,9 +5092,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   // dev-only QA: ensure NPC econ accounts exist without mutating balances.
   Game.__DEV.smokeNpcAccountsEnsureOnce = (opts = {}) => {
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
-    };
     const header = "WORLD_ECON_NPC_ACCOUNTS_ENSURE_BEGIN";
     const footer = "WORLD_ECON_NPC_ACCOUNTS_ENSURE_END";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
@@ -7405,9 +7525,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           console.warn(String(line));
         }
       } catch (_) {}
-    };
-    const safeStringify = (obj) => {
-      try { return JSON.stringify(obj); } catch (_) { return JSON.stringify({ ok: false, notes: ["stringify_failed"] }); }
     };
     let summary = null;
     try {

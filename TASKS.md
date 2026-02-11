@@ -84,8 +84,9 @@
 - Result: |
     Status: PASS
     Facts:
-      (1) Два свежих блока в `Console.txt` (`[DUMP_AT] [2026-02-11 02:03:59]` и `[2026-02-11 02:03:57]`) содержат только обычные логи и ни одной строки с banned-подстрокой `CONSOLE_DUMP_*`, `CONSOLE_DUMP_INCLUDED_TAPE_TAIL_*`, `[TAPE_TAIL_*]`, `REPL_TAPE_V1_READY`, `CONSOLE_TAPE_V1_READY`, `DEV_CHECKS_`, `DEV_SERVER_`, `/__dev/console-dump` или `[DUMP_AT]`, поэтому свежий stack-формат выполняется.
-      (2) `new_block = header + filtered_payload.strip("\n") + "\n\n"` перестаёт копировать старый мусор, и `Console.txt` теперь показывает чистый блок поверх предыдущего, а сервер выводит фильтрационные лог-маркеры `DEV_SERVER_FILTER_DUMP`.
+      (1) Верхний блок `Console.txt` (`[DUMP_AT] [2026-02-11 13:46:54]`) и следующий (`[2026-02-11 13:46:03]`) отделены одной пустой строкой, каждый содержит ровно один `[DUMP_AT]`, и внутри нет banned-маркеров (только прикладные `[warn]`/`WT_*`).
+      (2) Второй блок тоже непустой, поэтому механизм подставляет либо реальные строки, либо `[empty_dump_payload]`, а `DUMP_STACK_V1_WRITE_OK {"dumpAtCount":1,"bannedCount":0,"emptyBody":false}` логируется после записи.
+    Changed: `AsyncScene/Web/dev/dev-server.py` `PROJECT_MEMORY.md` `TASKS.md`
     Changed: `AsyncScene/Web/dev/dev-server.py` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
       (1) После перезапуска `dev-server` выполнить два дампа (`dev=1` page + usual dump trigger).
@@ -996,6 +997,17 @@
 - taxRows empty, `worldTaxRowsInWindow` zero, `world.delta` 12. `TICK_DRIFT_TOP_REASONS` отсутствует despite `worldDeltaAfterTicks != 0`.
 - Drift track: `seedTransfer.fromId` stays "sink"; sinkDelta=11 and bankDelta=17 show worldBank/sink moved while tax rows never rebalanced.
     - Next: make sure at least one `world_tax_in/out` row emits (tick or tax path) so total tax becomes positive while keeping zero-sum
+- Runtime evidence (FAIL, Console.txt [2026-02-11 14:03:40]):
+    - `WEALTH_TAX_EVIDENCE_JSON_1_PART` содержит `ensureNpcAccountsOk:true`, но `WEALTH_TAX_EVIDENCE_JSON_2_PART` фиксирует `ensureNpcAccountsOk:false` (несогласованность verdict).
+    - `world.beforeTotal=200`, `world.afterTotal=206`, `world.delta=6`; в notes есть `points_emission_suspected`.
+    - `WEALTH_TAX_ATTEMPT_DIAG` показывает `taxApplied:false`, `worldTaxRowsInWindow:{"world_tax_in":0,"world_tax_out":0}`, `taxProbe.why:"tax_missing"`.
+    - Контракт изменился внутри одного pack: `ECON_NPC_WORLD_CONTRACT_V1_READY` сначала `accountsIncludedLen:24 hash:h5874b7bc`, позже `accountsIncludedLen:54 hash:hea0766e0`.
+- Runtime evidence (FAIL, Console.txt [2026-02-11 14:16:18]):
+    - `world.beforeTotal=200`, `world.afterTotal=206`, `world.delta=6`; `reasonsTop` доминируют `crowd_vote_*` (ticks не изолированы).
+    - `WEALTH_TAX_EVIDENCE_JSON_1_PART` содержит `ensureNpcAccountsOk:true`, но `WEALTH_TAX_EVIDENCE_JSON_2_PART` фиксирует `ensureNpcAccountsOk:false`.
+    - После `WEALTH_TAX_EVIDENCE_END` снова `ECON_NPC_WORLD_CONTRACT_V1_READY` с другим `accountsIncludedLen/hash` (24/h5874b7bc → 54/hea0766e0).
+    - Ниже в логе есть `ECON_NPC_WEALTH_TAX_APPLY_V1` с `taxApplied:true` и `reasonIn/out` = `world_tax_in/out` (apply-path жив).
+- Update (2026-02-11): исправлен SyntaxError duplicate let `ensureNpcAccountsOkFromEnsure` в `dev-checks.js` (без изменения логики). Smoke/DUMP_AT ещё не зафиксирован — требуется новый `DUMP_AT` после `Game.__DEV.smokeWealthTaxDumpOnce()`.
 - Runtime evidence (FAIL, Console.txt 2026-02-10 19:15:42):
     - First run emits `WEALTH_TAX_ATTEMPT_DIAG` showing `taxApplied:true`, `worldTaxRowsInWindow:{"world_tax_in":2,"world_tax_out":0}`, but JSON#1 notes still include `"world_delta_nonzero"` and `world.delta` stays 15 (ok:false)
     - Second run emits `WEALTH_TAX_ATTEMPT_DIAG` with `taxApplied:false`, `worldTaxRowsInWindow:{"world_tax_in":0}`, `notes:["tax_probe_failed","tax_probe_missing_after_seed","world_delta_nonzero"]`

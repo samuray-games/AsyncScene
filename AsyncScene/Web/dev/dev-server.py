@@ -8,14 +8,85 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
+
+def _normalize_newlines(text):
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _insert_marker_after_header(path, marker_line):
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    if marker_line in content.splitlines()[1:3]:
+        return
+    parts = content.split("\n\n", 1)
+    top = parts[0]
+    rest = parts[1] if len(parts) > 1 else ""
+    lines = top.splitlines()
+    if not lines:
+        return
+    header_line = lines[0]
+    body = lines[1:]
+    new_top = header_line + "\n" + marker_line
+    if body:
+        new_top += "\n" + "\n".join(body)
+    new_content = new_top + ("\n\n" + rest if rest else "")
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        f.write(new_content)
+    os.replace(tmp_path, path)
+
+
+def _check_block_separator(content):
+    first_block_end = content.find("\n\n")
+    if first_block_end == -1:
+        return False, "missing_or_extra_blank_line"
+    rest = content[first_block_end + 2 :]
+    if not rest.startswith("[DUMP_AT]"):
+        return False, "missing_or_extra_blank_line"
+    return True, None
+
+
+def _self_check_top_block(path, banned_substrings):
+    with open(path, "r", encoding="utf-8") as f:
+        content = _normalize_newlines(f.read())
+    parts = content.split("\n\n", 1)
+    top = parts[0]
+    rest = parts[1] if len(parts) > 1 else ""
+    lines = top.splitlines()
+    dump_at_count = sum(1 for ln in lines if ln.startswith("[DUMP_AT]"))
+    banned_count = 0
+    for ln in lines:
+        if any(sub in ln for sub in banned_substrings):
+            banned_count += 1
+        if ln.startswith("[TAPE_TAIL_"):
+            banned_count += 1
+    header_line = lines[0] if lines else ""
+    sep_ok, detail = _check_block_separator(content)
+    body_lines = lines[1:]
+    body_has_content = any(ln.strip() for ln in body_lines)
+    if dump_at_count == 1 and banned_count == 0 and sep_ok and body_has_content:
+        marker = 'DUMP_STACK_V1_WRITE_OK {"dumpAtCount":1,"bannedCount":0,"emptyBody":false}'
+        _insert_marker_after_header(path, marker)
+        return True
+    if header_line.startswith("[DUMP_AT]"):
+        if not body_has_content:
+            meta = {"reason": "empty_body"}
+        elif not sep_ok:
+            meta = {"sepOk": False, "detail": detail or "missing_or_extra_blank_line"}
+        else:
+            meta = {"dumpAtCount": dump_at_count, "bannedCount": banned_count}
+        marker = f"DUMP_STACK_V1_WRITE_FAIL {json.dumps(meta, separators=(',', ':'))}"
+        _insert_marker_after_header(path, marker)
+    return False
+
 STORE_PATH = "/Users/User/Documents/created apps/AsyncScene/Console.txt"
 BANNED_PAYLOAD_SUBSTRINGS = [
     "CONSOLE_DUMP_",
     "CONSOLE_DUMP_INCLUDED_TAPE_TAIL",
     "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_",
     "[TAPE_TAIL_",
-    "CONSOLE_TAPE_V1_READY",
-    "REPL_TAPE_V1_READY",
+    "CONSOLE_TAPE_",
+    "REPL_TAPE_",
     "DUMP_ALIAS_OK",
     "[DUMP_AT]",
     "DEV_CHECKS_",
@@ -94,48 +165,33 @@ class DevHandler(SimpleHTTPRequestHandler):
                     old_content = f.read()
             except FileNotFoundError:
                 old_content = ""
-            raw_payload_text = text
-            raw_lines = 0
-            kept_lines = 0
-            skipped_lines = 0
-            skipped_tape_tail_region = False
-            skip_tape_tail = False
+            old_content = _normalize_newlines(old_content).lstrip("\n")
             filtered_parts = []
-            for line in raw_payload_text.splitlines(True):
-                raw_lines += 1
-                if skip_tape_tail:
-                    skipped_lines += 1
-                    skipped_tape_tail_region = True
-                    if "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END" in line:
-                        skip_tape_tail = False
+            normalized_text = _normalize_newlines(text)
+            for line in normalized_text.split("\n"):
+                stripped_line = line.strip()
+                if not stripped_line:
                     continue
-                if "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_BEGIN" in line:
-                    skipped_lines += 1
-                    skipped_tape_tail_region = True
-                    skip_tape_tail = True
-                    if "CONSOLE_DUMP_INCLUDED_TAPE_TAIL_END" in line:
-                        skip_tape_tail = False
+                if line.startswith("[TAPE_TAIL_"):
+                    continue
+                if "[DUMP_AT]" in line:
                     continue
                 if any(keyword in line for keyword in BANNED_PAYLOAD_SUBSTRINGS):
-                    skipped_lines += 1
                     continue
                 filtered_parts.append(line)
-                kept_lines += 1
-            filtered_payload = "".join(filtered_parts).strip("\n")
-            print(
-                "DEV_SERVER_FILTER_DUMP",
-                FILTER_BUILD_TAG,
-                f"raw_lines={raw_lines}",
-                f"kept_lines={kept_lines}",
-                f"skipped_lines={skipped_lines}",
-                f"skippedTapeTailRegion={skipped_tape_tail_region}"
-            )
-            new_block = header + filtered_payload + "\n\n"
-            new_content = new_block + old_content.lstrip("\n")
+            body_lines = filtered_parts or ["[empty_dump_payload]"]
+            body_text = "\n".join(body_lines)
+            header_line = header.strip()
+            new_block = f"{header_line}\n{body_text}\n\n"
+            new_content = new_block + old_content
             tmp_path = STORE_PATH + ".tmp"
             with open(tmp_path, "w", encoding="utf-8") as f:
                 f.write(new_content)
             os.replace(tmp_path, STORE_PATH)
+            try:
+                _self_check_top_block(STORE_PATH, BANNED_PAYLOAD_SUBSTRINGS)
+            except Exception:
+                pass
         except Exception as exc:
             self._json(500, {"ok": False, "err": str(exc)})
             return

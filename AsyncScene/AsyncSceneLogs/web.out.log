@@ -12815,3 +12815,1070 @@ ConnectionResetError: [Errno 54] Connection reset by peer
 127.0.0.1 - - [11/Feb/2026 12:28:18] "GET /apple-touch-icon.png HTTP/1.1" 404 -
 127.0.0.1 - - [11/Feb/2026 12:28:18] code 404, message File not found
 127.0.0.1 - - [11/Feb/2026 12:28:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:32:30] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:32:30] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:32:52] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:40:54] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:40:54] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:41:06] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:47:57] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:47:57] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:48:03] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/console-tape.js HTTP/1.1" 200 -
+[dev-server] serving /Users/User/Documents/created apps/AsyncScene/AsyncScene/Web on http://127.0.0.1:8080
+DEV_SERVER_V1_READY
+DEV_SERVER_V1_ROUTE /__dev/health GET
+DEV_SERVER_V1_ROUTE /__dev/console-dump POST enabled
+DEV_SERVER_FILTER_ACTIVE FILTER_V4_2026_02_11_02
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=603649 mtime=1770740033750 sha1=c722e7d738bb9f8440e044a0d0d898cd83a21d77
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=603649 mtime=1770740033750 sha1=c722e7d738bb9f8440e044a0d0d898cd83a21d77
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=232 kept_lines=158 skipped_lines=74 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 02:03:57] (epoch_ms=1770743037197)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=241 kept_lines=161 skipped_lines=80 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 02:03:59] (epoch_ms=1770743039119)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=603649 mtime=1770740033750 sha1=c722e7d738bb9f8440e044a0d0d898cd83a21d77
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=603649 mtime=1770740033750 sha1=c722e7d738bb9f8440e044a0d0d898cd83a21d77
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=603649 mtime=1770740033750 sha1=c722e7d738bb9f8440e044a0d0d898cd83a21d77
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=603649 mtime=1770740033750 sha1=c722e7d738bb9f8440e044a0d0d898cd83a21d77
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=126 kept_lines=102 skipped_lines=24 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 11:35:58] (epoch_ms=1770777358839)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605216 mtime=1770777798072 sha1=909d5b1434ad6add08c83c66b17a1f1e4ec288ce
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605216 mtime=1770777798072 sha1=909d5b1434ad6add08c83c66b17a1f1e4ec288ce
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605216 mtime=1770777798072 sha1=909d5b1434ad6add08c83c66b17a1f1e4ec288ce
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605216 mtime=1770777798072 sha1=909d5b1434ad6add08c83c66b17a1f1e4ec288ce
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=257 kept_lines=211 skipped_lines=46 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 11:44:30] (epoch_ms=1770777870213)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=325 kept_lines=273 skipped_lines=52 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 11:45:56] (epoch_ms=1770777956446)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=346 kept_lines=284 skipped_lines=62 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 11:47:40] (epoch_ms=1770778060162)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=355 kept_lines=287 skipped_lines=68 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 11:47:50] (epoch_ms=1770778070270)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605177 mtime=1770778020925 sha1=c22a55fc69af62d9f98e64b66d52c6632dd7799a
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=392 kept_lines=310 skipped_lines=82 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:18:33] (epoch_ms=1770779913233)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605361 mtime=1770780399415 sha1=dbe480dd85cdb07ae9c300011876fe868c4347a7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605361 mtime=1770780399415 sha1=dbe480dd85cdb07ae9c300011876fe868c4347a7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605361 mtime=1770780399415 sha1=dbe480dd85cdb07ae9c300011876fe868c4347a7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605361 mtime=1770780399415 sha1=dbe480dd85cdb07ae9c300011876fe868c4347a7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605194 mtime=1770780651128 sha1=bef077f304e7c66f354e30cf92904c53ac029996
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605194 mtime=1770780651128 sha1=bef077f304e7c66f354e30cf92904c53ac029996
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605194 mtime=1770780651128 sha1=bef077f304e7c66f354e30cf92904c53ac029996
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=605194 mtime=1770780651128 sha1=bef077f304e7c66f354e30cf92904c53ac029996
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=539 kept_lines=431 skipped_lines=108 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:32:52] (epoch_ms=1770780772057)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=1156 kept_lines=1026 skipped_lines=130 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:41:06] (epoch_ms=1770781266693)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=84 kept_lines=60 skipped_lines=24 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:48:03] (epoch_ms=1770781683036)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:48:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:48:46] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:48:56] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:49:46] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:49:46] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:49:56] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:51:03] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:51:18] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:52:19] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:53:11] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:57:00] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:57:10] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 12:59:18] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 12:59:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:20:16] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:20:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:20:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:20:27] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:20:51] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:21:58] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:21:58] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:22:10] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:25:33] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:30] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:30:31] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:30:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:30:42] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:39:22] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:39:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:39:37] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:43] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:39:50] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:16] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=8 kept_lines=0 skipped_lines=8 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:48:56] (epoch_ms=1770781736488)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=8 kept_lines=0 skipped_lines=8 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:49:56] (epoch_ms=1770781796586)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=21 kept_lines=7 skipped_lines=14 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:51:03] (epoch_ms=1770781863262)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=30 kept_lines=10 skipped_lines=20 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:51:18] (epoch_ms=1770781878723)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=114 kept_lines=88 skipped_lines=26 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:52:18] (epoch_ms=1770781938994)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=198 kept_lines=166 skipped_lines=32 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:53:11] (epoch_ms=1770781991192)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=282 kept_lines=244 skipped_lines=38 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:57:00] (epoch_ms=1770782220457)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=291 kept_lines=247 skipped_lines=44 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 12:57:10] (epoch_ms=1770782230747)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=8 kept_lines=0 skipped_lines=8 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:20:27] (epoch_ms=1770783627675)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=21 kept_lines=7 skipped_lines=14 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:20:51] (epoch_ms=1770783651800)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604747 mtime=1770781147772 sha1=4e66d7a06515dc5e514bf50b99639cc21ca53ff7
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=618 kept_lines=582 skipped_lines=36 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:22:10] (epoch_ms=1770783730165)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=639 kept_lines=597 skipped_lines=42 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:25:33] (epoch_ms=1770783933394)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=1288 kept_lines=1224 skipped_lines=64 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:30:42] (epoch_ms=1770784242964)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=1382 kept_lines=1296 skipped_lines=86 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:39:37] (epoch_ms=1770784777485)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=1391 kept_lines=1299 skipped_lines=92 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:39:43] (epoch_ms=1770784783194)
+DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 raw_lines=1400 kept_lines=1302 skipped_lines=98 skippedTapeTailRegion=True
+DEV_SERVER_CONSOLE_DUMP_HIT method=POST path=/__dev/console-dump bytes=2 firstLine=[DUMP_AT] [2026-02-11 13:39:50] (epoch_ms=1770784790027)
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=build_2026_02_09b bytes=604839 mtime=1770784164420 sha1=15ad4dbc7ae560ded00ffdb5999d96f259e2cc9b127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:45:17] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:45:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:45:54] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:46:03] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:46:54] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:47] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:51:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:51:48] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 13:51:55] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 13:52:12] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:00:27] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:00:27] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:00:38] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:03:29] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:03:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:03:40] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:06] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:16:07] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:16:07] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:16:07] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:16:18] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:20:00] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:20:42] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:21:21] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:21:54] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:23:28] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:23:47] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:20] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:24:21] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:24:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:24:27] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:27] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:31] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:32] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:32] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:24:32] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:25:12] "POST /__dev/console-dump HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:47] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/dev-checks.js?v=build_2026_02_09b HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:31:48] code 404, message File not found
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [11/Feb/2026 14:31:48] "GET /favicon.ico HTTP/1.1" 404 -
