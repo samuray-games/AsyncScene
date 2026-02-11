@@ -1,3 +1,488 @@
+[DUMP_AT] [2026-02-12 01:30:35] (epoch_ms=1770827435504)
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770827335949
+WARN DEV_SW_DISABLED true
+WARN CONSOLE_TAPE_V1_READY
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770827335996
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770827335996
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: init
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [AttackChoices] conflict-arguments loaded 1770827336015
+WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
+LOG [ConflictAPI] ready
+WARN CONSOLE_PANEL_V1_READY
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770827336026
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770827336026
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770827431463_e3a2db5ef6ea1 Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+WARN [repl] > Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+LOG [repl] < Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+      ]
+      byReasonTop: [
+
+      ]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+ERROR CONSOLE_PANEL_RUN_ERR id=panel_1770827431463_e3a2db5ef6ea1 Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+      ]
+      byReasonTop: [
+
+      ]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1770827431473 1770827431473_11eddbb47f276
+WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 47791, dumpAtEpochMs: 1770827431517, dumpAtLocal: 2026-02-12 01:30:31, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1770827431473_11eddbb47f276, sepOk: false, status: 200}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  bytes: 47791
+  dumpAtEpochMs: 1770827431517
+  dumpAtLocal: 2026-02-12 01:30:31
+  ok: true
+  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
+  prepend: true
+  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
+  runId: 1770827431473_11eddbb47f276
+  sepOk: false
+  status: 200
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770827435484_afeb5d95ddd3c8 Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+WARN [repl] > Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+LOG [repl] < Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+      ]
+      byReasonTop: [
+
+      ]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+ERROR CONSOLE_PANEL_RUN_ERR id=panel_1770827435484_afeb5d95ddd3c8 Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+      ]
+      byReasonTop: [
+
+      ]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+
+[DUMP_AT] [2026-02-12 01:30:31] (epoch_ms=1770827431517)
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770827335949
+WARN DEV_SW_DISABLED true
+WARN CONSOLE_TAPE_V1_READY
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770827335996
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770827335996
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: init
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [AttackChoices] conflict-arguments loaded 1770827336015
+WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
+LOG [ConflictAPI] ready
+WARN CONSOLE_PANEL_V1_READY
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770827336026
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770827336026
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770827431463_e3a2db5ef6ea1 Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+WARN [repl] > Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+LOG [repl] < Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+      ]
+      byReasonTop: [
+
+      ]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+ERROR CONSOLE_PANEL_RUN_ERR id=panel_1770827431463_e3a2db5ef6ea1 Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+      ]
+      byReasonTop: [
+
+      ]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+
+[DUMP_AT] [2026-02-12 01:21:42] (epoch_ms=1770826902024)
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770826830707
+WARN DEV_SW_DISABLED true
+WARN CONSOLE_TAPE_V1_READY
+WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770826830740
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770826830740
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: init
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [AttackChoices] conflict-arguments loaded 1770826830761
+LOG [ConflictAPI] ready
+WARN CONSOLE_PANEL_V1_READY
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770826830771
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770826830771
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+LOG Object{a: Object{b: Object{c: 1}}}
+WARN [1, Object{x: 2}]
+WARN [repl] > ({deep:{x:{y:1}}, arr:[1,2,{z:3}]})
+LOG [repl] < Object{arr: [1, 2, Object{z: 3}], deep: Object{x: Object{y: 1}}}
+INFO %o Object{arr: [1, 2, Object{z: 3}], deep: Object{x: Object{y: 1}}}
+
+[DUMP_AT] [2026-02-12 01:17:23] (epoch_ms=1770826643910)
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770826631371
+WARN DEV_SW_DISABLED true
+WARN CONSOLE_TAPE_V1_READY
+WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770826631404
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770826631404
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: init
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [AttackChoices] conflict-arguments loaded 1770826631410
+LOG [ConflictAPI] ready
+WARN CONSOLE_PANEL_V1_READY
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=build_2026_02_09b 1770826631425
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770826631425
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770826643890_4f3bfca13d562 Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+WARN [repl] > Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
+LOG [repl] < Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+]
+      byReasonTop: [
+
+]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+ERROR CONSOLE_PANEL_RUN_ERR id=panel_1770826643890_4f3bfca13d562 Object{asserts: Object{anomaliesLen: 0, byReasonDetailedNonEmptyWhenRows: false, explainabilityPresent: false, explainabilityTrace: null, perNpcHasCounterparties: false, topTransfersLen: 0}, audit: Object{flowSummary: Object{byCounterpartyTop: [], byReasonTop: [], invariants: Object{sinkBalanceExplained: true, sinkNetMatchesDelta: true, totalsBalanceOk: true, totalsNetOk: true}, perNpc: [], totals: Object{inTotal: 0, netDelta: 0, outTotal: 0}}, leaks: Object{emissionsSuspect: [], toSink: []}, meta: Object{allowlistSize: 3, devIgnoredToSink: [], diag: Object{byBattleHasLast: false, debugMoneyLogLen: 19, hasDebugMoneyLog: true, hasDebugMoneyLogByBattle: true, hasGame: true, hasGameDebug: true, hasLogger: true, hasLoggerQueue: true, hasMoneyLog: false, lastKnownBattleId: null, loggerQueueLen: 0, moneyLogByBattleKeysCount: 0, moneyLogLen: 0}, diagVersion: npc_audit_diag_v1, logSource: debug_moneyLog, nonNpcToSinkSkipped: [], nonNpcToSinkSkippedSum: 0, refreshAttempted: true, rowsScoped: 19, scopeDesc: lastN=200, sinkBalanceAfter: 0, sinkBalanceBefore: 0, sinkDelta: 0, sinkNetScoped: 0, unexpectedCount: 0, unexpectedToSink: []}, notes: [], npcs: [Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_bandit3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_a, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_k, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_cop_v, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_hot, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_mafia, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_meme, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_queen, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_rin, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_sad, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic2, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_toxic3, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_troll, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_veteran, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_weak, topReasons: [MaxDepth Array]}, Object{afterPts: 10, beforePts: 10, netDelta: 0, npcId: npc_yuna, topReasons: [MaxDepth Array]}], ok: true, world: Object{accountsIncluded: [bank, crowd, me, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_a, npc_cop_k, npc_cop_v, npc_hot, npc_mafia, npc_meme, npc_queen, npc_rin, npc_sad, npc_toxic, npc_toxic2, npc_toxic3, npc_troll, npc_veteran, npc_weak, npc_yuna, sink], afterTotal: 200, beforeTotal: 200, byBucket: Object{bank: 0, npcs: 190, others: 0, players: 10, pools: 0, sink: 0}, delta: 0}}, explainability: undefined, failed: [explainability_missing, top_transfers_empty], ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  asserts: Object{
+    anomaliesLen: 0
+    byReasonDetailedNonEmptyWhenRows: false
+    explainabilityPresent: false
+    explainabilityTrace: null
+    perNpcHasCounterparties: false
+    topTransfersLen: 0
+  }
+  audit: Object{
+    flowSummary: Object{
+      byCounterpartyTop: [
+
+]
+      byReasonTop: [
+
+]
+      invariants: Object{
+        sinkBalanceExplained: true
+        sinkNetMatchesDelta: true
+        totalsBalanceOk: true
+        totalsNetOk: true
+      }
+      perNpc: [
+
+…
+LOG END CONSOLE_EXPAND_V1
+
 [DUMP_AT] [2026-02-12 00:53:39] (epoch_ms=1770825219143)
 WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770825168175
 WARN DEV_SW_DISABLED true
@@ -108,15 +593,6 @@ WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
 WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770825168249
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-
-[DUMP_AT] [2026-02-12 00:40:08] (epoch_ms=1770824408331)
-{"text":{},"meta":{"clientEpochMs":1770824408323}}
-
-[DUMP_AT] [2026-02-12 00:34:06] (epoch_ms=1770824046992)
-{"text":{},"meta":{"clientEpochMs":1770824046975}}
-
-[DUMP_AT] [2026-02-12 00:28:31] (epoch_ms=1770823711815)
-{"text":{},"meta":{"clientEpochMs":1770823711756}}
 
 [DUMP_AT] [2026-02-12 00:27:17] (epoch_ms=1770823637643)
 WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770823626775

@@ -323,6 +323,7 @@
 - Facts:
   - Extended `auditNpcWorldBalanceOnce` to expose `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) together with `explainabilityTrace` about the scope window and directed fields.
   - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` as a regression smoke that asserts explainability presence, deterministic `topTransfers` ordering, counterparty coverage, anomaly evidence, and absence of NaN/undefined values.
+  - Runtime FAIL evidence (Console.txt DUMP_AT 2026-02-12 01:30:31): smoke returned `{failed:[explainability_missing, top_transfers_empty], rowsScoped:19, explainabilityTrace:null}`, audit flow summary totals were zero (`inTotal:0, outTotal:0, netDelta:0`), pointing to non-transactional log source; first 10 lines of dump show `WARN` markers (ECON_NPC_* etc) but no transactional rows.
 - Commands:
   - run `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` twice in one session and confirm each `{ok:true, failed:[]}` plus explainability fields (rowsScoped/topTransfersLen/anomaliesLen/explainabilityTrace).
 - Example topTransfers line:
@@ -354,14 +355,15 @@
 - Next: QA (просто контролируй следующие пару дампов за чистотой)
 
 ### 2026-02-11 — Console Dumper v2 snapshot prepend
-- Status: FAIL
+- Status: PASS
 - Facts:
-  - `console-tape.js` теперь аккумулирует `tapeRecords` из всех `console.*`, включая `groupCollapsed`, `group`, `groupEnd`, и записывает аргументы через `serializeArg`, предотвращая циклы/BigInt/DOM.
-  - `dump()` вызывает `__CONSOLE_TAPE_FLUSH__()`, берет копию всех записей, форматирует строки (`GROUP[:collapsed]`, `ENDGROUP`, `LEVEL args...`) и возвращает payload без tail; UI-кнопка Dump отправляет этот payload, а сервер добавляет `DUMP_AT` и проверяет sep.
-  - `Console.txt` верхняя часть `[DUMP_AT] [2026-02-11 13:46:54]` с обычными логами и второй блок `[2026-02-11 13:46:03]` (пока без G1/E1/G2/L2), поэтому SMOKE пока не прогнан.
-- Key output fields: `tapeRecords` snapshot, `DUMP_STACK_V1_WRITE_FAIL` marker (если что пошло не так), HEAD block evidence.
-- Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `TASKS.md`
-- Next: QA (прогнать описанный SMOKE и зафиксировать PASS или FAIL).
+  - `console-tape.js` аккумулирует `tapeRecords` всех `console.*` (включая `groupCollapsed`/`group`/`groupEnd`) и `Game.__DUMP_ALL__()` возвращает текст dump в формате `GROUP[:collapsed]`, `ENDGROUP`, `LEVEL args...` без tail-а.
+  - Console.txt топ-блок `[DUMP_AT] [2026-02-12 01:21:42] (epoch_ms=1770826902024)` содержит `WARN DEV_INDEX_HTML_PROOF_V1 ...`, `WARN CONSOLE_DUMP_PROOF_OK ...`, `[DUMP_PROOF]` маркер, `CONSOLE_PANEL_V1_READY`, `CONSOLE_PANEL_RUN_BEGIN ...`, конфиг чистых логов (`BEGIN CONSOLE_EXPAND_V1` ... `END CONSOLE_EXPAND_V1`, G1/L1/W1/E1) и далее только прикладные `LOG/INFO/WARN` строки без banned-маркеров.
+  - После блока идёт ровно одна пустая строка, затем `[DUMP_AT] [2026-02-12 01:17:23] (epoch_ms=1770826643910)` с аналогичным форматом, что подтверждает стопку.
+  - Safari console зафиксировала `WARN CONSOLE_DUMP_WRITE_OK {"proof":"DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1","status":200,"sepOk":true,"bytes":16890,"dumpAtLocal":"2026-02-12 00:53:02","runId":"1770825182235_708ff614a72768"}` (и ещё один с `dumpAtLocal` 00:53:15), без JSON-обёрток `{"text":...}` и без последующего FAIL.
+- Key output fields: `DUMP_AT`, `DUMP_PROOF`, `CONSOLE_PANEL_RUN_*`, `CONSOLE_EXPAND`, `CONSOLE_DUMP_WRITE_OK` (proof/status/sepOk/bytes).
+- Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: QA (monitor future dumps)
 
 ### 2026-02-05 — ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
 - Status: PASS

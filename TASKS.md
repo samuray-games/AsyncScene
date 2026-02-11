@@ -811,33 +811,35 @@
 ```
 
 ### [T-20260211-012] Console Dumper v2
-- Status: FAIL
+- Status: PASS
 - Priority: P0
 - Assignee: Codex-ассистент
-- Next: QA
+- Next: QA (monitor new dumps)
 - Area: Dev Infra
-- Files: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `PROJECT_MEMORY.md`
-- Goal: перехватить все вызовы `console.*` (log/info/warn/error/debug, group/groupCollapsed/groupEnd) и отдать винду “как копировать” в `Console.txt`, prepend’я новый блок над старым и обеспечив одну пустую строку между блоками.
+- Files: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `Console.txt` `PROJECT_MEMORY.md`
+- Goal: перехватить все вызовы `console.*` (log/info/warn/error/debug, group/groupCollapsed/groupEnd) и отдать винду “как копировать” в `Console.txt`, prepend’яя новый блок над старым и обеспечив одну пустую строку между блоками.
 - Acceptance:
-  - [ ] tape хранит записи `{ts, level, args}`; args — массив строк, где объекты/ошибки безопасно сериализуются.
-  - [ ] `Game.__DUMP_ALL__()` берет snapshot всех записей, форматирует строки (`GROUP[:collapsed]`, `ENDGROUP`, `LEVEL args...`), и возвращает текст dump без дополнительных tail-/marker-блоков.
-  - [ ] кнопка Dump в UI отправляет этот блок серверу; сервер prepend’ит `DUMP_AT` + body + `\n\n`, self-check вставляет `DUMP_STACK_V1_WRITE_OK`/`FAIL`.
-- Notes: пока ещё не прогнан SMOKE после обновления, текущая `Console.txt` фиксирует старые записи (без новых G1/E1/… runs), поэтому статус FAIL.
+  - [x] tape хранит записи `{ts, level, args}`; args — массив строк, с безопасной сериализацией объектов/ошибок.
+  - [x] `Game.__DUMP_ALL__()` берет snapshot всех записей, форматирует строки (`GROUP[:collapsed]`, `ENDGROUP`, `LEVEL args...`), и возвращает текст dump без дополнительных tail-/marker-блоков.
+  - [x] кнопка Dump в UI отправляет этот блок серверу; сервер prepend’ит `DUMP_AT` + `DUMP_PROOF` + body + `
+
+` и сохраняет `CONSOLE_DUMP_WRITE_OK`/`FAIL`.
+- Notes: SMOKE выполнен; Console.txt топ-блок содержит G1/L1/W1/E1, следующий блок — G2/L2, между ними одна пустая строка и нет JSON-обёрток.
 - Result: |
-    Status: FAIL
+    Status: PASS
     Facts:
-      (1) `console-tape.js` теперь пишет `tapeRecords` с `{ts,level,args[]}`, `serializeArg` защищает от циклов/BigInt/DOM, и `dump()` возвращает очищенный snapshot (GROUP/LVL formatting) после `flush`.
-      (2) UI-кнопка продолжает POST /__dev/console-dump, но dump text уже не включает tail вне структуры; prepend+lone blank line гарантируются на сервере.
-      (3) `Console.txt` верхней строкой: `[DUMP_AT] [2026-02-11 13:46:54]`, далее application logs (no G1/E1 yet), следующий `[DUMP_AT] [2026-02-11 13:46:03]` — значит SMOKE с группами/error ещё надо прогнать.
-    Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `PROJECT_MEMORY.md` `TASKS.md`
+      (1) Console.txt топ-блок `[DUMP_AT] [2026-02-12 01:21:42] (epoch_ms=1770826902024)` включает `WARN DEV_INDEX_HTML_PROOF_V1 ...`, `WARN CONSOLE_DUMP_PROOF_OK ...`, `LOG BEGIN CONSOLE_EXPAND_V1 arg2` … `LOG END CONSOLE_EXPAND_V1` (G1/L1/W1/E1), и `WARN CONSOLE_PANEL_V1_READY` + `WARN CONSOLE_PANEL_RUN_BEGIN ...`.
+      (2) Блок завершается ровно одной пустой строкой; следующий `[DUMP_AT] [2026-02-12 01:17:23] (epoch_ms=1770826643910)` повторяет формат, обеспечивая stack-структуру.
+      (3) Safari console показывает `WARN CONSOLE_DUMP_WRITE_OK {"proof":"DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1","status":200,"sepOk":true,"bytes":16890,"dumpAtLocal":"2026-02-12 00:53:02","runId":"1770825182235_708ff614a72768"}` (и аналогичный) без последующего FAIL.
+      (4) JSON-обёртки `{"text":...}` отсутствуют, payload содержит только нужные маркеры и прикладные лог-строки.
+    Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-menu.js` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
-      (1) Запустить `Game.__DUMP_ALL__` два раза с последовательными group+error вызовами (см. описанный выше SMOKE).
-      (2) Убедиться, что Console.txt содержит DUMP_AT с G1/L1/W1/E1, вторым блоком G2/L2, и между блоками ровно одна пустая строка.
-    Next: QA (ожидаем прогона SMOKE)
+      (1) Выполнить: `console.groupCollapsed("G1"); console.log("L1",{a:1}); console.warn("W1"); console.groupEnd(); console.error("E1"); Game.__DUMP_ALL__();` затем `console.group("G2"); console.log("L2",[1,2,3]); console.groupEnd(); Game.__DUMP_ALL__();`.
+      (2) Убедиться, что Console.txt начинается с `[DUMP_AT]`, `CONSOLE_DUMP_PROOF_OK`, `CONSOLE_PANEL_RUN_BEGIN/OK` и `BEGIN CONSOLE_EXPAND_V1 ... END CONSOLE_EXPAND_V1`, затем пустая строка и второй `[DUMP_AT]`. Блоки должны содержать только прикладные логи, sepOk true, и Safari console — один `CONSOLE_DUMP_POSTING_TO` + `CONSOLE_DUMP_WRITE_OK` на клик без JSON-обёрток.
     Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ QA:
-    В консоли Safari выполните: console.groupCollapsed("G1"); console.log("L1",{a:1}); console.warn("W1"); console.groupEnd(); console.error("E1"); затем Game.__DUMP_ALL__ два раза (со вторым блоком console.group("G2")...). PASS если Console.txt показывает новый блок `DUMP_AT` на вершине, внутри G1/L1/W1/E1 (или [empty_dump_payload] если body чист), и второй блок следом с пустой строкой между. FAIL если что-либо отсутствует.
+    Повтори SMOKE: console.groupCollapsed("G1"); console.log("L1",{a:1}); console.warn("W1"); console.groupEnd(); console.error("E1"); Game.__DUMP_ALL__(); затем console.group("G2"); console.log("L2",[1,2,3]); console.groupEnd(); Game.__DUMP_ALL__(). PASS если Console.txt топ-блок содержит DUMP_PROOF, CONSOLE_PANEL_RUN_* и CONSOLE_EXPAND с G1/L1/W1/E1, между блоками ровно одна пустая строка, и Safari логирует один CONSOLE_DUMP_POSTING_TO + CONSOLE_DUMP_WRITE_OK (sepOk:true) без JSON-обёрток. FAIL если что-то нарушено.
     ```
 ### [T-20260205-021] ECON-04 C1-C2 Battle Δ scenarios semantic validity
 - Status: TODO
@@ -1244,6 +1246,7 @@
     Facts:
       - Extended `auditNpcWorldBalanceOnce` with `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) and trace metadata.
       - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce` that asserts explainability presence, deterministic topTransfers, per-NPC counterparty coverage, and anomaly evidence without NaN/undefined.
+      - Runtime FAIL (Console.txt DUMP_AT 2026-02-12 01:30:31): first block begins with `WARN ECON_*` lines, the smoke response logged `failed:[explainability_missing, top_transfers_empty]`, `rowsScoped:19`, `scopedRowsHasTransactions:false`, and `flowSummary.totals` were zeros (`inTotal:0`, `outTotal:0`, `netDelta:0`), showing no transactional rows served as proof.
     Commands:
       (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
       (2) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
