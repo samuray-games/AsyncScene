@@ -227,41 +227,22 @@ window.Game = window.Game || {};
         notify("Console tape missing.");
         return;
       }
-      const text = dumpFn();
-      if (!text) {
-        console.error("CONSOLE_DUMP_NO_TAPE");
-        notify("Console tape empty.");
-        return;
-      }
-      const postUrl = "/__dev/console-dump";
-      console.warn("CONSOLE_DUMP_POSTING_TO", postUrl);
-      try {
-        const resp = await fetch(postUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, meta: { clientEpochMs: Date.now() } })
-        });
-        console.warn("CONSOLE_DUMP_HTTP_STATUS", resp.status);
-        const data = await resp.json().catch(() => null);
-        if (resp.ok && data && data.ok) {
-          console.warn("CONSOLE_DUMP_WRITE_OK", data);
-          if (data && data.dumpAtLocal && data.dumpAtEpochMs) {
-            console.warn("CONSOLE_DUMP_AT", `[${data.dumpAtLocal}]`, data.dumpAtEpochMs);
-          }
-          notify("Console.txt updated.");
-        } else {
-          let textResp = "";
-          try {
-            textResp = await resp.text();
-          } catch (_) {}
-          console.error("CONSOLE_DUMP_WRITE_FAIL", resp.status, data || textResp);
-          notify("Console.txt write failed.");
-        }
-      } catch (err) {
-        console.error("CONSOLE_DUMP_WRITE_FAIL", err);
+      const result = await dumpFn();
+      if (result && result.ok) {
+        notify("Console.txt updated.");
+      } else {
         notify("Console.txt write failed.");
       }
     });
+    const devQuery = typeof location !== "undefined" ? location.search : "";
+    const devMode = (window.__DEV__ === true || window.DEV === true || (devQuery && devQuery.includes("dev=1")));
+    if (devMode) {
+      makeButton("Console Panel", "Open expanded console panel (dev only)", () => {
+        if (typeof window.toggleConsolePanel === "function") {
+          window.toggleConsolePanel();
+        }
+      });
+    }
 
     const updateStatus = (value) => {
       if (!status) return;

@@ -1,339 +1,491 @@
 (() => {
   if (typeof window === "undefined") return;
-  if (window.__CONSOLE_TAPE_INSTALLED__) return;
-  window.__CONSOLE_TAPE_INSTALLED__ = true;
-  const STORE_KEY = "__CONSOLE_TAPE__V1";
-  const DUMP_STATE_KEY = "DEV_CONSOLE_DUMP_STATE_V1";
-  const MAX_CHARS = 2_000_000;
-  const safeStorage = () => {
-    try {
-      return window.localStorage;
-    } catch (_err) {
-      return null;
+  if (window.__CONSOLE_TAPE_MODULE_V1__) return;
+  window.__CONSOLE_TAPE_MODULE_V1__ = true;
+
+  const DEFAULT_CAPACITY = 5000;
+  const tape = window.__CONSOLE_TAPE__ || {
+    buf: [],
+    cap: DEFAULT_CAPACITY
+  };
+  if (!Array.isArray(tape.buf)) {
+    tape.buf = [];
+  }
+  if (!Number.isFinite(tape.cap) || tape.cap <= 0) {
+    tape.cap = DEFAULT_CAPACITY;
+  }
+  const ensureCapacity = () => {
+    if (tape.buf.length > tape.cap) {
+      tape.buf.splice(0, tape.buf.length - tape.cap);
     }
   };
-  const read = () => {
-    const store = safeStorage();
-    if (!store) return "";
-    const raw = store.getItem(STORE_KEY);
-    return typeof raw === "string" ? raw : "";
-  };
-  const write = (value) => {
-    const store = safeStorage();
-    if (!store) return;
-    try {
-      store.setItem(STORE_KEY, value);
-    } catch (_) {}
-  };
-  let linesCount = 0;
-  let lastLine = "";
-  const appendLine = (line) => {
-    const text = String(line);
-    lastLine = text;
-    linesCount += 1;
-    const current = read();
-    const next = current + text + "\n";
-    if (next.length > MAX_CHARS) {
-      write(next.slice(-MAX_CHARS));
-    } else {
-      write(next);
-    }
-  };
-  const tapeRecords = [];
-  const MAX_RECORDS = 2000;
-  const serializeArg = (arg, seen = new WeakSet()) => {
-    try {
-      if (typeof arg === "string") return arg;
-      if (typeof arg === "number" || typeof arg === "boolean") return String(arg);
-      if (arg === null) return "null";
-      if (typeof arg === "undefined") return "undefined";
-      if (typeof arg === "bigint") return `${arg.toString()}n`;
-      if (typeof arg === "symbol") return arg.toString();
-      if (typeof arg === "function") return `[Function ${arg.name || "anonymous"}]`;
-      if (arg instanceof Error) return arg.stack || arg.message || String(arg);
-      if (typeof arg === "object") {
-        if (seen.has(arg)) return "[Circular]";
-        seen.add(arg);
-        const primitive = JSON.stringify(arg);
-        seen.delete(arg);
-        if (primitive !== undefined) return primitive;
-        return `[Unserializable ${arg.constructor && arg.constructor.name ? arg.constructor.name : "Object"}]`;
-      }
-      return String(arg);
-    } catch (_) {
-      return `[Unserializable ${arg && arg.constructor ? arg.constructor.name : "Unknown"}]`;
-    }
-  };
-  const recordEntry = (level, args = [], meta = {}) => {
-    const entry = {
-      ts: Date.now(),
-      level,
-      args: args.map(arg => serializeArg(arg)),
-      ...meta
+  if (typeof tape.push !== "function") {
+    tape.push = (level, args = []) => {
+      const entry = { ts: Date.now(), level, args: Array.from(args) };
+      tape.buf.push(entry);
+      ensureCapacity();
+      return entry;
     };
-    tapeRecords.push(entry);
-    if (tapeRecords.length > MAX_RECORDS) {
-      tapeRecords.shift();
-    }
-    return entry;
+  }
+
+  const SERIALIZE_DEFAULTS = {
+    depth: 4,
+    maxKeys: 50,
+    maxArray: 50,
+    maxString: 500,
+    maxBytes: 4000
   };
-  const flushTape = () => {
-    try {
-      const current = read();
-      write(current);
-      return { ok: true, bytes: current.length, lines: linesCount };
-    } catch (e) {
-      if (origConsole && origConsole.log) {
-        origConsole.log("TAPE_FLUSH_FAIL", String(e), e && e.stack ? String(e.stack) : null);
+  const SERIALIZE_BLOCK_DEFAULTS = {
+    depth: 6,
+    maxKeys: 100,
+    maxArray: 100,
+    maxString: 2000,
+    maxBytes: 12000
+  };
+  const clampString = (value, maxLen) => {
+    const text = String(value);
+    if (text.length <= maxLen) return text;
+    return `${text.slice(0, maxLen)}…`;
+  };
+  const capBytes = (text, maxBytes) => {
+    if (!maxBytes || text.length <= maxBytes) return text;
+    return `${text.slice(0, maxBytes)}…(truncated)`;
+  };
+  const describeDom = (node) => {
+    const tag = node.nodeName ? String(node.nodeName).toLowerCase() : "dom";
+    const id = node.id ? `#${node.id}` : "";
+    const cls = node.className ? `.${String(node.className).split(/\s+/).filter(Boolean).join(".")}` : "";
+    return `<DOM ${tag}${id}${cls}>`;
+  };
+  const serializeArg = (value, opts = SERIALIZE_DEFAULTS, ctx = { seen: new WeakSet(), depth: opts.depth }) => {
+    const type = typeof value;
+    if (value === null) return "null";
+    if (type === "string") return clampString(value, opts.maxString);
+    if (type === "number" || type === "boolean") return String(value);
+    if (type === "undefined") return "undefined";
+    if (type === "bigint") return `<bigint:${value.toString()}>`;
+    if (type === "symbol") return value.toString();
+    if (type === "function") return `<function ${value.name || "anonymous"}>`;
+    if (value instanceof Error) {
+      const header = `${value.name || "Error"}: ${value.message || ""}`.trim();
+      const stack = value.stack ? String(value.stack) : "";
+      const combined = stack && !stack.includes(header) ? `${header}\n${stack}` : (stack || header);
+      return capBytes(combined, opts.maxBytes);
+    }
+    if (value && typeof value === "object") {
+      if (value.nodeType && value.nodeName) {
+        return describeDom(value);
       }
-      return { ok: false, bytes: 0, lines: linesCount, err: String(e) };
-    }
-  };
-  const formatArg = (arg) => {
-    try {
-      if (typeof arg === "string") return arg;
-      if (typeof arg === "undefined") return "undefined";
-      if (arg === null) return "null";
-      if (arg instanceof Error) return arg.stack || arg.message || String(arg);
-      if (typeof arg === "object") return JSON.stringify(arg);
-      return String(arg);
-    } catch (_) {
-      return "[Unserializable Object]";
-    }
-  };
-  const origConsole = {
-    log: console.log,
-    warn: console.warn,
-    error: console.error,
-    info: console.info,
-    debug: console.debug,
-    group: console.group,
-    groupCollapsed: console.groupCollapsed ? console.groupCollapsed : null,
-    groupEnd: console.groupEnd ? console.groupEnd : null
-  };
-  const throttleState = window.__CONSOLE_TAPE_THROTTLE__ || (window.__CONSOLE_TAPE_THROTTLE__ = {
-    minIntervalMs: 400,
-    maxCount: 20,
-    keys: Object.create(null)
-  });
-  const shouldSuppress = (args, method) => {
-    if (!args || !args.length) return false;
-    const key = (typeof args[0] === "string") ? args[0] : null;
-    if (key !== "ECON_NPC_ENSURE_V2" && key !== "ECON_NPC_ACCOUNTS_CANON") return false;
-    const now = Date.now();
-    const entry = throttleState.keys[key] || { lastTs: 0, count: 0, suppressed: false };
-    if (entry.count >= throttleState.maxCount || (now - entry.lastTs) < throttleState.minIntervalMs) {
-      if (!entry.suppressed) {
-        entry.suppressed = true;
-        if (origConsole && origConsole.warn) {
-          origConsole.warn(`${key}_THROTTLED`, { max: throttleState.maxCount, minIntervalMs: throttleState.minIntervalMs });
+      if (ctx.seen.has(value)) return "[Circular]";
+      if (ctx.depth <= 0) {
+        return `[MaxDepth ${value.constructor && value.constructor.name ? value.constructor.name : "Object"}]`;
+      }
+      ctx.seen.add(value);
+      const nextCtx = { seen: ctx.seen, depth: ctx.depth - 1 };
+      let text;
+      if (Array.isArray(value)) {
+        const limit = Math.min(value.length, opts.maxArray);
+        const parts = [];
+        for (let i = 0; i < limit; i += 1) {
+          parts.push(serializeArg(value[i], opts, nextCtx));
         }
-      }
-      throttleState.keys[key] = entry;
-      return true;
-    }
-    entry.lastTs = now;
-    entry.count += 1;
-    throttleState.keys[key] = entry;
-    return false;
-  };
-  const patch = (method) => {
-    const orig = origConsole[method];
-    console[method] = function (...args) {
-      if (shouldSuppress(args, method)) return;
-      if (method === "groupCollapsed") {
-        appendLine(args.length ? `[GROUP_START] ${formatArg(args[0])}` : "[GROUP_START]");
-        recordEntry("groupCollapsed", args);
-      } else if (method === "group") {
-        appendLine(args.length ? `[GROUP_START] ${formatArg(args[0])}` : "[GROUP_START]");
-        recordEntry("group", args);
-      } else if (method === "groupEnd") {
-        appendLine("[GROUP_END]");
-        recordEntry("groupEnd");
-      } else if (!args.length) {
-        appendLine(`[${method}]`);
-        recordEntry(method, []);
+        if (value.length > limit) {
+          parts.push(`…(+${value.length - limit})`);
+        }
+        text = `[${parts.join(", ")}]`;
       } else {
-        args.forEach(arg => appendLine(`[${method}] ${formatArg(arg)}`));
-        recordEntry(method, args);
+        const keys = Object.keys(value).sort();
+        const limit = Math.min(keys.length, opts.maxKeys);
+        const parts = [];
+        for (let i = 0; i < limit; i += 1) {
+          const key = keys[i];
+          const valText = serializeArg(value[key], opts, nextCtx);
+          parts.push(`${key}: ${valText}`);
+        }
+        if (keys.length > limit) {
+          parts.push(`…(+${keys.length - limit} keys)`);
+        }
+        const label = value.constructor && value.constructor.name ? value.constructor.name : "Object";
+        text = `${label}{${parts.join(", ")}}`;
       }
-      if (orig) {
-        orig.apply(console, args);
-      }
-    };
+      ctx.seen.delete(value);
+      return capBytes(text, opts.maxBytes);
+    }
+    return clampString(String(value), opts.maxString);
   };
-  ["log", "warn", "error", "info", "debug", "group", "groupCollapsed", "groupEnd"].forEach((method) => {
-    if (method === "groupCollapsed" && !origConsole.groupCollapsed) return;
-    if (method === "groupEnd" && !origConsole.groupEnd) return;
-    patch(method);
-  });
-  window.addEventListener("error", (event) => {
-    recordEntry("onerror", [event.message, event.filename, event.lineno, event.colno, event.error]);
-  });
-  window.addEventListener("unhandledrejection", (event) => {
-    recordEntry("unhandledrejection", [event.reason]);
-  });
-  const snapshotTape = () => tapeRecords.slice();
+  const serializeArgPretty = (value, opts = SERIALIZE_BLOCK_DEFAULTS) => {
+    const seen = new WeakSet();
+    const indentStep = "  ";
+    const render = (val, depth, indent) => {
+      const type = typeof val;
+      if (val === null) return "null";
+      if (type === "string") return clampString(val, opts.maxString);
+      if (type === "number" || type === "boolean") return String(val);
+      if (type === "undefined") return "undefined";
+      if (type === "bigint") return `<bigint:${val.toString()}>`;
+      if (type === "symbol") return val.toString();
+      if (type === "function") return `<function ${val.name || "anonymous"}>`;
+      if (val instanceof Error) {
+        const header = `${val.name || "Error"}: ${val.message || ""}`.trim();
+        const stack = val.stack ? String(val.stack) : "";
+        const combined = stack && !stack.includes(header) ? `${header}\n${stack}` : (stack || header);
+        return capBytes(combined, opts.maxBytes);
+      }
+      if (val && typeof val === "object") {
+        if (val.nodeType && val.nodeName) return describeDom(val);
+        if (seen.has(val)) return "[Circular]";
+        if (depth <= 0) {
+          return `[MaxDepth ${val.constructor && val.constructor.name ? val.constructor.name : "Object"}]`;
+        }
+        seen.add(val);
+        const nextDepth = depth - 1;
+        if (Array.isArray(val)) {
+          const limit = Math.min(val.length, opts.maxArray);
+          const rows = [];
+          for (let i = 0; i < limit; i += 1) {
+            rows.push(`${indent}${indentStep}${render(val[i], nextDepth, indent + indentStep)}`);
+          }
+          if (val.length > limit) {
+            rows.push(`${indent}${indentStep}…(+${val.length - limit})`);
+          }
+          seen.delete(val);
+          return `[\n${rows.join("\n")}\n${indent}]`;
+        }
+        const keys = Object.keys(val).sort();
+        const limit = Math.min(keys.length, opts.maxKeys);
+        const rows = [];
+        for (let i = 0; i < limit; i += 1) {
+          const key = keys[i];
+          rows.push(`${indent}${indentStep}${key}: ${render(val[key], nextDepth, indent + indentStep)}`);
+        }
+        if (keys.length > limit) {
+          rows.push(`${indent}${indentStep}…(+${keys.length - limit} keys)`);
+        }
+        const label = val.constructor && val.constructor.name ? val.constructor.name : "Object";
+        seen.delete(val);
+        return `${label}{\n${rows.join("\n")}\n${indent}}`;
+      }
+      return clampString(String(val), opts.maxString);
+    };
+    return capBytes(render(value, opts.depth, ""), opts.maxBytes);
+  };
 
   const formatRecord = (record) => {
-    const parts = record.args.length ? record.args : [];
+    const args = Array.isArray(record.args) ? record.args : [];
+    const formattedArgs = args.map((arg) => serializeArg(arg, SERIALIZE_DEFAULTS));
+    const joinArgs = (prefix) => [prefix, ...formattedArgs].join(" ").trim();
     switch (record.level) {
       case "groupCollapsed":
-        return `GROUP:collapsed ${parts[0] || ""}`.trim();
+        return joinArgs("GROUP:collapsed");
       case "group":
-        return `GROUP ${parts[0] || ""}`.trim();
+        return joinArgs("GROUP");
       case "groupEnd":
         return "ENDGROUP";
       case "error":
-        return `ERROR ${parts.join(" ")}`.trim();
+        return joinArgs("ERROR");
       case "warn":
-        return `WARN ${parts.join(" ")}`.trim();
+        return joinArgs("WARN");
       case "info":
-        return `INFO ${parts.join(" ")}`.trim();
+        return joinArgs("INFO");
       case "debug":
-        return `DEBUG ${parts.join(" ")}`.trim();
+        return joinArgs("DEBUG");
       case "log":
-        return `LOG ${parts.join(" ")}`.trim();
+        return joinArgs("LOG");
       case "onerror":
-        return `ERROR_EVENT ${parts.join(" ")}`.trim();
+        return joinArgs("ERROR_EVENT");
       case "unhandledrejection":
-        return `UNHANDLED_REJECTION ${parts.join(" ")}`.trim();
+        return joinArgs("UNHANDLED_REJECTION");
       default:
-        return `${record.level.toUpperCase()} ${parts.join(" ")}`.trim();
+        return joinArgs(String(record.level).toUpperCase());
     }
   };
 
-  const dump = () => {
+  const PROOF_URL = "/__dev/console-dump-proof";
+  let proofCache = null;
+  let proofPromise = null;
+
+  const requestProof = async () => {
+    const url = `${PROOF_URL}?v=${Date.now()}`;
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      headers: { Accept: "application/json" }
+    });
+    const rawText = await response.text().catch(() => "");
+    let data;
     try {
-      if (typeof window !== "undefined" && typeof window.__CONSOLE_TAPE_FLUSH__ === "function") {
-        window.__CONSOLE_TAPE_FLUSH__();
+      data = JSON.parse(rawText);
+    } catch (_) {
+      data = { ok: false, err: "proof_non_json", raw: rawText.slice(0, 300) };
+    }
+    const proofValue = data && data.proof ? data.proof : "no-proof";
+    console.warn("CONSOLE_DUMP_PROOF_OK", { status: response.status, proof: proofValue, ok: !!(data && data.ok) });
+    if (response.status !== 200 || !data || !data.ok) {
+      throw { status: response.status, payload: data, proof: proofValue };
+    }
+    return { status: response.status, proof: proofValue, data };
+  };
+
+  const ensureProof = async () => {
+    if (proofCache && proofCache.ok) return proofCache;
+    if (proofPromise) return proofPromise;
+    proofPromise = requestProof()
+      .then((result) => {
+        proofCache = { ok: true, ...result };
+        proofPromise = null;
+        return proofCache;
+      })
+      .catch((err) => {
+        proofPromise = null;
+        throw err;
+      });
+    return proofPromise;
+  };
+
+  ensureProof().catch(() => {});
+
+  const snapshotAllText = () => {
+    const entries = tape.buf.slice();
+    const lines = entries.map(formatRecord).filter(Boolean);
+    return lines.join("\n").trimEnd();
+  };
+
+  let dumpInFlight = false;
+  let lastOkRunId = null;
+
+  const sendDump = async () => {
+    const runId = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    if (dumpInFlight) {
+      const duplicate = { ok: false, err: "dump_in_flight", runId };
+      if (lastOkRunId !== runId) {
+        console.warn("CONSOLE_DUMP_WRITE_FAIL", duplicate);
       }
-    } catch (e) {
-      if (origConsole && origConsole.log) {
-        origConsole.log("TAPE_FLUSH_FAIL", String(e), e && e.stack ? String(e.stack) : null);
-      }
+      return duplicate;
     }
     try {
-      // ensure tape flush ensures all entries recorded
-    } catch (_) {}
-    const records = snapshotTape();
-    const payloadLines = records.map(formatRecord);
-    const payload = payloadLines.join("\n");
-    if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-      navigator.clipboard.writeText(payload).catch(() => {});
+      await ensureProof();
+    } catch (proofError) {
+      const status = proofError && proofError.status ? proofError.status : 0;
+      const failure = { ok: false, err: "dump_endpoint_missing", status, runId };
+      if (lastOkRunId !== runId) {
+        console.warn("CONSOLE_DUMP_WRITE_FAIL", failure);
+      }
+      return failure;
     }
+    const payload = snapshotAllText();
+    let body = payload;
+    if (typeof body !== "string") {
+      if (body && typeof body.text === "string") {
+        body = body.text;
+      } else if (body && typeof body.payload === "string") {
+        body = body.payload;
+      } else {
+        body = "";
+      }
+    }
+    if (!body || !body.trim()) {
+      const failure = { ok: false, err: "empty_dump_payload_client", runId };
+      if (lastOkRunId !== runId) {
+        console.warn("CONSOLE_DUMP_WRITE_FAIL", failure);
+      }
+      return failure;
+    }
+    const url = `/__dev/console-dump?v=${Date.now()}`;
+    dumpInFlight = true;
+    try {
+      console.warn("CONSOLE_DUMP_POSTING_TO", url, runId);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Accept": "application/json",
+          "X-Dump-Run-Id": runId
+        },
+        cache: "no-store",
+        body
+      });
+      const rawText = await response.text().catch(() => "");
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (parseError) {
+        data = {
+          ok: false,
+          err: "non_json_response",
+          status: response.status,
+          raw: rawText.slice(0, 300)
+        };
+      }
+      const proof = data && data.proof ? data.proof : "no-proof";
+      const logEntry = { proof, status: response.status, runId, ...data };
+      if (data && data.ok) {
+        lastOkRunId = runId;
+        console.warn("CONSOLE_DUMP_WRITE_OK", logEntry);
+      } else if (lastOkRunId !== runId) {
+        console.warn("CONSOLE_DUMP_WRITE_FAIL", logEntry);
+      }
+      return data;
+    } catch (error) {
+      const failure = { ok: false, err: String(error), runId };
+      if (lastOkRunId !== runId) {
+        console.warn("CONSOLE_DUMP_WRITE_FAIL", failure);
+      }
+      return failure;
+    } finally {
+      dumpInFlight = false;
+    }
+  };
+
+  const clearBuffer = () => {
+    tape.buf.length = 0;
+  };
+  const markTape = (tag, obj) => {
+    const payload = obj ? serializeArg(obj, SERIALIZE_DEFAULTS) : "";
+    tape.push("log", [`[TAPE_MARK] ${tag}${payload ? " " + payload : ""}`]);
     return payload;
   };
-  const clear = () => {
-    write("");
-    return "";
-  };
-  const emitLine = (line) => {
-    const text = String(line);
-    try {
-      appendLine(text);
-    } catch (e) {
-      if (origConsole && origConsole.log) {
-        origConsole.log("TAPE_APPEND_FAIL", String(e), e && e.stack ? String(e.stack) : null);
-      }
-    }
-    if (origConsole && origConsole.log) origConsole.log(text);
-  };
+
+  window.__CONSOLE_TAPE_SNAPSHOT_ALL_TEXT__ = snapshotAllText;
+  window.__CONSOLE_TAPE_SEND_DUMP__ = sendDump;
+  window.__DUMP_ALL__ = sendDump;
+  window.__DUMP_CLEAR__ = clearBuffer;
+  window.__TAPE_CLEAR__ = clearBuffer;
+  window.__TAPE_MARK__ = markTape;
+  window.__CONSOLE_PANEL_SERIALIZE__ = (value) => serializeArg(value, SERIALIZE_DEFAULTS);
+  window.__CONSOLE_PANEL_PRETTY__ = (value) => serializeArgPretty(value, SERIALIZE_BLOCK_DEFAULTS);
+
   const installGameAliases = () => {
-    if (typeof window.Game === "undefined") return false;
-    let ok = false;
-    if (window.Game && !window.Game.__DUMP_ALL__) {
-      window.Game.__DUMP_ALL__ = dump;
-      ok = true;
+    if (typeof window.Game !== "object" || window.Game === null) return false;
+    let updated = false;
+    if (window.Game.__DUMP_ALL__ !== sendDump) {
+      window.Game.__DUMP_ALL__ = sendDump;
+      updated = true;
     }
-    if (window.Game && !window.Game.__DUMP_CLEAR__) {
-      window.Game.__DUMP_CLEAR__ = clear;
-      ok = true;
+    if (window.Game.__DUMP_CLEAR__ !== clearBuffer) {
+      window.Game.__DUMP_CLEAR__ = clearBuffer;
+      updated = true;
     }
-    return ok;
-  };
-  window.__CONSOLE_TAPE_EMIT_LINE__ = emitLine;
-  window.__CONSOLE_TAPE_READ__ = read;
-  window.__CONSOLE_TAPE_FLUSH__ = flushTape;
-  window.__CONSOLE_TAPE_LAST__ = () => ({ lastLine, linesCount });
-  window.__CONSOLE_TAPE_SNAPSHOT__ = snapshotTape;
-  const dumpTapeTailOnce = (opts = {}) => {
-    const lastN = (opts && Number.isFinite(opts.lastN)) ? Math.max(1, opts.lastN | 0) : 50;
-    let lines = [];
-    try {
-      lines = read().split("\n").filter(Boolean);
-    } catch (_) {}
-    const tail = lines.slice(-lastN);
-    tail.forEach(line => {
-      if (origConsole && origConsole.log) origConsole.log(line);
-    });
-    return { ok: true, lastN, lines: tail.length };
-  };
-  window.__CONSOLE_TAPE_DUMP_TAIL_ONCE__ = dumpTapeTailOnce;
-  const emitTaggedWarn = (tag, payload) => {
-    const args = [tag, payload];
-    if (shouldSuppress(args, "warn")) return { printed: false, suppressed: true };
-    args.forEach(arg => appendLine(`[warn] ${formatArg(arg)}`));
-    if (origConsole && origConsole.warn) origConsole.warn(tag, payload);
-    return { printed: true, suppressed: false };
-  };
-  window.__CONSOLE_TAPE_EMIT_TAGGED_WARN__ = emitTaggedWarn;
-  window.__CONSOLE_TAPE_THROTTLE_STATE__ = () => ({
-    minIntervalMs: throttleState.minIntervalMs,
-    maxCount: throttleState.maxCount
-  });
-  window.__DUMP_ALL__ = dump;
-  window.__DUMP_CLEAR__ = clear;
-  appendLine("CONSOLE_TAPE_V1_READY");
-  console.warn("CONSOLE_TAPE_V1_READY");
-  const triggerAlias = () => {
-    const installed = installGameAliases();
-    if (installed) {
-      console.warn("DUMP_ALIAS_OK", safeStringify({ hasGame: !!window.Game, gameDumpAll: !!(window.Game && window.Game.__DUMP_ALL__), gameDumpClear: !!(window.Game && window.Game.__DUMP_CLEAR__) }));
-    }
-    try {
-      if (window.Game && window.Game.__DEV && typeof window.Game.__DEV.dumpTapeTailOnce !== "function") {
-        window.Game.__DEV.dumpTapeTailOnce = dumpTapeTailOnce;
-      }
-    } catch (_) {}
-    return installed;
-  };
-  if (!triggerAlias()) {
-    setTimeout(() => {
-      if (!triggerAlias()) {
-        setTimeout(() => {
-          triggerAlias();
-        }, 50);
-      }
-    }, 0);
-  }
-  const safeStringify = (value) => {
-    try {
-      if (typeof value === "function") return "[function]";
-      if (typeof value === "undefined") return "undefined";
-      if (value === null) return "null";
-      return JSON.stringify(value);
-    } catch (_) {
-      return String(value);
-    }
+    return updated;
   };
 
-  window.__RUN__ = function (src) {
-    console.warn("[repl] >", String(src));
-    let value;
-    try {
-      value = (0, eval)(String(src));
-    } catch (e) {
-      const name = e && e.name ? String(e.name) : "Error";
-      const message = e && e.message ? String(e.message) : String(e);
-      console.error(`[repl] < ERROR ${name}: ${message}`);
-      if (e && e.stack) console.error(String(e.stack));
-      const result = { ok: false, error: { name, message, stack: e && e.stack ? String(e.stack) : null } };
-      console.log("[repl] <", safeStringify(result));
-      return result;
-    }
-    console.log("[repl] <", safeStringify(value));
-    return value;
+  const scheduleAlias = () => {
+    if (installGameAliases()) return;
+    setTimeout(scheduleAlias, 200);
   };
-  console.warn("REPL_TAPE_V1_READY use __RUN__(\"...\") to capture manual commands");
+  scheduleAlias();
+
+  const wrapConsole = () => {
+    if (window.__CONSOLE_TAPE_WRAP_V1__) return;
+    window.__CONSOLE_TAPE_WRAP_V1__ = true;
+    const orig = window.__CONSOLE_TAPE_ORIG__ || {
+      log: console.log,
+      info: console.info,
+      warn: console.warn,
+      error: console.error,
+      debug: console.debug,
+      group: console.group,
+      groupCollapsed: console.groupCollapsed,
+      groupEnd: console.groupEnd
+    };
+    const shouldExpand = (arg, inline) => {
+      if (!arg || typeof arg !== "object") return false;
+      if (arg instanceof Error) return true;
+      if (Array.isArray(arg)) return inline.length > 200 || arg.length > 5;
+      return inline.length > 200;
+    };
+    const emitExpandBlock = (method, arg, index, runId) => {
+      const pretty = serializeArgPretty(arg, SERIALIZE_BLOCK_DEFAULTS);
+      const header = `BEGIN CONSOLE_EXPAND_V1 arg${index + 1}`;
+      const footer = "END CONSOLE_EXPAND_V1";
+      tape.push("log", [header]);
+      tape.push("log", [pretty]);
+      tape.push("log", [footer]);
+      if (typeof orig[method] === "function") {
+        orig[method].call(console, header);
+        orig[method].call(console, pretty);
+        orig[method].call(console, footer);
+      }
+    };
+    const patchMethod = (method, label) => {
+      if (typeof console[method] !== "function") return;
+      console[method] = function (...args) {
+        tape.push(method, args);
+        const inline = args.map((arg) => serializeArg(arg, SERIALIZE_DEFAULTS));
+        const line = `${label}${inline.length ? " " + inline.join(" ") : ""}`;
+        if (typeof orig[method] === "function") {
+          orig[method].call(console, line);
+        }
+        args.forEach((arg, idx) => {
+          if (shouldExpand(arg, inline[idx] || "")) {
+            emitExpandBlock(method, arg, idx);
+          }
+        });
+      };
+    };
+    patchMethod("log", "LOG");
+    patchMethod("info", "INFO");
+    patchMethod("warn", "WARN");
+    patchMethod("error", "ERROR");
+    patchMethod("debug", "DEBUG");
+    patchMethod("group", "GROUP");
+    patchMethod("groupCollapsed", "GROUP:collapsed");
+    patchMethod("groupEnd", "ENDGROUP");
+  };
+  wrapConsole();
+
+  const runEval = async (src) => {
+    const input = String(src);
+    console.warn("[repl] >", input);
+    try {
+      let result = (0, eval)(input);
+      if (result && typeof result.then === "function") {
+        result = await result;
+      }
+      console.log("[repl] <", result);
+      return result;
+    } catch (err) {
+      console.error("[repl] < ERROR", err);
+      return {
+        ok: false,
+        error: {
+          name: err && err.name ? String(err.name) : "Error",
+          message: err && err.message ? String(err.message) : String(err),
+          stack: err && err.stack ? String(err.stack) : null
+        }
+      };
+    }
+  };
+  const evalFn = async (fn) => {
+    if (typeof fn !== "function") {
+      console.error("[repl] < ERROR", "Expected function");
+      return { ok: false, error: { name: "TypeError", message: "Expected function", stack: null } };
+    }
+    try {
+      let result = fn();
+      if (result && typeof result.then === "function") {
+        result = await result;
+      }
+      console.log("[repl] <", result);
+      return result;
+    } catch (err) {
+      console.error("[repl] < ERROR", err);
+      return {
+        ok: false,
+        error: {
+          name: err && err.name ? String(err.name) : "Error",
+          message: err && err.message ? String(err.message) : String(err),
+          stack: err && err.stack ? String(err.stack) : null
+        }
+      };
+    }
+  };
+  window.__RUN__ = runEval;
+  window.__EVAL__ = evalFn;
+
+  if (window.Game && typeof window.Game === "object") {
+    window.Game.__RUN__ = runEval;
+    window.Game.__EVAL__ = evalFn;
+  }
+
+  console.warn("CONSOLE_TAPE_V1_READY");
 })();
