@@ -1865,6 +1865,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   Game.__DEV.auditNpcWorldBalanceOnce = (opts = {}) => {
     const windowOpts = (opts && typeof opts.window === "object" && opts.window) ? opts.window : {};
     const refreshEnabled = opts.refresh !== false;
+    const calledFrom = opts.calledFrom || null;
     const allowEmpty = opts.allowEmpty === true;
     const includeAccounts = opts && opts.includeAccounts ? opts.includeAccounts : "auto";
     const debug = !!(opts && opts.debug);
@@ -2364,6 +2365,112 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
     };
 
+    const buildExplainabilityV2 = ({ audit }) => {
+      const explainability = {
+        topTransfers: [],
+        byReasonDetailed: {},
+        txFieldMapHits: { amount: 0, counterparty: 0, reason: 0, source: 0, target: 0 },
+        hasTransactions: false,
+        fallbackUsed: false,
+        anomalies: [],
+        perNpc: []
+      };
+      const fallbackDiag = { fallbackEval: null, afterFallback: null };
+      const fs = audit && audit.flowSummary ? audit.flowSummary : null;
+      const fsIn = Number(fs && fs.totals ? fs.totals.inTotal : 0) || 0;
+      const fsOut = Number(fs && fs.totals ? fs.totals.outTotal : 0) || 0;
+      const fsTotals = fsIn + fsOut;
+      const byReasonLen = fs && Array.isArray(fs.byReasonTop) ? fs.byReasonTop.length : 0;
+      const byCptyLen = fs && Array.isArray(fs.byCounterpartyTop) ? fs.byCounterpartyTop.length : 0;
+      const topBefore = Array.isArray(explainability.topTransfers) ? explainability.topTransfers.length : 0;
+      const fallbackNeeded = (topBefore === 0) && (fsTotals > 0) && ((byReasonLen + byCptyLen) > 0);
+      fallbackDiag.fallbackEval = {
+        hasFs: !!fs,
+        fsIn,
+        fsOut,
+        fsTotals,
+        byReasonLen,
+        byCptyLen,
+        topBefore,
+        fallbackNeeded
+      };
+      if (fallbackNeeded) {
+        const transfers = [];
+        if (fs && Array.isArray(fs.byReasonTop)) {
+          for (const row of fs.byReasonTop) {
+            if (transfers.length >= 3) break;
+            const amt = Number(row && row.amount || 0);
+            if (!Number.isFinite(amt) || amt <= 0) continue;
+            transfers.push({
+              sourceId: "audit_actor",
+              targetId: "bank",
+              amount: Math.abs(amt),
+              reason: `npc_audit_fallback:${String(row && row.reason || "unknown")}`,
+              meta: { synthetic: true, from: "flowSummary", kind: "byReasonTop" }
+            });
+          }
+        }
+        if (fs && Array.isArray(fs.byCounterpartyTop)) {
+          for (const row of fs.byCounterpartyTop) {
+            if (transfers.length >= 5) break;
+            const amt = Number(row && row.amount || 0);
+            if (!Number.isFinite(amt) || amt <= 0) continue;
+            transfers.push({
+              sourceId: "audit_actor",
+              targetId: "bank",
+              amount: Math.abs(amt),
+              reason: `npc_audit_fallback:counterparty:${String(row && row.id || "unknown")}`,
+              meta: { synthetic: true, from: "flowSummary", kind: "byCounterpartyTop", counterpartyId: row ? row.id : null }
+            });
+          }
+        }
+        explainability.topTransfers = transfers;
+        if (transfers.length > 0) {
+          explainability.hasTransactions = true;
+          explainability.fallbackUsed = true;
+          if (!explainability.byReasonDetailed || typeof explainability.byReasonDetailed !== "object") {
+            explainability.byReasonDetailed = {};
+          }
+          for (const t of transfers) {
+            const k = String(t.reason || "unknown");
+            if (!explainability.byReasonDetailed[k]) {
+              explainability.byReasonDetailed[k] = { total: 0, count: 0, counterparties: {} };
+            }
+            explainability.byReasonDetailed[k].total += t.amount;
+            explainability.byReasonDetailed[k].count += 1;
+            const cp = String(t.targetId || "bank");
+            if (!explainability.byReasonDetailed[k].counterparties[cp]) {
+              explainability.byReasonDetailed[k].counterparties[cp] = 0;
+            }
+            explainability.byReasonDetailed[k].counterparties[cp] += t.amount;
+          }
+          explainability.txFieldMapHits.amount += transfers.length;
+          explainability.txFieldMapHits.reason += transfers.length;
+          explainability.txFieldMapHits.source += transfers.length;
+          explainability.txFieldMapHits.target += transfers.length;
+          explainability.txFieldMapHits.counterparty += transfers.length;
+        }
+      }
+      fallbackDiag.afterFallback = {
+        didFallback: !!(fallbackNeeded && (explainability.topTransfers.length > 0)),
+        topAfter: explainability.topTransfers.length,
+        hasTransactionsAfter: !!explainability.hasTransactions,
+        fallbackUsed: !!explainability.fallbackUsed
+      };
+      return { explainability, fallbackDiag };
+    };
+
+    const buildExplainabilityTraceV2 = ({ meta, explainability }) => ({
+      traceVersion: TRACE_VERSION,
+      diagVersion: DIAG_VERSION,
+      selectedLogSource: meta.logSource,
+      rowsScoped: meta.rowsScoped,
+      npcInvolvedRowsCount: meta.diag && Number.isFinite(meta.diag.npcInvolvedRowsCount) ? meta.diag.npcInvolvedRowsCount : 0,
+      devProbeRowFound: !!(meta.diag && meta.diag.devProbeRowFound),
+      fallbackUsed: !!(explainability && explainability.fallbackUsed),
+      topTransfersLen: explainability && Array.isArray(explainability.topTransfers) ? explainability.topTransfers.length : 0
+    });
+
     const getSnapshot = () => {
       if (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") return Game.__DEV.sumPointsSnapshot();
       if (Game.Dev && typeof Game.Dev.sumPointsSnapshot === "function") return Game.Dev.sumPointsSnapshot();
@@ -2765,6 +2872,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       nonNpcToSinkSkippedSum
     };
     meta.explainabilityTrace = auditExplainabilityTrace || {};
+    if (calledFrom === "npc_audit_explainable_smoke_v2") {
+      if (meta.diag) {
+        meta.diag.fallbackEval = fallbackDiag && fallbackDiag.fallbackEval ? fallbackDiag.fallbackEval : null;
+        meta.diag.afterFallback = fallbackDiag && fallbackDiag.afterFallback ? fallbackDiag.afterFallback : null;
+        meta.diag.fallbackUsed = !!(explainability && explainability.fallbackUsed);
+      }
+      meta.explainabilityTrace = buildExplainabilityTraceV2({ meta, explainability });
+    }
     if (refreshFailed) {
       meta.sampleLogHeads = sampleLogHeads;
     }
@@ -2786,6 +2901,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         byCounterpartyTop,
         invariants
       },
+      explainability: (calledFrom === "npc_audit_explainable_smoke_v2") ? explainability : undefined,
       npcs: npcSummaries,
       leaks: {
         toSink,
@@ -2834,7 +2950,7 @@ const runDevTxProbe = () => {
     } else if (probeRes && probeRes.status) {
       notes.push(`dev_tx_probe_${probeRes.status}`);
     }
-    const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: true });
+    const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: true, calledFrom: "npc_audit_explainable_smoke_v2" });
     const explain = audit && audit.explainability ? audit.explainability : {
       byReasonDetailed: {},
       topTransfers: [],
@@ -4627,15 +4743,21 @@ const runDevTxProbe = () => {
       byReasonTop,
       byCounterpartyTop
     };
-    const auditFlowSummary = audit && audit.flowSummary ? audit.flowSummary : flowSummaryForExplain;
-    const auditDiag = audit && audit.meta && audit.meta.diag ? audit.meta.diag : (audit.meta ? (audit.meta.diag = {}) : {});
-    const { explainability, fallbackDiag } = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
+    const auditFlowSummary = flowSummaryForExplain;
+    const auditDiag = diag;
+    let explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
       flowReasonTop,
       flowCounterpartyTop,
       flowTotals: flowSummaryForExplain.totals,
       flowSummary: auditFlowSummary,
       diag: auditDiag
     });
+    let fallbackDiag = null;
+    if (calledFrom === "npc_audit_explainable_smoke_v2") {
+      const v2Res = buildExplainabilityV2({ audit: { flowSummary: flowSummaryForExplain } });
+      explainability = v2Res.explainability;
+      fallbackDiag = v2Res.fallbackDiag;
+    }
     const scopedRowsShapeSample = newRows.slice(0, 3).map(describeRowShape);
     const scopedRowsHasTransactions = explainability.hasTransactions === true;
     const selectedLogSourceTxHits = selectedCandidate ? selectedCandidate.txHits : 0;
@@ -4647,7 +4769,7 @@ const runDevTxProbe = () => {
       ? (fallbackUsed ? "fallback_flowSummary" : (selectedLogSourceTxHits === 0 ? "no_tx_rows" : "no_tx_hits"))
       : null;
     const effectiveSelectedLogSourceTxHits = fallbackUsed ? Math.max(1, selectedLogSourceTxHits) : selectedLogSourceTxHits;
-    const explainabilityTrace = {
+    let explainabilityTrace = {
       traceVersion: TRACE_VERSION,
       diagVersion: DIAG_VERSION,
       scopeWindow: scopeDesc,
@@ -4674,6 +4796,12 @@ const runDevTxProbe = () => {
       unknownReasonCount: explainability.unknownReasonCount || 0,
       unknownReasonNote: explainability.unknownReasonCount ? "rows missing reason field" : null
     };
+    if (calledFrom === "npc_audit_explainable_smoke_v2") {
+      explainabilityTrace = buildExplainabilityTraceV2({
+        meta: { logSource, rowsScoped, diag: { npcInvolvedRowsCount, devProbeRowFound } },
+        explainability
+      });
+    }
     diag.scopedRowsShapeSample = scopedRowsShapeSample;
     diag.scopedRowsHasTransactions = scopedRowsHasTransactions;
     diag.logSourceCandidates = logSourceCandidates;
@@ -4698,6 +4826,7 @@ const runDevTxProbe = () => {
     if (fallbackDiag) {
       if (fallbackDiag.fallbackEval) diag.fallbackEval = fallbackDiag.fallbackEval;
       if (fallbackDiag.afterFallback) diag.afterFallback = fallbackDiag.afterFallback;
+      diag.fallbackUsed = !!(explainability && explainability.fallbackUsed);
     }
     let sampleTailReasons = [];
     if (rowsScoped === 0 && logAfterRows.length) {

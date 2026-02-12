@@ -1230,7 +1230,7 @@
   - Status: FAIL (accounts not created in ensure path, tax missing, world.delta != 0).
 
 ### [T-20260211-015] ECON-NPC [1.7] Explainable world audit
-- Status: IN PROGRESS (QA pending)
+- Status: FAIL (QA pending after V2 patch)
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: finish txn detection fix + QA (two runs)
@@ -1242,11 +1242,11 @@
   - [ ] `meta.explainabilityTrace` describes the scope window, logSource, and counts of directed rows.
   - [ ] `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` runs twice with `ok:true`, deterministic topTransfers (tie-broken by reason/source/target), and anomalies entries containing evidence.
 - Result: |
-    Status: IN PROGRESS (fallback + trace v2, QA pending)
+    Status: FAIL (V2 explainability path added; QA pending)
     Facts:
       - Flow-summary fallback now creates synthetic `audit_actor -> bank` transfers from `flowSummary.byCounterpartyTop`, fills `topTransfers`, `txFieldMapHits`, and `byReasonDetailed`, and sets `fallbackUsed` so `explainability.hasTransactions` switches true even when normalized rows lack counterparties.
       - `meta.explainabilityTrace.traceVersion=="trace_v2"` now exposes `selectedLogSource`, `rowsScoped`, `topTransfersLen`, `fallbackUsed`, `npcInvolvedRowsCount`, and `reasonIfNoTx`, while `diagVersion==npc_audit_diag_v2` and `diag.fallbackUsed:true`/`diag.fallbackReason:"flowSummary"` prove the patched trace path is running.
-      - Runtime FAIL (Console.txt DUMP_AT 2026-02-12 15:37:05) captured `logSource:"debug_moneyLog"`, `rowsScoped:21..23`, `flowSummary.totals` (inTotal/outTotal) 1..2, `notes:[dev_tx_probe_applied]`, but `explainability.hasTransactions:false`, `topTransfersLen:0`, `txFieldMapHits` zeros, empty `asserts.explainabilityTrace`, and `failed:[log_source_not_transactional, top_transfers_empty, no_tx_rows, no_npc_rows_in_scope]` despite the aggregated `byCounterpartyTop` already listing `{id:"bank"}`; rerun the smoke twice now to confirm PASS dumps with fallback.
+      - Runtime FAIL (Console.txt DUMP_AT 2026-02-12 17:49:29) captured `logSource:"debug_moneyLog"`, `rowsScoped:21..23`, `flowSummary.totals` (inTotal/outTotal) 1..2, `notes:[dev_tx_probe_applied]`, but `explainability.hasTransactions:false`, `topTransfersLen:0`, `txFieldMapHits` zeros, empty `meta.explainabilityTrace`, and `failed:[reasons_missing, log_source_not_transactional, top_transfers_empty, no_tx_rows]`. V2 path now wired via `calledFrom:"npc_audit_explainable_smoke_v2"`; need fresh DUMP after QA to confirm fallbackUsed/topTransfers.
       - Runtime crash (Console.txt DUMP_AT 2026-02-12 15:43:35) showed `ReferenceError: Can't find variable: TRACE_VERSION` when `Game.__DEV.smokeNpcWorldAuditExplainableOnce` tried to tag `traceVersion`; defining the constant globally removes this crash for future runs.
     Commands:
       (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`

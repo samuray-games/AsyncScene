@@ -331,6 +331,15 @@
   `{"reason":"synth_counterparty","amount":2,"sourceId":"audit_actor","targetId":"bank","metaShort":{"synthesized":true,"inferredDirection":true}}`
 - Changed: `AsyncScene/Web/dev/dev-checks.js`
 - Next: QA (two runs)
+### 2026-02-12 — ECON-NPC [1.7] Explainable world audit V2 path
+- Status: FAIL (QA pending)
+- Facts:
+  - Added V2 explainability path used only by `smokeNpcWorldAuditExplainableOnce` via `calledFrom:"npc_audit_explainable_smoke_v2"`; legacy packs untouched.
+  - Latest runtime evidence still FAIL (Console.txt DUMP_AT 2026-02-12 17:49:29): `rowsScoped:21..23`, `logSource:"debug_moneyLog"`, `flowSummary.totals in/out 1..2`, but `fallbackUsed:false`, `topTransfersLen:0`, `txFieldMapHits` all 0, `meta.explainabilityTrace:{}`, `failed:[reasons_missing, log_source_not_transactional, top_transfers_empty, no_tx_rows]`.
+- Commands:
+  - `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` (run twice, then `Game.__DUMP_ALL__()`).
+- Changed: `AsyncScene/Web/dev/dev-checks.js`
+- Next: QA (two runs + new DUMP_AT)
 ### 2026-02-11 — ECON-NPC [1.5] Activity Tax 100% Evidence Pack (long-run + regression)
 - Status: FAIL (QA pending)
 - Facts:
