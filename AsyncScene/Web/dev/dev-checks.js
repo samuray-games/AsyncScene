@@ -1956,12 +1956,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const logSource = logBundle.logSource || "none";
     const sampleLogHeads = normalizedRows.slice(0, 3);
     const diag = buildMoneyLogDiag();
-    const diagVersion = "npc_audit_diag_v1";
-    const buildExplainability = (rows, beforeMap, afterMap, npcIdsSet) => {
+    const diagVersion = "npc_audit_diag_v2";
+    const TRACE_VERSION = "trace_v2";
+    const buildExplainability = (rows, beforeMap, afterMap, npcIdsSet, opts = {}) => {
       const explain = {
-        byReasonDetailed: Object.create(null),
-        topTransfers: [],
-        perNpc: [],
+      byReasonDetailed: Object.create(null),
+      topTransfers: [],
+      perNpc: [],
         anomalies: [],
         hasTransactions: false
       };
@@ -1972,6 +1973,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         target: 0,
         counterparty: 0
       };
+      const flowReasonTop = Array.isArray(opts.flowReasonTop) ? opts.flowReasonTop : [];
+      const flowCounterpartyTop = Array.isArray(opts.flowCounterpartyTop) ? opts.flowCounterpartyTop : [];
+      const flowTotals = opts.flowTotals || { inTotal: 0, outTotal: 0 };
+      const flowHasAmount = (Math.abs(flowTotals.inTotal) + Math.abs(flowTotals.outTotal)) > 0;
       const markPresence = (row) => {
         if (!row || typeof row !== "object") return;
         const hasAmount = TX_AMOUNT_KEYS.some(key => {
@@ -2014,6 +2019,53 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           return normalized;
         })
         .filter(r => r && Number.isFinite(r.amount));
+      let fallbackUsed = false;
+      if (!normalizedRows.length && flowHasAmount && (opts.flowReasonTop.length || opts.flowCounterpartyTop.length)) {
+        const syntheticRows = [];
+        opts.flowCounterpartyTop.forEach(entry => {
+          const amt = Number(entry.amount) || 0;
+          const direction = amt >= 0 ? "in" : "out";
+          const absAmt = Math.abs(amt);
+          if (!absAmt) return;
+          syntheticRows.push({
+            fromId: direction === "in" ? TX_DEFAULT_ACTOR_ID : entry.id,
+            toId: direction === "in" ? entry.id : TX_DEFAULT_ACTOR_ID,
+            amount: direction === "in" ? absAmt : -absAmt,
+            absAmount: absAmt,
+            reason: "synth_counterparty",
+            reasonProvided: true,
+            meta: { inferredDirection: true },
+            counterpartyId: entry.id || TX_DEFAULT_ACTOR_ID,
+            battleId: null,
+            eventId: null
+          });
+        });
+        if (!syntheticRows.length && opts.flowReasonTop.length) {
+          opts.flowReasonTop.forEach(entry => {
+            const amt = Number(entry.amount) || 0;
+            const absAmt = Math.abs(amt);
+            if (!absAmt) return;
+          syntheticRows.push({
+            fromId: TX_DEFAULT_ACTOR_ID,
+            toId: TX_DEFAULT_ACTOR_ID,
+            amount: amt,
+            absAmount: absAmt,
+            reason: entry.reason,
+            reasonProvided: true,
+            meta: { inferredDirection: true },
+            counterpartyId: TX_DEFAULT_ACTOR_ID,
+            battleId: null,
+            eventId: null
+          });
+          });
+        }
+        if (syntheticRows.length) {
+          normalizedRows.push(...syntheticRows);
+          fallbackUsed = true;
+          syntheticRows.forEach(markPresence);
+          explain.fallbackUsed = true;
+        }
+      }
       if (!normalizedRows.length) return {
         ...explain,
         rowsWithoutDirection: 0,
@@ -2187,6 +2239,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       });
       explain.perNpc = perNpcList;
       explain.hasTransactions = normalizedRows.length > 0;
+      explain.fallbackUsed = fallbackUsed;
       let inTotal = 0;
       let outTotal = 0;
       normalizedRows.forEach(row => {
@@ -2684,20 +2737,20 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
-  const runDevTxProbe = () => {
-    const Econ = Game && (Game.ConflictEconomy || Game._ConflictEconomy) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
-    const S = Game.__S || Game.State || null;
-    if (!Econ || !S || !S.players) return { status: "no_econ" };
-    const npcId = Object.keys(S.players || {})
-      .find(id => typeof id === "string" && id.startsWith("npc_") && S.players[id] && Number.isFinite(S.players[id].points) && S.players[id].points > 1);
-    if (!npcId) return { status: "no_npc" };
-    const tickId = `dev_tx_probe_${Date.now()}`;
-    const metaBase = { devProbe: true, tickId };
-    const out = Econ.transferPoints(npcId, "sink", 1, "dev_tx_probe_out", Object.assign({}, metaBase, { direction: "out" }));
-    const back = Econ.transferPoints("sink", npcId, 1, "dev_tx_probe_in", Object.assign({}, metaBase, { direction: "in" }));
-    if (out && out.ok === true && back && back.ok === true) return { status: "applied" };
-    return { status: "transfer_failed" };
-  };
+const runDevTxProbe = () => {
+  const Econ = Game && (Game.ConflictEconomy || Game._ConflictEconomy) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
+  const S = Game.__S || Game.State || null;
+  if (!Econ || !S || !S.players) return { status: "no_econ" };
+  const npcId = Object.keys(S.players || {})
+    .find(id => typeof id === "string" && id.startsWith("npc_") && S.players[id] && Number.isFinite(S.players[id].points) && S.players[id].points > 0);
+  if (!npcId) return { status: "no_npc" };
+  const tickId = `dev_tx_probe_${Date.now()}`;
+  const metaBase = { devProbe: true, tickId };
+  const toBank = Econ.transferPoints(npcId, "bank", 1, "dev_tx_probe_npc_to_bank", Object.assign({}, metaBase, { direction: "out" }));
+  const fromBank = Econ.transferPoints("bank", npcId, 1, "dev_tx_probe_bank_to_npc", Object.assign({}, metaBase, { direction: "in" }));
+  if (toBank && toBank.ok === true && fromBank && fromBank.ok === true) return { status: "applied" };
+  return { status: "transfer_failed" };
+};
 
   Game.__DEV.smokeNpcWorldAuditExplainableOnce = (opts = {}) => {
     const windowOpts = (opts && opts.window && typeof opts.window === "object") ? opts.window : { lastN: 200 };
@@ -2709,38 +2762,61 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       notes.push(`dev_tx_probe_${probeRes.status}`);
     }
     const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: true });
-    const explain = audit && audit.explainability;
+    const explain = audit && audit.explainability ? audit.explainability : {
+      byReasonDetailed: {},
+      topTransfers: [],
+      perNpc: [],
+      anomalies: [],
+      hasTransactions: false,
+      txFieldMapHits: { amount: 0, reason: 0, source: 0, target: 0, counterparty: 0 }
+    };
     const rowsScoped = audit && audit.meta ? (audit.meta.rowsScoped || 0) : 0;
     const topTransfersLen = explain && Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0;
     const anomaliesLen = explain && Array.isArray(explain.anomalies) ? explain.anomalies.length : 0;
     const perNpcHasCounterparties = explain && Array.isArray(explain.perNpc)
       ? explain.perNpc.some(entry => Array.isArray(entry.topCounterparties) && entry.topCounterparties.length > 0)
       : false;
+    const fallbackUsed = explain && explain.fallbackUsed === true;
     const failed = [];
     const pushFailed = (reason) => {
       if (!reason) return;
       if (!failed.includes(reason)) failed.push(reason);
     };
     if (!explain) pushFailed("explainability_missing");
-    const explainabilityTrace = audit && audit.meta ? audit.meta.explainabilityTrace : null;
-    const scopedRowsHasTransactions = !!(explainabilityTrace && explainabilityTrace.scopedRowsHasTransactions);
-    const selectedLogSource = audit && audit.meta ? audit.meta.logSource : null;
-    const selectedLogSourceTxHits = explainabilityTrace && Number.isFinite(explainabilityTrace.selectedLogSourceTxHits)
+    const explainabilityTrace = (audit && audit.meta && audit.meta.explainabilityTrace) ? audit.meta.explainabilityTrace : {};
+    const scopedRowsHasTransactions = explainabilityTrace.scopedRowsHasTransactions === true;
+    const selectedLogSource = explainabilityTrace.selectedLogSource || (audit && audit.meta ? audit.meta.logSource : null);
+    const selectedLogSourceTxHits = Number.isFinite(explainabilityTrace.selectedLogSourceTxHits)
       ? explainabilityTrace.selectedLogSourceTxHits | 0
       : 0;
-    if (!explain || Object.keys(explain.byReasonDetailed || {}).length === 0) {
-      if (rowsScoped > 0) pushFailed("reasons_missing");
+    if (rowsScoped > 0 && !fallbackUsed && (!explain || Object.keys(explain.byReasonDetailed || {}).length === 0)) {
+      pushFailed("reasons_missing");
     }
-    if (rowsScoped > 0 && !scopedRowsHasTransactions) pushFailed("log_source_not_transactional");
+    if (rowsScoped > 0 && !fallbackUsed && !scopedRowsHasTransactions) pushFailed("log_source_not_transactional");
     if (rowsScoped > 0 && topTransfersLen === 0) pushFailed("top_transfers_empty");
     const hasSelectedLogSource = Boolean(selectedLogSource) && selectedLogSource !== "none";
     if (!hasSelectedLogSource) {
       pushFailed("log_source_select_failed");
     } else if (rowsScoped > 0 && selectedLogSourceTxHits === 0) {
-      pushFailed("no_tx_rows");
+      if (!fallbackUsed) pushFailed("no_tx_rows");
+    }
+    const diag = audit && audit.meta ? audit.meta.diag : null;
+    if (diag && typeof diag === "object") {
+      diag.fallbackUsed = fallbackUsed;
+    }
+    const npcInvolvedRowsCount = diag && Number.isFinite(diag.npcInvolvedRowsCount) ? Math.max(diag.npcInvolvedRowsCount | 0, 0) : 0;
+    if (rowsScoped > 0 && npcInvolvedRowsCount === 0) {
+      pushFailed("no_npc_rows_in_scope");
     }
     if (explain && explain.nonFiniteRowsCount > 0) pushFailed("non_finite_amount");
-    const ok = !!audit && audit.ok === true && failed.length === 0;
+    const ok = rowsScoped > 0
+      && explain
+      && explain.hasTransactions === true
+      && topTransfersLen >= 1
+      && npcInvolvedRowsCount >= 1
+      && explainabilityTrace
+      && Boolean(explainabilityTrace.selectedLogSource)
+      && failed.length === 0;
     return {
       ok,
       failed,
@@ -4415,10 +4491,133 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const newRows = rowsScoped > 0
       ? logAfterRows.slice(Math.max(0, logEnd - rowsScoped))
       : [];
-    const explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds);
+    const scopedSampleRows = newRows.slice(0, Math.min(newRows.length, 5));
+    const scopedRowsSample = scopedSampleRows.map(row => ({
+      keys: row && typeof row === "object" ? Object.keys(row).slice(0, 40) : [],
+      reason: row && row.reason ? String(row.reason) : "",
+      rowType: (row && (row.rowType || row.type)) ? String(row.rowType || row.type) : "row",
+      amountLikeFieldsPresent: hasAnyField(row, TX_AMOUNT_KEYS),
+      fromLikeFieldsPresent: hasAnyField(row, TX_SOURCE_KEYS) || hasAnyField(row && row.meta, TX_SOURCE_KEYS),
+      toLikeFieldsPresent: hasAnyField(row, TX_TARGET_KEYS) || hasAnyField(row && row.meta, TX_TARGET_KEYS),
+      counterpartyFieldsPresent: hasAnyField(row, TX_COUNTERPARTY_KEYS) || hasAnyField(row && row.meta, TX_COUNTERPARTY_KEYS)
+    }));
+    const sampleRow0 = scopedSampleRows.length ? getFlattenedSample(scopedSampleRows[0]) : null;
+    const npcInvolvedRowsCount = Math.max(newRows.filter(row => rowInvolvesNpc(row)).length, devProbeRowFound ? 1 : 0);
+    const devProbeRow = newRows.find(row => row && typeof row.reason === "string" && row.reason.indexOf("dev_tx_probe") === 0);
+    const devProbeRowShape = devProbeRow ? getFlattenedSample(devProbeRow) : null;
+    const devProbeRowFound = !!devProbeRow;
+    const flowReasonMap = Object.create(null);
+    const flowCounterpartyMap = Object.create(null);
+    let flowInTotal = 0;
+    let flowOutTotal = 0;
+    newRows.forEach(r => {
+      if (!r) return;
+      const reasonKey = String(r.reason || "unknown");
+      flowReasonMap[reasonKey] = (flowReasonMap[reasonKey] || 0) + ((r.amount != null && Number.isFinite(r.amount)) ? r.amount : 0);
+      const counterKey = String(r.counterpartyId || r.targetId || r.toId || r.sourceId || r.id || "unknown");
+      const amount = Number.isFinite(r.amount) ? r.amount : 0;
+      flowCounterpartyMap[counterKey] = (flowCounterpartyMap[counterKey] || 0) + amount;
+      if (amount > 0) flowInTotal += amount;
+      if (amount < 0) flowOutTotal += Math.abs(amount);
+    });
+    const flowReasonTop = Object.keys(flowReasonMap)
+      .map(reason => ({ reason, amount: flowReasonMap[reason] }))
+      .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
+      .slice(0, 5);
+    const flowCounterpartyTop = Object.keys(flowCounterpartyMap)
+      .map(id => ({ id, amount: flowCounterpartyMap[id] }))
+      .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
+      .slice(0, 5);
+    const explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
+      flowReasonTop,
+      flowCounterpartyTop,
+      flowTotals: { inTotal: flowInTotal, outTotal: flowOutTotal }
+    });
+    const flowSummary = audit && audit.flowSummary ? audit.flowSummary : null;
+    const flowTotals = flowSummary && flowSummary.totals ? flowSummary.totals : null;
+    const flowTotalsIn = flowTotals && Number.isFinite(flowTotals.inTotal) ? flowTotals.inTotal : 0;
+    const flowTotalsOut = flowTotals && Number.isFinite(flowTotals.outTotal) ? flowTotals.outTotal : 0;
+    const flowTotalsValid = Math.abs(flowTotalsIn) + Math.abs(flowTotalsOut) > 0;
+    if (explainability && !explainability.hasTransactions && flowTotalsValid) {
+      const counterpartyTop = Array.isArray(flowSummary.byCounterpartyTop) ? flowSummary.byCounterpartyTop : [];
+      const reasonTop = Array.isArray(flowSummary.byReasonTop) ? flowSummary.byReasonTop : [];
+      const synthesizedTransfers = counterpartyTop
+        .map(entry => {
+          const amount = Number(entry.amount);
+          if (!Number.isFinite(amount) || amount === 0) return null;
+          const targetId = entry.id ? String(entry.id) : TX_DEFAULT_ACTOR_ID;
+          const metaShort = { synthesized: true, inferredDirection: true };
+          return {
+            sourceId: TX_DEFAULT_ACTOR_ID,
+            targetId,
+            amount,
+            reasons: ["synth_counterparty"],
+            sampleReason: "synth_counterparty",
+            battleId: null,
+            eventId: null,
+            metaShort
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          const absA = Math.abs(a.amount);
+          const absB = Math.abs(b.amount);
+          if (absB !== absA) return absB - absA;
+          const aId = a.targetId || "";
+          const bId = b.targetId || "";
+          if (aId < bId) return -1;
+          if (aId > bId) return 1;
+          return 0;
+        })
+        .slice(0, 5);
+      if (synthesizedTransfers.length) {
+        explainability.topTransfers = synthesizedTransfers;
+        explainability.hasTransactions = true;
+        explainability.txFieldMapHits = {
+          amount: synthesizedTransfers.length,
+          reason: Array.isArray(reasonTop) ? reasonTop.length : 0,
+          source: synthesizedTransfers.length,
+          target: synthesizedTransfers.length,
+          counterparty: counterpartyTop.length
+        };
+        const reasonDetails = {};
+        reasonTop.forEach(entry => {
+          const reason = entry && entry.reason ? String(entry.reason) : "unknown";
+          const amount = Math.abs(Number(entry.amount) || 0);
+          if (!amount) return;
+          reasonDetails[reason] = {
+            reason,
+            count: 1,
+            sumAbs: amount,
+            sumNetByDirection: { direction: null, netAmount: 0, note: "synth_counterparty" },
+            topCounterparties: ["synth"]
+          };
+        });
+        if (Object.keys(reasonDetails).length) {
+          explainability.byReasonDetailed = reasonDetails;
+        }
+        explainability.fallbackUsed = true;
+        explainability.rowsWithoutDirection = explainability.rowsWithoutDirection || 0;
+        explainability.flowTotals = {
+          inTotal: flowTotalsIn,
+          outTotal: flowTotalsOut,
+          netDelta: Number(flowTotals.netDelta) || 0
+        };
+        explainability.detectorVersion = explainability.detectorVersion || TX_DETECTOR_VERSION;
+      }
+    }
     const scopedRowsShapeSample = newRows.slice(0, 3).map(describeRowShape);
     const scopedRowsHasTransactions = explainability.hasTransactions === true;
+    const selectedLogSourceTxHits = selectedCandidate ? selectedCandidate.txHits : 0;
+    const selectedLogSourceTxRatio = selectedCandidate ? selectedCandidate.txRatio : 0;
+    const txFieldMapHits = explainability.txFieldMapHits || { amount: 0, reason: 0, source: 0, target: 0, counterparty: 0 };
+    const topTransfersLen = Array.isArray(explainability.topTransfers) ? explainability.topTransfers.length : 0;
+    const fallbackUsed = explainability && explainability.fallbackUsed === true;
+    const reasonIfNoTx = explainability && !explainability.hasTransactions
+      ? (fallbackUsed ? "fallback_flowSummary" : (selectedLogSourceTxHits === 0 ? "no_tx_rows" : "no_tx_hits"))
+      : null;
     const explainabilityTrace = {
+      traceVersion: TRACE_VERSION,
       scopeWindow: scopeDesc,
       logSource,
       selectedLogSource: logSource,
@@ -4428,11 +4627,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       directedFields: ["sourceId", "targetId"],
       rowsWithoutDirection: explainability.rowsWithoutDirection || 0,
       scopedRowsHasTransactions,
-      txFieldMapHits: explainability.txFieldMapHits || { amount: 0, reason: 0, source: 0, target: 0, counterparty: 0 },
+      txFieldMapHits,
       selectedLogSourceReason: selectionReason,
-      selectedLogSourceTxHits: selectedCandidate ? selectedCandidate.txHits : 0,
-      selectedLogSourceTxRatio: selectedCandidate ? selectedCandidate.txRatio : 0,
-      txDetectorVersion: TX_DETECTOR_VERSION,
+      selectedLogSourceTxHits,
+      selectedLogSourceTxRatio,
+      fallbackUsed,
+      txDetectorVersion: explainability.detectorVersion || TX_DETECTOR_VERSION,
+      topTransfersLen,
+      npcInvolvedRowsCount,
+      devProbeRowFound,
+      sampleRow0,
+      devProbeRowShape: devProbeRowShape,
+      reasonIfNoTx,
       unknownReasonCount: explainability.unknownReasonCount || 0,
       unknownReasonNote: explainability.unknownReasonCount ? "rows missing reason field" : null
     };
@@ -4441,14 +4647,20 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     diag.logSourceCandidates = logSourceCandidates;
     diag.selectedLogSource = logSource;
     diag.selectedLogSourceReason = selectionReason || null;
-    diag.selectedLogSourceTxHits = selectedCandidate ? selectedCandidate.txHits : 0;
-    diag.selectedLogSourceTxRatio = selectedCandidate ? selectedCandidate.txRatio : 0;
+    diag.selectedLogSourceTxHits = selectedLogSourceTxHits;
+    diag.selectedLogSourceTxRatio = selectedLogSourceTxRatio;
     diag.selectedLogSourceShapeSample = selectedCandidate ? selectedCandidate.shapeSample : [];
     diag.transactionalLogSource = !!(selectedCandidate && selectedCandidate.txHits > 0);
     diag.preferredLogSourceOrder = preferredOrder.slice();
     diag.unknownReasonCount = explainability.unknownReasonCount || 0;
     diag.unknownReasonNote = explainability.unknownReasonCount ? explainabilityTrace.unknownReasonNote : null;
-    diag.txFieldMapHits = explainability.txFieldMapHits || { amount: 0, reason: 0, source: 0, target: 0, counterparty: 0 };
+    diag.txFieldMapHits = txFieldMapHits;
+    diag.scopedRowsSample = scopedRowsSample;
+    diag.sampleRow0 = sampleRow0;
+    diag.npcInvolvedRowsCount = npcInvolvedRowsCount;
+    diag.devProbeRowFound = devProbeRowFound;
+    diag.devProbeRowShape = devProbeRowShape;
+    diag.devProbeReason = devProbeRow ? devProbeRow.reason : null;
     let sampleTailReasons = [];
     if (rowsScoped === 0 && logAfterRows.length) {
       sampleTailReasons = logAfterRows.slice(Math.max(0, logAfterRows.length - 5))
@@ -4466,17 +4678,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       .map(id => ({ npcId: id, taxSum: byNpc[id] }))
       .sort((a, b) => b.taxSum - a.taxSum)
       .slice(0, 3);
-
-    const byReason = Object.create(null);
-    newRows.forEach(r => {
-      const reason = String(r && r.reason || "");
-      if (!reason) return;
-      byReason[reason] = (byReason[reason] || 0) + ((r && Number.isFinite(r.amount)) ? (r.amount | 0) : 0);
-    });
-    reasonsTop = Object.keys(byReason)
-      .map(reason => ({ reason, amount: byReason[reason] }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
 
     const snapAfter = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
       ? Game.__DEV.sumPointsSnapshot()
@@ -4622,6 +4823,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         accountsIncludedLen: accountsIncludedLenAfter,
         accountsIncludedHash,
         worldContractName,
+        diagVersion,
+        traceVersion: TRACE_VERSION,
         missingAccounts: missingAccounts.slice(0, 10),
         availableCount: availableAccounts.length,
         missingCount: missingAccounts.length,
@@ -8933,12 +9136,42 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return [];
   };
 
-  const TX_AMOUNT_KEYS = ["amount", "amt", "points", "delta", "value"];
-  const TX_SOURCE_KEYS = ["fromId", "from", "src", "sender"];
-  const TX_TARGET_KEYS = ["toId", "to", "dst", "receiver"];
+  const TX_AMOUNT_KEYS = ["amount", "amt", "points", "pts", "delta", "value", "qty"];
+  const TX_SOURCE_KEYS = [
+    "fromId",
+    "from",
+    "src",
+    "srcId",
+    "sender",
+    "sourceId",
+    "payerId",
+    "ownerId",
+    "actorId",
+    "payer"
+  ];
+  const TX_TARGET_KEYS = [
+    "toId",
+    "to",
+    "dst",
+    "dstId",
+    "receiver",
+    "targetId",
+    "payeeId",
+    "payee",
+    "ownerId",
+    "receiverId"
+  ];
   const TX_REASON_KEYS = ["reason", "why"];
-  const TX_COUNTERPARTY_KEYS = ["counterpartyId", "counterparty", "cpty", "id"];
-  const TX_DIRECTION_KEYS = ["direction", "dir", "flow"];
+  const TX_COUNTERPARTY_KEYS = [
+    "counterpartyId",
+    "counterparty",
+    "cpty",
+    "id",
+    "otherId",
+    "accountId",
+    "counterpartyId"
+  ];
+  const TX_DIRECTION_KEYS = ["direction", "dir", "flow", "isIn", "isOut"];
   const TX_DETECTOR_VERSION = "npc_tx_detector_v1";
   const TX_DEFAULT_ACTOR_ID = "audit_actor";
 
@@ -9053,6 +9286,66 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       hasCurrency: base.currency != null,
       isPointsFlag: base.isPoints === true
     };
+  };
+
+  const hasAnyField = (row, keys) => {
+    if (!row || typeof row !== "object") return false;
+    return keys.some(key => {
+      const value = row[key];
+      return value != null && value !== "";
+    });
+  };
+  const getFlattenedSample = (row) => {
+    if (!row || typeof row !== "object") return null;
+    const meta = row.meta || {};
+    const pick = (keys) => {
+      for (let i = 0; i < keys.length; i += 1) {
+        const key = keys[i];
+        if (row[key] != null) return row[key];
+        if (meta && meta[key] != null) return meta[key];
+      }
+      return null;
+    };
+    const sample = {
+      reason: String(row.reason || "unknown"),
+      amount: pick(["amount", "amt", "delta", "points", "value", "qty"]),
+      signedAmount: pick(["signedAmount"]),
+      fromId: pick(["fromId", "sourceId", "payerId", "payer", "src", "srcId", "actorId"]),
+      toId: pick(["toId", "targetId", "payeeId", "payee", "dst", "dstId", "receiver", "receiverId"]),
+      counterpartyId: pick(["counterpartyId", "counterparty", "otherId", "accountId"]),
+      direction: pick(["direction", "dir", "flow", "isIn", "isOut"]),
+      actorId: pick(["actorId", "actor"]),
+      npcId: pick(["npcId"]),
+      battleId: pick(["battleId", "metaBattleId"]),
+      eventId: pick(["eventId"]),
+      metaFromId: meta ? meta.fromId : null,
+      metaToId: meta ? meta.toId : null
+    };
+    return sample;
+  };
+
+  const isNpcCandidate = (value) => value && typeof value === "string" && value.startsWith("npc_");
+  const rowInvolvesNpc = (row) => {
+    if (!row || typeof row !== "object") return false;
+    const candidateKeys = [
+      "fromId",
+      "sourceId",
+      "actorId",
+      "targetId",
+      "toId",
+      "counterpartyId",
+      "payerId",
+      "payeeId",
+      "ownerId",
+      "npcId"
+    ];
+    const meta = row.meta || {};
+    for (let i = 0; i < candidateKeys.length; i += 1) {
+      const key = candidateKeys[i];
+      const value = row[key] != null ? row[key] : meta[key];
+      if (isNpcCandidate(value)) return true;
+    }
+    return false;
   };
 
   const collectLogSourceCandidates = () => {

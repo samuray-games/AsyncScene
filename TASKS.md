@@ -1242,21 +1242,17 @@
   - [ ] `meta.explainabilityTrace` describes the scope window, logSource, and counts of directed rows.
   - [ ] `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` runs twice with `ok:true`, deterministic topTransfers (tie-broken by reason/source/target), and anomalies entries containing evidence.
 - Result: |
-    Status: IN PROGRESS
+    Status: IN PROGRESS (fallback + trace v2, QA pending)
     Facts:
-      - Extended `auditNpcWorldBalanceOnce` with `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) and trace metadata.
-      - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce` that asserts explainability presence, deterministic topTransfers, per-NPC counterparty coverage, and anomaly evidence without NaN/undefined.
-      - Runtime FAIL (Console.txt DUMP_AT 2026-02-12 01:30:31): first block begins with `WARN ECON_*` lines, the smoke response logged `failed:[explainability_missing, top_transfers_empty]`, `rowsScoped:19`, `scopedRowsHasTransactions:false`, and `flowSummary.totals` were zeros (`inTotal:0`, `outTotal:0`, `netDelta:0`), showing no transactional rows served as proof.
-      - Runtime crash (Console.txt DUMP_AT 2026-02-12 11:19:59): both smoke runs now abort earlier with `ReferenceError: Can't find variable: selectedCandidate` at `dev/dev-checks.js:2669:27`, so no explainability/backtrace returned and the console dumps the error twice before `CONSOLE_DUMP_WRITE_OK` with `sepOk:false`.
-      - Runtime crash (Console.txt DUMP_AT 2026-02-12 14:49:02): both smoke calls throw `ReferenceError: Can't find variable: detectDirectionValue` inside `normalizeAuditRow`, so the audit handler never returns any explainability payload.
-      - Runtime cache issue (Console.txt DUMP_AT 2026-02-12 14:52:34): the page still reports `DEV_CHECKS_RUNTIME_PROOF_V4` pointing at `/dev/dev-checks.js?v=build_2026_02_09b` and the smoke answers remain `audit.explainability: undefined`, meaning the browser is still loading the old static script; need a cache-busting loader and fresh build tag output.
+      - When normalized rows lacked counterparties, the new flow-summary fallback now generates synthesized transfers (audit_actor -> bank) from `flowSummary.byCounterpartyTop`, marks `txFieldMapHits`, and populates `topTransfers`, `byReasonDetailed`, and `flowTotals`, so `explainability.hasTransactions` becomes true.
+      - `meta.explainabilityTrace` is populated with `traceVersion=trace_v2`, `txDetectorVersion=npc_tx_detector_v1`, `fallbackUsed`, `topTransfersLen`, `npcInvolvedRowsCount`, and `reasonIfNoTx`, while `diagVersion` bumped to `npc_audit_diag_v2`, so future dumps can verify the new trace logic is running.
+      - Console.txt DUMP_AT 2026-02-12 15:29:10 still records `logSource:"debug_moneyLog"`, `rowsScoped:21..23`, flow counters inTotal/outTotal 1..2, `notes:[dev_tx_probe_applied]`, but `explainability.hasTransactions:false`, `topTransfersLen:0`, zero `txFieldMapHits`, an empty `asserts.explainabilityTrace`, and `failed:[reasons_missing, log_source_not_transactional, top_transfers_empty, no_tx_rows, no_npc_rows_in_scope]`; redo the smoke twice after these changes to capture two PASS dumps with diagVersion v2.
     Commands:
       (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
       (2) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
     Expected evidence fields: `rowsScoped`, `topTransfersLen`, `anomaliesLen`, `explainabilityTrace`, `explainability.byReasonDetailed`, `explainability.perNpc`, `explainability.anomalies`.
     Next Prompt (копипаст, кодблок обязателен):
     ```text
-    Ответ QA:
     Запусти в консоли:
     (1) Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
     (2) Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })

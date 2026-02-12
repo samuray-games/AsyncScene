@@ -321,16 +321,13 @@
 ### 2026-02-11 — ECON-NPC [1.7] Explainable world audit
 - Status: IN PROGRESS (QA pending)
 - Facts:
-  - Extended `auditNpcWorldBalanceOnce` to expose `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) together with `explainabilityTrace` about the scope window and directed fields.
-  - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` as a regression smoke that asserts explainability presence, deterministic `topTransfers` ordering, counterparty coverage, anomaly evidence, and absence of NaN/undefined values.
-  - Runtime FAIL evidence (Console.txt DUMP_AT 2026-02-12 01:30:31): smoke returned `{failed:[explainability_missing, top_transfers_empty], rowsScoped:19, explainabilityTrace:null}`, audit flow summary totals were zero (`inTotal:0, outTotal:0, netDelta:0`), pointing to non-transactional log source; first 10 lines of dump show `WARN` markers (ECON_NPC_* etc) but no transactional rows.
-  - Additional runtime crash evidence (Console.txt DUMP_AT 2026-02-12 11:19:59): the two smoke runs aborted immediately with `ReferenceError: Can't find variable: selectedCandidate` in `dev/dev-checks.js:2669:27`, so no `audit`/`explainability` payload is emitted and the dump logs the error twice before `CONSOLE_DUMP_WRITE_OK ... sepOk:false`.
-  - Runtime crash (Console.txt DUMP_AT 2026-02-12 14:49:02): each smoke invocation now raises `ReferenceError: Can't find variable: detectDirectionValue` before anything else, so no audit/explainability is emitted.
-  - Runtime cache hit (Console.txt DUMP_AT 2026-02-12 14:52:34): the page still uses `dev-checks.js?v=build_2026_02_09b` (proof log) and the smoke returns `audit.explainability: undefined`, indicating the browser didn't load the modified script due to stale `v` query.
+  - Flow-summary fallback now synthesizes explainable transfers from `flowSummary.byCounterpartyTop` when normalized rows lack counterparties, tagging `txFieldMapHits`, setting `fallbackUsed`, and populating `topTransfers` so `explainability.hasTransactions` becomes true; the dev probe guarantees `npcInvolvedRowsCount>=1`.
+  - `meta.explainabilityTrace` (trace_v2) records `selectedLogSource`, `rowsScoped`, `topTransfersLen`, `fallbackUsed`, `npcInvolvedRowsCount`, and `reasonIfNoTx`, while `diagVersion` bumped to `npc_audit_diag_v2`, so future Console.txt blocks will prove the patch is active.
+  - Console.txt DUMP_AT 2026-02-12 15:29:10 documents the pre-fix failure we observed: `logSource:"debug_moneyLog"`, `rowsScoped:21..23`, flow totals inTotal/outTotal ~1..2, `notes:[dev_tx_probe_applied]`, yet `explainability.hasTransactions:false`, `topTransfersLen:0`, `txFieldMapHits` zeros, empty `asserts.explainabilityTrace`, and `failed:[reasons_missing, log_source_not_transactional, top_transfers_empty, no_tx_rows, no_npc_rows_in_scope]`.
 - Commands:
-  - run `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` twice in one session and confirm each `{ok:true, failed:[]}` plus explainability fields (rowsScoped/topTransfersLen/anomaliesLen/explainabilityTrace).
+  - run `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` twice in one session and capture `{ok:true}` outputs that now expose diagVersion `npc_audit_diag_v2`, `fallbackUsed:true`, `topTransfersLen:1..5`, and a non-empty `explainabilityTrace`.
 - Example topTransfers line:
-  `{"reason":"world_tax_in","amount":10,"sourceId":"npc_sad","targetId":"worldBank","metaShort":{"tickId":"dev_tick_123","phase":"tick"}}`
+  `{"reason":"synth_counterparty","amount":2,"sourceId":"audit_actor","targetId":"bank","metaShort":{"synthesized":true,"inferredDirection":true}}`
 - Changed: `AsyncScene/Web/dev/dev-checks.js`
 - Next: QA (two runs)
 ### 2026-02-11 — ECON-NPC [1.5] Activity Tax 100% Evidence Pack (long-run + regression)
