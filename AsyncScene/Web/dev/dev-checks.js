@@ -13630,14 +13630,21 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         return p && Number.isFinite(p.points) ? (p.points | 0) : null;
       };
 
-      const buildPointsSnapshot = () => {
-        const out = {};
-        Object.keys(pointIds).forEach(k => { out[k] = readPoints(pointIds[k]); });
-        return out;
+      const buildContractAccounts = (snap) => {
+        if (!snap || !snap.byId) return [];
+        let accounts = [];
+        if (Game.__DEV && typeof Game.__DEV.econNpcWorldContractV1 === "function") {
+          try {
+            const contract = Game.__DEV.econNpcWorldContractV1({ snapById: snap.byId }) || {};
+            if (Array.isArray(contract.accountsIncluded)) accounts = contract.accountsIncluded.slice();
+          } catch (_) {}
+        }
+        if (!accounts.length) accounts = Object.keys(snap.byId);
+        accounts.push("worldBank", "sink");
+        return Array.from(new Set(accounts.map(id => String(id || "")))).filter(Boolean);
       };
 
       const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
-      const beforePoints = buildPointsSnapshot();
       const beforePlayersMap = (() => {
         const out = Object.create(null);
         Object.values(S.players || {}).forEach(p => {
@@ -13646,7 +13653,45 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         });
         return out;
       })();
-      const totalPtsWorldBefore = beforeSnapshot && Number.isFinite(beforeSnapshot.total) ? (beforeSnapshot.total | 0) : Object.values(beforePlayersMap).reduce((s, v) => s + (v | 0), 0);
+      const isPoolId = (id) => {
+        const key = String(id || "");
+        return key === "sink" || key === "crowd" || key === "bank" || key === "worldBank" || key.startsWith("crowd:");
+      };
+      const readAccount = (snap, id) => {
+        const key = String(id || "");
+        if (Econ && typeof Econ.getPoolBalance === "function" && isPoolId(key)) {
+          const v = Econ.getPoolBalance(key);
+          return Number.isFinite(v) ? (v | 0) : null;
+        }
+        if (snap && snap.byId && Number.isFinite(snap.byId[key])) return (snap.byId[key] | 0);
+        const p = (key === "me") ? (S.players.me || S.me) : S.players[key];
+        return p && Number.isFinite(p.points) ? (p.points | 0) : null;
+      };
+      const buildWorldMassFromContract = (snap) => {
+        if (!snap || !snap.byId) return { total: null, accountsIncluded: [], includesWorldBank: false, includesSink: false };
+        let accountsIncluded = [];
+        if (Game.__DEV && typeof Game.__DEV.econNpcWorldContractV1 === "function") {
+          try {
+            const contract = Game.__DEV.econNpcWorldContractV1({ snapById: snap.byId }) || {};
+            if (Array.isArray(contract.accountsIncluded)) accountsIncluded = contract.accountsIncluded.slice();
+          } catch (_) {}
+        }
+        if (!accountsIncluded.length) {
+          accountsIncluded = Object.keys(snap.byId);
+        }
+        const includesWorldBank = accountsIncluded.includes("worldBank");
+        const includesSink = accountsIncluded.includes("sink");
+        const total = accountsIncluded.reduce((s, id) => {
+          const v = readAccount(snap, id);
+          return s + (Number.isFinite(v) ? (v | 0) : 0);
+        }, 0);
+        return { total, accountsIncluded, includesWorldBank, includesSink };
+      };
+      const worldBeforeInfo = buildWorldMassFromContract(beforeSnapshot);
+      const initialSnapshotAccounts = worldBeforeInfo.accountsIncluded.slice();
+      const totalPtsWorldBefore = (worldBeforeInfo.total != null)
+        ? worldBeforeInfo.total
+        : initialSnapshotAccounts.reduce((s, id) => s + (readAccount(beforeSnapshot, id) || 0), 0);
 
       const participants = voters.map(v => {
         const p = S.players[v.id];
@@ -13688,7 +13733,6 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const logAfter = logRows.slice(logStart);
 
       let afterSnapshot = Game.__DEV.sumPointsSnapshot();
-      const afterPoints = buildPointsSnapshot();
       afterSnapshot = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
         : null;
@@ -13703,7 +13747,20 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         });
         return out;
       })();
-      const totalPtsWorldAfter = afterSnapshot && Number.isFinite(afterSnapshot.total) ? (afterSnapshot.total | 0) : Object.values(afterPlayersMap).reduce((s, v) => s + (v | 0), 0);
+      const worldAfterInfo = buildWorldMassFromContract(afterSnapshot);
+      const snapshotAccounts = Array.from(new Set([...initialSnapshotAccounts, ...worldAfterInfo.accountsIncluded]));
+      const buildSnapshotPoints = (snap) => {
+        const out = {};
+        snapshotAccounts.forEach(id => {
+          out[id] = readAccount(snap, id);
+        });
+        return out;
+      };
+      const beforePoints = buildSnapshotPoints(beforeSnapshot);
+      const afterPoints = buildSnapshotPoints(afterSnapshot);
+      const totalPtsWorldAfter = (worldAfterInfo.total != null)
+        ? worldAfterInfo.total
+        : snapshotAccounts.reduce((s, id) => s + (afterPoints[id] != null ? afterPoints[id] : 0), 0);
       const netDeltaById = {};
       let sumNetDelta = 0;
       Object.keys(beforePoints).forEach(k => {
@@ -13772,6 +13829,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const adjustedDiff = (sumNetFromMoneyLog | 0) - (mintAllowance | 0);
       const pointsDiffOk = adjustedDiff === 0;
       const worldMassOk = totalPtsWorldBefore === totalPtsWorldAfter;
+      const taxRowsInWindowCount = (byReason.world_tax_in | 0) + (byReason.world_tax_out | 0);
+      const byReasonHasWorldTax = taxRowsInWindowCount > 0;
       const logMatchesState = Object.keys(netDeltaFromMoneyLog.map).every(id => {
         if (!Object.prototype.hasOwnProperty.call(beforePlayersMap, id)) return true;
         if (!Object.prototype.hasOwnProperty.call(afterPlayersMap, id)) return true;
@@ -13904,7 +13963,41 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         moneyLogReport: { netDeltaById: netDeltaFromMoneyLog.map, sumNetFromMoneyLog, mintAllowance, adjustedDiff },
         pointsDiffOk,
         asserts,
-        telemetry
+        telemetry,
+        diag: {
+          worldAccountsIncludedCount: snapshotAccounts.length,
+          includesWorldBank: worldAfterInfo.includesWorldBank || worldBeforeInfo.includesWorldBank,
+          includesSink: worldAfterInfo.includesSink || worldBeforeInfo.includesSink,
+          snapshotAccountsIncludedCount: snapshotAccounts.length,
+          snapshotIncludesWorldBank: worldBeforeInfo.includesWorldBank || worldAfterInfo.includesWorldBank,
+          snapshotIncludesSink: worldBeforeInfo.includesSink || worldAfterInfo.includesSink,
+          snapshotWorldTotalsBefore: totalPtsWorldBefore,
+          snapshotWorldTotalsAfter: totalPtsWorldAfter,
+          balancesSource: "econ_contract_v1",
+          taxRowsInWindowCount,
+          byReasonHasWorldTax,
+          contractIds: snapshotAccounts.slice(),
+          sinkIdUsed: "sink",
+          worldBankIdUsed: "worldBank",
+          balanceProbeBefore: {
+            worldBank: { exists: beforePoints.worldBank != null, balance: beforePoints.worldBank },
+            sink: { exists: beforePoints.sink != null, balance: beforePoints.sink },
+            crowd: { exists: beforePoints.crowd != null, balance: beforePoints.crowd },
+            crowdPool: { exists: beforePoints[poolId] != null, balance: beforePoints[poolId] },
+            me: { exists: beforePoints.me != null, balance: beforePoints.me },
+            npc_weak: { exists: beforePoints.npc_weak != null, balance: beforePoints.npc_weak },
+            npc_rin: { exists: beforePoints.npc_rin != null, balance: beforePoints.npc_rin }
+          },
+          balanceProbeAfter: {
+            worldBank: { exists: afterPoints.worldBank != null, balance: afterPoints.worldBank },
+            sink: { exists: afterPoints.sink != null, balance: afterPoints.sink },
+            crowd: { exists: afterPoints.crowd != null, balance: afterPoints.crowd },
+            crowdPool: { exists: afterPoints[poolId] != null, balance: afterPoints[poolId] },
+            me: { exists: afterPoints.me != null, balance: afterPoints.me },
+            npc_weak: { exists: afterPoints.npc_weak != null, balance: afterPoints.npc_weak },
+            npc_rin: { exists: afterPoints.npc_rin != null, balance: afterPoints.npc_rin }
+          }
+        }
       });
       if (result.ok) Game.__DEV.lastSmokeBattleId = battleId;
       if (result.ok) Game.__DEV.lastSmokeBattleId = battleId;

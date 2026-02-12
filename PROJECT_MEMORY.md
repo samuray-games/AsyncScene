@@ -340,6 +340,14 @@
   - `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` (run twice, then `Game.__DUMP_ALL__()`).
 - Changed: `AsyncScene/Web/dev/dev-checks.js`
 - Next: QA (two runs + new DUMP_AT)
+### 2026-02-12 — ECON-NPC [1.7] Explainable world audit PASS
+- Status: PASS
+- Facts:
+  - Console.txt DUMP_AT `2026-02-12 19:59:43` now records two `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` runs that both returned `ok:true`, `failed:[]`, `logSource:"debug_moneyLog"`, `rowsScoped` 21→23 and `leaks.emissionsSuspect/ toSink` empty.
+  - V2 trace shows `traceVersion:"trace_v2"`, `diagVersion:"npc_audit_diag_v2"`, `fallbackUsed:true`, and `topTransfersLen:3`; `meta.diag` holds `fallbackEval`, `afterFallback`, `fallbackReason:"flowSummary"`, and `fallbackTopTransfersLen:3` while `audit.explainability` exposes deterministic synthetic `topTransfers`/`txFieldMapHits` plus `hasTransactions:true`.
+  - PASS evidence also checks `flowSummary.totals` (inTotal/outTotal = 1→2, invariants true) and `asserts.explainabilityTrace` matching the trace payload despite `npcInvolvedRowsCount` being 1 in `meta.diag`.
+  - QA sequence recorded `CONSOLE_PANEL_RUN_OK` twice and no panel errors; fallback path now prevents `failed` reasons from firing.
+  - Commands: repeat previous smoke twice and verify the DUMP (see DUMP_AT 19:59:43 for fields).
 ### 2026-02-11 — ECON-NPC [1.5] Activity Tax 100% Evidence Pack (long-run + regression)
 - Status: FAIL (QA pending)
 - Facts:
@@ -350,6 +358,15 @@
   - `Game.__DEV.runEconNpcActivityTaxEvidencePackOnce({ ticks: 200, seedRichNpc: true, debugTelemetry: true, window: { lastN: 1200 } })`
   - `Game.__DEV.runEconNpcActivityTaxRegressionPackOnce({ seedRichNpc: true })`
   - `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })`
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-12 — ECON-NPC [1.8] worldMass regression smoke (pending QA)
+- Status: FAIL (evidence from DUMP_AT 2026-02-12 20:35:37)
+- Facts:
+  - `smokeBattleCrowdOutcomeOnce({ mode:"majority" })` returned `ok:false`, `asserts.worldMassOk:false`, `snapshotReport.totalPtsWorldBefore:200` → `totalPtsWorldAfter:210` (`deltaWorld:10`).
+  - `moneyLogReport.netDeltaById` shows `worldBank:+10`, `sink:-10`, `sumNetFromMoneyLog:0`; `byReasonHasWorldTax:true`.
+  - Snapshot showed `worldBank 0→10`, `sink 0→0` (sink not reflected).
+- Change (not yet QA-verified): smoke now reads pool balances via econ ledger (`Econ.getPoolBalance`) for contract accounts and adds `diag.contractIds` + `diag.balanceProbeBefore/After` + `diag.sinkIdUsed/worldBankIdUsed`.
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Next: QA
 Память обновлена

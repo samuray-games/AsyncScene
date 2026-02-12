@@ -1229,8 +1229,13 @@
   - Second run in same tail shows `logSource:"none"`, `rowsScoped:0`, `seedFailureReason:"seed_target_not_reached"`, `ensureNpcAccounts.createdCount=0`, `missingAfterCount=19`.
   - Status: FAIL (accounts not created in ensure path, tax missing, world.delta != 0).
 
-### [T-20260211-015] ECON-NPC [1.7] Explainable world audit
-- Status: FAIL (QA pending after V2 patch)
+-### [T-20260211-015] ECON-NPC [1.7] Explainable world audit
+- Status: PASS
+- Evidence:
+  - `Console.txt DUMP_AT 2026-02-12 19:59:43`: two sequential `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` runs produced `ok:true`, `failed:[]` with `rowsScoped` 21→23, `logSource:"debug_moneyLog"`.
+  - Audit now exposes `explainability` with `fallbackUsed:true`, deterministic `topTransfers` (len=3) and `txFieldMapHits={amount:3,source:3,target:3,reason:3,counterparty:3}` while `meta.diag` holds `fallbackEval`/`afterFallback` plus `fallbackReason:"flowSummary"`.
+  - `asserts.explainabilityTrace.traceVersion=="trace_v2"` / `diagVersion=="npc_audit_diag_v2"` with `selectedLogSource`, `rowsScoped`, `fallbackUsed`, `npcInvolvedRowsCount` (0 in trace, 1 in diag), `topTransfersLen:3`; leaks empty; invariants true.
+  - QA recorded `CONSOLE_PANEL_RUN_OK` for both runs and no `CONSOLE_PANEL_RUN_ERR`.
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: finish txn detection fix + QA (two runs)
@@ -1259,3 +1264,15 @@
     (2) Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
     PASS если оба {ok:true, failed:[]} и `audit.explainability.topTransfers.length` 1..5 (when rowsScoped>0), `anomalies` entries include evidence, and no NaN/undefined in explainability sums.
     ```
+
+### [T-20260212-018] ECON-NPC [1.8] Regression — worldMass smokeBattleCrowdOutcomeOnce
+- Status: FAIL (QA pending after patch)
+- Evidence:
+  - `Console.txt DUMP_AT 2026-02-12 20:35:37`: `smokeBattleCrowdOutcomeOnce({ mode:"majority" })` returned `ok:false`, `asserts.worldMassOk:false`, `snapshotReport.totalPtsWorldBefore:200` → `totalPtsWorldAfter:210` (`deltaWorld:10`).
+  - `moneyLogReport.netDeltaById` shows `worldBank:+10`, `sink:-10`, `sumNetFromMoneyLog:0`; `byReasonHasWorldTax:true` with `taxRowsInWindowCount>0`.
+  - `snapshotReport.beforePoints/afterPoints` showed `worldBank 0→10`, `sink 0→0` (sink not reflected in snapshot).
+- Change (not yet QA-verified):
+  - `smokeBattleCrowdOutcomeOnce` now reads pool balances via econ ledger (`Econ.getPoolBalance`) for contract accounts and adds `diag.contractIds`, `diag.balanceProbeBefore/After`, `diag.sinkIdUsed/worldBankIdUsed`.
+- Commands:
+  - `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` (x2)
+  - `Game.__DUMP_ALL__()`
