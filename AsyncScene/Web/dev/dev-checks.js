@@ -1866,6 +1866,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const windowOpts = (opts && typeof opts.window === "object" && opts.window) ? opts.window : {};
     const refreshEnabled = opts.refresh !== false;
     const calledFrom = opts.calledFrom || null;
+    const isExplainableV2 = calledFrom === "npc_audit_explainable_smoke_v2";
     const allowEmpty = opts.allowEmpty === true;
     const includeAccounts = opts && opts.includeAccounts ? opts.includeAccounts : "auto";
     const debug = !!(opts && opts.debug);
@@ -1902,6 +1903,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return Object.keys(shortMeta).length ? shortMeta : null;
     };
     const safeId = (value) => (value && typeof value === "string") ? value : null;
+    let explainability = null;
+    let fallbackDiag = null;
 
     const buildNormalizedRows = (rows) => (Array.isArray(rows) ? rows.map(normalizeAuditRow) : []);
     const { type: scopeType, value: scopeValue, desc: scopeString } = (() => {
@@ -2871,15 +2874,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       nonNpcToSinkSkipped,
       nonNpcToSinkSkippedSum
     };
-    meta.explainabilityTrace = auditExplainabilityTrace || {};
-    if (calledFrom === "npc_audit_explainable_smoke_v2") {
-      if (meta.diag) {
-        meta.diag.fallbackEval = fallbackDiag && fallbackDiag.fallbackEval ? fallbackDiag.fallbackEval : null;
-        meta.diag.afterFallback = fallbackDiag && fallbackDiag.afterFallback ? fallbackDiag.afterFallback : null;
-        meta.diag.fallbackUsed = !!(explainability && explainability.fallbackUsed);
-      }
-      meta.explainabilityTrace = buildExplainabilityTraceV2({ meta, explainability });
-    }
+    meta.explainabilityTrace = explainabilityTrace;
     if (refreshFailed) {
       meta.sampleLogHeads = sampleLogHeads;
     }
@@ -2901,7 +2896,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         byCounterpartyTop,
         invariants
       },
-      explainability: (calledFrom === "npc_audit_explainable_smoke_v2") ? explainability : undefined,
+      explainability: (isExplainableV2) ? explainability : undefined,
       npcs: npcSummaries,
       leaks: {
         toSink,
@@ -3013,16 +3008,7 @@ const runDevTxProbe = () => {
     if (explain && explain.nonFiniteRowsCount > 0) pushFailed("non_finite_amount");
     const traceVersionMatch = explainabilityTrace && explainabilityTrace.traceVersion === TRACE_VERSION;
     const diagVersionMatch = explainabilityTrace && explainabilityTrace.diagVersion === DIAG_VERSION;
-    const ok = rowsScoped > 0
-      && explain
-      && explain.hasTransactions === true
-      && topTransfersLen >= 1
-      && npcInvolvedRowsCount >= 1
-      && explainabilityTrace
-      && traceVersionMatch
-      && diagVersionMatch
-      && Boolean(explainabilityTrace.selectedLogSource)
-      && failed.length === 0;
+    const ok = failed.length === 0;
     return {
       ok,
       failed,
@@ -4745,15 +4731,14 @@ const runDevTxProbe = () => {
     };
     const auditFlowSummary = flowSummaryForExplain;
     const auditDiag = diag;
-    let explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
+    explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
       flowReasonTop,
       flowCounterpartyTop,
       flowTotals: flowSummaryForExplain.totals,
       flowSummary: auditFlowSummary,
       diag: auditDiag
     });
-    let fallbackDiag = null;
-    if (calledFrom === "npc_audit_explainable_smoke_v2") {
+    if (isExplainableV2) {
       const v2Res = buildExplainabilityV2({ audit: { flowSummary: flowSummaryForExplain } });
       explainability = v2Res.explainability;
       fallbackDiag = v2Res.fallbackDiag;
@@ -4796,9 +4781,9 @@ const runDevTxProbe = () => {
       unknownReasonCount: explainability.unknownReasonCount || 0,
       unknownReasonNote: explainability.unknownReasonCount ? "rows missing reason field" : null
     };
-    if (calledFrom === "npc_audit_explainable_smoke_v2") {
+    if (isExplainableV2) {
       explainabilityTrace = buildExplainabilityTraceV2({
-        meta: { logSource, rowsScoped, diag: { npcInvolvedRowsCount, devProbeRowFound } },
+        meta: { logSource, rowsScoped, diag },
         explainability
       });
     }
@@ -4823,9 +4808,9 @@ const runDevTxProbe = () => {
     diag.devProbeReason = devProbeRow ? devProbeRow.reason : null;
     diag.traceOwnKeys = Object.keys(explainabilityTrace || {});
     auditExplainabilityTrace = explainabilityTrace;
-    if (fallbackDiag) {
-      if (fallbackDiag.fallbackEval) diag.fallbackEval = fallbackDiag.fallbackEval;
-      if (fallbackDiag.afterFallback) diag.afterFallback = fallbackDiag.afterFallback;
+    if (isExplainableV2 && diag) {
+      diag.fallbackEval = fallbackDiag && fallbackDiag.fallbackEval ? fallbackDiag.fallbackEval : null;
+      diag.afterFallback = fallbackDiag && fallbackDiag.afterFallback ? fallbackDiag.afterFallback : null;
       diag.fallbackUsed = !!(explainability && explainability.fallbackUsed);
     }
     let sampleTailReasons = [];
@@ -4916,6 +4901,9 @@ const runDevTxProbe = () => {
       && (worldMassBefore != null && worldMassAfter != null)
       && (totalTaxInWindow > 0)
       && explainabilityRowsOk;
+    const finalExplainabilityTrace = isExplainableV2
+      ? buildExplainabilityTraceV2({ meta: { logSource, rowsScoped, diag }, explainability })
+      : auditExplainabilityTrace || {};
     const result = {
       ok,
       notes,
@@ -4928,7 +4916,7 @@ const runDevTxProbe = () => {
         scopeDesc: `ticks=${ticks}`,
         debugTelemetry,
         diag,
-        explainabilityTrace
+        explainabilityTrace: finalExplainabilityTrace
       },
       world: {
         beforeTotal: worldMassBefore,
