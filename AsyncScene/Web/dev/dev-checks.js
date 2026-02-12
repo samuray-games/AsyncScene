@@ -1950,24 +1950,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const perNpcMap = Object.create(null);
       const unknownCounterpartyRows = [];
       const sinkFlowsByNpc = Object.create(null);
-      const sanitized = rows
-        .map(row => {
-          const amount = toNum(row && row.amount, `explainRow:${row && row.reason}`);
-          return {
-            reason: String(row && row.reason || "unknown"),
-            amount,
-            absAmount: Math.abs(amount),
-            sourceId: safeId(row && row.sourceId),
-            targetId: safeId(row && row.targetId),
-            battleId: safeId(row && row.battleId),
-            eventId: safeId(row && row.eventId),
-            metaShort: makeMetaShort(row && row.meta),
-            original: row
-          };
-        })
-        .filter(r => r && r.amount !== 0);
-      if (!sanitized.length) return { ...explain, rowsWithoutDirection: 0 };
-      sanitized.forEach(row => {
+      const nonFiniteRowsCount = rows.filter(row => {
+        const amount = getFirstFieldValue(row, TX_AMOUNT_KEYS);
+        if (amount == null) return false;
+        return !Number.isFinite(Number(amount));
+      }).length;
+      const normalizedRows = rows
+        .map(normalizeTxRow)
+        .filter(r => r && Number.isFinite(r.amount));
+      if (!normalizedRows.length) return { ...explain, rowsWithoutDirection: 0 };
+      normalizedRows.forEach(row => {
         const reason = row.reason;
         const reasonEntry = explain.byReasonDetailed[reason] || (explain.byReasonDetailed[reason] = {
           reason,
@@ -1977,7 +1969,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           topCounterparties: []
         });
         reasonEntry.count += 1;
-        reasonEntry.sumAbs = toNum(reasonEntry.sumAbs + row.absAmount, `explainReasonSum:${reason}`);
+        reasonEntry.sumAbs = toNum(reasonEntry.sumAbs + Math.abs(row.amount), `explainReasonSum:${reason}`);
         if (row.sourceId && row.targetId) {
           const dirKey = `${row.sourceId}->${row.targetId}`;
           const dirEntry = directionSums[reason] || (directionSums[reason] = Object.create(null));
@@ -1991,7 +1983,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           sum: 0,
           count: 0
         };
-        cpEntry.sum = toNum(cpEntry.sum + row.absAmount, `explainReasonCp:${reason}:${cpKey}`);
+        cpEntry.sum = toNum(cpEntry.sum + Math.abs(row.amount), `explainReasonCp:${reason}:${cpKey}`);
         cpEntry.count += 1;
         reasonCp.map[cpKey] = cpEntry;
         const markNpc = (npcId, otherId, direction) => {
@@ -2062,26 +2054,43 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           })
           .slice(0, 5);
       });
-      explain.topTransfers = sanitized.slice()
+      const transferMap = Object.create(null);
+      normalizedRows.forEach(row => {
+        const key = `${row.fromId || "unknown"}->${row.toId || "unknown"}`;
+        const entry = transferMap[key] || {
+          fromId: row.fromId,
+          toId: row.toId,
+          totalAmount: 0,
+          reasons: Object.create(null),
+          sampleRow: row
+        };
+        entry.totalAmount = toNum(entry.totalAmount + Math.abs(row.amount), `transferAggregate:${key}`);
+        const reasonKey = row.reason || "unknown_reason";
+        entry.reasons[reasonKey] = (entry.reasons[reasonKey] || 0) + Math.abs(row.amount);
+        transferMap[key] = entry;
+      });
+      explain.topTransfers = Object.keys(transferMap)
+        .map(key => {
+          const entry = transferMap[key];
+          return {
+            sourceId: entry.fromId,
+            targetId: entry.toId,
+            amount: entry.totalAmount,
+            reasons: Object.keys(entry.reasons).sort(),
+            sampleReason: entry.sampleRow.reason,
+            battleId: entry.sampleRow.battleId,
+            eventId: entry.sampleRow.eventId,
+            metaShort: entry.sampleRow.metaShort
+          };
+        })
         .sort((a, b) => {
-          const am = Math.abs(a.amount);
-          const bm = Math.abs(b.amount);
-          if (bm !== am) return bm - am;
-          if (b.reason !== a.reason) return a.reason < b.reason ? -1 : 1;
+          if (b.amount !== a.amount) return b.amount - a.amount;
           if ((a.sourceId || "") !== (b.sourceId || "")) return (a.sourceId || "") < (b.sourceId || "") ? -1 : 1;
           if ((a.targetId || "") !== (b.targetId || "")) return (a.targetId || "") < (b.targetId || "") ? -1 : 1;
+          if (a.sampleReason !== b.sampleReason) return (a.sampleReason || "") < (b.sampleReason || "") ? -1 : 1;
           return 0;
         })
-        .slice(0, 5)
-        .map(row => ({
-          reason: row.reason,
-          amount: row.amount,
-          sourceId: row.sourceId,
-          targetId: row.targetId,
-          battleId: row.battleId,
-          eventId: row.eventId,
-          metaShort: row.metaShort
-        }));
+        .slice(0, 5);
       const perNpcList = Object.keys(perNpcMap).sort().map(npcId => {
         const entry = perNpcMap[npcId];
         const netDelta = toNum(entry.endPts - entry.startPts, `explainNpcNet:${npcId}`);
@@ -2116,7 +2125,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         };
       });
       explain.perNpc = perNpcList;
-      explain.hasTransactions = sanitized.some(r => isTransactionalRow(r.original));
+      explain.hasTransactions = normalizedRows.length > 0;
+      let inTotal = 0;
+      let outTotal = 0;
+      normalizedRows.forEach(row => {
+        if (row.toId && row.toId.startsWith("npc_")) inTotal += row.amount;
+        if (row.fromId && row.fromId.startsWith("npc_")) outTotal += row.amount;
+      });
+      const netDelta = toNum(inTotal - outTotal, "explainFlowNet");
+      explain.flowTotals = { inTotal, outTotal, netDelta };
       const recordEvidence = (row) => ({
         reason: row.reason,
         amount: row.amount,
@@ -2150,9 +2167,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           evidence: unknownCounterpartyRows.slice(0, 3).map(recordEvidence)
         });
       }
+      const unknownReasonCount = normalizedRows.filter(row => !row.reasonProvided).length;
       return {
         ...explain,
-        rowsWithoutDirection: sanitized.filter(row => !(row.sourceId && row.targetId)).length
+        rowsWithoutDirection: normalizedRows.filter(row => !(row.sourceId && row.targetId)).length,
+        unknownReasonCount,
+        nonFiniteRowsCount
       };
     };
 
@@ -2601,8 +2621,30 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
+  const runDevTxProbe = () => {
+    const Econ = Game && (Game.ConflictEconomy || Game._ConflictEconomy) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
+    const S = Game.__S || Game.State || null;
+    if (!Econ || !S || !S.players) return { status: "no_econ" };
+    const npcId = Object.keys(S.players || {})
+      .find(id => typeof id === "string" && id.startsWith("npc_") && S.players[id] && Number.isFinite(S.players[id].points) && S.players[id].points > 1);
+    if (!npcId) return { status: "no_npc" };
+    const tickId = `dev_tx_probe_${Date.now()}`;
+    const metaBase = { devProbe: true, tickId };
+    const out = Econ.transferPoints(npcId, "sink", 1, "dev_tx_probe_out", Object.assign({}, metaBase, { direction: "out" }));
+    const back = Econ.transferPoints("sink", npcId, 1, "dev_tx_probe_in", Object.assign({}, metaBase, { direction: "in" }));
+    if (out && out.ok === true && back && back.ok === true) return { status: "applied" };
+    return { status: "transfer_failed" };
+  };
+
   Game.__DEV.smokeNpcWorldAuditExplainableOnce = (opts = {}) => {
     const windowOpts = (opts && opts.window && typeof opts.window === "object") ? opts.window : { lastN: 200 };
+    const notes = [];
+    const probeRes = runDevTxProbe();
+    if (probeRes && probeRes.status === "applied") {
+      notes.push("dev_tx_probe_applied");
+    } else if (probeRes && probeRes.status) {
+      notes.push(`dev_tx_probe_${probeRes.status}`);
+    }
     const audit = Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts, refresh: true });
     const explain = audit && audit.explainability;
     const rowsScoped = audit && audit.meta ? (audit.meta.rowsScoped || 0) : 0;
@@ -2612,18 +2654,35 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ? explain.perNpc.some(entry => Array.isArray(entry.topCounterparties) && entry.topCounterparties.length > 0)
       : false;
     const failed = [];
-    if (!explain) failed.push("explainability_missing");
+    const pushFailed = (reason) => {
+      if (!reason) return;
+      if (!failed.includes(reason)) failed.push(reason);
+    };
+    if (!explain) pushFailed("explainability_missing");
     const explainabilityTrace = audit && audit.meta ? audit.meta.explainabilityTrace : null;
     const scopedRowsHasTransactions = !!(explainabilityTrace && explainabilityTrace.scopedRowsHasTransactions);
     if (!explain || Object.keys(explain.byReasonDetailed || {}).length === 0) {
-      if (rowsScoped > 0) failed.push("reasons_missing");
+      if (rowsScoped > 0) pushFailed("reasons_missing");
     }
-    if (rowsScoped > 0 && !scopedRowsHasTransactions) failed.push("log_source_not_transactional");
-    if (rowsScoped > 0 && topTransfersLen === 0) failed.push("top_transfers_empty");
+    if (rowsScoped > 0 && !scopedRowsHasTransactions) pushFailed("log_source_not_transactional");
+    if (rowsScoped > 0 && topTransfersLen === 0) pushFailed("top_transfers_empty");
+    const smokeDiag = audit && audit.meta ? audit.meta.diag : null;
+    const selectedLogSource = smokeDiag ? smokeDiag.selectedLogSource : null;
+    const selectedLogSourceTxHits = smokeDiag && Number.isFinite(smokeDiag.selectedLogSourceTxHits)
+      ? smokeDiag.selectedLogSourceTxHits | 0
+      : 0;
+    const selectedLogSourcePresent = Boolean(selectedLogSource);
+    if (!selectedLogSourcePresent) {
+      pushFailed("log_source_select_failed");
+    } else if (selectedLogSourceTxHits === 0) {
+      pushFailed("no_tx_rows");
+    }
+    if (explain && explain.nonFiniteRowsCount > 0) pushFailed("non_finite_amount");
     const ok = !!audit && audit.ok === true && failed.length === 0;
     return {
       ok,
       failed,
+      notes: notes.slice(),
       audit,
       explainability: explain,
       asserts: {
@@ -4229,12 +4288,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       name: c.name,
       rows: Array.isArray(c.rows) ? c.rows : [],
       len: c.len,
-      transactional: c.rows ? c.rows.some(isTransactionalRow) : false
+      txHits: Number.isFinite(c.txHits) ? (c.txHits | 0) : 0,
+      txRatio: Number.isFinite(c.txRatio) ? c.txRatio : 0,
+      shapeSample: Array.isArray(c.shapeSample) ? c.shapeSample : []
     }));
     logSourceCandidates = candidateSummaries.map(c => ({
       name: c.name,
-      len: c.len,
-      transactional: c.transactional
+      rowsLen: c.len,
+      txHits: c.txHits,
+      txRatio: c.txRatio,
+      shapeSample: c.shapeSample
     }));
     const preferredOrder = [
       "Game.Debug.moneyLog",
@@ -4244,16 +4307,38 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       "state_moneyLog",
       "Game.Debug.debug_moneyLog"
     ];
-    const selectCandidate = () => {
-      for (const name of preferredOrder) {
-        const candidate = candidateSummaries.find(c => c.name === name && c.len > 0 && c.transactional);
-        if (candidate) return candidate;
+    const candidateComparator = (a, b) => {
+      if (b.txHits !== a.txHits) return b.txHits - a.txHits;
+      if (b.txRatio !== a.txRatio) return b.txRatio - a.txRatio;
+      if (b.len !== a.len) return b.len - a.len;
+      const idxA = preferredOrder.indexOf(a.name);
+      const idxB = preferredOrder.indexOf(b.name);
+      if (idxA !== idxB) {
+        if (idxA < 0) return 1;
+        if (idxB < 0) return -1;
+        return idxA - idxB;
       }
-      const fallbackTransactional = candidateSummaries.find(c => c.len > 0 && c.transactional);
-      if (fallbackTransactional) return fallbackTransactional;
-      return candidateSummaries.find(c => c.len > 0) || null;
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
     };
-    const selectedCandidate = selectCandidate();
+    const candidatesWithTx = candidateSummaries.filter(c => c.txHits > 0);
+    let selectedCandidate = null;
+    let selectionReason = "no_tx_rows";
+    if (candidatesWithTx.length > 0) {
+      candidatesWithTx.sort(candidateComparator);
+      selectedCandidate = candidatesWithTx[0];
+      selectionReason = "highest_tx_hits";
+    } else {
+      const nonEmpty = candidateSummaries.filter(c => c.len > 0);
+      if (nonEmpty.length > 0) {
+        nonEmpty.sort(candidateComparator);
+        selectedCandidate = nonEmpty[0];
+        selectionReason = "fallback_non_tx";
+      }
+    }
     if (selectedCandidate) {
       logSource = selectedCandidate.name;
       logAfterRows = selectedCandidate.rows;
@@ -4279,14 +4364,25 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       scopeValue,
       directedFields: ["sourceId", "targetId"],
       rowsWithoutDirection: explainability.rowsWithoutDirection || 0,
-      scopedRowsHasTransactions
+      scopedRowsHasTransactions,
+      selectedLogSourceReason: selectionReason,
+      selectedLogSourceTxHits: selectedCandidate ? selectedCandidate.txHits : 0,
+      selectedLogSourceTxRatio: selectedCandidate ? selectedCandidate.txRatio : 0,
+      unknownReasonCount: explainability.unknownReasonCount || 0,
+      unknownReasonNote: explainability.unknownReasonCount ? "rows missing reason field" : null
     };
     diag.scopedRowsShapeSample = scopedRowsShapeSample;
     diag.scopedRowsHasTransactions = scopedRowsHasTransactions;
     diag.logSourceCandidates = logSourceCandidates;
     diag.selectedLogSource = logSource;
-    diag.transactionalLogSource = !!(selectedCandidate && selectedCandidate.transactional);
+    diag.selectedLogSourceReason = selectionReason || null;
+    diag.selectedLogSourceTxHits = selectedCandidate ? selectedCandidate.txHits : 0;
+    diag.selectedLogSourceTxRatio = selectedCandidate ? selectedCandidate.txRatio : 0;
+    diag.selectedLogSourceShapeSample = selectedCandidate ? selectedCandidate.shapeSample : [];
+    diag.transactionalLogSource = !!(selectedCandidate && selectedCandidate.txHits > 0);
     diag.preferredLogSourceOrder = preferredOrder.slice();
+    diag.unknownReasonCount = explainability.unknownReasonCount || 0;
+    diag.unknownReasonNote = explainability.unknownReasonCount ? explainabilityTrace.unknownReasonNote : null;
     let sampleTailReasons = [];
     if (rowsScoped === 0 && logAfterRows.length) {
       sampleTailReasons = logAfterRows.slice(Math.max(0, logAfterRows.length - 5))
@@ -4375,7 +4471,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     }
 
     ensureNpcAccountsOk = missingAccounts.length === 0;
-    const explainabilityRowsOk = rowsScoped === 0 || (scopedRowsHasTransactions && explainability.topTransfers.length > 0);
+    const explainabilityRowsOk = rowsScoped === 0 || (scopedRowsHasTransactions && explain && Array.isArray(explain.topTransfers) && explain.topTransfers.length > 0);
     const ok = asserts.worldDeltaZero
       && asserts.rowsScopedPositive
       && asserts.noNpcNegative
@@ -8770,6 +8866,59 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return [];
   };
 
+  const TX_AMOUNT_KEYS = ["amount", "amt", "points", "delta", "value"];
+  const TX_SOURCE_KEYS = ["fromId", "from", "src", "sender"];
+  const TX_TARGET_KEYS = ["toId", "to", "dst", "receiver"];
+  const TX_REASON_KEYS = ["reason", "why"];
+
+  const getFirstFieldValue = (row, keys) => {
+    if (!row || typeof row !== "object") return null;
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i];
+      if (Object.prototype.hasOwnProperty.call(row, key)) return row[key];
+    }
+    return null;
+  };
+
+  const isTxLikeRow = (row) => {
+    if (!row || typeof row !== "object") return false;
+    const amount = getFirstFieldValue(row, TX_AMOUNT_KEYS);
+    if (!Number.isFinite(Number(amount))) return false;
+    const fromId = getFirstFieldValue(row, TX_SOURCE_KEYS);
+    const toId = getFirstFieldValue(row, TX_TARGET_KEYS);
+    if (!(fromId || toId)) return false;
+    const reason = getFirstFieldValue(row, TX_REASON_KEYS);
+    if (!reason) {
+      // reason optional but prefer to have at least one field
+      return !!(fromId || toId);
+    }
+    return true;
+  };
+
+  const normalizeTxRow = (row) => {
+    if (!isTxLikeRow(row)) return null;
+    const rawAmount = getFirstFieldValue(row, TX_AMOUNT_KEYS);
+    const parsedAmount = Number(rawAmount);
+    if (!Number.isFinite(parsedAmount)) return null;
+    const fromId = getFirstFieldValue(row, TX_SOURCE_KEYS);
+    const toId = getFirstFieldValue(row, TX_TARGET_KEYS);
+    const reasonRaw = getFirstFieldValue(row, TX_REASON_KEYS);
+    const reason = reasonRaw ? String(reasonRaw) : "unknown_reason";
+    const reasonProvided = reasonRaw != null && reasonRaw !== "";
+    return {
+      fromId: fromId ? String(fromId) : null,
+      toId: toId ? String(toId) : null,
+      amount: parsedAmount,
+      reason,
+      reasonProvided,
+      meta: row.meta || {},
+      battleId: row.battleId || null,
+      eventId: row.eventId || null,
+      original: row
+    };
+  };
+
+
   const isTransactionalRow = (row) => {
     if (!row) return false;
     const amount = row.amount;
@@ -8794,10 +8943,24 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   };
 
   const collectLogSourceCandidates = () => {
+    const describeRowsSample = (rows, limit = 2) => {
+      if (!Array.isArray(rows)) return [];
+      return rows.slice(0, limit).map(describeRowShape);
+    };
     const candidates = [];
     const addCandidate = (rows, name) => {
       const normalized = normalizeMoneyLogRows(rows, `logSource:${name}`);
-      candidates.push({ name, rows: normalized, len: normalized.length });
+      const txHits = normalized.filter(isTxLikeRow).length;
+      const txRatio = normalized.length ? (txHits / normalized.length) : 0;
+      const shapeSample = describeRowsSample(normalized);
+      candidates.push({
+        name,
+        rows: normalized,
+        len: normalized.length,
+        txHits,
+        txRatio,
+        shapeSample
+      });
     };
     const dbg = Game.__D || null;
     const dbgPublic = Game.Debug || null;

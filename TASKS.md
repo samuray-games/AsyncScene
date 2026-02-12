@@ -1233,7 +1233,7 @@
 - Status: IN PROGRESS (QA pending)
 - Priority: P0
 - Assignee: Codex-ассистент
-- Next: QA (two runs)
+- Next: fix `selectedCandidate` reference + QA (two runs)
 - Area: Economy
 - Files: `AsyncScene/Web/dev/dev-checks.js`
 - Goal: expand the world audit with explainability information (reason stats, top transfers, per-NPC counterparties, anomalies) and validate via a dedicated smoke.
@@ -1247,6 +1247,7 @@
       - Extended `auditNpcWorldBalanceOnce` with `explainability` (per-reason detail, top transfers, per-NPC counterparty stats, anomalies) and trace metadata.
       - Added `Game.__DEV.smokeNpcWorldAuditExplainableOnce` that asserts explainability presence, deterministic topTransfers, per-NPC counterparty coverage, and anomaly evidence without NaN/undefined.
       - Runtime FAIL (Console.txt DUMP_AT 2026-02-12 01:30:31): first block begins with `WARN ECON_*` lines, the smoke response logged `failed:[explainability_missing, top_transfers_empty]`, `rowsScoped:19`, `scopedRowsHasTransactions:false`, and `flowSummary.totals` were zeros (`inTotal:0`, `outTotal:0`, `netDelta:0`), showing no transactional rows served as proof.
+      - Runtime crash (Console.txt DUMP_AT 2026-02-12 11:19:59): both smoke runs now abort earlier with `ReferenceError: Can't find variable: selectedCandidate` at `dev/dev-checks.js:2669:27`, so no explainability/backtrace returned and the console dumps the error twice before `CONSOLE_DUMP_WRITE_OK` with `sepOk:false`.
     Commands:
       (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
       (2) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
