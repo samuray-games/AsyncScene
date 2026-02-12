@@ -1244,13 +1244,14 @@
 - Result: |
     Status: IN PROGRESS (fallback + trace v2, QA pending)
     Facts:
-      - When normalized rows lacked counterparties, the new flow-summary fallback now generates synthesized transfers (audit_actor -> bank) from `flowSummary.byCounterpartyTop`, marks `txFieldMapHits`, and populates `topTransfers`, `byReasonDetailed`, and `flowTotals`, so `explainability.hasTransactions` becomes true.
-      - `meta.explainabilityTrace` is populated with `traceVersion=trace_v2`, `txDetectorVersion=npc_tx_detector_v1`, `fallbackUsed`, `topTransfersLen`, `npcInvolvedRowsCount`, and `reasonIfNoTx`, while `diagVersion` bumped to `npc_audit_diag_v2`, so future dumps can verify the new trace logic is running.
-      - Console.txt DUMP_AT 2026-02-12 15:29:10 still records `logSource:"debug_moneyLog"`, `rowsScoped:21..23`, flow counters inTotal/outTotal 1..2, `notes:[dev_tx_probe_applied]`, but `explainability.hasTransactions:false`, `topTransfersLen:0`, zero `txFieldMapHits`, an empty `asserts.explainabilityTrace`, and `failed:[reasons_missing, log_source_not_transactional, top_transfers_empty, no_tx_rows, no_npc_rows_in_scope]`; redo the smoke twice after these changes to capture two PASS dumps with diagVersion v2.
+      - Flow-summary fallback now creates synthetic `audit_actor -> bank` transfers from `flowSummary.byCounterpartyTop`, fills `topTransfers`, `txFieldMapHits`, and `byReasonDetailed`, and sets `fallbackUsed` so `explainability.hasTransactions` switches true even when normalized rows lack counterparties.
+      - `meta.explainabilityTrace.traceVersion=="trace_v2"` now exposes `selectedLogSource`, `rowsScoped`, `topTransfersLen`, `fallbackUsed`, `npcInvolvedRowsCount`, and `reasonIfNoTx`, while `diagVersion==npc_audit_diag_v2` and `diag.fallbackUsed:true`/`diag.fallbackReason:"flowSummary"` prove the patched trace path is running.
+      - Runtime FAIL (Console.txt DUMP_AT 2026-02-12 15:37:05) captured `logSource:"debug_moneyLog"`, `rowsScoped:21..23`, `flowSummary.totals` (inTotal/outTotal) 1..2, `notes:[dev_tx_probe_applied]`, but `explainability.hasTransactions:false`, `topTransfersLen:0`, `txFieldMapHits` zeros, empty `asserts.explainabilityTrace`, and `failed:[log_source_not_transactional, top_transfers_empty, no_tx_rows, no_npc_rows_in_scope]` despite the aggregated `byCounterpartyTop` already listing `{id:"bank"}`; rerun the smoke twice now to confirm PASS dumps with fallback.
+      - Runtime crash (Console.txt DUMP_AT 2026-02-12 15:43:35) showed `ReferenceError: Can't find variable: TRACE_VERSION` when `Game.__DEV.smokeNpcWorldAuditExplainableOnce` tried to tag `traceVersion`; defining the constant globally removes this crash for future runs.
     Commands:
       (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
       (2) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
-    Expected evidence fields: `rowsScoped`, `topTransfersLen`, `anomaliesLen`, `explainabilityTrace`, `explainability.byReasonDetailed`, `explainability.perNpc`, `explainability.anomalies`.
+    Expected evidence fields: `rowsScoped`, `fallbackUsed:true`, `topTransfersLen`, `ok:true`, `failed:[]`, `diagVersion:npc_audit_diag_v2`, `traceVersion:trace_v2`.
     Next Prompt (копипаст, кодблок обязателен):
     ```text
     Запусти в консоли:
