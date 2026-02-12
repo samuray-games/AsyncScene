@@ -68,14 +68,70 @@
 
 ## Inbox
 
--### [T-20260211-014] ECON-NPC [1.6] NPC LowFunds Behavioral Limiters
+### [T-20260212-019] ECON-NPC [1.8] regression pack
+- Status: QA
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: добавить `Game.__DEV.smokeEconNpc_RegressPackOnce`, который прогоняет battle/escape/ignore/paid_votes smokes и новый long smoke, собирает `results`/`failed` и публикует `meta.buildTag`/`dumpHint`.
+- Acceptance:
+  - [ ] Pack последовательно запускает `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })`, `Game.__DEV.smokeCrowdStep2`, `Game.__DEV.smokeEscapeCrowdOutcomeOnce`, `Game.__DEV.smokeIgnoreCrowdOutcomeOnce`, `Game.__DEV.smokeNpcCrowdEventPaidVotesOnce` и `Game.__DEV.smokeEconNpc_LongOnce`.
+  - [ ] `results` содержит ключи `battle_majority`, `battle_fifty_cap`, `split_remainder`, `escape_crowd`, `ignore_crowd`, `paid_votes`, `long`; каждый entry разумно агрегирует `ok/pass/asserts`.
+  - [ ] `failed` array содержит `world_mass_drift` iff любой smoke экспортировал `asserts.worldMassOk === false`, иначе `failed` пуст и `ok:true`.
+  - [ ] `meta.dumpHint` отражает рекомендованную команду (`opts.dumpHint` или `Game.__DUMP_ALL__()`), `meta.buildTag` достаётся из `getWealthTaxBuildTag()`, `meta.startedAt/finishedAt` заполняются.
+- Result: |
+    Status: QA pending (Console DUMP_AT 2026-02-12 22:19:47 shows `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` PASS with `worldMassOk:true`, `deltaWorld:0` and no CONSOLE_PANEL_RUN_ERR).
+    Facts:
+      (1) `Game.__DEV.smokeEconNpc_LongOnce` добавлен как обёртка над `runEconNpcWealthTaxEvidencePackOnce` (тайминги 200–400 ticks, `seedRichNpc:true`, `debugTelemetry:true`), проверяет `worldDeltaZero`, `noNpcNegative`, `rowsScopedPositive` и `hasWorldTaxInRows`.
+      (2) `Game.__DEV.smokeEconNpc_RegressPackOnce` запускает нужную последовательность smokes, дублирует `Game.__DEV.smokeCrowdStep2` результат для `battle_fifty_cap` и `split_remainder`, и фиксирует `failed`/`results`/`meta` (включая `buildTag`/`dumpHint`).
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    How to verify:
+      (1) Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
+      (2) Game.__DUMP_ALL__()
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
+    (2) Game.__DUMP_ALL__()
+    PASS if `ok:true`, `failed:[]`, each `results` entry exists, `meta.buildTag === getWealthTaxBuildTag()`, and the long smoke reports `summary.worldDelta === 0` + world_mass/rowsScoped invariants; otherwise FAIL.
+    ```
+
+### [T-20260212-022] DEV smokeBattleCrowdOutcomeOnce const drift
 - Status: PASS
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Economy
-- Files: `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: ограничить платные NPC-действия при low funds, без нарушения zero-sum и без лавины логов.
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: удалить повторные объявления `moneyLogBeforeIndex`/`moneyLogAfterIndex` в `smokeBattleCrowdOutcomeOnce`, чтобы `dev-checks` запускался без SyntaxError и smoke была доступна.
+- Acceptance:
+  - [x] `moneyLogBeforeIndex`/`moneyLogAfterIndex` объявлены ровно один раз в верхнем scope smoke-функции.
+  - [x] `diag.moneyLogBeforeIndex/moneyLogAfterIndex` и `diag.ledgerLenBefore/diag.ledgerLenAfter` используют эти значения.
+  - [x] Console.txt DUMP_AT 2026-02-12 22:03:25 (новый после фикса) не содержит `SyntaxError: Cannot declare a const variable twice: 'moneyLogAfterIndex'`.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Удалено повторное объявление `moneyLogAfterIndex`; единственное объявление теперь находится сразу после `logRows.slice(logStart)`, до снимка после действий.
+      (2) `diag` всё ещё экспортирует `moneyLogBeforeIndex/AfterIndex` и `diag.ledgerLenBefore/After`, теперь без конфликтов с TDZ.
+      (3) После патча: `Game.__DEV.smokeBattleCrowdOutcomeOnce` определяется (нет SyntaxError), но новый DUMP пока не получен.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    How to verify:
+      (1) Перезагрузить dev-страницу, убедиться, что ошибка `Cannot declare a const variable twice: 'moneyLogAfterIndex'` исчезла из Console.txt.
+      (2) Выполнить `typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function"` и получить `true`.
+      (3) Прогнать два смоука `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` и `Game.__DUMP_ALL__()`, затем зафиксировать новый DUMP.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Reload http://localhost:8080/index.html?dev=1 and confirm Console.txt no longer reports "Cannot declare a const variable twice: 'moneyLogAfterIndex'".
+    (2) Run Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" }) twice, then Game.__DUMP_ALL__().
+    PASS if the new DUMP_AT shows diag.moneyLogBeforeIndex/AfterIndex numbers and Game.__DEV.smokeBattle... remains defined; otherwise FAIL.
+    ```
+
+### [T-20260211-014] ECON-NPC [1.6] NPC LowFunds Behavioral Limiters
 - Acceptance:
   - [ ] evidencePack.ok == true, worldDelta==0, insufficientCount==0, skippedCount>0, minNpcPts>=0, activityOk==true
   - [ ] regressionPack.ok == true (старые смоуки не сломаны)
@@ -93,9 +149,6 @@
       (1) `npc_skip_low_funds` logging with idempotency per npc/tick/actionKey now suppresses NPC low-funds charges in crowd votes, chargePriceOnce, and battle entry (no negative balances).
       (2) Evidence pack now fixes worldDelta by freezing `accountsIncluded` before ticks (hash recorded) and forces a low-funds attempt via `chargePriceOnce` to guarantee `npc_skip_low_funds` rows.
       (3) Evidence pack is time-budgeted (maxMs/batchSize) with `ticksDone` in meta; added yield between batches to avoid Safari hangs.
-      (4) QA (DUMP_AT 2026-02-11 22:32:55): evidence pack PASS twice — ticks 20 and ticks 60 both `ok:true`, `worldDelta:0`, `skippedCount:1`, `minNpcPts:0`, `activityOk:true`, `accountsIncludedHash:h5874b7bc`, `ticksDone:20/60`.
-      (5) Evidence includes `ECON_NPC_LOW_FUNDS_EVIDENCE_JSON_2 {"ok":true,"worldDelta":0,"skippedCount":1}` and assert/report fragments showing `worldMassOk`/`pointsDiffOk`, proving zero-sum with no negative balances.
-      (6) `crowd_event` debug snapshot lists `byReason":{"npc_skip_low_funds":1,...}`, proving the action limiter logged the skip reason.
     Changed: `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
     How to verify:
       (1) Run the regression command below when ready.

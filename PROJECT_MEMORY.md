@@ -374,6 +374,24 @@
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Next: QA (two smokes + DUMP)
 
+### 2026-02-12 — ECON-NPC [1.8] regression pack runner
+- Status: QA pending (new runner defined; evidence pending)
+- Facts:
+  - Added `Game.__DEV.smokeEconNpc_LongOnce` (wraps `runEconNpcWealthTaxEvidencePackOnce` with 200–400 ticks, asserts on `worldDeltaZero`, `noNpcNegative`, `rowsScopedPositive`, `hasWorldTaxInRows`) and `Game.__DEV.smokeEconNpc_RegressPackOnce` (sequentially runs battle/escape/ignore/paid-votes/long smokes, reuses `smokeCrowdStep2` for the fifty/cap + split checks, and publishes `results`, `failed`, `meta.buildTag`, `meta.dumpHint`).
+  - Console.txt DUMP_AT `2026-02-12 22:19:47` shows `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` passing with `worldMassOk:true`, `deltaWorld:0`, `balanceCompare` ledger entries for sink/worldBank, and no `CONSOLE_PANEL_RUN_ERR`, so preconditions for the regression pack are satisfied.
+- Commands:
+  - `Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })`
+  - `Game.__DUMP_ALL__()`
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md`
+- Next: QA (new DUMP showing pack results, `failed:[]`)
+
+### 2026-02-12 — smokeBattleCrowdOutcomeOnce const redeclare
+- Status: FAIL
+- Facts:
+  - `Console.txt DUMP_AT 2026-02-12 22:03:25` shows `SyntaxError: Cannot declare a const variable twice: 'moneyLogAfterIndex'` at `dev-checks.js:13815`, so `Game.__DEV.smokeBattleCrowdOutcomeOnce` never registers and `CONSOLE_PANEL_RUN_ERR` appears.
+  - Because the error occurs before smoke definition, diagnostics and final sweep never run; world-mass regression QA cannot proceed.
+  - Next: remove the duplicate `const moneyLogAfterIndex` declaration, keep one per top-level scope, and re-run the smokes + `Game.__DUMP_ALL__()` to produce a clean DUMP.
+
 ### 2026-02-11 — Dev server Console.txt stack dump filter
 - Status: PASS
 - Facts:

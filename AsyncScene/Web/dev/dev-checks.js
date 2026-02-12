@@ -6722,6 +6722,154 @@ const runDevTxProbe = () => {
     return summary;
   };
 
+  Game.__DEV.smokeEconNpc_LongOnce = (opts = {}) => {
+    const name = "smoke_econ_npc_long_once";
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(200, Math.min(400, opts.ticks | 0)) : 300;
+    const windowLastN = (opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 400;
+    try {
+      Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({
+        ticks,
+        window: { lastN: windowLastN },
+        seedRichNpc: true,
+        debugTelemetry: true,
+        ...(opts.runOpts || {})
+      });
+    } catch (_) {}
+    const pack = (Game.__DEV && Game.__DEV.lastEconNpcWealthTaxEvidencePack) ? Game.__DEV.lastEconNpcWealthTaxEvidencePack : null;
+    const summary = pack ? pack.summary : null;
+    const diag = summary ? summary.diag : null;
+    const asserts = summary && summary.asserts ? summary.asserts : Object.create(null);
+    const rowsScoped = diag && Number.isFinite(diag.rowsScoped) ? (diag.rowsScoped | 0) : null;
+    const worldDelta = (summary && Number.isFinite(summary.worldDelta)) ? (summary.worldDelta | 0) : null;
+    const ok = !!(pack && pack.smoke && pack.smoke.ok) &&
+      asserts.worldDeltaZero === true &&
+      asserts.noNpcNegative === true &&
+      asserts.rowsScopedPositive === true &&
+      asserts.hasWorldTaxInRows === true &&
+      rowsScoped > 0;
+    return {
+      name,
+      ok,
+      pass: ok,
+      ticks,
+      window: { lastN: windowLastN },
+      summary,
+      diag,
+      asserts,
+      worldDelta,
+      rowsScoped,
+      pack
+    };
+  };
+
+  Game.__DEV.smokeEconNpc_RegressPackOnce = (opts = {}) => {
+    const name = "smoke_econ_npc_regress_pack_once";
+    const startedAt = Date.now();
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    const longOpts = opts.long || {};
+    const paymentsWindow = (opts && opts.window && Number.isFinite(opts.window.lastN))
+      ? { lastN: opts.window.lastN | 0 }
+      : { lastN: 400 };
+    const runBattleSplitSmoke = () => {
+      if (!Game.__DEV || typeof Game.__DEV.smokeCrowdStep2 !== "function") return { name: "smoke_crowd_step2", ok: false, details: "missing_smoke" };
+      return Game.__DEV.smokeCrowdStep2({ allowParallel: false, debugTelemetry: true });
+    };
+    let battleSplitResult = null;
+    const plan = [
+      {
+        key: "battle_majority",
+        runner: () => (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function")
+          ? Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false, mode: "majority", debugTelemetry: true })
+          : { name: "smoke_battle_crowd_outcome_once", ok: false, details: "missing_smoke" }
+      },
+      {
+        key: "battle_fifty_cap",
+        runner: () => {
+          if (!battleSplitResult) battleSplitResult = runBattleSplitSmoke();
+          return battleSplitResult;
+        }
+      },
+      {
+        key: "split_remainder",
+        runner: () => {
+          if (!battleSplitResult) battleSplitResult = runBattleSplitSmoke();
+          return battleSplitResult;
+        }
+      },
+      {
+        key: "escape_crowd",
+        runner: () => (Game.__DEV && typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce === "function")
+          ? Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false })
+          : { name: "smoke_escape_crowd_outcome_once", ok: false, details: "missing_smoke" }
+      },
+      {
+        key: "ignore_crowd",
+        runner: () => (Game.__DEV && typeof Game.__DEV.smokeIgnoreCrowdOutcomeOnce === "function")
+          ? Game.__DEV.smokeIgnoreCrowdOutcomeOnce({ allowParallel: false })
+          : { name: "smoke_ignore_crowd_outcome_once", ok: false, details: "missing_smoke" }
+      },
+      {
+        key: "paid_votes",
+        runner: () => (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventPaidVotesOnce === "function")
+          ? Game.__DEV.smokeNpcCrowdEventPaidVotesOnce({ window: paymentsWindow })
+          : { name: "smoke_npc_crowd_event_paid_votes_once", ok: false, details: "missing_smoke" }
+      },
+      {
+        key: "long",
+        runner: () => (Game.__DEV && typeof Game.__DEV.smokeEconNpc_LongOnce === "function")
+          ? Game.__DEV.smokeEconNpc_LongOnce({
+            ticks: Number.isFinite(longOpts.ticks) ? longOpts.ticks | 0 : 300,
+            window: (longOpts.window && Number.isFinite(longOpts.window.lastN)) ? { lastN: longOpts.window.lastN | 0 } : { lastN: 400 },
+            runOpts: longOpts.runOpts || {}
+          })
+          : { name: "smoke_econ_npc_long_once", ok: false, details: "missing_smoke" }
+      }
+    ];
+    const results = Object.create(null);
+    const failures = new Set();
+    plan.forEach(entry => {
+      let res = null;
+      try {
+        res = entry.runner();
+      } catch (err) {
+        res = {
+          name: entry.key,
+          ok: false,
+          details: "runner_exception",
+          errorMessage: String(err && err.message ? err.message : err),
+          errorStack: err && err.stack ? String(err.stack) : null
+        };
+      }
+      if (!res) {
+        res = { name: entry.key, ok: false, details: "missing_result" };
+      }
+      const stored = Object.assign({}, res);
+      stored.key = entry.key;
+      if (typeof stored.pass !== "boolean") stored.pass = !!stored.ok;
+      results[entry.key] = stored;
+      if (!res.ok) failures.add(`smoke_failed:${entry.key}`);
+      if (res.asserts && res.asserts.worldMassOk === false) {
+        failures.add("world_mass_drift");
+      }
+    });
+    const failed = Array.from(failures);
+    const ok = failed.length === 0;
+    const finishedAt = Date.now();
+    return {
+      name,
+      ok,
+      pass: ok,
+      failed,
+      results,
+      meta: {
+        buildTag: getWealthTaxBuildTag(),
+        dumpHint,
+        startedAt,
+        finishedAt
+      }
+    };
+  };
+
   Game.__DEV.smokeWealthTaxWithPhasesOnce = (opts = {}) => {
     const getMoneyLog = (sourceHint) => {
       if (sourceHint === "logger_queue" && Game.Logger && Array.isArray(Game.Logger.queue)) return Game.Logger.queue;
@@ -13378,6 +13526,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const diag = { builderWhy: "entered", stage: "entered", trace: [] };
     const debugTelemetry = !!(opts && opts.debugTelemetry);
     const result = { name, ok: false, details: "not_built", battleId: null, telemetry: null, diag };
+    const moneyLogBeforeIndex = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
     if (!Core || typeof Core.finalizeCrowdVote !== "function") {
       return { name, ok: false, details: "ConflictCore.finalizeCrowdVote missing" };
     }
@@ -13794,6 +13943,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         if (r === "crowd_vote_pool_init") poolInitAmount += (tx.amount | 0);
       });
       const logAfter = logRows.slice(logStart);
+      const moneyLogAfterIndex = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : moneyLogBeforeIndex;
 
       let afterSnapshot = Game.__DEV.sumPointsSnapshot();
       afterSnapshot = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
@@ -13810,7 +13960,6 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         });
         return out;
       })();
-      const moneyLogAfterIndex = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : moneyLogBeforeIndex;
       const worldAfterInfo = buildWorldMassFromContract(afterSnapshot, moneyLogAfterIndex);
       const snapshotAccounts = Array.from(new Set([...initialSnapshotAccounts, ...worldAfterInfo.accountsIncluded]));
       const contractAccountSet = new Set();

@@ -1,5 +1,5 @@
-[DUMP_AT] [2026-02-12 21:32:43] (epoch_ms=1770899563847)
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770899544742
+[DUMP_AT] [2026-02-12 22:35:18] (epoch_ms=1770903318017)
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770903279136
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
@@ -9,11 +9,11 @@ WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1770899544753 1770899544789
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1770903279147 1770903279181
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770899544789
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770903279181
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
@@ -39,12 +39,12 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1770899544803
+LOG [AttackChoices] conflict-arguments loaded 1770903279196
 LOG [ConflictAPI] ready
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770899559979_0c876970673118 Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
-WARN [repl] > Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1008:23 | @http://localhost:8080/state.js:1016:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:714:28 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899559990, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770903317937_0ed4702b0f36c Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
+WARN [repl] > Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1008:23 | @http://localhost:8080/state.js:1016:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:714:28 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1770903279209-6rs4, time: 1770903317944, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -58,8 +58,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1770899544806-626r
-  time: 1770899559990
+  sessionId: session-1770903279209-6rs4
+  time: 1770903317944
   type: tamper_detected
   window: Object{
  …
@@ -80,7 +80,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1008:23 | @http://localhost:8080/state.js:1016:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:714:28 | emit@http://localhost:8080/state.js:762:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1008:23 | @http://localhost:8080/state.js:1016:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:705:30 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899559989, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1008:23 | @http://localhost:8080/state.js:1016:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:705:30 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1770903279209-6rs4, time: 1770903317944, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -94,8 +94,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1770899544806-626r
-  time: 1770899559989
+  sessionId: session-1770903279209-6rs4
+  time: 1770903317944
   type: tamper_detected
   windo…
 LOG END CONSOLE_EXPAND_V1
@@ -115,7 +115,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1008:23 | @http://localhost:8080/state.js:1016:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:705:30 | emit@http://localhost:8080/state.js:762:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899559989, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1770903279209-6rs4, time: 1770903317944, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -129,8 +129,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1770899544806-626r
-  time: 1770899559989
+  sessionId: session-1770903279209-6rs4
+  time: 1770903317944
   type: tamper_function
   window: Object{
     longWindowMs: 600000
@@ -140,7 +140,7 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
 WARN [SEC:notify] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
-LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899559994, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38}, playerId: me, reaction: log_only, sessionId: session-1770903279209-6rs4, time: 1770903317948, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -155,7 +155,7 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1770899544806-…
+  sessionId: session-1770903279209-…
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
@@ -175,7 +175,7 @@ LOG Object{
   stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899559998, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1770903279209-6rs4, time: 1770903317951, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -190,8 +190,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1770899544806-626r
-  time: 1770899559998
+  sessionId: session-1770903279209-6rs4
+  time: 1770903317951
   type: tamper_function
   window: Object{
     longWindowMs: 600000
@@ -201,177 +201,194 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
 WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
-LOG [repl] < Object{asserts: Object{battleOutcomeOk: true, endedByCap: true, logMatchesState: true, loserPenaltyOk: true, noRepInFinalize: true, nonMafiaMax2: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderDistributionOk: true, remainderRuleOk: true, repDeltaSourceOk: true, weight3OnlyNpcMafia: true, worldMassOk: true}, battleId: dev_battle_crowd_1770899559985_1110, byReason: Object{battle_win_take: 1, crowd_cap_debug: 1, crowd_vote_loser_penalty: 1, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 9, crowd_vote_remainder_win: 1, world_tax_in: 10}, cap: 10, details: not_built, diag: Object{balanceCompareById: Object{sink: Object{after: -10, afterMinusBefore: 0, before: -10, moneyLogNetDelta: -10}, worldBank: Object{after: 10, afterMinusBefore: 0, before: 10, moneyLogNetDelta: 10}}, balanceProbeAfter: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 15, exists: true}, npc_rin: Object{balance: 9, exists: true}, npc_weak: Object{balance: 6, exists: true}, sink: Object{balance: -10, exists: true}, worldBank: Object{balance: 10, exists: true}}, balanceProbeBefore: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 10, exists: true}, npc_rin: Object{balance: 10, exists: true}, npc_weak: Object{balance: 10, exists: true}, sink: Object{balance: -10, exists: true}, worldBank: Object{balance: 10, exists: true}}, balanceReadModeById: Object{bank: pool, crowd: pool, crowd:dev_battle_crowd_1770899559985_1110: pool, sink: account, worldBank: account}, balanceSourceById: Object{bank: econ.getPoolBalance, crowd: econ.getPoolBalance, crowd:dev_battle_crowd_1770899559985_1110: econ.getPoolBalance, sink: econ.getLedgerBalance, worldBank: econ.getLedgerBalance}, balancesSource: econ_contract_v1, byReasonHasWorldTax: true, contractIds: [bank, crowd, crowd:dev_battle_crowd_1770899559985_1110, sink, worldBank], includesSink: true, includesWorldBank: true, sinkIdUsed: sink, snapshotAccountsIncludedCount: 27, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 200, snapshotWorldTotalsBefore: 200, taxRowsInWindowCount: 10, worldAccountsIncludedCount: 27, worldBankIdUsed: worldBank}, economyOk: true, endedBy: cap, moneyLogReport: Object{adjustedDiff: 0, mintAllowance: 0, netDeltaById: Object{crowd:dev_battle_crowd_1770899559985_1110: 0, me: 5, npc_hot: 0, npc_meme: 0, npc_queen: 0, npc_rin: -1, npc_sad: 0, npc_toxic: 0, npc_toxic2: 0, npc_troll: 0, npc_veteran: 0, npc_weak: -4, npc_yuna: 0, sink: -10, worldBank: 10}, sumNetFromMoneyLog: 0}, name: smoke_battle_crowd_outcome_once, ok: true, outcome: A_WIN, pass: true, pointsDiffOk: true, poolAfter: 0, snapshotReport: Object{afterPoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, dev_battle_crowd_1770899559985_1110: null, me: 15, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 9, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 6, npc_yuna: 10, security_owner: 0, sink: -10, worldBank: 10}, beforePoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, dev_battle_crowd_1770899559985_1110: null, me: 10, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 10, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 10, npc_yuna: 10, security_owner: null, sink: -10, worldBank: 10}, deltaWorld: 0, netDeltaById: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, dev_battle_crowd_1770899559985_1110: null, me: 5, npc_bandit: 0, npc_bandit2: 0, npc_bandit3: 0, npc_cop_a: 0, npc_cop_k: 0, npc_cop_v: 0, npc_hot…(truncated)
+LOG [Dev] C1A6 readonly fix Object{lhs: afterSnapshot, value: Object{byId: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770903317941_3384: 0, me: 15, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 9, npc_cop_v: 10, npc_hot: 10, npc_mafia: 9, npc_meme: 9, npc_queen: 9, npc_rin: 9, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 6, npc_yuna: 10, security_owner: 0, sink: 0, worldBank: 14}, countedCrowdPoolIdsPrefixed: [crowd:dev_battle_crowd_1770903317941_3384], countedNpcIds: [npc_weak, npc_sad, npc_meme, npc_rin, npc_troll, npc_hot, npc_yuna, npc_queen, npc_veteran, npc_toxic, npc_toxic2, npc_toxic3, npc_bandit, npc_bandit2, npc_bandit3, npc_cop_v, npc_cop_k, npc_cop_a, npc_mafia], countedPlayerIds: [me, security_owner], countedPoolIds: [sink, crowd, bank, dev_battle_crowd_1770903317941_3384], duplicatesDetected: [], mePoints_playersMe: 15, mePoints_stateMe: 15, mePoints_used: 15, meSource: players.me, npcs: 181, players: 15, pools: 14, poolsBreakdown: Object{bank: 0, crowd: 0, crowdById: Object{dev_battle_crowd_1770903317941_3384: 0}, crowdMap: 0, sink: 0, worldBank: 14}, total: 210, ts: 1770903317953}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  asserts: Object{
-    battleOutcomeOk: true
-    endedByCap: true
-    logMatchesState: true
-    loserPenaltyOk: true
-    noRepInFinalize: true
-    nonMafiaMax2: true
-    outcomePresent: true
-    pointsDiffOk: true
-    poolAfterOk: true
-    poolInitCountOk: true
-    refundCountOk: true
-    remainderDistributionOk: true
-    remainderRuleOk: true
-    repDeltaSourceOk: true
-    weight3OnlyNpcMafia: true
-    worldMassOk: true
-  }
-  battleId: dev_battle_crowd_1770899559985_1110
-  byReason: Obj…
+  lhs: afterSnapshot
+  value: Object{
+    byId: Object{
+      bank: 0
+      crowd: 0
+      crowd:dev_battle_crowd_1770903317941_3384: 0
+      me: 15
+      npc_bandit: 10
+      npc_bandit2: 10
+      npc_bandit3: 10
+      npc_cop_a: 10
+      npc_cop_k: 9
+      npc_cop_v: 10
+      npc_hot: 10
+      npc_mafia: 9
+      npc_meme: 9
+      npc_queen: 9
+      npc_rin: 9
+      npc_sad: 10
+      npc_toxic: 10
+      npc_toxic2: 10
+      npc_toxic3: 10
+      npc_troll: 10
+      npc_veteran: 10
+      …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1770899559979_0c876970673118 Object{asserts: Object{battleOutcomeOk: true, endedByCap: true, logMatchesState: true, loserPenaltyOk: true, noRepInFinalize: true, nonMafiaMax2: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderDistributionOk: true, remainderRuleOk: true, repDeltaSourceOk: true, weight3OnlyNpcMafia: true, worldMassOk: true}, battleId: dev_battle_crowd_1770899559985_1110, byReason: Object{battle_win_take: 1, crowd_cap_debug: 1, crowd_vote_loser_penalty: 1, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 9, crowd_vote_remainder_win: 1, world_tax_in: 10}, cap: 10, details: not_built, diag: Object{balanceCompareById: Object{sink: Object{after: -10, afterMinusBefore: 0, before: -10, moneyLogNetDelta: -10}, worldBank: Object{after: 10, afterMinusBefore: 0, before: 10, moneyLogNetDelta: 10}}, balanceProbeAfter: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 15, exists: true}, npc_rin: Object{balance: 9, exists: true}, npc_weak: Object{balance: 6, exists: true}, sink: Object{balance: -10, exists: true}, worldBank: Object{balance: 10, exists: true}}, balanceProbeBefore: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 10, exists: true}, npc_rin: Object{balance: 10, exists: true}, npc_weak: Object{balance: 10, exists: true}, sink: Object{balance: -10, exists: true}, worldBank: Object{balance: 10, exists: true}}, balanceReadModeById: Object{bank: pool, crowd: pool, crowd:dev_battle_crowd_1770899559985_1110: pool, sink: account, worldBank: account}, balanceSourceById: Object{bank: econ.getPoolBalance, crowd: econ.getPoolBalance, crowd:dev_battle_crowd_1770899559985_1110: econ.getPoolBalance, sink: econ.getLedgerBalance, worldBank: econ.getLedgerBalance}, balancesSource: econ_contract_v1, byReasonHasWorldTax: true, contractIds: [bank, crowd, crowd:dev_battle_crowd_1770899559985_1110, sink, worldBank], includesSink: true, includesWorldBank: true, sinkIdUsed: sink, snapshotAccountsIncludedCount: 27, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 200, snapshotWorldTotalsBefore: 200, taxRowsInWindowCount: 10, worldAccountsIncludedCount: 27, worldBankIdUsed: worldBank}, economyOk: true, endedBy: cap, moneyLogReport: Object{adjustedDiff: 0, mintAllowance: 0, netDeltaById: Object{crowd:dev_battle_crowd_1770899559985_1110: 0, me: 5, npc_hot: 0, npc_meme: 0, npc_queen: 0, npc_rin: -1, npc_sad: 0, npc_toxic: 0, npc_toxic2: 0, npc_troll: 0, npc_veteran: 0, npc_weak: -4, npc_yuna: 0, sink: -10, worldBank: 10}, sumNetFromMoneyLog: 0}, name: smoke_battle_crowd_outcome_once, ok: true, outcome: A_WIN, pass: true, pointsDiffOk: true, poolAfter: 0, snapshotReport: Object{afterPoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, dev_battle_crowd_1770899559985_1110: null, me: 15, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 9, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 6, npc_yuna: 10, security_owner: 0, sink: -10, worldBank: 10}, beforePoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, dev_battle_crowd_1770899559985_1110: null, me: 10, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 10, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 10, npc_yuna: 10, security_owner: null, sink: -10, worldBank: 10}, deltaWorld: 0, netDeltaById: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, dev_battle_crowd_1770899559985_1110: null, me: 5, npc_bandit: 0, npc_bandit2: 0, npc_bandit3: 0, npc_cop_a: 0, npc_cop_k: 0, npc_cop_v: 0, npc_hot…(truncated)
+LOG DEV_TELEMETRY_SUMMARY Object{counted: 10, id: dev_battle_crowd_1770903317941_3384, poolAfter: 0, refundsCount: 9, scenario: battle, totalVoters: 10}
+WARN SEED_RICH_NPC_V2_ACTIVE
+WARN ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":30,"accountsIncludedHash":"h8d392c61","hasTotals":true,"missingCount":0}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 231, beforeTotal: 231, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax_pack, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  asserts: Object{
-    battleOutcomeOk: true
-    endedByCap: true
-    logMatchesState: true
-    loserPenaltyOk: true
-    noRepInFinalize: true
-    nonMafiaMax2: true
-    outcomePresent: true
-    pointsDiffOk: true
-    poolAfterOk: true
-    poolInitCountOk: true
-    refundCountOk: true
-    remainderDistributionOk: true
-    remainderRuleOk: true
-    repDeltaSourceOk: true
-    weight3OnlyNpcMafia: true
-    worldMassOk: true
-  }
-  battleId: dev_battle_crowd_1770899559985_1110
-  byReason: Obj…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770899563820_1b8405d88e29a Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
-WARN [repl] > Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
-LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899563824, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  counts: Object{
-    long: 3
-    short: 3
-  }
-  meta: Object{
-    action: set
-    key: StateAPI.transferRep
-    mode: dev
-  }
-  playerId: me
-  reaction: log_only
-  sessionId: session-1770899544806-626r
-  time: 1770899563824
-  type: tamper_function
-  window: Object{
-    longWindowMs: 600000
-    shortWindowMs: 60000
-  }
+  afterTotal: 231
+  beforeTotal: 231
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax_pack
+  skippedCount: 19
+  syncedCount: 0
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
-LOG [SEC:reaction] Object{counts: Object{long: 4, short: 4}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899563826, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 231, beforeTotal: 231, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax_pack_idempotent, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  counts: Object{
-    long: 4
-    short: 4
-  }
-  meta: Object{
-    action: set_function
-    key: StateAPI.transferRep
-    mode: dev
-    stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38
-  }
-  playerId: me
-  reaction: log_only
-  sessionId: session-1770899544806-…
-LOG END CONSOLE_EXPAND_V1
-WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38}
-LOG BEGIN CONSOLE_EXPAND_V1 arg3
-LOG Object{
-  action: set_function
-  key: StateAPI.transferRep
-  mode: dev
-  stack: set@http://localhost:8080/state.js:874:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:819:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1237:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1114:38
+  afterTotal: 231
+  beforeTotal: 231
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax_pack_idempotent
+  skippedCount: 19
+  syncedCount: 0
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 4, short: 4}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1770899544806-626r, time: 1770899563828, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 231, beforeTotal: 231, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax_pack_precheck, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  counts: Object{
-    long: 4
-    short: 4
-  }
-  meta: Object{
-    action: call
-    key: transferRep
-    mode: dev
-    reason: blocked
-  }
-  playerId: me
-  reaction: log_only
-  sessionId: session-1770899544806-626r
-  time: 1770899563828
-  type: tamper_function
-  window: Object{
-    longWindowMs: 600000
-    shortWindowMs: 60000
-  }
+  afterTotal: 231
+  beforeTotal: 231
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax_pack_precheck
+  skippedCount: 19
+  syncedCount: 0
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
-LOG [repl] < Object{asserts: Object{battleOutcomeOk: true, endedByCap: true, logMatchesState: true, loserPenaltyOk: true, noRepInFinalize: true, nonMafiaMax2: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderDistributionOk: true, remainderRuleOk: true, repDeltaSourceOk: true, weight3OnlyNpcMafia: true, worldMassOk: true}, battleId: dev_battle_crowd_1770899563821_7777, byReason: Object{battle_win_take: 1, crowd_cap_debug: 1, crowd_vote_loser_penalty: 1, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 9, crowd_vote_remainder_win: 1, world_tax_in: 10}, cap: 10, details: not_built, diag: Object{balanceCompareById: Object{sink: Object{after: -20, afterMinusBefore: 0, before: -20, moneyLogNetDelta: -10}, worldBank: Object{after: 20, afterMinusBefore: 0, before: 20, moneyLogNetDelta: 10}}, balanceProbeAfter: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 20, exists: true}, npc_rin: Object{balance: 8, exists: true}, npc_weak: Object{balance: 2, exists: true}, sink: Object{balance: -20, exists: true}, worldBank: Object{balance: 20, exists: true}}, balanceProbeBefore: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 15, exists: true}, npc_rin: Object{balance: 9, exists: true}, npc_weak: Object{balance: 6, exists: true}, sink: Object{balance: -20, exists: true}, worldBank: Object{balance: 20, exists: true}}, balanceReadModeById: Object{bank: pool, crowd: pool, crowd:dev_battle_crowd_1770899559985_1110: pool, crowd:dev_battle_crowd_1770899563821_7777: pool, sink: account, worldBank: account}, balanceSourceById: Object{bank: econ.getPoolBalance, crowd: econ.getPoolBalance, crowd:dev_battle_crowd_1770899559985_1110: econ.getPoolBalance, crowd:dev_battle_crowd_1770899563821_7777: econ.getPoolBalance, sink: econ.getLedgerBalance, worldBank: econ.getLedgerBalance}, balancesSource: econ_contract_v1, byReasonHasWorldTax: true, contractIds: [bank, crowd, crowd:dev_battle_crowd_1770899559985_1110, crowd:dev_battle_crowd_1770899563821_7777, sink, worldBank], includesSink: true, includesWorldBank: true, sinkIdUsed: sink, snapshotAccountsIncludedCount: 29, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 200, snapshotWorldTotalsBefore: 200, taxRowsInWindowCount: 10, worldAccountsIncludedCount: 29, worldBankIdUsed: worldBank}, economyOk: true, endedBy: cap, moneyLogReport: Object{adjustedDiff: 0, mintAllowance: 0, netDeltaById: Object{crowd:dev_battle_crowd_1770899563821_7777: 0, me: 5, npc_hot: 0, npc_meme: 0, npc_queen: 0, npc_rin: -1, npc_sad: 0, npc_toxic: 0, npc_toxic2: 0, npc_troll: 0, npc_veteran: 0, npc_weak: -4, npc_yuna: 0, sink: -10, worldBank: 10}, sumNetFromMoneyLog: 0}, name: smoke_battle_crowd_outcome_once, ok: true, outcome: A_WIN, pass: true, pointsDiffOk: true, poolAfter: 0, snapshotReport: Object{afterPoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, crowd:dev_battle_crowd_1770899563821_7777: 0, dev_battle_crowd_1770899559985_1110: null, dev_battle_crowd_1770899563821_7777: null, me: 20, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 8, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 2, npc_yuna: 10, security_owner: 0, sink: -20, worldBank: 20}, beforePoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, crowd:dev_battle_crowd_1770899563821_7777: 0, dev_battle_crowd_1770899559985_1110: null, dev_battle_crowd_1770899563821_7777: null, me: 15, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 9, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_vetera…(truncated)
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN WEALTH_TAX_PRECHECK {"npcCount":19,"createdCount":0,"syncedCount":0,"skippedCount":19,"missingAfterCount":0,"sampleMissingIds":[],"statePointsSample":[{"id":"npc_weak","points":2},{"id":"npc_sad","points":12},{"id":"npc_meme","points":11}],"branch":"already_ok","ensureDiag":{"called":true,"branch":"already_ok","returnReason":null,"storageKey":"S.players","storageKeyUsed":"S.players","hasGameStatePlayers":true,"hasSPlayers":true,"playersKeyCountGame":21,"playersKeyCountS":21,"npcIdsSeenCount":19,…
+WARN WORLD_MASS_V2 {"stage":"beforeSeed","totals":{"totalPtsAll":231,"totalPtsPlayers":216,"totalPtsNpc":191,"totalPtsService":15},"topChangedIds":[],"scopedMoneyLogAgg":{"sumNet":191,"byReasonTop5":[{"reason":"crowd_vote_refund_majority","amount":53},{"reason":"crowd_vote_pool_init","amount":50},{"reason":"crowd_vote_cost","amount":40},{"reason":"world_tax_in","amount":15},{"reason":"crowd_vote_refund","amount":10}]}}
+WARN SEED_RICH_NPC_V2_ACTIVE {"buildTag":"wt_dump_guard_v3_2026_02_11_01","file":"dev-checks.js","mode":"npc_only","need":23,"donorsTried":18,"donorsUsed":0,"forbiddenSinkUsed":false,"ts":1770903317988}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 231, beforeTotal: 231, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  asserts: Object{
-    battleOutcomeOk: true
-    endedByCap: true
-    logMatchesState: true
-    loserPenaltyOk: true
-    noRepInFinalize: true
-    nonMafiaMax2: true
-    outcomePresent: true
-    pointsDiffOk: true
-    poolAfterOk: true
-    poolInitCountOk: true
-    refundCountOk: true
-    remainderDistributionOk: true
-    remainderRuleOk: true
-    repDeltaSourceOk: true
-    weight3OnlyNpcMafia: true
-    worldMassOk: true
-  }
-  battleId: dev_battle_crowd_1770899563821_7777
-  byReason: Obj…
+  afterTotal: 231
+  beforeTotal: 231
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1770899563820_1b8405d88e29a Object{asserts: Object{battleOutcomeOk: true, endedByCap: true, logMatchesState: true, loserPenaltyOk: true, noRepInFinalize: true, nonMafiaMax2: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderDistributionOk: true, remainderRuleOk: true, repDeltaSourceOk: true, weight3OnlyNpcMafia: true, worldMassOk: true}, battleId: dev_battle_crowd_1770899563821_7777, byReason: Object{battle_win_take: 1, crowd_cap_debug: 1, crowd_vote_loser_penalty: 1, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 9, crowd_vote_remainder_win: 1, world_tax_in: 10}, cap: 10, details: not_built, diag: Object{balanceCompareById: Object{sink: Object{after: -20, afterMinusBefore: 0, before: -20, moneyLogNetDelta: -10}, worldBank: Object{after: 20, afterMinusBefore: 0, before: 20, moneyLogNetDelta: 10}}, balanceProbeAfter: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 20, exists: true}, npc_rin: Object{balance: 8, exists: true}, npc_weak: Object{balance: 2, exists: true}, sink: Object{balance: -20, exists: true}, worldBank: Object{balance: 20, exists: true}}, balanceProbeBefore: Object{crowd: Object{balance: 0, exists: true}, crowdPool: Object{balance: 0, exists: true}, me: Object{balance: 15, exists: true}, npc_rin: Object{balance: 9, exists: true}, npc_weak: Object{balance: 6, exists: true}, sink: Object{balance: -20, exists: true}, worldBank: Object{balance: 20, exists: true}}, balanceReadModeById: Object{bank: pool, crowd: pool, crowd:dev_battle_crowd_1770899559985_1110: pool, crowd:dev_battle_crowd_1770899563821_7777: pool, sink: account, worldBank: account}, balanceSourceById: Object{bank: econ.getPoolBalance, crowd: econ.getPoolBalance, crowd:dev_battle_crowd_1770899559985_1110: econ.getPoolBalance, crowd:dev_battle_crowd_1770899563821_7777: econ.getPoolBalance, sink: econ.getLedgerBalance, worldBank: econ.getLedgerBalance}, balancesSource: econ_contract_v1, byReasonHasWorldTax: true, contractIds: [bank, crowd, crowd:dev_battle_crowd_1770899559985_1110, crowd:dev_battle_crowd_1770899563821_7777, sink, worldBank], includesSink: true, includesWorldBank: true, sinkIdUsed: sink, snapshotAccountsIncludedCount: 29, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 200, snapshotWorldTotalsBefore: 200, taxRowsInWindowCount: 10, worldAccountsIncludedCount: 29, worldBankIdUsed: worldBank}, economyOk: true, endedBy: cap, moneyLogReport: Object{adjustedDiff: 0, mintAllowance: 0, netDeltaById: Object{crowd:dev_battle_crowd_1770899563821_7777: 0, me: 5, npc_hot: 0, npc_meme: 0, npc_queen: 0, npc_rin: -1, npc_sad: 0, npc_toxic: 0, npc_toxic2: 0, npc_troll: 0, npc_veteran: 0, npc_weak: -4, npc_yuna: 0, sink: -10, worldBank: 10}, sumNetFromMoneyLog: 0}, name: smoke_battle_crowd_outcome_once, ok: true, outcome: A_WIN, pass: true, pointsDiffOk: true, poolAfter: 0, snapshotReport: Object{afterPoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, crowd:dev_battle_crowd_1770899563821_7777: 0, dev_battle_crowd_1770899559985_1110: null, dev_battle_crowd_1770899563821_7777: null, me: 20, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 8, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_veteran: 10, npc_weak: 2, npc_yuna: 10, security_owner: 0, sink: -20, worldBank: 20}, beforePoints: Object{bank: 0, crowd: 0, crowd:dev_battle_crowd_1770899559985_1110: 0, crowd:dev_battle_crowd_1770899563821_7777: 0, dev_battle_crowd_1770899559985_1110: null, dev_battle_crowd_1770899563821_7777: null, me: 15, npc_bandit: 10, npc_bandit2: 10, npc_bandit3: 10, npc_cop_a: 10, npc_cop_k: 10, npc_cop_v: 10, npc_hot: 10, npc_mafia: 10, npc_meme: 10, npc_queen: 10, npc_rin: 9, npc_sad: 10, npc_toxic: 10, npc_toxic2: 10, npc_toxic3: 10, npc_troll: 10, npc_vetera…(truncated)
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN ECON_NPC_WEALTH_TAX_APPLY_V1 {"npcId":"npc_weak","npcPtsBefore":20,"npcPtsAfter":20,"taxResOk":true,"taxApplied":false,"taxAmount":0,"reasonIn":"world_tax_in","reasonOut":"world_tax_out"}
+WARN WORLD_MASS_V2 {"stage":"afterSeed","totals":{"totalPtsAll":231,"totalPtsPlayers":216,"totalPtsNpc":191,"totalPtsService":15},"topChangedIds":[{"id":"npc_weak","before":2,"after":20,"delta":18},{"id":"npc_sad","before":12,"after":11,"delta":-1},{"id":"npc_meme","before":11,"after":10,"delta":-1},{"id":"npc_rin","before":8,"after":7,"delta":-1},{"id":"npc_troll","before":9,"after":8,"delta":-1}],"scopedMoneyLogAgg":{"sumNet":163,"byReasonTop5":[{"reason":"crowd_vote_refund_majority","amount":44},{…
+WARN WEALTH_TAX_BUILD_TAG_LOCAL wt_dump_guard_v3_2026_02_11_01
+WARN WEALTH_TAX_SAFE_STRINGIFY_OK true
+WARN WEALTH_TAX_EVIDENCE_BEGIN
+WARN WEALTH_TAX_ATTEMPT_DIAG {"taxAttempted":true,"taxApplied":false,"npcAccountsAfterCount":21,"missingNpcAccountsAfterCount":0,"seedRichNpc":true,"topGateReason":"insufficient_npc_donors","windowLastN":400,"rowsScoped":0,"worldTaxRowsInWindow":{"world_tax_in":0,"world_tax_out":0}}
+WARN WEALTH_TAX_EVIDENCE_JSON_1_PART 1/4 {"ok":false,"notes":["seed_rich_npc_failed","tax_probe_failed"],"meta":{"ticks":300,"seed":1,"seedRichNpc":true,"logSource":"none","rowsScoped":0,"scopeDesc":"ticks=300","debugTelemetry":true},"world":{"beforeTotal":231,"afterTotal":231,"delta":0,"byBucket":{"sink":0,"crowd":0,"bank":0,"worldBank":15,"crowdMap":0,"crowdById":{"dev_battle_crowd_1770903317941_3384":0,"dev_step2_fifty_1770903317961_6445":0,"dev_step2_majority_1770903317964_7812":0,"dev_escape_cro…
+WARN WEALTH_TAX_EVIDENCE_JSON_1_PART 2/4 "ensureNpcAccountsOk":false},"diag":{"seedRichNpc":true,"npcSeededId":"npc_weak","npcSeededPtsBefore":2,"npcSeededPtsAfter":20,"seedSourceId":"npc_only","seedFailureReason":"insufficient_npc_donors","NPC_TAX_SOFT_CAP":20,"NPC_TAX_MAX_PER_TXN":2,"seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":"insufficient_npc_donors","seedNeed":23,"seedCollected":18,"seedDonorsCount":18,"logSource":"none","rowsScoped":0,"logSourceCandidates":[],"snapshotOk":tru…
+WARN WEALTH_TAX_EVIDENCE_JSON_1_PART 3/4 addedAccounts":[],"fixedAccounts":[],"contractFrozen":true,"accountsIncludedLenFrozen":30,"accountsIncludedHashFrozen":"h8d392c61","ensureNpcAccounts":{"npcCount":19,"createdCount":0,"syncedCount":0,"skippedCount":19,"missingAfterCount":0,"sampleMissingIds":[],"statePointsSample":[{"id":"npc_weak","points":2},{"id":"npc_sad","points":12},{"id":"npc_meme","points":11}],"branch":"already_ok","ensureDiag":{"called":true,"branch":"already_ok","returnReason":null,"…
+WARN WEALTH_TAX_EVIDENCE_JSON_1_PART 4/4 ttempt":{"npcId":"npc_weak","npcPtsBefore":20,"softCapHit":false,"notes":["below_threshold"],"eligibleNpcCount":null,"taxedNpcCount":null,"totalTaxInWindow":null},"npcAccountCount":19,"npcAccountSample":["npc_weak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempote…
+WARN WEALTH_TAX_EVIDENCE_JSON_2_PART 1/4 {"ok":false,"worldDelta":0,"totalTaxInWindow":0,"reasonsTop":[],"bank":{"accountId":"worldBank","beforePts":15,"afterPts":15,"delta":0,"softCap":20},"asserts":{"worldDeltaZero":true,"taxPositiveWhenSeeded":false,"noNpcNegative":true,"hasWorldTaxInRows":false,"bankNonNegative":true,"rowsScopedPositive":false,"ensureNpcAccountsOk":false},"diag":{"logSourceChosen":"none","buildTag":"wt_dump_guard_v3_2026_02_11_01","logSourceCandidates":[],"snapshotOk":true,"snaps…
+WARN WEALTH_TAX_EVIDENCE_JSON_2_PART 2/4 ak","npc_sad","npc_meme"],"npcAccountsMissingLen":0,"npcAccountsMissingSample":[],"npcAccounts":{"ensureCalled":true,"migrateMarkerSeen":false,"createdNowCount":0,"syncedNowCount":0,"missingAfterEnsureLen":0,"missingAfterEnsureSample":[],"ensureIdempotentOk":true,"missingAfterEnsureLenNpcAccounts":0,"missingAfterEnsureSampleNpcAccounts":[]},"ensureNpcAccounts":{"npcCount":19,"createdCount":0,"syncedCount":0,"skippedCount":19,"missingAfterCount":0,"sampleMissin…
+WARN WEALTH_TAX_EVIDENCE_JSON_2_PART 3/4 rin","npc_troll"],"createdIdsCount":0,"createdIdsSample":[],"missingAfterCount":0,"missingAfterIdsSample":[],"econAccountKeysCountS":21,"afterCount":21,"whyNotCreated":"already_present"},"missingNpcIds":[]},"seedSourceId":"npc_only","seedFailureReason":"insufficient_npc_donors","seedThreshold":20,"seedMargin":5,"seedApplied":false,"seedWhy":"insufficient_npc_donors","taxProbe":{"attempted":true,"applied":false,"taxAmount":0,"why":"insufficient_npc_donors"},"ta…
+WARN WEALTH_TAX_EVIDENCE_JSON_2_PART 4/4 ack_v1"}
+WARN WEALTH_TAX_EVIDENCE_END
+WARN WEALTH_TAX_EVIDENCE_FLUSH
+WARN WEALTH_TAX_EVIDENCE_FLUSH_ERR missing_flush_fn
+LOG [repl] < Object{failed: [smoke_failed:battle_fifty_cap, smoke_failed:split_remainder, smoke_failed:long], meta: Object{buildTag: wt_dump_guard_v3_2026_02_11_01, dumpHint: Game.__DUMP_ALL__(), finishedAt: 1770903317991, startedAt: 1770903317939}, name: smoke_econ_npc_regress_pack_once, ok: false, pass: false, results: Object{battle_fifty_cap: Object{fiftyFifty: Object{aVotesWeighted: 9, asserts: [MaxDepth Object], bVotesWeighted: 3, battleId: dev_step2_fifty_1770903317961_6445, capUsed: 10, endedBy: cap, moneyLogByReason: [MaxDepth Object], ok: true, outcome: A_WIN, participants: [MaxDepth Array], pool: [MaxDepth Object], totalPlayers: 21, totalVotes: 10}, key: battle_fifty_cap, majority: Object{aVotesWeighted: 11, asserts: [MaxDepth Object], bVotesWeighted: 2, battleId: dev_step2_majority_1770903317964_7812, capUsed: 10, endedBy: cap, moneyLogByReason: [MaxDepth Object], ok: true, outcome: A_WIN, participants: [MaxDepth Array], pool: [MaxDepth Object], totalPlayers: 21, totalVotes: 10}, name: smoke_crowd_step2, ok: false, pass: false}, battle_majority: Object{asserts: Object{battleOutcomeOk: true, endedByCap: true, logMatchesState: true, loserPenaltyOk: true, noRepInFinalize: true, nonMafiaMax2: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderDistributionOk: true, remainderRuleOk: true, repDeltaSourceOk: true, weight3OnlyNpcMafia: true, worldMassOk: true}, battleId: dev_battle_crowd_1770903317941_3384, byReason: Object{battle_win_take: 1, crowd_cap_debug: 1, crowd_vote_loser_penalty: 1, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 9, crowd_vote_remainder_win: 1, world_tax_in: 10}, cap: 10, details: not_built, diag: Object{balanceCompareById: [MaxDepth Object], balanceProbeAfter: [MaxDepth Object], balanceProbeBefore: [MaxDepth Object], balanceReadModeById: [MaxDepth Object], balanceSourceById: [MaxDepth Object], balancesSource: econ_contract_v1, byReasonHasWorldTax: true, contractIds: [MaxDepth Array], includesSink: true, includesWorldBank: true, ledgerLenAfter: 51, ledgerLenBefore: 27, moneyLogAfterIndex: 51, moneyLogBeforeIndex: 27, sinkIdUsed: sink, snapshotAccountsIncludedCount: 27, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 200, snapshotWorldTotalsBefore: 200, taxRowsInWindowCount: 10, worldAccountsIncludedCount: 27, worldBankIdUsed: worldBank}, economyOk: true, endedBy: cap, key: battle_majority, moneyLogReport: Object{adjustedDiff: 0, mintAllowance: 0, netDeltaById: [MaxDepth Object], sumNetFromMoneyLog: 0}, name: smoke_battle_crowd_outcome_once, ok: true, outcome: A_WIN, pass: true, pointsDiffOk: true, poolAfter: 0, snapshotReport: Object{afterPoints: [MaxDepth Object], beforePoints: [MaxDepth Object], deltaWorld: 0, netDeltaById: [MaxDepth Object], sumNetDelta: 0, totalPtsWorldAfter: 200, totalPtsWorldBefore: 200}, telemetry: Object{endedBy: cap, id: dev_battle_crowd_1770903317941_3384, maxNpcShare: null, mode: majority, pool: [MaxDepth Object], refunds: [MaxDepth Array], scenario: battle, sideCounts: [MaxDepth Object], totalVotes: 10, voters: [MaxDepth Array], weightsSummary: [MaxDepth Object], winner: a}, telemetryOk: true, totalVotes: 10, warnings: [telemetry_not_built], weightsSummary: Object{aVotes: 10, bVotes: 1, cap: 10, totalVotes: 10}}, escape_crowd: Object{asserts: Object{endedByCap: true, escapeCostLogged: true, escapeOutcomeOk: true, loserPenaltyOk: true, noRepInFinalize: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderRuleOk: true, repDeltaSourceOk: true}, battleId: dev_escape_crowd_1770903317967_3511, byReason: Object{crowd_cap_debug: 1, crowd_vote_cost: 10, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 10, escape_vote_cost: 1}, cap: 10, debugVersion: ECON02_7, details: not_built, diag: Object{builderWhy: entered, stage: after_create_battle, trace: [MaxDepth Array]}, economyOk: true, endedBy: cap, hasAfterSnap: tr…(truncated)
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  asserts: Object{
-    battleOutcomeOk: true
-    endedByCap: true
-    logMatchesState: true
-    loserPenaltyOk: true
-    noRepInFinalize: true
-    nonMafiaMax2: true
-    outcomePresent: true
-    pointsDiffOk: true
-    poolAfterOk: true
-    poolInitCountOk: true
-    refundCountOk: true
-    remainderDistributionOk: true
-    remainderRuleOk: true
-    repDeltaSourceOk: true
-    weight3OnlyNpcMafia: true
-    worldMassOk: true
+  failed: [
+    smoke_failed:battle_fifty_cap
+    smoke_failed:split_remainder
+    smoke_failed:long
+  ]
+  meta: Object{
+    buildTag: wt_dump_guard_v3_2026_02_11_01
+    dumpHint: Game.__DUMP_ALL__()
+    finishedAt: 1770903317991
+    startedAt: 1770903317939
   }
-  battleId: dev_battle_crowd_1770899563821_7777
-  byReason: Obj…
+  name: smoke_econ_npc_regress_pack_once
+  ok: false
+  pass: false
+  results: Object{
+    battle_fifty_cap: Object{
+      fiftyFifty: Object{
+        aVotesWeighted: 9
+        asserts: Object{
+          capUsed: true
+          fi…
+LOG END CONSOLE_EXPAND_V1
+ERROR CONSOLE_PANEL_RUN_ERR id=panel_1770903317937_0ed4702b0f36c Object{failed: [smoke_failed:battle_fifty_cap, smoke_failed:split_remainder, smoke_failed:long], meta: Object{buildTag: wt_dump_guard_v3_2026_02_11_01, dumpHint: Game.__DUMP_ALL__(), finishedAt: 1770903317991, startedAt: 1770903317939}, name: smoke_econ_npc_regress_pack_once, ok: false, pass: false, results: Object{battle_fifty_cap: Object{fiftyFifty: Object{aVotesWeighted: 9, asserts: [MaxDepth Object], bVotesWeighted: 3, battleId: dev_step2_fifty_1770903317961_6445, capUsed: 10, endedBy: cap, moneyLogByReason: [MaxDepth Object], ok: true, outcome: A_WIN, participants: [MaxDepth Array], pool: [MaxDepth Object], totalPlayers: 21, totalVotes: 10}, key: battle_fifty_cap, majority: Object{aVotesWeighted: 11, asserts: [MaxDepth Object], bVotesWeighted: 2, battleId: dev_step2_majority_1770903317964_7812, capUsed: 10, endedBy: cap, moneyLogByReason: [MaxDepth Object], ok: true, outcome: A_WIN, participants: [MaxDepth Array], pool: [MaxDepth Object], totalPlayers: 21, totalVotes: 10}, name: smoke_crowd_step2, ok: false, pass: false}, battle_majority: Object{asserts: Object{battleOutcomeOk: true, endedByCap: true, logMatchesState: true, loserPenaltyOk: true, noRepInFinalize: true, nonMafiaMax2: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderDistributionOk: true, remainderRuleOk: true, repDeltaSourceOk: true, weight3OnlyNpcMafia: true, worldMassOk: true}, battleId: dev_battle_crowd_1770903317941_3384, byReason: Object{battle_win_take: 1, crowd_cap_debug: 1, crowd_vote_loser_penalty: 1, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 9, crowd_vote_remainder_win: 1, world_tax_in: 10}, cap: 10, details: not_built, diag: Object{balanceCompareById: [MaxDepth Object], balanceProbeAfter: [MaxDepth Object], balanceProbeBefore: [MaxDepth Object], balanceReadModeById: [MaxDepth Object], balanceSourceById: [MaxDepth Object], balancesSource: econ_contract_v1, byReasonHasWorldTax: true, contractIds: [MaxDepth Array], includesSink: true, includesWorldBank: true, ledgerLenAfter: 51, ledgerLenBefore: 27, moneyLogAfterIndex: 51, moneyLogBeforeIndex: 27, sinkIdUsed: sink, snapshotAccountsIncludedCount: 27, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 200, snapshotWorldTotalsBefore: 200, taxRowsInWindowCount: 10, worldAccountsIncludedCount: 27, worldBankIdUsed: worldBank}, economyOk: true, endedBy: cap, key: battle_majority, moneyLogReport: Object{adjustedDiff: 0, mintAllowance: 0, netDeltaById: [MaxDepth Object], sumNetFromMoneyLog: 0}, name: smoke_battle_crowd_outcome_once, ok: true, outcome: A_WIN, pass: true, pointsDiffOk: true, poolAfter: 0, snapshotReport: Object{afterPoints: [MaxDepth Object], beforePoints: [MaxDepth Object], deltaWorld: 0, netDeltaById: [MaxDepth Object], sumNetDelta: 0, totalPtsWorldAfter: 200, totalPtsWorldBefore: 200}, telemetry: Object{endedBy: cap, id: dev_battle_crowd_1770903317941_3384, maxNpcShare: null, mode: majority, pool: [MaxDepth Object], refunds: [MaxDepth Array], scenario: battle, sideCounts: [MaxDepth Object], totalVotes: 10, voters: [MaxDepth Array], weightsSummary: [MaxDepth Object], winner: a}, telemetryOk: true, totalVotes: 10, warnings: [telemetry_not_built], weightsSummary: Object{aVotes: 10, bVotes: 1, cap: 10, totalVotes: 10}}, escape_crowd: Object{asserts: Object{endedByCap: true, escapeCostLogged: true, escapeOutcomeOk: true, loserPenaltyOk: true, noRepInFinalize: true, outcomePresent: true, pointsDiffOk: true, poolAfterOk: true, poolInitCountOk: true, refundCountOk: true, remainderRuleOk: true, repDeltaSourceOk: true}, battleId: dev_escape_crowd_1770903317967_3511, byReason: Object{crowd_cap_debug: 1, crowd_vote_cost: 10, crowd_vote_pool_init: 1, crowd_vote_refund_majority: 10, escape_vote_cost: 1}, cap: 10, debugVersion: ECON02_7, details: not_built, diag: Object{builderWhy: entered, stage: after_create_battle, trace: [MaxDepth Array]}, economyOk: true, endedBy: cap, hasAfterSnap: tr…(truncated)
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  failed: [
+    smoke_failed:battle_fifty_cap
+    smoke_failed:split_remainder
+    smoke_failed:long
+  ]
+  meta: Object{
+    buildTag: wt_dump_guard_v3_2026_02_11_01
+    dumpHint: Game.__DUMP_ALL__()
+    finishedAt: 1770903317991
+    startedAt: 1770903317939
+  }
+  name: smoke_econ_npc_regress_pack_once
+  ok: false
+  pass: false
+  results: Object{
+    battle_fifty_cap: Object{
+      fiftyFifty: Object{
+        aVotesWeighted: 9
+        asserts: Object{
+          capUsed: true
+          fi…
 LOG END CONSOLE_EXPAND_V1
 
