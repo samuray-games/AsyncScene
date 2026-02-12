@@ -1957,6 +1957,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const sampleLogHeads = normalizedRows.slice(0, 3);
     const diag = buildMoneyLogDiag();
     const diagVersion = DIAG_VERSION;
+    let auditExplainabilityTrace = {};
     const buildExplainability = (rows, beforeMap, afterMap, npcIdsSet, opts = {}) => {
       const explain = {
       byReasonDetailed: Object.create(null),
@@ -1983,18 +1984,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const summaryCounterpartyTop = Array.isArray(flowSummary.byCounterpartyTop) ? flowSummary.byCounterpartyTop : flowCounterpartyTop;
       const summaryReasonTop = Array.isArray(flowSummary.byReasonTop) ? flowSummary.byReasonTop : flowReasonTop;
       const flowHasAmount = Math.abs(summaryTotals.inTotal) + Math.abs(summaryTotals.outTotal) > 0;
-      const fsSummary = flowSummary;
-      const fsTotalsSummary = (Number(fsSummary.totals && fsSummary.totals.inTotal) || 0) + (Number(fsSummary.totals && fsSummary.totals.outTotal) || 0);
-      const fsHasTopSummary = !!((Array.isArray(fsSummary.byCounterpartyTop) && fsSummary.byCounterpartyTop.length) || (Array.isArray(fsSummary.byReasonTop) && fsSummary.byReasonTop.length));
-      const noTxValue = !explain.hasTransactions && (!Array.isArray(explain.topTransfers) || explain.topTransfers.length === 0);
-      diagRef.fallbackEval = {
-        hasFs: !!fsSummary,
-        fsTotals: fsTotalsSummary,
-        fsHasTop: fsHasTopSummary,
-        noTx: noTxValue,
-        hasTransactions: !!explain.hasTransactions,
-        topTransfersLen: Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0
-      };
+      const fs = flowSummary && Object.keys(flowSummary).length ? flowSummary : null;
+      const fsIn = fs && fs.totals && Number.isFinite(fs.totals.inTotal) ? Number(fs.totals.inTotal) : 0;
+      const fsOut = fs && fs.totals && Number.isFinite(fs.totals.outTotal) ? Number(fs.totals.outTotal) : 0;
+      const fsTotals = fs ? (fsIn + fsOut) : 0;
+      const fsHasByReasonTop = fs && Array.isArray(fs.byReasonTop) ? fs.byReasonTop.length : 0;
+      const fsHasByCounterpartyTop = fs && Array.isArray(fs.byCounterpartyTop) ? fs.byCounterpartyTop.length : 0;
+      const fsHasTop = (fsHasByReasonTop + fsHasByCounterpartyTop) > 0;
       const markPresence = (row) => {
         if (!row || typeof row !== "object") return;
         const hasAmount = TX_AMOUNT_KEYS.some(key => {
@@ -2037,97 +2033,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           return normalized;
         })
         .filter(r => r && Number.isFinite(r.amount));
-      let fallbackUsed = false;
-      const shouldFallback = flowHasAmount && (summaryCounterpartyTop.length || summaryReasonTop.length);
-      if (noTxValue && fs && fsTotalsValue > 0 && fsHasTop) {
-        const syntheticRows = [];
-        summaryCounterpartyTop.forEach(entry => {
-          const amt = Number(entry.amount) || 0;
-          const direction = amt >= 0 ? "in" : "out";
-          const absAmt = Math.abs(amt);
-          if (!absAmt) return;
-          syntheticRows.push({
-            fromId: direction === "in" ? TX_DEFAULT_ACTOR_ID : entry.id,
-            toId: direction === "in" ? entry.id : TX_DEFAULT_ACTOR_ID,
-            amount: direction === "in" ? absAmt : -absAmt,
-            absAmount: absAmt,
-            reason: "synth_counterparty",
-            reasonProvided: true,
-            meta: { inferredDirection: true },
-            counterpartyId: entry.id || TX_DEFAULT_ACTOR_ID,
-            battleId: null,
-            eventId: null
-          });
-        });
-        if (!syntheticRows.length && summaryReasonTop.length) {
-          summaryReasonTop.forEach(entry => {
-            const amt = Number(entry.amount) || 0;
-            const absAmt = Math.abs(amt);
-            if (!absAmt) return;
-            syntheticRows.push({
-              fromId: TX_DEFAULT_ACTOR_ID,
-              toId: TX_DEFAULT_ACTOR_ID,
-              amount: amt,
-              absAmount: absAmt,
-              reason: entry.reason,
-              reasonProvided: true,
-              meta: { inferredDirection: true },
-              counterpartyId: TX_DEFAULT_ACTOR_ID,
-              battleId: null,
-              eventId: null
-            });
-          });
-        }
-        if (syntheticRows.length) {
-          normalizedRows.push(...syntheticRows);
-          fallbackUsed = true;
-          syntheticRows.forEach(markPresence);
-          explain.txFieldMapHits = {
-            amount: syntheticRows.length,
-            reason: Math.max(summaryReasonTop.length, 1),
-            source: syntheticRows.length,
-            target: syntheticRows.length,
-            counterparty: summaryCounterpartyTop.length
-          };
-          explain.byReasonDetailed = {};
-          summaryReasonTop.forEach(entry => {
-            const reason = entry && entry.reason ? String(entry.reason) : "synth_counterparty";
-            const amount = Math.abs(Number(entry.amount) || 0);
-            if (!amount) return;
-            explain.byReasonDetailed[reason] = {
-              reason,
-              count: 1,
-              sumAbs: amount,
-              sumNetByDirection: { direction: null, netAmount: 0, note: "synth_counterparty" },
-              topCounterparties: ["synth"]
-            };
-          });
-          if (!Object.keys(explain.byReasonDetailed).length && summaryCounterpartyTop.length) {
-            const firstAmount = Math.abs(Number(summaryCounterpartyTop[0].amount) || 0);
-            explain.byReasonDetailed["synth_counterparty"] = {
-              reason: "synth_counterparty",
-              count: 1,
-              sumAbs: firstAmount,
-              sumNetByDirection: { direction: null, netAmount: 0, note: "synth_counterparty" },
-              topCounterparties: ["synth"]
-            };
-          }
-          explain.fallbackUsed = true;
-          explain.flowTotals = {
-            inTotal: summaryTotals.inTotal,
-            outTotal: summaryTotals.outTotal,
-            netDelta: Number.isFinite(summaryTotals.netDelta) ? summaryTotals.netDelta : 0
-          };
-          explain.detectorVersion = explain.detectorVersion || TX_DETECTOR_VERSION;
-        }
-      }
-      if (diagRef && typeof diagRef === "object") {
-        diagRef.afterFallback = {
-          fallbackUsed: !!explain.fallbackUsed,
-          hasTransactions: !!explain.hasTransactions,
-          topTransfersLen: Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0
-        };
-      }
       if (!normalizedRows.length) return {
         ...explain,
         rowsWithoutDirection: 0,
@@ -2266,7 +2171,111 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           return 0;
         })
         .slice(0, 5);
-      const perNpcList = Object.keys(perNpcMap).sort().map(npcId => {
+      const topTransfersBefore = Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0;
+      const fallbackNeeded = topTransfersBefore === 0;
+      if (fallbackNeeded && fs && fsTotals > 0 && fsHasTop) {
+        const fallbackCandidates = [];
+        if (Array.isArray(fs.byReasonTop)) {
+          fs.byReasonTop.forEach(entry => {
+            const amount = Math.abs(Number(entry && entry.amount) || 0);
+            if (!amount) return;
+            fallbackCandidates.push({
+              amount,
+              reasonLabel: entry.reason ? String(entry.reason) : "reason"
+            });
+          });
+        }
+        if (Array.isArray(fs.byCounterpartyTop)) {
+          fs.byCounterpartyTop.forEach(entry => {
+            const amount = Math.abs(Number(entry && entry.amount) || 0);
+            if (!amount) return;
+            fallbackCandidates.push({
+              amount,
+              reasonLabel: `counterparty:${entry.id || "unknown"}`
+            });
+          });
+        }
+        if (fallbackCandidates.length) {
+          const fallbackTransfers = fallbackCandidates
+            .sort((a, b) => {
+              if (b.amount !== a.amount) return b.amount - a.amount;
+              if (a.reasonLabel < b.reasonLabel) return -1;
+              if (a.reasonLabel > b.reasonLabel) return 1;
+              return 0;
+            })
+            .slice(0, 5)
+            .map(entry => {
+              const reason = `npc_audit_fallback:${entry.reasonLabel}`;
+              return {
+                sourceId: "audit_actor",
+                targetId: "bank",
+                counterpartyId: "bank",
+                amount: entry.amount,
+                absAmount: entry.amount,
+                reason,
+                reasons: [reason],
+                sampleReason: reason,
+                battleId: null,
+                eventId: null,
+                metaShort: { synthetic: true, fallback: "flowSummary" }
+              };
+            });
+          explain.topTransfers = fallbackTransfers;
+          explain.hasTransactions = true;
+          explain.fallbackUsed = true;
+          explain.flowTotals = {
+            inTotal: (fs.totals && Number.isFinite(fs.totals.inTotal)) ? (fs.totals.inTotal) : 0,
+            outTotal: (fs.totals && Number.isFinite(fs.totals.outTotal)) ? (fs.totals.outTotal) : 0,
+            netDelta: (fs.totals && Number.isFinite(fs.totals.netDelta)) ? (fs.totals.netDelta) : 0
+          };
+          const reasonSummary = {};
+          fallbackTransfers.forEach(entry => {
+            reasonSummary[entry.reason] = (reasonSummary[entry.reason] || 0) + entry.absAmount;
+          });
+          Object.keys(reasonSummary).forEach(reason => {
+            explain.byReasonDetailed[reason] = {
+              reason,
+              count: 1,
+              sumAbs: reasonSummary[reason],
+              sumNetByDirection: { direction: null, netAmount: 0, note: "fallback_flowSummary" },
+              topCounterparties: ["synth"]
+            };
+          });
+          explain.txFieldMapHits = {
+            amount: fallbackTransfers.length,
+            reason: Math.max(Array.isArray(fs.byReasonTop) ? fs.byReasonTop.length : 0, 1),
+            source: fallbackTransfers.length,
+            target: fallbackTransfers.length,
+            counterparty: Math.max(Array.isArray(fs.byCounterpartyTop) ? fs.byCounterpartyTop.length : 0, 1)
+          };
+        }
+      }
+      const topTransfersAfter = Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0;
+      if (diagRef && typeof diagRef === "object") {
+        diagRef.fallbackEval = {
+          hasFs: !!fs,
+          fsIn,
+          fsOut,
+          fsTotals,
+          hasByReasonTop: fsHasByReasonTop,
+          hasByCounterpartyTop: fsHasByCounterpartyTop,
+          hasTop: fsHasTop,
+          noTx: fallbackNeeded,
+          topTransfersLenBefore: topTransfersBefore
+        };
+        diagRef.afterFallback = {
+          didFallback: !!explain.fallbackUsed,
+          fallbackUsed: !!explain.fallbackUsed,
+          hasTransactionsAfter: !!explain.hasTransactions,
+          topTransfersLenAfter: topTransfersAfter,
+          txFieldMapHitsAfter: explain.txFieldMapHits || {}
+        };
+      }
+      explain.fallbackDiag = {
+        fallbackEval: diagRef && diagRef.fallbackEval ? diagRef.fallbackEval : null,
+        afterFallback: diagRef && diagRef.afterFallback ? diagRef.afterFallback : null
+      };
+    const perNpcList = Object.keys(perNpcMap).sort().map(npcId => {
         const entry = perNpcMap[npcId];
         const netDelta = toNum(entry.endPts - entry.startPts, `explainNpcNet:${npcId}`);
         const topReasons = Object.keys(entry.reasonMap)
@@ -2310,95 +2319,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       });
       const netDelta = toNum(inTotal - outTotal, "explainFlowNet");
       explain.flowTotals = { inTotal, outTotal, netDelta };
-      const fs = opts && opts.flowSummary ? opts.flowSummary : null;
-      const fsTotalsValue = fs ? ((Number(fs.totals && fs.totals.inTotal) || 0) + (Number(fs.totals && fs.totals.outTotal) || 0)) : 0;
-      const fsHasTop = !!(fs && ((Array.isArray(fs.byCounterpartyTop) && fs.byCounterpartyTop.length) || (Array.isArray(fs.byReasonTop) && fs.byReasonTop.length)));
-      if (diag && typeof diag === "object") {
-        diag.fallbackEval = {
-          hasFs: !!fs,
-          fsTotals: fsTotalsValue,
-          fsHasTop,
-          noTx: noTxValue,
-          hasTransactions: !!explain.hasTransactions,
-          topTransfersLen: (Array.isArray(explain.topTransfers) ? explain.topTransfers.length : 0)
-        };
-      }
-      if (!explain.hasTransactions) {
-        const summary = opts && opts.flowSummary ? opts.flowSummary : null;
-        const totals = summary && summary.totals ? summary.totals : null;
-        const cpTop = summary && Array.isArray(summary.byCounterpartyTop) ? summary.byCounterpartyTop : [];
-        const reasonTop = summary && Array.isArray(summary.byReasonTop) ? summary.byReasonTop : [];
-        const totalsSum = totals ? (Number(totals.inTotal) || 0) + (Number(totals.outTotal) || 0) : 0;
-        if (totalsSum > 0 && (cpTop.length || reasonTop.length)) {
-          const synthetic = cpTop
-            .map(entry => {
-              const amount = Number(entry.amount);
-              if (!Number.isFinite(amount)) return null;
-              const targetId = entry.id ? String(entry.id) : TX_DEFAULT_ACTOR_ID;
-              return {
-                fromId: TX_DEFAULT_ACTOR_ID,
-                toId: targetId,
-                amount,
-                absAmount: Math.abs(amount),
-                reason: "synth_counterparty",
-                meta: { synthesized: true, inferredDirection: true }
-              };
-            })
-            .filter(Boolean)
-            .sort((a, b) => {
-              const absA = Math.abs(a.amount);
-              const absB = Math.abs(b.amount);
-              if (absB !== absA) return absB - absA;
-              if ((a.toId || "") < (b.toId || "")) return -1;
-              if ((a.toId || "") > (b.toId || "")) return 1;
-              return 0;
-            })
-            .slice(0, 5);
-          if (synthetic.length) {
-            explain.topTransfers = synthetic.map(entry => ({
-              sourceId: entry.fromId,
-              targetId: entry.toId,
-              amount: entry.amount,
-              reasons: [entry.reason],
-              sampleReason: entry.reason,
-              battleId: null,
-              eventId: null,
-              metaShort: entry.meta
-            }));
-            explain.byReasonDetailed = {};
-            reasonTop.forEach(entry => {
-              const reason = entry && entry.reason ? String(entry.reason) : "synth_counterparty";
-              const amount = Math.abs(Number(entry.amount) || 0);
-              if (!amount) return;
-              explain.byReasonDetailed[reason] = {
-                reason,
-                count: 1,
-                sumAbs: amount,
-                sumNetByDirection: { direction: null, netAmount: 0, note: "synth_counterparty" },
-                topCounterparties: ["synth"]
-              };
-            });
-            if (!Object.keys(explain.byReasonDetailed).length && synthetic.length) {
-              explain.byReasonDetailed.synth_counterparty = {
-                reason: "synth_counterparty",
-                count: 1,
-                sumAbs: Math.abs(synthetic[0].amount),
-                sumNetByDirection: { direction: null, netAmount: 0, note: "synth_counterparty" },
-                topCounterparties: ["synth"]
-              };
-            }
-            explain.txFieldMapHits = {
-              amount: synthetic.length,
-              counterparty: cpTop.length,
-              reason: reasonTop.length || 1,
-              source: synthetic.length,
-              target: synthetic.length
-            };
-            explain.hasTransactions = true;
-            explain.fallbackUsed = true;
-          }
-        }
-      }
+
       const recordEvidence = (row) => ({
         reason: row.reason,
         amount: row.amount,
@@ -4706,110 +4627,15 @@ const runDevTxProbe = () => {
       byReasonTop,
       byCounterpartyTop
     };
+    const auditFlowSummary = audit && audit.flowSummary ? audit.flowSummary : flowSummaryForExplain;
     const auditDiag = audit && audit.meta && audit.meta.diag ? audit.meta.diag : (audit.meta ? (audit.meta.diag = {}) : {});
-    const explainability = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
+    const { explainability, fallbackDiag } = buildExplainability(newRows, beforePtsMap, afterPtsMap, npcIds, {
       flowReasonTop,
       flowCounterpartyTop,
       flowTotals: flowSummaryForExplain.totals,
-      flowSummary: flowSummaryForExplain,
+      flowSummary: auditFlowSummary,
       diag: auditDiag
     });
-    const fallbackTotalsIn = totals && Number.isFinite(totals.inTotal) ? totals.inTotal : 0;
-    const fallbackTotalsOut = totals && Number.isFinite(totals.outTotal) ? totals.outTotal : 0;
-    const fallbackTotalsValid = Math.abs(fallbackTotalsIn) + Math.abs(fallbackTotalsOut) > 0;
-    if (explainability && !explainability.hasTransactions && fallbackTotalsValid) {
-      const fallbackCounterpartyTop = Array.isArray(byCounterpartyTop) ? byCounterpartyTop.slice() : [];
-      const fallbackReasonTop = Array.isArray(byReasonTop) ? byReasonTop.slice() : [];
-      const fallbackRows = [];
-      const pushFallbackRow = (amountValue, label) => {
-        const absAmount = Math.abs(Number(amountValue) || 0);
-        if (absAmount === 0) return;
-        const reasonLabel = label || "flowSummary";
-        const reason = `npc_audit_fallback_flowSummary:${reasonLabel}`;
-        fallbackRows.push({
-          sourceId: "audit_actor",
-          targetId: "bank",
-          amount: absAmount,
-          absAmount,
-          reason,
-          reasons: [reason],
-          sampleReason: reason,
-          battleId: null,
-          eventId: null,
-          metaShort: { synthetic: true, fallback: "flowSummary" },
-          counterpartyId: "bank"
-        });
-      };
-      fallbackReasonTop
-        .sort((a, b) => {
-          const absA = Math.abs(Number(a.amount) || 0);
-          const absB = Math.abs(Number(b.amount) || 0);
-          if (absB !== absA) return absB - absA;
-          const aReason = String(a.reason || "");
-          const bReason = String(b.reason || "");
-          if (aReason < bReason) return -1;
-          if (aReason > bReason) return 1;
-          return 0;
-        })
-        .slice(0, 3)
-        .forEach(entry => pushFallbackRow(entry.amount, entry.reason || "reason"));
-      fallbackCounterpartyTop
-        .sort((a, b) => {
-          const absA = Math.abs(Number(a.amount) || 0);
-          const absB = Math.abs(Number(b.amount) || 0);
-          if (absB !== absA) return absB - absA;
-          const aId = String(a.id || "");
-          const bId = String(b.id || "");
-          if (aId < bId) return -1;
-          if (aId > bId) return 1;
-          return 0;
-        })
-        .slice(0, 2)
-        .forEach(entry => pushFallbackRow(entry.amount, `counterparty:${entry.id || "unknown"}`));
-      if (fallbackRows.length) {
-        const fallbackTransfers = fallbackRows
-          .sort((a, b) => {
-            if (b.amount !== a.amount) return b.amount - a.amount;
-            if ((a.reason || "") < (b.reason || "")) return -1;
-            if ((a.reason || "") > (b.reason || "")) return 1;
-            return 0;
-          })
-          .slice(0, 5);
-        explainability.topTransfers = fallbackTransfers;
-        explainability.hasTransactions = true;
-        explainability.fallbackUsed = true;
-        explainability.rowsWithoutDirection = explainability.rowsWithoutDirection || 0;
-        explainability.flowTotals = {
-          inTotal: fallbackTotalsIn,
-          outTotal: fallbackTotalsOut,
-          netDelta: Number(totals.netDelta) || 0
-        };
-        const reasonDetails = {};
-        fallbackTransfers.forEach(entry => {
-          const reasonKey = entry.reason || "npc_audit_fallback_flowSummary";
-          const amount = Math.abs(Number(entry.amount) || 0);
-          if (!amount) return;
-          reasonDetails[reasonKey] = {
-            reason: reasonKey,
-            count: 1,
-            sumAbs: amount,
-            sumNetByDirection: { direction: null, netAmount: 0, note: "fallback_flowSummary" },
-            topCounterparties: ["synth"]
-          };
-        });
-        if (Object.keys(reasonDetails).length) {
-          explainability.byReasonDetailed = reasonDetails;
-        }
-        explainability.txFieldMapHits = {
-          amount: fallbackTransfers.length,
-          reason: Math.max(fallbackReasonTop.length, 1),
-          source: fallbackTransfers.length,
-          target: fallbackTransfers.length,
-          counterparty: Math.max(fallbackCounterpartyTop.length, 1)
-        };
-        explainability.detectorVersion = explainability.detectorVersion || TX_DETECTOR_VERSION;
-      }
-    }
     const scopedRowsShapeSample = newRows.slice(0, 3).map(describeRowShape);
     const scopedRowsHasTransactions = explainability.hasTransactions === true;
     const selectedLogSourceTxHits = selectedCandidate ? selectedCandidate.txHits : 0;
@@ -4869,6 +4695,10 @@ const runDevTxProbe = () => {
     diag.devProbeReason = devProbeRow ? devProbeRow.reason : null;
     diag.traceOwnKeys = Object.keys(explainabilityTrace || {});
     auditExplainabilityTrace = explainabilityTrace;
+    if (fallbackDiag) {
+      if (fallbackDiag.fallbackEval) diag.fallbackEval = fallbackDiag.fallbackEval;
+      if (fallbackDiag.afterFallback) diag.afterFallback = fallbackDiag.afterFallback;
+    }
     let sampleTailReasons = [];
     if (rowsScoped === 0 && logAfterRows.length) {
       sampleTailReasons = logAfterRows.slice(Math.max(0, logAfterRows.length - 5))
@@ -4968,6 +4798,7 @@ const runDevTxProbe = () => {
         rowsScoped,
         scopeDesc: `ticks=${ticks}`,
         debugTelemetry,
+        diag,
         explainabilityTrace
       },
       world: {
