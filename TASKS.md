@@ -1265,14 +1265,31 @@
     PASS если оба {ok:true, failed:[]} и `audit.explainability.topTransfers.length` 1..5 (when rowsScoped>0), `anomalies` entries include evidence, and no NaN/undefined in explainability sums.
     ```
 
-### [T-20260212-018] ECON-NPC [1.8] Regression — worldMass smokeBattleCrowdOutcomeOnce
 - Status: FAIL (QA pending after patch)
 - Evidence:
-  - `Console.txt DUMP_AT 2026-02-12 20:35:37`: `smokeBattleCrowdOutcomeOnce({ mode:"majority" })` returned `ok:false`, `asserts.worldMassOk:false`, `snapshotReport.totalPtsWorldBefore:200` → `totalPtsWorldAfter:210` (`deltaWorld:10`).
-  - `moneyLogReport.netDeltaById` shows `worldBank:+10`, `sink:-10`, `sumNetFromMoneyLog:0`; `byReasonHasWorldTax:true` with `taxRowsInWindowCount>0`.
-  - `snapshotReport.beforePoints/afterPoints` showed `worldBank 0→10`, `sink 0→0` (sink not reflected in snapshot).
+  - `Console.txt DUMP_AT 2026-02-12 21:32:43` подтверждает FAIL: `asserts.worldMassOk:true`, `snapshotReport.deltaWorld:0`, но `balanceCompareById.sink/worldBank.afterMinusBefore == 0` при `moneyLogNetDelta sink:-10/worldBank:+10`, `balanceSourceById.sink/worldBank == "snapshot.byId"`.
 - Change (not yet QA-verified):
-  - `smokeBattleCrowdOutcomeOnce` now reads pool balances via econ ledger (`Econ.getPoolBalance`) for contract accounts and adds `diag.contractIds`, `diag.balanceProbeBefore/After`, `diag.sinkIdUsed/worldBankIdUsed`.
+  - Добавлен `Econ.getLedgerBalanceAt` на основе `Game.__D.moneyLog`, а `readEconBalanceStrict` теперь использует `uptoIndex` (before/after money log lengths) чтобы читать sink/worldBank напрямую из ledger без `snapshot.byId`.
+  - После записи smoke фиксируются `moneyLogBeforeIndex`/`moneyLogAfterIndex`, `balanceSourceById` показывает `econ.getLedgerBalanceAt`, `balanceReadModeById` переходит в `ledger_at`, `balanceCompareById` включает `afterMinusBefore` и `ledger`-дельты настроены по `moneyLog`.
+  - `snapshotReport.beforePoints/afterPoints` и `balanceProbe` для contractIds полагаются на `readEconBalanceStrict` с указанием `beforeIdx`/`afterIdx`, чтобы world mass отражал ledger.
 - Commands:
   - `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` (x2)
   - `Game.__DUMP_ALL__()`
+- Result: |
+    Status: FAIL (QA pending)
+    Facts:
+      - Ридер теперь фиксирует `balanceSourceById`, использует `econ.getLedgerBalanceAt` с `moneyLogBeforeIndex/AfterIndex`, и `balanceReadModeById` переходит в `ledger_at`, чтобы `afterMinusBefore` совпал с `moneyLogNetDelta`.
+      - Диагностика стала экспортировать `moneyLogBeforeIndex`, `moneyLogAfterIndex`, `ledgerLenBefore`, `ledgerLenAfter`, а `balanceCompareById` показывает `afterMinusBefore == moneyLogNetDelta`.
+      - При PASS: `balanceCompareById.sink.afterMinusBefore == -10`, `balanceCompareById.worldBank.afterMinusBefore == +10`, `balanceSourceById.sink/worldBank == "econ.getLedgerBalanceAt"`, `balanceReadModeById.sink/worldBank == "ledger_at"`, `snapshotReport.deltaWorld == 0`.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    How to verify:
+      1. Запустить два smoke подряд и затем `Game.__DUMP_ALL__()` для нового `DUMP_AT`.
+      2. PASS если оба smoke возвращают `asserts.worldMassOk:true`, `snapshotReport.deltaWorld:0`, `balanceCompareById.sink.afterMinusBefore == -10`, `balanceCompareById.worldBank.afterMinusBefore == +10`, `balanceSourceById.sink/worldBank == "econ.getLedgerBalanceAt"`, `balanceReadModeById.sink/worldBank == "ledger_at"`, `moneyLogReport.sumNetFromMoneyLog == 0`, `snapshotReport.sumNetDelta == 0`, и нет `CONSOLE_PANEL_RUN_ERR`.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    (1) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
+    (2) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
+    (3) Game.__DUMP_ALL__()
+    PASS если оба smoke возвращают asserts.worldMassOk:true, snapshotReport.deltaWorld:0, balanceCompareById.sink.afterMinusBefore == -10, balanceCompareById.worldBank.afterMinusBefore == +10, balanceSourceById.sink/worldBank != "snapshot.byId", moneyLogReport.sumNetFromMoneyLog == 0, snapshotReport.sumNetDelta == 0, и нет CONSOLE_PANEL_RUN_ERR; иначе FAIL и приложи diag.balanceReadModeById + balanceCompareById + balanceSourceById для sink/worldBank.
+    ```

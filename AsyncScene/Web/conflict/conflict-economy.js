@@ -845,6 +845,43 @@
     const acc = getAccount(poolId);
     return acc ? (acc.points | 0) : 0;
   };
+  E.getAccountBalance = function (accountId){
+    const acc = getAccount(accountId);
+    return acc ? (acc.points | 0) : 0;
+  };
+  if (typeof E.getBalanceById !== "function") {
+    E.getBalanceById = function (accountId){
+      return E.getAccountBalance(accountId);
+    };
+  }
+  E.getLedgerBalanceAt = function (accountId, opts = {}){
+    const log = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const total = log.length;
+    const upto = Number.isFinite(opts.uptoIndex)
+      ? Math.max(0, Math.min(total, opts.uptoIndex))
+      : total;
+    let bal = 0;
+    const key = String(accountId || "");
+    for (let i = 0; i < upto; i += 1) {
+      const tx = log[i];
+      if (!tx) continue;
+      const currency = String(tx.currency || "");
+      const reason = String(tx.reason || "");
+      if (currency === "rep" || reason.startsWith("rep_")) continue;
+      const amt = Number(tx.amount || 0);
+      if (!Number.isFinite(amt) || amt === 0) continue;
+      const src = String(tx.sourceId || "");
+      const tgt = String(tx.targetId || "");
+      if (src === key) bal -= amt;
+      if (tgt === key) bal += amt;
+    }
+    return bal | 0;
+  };
+  if (typeof E.getLedgerBalance !== "function") {
+    E.getLedgerBalance = function (accountId){
+      return E.getLedgerBalanceAt(accountId);
+    };
+  }
 
   E.transferFromPool = function (poolId, toId, amount, reason, meta){
     return E.transferPoints(poolId, toId, amount, reason, meta);

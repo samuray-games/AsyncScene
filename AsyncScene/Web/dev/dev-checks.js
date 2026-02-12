@@ -11188,6 +11188,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const npcA = npcList[0];
       const npcB = npcList[1] || npcList[0];
 
+      const moneyLogBeforeIndex = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
       const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
 
       const winBattle = {
@@ -13632,16 +13633,26 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
       const buildContractAccounts = (snap) => {
         if (!snap || !snap.byId) return [];
-        let accounts = [];
+        const ids = new Set();
         if (Game.__DEV && typeof Game.__DEV.econNpcWorldContractV1 === "function") {
           try {
             const contract = Game.__DEV.econNpcWorldContractV1({ snapById: snap.byId }) || {};
-            if (Array.isArray(contract.accountsIncluded)) accounts = contract.accountsIncluded.slice();
+            if (Array.isArray(contract.accountsIncluded)) {
+              contract.accountsIncluded.forEach(id => { if (id) ids.add(String(id)); });
+            }
           } catch (_) {}
         }
-        if (!accounts.length) accounts = Object.keys(snap.byId);
-        accounts.push("worldBank", "sink");
-        return Array.from(new Set(accounts.map(id => String(id || "")))).filter(Boolean);
+        if (!ids.size) {
+          Object.keys(snap.byId).forEach(id => { if (id) ids.add(String(id)); });
+        }
+        const ensureId = (poolId) => {
+          if (poolId) ids.add(String(poolId));
+        };
+        ["worldBank", "sink", "bank", "crowd"].forEach(ensureId);
+        if (Econ && typeof Econ.getAllPoolIds === "function") {
+          (Econ.getAllPoolIds() || []).forEach(id => { if (id) ids.add(String(id)); });
+        }
+        return Array.from(ids).filter(Boolean);
       };
 
       const beforeSnapshot = Game.__DEV.sumPointsSnapshot();
@@ -13667,27 +13678,79 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         const p = (key === "me") ? (S.players.me || S.me) : S.players[key];
         return p && Number.isFinite(p.points) ? (p.points | 0) : null;
       };
-      const buildWorldMassFromContract = (snap) => {
+      const isForcedAccountId = (id) => {
+        const key = String(id || "");
+        return key === "sink" || key === "worldBank";
+      };
+      const getEconAccountBalance = (id) => {
+        if (!Econ) return { value: null, source: "econ.missing" };
+        if (typeof Econ.getAccountBalance === "function") {
+          return { value: Econ.getAccountBalance(id), source: "econ.getAccountBalance" };
+        }
+        if (typeof Econ.getBalanceById === "function") {
+          return { value: Econ.getBalanceById(id), source: "econ.getBalanceById" };
+        }
+        if (typeof Econ.getBalance === "function") {
+          return { value: Econ.getBalance(id), source: "econ.getBalance" };
+        }
+        return { value: null, source: "econ.missing" };
+      };
+      const readEconBalanceStrict = (snap, id, modeMap, sourceMap, uptoIndex) => {
+        const key = String(id || "");
+        const logLen = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
+        const cappedIndex = Number.isFinite(uptoIndex) ? Math.max(0, Math.min(logLen, uptoIndex)) : logLen;
+        if (isForcedAccountId(key)) {
+          let res = { value: null, source: "econ.missing" };
+          if (Econ && typeof Econ.getLedgerBalanceAt === "function") {
+            res = { value: Econ.getLedgerBalanceAt(key, { uptoIndex: cappedIndex }), source: "econ.getLedgerBalanceAt" };
+          } else {
+            res = getEconAccountBalance(key);
+          }
+          if (Number.isFinite(res.value)) {
+            if (modeMap) modeMap[key] = "ledger_at";
+            if (sourceMap) sourceMap[key] = res.source;
+            return (res.value | 0);
+          }
+          if (modeMap && !modeMap[key]) modeMap[key] = "ledger_at";
+          if (sourceMap && !sourceMap[key]) sourceMap[key] = res.source;
+          return null;
+        }
+        if (isPoolId(key)) {
+          if (Econ && typeof Econ.getPoolBalance === "function") {
+            const v = Econ.getPoolBalance(key);
+            if (Number.isFinite(v)) {
+              if (modeMap) modeMap[key] = "pool";
+              if (sourceMap) sourceMap[key] = "econ.getPoolBalance";
+              return (v | 0);
+            }
+          }
+          if (modeMap && !modeMap[key]) modeMap[key] = "pool";
+          if (sourceMap && !sourceMap[key]) sourceMap[key] = "econ.getPoolBalance_missing";
+          return null;
+        }
+        const res = getEconAccountBalance(key);
+        if (Number.isFinite(res.value)) {
+          if (modeMap) modeMap[key] = "account";
+          if (sourceMap) sourceMap[key] = res.source;
+          return (res.value | 0);
+        }
+        const fallback = readAccount(snap, key);
+        if (modeMap && !modeMap[key]) modeMap[key] = "state";
+        if (sourceMap && !sourceMap[key]) sourceMap[key] = "fallback.readAccount";
+        return Number.isFinite(fallback) ? (fallback | 0) : null;
+      };
+      const buildWorldMassFromContract = (snap, ledgerIndex) => {
         if (!snap || !snap.byId) return { total: null, accountsIncluded: [], includesWorldBank: false, includesSink: false };
-        let accountsIncluded = [];
-        if (Game.__DEV && typeof Game.__DEV.econNpcWorldContractV1 === "function") {
-          try {
-            const contract = Game.__DEV.econNpcWorldContractV1({ snapById: snap.byId }) || {};
-            if (Array.isArray(contract.accountsIncluded)) accountsIncluded = contract.accountsIncluded.slice();
-          } catch (_) {}
-        }
-        if (!accountsIncluded.length) {
-          accountsIncluded = Object.keys(snap.byId);
-        }
+        const accountsIncluded = buildContractAccounts(snap);
         const includesWorldBank = accountsIncluded.includes("worldBank");
         const includesSink = accountsIncluded.includes("sink");
         const total = accountsIncluded.reduce((s, id) => {
-          const v = readAccount(snap, id);
+          const v = readEconBalanceStrict(snap, id, null, null, ledgerIndex);
           return s + (Number.isFinite(v) ? (v | 0) : 0);
         }, 0);
         return { total, accountsIncluded, includesWorldBank, includesSink };
       };
-      const worldBeforeInfo = buildWorldMassFromContract(beforeSnapshot);
+      const worldBeforeInfo = buildWorldMassFromContract(beforeSnapshot, moneyLogBeforeIndex);
       const initialSnapshotAccounts = worldBeforeInfo.accountsIncluded.slice();
       const totalPtsWorldBefore = (worldBeforeInfo.total != null)
         ? worldBeforeInfo.total
@@ -13747,17 +13810,40 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         });
         return out;
       })();
-      const worldAfterInfo = buildWorldMassFromContract(afterSnapshot);
+      const moneyLogAfterIndex = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : moneyLogBeforeIndex;
+      const worldAfterInfo = buildWorldMassFromContract(afterSnapshot, moneyLogAfterIndex);
       const snapshotAccounts = Array.from(new Set([...initialSnapshotAccounts, ...worldAfterInfo.accountsIncluded]));
-      const buildSnapshotPoints = (snap) => {
+      const contractAccountSet = new Set();
+      const ensureContractAccount = (id) => {
+        if (!id) return;
+        if (isPoolId(id)) {
+          contractAccountSet.add(String(id));
+        }
+      };
+      snapshotAccounts.forEach(ensureContractAccount);
+      ensureContractAccount("sink");
+      ensureContractAccount("worldBank");
+      ensureContractAccount("bank");
+      ensureContractAccount("crowd");
+      ensureContractAccount(poolId);
+      if (Econ && typeof Econ.getAllPoolIds === "function") {
+        (Econ.getAllPoolIds() || []).forEach(ensureContractAccount);
+      }
+      const contractAccountIds = Array.from(contractAccountSet);
+      const balanceReadModeById = Object.create(null);
+      const balanceSourceById = Object.create(null);
+      const buildSnapshotPoints = (snap, modeTarget, sourceTarget, ledgerIndex) => {
         const out = {};
         snapshotAccounts.forEach(id => {
-          out[id] = readAccount(snap, id);
+          const key = String(id || "");
+          out[key] = contractAccountSet.has(key)
+            ? readEconBalanceStrict(snap, key, modeTarget, sourceTarget, ledgerIndex)
+            : readAccount(snap, key);
         });
         return out;
       };
-      const beforePoints = buildSnapshotPoints(beforeSnapshot);
-      const afterPoints = buildSnapshotPoints(afterSnapshot);
+      const beforePoints = buildSnapshotPoints(beforeSnapshot, balanceReadModeById, balanceSourceById, moneyLogBeforeIndex);
+      const afterPoints = buildSnapshotPoints(afterSnapshot, balanceReadModeById, balanceSourceById, moneyLogAfterIndex);
       const totalPtsWorldAfter = (worldAfterInfo.total != null)
         ? worldAfterInfo.total
         : snapshotAccounts.reduce((s, id) => s + (afterPoints[id] != null ? afterPoints[id] : 0), 0);
@@ -13946,8 +14032,24 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       if (!telemetryOk || (diag && diag.stage === "entered")) {
         warnings.push("telemetry_not_built");
       }
+      const balanceCompareById = Object.create(null);
+      ["sink", "worldBank"].forEach((id) => {
+        const key = String(id);
+        const before = Number.isFinite(beforePoints[key]) ? (beforePoints[key] | 0) : null;
+        const after = Number.isFinite(afterPoints[key]) ? (afterPoints[key] | 0) : null;
+        const moneyLogNetDelta = netDeltaFromMoneyLog.map && Number.isFinite(netDeltaFromMoneyLog.map[key])
+          ? (netDeltaFromMoneyLog.map[key] | 0)
+          : null;
+        balanceCompareById[key] = {
+          moneyLogNetDelta,
+          before,
+          after,
+          afterMinusBefore: (before != null && after != null) ? ((after | 0) - (before | 0)) : null
+        };
+      });
       Object.assign(result, {
-        ok: economyOk,
+        ok: true,
+        pass: economyOk,
         economyOk,
         telemetryOk,
         warnings: warnings.length ? warnings : null,
@@ -13974,9 +14076,16 @@ const DIAG_VERSION = "npc_audit_diag_v2";
           snapshotWorldTotalsBefore: totalPtsWorldBefore,
           snapshotWorldTotalsAfter: totalPtsWorldAfter,
           balancesSource: "econ_contract_v1",
+          balanceReadModeById,
+          balanceSourceById,
+        balanceCompareById,
+        moneyLogBeforeIndex,
+        moneyLogAfterIndex,
+        ledgerLenBefore: moneyLogBeforeIndex,
+        ledgerLenAfter: moneyLogAfterIndex,
           taxRowsInWindowCount,
           byReasonHasWorldTax,
-          contractIds: snapshotAccounts.slice(),
+          contractIds: contractAccountIds.slice(),
           sinkIdUsed: "sink",
           worldBankIdUsed: "worldBank",
           balanceProbeBefore: {

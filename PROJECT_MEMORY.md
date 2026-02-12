@@ -361,15 +361,18 @@
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 
 ### 2026-02-12 — ECON-NPC [1.8] worldMass regression smoke (pending QA)
-- Status: FAIL (evidence from DUMP_AT 2026-02-12 20:35:37)
+- Status: FAIL (evidence from DUMP_AT 2026-02-12 21:32:43; waiting for new DUMP)
 - Facts:
-  - `smokeBattleCrowdOutcomeOnce({ mode:"majority" })` returned `ok:false`, `asserts.worldMassOk:false`, `snapshotReport.totalPtsWorldBefore:200` → `totalPtsWorldAfter:210` (`deltaWorld:10`).
-  - `moneyLogReport.netDeltaById` shows `worldBank:+10`, `sink:-10`, `sumNetFromMoneyLog:0`; `byReasonHasWorldTax:true`.
-  - Snapshot showed `worldBank 0→10`, `sink 0→0` (sink not reflected).
-- Change (not yet QA-verified): smoke now reads pool balances via econ ledger (`Econ.getPoolBalance`) for contract accounts and adds `diag.contractIds` + `diag.balanceProbeBefore/After` + `diag.sinkIdUsed/worldBankIdUsed`.
+  - `Console.txt DUMP_AT 2026-02-12 21:32:43` показывает `asserts.worldMassOk:true`, `snapshotReport.deltaWorld:0`, но `balanceCompareById.sink/worldBank.afterMinusBefore == 0` при `moneyLogNetDelta sink:-10/worldBank:+10`, `balanceSourceById.sink/worldBank == "snapshot.byId"`.
+  - Добавлен `Econ.getLedgerBalanceAt` (суммирует netDelta в `Game.__D.moneyLog` до `uptoIndex`) и smoke фиксирует `moneyLogBeforeIndex`/`moneyLogAfterIndex`, чтобы читать ledger-дельты sink/worldBank перед/после.
+  - `readEconBalanceStrict` теперь принимает `uptoIndex`, переводит `sink/worldBank` в режим `ledger_at`, а `snapshotReport`/`balanceProbe` используют этот ридер для contractIds.
+  - `diag` теперь экспортирует `moneyLogBeforeIndex`, `moneyLogAfterIndex`, `ledgerLenBefore`, `ledgerLenAfter`, `balanceSourceById` и `balanceCompareById`, чтобы `afterMinusBefore == moneyLogNetDelta`.
+- Evidence: следующий DUMP после двух `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` и `Game.__DUMP_ALL__()` должен показать `balanceCompareById.sink.afterMinusBefore == -10`, `balanceCompareById.worldBank.afterMinusBefore == +10`, `balanceSourceById.sink/worldBank == "econ.getLedgerBalanceAt"`, `balanceReadModeById.sink/worldBank == "ledger_at"`, `moneyLogReport.sumNetFromMoneyLog == 0`, `snapshotReport.sumNetDelta == 0`, `deltaWorld == 0`.
+- Commands:
+  - `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` (x2 sequential)
+  - `Game.__DUMP_ALL__()`
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Next: QA
-Память обновлена
+- Next: QA (two smokes + DUMP)
 
 ### 2026-02-11 — Dev server Console.txt stack dump filter
 - Status: PASS
