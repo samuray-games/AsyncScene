@@ -25,6 +25,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   window.__DEV_WEALTH_TAX_PACK_READY__ = true;
   console.warn("ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG", !!window.__DEV_WEALTH_TAX_PACK_READY__);
   console.warn("DEV_CHECKS_PROOF_V1", "build_probe_2026_02_08_fix_try_1", Date.now());
+  console.warn("DEV_CHECKS_BUILD_TAG_V5", "build_2026_02_12_b2");
   const getDbgLog = () => (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
   function hasExplicitDevQueryParam() {
     if (typeof location === "undefined" || !location) return false;

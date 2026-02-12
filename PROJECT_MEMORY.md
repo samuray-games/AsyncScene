@@ -326,6 +326,7 @@
   - Runtime FAIL evidence (Console.txt DUMP_AT 2026-02-12 01:30:31): smoke returned `{failed:[explainability_missing, top_transfers_empty], rowsScoped:19, explainabilityTrace:null}`, audit flow summary totals were zero (`inTotal:0, outTotal:0, netDelta:0`), pointing to non-transactional log source; first 10 lines of dump show `WARN` markers (ECON_NPC_* etc) but no transactional rows.
   - Additional runtime crash evidence (Console.txt DUMP_AT 2026-02-12 11:19:59): the two smoke runs aborted immediately with `ReferenceError: Can't find variable: selectedCandidate` in `dev/dev-checks.js:2669:27`, so no `audit`/`explainability` payload is emitted and the dump logs the error twice before `CONSOLE_DUMP_WRITE_OK ... sepOk:false`.
   - Runtime crash (Console.txt DUMP_AT 2026-02-12 14:49:02): each smoke invocation now raises `ReferenceError: Can't find variable: detectDirectionValue` before anything else, so no audit/explainability is emitted.
+  - Runtime cache hit (Console.txt DUMP_AT 2026-02-12 14:52:34): the page still uses `dev-checks.js?v=build_2026_02_09b` (proof log) and the smoke returns `audit.explainability: undefined`, indicating the browser didn't load the modified script due to stale `v` query.
 - Commands:
   - run `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })` twice in one session and confirm each `{ok:true, failed:[]}` plus explainability fields (rowsScoped/topTransfersLen/anomaliesLen/explainabilityTrace).
 - Example topTransfers line:
