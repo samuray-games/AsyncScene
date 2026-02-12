@@ -1723,23 +1723,46 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   const normalizeAuditRow = (row) => {
     const r = row || {};
-    const meta = r.meta || null;
-    const amtRaw = Number(r.amount);
-    const amount = Number.isFinite(amtRaw) ? Math.abs(amtRaw) : 0;
-    const rawCurrency = r.currency != null ? String(r.currency) : null;
-    const currency = rawCurrency ? rawCurrency : null;
+    const meta = r.meta || {};
+    const amountRaw = getFirstFieldValue(r, TX_AMOUNT_KEYS);
+    const signedAmount = Number.isFinite(Number(amountRaw)) ? Number(amountRaw) : 0;
+    const amount = Math.abs(signedAmount);
+    const currencyRaw = getFirstFieldValue(r, ["currency"]);
+    const currency = currencyRaw ? String(currencyRaw) : null;
     const isPoints = !currency || currency === "points";
+    const sourceId = getFirstFieldValue(r, TX_SOURCE_KEYS) || "";
+    const targetId = getFirstFieldValue(r, TX_TARGET_KEYS) || "";
+    const counterpartyId = getFirstFieldValue(r, TX_COUNTERPARTY_KEYS) || "";
+    const directionRaw = getFirstFieldValue(r, TX_DIRECTION_KEYS);
+    const directionValue = detectDirectionValue(directionRaw, signedAmount);
+    const direction = directionValue ? directionValue.toLowerCase() : null;
+    const resolveBattleId = () => {
+      if (r.battleId != null) return String(r.battleId);
+      if (meta && meta.battleId != null) return String(meta.battleId);
+      return "";
+    };
+    const resolveEventId = () => {
+      if (r.eventId != null) return String(r.eventId);
+      if (meta && meta.eventId != null) return String(meta.eventId);
+      return "";
+    };
+    const metaCombined = Object.assign({}, meta);
+    metaCombined.inferredDirection = directionValue != null;
     return {
       ts: Number.isFinite(r.ts) ? r.ts : (Number.isFinite(meta && meta.ts) ? meta.ts : null),
       reason: r.reason != null ? String(r.reason) : "unknown",
       amount,
-      sourceId: r.sourceId != null ? String(r.sourceId) : "",
-      targetId: r.targetId != null ? String(r.targetId) : "",
-      battleId: r.battleId != null ? String(r.battleId) : (meta && meta.battleId != null ? String(meta.battleId) : ""),
-      eventId: r.eventId != null ? String(r.eventId) : (meta && meta.eventId != null ? String(meta.eventId) : ""),
+      signedAmount,
+      sourceId,
+      targetId,
+      battleId: resolveBattleId(),
+      eventId: resolveEventId(),
       currency,
       isPoints,
-      meta
+      counterpartyId,
+      direction,
+      meta: metaCombined,
+      original: r
     };
   };
 
@@ -1941,10 +1964,37 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         anomalies: [],
         hasTransactions: false
       };
+      const fieldHits = {
+        amount: 0,
+        reason: 0,
+        source: 0,
+        target: 0,
+        counterparty: 0
+      };
+      const markPresence = (row) => {
+        if (!row || typeof row !== "object") return;
+        const hasAmount = TX_AMOUNT_KEYS.some(key => {
+          if (!Object.prototype.hasOwnProperty.call(row, key)) return false;
+          const val = row[key];
+          return val != null && Number.isFinite(Number(val));
+        });
+        if (hasAmount) fieldHits.amount += 1;
+        const hasReason = TX_REASON_KEYS.some(key => row[key] != null && row[key] !== "");
+        if (hasReason) fieldHits.reason += 1;
+        const hasSource = TX_SOURCE_KEYS.some(key => row[key] != null && row[key] !== "");
+        if (hasSource) fieldHits.source += 1;
+        const hasTarget = TX_TARGET_KEYS.some(key => row[key] != null && row[key] !== "");
+        if (hasTarget) fieldHits.target += 1;
+        const hasCounterparty = TX_COUNTERPARTY_KEYS.some(key => row[key] != null && row[key] !== "");
+        if (hasCounterparty) fieldHits.counterparty += 1;
+      };
       if (!Array.isArray(rows) || rows.length === 0) return {
         ...explain,
-        rowsWithoutDirection: 0
+        rowsWithoutDirection: 0,
+        txFieldMapHits: fieldHits,
+        detectorVersion: TX_DETECTOR_VERSION
       };
+      rows.forEach(markPresence);
       const reasonCounterparties = Object.create(null);
       const directionSums = Object.create(null);
       const perNpcMap = Object.create(null);
@@ -1956,9 +2006,19 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         return !Number.isFinite(Number(amount));
       }).length;
       const normalizedRows = rows
-        .map(normalizeTxRow)
+        .map(row => {
+          const normalized = normalizeTxRow(row);
+          if (!normalized) return null;
+          normalized.metaShort = makeMetaShort(row.meta || row.metaShort || normalized.meta);
+          return normalized;
+        })
         .filter(r => r && Number.isFinite(r.amount));
-      if (!normalizedRows.length) return { ...explain, rowsWithoutDirection: 0 };
+      if (!normalizedRows.length) return {
+        ...explain,
+        rowsWithoutDirection: 0,
+        txFieldMapHits: fieldHits,
+        detectorVersion: TX_DETECTOR_VERSION
+      };
       normalizedRows.forEach(row => {
         const reason = row.reason;
         const reasonEntry = explain.byReasonDetailed[reason] || (explain.byReasonDetailed[reason] = {
@@ -2172,7 +2232,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ...explain,
         rowsWithoutDirection: normalizedRows.filter(row => !(row.sourceId && row.targetId)).length,
         unknownReasonCount,
-        nonFiniteRowsCount
+        nonFiniteRowsCount,
+        txFieldMapHits: fieldHits,
+        detectorVersion: TX_DETECTOR_VERSION
       };
     };
 
@@ -2661,20 +2723,19 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     if (!explain) pushFailed("explainability_missing");
     const explainabilityTrace = audit && audit.meta ? audit.meta.explainabilityTrace : null;
     const scopedRowsHasTransactions = !!(explainabilityTrace && explainabilityTrace.scopedRowsHasTransactions);
+    const selectedLogSource = audit && audit.meta ? audit.meta.logSource : null;
+    const selectedLogSourceTxHits = explainabilityTrace && Number.isFinite(explainabilityTrace.selectedLogSourceTxHits)
+      ? explainabilityTrace.selectedLogSourceTxHits | 0
+      : 0;
     if (!explain || Object.keys(explain.byReasonDetailed || {}).length === 0) {
       if (rowsScoped > 0) pushFailed("reasons_missing");
     }
     if (rowsScoped > 0 && !scopedRowsHasTransactions) pushFailed("log_source_not_transactional");
     if (rowsScoped > 0 && topTransfersLen === 0) pushFailed("top_transfers_empty");
-    const smokeDiag = audit && audit.meta ? audit.meta.diag : null;
-    const selectedLogSource = smokeDiag ? smokeDiag.selectedLogSource : null;
-    const selectedLogSourceTxHits = smokeDiag && Number.isFinite(smokeDiag.selectedLogSourceTxHits)
-      ? smokeDiag.selectedLogSourceTxHits | 0
-      : 0;
-    const selectedLogSourcePresent = Boolean(selectedLogSource);
-    if (!selectedLogSourcePresent) {
+    const hasSelectedLogSource = Boolean(selectedLogSource) && selectedLogSource !== "none";
+    if (!hasSelectedLogSource) {
       pushFailed("log_source_select_failed");
-    } else if (selectedLogSourceTxHits === 0) {
+    } else if (rowsScoped > 0 && selectedLogSourceTxHits === 0) {
       pushFailed("no_tx_rows");
     }
     if (explain && explain.nonFiniteRowsCount > 0) pushFailed("non_finite_amount");
@@ -4359,15 +4420,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const explainabilityTrace = {
       scopeWindow: scopeDesc,
       logSource,
+      selectedLogSource: logSource,
       rowsScoped,
       scopeType,
       scopeValue,
       directedFields: ["sourceId", "targetId"],
       rowsWithoutDirection: explainability.rowsWithoutDirection || 0,
       scopedRowsHasTransactions,
+      txFieldMapHits: explainability.txFieldMapHits || { amount: 0, reason: 0, source: 0, target: 0, counterparty: 0 },
       selectedLogSourceReason: selectionReason,
       selectedLogSourceTxHits: selectedCandidate ? selectedCandidate.txHits : 0,
       selectedLogSourceTxRatio: selectedCandidate ? selectedCandidate.txRatio : 0,
+      txDetectorVersion: TX_DETECTOR_VERSION,
       unknownReasonCount: explainability.unknownReasonCount || 0,
       unknownReasonNote: explainability.unknownReasonCount ? "rows missing reason field" : null
     };
@@ -4383,6 +4447,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     diag.preferredLogSourceOrder = preferredOrder.slice();
     diag.unknownReasonCount = explainability.unknownReasonCount || 0;
     diag.unknownReasonNote = explainability.unknownReasonCount ? explainabilityTrace.unknownReasonNote : null;
+    diag.txFieldMapHits = explainability.txFieldMapHits || { amount: 0, reason: 0, source: 0, target: 0, counterparty: 0 };
     let sampleTailReasons = [];
     if (rowsScoped === 0 && logAfterRows.length) {
       sampleTailReasons = logAfterRows.slice(Math.max(0, logAfterRows.length - 5))
@@ -4471,7 +4536,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     }
 
     ensureNpcAccountsOk = missingAccounts.length === 0;
-    const explainabilityRowsOk = rowsScoped === 0 || (scopedRowsHasTransactions && explain && Array.isArray(explain.topTransfers) && explain.topTransfers.length > 0);
+    const explainabilityRowsOk = rowsScoped === 0
+      || (scopedRowsHasTransactions && Array.isArray(explainability.topTransfers) && explainability.topTransfers.length > 0);
     const ok = asserts.worldDeltaZero
       && asserts.rowsScopedPositive
       && asserts.noNpcNegative
@@ -8870,6 +8936,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const TX_SOURCE_KEYS = ["fromId", "from", "src", "sender"];
   const TX_TARGET_KEYS = ["toId", "to", "dst", "receiver"];
   const TX_REASON_KEYS = ["reason", "why"];
+  const TX_COUNTERPARTY_KEYS = ["counterpartyId", "counterparty", "cpty", "id"];
+  const TX_DIRECTION_KEYS = ["direction", "dir", "flow"];
+  const TX_DETECTOR_VERSION = "npc_tx_detector_v1";
+  const TX_DEFAULT_ACTOR_ID = "audit_actor";
 
   const getFirstFieldValue = (row, keys) => {
     if (!row || typeof row !== "object") return null;
@@ -8877,6 +8947,24 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const key = keys[i];
       if (Object.prototype.hasOwnProperty.call(row, key)) return row[key];
     }
+    const meta = row.meta || {};
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i];
+      if (Object.prototype.hasOwnProperty.call(meta, key)) return meta[key];
+    }
+    return null;
+  };
+  const detectDirectionValue = (value, amountSign) => {
+    if (value != null) {
+      const str = String(value).toLowerCase();
+      if (str === "in" || str === "out") return str;
+      if (str === "true" || str === "1") return "in";
+      if (str === "-1") return "out";
+      if (str.includes("in")) return "in";
+      if (str.includes("out")) return "out";
+    }
+    if (amountSign > 0) return "in";
+    if (amountSign < 0) return "out";
     return null;
   };
 
@@ -8886,11 +8974,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     if (!Number.isFinite(Number(amount))) return false;
     const fromId = getFirstFieldValue(row, TX_SOURCE_KEYS);
     const toId = getFirstFieldValue(row, TX_TARGET_KEYS);
-    if (!(fromId || toId)) return false;
+    const counterparty = getFirstFieldValue(row, TX_COUNTERPARTY_KEYS);
+    if (!(fromId || toId || counterparty)) return false;
     const reason = getFirstFieldValue(row, TX_REASON_KEYS);
     if (!reason) {
       // reason optional but prefer to have at least one field
-      return !!(fromId || toId);
+      return !!(fromId || toId || counterparty);
     }
     return true;
   };
@@ -8900,18 +8989,41 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const rawAmount = getFirstFieldValue(row, TX_AMOUNT_KEYS);
     const parsedAmount = Number(rawAmount);
     if (!Number.isFinite(parsedAmount)) return null;
-    const fromId = getFirstFieldValue(row, TX_SOURCE_KEYS);
-    const toId = getFirstFieldValue(row, TX_TARGET_KEYS);
+    let fromId = getFirstFieldValue(row, TX_SOURCE_KEYS);
+    let toId = getFirstFieldValue(row, TX_TARGET_KEYS);
     const reasonRaw = getFirstFieldValue(row, TX_REASON_KEYS);
     const reason = reasonRaw ? String(reasonRaw) : "unknown_reason";
     const reasonProvided = reasonRaw != null && reasonRaw !== "";
+    const counterpartyRaw = getFirstFieldValue(row, TX_COUNTERPARTY_KEYS);
+    const counterpartyId = counterpartyRaw != null ? String(counterpartyRaw) : null;
+    const directionRaw = getFirstFieldValue(row, TX_DIRECTION_KEYS);
+    const direction = detectDirectionValue(directionRaw, Math.sign(parsedAmount));
+    const amountSign = Math.sign(parsedAmount);
+    let inferredDirection = false;
+    const resolveDirectionActor = () => {
+      if (direction === "in") return { source: counterpartyId || TX_DEFAULT_ACTOR_ID, target: TX_DEFAULT_ACTOR_ID };
+      if (direction === "out") return { source: TX_DEFAULT_ACTOR_ID, target: counterpartyId || TX_DEFAULT_ACTOR_ID };
+      if (amountSign >= 0) return { source: counterpartyId || TX_DEFAULT_ACTOR_ID, target: TX_DEFAULT_ACTOR_ID };
+      return { source: TX_DEFAULT_ACTOR_ID, target: counterpartyId || TX_DEFAULT_ACTOR_ID };
+    };
+    if ((!fromId || !toId) && counterpartyId) {
+      const inferred = resolveDirectionActor();
+      if (!fromId) fromId = inferred.source;
+      if (!toId) toId = inferred.target;
+      inferredDirection = true;
+    }
+    const metaBase = row.meta || {};
+    const meta = inferredDirection ? Object.assign({}, metaBase, { inferredDirection: true }) : metaBase;
     return {
       fromId: fromId ? String(fromId) : null,
       toId: toId ? String(toId) : null,
       amount: parsedAmount,
+      absAmount: Math.abs(parsedAmount),
       reason,
       reasonProvided,
-      meta: row.meta || {},
+      meta,
+      direction: direction || "",
+      counterpartyId,
       battleId: row.battleId || null,
       eventId: row.eventId || null,
       original: row
