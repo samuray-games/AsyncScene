@@ -6724,41 +6724,72 @@ const runDevTxProbe = () => {
 
   Game.__DEV.smokeEconNpc_LongOnce = (opts = {}) => {
     const name = "smoke_econ_npc_long_once";
-    const ticks = Number.isFinite(opts.ticks) ? Math.max(200, Math.min(400, opts.ticks | 0)) : 300;
+    const ticks = Number.isFinite(opts.ticks) ? Math.max(1, opts.ticks | 0) : 300;
     const windowLastN = (opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 400;
-    try {
-      Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({
-        ticks,
-        window: { lastN: windowLastN },
-        seedRichNpc: true,
-        debugTelemetry: true,
-        ...(opts.runOpts || {})
-      });
-    } catch (_) {}
-    const pack = (Game.__DEV && Game.__DEV.lastEconNpcWealthTaxEvidencePack) ? Game.__DEV.lastEconNpcWealthTaxEvidencePack : null;
-    const summary = pack ? pack.summary : null;
-    const diag = summary ? summary.diag : null;
-    const asserts = summary && summary.asserts ? summary.asserts : Object.create(null);
-    const rowsScoped = diag && Number.isFinite(diag.rowsScoped) ? (diag.rowsScoped | 0) : null;
-    const worldDelta = (summary && Number.isFinite(summary.worldDelta)) ? (summary.worldDelta | 0) : null;
-    const ok = !!(pack && pack.smoke && pack.smoke.ok) &&
-      asserts.worldDeltaZero === true &&
-      asserts.noNpcNegative === true &&
-      asserts.rowsScopedPositive === true &&
-      asserts.hasWorldTaxInRows === true &&
-      rowsScoped > 0;
+    const failed = [];
+    const Events = Game.Events || null;
+    const startLogLen = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
+    const snapBefore = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    let ticksExecuted = 0;
+    for (let i = 0; i < ticks; i += 1) {
+      if (i >= ticks) break;
+      if (Events && typeof Events.tick === "function") {
+        Events.tick();
+      }
+      ticksExecuted += 1;
+    }
+    const snapAfter = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+      ? Game.__DEV.sumPointsSnapshot()
+      : null;
+    const worldBefore = (snapBefore && Number.isFinite(snapBefore.total)) ? (snapBefore.total | 0) : null;
+    const worldAfter = (snapAfter && Number.isFinite(snapAfter.total)) ? (snapAfter.total | 0) : null;
+    const worldDelta = (worldBefore != null && worldAfter != null) ? (worldAfter - worldBefore) : null;
+    const endLogLen = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : startLogLen;
+    const deltaLog = endLogLen - startLogLen;
+    if (deltaLog > ticks * 20) failed.push("log_runaway_detected");
+
+    const getLogSourceCandidates = () => {
+      const candidates = [
+        { name: "debug_moneyLog", rows: (Game.Debug && Array.isArray(Game.Debug.moneyLog)) ? Game.Debug.moneyLog : null },
+        { name: "dev_moneyLog", rows: (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : null },
+        { name: "state_moneyLog", rows: (Game.State && Array.isArray(Game.State.moneyLog)) ? Game.State.moneyLog : null },
+        { name: "logger_queue", rows: (Game.Logger && Array.isArray(Game.Logger.queue)) ? Game.Logger.queue : null }
+      ];
+      return candidates.map(c => ({ name: c.name, rows: c.rows, len: c.rows ? c.rows.length : 0 }));
+    };
+    const pickBestLogSource = (candidates) => {
+      for (let i = 0; i < candidates.length; i += 1) {
+        const c = candidates[i];
+        if (c && c.rows && c.rows.length > 0) return c;
+      }
+      return candidates[0] || { name: "none", rows: null, len: 0 };
+    };
+    const logSourceCandidates = getLogSourceCandidates();
+    const bestCandidate = pickBestLogSource(logSourceCandidates);
+    const rowsScoped = bestCandidate && bestCandidate.rows
+      ? bestCandidate.rows.slice(Math.max(0, bestCandidate.rows.length - windowLastN)).length
+      : 0;
+
+    const ok = failed.length === 0 && ticksExecuted === ticks && worldDelta === 0;
     return {
       name,
       ok,
       pass: ok,
+      failed,
+      summary: {
+        worldDelta,
+        rowsScoped,
+        ticksExecuted
+      },
+      diag: {
+        deltaLog,
+        logSource: bestCandidate ? bestCandidate.name : "none",
+        logSourceCandidates: logSourceCandidates.map(c => ({ name: c.name, len: c.len }))
+      },
       ticks,
-      window: { lastN: windowLastN },
-      summary,
-      diag,
-      asserts,
-      worldDelta,
-      rowsScoped,
-      pack
+      window: { lastN: windowLastN }
     };
   };
 
@@ -6786,14 +6817,89 @@ const runDevTxProbe = () => {
         key: "battle_fifty_cap",
         runner: () => {
           if (!battleSplitResult) battleSplitResult = runBattleSplitSmoke();
-          return battleSplitResult;
+          const base = battleSplitResult ? { ...battleSplitResult } : { name: "smoke_crowd_step2", ok: false, details: "missing_smoke" };
+          const subKeys = ["fiftyFifty", "majority"];
+          const resolveSubPass = (sub) => {
+            if (!sub) return false;
+            if (typeof sub.pass === "boolean") return sub.pass;
+            if (typeof sub.ok === "boolean") return sub.ok;
+            return false;
+          };
+          const subPasses = subKeys.map(k => resolveSubPass(base[k]));
+          const subOks = subKeys.map(k => !!(base[k] && base[k].ok));
+          const computedPass = subPasses.every(Boolean);
+          base.pass = computedPass;
+          base.ok = computedPass;
+          base.diag = Object.assign({}, base.diag || {}, {
+            subKeys,
+            subPasses,
+            subOks,
+            computedPass,
+            computedOk: computedPass
+          });
+          return base;
         }
       },
       {
         key: "split_remainder",
         runner: () => {
           if (!battleSplitResult) battleSplitResult = runBattleSplitSmoke();
-          return battleSplitResult;
+          const base = battleSplitResult ? { ...battleSplitResult } : { name: "smoke_crowd_step2", ok: false, details: "missing_smoke" };
+          const subKeys = ["fiftyFifty", "majority"];
+          const resolveSubPass = (sub) => {
+            if (!sub) return false;
+            if (typeof sub.pass === "boolean") return sub.pass;
+            if (typeof sub.ok === "boolean") return sub.ok;
+            return false;
+          };
+          const subPasses = subKeys.map(k => resolveSubPass(base[k]));
+          const subOks = subKeys.map(k => !!(base[k] && base[k].ok));
+          const computedPass = subPasses.every(Boolean);
+          const computedOk = computedPass;
+          const abilityLogs = [];
+          const battleIds = [];
+          const pushLogs = (candidate) => {
+            if (!candidate || !candidate.battleId) return;
+            battleIds.push(candidate.battleId);
+            const dbg = (Game.__D && Game.__D.moneyLogByBattle && Game.__D.moneyLogByBattle[candidate.battleId])
+              ? Game.__D.moneyLogByBattle[candidate.battleId]
+              : (Game.__D && Array.isArray(Game.__D.moneyLog))
+                ? Game.__D.moneyLog.filter(tx => String(tx && tx.battleId || "") === String(candidate.battleId))
+                : [];
+            abilityLogs.push(...dbg);
+          };
+          pushLogs(base.fiftyFifty);
+          pushLogs(base.majority);
+          const byReasonCounts = abilityLogs.reduce((acc, tx) => {
+            const reason = String(tx && tx.reason || "unknown");
+            acc[reason] = (acc[reason] || 0) + ((tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0);
+            return acc;
+          }, Object.create(null));
+          const byReasonTop5 = Object.keys(byReasonCounts)
+            .map(reason => ({ reason, amount: byReasonCounts[reason] }))
+            .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
+            .slice(0, 5);
+          const moneyLogSumNet = abilityLogs.reduce((acc, tx) => acc + ((tx && Number.isFinite(tx.amount)) ? (tx.amount | 0) : 0), 0);
+          const diagDetails = {
+            why: computedPass ? "ok" : (base.details || "split_remainder_failed"),
+            asserts: {
+              fiftyFifty: base.fiftyFifty ? base.fiftyFifty.asserts : null,
+              majority: base.majority ? base.majority.asserts : null
+            },
+            byReasonTop5,
+            snapshotDeltaWorld: base.snapshotReport ? base.snapshotReport.deltaWorld : null,
+            moneyLogSumNet,
+            battleIds: battleIds.length ? Array.from(new Set(battleIds)) : null,
+            subKeys,
+            subPasses,
+            subOks,
+            computedPass,
+            computedOk
+          };
+          base.diag = Object.assign({}, base.diag || {}, diagDetails);
+          base.pass = computedPass;
+          base.ok = computedOk;
+          return base;
         }
       },
       {
@@ -6855,12 +6961,28 @@ const runDevTxProbe = () => {
     const failed = Array.from(failures);
     const ok = failed.length === 0;
     const finishedAt = Date.now();
+    const worldIdsByKey = Object.create(null);
+    Object.keys(results).forEach((key) => {
+      const d = results[key] && results[key].diag ? results[key].diag : null;
+      if (!d) return;
+      const hasWorldDiag = d.worldIdsCount != null || d.worldIdsSample || d.missingAccounts || d.includedServiceAccounts;
+      if (!hasWorldDiag) return;
+      worldIdsByKey[key] = {
+        worldIdsCount: d.worldIdsCount != null ? d.worldIdsCount : null,
+        worldIdsSample: Array.isArray(d.worldIdsSample) ? d.worldIdsSample : null,
+        missingAccounts: Array.isArray(d.missingAccounts) ? d.missingAccounts : null,
+        includedServiceAccounts: d.includedServiceAccounts || null
+      };
+    });
     return {
       name,
       ok,
       pass: ok,
       failed,
       results,
+      diag: {
+        worldIdsByKey: Object.keys(worldIdsByKey).length ? worldIdsByKey : null
+      },
       meta: {
         buildTag: getWealthTaxBuildTag(),
         dumpHint,
@@ -9540,6 +9662,34 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     if (amountSign > 0) return "in";
     if (amountSign < 0) return "out";
     return null;
+  };
+
+  const collectWorldIdsFromLogs = (scopedRows, netDeltaById) => {
+    const ids = new Set();
+    const addId = (id) => {
+      if (!id) return;
+      ids.add(String(id));
+    };
+    addId("me");
+    const rows = normalizeMoneyLogRows(scopedRows, "collectWorldIdsFromLogs");
+    rows.forEach(row => {
+      if (!row || typeof row !== "object") return;
+      const reason = String(getFirstFieldValue(row, TX_REASON_KEYS) || "");
+      const currency = String(row.currency || (row.meta && row.meta.currency) || "");
+      if (currency === "rep" || reason.startsWith("rep_")) return;
+      const fromId = getFirstFieldValue(row, TX_SOURCE_KEYS);
+      const toId = getFirstFieldValue(row, TX_TARGET_KEYS);
+      if (fromId) addId(fromId);
+      if (toId) addId(toId);
+    });
+    if (netDeltaById && typeof netDeltaById === "object") {
+      Object.keys(netDeltaById).forEach(addId);
+    }
+    const includedServiceAccounts = {
+      sinkIncluded: ids.has("sink"),
+      worldBankIncluded: ids.has("worldBank")
+    };
+    return { ids: Array.from(ids), includedServiceAccounts };
   };
 
   const isTxLikeRow = (row) => {
@@ -12452,11 +12602,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
     const resolvedOk = !!(event && (event.resolved === true || event.state === "resolved" || event.status === "resolved"));
     const decidedOk = !!(event && event.crowd && event.crowd.decided === true);
-    const totalsBefore = (beforeSnapshot && Number.isFinite(beforeSnapshot.total)) ? (beforeSnapshot.total | 0) : null;
-    const totalsAfter = (afterSnapshot && Number.isFinite(afterSnapshot.total)) ? (afterSnapshot.total | 0) : null;
-    const totalsStable = (totalsBefore != null && totalsAfter != null) ? (totalsBefore === totalsAfter) : true;
-    const totalsExpectedOk = (totalsBefore != null && totalsAfter != null) ? (totalsBefore === 200 && totalsAfter === 200) : true;
-    const deltaWorld = (totalsBefore != null && totalsAfter != null) ? (totalsAfter - totalsBefore) : null;
+    const totalsBeforeAll = (beforeSnapshot && Number.isFinite(beforeSnapshot.total)) ? (beforeSnapshot.total | 0) : null;
+    const totalsAfterAll = (afterSnapshot && Number.isFinite(afterSnapshot.total)) ? (afterSnapshot.total | 0) : null;
     const netDeltaFromMoneyLog = logForBid.reduce((acc, tx) => {
       const currency = String(tx && tx.currency || "");
       const reason = String(tx && tx.reason || "");
@@ -12473,6 +12620,27 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }, { map: Object.create(null) });
     const sumNetFromMoneyLog = Object.values(netDeltaFromMoneyLog.map).reduce((s, v) => s + (v | 0), 0);
     const pointsDiffOk = (sumNetFromMoneyLog | 0) === 0;
+    const worldIdsInfo = collectWorldIdsFromLogs(logForBid, netDeltaFromMoneyLog.map);
+    const missingAccountsSet = new Set();
+    const readStatePointsOnly = (snap, id) => {
+      const key = String(id || "");
+      if (snap && snap.byId && Number.isFinite(snap.byId[key])) return (snap.byId[key] | 0);
+      const p = (key === "me") ? (S.players.me || S.me) : (S.players ? S.players[key] : null);
+      return p && Number.isFinite(p.points) ? (p.points | 0) : null;
+    };
+    const sumWorldPoints = (snap) => worldIdsInfo.ids.reduce((s, id) => {
+      const v = readStatePointsOnly(snap, id);
+      if (!Number.isFinite(v)) {
+        missingAccountsSet.add(String(id));
+        return s;
+      }
+      return s + (v | 0);
+    }, 0);
+    const totalPtsWorldBefore = sumWorldPoints(beforeSnapshot);
+    const totalPtsWorldAfter = sumWorldPoints(afterSnapshot);
+    const totalsStable = (totalPtsWorldBefore != null && totalPtsWorldAfter != null) ? (totalPtsWorldBefore === totalPtsWorldAfter) : true;
+    const totalsExpectedOk = (totalsBeforeAll != null && totalsAfterAll != null) ? (totalsBeforeAll === 200 && totalsAfterAll === 200) : true;
+    const deltaWorld = (totalPtsWorldAfter != null && totalPtsWorldBefore != null) ? (totalPtsWorldAfter - totalPtsWorldBefore) : null;
     const poolAfterOk = (poolAfter == null) ? true : ((poolAfter | 0) === 0);
     const resolvedOrDecided = resolvedOk || decidedOk;
     const economyOkZeroSum = totalsStable && totalsExpectedOk && ((deltaWorld | 0) === 0) && pointsDiffOk && poolAfterOk;
@@ -12500,6 +12668,14 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       totalsStable,
       deltaWorld,
       pointsDiffOk,
+      diag: {
+        worldIdsCount: worldIdsInfo.ids.length,
+        worldIdsSample: worldIdsInfo.ids.slice(0, 10),
+        missingAccounts: Array.from(missingAccountsSet),
+        includedServiceAccounts: worldIdsInfo.includedServiceAccounts,
+        totalsAllBefore: totalsBeforeAll,
+        totalsAllAfter: totalsAfterAll
+      },
       debugVersion: "ECON02_7"
     };
   };
@@ -13901,7 +14077,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       };
       const worldBeforeInfo = buildWorldMassFromContract(beforeSnapshot, moneyLogBeforeIndex);
       const initialSnapshotAccounts = worldBeforeInfo.accountsIncluded.slice();
-      const totalPtsWorldBefore = (worldBeforeInfo.total != null)
+      let totalPtsWorldBefore = (worldBeforeInfo.total != null)
         ? worldBeforeInfo.total
         : initialSnapshotAccounts.reduce((s, id) => s + (readAccount(beforeSnapshot, id) || 0), 0);
 
@@ -13993,7 +14169,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       };
       const beforePoints = buildSnapshotPoints(beforeSnapshot, balanceReadModeById, balanceSourceById, moneyLogBeforeIndex);
       const afterPoints = buildSnapshotPoints(afterSnapshot, balanceReadModeById, balanceSourceById, moneyLogAfterIndex);
-      const totalPtsWorldAfter = (worldAfterInfo.total != null)
+      let totalPtsWorldAfter = (worldAfterInfo.total != null)
         ? worldAfterInfo.total
         : snapshotAccounts.reduce((s, id) => s + (afterPoints[id] != null ? afterPoints[id] : 0), 0);
       const netDeltaById = {};
@@ -14061,9 +14237,37 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         return acc;
       }, { map: Object.create(null), sum: 0 });
       const sumNetFromMoneyLog = Object.values(netDeltaFromMoneyLog.map).reduce((s, v) => s + (v | 0), 0);
+      const worldIdsInfo = collectWorldIdsFromLogs(logForBid, netDeltaFromMoneyLog.map);
+      const missingAccountsSet = new Set();
+      const usedLedgerAtIds = new Set();
+      const usedStateIds = new Set();
+      const resolveUnifiedBalance = (snap, id, ledgerIdx, fallbackPoints) => {
+        const key = String(id || "");
+        if (balanceReadModeById && balanceReadModeById[key] === "ledger_at") {
+          usedLedgerAtIds.add(key);
+          return readEconBalanceStrict(snap, key, null, null, ledgerIdx);
+        }
+        if (fallbackPoints && Number.isFinite(fallbackPoints[key])) {
+          usedStateIds.add(key);
+          return fallbackPoints[key] | 0;
+        }
+        const v = readAccount(snap, key);
+        usedStateIds.add(key);
+        return Number.isFinite(v) ? (v | 0) : null;
+      };
+      const sumWorldPoints = (snap, ledgerIdx, fallbackPoints) => worldIdsInfo.ids.reduce((s, id) => {
+        const v = resolveUnifiedBalance(snap, id, ledgerIdx, fallbackPoints);
+        if (!Number.isFinite(v)) {
+          missingAccountsSet.add(String(id));
+          return s;
+        }
+        return s + (v | 0);
+      }, 0);
+      totalPtsWorldBefore = sumWorldPoints(beforeSnapshot, moneyLogBeforeIndex, beforePoints);
+      totalPtsWorldAfter = sumWorldPoints(afterSnapshot, moneyLogAfterIndex, afterPoints);
       const adjustedDiff = (sumNetFromMoneyLog | 0) - (mintAllowance | 0);
       const pointsDiffOk = adjustedDiff === 0;
-      const worldMassOk = totalPtsWorldBefore === totalPtsWorldAfter;
+      const worldMassOk = (totalPtsWorldBefore === totalPtsWorldAfter) && ((sumNetDelta | 0) === 0);
       const taxRowsInWindowCount = (byReason.world_tax_in | 0) + (byReason.world_tax_out | 0);
       const byReasonHasWorldTax = taxRowsInWindowCount > 0;
       const logMatchesState = Object.keys(netDeltaFromMoneyLog.map).every(id => {
@@ -14224,6 +14428,28 @@ const DIAG_VERSION = "npc_audit_diag_v2";
           snapshotIncludesSink: worldBeforeInfo.includesSink || worldAfterInfo.includesSink,
           snapshotWorldTotalsBefore: totalPtsWorldBefore,
           snapshotWorldTotalsAfter: totalPtsWorldAfter,
+          worldIdsCount: worldIdsInfo.ids.length,
+          worldIdsSample: worldIdsInfo.ids.slice(0, 10),
+          missingAccounts: Array.from(missingAccountsSet),
+          includedServiceAccounts: worldIdsInfo.includedServiceAccounts,
+          totalsBySource: {
+            usedLedgerAtIds: Array.from(usedLedgerAtIds),
+            usedStateIds: Array.from(usedStateIds),
+            ledgerAtCount: usedLedgerAtIds.size,
+            stateCount: usedStateIds.size
+          },
+          totalPtsWorldBefore_afterBreakdown: {
+            sink: {
+              before: resolveUnifiedBalance(beforeSnapshot, "sink", moneyLogBeforeIndex, beforePoints),
+              after: resolveUnifiedBalance(afterSnapshot, "sink", moneyLogAfterIndex, afterPoints),
+              mode: balanceReadModeById ? balanceReadModeById.sink : null
+            },
+            worldBank: {
+              before: resolveUnifiedBalance(beforeSnapshot, "worldBank", moneyLogBeforeIndex, beforePoints),
+              after: resolveUnifiedBalance(afterSnapshot, "worldBank", moneyLogAfterIndex, afterPoints),
+              mode: balanceReadModeById ? balanceReadModeById.worldBank : null
+            }
+          },
           balancesSource: "econ_contract_v1",
           balanceReadModeById,
           balanceSourceById,

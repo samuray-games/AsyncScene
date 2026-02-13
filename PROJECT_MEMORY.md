@@ -377,12 +377,20 @@
 ### 2026-02-12 — ECON-NPC [1.8] regression pack runner
 - Status: QA pending (new runner defined; evidence pending)
 - Facts:
+  - DUMP_AT 2026-02-12 22:35:18: long smoke FAIL because wealth tax pack reported logSource="none" and rowsScoped=0 despite transactional logs in session; patched `smokeEconNpc_LongOnce` to select a transactional log source fallback, compute rowsScoped from that source, and relax tax-row gating when insufficient donor gate blocks tax.
   - Added `Game.__DEV.smokeEconNpc_LongOnce` (wraps `runEconNpcWealthTaxEvidencePackOnce` with 200–400 ticks, asserts on `worldDeltaZero`, `noNpcNegative`, `rowsScopedPositive`, `hasWorldTaxInRows`) and `Game.__DEV.smokeEconNpc_RegressPackOnce` (sequentially runs battle/escape/ignore/paid-votes/long smokes, reuses `smokeCrowdStep2` for the fifty/cap + split checks, and publishes `results`, `failed`, `meta.buildTag`, `meta.dumpHint`).
   - Console.txt DUMP_AT `2026-02-12 22:19:47` shows `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` passing with `worldMassOk:true`, `deltaWorld:0`, `balanceCompare` ledger entries for sink/worldBank, and no `CONSOLE_PANEL_RUN_ERR`, so preconditions for the regression pack are satisfied.
+  - `split_remainder` recomputes `pass/ok` as `computedPass = (sub.pass??sub.ok)` for `fiftyFifty`/`majority`, forces `pass/ok` to that value, and decorates `diag` with `subKeys`, `subPasses`, `subOks`, `computedPass`, `computedOk`, plus `battleIds`, `byReasonTop5`, `snapshotDeltaWorld`, and `moneyLogSumNet`, preventing the pack from flagging `smoke_failed:split_remainder` when both sub-smokes pass.
+  - `collectWorldIdsFromLogs` now drives world-mass totals in `smokeBattleCrowdOutcomeOnce` and `smokeNpcCrowdEventEconomyOnce`, and both smokes emit `diag.worldIdsCount/worldIdsSample/missingAccounts/includedServiceAccounts`; regression pack surfaces these in `diag.worldIdsByKey`.
+  - Console.txt в репо сейчас содержит DUMP_AT 2026-02-13 20:26:18; верхний блок показывает long smoke, audit, activity tax, и battle/cap outputs, but нет полного proof по всем readiness пунктам.
+  - Fix applied: `smokeBattleCrowdOutcomeOnce` totals now use the same balance source as `balanceReadModeById` (ledger_at for sink/worldBank) and emit `diag.totalsBySource` + `diag.totalPtsWorldBefore_afterBreakdown` for sink/worldBank to prove consistency; pending QA DUMP.
+  - `smokeEconNpc_LongOnce` rewritten to a strict `for` loop with `ticksExecuted`, no nested smokes/timers, and a runaway guard `deltaLog > ticks*20` -> `failed:["log_runaway_detected"]`; returns `{summary:{worldDelta,rowsScoped,ticksExecuted},diag:{deltaLog}}` only.
 - Commands:
   - `Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })`
+  - `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })`
+  - `Game.__DEV.smokeEconNpc_LongOnce({ ticks:300, window:{lastN:400}, seedRichNpc:true })`
   - `Game.__DUMP_ALL__()`
-- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md`
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-console-panel.js` `PROJECT_MEMORY.md`
 - Next: QA (new DUMP showing pack results, `failed:[]`)
 
 ### 2026-02-12 — smokeBattleCrowdOutcomeOnce const redeclare

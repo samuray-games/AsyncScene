@@ -75,28 +75,37 @@
 - Next: QA
 - Area: Economy
 - Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: добавить `Game.__DEV.smokeEconNpc_RegressPackOnce`, который прогоняет battle/escape/ignore/paid_votes smokes и новый long smoke, собирает `results`/`failed` и публикует `meta.buildTag`/`dumpHint`.
+- Goal: добавить `Game.__DEV.smokeEconNpc_RegressPackOnce`, который прогоняет battle/escape/ignore/paid_votes smokes и новый long smoke, собирает `results`/`failed` и публикует `meta.buildTag`/`meta.dumpHint`, а также делает `split_remainder` прозрачной для QA.
 - Acceptance:
   - [ ] Pack последовательно запускает `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })`, `Game.__DEV.smokeCrowdStep2`, `Game.__DEV.smokeEscapeCrowdOutcomeOnce`, `Game.__DEV.smokeIgnoreCrowdOutcomeOnce`, `Game.__DEV.smokeNpcCrowdEventPaidVotesOnce` и `Game.__DEV.smokeEconNpc_LongOnce`.
   - [ ] `results` содержит ключи `battle_majority`, `battle_fifty_cap`, `split_remainder`, `escape_crowd`, `ignore_crowd`, `paid_votes`, `long`; каждый entry разумно агрегирует `ok/pass/asserts`.
   - [ ] `failed` array содержит `world_mass_drift` iff любой smoke экспортировал `asserts.worldMassOk === false`, иначе `failed` пуст и `ok:true`.
   - [ ] `meta.dumpHint` отражает рекомендованную команду (`opts.dumpHint` или `Game.__DUMP_ALL__()`), `meta.buildTag` достаётся из `getWealthTaxBuildTag()`, `meta.startedAt/finishedAt` заполняются.
 - Result: |
-    Status: QA pending (Console DUMP_AT 2026-02-12 22:19:47 shows `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` PASS with `worldMassOk:true`, `deltaWorld:0` and no CONSOLE_PANEL_RUN_ERR).
+    Status: FAIL (readiness blocked: Console.txt top block DUMP_AT 2026-02-13 20:26:18 shows limited evidence and missing markers for several checklist items [1.1]-[1.8]).
     Facts:
-      (1) `Game.__DEV.smokeEconNpc_LongOnce` добавлен как обёртка над `runEconNpcWealthTaxEvidencePackOnce` (тайминги 200–400 ticks, `seedRichNpc:true`, `debugTelemetry:true`), проверяет `worldDeltaZero`, `noNpcNegative`, `rowsScopedPositive` и `hasWorldTaxInRows`.
-      (2) `Game.__DEV.smokeEconNpc_RegressPackOnce` запускает нужную последовательность smokes, дублирует `Game.__DEV.smokeCrowdStep2` результат для `battle_fifty_cap` и `split_remainder`, и фиксирует `failed`/`results`/`meta` (включая `buildTag`/`dumpHint`).
-    Changed: `AsyncScene/Web/dev/dev-checks.js`
+      (1) `smokeBattleCrowdOutcomeOnce` now collects world ids from moneyLog (`fromId/toId`, plus `me`, `sink`, `worldBank`, `crowd:*`) via `collectWorldIdsFromLogs`, recomputes `totalPtsWorldBefore/After` from state/snapshot points, and exposes `diag.worldIdsCount/worldIdsSample/missingAccounts/includedServiceAccounts`.
+      (2) `smokeNpcCrowdEventEconomyOnce` now uses collected ids for `deltaWorld` and totals stability, adds `diag` with `worldIds*`, `missingAccounts`, `includedServiceAccounts`, and keeps `totalsAllBefore/After` for baseline visibility.
+      (3) `smokeEconNpc_RegressPackOnce` now emits `diag.worldIdsByKey` (when available) to surface service-account coverage in the dump.
+      (4) `ui-console-panel.js` no longer emits `CONSOLE_PANEL_RUN_ERR` for `result.ok === false` unless `showPanel:true` is explicitly provided.
+      (5) DUMP_AT 2026-02-13 19:48:49: `smoke_battle_crowd_outcome_once` shows `worldMassOk:false`, `snapshotReport.totalPtsWorldBefore:130 -> totalPtsWorldAfter:140`, `deltaWorld:10` while `balanceCompareById.sink.afterMinusBefore:-10` and `worldBank:+10`, `moneyLogReport.sumNetFromMoneyLog:0`. This confirms totals are still not using ledger_at balances for sink/worldBank.
+      (6) Same DUMP shows `smoke_econ_npc_regress_pack_once ok:false failed:[world_mass_drift]`, `meta.buildTag: wt_dump_guard_v3_2026_02_11_01`, and no `CONSOLE_PANEL_RUN_ERR` markers (only `CONSOLE_PANEL_RUN_OK`).
+      (7) `smokeEconNpc_LongOnce` переписан на детерминированный цикл `for` без nested smokes, таймеров и extra логов; возвращает `{summary:{worldDelta,rowsScoped,ticksExecuted},diag:{deltaLog}}` и ставит `failed:["log_runaway_detected"]` если `deltaLog > ticks*20`.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-console-panel.js`
     How to verify:
-      (1) Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
-      (2) Game.__DUMP_ALL__()
-    Next: QA
+      (1) Reload the dev page.
+      (2) `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })`
+      (3) `Game.__DEV.smokeEconNpc_LongOnce({ ticks:100, window:{lastN:200}, seedRichNpc:true })`
+      (4) `Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })`
+      (5) `Game.__DUMP_ALL__()`
+    Next: QA (нужен новый DUMP_AT: worldMassOk/deltaWorld=0, long smoke finite ticksExecuted, deltaLog bounded, без CONSOLE_PANEL_RUN_ERR)
     Next Prompt (копипаст, кодблок обязателен):
     ```text
-    Ответ QA:
-    (1) Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
-    (2) Game.__DUMP_ALL__()
-    PASS if `ok:true`, `failed:[]`, each `results` entry exists, `meta.buildTag === getWealthTaxBuildTag()`, and the long smoke reports `summary.worldDelta === 0` + world_mass/rowsScoped invariants; otherwise FAIL.
+    (1) Reload dev page
+    (2) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
+    (3) Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })
+    (4) Game.__DUMP_ALL__()
+    PASS if battle smoke shows worldMassOk:true with deltaWorld 0, diag.includedServiceAccounts sink/worldBank true when present, and regression pack returns ok:true failed:[] without CONSOLE_PANEL_RUN_ERR; otherwise FAIL and attach relevant diag fields.
     ```
 
 ### [T-20260212-022] DEV smokeBattleCrowdOutcomeOnce const drift

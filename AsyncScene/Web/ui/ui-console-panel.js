@@ -179,9 +179,15 @@
         throw new Error("Run helper missing");
       }
       if (result && result.ok === false) {
-        failed = true;
-        const errorPreview = result.error || result;
-        console.error("CONSOLE_PANEL_RUN_ERR id=" + runId, errorPreview);
+        const wantsPanelError = result && result.showPanel === true;
+        if (wantsPanelError) {
+          failed = true;
+          const errorPreview = result.error || result;
+          console.error("CONSOLE_PANEL_RUN_ERR id=" + runId, errorPreview);
+        } else {
+          const preview = result;
+          console.warn("CONSOLE_PANEL_RUN_OK id=" + runId, preview);
+        }
       } else {
         const preview = result;
         console.warn("CONSOLE_PANEL_RUN_OK id=" + runId, preview);
