@@ -1,6 +1,6 @@
-[DUMP_AT] [2026-02-13 20:50:10] (epoch_ms=1770983410182)
+[DUMP_AT] [2026-02-13 21:08:41] (epoch_ms=1770984521784)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770983400661
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1770984508512
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
@@ -10,11 +10,11 @@ WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1770983400670 1770983400693
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1770984508526 1770984508557
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770983400693
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1770984508557
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
@@ -40,10 +40,10 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1770983400707
+LOG [AttackChoices] conflict-arguments loaded 1770984508576
 LOG [ConflictAPI] ready
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770983410006_0dc78f09776238 await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1770984521576_ac9abdbc9e74b await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
 WARN [repl] > await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
 WARN ECON_NPC_READINESS_PACK_BEGIN
 LOG [DEV] ECON_NPC_ALLOWLIST Object{allowlistSize: 3, ok: true, rowsScoped: 36, topLeakReasons: [], unexpectedCount: 0}
@@ -100,7 +100,7 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN NPC_ACTIVITY_TAX_PRECHECK Object{count: 0, first: null, last: null}
-WARN NPC_ACTIVITY_TAX_DEBUG Object{appliedTax: 1, conditionPassed: true, count: 0, didTransfer: true, first: null, intendedTax: 1, last: null, note: null, runTickId: tax_only_1770983410019_277206, transferOk: true, worldBankEnsure: Object{created: true, ok: true, points: 5}, worldContract: Object{accountsIncludedHash: h9973d04a, accountsIncludedLen: 25, hasWorldBank: true}}
+WARN NPC_ACTIVITY_TAX_DEBUG Object{appliedTax: 1, conditionPassed: true, count: 0, didTransfer: true, first: null, intendedTax: 1, last: null, note: null, runTickId: tax_only_1770984521597_290807, transferOk: true, worldBankEnsure: Object{created: true, ok: true, points: 5}, worldContract: Object{accountsIncludedHash: h9e74f106, accountsIncludedLen: 25, hasWorldBank: true}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   appliedTax: 1
@@ -111,7 +111,7 @@ LOG Object{
   intendedTax: 1
   last: null
   note: null
-  runTickId: tax_only_1770983410019_277206
+  runTickId: tax_only_1770984521597_290807
   transferOk: true
   worldBankEnsure: Object{
     created: true
@@ -119,7 +119,7 @@ LOG Object{
     points: 5
   }
   worldContract: Object{
-    accountsIncludedHash: h9973d04a
+    accountsIncludedHash: h9e74f106
     accountsIncludedLen: 25
     hasWorldBank: true
   }
@@ -167,7 +167,7 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN NPC_ACTIVITY_TAX_PRECHECK Object{count: 0, first: null, last: null}
-WARN NPC_ACTIVITY_TAX_DEBUG Object{appliedTax: 1, conditionPassed: true, count: 0, didTransfer: true, first: null, intendedTax: 1, last: null, note: null, runTickId: tax_only_1770983410021_429753, transferOk: true, worldBankEnsure: Object{created: false, ok: true, points: 1}, worldContract: Object{accountsIncludedHash: h9973d04a, accountsIncludedLen: 25, hasWorldBank: true}}
+WARN NPC_ACTIVITY_TAX_DEBUG Object{appliedTax: 1, conditionPassed: true, count: 0, didTransfer: true, first: null, intendedTax: 1, last: null, note: null, runTickId: tax_only_1770984521602_153036, transferOk: true, worldBankEnsure: Object{created: false, ok: true, points: 1}, worldContract: Object{accountsIncludedHash: h9e74f106, accountsIncludedLen: 25, hasWorldBank: true}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   appliedTax: 1
@@ -178,7 +178,7 @@ LOG Object{
   intendedTax: 1
   last: null
   note: null
-  runTickId: tax_only_1770983410021_429753
+  runTickId: tax_only_1770984521602_153036
   transferOk: true
   worldBankEnsure: Object{
     created: false
@@ -186,7 +186,7 @@ LOG Object{
     points: 1
   }
   worldContract: Object{
-    accountsIncludedHash: h9973d04a
+    accountsIncludedHash: h9e74f106
     accountsIncludedLen: 25
     hasWorldBank: true
   }
@@ -196,7 +196,7 @@ WARN NPC_ACTIVITY_TAX_TAX Object{count: 0, first: null, last: null}
 WARN NPC_ACTIVITY_TAX_POST Object{count: 0, first: null, last: null}
 LOG NPC_ACTIVITY_TAX_SUMMARY Object{notes: [], ok: true, rate: 0.25, softCap: 10, taxRowsCount: 1, taxableNpcCount: 1, ticks: 1, totalTax: 1, worldAfter: 204, worldBefore: 204, worldDelta: 0}
 WARN SEED_RICH_NPC_V2_ACTIVE
-WARN ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"h9973d04a","hasTotals":true,"missingCount":0}
+WARN ECON_NPC_WORLD_CONTRACT_V1_READY {"accountsIncludedLen":25,"accountsIncludedHash":"h9e74f106","hasTotals":true,"missingCount":0}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 204, beforeTotal: 204, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax_pack, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -263,9 +263,9 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN WEALTH_TAX_PRECHECK {"npcCount":19,"createdCount":0,"syncedCount":0,"skippedCount":19,"missingAfterCount":0,"sampleMissingIds":[],"statePointsSample":[{"id":"npc_weak","points":10},{"id":"npc_sad","points":9},{"id":"npc_meme","points":10}],"branch":"already_ok","ensureDiag":{"called":true,"branch":"already_ok","returnReason":null,"storageKey":"S.players","storageKeyUsed":"S.players","hasGameStatePlayers":true,"hasSPlayers":true,"playersKeyCountGame":21,"playersKeyCountS":21,"npcIdsSeenCount":19,…
+WARN WEALTH_TAX_PRECHECK {"npcCount":19,"createdCount":0,"syncedCount":0,"skippedCount":19,"missingAfterCount":0,"sampleMissingIds":[],"statePointsSample":[{"id":"npc_weak","points":9},{"id":"npc_sad","points":10},{"id":"npc_meme","points":10}],"branch":"already_ok","ensureDiag":{"called":true,"branch":"already_ok","returnReason":null,"storageKey":"S.players","storageKeyUsed":"S.players","hasGameStatePlayers":true,"hasSPlayers":true,"playersKeyCountGame":21,"playersKeyCountS":21,"npcIdsSeenCount":19,…
 WARN WORLD_MASS_V2 {"stage":"beforeSeed","totals":{"totalPtsAll":204,"totalPtsPlayers":203,"totalPtsNpc":194,"totalPtsService":1},"topChangedIds":[],"scopedMoneyLogAgg":{"sumNet":39,"byReasonTop5":[{"reason":"npc_activity_gain_smoke","amount":6},{"reason":"world_tax_in","amount":5},{"reason":"npc_activity_seed_fund_smoke","amount":5},{"reason":"npc_seed_rich_smoke","amount":5},{"reason":"rep_crowd_vote_participation","amount":4}]}}
-WARN SEED_RICH_NPC_V2_ACTIVE {"buildTag":"wt_dump_guard_v3_2026_02_11_01","file":"dev-checks.js","mode":"npc_only","need":15,"donorsTried":18,"donorsUsed":0,"forbiddenSinkUsed":false,"ts":1770983410023}
+WARN SEED_RICH_NPC_V2_ACTIVE {"buildTag":"wt_dump_guard_v3_2026_02_11_01","file":"dev-checks.js","mode":"npc_only","need":16,"donorsTried":18,"donorsUsed":0,"forbiddenSinkUsed":false,"ts":1770984521605}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 204, beforeTotal: 204, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -289,7 +289,7 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
 WARN ECON_NPC_WEALTH_TAX_APPLY_V1 {"npcId":"npc_weak","npcPtsBefore":25,"npcPtsAfter":24,"taxResOk":true,"taxApplied":true,"taxAmount":1,"reasonIn":"world_tax_in","reasonOut":"world_tax_out"}
-WARN WORLD_MASS_V2 {"stage":"afterSeed","totals":{"totalPtsAll":203,"totalPtsPlayers":202,"totalPtsNpc":193,"totalPtsService":1},"topChangedIds":[{"id":"npc_weak","before":10,"after":24,"delta":14},{"id":"npc_sad","before":9,"after":8,"delta":-1},{"id":"npc_meme","before":10,"after":9,"delta":-1},{"id":"npc_rin","before":10,"after":9,"delta":-1},{"id":"npc_troll","before":10,"after":9,"delta":-1}],"scopedMoneyLogAgg":{"sumNet":56,"byReasonTop5":[{"reason":"world_seed_grant","amount":15},{"reason":"wo…
+WARN WORLD_MASS_V2 {"stage":"afterSeed","totals":{"totalPtsAll":203,"totalPtsPlayers":202,"totalPtsNpc":193,"totalPtsService":1},"topChangedIds":[{"id":"npc_weak","before":9,"after":24,"delta":15},{"id":"npc_sad","before":10,"after":9,"delta":-1},{"id":"npc_meme","before":10,"after":9,"delta":-1},{"id":"npc_rin","before":10,"after":9,"delta":-1},{"id":"npc_troll","before":10,"after":9,"delta":-1}],"scopedMoneyLogAgg":{"sumNet":57,"byReasonTop5":[{"reason":"world_seed_grant","amount":16},{"reason":"wo…
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 203, beforeTotal: 203, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -21191,9 +21191,63 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
 WARN WORLD_MASS_V2 {"stage":"afterTicks","totals":{"totalPtsAll":199,"totalPtsPlayers":198,"totalPtsNpc":189,"totalPtsService":1},"topChangedIds":[{"id":"npc_weak","before":24,"after":20,"delta":-4}],"scopedMoneyLogAgg":{"sumNet":0,"byReasonTop5":[{"reason":"npc_account_init","amount":0}]}}
-WARN ECON_NPC_READINESS_PACK_JSON1 {"buildTag":"wt_dump_guard_v3_2026_02_11_01","atLocal":"2026-02-13 11:50:10","args":{"lastN":200,"ticks":50,"repeatN":2},"checks":{}}
-WARN ECON_NPC_READINESS_PACK_JSON2 {"checklist":{},"allOk":false,"failReasons":["exception"],"proofPointers":{"dumpHint":"Game.__DUMP_ALL__()","expectedMarkers":["ECON_NPC_READINESS_PACK_BEGIN","ECON_NPC_READINESS_PACK_JSON1","ECON_NPC_READINESS_PACK_JSON2","ECON_NPC_READINESS_PACK_END"]}}
+WARN ECON_NPC_READINESS_PACK_JSON1 {"buildTag":"wt_dump_guard_v3_2026_02_11_01","atLocal":"2026-02-13 12:08:41","args":{"lastN":200,"ticks":50,"repeatN":2},"checks":{"1.1":{"ok":true,"evidence":{"repeatN":2,"deltas":[0,0],"allZero":true}},"1.2":{"ok":true,"evidence":{"accountsIncludedLen":24,"accountsIncludedHash":"h5874b7bc","addedAccounts":null}},"1.3":{"ok":false,"evidence":{"notes":["npc_activity_failed","invariants_failed_0","invariants_failed_1","invariants_failed_2","invariants_failed"],"stabl…
+WARN ECON_NPC_READINESS_PACK_JSON2 {"checklist":{"1.1":false,"1.2":false,"1.3":false,"1.4":false,"1.5":false,"1.6":false,"1.7":false,"1.8":false},"allOk":false,"failNotes":{"1.1":["exception"],"1.2":["exception"],"1.3":["exception"],"1.4":["exception"],"1.5":["exception"],"1.6":["exception"],"1.7":["exception"],"1.8":["exception"]},"failReasons":["exception"],"errorMessage":"Can't find variable: ensureNpcAccountsOkFromSmoke","proofPointers":{"dumpHint":"Game.__DUMP_ALL__()","expectedMarkers":["ECON_N…
 WARN ECON_NPC_READINESS_PACK_END
-LOG [repl] < undefined
-WARN CONSOLE_PANEL_RUN_OK id=panel_1770983410006_0dc78f09776238 undefined
+LOG [repl] < Object{json1: Object{args: Object{lastN: 200, repeatN: 2, ticks: 50}, atLocal: 2026-02-13 12:08:41, buildTag: wt_dump_guard_v3_2026_02_11_01, checks: Object{1.1: Object{evidence: [MaxDepth Object], ok: true}, 1.2: Object{evidence: [MaxDepth Object], ok: true}, 1.3: Object{evidence: [MaxDepth Object], ok: false}, 1.4: Object{evidence: [MaxDepth Object], note: NOT_IMPLEMENTED, ok: false}}}, json2: Object{allOk: false, checklist: Object{1.1: false, 1.2: false, 1.3: false, 1.4: false, 1.5: false, 1.6: false, 1.7: false, 1.8: false}, errorMessage: Can't find variable: ensureNpcAccountsOkFromSmoke, failNotes: Object{1.1: [exception], 1.2: [exception], 1.3: [exception], 1.4: [exception], 1.5: [exception], 1.6: [exception], 1.7: [exception], 1.8: [exception]}, failReasons: [exception], proofPointers: Object{dumpHint: Game.__DUMP_ALL__(), expectedMarkers: [ECON_NPC_READINESS_PACK_BEGIN, ECON_NPC_READINESS_PACK_JSON1, ECON_NPC_READINESS_PACK_JSON2, ECON_NPC_READINESS_PACK_END]}}, ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  json1: Object{
+    args: Object{
+      lastN: 200
+      repeatN: 2
+      ticks: 50
+    }
+    atLocal: 2026-02-13 12:08:41
+    buildTag: wt_dump_guard_v3_2026_02_11_01
+    checks: Object{
+      1.1: Object{
+        evidence: Object{
+          allZero: true
+          deltas: [
+            0
+            0
+          ]
+          repeatN: 2
+        }
+        ok: true
+      }
+      1.2: Object{
+        evidence: Object{
+          accountsIncludedHash: h5874b7bc
+          accountsIncludedLen: …
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_OK id=panel_1770984521576_ac9abdbc9e74b Object{json1: Object{args: Object{lastN: 200, repeatN: 2, ticks: 50}, atLocal: 2026-02-13 12:08:41, buildTag: wt_dump_guard_v3_2026_02_11_01, checks: Object{1.1: Object{evidence: [MaxDepth Object], ok: true}, 1.2: Object{evidence: [MaxDepth Object], ok: true}, 1.3: Object{evidence: [MaxDepth Object], ok: false}, 1.4: Object{evidence: [MaxDepth Object], note: NOT_IMPLEMENTED, ok: false}}}, json2: Object{allOk: false, checklist: Object{1.1: false, 1.2: false, 1.3: false, 1.4: false, 1.5: false, 1.6: false, 1.7: false, 1.8: false}, errorMessage: Can't find variable: ensureNpcAccountsOkFromSmoke, failNotes: Object{1.1: [exception], 1.2: [exception], 1.3: [exception], 1.4: [exception], 1.5: [exception], 1.6: [exception], 1.7: [exception], 1.8: [exception]}, failReasons: [exception], proofPointers: Object{dumpHint: Game.__DUMP_ALL__(), expectedMarkers: [ECON_NPC_READINESS_PACK_BEGIN, ECON_NPC_READINESS_PACK_JSON1, ECON_NPC_READINESS_PACK_JSON2, ECON_NPC_READINESS_PACK_END]}}, ok: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  json1: Object{
+    args: Object{
+      lastN: 200
+      repeatN: 2
+      ticks: 50
+    }
+    atLocal: 2026-02-13 12:08:41
+    buildTag: wt_dump_guard_v3_2026_02_11_01
+    checks: Object{
+      1.1: Object{
+        evidence: Object{
+          allZero: true
+          deltas: [
+            0
+            0
+          ]
+          repeatN: 2
+        }
+        ok: true
+      }
+      1.2: Object{
+        evidence: Object{
+          accountsIncludedHash: h5874b7bc
+          accountsIncludedLen: …
+LOG END CONSOLE_EXPAND_V1
 

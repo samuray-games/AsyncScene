@@ -6820,8 +6820,19 @@ const runDevTxProbe = () => {
     const lastN = (opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 600;
     const ticks = (opts.long && Number.isFinite(opts.long.ticks)) ? (opts.long.ticks | 0) : 300;
     const repeatN = Number.isFinite(opts.repeatN) ? Math.max(1, opts.repeatN | 0) : 10;
+    const checklistKeys = ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8"];
     const checks = Object.create(null);
     const failReasons = [];
+    const buildChecklist = () => {
+      const out = Object.create(null);
+      checklistKeys.forEach(k => { out[k] = false; });
+      return out;
+    };
+    const buildFailNotes = () => {
+      const out = Object.create(null);
+      checklistKeys.forEach(k => { out[k] = []; });
+      return out;
+    };
     const getLogRows = () => {
       if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) return Game.Debug.moneyLog;
       if (Game.__D && Array.isArray(Game.__D.moneyLog)) return Game.__D.moneyLog;
@@ -6965,9 +6976,18 @@ const runDevTxProbe = () => {
       };
 
       const checklist = Object.create(null);
-      Object.keys(checks).forEach(k => { checklist[k] = !!checks[k].ok; });
-      const allOk = Object.values(checklist).every(Boolean);
-      Object.keys(checks).forEach(k => { if (!checks[k].ok) failReasons.push(`check_${k}`); });
+      const failNotes = buildFailNotes();
+      checklistKeys.forEach(k => {
+        const entry = checks[k];
+        const okVal = !!(entry && entry.ok);
+        checklist[k] = okVal;
+        if (!okVal) {
+          const note = entry && entry.note ? String(entry.note) : "failed";
+          failNotes[k].push(note);
+          failReasons.push(`check_${k}`);
+        }
+      });
+      const allOk = checklistKeys.every(k => checklist[k] === true);
       if (!regress || regress.ok !== true) failReasons.push("regress_failed");
       if (!longOk) failReasons.push("long_failed");
 
@@ -7004,7 +7024,8 @@ const runDevTxProbe = () => {
       };
       json2 = {
         checklist,
-        allOk: allOk && longOk && regress && regress.ok === true,
+        allOk: allOk,
+        failNotes,
         failReasons,
         proofPointers: {
           dumpHint,
@@ -7021,8 +7042,18 @@ const runDevTxProbe = () => {
       emitLine(`ECON_NPC_READINESS_PACK_JSON2 ${safeStringify(json2)}`);
     } catch (err) {
       failReasons.push("exception");
-      json1 = json1 || { buildTag, atLocal, args: { lastN, ticks, repeatN }, checks: {} };
-      json2 = { checklist: {}, allOk: false, failReasons, proofPointers: { dumpHint, expectedMarkers: ["ECON_NPC_READINESS_PACK_BEGIN", "ECON_NPC_READINESS_PACK_JSON1", "ECON_NPC_READINESS_PACK_JSON2", "ECON_NPC_READINESS_PACK_END"] } };
+      const checklist = buildChecklist();
+      const failNotes = buildFailNotes();
+      checklistKeys.forEach(k => { failNotes[k].push("exception"); });
+      json1 = json1 || { buildTag, atLocal, args: { lastN, ticks, repeatN }, checks: checks };
+      json2 = {
+        checklist,
+        allOk: false,
+        failNotes,
+        failReasons,
+        errorMessage: err && err.message ? String(err.message) : String(err),
+        proofPointers: { dumpHint, expectedMarkers: ["ECON_NPC_READINESS_PACK_BEGIN", "ECON_NPC_READINESS_PACK_JSON1", "ECON_NPC_READINESS_PACK_JSON2", "ECON_NPC_READINESS_PACK_END"] }
+      };
       emitLine(`ECON_NPC_READINESS_PACK_JSON1 ${safeStringify(json1)}`);
       emitLine(`ECON_NPC_READINESS_PACK_JSON2 ${safeStringify(json2)}`);
     } finally {

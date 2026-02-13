@@ -172,6 +172,7 @@
     ```
 
 ### [T-20260211-013] ECON-NPC [1.5] Activity Tax — 100% Evidence Pack (long-run + regression)
+### [T-20260213-021] Console Panel supports top-level await
 - Status: FAIL
 - Priority: P0
 - Assignee: Codex-ассистент
@@ -1355,8 +1356,7 @@
     (3) Game.__DUMP_ALL__()
     PASS если оба smoke возвращают asserts.worldMassOk:true, snapshotReport.deltaWorld:0, balanceCompareById.sink.afterMinusBefore == -10, balanceCompareById.worldBank.afterMinusBefore == +10, balanceSourceById.sink/worldBank != "snapshot.byId", moneyLogReport.sumNetFromMoneyLog == 0, snapshotReport.sumNetDelta == 0, и нет CONSOLE_PANEL_RUN_ERR; иначе FAIL и приложи diag.balanceReadModeById + balanceCompareById + balanceSourceById для sink/worldBank.
     ```
-### [T-20260213-021] Console Panel supports top-level await
-- Status: PASS
+- Status: FAIL
 - Priority: P2
 - Assignee: Codex-ассистент
 - Next: QA
@@ -1368,21 +1368,21 @@
   - [x] Panel awaits returned Promise before logging `CONSOLE_PANEL_RUN_OK`.
   - [x] Panel still logs errors when needed and dump markers remain unchanged.
 - Result: |
-    Status: PASS
+    Status: FAIL (Console.txt DUMP_AT 2026-02-13 20:41:44 shows ECON_NPC_READINESS_PACK_JSON1/JSON2 with `checklist:{}` and `failReasons:["exception"]`, plus CONSOLE_PANEL_RUN_OK result `undefined`).
     Facts:
-      (1) Console Panel now runs every command through an async IIFE, binding to `window` so global objects are visible even for top-level `await`.
-      (2) `runCommand` already awaited worker results, so commands like `await Game.__DEV.smokeEconNpc_ReadinessPackOnce(...)` no longer throw `SyntaxError: Unexpected identifier 'Game'`.
-      (3) DUMP_AT 2026-02-13 20:41:44 still lacks readiness markers (PENDING_RUNTIME_EVIDENCE), but SyntaxError is gone.
-    Changed: `AsyncScene/Web/dev/console-tape.js`
+      (1) Readiness pack emitted JSON1/JSON2 but `checklist` is empty and `allOk:false`, so readiness result is invalid.
+      (2) Console Panel logged `CONSOLE_PANEL_RUN_OK ... undefined`, so the async result was not returned.
+      (3) Need to fix readiness pack exception and ensure async eval returns the IIFE result.
+    Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/dev/dev-checks.js`
     How to verify:
       (1) Reload dev page.
       (2) Run `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })` via Console Panel.
-      (3) Run a manual `Game.__DUMP_ALL__()` to capture the block.
+      (3) `Game.__DUMP_ALL__()` to capture ECON_NPC_READINESS_PACK_* markers.
     Next: QA
     Next Prompt (копипаст, кодблок обязательно):
     ```text
     (1) Reload dev page
     (2) await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
     (3) Game.__DUMP_ALL__()
-    Look for ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END and no SyntaxError.
+    PASS if CONSOLE_PANEL_RUN_OK returns an object and ECON_NPC_READINESS_PACK_JSON2 has checklist keys 1.1..1.8.
     ```

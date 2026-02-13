@@ -437,10 +437,10 @@
     const input = String(src);
     console.warn("[repl] >", input);
     const trimmed = input.trim();
-    const usesAwait = /\bawait\b/.test(trimmed);
-    const wrappedCode = `return (async () => {
-${input}
-})()`;
+    const startsWithAwait = /^\s*await\s+/.test(trimmed);
+    const wrappedCode = startsWithAwait
+      ? `return (async () => { return ${input}; })()`
+      : `return (async () => {\n${input}\n})()`;
     try {
       const executor = new Function(wrappedCode);
       let result = executor.call(typeof window !== "undefined" ? window : globalThis);
