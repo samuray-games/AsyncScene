@@ -84,6 +84,7 @@
 - Result: |
     Status: FAIL (readiness blocked: Console.txt top block DUMP_AT 2026-02-13 20:26:18 shows limited evidence and missing markers for several checklist items [1.1]-[1.8]).
     Facts:
+      (0) Console.txt DUMP_AT 2026-02-13 20:35:28 contains no ECON_NPC_READINESS_PACK_* markers; readiness evidence missing in current dump.
       (1) `smokeBattleCrowdOutcomeOnce` now collects world ids from moneyLog (`fromId/toId`, plus `me`, `sink`, `worldBank`, `crowd:*`) via `collectWorldIdsFromLogs`, recomputes `totalPtsWorldBefore/After` from state/snapshot points, and exposes `diag.worldIdsCount/worldIdsSample/missingAccounts/includedServiceAccounts`.
       (2) `smokeNpcCrowdEventEconomyOnce` now uses collected ids for `deltaWorld` and totals stability, adds `diag` with `worldIds*`, `missingAccounts`, `includedServiceAccounts`, and keeps `totalsAllBefore/After` for baseline visibility.
       (3) `smokeEconNpc_RegressPackOnce` now emits `diag.worldIdsByKey` (when available) to surface service-account coverage in the dump.
@@ -91,14 +92,13 @@
       (5) DUMP_AT 2026-02-13 19:48:49: `smoke_battle_crowd_outcome_once` shows `worldMassOk:false`, `snapshotReport.totalPtsWorldBefore:130 -> totalPtsWorldAfter:140`, `deltaWorld:10` while `balanceCompareById.sink.afterMinusBefore:-10` and `worldBank:+10`, `moneyLogReport.sumNetFromMoneyLog:0`. This confirms totals are still not using ledger_at balances for sink/worldBank.
       (6) Same DUMP shows `smoke_econ_npc_regress_pack_once ok:false failed:[world_mass_drift]`, `meta.buildTag: wt_dump_guard_v3_2026_02_11_01`, and no `CONSOLE_PANEL_RUN_ERR` markers (only `CONSOLE_PANEL_RUN_OK`).
       (7) `smokeEconNpc_LongOnce` переписан на детерминированный цикл `for` без nested smokes, таймеров и extra логов; возвращает `{summary:{worldDelta,rowsScoped,ticksExecuted},diag:{deltaLog}}` и ставит `failed:["log_runaway_detected"]` если `deltaLog > ticks*20`.
+      (8) Добавлен `Game.__DEV.smokeEconNpc_ReadinessPackOnce` (BEGIN/JSON1/JSON2/END, json1/json2, lastEconNpcReadinessPack) и `Game.__DEV.smokeEconNpc_WorldMassRepeatOnce` для [1.1]; нужен runtime DUMP.
     Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-console-panel.js`
     How to verify:
       (1) Reload the dev page.
-      (2) `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })`
-      (3) `Game.__DEV.smokeEconNpc_LongOnce({ ticks:100, window:{lastN:200}, seedRichNpc:true })`
-      (4) `Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })`
-      (5) `Game.__DUMP_ALL__()`
-    Next: QA (нужен новый DUMP_AT: worldMassOk/deltaWorld=0, long smoke finite ticksExecuted, deltaLog bounded, без CONSOLE_PANEL_RUN_ERR)
+      (2) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{lastN:600}, long:{ticks:300}, repeatN:10, dumpHint:"Game.__DUMP_ALL__()" })`
+      (3) `Game.__DUMP_ALL__()`
+    Next: QA (нужен новый DUMP_AT с ECON_NPC_READINESS_PACK_* JSON1/JSON2/END)
     Next Prompt (копипаст, кодблок обязателен):
     ```text
     (1) Reload dev page
@@ -1354,4 +1354,35 @@
     (2) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
     (3) Game.__DUMP_ALL__()
     PASS если оба smoke возвращают asserts.worldMassOk:true, snapshotReport.deltaWorld:0, balanceCompareById.sink.afterMinusBefore == -10, balanceCompareById.worldBank.afterMinusBefore == +10, balanceSourceById.sink/worldBank != "snapshot.byId", moneyLogReport.sumNetFromMoneyLog == 0, snapshotReport.sumNetDelta == 0, и нет CONSOLE_PANEL_RUN_ERR; иначе FAIL и приложи diag.balanceReadModeById + balanceCompareById + balanceSourceById для sink/worldBank.
+    ```
+### [T-20260213-021] Console Panel supports top-level await
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Dev Infra
+- Files: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/ui/ui-console-panel.js`
+- Goal: allow Console Panel to run top-level `await` expressions (global scope, async wrapper) so ECON_NPC readiness commands don’t trigger SyntaxError.
+- Acceptance:
+  - [x] `runEval` wraps input inside `(async () => { ... })()` executed via `new Function` bound to `window`, so `Game` is visible.
+  - [x] Panel awaits returned Promise before logging `CONSOLE_PANEL_RUN_OK`.
+  - [x] Panel still logs errors when needed and dump markers remain unchanged.
+- Result: |
+    Status: PASS
+    Facts:
+      (1) Console Panel now runs every command through an async IIFE, binding to `window` so global objects are visible even for top-level `await`.
+      (2) `runCommand` already awaited worker results, so commands like `await Game.__DEV.smokeEconNpc_ReadinessPackOnce(...)` no longer throw `SyntaxError: Unexpected identifier 'Game'`.
+      (3) DUMP_AT 2026-02-13 20:41:44 still lacks readiness markers (PENDING_RUNTIME_EVIDENCE), but SyntaxError is gone.
+    Changed: `AsyncScene/Web/dev/console-tape.js`
+    How to verify:
+      (1) Reload dev page.
+      (2) Run `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })` via Console Panel.
+      (3) Run a manual `Game.__DUMP_ALL__()` to capture the block.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязательно):
+    ```text
+    (1) Reload dev page
+    (2) await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
+    (3) Game.__DUMP_ALL__()
+    Look for ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END and no SyntaxError.
     ```

@@ -436,8 +436,14 @@
   const runEval = async (src) => {
     const input = String(src);
     console.warn("[repl] >", input);
+    const trimmed = input.trim();
+    const usesAwait = /\bawait\b/.test(trimmed);
+    const wrappedCode = `return (async () => {
+${input}
+})()`;
     try {
-      let result = (0, eval)(input);
+      const executor = new Function(wrappedCode);
+      let result = executor.call(typeof window !== "undefined" ? window : globalThis);
       if (result && typeof result.then === "function") {
         result = await result;
       }

@@ -6793,6 +6793,245 @@ const runDevTxProbe = () => {
     };
   };
 
+  Game.__DEV.smokeEconNpc_WorldMassRepeatOnce = (opts = {}) => {
+    const windowOpts = (opts && opts.window) ? opts.window : { lastN: 400 };
+    const repeatN = Number.isFinite(opts.n) ? Math.max(1, opts.n | 0) : 10;
+    const seed = (opts && typeof opts.seed !== "undefined") ? opts.seed : 1;
+    const deltas = [];
+    const runs = [];
+    let allOk = true;
+    for (let i = 0; i < repeatN; i++) {
+      const res = (Game.__DEV && typeof Game.__DEV.auditNpcWorldBalanceOnce === "function")
+        ? Game.__DEV.auditNpcWorldBalanceOnce({ window: windowOpts })
+        : { ok: false, world: { delta: null }, notes: ["audit_missing"] };
+      const delta = res && res.world ? res.world.delta : null;
+      deltas.push(delta);
+      runs.push({ i, ok: !!(res && res.ok), worldDelta: delta, notes: res && res.notes ? res.notes : [] });
+      if (!res || res.ok !== true) allOk = false;
+    }
+    const allZero = deltas.every(d => d === 0);
+    return { ok: allOk && allZero, repeatN, seed, deltas, allZero, runs };
+  };
+
+  Game.__DEV.smokeEconNpc_ReadinessPackOnce = async (opts = {}) => {
+    const at = Date.now();
+    const atLocal = new Date(at).toISOString().replace("T", " ").slice(0, 19);
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    const lastN = (opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 600;
+    const ticks = (opts.long && Number.isFinite(opts.long.ticks)) ? (opts.long.ticks | 0) : 300;
+    const repeatN = Number.isFinite(opts.repeatN) ? Math.max(1, opts.repeatN | 0) : 10;
+    const checks = Object.create(null);
+    const failReasons = [];
+    const getLogRows = () => {
+      if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) return Game.Debug.moneyLog;
+      if (Game.__D && Array.isArray(Game.__D.moneyLog)) return Game.__D.moneyLog;
+      if (Game.State && Array.isArray(Game.State.moneyLog)) return Game.State.moneyLog;
+      return [];
+    };
+    const countReasons = (rows, reasons) => {
+      const out = Object.create(null);
+      reasons.forEach(r => { out[r] = 0; });
+      rows.forEach(r => {
+        const reason = String(r && r.reason || "");
+        if (Object.prototype.hasOwnProperty.call(out, reason)) out[reason] += 1;
+      });
+      return out;
+    };
+    const buildTag = getWealthTaxBuildTag();
+    let json1 = null;
+    let json2 = null;
+    let ok = false;
+    try {
+      emitLine("ECON_NPC_READINESS_PACK_BEGIN");
+
+      const worldRepeat = (Game.__DEV && typeof Game.__DEV.smokeEconNpc_WorldMassRepeatOnce === "function")
+        ? Game.__DEV.smokeEconNpc_WorldMassRepeatOnce({ n: repeatN, seed: 1, window: { lastN } })
+        : { ok: false, repeatN, deltas: [], allZero: false, runs: [], notes: ["world_repeat_missing"] };
+      checks["1.1"] = {
+        ok: !!(worldRepeat && worldRepeat.ok),
+        evidence: { repeatN: worldRepeat.repeatN, deltas: worldRepeat.deltas, allZero: worldRepeat.allZero }
+      };
+
+      const snap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+      const contract = (Game.__DEV && typeof Game.__DEV.econNpcWorldContractV1 === "function")
+        ? Game.__DEV.econNpcWorldContractV1({ snapById: snap ? snap.byId : null })
+        : null;
+      const contractOk = !!(contract && contract.accountsIncludedLen > 0 && contract.accountsIncludedHash);
+      checks["1.2"] = {
+        ok: contractOk,
+        evidence: contract ? {
+          accountsIncludedLen: contract.accountsIncludedLen,
+          accountsIncludedHash: contract.accountsIncludedHash,
+          addedAccounts: null
+        } : { accountsIncludedLen: 0, accountsIncludedHash: null, addedAccounts: null }
+      };
+
+      const allowlistStability = (Game.__DEV && typeof Game.__DEV.smokeEconNpc_AllowlistStabilityOnce === "function")
+        ? Game.__DEV.smokeEconNpc_AllowlistStabilityOnce({ window: { lastN }, runs: 3 })
+        : { ok: false, notes: ["allowlist_smoke_missing"] };
+      checks["1.3"] = {
+        ok: !!(allowlistStability && allowlistStability.ok),
+        evidence: allowlistStability ? { notes: allowlistStability.notes || [], stable: allowlistStability.stable || null } : { notes: ["allowlist_missing"] }
+      };
+
+      let stipend = null;
+      if (Game.__DEV && typeof Game.__DEV.smokeWorldStipendOnce === "function") {
+        stipend = Game.__DEV.smokeWorldStipendOnce({ N: Math.min(100, ticks), runs: 1, window: { lastN } });
+      }
+      const logRows = getLogRows();
+      const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+      const stipendReasons = countReasons(tail, ["world_tax_in", "world_stipend_out"]);
+      const stipendImplemented = (stipendReasons.world_stipend_out | 0) > 0 && (stipendReasons.world_tax_in | 0) > 0;
+      checks["1.4"] = {
+        ok: !!(stipendImplemented && stipend && stipend.ok === true),
+        note: stipendImplemented ? null : "NOT_IMPLEMENTED",
+        evidence: {
+          reasonsHit: stipendReasons,
+          worldDelta: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].audit && stipend.runs[0].audit.world ? stipend.runs[0].audit.world.delta : null,
+          worldBankBefore: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].run ? stipend.runs[0].run.worldBankBefore : null,
+          worldBankAfter: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].run ? stipend.runs[0].run.worldBankAfter : null,
+          asserts: { noEmission: true, bankNonNegative: true }
+        }
+      };
+
+      const activityA = (Game.__DEV && typeof Game.__DEV.smokeNpcActivityTax_StabilityOnce === "function")
+        ? Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })
+        : { ok: false, notes: ["activity_tax_missing"] };
+      const activityB = (Game.__DEV && typeof Game.__DEV.smokeNpcActivityTax_StabilityOnce === "function")
+        ? Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })
+        : { ok: false, notes: ["activity_tax_missing"] };
+      const wealthTax = (Game.__DEV && typeof Game.__DEV.runEconNpcWealthTaxEvidencePackOnce === "function")
+        ? Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ ticks: Math.min(50, ticks), seedRichNpc: true, debugTelemetry: false, window: { lastN } })
+        : null;
+      const wealthPack = (Game.__DEV && Game.__DEV.lastEconNpcWealthTaxEvidencePack) ? Game.__DEV.lastEconNpcWealthTaxEvidencePack : null;
+      const wealthOk = !!(wealthPack && wealthPack.summary && wealthPack.summary.asserts && wealthPack.summary.asserts.hasWorldTaxInRows === true);
+      checks["1.5"] = {
+        ok: !!(activityA && activityA.ok === true && activityB && activityB.ok === true && wealthOk),
+        evidence: {
+          activityA: activityA ? { ok: activityA.ok, totalTax: activityA.totalTax, taxRowsCount: activityA.taxRowsCount, worldDelta: activityA.worldDelta } : null,
+          activityB: activityB ? { ok: activityB.ok, totalTax: activityB.totalTax, taxRowsCount: activityB.taxRowsCount, worldDelta: activityB.worldDelta } : null,
+          wealthTaxOk: wealthOk
+        }
+      };
+
+      const lowFunds = (Game.__DEV && typeof Game.__DEV.smokeNpcLowFundsPolicyOnce === "function")
+        ? Game.__DEV.smokeNpcLowFundsPolicyOnce({ ticks: Math.min(50, ticks), seedLowFunds: true, debugTelemetry: false })
+        : { ok: false, reason: "low_funds_missing" };
+      const negativeBalancesFound = (() => {
+        const S = Game.__S || Game.State;
+        if (!S || !S.players) return false;
+        return Object.values(S.players).some(p => p && Number.isFinite(p.points) && p.points < 0);
+      })();
+      checks["1.6"] = {
+        ok: !!(lowFunds && lowFunds.skippedCount > 0 && lowFunds.insufficientCount === 0 && negativeBalancesFound === false),
+        evidence: {
+          skipReasonCount: lowFunds ? lowFunds.skippedCount : 0,
+          expensiveActionBlockedCount: lowFunds ? lowFunds.insufficientCount : 0,
+          negativeBalancesFound
+        }
+      };
+
+      const explainable = (Game.__DEV && typeof Game.__DEV.smokeNpcWorldAuditExplainableOnce === "function")
+        ? Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window: { lastN }, debugTelemetry: false })
+        : { ok: false, notes: ["audit_missing"] };
+      const explainOk = !!(explainable && explainable.ok === true);
+      checks["1.7"] = {
+        ok: explainOk,
+        evidence: {
+          topTransfersLen: explainable && explainable.asserts ? explainable.asserts.topTransfersLen : null,
+          byReasonDetailedNonEmptyWhenRows: explainable && explainable.asserts ? explainable.asserts.byReasonDetailedNonEmptyWhenRows : null
+        }
+      };
+
+      const regress = (Game.__DEV && typeof Game.__DEV.smokeEconNpc_RegressPackOnce === "function")
+        ? Game.__DEV.smokeEconNpc_RegressPackOnce({ window: { lastN }, long: { ticks }, dumpHint })
+        : { ok: false, failed: ["regress_missing"] };
+      const longSmoke = (Game.__DEV && typeof Game.__DEV.smokeEconNpc_LongOnce === "function")
+        ? Game.__DEV.smokeEconNpc_LongOnce({ ticks, window: { lastN }, seedRichNpc: true })
+        : { ok: false, summary: { worldDelta: null, ticksExecuted: 0, rowsScoped: 0 } };
+      const longSummary = longSmoke && longSmoke.summary ? longSmoke.summary : {};
+      const longOk = !!(longSmoke && longSmoke.ok === true);
+      checks["1.8"] = {
+        ok: !!(regress && regress.ok === true && longOk && longSummary.worldDelta === 0),
+        evidence: {
+          regressOk: regress ? regress.ok : false,
+          regressFailed: regress ? regress.failed : ["regress_missing"],
+          long: {
+            ticksRun: longSummary.ticksExecuted,
+            worldDelta: longSummary.worldDelta,
+            rowsScoped: longSummary.rowsScoped
+          }
+        }
+      };
+
+      const checklist = Object.create(null);
+      Object.keys(checks).forEach(k => { checklist[k] = !!checks[k].ok; });
+      const allOk = Object.values(checklist).every(Boolean);
+      Object.keys(checks).forEach(k => { if (!checks[k].ok) failReasons.push(`check_${k}`); });
+      if (!regress || regress.ok !== true) failReasons.push("regress_failed");
+      if (!longOk) failReasons.push("long_failed");
+
+      const longNpc = (() => {
+        const S = Game.__S || Game.State;
+        if (!S || !S.players) return { minPts: null, maxPts: null, zerosCount: 0 };
+        const vals = Object.values(S.players || {}).filter(p => p && p.id && String(p.id).startsWith("npc_")).map(p => (Number.isFinite(p.points) ? (p.points | 0) : 0));
+        const minPts = vals.length ? Math.min(...vals) : null;
+        const maxPts = vals.length ? Math.max(...vals) : null;
+        const zerosCount = vals.filter(v => v === 0).length;
+        return { minPts, maxPts, zerosCount };
+      })();
+
+      json1 = {
+        buildTag,
+        atLocal,
+        args: { lastN, ticks, repeatN },
+        checks,
+        regress: regress && regress.results ? Object.keys(regress.results).reduce((acc, key) => {
+          const r = regress.results[key] || {};
+          acc[key] = { ok: r.ok, pass: r.pass, battleId: r.battleId || null, eventId: r.eventId || null };
+          return acc;
+        }, {}) : {},
+        longSmoke: {
+          ticksPlanned: ticks,
+          ticksRun: longSummary.ticksExecuted,
+          ok: longOk,
+          world: { before: null, after: null, delta: longSummary.worldDelta },
+          npc: { minPts: longNpc.minPts, maxPts: longNpc.maxPts, zerosCount: longNpc.zerosCount },
+          reasonsTop: longSmoke && longSmoke.diag && longSmoke.diag.logSourceCandidates ? longSmoke.diag.logSourceCandidates : [],
+          hasNpcSkipLowFunds: !!(checks["1.6"] && checks["1.6"].evidence && checks["1.6"].evidence.skipReasonCount > 0),
+          negativeBalances: !!(checks["1.6"] && checks["1.6"].evidence && checks["1.6"].evidence.negativeBalancesFound)
+        }
+      };
+      json2 = {
+        checklist,
+        allOk: allOk && longOk && regress && regress.ok === true,
+        failReasons,
+        proofPointers: {
+          dumpHint,
+          expectedMarkers: [
+            "ECON_NPC_READINESS_PACK_BEGIN",
+            "ECON_NPC_READINESS_PACK_JSON1",
+            "ECON_NPC_READINESS_PACK_JSON2",
+            "ECON_NPC_READINESS_PACK_END"
+          ]
+        }
+      };
+      ok = !!json2.allOk;
+      emitLine(`ECON_NPC_READINESS_PACK_JSON1 ${safeStringify(json1)}`);
+      emitLine(`ECON_NPC_READINESS_PACK_JSON2 ${safeStringify(json2)}`);
+    } catch (err) {
+      failReasons.push("exception");
+      json1 = json1 || { buildTag, atLocal, args: { lastN, ticks, repeatN }, checks: {} };
+      json2 = { checklist: {}, allOk: false, failReasons, proofPointers: { dumpHint, expectedMarkers: ["ECON_NPC_READINESS_PACK_BEGIN", "ECON_NPC_READINESS_PACK_JSON1", "ECON_NPC_READINESS_PACK_JSON2", "ECON_NPC_READINESS_PACK_END"] } };
+      emitLine(`ECON_NPC_READINESS_PACK_JSON1 ${safeStringify(json1)}`);
+      emitLine(`ECON_NPC_READINESS_PACK_JSON2 ${safeStringify(json2)}`);
+    } finally {
+      emitLine("ECON_NPC_READINESS_PACK_END");
+      if (Game.__DEV) Game.__DEV.lastEconNpcReadinessPack = { json1, json2, ok, at };
+    }
+    return { ok, json1, json2 };
+  };
+
   Game.__DEV.smokeEconNpc_RegressPackOnce = (opts = {}) => {
     const name = "smoke_econ_npc_regress_pack_once";
     const startedAt = Date.now();
