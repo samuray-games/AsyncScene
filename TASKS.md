@@ -1373,7 +1373,10 @@
       (1) Readiness pack emitted JSON1/JSON2 but `checklist` is empty and `allOk:false`, so readiness result is invalid.
       (2) Console Panel logged `CONSOLE_PANEL_RUN_OK ... undefined`, so the async result was not returned.
       (3) Need to fix readiness pack exception and ensure async eval returns the IIFE result.
+      (4) Console.txt DUMP_AT 2026-02-13 21:08:41: JSON2 `failReasons:["exception"]`, errorMessage `Can't find variable: ensureNpcAccountsOkFromSmoke`; readiness pack still not valid.
     Changed: `AsyncScene/Web/dev/console-tape.js` `AsyncScene/Web/dev/dev-checks.js`
+    Fix Applied:
+      - Добавлены объявления `ensureNpcAccountsOkFromEnsure/ensureNpcAccountsOkFromSmoke/ensureNpcAccountsOkMismatch` в `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce`, чтобы убрать ReferenceError.
     How to verify:
       (1) Reload dev page.
       (2) Run `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })` via Console Panel.

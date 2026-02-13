@@ -387,6 +387,7 @@
   - `smokeEconNpc_LongOnce` rewritten to a strict `for` loop with `ticksExecuted`, no nested smokes/timers, and a runaway guard `deltaLog > ticks*20` -> `failed:["log_runaway_detected"]`; returns `{summary:{worldDelta,rowsScoped,ticksExecuted},diag:{deltaLog}}` only.
   - Added `Game.__DEV.smokeEconNpc_ReadinessPackOnce` (prints ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END, stores `lastEconNpcReadinessPack`) and `Game.__DEV.smokeEconNpc_WorldMassRepeatOnce` for [1.1]; Console.txt DUMP_AT 2026-02-13 20:35:28 shows no readiness markers yet, so runtime evidence is pending.
   - DUMP_AT 2026-02-13 20:41:44 shows `ECON_NPC_READINESS_PACK_JSON1/JSON2` but `checklist:{}` and `failReasons:["exception"]`, with CONSOLE_PANEL_RUN_OK returning `undefined`; fixes applied to readiness pack error handling + async eval return.
+  - DUMP_AT 2026-02-13 21:08:41 shows JSON2 `failReasons:["exception"]` with errorMessage `Can't find variable: ensureNpcAccountsOkFromSmoke`; fixed by declaring `ensureNpcAccountsOkFromEnsure/ensureNpcAccountsOkFromSmoke/ensureNpcAccountsOkMismatch` inside `runEconNpcWealthTaxEvidencePackOnce`.
   - Console Panel now wraps evaluated code in `new Function` + async IIFE and calls it with `window` so `await Game...` runs without SyntaxError; UI awaits the returned Promise before logging OK.
 - Commands:
   - `Game.__DEV.smokeEconNpc_RegressPackOnce({ window:{lastN:400}, long:{ticks:300}, dumpHint:"Game.__DUMP_ALL__()" })`

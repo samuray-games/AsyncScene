@@ -438,9 +438,15 @@
     console.warn("[repl] >", input);
     const trimmed = input.trim();
     const startsWithAwait = /^\s*await\s+/.test(trimmed);
+    const looksLikeExpression = trimmed.length > 0
+      && !/\n/.test(trimmed)
+      && !/[;{}]/.test(trimmed)
+      && !/^\s*(const|let|var|if|for|while|function|class|return)\b/.test(trimmed);
     const wrappedCode = startsWithAwait
       ? `return (async () => { return ${input}; })()`
-      : `return (async () => {\n${input}\n})()`;
+      : looksLikeExpression
+        ? `return (async () => { return (${input}); })()`
+        : `return (async () => {\n${input}\n})()`;
     try {
       const executor = new Function(wrappedCode);
       let result = executor.call(typeof window !== "undefined" ? window : globalThis);

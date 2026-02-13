@@ -22556,3 +22556,10 @@ SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1770899544753 bytes=719186 mtime=1770
 127.0.0.1 - - [13/Feb/2026 21:08:28] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [13/Feb/2026 21:08:28] "GET /apple-touch-icon.png HTTP/1.1" 404 -
 127.0.0.1 - - [13/Feb/2026 21:08:41] "POST /__dev/console-dump?v=1770984521764 HTTP/1.1" 200 -
+127.0.0.1 - - [13/Feb/2026 22:42:28] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [13/Feb/2026 22:42:28] code 404, message File not found
+127.0.0.1 - - [13/Feb/2026 22:42:28] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [13/Feb/2026 22:42:28] code 404, message File not found
+127.0.0.1 - - [13/Feb/2026 22:42:28] code 404, message File not found
+127.0.0.1 - - [13/Feb/2026 22:42:28] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [13/Feb/2026 22:42:28] "GET /favicon.ico HTTP/1.1" 404 -
