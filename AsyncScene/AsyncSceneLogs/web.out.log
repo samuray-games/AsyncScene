@@ -23294,3 +23294,36 @@ SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1770994719050 bytes=757042 mtime=1770
 127.0.0.1 - - [14/Feb/2026 10:36:21] code 404, message File not found
 127.0.0.1 - - [14/Feb/2026 10:36:21] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [14/Feb/2026 10:36:32] "POST /__dev/console-dump?v=1771032992139 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 12:14:37] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 12:14:39] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 12:14:39] "GET /favicon.ico HTTP/1.1" 404 -

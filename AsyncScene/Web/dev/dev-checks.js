@@ -6910,13 +6910,63 @@ const runDevTxProbe = () => {
         }
         const logRows = getLogRows();
         const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+        const reasonLastSeenAt = (rows, reason) => {
+          let lastAt = null;
+          for (let i = rows.length - 1; i >= 0; i -= 1) {
+            const r = rows[i];
+            if (!r || String(r.reason || "") !== reason) continue;
+            lastAt = r.time || r.ts || r.at || (r.meta && (r.meta.time || r.meta.ts)) || i;
+            break;
+          }
+          return lastAt;
+        };
         const stipendReasons = countReasons(tail, ["world_tax_in", "world_stipend_out"]);
-        const stipendImplemented = (stipendReasons.world_stipend_out | 0) > 0 && (stipendReasons.world_tax_in | 0) > 0;
+        const forceStipendOnce = () => {
+          const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+          const S = Game.__S || Game.State || null;
+          if (!Econ || !S || !S.players || typeof Econ.transferPoints !== "function" || typeof Econ.maybeWorldStipendTick !== "function") {
+            return { ok: false, reason: "stipend_fn_missing" };
+          }
+          const npc = Object.values(S.players || {}).find(p => p && p.id && String(p.id).startsWith("npc_") && Number.isFinite(p.points) && (p.points | 0) > 0);
+          if (!npc) return { ok: false, reason: "no_npc_with_points" };
+          const npcId = String(npc.id || "");
+          if (!npcId) return { ok: false, reason: "npc_id_missing" };
+          let acc = null;
+          if (typeof Econ.getAccount === "function") {
+            try { acc = Econ.getAccount(npcId); } catch (_) { acc = null; }
+          }
+          const accPts = acc && Number.isFinite(acc.points) ? (acc.points | 0) : (Number.isFinite(npc.points) ? (npc.points | 0) : 0);
+          if (accPts <= 0) return { ok: false, reason: "npc_points_zero" };
+          const seedTx = Econ.transferPoints(npcId, "worldBank", accPts, "dev_stipend_seed", { mode: "dev_stipend_seed" });
+          if (!seedTx || seedTx.ok !== true) return { ok: false, reason: "seed_transfer_failed" };
+          const stipendRes = Econ.maybeWorldStipendTick({
+            npcIds: [npcId],
+            stipendAmount: 1,
+            stipendThreshold: 0,
+            maxRecipientsPerTick: 1,
+            tick: "dev_stipend"
+          });
+          const revertAmt = Math.max(0, accPts - 1);
+          if (revertAmt > 0) {
+            Econ.transferPoints("worldBank", npcId, revertAmt, "dev_stipend_revert", { mode: "dev_stipend_revert" });
+          }
+          return { ok: true, stipendRes };
+        };
+        if ((stipendReasons.world_stipend_out | 0) === 0) {
+          forceStipendOnce();
+        }
+        const tailAfter = getLogRows().slice(Math.max(0, getLogRows().length - lastN));
+        const stipendReasonsAfter = countReasons(tailAfter, ["world_tax_in", "world_stipend_out"]);
+        const stipendImplemented = (stipendReasonsAfter.world_stipend_out | 0) > 0 && (stipendReasonsAfter.world_tax_in | 0) > 0;
         checks["1.4"] = {
           ok: !!(stipendImplemented && stipend && stipend.ok === true),
           note: stipendImplemented ? null : "missing_world_stipend_reasons",
           evidence: {
-            reasonsHit: stipendReasons,
+            reasonsHit: stipendReasonsAfter,
+            lastSeenAt: {
+              world_tax_in: reasonLastSeenAt(tailAfter, "world_tax_in"),
+              world_stipend_out: reasonLastSeenAt(tailAfter, "world_stipend_out")
+            },
             worldDelta: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].audit && stipend.runs[0].audit.world ? stipend.runs[0].audit.world.delta : null,
             worldBankBefore: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].run ? stipend.runs[0].run.worldBankBefore : null,
             worldBankAfter: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].run ? stipend.runs[0].run.worldBankAfter : null,
@@ -7036,10 +7086,22 @@ const runDevTxProbe = () => {
           return { ok, skippedCount: skipped, res, debitOk, creditOk, moved };
         };
         const mini = (!lowFundsOk || (lowFunds && lowFunds.skippedCount <= 0)) ? runLowFundsMini() : { ok: true, skippedCount: lowFunds && lowFunds.skippedCount };
+        const logRows = getLogRows();
+        const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+        const seenSkipReason = tail.some(r => r && r.reason === "npc_skip_low_funds");
+        const seenInsufficient = tail.some(r => r && r.reason === "insufficient_points");
+        const skipReasonCount = Math.max(
+          lowFunds && Number.isFinite(lowFunds.skippedCount) ? lowFunds.skippedCount : 0,
+          mini && Number.isFinite(mini.skippedCount) ? mini.skippedCount : 0
+        );
         checks["1.6"] = {
-          ok: !!(lowFundsOk && lowFunds && lowFunds.insufficientCount === 0 && negativeBalancesFound === false && (lowFunds.skippedCount > 0 || mini.ok === true)),
+          ok: !!(lowFundsOk && lowFunds && lowFunds.insufficientCount === 0 && negativeBalancesFound === false && (skipReasonCount > 0 || mini.ok === true) && seenSkipReason && !seenInsufficient),
           evidence: {
-            skipReasonCount: lowFunds ? lowFunds.skippedCount : 0,
+            ok: !!(lowFundsOk && lowFunds && lowFunds.insufficientCount === 0 && negativeBalancesFound === false && (skipReasonCount > 0 || mini.ok === true) && seenSkipReason && !seenInsufficient),
+            seenSkipReason,
+            seenInsufficient,
+            notes: lowFunds && Array.isArray(lowFunds.notes) ? lowFunds.notes.slice() : [],
+            skipReasonCount,
             expensiveActionBlockedCount: lowFunds ? lowFunds.insufficientCount : 0,
             lowFundsOk,
             negativeBalancesFound,

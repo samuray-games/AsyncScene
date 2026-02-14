@@ -2780,4 +2780,13 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 -  - World stipend tick активирован в `Events.tick` через `Econ.maybeWorldStipendTick` (transfer-only, reason world_stipend_out), чтобы stipend появлялся в логе.
 - Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`, `AsyncScene/Web/events.js`
 
+### 2026-02-14 — ECON-NPC readiness 1.4/1.6 fixes (QA pending)
+- Status: FAIL (нет нового DUMP_AT после правок)
+- Facts:
+-  - Верхний `DUMP_AT 2026-02-14 10:36:32` показывает JSON2.failReasons:[check_1.4, check_1.6]; 1.4 missing_world_stipend_reasons (world_tax_in>0, world_stipend_out==0), 1.6 failNotes:[failed].
+-  - В 1.4 добавлен dev-only stipend proof (transfer-only) + evidence.lastSeenAt для world_tax_in/world_stipend_out.
+-  - В 1.6 mini-proof переведён на transferPoints без прямой записи points и добавлены поля seenSkipReason/seenInsufficient в evidence.
+- QA выполняет пользователь: `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })` затем `Game.__DUMP_ALL__()`.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`
+
 Память обновлена

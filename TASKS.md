@@ -1493,3 +1493,23 @@
       (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
       (2) `Game.__DUMP_ALL__()`
     Next: QA
+
+
+- Status: FAIL (QA pending; no new DUMP_AT)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Result: |
+    Status: FAIL (верхний DUMP_AT показывает check_1.4/check_1.6)
+    Facts:
+      - Верхний DUMP_AT: `2026-02-14 10:36:32` (Console.txt), JSON2.failReasons:[check_1.4, check_1.6], JSON2.allOk:false.
+      - 1.4 FAIL: missing_world_stipend_reasons; reasonsHit.world_tax_in>0, world_stipend_out==0.
+      - 1.6 FAIL: mini-proof не дал npc_skip_low_funds (failNotes "failed").
+      - Исправлено: 1.4 добавлен dev-only stipend proof (transfer-only) + lastSeenAt для reasons; 1.6 mini-proof теперь только transferPoints и фиксирует seenSkipReason/seenInsufficient.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    Commands (QA выполняет пользователь):
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Expected markers: ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END + JSON2.allOk:true
+    Next: QA
