@@ -178,6 +178,9 @@
       } else {
         throw new Error("Run helper missing");
       }
+      if (typeof result === "undefined") {
+        result = { ok: true, value: undefined };
+      }
       if (result && result.ok === false) {
         const wantsPanelError = result && result.showPanel === true;
         if (wantsPanelError) {

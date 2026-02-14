@@ -1389,3 +1389,107 @@
     (3) Game.__DUMP_ALL__()
     PASS if CONSOLE_PANEL_RUN_OK returns an object and ECON_NPC_READINESS_PACK_JSON2 has checklist keys 1.1..1.8.
     ```
+
+- Status: FAIL (smoke не запускался)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-console-panel.js`
+- Result: |
+    Status: FAIL (нужен новый QA DUMP)
+    Facts:
+      - В `smokeEconNpc_ReadinessPackOnce` контракт JSON2 усилен: `allOk` зависит от `1.1..1.8` + `regressOk` + `longOk` + `worldDelta==0`, `failReasons` очищается при `allOk:true`, `world_delta_nonzero` добавляется только при числовом `worldDelta`, `Game.__DEV.lastEconNpcReadinessPack` теперь строго `{ ok, json1, json2 }`.
+      - Console Panel теперь всегда логирует объект результата: если eval вернул `undefined`, подставляется `{ ok:true, value:undefined }`, чтобы `CONSOLE_PANEL_RUN_OK` был объектом.
+      - Smoke не запускался, DUMP_AT отсутствует.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-console-panel.js`
+    Commands:
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Evidence: DUMP_AT: n/a (QA не запускался)
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    (1) Reload dev page (dev=1)
+    (2) await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
+    (3) Game.__DUMP_ALL__()
+    PASS если:
+    - верхний DUMP_AT содержит ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END
+    - CONSOLE_PANEL_RUN_OK содержит объект результата с ok:true
+    - JSON2.checklist имеет ключи 1.1..1.8, failReasons пуст, allOk===true
+    - long summary worldDelta==0, regress ok:true
+    - нет exception/errorMessage
+    ```
+
+- Status: FAIL (readiness pack still failing)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Result: |
+    Status: FAIL (JSON2.allOk:false)
+    Facts:
+      - Новейший `DUMP_AT 2026-02-13 23:08:35` содержит ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END, `CONSOLE_PANEL_RUN_OK` с объектом и длинный summary worldDelta=0, regress ok:true, longSmoke ok:true.
+      - JSON2.checklist заполнил 1.1..1.8, но 1.3/1.4/1.5/1.6 остались false; failReasons:`check_1.3`,`check_1.4`,`check_1.5`,`check_1.6`, failNotes привязаны к этим ключам (NOT_IMPLEMENTED для 1.4).
+      - В JSON1 регресс и longSmoke по контракту, исключений нет.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    Commands:
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Evidence: DUMP_AT: `2026-02-13 23:08:35`, JSON2.allOk:false, checklist 1.3/1.4/1.5/1.6 false, failReasons: [check_1.3, check_1.4, check_1.5, check_1.6], regress.ok:true, longSmoke.summary.worldDelta:0.
+    Next: QA (re-run once 1.3-1.6 fixed)
+
+
+- Status: FAIL (readiness pack still failing)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Result: |
+    Status: FAIL (JSON2.allOk:false)
+    Facts:
+      - Самый верхний DUMP_AT: `2026-02-13 23:24:30` содержит ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END и `CONSOLE_PANEL_RUN_OK` с объектом.
+      - JSON2.checklist: 1.1:true, 1.2:true, 1.3:true, 1.4:true, 1.5:false, 1.6:false, 1.7:true, 1.8:true.
+      - JSON2.failReasons: [check_1.5, check_1.6]; failNotes: 1.5:[failed], 1.6:[failed]; allOk:false.
+      - JSON1: regress.ok:true; longSmoke.ok:true; longSmoke.summary.worldDelta:0.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    Commands:
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Next: QA
+
+
+- Status: FAIL (QA pending; no new DUMP_AT)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Result: |
+    Status: FAIL (нет нового DUMP_AT после фиксов)
+    Facts:
+      - Последний верхний DUMP_AT: `2026-02-13 23:24:30` → JSON2.allOk:false из-за check_1.5/1.6.
+      - В readiness pack обновлены критерии 1.5/1.6: 1.5 требует детерминизм двух прогонов (worldDelta==0, taxRowsCount/totalTax равны), 1.6 включает мини-доказательство low-funds с откатом состояния и проверкой npc_skip_low_funds без insufficient.
+      - Новый smoke не запускался; требуется QA.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    Commands:
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Next: QA
+
+
+- Status: FAIL (QA pending; no new DUMP_AT)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/events.js`
+- Result: |
+    Status: FAIL (нет нового DUMP_AT после правок)
+    Facts:
+      - Верхний DUMP_AT: `2026-02-14 00:05:18` → JSON2.allOk:false, failReasons:[check_1.4, check_1.6].
+      - 1.4 FAIL: missing_world_stipend_reasons; reasonsHit.world_tax_in>0, world_stipend_out==0.
+      - 1.6 FAIL: exception "Циркуляция: прямое изменение баланса заблокировано (State.players.npc_weak.points)" из runLowFundsMini.
+      - Исправлено: runLowFundsMini теперь делает только transferPoints (npc -> worldBank -> npc) без прямых мутаций; stipend tick включён в Events.tick через Econ.maybeWorldStipendTick (transfer-only).
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/events.js`
+    Commands:
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Next: QA

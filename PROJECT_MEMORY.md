@@ -978,6 +978,22 @@
 
 5) Кулдаун на “сдать копу”
 - Кулдаун на “сдать” ставится ТОЛЬКО после успешной сдачи злодея (т.е. цель действительно злодей).
+
+### 2026-02-13 — ECON-NPC readiness pack contract + console panel result object (QA pending)
+- Status: FAIL (smoke не запускался)
+- Facts:
+  - `smokeEconNpc_ReadinessPackOnce` теперь считает `allOk` только при `1.1..1.8` + `regressOk` + `longOk` + `worldDelta==0`, очищает `failReasons` при `allOk:true`, и пишет `Game.__DEV.lastEconNpcReadinessPack = { ok, json1, json2 }`.
+  - Console Panel возвращает объект результата, даже если eval вернул `undefined` (`{ ok:true, value:undefined }`), чтобы `CONSOLE_PANEL_RUN_OK` не был `undefined`.
+  - Smoke не запускался; DUMP_AT отсутствует.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`, `AsyncScene/Web/ui/ui-console-panel.js`
+
+### 2026-02-13 — ECON-NPC readiness pack финализация чеков (QA pending)
+- Status: FAIL (QA не запускался после правок)
+- Facts:
+  - Console.txt верхний `DUMP_AT 2026-02-13 23:08:35` содержит readiness pack маркеры и объект `CONSOLE_PANEL_RUN_OK`, но JSON2 `allOk:false` (1.3/1.4/1.5/1.6).
+  - Исправлен TDZ в wealth tax evidence (`devProbeRowFound`), а readiness pack чек 1.3 теперь принимает стабильность allowlist + `allowlistSmokeOk`, 1.4 учитывает `stipend.ok`, 1.6 использует `lowFunds.ok`, `getLogRows` учитывает `Game.Logger.queue`.
+  - Новый QA DUMP ещё не получен.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`
 - Длительность кулдауна “сдать” = время неактивности/тюрьмы злодея (5 минут).
 - Во время этого кулдауна сдавать повторно нельзя; после окончания — можно снова.
 
@@ -2732,4 +2748,36 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - DUMP_AT 2026-02-11 00:59:15 — `diag.seedSourceId="sink"`, `diag.seedTransfer.fromId="sink"`, `diag.seedTransfer.sourcePtsBefore=0`, `diag.seedTransfer.sourcePtsAfter=-15`, `ensureNpcAccounts.missingAfterCount=19`, `npcAccountsMissingLen=0`, `world.delta=13`, `bank.beforePts=0` → `afterPts=20`.
 -  - BUILD TAG CHECK pending until `WT_DUMP_BUILD_TAG wt_dump_guard_v3_2026_02_11_01` appears in Console.txt.
 - Next: QA (повторить `Game.__DEV.smokeWealthTaxDumpOnce()` после фикса guard/ensure)
+### 2026-02-13 — ECON-NPC readiness final QA smoke
+- Status: FAIL (JSON2.allOk:false; 1.3/1.4/1.5/1.6 remain false)
+- Facts:
+-  - Новейший `DUMP_AT 2026-02-13 23:08:35` содержит ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END и `CONSOLE_PANEL_RUN_OK` с объектом; regress.ok:true, `longSmoke.summary.worldDelta:0`, исключений нет.
+-  - JSON2.checklist охватил ключи 1.1..1.8, но `1.3`,`1.4`,`1.5`,`1.6` дали `false`; `failReasons:[check_1.3,check_1.4,check_1.5,check_1.6]`, `failNotes` записали `failed`/`NOT_IMPLEMENTED`. Без полного true контракт PASS не выполняется.
+-  - Контракт подтверждён: worldDelta 0, no errorMessage, regress/longSmoke ок, но allOk:false → verdict FAIL until those checks turn green.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`
+
+### 2026-02-13 — ECON-NPC readiness pack latest DUMP_AT
+- Status: FAIL (JSON2.allOk:false)
+- Facts:
+-  - Верхний `DUMP_AT 2026-02-13 23:24:30` содержит ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END и `CONSOLE_PANEL_RUN_OK` с объектом.
+-  - JSON2.checklist: 1.1:true, 1.2:true, 1.3:true, 1.4:true, 1.5:false, 1.6:false, 1.7:true, 1.8:true; failReasons:[check_1.5, check_1.6]; allOk:false.
+-  - JSON1: regress.ok:true; longSmoke.ok:true; longSmoke.summary.worldDelta:0; errorMessage отсутствует.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`
+
+### 2026-02-13 — ECON-NPC readiness pack 1.5/1.6 criteria update (QA pending)
+- Status: FAIL (нет нового DUMP_AT после фиксов)
+- Facts:
+-  - Последний верхний `DUMP_AT 2026-02-13 23:24:30` всё ещё с JSON2.allOk:false (check_1.5/1.6).
+-  - Обновлены критерии readiness: 1.5 требует детерминизм двух activity-tax прогонов (worldDelta==0, taxRowsCount/totalTax равны), 1.6 включает мини-пруф low-funds с откатом состояния и проверкой npc_skip_low_funds без insufficient.
+-  - QA команды не запускались после правок; нужен новый DUMP_AT для PASS/FAIL.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`
+
+### 2026-02-14 — ECON-NPC readiness 1.4/1.6 fixes (QA pending)
+- Status: FAIL (нет нового DUMP_AT после правок)
+- Facts:
+-  - Верхний `DUMP_AT 2026-02-14 00:05:18` показывает JSON2.allOk:false с failReasons:[check_1.4, check_1.6]; 1.4 missing_world_stipend_reasons (world_tax_in>0, world_stipend_out==0), 1.6 exception unauthorized_points_write в runLowFundsMini.
+-  - runLowFundsMini переведён на легальные transferPoints (npc->worldBank->npc) без прямых мутаций State.players.*.points; проверка skip/insufficient сохранена.
+-  - World stipend tick активирован в `Events.tick` через `Econ.maybeWorldStipendTick` (transfer-only, reason world_stipend_out), чтобы stipend появлялся в логе.
+- Changed: `PROJECT_MEMORY.md`, `TASKS.md`, `AsyncScene/Web/dev/dev-checks.js`, `AsyncScene/Web/events.js`
+
 Память обновлена

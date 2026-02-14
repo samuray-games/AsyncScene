@@ -1918,6 +1918,24 @@ window.Game ||= {};
       }
     } catch (_) {}
 
+    // World stipend tick (transfer-only) for low/zero NPCs
+    try {
+      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+      const S = Game.__S || null;
+      if (Econ && typeof Econ.maybeWorldStipendTick === "function" && S && S.players) {
+        const npcIds = Object.keys(S.players).filter(id => typeof id === "string" && id.startsWith("npc_"));
+        if (npcIds.length) {
+          Econ.maybeWorldStipendTick({
+            npcIds,
+            stipendAmount: 1,
+            stipendThreshold: 0,
+            maxRecipientsPerTick: 1,
+            tick: now()
+          });
+        }
+      }
+    } catch (_) {}
+
     if (changed) requestRender();
   }
 

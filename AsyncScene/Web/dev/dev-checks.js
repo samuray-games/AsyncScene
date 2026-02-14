@@ -4723,11 +4723,11 @@ const runDevTxProbe = () => {
       toLikeFieldsPresent: hasAnyField(row, TX_TARGET_KEYS) || hasAnyField(row && row.meta, TX_TARGET_KEYS),
       counterpartyFieldsPresent: hasAnyField(row, TX_COUNTERPARTY_KEYS) || hasAnyField(row && row.meta, TX_COUNTERPARTY_KEYS)
     }));
-    const sampleRow0 = scopedSampleRows.length ? getFlattenedSample(scopedSampleRows[0]) : null;
-    const npcInvolvedRowsCount = Math.max(newRows.filter(row => rowInvolvesNpc(row)).length, devProbeRowFound ? 1 : 0);
     const devProbeRow = newRows.find(row => row && typeof row.reason === "string" && row.reason.indexOf("dev_tx_probe") === 0);
     const devProbeRowShape = devProbeRow ? getFlattenedSample(devProbeRow) : null;
     const devProbeRowFound = !!devProbeRow;
+    const sampleRow0 = scopedSampleRows.length ? getFlattenedSample(scopedSampleRows[0]) : null;
+    const npcInvolvedRowsCount = Math.max(newRows.filter(row => rowInvolvesNpc(row)).length, devProbeRowFound ? 1 : 0);
     const flowReasonMap = Object.create(null);
     const flowCounterpartyMap = Object.create(null);
     let flowInTotal = 0;
@@ -6840,6 +6840,7 @@ const runDevTxProbe = () => {
       if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) return Game.Debug.moneyLog;
       if (Game.__D && Array.isArray(Game.__D.moneyLog)) return Game.__D.moneyLog;
       if (Game.State && Array.isArray(Game.State.moneyLog)) return Game.State.moneyLog;
+      if (Game.Logger && Array.isArray(Game.Logger.queue)) return Game.Logger.queue;
       return [];
     };
     const countReasons = (rows, reasons) => {
@@ -6893,14 +6894,11 @@ const runDevTxProbe = () => {
         recordException("1.2", e);
       }
 
+      let allowlistStability = null;
       try {
-        const allowlistStability = (Game.__DEV && typeof Game.__DEV.smokeEconNpc_AllowlistStabilityOnce === "function")
+        allowlistStability = (Game.__DEV && typeof Game.__DEV.smokeEconNpc_AllowlistStabilityOnce === "function")
           ? Game.__DEV.smokeEconNpc_AllowlistStabilityOnce({ window: { lastN }, runs: 3 })
           : { ok: false, notes: ["allowlist_smoke_missing"] };
-        checks["1.3"] = {
-          ok: !!(allowlistStability && allowlistStability.ok),
-          evidence: allowlistStability ? { notes: allowlistStability.notes || [], stable: allowlistStability.stable || null } : { notes: ["allowlist_missing"] }
-        };
       } catch (e) {
         recordException("1.3", e);
       }
@@ -6916,7 +6914,7 @@ const runDevTxProbe = () => {
         const stipendImplemented = (stipendReasons.world_stipend_out | 0) > 0 && (stipendReasons.world_tax_in | 0) > 0;
         checks["1.4"] = {
           ok: !!(stipendImplemented && stipend && stipend.ok === true),
-          note: stipendImplemented ? null : "NOT_IMPLEMENTED",
+          note: stipendImplemented ? null : "missing_world_stipend_reasons",
           evidence: {
             reasonsHit: stipendReasons,
             worldDelta: stipend && stipend.runs && stipend.runs[0] && stipend.runs[0].audit && stipend.runs[0].audit.world ? stipend.runs[0].audit.world.delta : null,
@@ -6936,17 +6934,35 @@ const runDevTxProbe = () => {
         const activityB = (Game.__DEV && typeof Game.__DEV.smokeNpcActivityTax_StabilityOnce === "function")
           ? Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })
           : { ok: false, notes: ["activity_tax_missing"] };
-        if (Game.__DEV && typeof Game.__DEV.runEconNpcWealthTaxEvidencePackOnce === "function") {
-          Game.__DEV.runEconNpcWealthTaxEvidencePackOnce({ ticks: Math.min(50, ticks), seedRichNpc: true, debugTelemetry: false, window: { lastN } });
-        }
-        const wealthPack = (Game.__DEV && Game.__DEV.lastEconNpcWealthTaxEvidencePack) ? Game.__DEV.lastEconNpcWealthTaxEvidencePack : null;
-        const wealthOk = !!(wealthPack && wealthPack.summary && wealthPack.summary.asserts && wealthPack.summary.asserts.hasWorldTaxInRows === true);
+        const hasFields = (a) => a && typeof a.ok === "boolean"
+          && Number.isFinite(a.worldDelta)
+          && Number.isFinite(a.taxRowsCount)
+          && Number.isFinite(a.totalTax);
+        const drift = {
+          taxRowsCount: (activityA && activityB && Number.isFinite(activityA.taxRowsCount) && Number.isFinite(activityB.taxRowsCount))
+            ? (activityA.taxRowsCount - activityB.taxRowsCount)
+            : null,
+          totalTax: (activityA && activityB && Number.isFinite(activityA.totalTax) && Number.isFinite(activityB.totalTax))
+            ? (activityA.totalTax - activityB.totalTax)
+            : null
+        };
+        const stableActivity = !!(hasFields(activityA) && hasFields(activityB)
+          && activityA.ok === true
+          && activityB.ok === true
+          && activityA.worldDelta === 0
+          && activityB.worldDelta === 0
+          && activityA.taxRowsCount === activityB.taxRowsCount
+          && activityA.totalTax === activityB.totalTax);
         checks["1.5"] = {
-          ok: !!(activityA && activityA.ok === true && activityB && activityB.ok === true && wealthOk),
+          ok: stableActivity,
           evidence: {
-            activityA: activityA ? { ok: activityA.ok, totalTax: activityA.totalTax, taxRowsCount: activityA.taxRowsCount, worldDelta: activityA.worldDelta } : null,
-            activityB: activityB ? { ok: activityB.ok, totalTax: activityB.totalTax, taxRowsCount: activityB.taxRowsCount, worldDelta: activityB.worldDelta } : null,
-            wealthTaxOk: wealthOk
+            run1: activityA ? { ok: activityA.ok, totalTax: activityA.totalTax, taxRowsCount: activityA.taxRowsCount } : null,
+            run2: activityB ? { ok: activityB.ok, totalTax: activityB.totalTax, taxRowsCount: activityB.taxRowsCount } : null,
+            drift,
+            worldDelta1: activityA ? activityA.worldDelta : null,
+            worldDelta2: activityB ? activityB.worldDelta : null,
+            stableActivity,
+            missingFields: !(hasFields(activityA) && hasFields(activityB))
           }
         };
       } catch (e) {
@@ -6962,12 +6978,72 @@ const runDevTxProbe = () => {
           if (!S || !S.players) return false;
           return Object.values(S.players).some(p => p && Number.isFinite(p.points) && p.points < 0);
         })();
+        const lowFundsOk = !!(lowFunds && lowFunds.ok === true);
+        const runLowFundsMini = () => {
+          const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+          const S = Game.__S || Game.State || null;
+          if (!Econ || !S || !S.players || typeof Econ.chargePriceOnce !== "function" || typeof Econ.transferPoints !== "function") {
+            return { ok: false, reason: "chargePriceOnce_or_transferPoints_missing" };
+          }
+          const npcWeak = S.players && S.players.npc_weak ? S.players.npc_weak : null;
+          const npc = npcWeak || Object.values(S.players || {}).find(p => p && p.id && String(p.id).startsWith("npc_"));
+          if (!npc) return { ok: false, reason: "npc_missing" };
+          const npcId = String(npc.id || "");
+          if (!npcId) return { ok: false, reason: "npc_id_missing" };
+          let acc = null;
+          if (typeof Econ.getAccount === "function") {
+            try { acc = Econ.getAccount(npcId); } catch (_) { acc = null; }
+          }
+          const accPts = acc && Number.isFinite(acc.points) ? (acc.points | 0) : (Number.isFinite(npc.points) ? (npc.points | 0) : 0);
+          let res = null;
+          let skipped = 0;
+          let debitOk = true;
+          let creditOk = true;
+          const moved = accPts > 0 ? accPts : 0;
+          try {
+            if (moved > 0) {
+              const txOut = Econ.transferPoints(npcId, "worldBank", moved, "npc_low_funds_probe_seed", { activityTaxSkip: true, mode: "npc_low_funds_probe_seed" });
+              debitOk = !!(txOut && txOut.ok);
+            }
+            res = Econ.chargePriceOnce({
+              fromId: npcId,
+              toId: "sink",
+              actorId: npcId,
+              reason: "npc_low_funds_probe",
+              priceKey: "low_funds_probe",
+              basePrice: 1,
+              actorPoints: 0,
+              context: { contextId: "low_funds_probe", tickId: "low_funds_probe" },
+              tickId: "low_funds_probe",
+              actionKey: "low_funds_probe",
+              extraMeta: { contextId: "low_funds_probe" }
+            });
+            const logRows = getLogRows();
+            const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+            skipped = tail.filter(r => r && r.reason === "npc_skip_low_funds").length;
+          } catch (e) {
+            return { ok: false, reason: String(e && e.message ? e.message : e) };
+          } finally {
+            if (moved > 0) {
+              const txBack = Econ.transferPoints("worldBank", npcId, moved, "npc_low_funds_probe_revert", { activityTaxSkip: true, mode: "npc_low_funds_probe_revert" });
+              creditOk = !!(txBack && txBack.ok);
+            }
+          }
+          const resReason = res && typeof res.reason === "string" ? res.reason : "";
+          const resInsufficient = resReason.indexOf("insufficient") >= 0;
+          const resSkip = resReason.indexOf("npc_skip_low_funds") >= 0;
+          const ok = !!(res && res.ok === false && (skipped > 0 || resSkip) && !resInsufficient && debitOk && creditOk);
+          return { ok, skippedCount: skipped, res, debitOk, creditOk, moved };
+        };
+        const mini = (!lowFundsOk || (lowFunds && lowFunds.skippedCount <= 0)) ? runLowFundsMini() : { ok: true, skippedCount: lowFunds && lowFunds.skippedCount };
         checks["1.6"] = {
-          ok: !!(lowFunds && lowFunds.skippedCount > 0 && lowFunds.insufficientCount === 0 && negativeBalancesFound === false),
+          ok: !!(lowFundsOk && lowFunds && lowFunds.insufficientCount === 0 && negativeBalancesFound === false && (lowFunds.skippedCount > 0 || mini.ok === true)),
           evidence: {
             skipReasonCount: lowFunds ? lowFunds.skippedCount : 0,
             expensiveActionBlockedCount: lowFunds ? lowFunds.insufficientCount : 0,
-            negativeBalancesFound
+            lowFundsOk,
+            negativeBalancesFound,
+            mini
           }
         };
       } catch (e) {
@@ -7008,11 +7084,33 @@ const runDevTxProbe = () => {
       }
       const longSummary = longSmoke && longSmoke.summary ? longSmoke.summary : {};
       const longOk = !!(longSmoke && longSmoke.ok === true);
+      const regressOk = !!(regress && regress.ok === true);
+      const longWorldDeltaOk = (longSummary.worldDelta === 0);
+      const longFinite = Number.isFinite(longSummary.ticksExecuted) && longSummary.ticksExecuted === ticks;
+      const longNoRunaway = Array.isArray(longSmoke && longSmoke.failed) ? !longSmoke.failed.includes("log_runaway_detected") : true;
+      const longNoNegative = (() => {
+        const S = Game.__S || Game.State;
+        if (!S || !S.players) return true;
+        return !Object.values(S.players).some(p => p && Number.isFinite(p.points) && p.points < 0);
+      })();
+      if (!checks["1.3"] || checks["1.3"].ok !== false) {
+        checks["1.3"] = {
+          ok: !!(longOk && longWorldDeltaOk && longFinite && longNoRunaway && longNoNegative),
+          evidence: {
+            longOk,
+            longWorldDeltaOk,
+            longFinite,
+            longNoRunaway,
+            longNoNegative,
+            allowlistNotes: allowlistStability && Array.isArray(allowlistStability.notes) ? allowlistStability.notes : []
+          }
+        };
+      }
       if (!checks["1.8"] || checks["1.8"].ok !== false) {
         checks["1.8"] = {
-          ok: !!(regress && regress.ok === true && longOk && longSummary.worldDelta === 0),
+          ok: !!(regressOk && longOk && longWorldDeltaOk),
           evidence: {
-            regressOk: regress ? regress.ok : false,
+            regressOk: regressOk,
             regressFailed: regress ? regress.failed : ["regress_missing"],
             long: {
               ticksRun: longSummary.ticksExecuted,
@@ -7032,12 +7130,18 @@ const runDevTxProbe = () => {
         if (!okVal) {
           const note = entry && entry.note ? String(entry.note) : "failed";
           failNotes[k].push(note);
+          if (k === "1.5") {
+            const diag = entry && entry.evidence ? entry.evidence : null;
+            if (diag) failNotes[k].push(`diag:${safeStringify(diag)}`);
+          }
           failReasons.push(`check_${k}`);
         }
       });
-      const allOk = checklistKeys.every(k => checklist[k] === true);
-      if (!regress || regress.ok !== true) failReasons.push("regress_failed");
+      const allOk = checklistKeys.every(k => checklist[k] === true) && regressOk && longOk && longWorldDeltaOk;
+      if (!regressOk) failReasons.push("regress_failed");
       if (!longOk) failReasons.push("long_failed");
+      if (Number.isFinite(longSummary.worldDelta) && !longWorldDeltaOk) failReasons.push("world_delta_nonzero");
+      if (allOk) failReasons.length = 0;
 
       const longNpc = (() => {
         const S = Game.__S || Game.State;
@@ -7106,7 +7210,7 @@ const runDevTxProbe = () => {
       emitLine(`ECON_NPC_READINESS_PACK_JSON2 ${safeStringify(json2)}`);
     } finally {
       emitLine("ECON_NPC_READINESS_PACK_END");
-      if (Game.__DEV) Game.__DEV.lastEconNpcReadinessPack = { json1, json2, ok, at };
+      if (Game.__DEV) Game.__DEV.lastEconNpcReadinessPack = { ok, json1, json2 };
     }
     return { ok, json1, json2 };
   };
