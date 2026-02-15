@@ -2083,6 +2083,13 @@ window.Game = window.Game || {};
   }
 
   function applyReportByRole(role, opts = null){
+    if (isDevFlag()) {
+      console.warn("REPORT_REPEAT_RL_V1_LOADED", {
+        buildTag: (Game && Game.__BUILD_TAG) ? Game.__BUILD_TAG : null,
+        file: "state.js",
+        ts: Date.now()
+      });
+    }
     if (!Security.isSafe()) {
       Security.emit("tamper_function", { key: "applyReportByRole", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
       return { ok: false, reason: "security_tamper" };
@@ -2095,6 +2102,22 @@ window.Game = window.Game || {};
     }, { max: 1, windowMs: 4000, burst: 1 });
     if (!rl.ok) {
       Security.emit("rate_limit", { action: "report_submit", reason: "report_submit", key: rl.key, resetIn: rl.resetIn });
+      try {
+        if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+        if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
+        const entry = {
+          time: Date.now(),
+          reason: "report_rate_limited",
+          currency: "meta",
+          amount: 0,
+          sourceId: (State.me && State.me.id) ? String(State.me.id) : "me",
+          targetId: "report_submit",
+          eventId: opts && opts.actionId ? String(opts.actionId) : null,
+          battleId: opts && opts.battleId ? String(opts.battleId) : null,
+          meta: { key: rl.key, resetIn: rl.resetIn, actionId: opts && opts.actionId ? String(opts.actionId) : null }
+        };
+        Game.__D.moneyLog.push(entry);
+      } catch (_) {}
       return { ok: false, reason: "rate_limited" };
     }
     const raw = String(role || "").trim();
@@ -2106,7 +2129,7 @@ window.Game = window.Game || {};
       target = Object.values(ps).find(x => x && x.name && String(x.name).toLowerCase() === r) || null;
     } catch (_) {}
     // normalize synonyms helper (moved up so name-only reports are supported)
-    const normalizeRoleKeyEarly = (s) => {
+    const normalizeRoleKey = (s) => {
       const x = String(s || "").toLowerCase();
       if (!x) return "";
       if (x.includes("токс") || x.includes("toxic")) return "toxic";
@@ -2117,7 +2140,7 @@ window.Game = window.Game || {};
 
     let roleKey = "";
     try {
-      if (target) roleKey = normalizeRoleKeyEarly(String(target.role || target.type || ""));
+      if (target) roleKey = normalizeRoleKey(String(target.role || target.type || ""));
       if (!roleKey) {
         if (r.includes("токс") || r === "toxic") roleKey = "toxic";
         else if (r.includes("банд") || r === "bandit") roleKey = "bandit";
@@ -2167,6 +2190,52 @@ window.Game = window.Game || {};
       }
     }
 
+    const reportedRoleEarly = normalizeRoleKey(r || roleKey || "");
+    const repeatRl = Security.rateLimit("report_repeat", {
+      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+      targetId: String(target.id),
+      role: reportedRoleEarly || null,
+      reason: "report_repeat",
+      actionId: opts && opts.actionId,
+      battleId: opts && opts.battleId
+    }, { max: 1, windowMs: 4000, burst: 1 });
+    if (!repeatRl.ok) {
+      Security.emit("rate_limit", { action: "report_repeat", reason: "report_repeat", key: repeatRl.key, resetIn: repeatRl.resetIn });
+      if (isDevFlag()) {
+        console.warn("REPORT_REPEAT_RL_V1_BLOCK", {
+          key: repeatRl.key,
+          resetIn: repeatRl.resetIn,
+          actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
+          targetId: String(target.id),
+          role: reportedRoleEarly || null
+        });
+      }
+      try {
+        if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+        if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
+        const entry = {
+          time: Date.now(),
+          reason: "report_rate_limited",
+          currency: "meta",
+          amount: 0,
+          sourceId: (State.me && State.me.id) ? String(State.me.id) : "me",
+          targetId: String(target.id),
+          eventId: opts && opts.actionId ? String(opts.actionId) : null,
+          battleId: opts && opts.battleId ? String(opts.battleId) : null,
+          meta: { key: repeatRl.key, resetIn: repeatRl.resetIn, role: reportedRoleEarly || null, targetId: String(target.id) }
+        };
+        Game.__D.moneyLog.push(entry);
+      } catch (_) {}
+      return {
+        ok: false,
+        reason: "rate_limited",
+        cooldownMs: 4000,
+        resetAt: Date.now() + (repeatRl.resetIn || 0),
+        targetId: target.id,
+        key: repeatRl.key
+      };
+    }
+
     // Prevent repeat report of the same target during cooldown window.
     if (hasReported(target.id)) {
       copDmTo(cop.id, "Этот контакт уже отмечен. Повтор не требуется.");
@@ -2174,15 +2243,6 @@ window.Game = window.Game || {};
     }
 
     // Determine reported role key (for later truthful check).
-    const normalizeRoleKey = (s) => {
-      const x = String(s || "").toLowerCase();
-      if (!x) return "";
-      if (x.includes("токс") || x.includes("toxic")) return "toxic";
-      if (x.includes("банд") || x.includes("bandit")) return "bandit";
-      if (x.includes("мафи") || x.includes("mafia") || x.includes("mafioso")) return "mafia";
-      return x;
-    };
-
     // If roleKey is empty but we found a target by name, accept the report and use the target's role for comparisons.
     if (!roleKey && target && target.role) {
       const nr = normalizeRoleKey(target.role);
@@ -2195,6 +2255,7 @@ window.Game = window.Game || {};
       if (target && target.role) reportedRole = normalizeRoleKey(target.role);
       if (!reportedRole) reportedRole = normalizeRoleKey(r);
     } catch (_) { reportedRole = normalizeRoleKey(r); }
+    const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
 
     if (!ALLOWED_REPORT_ROLES.has(roleKey)) {
       return { ok:false, reason:"report_invalid_target", role: roleKey };
@@ -2226,7 +2287,6 @@ window.Game = window.Game || {};
       applyFalseReport(target, roleKey, cop.id, reportId);
       return { ok:false, reason:"self_report", role: roleKey };
     }
-    const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
     if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
       applyFalseReport(target, roleKey, cop.id, reportId);
       return { ok:false, reason:"report_invalid_target", role: roleKey };
@@ -2237,10 +2297,58 @@ window.Game = window.Game || {};
       const baseRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE)) ? (D.REP_REPORT_FALSE | 0) : 2;
       const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
       const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
+      const penaltyPts = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty))
+        ? (N.COP.report.falsePenalty | 0)
+        : 5;
       
       // Apply REP penalty via transferRep; record and notify player explicitly.
       try {
         transferRep("me", "crowd_pool", repPenalty, "rep_report_false", reportId);
+      } catch (_) {}
+
+      // Apply points penalty via transferPoints (no emission).
+      try {
+        const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+        const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+        const amountWanted = penaltyPts | 0;
+        const amountActual = Math.min(amountWanted, Math.max(0, pointsBefore));
+        const pointsAfter = Math.max(0, pointsBefore - amountActual);
+        if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
+          if (isDevFlag()) {
+            let stackHint = "";
+            try {
+              const err = new Error();
+              const s = String(err && err.stack ? err.stack : "");
+              stackHint = s.split("\n").slice(0, 3).join(" | ");
+            } catch (_) {}
+            console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
+              stage: "before_points_penalty",
+              reportId: reportId || null,
+              pointsBefore,
+              amountWanted,
+              amountActual,
+              stackHint
+            });
+          }
+          const tx = Econ.transferPoints("me", "sink", amountActual, "report_false_penalty", {
+            reportId: reportId || null,
+            amountWanted,
+            amountActual,
+            pointsBefore,
+            pointsAfter,
+            partial: amountActual !== amountWanted,
+            operation: "report_false_penalty"
+          });
+          if (isDevFlag()) {
+            const afterPts = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : null;
+            console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
+              stage: "after_points_penalty",
+              reportId: reportId || null,
+              pointsAfter: afterPts,
+              tx
+            });
+          }
+        }
       } catch (_) {}
 
       // Ensure debug logs and toasts reflect the penalty even if econ path is silent.
@@ -2269,6 +2377,14 @@ window.Game = window.Game || {};
 
       markReported(target.id, false, roleKey, cop.id);
       try { copDmTo(cop.id, "cop_fail"); } catch (_) {}
+      if (isDevFlag()) {
+        const endPts = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : null;
+        console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
+          stage: "after_false_report",
+          reportId: reportId || null,
+          pointsAfter: endPts
+        });
+      }
       return { ok: false, reason: "false_report", role: roleKey, repPenalty, copId: cop.id };
     }
 
@@ -2368,24 +2484,23 @@ window.Game = window.Game || {};
             // P0-2: компенсация пойнтов по правилам проекта (возврат украденного)
             const returnAmount = victimized.stolenAmount || 0; // возврат украденного
             if (returnAmount > 0) {
-              // Возврат украденных пойнтов: используем addPoints для простоты
-              addPoints(returnAmount, "cop_compensation_return");
-              // Fallback: log the refund in debug moneyLog/toastLog
-              try {
-                const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-                dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
-                dbg.moneyLog.push({
-                  time: Date.now(),
-                  reason: "cop_compensation_return",
-                  currency: "points",
-                  amount: returnAmount,
-                  sourceId: "cop_compensation",
-                  targetId: "me",
-                  eventId: reportId || null
+              const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+              const amountWanted = returnAmount | 0;
+              const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : null;
+              const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
+              const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+              const pointsAfter = pointsBefore + amountActual;
+              if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
+                Econ.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
+                  reportId: reportId || null,
+                  amountWanted,
+                  amountActual,
+                  pointsBefore,
+                  pointsAfter,
+                  partial: amountActual !== amountWanted,
+                  kind: "return"
                 });
-                dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
-                dbg.toastLog.push({ ts: Date.now(), kind: "points", delta: returnAmount, eventId: reportId || null, text: `+${returnAmount}💰` });
-              } catch (_) {}
+              }
             }
             // P0-2: grant extra +1 REP and +1 point (bonus) for victim case
             try {
@@ -2393,8 +2508,26 @@ window.Game = window.Game || {};
                 Game.__A.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
               }
             } catch (_) {}
-            // Apply +1 point bonus
-            try { addPoints(1, "cop_victim_point_bonus"); } catch (_) {}
+            // Apply +1 point bonus via transfer
+            try {
+              const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+              const amountWanted = 1;
+              const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : null;
+              const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
+              const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+              const pointsAfter = pointsBefore + amountActual;
+              if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
+                Econ.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
+                  reportId: reportId || null,
+                  amountWanted,
+                  amountActual,
+                  pointsBefore,
+                  pointsAfter,
+                  partial: amountActual !== amountWanted,
+                  kind: "victim_bonus"
+                });
+              }
+            } catch (_) {}
 
             // Immediate toast for the bonus
             try {

@@ -178,6 +178,15 @@
       } else {
         throw new Error("Run helper missing");
       }
+      const evalType = typeof result;
+      const evalKeys = (result && typeof result === "object" && !Array.isArray(result)) ? Object.keys(result) : [];
+      const panelPreview = serializePreview(result);
+      console.warn("CONSOLE_PANEL_EVAL_RESULT_V1", {
+        type: evalType,
+        isPromise: 0,
+        keys: evalKeys,
+        preview: panelPreview
+      });
       if (typeof result === "undefined") {
         result = { ok: true, value: undefined };
       }

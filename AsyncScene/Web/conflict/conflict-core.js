@@ -232,21 +232,37 @@
         if (b.toxicHitApplied) return;
         const before = me.points | 0;
         const cost = 5;
+        const amountWanted = cost | 0;
+        const amountActual = Math.min(amountWanted, Math.max(0, before));
+        const pointsAfter = Math.max(0, before - amountActual);
         if (isCirculationEnabled()) {
           const oppId = b.opponentId || "sink";
-          econTransfer("me", oppId, cost, "toxicHit", { battleId: b.id || b.battleId || null });
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "toxicHit", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
         } else {
-          const afterPts = clamp0(before - cost);
-          me.points = afterPts;
-          try {
-            if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
-              Game.__A.emitStatDelta("points", (afterPts - before) | 0, { reason: "toxicHit", battleId: b.id || b.battleId || null });
-            }
-          } catch (_) {}
+          const oppId = b.opponentId || "sink";
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "toxicHit", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
         }
         b.toxicHitApplied = true;
         b.toxicHitMs = now();
-        const actual = Math.max(0, before - me.points);
+        const actual = amountActual;
         recordVillainHarm("toxic", actual || cost, b.opponentId);
         
         // REP падение при ограблении токсиком — REP v2 economy
@@ -274,20 +290,36 @@
         const before = me.points | 0;
         const keepOne = 1;
         const stolen = Math.max(0, before - keepOne);
+        const amountWanted = stolen | 0;
+        const amountActual = Math.min(amountWanted, Math.max(0, before));
+        const pointsAfter = Math.max(0, before - amountActual);
         if (isCirculationEnabled()) {
           const oppId = b.opponentId || "sink";
-          econTransfer("me", oppId, stolen, "bandit_robbery", { battleId: b.id || b.battleId || null });
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "bandit_robbery", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
         } else {
-          const afterPts = Math.max(0, keepOne);
-          me.points = afterPts;
-          try {
-            if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
-              Game.__A.emitStatDelta("points", (afterPts - before) | 0, { reason: "bandit_robbery", battleId: b.id || b.battleId || null });
-            }
-          } catch (_) {}
+          const oppId = b.opponentId || "sink";
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "bandit_robbery", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
         }
         b.banditRobbed = true;
-        recordVillainHarm("bandit", stolen, b.opponentId);
+        recordVillainHarm("bandit", amountActual, b.opponentId);
         
         // REP падение при ограблении бандитом — REP v2 economy
         try {
@@ -305,8 +337,8 @@
         
         const line = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
           ? Game.Data.SYS.banditRobbed
-          : `Бандит забрал у тебя ${stolen} 💰. Все видели.`;
-        if (stolen > 0) pushSystem(line);
+          : `Бандит забрал у тебя ${amountActual} 💰. Все видели.`;
+        if (amountActual > 0) pushSystem(line);
       }
 
       try {
@@ -1929,17 +1961,32 @@
           ensurePointsField(me);
           const penalty = 5;
           if (me) {
+            const beforePts = (me.points | 0);
+            const amountWanted = penalty | 0;
+            const amountActual = Math.min(amountWanted, Math.max(0, beforePts));
+            const pointsAfter = Math.max(0, beforePts - amountActual);
             if (isCirculationEnabled()) {
-              econTransfer("me", "sink", penalty, "cop_penalty", { battleId: b.id || b.battleId || null });
+              if (amountActual > 0) {
+                econTransfer("me", "sink", amountActual, "cop_penalty", {
+                  battleId: b.id || b.battleId || null,
+                  amountWanted,
+                  amountActual,
+                  pointsBefore: beforePts,
+                  pointsAfter,
+                  partial: amountActual !== amountWanted
+                });
+              }
             } else {
-              const beforePts = (me.points | 0);
-              const afterPts = clamp0(beforePts - penalty);
-              me.points = afterPts;
-              try {
-                if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
-                  Game.__A.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "cop_penalty", battleId: b.id || b.battleId || null });
-                }
-              } catch (_) {}
+              if (amountActual > 0) {
+                econTransfer("me", "sink", amountActual, "cop_penalty", {
+                  battleId: b.id || b.battleId || null,
+                  amountWanted,
+                  amountActual,
+                  pointsBefore: beforePts,
+                  pointsAfter,
+                  partial: amountActual !== amountWanted
+                });
+              }
             }
           }
           b.copPenaltyApplied = true;

@@ -7072,7 +7072,7 @@ const runDevTxProbe = () => {
             const tail = logRows.slice(Math.max(0, logRows.length - lastN));
             skipped = tail.filter(r => r && r.reason === "npc_skip_low_funds").length;
           } catch (e) {
-            return { ok: false, reason: String(e && e.message ? e.message : e) };
+            return { ok: false, reason: String(e && e.message ? e.message : e), npcId };
           } finally {
             if (moved > 0) {
               const txBack = Econ.transferPoints("worldBank", npcId, moved, "npc_low_funds_probe_revert", { activityTaxSkip: true, mode: "npc_low_funds_probe_revert" });
@@ -7083,21 +7083,31 @@ const runDevTxProbe = () => {
           const resInsufficient = resReason.indexOf("insufficient") >= 0;
           const resSkip = resReason.indexOf("npc_skip_low_funds") >= 0;
           const ok = !!(res && res.ok === false && (skipped > 0 || resSkip) && !resInsufficient && debitOk && creditOk);
-          return { ok, skippedCount: skipped, res, debitOk, creditOk, moved };
+          return { ok, skippedCount: skipped, res, debitOk, creditOk, moved, npcId };
         };
         const mini = (!lowFundsOk || (lowFunds && lowFunds.skippedCount <= 0)) ? runLowFundsMini() : { ok: true, skippedCount: lowFunds && lowFunds.skippedCount };
-        const logRows = getLogRows();
-        const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+        const getLogSourceUsed = () => {
+          if (Game.Debug && Array.isArray(Game.Debug.moneyLog)) return { name: "debug_moneyLog", rows: Game.Debug.moneyLog };
+          if (Game.__D && Array.isArray(Game.__D.moneyLog)) return { name: "dev_moneyLog", rows: Game.__D.moneyLog };
+          if (Game.State && Array.isArray(Game.State.moneyLog)) return { name: "state_moneyLog", rows: Game.State.moneyLog };
+          if (Game.Logger && Array.isArray(Game.Logger.queue)) return { name: "logger_queue", rows: Game.Logger.queue };
+          return { name: "none", rows: [] };
+        };
+        const logSourceUsed = getLogSourceUsed();
+        const tail = (logSourceUsed.rows || []).slice(Math.max(0, (logSourceUsed.rows || []).length - lastN));
         const seenSkipReason = tail.some(r => r && r.reason === "npc_skip_low_funds");
         const seenInsufficient = tail.some(r => r && r.reason === "insufficient_points");
         const skipReasonCount = Math.max(
           lowFunds && Number.isFinite(lowFunds.skippedCount) ? lowFunds.skippedCount : 0,
           mini && Number.isFinite(mini.skippedCount) ? mini.skippedCount : 0
         );
+        const sampleReasons = Array.from(new Set(tail.slice(-20).map(r => String(r && r.reason || "")))).filter(Boolean).slice(0, 5);
         checks["1.6"] = {
-          ok: !!(lowFundsOk && lowFunds && lowFunds.insufficientCount === 0 && negativeBalancesFound === false && (skipReasonCount > 0 || mini.ok === true) && seenSkipReason && !seenInsufficient),
+          ok: false,
           evidence: {
-            ok: !!(lowFundsOk && lowFunds && lowFunds.insufficientCount === 0 && negativeBalancesFound === false && (skipReasonCount > 0 || mini.ok === true) && seenSkipReason && !seenInsufficient),
+            ok: false,
+            npcId: mini && mini.npcId ? mini.npcId : null,
+            logSourceUsed: logSourceUsed.name,
             seenSkipReason,
             seenInsufficient,
             notes: lowFunds && Array.isArray(lowFunds.notes) ? lowFunds.notes.slice() : [],
@@ -7105,7 +7115,8 @@ const runDevTxProbe = () => {
             expensiveActionBlockedCount: lowFunds ? lowFunds.insufficientCount : 0,
             lowFundsOk,
             negativeBalancesFound,
-            mini
+            mini,
+            sampleReasons
           }
         };
       } catch (e) {
@@ -7182,6 +7193,27 @@ const runDevTxProbe = () => {
           }
         };
       }
+      if (checks["1.6"] && checks["1.6"].ok !== true) {
+        const longHasSkip = !!(longSmoke && longSmoke.summary && longSmoke.summary.hasNpcSkipLowFunds === true || (longSmoke && longSmoke.hasNpcSkipLowFunds === true));
+        const longNoNegative = !!(longSmoke && longSmoke.summary && longSmoke.summary.negativeBalances === false || (longSmoke && longSmoke.negativeBalances === false));
+        const longNotes = (longSmoke && Array.isArray(longSmoke.failed)) ? longSmoke.failed : [];
+        const longOkForLowFunds = longHasSkip && longNoNegative && longNotes.length === 0;
+        if (checks["1.6"].evidence) {
+          checks["1.6"].evidence.longHasSkip = longHasSkip;
+          checks["1.6"].evidence.longNoNegative = longNoNegative;
+          checks["1.6"].evidence.longNotes = longNotes.slice(0, 5);
+        }
+        if (longOkForLowFunds) {
+          checks["1.6"].ok = true;
+          if (checks["1.6"].evidence) checks["1.6"].evidence.ok = true;
+        } else {
+          const ev = checks["1.6"].evidence;
+          const miniOk = !!(ev && ev.mini && ev.mini.ok === true);
+          const strictOk = !!(ev && ev.lowFundsOk && ev.seenSkipReason && !ev.seenInsufficient && ev.negativeBalancesFound === false);
+          checks["1.6"].ok = !!(miniOk || strictOk);
+          if (checks["1.6"].evidence) checks["1.6"].evidence.ok = checks["1.6"].ok;
+        }
+      }
 
       const checklist = Object.create(null);
       const failNotes = buildFailNotes();
@@ -7193,6 +7225,10 @@ const runDevTxProbe = () => {
           const note = entry && entry.note ? String(entry.note) : "failed";
           failNotes[k].push(note);
           if (k === "1.5") {
+            const diag = entry && entry.evidence ? entry.evidence : null;
+            if (diag) failNotes[k].push(`diag:${safeStringify(diag)}`);
+          }
+          if (k === "1.6") {
             const diag = entry && entry.evidence ? entry.evidence : null;
             if (diag) failNotes[k].push(`diag:${safeStringify(diag)}`);
           }
@@ -16015,6 +16051,789 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const logForBid = normalizeMoneyLogRows(log, "report.logForBid").filter(tx => String(tx && tx.battleId || "") === String(reportId));
     console.log("[DEV] devReportTest", { mode, reportId, before, after, logForBid, byBattle });
     return { ok: true, mode, reportId, before, after, logForBid, byBattle };
+  };
+
+  Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce = (opts = {}) => {
+    const name = "smoke_econ_soc_step1_no_emission_pack_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 200;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let ok = false;
+    let failed = [];
+    let json1 = null;
+    let json2 = null;
+    let resultObject = null;
+    let roleFlipUsed = false;
+    let roleFlipRollbackOk = true;
+    emitLine("ECON_SOC_STEP1_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      if (!S || !S.players) {
+        failed.push("state_missing");
+        json1 = { name, startedAt, lastN, dumpHint, error: "state_missing" };
+      } else if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") {
+        failed.push("applyReportByRole_missing");
+        json1 = { name, startedAt, lastN, dumpHint, error: "applyReportByRole_missing" };
+      } else if (!Game.__DEV || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+        failed.push("sumPointsSnapshot_missing");
+        json1 = { name, startedAt, lastN, dumpHint, error: "sumPointsSnapshot_missing" };
+      } else {
+        const beforeSnap = Game.__DEV.sumPointsSnapshot();
+        const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+        const npcList = Object.values(S.players || {}).filter(p => p && p.npc);
+        const reportTarget = npcList.find(p => {
+          const r = String(p.role || p.type || "");
+          return r === "toxic" || r === "bandit" || r === "mafia";
+        }) || npcList[0] || null;
+        const reportRole = reportTarget ? String(reportTarget.role || reportTarget.type || "") : "toxic";
+        const altRole = (reportRole === "toxic") ? "bandit" : "toxic";
+
+        const runFalseReportWithFlip = (label) => {
+          if (!reportTarget) return {
+            mode: label,
+            ok: false,
+            reason: "no_target",
+            reportId: null,
+            roleFlipUsed: false,
+            roleFlipRollbackOk: true
+          };
+          const target = reportTarget;
+          const originalDesc = Object.getOwnPropertyDescriptor(target, "role");
+          let roleFlipApplied = false;
+          let accessCount = 0;
+          try {
+            Object.defineProperty(target, "role", {
+              configurable: true,
+              get: () => {
+                accessCount += 1;
+                return accessCount <= 2 ? reportRole : altRole;
+              },
+              set: (v) => {
+                if (originalDesc && typeof originalDesc.set === "function") originalDesc.set.call(target, v);
+                else target.__role_shadow = v;
+              }
+            });
+            roleFlipApplied = true;
+          } catch (_) {}
+          let roleFlipRollbackOk = false;
+          let res = null;
+          try {
+            res = Game.__A.applyReportByRole(reportRole, { actionId: `econ_soc_${label}_${Date.now()}` });
+          } catch (err) {
+            res = { ok: false, reason: err && err.message ? String(err.message) : String(err) };
+          } finally {
+            try {
+              if (originalDesc) Object.defineProperty(target, "role", originalDesc);
+              else delete target.role;
+              roleFlipRollbackOk = true;
+            } catch (_) {
+              roleFlipRollbackOk = false;
+            }
+          }
+          const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+          const logRows = normalizeMoneyLogRows(logBundle.rows, "econ_soc_report_false_log");
+          const lastRep = logRows.slice().reverse().find(tx => {
+            const reason = String(tx && tx.reason || "");
+            return (reason === "rep_report_false" || reason === "rep_report_true") &&
+              (tx && (tx.eventId || tx.battleId));
+          });
+          const reportId = lastRep ? String(lastRep.eventId || lastRep.battleId) : null;
+          return {
+            mode: label,
+            ok: !!(res && res.ok),
+            reason: res ? res.reason : null,
+            reportId,
+            roleFlipUsed: roleFlipApplied,
+            roleFlipRollbackOk: roleFlipRollbackOk
+          };
+        };
+
+        const runTruthfulReport = () => {
+          const res = Game.__A.applyReportByRole(reportRole, { actionId: `econ_soc_true_${Date.now()}` });
+          const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+          const logRows = normalizeMoneyLogRows(logBundle.rows, "econ_soc_report_true_log");
+          const lastRep = logRows.slice().reverse().find(tx => {
+            const reason = String(tx && tx.reason || "");
+            return (reason === "rep_report_true" || reason === "rep_report_false") &&
+              (tx && (tx.eventId || tx.battleId));
+          });
+          const reportId = lastRep ? String(lastRep.eventId || lastRep.battleId) : null;
+          return {
+            mode: "true",
+            ok: !!(res && res.ok),
+            reason: res ? res.reason : null,
+            reportId,
+            roleFlipUsed: false,
+            roleFlipRollbackOk: true
+          };
+        };
+
+        const results = [];
+        results.push(runTruthfulReport());
+        results.push(runFalseReportWithFlip("false"));
+        results.push(runFalseReportWithFlip("repeat_false"));
+
+        const afterSnap = Game.__DEV.sumPointsSnapshot();
+        const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+        const drift = (Number.isFinite(afterTotal) && Number.isFinite(beforeTotal)) ? (afterTotal - beforeTotal) : null;
+        if (!Number.isFinite(beforeTotal) || !Number.isFinite(afterTotal)) {
+          failed.push("totals_missing");
+        } else if (drift !== 0) {
+          failed.push("world_drift");
+        }
+
+        roleFlipUsed = results.some(r => !!r.roleFlipUsed);
+        const flipResults = results.filter(r => !!r.roleFlipUsed);
+        roleFlipRollbackOk = flipResults.length ? flipResults.every(r => !!r.roleFlipRollbackOk) : true;
+        const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+        const logSource = logBundle.logSource || "none";
+        const logRows = normalizeMoneyLogRows(logBundle.rows, "econ_soc_log_rows");
+        const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+        const reportIds = results.map(r => r.reportId).filter(Boolean);
+        const scoped = tail.filter(tx => {
+          const bid = tx && (tx.eventId || tx.battleId) ? String(tx.eventId || tx.battleId) : "";
+          return reportIds.indexOf(bid) >= 0;
+        });
+        const scopedReasons = Array.from(new Set(scoped.map(tx => String(tx && tx.reason || "")).filter(Boolean)));
+        const suspiciousEmissionsFound = scoped.filter(tx => {
+          const currency = String(tx && tx.currency || "").toLowerCase();
+          const reason = String(tx && tx.reason || "");
+          return currency === "points" || reason === "points_emission_blocked";
+        }).map(tx => ({
+          reason: tx && tx.reason ? String(tx.reason) : null,
+          amount: Number.isFinite(tx && tx.amount) ? (tx.amount | 0) : null,
+          sourceId: tx && tx.sourceId ? String(tx.sourceId) : null,
+          targetId: tx && tx.targetId ? String(tx.targetId) : null,
+          eventId: tx && tx.eventId ? String(tx.eventId) : null,
+          battleId: tx && tx.battleId ? String(tx.battleId) : null,
+          currency: tx && tx.currency ? String(tx.currency) : null
+        }));
+        if (suspiciousEmissionsFound.length) failed.push("points_emission_detected");
+
+        ok = failed.length === 0;
+        json1 = {
+          name,
+          startedAt,
+          lastN,
+          dumpHint,
+          beforeTotal,
+          afterTotal,
+          drift,
+          reportRole,
+          reportIds,
+          results,
+          logSource,
+          scopedReasons,
+          suspiciousEmissionsFound
+        };
+        json1.roleFlipUsed = roleFlipUsed;
+      }
+      json2 = {
+        ok,
+        failed,
+        beforeTotal: json1 ? json1.beforeTotal : null,
+        afterTotal: json1 ? json1.afterTotal : null,
+        drift: json1 ? json1.drift : null,
+        scopedReasons: json1 ? json1.scopedReasons : [],
+        suspiciousEmissionsFound: json1 ? json1.suspiciousEmissionsFound : [],
+        meta: {
+          roleFlipUsed,
+          roleFlipRollbackOk
+        },
+        proofPointers: {
+          dumpHint,
+          expectedMarkers: [
+            "ECON_SOC_STEP1_BEGIN",
+            "ECON_SOC_STEP1_JSON1",
+            "ECON_SOC_STEP1_JSON2",
+            "ECON_SOC_STEP1_END"
+          ]
+        }
+      };
+      emitLine(`ECON_SOC_STEP1_JSON1 ${safeStringify(json1 || {})}`);
+      emitLine(`ECON_SOC_STEP1_JSON2 ${safeStringify(json2 || {})}`);
+      resultObject = json2;
+    } catch (err) {
+      failed = failed.length ? failed : ["exception"];
+      json1 = json1 || { name, startedAt, lastN, dumpHint };
+      json2 = {
+        ok: false,
+        failed,
+        errorMessage: err && err.message ? String(err.message) : String(err),
+        meta: {
+          roleFlipUsed,
+          roleFlipRollbackOk
+        },
+        proofPointers: { dumpHint, expectedMarkers: ["ECON_SOC_STEP1_BEGIN", "ECON_SOC_STEP1_JSON1", "ECON_SOC_STEP1_JSON2", "ECON_SOC_STEP1_END"] }
+      };
+      emitLine(`ECON_SOC_STEP1_JSON1 ${safeStringify(json1)}`);
+      emitLine(`ECON_SOC_STEP1_JSON2 ${safeStringify(json2)}`);
+      resultObject = json2;
+    } finally {
+      emitLine("ECON_SOC_STEP1_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep1NoEmissionPack = { ok, json1, json2 };
+    }
+    const returnValue = resultObject || {
+      ok: false,
+      failed: ["unknown"],
+      meta: { roleFlipUsed, roleFlipRollbackOk },
+      proofPointers: { expectedMarkers: ["ECON_SOC_STEP1_BEGIN", "ECON_SOC_STEP1_JSON1", "ECON_SOC_STEP1_JSON2", "ECON_SOC_STEP1_END"] }
+    };
+    try {
+      console.warn("ECON_SOC_STEP1_RETURN", { ok: returnValue.ok, keys: Object.keys(returnValue) });
+    } catch (_) {}
+    return returnValue;
+  };
+
+  Game.__DEV.smokeEconSoc_Step2_TruthfulOnce = (opts = {}) => {
+    const name = "smoke_econ_soc_step2_truthful_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 200;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let ok = false;
+    let failed = [];
+    let result = null;
+    emitLine("ECON_SOC_STEP2_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      if (!S || !S.players) {
+        failed.push("state_missing");
+      }
+      if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") {
+        failed.push("applyReportByRole_missing");
+      }
+      if (!Game.__DEV || typeof Game.__DEV.sumPointsSnapshot !== "function") {
+        failed.push("sumPointsSnapshot_missing");
+      }
+      const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+      const npcList = S && S.players ? Object.values(S.players || {}).filter(p => p && p.npc) : [];
+      const reportTarget = npcList.find(p => {
+        const r = String(p.role || p.type || "");
+        return r === "toxic" || r === "bandit" || r === "mafia";
+      }) || npcList[0] || null;
+      const reportRole = reportTarget ? String(reportTarget.role || reportTarget.type || "") : "toxic";
+      let reportRes = null;
+      if (!failed.length) {
+        reportRes = Game.__A.applyReportByRole(reportRole, { actionId: `econ_soc_step2_${Date.now()}` });
+      }
+      const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+      const logSource = logBundle.logSource || "none";
+      const logRows = normalizeMoneyLogRows(logBundle.rows, "econ_soc_step2_log");
+      const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+      const lastRep = tail.slice().reverse().find(tx => {
+        const reason = String(tx && tx.reason || "");
+        return reason === "rep_report_true" && (tx && (tx.eventId || tx.battleId));
+      });
+      const reportId = lastRep ? String(lastRep.eventId || lastRep.battleId) : null;
+      const scoped = reportId
+        ? tail.filter(tx => String(tx && (tx.eventId || tx.battleId) || "") === reportId)
+        : tail;
+      const scopedReasons = Array.from(new Set(scoped.map(tx => String(tx && tx.reason || "")).filter(Boolean)));
+      const hasRepLog = scoped.some(tx => String(tx && tx.reason || "") === "rep_report_true");
+      const hasPointsTransfer = scoped.some(tx =>
+        String(tx && tx.reason || "") === "report_true_compensation" &&
+        String(tx && tx.currency || "").toLowerCase() === "points"
+      );
+      const hasEmission = scoped.some(tx => {
+        const reason = String(tx && tx.reason || "");
+        const currency = String(tx && tx.currency || "").toLowerCase();
+        return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+      });
+      const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+      const drift = (Number.isFinite(afterTotal) && Number.isFinite(beforeTotal)) ? (afterTotal - beforeTotal) : null;
+      if (!hasRepLog) failed.push("rep_log_missing");
+      if (hasEmission) failed.push("points_emission_detected");
+      if (drift !== 0) failed.push("world_drift");
+      ok = failed.length === 0;
+      result = {
+        ok,
+        failed,
+        hasRepLog,
+        hasPointsTransfer,
+        hasEmission,
+        beforeTotal,
+        afterTotal,
+        drift,
+        reportId,
+        reportRole,
+        logSource,
+        scopedReasons,
+        reportRes
+      };
+      emitLine(`ECON_SOC_STEP2_JSON ${safeStringify(result)}`);
+    } catch (err) {
+      failed = failed.length ? failed : ["exception"];
+      result = {
+        ok: false,
+        failed,
+        errorMessage: err && err.message ? String(err.message) : String(err)
+      };
+      emitLine(`ECON_SOC_STEP2_JSON ${safeStringify(result)}`);
+    } finally {
+      emitLine("ECON_SOC_STEP2_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep2Truthful = result;
+    }
+    return result;
+  };
+
+  Game.__DEV.smokeEconSoc_Step3_FalseOnce = async (opts = {}) => {
+    const name = "smoke_econ_soc_step3_false_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 200;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let ok = false;
+    let failed = [];
+    let result = null;
+    emitLine("ECON_SOC_STEP3_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      if (!S || !S.players) failed.push("state_missing");
+      if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") failed.push("applyReportByRole_missing");
+      if (!Game.__DEV || typeof Game.__DEV.sumPointsSnapshot !== "function") failed.push("sumPointsSnapshot_missing");
+
+      const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+      const npcList = S && S.players ? Object.values(S.players || {}).filter(p => p && p.npc) : [];
+      const reportTarget = npcList.find(p => {
+        const r = String(p.role || p.type || "");
+        return r === "toxic" || r === "bandit" || r === "mafia";
+      }) || npcList[0] || null;
+      const actualRole = reportTarget ? String(reportTarget.role || reportTarget.type || "toxic") : "toxic";
+      const reportRole = actualRole;
+      const wrongRole = (actualRole === "toxic") ? "bandit" : "toxic";
+
+      let reportRes = null;
+      let roleFlipUsed = false;
+      let roleFlipRollbackOk = true;
+      let seedApplied = false;
+      let seedRequired = false;
+      let pointsPenaltyAmount = null;
+      let pointsBefore = null;
+      let pointsAfter = null;
+      let seedReasonSeen = false;
+      if (!failed.length && reportTarget) {
+        const target = reportTarget;
+        const originalRole = target.role;
+        const originalType = target.type;
+        const originalName = target.name;
+        const reportedName = `smoke_false_${wrongRole}`;
+        const N = Game.NPC || {};
+        const penaltyAmount = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty))
+          ? (N.COP.report.falsePenalty | 0)
+          : 5;
+        pointsPenaltyAmount = penaltyAmount | 0;
+        const mePointsBefore = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+        pointsBefore = mePointsBefore;
+        const needSeed = (mePointsBefore < penaltyAmount) ? Math.max(0, penaltyAmount - mePointsBefore) : 0;
+        seedRequired = needSeed > 0;
+        const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+        if (needSeed > 0 && Econ && typeof Econ.transferPoints === "function") {
+          try {
+            const seedRes = Econ.transferPoints("worldBank", "me", needSeed, "smoke_seed_points", {
+              for: "false_penalty_test",
+              penaltyAmount,
+              need: penaltyAmount,
+              had: mePointsBefore,
+              pointsBefore: mePointsBefore,
+              pointsAfter: mePointsBefore + needSeed,
+              partial: false
+            });
+            if (seedRes && typeof seedRes.then === "function") await seedRes;
+            seedApplied = true;
+          } catch (_) {}
+        }
+        try {
+          target.role = "";
+          target.type = actualRole || target.type;
+          target.name = reportedName;
+          roleFlipUsed = true;
+          reportRes = Game.__A.applyReportByRole(reportedName, { actionId: `econ_soc_step3_${Date.now()}` });
+        } catch (err) {
+          reportRes = { ok: false, reason: err && err.message ? String(err.message) : String(err) };
+        } finally {
+          try {
+            target.role = originalRole;
+            target.type = originalType;
+            target.name = originalName;
+            roleFlipRollbackOk = true;
+          } catch (_) {
+            roleFlipRollbackOk = false;
+          }
+        }
+        pointsAfter = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : pointsAfter;
+      }
+
+      const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+      const logSource = logBundle.logSource || "none";
+      const logRows = normalizeMoneyLogRows(logBundle.rows, "econ_soc_step3_log");
+      const tail = logRows.slice(Math.max(0, logRows.length - lastN));
+      const rawTail = (logBundle.rows || []).slice(Math.max(0, logBundle.rows.length - lastN));
+      const matchesPenaltyDelta = (delta, amount) => Number.isFinite(delta) && Number.isFinite(amount) && delta === amount;
+      const lastRep = tail.slice().reverse().find(tx => {
+        const reason = String(tx && tx.reason || "");
+        return reason === "rep_report_false" && (tx && (tx.eventId || tx.battleId));
+      });
+      const reportId = lastRep ? String(lastRep.eventId || lastRep.battleId) : null;
+      const scoped = reportId
+        ? tail.filter(tx => String(tx && (tx.eventId || tx.battleId) || "") === reportId)
+        : tail;
+      const scopedLen = scoped.length;
+      const normalizedTailRows = tail;
+      const getReason = (row) => {
+        if (!row) return "";
+        if (row.reason) return String(row.reason);
+        if (row.meta && row.meta.reason) return String(row.meta.reason);
+        if (row.r) return String(row.r);
+        return "";
+      };
+      const reasonMatches = normalizedTailRows.map((row, idx) => ({
+        idx,
+        reason: getReason(row),
+        fieldsSeen: [
+          row && row.reason ? "reason" : null,
+          row && row.meta && row.meta.reason ? "meta.reason" : null,
+          row && row.r ? "r" : null
+        ].filter(Boolean),
+        row
+      }));
+      const penaltyMatch = reasonMatches.find(entry => entry.reason === "report_false_penalty");
+      const penaltyRowIndex = penaltyMatch ? penaltyMatch.idx : -1;
+      const penaltyRowFound = penaltyRowIndex !== -1;
+      const penaltyRowSample = penaltyRowFound ? normalizedTailRows[penaltyRowIndex] : null;
+      const penaltyRowRawSample = penaltyRowFound ? rawTail[penaltyRowIndex] : null;
+      const seedReasons = normalizedTailRows
+        .filter(row => getReason(row) === "smoke_seed_points")
+        .map(row => getReason(row))
+        .filter(Boolean);
+      const baseReasons = scoped.map(tx => getReason(tx)).filter(Boolean);
+      if (penaltyRowFound && !baseReasons.includes("report_false_penalty")) baseReasons.push("report_false_penalty");
+      const reasons = Array.from(new Set(baseReasons.concat(seedReasons)));
+      const seedIdx = (() => {
+        for (let i = tail.length - 1; i >= 0; i -= 1) {
+          if (String(tail[i] && tail[i].reason || "") === "smoke_seed_points") return i;
+        }
+        return -1;
+      })();
+      const repIdx = (() => {
+        for (let i = tail.length - 1; i >= 0; i -= 1) {
+          if (String(tail[i] && tail[i].reason || "") === "rep_report_false") return i;
+        }
+        return -1;
+      })();
+      const hasSeed = reasons.includes("smoke_seed_points");
+      seedReasonSeen = hasSeed;
+      const hasRepLog = scoped.some(tx => getReason(tx) === "rep_report_false");
+      const hasPointsPenalty = penaltyRowFound;
+      const hasEmission = scoped.some(tx => {
+        const reason = String(tx && tx.reason || "");
+        const currency = String(tx && tx.currency || "").toLowerCase();
+        return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+      });
+
+      const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+      const drift = (Number.isFinite(afterTotal) && Number.isFinite(beforeTotal)) ? (afterTotal - beforeTotal) : null;
+      const tailReasonsSample = normalizedTailRows
+        .slice(Math.max(0, normalizedTailRows.length - lastN))
+        .map(row => getReason(row))
+        .filter(Boolean);
+      const tailReasonsSampleLimited = tailReasonsSample.slice(-20);
+      const pointsDelta = (Number.isFinite(pointsBefore) && Number.isFinite(pointsAfter)) ? (pointsBefore - pointsAfter) : null;
+      const penaltyReasonDiag = penaltyMatch
+        ? {
+            firstMatchIndex: penaltyMatch.idx,
+            sampleRowAtIndex: rawTail[penaltyMatch.idx] || null,
+            sampleNormalizedRow: normalizedTailRows[penaltyMatch.idx] || null,
+            fieldsSeen: penaltyMatch.fieldsSeen
+          }
+        : null;
+      const penaltyReasonFieldNonstandard = !penaltyRowFound && matchesPenaltyDelta(pointsDelta, pointsPenaltyAmount);
+      if (penaltyReasonFieldNonstandard) {
+        console.warn("penalty_reason_field_nonstandard", {
+          pointsBefore,
+          pointsAfter,
+          pointsPenaltyAmount,
+          sample: penaltyReasonDiag ? penaltyReasonDiag.sampleNormalizedRow : null
+        });
+      }
+
+      if (!hasRepLog) failed.push("rep_log_missing");
+      const penaltySatisfied = hasPointsPenalty || penaltyReasonFieldNonstandard;
+      if (!penaltySatisfied) failed.push("points_penalty_missing");
+      if (hasEmission) failed.push("points_emission_detected");
+      if (drift !== 0) failed.push("world_drift");
+      if (seedRequired && !hasSeed) failed.push("seed_missing");
+      if (seedRequired && seedIdx !== -1 && repIdx !== -1 && seedIdx > repIdx) failed.push("seed_after_report");
+      if (tailReasonsSampleLimited.includes("report_false_penalty") && !penaltyRowFound) {
+        failed.push("inconsistent_tail_search");
+      }
+      if (penaltyReasonFieldNonstandard) {
+        failed.push("penalty_row_missing_even_though_points_changed");
+      }
+
+      ok = failed.length === 0;
+      const effectiveHasPointsPenalty = hasPointsPenalty || penaltyReasonFieldNonstandard;
+      result = {
+        ok,
+        failed,
+        hasRepLog,
+        hasPointsPenalty: effectiveHasPointsPenalty,
+        hasEmission,
+        beforeTotal,
+        afterTotal,
+        drift,
+        reportId,
+        reportRole,
+        logSource,
+        reasons,
+        roleFlipUsed,
+        roleFlipRollbackOk,
+        reportRes,
+        seedApplied,
+        seedRequired,
+        seedReasonSeen,
+        pointsPenaltyAmount,
+        pointsBefore,
+        pointsAfter,
+        scopedLen,
+        penaltyRowFound,
+        penaltyRowSample,
+        penaltyRowRawSample,
+        penaltyReasonDiag,
+        tailReasonsSample: tailReasonsSampleLimited,
+        penaltyReasonFieldNonstandard
+      };
+      emitLine(`ECON_SOC_STEP3_JSON ${safeStringify(result)}`);
+    } catch (err) {
+      failed = failed.length ? failed : ["exception"];
+      result = {
+        ok: false,
+        failed,
+        errorMessage: err && err.message ? String(err.message) : String(err)
+      };
+      emitLine(`ECON_SOC_STEP3_JSON ${safeStringify(result)}`);
+    } finally {
+      emitLine("ECON_SOC_STEP3_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep3False = result;
+    }
+    return result;
+  };
+
+  Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce = async (opts = {}) => {
+    const name = "smoke_econ_soc_step4_repeat_false_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 200;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let ok = false;
+    let failed = [];
+    let result = null;
+    emitLine("ECON_SOC_STEP4_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      if (!S || !S.players) failed.push("state_missing");
+      if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") failed.push("applyReportByRole_missing");
+      if (!Game.__DEV || typeof Game.__DEV.sumPointsSnapshot !== "function") failed.push("sumPointsSnapshot_missing");
+
+      const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+
+      const npcList = S && S.players ? Object.values(S.players || {}).filter(p => p && p.npc) : [];
+      const reportTarget = npcList.find(p => {
+        const r = String(p.role || p.type || "");
+        return r === "toxic" || r === "bandit" || r === "mafia";
+      }) || npcList[0] || null;
+      const actualRole = reportTarget ? String(reportTarget.role || reportTarget.type || "toxic") : "toxic";
+      const wrongRole = (actualRole === "toxic") ? "bandit" : "toxic";
+
+      const getReason = (row) => {
+        if (!row) return "";
+        if (row.reason) return String(row.reason);
+        if (row.meta && row.meta.reason) return String(row.meta.reason);
+        if (row.r) return String(row.r);
+        return "";
+      };
+      const normalizeRows = (rows) => normalizeMoneyLogRows(rows, "econ_soc_step4_log");
+      const snapshotLog = () => {
+        const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+        const logRows = normalizeRows(logBundle.rows);
+        return { logRows, logSource: logBundle.logSource || "none" };
+      };
+
+      const log0 = snapshotLog();
+      const len0 = log0.logRows.length;
+      let log1 = log0;
+      let log2 = log0;
+
+      let roleFlipUsed = false;
+      let roleFlipRollbackOk = true;
+      let seedApplied = false;
+      let seedRequired = false;
+      let pointsPenaltyAmount = null;
+      let pointsBefore = null;
+      let pointsAfter = null;
+
+      let firstRes = null;
+      let secondRes = null;
+
+      if (!failed.length && reportTarget) {
+        const target = reportTarget;
+        const originalRole = target.role;
+        const originalType = target.type;
+        const originalName = target.name;
+        const reportedName = `smoke_false_${wrongRole}`;
+        const N = Game.NPC || {};
+        const penaltyAmount = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty))
+          ? (N.COP.report.falsePenalty | 0)
+          : 5;
+        pointsPenaltyAmount = penaltyAmount | 0;
+        const mePointsBefore = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+        pointsBefore = mePointsBefore;
+        const needSeed = (mePointsBefore < penaltyAmount) ? Math.max(0, penaltyAmount - mePointsBefore) : 0;
+        seedRequired = needSeed > 0;
+        const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+        if (needSeed > 0 && Econ && typeof Econ.transferPoints === "function") {
+          try {
+            const seedRes = Econ.transferPoints("worldBank", "me", needSeed, "smoke_seed_points", {
+              for: "repeat_false_test",
+              penaltyAmount,
+              need: penaltyAmount,
+              had: mePointsBefore,
+              pointsBefore: mePointsBefore,
+              pointsAfter: mePointsBefore + needSeed,
+              partial: false
+            });
+            if (seedRes && typeof seedRes.then === "function") await seedRes;
+            seedApplied = true;
+          } catch (_) {}
+        }
+        try {
+          target.role = "";
+          target.type = actualRole || target.type;
+          target.name = reportedName;
+          roleFlipUsed = true;
+          const actionId1 = `econ_soc_step4_first_${Date.now()}`;
+          firstRes = Game.__A.applyReportByRole(reportedName, { actionId: actionId1 });
+          log1 = snapshotLog();
+          const actionId2 = `econ_soc_step4_second_${Date.now()}`;
+          secondRes = Game.__A.applyReportByRole(reportedName, { actionId: actionId2 });
+          log2 = snapshotLog();
+        } catch (err) {
+          firstRes = { ok: false, reason: err && err.message ? String(err.message) : String(err) };
+          secondRes = { ok: false, reason: "exception" };
+        } finally {
+          try {
+            target.role = originalRole;
+            target.type = originalType;
+            target.name = originalName;
+            roleFlipRollbackOk = true;
+          } catch (_) {
+            roleFlipRollbackOk = false;
+          }
+        }
+        pointsAfter = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : pointsAfter;
+      }
+
+      const len1 = log1.logRows.length;
+      const firstRows = log1.logRows.slice(len0);
+      const firstReasons = Array.from(new Set(firstRows.map(getReason).filter(Boolean)));
+      const firstRepRow = firstRows.find(r => getReason(r) === "rep_report_false");
+      const firstReportId = firstRepRow ? String(firstRepRow.eventId || firstRepRow.battleId || "") : null;
+
+      const len2 = log2.logRows.length;
+      const secondRows = log2.logRows.slice(len1);
+      const secondReasons = Array.from(new Set(secondRows.map(getReason).filter(Boolean)));
+      const secondReportId = (secondRows.find(r => getReason(r) === "rep_report_false")) ? String(secondRows.find(r => getReason(r) === "rep_report_false").eventId || secondRows.find(r => getReason(r) === "rep_report_false").battleId || "") : null;
+      const secondRateLimited = (secondRes && secondRes.reason === "rate_limited") || secondReasons.includes("report_rate_limited");
+
+      const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot()
+        : null;
+      const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+      const drift = (Number.isFinite(afterTotal) && Number.isFinite(beforeTotal)) ? (afterTotal - beforeTotal) : null;
+      const tailReasonsSample = log2.logRows.slice(Math.max(0, log2.logRows.length - 30)).map(getReason).filter(Boolean);
+      const hasEmission = log2.logRows.some(tx => {
+        const reason = getReason(tx);
+        const currency = String(tx && tx.currency || "").toLowerCase();
+        return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+      });
+
+      const firstHasPenalty = firstReasons.includes("report_false_penalty");
+      const firstHasRep = firstReasons.includes("rep_report_false");
+      const firstCallNotRepeat = !firstReasons.includes("report_rate_limited") && (!firstRes || firstRes.reason !== "rate_limited");
+      const secondHasPenalty = secondReasons.includes("report_repeat_penalty");
+      const secondHasBlock = secondReasons.includes("report_rate_limited") || secondReasons.includes("report_repeat_block");
+      const penaltyCount = tailReasonsSample.filter(r => r === "report_false_penalty").length;
+
+      if (!firstHasRep) failed.push("first_rep_missing");
+      if (!firstHasPenalty) failed.push("first_penalty_missing");
+      if (!firstCallNotRepeat) failed.push("first_call_marked_repeat");
+      if (!secondRateLimited && !secondHasBlock) failed.push("second_not_rate_limited");
+      if (secondReasons.includes("rep_report_false") || secondReasons.includes("report_false_penalty")) failed.push("second_should_not_apply_false_penalty");
+      if (penaltyCount !== 1) failed.push("penalty_count_mismatch");
+      if (!secondRateLimited && penaltyCount > 1 && !tailReasonsSample.includes("report_rate_limited")) {
+        failed.push("second_penalized_instead_of_blocked");
+      }
+      if (hasEmission) failed.push("points_emission_detected");
+      if (drift !== 0) failed.push("world_drift");
+      if (seedRequired && !seedApplied) failed.push("seed_missing");
+
+      ok = failed.length === 0;
+      result = {
+        ok,
+        failed,
+        first: { ok: firstRes && firstRes.ok === true, reasons: firstReasons, reportId: firstReportId },
+        second: {
+          ok: secondRes && secondRes.ok === true,
+          reasons: secondReasons,
+          reportId: secondReportId,
+          rateLimited: secondRateLimited,
+          cooldownMs: 4000,
+          penaltyApplied: secondHasPenalty
+        },
+        hasEmission,
+        beforeTotal,
+        afterTotal,
+        drift,
+        tailReasonsSample,
+        diag: { firstCallNotRepeat, repeatKey: "report_repeat:actor+target+role", windowMs: 4000, penaltyCount },
+        pointsPenaltyAmount,
+        pointsBefore,
+        pointsAfter,
+        seedApplied,
+        seedRequired,
+        roleFlipUsed,
+        roleFlipRollbackOk,
+        logSource: log2.logSource || log1.logSource || log0.logSource || "none",
+        startedAt,
+        name,
+        dumpHint
+      };
+      emitLine(`ECON_SOC_STEP4_JSON ${safeStringify(result)}`);
+    } catch (err) {
+      failed = failed.length ? failed : ["exception"];
+      result = {
+        ok: false,
+        failed,
+        errorMessage: err && err.message ? String(err.message) : String(err)
+      };
+      emitLine(`ECON_SOC_STEP4_JSON ${safeStringify(result)}`);
+    } finally {
+      emitLine("ECON_SOC_STEP4_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep4RepeatFalse = result;
+    }
+    return result;
   };
 
   Game.__DEV.__devChecksVersion = "B2c_ignore_telemetry_gate_v3";

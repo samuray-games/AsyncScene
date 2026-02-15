@@ -1513,3 +1513,318 @@
       (2) `Game.__DUMP_ALL__()`
     Expected markers: ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END + JSON2.allOk:true
     Next: QA
+
+
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: ECON-NPC readiness pack
+- Files: `AsyncScene/Web/dev/dev-checks.js`
+- Result: |
+    Status: PASS
+    Facts:
+      - DUMP_AT `2026-02-15 17:51:14` shows ECON_NPC_READINESS_PACK_BEGIN/JSON1/JSON2/END and `CONSOLE_PANEL_RUN_OK` returning an object.
+      - JSON2: allOk:true, checklist 1.1..1.8 true, failReasons empty, longSmoke hasNpcSkipLowFunds:true, negativeBalances:false, regress.ok:true.
+      - PASS proof relies on longSmoke guard (hasNpcSkipLowFunds && !negativeBalances) plus mini-proof fallback; diagnostics now record npcId/logSourceUsed/seenSkipReason/seenInsufficient/sampleReasons.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    Commands (QA выполнял пользователь):
+      (1) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })`
+      (2) `Game.__DUMP_ALL__()`
+    Evidence: DUMP_AT `2026-02-15 17:51:14`, JSON2.allOk:true, checklist 1.1..1.8 true, failReasons: []
+
+### [LOG-20260215-001] ECON-SOC inventory map
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: PASS
+    Facts:
+      - totalHits=5, suspiciousPointsMutations=3; социальные callsite’ы сверены по reports/abuse/penalty/compensation.
+      - Примеры callsite’ов: `/Users/User/Documents/created apps/AsyncScene/AsyncScene/Web/conflict/conflict-core.js:233` (reason=`toxicHit`, fallback изменяет `me.points` без Econ), `/Users/User/Documents/created apps/AsyncScene/AsyncScene/Web/conflict/conflict-core.js:1933` (reason=`cop_penalty`, direct clamp когда Econ отключён), `/Users/User/Documents/created apps/AsyncScene/AsyncScene/Web/state.js:2298` (reason=`rep_report_true`, compensation через `transferRep`).
+      - Карта ECON_SOC_INV_V1 перечисляет эти места и ещё два compliant callsite’а по репорту (true/false) с логированием в `Game.__D.moneyLog`.
+    Changed: `TASKS.md` `PROJECT_MEMORY.md`
+    How to verify:
+      (1) Прочитать секцию ECON_SOC_INV_V1 в итоговом сообщении.
+      (2) Перезапустить `rg -n "addPoints|addRep|grantPoints|givePoints|incPoints|setPoints\(|points\s*\+=|\.points\s*=|reward|compensate|refund|penalty|fine|sanction|cooldown|rateLimit|abuse|spam|report" AsyncScene/Web` и `rg -n "transferPoints|Econ\.transferPoints|transferRep|Econ\.transferRep" AsyncScene/Web` и свериться с картой.
+  Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Ассистента:
+      Если найдутся новые report/abuse/compensation/penalty callsite’ы, повторно собери карту ECON_SOC_INV_V1 и обнови TOTAL/Top risks/Next Prompt в TASKS.md + PROJECT_MEMORY.md.
+      ```
+
+### [LOG-20260215-002] ECON-SOC [1] remove points emission in social fallback
+- Status: FAIL (smoke not run here)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: FAIL (нужен smoke-артефакт)
+    Facts:
+      - Убраны прямые мутации `me.points` в 3 местах: toxicHit/bandit_robbery/cop_penalty. Теперь только `transferPoints` с partial-логикой и meta `{amountWanted, amountActual, pointsBefore, pointsAfter, partial}`.
+      - Добавлен dev-only хелпер `Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({window:{lastN:200}})` с BEGIN/JSON1/JSON2/END маркерами, sumPointsSnapshot before/after, report true/false/repeat false и scoped moneyLog.
+      - Smoke не запускался, артефакт в Console.txt отсутствует.
+    Smoke command:
+      Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } })
+
+### [LOG-20260215-003] ECON-SOC [1] smoke TDZ targetRole
+- Status: FAIL
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js`
+- Result: |
+    Status: FAIL (Console.txt DUMP_AT 2026-02-15 18:23:45; smoke aborted by TDZ targetRole)
+    Facts:
+      - `Console.txt` shows `ECON_SOC_STEP1_JSON2` with `errorMessage:"Cannot access 'targetRole' before initialization."` while running `Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } })`.
+      - stack trace points to `AsyncScene/Web/state.js` `applyReportByRole` referencing `targetRole` before it is declared, so the smoke never returns an object and Console Panel reports `undefined`.
+    Proof markers: ECON_SOC_STEP1_BEGIN/JSON1/JSON2/END + `CONSOLE_PANEL_RUN_OK` showing `value: undefined`.
+QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } }) then Game.__DUMP_ALL__() and verify markers.
+
+### [LOG-20260215-004] ECON-SOC baseline Step1 PASS (Console.txt)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: PASS
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 18:53:44` содержит `ECON_SOC_STEP1_JSON2` ok:true и `CONSOLE_PANEL_RUN_OK` с объектом результата.
+      - Блок proof: `ECON_SOC_STEP1_BEGIN/JSON1/JSON2/END` присутствует.
+
+### [LOG-20260215-005] ECON-SOC Step2 truthful audit + no-emission fix (pending runtime)
+- Status: FAIL (smoke not run here)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: FAIL (нужен runtime smoke)
+    Facts:
+      - Аудит truthful report: `rep_report_true` вызывается в `AsyncScene/Web/state.js` и реп лог сохраняется; компенсация victim по points существовала через `addPoints` (emission) и бонус `addPoints(1)`.
+      - Эмиссия заменена на `transferPoints("worldBank" -> "me", reason="report_true_compensation")` с partial meta `{amountWanted, amountActual, pointsBefore, pointsAfter, partial, kind}` для возврата и бонуса.
+      - Добавлен `Game.__DEV.smokeEconSoc_Step2_TruthfulOnce()` с `ECON_SOC_STEP2_BEGIN/JSON/END` и результатом `{ok, hasRepLog, hasPointsTransfer, hasEmission, beforeTotal, afterTotal, drift}`.
+    Smoke command:
+      Game.__DEV.smokeEconSoc_Step2_TruthfulOnce({ window:{ lastN:200 } })
+      Game.__DUMP_ALL__()
+
+### [LOG-20260215-006] ECON-SOC Step3 baseline (false report)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 19:10:54` зафиксирован как baseline перед шагом 3.
+
+### [LOG-20260215-007] ECON-SOC Step3 false penalty transfer + smoke (pending runtime)
+- Status: FAIL (smoke not run here)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: FAIL (нужен runtime smoke)
+    Facts:
+      - Ложный донос: points-штраф добавлен через `transferPoints("me" -> "sink", reason="report_false_penalty")` с partial meta `{amountWanted, amountActual, pointsBefore, pointsAfter, partial}`; rep_report_false сохранён.
+      - Добавлен `Game.__DEV.smokeEconSoc_Step3_FalseOnce()` с `ECON_SOC_STEP3_BEGIN/JSON/END` и результатом `{ok, hasRepLog, hasPointsPenalty, hasEmission, beforeTotal, afterTotal, drift, reasons}`.
+    Smoke command:
+      Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window:{ lastN:200 } })
+      Game.__DUMP_ALL__()
+
+### [LOG-20260215-008] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 19:15:44)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 19:15:44` фиксирует ECON_SOC_STEP3_JSON ok:false с reasons: [rep_report_true], failed: [rep_log_missing, points_penalty_missing].
+
+### [LOG-20260215-009] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 19:20:52)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 19:20:52` показывает ECON_SOC_STEP3_JSON ok:false, reasons: [npc_account_init, rep_report_true], failed: [rep_log_missing, points_penalty_missing].
+
+### [LOG-20260215-011] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 19:28:32)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 19:28:32` shows ECON_SOC_STEP3_JSON ok:false with reasons `[rep_report_false]`, hasPointsPenalty=false and warning `transferRep insufficient funds`.
+
+### [LOG-20260215-012] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 19:30:45)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 19:30:45` показывает ECON_SOC_STEP3_JSON ok:false: rep_report_false есть, report_false_penalty нет, smoke_seed_points не найден, WARN transferRep insufficient funds.
+
+### [LOG-20260215-013] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 22:02:53)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:02:53` показывает ECON_SOC_STEP3_JSON ok:false: seedRequired=false/seedApplied=false при me.points=0, report_false_penalty отсутствует, rep_report_false есть.
+
+### [LOG-20260215-014] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 22:06:33)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:06:33` показывает ECON_SOC_STEP3_JSON ok:false: points изменились (pointsBefore=10 pointsAfter=5), но reasons только [rep_report_false], hasPointsPenalty=false.
+
+### [LOG-20260215-015] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 22:11:06)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:11:06` показывает ECON_SOC_STEP3_JSON ok:false: pointsBefore=10 pointsAfter=5 pointsPenaltyAmount=5, reasons=[rep_report_false], penaltyRowFound=false.
+
+### [LOG-20260215-016] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 22:16:14)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:16:14` показывает ECON_SOC_STEP3_JSON ok:false: penaltyRowFound=false, hasPointsPenalty=false, reasons=`["rep_report_false"]`, но tailReasonsSample заканчивается на [...,"report_false_penalty","rep_report_false"] (см. diag).
+
+### [LOG-20260215-017] ECON-SOC Step3 smoke false PASS (DUMP_AT 2026-02-15 22:20:57)
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: PASS
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:20:57` показывает ECON_SOC_STEP3_JSON ok:true failed:[] drift:0 reasons includes `["rep_report_false","report_false_penalty"]` и `penaltyRowFound:true`.
+    Smoke command:
+      Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window:{ lastN:200 } })
+      Game.__DUMP_ALL__()
+
+### [LOG-20260215-018] ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:20:57)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:20:57` подтверждает Step3 PASS и используется как baseline перед Step4.
+
+### [LOG-20260215-019] ECON-SOC Step4 repeat false audit + smoke (pending runtime)
+- Status: FAIL (smoke not run here)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: FAIL (нужен runtime smoke)
+    Facts:
+      - Repeat false теперь ограничен через `Security.rateLimit("report_repeat", windowMs=4000, max=1, key actor+target+role)` в `AsyncScene/Web/state.js` ДО штрафов; при блоке добавлен moneyLog reason `report_rate_limited` и маркеры `REPORT_REPEAT_RL_V1_LOADED/BLOCK`.
+      - Repeat по hasReported срабатывает только после ok=true; повторный false теперь блокируется report_repeat rate-limit.
+      - Добавлен smoke `Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce()` с маркерами `ECON_SOC_STEP4_BEGIN/JSON/END`, проверяет первый false и второй rate-limit, без эмиссии, drift=0; фиксирует `second_penalized_instead_of_blocked` и `penalty_count_mismatch`.
+    Smoke command:
+      Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:200 } })
+      Game.__DUMP_ALL__()
+
+### [LOG-20260215-020] ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:29:49)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:29:49` показывает ECON_SOC_STEP4_JSON ok:false failed:[second_not_rate_limited], second.rateLimited=false, tailReasonsSample содержит повторные report_false_penalty без report_rate_limited.
+
+### [LOG-20260215-021] ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:33:13)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:33:13` показывает ECON_SOC_STEP4_JSON ok:false failed:[second_not_rate_limited, second_penalized_instead_of_blocked], второй false снова штрафует points.
+
+### [LOG-20260215-010] ECON-SOC Step3 smoke false deterministic (pending runtime)
+- Status: FAIL (smoke not run here)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: FAIL (нужен runtime smoke)
+    Facts:
+      - В `smokeEconSoc_Step3_FalseOnce` ложный репорт сделан детерминированным через временный name+role override: target.role="", target.type=actualRole, target.name=`smoke_false_<wrongRole>`; затем `applyReportByRole(reportedName)`.
+      - Роллбек target.role/type/name гарантирован в finally; meta `roleFlipUsed/roleFlipRollbackOk` сохраняются.
+      - Перед false-репортом smoke seed-ит me.points через `transferPoints("worldBank","me", needSeed, "smoke_seed_points", ...)`, поэтому penalty не падает из-за нулевого баланса.
+      - Добавлены флаги `seedApplied/seedRequired` и проверка порядка: seed должен быть в moneyLog до `rep_report_false`.
+      - Исправлен расчет penaltyAmount и seed: amount берется из `N.COP.report.falsePenalty` (канон), seed = `penaltyAmount - me.points`, JSON содержит `pointsPenaltyAmount/pointsBefore/pointsAfter/seedReasonSeen`.
+      - В Step3 smoke добавлена диагностика `penaltyRowFound/penaltyRowSample/scopedLen` и расширен поиск `report_false_penalty` по окну tail, а не только scoped.
+      - Добавлены trace-маркеры `ECON_SOC_FALSE_PTS_TRACE_V1` в false-ветке state.js (до/после transferPoints и после false_report) и усилена проверка: при изменении points без penalty-row фиксируется `penalty_row_missing_even_though_points_changed`.
+    Smoke command:
+      Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window:{ lastN:200 } })
+      Game.__DUMP_ALL__()
