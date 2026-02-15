@@ -16666,16 +16666,22 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         return "";
       };
       const normalizeRows = (rows) => normalizeMoneyLogRows(rows, "econ_soc_step4_log");
-      const snapshotLog = () => {
-        const logBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
-        const logRows = normalizeRows(logBundle.rows);
-        return { logRows, logSource: logBundle.logSource || "none" };
+      const fetchDebugRows = () => normalizeRows(getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" }).rows);
+      const dbgDev = (Game.__D && typeof Game.__D === "object") ? Game.__D : (Game.__D = {});
+      const repeatLogRef = Array.isArray(dbgDev.repeatRateLimitLog) ? dbgDev.repeatRateLimitLog : (dbgDev.repeatRateLimitLog = []);
+      let moneyRowCount = fetchDebugRows().length;
+      let repeatRowCount = repeatLogRef.length;
+      const captureMoneySlice = () => {
+        const rows = fetchDebugRows();
+        const slice = rows.slice(moneyRowCount);
+        moneyRowCount = rows.length;
+        return slice;
       };
-
-      const log0 = snapshotLog();
-      const len0 = log0.logRows.length;
-      let log1 = log0;
-      let log2 = log0;
+      const captureRepeatSlice = () => {
+        const slice = repeatLogRef.slice(repeatRowCount);
+        repeatRowCount = repeatLogRef.length;
+        return slice;
+      };
 
       let roleFlipUsed = false;
       let roleFlipRollbackOk = true;
@@ -16699,6 +16705,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       let rlBlocked2 = null;
       let rlResetAt1 = null;
       let rlResetAt2 = null;
+      let slice1 = [];
+      let slice2 = [];
+      let rlSlice1 = [];
+      let rlSlice2 = [];
 
       if (!failed.length && reportTarget) {
         const target = reportTarget;
@@ -16741,13 +16751,15 @@ const DIAG_VERSION = "npc_audit_diag_v2";
           firstRole = String(reportedRole || "");
           key1 = `${(S.me && S.me.id) ? String(S.me.id) : "me"}|${firstTargetId || "unknown"}|${firstRole || ""}`;
           firstRes = Game.__A.applyReportByRole(reportedName, { actionId: actionId1 });
-          log1 = snapshotLog();
+          slice1 = captureMoneySlice();
+          rlSlice1 = captureRepeatSlice();
           const actionId2 = `econ_soc_step4_second_${Date.now()}`;
           secondTargetId = target && target.id ? String(target.id) : null;
           secondRole = String(reportedRole || "");
           key2 = `${(S.me && S.me.id) ? String(S.me.id) : "me"}|${secondTargetId || "unknown"}|${secondRole || ""}`;
           secondRes = Game.__A.applyReportByRole(reportedName, { actionId: actionId2 });
-          log2 = snapshotLog();
+          slice2 = captureMoneySlice();
+          rlSlice2 = captureRepeatSlice();
         } catch (err) {
           firstRes = { ok: false, reason: err && err.message ? String(err.message) : String(err) };
           secondRes = { ok: false, reason: "exception" };
@@ -16764,41 +16776,44 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         pointsAfter = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : pointsAfter;
       }
 
-      const len1 = log1.logRows.length;
-      const firstRows = log1.logRows.slice(len0);
+      const firstRows = slice1;
       const firstReasons = Array.from(new Set(firstRows.map(getReason).filter(Boolean)));
       const firstRepRow = firstRows.find(r => getReason(r) === "rep_report_false");
       const firstReportId = firstRepRow ? String(firstRepRow.eventId || firstRepRow.battleId || "") : null;
-      const rlCheck1 = firstRows.find(r => getReason(r) === "report_rate_limited");
-      rlKey1 = rlCheck1 && rlCheck1.meta ? rlCheck1.meta.stableKey || rlCheck1.meta.key || null : null;
-      rlBlocked1 = !!rlCheck1;
-      rlResetAt1 = rlCheck1 && rlCheck1.meta && rlCheck1.meta.resetIn ? (Date.now() + rlCheck1.meta.resetIn) : null;
+      const rlCheck1 = rlSlice1.slice().reverse().find(entry => entry && entry.type === "check");
+      rlKey1 = rlCheck1 ? rlCheck1.stableKey || rlCheck1.rawKey || null : null;
+      rlBlocked1 = rlCheck1 ? !!rlCheck1.blocked : false;
+      rlResetAt1 = rlCheck1 && rlCheck1.resetAt ? rlCheck1.resetAt : null;
 
-      const len2 = log2.logRows.length;
-      const secondRows = log2.logRows.slice(len1);
+      const secondRows = slice2;
       const secondReasons = Array.from(new Set(secondRows.map(getReason).filter(Boolean)));
       const secondReportId = (secondRows.find(r => getReason(r) === "rep_report_false")) ? String(secondRows.find(r => getReason(r) === "rep_report_false").eventId || secondRows.find(r => getReason(r) === "rep_report_false").battleId || "") : null;
       const secondRateLimited = (secondRes && secondRes.reason === "rate_limited") || secondReasons.includes("report_rate_limited");
-      const rlCheck2 = secondRows.find(r => getReason(r) === "report_rate_limited");
-      rlKey2 = rlCheck2 && rlCheck2.meta ? rlCheck2.meta.stableKey || rlCheck2.meta.key || null : null;
-      rlBlocked2 = !!rlCheck2;
-      rlResetAt2 = rlCheck2 && rlCheck2.meta && rlCheck2.meta.resetIn ? (Date.now() + rlCheck2.meta.resetIn) : null;
+      const rlCheck2 = rlSlice2.slice().reverse().find(entry => entry && entry.type === "check");
+      rlKey2 = rlCheck2 ? rlCheck2.stableKey || rlCheck2.rawKey || null : null;
+      rlBlocked2 = rlCheck2 ? !!rlCheck2.blocked : false;
+      rlResetAt2 = rlCheck2 && rlCheck2.resetAt ? rlCheck2.resetAt : null;
+      const rlBlockMarker2 = rlSlice2.some(entry => entry && entry.type === "block");
 
       const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
         ? Game.__DEV.sumPointsSnapshot()
         : null;
       const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
       const drift = (Number.isFinite(afterTotal) && Number.isFinite(beforeTotal)) ? (afterTotal - beforeTotal) : null;
-      const tailReasonsSample = log2.logRows.slice(Math.max(0, log2.logRows.length - 30)).map(getReason).filter(Boolean);
-      const hasEmission = log2.logRows.some(tx => {
+      const finalLogBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+      const finalLogRows = normalizeRows(finalLogBundle.rows);
+      const tailReasonsSample = finalLogRows.slice(Math.max(0, finalLogRows.length - 30)).map(getReason).filter(Boolean);
+      const hasEmission = finalLogRows.some(tx => {
         const reason = getReason(tx);
         const currency = String(tx && tx.currency || "").toLowerCase();
         return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
       });
+      const logSource = finalLogBundle.logSource || "debug_moneyLog";
 
       const firstHasPenalty = firstReasons.includes("report_false_penalty");
       const firstHasRep = firstReasons.includes("rep_report_false");
-      const firstCallNotRepeat = !firstReasons.includes("report_rate_limited") && (!firstRes || firstRes.reason !== "rate_limited");
+      const firstCallRepeatDetected = firstReasons.includes("report_rate_limited") || (rlCheck1 && rlCheck1.blocked);
+      const firstCallNotRepeat = !firstCallRepeatDetected;
       const secondHasPenalty = secondReasons.includes("report_repeat_penalty");
       const secondHasBlock = secondReasons.includes("report_rate_limited") || secondReasons.includes("report_repeat_block");
       const penaltyCount = tailReasonsSample.filter(r => r === "report_false_penalty").length;
@@ -16807,7 +16822,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       if (!firstHasPenalty) failed.push("first_penalty_missing");
       if (!firstCallNotRepeat) failed.push("first_call_marked_repeat");
       if (!secondRateLimited && !secondHasBlock) failed.push("second_not_rate_limited");
-      if (!rlBlocked2) failed.push("rl_block_missing");
+      if (!rlBlocked2 && !secondReasons.includes("report_rate_limited") && !rlBlockMarker2) failed.push("rl_block_missing");
       if (!rlKey1 || !rlKey2 || rlKey1 !== rlKey2) failed.push("rl_key_instability");
       if (secondReasons.includes("rep_report_false") || secondReasons.includes("report_false_penalty")) failed.push("second_should_not_apply_false_penalty");
       if (penaltyCount !== 1) failed.push("penalty_count_mismatch");
@@ -16864,7 +16879,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         seedRequired,
         roleFlipUsed,
         roleFlipRollbackOk,
-        logSource: log2.logSource || log1.logSource || log0.logSource || "none",
+        logSource,
         startedAt,
         name,
         dumpHint

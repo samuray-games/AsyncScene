@@ -1,6 +1,6 @@
-[DUMP_AT] [2026-02-15 23:00:30] (epoch_ms=1771164030895)
+[DUMP_AT] [2026-02-15 23:14:52] (epoch_ms=1771164892035)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771163964413
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771164882882
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
@@ -10,15 +10,15 @@ WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771163964424 1771163964447
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771164882897 1771164882933
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771163964447
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771164882933
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771163964447}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771164882934}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -41,77 +41,31 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771163964484
+LOG [AttackChoices] conflict-arguments loaded 1771164882953
 LOG [ConflictAPI] ready
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771163978946_97529af4077eb8 typeof Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce
-WARN [repl] > typeof Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce
-LOG [repl] < Promise{}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: function, type: string}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771163978946_97529af4077eb8 function
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771163989205_42d6d6cc0c0838 typeof Game.__DEV.smokeEconSoc_Step2_TruthfulOnce
-WARN [repl] > typeof Game.__DEV.smokeEconSoc_Step2_TruthfulOnce
-LOG [repl] < Promise{}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: function, type: string}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771163989205_42d6d6cc0c0838 function
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771163998791_fc7c13ba13ae28 typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce
-WARN [repl] > typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce
-LOG [repl] < Promise{}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: function, type: string}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771163998791_fc7c13ba13ae28 function
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: wealth_tax
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771164007160_a28d0557b98ca8 typeof Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce
-WARN [repl] > typeof Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce
-LOG [repl] < Promise{}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: function, type: string}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771164007160_a28d0557b98ca8 function
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771164015212_02d612097fa1e8 Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:300 } })
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771164892007_a7526a1eb77148 Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:300 } })
 WARN [repl] > Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:300 } })
 WARN ECON_SOC_STEP4_BEGIN
-WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771164015224}
-WARN REPORT_REPEAT_RL_V1_CHECK Object{actorId: me, blocked: false, now: 1771164015234, rawKey: report_repeat:me|npc_toxic|bandit, resetAt: 1771164019234, role: bandit, stableKey: me|npc_toxic|bandit, targetId: npc_toxic}
+WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771164892012}
+WARN REPORT_REPEAT_RL_V1_CHECK Object{actorId: me, blocked: false, now: 1771164892013, rawKey: report_repeat:me|npc_toxic|bandit, resetAt: 1771164896013, role: bandit, stableKey: me|npc_toxic|bandit, targetId: npc_toxic}
 WARN [REP] transferRep insufficient funds Object{amt: 2, available: 0, fromId: me, reason: rep_report_false}
-WARN ECON_SOC_FALSE_PTS_TRACE_V1 Object{amountActual: 5, amountWanted: 5, pointsBefore: 10, reportId: report_npc_toxic_1771164015235, stackHint: applyReportByRole@http://localhost:8080/state.js:2376:36 | @http://localhost:8080/dev/dev-checks.js:16743:48 | @http://localhost:8080/dev/dev-checks.js:16632:60, stage: before_points_penalty}
+WARN ECON_SOC_FALSE_PTS_TRACE_V1 Object{amountActual: 5, amountWanted: 5, pointsBefore: 10, reportId: report_npc_toxic_1771164892013, stackHint: applyReportByRole@http://localhost:8080/state.js:2376:36 | @http://localhost:8080/dev/dev-checks.js:16753:48 | @http://localhost:8080/dev/dev-checks.js:16632:60, stage: before_points_penalty}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   amountActual: 5
   amountWanted: 5
   pointsBefore: 10
-  reportId: report_npc_toxic_1771164015235
-  stackHint: applyReportByRole@http://localhost:8080/state.js:2376:36 | @http://localhost:8080/dev/dev-checks.js:16743:48 | @http://localhost:8080/dev/dev-checks.js:16632:60
+  reportId: report_npc_toxic_1771164892013
+  stackHint: applyReportByRole@http://localhost:8080/state.js:2376:36 | @http://localhost:8080/dev/dev-checks.js:16753:48 | @http://localhost:8080/dev/dev-checks.js:16632:60
   stage: before_points_penalty
 }
 LOG END CONSOLE_EXPAND_V1
-WARN ECON_SOC_FALSE_PTS_TRACE_V1 Object{pointsAfter: 5, reportId: report_npc_toxic_1771164015235, stage: after_points_penalty, tx: Object{ok: true}}
-WARN ECON_SOC_FALSE_PTS_TRACE_V1 Object{pointsAfter: 5, reportId: report_npc_toxic_1771164015235, stage: after_false_report}
-WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771164015239}
-WARN REPORT_REPEAT_RL_V1_CHECK Object{actorId: me, blocked: true, now: 1771164015239, rawKey: report_repeat:me|npc_toxic|bandit, resetAt: 1771164019234, role: bandit, stableKey: me|npc_toxic|bandit, targetId: npc_toxic}
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1010:23 | @http://localhost:8080/state.js:1018:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:714:28 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1771163964490-e2t4, time: 1771164015240, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN ECON_SOC_FALSE_PTS_TRACE_V1 Object{pointsAfter: 5, reportId: report_npc_toxic_1771164892013, stage: after_points_penalty, tx: Object{ok: true}}
+WARN ECON_SOC_FALSE_PTS_TRACE_V1 Object{pointsAfter: 5, reportId: report_npc_toxic_1771164892013, stage: after_false_report}
+WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771164892016}
+WARN REPORT_REPEAT_RL_V1_CHECK Object{actorId: me, blocked: true, now: 1771164892016, rawKey: report_repeat:me|npc_toxic|bandit, resetAt: 1771164896013, role: bandit, stableKey: me|npc_toxic|bandit, targetId: npc_toxic}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1010:23 | @http://localhost:8080/state.js:1018:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:714:28 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1771164882960-yh2n, time: 1771164892016, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -125,8 +79,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771163964490-e2t4
-  time: 1771164015240
+  sessionId: session-1771164882960-yh2n
+  time: 1771164892016
   type: tamper_detected
   window: Object{
  …
@@ -147,7 +101,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1010:23 | @http://localhost:8080/state.js:1018:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:714:28 | emit@http://localhost:8080/state.js:762:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1010:23 | @http://localhost:8080/state.js:1018:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:705:30 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1771163964490-e2t4, time: 1771164015240, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1010:23 | @http://localhost:8080/state.js:1018:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:705:30 | emit@http://localhost:8080/state.js:762:36}, playerId: me, reaction: log_only, sessionId: session-1771164882960-yh2n, time: 1771164892016, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -161,8 +115,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771163964490-e2t4
-  time: 1771164015240
+  sessionId: session-1771164882960-yh2n
+  time: 1771164892016
   type: tamper_detected
   windo…
 LOG END CONSOLE_EXPAND_V1
@@ -182,7 +136,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1010:23 | @http://localhost:8080/state.js:1018:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:705:30 | emit@http://localhost:8080/state.js:762:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: report_repeat, key: report_repeat:me|npc_toxic|bandit, reason: report_repeat, resetIn: 3995}, playerId: me, reaction: log_only, sessionId: session-1771163964490-e2t4, time: 1771164015239, type: rate_limit, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: report_repeat, key: report_repeat:me|npc_toxic|bandit, reason: report_repeat, resetIn: 3997}, playerId: me, reaction: log_only, sessionId: session-1771164882960-yh2n, time: 1771164892016, type: rate_limit, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -193,12 +147,12 @@ LOG Object{
     action: report_repeat
     key: report_repeat:me|npc_toxic|bandit
     reason: report_repeat
-    resetIn: 3995
+    resetIn: 3997
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771163964490-e2t4
-  time: 1771164015239
+  sessionId: session-1771164882960-yh2n
+  time: 1771164892016
   type: rate_limit
   window: Object{
     longWindowMs: 600000
@@ -206,36 +160,33 @@ LOG Object{
   }
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] rate_limit Object{action: report_repeat, key: report_repeat:me|npc_toxic|bandit, reason: report_repeat, resetIn: 3995}
-WARN [SEC:notify] rate_limit Object{action: report_repeat, key: report_repeat:me|npc_toxic|bandit, reason: report_repeat, resetIn: 3995}
-WARN REPORT_REPEAT_RL_V1_BLOCK Object{actorId: me, rawKey: report_repeat:me|npc_toxic|bandit, resetAt: 1771164019237, resetIn: 3995, role: bandit, stableKey: me|npc_toxic|bandit, targetId: npc_toxic}
-WARN ECON_SOC_STEP4_JSON {"ok":false,"failed":["first_call_marked_repeat","rl_block_missing","rl_key_instability"],"first":{"ok":false,"reasons":["report_false_penalty","rep_report_false","report_rate_limited"],"reportId":"report_npc_toxic_1771164015235"},"second":{"ok":false,"reasons":[],"reportId":null,"rateLimited":true,"cooldownMs":4000,"penaltyApplied":false},"hasEmission":false,"beforeTotal":209,"afterTotal":209,"drift":0,"tailReasonsSample":["crowd_vote_pool_init","crowd_vote_pool_init","crowd…
+WARN [SEC] rate_limit Object{action: report_repeat, key: report_repeat:me|npc_toxic|bandit, reason: report_repeat, resetIn: 3997}
+WARN [SEC:notify] rate_limit Object{action: report_repeat, key: report_repeat:me|npc_toxic|bandit, reason: report_repeat, resetIn: 3997}
+WARN REPORT_REPEAT_RL_V1_BLOCK Object{actorId: me, rawKey: report_repeat:me|npc_toxic|bandit, resetAt: 1771164896016, resetIn: 3997, role: bandit, stableKey: me|npc_toxic|bandit, targetId: npc_toxic}
+WARN ECON_SOC_STEP4_JSON {"ok":true,"failed":[],"first":{"ok":false,"reasons":["report_false_penalty","rep_report_false"],"reportId":"report_npc_toxic_1771164892013"},"second":{"ok":false,"reasons":["report_rate_limited"],"reportId":null,"rateLimited":true,"cooldownMs":4000,"penaltyApplied":false},"hasEmission":false,"beforeTotal":200,"afterTotal":200,"drift":0,"tailReasonsSample":["npc_account_init","npc_account_init","npc_account_init","npc_account_init","npc_account_init","npc_account_init","npc_a…
 WARN ECON_SOC_STEP4_END
 LOG [repl] < Promise{}
 WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, failed, first, second, hasEmission, beforeTotal, afterTotal, drift, tailReasonsSample, diag, pointsPenaltyAmount, pointsBefore, pointsAfter, seedApplied, seedRequired, roleFlipUsed, roleFlipRollbackOk, logSource, startedAt, name, dumpHint], preview: Object{
-  afterTotal: 209
-  beforeTotal: 209
+  afterTotal: 200
+  beforeTotal: 200
   diag: Object{
-    firstCallNotRepeat: false
+    firstCallNotRepeat: true
     firstRole: bandit
     firstTargetId: npc_toxic
     key1: me|npc_toxic|bandit
     key2: me|npc_toxic|bandit
     penaltyCount: 1
     repeatKey: report_repeat:actor+target+role
-    rlBlocked1: true
-    rlBlocked2: false
+    rlBlocked1: false
+    rlBlocked2: true
     rlKey1: me|npc_toxic|bandit
-    rlKey2: null
-    rlResetAt1: 1771164019237
-    rlResetAt2: null
+    rlKey2: me|npc_toxic|bandit
+    rlResetAt1: 1771164896013
+    rlResetAt2: 1771164896013
     secondRole: bandit
     secondTargetId: npc_toxic
-    windowMs: 4000
-  }
-  drift: 0
- …, type: object}
+    windowMs…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -263,54 +214,35 @@ LOG Object{
     dumpHint
   ]
   preview: Object{
-  afterTotal: 209
-  beforeTotal: 209
+  afterTotal: 200
+  beforeTotal: 200
   diag: Object{
-    firstCallNotRepeat: false
+    firstCallNotRepeat: true
     firstRole: bandit
     firstTargetId: npc_toxic
-   …
+    …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771164015212_02d612097fa1e8 Object{afterTotal: 209, beforeTotal: 209, diag: Object{firstCallNotRepeat: false, firstRole: bandit, firstTargetId: npc_toxic, key1: me|npc_toxic|bandit, key2: me|npc_toxic|bandit, penaltyCount: 1, repeatKey: report_repeat:actor+target+role, rlBlocked1: true, rlBlocked2: false, rlKey1: me|npc_toxic|bandit, rlKey2: null, rlResetAt1: 1771164019237, rlResetAt2: null, secondRole: bandit, secondTargetId: npc_toxic, windowMs: 4000}, drift: 0, dumpHint: Game.__DUMP_ALL__(), failed: [first_call_marked_repeat, rl_block_missing, rl_key_instability], first: Object{ok: false, reasons: [report_false_penalty, rep_report_false, report_rate_limited], reportId: report_npc_toxic_1771164015235}, hasEmission: false, logSource: debug_moneyLog, name: smoke_econ_soc_step4_repeat_false_once, ok: false, pointsAfter: 5, pointsBefore: 10, pointsPenaltyAmount: 5, roleFlipRollbackOk: true, roleFlipUsed: true, second: Object{cooldownMs: 4000, ok: false, penaltyApplied: false, rateLimited: true, reasons: [], reportId: null}, seedApplied: false, seedRequired: false, startedAt: 1771164015220, tailReasonsSample: [crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_pool_init, crowd_vote_refund_majority, crowd_vote_refund_majority, crowd_vote_refund_majority, crowd_vote_refund_majority, crowd_vote_refund_majority, crowd_vote_refund_majority, crowd_vote_refund_majority, crowd_vote_remainder_split_a, crowd_vote_remainder_split_b, rep_crowd_vote_majority, rep_crowd_vote_majority, rep_crowd_vote_majority, rep_crowd_vote_majority, rep_crowd_vote_majority, rep_crowd_vote_majority, rep_crowd_vote_minority, rep_crowd_vote_majority, rep_crowd_vote_minority, rep_crowd_vote_minority, report_false_penalty, rep_report_false, report_rate_limited]}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771164892007_a7526a1eb77148 Object{afterTotal: 200, beforeTotal: 200, diag: Object{firstCallNotRepeat: true, firstRole: bandit, firstTargetId: npc_toxic, key1: me|npc_toxic|bandit, key2: me|npc_toxic|bandit, penaltyCount: 1, repeatKey: report_repeat:actor+target+role, rlBlocked1: false, rlBlocked2: true, rlKey1: me|npc_toxic|bandit, rlKey2: me|npc_toxic|bandit, rlResetAt1: 1771164896013, rlResetAt2: 1771164896013, secondRole: bandit, secondTargetId: npc_toxic, windowMs: 4000}, drift: 0, dumpHint: Game.__DUMP_ALL__(), failed: [], first: Object{ok: false, reasons: [report_false_penalty, rep_report_false], reportId: report_npc_toxic_1771164892013}, hasEmission: false, logSource: debug_moneyLog, name: smoke_econ_soc_step4_repeat_false_once, ok: true, pointsAfter: 5, pointsBefore: 10, pointsPenaltyAmount: 5, roleFlipRollbackOk: true, roleFlipUsed: true, second: Object{cooldownMs: 4000, ok: false, penaltyApplied: false, rateLimited: true, reasons: [report_rate_limited], reportId: null}, seedApplied: false, seedRequired: false, startedAt: 1771164892010, tailReasonsSample: [npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, report_false_penalty, rep_report_false, report_rate_limited]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  afterTotal: 209
-  beforeTotal: 209
+  afterTotal: 200
+  beforeTotal: 200
   diag: Object{
-    firstCallNotRepeat: false
+    firstCallNotRepeat: true
     firstRole: bandit
     firstTargetId: npc_toxic
     key1: me|npc_toxic|bandit
     key2: me|npc_toxic|bandit
     penaltyCount: 1
     repeatKey: report_repeat:actor+target+role
-    rlBlocked1: true
-    rlBlocked2: false
+    rlBlocked1: false
+    rlBlocked2: true
     rlKey1: me|npc_toxic|bandit
-    rlKey2: null
-    rlResetAt1: 1771164019237
-    rlResetAt2: null
+    rlKey2: me|npc_toxic|bandit
+    rlResetAt1: 1771164896013
+    rlResetAt2: 1771164896013
     secondRole: bandit
     secondTargetId: npc_toxic
-    windowMs: 4000
-  }
-  drift: 0
- …
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1771164015245 1771164015245_66665b90efc41
-WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 22283, dumpAtEpochMs: 1771164015323, dumpAtLocal: 2026-02-15 23:00:15, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1771164015245_66665b90efc41, sepOk: false, status: 200}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  bytes: 22283
-  dumpAtEpochMs: 1771164015323
-  dumpAtLocal: 2026-02-15 23:00:15
-  ok: true
-  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
-  prepend: true
-  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-  runId: 1771164015245_66665b90efc41
-  sepOk: false
-  status: 200
-}
+    windowMs…
 LOG END CONSOLE_EXPAND_V1
 
