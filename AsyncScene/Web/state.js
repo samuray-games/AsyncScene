@@ -2206,6 +2206,8 @@ window.Game = window.Game || {};
       stableKey
     };
     const repeatRl = Security.rateLimit("report_repeat", repeatKeyMeta, { max: 1, windowMs: 4000, burst: 1 });
+    const rlResetIn = Number.isFinite(repeatRl.resetIn) ? repeatRl.resetIn : 4000;
+    const rlResetAt = Date.now() + rlResetIn;
     if (isDevFlag()) {
       console.warn("REPORT_REPEAT_RL_V1_CHECK", {
         stableKey,
@@ -2215,9 +2217,25 @@ window.Game = window.Game || {};
         role: repeatRole,
         now: Date.now(),
         blocked: !repeatRl.ok,
-        resetAt: repeatRl.resetIn ? (Date.now() + repeatRl.resetIn) : (Date.now() + 4000)
+        resetAt: rlResetAt
       });
     }
+    try {
+      if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+      if (!Array.isArray(Game.__D.repeatRateLimitLog)) Game.__D.repeatRateLimitLog = [];
+      Game.__D.repeatRateLimitLog.push({
+        type: "check",
+        stableKey,
+        rawKey: repeatRl.key || null,
+        blocked: !repeatRl.ok,
+        resetAt: rlResetAt,
+        resetIn: rlResetIn,
+        actorId: repeatActorId,
+        targetId: repeatTargetId,
+        role: repeatRole,
+        time: Date.now()
+      });
+    } catch (_) {}
     if (!repeatRl.ok) {
       Security.emit("rate_limit", { action: "report_repeat", reason: "report_repeat", key: repeatRl.key, resetIn: repeatRl.resetIn });
       if (isDevFlag()) {
@@ -2225,7 +2243,7 @@ window.Game = window.Game || {};
           stableKey,
           rawKey: repeatRl.key,
           resetIn: repeatRl.resetIn,
-          resetAt: repeatRl.resetIn ? (Date.now() + repeatRl.resetIn) : null,
+          resetAt: rlResetIn ? (Date.now() + rlResetIn) : null,
           actorId: repeatActorId,
           targetId: repeatTargetId,
           role: repeatRole
@@ -2246,6 +2264,22 @@ window.Game = window.Game || {};
           meta: { key: repeatRl.key, stableKey, resetIn: repeatRl.resetIn, role: repeatRole, targetId: repeatTargetId }
         };
         Game.__D.moneyLog.push(entry);
+      } catch (_) {}
+      try {
+        if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+        if (!Array.isArray(Game.__D.repeatRateLimitLog)) Game.__D.repeatRateLimitLog = [];
+        Game.__D.repeatRateLimitLog.push({
+          type: "block",
+          stableKey,
+          rawKey: repeatRl.key || null,
+          blocked: true,
+          resetAt: rlResetAt,
+          resetIn: rlResetIn,
+          actorId: repeatActorId,
+          targetId: repeatTargetId,
+          role: repeatRole,
+          time: Date.now()
+        });
       } catch (_) {}
       return {
         ok: false,

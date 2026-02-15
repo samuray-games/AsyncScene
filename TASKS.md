@@ -1644,6 +1644,27 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window:{ lastN:200 } })
       Game.__DUMP_ALL__()
 
+### [LOG-20260215-024] ECON-SOC P0 restore dev-checks.js + Step4 smoke load (pending runtime)
+- Status: FAIL (runtime not run here)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: FAIL (нужен runtime smoke)
+    Facts:
+      - dev-checks.js восстановлен из git (commit d9a6035) после удаления/синтакс-ошибки.
+      - Удалены дубли let (ошибка rlKey1 устранена), добавлен маркер загрузки `ECON_SOC_STEP4_SMOKE_V1_LOADED`.
+      - Проверены smoke-функции Step1-4: определены в dev-checks.js (сборка требует runtime проверки).
+    Smoke command:
+      typeof Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce
+      typeof Game.__DEV.smokeEconSoc_Step2_TruthfulOnce
+      typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce
+      typeof Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce
+      Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:300 } })
+      Game.__DUMP_ALL__()
+
 ### [LOG-20260215-008] ECON-SOC Step3 baseline (DUMP_AT 2026-02-15 19:15:44)
 - Status: STARTED
 - Priority: P1

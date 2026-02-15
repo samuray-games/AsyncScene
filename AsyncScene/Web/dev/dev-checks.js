@@ -16884,6 +16884,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
     return result;
   };
+  console.warn("ECON_SOC_STEP4_SMOKE_V1_LOADED", { ts: Date.now(), hasFn: !!Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce });
 
   Game.__DEV.__devChecksVersion = "B2c_ignore_telemetry_gate_v3";
   Game.__DEV.startBalanceSmoke = () => {

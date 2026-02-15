@@ -2949,3 +2949,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `smokeEconSoc_Step3_FalseOnce` now forces false: temporary overrides `target.role=""`, `target.type=actualRole`, `target.name="smoke_false_<wrongRole>"`, then calls `applyReportByRole(reportedName)`.
   - Rollback of role/type/name is enforced in finally; `roleFlipUsed/roleFlipRollbackOk` preserved.
 - Smoke command: `Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window:{ lastN:200 } })` then `Game.__DUMP_ALL__()`
+
+### 2026-02-15 — ECON-SOC P0 restore dev-checks.js + Step4 smoke load (runtime pending)
+- Status: FAIL (runtime not run here)
+- Facts:
+  - `AsyncScene/Web/dev/dev-checks.js` restored from git commit `d9a6035` after accidental deletion/SyntaxError.
+  - Added `ECON_SOC_STEP4_SMOKE_V1_LOADED` marker after `smokeEconSoc_Step4_RepeatFalseOnce` definition.
+  - Step1-4 smoke functions present in file; runtime verification pending.
+- Smoke command: `typeof Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce; typeof Game.__DEV.smokeEconSoc_Step2_TruthfulOnce; typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce; typeof Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce; Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:300 } }); Game.__DUMP_ALL__()`
