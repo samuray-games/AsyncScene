@@ -2927,6 +2927,20 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 ### 2026-02-15 — ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:33:13)
 - Status: STARTED
 - Facts:
+  - Console.txt DUMP_AT `2026-02-15 22:33:13` shows ECON_SOC_STEP4_JSON ok:false failed `[second_not_rate_limited, second_penalized_instead_of_blocked]`, second false still penalized.
+
+### 2026-02-15 — ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:37:08)
+- Status: STARTED
+- Facts:
+  - Console.txt DUMP_AT `2026-02-15 22:37:08` shows ECON_SOC_STEP4_JSON ok:false: REPORT_REPEAT_RL_V1_LOADED present, REPORT_REPEAT_RL_V1_BLOCK missing, penaltyCount=2, no report_rate_limited.
+
+### 2026-02-15 — ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:40:11)
+- Status: STARTED
+- Facts:
+  - Console.txt DUMP_AT `2026-02-15 22:40:11` shows REPORT_REPEAT_RL_V1_CHECK #1/#2 blocked:false with different raw keys, resetAt:null; second false penalized (penaltyCount=2) and no report_rate_limited.
+### 2026-02-15 — ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:33:13)
+- Status: STARTED
+- Facts:
   - Console.txt DUMP_AT `2026-02-15 22:33:13` shows ECON_SOC_STEP4_JSON ok:false failed `[second_not_rate_limited, second_penalized_instead_of_blocked]`, pointsBefore 5 -> pointsAfter 0 on second call.
 
 ### 2026-02-15 — ECON-SOC Step3 smoke false deterministic (runtime pending)

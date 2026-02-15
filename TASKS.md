@@ -1777,9 +1777,9 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
 - Result: |
     Status: FAIL (нужен runtime smoke)
     Facts:
-      - Repeat false теперь ограничен через `Security.rateLimit("report_repeat", windowMs=4000, max=1, key actor+target+role)` в `AsyncScene/Web/state.js` ДО штрафов; при блоке добавлен moneyLog reason `report_rate_limited` и маркеры `REPORT_REPEAT_RL_V1_LOADED/BLOCK`.
+      - Repeat false теперь ограничен через `Security.rateLimit("report_repeat", windowMs=4000, max=1, stableKey actor|target|role)` в `AsyncScene/Web/state.js` ДО штрафов; при блоке добавлен moneyLog reason `report_rate_limited` и маркеры `REPORT_REPEAT_RL_V1_LOADED/CHECK/BLOCK`.
       - Repeat по hasReported срабатывает только после ok=true; повторный false теперь блокируется report_repeat rate-limit.
-      - Добавлен smoke `Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce()` с маркерами `ECON_SOC_STEP4_BEGIN/JSON/END`, проверяет первый false и второй rate-limit, без эмиссии, drift=0; фиксирует `second_penalized_instead_of_blocked` и `penalty_count_mismatch`.
+      - Добавлен smoke `Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce()` с маркерами `ECON_SOC_STEP4_BEGIN/JSON/END`, проверяет первый false и второй rate-limit, без эмиссии, drift=0; фиксирует `second_penalized_instead_of_blocked`, `penalty_count_mismatch`, `repeat_key_instability`, `rl_key_instability`, `rl_block_missing` и логирует rlKey1/rlKey2.
     Smoke command:
       Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:200 } })
       Game.__DUMP_ALL__()
@@ -1807,6 +1807,30 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Status: STARTED
     Facts:
       - Console.txt DUMP_AT `2026-02-15 22:33:13` показывает ECON_SOC_STEP4_JSON ok:false failed:[second_not_rate_limited, second_penalized_instead_of_blocked], второй false снова штрафует points.
+
+### [LOG-20260215-022] ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:37:08)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:37:08` показывает ECON_SOC_STEP4_JSON ok:false: REPORT_REPEAT_RL_V1_LOADED есть, REPORT_REPEAT_RL_V1_BLOCK отсутствует, penaltyCount=2, report_rate_limited нет.
+
+### [LOG-20260215-023] ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:40:11)
+- Status: STARTED
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `Console.txt` `TASKS.md` `PROJECT_MEMORY.md`
+- Result: |
+    Status: STARTED
+    Facts:
+      - Console.txt DUMP_AT `2026-02-15 22:40:11` показывает REPORT_REPEAT_RL_V1_CHECK #1/#2 blocked:false с разными key, resetAt:null; второй false штрафует (penaltyCount=2), report_rate_limited нет.
 
 ### [LOG-20260215-010] ECON-SOC Step3 smoke false deterministic (pending runtime)
 - Status: FAIL (smoke not run here)

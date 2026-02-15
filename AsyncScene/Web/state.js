@@ -805,6 +805,8 @@ window.Game = window.Game || {};
       const actionId = details && details.actionId ? safeStr(details.actionId) : "";
       const fromId = details && details.fromId ? safeStr(details.fromId) : "";
       const toId = details && details.toId ? safeStr(details.toId) : "";
+      const stableKey = details && details.stableKey ? safeStr(details.stableKey) : "";
+      if (stableKey) return `${safeStr(action)}:${stableKey}`;
       return `${safeStr(action)}:${actorId}:${reason}:${battleId}:${eventId}:${actionId}:${fromId}:${toId}`;
     }
 
@@ -2191,23 +2193,42 @@ window.Game = window.Game || {};
     }
 
     const reportedRoleEarly = normalizeRoleKey(r || roleKey || "");
-    const repeatRl = Security.rateLimit("report_repeat", {
-      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-      targetId: String(target.id),
-      role: reportedRoleEarly || null,
+    const repeatActorId = (State.me && State.me.id) ? String(State.me.id) : "me";
+    const repeatTargetId = String(target.id);
+    const repeatRole = reportedRoleEarly || null;
+    const stableKey = `${repeatActorId}|${repeatTargetId}|${repeatRole || ""}`;
+    const repeatKeyMeta = {
+      actorId: repeatActorId,
+      targetId: repeatTargetId,
+      role: repeatRole,
       reason: "report_repeat",
-      actionId: opts && opts.actionId,
-      battleId: opts && opts.battleId
-    }, { max: 1, windowMs: 4000, burst: 1 });
+      battleId: opts && opts.battleId,
+      stableKey
+    };
+    const repeatRl = Security.rateLimit("report_repeat", repeatKeyMeta, { max: 1, windowMs: 4000, burst: 1 });
+    if (isDevFlag()) {
+      console.warn("REPORT_REPEAT_RL_V1_CHECK", {
+        stableKey,
+        rawKey: repeatRl.key || null,
+        actorId: repeatActorId,
+        targetId: repeatTargetId,
+        role: repeatRole,
+        now: Date.now(),
+        blocked: !repeatRl.ok,
+        resetAt: repeatRl.resetIn ? (Date.now() + repeatRl.resetIn) : (Date.now() + 4000)
+      });
+    }
     if (!repeatRl.ok) {
       Security.emit("rate_limit", { action: "report_repeat", reason: "report_repeat", key: repeatRl.key, resetIn: repeatRl.resetIn });
       if (isDevFlag()) {
         console.warn("REPORT_REPEAT_RL_V1_BLOCK", {
-          key: repeatRl.key,
+          stableKey,
+          rawKey: repeatRl.key,
           resetIn: repeatRl.resetIn,
-          actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-          targetId: String(target.id),
-          role: reportedRoleEarly || null
+          resetAt: repeatRl.resetIn ? (Date.now() + repeatRl.resetIn) : null,
+          actorId: repeatActorId,
+          targetId: repeatTargetId,
+          role: repeatRole
         });
       }
       try {
@@ -2218,11 +2239,11 @@ window.Game = window.Game || {};
           reason: "report_rate_limited",
           currency: "meta",
           amount: 0,
-          sourceId: (State.me && State.me.id) ? String(State.me.id) : "me",
-          targetId: String(target.id),
+          sourceId: repeatActorId,
+          targetId: repeatTargetId,
           eventId: opts && opts.actionId ? String(opts.actionId) : null,
           battleId: opts && opts.battleId ? String(opts.battleId) : null,
-          meta: { key: repeatRl.key, resetIn: repeatRl.resetIn, role: reportedRoleEarly || null, targetId: String(target.id) }
+          meta: { key: repeatRl.key, stableKey, resetIn: repeatRl.resetIn, role: repeatRole, targetId: repeatTargetId }
         };
         Game.__D.moneyLog.push(entry);
       } catch (_) {}
@@ -2232,7 +2253,8 @@ window.Game = window.Game || {};
         cooldownMs: 4000,
         resetAt: Date.now() + (repeatRl.resetIn || 0),
         targetId: target.id,
-        key: repeatRl.key
+        key: repeatRl.key,
+        stableKey
       };
     }
 
