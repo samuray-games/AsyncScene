@@ -405,6 +405,65 @@ window.Game = window.Game || {};
     return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
   }
 
+  function getPointsActor(actorId){
+    const id = (actorId != null) ? String(actorId) : "me";
+    const meId = (State.me && State.me.id) ? String(State.me.id) : "me";
+    if (id === "me" || id === meId) return State.me || null;
+    if (State.players && State.players[id]) return State.players[id];
+    return null;
+  }
+
+  function applySocialPenalty(action, actorId, opts = null){
+    const cfg = (opts && typeof opts === "object") ? opts : {};
+    const reason = String(cfg.reason || "social_penalty");
+    const actorKey = (actorId != null) ? String(actorId) : "me";
+    const actor = getPointsActor(actorKey);
+    const amountWanted = Number.isFinite(cfg.amountWanted) ? (cfg.amountWanted | 0) : 0;
+    if (!actor || !Number.isFinite(actor.points)) {
+      return {
+        ok: false,
+        reason,
+        amountWanted,
+        amountActual: 0,
+        partial: true,
+        pointsBefore: 0,
+        pointsAfter: 0
+      };
+    }
+    const pointsBefore = actor.points | 0;
+    const amountActual = Math.max(0, Math.min(amountWanted | 0, Math.max(0, pointsBefore | 0)));
+    const partial = amountActual !== amountWanted;
+    let pointsAfter = pointsBefore;
+    let ok = true;
+    const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+    if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
+      const meta = Object.assign({}, (cfg.meta && typeof cfg.meta === "object") ? cfg.meta : {}, {
+        action: String(action || "social_penalty"),
+        targetId: cfg.targetId ? String(cfg.targetId) : null,
+        amountWanted,
+        amountActual,
+        partial,
+        pointsBefore,
+        pointsAfter: null,
+        key: cfg.key ? String(cfg.key) : null
+      });
+      const tx = Econ.transferPoints(actorKey, "sink", amountActual, reason, meta);
+      ok = !(tx && tx.ok === false);
+      const actorAfter = getPointsActor(actorKey);
+      pointsAfter = (actorAfter && Number.isFinite(actorAfter.points)) ? (actorAfter.points | 0) : (pointsBefore - amountActual);
+      meta.pointsAfter = pointsAfter;
+    }
+    return {
+      ok,
+      reason,
+      amountWanted,
+      amountActual,
+      partial,
+      pointsBefore,
+      pointsAfter
+    };
+  }
+
   function hasExplicitDevQueryParam() {
     if (typeof location === "undefined" || !location) return false;
     const search = location.search;
@@ -3392,6 +3451,9 @@ window.Game = window.Game || {};
   defineGameSurfaceProp("State", "__S");
   defineGameSurfaceProp("Debug", "__D");
   defineGameSurfaceProp("StateAPI", "__A");
+
+  if (!Game.Social || typeof Game.Social !== "object") Game.Social = {};
+  Game.Social.applySocialPenalty = applySocialPenalty;
 
   bindCrowdCoreFunctions();
   Security.protectMethod(StateAPI, "addPoints", addPoints, "StateAPI.addPoints");

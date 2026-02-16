@@ -68,6 +68,41 @@
 
 ## Inbox
 
+### [T-20260216-001] ECON-SOC [5.1-5.2] applySocialPenalty + spam/abuse map
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: карта санкций spam/abuse/cooldown и единый helper applySocialPenalty + smoke Step5.
+- Acceptance:
+  - [ ] Карта callsites spam/abuse/cooldown с points/rep санкциями зафиксирована.
+  - [ ] `Game.Social.applySocialPenalty` доступен и использует только `Econ.transferPoints`.
+  - [ ] `Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce` печатает BEGIN/JSON/END и возвращает объект.
+  - [ ] Runtime DUMP_AT содержит ECON_SOC_STEP5_* маркеры и ok:true.
+Result: |
+    Status: PASS (DUMP_AT 2026-02-16 11:54:32)
+    Facts:
+      (1) `Game.Social.applySocialPenalty` готов и вызывает `Econ.transferPoints` с partial transfer, meta={action,targetId,amountWanted,amountActual,partial,pointsBefore,pointsAfter,key}.
+      (2) `Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce` прогнан, лог BEGIN/JSON/END есть, JSON=ok:true, drift=0, hasEmission=false, scenarios enough/insufficient/zero показали transfer rows.
+      (3) Карта spam/abuse/cooldown зафиксирована: единственные санкции — rate-limit logи `report_rate_limited` (currency=meta, amount=0) в `AsyncScene/Web/state.js:2158-2182` и `AsyncScene/Web/state.js:2298-2325` (risk low, points не меняются).
+    Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js`
+    How to verify:
+      (1) Hard reload dev page.
+      (2) `Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce({ window:{ lastN:200 } })`
+      (3) `Game.__DUMP_ALL__()`
+      PASS if ECON_SOC_STEP5_JSON ok:true, drift=0, hasEmission=false, а enough/insufficient имеют transfer row; иначе FAIL.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1
+    (2) Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce({ window:{ lastN:200 } })
+    (3) Game.__DUMP_ALL__()
+    PASS если ECON_SOC_STEP5_JSON ok:true, drift=0, hasEmission=false, а enough/insufficient имеют transfer row; иначе FAIL и приложить JSON.
+    ```
+
 ### [T-20260212-019] ECON-NPC [1.8] regression pack
 - Status: QA
 - Priority: P0

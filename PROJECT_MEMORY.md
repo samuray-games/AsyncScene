@@ -1032,6 +1032,13 @@
 - Status: PENDING (smoke не запускался в этом окружении).
 - Changed: `PROJECT_MEMORY.md`
 
+### 2026-02-16 — ECON-SOC Step5 (applySocialPenalty + smoke) — PASS
+- Facts:
+  - DUMP_AT 2026-02-16 11:54:32 содержит ECON_SOC_STEP5_BEGIN/JSON/END; JSON показывает `ok:true`, `drift:0`, `hasEmission:false`, а `scenarios.enough.transferRow:true`, `scenarios.insufficient.transferRow:true`.
+  - `Game.Social.applySocialPenalty(action, actorId, opts)` действует через `Econ.transferPoints` с meta={action,targetId,amountWanted,amountActual,partial,pointsBefore,pointsAfter,key} и partial transfer при недостатке.
+  - Карта sanctions spam/abuse/cooldown остаётся: единственные связанные entry — rate-limit logи `report_rate_limited` (currency=meta, amount=0) на `state.js:2158-2182` и `state.js:2298-2325` (points не меняются, low risk).
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+
 ### 2026-02-11 — ECON-NPC [1.5] ensure spam throttle (console-tape)
 - Facts: добавлен hard-throttle для `ECON_NPC_ENSURE_V2`/`ECON_NPC_ACCOUNTS_CANON` в `console-tape.js` (minIntervalMs=400, maxCount=20, suppression после лимита), плюс Safe smoke ограничен `ticks<=5`.
 - Status: PASS (Console.txt DUMP_AT 2026-02-11 15:12:43: `THROTTLE_PROOF_V1 {"attempted":10,"printed":2,"suppressed":8,"minIntervalMs":400,"maxCount":20}`).

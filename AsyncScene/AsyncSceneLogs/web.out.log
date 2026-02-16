@@ -26405,3 +26405,187 @@ ConnectionResetError: [Errno 54] Connection reset by peer
 127.0.0.1 - - [16/Feb/2026 10:52:58] "GET /apple-touch-icon.png HTTP/1.1" 404 -
 127.0.0.1 - - [16/Feb/2026 10:52:58] code 404, message File not found
 127.0.0.1 - - [16/Feb/2026 10:52:58] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:18] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:19] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:20] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /__dev/console-dump-proof?v=1771210461522 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /dev/dev-checks.js?v=1771210461525 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:21] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 11:54:23] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 11:54:23] "GET /favicon.ico HTTP/1.1" 404 -
+
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=868214 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1770995108849 bytes=757042 mtime=1770994183488 sha1=886bc226c4448140c40d8ab7ca84f9b33a46014c
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=30345 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771032980468 bytes=757619 mtime=1770995492649 sha1=e3ce3fe2060613286a2fe3eecd5f13a5a3be29c3
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=27424 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771072887554 bytes=761207 mtime=1771033291464 sha1=6a00df6882142c2190f9243b7e89658d2f881136
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=27251 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771145464942 bytes=763346 mtime=1771145310161 sha1=be86482435c45efbd7578d74597bd06cb0606ecb
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=26629 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771147416717 bytes=771873 mtime=1771147345336 sha1=d23df7a427b3ee53a18cd9675eb552d297bd2081
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=2917 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771147975053 bytes=772848 mtime=1771147858911 sha1=473790bf5c5ec4af4ae9a1b3d887c7ad56709b68
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=3259 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771148447874 bytes=773392 mtime=1771148388652 sha1=1c75ab9fa662146aef7ddf11443fc73d90edafd0
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=3362 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771148757047 bytes=773266 mtime=1771148622420 sha1=b0dd720b5aedd5e82d79442d874fe9ae55f45981
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=3364 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771148945999 bytes=773433 mtime=1771148897637 sha1=210a1347ba11ca103c9af9b846e6143fa5ad115f
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=3522 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771149215238 bytes=773433 mtime=1771148897637 sha1=210a1347ba11ca103c9af9b846e6143fa5ad115f
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5632 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771150245485 bytes=777812 mtime=1771150166992 sha1=8cc1423d4b6e2c6d02bcc6b5cf6e80e14620a0ee
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=4918 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771150505987 bytes=783447 mtime=1771150417285 sha1=4b137e2224ffb96afb8dbe53f4d73a94866434ce
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=10177 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771150535716 bytes=783447 mtime=1771150417285 sha1=4b137e2224ffb96afb8dbe53f4d73a94866434ce
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5259 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771150843561 bytes=783476 mtime=1771150692429 sha1=cfe135a3c6c99dbdb2623590839c9b3454f53c46
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5259 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771151292699 bytes=783226 mtime=1771151182430 sha1=51e81b8f518ffb5b386287657da7684982d88783
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5338 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771151437536 bytes=784156 mtime=1771151369810 sha1=618d8d1145979c3c81b697a6385c620e576a7385
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5338 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771160564401 bytes=785325 mtime=1771151542240 sha1=87f0dbb6b446f88b520d541e55d07233d64ec541
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5507 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771160782159 bytes=785870 mtime=1771160676377 sha1=1341e81d0d25d09a0da27101210243c1a61c7cc1
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5671 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771161057509 bytes=786550 mtime=1771160970921 sha1=c4de3d4f5799e42679eee73b96cea798157d586e
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=5779 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771161363951 bytes=787058 mtime=1771161208987 sha1=6fec4d811904c3a1b9404dbb541c0e90c8a46552
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=7218 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771161648382 bytes=788897 mtime=1771161559164 sha1=38186d509545311ca675b63505ecbab81aec2016
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=8662 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771162180242 bytes=798307 mtime=1771162100364 sha1=2118dec8708edad9d66e9977d5bcecfab03df3e0
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=8305 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771162385337 bytes=798591 mtime=1771162300570 sha1=f8009872d4ca166aa00bb890f4aaceacb27d0445
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=8409 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771162619875 bytes=798674 mtime=1771162513230 sha1=c391e63012c5bf5137954b7ff00426f2bdd060ce
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=8630 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771162803458 bytes=799702 mtime=1771162742474 sha1=8471b6029eb86ddad2c77c52311718f4edacb07f
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=9203 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771163097144 bytes=800807 mtime=1771162989767 sha1=b4044444edbf374cfeb1dd4417a1219f97225486
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=14389 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771163454556 bytes=802014 mtime=1771163375760 sha1=aade4a6176f0008c8e8643be5ee1b84e80404972
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=4824 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771163931331 bytes=800933 mtime=1771163832662 sha1=aa5503398316fc202f1dfddd9f3260f4c16aff15
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771163960636 bytes=800933 mtime=1771163832662 sha1=aa5503398316fc202f1dfddd9f3260f4c16aff15
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771163964424 bytes=800933 mtime=1771163832662 sha1=aa5503398316fc202f1dfddd9f3260f4c16aff15
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=22283 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=18253 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771164577693 bytes=800782 mtime=1771164428470 sha1=2354e82be03ce08f0948acb071884ab5104662a6
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=17360 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771164882897 bytes=801757 mtime=1771164789106 sha1=be052b768f27b02111a5bf8e1c6e727fb2c2097e
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=14422 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt
+SERVE_DEV_CHECKS path=/dev/dev-checks.js?v=1771210461525 bytes=809272 mtime=1771207900817 sha1=79fc3a6594e61c56017d1c1dc4963447f0fc7895
+DEV_SERVER_CONSOLE_DUMP_HIT bytes=6007 sepOk=False path=/Users/User/Documents/created apps/AsyncScene/Console.txt127.0.0.1 - - [16/Feb/2026 11:54:32] "POST /__dev/console-dump?v=1771210472207 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 13:01:22] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 13:01:22] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 13:01:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 13:01:22] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [16/Feb/2026 13:01:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [16/Feb/2026 13:01:22] code 404, message File not found
+127.0.0.1 - - [16/Feb/2026 13:01:22] "GET /favicon.ico HTTP/1.1" 404 -

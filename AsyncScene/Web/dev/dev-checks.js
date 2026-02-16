@@ -16901,6 +16901,175 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   };
   console.warn("ECON_SOC_STEP4_SMOKE_V1_LOADED", { ts: Date.now(), hasFn: !!Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce });
 
+  Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce = async (opts = {}) => {
+    const name = "smoke_econ_soc_step5_penalty_helper_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 200;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let result = null;
+    let failed = [];
+    emitLine("ECON_SOC_STEP5_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      const social = Game.Social || null;
+      const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+      if (!S || !S.me) {
+        failed.push("state_missing");
+      } else if (!social || typeof social.applySocialPenalty !== "function") {
+        failed.push("applySocialPenalty_missing");
+      } else if (!Econ || typeof Econ.transferPoints !== "function") {
+        failed.push("transferPoints_missing");
+      } else {
+        const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+        const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+        let logSource = "debug_moneyLog";
+        let rows = [];
+        let logIndex = 0;
+
+        const getReason = (row) => String((row && (row.reason || row.r || (row.meta && row.meta.reason))) || "");
+        const hasEmissionRows = (slice) => slice.some(tx => {
+          const reason = getReason(tx);
+          const currency = String(tx && tx.currency || "");
+          return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+        });
+        const refreshRows = () => {
+          const bundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+          logSource = bundle.logSource || logSource;
+          rows = normalizeMoneyLogRows(bundle.rows, "econ_soc_step5_log");
+          return rows;
+        };
+        const captureSlice = () => {
+          const nextRows = refreshRows();
+          const slice = nextRows.slice(logIndex);
+          logIndex = nextRows.length;
+          return slice;
+        };
+        const advanceLog = () => {
+          refreshRows();
+          logIndex = rows.length;
+        };
+        const ensureMinPoints = (min, tag) => {
+          const me = S && S.me;
+          const current = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+          if (current < min && Econ && typeof Econ.transferPoints === "function") {
+            const need = Math.max(0, min - current);
+            if (need > 0) {
+              Econ.transferPoints("worldBank", "me", need, "smoke_seed_points", { for: tag, need: min, had: current });
+              advanceLog();
+            }
+          }
+          const after = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : current;
+          return after;
+        };
+
+        advanceLog();
+
+        const scenarios = [];
+
+        ensureMinPoints(5, "step5_enough");
+        const resEnough = social.applySocialPenalty("spam", "me", {
+          amountWanted: 5,
+          reason: "spam_penalty",
+          meta: { scenario: "enough" }
+        });
+        const sliceEnough = captureSlice();
+        scenarios.push({
+          label: "enough",
+          amountWanted: 5,
+          amountActual: resEnough ? resEnough.amountActual : 0,
+          partial: resEnough ? !!resEnough.partial : false,
+          reasonSeen: sliceEnough.some(tx => getReason(tx) === "spam_penalty"),
+          hasTransferRow: sliceEnough.some(tx => getReason(tx) === "spam_penalty"),
+          hasEmission: hasEmissionRows(sliceEnough)
+        });
+
+        const pointsBeforeInsufficient = ensureMinPoints(2, "step5_insufficient");
+        const insufficientWanted = Math.max(1, (pointsBeforeInsufficient | 0) + 3);
+        const resInsufficient = social.applySocialPenalty("abuse", "me", {
+          amountWanted: insufficientWanted,
+          reason: "abuse_penalty",
+          meta: { scenario: "insufficient" }
+        });
+        const sliceInsufficient = captureSlice();
+        scenarios.push({
+          label: "insufficient",
+          amountWanted: insufficientWanted,
+          amountActual: resInsufficient ? resInsufficient.amountActual : 0,
+          partial: resInsufficient ? !!resInsufficient.partial : false,
+          reasonSeen: sliceInsufficient.some(tx => getReason(tx) === "abuse_penalty"),
+          hasTransferRow: sliceInsufficient.some(tx => getReason(tx) === "abuse_penalty"),
+          hasEmission: hasEmissionRows(sliceInsufficient)
+        });
+
+        const resZero = social.applySocialPenalty("spam", "me", {
+          amountWanted: 0,
+          reason: "spam_penalty",
+          meta: { scenario: "zero" }
+        });
+        const sliceZero = captureSlice();
+        scenarios.push({
+          label: "zero",
+          amountWanted: 0,
+          amountActual: resZero ? resZero.amountActual : 0,
+          partial: resZero ? !!resZero.partial : false,
+          reasonSeen: sliceZero.some(tx => getReason(tx) === "spam_penalty"),
+          hasTransferRow: sliceZero.some(tx => getReason(tx) === "spam_penalty"),
+          hasEmission: hasEmissionRows(sliceZero)
+        });
+
+        const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+        const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+        const drift = (beforeTotal != null && afterTotal != null) ? (afterTotal - beforeTotal) : null;
+        const finalRows = refreshRows();
+        const tailReasonsSample = finalRows.slice(-30).map(getReason).filter(Boolean);
+        const hasEmission = scenarios.some(s => s.hasEmission) || finalRows.some(tx => {
+          const reason = getReason(tx);
+          const currency = String(tx && tx.currency || "");
+          return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+        });
+
+        const enough = scenarios.find(s => s.label === "enough") || null;
+        const insufficient = scenarios.find(s => s.label === "insufficient") || null;
+        const zero = scenarios.find(s => s.label === "zero") || null;
+
+        if (!enough || !enough.hasTransferRow) failed.push("enough_missing_transfer");
+        if (!insufficient || !insufficient.hasTransferRow) failed.push("insufficient_missing_transfer");
+        if (insufficient && !(insufficient.partial && insufficient.amountActual < insufficient.amountWanted)) {
+          failed.push("insufficient_not_partial");
+        }
+        if (hasEmission) failed.push("points_emission_detected");
+        if (drift !== 0) failed.push("world_drift");
+
+        result = {
+          ok: failed.length === 0,
+          failed,
+          scenarios,
+          beforeTotal,
+          afterTotal,
+          drift,
+          tailReasonsSample,
+          hasEmission,
+          logSource,
+          name,
+          startedAt,
+          dumpHint
+        };
+        emitLine(`ECON_SOC_STEP5_JSON ${safeStringify(result)}`);
+      }
+    } catch (err) {
+      result = {
+        ok: false,
+        failed: failed.length ? failed : ["exception"],
+        errorMessage: err && err.message ? String(err.message) : String(err)
+      };
+      emitLine(`ECON_SOC_STEP5_JSON ${safeStringify(result)}`);
+    } finally {
+      emitLine("ECON_SOC_STEP5_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep5PenaltyHelper = result;
+    }
+    return result;
+  };
+
   Game.__DEV.__devChecksVersion = "B2c_ignore_telemetry_gate_v3";
   Game.__DEV.startBalanceSmoke = () => {
     const name = "start_balance_smoke";
