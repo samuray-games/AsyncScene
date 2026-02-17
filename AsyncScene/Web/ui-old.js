@@ -453,42 +453,46 @@ window.Game = window.Game || {};
       renderAll();
     });
 
-    // Gift/Ask disabled for cop/bandit/gopnik
-    const btnGift = mkBtn("Подкинуть 💰", () => {
-      if ((S.me.points || 0) <= 0) {
-        dmPushLine(withId, "Система", "Не хватает 💰.");
-        renderDM();
-        return;
-      }
-      if (isCop || isBad) return;
+    const p2pEnabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
+      ? Game.Rules.isP2PTransfersEnabled()
+      : false;
+    const p2pRolesAllowed = !isCop && !isBad;
 
-      S.me.points = Math.max(0, S.me.points - 1);
-      dmPushLine(withId, S.me.name, "подкинул(а) 💰");
-      dmPushLine(withId, target.name, Game.Data.pick(["ок","каеф","неожиданно","спасибо"]));
-      UI.pushSystem(`${S.me.name} подкинул(а) 💰 ${target.name}.`);
-      renderAll();
-    });
-    if (isCop || isBad) btnGift.disabled = true;
+    const pushP2PNotice = (text) => {
+      dmPushLine(withId, "Система", text);
+      renderDM();
+    };
 
-    const btnAsk = mkBtn("Попросить 💰", () => {
-      if (isCop || isBad) return;
-      dmPushLine(withId, S.me.name, "подкинь 💰?");
-      const ok = Math.random() < 0.30;
-      if (ok) {
-        dmPushLine(withId, target.name, "держи");
-        S.me.points = (S.me.points || 0) + 1;
-        UI.pushSystem(`${target.name} подкинул(а) 💰 ${S.me.name}.`);
-      } else {
-        dmPushLine(withId, target.name, "неа");
-      }
-      renderAll();
-    });
-    if (isCop || isBad) btnAsk.disabled = true;
+    const makeLegacyP2PBtn = (label, dmText) => {
+      return mkBtn(label, () => {
+        if (!p2pEnabled) {
+          pushP2PNotice("Передача пойнтов временно отключена. Следи за включением.");
+          return;
+        }
+        if (!p2pRolesAllowed) {
+          pushP2PNotice("Передача пойнтов недоступна для этого собеседника.");
+          return;
+        }
+        pushP2PNotice(`${dmText} пока в разработке, когда флаг включён реализация подключится.`);
+        if (UI && typeof UI.pushSystem === "function" && S.me && S.me.name) {
+          UI.pushSystem(`${S.me.name} ${dmText} в будущем.`);
+        }
+      });
+    };
 
     actions.appendChild(btnBattle);
     actions.appendChild(btnLike);
-    actions.appendChild(btnGift);
-    actions.appendChild(btnAsk);
+    if (!p2pEnabled) {
+      const btnP2P = mkBtn("Передача пока недоступна", () => {
+        pushP2PNotice("Передача пойнтов временно отключена. Следи за включением.");
+      });
+      actions.appendChild(btnP2P);
+    } else {
+      const btnGift = makeLegacyP2PBtn("Подкинуть 💰 (скоро)", "подкинуть 💰");
+      const btnAsk = makeLegacyP2PBtn("Попросить 💰 (скоро)", "попросить 💰");
+      actions.appendChild(btnGift);
+      actions.appendChild(btnAsk);
+    }
     actions.appendChild(btnTeach);
     actions.appendChild(btnInvite);
 

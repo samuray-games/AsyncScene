@@ -103,8 +103,8 @@ Result: |
     PASS если ECON_SOC_STEP5_JSON ok:true, drift=0, hasEmission=false, а enough/insufficient имеют transfer row; иначе FAIL и приложить JSON.
     ```
 
-### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke
-- Status: DOING
+-### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke
+- Status: PASS
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
@@ -115,19 +115,55 @@ Result: |
   - [ ] Spam penalty срабатывает только при rate-limit (cooldown), reason `spam_penalty` появляется в moneyLog.
   - [ ] Smoke Step5.3 даёт ok:true, penaltyCount==1, drift=0, hasEmission=false.
   - [ ] DUMP_AT содержит ECON_SOC_STEP5_3_BEGIN/JSON/END.
-- Result: |
-    Status: FAIL (runtime не запускался, DUMP_AT отсутствует)
+Result: |
+    Status: PASS (DUMP_AT 2026-02-17 14:40:57)
     Facts:
-      (1) Подключён spam‑триггер: `AsyncScene/Web/conflict/conflict-core.js:1716` cooldown на повторный батл вызывает `Game.Social.applySocialPenalty(... reason:"spam_penalty", amountWanted:1, meta{key,resetIn,actionId,src:"soc_step5_3"})`.
-      (2) Добавлен smoke `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce` (BEGIN/JSON/END) в `AsyncScene/Web/dev/dev-checks.js:17073` с двумя вызовами `startWith` и per-call moneyLog slicing.
-      (3) SPAM_PENALTY_POINTS = 1 (канон‑константа не найдена; минимально‑консервативное значение).
+      (1) Spam trigger at `AsyncScene/Web/conflict/conflict-core.js:1716` fires `Game.Social.applySocialPenalty(... reason:"spam_penalty", amountWanted:1, meta{key,resetIn,actionId,src:"soc_step5_3"})` when cooldown blocks second `startWith`.
+      (2) Smoke `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce` (ECON_SOC_STEP5_3_BEGIN/JSON/END) logged `ok:true`, `drift:0`, `hasEmission:false`, `penaltyCount:1`, `reasons1:[...]`, `reasons2:[...]`, `spamKey`, `blocked1`, `blocked2`.
+      (3) SPAM_PENALTY_POINTS=1 (канон‑константа не найдена; минимально-консервативное значение).
     Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js`
     How to verify:
       (1) Hard reload dev page.
       (2) `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce({ window:{ lastN:300 } })`
       (3) `Game.__DUMP_ALL__()`
       PASS if ECON_SOC_STEP5_3_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, second reasons include `spam_penalty`, first reasons do not.
-    Next: QA (нужен runtime DUMP_AT с ECON_SOC_STEP5_3_* маркерами)
+    Next: QA
+
+### [T-20260217-001] ECON-SOC [6] smoke "3 выстрела"
+- Status: DOING
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: smoke-пакет Step6 (truth → false → repeat false) с нулевой эмиссией и корректными rate-limit ключами.
+- Acceptance:
+  - [ ] ECON_SOC_STEP6_* маркеры в DUMP_AT.
+  - [ ] ok:true, drift=0, hasEmission=false.
+  - [ ] reasonsTruth содержит rep_report_true.
+  - [ ] reasonsFalse1 содержит rep_report_false + report_false_penalty.
+  - [ ] reasonsFalse2 содержит report_rate_limited, penaltyCount==1, rlBlockedSecond==true, rlKey1==rlKey2 (role не null).
+- Result: |
+    Status: FAIL (DUMP_AT 2026-02-17 14:55:11)
+    Facts:
+      (1) ECON_SOC_STEP6_JSON ok:false failed:[truth_missing_rep_true,false_missing_rep_false,false_missing_penalty,penalty_count_mismatch].
+      (2) reasonsTruth:[] reasonsFalse1:[] penaltyCount:0; reasonsFalse2:[report_rate_limited] при rlBlockedSecond:true.
+      (3) REPORT_REPEAT_RL_V1_CHECK: role:null, stableKey с пустым role.
+    Changed: `AsyncScene/Web/dev/dev-checks.js`
+    How to verify:
+      (1) Hard reload dev page.
+      (2) `Game.__DEV.smokeEconSoc_Step6_ThreeShotsOnce({ window:{ lastN:500 } })`
+      (3) `Game.__DUMP_ALL__()`
+      PASS if ECON_SOC_STEP6_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, reasonsTruth/reasonsFalse1 filled, rlKey1==rlKey2 non-null.
+    Next: QA (нужен новый DUMP_AT)
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1
+    (2) Game.__DEV.smokeEconSoc_Step6_ThreeShotsOnce({ window:{ lastN:500 } })
+    (3) Game.__DUMP_ALL__()
+    PASS если ECON_SOC_STEP6_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, reasonsTruth/reasonsFalse1 есть, rlKey1==rlKey2 и role не null; иначе FAIL и приложить JSON.
+    ```
     Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ QA:
@@ -1942,3 +1978,24 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Smoke command:
       Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window:{ lastN:200 } })
       Game.__DUMP_ALL__()
+
+### [LOG-20260217-002] P2P flag sync (ENABLE vs BACKLOG)
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: —
+- Area: UI/Config
+- Files: `Web/data.js` `Web/ui/ui-core.js` `Web/ui-old.js` `Web/ui/ui-dm.js` `Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS (single source of truth)
+    Facts:
+      - `Data.RULES.p2pTransfersEnabled` default false, `Game.Data` helper/shim and `Game.Rules` helper added so all UI consults the same switch.
+      - Legacy `Web/ui-old.js` now renders a single honest CTA when flag=false and placeholder CTAs when true; the actions no longer mutate `S.me.points`.
+      - Modern `Web/ui/ui-dm.js` replaces grey disabled buttons with informative buttons that log the helper state and never touch the economy.
+      - Added `Game.__DEV.smokeP2PFlagUXOnce()` to print both UI points, force-enable the flag, re-log, and revert; smoke command: `Game.__DEV.smokeP2PFlagUXOnce()` in dev console.
+    Changed: `Web/data.js` `Web/ui/ui-core.js` `Web/ui-old.js` `Web/ui/ui-dm.js` `Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ Codex-ассистент:
+    Если появятся новые P2P-элементы или флаги, проверь `Game.Rules.isP2PTransfersEnabled()`, убедись, что UI равномерно реагирует, запусти `Game.__DEV.smokeP2PFlagUXOnce()` и занеси изменения в PROJECT_MEMORY.md/TASKS.md.
+    ```

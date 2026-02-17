@@ -804,15 +804,27 @@ window.Game = window.Game || {};
       requestAll();
     });
 
-    const btnGift = mkBtn("Недоступно", () => {});
-    btnGift.disabled = true;
+    const p2pEnabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
+      ? Game.Rules.isP2PTransfersEnabled()
+      : false;
 
-    const btnAsk = mkBtn("Недоступно", () => {});
-    btnAsk.disabled = true;
+    const createP2PButton = (enabledLabel, disabledLabel, actionDesc) => {
+      const label = p2pEnabled ? enabledLabel : disabledLabel;
+      return mkBtn(label, () => {
+        if (p2pEnabled) {
+          dmPushLine(withId, "Система", `${actionDesc} — P2P-флаг активен, реальная логика скоро подключится.`);
+        } else {
+          dmPushLine(withId, "Система", "Передача пойнтов пока отключена. Мы вернём её, когда будет готово.");
+        }
+        UI.renderDM();
+      });
+    };
 
     actions.appendChild(btnBattle);
     if (btnEscape) actions.appendChild(btnEscape);
     actions.appendChild(btnLike);
+    const btnGift = createP2PButton("Передать 💰 (скоро)", "Передача пока недоступна", "Подкинуть 💰");
+    const btnAsk = createP2PButton("Попросить 💰 (скоро)", "Попросить 💰 пока недоступно", "Попросить 💰");
     actions.appendChild(btnGift);
     actions.appendChild(btnAsk);
     actions.appendChild(btnTeach);

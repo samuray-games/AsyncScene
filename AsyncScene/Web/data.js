@@ -91,6 +91,18 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     k: 0
   };
 
+
+  Data.RULES = Data.RULES || {};
+  Data.RULES.p2pTransfersEnabled = Data.RULES.p2pTransfersEnabled === true;
+  Data.isP2PTransfersEnabled = function() {
+    return !!(Data.RULES && Data.RULES.p2pTransfersEnabled);
+  };
+  Data.setP2PTransfersEnabled = function(value) {
+    if (!Data.RULES) Data.RULES = {};
+    Data.RULES.p2pTransfersEnabled = !!value;
+    return Data.RULES.p2pTransfersEnabled;
+  };
+
   // Text mode (genz | alpha)
   Data.TEXT_MODE = "genz";
   Data.TEXTS = {

@@ -1,6 +1,6 @@
-[DUMP_AT] [2026-02-16 11:54:32] (epoch_ms=1771210472220)
+[DUMP_AT] [2026-02-17 16:02:46] (epoch_ms=1771311766103)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771210461512
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771311754728
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
@@ -10,15 +10,15 @@ WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771210461525 1771210461591
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771311754739 1771311754802
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771210461591
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771311754802
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771210461592}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771311754803}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -41,106 +41,22 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771210461614
+LOG [AttackChoices] conflict-arguments loaded 1771311754828
 LOG [ConflictAPI] ready
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771210472191_fbc388371bb998 Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce({ window:{ lastN:200 } })
-WARN [repl] > Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce({ window:{ lastN:200 } })
-WARN ECON_SOC_STEP5_BEGIN
-WARN ECON_SOC_STEP5_JSON {"ok":true,"failed":[],"scenarios":[{"label":"enough","amountWanted":5,"amountActual":5,"partial":false,"reasonSeen":true,"hasTransferRow":true,"hasEmission":false},{"label":"insufficient","amountWanted":8,"amountActual":5,"partial":true,"reasonSeen":true,"hasTransferRow":true,"hasEmission":false},{"label":"zero","amountWanted":0,"amountActual":0,"partial":false,"reasonSeen":false,"hasTransferRow":false,"hasEmission":false}],"beforeTotal":200,"afterTotal":200,"drift":0,"tailR…
-WARN ECON_SOC_STEP5_END
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771311766085_273a5d97ba32 Game.__DEV.smokeP2PFlagUXOnce()
+WARN [repl] > Game.__DEV.smokeP2PFlagUXOnce()
+WARN == smokeP2PFlagUXOnce start ==
+WARN Legacy UI (before toggle): DISABLED
+WARN Modern UI (before toggle): DISABLED
+WARN Legacy UI (after forcing ENABLED): ENABLED
+WARN Modern UI (after forcing ENABLED): ENABLED
+WARN == smokeP2PFlagUXOnce end ==
 LOG [repl] < Promise{}
 WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, failed, scenarios, beforeTotal, afterTotal, drift, tailReasonsSample, hasEmission, logSource, name, startedAt, dumpHint], preview: Object{
-  afterTotal: 200
-  beforeTotal: 200
-  drift: 0
-  dumpHint: Game.__DUMP_ALL__()
-  failed: [
-
-  ]
-  hasEmission: false
-  logSource: debug_moneyLog
-  name: smoke_econ_soc_step5_penalty_helper_once
-  ok: true
-  scenarios: [
-    Object{
-      amountActual: 5
-      amountWanted: 5
-      hasEmission: false
-      hasTransferRow: true
-      label: enough
-      partial: false
-      reasonSeen: true
-    }
-    Object{
-      amountActual: 5
-      amountWanted: 8
-      hasEmission: false
-      hasTra…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    ok
-    failed
-    scenarios
-    beforeTotal
-    afterTotal
-    drift
-    tailReasonsSample
-    hasEmission
-    logSource
-    name
-    startedAt
-    dumpHint
-  ]
-  preview: Object{
-  afterTotal: 200
-  beforeTotal: 200
-  drift: 0
-  dumpHint: Game.__DUMP_ALL__()
-  failed: [
-
-  ]
-  hasEmission: false
-  logSource: debug_moneyLog
-  name: smoke_econ_soc_step5_penalty_helper_once
-  ok: true
-  scenarios: [
-    Object{
-      amountActual: 5
-      amountWanted: 5
-      …
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771210472191_fbc388371bb998 Object{afterTotal: 200, beforeTotal: 200, drift: 0, dumpHint: Game.__DUMP_ALL__(), failed: [], hasEmission: false, logSource: debug_moneyLog, name: smoke_econ_soc_step5_penalty_helper_once, ok: true, scenarios: [Object{amountActual: 5, amountWanted: 5, hasEmission: false, hasTransferRow: true, label: enough, partial: false, reasonSeen: true}, Object{amountActual: 5, amountWanted: 8, hasEmission: false, hasTransferRow: true, label: insufficient, partial: true, reasonSeen: true}, Object{amountActual: 0, amountWanted: 0, hasEmission: false, hasTransferRow: false, label: zero, partial: false, reasonSeen: false}], startedAt: 1771210472196, tailReasonsSample: [npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, spam_penalty, abuse_penalty]}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  drift: 0
-  dumpHint: Game.__DUMP_ALL__()
-  failed: [
-
-  ]
-  hasEmission: false
-  logSource: debug_moneyLog
-  name: smoke_econ_soc_step5_penalty_helper_once
-  ok: true
-  scenarios: [
-    Object{
-      amountActual: 5
-      amountWanted: 5
-      hasEmission: false
-      hasTransferRow: true
-      label: enough
-      partial: false
-      reasonSeen: true
-    }
-    Object{
-      amountActual: 5
-      amountWanted: 8
-      hasEmission: false
-      hasTra…
-LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [before, after], preview: Object{
+  after: false
+  before: false
+}, type: object}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771311766085_273a5d97ba32 Object{after: false, before: false}
 

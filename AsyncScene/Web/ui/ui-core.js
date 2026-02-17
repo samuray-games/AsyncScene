@@ -180,6 +180,29 @@ window.Game = window.Game || {};
   UI.nameHTMLWithPill = nameHTMLWithPill;
   UI.displayName = displayName;
   UI.displayNameByIdOrName = displayNameByIdOrName;
+  Game.Rules = Game.Rules || {};
+  Game.Rules.isP2PTransfersEnabled = function() {
+    try {
+      if (Game.Data && typeof Game.Data.isP2PTransfersEnabled === "function") {
+        return !!Game.Data.isP2PTransfersEnabled();
+      }
+      const rules = (Game.Data && Game.Data.RULES) ? Game.Data.RULES : null;
+      return !!(rules && rules.p2pTransfersEnabled);
+    } catch (_) {
+      return false;
+    }
+  };
+  Game.Rules.setP2PTransfersEnabled = function(value) {
+    if (Game.Data && typeof Game.Data.setP2PTransfersEnabled === "function") {
+      return Game.Data.setP2PTransfersEnabled(value);
+    }
+    if (!Game.Data) Game.Data = {};
+    if (!Game.Data.RULES) Game.Data.RULES = {};
+    Game.Data.RULES.p2pTransfersEnabled = !!value;
+    return Game.Data.RULES.p2pTransfersEnabled;
+  };
+
+
 
   // --- Top name pill (always show player's nickname) ---
   function ensureMeNamePillDOM(){

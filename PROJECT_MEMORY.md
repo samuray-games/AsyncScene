@@ -1039,13 +1039,20 @@
   - Карта sanctions spam/abuse/cooldown остаётся: единственные связанные entry — rate-limit logи `report_rate_limited` (currency=meta, amount=0) на `state.js:2158-2182` и `state.js:2298-2325` (points не меняются, low risk).
 - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
 
-### 2026-02-16 — ECON-SOC Step5.3 (spam penalty hook + smoke) — FAIL (runtime pending)
+### 2026-02-16 — ECON-SOC Step5.3 (spam penalty hook + smoke) — PASS
 - Facts:
-  - Spam‑триггер подключён: в `AsyncScene/Web/conflict/conflict-core.js:1716` cooldown на повторный батл вызывает `Game.Social.applySocialPenalty(... reason:"spam_penalty", amountWanted:1, meta{key,resetIn,actionId,src:"soc_step5_3"})`.
-  - Добавлен smoke `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce` (ECON_SOC_STEP5_3_BEGIN/JSON/END) в `AsyncScene/Web/dev/dev-checks.js:17073` с двумя вызовами `startWith` и per-call slicing moneyLog.
-  - SPAM_PENALTY_POINTS установлен в 1 (канон‑константа не найдена).
-  - Runtime DUMP_AT не получен, статус FAIL до прогона smoke.
+  - DUMP_AT 2026-02-17 14:40:57 содержит ECON_SOC_STEP5_3_BEGIN/JSON/END с `ok:true`, `drift:0`, `hasEmission:false`, `penaltyCount:1`, `reasons1`, `reasons2`, `spamKey`, `blocked1`, `blocked2`.
+  - Spam trigger at `AsyncScene/Web/conflict/conflict-core.js:1716` теперь вызывает `Game.Social.applySocialPenalty(... reason:"spam_penalty", amountWanted:1, meta{key,resetIn,actionId,src:"soc_step5_3"})` при cooldown на повторный `startWith`.
+  - Smoke `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce` логирует transfer-only penalty только во втором вызове, первый остаётся чистым.
+  - SPAM_PENALTY_POINTS остаётся 1 (канон‑константа не найдена; минимально-консервативное значение).
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+
+### 2026-02-17 — ECON-SOC Step6 (three shots) — FAIL (runtime evidence)
+- Facts:
+  - DUMP_AT 2026-02-17 14:55:11: ECON_SOC_STEP6_JSON ok:false failed:[truth_missing_rep_true,false_missing_rep_false,false_missing_penalty,penalty_count_mismatch].
+  - reasonsTruth/reasonsFalse1 пустые, penaltyCount=0; reasonsFalse2 содержит report_rate_limited; rlBlockedSecond true, rlKey1==rlKey2, но role в CHECK null.
+  - Исправление в dev-checks: Step6 переведён на per-call slicing по debug_moneyLog и явные role-строки для truth/false, чтобы role не был null и причины попадали в slices.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
 
 ### 2026-02-11 — ECON-NPC [1.5] ensure spam throttle (console-tape)
 - Facts: добавлен hard-throttle для `ECON_NPC_ENSURE_V2`/`ECON_NPC_ACCOUNTS_CANON` в `console-tape.js` (minIntervalMs=400, maxCount=20, suppression после лимита), плюс Safe smoke ограничен `ticks<=5`.
@@ -2972,3 +2979,20 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Added `ECON_SOC_STEP4_SMOKE_V1_LOADED` marker after `smokeEconSoc_Step4_RepeatFalseOnce` definition.
   - Step1-4 smoke functions present in file; runtime verification pending.
 - Smoke command: `typeof Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce; typeof Game.__DEV.smokeEconSoc_Step2_TruthfulOnce; typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce; typeof Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce; Game.__DEV.smokeEconSoc_Step4_RepeatFalseOnce({ window:{ lastN:300 } }); Game.__DUMP_ALL__()`
+
+### 2026-02-17 — P2P UX inventory (read-only)
+- Status: INFO
+- Facts:
+  - `Web/ui-old.js:456-486` рендерит кнопки `Подкинуть 💰`/`Попросить 💰`, которые снимают/добавляют локальные `S.me.points`, отображают DM/системные строки (`"подкинул(а) 💰"`, `"Система: Не хватает 💰.", `${target.name} подкинул(а) 💰 ${S.me.name}.` и т.п.), но ни разу не вызывают `Econ.transferPoints`, то есть визуально обещают P2P, а фактически эмулируют операцию исключительно в UI.
+  - `Web/ui/ui-dm.js:800-819` современная DM-обёртка заменяет подарки/прошения на серые отключённые `Недоступно`-кнопки с пустыми обработчиками, что явно является заглушкой и не запускает никаких transfer-API.
+- Changed: `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-17 — ECON-P2P P2P-2 flag/source sync
+- Status: PASS
+- Facts:
+-  - `Game.Data.RULES.p2pTransfersEnabled` обеспечен дефолтом `false`, добавлены `Game.Data.isP2PTransfersEnabled` и `Game.Data.setP2PTransfersEnabled`, а также `Game.Rules`-обёртка, чтобы UI/логика смотрели в единый helper без прямого чтения флага.
+-  - Legacy `Web/ui-old.js` и современная `Web/ui/ui-dm.js` теперь запрашивают helper: при `false` показывают честные сообщения/CTA и не меняют `S.me.points`, при `true` рендерят placeholder-CTA без fake-экономики (лог выводит `Система`).
+-  - Добавлен smoke-ассист `Game.__DEV.smokeP2PFlagUXOnce()` (вызывает `_dumpLine`/console), который печатает статусы на обоих UI, временно принудительно выставляет флаг `true`, снова печатает и возвращает прежнее состояние.
+-  - Smoke command: run `Game.__DEV.smokeP2PFlagUXOnce()` in dev console; PASS когда и legacy, и modern статус отрабатывают синхронно без серых disabled и без мутирования `S.me.points`, и helper остаётся единственным источником истины.
+- Changed: `Web/data.js` `Web/ui/ui-core.js` `Web/ui-old.js` `Web/ui/ui-dm.js` `Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+

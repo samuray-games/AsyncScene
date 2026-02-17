@@ -566,6 +566,58 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   devStore.smokeEcon05BankOnce = smokeEcon05BankOnce;
   if (!Game.__DEV) Game.__DEV = {};
   Game.__DEV.smokeEcon05_BankOnce = smokeEcon05BankOnce;
+  Game.__DEV.smokeP2PFlagUXOnce = () => {
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") {
+        console.log(line);
+      }
+    };
+    const readFlag = () => {
+      if (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function") {
+        return Game.Rules.isP2PTransfersEnabled();
+      }
+      if (Game.Data && typeof Game.Data.isP2PTransfersEnabled === "function") {
+        return Game.Data.isP2PTransfersEnabled();
+      }
+      const rules = (Game.Data && Game.Data.RULES) ? Game.Data.RULES : null;
+      return !!(rules && rules.p2pTransfersEnabled);
+    };
+    const writeFlag = (value) => {
+      if (Game.Rules && typeof Game.Rules.setP2PTransfersEnabled === "function") {
+        Game.Rules.setP2PTransfersEnabled(value);
+        return true;
+      }
+      if (Game.Data && typeof Game.Data.setP2PTransfersEnabled === "function") {
+        Game.Data.setP2PTransfersEnabled(value);
+        return true;
+      }
+      return false;
+    };
+    const logStatus = (label) => {
+      const enabled = !!readFlag();
+      emit(`${label}: ${enabled ? "ENABLED" : "DISABLED"}`);
+    };
+    const logBoth = (stage) => {
+      logStatus(`Legacy UI (${stage})`);
+      logStatus(`Modern UI (${stage})`);
+    };
+
+    const original = !!readFlag();
+    emit("== smokeP2PFlagUXOnce start ==");
+    logBoth("before toggle");
+    if (writeFlag(true)) {
+      logBoth("after forcing ENABLED");
+      writeFlag(original);
+    } else {
+      emit("smokeP2PFlagUXOnce: unable to toggle flag (no setter)");
+    }
+    emit("== smokeP2PFlagUXOnce end ==");
+    return { before: original, after: !!readFlag() };
+  };
   const seedTrainingPoints = (minPoints, tag) => {
     const S = Game.__S || {};
     if (!S.players) S.players = {};
@@ -17212,6 +17264,200 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     } finally {
       emitLine("ECON_SOC_STEP5_3_END");
       if (Game.__DEV) Game.__DEV.lastEconSocStep5Spam = result;
+    }
+    return result;
+  };
+
+  Game.__DEV.smokeEconSoc_Step6_ThreeShotsOnce = async (opts = {}) => {
+    const name = "smoke_econ_soc_step6_three_shots_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 400;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let result = null;
+    let failed = [];
+    emitLine("ECON_SOC_STEP6_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      const applyReport = Game.__A && typeof Game.__A.applyReportByRole === "function";
+      const sumSnapshot = Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function";
+      if (!S || !S.players) failed.push("state_missing");
+      if (!applyReport) failed.push("applyReportByRole_missing");
+      if (!sumSnapshot) failed.push("sumPointsSnapshot_missing");
+
+      const beforeSnap = sumSnapshot ? Game.__DEV.sumPointsSnapshot() : null;
+      const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+
+      const npcList = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || String(p.type || "").toLowerCase() === "npc"));
+      if (npcList.length < 2) failed.push("not_enough_npcs");
+
+      let truthTarget = npcList[0] || null;
+      let falseTarget = npcList.find(p => p && truthTarget && p.id && p.id !== truthTarget.id) || null;
+      if (!truthTarget) failed.push("truth_target_missing");
+      if (!falseTarget) failed.push("false_target_missing");
+
+      const normalizeRows = (rows) => normalizeMoneyLogRows(rows || [], "econ_soc_step6_log");
+      const refreshSnapshot = () => {
+        const bundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+        logSource = bundle.logSource || logSource;
+        rows = normalizeRows(bundle.rows);
+        return rows;
+      };
+      let logSource = "debug_moneyLog";
+      let rows = normalizeRows(getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" }).rows);
+      let moneyRowCount = rows.length;
+      const captureMoneySlice = () => {
+        const cur = refreshSnapshot();
+        const slice = cur.slice(moneyRowCount);
+        moneyRowCount = cur.length;
+        return slice;
+      };
+      const advanceMoneyBaseline = () => {
+        const cur = refreshSnapshot();
+        moneyRowCount = cur.length;
+      };
+
+      const dbgDev = (Game.__D && typeof Game.__D === "object") ? Game.__D : (Game.__D = {});
+      const repeatLogRef = Array.isArray(dbgDev.repeatRateLimitLog) ? dbgDev.repeatRateLimitLog : (dbgDev.repeatRateLimitLog = []);
+      let repeatRowCount = repeatLogRef.length;
+      const captureRepeatSlice = () => {
+        const slice = repeatLogRef.slice(repeatRowCount);
+        repeatRowCount = repeatLogRef.length;
+        return slice;
+      };
+
+      const getReason = (row) => {
+        if (!row) return "";
+        if (row.reason) return String(row.reason);
+        if (row.meta && row.meta.reason) return String(row.meta.reason);
+        if (row.r) return String(row.r);
+        return "";
+      };
+
+      let sliceTruth = [];
+      let sliceFalse1 = [];
+      let sliceFalse2 = [];
+      let rlSlice1 = [];
+      let rlSlice2 = [];
+      let reasonsTruth = [];
+      let reasonsFalse1 = [];
+      let reasonsFalse2 = [];
+      let penaltyCount = 0;
+      let rlKey1 = null;
+      let rlKey2 = null;
+      let rlBlockedSecond = false;
+
+      if (!failed.length && truthTarget && falseTarget) {
+        const normalizeRoleKey = (s) => {
+          const x = String(s || "").toLowerCase();
+          if (!x) return "";
+          if (x.includes("токс") || x.includes("toxic")) return "toxic";
+          if (x.includes("банд") || x.includes("bandit")) return "bandit";
+          if (x.includes("мафи") || x.includes("mafia") || x.includes("mafioso")) return "mafia";
+          return "";
+        };
+        const truthRole = normalizeRoleKey(truthTarget.role || truthTarget.type || "toxic") || "toxic";
+        advanceMoneyBaseline();
+        const actionIdTruth = `econ_soc_step6_truth_${Date.now()}`;
+        Game.__A.applyReportByRole(truthRole, { actionId: actionIdTruth });
+        sliceTruth = captureMoneySlice();
+        reasonsTruth = Array.from(new Set(sliceTruth.map(getReason).filter(Boolean)));
+
+        const actualFalseRole = String(falseTarget.role || falseTarget.type || "toxic");
+        const wrongRole = (actualFalseRole === "toxic") ? "bandit" : "toxic";
+        const reportedFalseName = String(wrongRole || "bandit");
+        const origName = falseTarget.name;
+        const origRole = falseTarget.role;
+        const origType = falseTarget.type;
+        try {
+          falseTarget.role = "";
+          falseTarget.type = actualFalseRole;
+          falseTarget.name = reportedFalseName;
+
+          const actionIdFalse1 = `econ_soc_step6_false1_${Date.now()}`;
+          Game.__A.applyReportByRole(reportedFalseName, { actionId: actionIdFalse1 });
+          sliceFalse1 = captureMoneySlice();
+          rlSlice1 = captureRepeatSlice();
+          reasonsFalse1 = Array.from(new Set(sliceFalse1.map(getReason).filter(Boolean)));
+
+          const actionIdFalse2 = `econ_soc_step6_false2_${Date.now()}`;
+          Game.__A.applyReportByRole(reportedFalseName, { actionId: actionIdFalse2 });
+          sliceFalse2 = captureMoneySlice();
+          rlSlice2 = captureRepeatSlice();
+          reasonsFalse2 = Array.from(new Set(sliceFalse2.map(getReason).filter(Boolean)));
+        } finally {
+          falseTarget.name = origName;
+          falseTarget.role = origRole;
+          falseTarget.type = origType;
+        }
+      }
+
+      const rlCheck1 = rlSlice1.slice().reverse().find(entry => entry && entry.type === "check");
+      const rlCheck2 = rlSlice2.slice().reverse().find(entry => entry && entry.type === "check");
+      rlKey1 = rlCheck1 ? (rlCheck1.stableKey || rlCheck1.rawKey || null) : null;
+      rlKey2 = rlCheck2 ? (rlCheck2.stableKey || rlCheck2.rawKey || null) : null;
+      rlBlockedSecond = rlCheck2 ? !!rlCheck2.blocked : false;
+
+      penaltyCount = sliceFalse1.concat(sliceFalse2).filter(row => getReason(row) === "report_false_penalty").length;
+      const allSlices = sliceTruth.concat(sliceFalse1, sliceFalse2);
+      const hasEmission = allSlices.some(tx => {
+        const reason = getReason(tx);
+        const currency = String(tx && tx.currency || "").toLowerCase();
+        return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+      });
+
+      const afterSnap = sumSnapshot ? Game.__DEV.sumPointsSnapshot() : null;
+      const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+      const drift = (Number.isFinite(afterTotal) && Number.isFinite(beforeTotal)) ? (afterTotal - beforeTotal) : null;
+      const finalBundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+      logSource = finalBundle.logSource || logSource;
+
+      const penaltyReasonsTruth = reasonsTruth.includes("rep_report_true");
+      const falseHasRep = reasonsFalse1.includes("rep_report_false");
+      const falseHasPenalty = reasonsFalse1.includes("report_false_penalty");
+      const repeatHasRateLimit = reasonsFalse2.includes("report_rate_limited");
+      const rlKeyMismatch = rlKey1 && rlKey2 && rlKey1 !== rlKey2;
+
+      if (!penaltyReasonsTruth) failed.push("truth_missing_rep_true");
+      if (!falseHasRep) failed.push("false_missing_rep_false");
+      if (!falseHasPenalty) failed.push("false_missing_penalty");
+      if (!repeatHasRateLimit) failed.push("repeat_not_rate_limited");
+      if (penaltyCount !== 1) failed.push("penalty_count_mismatch");
+      if (!rlBlockedSecond) failed.push("post_repeat_not_blocked");
+      if (!rlKey1 || !rlKey2) failed.push("rl_key_missing");
+      if (rlKeyMismatch) failed.push("rl_key_mismatch");
+      if (hasEmission) failed.push("points_emission_detected");
+      if (drift !== 0) failed.push("world_drift");
+      if (Number.isFinite(beforeTotal) && Number.isFinite(afterTotal) && beforeTotal !== afterTotal) failed.push("total_mismatch");
+
+      const ok = failed.length === 0;
+      result = {
+        ok,
+        failed,
+        reasonsTruth,
+        reasonsFalse1,
+        reasonsFalse2,
+        hasEmission,
+        beforeTotal,
+        afterTotal,
+        drift,
+        penaltyCount,
+        rlBlockedSecond,
+        rlKey1,
+        rlKey2,
+        logSource
+      };
+      emitLine(`ECON_SOC_STEP6_JSON ${safeStringify(result)}`);
+    } catch (err) {
+      failed = failed.length ? failed : ["exception"];
+      result = {
+        ok: false,
+        failed,
+        errorMessage: err && err.message ? String(err.message) : String(err)
+      };
+      emitLine(`ECON_SOC_STEP6_JSON ${safeStringify(result)}`);
+    } finally {
+      emitLine("ECON_SOC_STEP6_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep6ThreeShots = result;
     }
     return result;
   };
