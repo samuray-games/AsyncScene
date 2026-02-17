@@ -69,7 +69,7 @@
 ## Inbox
 
 ### [T-20260217-002] ECON-08 Step 1A respect entrypoint contract
-- Status: DOING
+- Status: PASS
 - Priority: P2
 - Assignee: Codex-ассистент
 - Next: QA
@@ -81,26 +81,26 @@
   - [ ] It always returns `{ ok:boolean, reason:string, delta:{ points:number, rep:number }, meta:{ fromId, toId, nowTs, op:"respect", stub:true } }` with numbers never `NaN`.
   - [ ] Reason codes for `"points_respect_cost"`, `"rep_respect_given"`, `"rep_emitter_refill"`, and `"respect_block_*"` are centralized for future logic.
 - Notes: no farming guards/emitter/moneyLog/UI touched; only console smoke remains.
-- Result: |
-    Status: FAIL (smoke pending)
-    Facts:
-      (1) `Game.StateAPI.giveRespect` previously returned `{ ok:false, reason:"not_implemented" }`; stub now returns `ok:true`, `reason:"rep_respect_given"`, numeric delta zeros, and meta `{fromId,toId,nowTs,op:"respect",stub:true}` while logging `ECON08_RESPECT_ENTRYPOINT_READY`.
-      (2) Reason codes still centralized under `RESPECT_REASON_CODES`, so future steps can reuse canonical `rep_respect_given`/`points_respect_cost`/`rep_emitter_refill`/`respect_block_*`.
-      (3) No econ logic (costs, emitters, transfers, moneyLog, guards) introduced yet; only contract shape changed.
-    Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md`
-    How to verify:
-      1) Identify any NPC id (`Object.keys(Game.State.players || {}).find(id => id.startsWith("npc_"))`).
-      2) Run `Game.StateAPI.giveRespect("me", "<npc_id>", Date.now())`.
-      3) Confirm the result shows `ok:true`, `reason:"rep_respect_given"`, delta points/rep numbers (0), and meta containing `fromId`, `toId`, `nowTs`, `op:"respect"`, `stub:true`.
-    Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
-    ```text
-    Ответ QA:
-    (1) Ensure Game.StateAPI is bootstrapped (reload page if needed).
-    (2) const npcId = Object.keys(Game.State.players || {}).find(id => id.startsWith("npc_"));
-    (3) console.log(Game.StateAPI.giveRespect("me", npcId, Date.now()));
-    PASS if the call returns `ok:true`, `reason:"rep_respect_given"`, numeric `delta.points`/`delta.rep`, and `meta.fromId`, `meta.toId`, `meta.nowTs`, `meta.op:"respect"`, `meta.stub:true`; otherwise FAIL with console output.
-    ```
+     (1) `Game.StateAPI.giveRespect` previously returned `{ ok:false, reason:"not_implemented" }`; stub now returns `ok:true`, `reason:"rep_respect_given"`, numeric delta zeros, and meta `{fromId,toId,nowTs,op:"respect",stub:true}` while logging `ECON08_RESPECT_ENTRYPOINT_READY`.
+     (2) Reason codes still centralized under `RESPECT_REASON_CODES`, so future steps can reuse canonical `rep_respect_given`/`points_respect_cost`/`rep_emitter_refill`/`respect_block_*`.
+     (3) No econ logic (costs, emitters, transfers, moneyLog, guards) introduced yet; only contract shape changed.
+   Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md`
+   How to verify:
+     1) Identify any NPC id (`Object.keys(Game.State.players || {}).find(id => id.startsWith("npc_"))`).
+     2) Run `Game.StateAPI.giveRespect("me", "<npc_id>", Date.now())`.
+     3) Confirm the result shows `ok:true`, `reason:"rep_respect_given"`, delta points/rep numbers (0), and meta containing `fromId`, `toId`, `nowTs`, `op:"respect"`, `stub:true`.
+   Next: QA
+   Result: PASS (DUMP_AT 2026-02-17 22:36:39)
+   Console evidence:
+     Object{delta:{points:0,rep:0}, meta:{fromId:"me",toId:"npc_weak",nowTs:1771335399806,op:"respect",stub:true}, ok:true, reason:"rep_respect_given"}
+   Next Prompt (копипаст, кодблок обязателен):
+   ```text
+   Ответ QA:
+   (1) Hard reload http://localhost:8080/index.html?dev=1 if needed.
+   (2) const npcId = Object.keys(Game.State.players || {}).find(id => id && id.startsWith("npc_"));
+   (3) console.log(Game.StateAPI.giveRespect("me", npcId, Date.now()));
+   PASS if the call returns `ok:true`, `reason:"rep_respect_given"`, numeric `delta.points`/`delta.rep`, and `meta.fromId`, `meta.toId`, `meta.nowTs`, `meta.op:"respect"`, `meta.stub:true`; otherwise FAIL and attach console output.
+   ```
 
 ### [T-20260216-001] ECON-SOC [5.1-5.2] applySocialPenalty + spam/abuse map
 - Status: PASS
@@ -136,6 +136,64 @@ Result: |
     (3) Game.__DUMP_ALL__()
     PASS если ECON_SOC_STEP5_JSON ok:true, drift=0, hasEmission=false, а enough/insufficient имеют transfer row; иначе FAIL и приложить JSON.
     ```
+
+-### [T-20260217-003] ECON-08 Step 2B respect anti-farm ledger
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Enforce anti-farming ledger per pair/chain/self rules while keeping the giveRespect stub and add a dev smoke helper.
+- Acceptance:
+  - [ ] `Game.State.progress.respectLedger` exists (fallback `Game.State.social.respectLedger` allowed) with `lastByPairDay`/`lastInboundDay`.
+  - [ ] `giveRespect(fromId,toId,nowTs)` guards self, daily pair, and reverse-day chain before success, returning new blocked reasons `respect_self`, `respect_pair_daily`, `respect_no_chain`.
+  - [ ] Success path sets ledger entries, keeps `ok:true`, `reason:"rep_respect_given"`, numeric delta, metaAugment including `dayKey` + `stub:true`.
+  - [ ] Dev helper `Game.__DEV.smokeRespectLedgerOnce()` runs the four scenarios (ok, same day repeat, reverse chain, self) and publishes asserts plus ledger snapshot/dayKey.
+- Result: PASS (DUMP_AT 2026-02-17 22:43:09 + epoch_ms=1771335789319)
+- Facts:
+  (1) WARN CONSOLE_PANEL_RUN_OK id=panel_1771335789296_564b5b86aa0a Object{asserts: Object{chain: true, pairDaily: true, self: true}, dayKey: 2026-02-17, ledgerSnapshot: Object{lastByPairDay: Object{me: Object{npc_weak: 2026-02-17}}, lastInboundDay: Object{me: Object{}, npc_weak: Object{me: 2026-02-17}}}, npcId: npc_weak, ok: true, results: Object{r1: Object{delta: Object{points: 0, rep: 0}, meta: Object{dayKey: 2026-02-17, fromId: me, nowTs: 1771335789298, op: respect, stub: true, toId: npc_weak}, ok: true, reason: rep_respect_given}, r2: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771335790298, op: respect, stub: true, toId: npc_weak}, ok: false, reason: respect_pair_daily}, r3: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: npc_weak, nowTs: 1771335791298, op: respect, stub: true, toId: me}, ok: false, reason: respect_no_chain}, r4: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771335792298, op: respect, stub: true, toId: me}, ok: false, reason: respect_self}}}
+  (2) Still stub: no points cost, no rep_emitter, no moneyLog yet.
+How to verify:
+  1. Reload dev console (ensure `dev=1`).
+  2. Run `console.log(Game.__DEV.smokeRespectLedgerOnce())`.
+  3. Confirm results/reasons + ledger entry as described; dayKey should still match and rep log stays stubbed.
+Next: QA (archive once this entry is reviewed/smoke re-run if needed).
+Next Prompt (копипаст, кодблок обязателен):
+  ```text
+  Ответ QA:
+  (1) Reload http://localhost:8080/index.html?dev=1.
+  (2) Run `console.log(Game.__DEV.smokeRespectLedgerOnce())`.
+  (3) PASS if r1 ok:true; r2 reason=respect_pair_daily; r3 reason=respect_no_chain; r4 reason=respect_self; dayKey matches ledger entry in `lastByPairDay.me[npcId]`. Otherwise attach console object and mark FAIL.
+  ```
+
+-### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
+- Status: DOING
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Add REP emitter daily cap gating inside `giveRespect` without points cost/moneyLog and add a dev smoke helper.
+- Acceptance:
+  - [ ] `REP_EMITTER_DAILY_CAP` constant is defined (20) and `progress.repEmitter` initialized/reset per day.
+  - [ ] `ensureRepEmitter(nowTs)` refills daily, reports `emitterRefilled` and dayKey.
+  - [ ] `giveRespect` blocks with `respect_emitter_empty` when cap exhausted, otherwise decrements balance and returns `ok:true` with meta emitter info.
+  - [ ] `Game.__DEV.smokeRespectEmitterCapOnce()` drains exactly cap successes and fails on cap+1 with `respect_emitter_empty`.
+- Result: DOING (smoke pending)
+- Notes: Still stub: no points cost, no rep_emitter, no moneyLog yet.
+- How to verify:
+  1. Reload dev console (ensure `dev=1`).
+  2. Run `console.log(Game.__DEV.smokeRespectEmitterCapOnce())`.
+  3. PASS if `ok:true`, `okCount===cap`, `fail.reason==="respect_emitter_empty"`, `emitterAfter.balance===0`, and no `notes`.
+- Next: QA
+- Next Prompt (копипаст, кодблок обязателен):
+  ```text
+  Ответ QA:
+  (1) Reload http://localhost:8080/index.html?dev=1.
+  (2) Run `console.log(Game.__DEV.smokeRespectEmitterCapOnce())`.
+  (3) PASS if ok:true, okCount===cap, fail.reason==="respect_emitter_empty", emitterAfter.balance===0, and notes empty. Otherwise attach console output and mark FAIL.
+  ```
 
 -### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke
 - Status: PASS

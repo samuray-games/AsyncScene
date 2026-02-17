@@ -246,10 +246,112 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
+  const addRespectLedgerSmokeHelper = (devStore) => {
+    if (typeof devStore.smokeRespectLedgerOnce === "function") return;
+    devStore.smokeRespectLedgerOnce = function (opts = {}) {
+      const stateApi = Game.StateAPI || null;
+      const players = (Game.State && Game.State.players) ? Game.State.players : {};
+      const npcId = opts.npcId || Object.keys(players).find(id => id && id.startsWith("npc_")) || "npc_weak";
+      const baseTs = Number.isFinite(opts.nowTs) ? opts.nowTs : Date.now();
+      const pad = (n) => String(n).padStart(2, "0");
+      const d = new Date(baseTs);
+      const dayKey = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      const makeResult = (fn) => {
+        try {
+          return fn();
+        } catch (err) {
+          return { ok: false, error: String(err && err.message ? err.message : err), errorStack: err && err.stack ? err.stack : null };
+        }
+      };
+      if (!stateApi || typeof stateApi.giveRespect !== "function") {
+        return {
+          ok: false,
+          reason: "state_api_missing",
+          dayKey,
+          npcId,
+        };
+      }
+      const r1 = makeResult(() => stateApi.giveRespect("me", npcId, baseTs));
+      const r2 = makeResult(() => stateApi.giveRespect("me", npcId, baseTs + 1000));
+      const r3 = makeResult(() => stateApi.giveRespect(npcId, "me", baseTs + 2000));
+      const r4 = makeResult(() => stateApi.giveRespect("me", "me", baseTs + 3000));
+      const ledger = (Game.State && Game.State.progress && Game.State.progress.respectLedger) ? Game.State.progress.respectLedger : null;
+      const lastPair = ledger && ledger.lastByPairDay && ledger.lastByPairDay.me ? ledger.lastByPairDay.me[npcId] : null;
+      return {
+        ok: true,
+        dayKey,
+        npcId,
+        results: {
+          r1,
+          r2,
+          r3,
+          r4,
+        },
+        asserts: {
+          pairDaily: r2 && r2.reason === "respect_pair_daily",
+          chain: r3 && r3.reason === "respect_no_chain",
+          self: r4 && r4.reason === "respect_self",
+        },
+        ledgerSnapshot: {
+          lastByPairDay: lastPair ? { me: { [npcId]: lastPair } } : null,
+          lastInboundDay: ledger && ledger.lastInboundDay ? { ...ledger.lastInboundDay } : null,
+        },
+      };
+    };
+  };
+
+  const addRespectEmitterSmokeHelper = (devStore) => {
+    if (typeof devStore.smokeRespectEmitterCapOnce === "function") return;
+    devStore.smokeRespectEmitterCapOnce = function (opts = {}) {
+      const stateApi = Game.StateAPI || null;
+      if (!stateApi || typeof stateApi.giveRespect !== "function") {
+        return { ok: false, reason: "state_api_missing" };
+      }
+      const cap = (Game.__DEV && typeof Game.__DEV.getRespectEmitterCap === "function")
+        ? (Game.__DEV.getRespectEmitterCap() | 0)
+        : 20;
+      const players = (Game.State && Game.State.players) ? Game.State.players : {};
+      const npcIds = Object.keys(players).filter(id => id && id.startsWith("npc_"));
+      const targets = [];
+      for (let i = 0; i < npcIds.length; i++) targets.push(npcIds[i]);
+      while (targets.length < cap + 1) {
+        targets.push(`respect_target_${targets.length}`);
+      }
+      const baseTs = Number.isFinite(opts.nowTs) ? opts.nowTs : Date.now();
+      let okCount = 0;
+      const notes = [];
+      for (let i = 0; i < cap; i++) {
+        const res = stateApi.giveRespect("me", targets[i], baseTs + (i * 1000));
+        if (res && res.ok === true) {
+          okCount++;
+        } else {
+          notes.push({ idx: i, reason: res && res.reason ? res.reason : "unknown" });
+        }
+      }
+      const fail = stateApi.giveRespect("me", targets[cap], baseTs + (cap * 1000) + 500);
+      const emitterAfter = (Game.State && Game.State.progress && Game.State.progress.repEmitter)
+        ? Game.State.progress.repEmitter
+        : null;
+      const dayKey = fail && fail.meta && fail.meta.dayKey ? fail.meta.dayKey : null;
+      const ok = okCount === cap && fail && fail.reason === "respect_emitter_empty" && !notes.length;
+      return {
+        ok,
+        cap,
+        dayKey,
+        okCount,
+        fail,
+        emitterAfter,
+        notes,
+      };
+    };
+  };
+
   if (!DEV_FLAG) return;
 
   const devStore = ensureDevStoreSurface();
   addStage3SmokeHelper(devStore);
+  addRespectLedgerSmokeHelper(devStore);
+  addRespectEmitterSmokeHelper(devStore);
 
   const getNow = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
 

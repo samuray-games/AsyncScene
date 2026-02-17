@@ -3085,12 +3085,32 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke command: `await __RUN__(\`console.log("P2P_FINAL_SMOKE_V1", await Game.__DEV.smokeP2P_FinalOnce({window:{lastN:200}}));\`)`
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 
-### 2026-02-17 — ECON-08 Step 1A respect entrypoint contract (smoke pending)
-- Status: FAIL (smoke not run yet)
+### 2026-02-17 — ECON-08 Step 1A respect entrypoint contract (smoke evidence)
+- Status: PASS
 - Facts:
-  - Introduced `RESPECT_REASON_CODES` for `points_respect_cost`, `rep_respect_given`, `rep_emitter_refill`, plus the `respect_block_*` family placeholder so future logic has canonical keys.
-  - Added `logRespectEntrypointReady()`/`respectEntrypointLogged` guard and logged `ECON08_RESPECT_ENTRYPOINT_READY` immediately after `StateAPI` was constructed.
-  - Updated `Game.StateAPI.giveRespect(fromId,toId,nowTs)` so it now returns `{ ok:true, reason:"rep_respect_given", delta:{points:0,rep:0}, meta:{fromId,toId,nowTs,op:"respect",stub:true} }` while still being wrapped by `Security.protectMethod`; contract shape is stable and ready for later logic.
-  - Delta numbers remain numerical, meta echoes `fromId`, `toId`, `nowTs`, `op:"respect"`, and now includes `stub:true` for debugging; no point/rep/moneyLog/econ side-effects added yet.
-  - Smoke `Game.StateAPI.giveRespect("me","<npc_id>",Date.now())` not executed; QA must run manually (identify npc id via `Game.State.players`).
-- Next: QA (run the manual smoke, confirm ok:true/`reason:"rep_respect_given"`/delta/meta fields plus no exception, then update status to PASS/FAIL with console output).
+  - Introduced `RESPECT_REASON_CODES` for `points_respect_cost`, `rep_respect_given`, `rep_emitter_refill`, plus the `respect_block_*` placeholder so recipe has canonical keys for future steps.
+  - Added `logRespectEntrypointReady()`/`respectEntrypointLogged` guard and logged `ECON08_RESPECT_ENTRYPOINT_READY` right after `StateAPI` construction.
+  - `Game.StateAPI.giveRespect(fromId,toId,nowTs)` now returns `{ ok:true, reason:"rep_respect_given", delta:{points:0,rep:0}, meta:{fromId,toId,nowTs,op:"respect",stub:true} }` while still wrapped by `Security.protectMethod`; contract is stable, stub-only, no econ/guard logic yet.
+  - Console DUMP_AT `2026-02-17 22:36:39` shows: `Object{delta:{points:0,rep:0}, meta:{fromId:"me",toId:"npc_weak",nowTs:1771335399806,op:"respect",stub:true}, ok:true, reason:"rep_respect_given"}`.
+  - Step [1]A PASS, entrypoint contract stable, still stub, no econ/guards implemented.
+- Next: QA (future econ work will flesh out actual costs/transfers; record further smoke evidence as needed).
+
+### 2026-02-17 — ECON-08 Step 2B respect anti-farm ledger (smoke pending)
+- Status: PASS
+- Facts:
+  - Added `dayKeyFromNowTs` + `ensureRespectLedger` helpers so `Game.State.progress.respectLedger` (with `lastByPairDay`/`lastInboundDay`) is maintained before `giveRespect` runs.
+  - `giveRespect` now blocks self-respect (`respect_self`), repeated pair calls per day (`respect_pair_daily`), and reverse-chain attempts (`respect_no_chain`) before touching ledger, while keeping the stub success path (`ok:true`, `reason:"rep_respect_given"`, `delta:0`, meta with `dayKey` + `stub:true`).
+  - Ledger updates mirror pair/inbound entries on success; no econ/moneyLog/cost/emitter logic added, still stub-only.
+  - Added dev helper `Game.__DEV.smokeRespectLedgerOnce()` that runs the four scenario calls, exposes asserts for reasons, reports the dayKey, and includes a snapshot of the ledger entry for `me->npc`.
+  (5) WARN CONSOLE_PANEL_RUN_OK id=panel_1771335789296_564b5b86aa0a Object{asserts: Object{chain: true, pairDaily: true, self: true}, dayKey: 2026-02-17, ledgerSnapshot: Object{lastByPairDay: Object{me: Object{npc_weak: 2026-02-17}}, lastInboundDay: Object{me: Object{}, npc_weak: Object{me: 2026-02-17}}}, npcId: npc_weak, ok: true, results: Object{r1: Object{delta: Object{points: 0, rep: 0}, meta: Object{dayKey: 2026-02-17, fromId: me, nowTs: 1771335789298, op: respect, stub: true, toId: npc_weak}, ok: true, reason: rep_respect_given}, r2: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771335790298, op: respect, stub: true, toId: npc_weak}, ok: false, reason: respect_pair_daily}, r3: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: npc_weak, nowTs: 1771335791298, op: respect, stub: true, toId: me}, ok: false, reason: respect_no_chain}, r4: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771335792298, op: respect, stub: true, toId: me}, ok: false, reason: respect_self}}}
+  (6) Still stub: no points cost, no rep_emitter, no moneyLog yet.
+- Next: QA (run the helper in dev console, confirm the expected ok/reasons and ledger day key, then report PASS/FAIL with the console object). 
+
+### 2026-02-17 — ECON-08 Step 3C respect rep_emitter daily cap (smoke pending)
+- Status: DOING
+- Facts:
+  - Added `REP_EMITTER_DAILY_CAP=20`, `progress.repEmitter` storage, and `ensureRepEmitter(nowTs)` which refills daily and reports `emitterRefilled`.
+  - `giveRespect` now checks emitter balance after ledger guards; blocks with `respect_emitter_empty` when cap exhausted, otherwise decrements and returns `ok:true` with `emitterBalanceAfter`, `emitterDailyCap`, and `emitterRefilled` in meta (still stub, no econ/moneyLog).
+  - Added dev helper `Game.__DEV.smokeRespectEmitterCapOnce()` that runs CAP successes with unique pairs and validates CAP+1 failure reason, returning `{ok, cap, okCount, fail, emitterAfter}`.
+  - Still stub: no points cost, no rep_emitter, no moneyLog yet.
+- Next: QA (run `Game.__DEV.smokeRespectEmitterCapOnce()` and record PASS/FAIL with console output).

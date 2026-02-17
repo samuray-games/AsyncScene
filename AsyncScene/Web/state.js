@@ -4,6 +4,7 @@ window.Game = window.Game || {};
 (() => {
   const Game = window.Game;
   let ReactionPolicy = null;
+  const REP_EMITTER_DAILY_CAP = 20;
   const RESPECT_REASON_CODES = Object.freeze({
     POINTS_COST: "points_respect_cost",
     REP_GIVEN: "rep_respect_given",
@@ -78,6 +79,55 @@ window.Game = window.Game || {};
     if (!Number.isFinite(State.progress.weeklyInfluenceGained)) State.progress.weeklyInfluenceGained = 0;
     if (!Number.isFinite(State.progress.weekStartAt)) State.progress.weekStartAt = 0;
     if (!Number.isFinite(State.progress.lastDailyBonusAt)) State.progress.lastDailyBonusAt = 0;
+  }
+
+  function dayKeyFromNowTs(nowTs){
+    const stamp = Number.isFinite(nowTs) ? nowTs : Date.now();
+    const d = new Date(stamp);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function ensureRespectLedger(){
+    ensureProgress();
+    if (!State.progress.respectLedger || typeof State.progress.respectLedger !== "object") {
+      State.progress.respectLedger = {
+        lastByPairDay: Object.create(null),
+        lastInboundDay: Object.create(null),
+      };
+    }
+    const ledger = State.progress.respectLedger;
+    if (!ledger.lastByPairDay || typeof ledger.lastByPairDay !== "object") {
+      ledger.lastByPairDay = Object.create(null);
+    }
+    if (!ledger.lastInboundDay || typeof ledger.lastInboundDay !== "object") {
+      ledger.lastInboundDay = Object.create(null);
+    }
+    return ledger;
+  }
+
+  function ensureRepEmitter(nowTs){
+    ensureProgress();
+    const dayKey = dayKeyFromNowTs(nowTs);
+    if (!State.progress.repEmitter || typeof State.progress.repEmitter !== "object") {
+      State.progress.repEmitter = { balance: 0, dayKey: "" };
+    }
+    const emitter = State.progress.repEmitter;
+    let emitterRefilled = false;
+    if (emitter.dayKey !== dayKey) {
+      emitter.dayKey = dayKey;
+      emitter.balance = REP_EMITTER_DAILY_CAP;
+      emitterRefilled = true;
+    }
+    if (!Number.isFinite(emitter.balance)) emitter.balance = 0;
+    return { emitter, dayKey, emitterRefilled };
+  }
+
+  function ensurePool(container, key){
+    if (!container[key] || typeof container[key] !== "object") {
+      container[key] = Object.create(null);
+    }
+    return container[key];
   }
 
   function normalizeWeek(){
@@ -200,16 +250,73 @@ window.Game = window.Game || {};
     const actorId = (typeof fromId === "string" && fromId) ? fromId : (State.me && State.me.id) ? State.me.id : "me";
     const targetId = (typeof toId === "string") ? toId : (toId != null ? String(toId) : "");
     const timestamp = Number.isFinite(nowTs) ? nowTs : Date.now();
+    const dayKey = dayKeyFromNowTs(timestamp);
+    const ledger = ensureRespectLedger();
+    const pairMap = ensurePool(ledger.lastByPairDay, actorId);
+    const inboundMap = ensurePool(ledger.lastInboundDay, targetId);
+    const meta = {
+      fromId: actorId,
+      toId: targetId,
+      nowTs: timestamp,
+      op: "respect",
+      stub: true,
+      dayKey,
+    };
+
+    const blockedResponse = (reason) => ({
+      ok: false,
+      reason,
+      delta: { points: 0, rep: 0 },
+      meta: { ...meta, blocked: true },
+    });
+
+    if (!targetId) {
+      return blockedResponse("respect_pair_daily");
+    }
+
+    if (actorId === targetId) {
+      return blockedResponse("respect_self");
+    }
+
+    const actorDay = ledger.lastByPairDay[actorId];
+    if (actorDay && actorDay[targetId] === dayKey) {
+      return blockedResponse("respect_pair_daily");
+    }
+
+    const reverseDay = ledger.lastByPairDay[targetId];
+    if (reverseDay && reverseDay[actorId] === dayKey) {
+      return blockedResponse("respect_no_chain");
+    }
+
+    const emitterState = ensureRepEmitter(timestamp);
+    if (emitterState.emitter.balance < 1) {
+      return {
+        ok: false,
+        reason: "respect_emitter_empty",
+        delta: { points: 0, rep: 0 },
+        meta: {
+          ...meta,
+          blocked: true,
+          emitterBalance: emitterState.emitter.balance,
+          emitterDailyCap: REP_EMITTER_DAILY_CAP,
+          emitterRefilled: !!emitterState.emitterRefilled,
+        },
+      };
+    }
+
+    emitterState.emitter.balance -= 1;
+    pairMap[targetId] = dayKey;
+    inboundMap[actorId] = dayKey;
+
     return {
       ok: true,
       reason: RESPECT_REASON_CODES.REP_GIVEN,
       delta: { points: 0, rep: 0 },
       meta: {
-        fromId: actorId,
-        toId: targetId,
-        nowTs: timestamp,
-        op: "respect",
-        stub: true,
+        ...meta,
+        emitterBalanceAfter: emitterState.emitter.balance,
+        emitterDailyCap: REP_EMITTER_DAILY_CAP,
+        emitterRefilled: !!emitterState.emitterRefilled,
       },
     };
   }
@@ -3173,6 +3280,9 @@ window.Game = window.Game || {};
   };
 
   logRespectEntrypointReady();
+  if (Game.__DEV && typeof Game.__DEV === "object") {
+    Game.__DEV.getRespectEmitterCap = () => REP_EMITTER_DAILY_CAP;
+  }
 
   function createReactionPolicy(){
     const SHORT_WINDOW_MS = 60 * 1000;
