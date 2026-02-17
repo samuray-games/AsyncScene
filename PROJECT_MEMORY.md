@@ -3074,9 +3074,23 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
 
 ### 2026-02-17 — ECON-P2P P2P-final smoke prep (dev)
-- Status: FAIL (smoke not run)
+- Status: PASS
 - Facts:
-  - `Game.__DEV.spawnSecondPlayerOnce(opts)` can inject `p2p_smoke_p2` into `Game.__S.players`/`Game.State.players` and logs `P2P_SPAWN_SECOND_PLAYER_V1`.
-  - `Game.__DEV.smokeP2P_FinalOnce(opts)` enables P2P, performs a successful transfer, disables player-to-player, retries (blocked), and asserts zero-sum via snapshots + log counts.
+  - `Game.__DEV.spawnSecondPlayerOnce(opts)` injects `p2p_smoke_p2` and logs `P2P_SPAWN_SECOND_PLAYER_V1`.
+  - `Game.__DEV.smokeP2P_FinalOnce(opts)` enables transfers, runs one success and one blocked attempt, and validates zero-sum via snapshots/log counts.
+- Evidence:
+  - P2P_SPAWN_SECOND_PLAYER_V1 {"ok":true,"id":"p2p_smoke_p2","existed":false}
+  - P2P_FINAL_SMOKE_V1 {"ok":true,"failed":[],"tx1":{"ok":true,"reason":"p2p_transfer"},"tx2":{"ok":false,"reason":"p2p_player_to_player_disabled"}}
+  - logTail recorded `p2p_transfer` and `p2p_transfer_attempt_blocked`; totalsBeforeAfter total=210 before/after.
 - Smoke command: `await __RUN__(\`console.log("P2P_FINAL_SMOKE_V1", await Game.__DEV.smokeP2P_FinalOnce({window:{lastN:200}}));\`)`
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-17 — ECON-08 Step 1A respect entrypoint contract (smoke pending)
+- Status: FAIL (smoke not run yet)
+- Facts:
+  - Introduced `RESPECT_REASON_CODES` for `points_respect_cost`, `rep_respect_given`, `rep_emitter_refill`, plus the `respect_block_*` family placeholder so future logic has canonical keys.
+  - Added `logRespectEntrypointReady()`/`respectEntrypointLogged` guard and logged `ECON08_RESPECT_ENTRYPOINT_READY` immediately after `StateAPI` was constructed.
+  - Updated `Game.StateAPI.giveRespect(fromId,toId,nowTs)` so it now returns `{ ok:true, reason:"rep_respect_given", delta:{points:0,rep:0}, meta:{fromId,toId,nowTs,op:"respect",stub:true} }` while still being wrapped by `Security.protectMethod`; contract shape is stable and ready for later logic.
+  - Delta numbers remain numerical, meta echoes `fromId`, `toId`, `nowTs`, `op:"respect"`, and now includes `stub:true` for debugging; no point/rep/moneyLog/econ side-effects added yet.
+  - Smoke `Game.StateAPI.giveRespect("me","<npc_id>",Date.now())` not executed; QA must run manually (identify npc id via `Game.State.players`).
+- Next: QA (run the manual smoke, confirm ok:true/`reason:"rep_respect_given"`/delta/meta fields plus no exception, then update status to PASS/FAIL with console output).

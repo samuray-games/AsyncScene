@@ -4,6 +4,20 @@ window.Game = window.Game || {};
 (() => {
   const Game = window.Game;
   let ReactionPolicy = null;
+  const RESPECT_REASON_CODES = Object.freeze({
+    POINTS_COST: "points_respect_cost",
+    REP_GIVEN: "rep_respect_given",
+    REP_EMITTER_REFILL: "rep_emitter_refill",
+    BLOCK_PREFIX: "respect_block_",
+  });
+  let respectEntrypointLogged = false;
+  function logRespectEntrypointReady(){
+    if (respectEntrypointLogged) return;
+    respectEntrypointLogged = true;
+    try {
+      console.log("ECON08_RESPECT_ENTRYPOINT_READY");
+    } catch (_) {}
+  }
 
   // Avoid capturing Util/Data too early: other scripts may load after state.js.
   // Always resolve dependencies at call-time and provide safe fallbacks.
@@ -179,6 +193,25 @@ window.Game = window.Game || {};
     } finally {
       ResourceValidator.release(guard.key, success);
     }
+  }
+
+  function giveRespect(fromId, toId, nowTs){
+    logRespectEntrypointReady();
+    const actorId = (typeof fromId === "string" && fromId) ? fromId : (State.me && State.me.id) ? State.me.id : "me";
+    const targetId = (typeof toId === "string") ? toId : (toId != null ? String(toId) : "");
+    const timestamp = Number.isFinite(nowTs) ? nowTs : Date.now();
+    return {
+      ok: true,
+      reason: RESPECT_REASON_CODES.REP_GIVEN,
+      delta: { points: 0, rep: 0 },
+      meta: {
+        fromId: actorId,
+        toId: targetId,
+        nowTs: timestamp,
+        op: "respect",
+        stub: true,
+      },
+    };
   }
 
   function getRepAccount(id){
@@ -2962,6 +2995,7 @@ window.Game = window.Game || {};
     spendPoints,
     addRep,
     transferRep,
+    giveRespect,
     emitStatDelta,
     maybeDailyRepBonus,
     repNeedForNextInfluence,
@@ -3137,6 +3171,8 @@ window.Game = window.Game || {};
       State.lottery.lastAt = Date.now();
     },
   };
+
+  logRespectEntrypointReady();
 
   function createReactionPolicy(){
     const SHORT_WINDOW_MS = 60 * 1000;
@@ -3460,6 +3496,7 @@ window.Game = window.Game || {};
   Security.protectMethod(StateAPI, "spendPoints", spendPoints, "StateAPI.spendPoints");
   Security.protectMethod(StateAPI, "transferRep", transferRep, "StateAPI.transferRep");
   Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
+  Security.protectMethod(StateAPI, "giveRespect", giveRespect, "StateAPI.giveRespect");
   Security.finishBoot();
   if (ReactionPolicy && typeof ReactionPolicy.emitRestoreEvents === "function") {
     ReactionPolicy.emitRestoreEvents();

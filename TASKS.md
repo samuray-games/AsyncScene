@@ -68,6 +68,40 @@
 
 ## Inbox
 
+### [T-20260217-002] ECON-08 Step 1A respect entrypoint contract
+- Status: DOING
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Introduce the `Game.StateAPI.giveRespect` contract (single entrypoint for now) and log the marker without touching UI or farming logic.
+- Acceptance:
+  - [ ] `Game.StateAPI.giveRespect(fromId, toId, nowTs)` exists inside `StateAPI` and is protected by `Security.protectMethod`.
+  - [ ] It always returns `{ ok:boolean, reason:string, delta:{ points:number, rep:number }, meta:{ fromId, toId, nowTs, op:"respect", stub:true } }` with numbers never `NaN`.
+  - [ ] Reason codes for `"points_respect_cost"`, `"rep_respect_given"`, `"rep_emitter_refill"`, and `"respect_block_*"` are centralized for future logic.
+- Notes: no farming guards/emitter/moneyLog/UI touched; only console smoke remains.
+- Result: |
+    Status: FAIL (smoke pending)
+    Facts:
+      (1) `Game.StateAPI.giveRespect` previously returned `{ ok:false, reason:"not_implemented" }`; stub now returns `ok:true`, `reason:"rep_respect_given"`, numeric delta zeros, and meta `{fromId,toId,nowTs,op:"respect",stub:true}` while logging `ECON08_RESPECT_ENTRYPOINT_READY`.
+      (2) Reason codes still centralized under `RESPECT_REASON_CODES`, so future steps can reuse canonical `rep_respect_given`/`points_respect_cost`/`rep_emitter_refill`/`respect_block_*`.
+      (3) No econ logic (costs, emitters, transfers, moneyLog, guards) introduced yet; only contract shape changed.
+    Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md`
+    How to verify:
+      1) Identify any NPC id (`Object.keys(Game.State.players || {}).find(id => id.startsWith("npc_"))`).
+      2) Run `Game.StateAPI.giveRespect("me", "<npc_id>", Date.now())`.
+      3) Confirm the result shows `ok:true`, `reason:"rep_respect_given"`, delta points/rep numbers (0), and meta containing `fromId`, `toId`, `nowTs`, `op:"respect"`, `stub:true`.
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Ensure Game.StateAPI is bootstrapped (reload page if needed).
+    (2) const npcId = Object.keys(Game.State.players || {}).find(id => id.startsWith("npc_"));
+    (3) console.log(Game.StateAPI.giveRespect("me", npcId, Date.now()));
+    PASS if the call returns `ok:true`, `reason:"rep_respect_given"`, numeric `delta.points`/`delta.rep`, and `meta.fromId`, `meta.toId`, `meta.nowTs`, `meta.op:"respect"`, `meta.stub:true`; otherwise FAIL with console output.
+    ```
+
 ### [T-20260216-001] ECON-SOC [5.1-5.2] applySocialPenalty + spam/abuse map
 - Status: PASS
 - Priority: P0
@@ -2161,23 +2195,27 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Manual QA: PASS only when A–E match.
     Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
 
-### [LOG-20260217-009] ECON-P2P P2P-final smoke prep (dev)
-- Status: FAIL (smoke not run)
+-### [LOG-20260217-009] ECON-P2P P2P-final smoke prep (dev)
+- Status: PASS
 - Priority: P2
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Economy
 - Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Result: |
-    Status: FAIL (smoke not run)
+    Status: PASS
     Facts:
-      - `Game.__DEV.spawnSecondPlayerOnce(opts)` idempotently injects `p2p_smoke_p2` into `Game.__S.players`/`Game.State.players` and logs `P2P_SPAWN_SECOND_PLAYER_V1`.
-      - `Game.__DEV.smokeP2P_FinalOnce(opts)` enables P2P rules, runs a transfer, flips player-to-player flag off, retries (blocked), and validates zero-sum using `sumPointsSnapshot`.
+      - `Game.__DEV.spawnSecondPlayerOnce(opts)` idempotently injects `p2p_smoke_p2` and logs `P2P_SPAWN_SECOND_PLAYER_V1`.
+      - `Game.__DEV.smokeP2P_FinalOnce(opts)` enables P2P, performs a transfer, flips the player-to-player flag, retries (blocked), and inspects snapshots/logs.
+    Evidence:
+      - P2P_SPAWN_SECOND_PLAYER_V1 {"ok":true,"id":"p2p_smoke_p2","existed":false}
+      - P2P_FINAL_SMOKE_V1 {"ok":true,"failed":[]}
+      - Log tail contains `p2p_transfer` and `p2p_transfer_attempt_blocked`, totalsBeforeAfter total=210 before/after (zero-sum).
     Smoke command:
       `await __RUN__(\`console.log("P2P_FINAL_SMOKE_V1", await Game.__DEV.smokeP2P_FinalOnce({window:{lastN:200}}));\`)`
     How to verify:
-      1. Console.txt should stay free of UI errors; after running the smoke you expect `P2P_SPAWN_SECOND_PLAYER_V1 ...` and `P2P_FINAL_SMOKE_V1 ...` lines.
-      2. The command should report tx1 ok with reason `p2p_transfer`, amount=1 between me and the spawned player, tx2 ok:false reason `p2p_player_to_player_disabled`.
-      3. Totals (snapshots) should show zero delta before/after both steps, and `logTail` must contain exactly one `p2p_transfer` plus one `p2p_transfer_attempt_blocked`.
-    Manual QA: FAIL until command output matches expectations.
+      1. Console.txt shows `P2P_SPAWN_SECOND_PLAYER_V1 ...` and `P2P_FINAL_SMOKE_V1 ...` with ok:true.
+      2. Command above outputs tx1 ok (reason `p2p_transfer`, amount=1 between me and p2p_smoke_p2), tx2 ok:false reason `p2p_player_to_player_disabled`.
+      3. Totals/snapshots stay constant, and `logTail` holds exactly one transfer plus one blocked attempt.
+    Manual QA: PASS when command output matches evidence.
     Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
