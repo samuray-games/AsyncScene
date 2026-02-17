@@ -11,6 +11,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
+  console.warn("DEV_OBJ_INIT_V1", { ts: Date.now(), keys: Object.keys(G.__DEV || {}) });
   if (!G.Dev) G.Dev = {};
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
@@ -538,6 +539,86 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
+  const addRespectUiSmokeHelper = (devStore) => {
+    if (typeof devStore.smokeRespectUiOnce === "function") return;
+    devStore.smokeRespectUiOnce = function (opts = {}) {
+      const S = Game.State || {};
+      const tape = Game.__DEV && Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__ : [];
+      const uiClick = Game.__DEV && typeof Game.__DEV.__uiRespectClick__ === "function"
+        ? Game.__DEV.__uiRespectClick__
+        : null;
+      const uiVisible = Game.__DEV && typeof Game.__DEV.__uiRespectButtonVisible__ === "function"
+        ? Game.__DEV.__uiRespectButtonVisible__
+        : null;
+      const diag = {
+        hasDev: !!Game.__DEV,
+        devKeys: Object.keys(Game.__DEV || {}),
+        hasClick: !!(Game.__DEV && Game.__DEV.__uiRespectClick__),
+        hasVisible: !!(Game.__DEV && Game.__DEV.__uiRespectButtonVisible__),
+      };
+      if (!uiClick) {
+        const notes = [];
+        const markers = Game.__DEV && Game.__DEV.__markers__ ? Game.__DEV.__markers__ : {};
+        if (markers.uiDmLoaded && !markers.uiRespectHooks) notes.push("ui_dm_loaded_but_hooks_missing");
+        return { ok: false, failed: ["ui_respect_handler_missing"], asserts: {}, notes, diag };
+      }
+      const npcIds = Object.keys(S.players || {}).filter(id => id && String(id).startsWith("npc_"));
+      const npcId = opts.targetId || npcIds[0] || "npc_weak";
+      const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+      const setPoints = (obj, amt) => {
+        if (!obj) return;
+        const val = Number.isFinite(Number(amt)) ? Number(amt) : 0;
+        if (typeof Game._withPointsWrite === "function") {
+          Game._withPointsWrite(() => { obj.points = val; });
+        } else {
+          obj.points = val;
+        }
+      };
+      const setMePoints = (v) => {
+        setPoints(S.me, v);
+        if (S.players && S.players.me) setPoints(S.players.me, v);
+      };
+
+      setMePoints(2);
+      Game.__DEV.__toastTape__ = [];
+      const r1 = uiClick(npcId, opts.nowTs || Date.now());
+      const toasts1 = (Game.__DEV.__toastTape__ || []).slice();
+      Game.__DEV.__toastTape__.length = 0;
+      setMePoints(0);
+      const r2 = uiClick(npcId, (opts.nowTs || Date.now()) + 1000);
+      const toasts2 = (Game.__DEV.__toastTape__ || []).slice();
+
+      const toast1 = toasts1[0] ? toasts1[0].text : null;
+      const toast2 = toasts1[1] ? toasts1[1].text : null;
+      const blockedToast = toasts2[0] ? toasts2[0].text : null;
+
+      const failed = [];
+      if (!r1 || r1.ok !== true) failed.push("r1_not_ok");
+      if (!r2 || r2.reason !== "respect_pair_daily") failed.push("r2_reason_mismatch");
+
+      return {
+        ok: failed.length === 0,
+        failed,
+        asserts: {
+          selfHidden: uiVisible ? !uiVisible(meId) : true,
+          npcShown: uiVisible ? !!uiVisible(npcId) : true,
+          clickCallsGiveRespect: !!(r1 && r1.ok),
+          toast1,
+          toast2,
+          blockedToast,
+        },
+        samples: {
+          r1,
+          r2,
+          toasts1,
+          toasts2,
+        },
+        notes: [],
+        diag,
+      };
+    };
+  };
+
   if (!DEV_FLAG) return;
 
   const devStore = ensureDevStoreSurface();
@@ -546,6 +627,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   addRespectEmitterSmokeHelper(devStore);
   addRespectPointsCostSmokeHelper(devStore);
   addRespectMoneyLogSmokeHelper(devStore);
+  addRespectUiSmokeHelper(devStore);
 
   const getNow = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
 

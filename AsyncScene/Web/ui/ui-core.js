@@ -907,6 +907,14 @@ window.Game = window.Game || {};
     toast.style.display = "block";
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
+    try {
+      if (typeof Game !== "undefined" && Game && Game.__DEV && typeof Game.__DEV === "object") {
+        const tape = Game.__DEV.__toastTape__ || [];
+        tape.push({ kind, text: String(text || ""), ts: Date.now() });
+        if (tape.length > 40) tape.shift();
+        Game.__DEV.__toastTape__ = tape;
+      }
+    } catch (_) {}
   };
 
   UI.emitStatDelta = (kind, delta, opts) => {

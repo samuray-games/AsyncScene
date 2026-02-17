@@ -30562,3 +30562,1019 @@ ConnectionResetError: [Errno 54] Connection reset by peer
 127.0.0.1 - - [17/Feb/2026 23:30:26] code 404, message File not found
 127.0.0.1 - - [17/Feb/2026 23:30:26] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [17/Feb/2026 23:30:35] "POST /__dev/console-dump?v=1771338635468 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /__dev/console-dump-proof?v=1771339538915 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /dev/dev-checks.js?v=1771339538919 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:38] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:39] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:39] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:39] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:39] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:39] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:39] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:39] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:40] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:40] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:41] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:45:41] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:45:48] "POST /__dev/console-dump?v=1771339548321 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:08] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:08] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /__dev/console-dump-proof?v=1771339576196 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /dev/dev-checks.js?v=1771339576200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:16] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:16] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:17] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:17] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:17] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:17] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:17] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:17] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:17] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:18] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:46:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:46:24] "POST /__dev/console-dump?v=1771339584798 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:42] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:42] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:44] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:44] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /__dev/console-dump-proof?v=1771339910444 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /dev/dev-checks.js?v=1771339910448 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:50] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:50] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:51] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:51] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:51:52] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:51:52] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:52:03] "POST /__dev/console-dump?v=1771339923316 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:19] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:19] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:19] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:19] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:20] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:20] "GET /favicon.ico HTTP/1.1" 404 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 53272)
+Traceback (most recent call last):
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 404, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/User/miniconda3/lib/python3.12/socket.py", line 720, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 54] Connection reset by peer
+----------------------------------------
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /__dev/console-dump-proof?v=1771340127709 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /dev/dev-checks.js?v=1771340127712 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:27] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:28] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:55:29] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:55:29] "GET /favicon.ico HTTP/1.1" 404 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 53390)
+Traceback (most recent call last):
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 404, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/User/miniconda3/lib/python3.12/socket.py", line 720, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 54] Connection reset by peer
+----------------------------------------
+127.0.0.1 - - [17/Feb/2026 23:55:37] "POST /__dev/console-dump?v=1771340137586 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:21] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:21] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:22] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:22] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:23] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:23] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:29] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /__dev/console-dump-proof?v=1771340310046 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /dev/dev-checks.js?v=1771340310049 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:30] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:31] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:32] code 404, message File not found
+127.0.0.1 - - [17/Feb/2026 23:58:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [17/Feb/2026 23:58:39] "POST /__dev/console-dump?v=1771340319628 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:09] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /__dev/console-dump-proof?v=1771340780462 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /dev/dev-checks.js?v=1771340780480 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:20] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:21] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:22] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:06:22] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:06:29] "POST /__dev/console-dump?v=1771340789901 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:00] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /__dev/console-dump-proof?v=1771341008903 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /data.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /state.js?v=4 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /npcs.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /dev/dev-checks.js?v=1771341008907 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-core.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/logger.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:08] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /ui/ui-events.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:09] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:09] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:10] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:10] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:10] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 54119)
+Traceback (most recent call last):
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 672, in __init__
+    super().__init__(*args, **kwargs)
+  File "/Users/User/miniconda3/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Users/User/miniconda3/lib/python3.12/http/server.py", line 404, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/User/miniconda3/lib/python3.12/socket.py", line 720, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 54] Connection reset by peer
+----------------------------------------
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:11] code 404, message File not found
+127.0.0.1 - - [18/Feb/2026 00:10:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [18/Feb/2026 00:10:18] "POST /__dev/console-dump?v=1771341018955 HTTP/1.1" 200 -

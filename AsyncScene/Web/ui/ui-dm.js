@@ -8,6 +8,57 @@
 
 // ui-dm.js
 window.Game = window.Game || {};
+console.warn("UI_DM_V1_LOADED", { ts: Date.now() });
+if (!Game.__DEV) Game.__DEV = {};
+Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
+Game.__DEV.__markers__.uiDmLoaded = true;
+const mapRespectReason = {
+  respect_no_points: "Нужно 1💰, сейчас не хватает.",
+  respect_pair_daily: "Уже было уважение сегодня этому персонажу.",
+  respect_no_chain: "Цепочка A->B->A сегодня не работает.",
+  respect_emitter_empty: "Лимит уважения на сегодня исчерпан.",
+};
+
+const showRespectToast = (kind, text) => {
+  if (!text) return;
+  try {
+    if (UI && typeof UI.showStatToast === "function") {
+      UI.showStatToast(kind, text);
+    }
+  } catch (_) {}
+};
+
+const __uiRespectButtonVisible__ = (targetId) => {
+  const meId = (Game.State && Game.State.me && Game.State.me.id) ? Game.State.me.id : "me";
+  if (!targetId) return false;
+  return String(targetId) !== String(meId);
+};
+
+const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
+  const meId = (Game.State && Game.State.me && Game.State.me.id) ? Game.State.me.id : "me";
+  if (!targetId || targetId === meId) return null;
+  if (!Game.StateAPI || typeof Game.StateAPI.giveRespect !== "function") return null;
+  const res = Game.StateAPI.giveRespect(meId, targetId, timestamp);
+  if (!res) return null;
+  if (res.ok) {
+    showRespectToast("points", "Ты отдал 1💰");
+    showRespectToast("rep", "Цель получила +1 REP");
+    return res;
+  }
+  showRespectToast("points", mapRespectReason[res.reason] || "Сейчас не получилось. Попробуй позже.");
+  return res;
+};
+
+if (!Game.__DEV) Game.__DEV = {};
+Game.__DEV.__uiRespectClick__ = __uiRespectClick__;
+Game.__DEV.__uiRespectButtonVisible__ = __uiRespectButtonVisible__;
+Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
+Game.__DEV.__markers__.uiRespectHooks = true;
+console.warn("UI_RESPECT_HOOKS_READY", {
+  ts: Date.now(),
+  hasClick: !!Game.__DEV.__uiRespectClick__,
+  hasVisible: !!Game.__DEV.__uiRespectButtonVisible__
+});
 
 (() => {
   const UI = Game.UI;
@@ -779,42 +830,14 @@ window.Game = window.Game || {};
       requestAll();
     });
 
-    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
-    const respectMessages = {
-      respect_no_points: "Нужно 1💰, сейчас не хватает.",
-      respect_pair_daily: "Уже было уважение сегодня этому персонажу.",
-      respect_no_chain: "Цепочка A->B->A сегодня не работает.",
-      respect_emitter_empty: "Лимит уважения на сегодня исчерпан.",
-    };
-    const showRespectToast = (kind, text) => {
-      if (!text) return;
-      try {
-        if (UI && typeof UI.showStatToast === "function") {
-          UI.showStatToast(kind, text);
-        }
-      } catch (_) {}
-    };
-    const handleRespectClick = () => {
-      if (!withId || !Game.StateAPI || typeof Game.StateAPI.giveRespect !== "function") return;
-      const res = Game.StateAPI.giveRespect(meId, withId, Date.now());
-      if (!res) return;
-      if (res.ok) {
-        showRespectToast("points", "Ты отдал 1💰");
-        showRespectToast("rep", "Цель получила +1 REP");
-        try { requestAll(); } catch (_) {}
-        return;
-      }
-      const msg = respectMessages[res.reason] || "Сейчас не получилось. Попробуй позже.";
-      showRespectToast("points", msg);
-    };
-    if (withId && withId !== meId) {
+    if (withId && __uiRespectButtonVisible__(withId)) {
       const respectButton = document.createElement("button");
       respectButton.type = "button";
       respectButton.className = "btn respect-action";
       respectButton.textContent = "Выразить уважение";
       respectButton.onclick = (ev) => {
         stop(ev);
-        handleRespectClick();
+        __uiRespectClick__(withId);
       };
       actions.appendChild(respectButton);
     }
