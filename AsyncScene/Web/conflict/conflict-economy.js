@@ -2202,6 +2202,25 @@
   E._logTx = E._logTx || logTransfer;
   Game._ConflictEconomy = E;
   Game.ConflictEconomy = E;
+  Game.Econ = Game.Econ || {};
+  Game.Econ.requestP2PTransfer = function ({ sourceId, targetId, amount } = {}) {
+    const amt = Number(amount || 0);
+    const src = String(sourceId || "");
+    const tgt = String(targetId || "");
+    if (!Number.isFinite(amt) || amt <= 0) return { ok: false, reason: "bad_amount" };
+    if (!src || !tgt) return { ok: false, reason: "bad_account" };
+    if (src === tgt) return { ok: false, reason: "same_account" };
+    if (Game && Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function") {
+      if (!Game.Rules.isP2PTransfersEnabled()) return { ok: false, reason: "p2p_disabled" };
+    }
+    const srcAcc = getAccount(src);
+    const tgtAcc = getAccount(tgt);
+    if (!srcAcc || !tgtAcc) return { ok: false, reason: "bad_account" };
+    const srcBal = (srcAcc.points | 0);
+    if (srcBal < (amt | 0)) return { ok: false, reason: "insufficient_points" };
+    return E.transferPoints(src, tgt, amt, "p2p_transfer", {});
+  };
+
   try { ensureNpcAccountsFromState({ reason: "init" }); } catch (_) {}
 
   const bankState = { override: null };

@@ -618,6 +618,85 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     emit("== smokeP2PFlagUXOnce end ==");
     return { before: original, after: !!readFlag() };
   };
+  Game.__DEV.smokeP2PTransferOnce = () => {
+    const result = { name: "smoke_p2p_transfer_once", ok: false, failed: [], before: {}, after: {}, log: {}, world: {} };
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") console.log(line);
+    };
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      result.failed.push("econ_missing");
+      return result;
+    }
+    if (!Game.Econ || typeof Game.Econ.requestP2PTransfer !== "function") {
+      result.failed.push("requestP2PTransfer_missing");
+      return result;
+    }
+    const S = Game.__S || {};
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const npc = Object.values(S.players || {}).find(p => p && p.id && String(p.id).startsWith("npc_")) || null;
+    if (!npc || !npc.id) {
+      result.failed.push("npc_missing");
+      return result;
+    }
+    const npcId = String(npc.id);
+    const mePts = Econ.getAccountBalance ? (Econ.getAccountBalance(meId) | 0) : (S.me && Number.isFinite(S.me.points) ? (S.me.points | 0) : 0);
+    const npcPts = Econ.getAccountBalance ? (Econ.getAccountBalance(npcId) | 0) : (Number.isFinite(npc.points) ? (npc.points | 0) : 0);
+    let sourceId = "";
+    let targetId = "";
+    if (mePts >= 1) {
+      sourceId = meId;
+      targetId = npcId;
+    } else if (npcPts >= 1) {
+      sourceId = npcId;
+      targetId = meId;
+    } else {
+      result.failed.push("no_source_with_points");
+      result.before = { meId, npcId, mePts, npcPts };
+      return result;
+    }
+
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const logStart = log.length;
+    const snapBefore = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+    const beforeSource = Econ.getAccountBalance ? (Econ.getAccountBalance(sourceId) | 0) : 0;
+    const beforeTarget = Econ.getAccountBalance ? (Econ.getAccountBalance(targetId) | 0) : 0;
+
+    const tx = Game.Econ.requestP2PTransfer({ sourceId, targetId, amount: 1 });
+
+    const afterSource = Econ.getAccountBalance ? (Econ.getAccountBalance(sourceId) | 0) : 0;
+    const afterTarget = Econ.getAccountBalance ? (Econ.getAccountBalance(targetId) | 0) : 0;
+    const snapAfter = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+
+    const newRows = log.slice(logStart);
+    const p2pRows = newRows.filter(row => row && String(row.reason || "") === "p2p_transfer");
+
+    result.before = { sourceId, targetId, source: beforeSource, target: beforeTarget, world: snapBefore ? snapBefore.total : null };
+    result.after = { source: afterSource, target: afterTarget, world: snapAfter ? snapAfter.total : null };
+    result.world = { delta: (snapBefore && snapAfter) ? ((snapAfter.total | 0) - (snapBefore.total | 0)) : null };
+    result.log = { totalNew: newRows.length, p2pCount: p2pRows.length };
+    result.tx = tx || null;
+
+    if (!tx || tx.ok !== true) result.failed.push("tx_failed");
+    if ((afterSource - beforeSource) !== -1) result.failed.push("source_delta_mismatch");
+    if ((afterTarget - beforeTarget) !== 1) result.failed.push("target_delta_mismatch");
+    if (result.world.delta !== null && result.world.delta !== 0) result.failed.push("world_delta_mismatch");
+    if (p2pRows.length !== 1) result.failed.push("p2p_log_count_mismatch");
+    if (afterSource < 0 || afterTarget < 0) result.failed.push("negative_balance");
+
+    result.ok = result.failed.length === 0;
+    emit(`P2P_SMOKE before ${JSON.stringify(result.before)}`);
+    emit(`P2P_SMOKE after ${JSON.stringify(result.after)}`);
+    emit(`P2P_SMOKE world ${JSON.stringify(result.world)}`);
+    emit(`P2P_SMOKE log ${JSON.stringify(result.log)}`);
+    emit(`P2P_SMOKE ok=${result.ok} failed=${JSON.stringify(result.failed)}`);
+    return result;
+  };
+
   const seedTrainingPoints = (minPoints, tag) => {
     const S = Game.__S || {};
     if (!S.players) S.players = {};

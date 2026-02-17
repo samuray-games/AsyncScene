@@ -1999,3 +1999,29 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Ответ Codex-ассистент:
     Если появятся новые P2P-элементы или флаги, проверь `Game.Rules.isP2PTransfersEnabled()`, убедись, что UI равномерно реагирует, запусти `Game.__DEV.smokeP2PFlagUXOnce()` и занеси изменения в PROJECT_MEMORY.md/TASKS.md.
     ```
+
+### [LOG-20260217-003] ECON-P2P P2P-A1 minimal transfer API (smoke pending)
+- Status: FAIL (smoke not run)
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: FAIL (smoke not run)
+    Facts:
+      - `Game.Econ.requestP2PTransfer({sourceId,targetId,amount})` добавлен и вызывает только `E.transferPoints(..., "p2p_transfer")` после валидаций и guard `Game.Rules.isP2PTransfersEnabled()`.
+      - Прямых мутаций `S.me.points` нет.
+      - Добавлен smoke `Game.__DEV.smokeP2PTransferOnce()` с логированием before/after/world/log count.
+      - Smoke output: NOT RUN (before/after/world/log неизвестны).
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      1. Открыть dev-консоль
+      2. `Game.__DEV.smokeP2PTransferOnce()`
+      3. Убедиться: source=-1 target=+1 worldDelta=0 p2pCount=1 без отрицательных балансов
+    Next: QA
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    В dev-консоли запусти `Game.__DEV.smokeP2PTransferOnce()` и приложи лог P2P_SMOKE before/after/world/log; PASS если source=-1 target=+1 worldDelta=0 p2pCount=1 и нет negative balance, иначе FAIL.
+    ```

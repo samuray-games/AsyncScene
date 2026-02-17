@@ -2996,3 +2996,13 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 -  - Smoke command: run `Game.__DEV.smokeP2PFlagUXOnce()` in dev console; PASS когда и legacy, и modern статус отрабатывают синхронно без серых disabled и без мутирования `S.me.points`, и helper остаётся единственным источником истины.
 - Changed: `Web/data.js` `Web/ui/ui-core.js` `Web/ui-old.js` `Web/ui/ui-dm.js` `Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 
+
+### 2026-02-17 — ECON-P2P P2P-A1 minimal transfer API (smoke pending)
+- Status: FAIL (smoke not run)
+- Facts:
+-  - Добавлен публичный `Game.Econ.requestP2PTransfer({sourceId,targetId,amount})` в `AsyncScene/Web/conflict/conflict-economy.js` с проверками amount>0, source!=target, достаточного баланса и guard по `Game.Rules.isP2PTransfersEnabled()`, затем единичным `E.transferPoints(..., "p2p_transfer")`.
+-  - Прямые мутации `S.me.points` отсутствуют; используется только canonical transferPoints.
+-  - Добавлен dev smoke `Game.__DEV.smokeP2PTransferOnce()` в `AsyncScene/Web/dev/dev-checks.js` (логирует before/after/world/log count).
+-  - Smoke output: NOT RUN (before/after/world/log неизвестны).
+- Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
