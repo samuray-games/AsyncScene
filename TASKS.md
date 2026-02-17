@@ -2001,7 +2001,7 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     ```
 
 ### [LOG-20260217-003] ECON-P2P P2P-A1 minimal transfer API (smoke pending)
-- Status: FAIL (smoke not run)
+- Status: PASS
 - Priority: P2
 - Assignee: Codex-ассистент
 - Next: —
@@ -2025,3 +2025,138 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Ответ QA:
     В dev-консоли запусти `Game.__DEV.smokeP2PTransferOnce()` и приложи лог P2P_SMOKE before/after/world/log; PASS если source=-1 target=+1 worldDelta=0 p2pCount=1 и нет negative balance, иначе FAIL.
     ```
+
+### [LOG-20260217-004] ECON-P2P P2P-A2 minimal guards (smoke pending)
+- Status: FAIL (smoke not run)
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: FAIL (smoke not run)
+    Facts:
+      - `Game.Econ.requestP2PTransfer` возвращает канонические `reason` и не пишет `p2p_transfer` при FAIL; direct mutations отсутствуют.
+      - Разрешён dev-путь player<->npc; `allowNpc:true` добавлен в details/вывод smoke.
+      - Добавлен smoke `Game.__DEV.smokeP2PTransfer_GuardsOnce()` с 4 кейсами и JSON-выводом per case.
+    Console evidence: `P2P_GUARD_CASE case_1_amount_zero ... reason p2p_invalid_amount ... newLogCount 0 p2pCount 0 worldDelta 0`, `case_2_insufficient ... p2p_insufficient_points`, `case_3_self_transfer ... p2p_self_transfer_forbidden`, `case_4_valid ... newLogCount 1 p2pCount 1 worldDelta 0`, `P2P_GUARD_RESULT {"ok":true,"failed":[]}`
+    Smoke output: Console.txt DUMP_AT 2026-02-17 16:47:16
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    How to verify:
+      1. Проверить Console.txt
+      2. В dev-консоли: `Game.__DEV.smokeP2PTransfer_GuardsOnce()`
+      3. PASS если все 4 кейса совпали с ожиданиями, worldDelta=0, p2pCount=0 в FAIL и p2pCount=1 в PASS
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Проверить Console.txt. Затем в dev-консоли запустить `Game.__DEV.smokeP2PTransfer_GuardsOnce()`. Приложить P2P_GUARD_CASE + P2P_GUARD_RESULT из консоли. PASS если кейсы 1-4 совпали с требованиями (FAIL без p2p_transfer логов и без изменений балансов; PASS с source -1, target +1, worldDelta=0, p2pCount=1), иначе FAIL.
+    ```
+
+### [LOG-20260217-005] ECON-P2P P2P-A4 CTA ux (PASS)
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS
+    Facts:
+      - Modern/legacy DM используют `createP2PTransferCTA`/`createLegacyP2PTransferCTA` без disabled-заглушек, с prompt на amount и понятными сообщениями.
+      - Причины ошибок напрямую показываются (`invalid_amount`, `insufficient_points`, `self_transfer_forbidden`, `p2p_disabled`).
+      - Проверки: A) флаг false — объяснение, B) флаг true + отмена, C) amount=0 → `p2p_invalid_amount`, D) amount=1 → реальный перевод.
+    Evidence (modern DM): "Система: Передача отключена — ждите, пока мы включим её снова."
+    Критерий: в modern DM нет серых disabled кнопок.
+    How to verify:
+      1. Проверить Console.txt на отсутствие ошибок.
+      2. Open DM с игроком: флаг false → клик, получить объяснение.
+      3. С включённым флагом: клик → prompt, ввод 0 → `p2p_invalid_amount`.
+      4. С вводом 1 → успешный перевод (или `Game.__DEV.smokeP2PTransferOnce()`).
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Проверьте Console.txt, затем вручную выполните клики для кейсов A–D, подтверждая, что элементы не выглядят disabled и тосты объясняют причину; если нужно, запустите `Game.__DEV.smokeP2PTransferOnce()`. PASS если все кейсы ведут себя как описано и amount вводится через prompt, иначе FAIL.
+    ```
+    Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+
+### [LOG-20260217-006] ECON-P2P P2P-A3 rate limit (smoke pending)
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS
+    Facts:
+      - `Game.Econ.requestP2PTransfer` применяет rate limit 60s по ключу `p2p:<sourceId>-><targetId>` и блокирует второй перевод без изменения балансов.
+      - Dev smoke `Game.__DEV.smokeP2PTransfer_RateLimitOnce()` показывает: первый вызов переводит, второй возвращает `p2p_transfer_rate_limited`, worldDelta=0, в логах 1 transfer + 1 rate-limited.
+    Evidence:
+      - P2P_RL before {"source":10,"target":10,"world":200}
+      - P2P_RL after1 {"source":9,"target":11,"world":200}
+      - P2P_RL after2 {"source":9,"target":11,"world":200}
+      - P2P_RL log {"p2pCount":1,"rateLimitedCount":1,"newLogCount":2}
+      - P2P_RL tx2 {"ok":false,"reason":"p2p_transfer_rate_limited","rlKey":"p2p:me->npc_weak","retryInMs":59995}
+      - P2P_RL ok=true failed=[]
+    Smoke output: runs `Game.__DEV.smokeP2PTransfer_RateLimitOnce()` (first ok, second rate-limited, world delta 0).
+    How to verify:
+      1. Проверить Console.txt и увидеть строки P2P_RL before/after/log/tx2.
+      2. В dev-консоли запустить `Game.__DEV.smokeP2PTransfer_RateLimitOnce()` и подтвердить одинаковый worldDelta и 1 rate-limited строку.
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    Проверь Console.txt, затем запусти `Game.__DEV.smokeP2PTransfer_RateLimitOnce()` и приложи строки P2P_RL before/after/log/tx2. PASS если второй вызов возвращает p2p_transfer_rate_limited, balance не меняется и worldDelta=0.
+    ```
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+
+### [LOG-20260217-007] ECON-P2P P2P-B1 player->player blocked (smoke pending)
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS
+    Facts:
+      - `Game.Econ.requestP2PTransfer` блокирует player->player с reason `p2p_player_to_player_disabled` и не делает transferPoints.
+      - Добавлен лог попытки reason `p2p_transfer_attempt_blocked` (amount 0, meta why=player_to_player_disabled).
+      - UI показывает единый текст: "Передача между игроками пока недоступна."
+      - Dev smoke `Game.__DEV.smokeP2PPlayerToPlayerBlockedOnce()` добавлен.
+    Evidence:
+      - P2P_P2P before {"source":10,"target":0,"world":200}
+      - P2P_P2P after {"source":10,"target":0,"world":200}
+      - P2P_P2P log {"p2pCount":0,"blockedCount":1,"newLogCount":1}
+      - P2P_P2P tx {"ok":false,"reason":"p2p_player_to_player_disabled","details":{"sourceId":"me","targetId":"p2p_dummy","amount":1}}
+      - Console panel result ok:true failed:[] world:{delta:0}
+    Smoke output: Game.__DEV.smokeP2PPlayerToPlayerBlockedOnce() (reason `p2p_player_to_player_disabled`, blockedCount=1, world delta 0).
+    How to verify:
+      1. Проверить Console.txt на строки P2P_P2P before/after/log/tx и panel result.
+      2. В dev-консоли: `Game.__DEV.smokeP2PPlayerToPlayerBlockedOnce()`
+      3. PASS если reason `p2p_player_to_player_disabled`, балансы не меняются, worldDelta=0, p2pCount=0, blockedCount=1.
+    Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [LOG-20260217-008] ECON-P2P P2P-B2 honest backlog ux (manual)
+- Status: FAIL (smoke not run)
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: FAIL (smoke not run)
+    Facts:
+      - Modern and legacy DM now share `UI.createP2PBacklogBlock`, so a single honest block replaces transfer CTAs whenever P2P is backlogged.
+      - Block text: "Передача пойнтов: пока недоступна." with explanation "Причина: анти-абуз и баланс."
+      - "Почему?" is rendered as a styled button (underline/cursor pointer) that repeats the explanation via `showP2PSystem` without prompting or transferring.
+    Evidence: Console.txt shows no UI load errors.
+    How to verify:
+      A. Modern DM: open DM and confirm only the backlog block appears; no transfer buttons or grey CTAs.
+      B. Verify "Почему?" renders as an obvious clickable control (cursor changes, underline).
+      C. Click it: expect only the info line "Передача пока отключена — анти-абуз/баланс.", no prompt, no transfer.
+      D. Legacy DM: repeat to ensure the same helper renders identical markup and behavior.
+      E. Console.txt: verify there are no UI errors about the backlog helper or rules.
+    Manual QA: PASS only when A–E match.
+    Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`

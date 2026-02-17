@@ -453,46 +453,70 @@ window.Game = window.Game || {};
       renderAll();
     });
 
-    const p2pEnabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
-      ? Game.Rules.isP2PTransfersEnabled()
-      : false;
-    const p2pRolesAllowed = !isCop && !isBad;
-
-    const pushP2PNotice = (text) => {
+    const showP2PSystem = (text) => {
       dmPushLine(withId, "Система", text);
       renderDM();
     };
-
-    const makeLegacyP2PBtn = (label, dmText) => {
+    const reasonMessages = {
+      p2p_invalid_amount: "Введите положительное число пойнтов.",
+      p2p_insufficient_points: "У вас недостаточно пойнтов.",
+      p2p_self_transfer_forbidden: "Нельзя отправить пойнты самому себе.",
+      p2p_player_to_player_disabled: "Передача между игроками пока недоступна.",
+      p2p_disabled: "Передача пока отключена."
+    };
+    const appendP2PControls = () => {
+      if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
+        && Game.Rules.isP2PBacklogActive()
+        && UI && typeof UI.createP2PBacklogBlock === "function") {
+        actions.appendChild(UI.createP2PBacklogBlock({ onExplain: showP2PSystem }));
+        return;
+      }
+      const btnGift = createLegacyP2PTransferCTA("give");
+      const btnAsk = createLegacyP2PTransferCTA("ask");
+      actions.appendChild(btnGift);
+      actions.appendChild(btnAsk);
+    };
+    const createLegacyP2PTransferCTA = (mode) => {
+      const label = (mode === "give") ? "Подкинуть 💰" : "Попросить 💰";
+      const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+      const enabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
+        ? Game.Rules.isP2PTransfersEnabled()
+        : false;
       return mkBtn(label, () => {
-        if (!p2pEnabled) {
-          pushP2PNotice("Передача пойнтов временно отключена. Следи за включением.");
+        if (!enabled) {
+          showP2PSystem("Передача отключена — ждите, пока мы включим её снова.");
           return;
         }
-        if (!p2pRolesAllowed) {
-          pushP2PNotice("Передача пойнтов недоступна для этого собеседника.");
+        const promptText = (mode === "give")
+          ? `Сколько 💰 вы хотите передать ${target.name || ""}?`
+          : `Сколько 💰 ${target.name || ""} должен передать вам?`;
+        const raw = prompt(promptText);
+        if (raw == null) return;
+        const amount = parseInt(String(raw).trim(), 10);
+        if (!Number.isFinite(amount) || amount <= 0) {
+          showP2PSystem(reasonMessages.p2p_invalid_amount);
           return;
         }
-        pushP2PNotice(`${dmText} пока в разработке, когда флаг включён реализация подключится.`);
-        if (UI && typeof UI.pushSystem === "function" && S.me && S.me.name) {
-          UI.pushSystem(`${S.me.name} ${dmText} в будущем.`);
+        const sourceId = (mode === "give") ? meId : withId;
+        const targetId = (mode === "give") ? withId : meId;
+        const res = Game.Econ && typeof Game.Econ.requestP2PTransfer === "function"
+          ? Game.Econ.requestP2PTransfer({ sourceId, targetId, amount })
+          : null;
+        if (res && res.ok) {
+          showP2PSystem((mode === "give")
+            ? `Вы отправили ${amount} 💰 ${target.name || ""}.`
+            : `${target.name || ""} отправил(а) вам ${amount} 💰.`);
+          renderDM();
+          return;
         }
+        const reason = res && res.reason ? String(res.reason) : "unknown";
+        showP2PSystem(reasonMessages[reason] || `Передача не выполнена (${reason}).`);
       });
     };
 
     actions.appendChild(btnBattle);
     actions.appendChild(btnLike);
-    if (!p2pEnabled) {
-      const btnP2P = mkBtn("Передача пока недоступна", () => {
-        pushP2PNotice("Передача пойнтов временно отключена. Следи за включением.");
-      });
-      actions.appendChild(btnP2P);
-    } else {
-      const btnGift = makeLegacyP2PBtn("Подкинуть 💰 (скоро)", "подкинуть 💰");
-      const btnAsk = makeLegacyP2PBtn("Попросить 💰 (скоро)", "попросить 💰");
-      actions.appendChild(btnGift);
-      actions.appendChild(btnAsk);
-    }
+    appendP2PControls();
     actions.appendChild(btnTeach);
     actions.appendChild(btnInvite);
 

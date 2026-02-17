@@ -804,29 +804,73 @@ window.Game = window.Game || {};
       requestAll();
     });
 
-    const p2pEnabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
-      ? Game.Rules.isP2PTransfersEnabled()
-      : false;
+    const showP2PSystem = (text) => {
+      dmPushLine(withId, "Система", text);
+      UI.renderDM();
+    };
 
-    const createP2PButton = (enabledLabel, disabledLabel, actionDesc) => {
-      const label = p2pEnabled ? enabledLabel : disabledLabel;
+    const reasonMessages = {
+      p2p_invalid_amount: "Введите положительное число пойнтов.",
+      p2p_insufficient_points: "У вас недостаточно пойнтов.",
+      p2p_self_transfer_forbidden: "Нельзя отправить пойнты самому себе.",
+      p2p_player_to_player_disabled: "Передача между игроками пока недоступна.",
+      p2p_disabled: "Передача пока отключена."
+    };
+    const appendP2PControls = () => {
+      if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
+        && Game.Rules.isP2PBacklogActive()
+        && UI && typeof UI.createP2PBacklogBlock === "function") {
+        actions.appendChild(UI.createP2PBacklogBlock({ onExplain: showP2PSystem }));
+        return;
+      }
+      const btnGift = createP2PTransferCTA("give");
+      const btnAsk = createP2PTransferCTA("ask");
+      actions.appendChild(btnGift);
+      actions.appendChild(btnAsk);
+    };
+
+    const createP2PTransferCTA = (mode) => {
+      const label = (mode === "give") ? "Передать 💰" : "Попросить 💰";
+      const meId = (getS().me && getS().me.id) ? String(getS().me.id) : "me";
+      const enabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
+        ? Game.Rules.isP2PTransfersEnabled()
+        : false;
       return mkBtn(label, () => {
-        if (p2pEnabled) {
-          dmPushLine(withId, "Система", `${actionDesc} — P2P-флаг активен, реальная логика скоро подключится.`);
-        } else {
-          dmPushLine(withId, "Система", "Передача пойнтов пока отключена. Мы вернём её, когда будет готово.");
+        if (!enabled) {
+          showP2PSystem("Передача отключена — ждите, пока мы включим её снова.");
+          return;
         }
-        UI.renderDM();
+        const promptText = (mode === "give")
+          ? `Сколько 💰 вы хотите передать ${target.name || ""}?`
+          : `Сколько 💰 ${target.name || ""} должен передать вам?`;
+        const raw = prompt(promptText);
+        if (raw == null) return;
+        const amount = parseInt(String(raw).trim(), 10);
+        if (!Number.isFinite(amount) || amount <= 0) {
+          showP2PSystem(reasonMessages.p2p_invalid_amount);
+          return;
+        }
+        const sourceId = (mode === "give") ? meId : withId;
+        const targetId = (mode === "give") ? withId : meId;
+        const res = Game.Econ && typeof Game.Econ.requestP2PTransfer === "function"
+          ? Game.Econ.requestP2PTransfer({ sourceId, targetId, amount })
+          : null;
+        if (res && res.ok) {
+          showP2PSystem((mode === "give")
+            ? `Вы отправили ${amount} 💰 ${target.name || ""}.`
+            : `${target.name || ""} отправил(а) вам ${amount} 💰.`);
+          requestAll();
+          return;
+        }
+        const reason = res && res.reason ? String(res.reason) : "unknown";
+        showP2PSystem(reasonMessages[reason] || `Передача не выполнена (${reason}).`);
       });
     };
 
     actions.appendChild(btnBattle);
     if (btnEscape) actions.appendChild(btnEscape);
     actions.appendChild(btnLike);
-    const btnGift = createP2PButton("Передать 💰 (скоро)", "Передача пока недоступна", "Подкинуть 💰");
-    const btnAsk = createP2PButton("Попросить 💰 (скоро)", "Попросить 💰 пока недоступно", "Попросить 💰");
-    actions.appendChild(btnGift);
-    actions.appendChild(btnAsk);
+    appendP2PControls();
     actions.appendChild(btnTeach);
     actions.appendChild(btnInvite);
 

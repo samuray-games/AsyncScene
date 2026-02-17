@@ -201,6 +201,62 @@ window.Game = window.Game || {};
     Game.Data.RULES.p2pTransfersEnabled = !!value;
     return Game.Data.RULES.p2pTransfersEnabled;
   };
+  Game.Rules.isP2PPlayerToPlayerEnabled = function() {
+    try {
+      if (Game.Data && typeof Game.Data.isP2PPlayerToPlayerEnabled === "function") {
+        return !!Game.Data.isP2PPlayerToPlayerEnabled();
+      }
+      const rules = (Game.Data && Game.Data.RULES) ? Game.Data.RULES : null;
+      return !!(rules && rules.p2pPlayerToPlayerEnabled);
+    } catch (_) {
+      return false;
+    }
+  };
+  Game.Rules.setP2PPlayerToPlayerEnabled = function(value) {
+    if (Game.Data && typeof Game.Data.setP2PPlayerToPlayerEnabled === "function") {
+      return Game.Data.setP2PPlayerToPlayerEnabled(value);
+    }
+    if (!Game.Data) Game.Data = {};
+    if (!Game.Data.RULES) Game.Data.RULES = {};
+    Game.Data.RULES.p2pPlayerToPlayerEnabled = !!value;
+    return Game.Data.RULES.p2pPlayerToPlayerEnabled;
+  };
+  const P2P_BACKLOG_TITLE = "Передача пойнтов: пока недоступна.";
+  const P2P_BACKLOG_REASON = "Причина: анти-абуз и баланс.";
+  const P2P_BACKLOG_EXPLAIN = "Передача пока отключена из-за анти-абуза и баланса.";
+  Game.Rules.isP2PBacklogActive = function() {
+    const transfersEnabled = Game.Rules.isP2PTransfersEnabled();
+    const playerToPlayerEnabled = Game.Rules.isP2PPlayerToPlayerEnabled();
+    return !transfersEnabled || !playerToPlayerEnabled;
+  };
+  UI.createP2PBacklogBlock = function({ onExplain }) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "p2pBacklogBlock";
+    const title = document.createElement("div");
+    title.className = "p2pBacklogBlock__title";
+    title.textContent = P2P_BACKLOG_TITLE;
+    const reason = document.createElement("div");
+    reason.className = "p2pBacklogBlock__reason";
+    reason.textContent = P2P_BACKLOG_REASON;
+    const explain = document.createElement("button");
+    explain.type = "button";
+    explain.className = "p2pBacklogBlock__link";
+    explain.textContent = "Почему?";
+    explain.style.cursor = "pointer";
+    explain.style.border = "none";
+    explain.style.background = "none";
+    explain.style.padding = "0";
+    explain.style.textDecoration = "underline";
+    explain.style.color = "inherit";
+    explain.setAttribute("aria-role", "button");
+    explain.addEventListener("click", () => {
+      if (typeof onExplain === "function") onExplain(P2P_BACKLOG_EXPLAIN);
+    });
+    wrapper.appendChild(title);
+    wrapper.appendChild(reason);
+    wrapper.appendChild(explain);
+    return wrapper;
+  };
 
 
 

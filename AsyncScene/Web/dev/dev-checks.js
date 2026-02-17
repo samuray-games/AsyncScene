@@ -697,6 +697,338 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return result;
   };
 
+  Game.__DEV.smokeP2PTransfer_GuardsOnce = () => {
+    const result = { name: "smoke_p2p_transfer_guards_once", ok: false, failed: [], cases: [] };
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") console.log(line);
+    };
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      result.failed.push("econ_missing");
+      return result;
+    }
+    if (!Game.Econ || typeof Game.Econ.requestP2PTransfer !== "function") {
+      result.failed.push("requestP2PTransfer_missing");
+      return result;
+    }
+    const S = Game.__S || {};
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const npc = Object.values(S.players || {}).find(p => p && p.id && String(p.id).startsWith("npc_")) || null;
+    if (!npc || !npc.id) {
+      result.failed.push("npc_missing");
+      return result;
+    }
+    const npcId = String(npc.id);
+    const setP2P = (value) => {
+      if (Game.Rules && typeof Game.Rules.setP2PTransfersEnabled === "function") {
+        Game.Rules.setP2PTransfersEnabled(value);
+        return true;
+      }
+      if (Game.Data && typeof Game.Data.setP2PTransfersEnabled === "function") {
+        Game.Data.setP2PTransfersEnabled(value);
+        return true;
+      }
+      return false;
+    };
+    const getP2P = () => {
+      if (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function") return !!Game.Rules.isP2PTransfersEnabled();
+      if (Game.Data && typeof Game.Data.isP2PTransfersEnabled === "function") return !!Game.Data.isP2PTransfersEnabled();
+      return false;
+    };
+
+    const prevFlag = getP2P();
+    if (!setP2P(true)) {
+      result.failed.push("p2p_flag_setter_missing");
+      return result;
+    }
+
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const getBalance = (id) => (Econ.getAccountBalance ? (Econ.getAccountBalance(id) | 0) : 0);
+
+    let mePts = getBalance(meId);
+    let npcPts = getBalance(npcId);
+    if (mePts < 1 && npcPts < 1) {
+      try {
+        Econ.transferPoints("worldBank", meId, 1, "smoke_seed_points", { for: "p2p_smoke_seed", need: 1, had: mePts });
+      } catch (_) {}
+      mePts = getBalance(meId);
+      npcPts = getBalance(npcId);
+    }
+
+    let sourceId = "";
+    let targetId = "";
+    if (mePts >= 1) {
+      sourceId = meId;
+      targetId = npcId;
+    } else if (npcPts >= 1) {
+      sourceId = npcId;
+      targetId = meId;
+    } else {
+      result.failed.push("no_source_with_points");
+      setP2P(prevFlag);
+      return result;
+    }
+
+    const runCase = (caseId, sId, tId, amount, expectedReason, expectOk) => {
+      const beforeSource = getBalance(sId);
+      const beforeTarget = getBalance(tId);
+      const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+      const logStart = log.length;
+
+      const tx = Game.Econ.requestP2PTransfer({ sourceId: sId, targetId: tId, amount });
+
+      const afterSource = getBalance(sId);
+      const afterTarget = getBalance(tId);
+      const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+      const newRows = log.slice(logStart);
+      const p2pRows = newRows.filter(row => row && String(row.reason || "") === "p2p_transfer");
+      const worldDelta = (beforeSnap && afterSnap) ? ((afterSnap.total | 0) - (beforeSnap.total | 0)) : null;
+
+      const failed = [];
+      if (!tx || tx.ok !== expectOk) failed.push("tx_ok_mismatch");
+      if (!expectOk && String(tx && tx.reason || "") !== expectedReason) failed.push("tx_reason_mismatch");
+      if (expectOk && p2pRows.length !== 1) failed.push("p2p_log_count_mismatch");
+      if (!expectOk && p2pRows.length !== 0) failed.push("p2p_log_unexpected");
+      if (worldDelta != null && worldDelta !== 0) failed.push("world_delta_mismatch");
+      if (expectOk) {
+        if ((afterSource - beforeSource) !== -1) failed.push("source_delta_mismatch");
+        if ((afterTarget - beforeTarget) !== 1) failed.push("target_delta_mismatch");
+      } else {
+        if ((afterSource - beforeSource) !== 0) failed.push("source_changed");
+        if ((afterTarget - beforeTarget) !== 0) failed.push("target_changed");
+      }
+      if (afterSource < 0 || afterTarget < 0) failed.push("negative_balance");
+
+      const payload = {
+        caseId,
+        allowNpc: true,
+        tx: { ok: !!(tx && tx.ok), reason: tx && tx.reason },
+        before: { source: beforeSource, target: beforeTarget, world: beforeSnap ? beforeSnap.total : null },
+        after: { source: afterSource, target: afterTarget, world: afterSnap ? afterSnap.total : null },
+        worldDelta,
+        log: { newLogCount: newRows.length, p2pCount: p2pRows.length },
+        ok: failed.length === 0,
+        failed
+      };
+      emit(`P2P_GUARD_CASE ${JSON.stringify(payload)}`);
+      return { payload, failed };
+    };
+
+    const cases = [];
+    cases.push(runCase("case_1_amount_zero", sourceId, targetId, 0, "p2p_invalid_amount", false));
+    const insufficientAmount = Math.max(1, getBalance(sourceId) + 1);
+    cases.push(runCase("case_2_insufficient", sourceId, targetId, insufficientAmount, "p2p_insufficient_points", false));
+    cases.push(runCase("case_3_self_transfer", sourceId, sourceId, 1, "p2p_self_transfer_forbidden", false));
+    cases.push(runCase("case_4_valid", sourceId, targetId, 1, null, true));
+
+    result.cases = cases.map(c => c.payload);
+    cases.forEach(c => {
+      if (c.failed.length) result.failed.push(c.payload.caseId);
+    });
+    result.ok = result.failed.length === 0;
+    emit(`P2P_GUARD_RESULT ${JSON.stringify({ ok: result.ok, failed: result.failed })}`);
+
+    setP2P(prevFlag);
+    return result;
+  };
+
+  Game.__DEV.smokeP2PTransfer_RateLimitOnce = () => {
+    const result = { name: "smoke_p2p_transfer_ratelimit_once", ok: false, failed: [], before: {}, after: {}, log: {}, world: {} };
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") console.log(line);
+    };
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      result.failed.push("econ_missing");
+      return result;
+    }
+    if (!Game.Econ || typeof Game.Econ.requestP2PTransfer !== "function") {
+      result.failed.push("requestP2PTransfer_missing");
+      return result;
+    }
+    const S = Game.__S || {};
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const npcWeak = (S.players && S.players.npc_weak) ? S.players.npc_weak : null;
+    if (!npcWeak || !npcWeak.id) {
+      result.failed.push("npc_weak_missing");
+      return result;
+    }
+    const targetId = String(npcWeak.id);
+    const setP2P = (value) => {
+      if (Game.Rules && typeof Game.Rules.setP2PTransfersEnabled === "function") {
+        Game.Rules.setP2PTransfersEnabled(value);
+        return true;
+      }
+      if (Game.Data && typeof Game.Data.setP2PTransfersEnabled === "function") {
+        Game.Data.setP2PTransfersEnabled(value);
+        return true;
+      }
+      return false;
+    };
+    const getBalance = (id) => (Econ.getAccountBalance ? (Econ.getAccountBalance(id) | 0) : 0);
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+    const logStart = log.length;
+    const prevFlag = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function") ? Game.Rules.isP2PTransfersEnabled() : false;
+    if (!setP2P(true)) {
+      result.failed.push("p2p_flag_setter_missing");
+      return result;
+    }
+    try {
+      const mePts = getBalance(meId);
+      if (mePts < 1) {
+        try {
+          Econ.transferPoints("worldBank", meId, 1, "smoke_seed_points", { for: "p2p_rate_limit_seed", need: 1, had: mePts });
+        } catch (_) {}
+      }
+      const beforeSource = getBalance(meId);
+      const beforeTarget = getBalance(targetId);
+
+      const tx1 = Game.Econ.requestP2PTransfer({ sourceId: meId, targetId, amount: 1 });
+      const after1Source = getBalance(meId);
+      const after1Target = getBalance(targetId);
+      const snapAfter1 = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+      const rowsAfter1 = log.slice(logStart);
+      const p2pAfter1 = rowsAfter1.filter(row => row && String(row.reason || "") === "p2p_transfer");
+      const rlAfter1 = rowsAfter1.filter(row => row && String(row.reason || "") === "p2p_transfer_rate_limited");
+
+      const tx2 = Game.Econ.requestP2PTransfer({ sourceId: meId, targetId, amount: 1 });
+      const after2Source = getBalance(meId);
+      const after2Target = getBalance(targetId);
+      const snapAfter2 = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+      const rowsAfter2 = log.slice(logStart);
+      const p2pAfter2 = rowsAfter2.filter(row => row && String(row.reason || "") === "p2p_transfer");
+      const rlAfter2 = rowsAfter2.filter(row => row && String(row.reason || "") === "p2p_transfer_rate_limited");
+
+      result.before = { source: beforeSource, target: beforeTarget, world: beforeSnap ? beforeSnap.total : null };
+      result.after = { source: after2Source, target: after2Target, world: snapAfter2 ? snapAfter2.total : null };
+      result.world = { delta: (beforeSnap && snapAfter2) ? ((snapAfter2.total | 0) - (beforeSnap.total | 0)) : null };
+      result.log = { p2pCount: p2pAfter2.length, rateLimitedCount: rlAfter2.length, newLogCount: rowsAfter2.length };
+      result.tx1 = tx1 || null;
+      result.tx2 = tx2 || null;
+
+      if (!tx1 || tx1.ok !== true) result.failed.push("tx1_failed");
+      if (!tx2 || tx2.ok !== false || tx2.reason !== "p2p_transfer_rate_limited") result.failed.push("tx2_not_rate_limited");
+      if ((after1Source - beforeSource) !== -1) result.failed.push("tx1_source_delta_mismatch");
+      if ((after1Target - beforeTarget) !== 1) result.failed.push("tx1_target_delta_mismatch");
+      if ((after2Source - after1Source) !== 0) result.failed.push("tx2_source_changed");
+      if ((after2Target - after1Target) !== 0) result.failed.push("tx2_target_changed");
+      if (result.world.delta !== null && result.world.delta !== 0) result.failed.push("world_delta_mismatch");
+      if (p2pAfter2.length !== 1) result.failed.push("p2p_log_count_mismatch");
+      if (rlAfter2.length < 1) result.failed.push("rate_limit_log_missing");
+
+      result.ok = result.failed.length === 0;
+      emit(`P2P_RL before ${JSON.stringify(result.before)}`);
+      emit(`P2P_RL after1 ${JSON.stringify({ source: after1Source, target: after1Target, world: snapAfter1 ? snapAfter1.total : null })}`);
+      emit(`P2P_RL after2 ${JSON.stringify({ source: after2Source, target: after2Target, world: snapAfter2 ? snapAfter2.total : null })}`);
+      emit(`P2P_RL log ${JSON.stringify(result.log)}`);
+      emit(`P2P_RL tx1 ${JSON.stringify(tx1)}`);
+      emit(`P2P_RL tx2 ${JSON.stringify(tx2)}`);
+      emit(`P2P_RL ok=${result.ok} failed=${JSON.stringify(result.failed)}`);
+      return result;
+    } finally {
+      setP2P(prevFlag);
+    }
+  };
+
+  Game.__DEV.smokeP2PPlayerToPlayerBlockedOnce = () => {
+    const result = { name: "smoke_p2p_player_to_player_blocked_once", ok: false, failed: [], before: {}, after: {}, log: {}, world: {} };
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") console.log(line);
+    };
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      result.failed.push("econ_missing");
+      return result;
+    }
+    if (!Game.Econ || typeof Game.Econ.requestP2PTransfer !== "function") {
+      result.failed.push("requestP2PTransfer_missing");
+      return result;
+    }
+    const S = Game.__S || {};
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    S.players = S.players || {};
+    let secondId = null;
+    Object.keys(S.players).some((id) => {
+      if (!id || id === meId) return false;
+      if (String(id).startsWith("npc_")) return false;
+      secondId = String(id);
+      return true;
+    });
+    if (!secondId) {
+      secondId = "p2p_dummy";
+      if (!S.players[secondId]) {
+        S.players[secondId] = { id: secondId, name: "P2P Dummy", points: 0 };
+      }
+    }
+    const setP2P = (value) => {
+      if (Game.Rules && typeof Game.Rules.setP2PTransfersEnabled === "function") {
+        Game.Rules.setP2PTransfersEnabled(value);
+        return true;
+      }
+      if (Game.Data && typeof Game.Data.setP2PTransfersEnabled === "function") {
+        Game.Data.setP2PTransfersEnabled(value);
+        return true;
+      }
+      return false;
+    };
+    const getBalance = (id) => (Econ.getAccountBalance ? (Econ.getAccountBalance(id) | 0) : 0);
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+    const logStart = log.length;
+    const prevFlag = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function") ? Game.Rules.isP2PTransfersEnabled() : false;
+    if (!setP2P(true)) {
+      result.failed.push("p2p_flag_setter_missing");
+      return result;
+    }
+    try {
+      const beforeSource = getBalance(meId);
+      const beforeTarget = getBalance(secondId);
+      const tx = Game.Econ.requestP2PTransfer({ sourceId: meId, targetId: secondId, amount: 1 });
+      const afterSource = getBalance(meId);
+      const afterTarget = getBalance(secondId);
+      const snapAfter = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+      const rows = log.slice(logStart);
+      const p2pLogs = rows.filter(row => row && String(row.reason || "") === "p2p_transfer");
+      const blockedLogs = rows.filter(row => row && String(row.reason || "") === "p2p_transfer_attempt_blocked");
+
+      result.before = { source: beforeSource, target: beforeTarget, world: beforeSnap ? beforeSnap.total : null };
+      result.after = { source: afterSource, target: afterTarget, world: snapAfter ? snapAfter.total : null };
+      result.world = { delta: (beforeSnap && snapAfter) ? ((snapAfter.total | 0) - (beforeSnap.total | 0)) : null };
+      result.log = { p2pCount: p2pLogs.length, blockedCount: blockedLogs.length, newLogCount: rows.length };
+      result.tx = tx || null;
+
+      if (!tx || tx.ok !== false || tx.reason !== "p2p_player_to_player_disabled") result.failed.push("tx_not_blocked");
+      if ((afterSource - beforeSource) !== 0) result.failed.push("source_changed");
+      if ((afterTarget - beforeTarget) !== 0) result.failed.push("target_changed");
+      if (result.world.delta !== null && result.world.delta !== 0) result.failed.push("world_delta_mismatch");
+      if (p2pLogs.length !== 0) result.failed.push("p2p_log_present");
+      if (blockedLogs.length !== 1) result.failed.push("blocked_log_missing");
+
+      result.ok = result.failed.length === 0;
+      emit(`P2P_P2P before ${JSON.stringify(result.before)}`);
+      emit(`P2P_P2P after ${JSON.stringify(result.after)}`);
+      emit(`P2P_P2P log ${JSON.stringify(result.log)}`);
+      emit(`P2P_P2P tx ${JSON.stringify(tx)}`);
+      emit(`P2P_P2P ok=${result.ok} failed=${JSON.stringify(result.failed)}`);
+      return result;
+    } finally {
+      setP2P(prevFlag);
+    }
+  };
+
   const seedTrainingPoints = (minPoints, tag) => {
     const S = Game.__S || {};
     if (!S.players) S.players = {};

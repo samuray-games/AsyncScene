@@ -2207,18 +2207,78 @@
     const amt = Number(amount || 0);
     const src = String(sourceId || "");
     const tgt = String(targetId || "");
-    if (!Number.isFinite(amt) || amt <= 0) return { ok: false, reason: "bad_amount" };
-    if (!src || !tgt) return { ok: false, reason: "bad_account" };
-    if (src === tgt) return { ok: false, reason: "same_account" };
+    const details = { sourceId: src, targetId: tgt, amount: amt, allowNpc: true };
+    const isSystemAccountId = (id) => (
+      id === "sink"
+      || id === "crowd"
+      || id === BANK_ACCOUNT_ID
+      || id === WORLD_BANK_ID
+      || id.startsWith("crowd:")
+    );
+    if (!Number.isFinite(amt) || amt <= 0) return { ok: false, reason: "p2p_invalid_amount", details };
+    if (!src || !tgt) return { ok: false, reason: "p2p_invalid_amount", details };
+    if (src === tgt) return { ok: false, reason: "p2p_self_transfer_forbidden", details };
     if (Game && Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function") {
-      if (!Game.Rules.isP2PTransfersEnabled()) return { ok: false, reason: "p2p_disabled" };
+      if (!Game.Rules.isP2PTransfersEnabled()) return { ok: false, reason: "p2p_disabled", details };
+    }
+    const srcIsPlayer = !isNpcId(src) && !isSystemAccountId(src);
+    const tgtIsPlayer = !isNpcId(tgt) && !isSystemAccountId(tgt);
+    const playerToPlayerAllowed = (Game && Game.Rules && typeof Game.Rules.isP2PPlayerToPlayerEnabled === "function")
+      ? Game.Rules.isP2PPlayerToPlayerEnabled()
+      : false;
+    if (srcIsPlayer && tgtIsPlayer && !playerToPlayerAllowed) {
+      ensureDebugStore();
+      logTransfer({
+        time: Date.now(),
+        sourceId: src,
+        targetId: tgt,
+        amount: 0,
+        reason: "p2p_transfer_attempt_blocked",
+        meta: { sourceId: src, targetId: tgt, why: "player_to_player_disabled" }
+      });
+      return { ok: false, reason: "p2p_player_to_player_disabled", details };
     }
     const srcAcc = getAccount(src);
     const tgtAcc = getAccount(tgt);
-    if (!srcAcc || !tgtAcc) return { ok: false, reason: "bad_account" };
+    if (!srcAcc || !tgtAcc) return { ok: false, reason: "p2p_invalid_amount", details };
     const srcBal = (srcAcc.points | 0);
-    if (srcBal < (amt | 0)) return { ok: false, reason: "insufficient_points" };
-    return E.transferPoints(src, tgt, amt, "p2p_transfer", {});
+    details.sourceBalance = srcBal;
+    if (srcBal < (amt | 0)) return { ok: false, reason: "p2p_insufficient_points", details };
+    const rlKey = `p2p:${src}->${tgt}`;
+    const windowMs = 60000;
+    const limit = 1;
+    const now = Date.now();
+    if (!E._p2pRateLimit) E._p2pRateLimit = new Map();
+    const last = E._p2pRateLimit.get(rlKey);
+    if (Number.isFinite(last) && (now - last) < windowMs) {
+      const retryInMs = Math.max(0, windowMs - (now - last));
+      ensureDebugStore();
+      logTransfer({
+        time: now,
+        sourceId: src,
+        targetId: tgt,
+        amount: 0,
+        reason: "p2p_transfer_rate_limited",
+        meta: {
+          sourceId: src,
+          targetId: tgt,
+          rlKey,
+          windowMs,
+          limit,
+          retryInMs
+        }
+      });
+      return { ok: false, reason: "p2p_transfer_rate_limited", rlKey, retryInMs };
+    }
+    const tx = E.transferPoints(src, tgt, amt, "p2p_transfer", {});
+    if (tx && typeof tx === "object") {
+      if (!tx.meta) tx.meta = {};
+      tx.meta.allowNpc = true;
+    }
+    if (tx && tx.ok === true) {
+      E._p2pRateLimit.set(rlKey, now);
+    }
+    return tx;
   };
 
   try { ensureNpcAccountsFromState({ reason: "init" }); } catch (_) {}

@@ -102,6 +102,15 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     Data.RULES.p2pTransfersEnabled = !!value;
     return Data.RULES.p2pTransfersEnabled;
   };
+  Data.RULES.p2pPlayerToPlayerEnabled = Data.RULES.p2pPlayerToPlayerEnabled === true;
+  Data.isP2PPlayerToPlayerEnabled = function() {
+    return !!(Data.RULES && Data.RULES.p2pPlayerToPlayerEnabled);
+  };
+  Data.setP2PPlayerToPlayerEnabled = function(value) {
+    if (!Data.RULES) Data.RULES = {};
+    Data.RULES.p2pPlayerToPlayerEnabled = !!value;
+    return Data.RULES.p2pPlayerToPlayerEnabled;
+  };
 
   // Text mode (genz | alpha)
   Data.TEXT_MODE = "genz";
