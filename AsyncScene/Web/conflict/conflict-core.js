@@ -1725,6 +1725,24 @@
         if (Game.__A && typeof Game.__A.pushDm === "function") {
           Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
         }
+        try {
+          const social = Game && Game.Social;
+          if (social && typeof social.applySocialPenalty === "function") {
+            const actorId = (Game.__S && Game.__S.me && Game.__S.me.id) ? String(Game.__S.me.id) : "me";
+            const spamPenaltyPoints = 1;
+            social.applySocialPenalty("spam", actorId, {
+              targetId: opponentId,
+              amountWanted: spamPenaltyPoints,
+              reason: "spam_penalty",
+              meta: {
+                key: `battle_start:${String(opponentId || "")}`,
+                resetIn: leftMs,
+                actionId: `battle_start_${String(opponentId || "")}`,
+                src: "soc_step5_3"
+              }
+            });
+          }
+        } catch (_) {}
         return { ok: false, reason: "cooldown", leftMs };
       }
     } catch (_) {}

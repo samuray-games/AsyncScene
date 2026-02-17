@@ -103,6 +103,40 @@ Result: |
     PASS если ECON_SOC_STEP5_JSON ok:true, drift=0, hasEmission=false, а enough/insufficient имеют transfer row; иначе FAIL и приложить JSON.
     ```
 
+### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke
+- Status: DOING
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: подключить applySocialPenalty к одному реальному spam‑триггеру и добавить smoke Step5.3.
+- Acceptance:
+  - [ ] Spam penalty срабатывает только при rate-limit (cooldown), reason `spam_penalty` появляется в moneyLog.
+  - [ ] Smoke Step5.3 даёт ok:true, penaltyCount==1, drift=0, hasEmission=false.
+  - [ ] DUMP_AT содержит ECON_SOC_STEP5_3_BEGIN/JSON/END.
+- Result: |
+    Status: FAIL (runtime не запускался, DUMP_AT отсутствует)
+    Facts:
+      (1) Подключён spam‑триггер: `AsyncScene/Web/conflict/conflict-core.js:1716` cooldown на повторный батл вызывает `Game.Social.applySocialPenalty(... reason:"spam_penalty", amountWanted:1, meta{key,resetIn,actionId,src:"soc_step5_3"})`.
+      (2) Добавлен smoke `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce` (BEGIN/JSON/END) в `AsyncScene/Web/dev/dev-checks.js:17073` с двумя вызовами `startWith` и per-call moneyLog slicing.
+      (3) SPAM_PENALTY_POINTS = 1 (канон‑константа не найдена; минимально‑консервативное значение).
+    Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js`
+    How to verify:
+      (1) Hard reload dev page.
+      (2) `Game.__DEV.smokeEconSoc_Step5_3_SpamOnce({ window:{ lastN:300 } })`
+      (3) `Game.__DUMP_ALL__()`
+      PASS if ECON_SOC_STEP5_3_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, second reasons include `spam_penalty`, first reasons do not.
+    Next: QA (нужен runtime DUMP_AT с ECON_SOC_STEP5_3_* маркерами)
+    Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1
+    (2) Game.__DEV.smokeEconSoc_Step5_3_SpamOnce({ window:{ lastN:300 } })
+    (3) Game.__DUMP_ALL__()
+    PASS если ECON_SOC_STEP5_3_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, а второй вызов содержит spam_penalty; иначе FAIL и приложить JSON.
+    ```
+
 ### [T-20260212-019] ECON-NPC [1.8] regression pack
 - Status: QA
 - Priority: P0

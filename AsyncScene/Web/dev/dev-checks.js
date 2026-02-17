@@ -17070,6 +17070,152 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     return result;
   };
 
+  Game.__DEV.smokeEconSoc_Step5_3_SpamOnce = async (opts = {}) => {
+    const name = "smoke_econ_soc_step5_3_spam_once";
+    const startedAt = Date.now();
+    const lastN = (opts && opts.window && Number.isFinite(opts.window.lastN)) ? (opts.window.lastN | 0) : 300;
+    const dumpHint = (opts && typeof opts.dumpHint === "string") ? opts.dumpHint : "Game.__DUMP_ALL__()";
+    let result = null;
+    let failed = [];
+    emitLine("ECON_SOC_STEP5_3_BEGIN");
+    try {
+      const S = Game.__S || Game.State;
+      const core = (Game && (Game.ConflictCore || Game._ConflictCore)) ? (Game.ConflictCore || Game._ConflictCore) : null;
+      const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+      if (!S || !S.me || !S.players) {
+        failed.push("state_missing");
+      } else if (!core || typeof core.startWith !== "function") {
+        failed.push("conflict_core_missing");
+      } else if (!Game.Social || typeof Game.Social.applySocialPenalty !== "function") {
+        failed.push("applySocialPenalty_missing");
+      } else {
+        const beforeSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+        const beforeTotal = beforeSnap ? (beforeSnap.total | 0) : null;
+        let logSource = "debug_moneyLog";
+        let rows = [];
+        let logIndex = 0;
+
+        const getReason = (row) => String((row && (row.reason || row.r || (row.meta && row.meta.reason))) || "");
+        const refreshRows = () => {
+          const bundle = getPointsMoneyLogSnapshot({ prefer: "debug_moneyLog" });
+          logSource = bundle.logSource || logSource;
+          rows = normalizeMoneyLogRows(bundle.rows, "econ_soc_step5_3_log");
+          return rows;
+        };
+        const captureSlice = () => {
+          const nextRows = refreshRows();
+          const slice = nextRows.slice(logIndex);
+          logIndex = nextRows.length;
+          return slice;
+        };
+        const advanceLog = () => {
+          refreshRows();
+          logIndex = rows.length;
+        };
+        const hasEmissionRows = (slice) => slice.some(tx => {
+          const reason = getReason(tx);
+          const currency = String(tx && tx.currency || "");
+          return reason === "points_emission_blocked" || reason === "addPoints" || currency === "points_emission";
+        });
+
+        const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+        const opponent = Object.values(S.players || {}).find(p => p && p.id && p.id !== meId && (p.npc || p.type === "npc")) || null;
+        if (!opponent || !opponent.id) {
+          failed.push("opponent_missing");
+        } else {
+          const opponentId = String(opponent.id);
+          const spamKey = `battle_start:${opponentId}`;
+          const spamActionId = `battle_start_${opponentId}`;
+
+          if (!S.battleCooldowns || typeof S.battleCooldowns !== "object") S.battleCooldowns = {};
+          S.battleCooldowns[opponentId] = 0;
+
+          if (Econ && typeof Econ.transferPoints === "function") {
+            const mePoints = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+            if (mePoints < 1) {
+              Econ.transferPoints("worldBank", "me", 1, "smoke_seed_points", { for: "soc_step5_3", need: 1, had: mePoints });
+            }
+          }
+
+          advanceLog();
+
+          const pointsBefore = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+          const res1 = core.startWith(opponentId);
+          const slice1 = captureSlice();
+          const pointsAfter1 = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : pointsBefore;
+
+          const res2 = core.startWith(opponentId);
+          const slice2 = captureSlice();
+          const pointsAfter2 = (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : pointsAfter1;
+
+          const reasons1 = slice1.map(getReason).filter(Boolean);
+          const reasons2 = slice2.map(getReason).filter(Boolean);
+          const penaltyCount =
+            reasons1.filter(r => r === "spam_penalty").length +
+            reasons2.filter(r => r === "spam_penalty").length;
+          const firstHasPenalty = reasons1.includes("spam_penalty");
+          const secondHasPenalty = reasons2.includes("spam_penalty");
+          const blocked1 = !!(res1 && res1.reason === "cooldown");
+          const blocked2 = !!(res2 && res2.reason === "cooldown");
+          const hasEmission = hasEmissionRows(slice1) || hasEmissionRows(slice2);
+
+          const afterSnap = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function") ? Game.__DEV.sumPointsSnapshot() : null;
+          const afterTotal = afterSnap ? (afterSnap.total | 0) : null;
+          const drift = (beforeTotal != null && afterTotal != null) ? (afterTotal - beforeTotal) : null;
+
+          if (blocked1) failed.push("first_blocked");
+          if (!blocked2) failed.push("second_not_blocked");
+          if (firstHasPenalty) failed.push("first_penalized");
+          if (!secondHasPenalty) failed.push("second_penalty_missing");
+          if (penaltyCount !== 1) failed.push("penalty_count_mismatch");
+          if (hasEmission) failed.push("points_emission_detected");
+          if (drift !== 0) failed.push("world_drift");
+
+          result = {
+            ok: failed.length === 0,
+            failed,
+            first: { ok: res1 && res1.ok === true, reasons: reasons1 },
+            second: { ok: res2 && res2.ok === true, reasons: reasons2, rateLimited: blocked2 },
+            penaltyCount,
+            hasEmission,
+            beforeTotal,
+            afterTotal,
+            drift,
+            diag: {
+              spamKey1: spamKey,
+              spamKey2: spamKey,
+              blocked1,
+              blocked2,
+              pointsBefore,
+              pointsAfter1,
+              pointsAfter2
+            },
+            logSource,
+            name,
+            startedAt,
+            dumpHint
+          };
+          emitLine(`ECON_SOC_STEP5_3_JSON ${safeStringify(result)}`);
+        }
+      }
+      if (!result) {
+        result = { ok: false, failed: failed.length ? failed : ["unknown"] };
+        emitLine(`ECON_SOC_STEP5_3_JSON ${safeStringify(result)}`);
+      }
+    } catch (err) {
+      result = {
+        ok: false,
+        failed: failed.length ? failed : ["exception"],
+        errorMessage: err && err.message ? String(err.message) : String(err)
+      };
+      emitLine(`ECON_SOC_STEP5_3_JSON ${safeStringify(result)}`);
+    } finally {
+      emitLine("ECON_SOC_STEP5_3_END");
+      if (Game.__DEV) Game.__DEV.lastEconSocStep5Spam = result;
+    }
+    return result;
+  };
+
   Game.__DEV.__devChecksVersion = "B2c_ignore_telemetry_gate_v3";
   Game.__DEV.startBalanceSmoke = () => {
     const name = "start_balance_smoke";
