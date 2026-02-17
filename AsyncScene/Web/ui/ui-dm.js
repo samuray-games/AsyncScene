@@ -43,6 +43,12 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   if (res.ok) {
     showRespectToast("points", "Ты отдал 1💰");
     showRespectToast("rep", "Цель получила +1 REP");
+    try {
+      if (Game.__DEV && typeof Game.__DEV.__toastTapePush__ === "function") {
+        Game.__DEV.__toastTapePush__({ text: "Ты отдал 1💰", ts: Date.now() });
+        Game.__DEV.__toastTapePush__({ text: "Цель получила +1 REP", ts: Date.now() });
+      }
+    } catch (_) {}
     return res;
   }
   showRespectToast("points", mapRespectReason[res.reason] || "Сейчас не получилось. Попробуй позже.");

@@ -580,12 +580,20 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
 
       setMePoints(2);
-      Game.__DEV.__toastTape__ = [];
+      if (Game.__DEV && Array.isArray(Game.__DEV.__toastTape__)) {
+        Game.__DEV.__toastTape__.length = 0;
+      } else if (Game.__DEV) {
+        Game.__DEV.__toastTape__ = [];
+      }
       const r1 = uiClick(npcId, opts.nowTs || Date.now());
+      await Promise.resolve();
+      await new Promise(r => setTimeout(r, 0));
       const toasts1 = (Game.__DEV.__toastTape__ || []).slice();
       Game.__DEV.__toastTape__.length = 0;
       setMePoints(0);
       const r2 = uiClick(npcId, (opts.nowTs || Date.now()) + 1000);
+      await Promise.resolve();
+      await new Promise(r => setTimeout(r, 0));
       const toasts2 = (Game.__DEV.__toastTape__ || []).slice();
 
       const toast1 = toasts1[0] ? toasts1[0].text : null;
@@ -595,6 +603,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const failed = [];
       if (!r1 || r1.ok !== true) failed.push("r1_not_ok");
       if (!r2 || r2.reason !== "respect_pair_daily") failed.push("r2_reason_mismatch");
+      if (toast1 !== "Ты отдал 1💰" || toast2 !== "Цель получила +1 REP") {
+        failed.push("toast_missing_or_mismatch");
+      }
+
+      const toastTape = Game.__DEV && Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__ : [];
+      const toastCallCount = (Game.__DEV && Number.isFinite(Game.__DEV.__toastCallCount__)) ? Game.__DEV.__toastCallCount__ : 0;
+      diag.toastCallCount = toastCallCount;
+      diag.tapeLen = toastTape.length;
 
       return {
         ok: failed.length === 0,

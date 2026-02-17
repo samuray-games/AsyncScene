@@ -883,6 +883,19 @@ window.Game = window.Game || {};
     activeDeltaToasts[kind] = { el: toast, value: nextValue };
   }
 
+  const pushToastToTape = (text) => {
+    try {
+      if (typeof Game !== "undefined" && Game && Game.__DEV && typeof Game.__DEV === "object") {
+        const tape = Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__ : (Game.__DEV.__toastTape__ = []);
+        tape.push({ text: String(text || ""), ts: Date.now() });
+        Game.__DEV.__toastCallCount__ = (Game.__DEV.__toastCallCount__ || 0) + 1;
+        if (Game.__DEV.__toastTapePush__) {
+          Game.__DEV.__toastTapePush__({ text: String(text || ""), ts: Date.now() });
+        }
+      }
+    } catch (_) {}
+  };
+
   UI.showStatToast = (kind, text) => {
     if (isDeltaToast(kind, text)) {
       return;
@@ -913,6 +926,12 @@ window.Game = window.Game || {};
         tape.push({ kind, text: String(text || ""), ts: Date.now() });
         if (tape.length > 40) tape.shift();
         Game.__DEV.__toastTape__ = tape;
+        Game.__DEV.__toastTapePush__ = Game.__DEV.__toastTapePush__ || ((entry) => {
+          const arr = Game.__DEV.__toastTape__ || [];
+          arr.push(entry);
+          if (arr.length > 40) arr.shift();
+          Game.__DEV.__toastTape__ = arr;
+        });
       }
     } catch (_) {}
   };
@@ -966,6 +985,7 @@ window.Game = window.Game || {};
     toast.style.display = "block";
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
+    pushToastToTape(text);
   };
 
   // Hide all but the newest identical toast (prevents piling duplicates).
