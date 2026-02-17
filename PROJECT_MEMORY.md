@@ -3072,3 +3072,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke output: NOT RUN
 - How to verify: same manual checklist A–E as in TASKS.md (modern block, clickable "Почему?", info text only, legacy parity, Console.txt clean).
 - Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-02-17 — ECON-P2P P2P-final smoke prep (dev)
+- Status: FAIL (smoke not run)
+- Facts:
+  - `Game.__DEV.spawnSecondPlayerOnce(opts)` can inject `p2p_smoke_p2` into `Game.__S.players`/`Game.State.players` and logs `P2P_SPAWN_SECOND_PLAYER_V1`.
+  - `Game.__DEV.smokeP2P_FinalOnce(opts)` enables P2P, performs a successful transfer, disables player-to-player, retries (blocked), and asserts zero-sum via snapshots + log counts.
+- Smoke command: `await __RUN__(\`console.log("P2P_FINAL_SMOKE_V1", await Game.__DEV.smokeP2P_FinalOnce({window:{lastN:200}}));\`)`
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`

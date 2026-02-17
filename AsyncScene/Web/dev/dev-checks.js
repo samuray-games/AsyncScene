@@ -1029,6 +1029,141 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     }
   };
 
+  Game.__DEV.spawnSecondPlayerOnce = (opts = {}) => {
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") console.log(line);
+    };
+    const id = String(opts.id || "p2p_smoke_p2");
+    if (!Game.__S) Game.__S = {};
+    Game.__S.players = Game.__S.players || {};
+    const existed = !!Game.__S.players[id];
+    if (!existed) {
+      const entity = {
+        id,
+        name: opts.name || "P2P Smoke Player",
+        role: opts.role || "player",
+        npc: false,
+        points: Number.isFinite(opts.points) ? (opts.points | 0) : 10,
+        influence: Number.isFinite(opts.influence) ? (opts.influence | 0) : 0,
+        rep: Number.isFinite(opts.rep) ? (opts.rep | 0) : 0
+      };
+      Game.__S.players[id] = entity;
+      if (Game.State && Game.State.players) {
+        Game.State.players[id] = entity;
+      }
+    }
+    const res = { ok: true, id, existed };
+    emit(`P2P_SPAWN_SECOND_PLAYER_V1 ${JSON.stringify(res)}`);
+    return res;
+  };
+
+  Game.__DEV.smokeP2P_FinalOnce = async (opts = {}) => {
+    const result = {
+      name: "smoke_p2p_final_once",
+      ok: false,
+      failed: [],
+      spawn: null,
+      tx1: null,
+      tx2: null,
+      log: null,
+      totalsBeforeAfter: null,
+      logTail: []
+    };
+    const emit = (line) => {
+      if (Game.__DEV && typeof Game.__DEV._dumpLine === "function") {
+        Game.__DEV._dumpLine(line);
+        return;
+      }
+      if (typeof console !== "undefined" && typeof console.log === "function") console.log(line);
+    };
+    const Econ = Game._ConflictEconomy || Game.ConflictEconomy || null;
+    if (!Econ || typeof Econ.transferPoints !== "function") {
+      result.failed.push("econ_missing");
+      emit(`P2P_FINAL_SMOKE_V1 ${JSON.stringify(result)}`);
+      return result;
+    }
+    if (!Game.Econ || typeof Game.Econ.requestP2PTransfer !== "function") {
+      result.failed.push("request_missing");
+      emit(`P2P_FINAL_SMOKE_V1 ${JSON.stringify(result)}`);
+      return result;
+    }
+    const S = Game.__S || {};
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const spawnOpts = opts.spawn || {};
+    const spawn = Game.__DEV.spawnSecondPlayerOnce(spawnOpts);
+    result.spawn = spawn;
+    const secondId = spawn.id;
+    const log = (Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    const logStart = log.length;
+    const sumSnapshot = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function");
+    const beforeSnap = sumSnapshot ? Game.__DEV.sumPointsSnapshot() : null;
+    const setRules = (transfers, players) => {
+      if (Game.Rules && typeof Game.Rules.setP2PTransfersEnabled === "function") {
+        Game.Rules.setP2PTransfersEnabled(transfers);
+      }
+      if (Game.Rules && typeof Game.Rules.setP2PPlayerToPlayerEnabled === "function") {
+        Game.Rules.setP2PPlayerToPlayerEnabled(players);
+      }
+      if (!Game.Data) Game.Data = {};
+      Game.Data.RULES = Game.Data.RULES || {};
+      Game.Data.RULES.p2pTransfersEnabled = !!transfers;
+      Game.Data.RULES.p2pPlayerToPlayerEnabled = !!players;
+    };
+    const prevTransfers = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
+      ? Game.Rules.isP2PTransfersEnabled()
+      : false;
+    const prevPlayerToPlayer = (Game.Rules && typeof Game.Rules.isP2PPlayerToPlayerEnabled === "function")
+      ? Game.Rules.isP2PPlayerToPlayerEnabled()
+      : false;
+    setRules(true, true);
+    try {
+      result.tx1 = Game.Econ.requestP2PTransfer({ sourceId: meId, targetId: secondId, amount: 1 });
+      const snapAfterSuccess = sumSnapshot ? Game.__DEV.sumPointsSnapshot() : null;
+      setRules(true, false);
+      result.tx2 = Game.Econ.requestP2PTransfer({ sourceId: meId, targetId: secondId, amount: 1 });
+      const snapAfterBlock = sumSnapshot ? Game.__DEV.sumPointsSnapshot() : null;
+      const rowsAfter = log.slice(logStart);
+      const p2pLogs = rowsAfter.filter(row => row && String(row.reason || "") === "p2p_transfer");
+      const blockedLogs = rowsAfter.filter(row => row && String(row.reason || "") === "p2p_transfer_attempt_blocked");
+      result.log = {
+        newLogCount: rowsAfter.length,
+        successCount: p2pLogs.length,
+        blockedCount: blockedLogs.length
+      };
+      result.totalsBeforeAfter = {
+        before: beforeSnap,
+        afterSuccess: snapAfterSuccess,
+        afterBlock: snapAfterBlock
+      };
+      const windowSize = opts.window && Number.isFinite(opts.window.lastN) ? Math.max(1, opts.window.lastN | 0) : 20;
+      result.logTail = rowsAfter.slice(-windowSize);
+      if (!result.tx1 || result.tx1.ok !== true) result.failed.push("first_transfer_failed");
+      if (!result.tx2 || result.tx2.ok !== false || result.tx2.reason !== "p2p_player_to_player_disabled") result.failed.push("second_not_blocked");
+      if (p2pLogs.length < 1) result.failed.push("missing_success_log");
+      if (blockedLogs.length < 1) result.failed.push("missing_blocked_log");
+      const worldBefore = beforeSnap && typeof beforeSnap.total === "number" ? beforeSnap.total : null;
+      const worldAfterSuccess = snapAfterSuccess && typeof snapAfterSuccess.total === "number" ? snapAfterSuccess.total : null;
+      const worldAfterBlock = snapAfterBlock && typeof snapAfterBlock.total === "number" ? snapAfterBlock.total : null;
+      if (worldBefore !== null && worldAfterSuccess !== null && worldBefore !== worldAfterSuccess) result.failed.push("world_delta_after_success");
+      if (worldBefore !== null && worldAfterBlock !== null && worldBefore !== worldAfterBlock) result.failed.push("world_delta_after_block");
+      result.ok = result.failed.length === 0;
+      emit(`P2P_FINAL_SMOKE_V1 ${JSON.stringify({
+        ok: result.ok,
+        failed: result.failed,
+        tx1: result.tx1,
+        tx2: result.tx2,
+        totals: result.totalsBeforeAfter
+      })}`);
+      return result;
+    } finally {
+      setRules(prevTransfers, prevPlayerToPlayer);
+    }
+  };
+
   const seedTrainingPoints = (minPoints, tag) => {
     const S = Game.__S || {};
     if (!S.players) S.players = {};

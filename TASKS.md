@@ -2160,3 +2160,24 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       E. Console.txt: verify there are no UI errors about the backlog helper or rules.
     Manual QA: PASS only when A–E match.
     Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [LOG-20260217-009] ECON-P2P P2P-final smoke prep (dev)
+- Status: FAIL (smoke not run)
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: FAIL (smoke not run)
+    Facts:
+      - `Game.__DEV.spawnSecondPlayerOnce(opts)` idempotently injects `p2p_smoke_p2` into `Game.__S.players`/`Game.State.players` and logs `P2P_SPAWN_SECOND_PLAYER_V1`.
+      - `Game.__DEV.smokeP2P_FinalOnce(opts)` enables P2P rules, runs a transfer, flips player-to-player flag off, retries (blocked), and validates zero-sum using `sumPointsSnapshot`.
+    Smoke command:
+      `await __RUN__(\`console.log("P2P_FINAL_SMOKE_V1", await Game.__DEV.smokeP2P_FinalOnce({window:{lastN:200}}));\`)`
+    How to verify:
+      1. Console.txt should stay free of UI errors; after running the smoke you expect `P2P_SPAWN_SECOND_PLAYER_V1 ...` and `P2P_FINAL_SMOKE_V1 ...` lines.
+      2. The command should report tx1 ok with reason `p2p_transfer`, amount=1 between me and the spawned player, tx2 ok:false reason `p2p_player_to_player_disabled`.
+      3. Totals (snapshots) should show zero delta before/after both steps, and `logTail` must contain exactly one `p2p_transfer` plus one `p2p_transfer_attempt_blocked`.
+    Manual QA: FAIL until command output matches expectations.
+    Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
