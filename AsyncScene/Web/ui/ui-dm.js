@@ -778,6 +778,46 @@ window.Game = window.Game || {};
       if (UI.openBattlesAndScroll) UI.openBattlesAndScroll();
       requestAll();
     });
+
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const respectMessages = {
+      respect_no_points: "Нужно 1💰, сейчас не хватает.",
+      respect_pair_daily: "Уже было уважение сегодня этому персонажу.",
+      respect_no_chain: "Цепочка A->B->A сегодня не работает.",
+      respect_emitter_empty: "Лимит уважения на сегодня исчерпан.",
+    };
+    const showRespectToast = (kind, text) => {
+      if (!text) return;
+      try {
+        if (UI && typeof UI.showStatToast === "function") {
+          UI.showStatToast(kind, text);
+        }
+      } catch (_) {}
+    };
+    const handleRespectClick = () => {
+      if (!withId || !Game.StateAPI || typeof Game.StateAPI.giveRespect !== "function") return;
+      const res = Game.StateAPI.giveRespect(meId, withId, Date.now());
+      if (!res) return;
+      if (res.ok) {
+        showRespectToast("points", "Ты отдал 1💰");
+        showRespectToast("rep", "Цель получила +1 REP");
+        try { requestAll(); } catch (_) {}
+        return;
+      }
+      const msg = respectMessages[res.reason] || "Сейчас не получилось. Попробуй позже.";
+      showRespectToast("points", msg);
+    };
+    if (withId && withId !== meId) {
+      const respectButton = document.createElement("button");
+      respectButton.type = "button";
+      respectButton.className = "btn respect-action";
+      respectButton.textContent = "Выразить уважение";
+      respectButton.onclick = (ev) => {
+        stop(ev);
+        handleRespectClick();
+      };
+      actions.appendChild(respectButton);
+    }
     if (cdActive) {
       btnBattle.disabled = true;
       btnBattle.title = "Дай человеку передохнуть.";

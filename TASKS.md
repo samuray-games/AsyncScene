@@ -168,31 +168,124 @@ Next Prompt (копипаст, кодблок обязателен):
   ```
 
 -### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
-- Status: DOING
+-Status: PASS
+-Priority: P1
+-Assignee: Codex-ассистент
+-Next: QA
+-Area: Economy
+-Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+-Goal: Add REP emitter daily cap gating inside `giveRespect` without points cost/moneyLog and add a dev smoke helper.
+-Acceptance:
+  - [ ] `REP_EMITTER_DAILY_CAP` constant is defined (20) and `progress.repEmitter` initialized/reset per day.
+  - [ ] `ensureRepEmitter(nowTs)` refills daily, reports `emitterRefilled` and dayKey.
+  - [ ] `giveRespect` blocks with `respect_emitter_empty` when cap exhausted, otherwise decrements balance and returns `ok:true` with meta emitter info.
+  - [ ] `Game.__DEV.smokeRespectEmitterCapOnce()` drains exactly cap successes and fails on cap+1 with `respect_emitter_empty`.
+-Result: PASS (DUMP_AT 2026-02-17 22:54:08 + epoch_ms=1771336448228)
+- Facts:
+  (1) LOG Object{cap: 20, dayKey: 2026-02-17, emitterAfter: Object{balance: 0, dayKey: 2026-02-17}, fail: Object{... ok: false, reason: respect_emitter_empty}, notes: [], ok: true, okCount: 20}
+  (2) Still stub: no points cost, no moneyLog, no REP transfer yet.
+-How to verify:
+  1. Reload dev console (ensure `dev=1`).
+  2. Run `console.log(Game.__DEV.smokeRespectEmitterCapOnce())`.
+  3. PASS if ok:true, okCount===cap, fail.reason=="respect_emitter_empty", emitterAfter.balance===0, and notes empty.
+-Next: QA
+-Next Prompt (копипаст, кодблок обязателен):
+  ```text
+  Ответ QA:
+  (1) Reload http://localhost:8080/index.html?dev=1.
+  (2) Run `console.log(Game.__DEV.smokeRespectEmitterCapOnce())`.
+  (3) PASS if ok:true, okCount===cap, fail.reason=="respect_emitter_empty", emitterAfter.balance===0, and notes empty. Otherwise attach console output and mark FAIL.
+  ```
+
+-### [T-20260217-005] ECON-08 Step 4D respect points cost
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Economy
 - Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: Add REP emitter daily cap gating inside `giveRespect` without points cost/moneyLog and add a dev smoke helper.
+- Goal: Charge 1 point via `Econ.transferPoints` on successful respect; insufficient points must block without emitter/ledger changes.
 - Acceptance:
-  - [ ] `REP_EMITTER_DAILY_CAP` constant is defined (20) and `progress.repEmitter` initialized/reset per day.
-  - [ ] `ensureRepEmitter(nowTs)` refills daily, reports `emitterRefilled` and dayKey.
-  - [ ] `giveRespect` blocks with `respect_emitter_empty` when cap exhausted, otherwise decrements balance and returns `ok:true` with meta emitter info.
-  - [ ] `Game.__DEV.smokeRespectEmitterCapOnce()` drains exactly cap successes and fails on cap+1 with `respect_emitter_empty`.
-- Result: DOING (smoke pending)
-- Notes: Still stub: no points cost, no rep_emitter, no moneyLog yet.
+  - [ ] `giveRespect` transfers 1 point to sink with reason `points_respect_cost` on success and sets `delta.points=-1`.
+  - [ ] Insufficient points returns `respect_no_points` with no ledger write or emitter decrement.
+  - [ ] `Game.__DEV.smokeRespectPointsCostOnce()` validates success cost, no drift, and fail with zero new moneyLog rows.
+- Result: PASS (DUMP_AT 2026-02-17 23:16:17 + epoch_ms=1771337777190)
+- Facts:
+  (1) Object{
+      beforeAfter: Object{mePtsBefore: 1, mePtsAfter1: 0, mePtsAfter2: 0, worldTotalBefore: 191, worldTotalAfter1: 191, worldTotalAfter2: 191},
+      failed: [],
+      moneyLog: Object{addedCount: 1, opKey: respect:2026-02-17:me:npc_weak, reasons: [points_respect_cost]},
+      ok: true,
+      r1: Object{ok: true, reason: rep_respect_given, delta: Object{points: -1, rep: 0}, meta: Object{... opKey: respect:2026-02-17:me:npc_weak ...}},
+      r2: Object{ok: false, reason: respect_no_points, meta: Object{blocked: true, payReason: insufficient, opKey: respect:2026-02-17:me:npc_sad ...}}
+    }
+  (2) Atomicity confirmed: insufficient points produces no moneyLog row and no emitter/ledger side effects.
 - How to verify:
   1. Reload dev console (ensure `dev=1`).
-  2. Run `console.log(Game.__DEV.smokeRespectEmitterCapOnce())`.
-  3. PASS if `ok:true`, `okCount===cap`, `fail.reason==="respect_emitter_empty"`, `emitterAfter.balance===0`, and no `notes`.
+  2. Run `console.log(Game.__DEV.smokeRespectPointsCostOnce())`.
+  3. PASS if ok:true, failed empty, r1.delta.points==-1 with `points_respect_cost` row, r2.reason==`respect_no_points`, and world total diff is 0.
 - Next: QA
 - Next Prompt (копипаст, кодблок обязателен):
   ```text
   Ответ QA:
   (1) Reload http://localhost:8080/index.html?dev=1.
-  (2) Run `console.log(Game.__DEV.smokeRespectEmitterCapOnce())`.
-  (3) PASS if ok:true, okCount===cap, fail.reason==="respect_emitter_empty", emitterAfter.balance===0, and notes empty. Otherwise attach console output and mark FAIL.
+  (2) Run `console.log(Game.__DEV.smokeRespectPointsCostOnce())`.
+  (3) PASS if ok:true, failed empty, r1.delta.points==-1 with a `points_respect_cost` row (opKey matches), r2.reason=="respect_no_points", and world total diff is 0. Otherwise attach console output and mark FAIL.
+  ```
+
+-### [T-20260217-006] ECON-08 Step 5E respect moneyLog + REP transfer
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Log points+rep rows on success, add optional emitter refill log, and ensure repeat same-day pair adds no rows.
+- Acceptance:
+  - [ ] Success produces exactly one `points_respect_cost` and one `rep_respect_given` moneyLog row (plus optional `rep_emitter_refill` once per day).
+  - [ ] Repeat same day same pair returns `respect_pair_daily` and adds no new moneyLog rows.
+  - [ ] `Game.__DEV.smokeRespectMoneyLogOnce()` validates row counts and reasons.
+- Result: PASS (DUMP_AT 2026-02-17 23:30:35 + epoch_ms=1771338635482)
+- Facts:
+  (1) Object{
+  ok: true,
+  moneyLog: Object{
+    added1: 3,
+    added2: 0,
+    reasons1: [points_respect_cost, rep_emitter_refill, rep_respect_given],
+    reasons2: []
+  },
+  r1: Object{
+    ok: true,
+    reason: rep_respect_given,
+    delta: Object{points: -1, rep: 1},
+    meta: Object{
+      dayKey: 2026-02-17,
+      opKey: respect:2026-02-17:me:npc_weak,
+      emitterRefilled: true,
+      emitterDailyCap: 20,
+      emitterBalanceAfter: 19
+    }
+  },
+  r2: Object{
+    ok: false,
+    reason: respect_pair_daily,
+    delta: Object{points: 0, rep: 0},
+    meta: Object{blocked: true, dayKey: 2026-02-17, opKey: respect:2026-02-17:me:npc_weak}
+  }
+}
+  (2) On first call 2 rows + optional refill row; on repeat 0 rows, reason respect_pair_daily. Idempotency by opKey respected.
+- How to verify:
+  1. Reload dev console (ensure `dev=1`).
+  2. Run `console.log(Game.__DEV.smokeRespectMoneyLogOnce())`.
+  3. PASS if ok:true, failed empty, reasons1 has exactly one `points_respect_cost` and one `rep_respect_given` (plus `rep_emitter_refill` only when `r1.meta.emitterRefilled`), and added2==0 with r2.reason=="respect_pair_daily".
+- Next: QA
+- Next Prompt (копипаст, кодблок обязателен):
+  ```text
+  Ответ QA:
+  (1) Reload http://localhost:8080/index.html?dev=1.
+  (2) Run `console.log(Game.__DEV.smokeRespectMoneyLogOnce())`.
+  (3) PASS if ok:true, failed empty, reasons1 has exactly one `points_respect_cost` and one `rep_respect_given` (plus `rep_emitter_refill` only when `r1.meta.emitterRefilled`), and added2==0 with r2.reason=="respect_pair_daily". Otherwise attach console output and mark FAIL.
   ```
 
 -### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke

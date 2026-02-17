@@ -346,12 +346,206 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
+  const addRespectPointsCostSmokeHelper = (devStore) => {
+    if (typeof devStore.smokeRespectPointsCostOnce === "function") return;
+    devStore.smokeRespectPointsCostOnce = function (opts = {}) {
+      const stateApi = Game.StateAPI || null;
+      const S = Game.State || null;
+      const D = Game.__D || (Game.__D = {});
+      const Econ = Game._ConflictEconomy || null;
+      if (!stateApi || typeof stateApi.giveRespect !== "function") {
+        return { ok: false, failed: ["state_api_missing"] };
+      }
+      if (!S || !S.players) {
+        return { ok: false, failed: ["state_missing"] };
+      }
+      const sumSnapshot = (Game.__DEV && typeof Game.__DEV.sumPointsSnapshot === "function")
+        ? Game.__DEV.sumPointsSnapshot
+        : null;
+      if (!sumSnapshot) {
+        return { ok: false, failed: ["sumPointsSnapshot_missing"] };
+      }
+
+      const npcIds = Object.keys(S.players).filter(id => id && String(id).startsWith("npc_"));
+      const npcId = npcIds[0] || "npc_weak";
+      const npcId2 = (npcIds[1] && npcIds[1] !== npcId) ? npcIds[1] : `${npcId}_alt`;
+      const baseTs = Number.isFinite(opts.nowTs) ? opts.nowTs : Date.now();
+      const pad = (n) => String(n).padStart(2, "0");
+      const d = new Date(baseTs);
+      const dayKey = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+      const setPoints = (obj, v) => {
+        if (!obj) return;
+        const val = Number.isFinite(Number(v)) ? Number(v) : 0;
+        if (typeof Game._withPointsWrite === "function") {
+          Game._withPointsWrite(() => { obj.points = val; });
+        } else {
+          obj.points = val;
+        }
+      };
+      const setMePoints = (v) => {
+        setPoints(S.me, v);
+        if (S.players && S.players.me) setPoints(S.players.me, v);
+      };
+
+      // Clear ledger entries for the tested pairs to avoid pairDaily/chain noise.
+      if (S.progress && S.progress.respectLedger && S.progress.respectLedger.lastByPairDay) {
+        S.progress.respectLedger.lastByPairDay.me = Object.create(null);
+        S.progress.respectLedger.lastByPairDay[npcId] = Object.create(null);
+        S.progress.respectLedger.lastByPairDay[npcId2] = Object.create(null);
+      }
+      if (S.progress && S.progress.repEmitter) {
+        S.progress.repEmitter.balance = (Game.__DEV && typeof Game.__DEV.getRespectEmitterCap === "function")
+          ? (Game.__DEV.getRespectEmitterCap() | 0)
+          : 20;
+        S.progress.repEmitter.dayKey = dayKey;
+      }
+
+      setMePoints(1);
+      const beforeSnap = sumSnapshot();
+      const log = Array.isArray(D.moneyLog) ? D.moneyLog : (D.moneyLog = []);
+      const logStart = log.length;
+
+      const r1 = stateApi.giveRespect("me", npcId, baseTs);
+      const afterSnap1 = sumSnapshot();
+      const logMid = log.length;
+      const r1Rows = log.slice(logStart, logMid);
+      const opKey = r1 && r1.meta ? r1.meta.opKey : null;
+      const costRows = r1Rows.filter(row => row && row.reason === "points_respect_cost" && row.meta && row.meta.opKey === opKey);
+
+      setMePoints(0);
+      const r2 = stateApi.giveRespect("me", npcId2, baseTs + 1000);
+      const afterSnap2 = sumSnapshot();
+      const logEnd = log.length;
+      const r2Rows = log.slice(logMid, logEnd);
+
+      const failed = [];
+      if (!r1 || r1.ok !== true) failed.push("r1_not_ok");
+      if (r1 && r1.reason !== "rep_respect_given") failed.push("r1_reason_mismatch");
+      if (r1 && r1.delta && r1.delta.points !== -1) failed.push("r1_delta_points_mismatch");
+      if (S.me && Number.isFinite(S.me.points) && (S.me.points | 0) !== 0) failed.push("r1_points_not_deducted");
+      if (afterSnap1 && beforeSnap && ((afterSnap1.total | 0) - (beforeSnap.total | 0)) !== 0) failed.push("world_drift_after_r1");
+      if (costRows.length !== 1) failed.push("moneylog_missing_points_respect_cost");
+
+      if (!r2 || r2.ok !== false) failed.push("r2_not_blocked");
+      if (r2 && r2.reason !== "respect_no_points") failed.push("r2_reason_mismatch");
+      if (S.me && Number.isFinite(S.me.points) && (S.me.points | 0) !== 0) failed.push("r2_points_changed");
+      if (afterSnap2 && afterSnap1 && ((afterSnap2.total | 0) - (afterSnap1.total | 0)) !== 0) failed.push("world_drift_after_r2");
+      if (r2Rows.length !== 0) failed.push("moneylog_rows_on_fail");
+
+      return {
+        ok: failed.length === 0,
+        failed,
+        r1,
+        r2,
+        beforeAfter: {
+          mePtsBefore: beforeSnap && beforeSnap.byId ? beforeSnap.byId.me : null,
+          mePtsAfter1: afterSnap1 && afterSnap1.byId ? afterSnap1.byId.me : null,
+          mePtsAfter2: afterSnap2 && afterSnap2.byId ? afterSnap2.byId.me : null,
+          worldTotalBefore: beforeSnap ? beforeSnap.total : null,
+          worldTotalAfter1: afterSnap1 ? afterSnap1.total : null,
+          worldTotalAfter2: afterSnap2 ? afterSnap2.total : null,
+        },
+        moneyLog: {
+          addedCount: logEnd - logStart,
+          reasons: r1Rows.map(row => row && row.reason ? row.reason : "unknown"),
+          opKey,
+        },
+        notes: [],
+      };
+    };
+  };
+
+  const addRespectMoneyLogSmokeHelper = (devStore) => {
+    if (typeof devStore.smokeRespectMoneyLogOnce === "function") return;
+    devStore.smokeRespectMoneyLogOnce = function (opts = {}) {
+      const stateApi = Game.StateAPI || null;
+      const S = Game.State || null;
+      const D = Game.__D || (Game.__D = {});
+      if (!stateApi || typeof stateApi.giveRespect !== "function") {
+        return { ok: false, failed: ["state_api_missing"] };
+      }
+      if (!S || !S.players) {
+        return { ok: false, failed: ["state_missing"] };
+      }
+      const npcIds = Object.keys(S.players).filter(id => id && String(id).startsWith("npc_"));
+      const npcIdA = npcIds[0] || "npc_weak";
+      const npcIdB = (npcIds[1] && npcIds[1] !== npcIdA) ? npcIds[1] : `${npcIdA}_alt`;
+      const baseTs = Number.isFinite(opts.nowTs) ? opts.nowTs : Date.now();
+
+      const setPoints = (obj, v) => {
+        if (!obj) return;
+        const val = Number.isFinite(Number(v)) ? Number(v) : 0;
+        if (typeof Game._withPointsWrite === "function") {
+          Game._withPointsWrite(() => { obj.points = val; });
+        } else {
+          obj.points = val;
+        }
+      };
+      const setMePoints = (v) => {
+        setPoints(S.me, v);
+        if (S.players && S.players.me) setPoints(S.players.me, v);
+      };
+
+      if (S.progress && S.progress.respectLedger && S.progress.respectLedger.lastByPairDay) {
+        S.progress.respectLedger.lastByPairDay.me = Object.create(null);
+        S.progress.respectLedger.lastByPairDay[npcIdA] = Object.create(null);
+        S.progress.respectLedger.lastByPairDay[npcIdB] = Object.create(null);
+      }
+
+      setMePoints(2);
+      const log = Array.isArray(D.moneyLog) ? D.moneyLog : (D.moneyLog = []);
+      const start = log.length;
+      const r1 = stateApi.giveRespect("me", npcIdA, baseTs);
+      const mid = log.length;
+      const added1 = log.slice(start, mid);
+      const reasons1 = added1.map(row => row && row.reason ? row.reason : "unknown");
+      const r1Refill = !!(r1 && r1.meta && r1.meta.emitterRefilled);
+
+      const r2 = stateApi.giveRespect("me", npcIdA, baseTs + 1000);
+      const end = log.length;
+      const added2 = log.slice(mid, end);
+      const reasons2 = added2.map(row => row && row.reason ? row.reason : "unknown");
+
+      const countReason = (arr, reason) => arr.filter(r => r === reason).length;
+      const failed = [];
+      if (!r1 || r1.ok !== true) failed.push("r1_not_ok");
+      if (r1 && r1.delta && r1.delta.points !== -1) failed.push("r1_points_delta_mismatch");
+      if (r1 && r1.delta && r1.delta.rep !== 1) failed.push("r1_rep_delta_mismatch");
+      if (countReason(reasons1, "points_respect_cost") !== 1) failed.push("r1_cost_row_count_mismatch");
+      if (countReason(reasons1, "rep_respect_given") !== 1) failed.push("r1_rep_row_count_mismatch");
+      const refillCount = countReason(reasons1, "rep_emitter_refill");
+      if (r1Refill && refillCount !== 1) failed.push("r1_refill_row_missing");
+      if (!r1Refill && refillCount !== 0) failed.push("r1_refill_row_unexpected");
+
+      if (!r2 || r2.ok !== false) failed.push("r2_not_blocked");
+      if (r2 && r2.reason !== "respect_pair_daily") failed.push("r2_reason_mismatch");
+      if (added2.length !== 0) failed.push("r2_added_rows");
+
+      return {
+        ok: failed.length === 0,
+        failed,
+        r1,
+        r2,
+        moneyLog: {
+          added1: added1.length,
+          reasons1,
+          added2: added2.length,
+          reasons2,
+        },
+        notes: [],
+      };
+    };
+  };
+
   if (!DEV_FLAG) return;
 
   const devStore = ensureDevStoreSurface();
   addStage3SmokeHelper(devStore);
   addRespectLedgerSmokeHelper(devStore);
   addRespectEmitterSmokeHelper(devStore);
+  addRespectPointsCostSmokeHelper(devStore);
+  addRespectMoneyLogSmokeHelper(devStore);
 
   const getNow = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
 

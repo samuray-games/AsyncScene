@@ -3107,10 +3107,33 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA (run the helper in dev console, confirm the expected ok/reasons and ledger day key, then report PASS/FAIL with the console object). 
 
 ### 2026-02-17 — ECON-08 Step 3C respect rep_emitter daily cap (smoke pending)
-- Status: DOING
+- Status: PASS
 - Facts:
   - Added `REP_EMITTER_DAILY_CAP=20`, `progress.repEmitter` storage, and `ensureRepEmitter(nowTs)` which refills daily and reports `emitterRefilled`.
   - `giveRespect` now checks emitter balance after ledger guards; blocks with `respect_emitter_empty` when cap exhausted, otherwise decrements and returns `ok:true` with `emitterBalanceAfter`, `emitterDailyCap`, and `emitterRefilled` in meta (still stub, no econ/moneyLog).
   - Added dev helper `Game.__DEV.smokeRespectEmitterCapOnce()` that runs CAP successes with unique pairs and validates CAP+1 failure reason, returning `{ok, cap, okCount, fail, emitterAfter}`.
-  - Still stub: no points cost, no rep_emitter, no moneyLog yet.
-- Next: QA (run `Game.__DEV.smokeRespectEmitterCapOnce()` and record PASS/FAIL with console output).
+  - Still stub: no points cost, no moneyLog, no REP transfer yet.
+- Next: QA
+-  Console DUMP_AT 2026-02-17 22:54:08 (epoch_ms=1771336448228) recorded LOG Object{cap: 20, dayKey: 2026-02-17, emitterAfter: Object{balance: 0, dayKey: 2026-02-17}, fail: Object{... ok: false, reason: respect_emitter_empty}, notes: [], ok: true, okCount: 20}. (run `Game.__DEV.smokeRespectEmitterCapOnce()` and record PASS/FAIL with console output).
+
+
+### 2026-02-17 — ECON-08 Step 4D respect points cost (smoke pending)
+- Status: PASS
+- Facts:
+  - `giveRespect` charges 1 point via `Econ.transferPoints(fromId, "sink", 1, "points_respect_cost", meta)` before ledger/emitter updates, returns `delta.points=-1`, and still keeps REP stubbed.
+  - Insufficient points now produce `respect_no_points`, no ledger/emitter writes, and no extra moneyLog rows; atomicity confirmed via emitter reset on failure.
+  - Dev helper `Game.__DEV.smokeRespectPointsCostOnce()` seeds points, verifies the moneyLog row and world invariants, then replays insufficient points to confirm no rows/ledger changes.
+  - Still stub: no REP moneyLog, no REP transfer.
+  - Console DUMP_AT 2026-02-17 23:16:17 (epoch_ms=1771337777190) Object{beforeAfter: Object{mePtsBefore: 1, mePtsAfter1: 0, mePtsAfter2: 0, worldTotalBefore: 191, worldTotalAfter1: 191, worldTotalAfter2: 191}, failed: [], moneyLog: Object{addedCount: 1, opKey: respect:2026-02-17:me:npc_weak, reasons: [points_respect_cost]}, ok: true, r1: Object{ok: true, reason: rep_respect_given, delta: Object{points: -1, rep: 0}, meta: Object{... opKey: respect:2026-02-17:me:npc_weak ...}}, r2: Object{ok: false, reason: respect_no_points, meta: Object{blocked: true, payReason: insufficient, opKey: respect:2026-02-17:me:npc_sad ...}}}
+- Next: QA (run `Game.__DEV.smokeRespectPointsCostOnce()` and capture PASS/FAIL output).
+
+
+### 2026-02-17 — ECON-08 Step 5E respect moneyLog + REP transfer (smoke pending)
+- Status: PASS
+- Facts:
+  - `giveRespect` now logs `rep_emitter_refill` once per dayKey (when refilled) and transfers 1 REP from `rep_emitter` to target using `transferRep`, which logs `rep_respect_given` exactly once.
+  - Repeat same-day pair returns `respect_pair_daily` with no new moneyLog rows, ensuring idempotency keyed by `opKey`.
+  - `Game.__DEV.smokeRespectMoneyLogOnce()` confirms two new rows (`points_respect_cost`, `rep_respect_given`), optional refill, and zero-row repeat.
+  - Console DUMP_AT 2026-02-17 23:30:35 (epoch_ms=1771338635482): Object{ ok: true, moneyLog: Object{ added1: 3, added2: 0, reasons1: [points_respect_cost, rep_emitter_refill, rep_respect_given], reasons2: [] }, r1: Object{ ok: true, reason: rep_respect_given, delta: Object{points: -1, rep: 1}, meta: Object{ dayKey: 2026-02-17, opKey: respect:2026-02-17:me:npc_weak, emitterRefilled: true, emitterDailyCap: 20, emitterBalanceAfter: 19 } }, r2: Object{ ok: false, reason: respect_pair_daily, delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, opKey: respect:2026-02-17:me:npc_weak} } }
+  - On first call 2 rows + optional refill row; on repeat 0 rows, reason respect_pair_daily. Idempotency by opKey respected.
+- Next: QA (run `Game.__DEV.smokeRespectMoneyLogOnce()` and capture PASS/FAIL output).

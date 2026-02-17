@@ -110,7 +110,7 @@ window.Game = window.Game || {};
     ensureProgress();
     const dayKey = dayKeyFromNowTs(nowTs);
     if (!State.progress.repEmitter || typeof State.progress.repEmitter !== "object") {
-      State.progress.repEmitter = { balance: 0, dayKey: "" };
+      State.progress.repEmitter = { balance: 0, dayKey: "", lastRefillLoggedDayKey: "" };
     }
     const emitter = State.progress.repEmitter;
     let emitterRefilled = false;
@@ -254,11 +254,13 @@ window.Game = window.Game || {};
     const ledger = ensureRespectLedger();
     const pairMap = ensurePool(ledger.lastByPairDay, actorId);
     const inboundMap = ensurePool(ledger.lastInboundDay, targetId);
+    const opKey = `respect:${dayKey}:${actorId}:${targetId}`;
     const meta = {
       fromId: actorId,
       toId: targetId,
       nowTs: timestamp,
       op: "respect",
+      opKey,
       stub: true,
       dayKey,
     };
@@ -304,14 +306,60 @@ window.Game = window.Game || {};
       };
     }
 
+    const Econ = getEcon();
+    let pay = null;
+    if (Econ && typeof Econ.transferPoints === "function") {
+      pay = Econ.transferPoints(actorId, "sink", 1, RESPECT_REASON_CODES.POINTS_COST, {
+        opKey,
+        dayKey,
+        op: "respect",
+        fromId: actorId,
+        toId: targetId,
+        stub: true,
+      });
+    }
+    if (!pay || pay.ok === false) {
+      return {
+        ok: false,
+        reason: "respect_no_points",
+        delta: { points: 0, rep: 0 },
+        meta: {
+          ...meta,
+          blocked: true,
+          payReason: pay && pay.reason ? pay.reason : "transfer_failed",
+        },
+      };
+    }
+
+    if (emitterState.emitterRefilled && emitterState.emitter.lastRefillLoggedDayKey !== dayKey) {
+      emitterState.emitter.lastRefillLoggedDayKey = dayKey;
+      logRepTransfer({
+        time: Date.now(),
+        sourceId: "rep_emitter",
+        targetId: "rep_emitter",
+        amount: 0,
+        reason: RESPECT_REASON_CODES.REP_EMITTER_REFILL,
+        battleId: opKey,
+        currency: "rep",
+        meta: { dayKey, cap: REP_EMITTER_DAILY_CAP, op: "respect", opKey }
+      });
+    }
+
     emitterState.emitter.balance -= 1;
+    transferRep("rep_emitter", targetId, 1, RESPECT_REASON_CODES.REP_GIVEN, opKey, {
+      fromId: actorId,
+      toId: targetId,
+      dayKey,
+      opKey,
+      op: "respect",
+    });
     pairMap[targetId] = dayKey;
     inboundMap[actorId] = dayKey;
 
     return {
       ok: true,
       reason: RESPECT_REASON_CODES.REP_GIVEN,
-      delta: { points: 0, rep: 0 },
+      delta: { points: -1, rep: 1 },
       meta: {
         ...meta,
         emitterBalanceAfter: emitterState.emitter.balance,

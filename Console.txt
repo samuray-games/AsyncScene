@@ -1,6 +1,6 @@
-[DUMP_AT] [2026-02-17 22:54:08] (epoch_ms=1771336448228)
+[DUMP_AT] [2026-02-17 23:30:35] (epoch_ms=1771338635482)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771336438292
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771338624000
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
@@ -10,15 +10,15 @@ WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771336438335 1771336438405
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771338624073 1771338624167
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771336438406
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771338624168
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771336438408}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771338624170}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
@@ -42,47 +42,50 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771336438434
+LOG [AttackChoices] conflict-arguments loaded 1771338624199
 LOG [ConflictAPI] ready
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771336448203_c48812c647a35 console.log(Game.__DEV.smokeRespectEmitterCapOnce());
-WARN [repl] > console.log(Game.__DEV.smokeRespectEmitterCapOnce());
-LOG Object{cap: 20, dayKey: 2026-02-17, emitterAfter: Object{balance: 0, dayKey: 2026-02-17}, fail: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, emitterBalance: 0, emitterDailyCap: 20, emitterRefilled: false, fromId: me, nowTs: 1771336468705, op: respect, stub: true, toId: respect_target_20}, ok: false, reason: respect_emitter_empty}, notes: [], ok: true, okCount: 20}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771338635456_a5727bee9f01c8 console.log(Game.__DEV.smokeRespectMoneyLogOnce());
+WARN [repl] > console.log(Game.__DEV.smokeRespectMoneyLogOnce());
+LOG Object{failed: [], moneyLog: Object{added1: 3, added2: 0, reasons1: [points_respect_cost, rep_emitter_refill, rep_respect_given], reasons2: []}, notes: [], ok: true, r1: Object{delta: Object{points: -1, rep: 1}, meta: Object{dayKey: 2026-02-17, emitterBalanceAfter: 19, emitterDailyCap: 20, emitterRefilled: true, fromId: me, nowTs: 1771338635461, op: respect, opKey: respect:2026-02-17:me:npc_weak, stub: true, toId: npc_weak}, ok: true, reason: rep_respect_given}, r2: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771338636461, op: respect, opKey: respect:2026-02-17:me:npc_weak, stub: true, toId: npc_weak}, ok: false, reason: respect_pair_daily}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg1
 LOG Object{
-  cap: 20
-  dayKey: 2026-02-17
-  emitterAfter: Object{
-    balance: 0
-    dayKey: 2026-02-17
-  }
-  fail: Object{
-    delta: Object{
-      points: 0
-      rep: 0
-    }
-    meta: Object{
-      blocked: true
-      dayKey: 2026-02-17
-      emitterBalance: 0
-      emitterDailyCap: 20
-      emitterRefilled: false
-      fromId: me
-      nowTs: 1771336468705
-      op: respect
-      stub: true
-      toId: respect_target_20
-    }
-    ok: false
-    reason: respect_emitter_empty
+  failed: [
+
+  ]
+  moneyLog: Object{
+    added1: 3
+    added2: 0
+    reasons1: [
+      points_respect_cost
+      rep_emitter_refill
+      rep_respect_given
+    ]
+    reasons2: [
+
+    ]
   }
   notes: [
 
   ]
-…
+  ok: true
+  r1: Object{
+    delta: Object{
+      points: -1
+      rep: 1
+    }
+    meta: Object{
+      dayKey: 2026-02-17
+      emitterBalanceAfter: 19
+      emitterDailyCap: 20
+      emitterRefilled: true
+      fromId: me
+      nowTs: 1771338635461
+      op: respect
+      opKey: respe…
 LOG END CONSOLE_EXPAND_V1
 LOG [repl] < Promise{}
 WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771336448203_c48812c647a35 Object{ok: true, value: undefined}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771338635456_a5727bee9f01c8 Object{ok: true, value: undefined}
 
