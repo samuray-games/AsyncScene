@@ -935,6 +935,9 @@ window.Game = window.Game || {};
       }
     } catch (_) {}
   };
+  if (Game && Game.UI) {
+    Game.UI.showStatToast = UI.showStatToast;
+  }
 
   UI.emitStatDelta = (kind, delta, opts) => {
     if (!kind || !Number.isFinite(Number(delta || 0)) || (delta | 0) === 0) return;

@@ -541,9 +541,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
 
   const addRespectUiSmokeHelper = (devStore) => {
     if (typeof devStore.smokeRespectUiOnce === "function") return;
-    devStore.smokeRespectUiOnce = function (opts = {}) {
+    devStore.smokeRespectUiOnce = async function (opts = {}) {
       const S = Game.State || {};
-      const tape = Game.__DEV && Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__ : [];
       const uiClick = Game.__DEV && typeof Game.__DEV.__uiRespectClick__ === "function"
         ? Game.__DEV.__uiRespectClick__
         : null;
@@ -556,8 +555,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         hasClick: !!(Game.__DEV && Game.__DEV.__uiRespectClick__),
         hasVisible: !!(Game.__DEV && Game.__DEV.__uiRespectButtonVisible__),
       };
+      const notes = [];
+      if (!uiVisible) notes.push("ui_visible_hook_missing");
+      if (!uiClick) notes.push("ui_click_hook_missing");
       if (!uiClick) {
-        const notes = [];
         const markers = Game.__DEV && Game.__DEV.__markers__ ? Game.__DEV.__markers__ : {};
         if (markers.uiDmLoaded && !markers.uiRespectHooks) notes.push("ui_dm_loaded_but_hooks_missing");
         return { ok: false, failed: ["ui_respect_handler_missing"], asserts: {}, notes, diag };
@@ -586,18 +587,22 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         Game.__DEV.__toastTape__ = [];
       }
       const r1 = uiClick(npcId, opts.nowTs || Date.now());
-      await Promise.resolve();
       await new Promise(r => setTimeout(r, 0));
-      const toasts1 = (Game.__DEV.__toastTape__ || []).slice();
-      Game.__DEV.__toastTape__.length = 0;
+      await new Promise(r => setTimeout(r, 0));
+      const tape = (Game.__DEV && Array.isArray(Game.__DEV.__toastTape__)) ? Game.__DEV.__toastTape__ : [];
+      const toasts1 = tape.slice();
+      const last2 = tape.slice(-2).map(e => (e && typeof e.text === "string") ? e.text : null);
+      const toast1 = last2[0] || null;
+      const toast2 = last2[1] || null;
+      diag.toastCallCount = (Game.__DEV && Number.isFinite(Game.__DEV.__toastCallCount__)) ? Game.__DEV.__toastCallCount__ : 0;
+      diag.tapeLen = tape.length;
+      if (diag.toastCallCount === 0) notes.push("toast_callcount_zero");
+      if (diag.tapeLen === 0) notes.push("toast_tape_empty");
       setMePoints(0);
       const r2 = uiClick(npcId, (opts.nowTs || Date.now()) + 1000);
-      await Promise.resolve();
       await new Promise(r => setTimeout(r, 0));
-      const toasts2 = (Game.__DEV.__toastTape__ || []).slice();
-
-      const toast1 = toasts1[0] ? toasts1[0].text : null;
-      const toast2 = toasts1[1] ? toasts1[1].text : null;
+      await new Promise(r => setTimeout(r, 0));
+      const toasts2 = (Game.__DEV && Array.isArray(Game.__DEV.__toastTape__)) ? Game.__DEV.__toastTape__.slice() : [];
       const blockedToast = toasts2[0] ? toasts2[0].text : null;
 
       const failed = [];
@@ -606,11 +611,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       if (toast1 !== "Ты отдал 1💰" || toast2 !== "Цель получила +1 REP") {
         failed.push("toast_missing_or_mismatch");
       }
-
-      const toastTape = Game.__DEV && Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__ : [];
-      const toastCallCount = (Game.__DEV && Number.isFinite(Game.__DEV.__toastCallCount__)) ? Game.__DEV.__toastCallCount__ : 0;
-      diag.toastCallCount = toastCallCount;
-      diag.tapeLen = toastTape.length;
 
       return {
         ok: failed.length === 0,
@@ -629,7 +629,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           toasts1,
           toasts2,
         },
-        notes: [],
+        notes,
         diag,
       };
     };

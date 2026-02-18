@@ -1,10 +1,25 @@
-[DUMP_AT] [2026-02-18 00:25:05] (epoch_ms=1771341905012)
+[DUMP_AT] [2026-02-18 23:30:55] (epoch_ms=1771425055590)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771341894536
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771425007994
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
-ERROR_EVENT SyntaxError: Unexpected identifier 'Promise' http://localhost:8080/dev/dev-checks.js?v=1771341894576 589 0 SyntaxError: Unexpected identifier 'Promise'
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771425008141}
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771425008025 1771425008143
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771425008143
+WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771425008145}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
@@ -28,90 +43,31 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771341894648
+LOG [AttackChoices] conflict-arguments loaded 1771425008189
 LOG [ConflictAPI] ready
-WARN UI_DM_V1_LOADED Object{ts: 1771341894655}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771341894655}
+WARN UI_DM_V1_LOADED Object{ts: 1771425008195}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771425008195}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771341904974_630f1831cc914 console.log(await Game.__DEV.smokeRespectUiOnce());
-WARN [repl] > console.log(await Game.__DEV.smokeRespectUiOnce());
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771425025735_8880ec13c9f51 console.log("TOAST_WRAP_PROBE", {
+  hasGame: !!window.Game,
+  hasDev: !!(window.Game && Game.__DEV),
+  hasTape: !!(window.Game && Game.__DEV && Array.isArray(Game.__DEV.__toastTape__)),
+  hasCallCount: !!(window.Game && Game.__DEV && typeof Game.__DEV.__toastCallCount__ !== "undefined"),
+  hasProbe: !!(window.Game && Game.__DEV && typeof Game.__DEV.__toastProbe__ === "function"),
+  hasGameUI: !!(window.Game && Game.UI),
+  hasShow_GameUI: !!(window.Game && Game.UI && typeof Game.UI.showStatToast …
+WARN [repl] > console.log("TOAST_WRAP_PROBE", {
+  hasGame: !!window.Game,
+  hasDev: !!(window.Game && Game.__DEV),
+  hasTape: !!(window.Game && Game.__DEV && Array.isArray(Game.__DEV.__toastTape__)),
+  hasCallCount: !!(window.Game && Game.__DEV && typeof Game.__DEV.__toastCallCount__ !== "undefined"),
+  hasProbe: !!(window.Game && Game.__DEV && typeof Game.__DEV.__toastProbe__ === "function"),
+  hasGameUI: !!(window.Game && Game.UI),
+  hasShow_GameUI: !!(window.Game && Game.UI && typeof Game.UI.showStatToast …
+LOG TOAST_WRAP_PROBE Object{hasCallCount: false, hasDev: true, hasGame: true, hasGameUI: true, hasProbe: false, hasShow_GameUI: true, hasTape: false}
+LOG TOAST_WRAP_AFTER Object{callCount: undefined, tape: undefined}
 LOG [repl] < Promise{}
 WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-ERROR [repl] < ERROR TypeError: Game.__DEV.smokeRespectUiOnce is not a function. (In 'Game.__DEV.smokeRespectUiOnce()', 'Game.__DEV.smokeRespectUiOnce' is undefined)
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:223:59
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG TypeError: Game.__DEV.smokeRespectUiOnce is not a function. (In 'Game.__DEV.smokeRespectUiOnce()', 'Game.__DEV.smokeRespectUiOnce' is undefined)
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:223:59
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, error], preview: Object{
-  error: Object{
-    message: Game.__DEV.smokeRespectUiOnce is not a function. (In 'Game.__DEV.smokeRespectUiOnce()', 'Game.__DEV.smokeRespectUiOnce' is undefined)
-    name: TypeError
-    stack: @
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:223:59
-  }
-  …, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    ok
-    error
-  ]
-  preview: Object{
-  error: Object{
-    message: Game.__DEV.smokeRespectUiOnce is not a function. (In 'Game.__DEV.smokeRespectUiOnce()', 'Game.__DEV.smokeRespectUiOnce' is undefined)
-    name: TypeError
-    stack: @
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:1…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771341904974_630f1831cc914 Object{error: Object{message: Game.__DEV.smokeRespectUiOnce is not a function. (In 'Game.__DEV.smokeRespectUiOnce()', 'Game.__DEV.smokeRespectUiOnce' is undefined), name: TypeError, stack: @
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:223:59}, ok: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  error: Object{
-    message: Game.__DEV.smokeRespectUiOnce is not a function. (In 'Game.__DEV.smokeRespectUiOnce()', 'Game.__DEV.smokeRespectUiOnce' is undefined)
-    name: TypeError
-    stack: @
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:223:59
-  }
-  …
-LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771425025735_8880ec13c9f51 Object{ok: true, value: undefined}
 
