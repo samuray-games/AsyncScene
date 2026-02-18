@@ -16,6 +16,46 @@ window.Game = window.Game || {};
   const UI = {};
   Game.UI = UI;
 
+  const ensureToastTapeState = () => {
+    if (!Game.__DEV) Game.__DEV = {};
+    if (!Array.isArray(Game.__DEV.__toastTape__)) Game.__DEV.__toastTape__ = [];
+    if (!Number.isFinite(Game.__DEV.__toastCallCount__)) Game.__DEV.__toastCallCount__ = 0;
+    if (typeof Game.__DEV.__toastProbe__ !== "function") {
+      Game.__DEV.__toastProbe__ = (text) => {
+        try {
+          const tape = Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__ : (Game.__DEV.__toastTape__ = []);
+          tape.push({ text: String(text || ""), ts: Date.now() });
+          Game.__DEV.__toastCallCount__ = (Game.__DEV.__toastCallCount__ || 0) + 1;
+        } catch (_) {}
+      };
+    }
+  };
+
+  const installToastTapeWrapper = (() => {
+    const delayFor = (retry) => (retry < 5 ? 0 : 50);
+    const attempt = (retry = 0) => {
+      ensureToastTapeState();
+      const hasGameUI = !!(Game && Game.UI && typeof Game.UI.showStatToast === "function");
+      if (hasGameUI && !Game.__DEV.__toastWrapped__) {
+        const original = Game.UI.showStatToast;
+        Game.UI.showStatToast = function (kind, text) {
+          try {
+            if (typeof Game.__DEV.__toastProbe__ === "function") {
+              Game.__DEV.__toastProbe__(text);
+            }
+          } catch (_) {}
+          return original.call(this, kind, text);
+        };
+        Game.__DEV.__toastWrapped__ = true;
+        console.warn("UI_TOAST_TAPE_READY", { hasGameUI: true, wrapped: true, ts: Date.now() });
+        return;
+      }
+      if (retry >= 10) return;
+      setTimeout(() => attempt(retry + 1), delayFor(retry));
+    };
+    return attempt;
+  })();
+
   // Safe no-op fallbacks (prevent silent breaks if module not loaded yet)
   UI.renderChatSmart = UI.renderChatSmart || function(){};
   UI.renderBattles = UI.renderBattles || function(){};
@@ -935,9 +975,6 @@ window.Game = window.Game || {};
       }
     } catch (_) {}
   };
-  if (Game && Game.UI) {
-    Game.UI.showStatToast = UI.showStatToast;
-  }
 
   UI.emitStatDelta = (kind, delta, opts) => {
     if (!kind || !Number.isFinite(Number(delta || 0)) || (delta | 0) === 0) return;
@@ -2200,4 +2237,5 @@ window.Game = window.Game || {};
   };
 
   window.__S = S;
+  installToastTapeWrapper();
 })();
