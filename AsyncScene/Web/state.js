@@ -451,8 +451,17 @@ window.Game = window.Game || {};
   }
 
   const SILENT_REASON_TOKENS = ["dev", "migration", "internal"];
+  const SILENT_WORLD_REASONS = new Set([
+    "world_tax_in",
+    "world_tax_out",
+    "world_stipend_out",
+    "npc_account_init",
+    "npc_account_sync",
+    "npc_activity_tax",
+    "crowd_cap_debug"
+  ]);
 
-  function isSilentOkReason(reason){
+  function isSilentOkReason(reason, involvesMe){
     if (!reason) return false;
     const normalized = String(reason || "").toLowerCase();
     if (!normalized) return false;
@@ -461,18 +470,21 @@ window.Game = window.Game || {};
       if (normalized.startsWith(token)) return true;
       if (normalized.includes(`_${token}`)) return true;
     }
+    if (!involvesMe && SILENT_WORLD_REASONS.has(normalized)) return true;
     return false;
   }
 
   function shouldToastRow(row){
     if (!row || typeof row !== "object") return false;
+    const involvesMe = (String(row.sourceId || "") === "me") || (String(row.targetId || "") === "me");
+    if (!involvesMe) return false;
     const amountSource = (row.amount !== undefined) ? row.amount : ((row.delta !== undefined) ? row.delta : 0);
     const amount = Number(amountSource);
     if (!Number.isFinite(amount) || amount === 0) return false;
     const currencyCandidate = String(row.currency || row.kind || "points").toLowerCase();
     if (currencyCandidate !== "points" && currencyCandidate !== "rep") return false;
     const reason = String(row.reason || (row.meta && row.meta.reason) || "").trim();
-    if (isSilentOkReason(reason)) return false;
+    if (isSilentOkReason(reason, involvesMe)) return false;
     return true;
   }
 
@@ -4131,7 +4143,7 @@ window.Game = window.Game || {};
       } catch (_) {}
       return result;
     };
-    Game.__DEV.smokeEconUi_NoSilentReasonsOnce = async function smokeEconUi_NoSilentReasonsOnce(opts = {}) {
+    Game.__DEV.smokeEconUi_NoSilentReasonsOnce = function smokeEconUi_NoSilentReasonsOnce(opts = {}) {
       const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
       const formatTimestamp = (stamp) => {
         const d = new Date(stamp);
@@ -4144,7 +4156,7 @@ window.Game = window.Game || {};
       const failed = [];
       const scenarioAudit = [];
 
-      const ensurePointsForRematch = async (targetId, battleId) => {
+      const ensurePointsForRematch = (targetId, battleId) => {
         if (!targetId) return;
         const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
         if (!Econ || typeof Econ.transferPoints !== "function") return;
@@ -4160,16 +4172,15 @@ window.Game = window.Game || {};
         };
         if (getSnapshotPoints(targetId) >= 1) return;
         try {
-          const seedRes = Econ.transferPoints("worldBank", targetId, 1, "smoke_rematch_seed", {
+          Econ.transferPoints("worldBank", targetId, 1, "smoke_rematch_seed", {
             battleId,
             context: { battleId },
             meta: { smoke: "econ_ui_no_silent" }
           });
-          if (seedRes && typeof seedRes.then === "function") await seedRes;
         } catch (_) {}
       };
 
-      const runRematchScenario = async () => {
+      const runRematchScenario = () => {
         const Core = Game.ConflictCore || Game._ConflictCore || null;
         if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
           return { ok: false, reason: "rematch_core_missing" };
@@ -4188,7 +4199,7 @@ window.Game = window.Game || {};
         const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
         const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
         if (!loserId) return { ok: false, reason: "loser_missing" };
-        await ensurePointsForRematch(loserId, battleId);
+        ensurePointsForRematch(loserId, battleId);
         const request = Core.requestRematch(battleId, loserId);
         if (!request || request.ok !== true) return { ok: false, reason: "rematch_request_failed", request };
         const respond = Core.respondRematch(battleId, true, winnerId);
@@ -4218,10 +4229,10 @@ window.Game = window.Game || {};
         {
           label: "report",
           runner: () => {
-            if (!Game.__DEV || typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce !== "function") {
-              return { ok: false, reason: "smokeEconSoc_Step3_FalseOnce_missing" };
+            if (typeof window.devReportTest !== "function") {
+              return { ok: false, reason: "devReportTest_missing" };
             }
-            return Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window: { lastN: 120 } });
+            return window.devReportTest({ mode: "false" });
           }
         },
         { label: "rematch", runner: runRematchScenario },
@@ -4236,14 +4247,11 @@ window.Game = window.Game || {};
         }
       ];
 
-      const runScenario = async (def) => {
+      const runScenario = (def) => {
         const beforeLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
         let scenarioResult = null;
         try {
           scenarioResult = def.runner();
-          if (scenarioResult && typeof scenarioResult.then === "function") {
-            scenarioResult = await scenarioResult;
-          }
         } catch (err) {
           scenarioResult = { ok: false, reason: err && err.message ? String(err.message) : "exception" };
         }
@@ -4259,6 +4267,22 @@ window.Game = window.Game || {};
           failed.push(`scenario:${def.label}:${scenarioResult.reason || "failed"}`);
         }
         rows.forEach(row => {
+          if (!row || typeof row !== "object") return;
+          const involvesMe = (String(row.sourceId || "") === "me") || (String(row.targetId || "") === "me");
+          const amountSource = (row.amount !== undefined) ? row.amount : ((row.delta !== undefined) ? row.delta : 0);
+          const amount = Number(amountSource);
+          const currencyCandidate = String(row.currency || row.kind || "").toLowerCase();
+          if (!involvesMe && !row.txId) return;
+          if (involvesMe && (!row.txId || row.txId === "undefined")) {
+            failed.push(`missing_txId:${String(row.reason || "unknown")}`);
+            return;
+          }
+          if (involvesMe && Number.isFinite(amount) && amount !== 0) {
+            if (currencyCandidate !== "points" && currencyCandidate !== "rep") {
+              failed.push(`missing_currency:${String(row.reason || "unknown")}`);
+              return;
+            }
+          }
           if (shouldToastRow(row)) {
             summary.rowsChecked += 1;
             const hasToast = Array.isArray(dbg.toastLog) ? dbg.toastLog.some(t => t && t.kind === "econ" && row.txId && row.txId === t.txId) : false;
@@ -4275,15 +4299,14 @@ window.Game = window.Game || {};
                   eventId: row.eventId
                 });
               }
-              failed.push(`silent:${def.label}:${String(row.reason || "unknown")}:${row.txId || "missing"}`);
+              failed.push(`silent:${def.label}:${String(row.reason || "unknown")}:missing`);
             }
           }
         });
       };
 
       for (const scenarioDef of scenarioDefs) {
-        // eslint-disable-next-line no-await-in-loop
-        await runScenario(scenarioDef);
+        runScenario(scenarioDef);
       }
 
       const result = {

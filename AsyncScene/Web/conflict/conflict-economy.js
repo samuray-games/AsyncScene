@@ -573,6 +573,36 @@
       }
     }
     if (meta && meta.txId && !entry.txId) entry.txId = meta.txId;
+    const reason = String(entry && entry.reason || "");
+    const involvesMe = entry && ((String(entry.sourceId || "") === "me") || (String(entry.targetId || "") === "me"));
+    const toastReasons = new Set([
+      "battle_win_take",
+      "crowd_vote_pool_init",
+      "crowd_vote_refund_majority",
+      "crowd_vote_remainder_win",
+      "crowd_vote_loser_penalty",
+      "crowd_vote_refund"
+    ]);
+    if (involvesMe && toastReasons.has(reason)) {
+      const helper = (Game && Game.__D && typeof Game.__D.pushMoneyLogRow === "function") ? Game.__D.pushMoneyLogRow : null;
+      const toastHelper = (Game && Game.__D && typeof Game.__D.pushEconToastFromLogRef === "function") ? Game.__D.pushEconToastFromLogRef : null;
+      if (helper) {
+        const ref = helper({
+          time: entry.time || Date.now(),
+          reason,
+          currency: entry.currency || "points",
+          amount: entry.amount,
+          sourceId: entry.sourceId,
+          targetId: entry.targetId,
+          battleId: entry.battleId || (meta && meta.battleId) || null,
+          eventId: entry.eventId || (meta && meta.eventId) || null,
+          txId: entry.txId || (meta && meta.txId) || null,
+          meta: meta || null
+        });
+        if (ref && toastHelper) toastHelper(ref);
+        return;
+      }
+    }
     let bid = entry ? String(entry.battleId || (meta && meta.battleId) || entry.eventId || (meta && meta.eventId) || "") : "";
     if (!bid && entry) {
       const src = String(entry.sourceId || "");

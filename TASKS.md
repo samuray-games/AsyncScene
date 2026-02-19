@@ -253,10 +253,10 @@ Next Prompt (копипаст, кодблок обязателен):
 - Next: DEV
 - Area: Economy/UI
 - Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: Везде, где moneyLog фиксирует points/rep deltas (amount ≠ 0) и reason не относится к dev/migration/internal, всегда появляется econ toast из той же записи без silent транзакций.
+- Goal: Для строк, которые затрагивают `me` (sourceId/targetId) и имеют points/rep deltas (amount ≠ 0), всегда появляется econ toast из той же записи без silent транзакций; world/internal строки не должны падать как silent.
 - Acceptance:
-  - Добавлена функция `shouldToastRow(row)`, `pushMoneyLogRow` помечает `row.toastExpected`, и policy легко поддерживает итерации (currency {points,rep}, amount ≠ 0, reason без dev/migration/internal).
-  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` прогоняет battle/crowd/report/rematch/escape (через существующий smoke/CORE flow), собирает rows из moneyLog, проверяет `shouldToastRow(row)` и наличие econ-toast с этим `txId`, логирует `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON и `ECON_UI5_COVERAGE_END`, возвращая `ok:true` только при `failed:[]`.
+  - `shouldToastRow(row)` теперь учитывает `involvesMe` и валидную валюту; `pushMoneyLogRow` помечает `row.toastExpected`, policy легко поддерживает итерации (currency {points,rep}, amount ≠ 0, reason без dev/migration/internal + world-only для не-`me`).
+  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` синхронный: прогоняет battle/crowd/report/rematch/escape, проверяет `txId`/`currency` для `me` строк и наличие econ-toast; игнорирует world-only записи без `txId`; логирует `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON и `ECON_UI5_COVERAGE_END`, возвращая `ok:true` только при `failed:[]`.
   - JSON включает `summary.rowsChecked`, `summary.silentCount`, `summary.silentSamples`, а также `scenarios` с результатами каждого проката.
 - How to verify:
   1. Hard reload http://localhost:8080/index.html?dev=1.

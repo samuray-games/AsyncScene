@@ -3202,7 +3202,8 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 ### 2026-02-20 — ECON-UI [5] no silent econ transactions
 - Status: IN_PROGRESS
 - Facts:
-  - `shouldToastRow(row)` formalizes the policy (currency in `points`/`rep`, amount ≠ 0, reason outside dev/migration/internal) and `pushMoneyLogRow` tags `toastExpected` on each normalized entry.
-  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` runs battle/crowd/report/rematch/escape helpers, inspects every new moneyLog row for `shouldToastRow(row)` and confirms a matching econ toast per `txId`, logging `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON + summary, `ECON_UI5_COVERAGE_END`.
+  - Policy tightened: `shouldToastRow(row)` now requires `involvesMe` + valid currency/amount and skips world-only reasons for non-`me` rows; `pushMoneyLogRow` still tags `toastExpected`.
+  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` is synchronous now, uses battle/crowd/report/rematch/escape helpers, fails on missing `txId`/`currency` for `me` rows, ignores missing `txId` for non-`me` rows, and logs `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON + summary, `ECON_UI5_COVERAGE_END`.
+  - `conflict-economy.js` now routes `battle_win_take`/`crowd_vote_*` rows that involve `me` through `pushMoneyLogRow` + `pushEconToastFromLogRef` to ensure txId/currency and immediate econ toast.
   - Smoke command is wired up, but runtime evidence is pending: QA needs to capture `ok:true`, `failed:[]`, `summary.silentCount===0`.
 - Next: DEV (run the smoke, confirm `summary.silentCount===0` and update logs).
