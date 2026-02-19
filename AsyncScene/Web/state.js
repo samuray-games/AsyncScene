@@ -4260,14 +4260,21 @@ window.Game = window.Game || {};
     };
     Game.__DEV.ensurePointsAtLeastForSmokesOnce = function ensurePointsAtLeastForSmokesOnce(minPts = 100, opts = {}) {
       const stateRef = Game.__S || Game.State || {};
-      const getMePoints = () => {
-        const me = stateRef.me || (stateRef.players && stateRef.players.me);
-        return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+      const targetId = String((opts && opts.targetId) || "me");
+      const getPointsFor = (pid) => {
+        if (pid === "me") {
+          const me = stateRef.me || (stateRef.players && stateRef.players.me);
+          return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+        }
+        const p = stateRef.players ? stateRef.players[pid] : null;
+        return (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
       };
       const dbg = (Game && Game.__D) ? Game.__D : null;
-      const beforeLogLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
+      const hasMoneyLog = !!(dbg && Array.isArray(dbg.moneyLog));
+      const logSourceUsed = hasMoneyLog ? "Game.__D.moneyLog" : "unknown";
+      const beforeLogLen = hasMoneyLog ? dbg.moneyLog.length : 0;
       const target = Number.isFinite(minPts) ? (minPts | 0) : 100;
-      const before = getMePoints();
+      const before = getPointsFor(targetId);
       const need = Math.max(1, target - before);
       let method = null;
       let amount = 0;
@@ -4310,9 +4317,9 @@ window.Game = window.Game || {};
         const fundRes = ensureWorldBankFunds(need);
         if (!fundRes.ok) return { ok: false, reason: fundRes.reason };
         try {
-          const tx = Econ.transferPoints("worldBank", "me", need, "dev_seed_points_for_smoke", {
+          const tx = Econ.transferPoints("worldBank", targetId, need, "dev_seed_points_for_smoke", {
             context: { smoke: "econ_ui_seed", minPts: target },
-            meta: { smoke: "econ_ui_seed", minPts: target, source: "worldBank" }
+            meta: { smoke: "econ_ui_seed", minPts: target, source: "worldBank", targetId }
           });
           if (tx && tx.ok === true) {
             method = `worldBank:${fundRes.method || "ready"}`;
@@ -4325,24 +4332,104 @@ window.Game = window.Game || {};
         }
       };
 
-      let seedRes = { ok: false, reason: "no_seed_path" };
+      const seedWithSink = () => {
+        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
+        try {
+          const tx = Econ.transferPoints("sink", targetId, need, "dev_seed_points_for_smoke", {
+            context: { smoke: "econ_ui_seed", minPts: target },
+            meta: { smoke: "econ_ui_seed", minPts: target, source: "sink", targetId }
+          });
+          if (tx && tx.ok === true) {
+            method = "sink";
+            amount = need;
+            return { ok: true };
+          }
+          const r = tx && tx.reason ? String(tx.reason) : "sink_transfer_failed";
+          if (r === "bad_account") return { ok: false, reason: "no_sink_id" };
+          if (r === "insufficient") return { ok: false, reason: "insufficient_sink" };
+          return { ok: false, reason: r };
+        } catch (_) {
+          return { ok: false, reason: "sink_transfer_exception" };
+        }
+      };
+
+      let seedRes = { ok: false, reason: "no_seed_path_internal" };
       if (canTransfer) {
         seedRes = seedWithWorldBank();
+        if (!seedRes.ok) {
+          seedRes = seedWithSink();
+        }
       } else {
         errReason = "transfer_unavailable";
       }
 
       if (!seedRes.ok) errReason = seedRes.reason || errReason || "no_seed_path_internal";
-      const after = getMePoints();
-      const afterLogLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLogLen;
-      const rowsCount = Math.max(0, afterLogLen - beforeLogLen);
-      const ok = (after >= target) && rowsCount > 0;
-      if (!ok && !errReason) errReason = "insufficient_after_seed";
+      let after = getPointsFor(targetId);
+      let afterLogLen = hasMoneyLog ? dbg.moneyLog.length : beforeLogLen;
+      let rowsCount = Math.max(0, afterLogLen - beforeLogLen);
+      let txId = null;
+      if (hasMoneyLog && afterLogLen > beforeLogLen) {
+        const lastRow = dbg.moneyLog[afterLogLen - 1];
+        if (lastRow && lastRow.txId) txId = lastRow.txId;
+      }
+      const warn = [];
+      const balanceChanged = after > before;
+      if (rowsCount === 0 && balanceChanged && after >= target) {
+        warn.push("row_missing_but_balance_changed");
+        const rowHelper = (dbg && typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : (typeof pushMoneyLogRow === "function" ? pushMoneyLogRow : null);
+        const toastHelper = (dbg && typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : (typeof pushEconToastFromLogRef === "function" ? pushEconToastFromLogRef : null);
+        const delta = (after - before) | 0;
+        const sourceId = String(method || "").includes("worldBank") ? "worldBank" : (method === "sink" ? "sink" : "worldBank");
+        if (rowHelper && delta > 0) {
+          try {
+            const ref = rowHelper({
+              time: Date.now(),
+              reason: "dev_seed_points_for_smoke",
+              currency: "points",
+              amount: delta,
+              sourceId,
+              targetId,
+              meta: { smoke: "econ_ui_seed", minPts: target, method: method || null, forced: true, targetId }
+            });
+            if (ref && ref.txId) txId = ref.txId;
+            if (ref && toastHelper) {
+              try { toastHelper(ref); } catch (_) {}
+            }
+          } catch (_) {}
+          after = getPointsFor(targetId);
+          afterLogLen = hasMoneyLog ? dbg.moneyLog.length : afterLogLen;
+          rowsCount = Math.max(0, afterLogLen - beforeLogLen);
+        } else if (!rowHelper) {
+          warn.push("row_missing_no_helper");
+        }
+      }
+      const ok = (after >= target) && (rowsCount > 0 || balanceChanged);
+      if (!ok && !errReason) {
+        errReason = (after >= target && rowsCount === 0) ? "row_missing" : "insufficient_after_seed";
+      }
       const worldBankAfterBal = (Econ && typeof Econ.sumPointsSnapshot === "function")
         ? (Econ.sumPointsSnapshot({ includeWorld: true, includePools: true }).byId || {}).worldBank
         : null;
       worldBankAfter = Number.isFinite(worldBankAfterBal) ? (worldBankAfterBal | 0) : null;
-      return { ok, method, amount, before, after, errReason, rowsCount, donorId, worldBankBefore, worldBankAfter, minPtsTarget: target };
+      return {
+        ok,
+        method,
+        amount,
+        before,
+        after,
+        errReason,
+        rowsCount,
+        donorId,
+        worldBankBefore,
+        worldBankAfter,
+        minPtsTarget: target,
+        targetId,
+        moneyLogLenBefore: beforeLogLen,
+        moneyLogLenAfter: afterLogLen,
+        logSourceUsed,
+        txId,
+        warn
+      };
     };
     Game.__DEV.smokeEconUi_NoSilentReasonsOnce = function smokeEconUi_NoSilentReasonsOnce(opts = {}) {
       const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
@@ -4767,6 +4854,19 @@ window.Game = window.Game || {};
       } catch (_) {}
       return result;
     };
+    Game.__DEV.resetRematchCountersForSmokesOnce = function resetRematchCountersForSmokesOnce() {
+      const S = (Game && (Game.__S || Game.State)) ? (Game.__S || Game.State) : null;
+      if (!S || !Array.isArray(S.battles)) return { ok: false, reason: "state_missing" };
+      let cleared = 0;
+      for (const b of S.battles) {
+        if (!b) continue;
+        if (Number.isFinite(b.rematchRequestCount) && b.rematchRequestCount !== 0) {
+          b.rematchRequestCount = 0;
+          cleared += 1;
+        }
+      }
+      return { ok: true, cleared };
+    };
     Game.__DEV.smokeEconUi_RegressionPackOnce = function smokeEconUi_RegressionPackOnce(opts = {}) {
       const nowMs = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
       const totalStart = nowMs();
@@ -4869,6 +4969,11 @@ window.Game = window.Game || {};
           const me = stateRef.me || (stateRef.players && stateRef.players.me);
           return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
         };
+        const getPointsFor = (pid) => {
+          if (pid === "me") return getMePoints();
+          const p = stateRef.players ? stateRef.players[pid] : null;
+          return (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+        };
         const getActiveBattleId = () => {
           const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
           const active = list.find(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished");
@@ -4914,19 +5019,19 @@ window.Game = window.Game || {};
           lastBattleId: getLastBattleId(),
           canRematch: null
         });
-        const seedForTarget = (target) => {
-          const before = getMePoints();
+        const seedForTarget = (target, targetId = "me") => {
+          const before = getPointsFor(targetId);
           let seedRes = null;
           if (Game.__DEV && typeof Game.__DEV.ensurePointsAtLeastForSmokesOnce === "function") {
             try {
-              seedRes = Game.__DEV.ensurePointsAtLeastForSmokesOnce(target);
+              seedRes = Game.__DEV.ensurePointsAtLeastForSmokesOnce(target, { targetId });
             } catch (_) {
               seedRes = null;
             }
           }
           if (!seedRes || typeof seedRes !== "object") {
-            const after = getMePoints();
-            seedRes = { ok: false, method: null, amount: 0, before, after, errReason: "seed_helper_missing", rowsCount: 0, minPtsTarget: target };
+            const after = getPointsFor(targetId);
+            seedRes = { ok: false, method: null, amount: 0, before, after, errReason: "seed_helper_missing", rowsCount: 0, minPtsTarget: target, targetId };
           }
           return seedRes;
         };
@@ -4937,6 +5042,9 @@ window.Game = window.Game || {};
         const pointsBeforeSeed = Number.isFinite(seedRes1.before) ? seedRes1.before : getMePoints();
         const pointsAfterSeed = Number.isFinite(seedRes1.after) ? seedRes1.after : getMePoints();
         if (!seedRes1.ok) {
+          const havePoints = getPointsFor("me");
+          const computedCost = Number.isFinite(expectedCost) ? expectedCost : null;
+          const needPoints = (Number.isFinite(computedCost) && Number.isFinite(havePoints)) ? Math.max(0, (computedCost | 0) - (havePoints | 0)) : null;
           return {
             ok: false,
             reason: `seed_failed_${seedRes1.errReason || "unknown"}`,
@@ -4946,11 +5054,18 @@ window.Game = window.Game || {};
             seedAttempted: true,
             seed: seedRes1,
             pointsBeforeSeed,
-            pointsAfterSeed
+            pointsAfterSeed,
+            payerId: "me",
+            havePoints,
+            needPoints,
+            computedCost
           };
         }
         const ctx1 = ensureBattleContext();
         if (!ctx1.ok) {
+          const havePoints = getPointsFor("me");
+          const computedCost = Number.isFinite(expectedCost) ? expectedCost : null;
+          const needPoints = (Number.isFinite(computedCost) && Number.isFinite(havePoints)) ? Math.max(0, (computedCost | 0) - (havePoints | 0)) : null;
           return Object.assign({
             ok: false,
             preState,
@@ -4959,13 +5074,31 @@ window.Game = window.Game || {};
             seedAttempted: true,
             seed: seedRes1,
             pointsBeforeSeed,
-            pointsAfterSeed
+            pointsAfterSeed,
+            payerId: "me",
+            havePoints,
+            needPoints,
+            computedCost
           }, ctx1);
         }
         preState.canRematch = ctx1.canRematch;
         const pointsBeforeAttempt1 = getMePoints();
         const attempt1 = Core.requestRematch(ctx1.battleId, ctx1.loserId);
         const attempt1Reason = (attempt1 && attempt1.reason) ? String(attempt1.reason) : "rematch_request_failed";
+        const extractPay = (attempt, fallbackLoserId) => {
+          const payerId = attempt && attempt.payerId ? String(attempt.payerId) : String(fallbackLoserId || "me");
+          const havePoints = Number.isFinite(attempt && attempt.havePoints)
+            ? attempt.havePoints
+            : (Number.isFinite(attempt && attempt.have) ? attempt.have : getPointsFor(payerId));
+          const computedCost = Number.isFinite(attempt && attempt.computedCost)
+            ? attempt.computedCost
+            : (Number.isFinite(attempt && attempt.cost) ? attempt.cost : expectedCost);
+          const needPoints = Number.isFinite(attempt && attempt.needPoints)
+            ? attempt.needPoints
+            : (Number.isFinite(computedCost) && Number.isFinite(havePoints) ? Math.max(0, (computedCost | 0) - (havePoints | 0)) : null);
+          return { payerId, havePoints, needPoints, computedCost };
+        };
+        const pay1 = extractPay(attempt1, ctx1.loserId);
         if (attempt1 && attempt1.ok === true) {
           const respond = Core.respondRematch(ctx1.battleId, true, ctx1.winnerId);
           if (!respond || respond.ok !== true) {
@@ -4982,7 +5115,11 @@ window.Game = window.Game || {};
               pointsBeforeSeed,
               pointsAfterSeed,
               pointsBeforeAttempt1,
-              attempt1ReasonCode: attempt1Reason
+              attempt1ReasonCode: attempt1Reason,
+              payerId: pay1.payerId,
+              havePoints: pay1.havePoints,
+              needPoints: pay1.needPoints,
+              computedCost: pay1.computedCost
             };
           }
           const postState = buildStateSig();
@@ -5011,17 +5148,28 @@ window.Game = window.Game || {};
             pointsBeforeSeed,
             pointsAfterSeed,
             pointsBeforeAttempt1,
-            pointsBeforeAttempt2: null
+            pointsBeforeAttempt2: null,
+            payerId: pay1.payerId,
+            havePoints: pay1.havePoints,
+            needPoints: pay1.needPoints,
+            computedCost: pay1.computedCost
           };
           if (rowsCount === 0) return Object.assign(out, { ok: false, reason: "no_econ_rows" });
           return out;
         }
         const retryReasons = new Set(["no_points", "insufficient", "rematch_request_failed", "no_last_battle", "not_allowed", "active_battle_present"]);
         if (retryReasons.has(attempt1Reason)) {
-          const retryTarget = (attempt1Reason === "no_points") ? Math.max(300, minPtsTarget) : minPtsTarget;
-          const seedRes2 = seedForTarget(retryTarget);
-          const pointsBeforeSeed2 = Number.isFinite(seedRes2.before) ? seedRes2.before : getMePoints();
-          const pointsAfterSeed2 = Number.isFinite(seedRes2.after) ? seedRes2.after : getMePoints();
+          let retryTarget = (attempt1Reason === "no_points") ? Math.max(300, minPtsTarget) : minPtsTarget;
+          if (attempt1Reason === "no_points") {
+            if (Number.isFinite(pay1.computedCost)) retryTarget = Math.max(retryTarget, (pay1.computedCost | 0) + 10);
+            if (Number.isFinite(pay1.havePoints) && Number.isFinite(pay1.needPoints)) {
+              retryTarget = Math.max(retryTarget, (pay1.havePoints | 0) + (pay1.needPoints | 0) + 10);
+            }
+          }
+          const payerId = pay1.payerId || "me";
+          const seedRes2 = seedForTarget(retryTarget, payerId);
+          const pointsBeforeSeed2 = Number.isFinite(seedRes2.before) ? seedRes2.before : getPointsFor(payerId);
+          const pointsAfterSeed2 = Number.isFinite(seedRes2.after) ? seedRes2.after : getPointsFor(payerId);
           if (!seedRes2.ok) {
             return {
               ok: false,
@@ -5033,7 +5181,11 @@ window.Game = window.Game || {};
               seed: seedRes2,
               pointsBeforeSeed: pointsBeforeSeed2,
               pointsAfterSeed: pointsAfterSeed2,
-              attempt1ReasonCode: attempt1Reason
+              attempt1ReasonCode: attempt1Reason,
+              payerId: pay1.payerId,
+              havePoints: pay1.havePoints,
+              needPoints: pay1.needPoints,
+              computedCost: pay1.computedCost
             };
           }
           if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
@@ -5052,7 +5204,11 @@ window.Game = window.Game || {};
               seedAttempted: true,
               seed: seedRes2,
               pointsBeforeSeed: pointsBeforeSeed2,
-              pointsAfterSeed: pointsAfterSeed2
+              pointsAfterSeed: pointsAfterSeed2,
+              payerId: pay1.payerId,
+              havePoints: pay1.havePoints,
+              needPoints: pay1.needPoints,
+              computedCost: pay1.computedCost
             }, ctx2);
           }
           const pointsBeforeAttempt2 = getMePoints();
@@ -5077,7 +5233,11 @@ window.Game = window.Game || {};
                 pointsBeforeAttempt1,
                 pointsBeforeAttempt2,
                 attempt1ReasonCode: attempt1Reason,
-                attempt2ReasonCode: attempt2Reason
+                attempt2ReasonCode: attempt2Reason,
+                payerId: pay1.payerId,
+                havePoints: pay1.havePoints,
+                needPoints: pay1.needPoints,
+                computedCost: pay1.computedCost
               };
             }
             const postState = buildStateSig();
@@ -5108,7 +5268,11 @@ window.Game = window.Game || {};
               pointsBeforeSeed: pointsBeforeSeed2,
               pointsAfterSeed: pointsAfterSeed2,
               pointsBeforeAttempt1,
-              pointsBeforeAttempt2
+              pointsBeforeAttempt2,
+              payerId: pay1.payerId,
+              havePoints: pay1.havePoints,
+              needPoints: pay1.needPoints,
+              computedCost: pay1.computedCost
             };
             if (rowsCount === 0) return Object.assign(out, { ok: false, reason: "no_econ_rows" });
             return out;
@@ -5131,7 +5295,11 @@ window.Game = window.Game || {};
             pointsBeforeAttempt1,
             pointsBeforeAttempt2,
             attempt1ReasonCode: attempt1Reason,
-            attempt2ReasonCode: attempt2Reason
+            attempt2ReasonCode: attempt2Reason,
+            payerId: pay1.payerId,
+            havePoints: pay1.havePoints,
+            needPoints: pay1.needPoints,
+            computedCost: pay1.computedCost
           };
         }
         return {
@@ -5146,7 +5314,11 @@ window.Game = window.Game || {};
           pointsBeforeSeed,
           pointsAfterSeed,
           pointsBeforeAttempt1,
-          attempt1ReasonCode: attempt1Reason
+          attempt1ReasonCode: attempt1Reason,
+          payerId: pay1.payerId,
+          havePoints: pay1.havePoints,
+          needPoints: pay1.needPoints,
+          computedCost: pay1.computedCost
         };
       });
       const escapeStep = () => safeRun("escape", () => {
@@ -5166,6 +5338,9 @@ window.Game = window.Game || {};
       crowdStep("crowd_fifty_fifty", "fifty");
       reportStep("report_true", "true");
       reportStep("report_false", "false");
+      if (Game.__DEV && typeof Game.__DEV.resetRematchCountersForSmokesOnce === "function") {
+        Game.__DEV.resetRematchCountersForSmokesOnce();
+      }
       rematchStep("rematch_1");
       rematchStep("rematch_2");
       rematchStep("rematch_3");
@@ -5193,6 +5368,10 @@ window.Game = window.Game || {};
         })),
         notes: []
       };
+      const resultOut = Object.assign({}, result);
+      if (resultOut && typeof resultOut.then === "function") {
+        try { delete resultOut.then; } catch (_) {}
+      }
       try {
         const stamp = (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
         const fmt = (stampVal) => {
@@ -5202,10 +5381,154 @@ window.Game = window.Game || {};
         };
         console.log(`DUMP_AT [${fmt(stamp)}]`);
         console.log("ECON_UI7_PACK_BEGIN");
-        console.log(JSON.stringify(result));
+        console.log(JSON.stringify(resultOut));
         console.log("ECON_UI7_PACK_END");
       } catch (_) {}
-      try { console.log("ECON_UI7_PACK_RESULT", result); } catch (_) {}
+      try { console.log("ECON_UI7_PACK_RESULT", resultOut); } catch (_) {}
+      return resultOut;
+    };
+
+    Game.__DEV.smokeEconUi_FinalAuditOnce = function smokeEconUi_FinalAuditOnce(opts = {}) {
+      const nowMs = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
+      const totalStart = nowMs();
+      const failed = [];
+
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            return { ok: true, text: xhr.responseText || "" };
+          }
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+
+      const getStatus = (text, key) => {
+        if (!text) return "MISSING";
+        const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp(`${esc}[\\s\\S]{0,240}?- Status:\\s*(\\w+)`, "i");
+        const m = re.exec(text);
+        if (!m) return "MISSING";
+        return String(m[1] || "").toUpperCase();
+      };
+
+      const tRes = fetchTextSync("/TASKS.md");
+      const pRes = fetchTextSync("/PROJECT_MEMORY.md");
+      const keys = [
+        { id: "econ01", key: "ECON-UI [1]" },
+        { id: "econ02", key: "ECON-UI [2]" },
+        { id: "econ03", key: "ECON-UI [3]" }
+      ];
+      const docs = {
+        ok: true,
+        econ01: "MISSING",
+        econ02: "MISSING",
+        econ03: "MISSING",
+        missing: [],
+        notes: []
+      };
+
+      if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
+      if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
+
+      for (const k of keys) {
+        const tStatus = tRes.ok ? getStatus(tRes.text, k.key) : "MISSING";
+        const pStatus = pRes.ok ? getStatus(pRes.text, k.key) : "MISSING";
+        let finalStatus = "MISSING";
+        if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
+        else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
+        else finalStatus = "FAIL";
+        docs[k.id] = finalStatus;
+        if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
+        if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
+        if (finalStatus !== "PASS") docs.ok = false;
+      }
+      if (!docs.ok) failed.push("docs_not_pass");
+
+      const runtime = { ok: true, steps: [] };
+      const addStep = (name, payload) => {
+        runtime.steps.push(payload);
+        if (!payload.ok) runtime.ok = false;
+      };
+
+      const t0 = nowMs();
+      let packRes = null;
+      try {
+        packRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_RegressionPackOnce === "function")
+          ? Game.__DEV.smokeEconUi_RegressionPackOnce()
+          : { ok: false, failed: ["missing"] };
+      } catch (err) {
+        packRes = { ok: false, failed: [String(err && err.message ? err.message : err)] };
+      }
+      const packMs = (packRes && Number.isFinite(packRes.totalMs)) ? (packRes.totalMs | 0) : Math.round(nowMs() - t0);
+      const packFailedCount = (packRes && Array.isArray(packRes.steps)) ? packRes.steps.filter(s => s && s.ok === false).length
+        : (packRes && Array.isArray(packRes.failed)) ? packRes.failed.length
+        : (packRes && packRes.ok === false ? 1 : 0);
+      addStep("ui7_regression", { name: "ui7_regression", ok: !!(packRes && packRes.ok), totalMs: packMs, failedCount: packFailedCount });
+
+      let noSilentRes = null;
+      try {
+        noSilentRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_NoSilentReasonsOnce === "function")
+          ? Game.__DEV.smokeEconUi_NoSilentReasonsOnce(opts && opts.window ? { window: opts.window } : {})
+          : { ok: false };
+      } catch (err) {
+        noSilentRes = { ok: false, failed: [String(err && err.message ? err.message : err)] };
+      }
+      addStep("ui5_coverage", {
+        name: "ui5_coverage",
+        ok: !!(noSilentRes && noSilentRes.ok),
+        rowsChecked: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.rowsChecked)) ? noSilentRes.summary.rowsChecked : 0,
+        silentCount: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.silentCount)) ? noSilentRes.summary.silentCount : 0
+      });
+
+      let zeroSumRes = null;
+      try {
+        zeroSumRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_ZeroSumOnce === "function")
+          ? Game.__DEV.smokeEconUi_ZeroSumOnce()
+          : { ok: false };
+      } catch (err) {
+        zeroSumRes = { ok: false, failed: [String(err && err.message ? err.message : err)] };
+      }
+      const deltasSample = Array.isArray(zeroSumRes && zeroSumRes.scenarios)
+        ? zeroSumRes.scenarios.slice(0, 3).map(s => Number.isFinite(s && s.delta) ? s.delta : 0)
+        : [];
+      addStep("ui6_zero_sum", {
+        name: "ui6_zero_sum",
+        ok: !!(zeroSumRes && zeroSumRes.ok),
+        scenarios: Array.isArray(zeroSumRes && zeroSumRes.scenarios) ? zeroSumRes.scenarios.length : 0,
+        deltasSample
+      });
+
+      if (!runtime.ok) failed.push("runtime_not_pass");
+
+      const totalEnd = nowMs();
+      const totalMs = Math.round(totalEnd - totalStart);
+      if (totalMs > 180000) failed.push("timeout");
+
+      const result = {
+        ok: docs.ok && runtime.ok && totalMs <= 180000 && failed.length === 0,
+        totalMs,
+        docs,
+        runtime,
+        failed
+      };
+
+      try {
+        const stamp = (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+        const fmt = (stampVal) => {
+          const d = new Date(stampVal);
+          const pad = (n) => String(n).padStart(2, "0");
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        };
+        console.log(`DUMP_AT [${fmt(stamp)}]`);
+        console.log("ECON_UI8_FINAL_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI8_FINAL_END");
+      } catch (_) {}
       return result;
     };
   }

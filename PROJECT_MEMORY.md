@@ -3216,8 +3216,8 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: —
 
 ### 2026-02-20 — ECON-UI [7] regression pack (one-command)
-- Status: IN_PROGRESS
+- Status: PASS
 - Facts:
-  - `Game.__DEV.smokeEconUi_RegressionPackOnce()` added to run battle/crowd/report/rematch/escape + smoke_no_silent + smoke_zero_sum in one command, with per-step timing and `ECON_UI7_PACK_*` logs.
-  - Pack pre-cleans via `resetToIdleForSmokesOnce()` and adds `details` on failed steps for diagnostics.
-- Next: DEV (run the pack and capture runtime evidence).
+  - Console.txt DUMP_AT 2026-02-19 23:23:29 captured `ECON_UI7_PACK_BEGIN`/`END` and `ECON_UI7_PACK_RESULT` with `ok:true`, `failed:[]`, `totalMs<=180000`, and every step (battle/crowd/report/rematch/escape/smoke_no_silent/smoke_zero_sum) marked `ok:true`, while rematch_3 surfaces payer diagnostics instead of looping on `no_points`.
+  - The console tape now logs `CONSOLE_TAPE_RUN_RESULT_V1` with `isPromise:0` for the pack command.
+- Next: QA

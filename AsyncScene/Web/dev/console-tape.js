@@ -450,18 +450,17 @@
     try {
       const executor = new Function(wrappedCode);
       let result = executor.call(typeof window !== "undefined" ? window : globalThis);
-      const isPromise = result && typeof result.then === "function";
+      if (result && typeof result.then === "function") {
+        result = await result;
+      }
       const preview = serializeArg(result, SERIALIZE_DEFAULTS);
       console.log("[repl] <", result);
       console.warn("CONSOLE_TAPE_RUN_RESULT_V1", {
         type: typeof result,
-        isPromise: isPromise ? 1 : 0,
+        isPromise: 0,
         keys: (result && typeof result === "object" && !Array.isArray(result)) ? Object.keys(result) : [],
         preview
       });
-      if (isPromise) {
-        result = await result;
-      }
       return result;
     } catch (err) {
       console.error("[repl] < ERROR", err);

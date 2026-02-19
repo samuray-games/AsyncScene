@@ -2361,10 +2361,29 @@
             : ((getPlayer(loserId) && Number.isFinite(getPlayer(loserId).points)) ? (getPlayer(loserId).points | 0) : 0);
 
         if (tx && tx.reason && tx.reason !== "no_econ") {
-          return { ok: false, reason: "no_points", cost, have };
+          const needPoints = Number.isFinite(cost) ? Math.max(0, (cost | 0) - (have | 0)) : null;
+          return {
+            ok: false,
+            reason: "no_points",
+            cost,
+            have,
+            payerId: loserId,
+            havePoints: have,
+            needPoints,
+            computedCost: cost
+          };
         }
 
-        return { ok: false, reason: "no_econ", cost, have };
+        return {
+          ok: false,
+          reason: "no_econ",
+          cost,
+          have,
+          payerId: loserId,
+          havePoints: have,
+          needPoints: Number.isFinite(cost) ? Math.max(0, (cost | 0) - (have | 0)) : null,
+          computedCost: cost
+        };
       }
     } catch (_) {}
 
