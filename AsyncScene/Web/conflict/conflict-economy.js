@@ -53,38 +53,49 @@
       } catch (_) {}
       Game.__D.moneyLogByBattle = {};
     }
-    exportMoneyLog();
-    exportMoneyLog();
+    const DEV = Game.__DEV || (Game.__DEV = {});
+    if (!DEV.__moneyLogExportedV1Done__) {
+      exportMoneyLog();
+      DEV.__moneyLogExportedV1Done__ = true;
+    }
     return Game.__D;
   }
 
   function exportMoneyLog(){
+    if (!Game) return [];
+    const DEV = Game.__DEV || (Game.__DEV = {});
+    if (DEV.__moneyLogExportInProgress__) {
+      return DEV.__moneyLogExportedMoneyLog__ || [];
+    }
+    DEV.__moneyLogExportCalls__ = (DEV.__moneyLogExportCalls__ || 0) + 1;
+    if (DEV.__moneyLogExportCalls__ > 200) {
+      if (!DEV.__moneyLogExportCallcapLogged__) {
+        console.error("ECON_MONEYLOG_EXPORT_CALLCAP_V1", { calls: DEV.__moneyLogExportCalls__ });
+        DEV.__moneyLogExportCallcapLogged__ = true;
+      }
+      return DEV.__moneyLogExportedMoneyLog__ || [];
+    }
+    DEV.__moneyLogExportInProgress__ = true;
     try {
       const dbg = ensureDebugStore();
       const moneyLogArr = dbg.moneyLog || [];
-      if (!Game.__DEV) Game.__DEV = {};
-      Game.__DEV.__moneyLogExportedV1Calls__ = (Game.__DEV.__moneyLogExportedV1Calls__ || 0) + 1;
-      if (Game && Game.State) {
-        if (!Array.isArray(Game.State.moneyLog) || Game.State.moneyLog !== moneyLogArr) {
-          Game.State.moneyLog = moneyLogArr;
-        }
-      } else if (Game) {
-        Game.State = Game.State || {};
-        Game.State.moneyLog = moneyLogArr;
-      }
-      Game.__DEV.__debugMoneyLog__ = moneyLogArr;
-      if (!Game.__DEV.__moneyLogExportedV1Logged__) {
+      if (!Game.State) Game.State = {};
+      const sameRef = Game.State.moneyLog === moneyLogArr;
+      Game.State.moneyLog = moneyLogArr;
+      DEV.__debugMoneyLog__ = moneyLogArr;
+      DEV.__moneyLogExportedMoneyLog__ = moneyLogArr;
+      if (!DEV.__moneyLogExportedV1Logged__) {
         console.warn("ECON_MONEYLOG_EXPORTED_V1", {
           len: moneyLogArr.length,
           ts: Date.now(),
-          sameRef: !!(Game && Game.State && Game.State.moneyLog === moneyLogArr),
-          calls: Game.__DEV.__moneyLogExportedV1Calls__
+          sameRef,
+          calls: DEV.__moneyLogExportCalls__
         });
-        Game.__DEV.__moneyLogExportedV1Logged__ = true;
+        DEV.__moneyLogExportedV1Logged__ = true;
       }
       return moneyLogArr;
-    } catch (_) {
-      return [];
+    } finally {
+      DEV.__moneyLogExportInProgress__ = false;
     }
   }
 
