@@ -1,27 +1,27 @@
-[DUMP_AT] [2026-02-19 20:57:17] (epoch_ms=1771502237453)
+[DUMP_AT] [2026-02-19 20:58:39] (epoch_ms=1771502319069)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771502228792
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771502311189
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771502228846}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771502311237}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771502228814 1771502228847
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771502311206 1771502311237
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771502228847
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771502311237
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771502228847}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771502311238}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771502228862}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771502311249}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -44,15 +44,15 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771502228865
+LOG [AttackChoices] conflict-arguments loaded 1771502311253
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771502228869, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771502228870}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771502228871}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771502311256, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771502311258}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771502311258}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771502237358_867c8c10c18108 Game.__DEV.smokeEconUi_RegressionPackOnce()
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771502319026_a107315c5b877 Game.__DEV.smokeEconUi_RegressionPackOnce()
 WARN [repl] > Game.__DEV.smokeEconUi_RegressionPackOnce()
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36}, playerId: me, reaction: log_only, sessionId: session-1771502228871-1dcn, time: 1771502237376, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36}, playerId: me, reaction: log_only, sessionId: session-1771502311259-f6o9, time: 1771502319031, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -66,8 +66,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771502228871-1dcn
-  time: 1771502237376
+  sessionId: session-1771502311259-f6o9
+  time: 1771502319031
   type: tamper_detected
   window: Object{…
 LOG END CONSOLE_EXPAND_V1
@@ -87,7 +87,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36}, playerId: me, reaction: log_only, sessionId: session-1771502228871-1dcn, time: 1771502237376, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36}, playerId: me, reaction: log_only, sessionId: session-1771502311259-f6o9, time: 1771502319030, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -101,8 +101,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771502228871-1dcn
-  time: 1771502237376
+  sessionId: session-1771502311259-f6o9
+  time: 1771502319030
   type: tamper_detected
   win…
 LOG END CONSOLE_EXPAND_V1
@@ -122,7 +122,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1771502228871-1dcn, time: 1771502237375, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1771502311259-f6o9, time: 1771502319030, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -136,8 +136,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771502228871-1dcn
-  time: 1771502237375
+  sessionId: session-1771502311259-f6o9
+  time: 1771502319030
   type: tamper_function
   window: Object{
     longWindowMs: 600000
@@ -147,7 +147,7 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
 WARN [SEC:notify] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
-LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}, playerId: me, reaction: log_only, sessionId: session-1771502228871-1dcn, time: 1771502237384, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}, playerId: me, reaction: log_only, sessionId: session-1771502311259-f6o9, time: 1771502319034, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -162,7 +162,7 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771502228871…
+  sessionId: session-1771502311259…
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
@@ -182,7 +182,7 @@ LOG Object{
   stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1771502228871-1dcn, time: 1771502237390, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1771502311259-f6o9, time: 1771502319037, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -197,8 +197,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771502228871-1dcn
-  time: 1771502237390
+  sessionId: session-1771502311259-f6o9
+  time: 1771502319037
   type: tamper_function
   window: Object{
     longWindowMs: 600000
@@ -232,14 +232,14 @@ LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
 WARN NPC_ACTIVITY_TAX_ENTRY Object{amount: 1, reason: npc_activity_tax, sourceId: npc_weak, targetId: worldBank}
 WARN NPC_ACTIVITY_TAX_V1_PROBE Object{gainPoints: 1, isNpcTarget: false, reason: npc_activity_tax, softCapBefore: null, sourceId: npc_weak, targetId: worldBank}
-LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: true, reportId: report_dev_1771502237407}
-LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771502237407}
-LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771502237428}
-LOG DUMP_AT [2026-02-19 20:57:17]
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: true, reportId: report_dev_1771502319045}
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771502319046}
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771502319059}
+LOG DUMP_AT [2026-02-19 20:58:39]
 LOG ECON_UI5_COVERAGE_BEGIN
-LOG {"ok":true,"failed":[],"summary":{"rowsChecked":4,"silentCount":0,"silentSamples":[]},"scenarios":[{"label":"battle","ok":true,"reason":null,"rowsCount":3,"battleId":"dev_battle_crowd_1771502237423_6073","eventId":null,"stage":"runner_call","errMessage":null,"errStack":null,"details":"not_built","diag":{"worldAccountsIncludedCount":47,"includesWorldBank":true,"includesSink":true,"snapshotAccountsIncludedCount":47,"snapshotIncludesWorldBank":true,"snapshotIncludesSink":true,"snapshotWorldTotalsBe…
+LOG {"ok":true,"failed":[],"summary":{"rowsChecked":4,"silentCount":0,"silentSamples":[]},"scenarios":[{"label":"battle","ok":true,"reason":null,"rowsCount":3,"battleId":"dev_battle_crowd_1771502319056_3128","eventId":null,"stage":"runner_call","errMessage":null,"errStack":null,"details":"not_built","diag":{"worldAccountsIncludedCount":49,"includesWorldBank":true,"includesSink":true,"snapshotAccountsIncludedCount":49,"snapshotIncludesWorldBank":true,"snapshotIncludesSink":true,"snapshotWorldTotalsBe…
 LOG ECON_UI5_COVERAGE_END
-LOG ECON_UI5_COVERAGE_RESULT Object{failed: [], ok: true, scenarios: [Object{battleId: dev_battle_crowd_1771502237423_6073, details: not_built, diag: Object{balanceCompareById: [MaxDepth Object], balanceProbeAfter: [MaxDepth Object], balanceProbeBefore: [MaxDepth Object], balanceReadModeById: [MaxDepth Object], balanceSourceById: [MaxDepth Object], balancesSource: econ_contract_v1, byReasonHasWorldTax: false, contractIds: [MaxDepth Array], includedServiceAccounts: [MaxDepth Object], includesSink: true, includesWorldBank: true, ledgerLenAfter: 206, ledgerLenBefore: 203, missingAccounts: [MaxDepth Array], moneyLogAfterIndex: 206, moneyLogBeforeIndex: 203, sinkIdUsed: sink, snapshotAccountsIncludedCount: 47, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 111, snapshotWorldTotalsBefore: 111, taxRowsInWindowCount: 0, totalPtsWorldBefore_afterBreakdown: [MaxDepth Object], totalsBySource: [MaxDepth Object], worldAccountsIncludedCount: 47, worldBankIdUsed: worldBank, worldIdsCount: 14, worldIdsSample: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: battle, notes: null, ok: true, reason: null, rowsCount: 3, stage: runner_call}, Object{battleId: dev_battle_crowd_1771502237426_3811, details: not_built, diag: Object{stage: battle_fallback, trace: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: crowd, notes: [fallback_battle], ok: true, reason: null, rowsCount: 3, stage: runner_call}, Object{battleId: null, details: null, diag: null, errMessage: null, errStack: null, eventId: null, label: report, notes: null, ok: true, reason: null, rowsCount: 0, stage: runner_call}, Object{battleId: dev_battle_crowd_1771502237430_2437, details: null, diag: null, errMessage: null, errStack: null, eventId: null, label: rematch, notes: null, ok: true, reason: null, rowsCount: 3, stage: runner_call}, Object{battleId: null, details: Object{activeCount: 1, details: active_battle_present, name: smoke_escape_crowd_outcome_once, ok: false}, diag: Object{stage: call_smoke, trace: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: escape, notes: [smoke_failed_nonfatal], ok: true, reason: no_econ_rows_expected, rowsCount: 0, stage: runner_call}], summary: Object{rowsChecked: 4, silentCount: 0, silentSamples: []}}
+LOG ECON_UI5_COVERAGE_RESULT Object{failed: [], ok: true, scenarios: [Object{battleId: dev_battle_crowd_1771502319056_3128, details: not_built, diag: Object{balanceCompareById: [MaxDepth Object], balanceProbeAfter: [MaxDepth Object], balanceProbeBefore: [MaxDepth Object], balanceReadModeById: [MaxDepth Object], balanceSourceById: [MaxDepth Object], balancesSource: econ_contract_v1, byReasonHasWorldTax: false, contractIds: [MaxDepth Array], includedServiceAccounts: [MaxDepth Object], includesSink: true, includesWorldBank: true, ledgerLenAfter: 208, ledgerLenBefore: 205, missingAccounts: [MaxDepth Array], moneyLogAfterIndex: 208, moneyLogBeforeIndex: 205, sinkIdUsed: sink, snapshotAccountsIncludedCount: 49, snapshotIncludesSink: true, snapshotIncludesWorldBank: true, snapshotWorldTotalsAfter: 119, snapshotWorldTotalsBefore: 119, taxRowsInWindowCount: 0, totalPtsWorldBefore_afterBreakdown: [MaxDepth Object], totalsBySource: [MaxDepth Object], worldAccountsIncludedCount: 49, worldBankIdUsed: worldBank, worldIdsCount: 14, worldIdsSample: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: battle, notes: null, ok: true, reason: null, rowsCount: 3, stage: runner_call}, Object{battleId: dev_battle_crowd_1771502319058_7271, details: not_built, diag: Object{stage: battle_fallback, trace: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: crowd, notes: [fallback_battle], ok: true, reason: null, rowsCount: 3, stage: runner_call}, Object{battleId: null, details: null, diag: null, errMessage: null, errStack: null, eventId: null, label: report, notes: null, ok: true, reason: null, rowsCount: 0, stage: runner_call}, Object{battleId: dev_battle_crowd_1771502319059_1583, details: null, diag: null, errMessage: null, errStack: null, eventId: null, label: rematch, notes: null, ok: true, reason: null, rowsCount: 3, stage: runner_call}, Object{battleId: null, details: Object{activeCount: 1, details: active_battle_present, name: smoke_escape_crowd_outcome_once, ok: false}, diag: Object{stage: call_smoke, trace: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: escape, notes: [smoke_failed_nonfatal], ok: true, reason: no_econ_rows_expected, rowsCount: 0, stage: runner_call}], summary: Object{rowsChecked: 4, silentCount: 0, silentSamples: []}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   failed: [
@@ -248,14 +248,14 @@ LOG Object{
   ok: true
   scenarios: [
     Object{
-      battleId: dev_battle_crowd_1771502237423_6073
+      battleId: dev_battle_crowd_1771502319056_3128
       details: not_built
       diag: Object{
         balanceCompareById: Object{
           sink: Object{
-            after: -7
+            after: 3
             afterMinusBefore: 0
-            before: -7
+            before: 3
             moneyLogNetDelta: 0
           }
           worldBank: Object{
@@ -264,14 +264,15 @@ LOG Object{
             before: 1
             moneyLogNetDelta: null
           }
-        …
+        }
+…
 LOG END CONSOLE_EXPAND_V1
-LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771502237437}
-LOG DUMP_AT [2026-02-19 20:57:17]
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771502319062}
+LOG DUMP_AT [2026-02-19 20:58:39]
 LOG ECON_UI6_ZERO_SUM_BEGIN
 LOG {"ok":true,"failed":[],"scenarios":[{"label":"battle","ok":true,"delta":0,"beforeTotal":220,"afterTotal":220,"includeIdsCount":24,"topIncreases":[],"scenarioResult":{"name":"smoke_battle_crowd_outcome_once","ok":false,"details":"active_battle_present","activeCount":1,"__rows":[]},"error":null},{"label":"crowd","ok":true,"delta":0,"beforeTotal":220,"afterTotal":220,"includeIdsCount":24,"topIncreases":[],"scenarioResult":{"name":"smoke_npc_crowd_event_economy_once","ok":false,"economyOk":false,"wa…
 LOG ECON_UI6_ZERO_SUM_END
-LOG ECON_UI6_ZERO_SUM_RESULT Object{failed: [], notes: [], ok: true, scenarios: [Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: battle, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], activeCount: 1, details: active_battle_present, name: smoke_battle_crowd_outcome_once, ok: false}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: crowd, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], asserts: [MaxDepth Object], branch: majority, byReason: [MaxDepth Object], debugVersion: ECON02_7, decidedOk: false, deltaWorld: 0, diag: [MaxDepth Object], economyOk: false, id: ed_npc_1771502237436_1827, name: smoke_npc_crowd_event_economy_once, ok: false, pointsDiffOk: true, poolAfter: 0, resolvedOk: false, totalsStable: true, warnings: [MaxDepth Array]}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: report, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], after: [MaxDepth Object], before: [MaxDepth Object], byBattle: [MaxDepth Array], logForBid: [MaxDepth Array], mode: false, ok: true, reportId: report_dev_1771502237437}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: rematch, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], battleRes: [MaxDepth Object], ok: false, reason: battle_smoke_failed}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: escape, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], details: [MaxDepth Object], notes: [MaxDepth Array], ok: true, reason: no_econ_rows_expected}, topIncreases: []}]}
+LOG ECON_UI6_ZERO_SUM_RESULT Object{failed: [], notes: [], ok: true, scenarios: [Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: battle, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], activeCount: 1, details: active_battle_present, name: smoke_battle_crowd_outcome_once, ok: false}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: crowd, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], asserts: [MaxDepth Object], branch: majority, byReason: [MaxDepth Object], debugVersion: ECON02_7, decidedOk: false, deltaWorld: 0, diag: [MaxDepth Object], economyOk: false, id: ed_npc_1771502319062_7128, name: smoke_npc_crowd_event_economy_once, ok: false, pointsDiffOk: true, poolAfter: 0, resolvedOk: false, totalsStable: true, warnings: [MaxDepth Array]}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: report, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], after: [MaxDepth Object], before: [MaxDepth Object], byBattle: [MaxDepth Array], logForBid: [MaxDepth Array], mode: false, ok: true, reportId: report_dev_1771502319062}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: rematch, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], battleRes: [MaxDepth Object], ok: false, reason: battle_smoke_failed}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: escape, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], details: [MaxDepth Object], notes: [MaxDepth Array], ok: true, reason: no_econ_rows_expected}, topIncreases: []}]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   failed: [
@@ -307,11 +308,11 @@ LOG Object{
       afterTotal: 220
       beforeTotal:…
 LOG END CONSOLE_EXPAND_V1
-LOG DUMP_AT [2026-02-19 20:57:17]
+LOG DUMP_AT [2026-02-19 20:58:39]
 LOG ECON_UI7_PACK_BEGIN
-LOG {"ok":false,"totalMs":76,"pre":{"ok":true,"activeBattlesBefore":0,"activeBattlesAfter":0,"activeEventsBefore":0,"activeEventsAfter":0,"cleared":false},"steps":[{"name":"battle_win","ok":true,"ms":35,"failedCount":0,"notes":[],"details":null},{"name":"battle_lose","ok":true,"ms":5,"failedCount":0,"notes":[],"details":null},{"name":"crowd_majority","ok":true,"ms":4,"failedCount":0,"notes":["crowd_nonfatal_smoke_ok:false"],"details":{"ok":false,"economyOk":false,"totalsStable":true,"deltaWorld":0,"…
+LOG {"ok":false,"totalMs":37,"pre":{"ok":true,"activeBattlesBefore":0,"activeBattlesAfter":0,"activeEventsBefore":0,"activeEventsAfter":0,"cleared":false},"steps":[{"name":"battle_win","ok":true,"ms":14,"failedCount":0,"notes":[],"details":null},{"name":"battle_lose","ok":true,"ms":3,"failedCount":0,"notes":[],"details":null},{"name":"crowd_majority","ok":true,"ms":1,"failedCount":0,"notes":["crowd_nonfatal_smoke_ok:false"],"details":{"ok":false,"economyOk":false,"totalsStable":true,"deltaWorld":0,"…
 LOG ECON_UI7_PACK_END
-LOG ECON_UI7_PACK_RESULT Object{notes: [], ok: false, pre: Object{activeBattlesAfter: 0, activeBattlesBefore: 0, activeEventsAfter: 0, activeEventsBefore: 0, cleared: false, ok: true}, steps: [Object{details: null, failedCount: 0, ms: 35, name: battle_win, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 5, name: battle_lose, notes: [], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 4, name: crowd_majority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 1, name: crowd_minority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 0, name: crowd_fifty_fifty, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_true, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_false, notes: [], ok: true}, Object{details: Object{attempt1ReasonCode: null, attempt2ReasonCode: null, postState: [MaxDepth Object], preState: [MaxDepth Object]}, failedCount: 0, ms: 4, name: rematch_1, notes: [], ok: true}, Object{details: Object{attempt1ReasonCode: null, attempt2ReasonCode: null, postState: [MaxDepth Object], preState: [MaxDepth Object]}, failedCount: 0, ms: 3, name: rematch_2, notes: [], ok: true}, Object{details: Object{attempt1: [MaxDepth Object], attempt1ReasonCode: no_points, attempt2: [MaxDepth Object], attempt2ReasonCode: no_points, ok: false, postState: [MaxDepth Object], preState: [MaxDepth Object], reason: rematch_request_failed}, failedCount: 1, ms: 7, name: rematch_3, notes: [reason:rematch_request_failed], ok: false}, Object{details: null, failedCount: 0, ms: 1, name: escape, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 13, name: smoke_no_silent, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 2, name: smoke_zero_sum, notes: [], ok: true}], totalMs: 76}
+LOG ECON_UI7_PACK_RESULT Object{notes: [], ok: false, pre: Object{activeBattlesAfter: 0, activeBattlesBefore: 0, activeEventsAfter: 0, activeEventsBefore: 0, cleared: false, ok: true}, steps: [Object{details: null, failedCount: 0, ms: 14, name: battle_win, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 3, name: battle_lose, notes: [], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 1, name: crowd_majority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 1, name: crowd_minority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 0, name: crowd_fifty_fifty, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_true, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_false, notes: [], ok: true}, Object{details: Object{attempt1ReasonCode: null, attempt2ReasonCode: null, postState: [MaxDepth Object], preState: [MaxDepth Object]}, failedCount: 0, ms: 3, name: rematch_1, notes: [], ok: true}, Object{details: Object{attempt1: [MaxDepth Object], attempt1ReasonCode: no_points, attempt2: [MaxDepth Object], attempt2ReasonCode: no_points, ok: false, postState: [MaxDepth Object], preState: [MaxDepth Object], reason: rematch_request_failed}, failedCount: 1, ms: 4, name: rematch_2, notes: [reason:rematch_request_failed], ok: false}, Object{details: Object{attempt1: [MaxDepth Object], attempt1ReasonCode: no_points, attempt2: [MaxDepth Object], attempt2ReasonCode: no_points, ok: false, postState: [MaxDepth Object], preState: [MaxDepth Object], reason: rematch_request_failed}, failedCount: 1, ms: 2, name: rematch_3, notes: [reason:rematch_request_failed], ok: false}, Object{details: null, failedCount: 0, ms: 1, name: escape, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 6, name: smoke_no_silent, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 2, name: smoke_zero_sum, notes: [], ok: true}], totalMs: 37}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   notes: [
@@ -330,7 +331,7 @@ LOG Object{
     Object{
       details: null
       failedCount: 0
-      ms: 35
+      ms: 14
       name: battle_win
       notes: [
 
@@ -340,7 +341,7 @@ LOG Object{
     Object{
       details: null
       failedCount: 0
-      ms: 5
+      ms: 3
       name: battle_lose
       notes: [
 
@@ -369,7 +370,7 @@ WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, totalMs, pre, 
     Object{
       details: null
       failedCount: 0
-      ms: 35
+      ms: 14
       name: battle_win
       notes: [
 
@@ -379,7 +380,7 @@ WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, totalMs, pre, 
     Object{
       details: null
       failedCount: 0
-      ms: 5
+      ms: 3
       name: battle_lose
       notes: [
 
@@ -415,7 +416,7 @@ LOG Object{
     Object{
       details: null
       failedCount: 0
-      ms: 35
+      ms: 14
       name: battle_win
       notes: [
 
@@ -425,10 +426,10 @@ LOG Object{
     Object{
       details: null
       failedCount: 0
-      ms: 5
+      ms: 3
     …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771502237358_867c8c10c18108 Object{notes: [], ok: false, pre: Object{activeBattlesAfter: 0, activeBattlesBefore: 0, activeEventsAfter: 0, activeEventsBefore: 0, cleared: false, ok: true}, steps: [Object{details: null, failedCount: 0, ms: 35, name: battle_win, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 5, name: battle_lose, notes: [], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 4, name: crowd_majority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 1, name: crowd_minority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 0, name: crowd_fifty_fifty, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_true, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_false, notes: [], ok: true}, Object{details: Object{attempt1ReasonCode: null, attempt2ReasonCode: null, postState: [MaxDepth Object], preState: [MaxDepth Object]}, failedCount: 0, ms: 4, name: rematch_1, notes: [], ok: true}, Object{details: Object{attempt1ReasonCode: null, attempt2ReasonCode: null, postState: [MaxDepth Object], preState: [MaxDepth Object]}, failedCount: 0, ms: 3, name: rematch_2, notes: [], ok: true}, Object{details: Object{attempt1: [MaxDepth Object], attempt1ReasonCode: no_points, attempt2: [MaxDepth Object], attempt2ReasonCode: no_points, ok: false, postState: [MaxDepth Object], preState: [MaxDepth Object], reason: rematch_request_failed}, failedCount: 1, ms: 7, name: rematch_3, notes: [reason:rematch_request_failed], ok: false}, Object{details: null, failedCount: 0, ms: 1, name: escape, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 13, name: smoke_no_silent, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 2, name: smoke_zero_sum, notes: [], ok: true}], totalMs: 76}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771502319026_a107315c5b877 Object{notes: [], ok: false, pre: Object{activeBattlesAfter: 0, activeBattlesBefore: 0, activeEventsAfter: 0, activeEventsBefore: 0, cleared: false, ok: true}, steps: [Object{details: null, failedCount: 0, ms: 14, name: battle_win, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 3, name: battle_lose, notes: [], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 1, name: crowd_majority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 1, name: crowd_minority, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: Object{deltaWorld: 0, economyOk: false, ok: false, pointsDiffOk: true, poolAfter: 0, totalsStable: true}, failedCount: 0, ms: 0, name: crowd_fifty_fifty, notes: [crowd_nonfatal_smoke_ok:false], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_true, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 0, name: report_false, notes: [], ok: true}, Object{details: Object{attempt1ReasonCode: null, attempt2ReasonCode: null, postState: [MaxDepth Object], preState: [MaxDepth Object]}, failedCount: 0, ms: 3, name: rematch_1, notes: [], ok: true}, Object{details: Object{attempt1: [MaxDepth Object], attempt1ReasonCode: no_points, attempt2: [MaxDepth Object], attempt2ReasonCode: no_points, ok: false, postState: [MaxDepth Object], preState: [MaxDepth Object], reason: rematch_request_failed}, failedCount: 1, ms: 4, name: rematch_2, notes: [reason:rematch_request_failed], ok: false}, Object{details: Object{attempt1: [MaxDepth Object], attempt1ReasonCode: no_points, attempt2: [MaxDepth Object], attempt2ReasonCode: no_points, ok: false, postState: [MaxDepth Object], preState: [MaxDepth Object], reason: rematch_request_failed}, failedCount: 1, ms: 2, name: rematch_3, notes: [reason:rematch_request_failed], ok: false}, Object{details: null, failedCount: 0, ms: 1, name: escape, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 6, name: smoke_no_silent, notes: [], ok: true}, Object{details: null, failedCount: 0, ms: 2, name: smoke_zero_sum, notes: [], ok: true}], totalMs: 37}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   notes: [
@@ -447,7 +448,7 @@ LOG Object{
     Object{
       details: null
       failedCount: 0
-      ms: 35
+      ms: 14
       name: battle_win
       notes: [
 
@@ -457,7 +458,7 @@ LOG Object{
     Object{
       details: null
       failedCount: 0
-      ms: 5
+      ms: 3
       name: battle_lose
       notes: [
 
