@@ -317,25 +317,30 @@ Next Prompt (копипаст, кодблок обязателен):
   ```
 
 -### [T-20260218-002] ECON-08 Final smoke pack stabilization
-- Status: READY FOR QA
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
-- Next: QA
+- Next: —
 - Area: Economy
 - Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Goal: Harden the final ECON-08 smoke pack by forcing the emitter cap, ensuring moneyLog assertions, and validating world-level rep accounting before publishing the final verdict.
 - Acceptance:
-  - [ ] `Game.__DEV.runEcon08FinalSmokePack()` seeds `S.players.me.points`, clears `progress.respectLedger`, and refills `repEmitter.balance`/`dayKey` before iterating `REP_EMITTER_DAILY_CAP` respects.
-  - [ ] The cap loop succeeds exactly `CAP` times and confirms the `(CAP+1)`-th call fails with `respect_emitter_empty` (`7.4_cap_wrong_reason` otherwise); `diag.capOkCount` and `diag.firstFailReason` are logged.
-  - [ ] MoneyLog analysis uses `Game.__DEBUG_MONEYLOG__`/`Game.__DEV__.debug_moneyLog`, filters rows for the current `dayKey`, enforces one `points_respect_cost` + one `rep_respect_given`, and fails on duplicate `opKey`/missing log (`7.5_*` codes).
-  - [ ] World rep sum (count of `rep_respect_given` rows) never exceeds `REP_EMITTER_DAILY_CAP` (`7.6_world_rep_exceeded_cap` if it does).
-- Result: (QA pending)
+  - [x] `Game.__DEV.runEcon08FinalSmokePack()` seeds `S.players.me.points`, clears `progress.respectLedger`, and refills `repEmitter.balance`/`dayKey` before iterating `REP_EMITTER_DAILY_CAP` respects.
+  - [x] The cap loop succeeds exactly `CAP` times and confirms the `(CAP+1)`-th call fails with `respect_emitter_empty` (`7.4_cap_wrong_reason` otherwise); `diag.capOkCount` and `diag.firstFailReason` are logged.
+  - [x] MoneyLog analysis uses `Game.__DEBUG_MONEYLOG__`/`Game.__DEV__.debug_moneyLog`, filters rows for the current `dayKey`, enforces one `points_respect_cost` + one `rep_respect_given`, and fails on duplicate `opKey`/missing log (`7.5_*` codes).
+  - [x] World rep sum (count of `rep_respect_given` rows) never exceeds `REP_EMITTER_DAILY_CAP` (`7.6_world_rep_exceeded_cap` if it does).
+- Result: PASS (DUMP_AT 2026-02-19 17:01:45)
+- Facts:
+  (1) Cap loop logged `diag.capOkCount: 20`, `diag.firstFailReason: respect_emitter_empty`, and `diag.validOpKeys: 20` without cardinality or reason issues while the `(CAP+1)`-th call failed for the intended reason.
+  (2) MoneyLog filtering grabbed `40` rows (`pointsRows: 20`, `repRows: 20`) from `logSource: state_moneyLog`, confirming each `opKey` delivered both `points_respect_cost` and `rep_respect_given`.
+  (3) World rep count stayed at `repGivenCount: 20`, below or equal to the emitter cap.
+  (4) Console captured `ECON08_FINAL_SMOKE_PACK_RESULT Object{diag: Object{capOkCount: 20, firstFailReason: respect_emitter_empty, logSource: state_moneyLog, moneyLogLen: 40, repGivenCount: 20, validOpKeys: 20, opKeyCardinalityIssues: 0, opKeyReasonIssues: 0}, facts: Object{cap: Object{cap: 20, firstFailReason: respect_emitter_empty, okCount: 20}, moneyLog: Object{beforeLen: 80, filteredLen: 40, pointsRows: 20, repRows: 20}, world: Object{repGivenCount: 20}}, failed: [], notes: [], ok: true}`.
 - Next Prompt (кодблок обязательный):
   ```text
   Ответ QA:
   (1) Hard reload http://localhost:8080/index.html?dev=1.
   (2) Run `Game.__DEV.runEcon08FinalSmokePack().then(r => console.log("ECON08_FINAL_SMOKE_PACK_RESULT", r));`
-  (3) PASS if ok:true, failed:[], diag.capOkCount===cap, diag.firstFailReason==="respect_emitter_empty", diag.moneyLogLen>=2, diag.repGivenCount<=diag.capOkCount, and notes are empty; otherwise attach the console output and mark FAIL.
+  (3) PASS if ok:true, failed:[], diag.capOkCount===cap, diag.firstFailReason==="respect_emitter_empty", diag.moneyLogLen===40, diag.repGivenCount===20, diag.validOpKeys===20, diag.opKeyCardinalityIssues===0, diag.opKeyReasonIssues===0, and notes empty; otherwise attach the console output and mark FAIL.
   ```
 -### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke
 - Status: PASS

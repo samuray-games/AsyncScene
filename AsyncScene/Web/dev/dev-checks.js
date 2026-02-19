@@ -19950,6 +19950,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       let filteredMoneyLog = [];
       const repRows = [];
       const pointsRows = [];
+      let validOpKeyCount = 0;
+      let opKeyCardinalityIssues = 0;
+      let opKeyReasonIssues = 0;
       if (!moneyLogSource) {
         FAIL.push("7.5_moneylog_unavailable");
         NOTE.push("moneyLog_unavailable_for_world_rep_scan");
@@ -19963,16 +19966,34 @@ const DIAG_VERSION = "npc_audit_diag_v2";
           if (opKeysUsed.size && !opKeysUsed.has(opKey)) return false;
           return true;
         });
-        const seen = new Set();
+        const byOp = new Map();
         filteredMoneyLog.forEach(row => {
-          const meta = row && row.meta;
-          const opKey = meta && meta.opKey;
-          if (opKey && seen.has(opKey)) {
-            FAIL.push("7.5_moneylog_duplicate_opkey");
-          }
-          if (opKey) seen.add(opKey);
           if (row && row.reason === "rep_respect_given") repRows.push(row);
           if (row && row.reason === "points_respect_cost") pointsRows.push(row);
+          const meta = row && row.meta;
+          const opKey = meta && meta.opKey;
+          if (!opKey) return;
+          const arr = byOp.get(opKey) || [];
+          arr.push(row);
+          byOp.set(opKey, arr);
+        });
+        byOp.forEach((rows, opKey) => {
+          if (rows.length > 2) {
+            opKeyCardinalityIssues += 1;
+            FAIL.push("7.5_moneylog_duplicate_opkey");
+          }
+          if (rows.length !== 2) {
+            opKeyCardinalityIssues += 1;
+            FAIL.push("7.5_moneylog_bad_opkey_cardinality");
+            return;
+          }
+          const reasons = new Set(rows.map(r => r && String(r.reason || "")));
+          if (!(reasons.has("points_respect_cost") && reasons.has("rep_respect_given") && reasons.size === 2)) {
+            opKeyReasonIssues += 1;
+            FAIL.push("7.5_moneylog_bad_opkey_pair");
+            return;
+          }
+          validOpKeyCount += 1;
         });
         if (!repRows.length) FAIL.push("7.5_no_rep_respect");
         if (!pointsRows.length) FAIL.push("7.5_no_points_respect");
@@ -19992,6 +20013,15 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       diag.logSource = logSource;
       diag.moneyLogLen = filteredMoneyLog.length;
       diag.repGivenCount = repRows.length;
+      diag.validOpKeys = validOpKeyCount;
+      diag.opKeyCardinalityIssues = opKeyCardinalityIssues;
+      diag.opKeyReasonIssues = opKeyReasonIssues;
+      if (validOpKeyCount < capOkCount) {
+        FAIL.push("7.5_moneylog_missing_opkeys");
+      }
+      if (validOpKeyCount > capOkCount) {
+        FAIL.push("7.5_moneylog_extra_opkeys");
+      }
       facts.moneyLog = {
         beforeLen: moneyLogBeforeLen,
         filteredLen: filteredMoneyLog.length,

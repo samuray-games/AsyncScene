@@ -3146,10 +3146,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA (run `Game.__DEV.smokeRespectUiOnce()` and capture the `ECON08_UI_SMOKE_RESULT` object to prove toast assertions).
 
 ### 2026-02-19 — ECON-08 Final smoke pack stabilization
-- Status: READY FOR QA
+- Status: PASS
 - Facts:
-  - Added `Game.__DEV.runEcon08FinalSmokePack()` which seeds `S.players.me.points`, resets `progress.respectLedger`, refills `repEmitter.balance/dayKey`, then iterates the emitter cap to validate emitter depletion, moneyLog rows, and world rep counts.
-  - Cap instrumentation tracks `diag.capOkCount` and `diag.firstFailReason`, ensuring the `(CAP+1)`-th respect fails with `respect_emitter_empty` (otherwise `7.4_cap_wrong_reason`).
-  - MoneyLog validation uses `Game.__DEBUG_MONEYLOG__`/`Game.__DEV__.debug_moneyLog`, filters rows for today’s `opKey`, enforces at least one `points_respect_cost` and one `rep_respect_given`, rejects duplicated `opKey`s, and logs failures via `7.5_*` codes (note `moneyLog_unavailable_for_world_rep_scan` when log missing).
-  - `diag.moneyLogLen` and `diag.repGivenCount` supply quick diagnostics; the world rep count must stay ≤ `REP_EMITTER_DAILY_CAP` or `7.6_world_rep_exceeded_cap` is raised.
-- Next: QA (run `Game.__DEV.runEcon08FinalSmokePack()` and paste the `ECON08_FINAL_SMOKE_PACK_RESULT` object into Console.txt for verification).
+  - `Game.__DEV.runEcon08FinalSmokePack()` now combines ledger reset, emitter cap seeding, and moneyLog verification into one deterministic helper, reporting diagnostics for each phase.
+  - Cap instrumentation recorded `diag.capOkCount: 20`, `diag.firstFailReason: respect_emitter_empty`, `diag.validOpKeys: 20`, `diag.opKeyCardinalityIssues: 0`, and `diag.opKeyReasonIssues: 0` while the `(CAP+1)`-th call failed for the intended reason.
+  - MoneyLog filtering captured 40 rows (`pointsRows: 20`, `repRows: 20`) from `logSource: state_moneyLog`, where every `opKey` emitted both `points_respect_cost` and `rep_respect_given` without duplicates.
+  - World rep count matched `repGivenCount: 20`, staying at or below the emitter cap.
+- Console DUMP_AT 2026-02-19 17:01:45 recorded `ECON08_FINAL_SMOKE_PACK_RESULT Object{diag: Object{capOkCount: 20, firstFailReason: respect_emitter_empty, logSource: state_moneyLog, moneyLogLen: 40, repGivenCount: 20, validOpKeys: 20, opKeyCardinalityIssues: 0, opKeyReasonIssues: 0}, facts: Object{cap: Object{cap: 20, firstFailReason: respect_emitter_empty, okCount: 20}, moneyLog: Object{beforeLen: 80, filteredLen: 40, pointsRows: 20, repRows: 20}, world: Object{repGivenCount: 20}}, failed: [], notes: [], ok: true}`.
+- Next: —
