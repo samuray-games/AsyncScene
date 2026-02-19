@@ -450,6 +450,32 @@ window.Game = window.Game || {};
     }
   }
 
+  const SILENT_REASON_TOKENS = ["dev", "migration", "internal"];
+
+  function isSilentOkReason(reason){
+    if (!reason) return false;
+    const normalized = String(reason || "").toLowerCase();
+    if (!normalized) return false;
+    for (const token of SILENT_REASON_TOKENS) {
+      if (normalized === token) return true;
+      if (normalized.startsWith(token)) return true;
+      if (normalized.includes(`_${token}`)) return true;
+    }
+    return false;
+  }
+
+  function shouldToastRow(row){
+    if (!row || typeof row !== "object") return false;
+    const amountSource = (row.amount !== undefined) ? row.amount : ((row.delta !== undefined) ? row.delta : 0);
+    const amount = Number(amountSource);
+    if (!Number.isFinite(amount) || amount === 0) return false;
+    const currencyCandidate = String(row.currency || row.kind || "points").toLowerCase();
+    if (currencyCandidate !== "points" && currencyCandidate !== "rep") return false;
+    const reason = String(row.reason || (row.meta && row.meta.reason) || "").trim();
+    if (isSilentOkReason(reason)) return false;
+    return true;
+  }
+
   function pushMoneyLogRow(row){
     const entry = (row && typeof row === "object") ? row : {};
     if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
@@ -478,6 +504,7 @@ window.Game = window.Game || {};
       txId,
       meta
     });
+    normalized.toastExpected = shouldToastRow(normalized);
     dbg.moneyLog.push(normalized);
     const logIndex = dbg.moneyLog.length - 1;
     const result = { txId, logIndex };

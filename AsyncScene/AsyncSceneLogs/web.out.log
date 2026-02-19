@@ -36193,3 +36193,10 @@ ConnectionResetError: [Errno 54] Connection reset by peer
 127.0.0.1 - - [19/Feb/2026 19:25:57] code 404, message File not found
 127.0.0.1 - - [19/Feb/2026 19:25:57] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [19/Feb/2026 19:26:05] "POST /__dev/console-dump?v=1771496765144 HTTP/1.1" 200 -
+127.0.0.1 - - [19/Feb/2026 19:36:55] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [19/Feb/2026 19:36:55] code 404, message File not found
+127.0.0.1 - - [19/Feb/2026 19:36:55] code 404, message File not found
+127.0.0.1 - - [19/Feb/2026 19:36:55] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [19/Feb/2026 19:36:55] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [19/Feb/2026 19:36:55] code 404, message File not found
+127.0.0.1 - - [19/Feb/2026 19:36:55] "GET /favicon.ico HTTP/1.1" 404 -
