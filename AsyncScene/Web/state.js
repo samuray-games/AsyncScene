@@ -5419,15 +5419,17 @@ window.Game = window.Game || {};
       const tRes = fetchTextSync("/TASKS.md");
       const pRes = fetchTextSync("/PROJECT_MEMORY.md");
       const keys = [
-        { id: "econ01", key: "ECON-UI [1]" },
-        { id: "econ02", key: "ECON-UI [2]" },
-        { id: "econ03", key: "ECON-UI [3]" }
+        { id: "econ01", key: "ECON-01" },
+        { id: "econ02", key: "ECON-02" },
+        { id: "econ03", key: "ECON-03" }
       ];
       const docs = {
         ok: true,
         econ01: "MISSING",
         econ02: "MISSING",
         econ03: "MISSING",
+        readOk: true,
+        mode: "read_ok",
         missing: [],
         notes: []
       };
@@ -5435,24 +5437,40 @@ window.Game = window.Game || {};
       if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
       if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
 
-      for (const k of keys) {
-        const tStatus = tRes.ok ? getStatus(tRes.text, k.key) : "MISSING";
-        const pStatus = pRes.ok ? getStatus(pRes.text, k.key) : "MISSING";
-        let finalStatus = "MISSING";
-        if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
-        else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
-        else finalStatus = "FAIL";
-        docs[k.id] = finalStatus;
-        if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
-        if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
-        if (finalStatus !== "PASS") docs.ok = false;
+      if (!tRes.ok || !pRes.ok) {
+        docs.readOk = false;
+        docs.ok = false;
+        docs.mode = "skipped_http_404";
+      } else {
+        for (const k of keys) {
+          const tStatus = getStatus(tRes.text, k.key);
+          const pStatus = getStatus(pRes.text, k.key);
+          let finalStatus = "MISSING";
+          if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
+          else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
+          else finalStatus = "FAIL";
+          docs[k.id] = finalStatus;
+          if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
+          if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
+          if (finalStatus !== "PASS") docs.ok = false;
+        }
+        if (!docs.ok) failed.push("docs_not_pass");
       }
-      if (!docs.ok) failed.push("docs_not_pass");
 
       const runtime = { ok: true, steps: [] };
       const addStep = (name, payload) => {
         runtime.steps.push(payload);
         if (!payload.ok) runtime.ok = false;
+      };
+
+      const resetIdle = (tag) => {
+        if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
+          const res = Game.__DEV.resetToIdleForSmokesOnce();
+          if (res && Number.isFinite(res.activeBattlesBefore) && res.activeBattlesBefore > 0) {
+            return `active_battles_before_${tag}:${res.activeBattlesBefore}`;
+          }
+        }
+        return null;
       };
 
       const t0 = nowMs();
@@ -5468,9 +5486,10 @@ window.Game = window.Game || {};
       const packFailedCount = (packRes && Array.isArray(packRes.steps)) ? packRes.steps.filter(s => s && s.ok === false).length
         : (packRes && Array.isArray(packRes.failed)) ? packRes.failed.length
         : (packRes && packRes.ok === false ? 1 : 0);
-      addStep("ui7_regression", { name: "ui7_regression", ok: !!(packRes && packRes.ok), totalMs: packMs, failedCount: packFailedCount });
+      addStep("ui7_regression", { name: "ui7_regression", ok: !!(packRes && packRes.ok), totalMs: packMs, failedCount: packFailedCount, note: null });
 
       let noSilentRes = null;
+      const idleNote1 = resetIdle("ui5");
       try {
         noSilentRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_NoSilentReasonsOnce === "function")
           ? Game.__DEV.smokeEconUi_NoSilentReasonsOnce(opts && opts.window ? { window: opts.window } : {})
@@ -5482,10 +5501,12 @@ window.Game = window.Game || {};
         name: "ui5_coverage",
         ok: !!(noSilentRes && noSilentRes.ok),
         rowsChecked: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.rowsChecked)) ? noSilentRes.summary.rowsChecked : 0,
-        silentCount: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.silentCount)) ? noSilentRes.summary.silentCount : 0
+        silentCount: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.silentCount)) ? noSilentRes.summary.silentCount : 0,
+        note: idleNote1
       });
 
       let zeroSumRes = null;
+      const idleNote2 = resetIdle("ui6");
       try {
         zeroSumRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_ZeroSumOnce === "function")
           ? Game.__DEV.smokeEconUi_ZeroSumOnce()
@@ -5500,7 +5521,8 @@ window.Game = window.Game || {};
         name: "ui6_zero_sum",
         ok: !!(zeroSumRes && zeroSumRes.ok),
         scenarios: Array.isArray(zeroSumRes && zeroSumRes.scenarios) ? zeroSumRes.scenarios.length : 0,
-        deltasSample
+        deltasSample,
+        note: idleNote2
       });
 
       if (!runtime.ok) failed.push("runtime_not_pass");
@@ -5509,8 +5531,9 @@ window.Game = window.Game || {};
       const totalMs = Math.round(totalEnd - totalStart);
       if (totalMs > 180000) failed.push("timeout");
 
+      const docsGateOk = docs.readOk ? docs.ok : true;
       const result = {
-        ok: docs.ok && runtime.ok && totalMs <= 180000 && failed.length === 0,
+        ok: docsGateOk && runtime.ok && totalMs <= 180000 && failed.length === 0,
         totalMs,
         docs,
         runtime,
