@@ -504,6 +504,62 @@ window.Game = window.Game || {};
     return ts;
   }
 
+  function resolveMoneyLogRow(ref){
+    if (!ref || typeof ref !== "object") return null;
+    if (!Game.__D || typeof Game.__D !== "object") return null;
+    const dbg = Game.__D;
+    if (!Array.isArray(dbg.moneyLog)) return null;
+    const logIndex = Number.isFinite(ref.logIndex) ? ref.logIndex : null;
+    if (logIndex !== null) {
+      return dbg.moneyLog[logIndex] || null;
+    }
+    const txId = ref.txId ? String(ref.txId) : null;
+    if (txId) {
+      return dbg.moneyLog.find(row => row && String(row.txId || "") === txId) || null;
+    }
+    return null;
+  }
+
+  function formatEconToastText(payload){
+    const icons = { rep: "⭐", points: "💰" };
+    const currency = String(payload.currency || "points").toLowerCase();
+    const icon = icons[currency] || "";
+    const amount = Number.isFinite(payload.amount) ? payload.amount : 0;
+    const sign = amount > 0 ? "+" : amount < 0 ? "" : "";
+    const textAmount = `${sign}${amount}`;
+    const reason = payload.reason ? ` ${payload.reason}` : "";
+    return `${icon}${textAmount}${reason}`.trim();
+  }
+
+  function createEconPayload(row){
+    if (!row || typeof row !== "object") return null;
+    const currency = String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points";
+    const amount = Number.isFinite(row.amount) ? row.amount : ((row.delta !== undefined) ? Number(row.delta) : 0);
+    return {
+      currency,
+      amount,
+      reason: row.reason,
+      sourceId: row.sourceId,
+      targetId: row.targetId,
+      battleId: row.battleId,
+      eventId: row.eventId
+    };
+  }
+
+  function formatEconDelta(row){
+    const payload = createEconPayload(row) || {
+      currency: String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points",
+      amount: Number.isFinite(row.amount) ? row.amount : ((row.delta !== undefined) ? Number(row.delta) : 0),
+      reason: row.reason,
+      sourceId: row.sourceId,
+      targetId: row.targetId,
+      battleId: row.battleId,
+      eventId: row.eventId
+    };
+    if (!payload) return "";
+    return formatEconToastText(payload);
+  }
+
   function emitEconToastNow(row, toast, overrideText){
     if (!row || !toast) return;
     const text = String(overrideText || toast.text || row.reason || "");
@@ -520,22 +576,47 @@ window.Game = window.Game || {};
     if (!ref || typeof ref !== "object") return null;
     if (!Game.__D || typeof Game.__D !== "object") return null;
     const dbg = Game.__D;
-    if (!Array.isArray(dbg.moneyLog)) return null;
-    const logIndex = Number.isFinite(ref.logIndex) ? ref.logIndex : null;
-    if (logIndex === null) return null;
-    const row = dbg.moneyLog[logIndex];
-    if (!row || !row.reason) return null;
+    if (!Array.isArray(dbg.moneyLog)) return { ok: false, reason: "moneylog_missing" };
+    const indexCandidate = Number.isFinite(ref.logIndex) ? ref.logIndex : null;
+    let row = (indexCandidate !== null) ? dbg.moneyLog[indexCandidate] : null;
+    if (!row || (ref.txId && String(row.txId || "") !== String(ref.txId))) {
+      row = resolveMoneyLogRow(ref);
+    }
+    if (!row) {
+      if (Game && Game.__DEV && typeof Game.__DEV === "object") {
+        console.warn("ECON_UI3_ROW_MISSING", { ref });
+      }
+      return { ok: false, reason: "row_not_found_for_toast", ref };
+    }
+    if (!row.reason) {
+      if (Game && Game.__DEV && typeof Game.__DEV === "object") {
+        console.warn("ECON_UI3_ROW_REASON_MISSING", { ref, txId: row.txId });
+      }
+      return { ok: false, reason: "row_missing_reason", ref, txId: row.txId };
+    }
     if (!Array.isArray(dbg.toastLog)) dbg.toastLog = [];
-    const displayText = String(overrideText || row.meta && row.meta.toastText || row.reason || "");
+    const already = dbg.toastLog.some(t => t && t.kind === "econ" && t.txId === row.txId);
+    if (already) {
+      if (Game && Game.__DEV && typeof Game.__DEV === "object") {
+        console.warn("ECON_UI2_DUP_BLOCKED", { txId: row.txId });
+      }
+      return { skipped: true, reason: "dup_txId", txId: row.txId };
+    }
+    const payload = createEconPayload(row);
     const tsToast = calcEconToastTs();
+    const logIndex = dbg.moneyLog.findIndex(r => r && String(r.txId || "") === String(row.txId));
     const toast = {
       kind: "econ",
       txId: row.txId,
-      logIndex,
+      logIndex: (logIndex >= 0) ? logIndex : (indexCandidate !== null ? indexCandidate : 0),
       reason: row.reason,
-      ts: tsToast
+      ts: tsToast,
+      payload
     };
-    if (displayText) toast.text = displayText;
+    if (!toast.text) {
+      const defaultText = formatEconDelta(row);
+      if (defaultText) toast.text = defaultText;
+    }
     if (typeof overrideText === "string" && overrideText) {
       toast.text = overrideText;
     }
@@ -3474,7 +3555,8 @@ window.Game = window.Game || {};
       }
       const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
       if (ref && typeof toastHelper === "function") {
-        const toast = toastHelper(ref, opts.toastText || "+1💰");
+        const toastResult = toastHelper(ref, opts.toastText || "+1💰");
+        const toast = (toastResult && toastResult.ok === false) ? null : toastResult;
         if (toast) {
           sampleToast = toast;
           if (toast.kind !== "econ") failed.push("toast_wrong_kind");
@@ -3485,6 +3567,9 @@ window.Game = window.Game || {};
           if (sampleRow && toast.reason !== sampleRow.reason) failed.push("toast_reason_mismatch");
         } else {
           failed.push("toast_push_failed");
+          if (toastResult && toastResult.ok === false) {
+            failed.push(`toast_error:${toastResult.reason || "unknown"}`);
+          }
         }
       } else {
         failed.push("toast_helper_missing");
@@ -3527,6 +3612,7 @@ window.Game = window.Game || {};
         let ref = null;
         let row = null;
         let toast = null;
+        let toastFailed = false;
         try {
           ref = rowHelper({
             time: Date.now(),
@@ -3545,9 +3631,18 @@ window.Game = window.Game || {};
         try {
           const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
           if (ref && typeof toastHelper === "function") {
-            toast = toastHelper(ref, op.text);
+            const toastResult = toastHelper(ref, op.text);
+            if (toastResult && toastResult.ok === false) {
+              toast = null;
+              toastFailed = true;
+              failed.push(`toast_push_failed:${op.reason}`);
+              failed.push(`toast_error:${op.reason}:${toastResult.reason || "unknown"}`);
+            } else {
+              toast = toastResult;
+            }
           }
         } catch (_) {
+          toastFailed = true;
           failed.push(`toast_push_failed:${op.reason}`);
         }
         const tsRow = row ? Number(row.ts || row.time || 0) : 0;
@@ -3560,7 +3655,7 @@ window.Game = window.Game || {};
           dt
         });
         if (!row) failed.push(`moneylog_row_missing:${op.reason}`);
-        if (!toast) failed.push(`toast_missing:${op.reason}`);
+        if (!toast && !toastFailed) failed.push(`toast_missing:${op.reason}`);
         if (dt != null && dt > (opts.maxDt || 16)) {
           failed.push(`dt_too_large:${op.reason}:${dt}`);
         }
@@ -3580,6 +3675,175 @@ window.Game = window.Game || {};
         console.log("ECON_UI1_TOAST_IMMEDIATE_BEGIN");
         console.log(JSON.stringify(result));
         console.log("ECON_UI1_TOAST_IMMEDIATE_END");
+      } catch (_) {}
+      return result;
+    };
+    Game.__DEV.smokeEconUi_DedupOnce = function smokeEconUi_DedupOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+      const saved = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
+      dbg.toastLog = [];
+      const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+      let ref = null;
+      try {
+        ref = rowHelper({
+          time: Date.now(),
+          reason: "toast_dedup_probe",
+          currency: "points",
+          amount: 1,
+          sourceId: "smoke_dedup",
+          targetId: "me",
+          battleId: "smoke_dedup",
+          meta: { smoke: "econ_ui_dedup" }
+        });
+      } catch (_) {}
+      let first = null;
+      let second = null;
+      try {
+        if (ref) first = pushEconToastFromLogRef(ref, opts.toastText || "+1💰");
+      } catch (_) {}
+      try {
+        if (ref) second = pushEconToastFromLogRef(ref, opts.toastText || "+1💰");
+      } catch (_) {}
+      const log = Array.isArray(dbg.toastLog) ? dbg.toastLog : [];
+      const count = log.filter(t => t && t.kind === "econ" && t.txId === (ref && ref.txId)).length;
+      const failed = [];
+      if (count !== 1) failed.push(`count=${count}`);
+      if (!ref) failed.push("moneylog_missing");
+      const result = {
+        ok: failed.length === 0,
+        failed,
+        count,
+        txId: ref && ref.txId ? ref.txId : null,
+        first,
+        second
+      };
+      const newToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
+      dbg.toastLog = saved.concat(newToasts);
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI2_DEDUP_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI2_DEDUP_END");
+      } catch (_) {}
+      return result;
+    };
+    Game.__DEV.smokeEconUi_ToastMatchesMoneyLogOnce = function smokeEconUi_ToastMatchesMoneyLogOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+      const savedToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
+      dbg.toastLog = [];
+      const failed = [];
+      const samples = [];
+      const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+      const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
+      const ops = [
+        { reason: "toast_match_probe_points_plus", currency: "points", amount: 1, sourceId: "smoke_match_probe", targetId: "me", battleId: "toast_match_probe_points_plus", eventId: "toast_match_probe_points_plus", text: "+1💰" },
+        { reason: "toast_match_probe_points_minus", currency: "points", amount: -2, sourceId: "smoke_match_probe", targetId: "me", battleId: "toast_match_probe_points_minus", eventId: "toast_match_probe_points_minus", text: "-2💰" },
+        { reason: "toast_match_probe_rep_plus", currency: "rep", amount: 5, sourceId: "smoke_match_probe", targetId: "me", battleId: "toast_match_probe_rep_plus", eventId: "toast_match_probe_rep_plus", text: "+5⭐" },
+        { reason: "toast_match_probe_rep_minus", currency: "rep", amount: -1, sourceId: "me", targetId: "crowd_pool", battleId: "toast_match_probe_rep_minus", eventId: "toast_match_probe_rep_minus", text: "-1⭐" },
+      ];
+      for (const op of ops) {
+        let ref = null;
+        let row = null;
+        let toast = null;
+        let toastFailed = false;
+        try {
+          ref = rowHelper({
+            time: Date.now(),
+            reason: op.reason,
+            currency: op.currency,
+            amount: op.amount,
+            sourceId: op.sourceId,
+            targetId: op.targetId,
+            battleId: op.battleId,
+            eventId: op.eventId,
+            meta: { smoke: "econ_ui_match", op: op.reason }
+          });
+          if (ref && Array.isArray(dbg.moneyLog) && Number.isFinite(ref.logIndex)) {
+            row = dbg.moneyLog[ref.logIndex];
+          }
+        } catch (_) {
+          failed.push(`moneylog_push_failed:${op.reason}`);
+        }
+        try {
+          if (ref && typeof toastHelper === "function") {
+            const toastResult = toastHelper(ref, op.text);
+            if (toastResult && toastResult.ok === false) {
+              toastFailed = true;
+              failed.push(`toast_push_failed:${op.reason}`);
+              failed.push(`toast_error:${op.reason}:${toastResult.reason || "unknown"}`);
+            } else {
+              toast = toastResult;
+            }
+          }
+        } catch (_) {
+          toastFailed = true;
+          failed.push(`toast_push_failed:${op.reason}`);
+        }
+        const payload = toast && toast.payload ? toast.payload : null;
+        samples.push({
+          txId: ref && ref.txId ? ref.txId : null,
+          row: row ? {
+            txId: row.txId,
+            reason: row.reason,
+            currency: row.currency,
+            kind: row.kind,
+            amount: row.amount,
+            delta: row.delta,
+            sourceId: row.sourceId,
+            targetId: row.targetId
+          } : null,
+          toastPayload: payload,
+          text: toast && toast.text ? toast.text : null
+        });
+        if (!row) {
+          failed.push(`moneylog_row_missing:${op.reason}`);
+        }
+        if (!toast) {
+          if (!toastFailed) {
+            failed.push(`toast_missing:${op.reason}`);
+          }
+          continue;
+        }
+        const expectedCurrency = row ? String(row.currency || row.kind || "points").toLowerCase() : null;
+        const gotCurrency = payload ? String(payload.currency || "points").toLowerCase() : null;
+        if (row && payload && gotCurrency !== expectedCurrency) {
+          failed.push(`currency_mismatch:${op.reason}:${expectedCurrency}->${payload.currency}`);
+        }
+        const expectedAmount = row ? (Number.isFinite(row.amount) ? row.amount : ((row.delta !== undefined) ? Number(row.delta) : 0)) : null;
+        const gotAmount = (payload && Number.isFinite(payload.amount)) ? payload.amount : payload && payload.amount;
+        if (row && payload && expectedAmount !== gotAmount) {
+          failed.push(`amount_mismatch:${op.reason}:${expectedAmount}->${payload && payload.amount}`);
+        }
+        if (row && payload && String(payload.reason || "") !== String(row.reason || "")) {
+          failed.push(`reason_mismatch:${op.reason}:${row.reason}->${payload && payload.reason}`);
+        }
+      }
+      const result = {
+        ok: failed.length === 0,
+        failed,
+        samples
+      };
+      const newToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
+      dbg.toastLog = savedToasts.concat(newToasts);
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI3_MATCH_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI3_MATCH_END");
       } catch (_) {}
       return result;
     };

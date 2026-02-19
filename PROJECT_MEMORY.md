@@ -3165,12 +3165,20 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke output: `Game.__DEV.smokeToastContractProbeOnce()` logs `DUMP_AT ...`, `ECON_UI0_TOAST_CONTRACT_BEGIN`, JSON and `ECON_UI0_TOAST_CONTRACT_END` describing matching toast/moneyLog pair.
 - Next: QA (требуется запустить smoke, убедиться в `ok:true`/`failed:[]`, `toast.kind:"econ"` и совпадении `txId`/`reason` между toast и moneyLog).
 
-### 2026-02-20 — ECON-UI [1] immediate econ toasts
+-### 2026-02-20 — ECON-UI [1] immediate econ toasts
+- Status: PASS
+- Facts:
+  - `pushEconToastFromLogRef` вызывает `emitEconToastNow`, немедленно pinga `Game.UI.showStatToast` (текст из override/`reason`), сохраняя `kind:"econ"`, `txId`, `logIndex` и уникальный `ts`.
+  - `Game.__DEV.smokeEconUi_ToastImmediateOnce()` делает три econ-транзакции, фиксирует `dt=tsToast−tsCommit`, проверяет `dt≤16` и разные `tsToast`, и логирует `DUMP_AT [2026-02-19 18:40:22]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON+samples, `ECON_UI1_TOAST_IMMEDIATE_END`.
+  - Smoke подтвердил `ok:true`, `failed:[]`, `samples` с dt=1/0/0.0009765625 и `tsToast=1771494022475`, `1771494022476`, `1771494022476.001` (уникальные, гладкие).
+- Smoke output: `DUMP_AT [2026-02-19 18:40:22]` with `ECON_UI1_TOAST_IMMEDIATE_BEGIN` JSON result (as above) and `ECON_UI1_TOAST_IMMEDIATE_END`.
+- Next: —
+- Evidence FAIL: Console.txt DUMP_AT 2026-02-19 18:29:54 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` with `ok:false`, `failed:["toast_batched:toast_immediate_crowd"]`, and samples for `toast_immediate_probe`/`toast_immediate_crowd` sharing identical `tsToast=1771493394016`.
+
+### 2026-02-20 — ECON-UI [2] dedup econ toasts
 - Status: IN_PROGRESS
 - Facts:
-  - `pushEconToastFromLogRef` теперь вызывает `emitEconToastNow`, сразу отправляющую toast в `Game.UI.showStatToast`, используя текст из override/`row.reason`, и сохраняет `kind:"econ"`, `txId`, `logIndex`.
-  - Добавлен smoke `Game.__DEV.smokeEconUi_ToastImmediateOnce()`; он делает три подряд econ rows+toasts, измеряет `dt=tsToast−tsCommit`, проверяет `dt<=16` и уникальность `tsToast`, а результат логируется через `DUMP_AT [...]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON, `ECON_UI1_TOAST_IMMEDIATE_END`.
-  - Smoke гарантирует, что экономические тосты не батчатся и показываются мгновенно без дополнительного flush.
-- Smoke output: пока не запускался — требуется прогнать `Game.__DEV.smokeEconUi_ToastImmediateOnce()` в dev-окружении и убедиться в `ok:true`, пустом `failed`, dt≤16 и уникальных времени тостов.
-- Next: QA (запустить smoke, приложить `DUMP_AT`/`ECON_UI1_*` и подтвердить PASS/FAIL).
-- Evidence FAIL: Console.txt DUMP_AT 2026-02-19 18:29:54 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` with `ok:false`, `failed:["toast_batched:toast_immediate_crowd"]`, and samples for `toast_immediate_probe`/`toast_immediate_crowd` sharing identical `tsToast=1771493394016`.
+  - `pushEconToastFromLogRef` перестал пускать дубль: до записи проверяется, есть ли уже `kind:"econ"` с таким `txId` в `Game.__D.toastLog`; в случае дубликата возвращается `{skipped:true, reason:"dup_txId"}` и при dev-режиме логируется `WARN ECON_UI2_DUP_BLOCKED txId=…`.
+  - `Game.__DEV.smokeEconUi_DedupOnce()` очищает `toastLog`, создаёт одну транзакцию/row, вызывает `pushEconToastFromLogRef` дважды с тем же ref, считает `count` записей с `txId`, и логирует `DUMP_AT […]`, `ECON_UI2_DEDUP_BEGIN`, JSON, `ECON_UI2_DEDUP_END`.
+  - Smoke обещает доказать, что один txId = один toast; PASS требует `count===1` и `failed:[]`.
+- Next: QA (запустить `Game.__DEV.smokeEconUi_DedupOnce()` и приложить `DUMP_AT`/`ECON_UI2_*` лог).

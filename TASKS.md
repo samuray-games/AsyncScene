@@ -167,8 +167,8 @@ Next Prompt (копипаст, кодблок обязателен):
   (3) PASS if r1 ok:true; r2 reason=respect_pair_daily; r3 reason=respect_no_chain; r4 reason=respect_self; dayKey matches ledger entry in `lastByPairDay.me[npcId]`. Otherwise attach console object and mark FAIL.
   ```
 
-### [T-20260220-001] ECON-UI [1] immediate econ toasts
-- Status: IN_PROGRESS
+-### [T-20260220-001] ECON-UI [1] immediate econ toasts
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -183,7 +183,24 @@ Next Prompt (копипаст, кодблок обязателен):
   1. Hard reload http://localhost:8080/index.html?dev=1.
   2. Run `Game.__DEV.smokeEconUi_ToastImmediateOnce().then(r => console.log("ECON_UI1_TOAST_IMMEDIATE_RESULT", r));`
   3. PASS if `ok:true`, `failed:[]`, каждый sample имеет `dt<=16`, `tsToast` уникальны, и Console выводит `DUMP_AT [...]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON, `ECON_UI1_TOAST_IMMEDIATE_END`; иначе attach console output and mark FAIL.
-  - FAIL evidence: Console.txt DUMP_AT 2026-02-19 18:29:54 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` with `ok:false`, `failed:["toast_batched:toast_immediate_crowd"]`, samples sharing tsToast=1771493394016 for `toast_immediate_probe`/`toast_immediate_crowd`.
+- PASS evidence: Console.txt DUMP_AT 2026-02-19 18:40:22 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` result `{ok:true,failed:[],samples:[...tsToast uniq...]}` with dt<=1. Указаны tsToast 1771494022475/2476/2476.001.
+
+### [T-20260220-002] ECON-UI [2] dedup econ toasts
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: каждая txn (txId) порождает ровно один econ toast — повторные `pushEconToastFromLogRef` с тем же `txId` не создают дубликаты.
+- Acceptance:
+  - `pushEconToastFromLogRef` проверяет `Game.__D.toastLog` на `kind:"econ"` с таким же `txId`, возвращает `{skipped:true, reason:"dup_txId"}` и не пушит второй toast.
+  - `Game.__DEV` логирует `WARN ECON_UI2_DUP_BLOCKED txId=...` при попытке дублировать.
+  - `Game.__DEV.smokeEconUi_DedupOnce()` очищает `toastLog`, добавляет одну txn через `pushMoneyLogRow`, вызывает `pushEconToastFromLogRef` дважды, проверяет, что `toastLog` содержит `count===1` по этому `txId`, и логирует `DUMP_AT [...]`, `ECON_UI2_DEDUP_BEGIN`, JSON, `ECON_UI2_DEDUP_END`.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeEconUi_DedupOnce().then(r => console.log("ECON_UI2_DEDUP_RESULT", r));`
+  3. PASS if `ok:true`, `failed:[]`, `count===1`, and Console shows `DUMP_AT […]`, `ECON_UI2_DEDUP_BEGIN`, JSON, `ECON_UI2_DEDUP_END`; otherwise attach console output and mark FAIL.
 
 -### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
 -Status: PASS
