@@ -4315,7 +4315,7 @@ window.Game = window.Game || {};
             meta: { smoke: "econ_ui_seed", minPts: target, source: "worldBank" }
           });
           if (tx && tx.ok === true) {
-            method = "worldBank";
+            method = `worldBank:${fundRes.method || "ready"}`;
             amount = need;
             return { ok: true };
           }
@@ -4325,74 +4325,14 @@ window.Game = window.Game || {};
         }
       };
 
-      const seedWithSink = () => {
-        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
-        if (getBal("sink") < need) return { ok: false, reason: "insufficient_sink" };
-        try {
-          const tx = Econ.transferPoints("sink", "me", need, "dev_seed_points_for_smoke", {
-            context: { smoke: "econ_ui_seed", minPts: target },
-            meta: { smoke: "econ_ui_seed", minPts: target, source: "sink" }
-          });
-          if (tx && tx.ok === true) {
-            method = "sink";
-            amount = need;
-            return { ok: true };
-          }
-          return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "sink_transfer_failed" };
-        } catch (_) {
-          return { ok: false, reason: "sink_transfer_exception" };
-        }
-      };
-
-      const seedWithDonor = () => {
-        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
-        const p2pAllowed = (Game && Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
-          ? Game.Rules.isP2PTransfersEnabled()
-          : true;
-        if (!p2pAllowed) return { ok: false, reason: "p2p_disabled" };
-        donorId = "npc_donor";
-        const donorBal = getBal(donorId);
-        if (donorBal < need) {
-          if (getBal("sink") >= need) {
-            try {
-              const txTop = Econ.transferPoints("sink", donorId, need, "dev_seed_donor_topup", {
-                context: { smoke: "econ_ui_seed", minPts: target },
-                meta: { smoke: "econ_ui_seed", source: "sink", to: donorId }
-              });
-              if (!txTop || txTop.ok !== true) return { ok: false, reason: txTop && txTop.reason ? String(txTop.reason) : "donor_topup_failed" };
-            } catch (_) {
-              return { ok: false, reason: "donor_topup_exception" };
-            }
-          } else {
-            return { ok: false, reason: "no_donor_funds" };
-          }
-        }
-        try {
-          const tx = Econ.transferPoints(donorId, "me", need, "dev_seed_points_for_smoke", {
-            context: { smoke: "econ_ui_seed", minPts: target },
-            meta: { smoke: "econ_ui_seed", minPts: target, source: donorId }
-          });
-          if (tx && tx.ok === true) {
-            method = "donor";
-            amount = need;
-            return { ok: true };
-          }
-          return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "donor_transfer_failed" };
-        } catch (_) {
-          return { ok: false, reason: "donor_transfer_exception" };
-        }
-      };
-
       let seedRes = { ok: false, reason: "no_seed_path" };
       if (canTransfer) {
         seedRes = seedWithWorldBank();
-        if (!seedRes.ok) seedRes = seedWithSink();
-        if (!seedRes.ok) seedRes = seedWithDonor();
       } else {
         errReason = "transfer_unavailable";
       }
 
-      if (!seedRes.ok) errReason = seedRes.reason || errReason || "no_seed_path";
+      if (!seedRes.ok) errReason = seedRes.reason || errReason || "no_seed_path_internal";
       const after = getMePoints();
       const afterLogLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLogLen;
       const rowsCount = Math.max(0, afterLogLen - beforeLogLen);
