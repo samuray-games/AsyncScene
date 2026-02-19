@@ -581,7 +581,8 @@
       "crowd_vote_refund_majority",
       "crowd_vote_remainder_win",
       "crowd_vote_loser_penalty",
-      "crowd_vote_refund"
+      "crowd_vote_refund",
+      "rematch_request_cost"
     ]);
     if (involvesMe && toastReasons.has(reason)) {
       const helper = (Game && Game.__D && typeof Game.__D.pushMoneyLogRow === "function") ? Game.__D.pushMoneyLogRow : null;
@@ -985,7 +986,8 @@
     pools.crowdPaid[String(poolId || "")] = true;
   };
 
-  E.sumPointsSnapshot = function (){
+  E.sumPointsSnapshot = function (opts = {}){
+    const includeIds = Array.isArray(opts.includeIds) ? opts.includeIds.map(id => String(id)) : null;
     const S = Game.__S || {};
     const players = S.players || {};
     let playersSum = 0;
@@ -997,9 +999,17 @@
     const byId = Object.create(null);
     const seen = new Set();
 
+    const includeSet = includeIds ? new Set(includeIds) : null;
+    const shouldInclude = (id) => {
+      if (!includeSet) return true;
+      const key = String(id || "");
+      if (!key) return false;
+      return includeSet.has(key);
+    };
     const addById = (id, pts, bucket) => {
       const key = String(id || "");
       if (!key) return false;
+      if (!shouldInclude(key)) return false;
       if (Object.prototype.hasOwnProperty.call(byId, key)) {
         duplicatesDetected.push(key);
         return false;
@@ -1096,6 +1106,7 @@
 
     const poolsSum = sink + crowd + bank + worldBank + crowdMapTotal;
     const total = Object.values(byId).reduce((s, v) => s + (v | 0), 0);
+    const accountsIncluded = includeSet ? Array.from(includeSet) : null;
     return {
       total,
       byId,
@@ -1112,6 +1123,7 @@
       mePoints_playersMe,
       mePoints_used,
       meSource,
+      accountsIncluded,
       ts: Date.now()
     };
   };

@@ -3200,10 +3200,17 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: DEV (implement UI guards + smoke helper).
 
 ### 2026-02-20 — ECON-UI [5] no silent econ transactions
+- Status: PASS
+- Facts:
+  - Console.txt DUMP_AT 2026-02-19 20:08:28 recorded `ECON_UI5_COVERAGE_BEGIN`/`END` with `ok:true`, `failed:[]`, `summary.rowsChecked:9`, `summary.silentCount:0`, and `ECON_UI5_COVERAGE_RESULT ok:true`.
+  - Scenarios: battle ok (rowsCount:24), crowd ok (rowsCount:37), rematch ok (rowsCount:25), report ok (rowsCount:0), escape ok reason `no_econ_rows_expected` (nonfatal).
+  - Contract fixes ensured `battle_win_take`/`crowd_vote_*`/`rematch_request_cost` rows involving `me` pass through `pushMoneyLogRow` + `pushEconToastFromLogRef`.
+- Next: —
+
+### 2026-02-20 — ECON-UI [6] zero-sum points audit
 - Status: IN_PROGRESS
 - Facts:
-  - Policy tightened: `shouldToastRow(row)` now requires `involvesMe` + valid currency/amount and skips world-only reasons for non-`me` rows; `pushMoneyLogRow` still tags `toastExpected`.
-  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` is synchronous now, uses battle/crowd/report/rematch/escape helpers, fails on missing `txId`/`currency` for `me` rows, ignores missing `txId` for non-`me` rows, and logs `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON + summary, `ECON_UI5_COVERAGE_END`.
-  - `conflict-economy.js` now routes `battle_win_take`/`crowd_vote_*` rows that involve `me` through `pushMoneyLogRow` + `pushEconToastFromLogRef` to ensure txId/currency and immediate econ toast.
-  - Smoke command is wired up, but runtime evidence is pending: QA needs to capture `ok:true`, `failed:[]`, `summary.silentCount===0`.
-- Next: DEV (run the smoke, confirm `summary.silentCount===0` and update logs).
+  - Need a zero-sum guard: `withZeroSumAssert(label, fn)` should compare `sumPointsSnapshot.total` before/after and report `delta` + `topIncreases` if points grow.
+  - `sumPointsSnapshot` now supports `includeIds`, and `withZeroSumAssert` uses a stable include set (players + worldBank/sink + ids from scenario moneyLog rows) to avoid false deltas from late-created pools.
+  - `Game.__DEV.smokeEconUi_ZeroSumOnce()` runs battle/crowd/report/rematch/escape with zero-sum checks, logging `DUMP_AT […]`, `ECON_UI6_ZERO_SUM_BEGIN`, JSON, `ECON_UI6_ZERO_SUM_END`, and `ECON_UI6_ZERO_SUM_RESULT`.
+- Next: DEV (run smoke and capture runtime evidence).

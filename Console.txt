@@ -1,27 +1,27 @@
-[DUMP_AT] [2026-02-19 20:02:51] (epoch_ms=1771498971211)
+[DUMP_AT] [2026-02-19 20:39:45] (epoch_ms=1771501185397)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771498960737
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771501176968
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771498960789}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771501177025}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771498960749 1771498960789
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771501176978 1771501177026
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771498960789
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771501177026
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771498960790}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771501177027}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771498960826}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771501177046}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -44,15 +44,15 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771498960827
+LOG [AttackChoices] conflict-arguments loaded 1771501177058
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771498960835, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771498960838}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771498960838}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771501177066, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771501177068}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771501177068}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771498971126_e8596161f29df Game.__DEV.smokeEconUi_NoSilentReasonsOnce()
-WARN [repl] > Game.__DEV.smokeEconUi_NoSilentReasonsOnce()
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1365:28 | emit@http://localhost:8080/state.js:1413:36}, playerId: me, reaction: log_only, sessionId: session-1771498960839-bhqy, time: 1771498971147, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771501185338_f908f97b7e936 Game.__DEV.smokeEconUi_RegressionPackOnce()
+WARN [repl] > Game.__DEV.smokeEconUi_RegressionPackOnce()
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36}, playerId: me, reaction: log_only, sessionId: session-1771501177068-msax, time: 1771501185354, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -62,32 +62,32 @@ LOG Object{
   meta: Object{
     action: defineProperty
     key: Game.Debug.securityEvents
-    stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1365:28 | emit@http://localhost:8080/state.js:1413:36
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771498960839-bhqy
-  time: 1771498971147
+  sessionId: session-1771501177068-msax
+  time: 1771501185354
   type: tamper_detected
   window: Object{…
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1365:28 | emit@http://localhost:8080/state.js:1413:36}
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: defineProperty
   key: Game.Debug.securityEvents
-  stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1365:28 | emit@http://localhost:8080/state.js:1413:36
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1365:28 | emit@http://localhost:8080/state.js:1413:36}
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: defineProperty
   key: Game.Debug.securityEvents
-  stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1365:28 | emit@http://localhost:8080/state.js:1413:36
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1480:28 | emit@http://localhost:8080/state.js:1528:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1356:30 | emit@http://localhost:8080/state.js:1413:36}, playerId: me, reaction: log_only, sessionId: session-1771498960839-bhqy, time: 1771498971147, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36}, playerId: me, reaction: log_only, sessionId: session-1771501177068-msax, time: 1771501185354, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -97,32 +97,32 @@ LOG Object{
   meta: Object{
     action: defineProperty
     key: Game.Debug.__debugSecurityEventsStore
-    stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1356:30 | emit@http://localhost:8080/state.js:1413:36
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771498960839-bhqy
-  time: 1771498971147
+  sessionId: session-1771501177068-msax
+  time: 1771501185354
   type: tamper_detected
   win…
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1356:30 | emit@http://localhost:8080/state.js:1413:36}
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: defineProperty
   key: Game.Debug.__debugSecurityEventsStore
-  stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1356:30 | emit@http://localhost:8080/state.js:1413:36
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1356:30 | emit@http://localhost:8080/state.js:1413:36}
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: defineProperty
   key: Game.Debug.__debugSecurityEventsStore
-  stack: handleGlobalTamper@http://localhost:8080/state.js:1661:23 | @http://localhost:8080/state.js:1669:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1356:30 | emit@http://localhost:8080/state.js:1413:36
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1776:23 | @http://localhost:8080/state.js:1784:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1471:30 | emit@http://localhost:8080/state.js:1528:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1771498960839-bhqy, time: 1771498971146, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1771501177068-msax, time: 1771501185354, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -136,8 +136,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771498960839-bhqy
-  time: 1771498971146
+  sessionId: session-1771501177068-msax
+  time: 1771501185354
   type: tamper_function
   window: Object{
     longWindowMs: 600000
@@ -147,7 +147,7 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
 WARN [SEC:notify] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
-LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1527:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}, playerId: me, reaction: log_only, sessionId: session-1771498960839-bhqy, time: 1771498971154, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}, playerId: me, reaction: log_only, sessionId: session-1771501177068-msax, time: 1771501185360, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -158,31 +158,31 @@ LOG Object{
     action: set_function
     key: StateAPI.transferRep
     mode: dev
-    stack: set@http://localhost:8080/state.js:1527:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
+    stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771498960839…
+  sessionId: session-1771501177068…
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1527:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}
+WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: set_function
   key: StateAPI.transferRep
   mode: dev
-  stack: set@http://localhost:8080/state.js:1527:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
+  stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC:notify] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1527:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}
+WARN [SEC:notify] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: set_function
   key: StateAPI.transferRep
   mode: dev
-  stack: set@http://localhost:8080/state.js:1527:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
+  stack: set@http://localhost:8080/state.js:1642:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:851:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1269:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1146:38
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1771498960839-bhqy, time: 1771498971159, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1771501177068-msax, time: 1771501185366, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -197,8 +197,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1771498960839-bhqy
-  time: 1771498971159
+  sessionId: session-1771501177068-msax
+  time: 1771501185366
   type: tamper_function
   window: Object{
     longWindowMs: 600000
@@ -208,111 +208,285 @@ LOG Object{
 LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
 WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
-LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771498971169}
-LOG DUMP_AT [2026-02-19 20:02:51]
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 210, beforeTotal: 210, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 210
+  beforeTotal: 210
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN NPC_ACTIVITY_TAX_ENTRY Object{amount: 1, reason: npc_activity_tax, sourceId: npc_weak, targetId: worldBank}
+WARN NPC_ACTIVITY_TAX_V1_PROBE Object{gainPoints: 1, isNpcTarget: false, reason: npc_activity_tax, softCapBefore: null, sourceId: npc_weak, targetId: worldBank}
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: true, reportId: report_dev_1771501185380}
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771501185380}
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771501185386}
+LOG DUMP_AT [2026-02-19 20:39:45]
 LOG ECON_UI5_COVERAGE_BEGIN
-LOG {"ok":false,"failed":["scenario:crowd:failed","missing_txId:rematch_request_cost","scenario:escape:failed"],"summary":{"rowsChecked":6,"silentCount":0,"silentSamples":[]},"scenarios":[{"label":"battle","ok":true,"reason":null,"rowsCount":24},{"label":"crowd","ok":false,"reason":null,"rowsCount":13},{"label":"report","ok":true,"reason":null,"rowsCount":0},{"label":"rematch","ok":true,"reason":null,"rowsCount":25},{"label":"escape","ok":false,"reason":null,"rowsCount":0}]}
+LOG {"ok":false,"failed":["scenario:battle:failed","scenario:crowd:crowd_fallback_failed","scenario:rematch:battle_smoke_failed"],"summary":{"rowsChecked":0,"silentCount":0,"silentSamples":[]},"scenarios":[{"label":"battle","ok":false,"reason":null,"rowsCount":0,"battleId":null,"eventId":null,"stage":"runner_call","errMessage":null,"errStack":null,"details":"active_battle_present","diag":null,"notes":null},{"label":"crowd","ok":false,"reason":"crowd_fallback_failed","rowsCount":13,"battleId":null,"e…
 LOG ECON_UI5_COVERAGE_END
-LOG [repl] < Promise{}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, failed, summary, scenarios], preview: Object{
+LOG ECON_UI5_COVERAGE_RESULT Object{failed: [scenario:battle:failed, scenario:crowd:crowd_fallback_failed, scenario:rematch:battle_smoke_failed], ok: false, scenarios: [Object{battleId: null, details: active_battle_present, diag: null, errMessage: null, errStack: null, eventId: null, label: battle, notes: null, ok: false, reason: null, rowsCount: 0, stage: runner_call}, Object{battleId: null, details: Object{activeCount: 1, details: active_battle_present, name: smoke_battle_crowd_outcome_once, ok: false}, diag: Object{stage: battle_fallback, trace: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: crowd, notes: null, ok: false, reason: crowd_fallback_failed, rowsCount: 13, stage: runner_call}, Object{battleId: null, details: null, diag: null, errMessage: null, errStack: null, eventId: null, label: report, notes: null, ok: true, reason: null, rowsCount: 0, stage: runner_call}, Object{battleId: null, details: null, diag: null, errMessage: null, errStack: null, eventId: null, label: rematch, notes: null, ok: false, reason: battle_smoke_failed, rowsCount: 0, stage: runner_call}, Object{battleId: null, details: Object{activeCount: 1, details: active_battle_present, name: smoke_escape_crowd_outcome_once, ok: false}, diag: Object{stage: call_smoke, trace: [MaxDepth Array]}, errMessage: null, errStack: null, eventId: null, label: escape, notes: [smoke_failed_nonfatal], ok: true, reason: no_econ_rows_expected, rowsCount: 0, stage: runner_call}], summary: Object{rowsChecked: 0, silentCount: 0, silentSamples: []}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
   failed: [
-    scenario:crowd:failed
-    missing_txId:rematch_request_cost
-    scenario:escape:failed
+    scenario:battle:failed
+    scenario:crowd:crowd_fallback_failed
+    scenario:rematch:battle_smoke_failed
   ]
   ok: false
   scenarios: [
     Object{
+      battleId: null
+      details: active_battle_present
+      diag: null
+      errMessage: null
+      errStack: null
+      eventId: null
       label: battle
-      ok: true
-      reason: null
-      rowsCount: 24
-    }
-    Object{
-      label: crowd
+      notes: null
       ok: false
       reason: null
-      rowsCount: 13
-    }
-    Object{
-      label: report
-      ok: true
-      reason: null
       rowsCount: 0
+      stage: runner_call
     }
     Object{
-      label: rematch
+      battleId: null
+      details: Object{
+        ac…
+LOG END CONSOLE_EXPAND_V1
+LOG [DEV] devReportTest Object{after: Object{cop: 0, me: 0, target: 0}, before: Object{cop: 0, me: 0, target: 0}, byBattle: [], logForBid: [], mode: false, reportId: report_dev_1771501185388}
+LOG DUMP_AT [2026-02-19 20:39:45]
+LOG ECON_UI6_ZERO_SUM_BEGIN
+LOG {"ok":true,"failed":[],"scenarios":[{"label":"battle","ok":true,"delta":0,"beforeTotal":220,"afterTotal":220,"includeIdsCount":24,"topIncreases":[],"scenarioResult":{"name":"smoke_battle_crowd_outcome_once","ok":false,"details":"active_battle_present","activeCount":1,"__rows":[]},"error":null},{"label":"crowd","ok":true,"delta":0,"beforeTotal":220,"afterTotal":220,"includeIdsCount":25,"topIncreases":[],"scenarioResult":{"name":"smoke_npc_crowd_event_economy_once","ok":false,"economyOk":false,"wa…
+LOG ECON_UI6_ZERO_SUM_END
+LOG ECON_UI6_ZERO_SUM_RESULT Object{failed: [], notes: [], ok: true, scenarios: [Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: battle, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], activeCount: 1, details: active_battle_present, name: smoke_battle_crowd_outcome_once, ok: false}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 25, label: crowd, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], asserts: [MaxDepth Object], branch: majority, byReason: [MaxDepth Object], debugVersion: ECON02_7, decidedOk: false, deltaWorld: 0, diag: [MaxDepth Object], economyOk: false, id: ed_npc_1771501185387_3059, name: smoke_npc_crowd_event_economy_once, ok: false, pointsDiffOk: true, poolAfter: 0, resolvedOk: false, totalsStable: true, warnings: [MaxDepth Array]}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: report, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], after: [MaxDepth Object], before: [MaxDepth Object], byBattle: [MaxDepth Array], logForBid: [MaxDepth Array], mode: false, ok: true, reportId: report_dev_1771501185388}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: rematch, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], battleRes: [MaxDepth Object], ok: false, reason: battle_smoke_failed}, topIncreases: []}, Object{afterTotal: 220, beforeTotal: 220, delta: 0, error: null, includeIdsCount: 24, label: escape, ok: true, scenarioResult: Object{__rows: [MaxDepth Array], details: [MaxDepth Object], notes: [MaxDepth Array], ok: true, reason: no_econ_rows_expected}, topIncreases: []}]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  failed: [
+
+  ]
+  notes: [
+
+  ]
+  ok: true
+  scenarios: [
+    Object{
+      afterTotal: 220
+      beforeTotal: 220
+      delta: 0
+      error: null
+      includeIdsCount: 24
+      label: battle
       ok: true
-      reason: null
-      rowsCount:…, type: object}
+      scenarioResult: Object{
+        __rows: [
+
+        ]
+        activeCount: 1
+        details: active_battle_present
+        name: smoke_battle_crowd_outcome_once
+        ok: false
+      }
+      topIncreases: [
+
+      ]
+    }
+    Object{
+      afterTotal: 220
+      beforeTotal:…
+LOG END CONSOLE_EXPAND_V1
+LOG DUMP_AT [2026-02-19 20:39:45]
+LOG ECON_UI7_PACK_BEGIN
+LOG {"ok":false,"totalMs":49,"steps":[{"name":"battle_win","ok":true,"ms":32,"failedCount":0,"notes":[]},{"name":"battle_lose","ok":true,"ms":4,"failedCount":0,"notes":[]},{"name":"crowd_majority","ok":false,"ms":3,"failedCount":0,"notes":[]},{"name":"crowd_minority","ok":false,"ms":1,"failedCount":0,"notes":[]},{"name":"crowd_fifty_fifty","ok":false,"ms":0,"failedCount":0,"notes":[]},{"name":"report_true","ok":true,"ms":0,"failedCount":0,"notes":[]},{"name":"report_false","ok":true,"ms":1,"failedCo…
+LOG ECON_UI7_PACK_END
+LOG ECON_UI7_PACK_RESULT Object{notes: [], ok: false, steps: [Object{failedCount: 0, ms: 32, name: battle_win, notes: [], ok: true}, Object{failedCount: 0, ms: 4, name: battle_lose, notes: [], ok: true}, Object{failedCount: 0, ms: 3, name: crowd_majority, notes: [], ok: false}, Object{failedCount: 0, ms: 1, name: crowd_minority, notes: [], ok: false}, Object{failedCount: 0, ms: 0, name: crowd_fifty_fifty, notes: [], ok: false}, Object{failedCount: 0, ms: 0, name: report_true, notes: [], ok: true}, Object{failedCount: 0, ms: 1, name: report_false, notes: [], ok: true}, Object{failedCount: 0, ms: 3, name: rematch, notes: [], ok: true}, Object{failedCount: 0, ms: 0, name: rematch, notes: [], ok: false}, Object{failedCount: 0, ms: 0, name: rematch, notes: [], ok: false}, Object{failedCount: 0, ms: 1, name: escape, notes: [smoke_failed_nonfatal], ok: true}, Object{failedCount: 3, ms: 2, name: smoke_no_silent, notes: [], ok: false}, Object{failedCount: 0, ms: 2, name: smoke_zero_sum, notes: [], ok: true}], totalMs: 49}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  notes: [
+
+  ]
+  ok: false
+  steps: [
+    Object{
+      failedCount: 0
+      ms: 32
+      name: battle_win
+      notes: [
+
+      ]
+      ok: true
+    }
+    Object{
+      failedCount: 0
+      ms: 4
+      name: battle_lose
+      notes: [
+
+      ]
+      ok: true
+    }
+    Object{
+      failedCount: 0
+      ms: 3
+      name: crowd_majority
+      notes: [
+
+      ]
+      ok: false
+    }
+    Object{
+      failedCount: 0
+      ms: 1
+      name: crowd_minority
+      notes: [
+
+      ]
+      ok: f…
+LOG END CONSOLE_EXPAND_V1
+LOG [repl] < Promise{}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, totalMs, steps, notes], preview: Object{
+  notes: [
+
+  ]
+  ok: false
+  steps: [
+    Object{
+      failedCount: 0
+      ms: 32
+      name: battle_win
+      notes: [
+
+      ]
+      ok: true
+    }
+    Object{
+      failedCount: 0
+      ms: 4
+      name: battle_lose
+      notes: [
+
+      ]
+      ok: true
+    }
+    Object{
+      failedCount: 0
+      ms: 3
+      name: crowd_majority
+      notes: [
+
+      ]
+      ok: false
+    }
+    Object{
+      failedCount: 0
+      ms: 1
+      name: crowd_minority
+      notes: [
+
+      ]
+      ok: f…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
   keys: [
     ok
-    failed
-    summary
-    scenarios
+    totalMs
+    steps
+    notes
   ]
   preview: Object{
-  failed: [
-    scenario:crowd:failed
-    missing_txId:rematch_request_cost
-    scenario:escape:failed
+  notes: [
+
   ]
   ok: false
-  scenarios: [
+  steps: [
     Object{
-      label: battle
+      failedCount: 0
+      ms: 32
+      name: battle_win
+      notes: [
+
+      ]
       ok: true
-      reason: null
-      rowsCount: 24
     }
     Object{
-      label: crowd
+      failedCount: 0
+      ms: 4
+      name: battle_lose
+      notes: [
+
+      ]
+      ok: true
+    }
+    Object{
+      failedCount: 0
+      ms: 3
+      name: crowd_majority
+      notes: [
+
+      ]
       ok: false
-      reason: null
-      rowsCount: 13
     }
     Object{
-      label: report
-      ok: true
-      reason: null
-      rowsCount:…
+      fa…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771498971126_e8596161f29df Object{failed: [scenario:crowd:failed, missing_txId:rematch_request_cost, scenario:escape:failed], ok: false, scenarios: [Object{label: battle, ok: true, reason: null, rowsCount: 24}, Object{label: crowd, ok: false, reason: null, rowsCount: 13}, Object{label: report, ok: true, reason: null, rowsCount: 0}, Object{label: rematch, ok: true, reason: null, rowsCount: 25}, Object{label: escape, ok: false, reason: null, rowsCount: 0}], summary: Object{rowsChecked: 6, silentCount: 0, silentSamples: []}}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771501185338_f908f97b7e936 Object{notes: [], ok: false, steps: [Object{failedCount: 0, ms: 32, name: battle_win, notes: [], ok: true}, Object{failedCount: 0, ms: 4, name: battle_lose, notes: [], ok: true}, Object{failedCount: 0, ms: 3, name: crowd_majority, notes: [], ok: false}, Object{failedCount: 0, ms: 1, name: crowd_minority, notes: [], ok: false}, Object{failedCount: 0, ms: 0, name: crowd_fifty_fifty, notes: [], ok: false}, Object{failedCount: 0, ms: 0, name: report_true, notes: [], ok: true}, Object{failedCount: 0, ms: 1, name: report_false, notes: [], ok: true}, Object{failedCount: 0, ms: 3, name: rematch, notes: [], ok: true}, Object{failedCount: 0, ms: 0, name: rematch, notes: [], ok: false}, Object{failedCount: 0, ms: 0, name: rematch, notes: [], ok: false}, Object{failedCount: 0, ms: 1, name: escape, notes: [smoke_failed_nonfatal], ok: true}, Object{failedCount: 3, ms: 2, name: smoke_no_silent, notes: [], ok: false}, Object{failedCount: 0, ms: 2, name: smoke_zero_sum, notes: [], ok: true}], totalMs: 49}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  failed: [
-    scenario:crowd:failed
-    missing_txId:rematch_request_cost
-    scenario:escape:failed
+  notes: [
+
   ]
   ok: false
-  scenarios: [
+  steps: [
     Object{
-      label: battle
+      failedCount: 0
+      ms: 32
+      name: battle_win
+      notes: [
+
+      ]
       ok: true
-      reason: null
-      rowsCount: 24
     }
     Object{
-      label: crowd
+      failedCount: 0
+      ms: 4
+      name: battle_lose
+      notes: [
+
+      ]
+      ok: true
+    }
+    Object{
+      failedCount: 0
+      ms: 3
+      name: crowd_majority
+      notes: [
+
+      ]
       ok: false
-      reason: null
-      rowsCount: 13
     }
     Object{
-      label: report
-      ok: true
-      reason: null
-      rowsCount: 0
-    }
-    Object{
-      label: rematch
-      ok: true
-      reason: null
-      rowsCount:…
+      failedCount: 0
+      ms: 1
+      name: crowd_minority
+      notes: [
+
+      ]
+      ok: f…
 LOG END CONSOLE_EXPAND_V1
 

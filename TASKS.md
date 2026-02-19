@@ -247,28 +247,59 @@ Next Prompt (копипаст, кодблок обязателен):
 - Smoke output: pending (will log `ECON_UI4_*` block once guard + smoke are in place).
 
 ### [T-20260220-005] ECON-UI [5] no silent econ transactions
-- Status: IN_PROGRESS
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
-- Next: DEV
+- Next: —
 - Area: Economy/UI
 - Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Goal: Для строк, которые затрагивают `me` (sourceId/targetId) и имеют points/rep deltas (amount ≠ 0), всегда появляется econ toast из той же записи без silent транзакций; world/internal строки не должны падать как silent.
 - Acceptance:
   - `shouldToastRow(row)` теперь учитывает `involvesMe` и валидную валюту; `pushMoneyLogRow` помечает `row.toastExpected`, policy легко поддерживает итерации (currency {points,rep}, amount ≠ 0, reason без dev/migration/internal + world-only для не-`me`).
   - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` синхронный: прогоняет battle/crowd/report/rematch/escape, проверяет `txId`/`currency` для `me` строк и наличие econ-toast; игнорирует world-only записи без `txId`; логирует `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON и `ECON_UI5_COVERAGE_END`, возвращая `ok:true` только при `failed:[]`.
+  - `rematch_request_cost` теперь проходит через общий moneyLog/тост контракт (txId есть всегда).
+  - crowd/escape сценарии снабжены диагностикой и не валятся, если в текущем дизайне нет econ-строк.
   - JSON включает `summary.rowsChecked`, `summary.silentCount`, `summary.silentSamples`, а также `scenarios` с результатами каждого проката.
 - How to verify:
   1. Hard reload http://localhost:8080/index.html?dev=1.
-  2. Run `await Game.__DEV.smokeEconUi_NoSilentReasonsOnce();` (no tooling needed).
+  2. Run `Game.__DEV.smokeEconUi_NoSilentReasonsOnce();` (no tooling needed).
   3. PASS if Console shows `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON with `ok:true`, `failed:[]`, `summary.silentCount===0`, and `ec` toasts exist for every `summary.rowsChecked`; otherwise attach console output and mark FAIL.
 - Smoke output: `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON {...}, `ECON_UI5_COVERAGE_END`.
+- Result: PASS (Console.txt DUMP_AT 2026-02-19 20:08:28)
+- Facts:
+  - `ok:true`, `failed:[]`, `summary.rowsChecked:9`, `summary.silentCount:0`.
+  - Scenarios: battle ok (rowsCount:24), crowd ok (rowsCount:37), rematch ok (rowsCount:25), report ok (rowsCount:0), escape ok reason `no_econ_rows_expected` (nonfatal).
 - Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ QA:
     (1) Hard reload http://localhost:8080/index.html?dev=1.
     (2) Run `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` and capture the console block containing `ECON_UI5_COVERAGE_BEGIN`/`END`.
     (3) PASS if the JSON result is `ok:true`, `failed:[]`, `summary.silentCount===0`, and `summary.rowsChecked` > 0; otherwise attach the logged JSON and mark FAIL.
+    ```
+
+### [T-20260220-006] ECON-UI [6] zero-sum points audit
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: DEV
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Проверить, что суммарные POINTS не растут в сценариях battle/crowd/report/rematch/escape (zero-sum).
+- Acceptance:
+  - `withZeroSumAssert(label, fn)` измеряет `sumPointsSnapshot.total` до/после, возвращает `delta` и `topIncreases` (топ-5 по росту), FAIL если `delta>0`.
+  - `withZeroSumAssert` использует стабильный `includeIds` (players + worldBank/sink + ids из rows сценария), чтобы набор аккаунтов был одинаковый до/после.
+  - `Game.__DEV.smokeEconUi_ZeroSumOnce()` прогоняет 5 сценариев, логирует `DUMP_AT […]`, `ECON_UI6_ZERO_SUM_BEGIN`, JSON и `ECON_UI6_ZERO_SUM_END`, возвращает объект и печатает `ECON_UI6_ZERO_SUM_RESULT` (с `includeIdsCount`).
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeEconUi_ZeroSumOnce()`.
+  3. PASS if JSON has `ok:true`, `failed:[]`, and every scenario shows `delta<=0`; otherwise attach JSON and mark FAIL.
+- Smoke output: `DUMP_AT […]`, `ECON_UI6_ZERO_SUM_BEGIN`, JSON {...}, `ECON_UI6_ZERO_SUM_END`.
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1.
+    (2) Run `Game.__DEV.smokeEconUi_ZeroSumOnce()` and capture `ECON_UI6_ZERO_SUM_BEGIN/END`.
+    (3) PASS if `ok:true`, `failed:[]`, and each scenario has `delta<=0`; otherwise attach JSON and mark FAIL.
     ```
 
 

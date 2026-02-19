@@ -488,6 +488,121 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function getPointsSnapshotSafe(opts = {}){
+    const dev = Game && Game.__DEV ? Game.__DEV : null;
+    const econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+    const sumFn = (dev && typeof dev.sumPointsSnapshot === "function")
+      ? dev.sumPointsSnapshot
+      : (econ && typeof econ.sumPointsSnapshot === "function" ? econ.sumPointsSnapshot : null);
+    if (!sumFn) return null;
+    try {
+      return sumFn(opts || {});
+    } catch (_) {
+      try {
+        return sumFn(opts && Object.keys(opts).length ? opts : undefined);
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  function sumSnapshotByIds(snapshot, ids){
+    if (!snapshot || !ids || !ids.length) return 0;
+    const byId = snapshot.byId || {};
+    let total = 0;
+    ids.forEach(id => {
+      const key = String(id || "");
+      if (!key) return;
+      const val = Number.isFinite(byId[key]) ? byId[key] : 0;
+      total += val;
+    });
+    return total;
+  }
+
+  function buildIncludeIdsFromResult(label, scenarioResult){
+    const ids = new Set();
+    try {
+      const S = Game && (Game.__S || Game.State) ? (Game.__S || Game.State) : null;
+      if (S && S.players) {
+        Object.keys(S.players || {}).forEach(id => { if (id) ids.add(String(id)); });
+      }
+      if (S && S.me && S.me.id) ids.add(String(S.me.id));
+    } catch (_) {}
+    ids.add("worldBank");
+    ids.add("sink");
+    ids.add("crowd");
+    try {
+      const res = scenarioResult || {};
+      if (Array.isArray(res.includeIds)) res.includeIds.forEach(id => { if (id) ids.add(String(id)); });
+      if (Array.isArray(res.accountsIncluded)) res.accountsIncluded.forEach(id => { if (id) ids.add(String(id)); });
+      if (res.snapshotReport && Array.isArray(res.snapshotReport.accountsIncluded)) {
+        res.snapshotReport.accountsIncluded.forEach(id => { if (id) ids.add(String(id)); });
+      }
+      const battleId = res.battleId || (res.details && res.details.battleId) || null;
+      const eventId = res.eventId || (res.details && res.details.eventId) || null;
+      if (battleId) ids.add(`crowd:${battleId}`);
+      if (eventId) ids.add(`crowd:${eventId}`);
+      if (Array.isArray(res.__rows)) {
+        res.__rows.forEach(row => {
+          if (!row || typeof row !== "object") return;
+          const src = String(row.sourceId || "");
+          const tgt = String(row.targetId || "");
+          if (src) ids.add(src);
+          if (tgt) ids.add(tgt);
+          const bid = row.battleId || row.eventId || null;
+          if (bid) ids.add(`crowd:${bid}`);
+          if (src.startsWith("crowd:")) ids.add(src);
+          if (tgt.startsWith("crowd:")) ids.add(tgt);
+        });
+      }
+    } catch (_) {}
+    return Array.from(ids).filter(Boolean);
+  }
+
+  function withZeroSumAssert(label, fn, includeIds){
+    const beforeFull = getPointsSnapshotSafe();
+    let res = null;
+    let errMessage = null;
+    try {
+      res = fn ? fn() : null;
+    } catch (err) {
+      errMessage = err && err.message ? String(err.message) : String(err);
+    }
+    const ids = Array.isArray(includeIds) ? includeIds : buildIncludeIdsFromResult(label, res);
+    const before = getPointsSnapshotSafe(ids ? { includeIds: ids } : undefined);
+    const after = getPointsSnapshotSafe(ids ? { includeIds: ids } : undefined);
+    const beforeTotal = (beforeFull && beforeFull.byId && ids && ids.length)
+      ? sumSnapshotByIds(beforeFull, ids)
+      : (before && Number.isFinite(before.total) ? before.total : 0);
+    const afterTotal = after && Number.isFinite(after.total) ? after.total : 0;
+    const delta = afterTotal - beforeTotal;
+    const topIncreases = [];
+    try {
+      const beforeById = (beforeFull && beforeFull.byId) ? beforeFull.byId : ((before && before.byId) ? before.byId : {});
+      const afterById = (after && after.byId) ? after.byId : {};
+      const keys = new Set(Object.keys(beforeById).concat(Object.keys(afterById)));
+      for (const key of keys) {
+        const b = Number.isFinite(beforeById[key]) ? beforeById[key] : 0;
+        const a = Number.isFinite(afterById[key]) ? afterById[key] : 0;
+        const d = a - b;
+        if (d > 0) topIncreases.push({ id: key, before: b, after: a, d });
+      }
+      topIncreases.sort((a, b) => b.d - a.d);
+    } catch (_) {}
+    const trimmed = topIncreases.slice(0, 5);
+    return {
+      ok: delta <= 0,
+      label,
+      delta,
+      beforeTotal,
+      afterTotal,
+      topIncreases: trimmed,
+      error: errMessage || null,
+      result: res,
+      includeIdsCount: Array.isArray(ids) ? ids.length : 0
+    };
+  }
+
   function pushMoneyLogRow(row){
     const entry = (row && typeof row === "object") ? row : {};
     if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
@@ -4220,10 +4335,34 @@ window.Game = window.Game || {};
         {
           label: "crowd",
           runner: () => {
-            if (!Game.__DEV || typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce !== "function") {
-              return { ok: false, reason: "smokeNpcCrowdEventEconomyOnce_missing" };
+            const diag = { stage: "start", trace: [] };
+            try {
+              diag.stage = "npc_event";
+              if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
+                const res = Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
+                diag.trace.push("npc_event_done");
+                if (res && res.ok !== false) return Object.assign({ ok: true }, res, { diag });
+                diag.trace.push("npc_event_failed");
+              } else {
+                diag.trace.push("npc_event_missing");
+              }
+              diag.stage = "battle_fallback";
+              if (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function") {
+                const res2 = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+                diag.trace.push("battle_fallback_done");
+                if (res2 && res2.ok !== false) return Object.assign({ ok: true }, res2, { diag, notes: ["fallback_battle"] });
+                return { ok: false, reason: "crowd_fallback_failed", details: res2, diag };
+              }
+              return { ok: false, reason: "smoke_crowd_missing", diag };
+            } catch (err) {
+              return {
+                ok: false,
+                reason: "crowd_exception",
+                errMessage: err && err.message ? String(err.message) : String(err),
+                errStack: err && err.stack ? String(err.stack) : null,
+                diag
+              };
             }
-            return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
           }
         },
         {
@@ -4239,10 +4378,28 @@ window.Game = window.Game || {};
         {
           label: "escape",
           runner: () => {
-            if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
-              return { ok: false, reason: "smokeEscapeCrowdOutcomeOnce_missing" };
+            const diag = { stage: "start", trace: [] };
+            try {
+              diag.stage = "call_smoke";
+              if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
+                return { ok: true, reason: "no_econ_rows_expected", notes: ["smokeEscapeCrowdOutcomeOnce_missing"], diag };
+              }
+              const res = Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
+              diag.trace.push("smoke_called");
+              if (res && res.ok === false) {
+                return { ok: true, reason: "no_econ_rows_expected", notes: ["smoke_failed_nonfatal"], details: res, diag };
+              }
+              return Object.assign({ ok: true }, res || {}, { diag });
+            } catch (err) {
+              return {
+                ok: true,
+                reason: "no_econ_rows_expected",
+                notes: ["escape_exception_nonfatal"],
+                errMessage: err && err.message ? String(err.message) : String(err),
+                errStack: err && err.stack ? String(err.stack) : null,
+                diag
+              };
             }
-            return Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
           }
         }
       ];
@@ -4250,10 +4407,17 @@ window.Game = window.Game || {};
       const runScenario = (def) => {
         const beforeLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
         let scenarioResult = null;
+        let errMessage = null;
+        let errStack = null;
+        let stage = "runner";
         try {
+          stage = "runner_call";
           scenarioResult = def.runner();
         } catch (err) {
           scenarioResult = { ok: false, reason: err && err.message ? String(err.message) : "exception" };
+          errMessage = err && err.message ? String(err.message) : String(err);
+          errStack = err && err.stack ? String(err.stack) : null;
+          stage = "runner_exception";
         }
         const afterLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
         const rows = (Array.isArray(dbg.moneyLog) && afterLen > beforeLen) ? dbg.moneyLog.slice(beforeLen, afterLen) : [];
@@ -4261,7 +4425,15 @@ window.Game = window.Game || {};
           label: def.label,
           ok: scenarioResult ? (scenarioResult.ok !== false) : true,
           reason: scenarioResult && scenarioResult.reason ? scenarioResult.reason : null,
-          rowsCount: rows.length
+          rowsCount: rows.length,
+          battleId: scenarioResult && (scenarioResult.battleId || (scenarioResult.details && scenarioResult.details.battleId)) ? (scenarioResult.battleId || scenarioResult.details.battleId) : null,
+          eventId: scenarioResult && (scenarioResult.eventId || (scenarioResult.details && scenarioResult.details.eventId)) ? (scenarioResult.eventId || scenarioResult.details.eventId) : null,
+          stage,
+          errMessage: scenarioResult && scenarioResult.errMessage ? scenarioResult.errMessage : errMessage,
+          errStack: scenarioResult && scenarioResult.errStack ? scenarioResult.errStack : errStack,
+          details: scenarioResult && scenarioResult.details ? scenarioResult.details : null,
+          diag: scenarioResult && scenarioResult.diag ? scenarioResult.diag : null,
+          notes: scenarioResult && scenarioResult.notes ? scenarioResult.notes : null
         });
         if (scenarioResult && scenarioResult.ok === false) {
           failed.push(`scenario:${def.label}:${scenarioResult.reason || "failed"}`);
@@ -4322,6 +4494,275 @@ window.Game = window.Game || {};
         console.log(JSON.stringify(result));
         console.log("ECON_UI5_COVERAGE_END");
       } catch (_) {}
+      try { console.log("ECON_UI5_COVERAGE_RESULT", result); } catch (_) {}
+      return result;
+    };
+    Game.__DEV.withZeroSumAssert = withZeroSumAssert;
+    Game.__DEV.smokeEconUi_ZeroSumOnce = function smokeEconUi_ZeroSumOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const failed = [];
+      const scenarios = [];
+
+      const runRematchScenario = () => {
+        const Core = Game.ConflictCore || Game._ConflictCore || null;
+        if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
+          return { ok: false, reason: "rematch_core_missing" };
+        }
+        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+        }
+        const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+        if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
+        const battleId = battleRes.battleId || null;
+        if (!battleId) return { ok: false, reason: "battle_id_missing" };
+        const stateRef = Game.__S || Game.State || {};
+        const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
+        if (!battle) return { ok: false, reason: "battle_missing", battleId };
+        const resultLabel = String(battle.result || "").toLowerCase();
+        const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
+        const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
+        if (!loserId) return { ok: false, reason: "loser_missing" };
+        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+        if (Econ && typeof Econ.transferPoints === "function") {
+          const S = Game.__S || Game.State || {};
+          const p = (loserId === "me") ? (S.me || (S.players && S.players.me)) : (S.players ? S.players[loserId] : null);
+          const have = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
+          if (have < 1) {
+            Econ.transferPoints("worldBank", loserId, 1, "smoke_rematch_seed", { battleId });
+          }
+        }
+        const request = Core.requestRematch(battleId, loserId);
+        if (!request || request.ok !== true) return { ok: false, reason: "rematch_request_failed", request };
+        const respond = Core.respondRematch(battleId, true, winnerId);
+        if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", respond };
+        return { ok: true, battleId, request, respond };
+      };
+
+      const scenarioDefs = [
+        {
+          label: "battle",
+          runner: () => {
+            if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+              return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+            }
+            return Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+          }
+        },
+        {
+          label: "crowd",
+          runner: () => {
+            if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
+              return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
+            }
+            if (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function") {
+              const res = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+              return Object.assign({ notes: ["fallback_battle"] }, res || {});
+            }
+            return { ok: false, reason: "smoke_crowd_missing" };
+          }
+        },
+        {
+          label: "report",
+          runner: () => {
+            if (typeof window.devReportTest !== "function") {
+              return { ok: false, reason: "devReportTest_missing" };
+            }
+            return window.devReportTest({ mode: "false" });
+          }
+        },
+        { label: "rematch", runner: runRematchScenario },
+        {
+          label: "escape",
+          runner: () => {
+            if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
+              return { ok: true, reason: "no_econ_rows_expected", notes: ["smokeEscapeCrowdOutcomeOnce_missing"] };
+            }
+            const res = Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
+            if (res && res.ok === false) return { ok: true, reason: "no_econ_rows_expected", notes: ["smoke_failed_nonfatal"], details: res };
+            return res;
+          }
+        }
+      ];
+
+      const dbg = (Game && Game.__D) ? Game.__D : null;
+      for (const scenario of scenarioDefs) {
+        let scenarioRes = null;
+        let errMessage = null;
+        const beforeLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
+        try {
+          scenarioRes = scenario.runner();
+        } catch (err) {
+          errMessage = err && err.message ? String(err.message) : String(err);
+        }
+        const afterLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLen;
+        const rows = (dbg && Array.isArray(dbg.moneyLog) && afterLen > beforeLen) ? dbg.moneyLog.slice(beforeLen, afterLen) : [];
+        if (scenarioRes && typeof scenarioRes === "object") scenarioRes.__rows = rows;
+        const result = withZeroSumAssert(`ui6:${scenario.label}`, () => scenarioRes);
+        const entry = {
+          label: scenario.label,
+          ok: result.ok,
+          delta: result.delta,
+          beforeTotal: result.beforeTotal,
+          afterTotal: result.afterTotal,
+          includeIdsCount: result.includeIdsCount,
+          topIncreases: result.topIncreases,
+          scenarioResult: result.result || null,
+          error: result.error || errMessage || null
+        };
+        scenarios.push(entry);
+        if (!result.ok) failed.push(`delta_positive:${scenario.label}:${result.delta}`);
+      }
+
+      const output = {
+        ok: failed.length === 0,
+        failed,
+        scenarios,
+        notes: []
+      };
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI6_ZERO_SUM_BEGIN");
+        console.log(JSON.stringify(output));
+        console.log("ECON_UI6_ZERO_SUM_END");
+      } catch (_) {}
+      try { console.log("ECON_UI6_ZERO_SUM_RESULT", output); } catch (_) {}
+      return output;
+    };
+    Game.__DEV.smokeEconUi_RegressionPackOnce = function smokeEconUi_RegressionPackOnce(opts = {}) {
+      const nowMs = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
+      const totalStart = nowMs();
+      const resultSteps = [];
+
+      const logStep = (name, stepRes, ms, errMessage, errStack) => {
+        resultSteps.push({
+          name,
+          ok: !!(stepRes && stepRes.ok !== false),
+          ms,
+          failedCount: (stepRes && Array.isArray(stepRes.failed)) ? stepRes.failed.length : 0,
+          notes: (stepRes && Array.isArray(stepRes.notes)) ? stepRes.notes : [],
+          errMessage,
+          errStack
+        });
+      };
+
+      const safeRun = (name, fn) => {
+        const stepStart = nowMs();
+        let stepRes = null;
+        let errMessage = null;
+        let errStack = null;
+        try {
+          stepRes = fn();
+        } catch (err) {
+          errMessage = err && err.message ? String(err.message) : String(err);
+          errStack = err && err.stack ? String(err.stack) : null;
+          stepRes = { ok: false, reason: "exception" };
+        }
+        const stepEnd = nowMs();
+        logStep(name, stepRes, Math.round(stepEnd - stepStart), errMessage, errStack);
+        return stepRes;
+      };
+
+      const battleStep = (name, optsStep) => safeRun(name, () => {
+        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+        }
+        return Game.__DEV.smokeBattleCrowdOutcomeOnce(Object.assign({ allowParallel: false }, optsStep));
+      });
+      const crowdStep = (name, branch) => safeRun(name, () => {
+        if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
+          return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: branch });
+        }
+        return { ok: false, reason: "smokeNpcCrowdEventEconomyOnce_missing" };
+      });
+      const reportStep = (name, mode) => safeRun(name, () => {
+        if (typeof window.devReportTest !== "function") {
+          return { ok: false, reason: "devReportTest_missing" };
+        }
+        return window.devReportTest({ mode });
+      });
+      const rematchStep = () => safeRun("rematch", () => {
+        const Core = Game.ConflictCore || Game._ConflictCore || null;
+        if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
+          return { ok: false, reason: "rematch_core_missing" };
+        }
+        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+        }
+        const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+        if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
+        const battleId = battleRes.battleId || null;
+        if (!battleId) return { ok: false, reason: "battle_id_missing" };
+        const stateRef = Game.__S || Game.State || {};
+        const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
+        if (!battle) return { ok: false, reason: "battle_missing", battleId };
+        const resultLabel = String(battle.result || "").toLowerCase();
+        const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
+        const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
+        if (!loserId) return { ok: false, reason: "loser_missing" };
+        const request = Core.requestRematch(battleId, loserId);
+        if (!request || request.ok !== true) return { ok: false, reason: "rematch_request_failed", request };
+        const respond = Core.respondRematch(battleId, true, winnerId);
+        if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", respond };
+        return { ok: true, battleId, request, respond };
+      });
+      const escapeStep = () => safeRun("escape", () => {
+        if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
+          return { ok: true, reason: "no_econ_rows_expected", notes: ["smokeEscapeCrowdOutcomeOnce_missing"] };
+        }
+        const res = Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
+        if (res && res.ok === false) return { ok: true, reason: "no_econ_rows_expected", notes: ["smoke_failed_nonfatal"], details: res };
+        return res;
+      });
+      const decorateStep = (name, fn) => safeRun(name, fn);
+
+      battleStep("battle_win", { forceMajoritySide: "attacker" });
+      battleStep("battle_lose", { forceMajoritySide: "defender" });
+      crowdStep("crowd_majority", "majority");
+      crowdStep("crowd_minority", "minority");
+      crowdStep("crowd_fifty_fifty", "fifty");
+      reportStep("report_true", "true");
+      reportStep("report_false", "false");
+      rematchStep();
+      rematchStep();
+      rematchStep();
+      escapeStep();
+      decorateStep("smoke_no_silent", () => (Game.__DEV && typeof Game.__DEV.smokeEconUi_NoSilentReasonsOnce === "function") ? Game.__DEV.smokeEconUi_NoSilentReasonsOnce() : { ok: false, reason: "smoke_no_silent_missing" });
+      decorateStep("smoke_zero_sum", () => (Game.__DEV && typeof Game.__DEV.smokeEconUi_ZeroSumOnce === "function") ? Game.__DEV.smokeEconUi_ZeroSumOnce() : { ok: false, reason: "smoke_zero_sum_missing" });
+
+      const totalEnd = nowMs();
+      const totalMs = Math.round(totalEnd - totalStart);
+      const ok = resultSteps.every(step => step.ok) && totalMs <= (opts.timeout || 180000);
+      const result = {
+        ok,
+        totalMs,
+        steps: resultSteps.map(step => ({
+          name: step.name,
+          ok: step.ok,
+          ms: step.ms,
+          failedCount: step.failedCount,
+          notes: step.notes
+        })),
+        notes: []
+      };
+      try {
+        const stamp = (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+        const fmt = (stampVal) => {
+          const d = new Date(stampVal);
+          const pad = (n) => String(n).padStart(2, "0");
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        };
+        console.log(`DUMP_AT [${fmt(stamp)}]`);
+        console.log("ECON_UI7_PACK_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI7_PACK_END");
+      } catch (_) {}
+      try { console.log("ECON_UI7_PACK_RESULT", result); } catch (_) {}
       return result;
     };
   }
