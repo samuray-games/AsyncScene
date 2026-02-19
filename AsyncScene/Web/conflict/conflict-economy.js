@@ -554,7 +554,24 @@
   function logTransfer(entry){
     const dbg = ensureDebugStore();
     const log = dbg.moneyLog;
-    const meta = entry && entry.meta ? entry.meta : null;
+    let meta = entry && entry.meta ? entry.meta : null;
+    if (entry && entry.reason === "rep_respect_given") {
+      const battleKey = String(entry.battleId || (meta && meta.battleId) || "");
+      if (battleKey.startsWith("respect:")) {
+        if (!meta) {
+          meta = {};
+          entry.meta = meta;
+        }
+        if (!meta.opKey) meta.opKey = battleKey;
+        const parts = battleKey.split(":");
+        if (parts.length >= 4) {
+          if (!meta.dayKey) meta.dayKey = parts[1];
+          if (!meta.fromId) meta.fromId = parts[2];
+          if (!meta.toId) meta.toId = parts.slice(3).join(":");
+          if (!meta.op) meta.op = "respect";
+        }
+      }
+    }
     if (meta && meta.txId && !entry.txId) entry.txId = meta.txId;
     let bid = entry ? String(entry.battleId || (meta && meta.battleId) || entry.eventId || (meta && meta.eventId) || "") : "";
     if (!bid && entry) {
