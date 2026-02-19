@@ -4268,64 +4268,141 @@ window.Game = window.Game || {};
       const beforeLogLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
       const target = Number.isFinite(minPts) ? (minPts | 0) : 100;
       const before = getMePoints();
-      if (before >= target) {
-        return { ok: true, method: "already_sufficient", amount: 0, before, after: before, errReason: null, rowsCount: 0, minPtsTarget: target };
-      }
-      const need = Math.max(0, target - before);
+      const need = Math.max(1, target - before);
       let method = null;
       let amount = 0;
       let errReason = null;
+      let donorId = null;
+      let worldBankBefore = null;
+      let worldBankAfter = null;
 
-      const Bank = Game.Bank || Game._Bank || null;
-      if (Bank && typeof Bank.withdraw === "function") {
-        try {
-          const res = Bank.withdraw({
-            ownerId: "me",
-            amount: need,
-            reason: "dev_seed_points_for_smoke",
-            meta: { smoke: "econ_ui_seed", minPts: target, source: "bank" }
-          });
-          if (res && res.ok === true) {
-            method = "bank_withdraw";
-            amount = need;
-          } else if (!errReason) {
-            errReason = res && res.reason ? String(res.reason) : "bank_withdraw_failed";
-          }
-        } catch (_) {
-          if (!errReason) errReason = "bank_withdraw_exception";
-        }
-      } else {
-        errReason = errReason || "bank_unavailable";
-      }
+      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+      const canTransfer = !!(Econ && typeof Econ.transferPoints === "function");
+      const readSnapshot = () => (Econ && typeof Econ.sumPointsSnapshot === "function")
+        ? Econ.sumPointsSnapshot({ includeWorld: true, includePools: true })
+        : null;
+      const getBal = (id) => {
+        const snap = readSnapshot();
+        const byId = snap && snap.byId && typeof snap.byId === "object" ? snap.byId : null;
+        return (byId && Number.isFinite(byId[id])) ? (byId[id] | 0) : 0;
+      };
+      worldBankBefore = getBal("worldBank");
 
-      if (getMePoints() < target) {
-        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-        if (Econ && typeof Econ.transferPoints === "function") {
+      const ensureWorldBankFunds = (amountNeed) => {
+        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
+        if (getBal("worldBank") >= amountNeed) return { ok: true, method: "worldBank_ready" };
+        if (getBal("sink") >= amountNeed) {
           try {
-            const tx = Econ.transferPoints("worldBank", "me", need, "dev_seed_points_for_smoke", {
+            const tx = Econ.transferPoints("sink", "worldBank", amountNeed, "dev_seed_worldbank_topup", {
               context: { smoke: "econ_ui_seed", minPts: target },
-              meta: { smoke: "econ_ui_seed", minPts: target, source: "worldBank" }
+              meta: { smoke: "econ_ui_seed", source: "sink", to: "worldBank", amount: amountNeed }
             });
-            if (tx && tx.ok === true) {
-              method = method || "worldBank";
-              amount = need;
-            } else if (!errReason) {
-              errReason = tx && tx.reason ? String(tx.reason) : "transfer_failed";
-            }
+            if (tx && tx.ok === true) return { ok: true, method: "sink_to_worldBank" };
+            return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "worldbank_topup_failed" };
           } catch (_) {
-            if (!errReason) errReason = "transfer_exception";
+            return { ok: false, reason: "worldbank_topup_exception" };
           }
-        } else if (!errReason) {
-          errReason = "transfer_unavailable";
         }
+        return { ok: false, reason: "insufficient_worldbank" };
+      };
+
+      const seedWithWorldBank = () => {
+        const fundRes = ensureWorldBankFunds(need);
+        if (!fundRes.ok) return { ok: false, reason: fundRes.reason };
+        try {
+          const tx = Econ.transferPoints("worldBank", "me", need, "dev_seed_points_for_smoke", {
+            context: { smoke: "econ_ui_seed", minPts: target },
+            meta: { smoke: "econ_ui_seed", minPts: target, source: "worldBank" }
+          });
+          if (tx && tx.ok === true) {
+            method = "worldBank";
+            amount = need;
+            return { ok: true };
+          }
+          return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "worldbank_transfer_failed" };
+        } catch (_) {
+          return { ok: false, reason: "worldbank_transfer_exception" };
+        }
+      };
+
+      const seedWithSink = () => {
+        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
+        if (getBal("sink") < need) return { ok: false, reason: "insufficient_sink" };
+        try {
+          const tx = Econ.transferPoints("sink", "me", need, "dev_seed_points_for_smoke", {
+            context: { smoke: "econ_ui_seed", minPts: target },
+            meta: { smoke: "econ_ui_seed", minPts: target, source: "sink" }
+          });
+          if (tx && tx.ok === true) {
+            method = "sink";
+            amount = need;
+            return { ok: true };
+          }
+          return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "sink_transfer_failed" };
+        } catch (_) {
+          return { ok: false, reason: "sink_transfer_exception" };
+        }
+      };
+
+      const seedWithDonor = () => {
+        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
+        const p2pAllowed = (Game && Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
+          ? Game.Rules.isP2PTransfersEnabled()
+          : true;
+        if (!p2pAllowed) return { ok: false, reason: "p2p_disabled" };
+        donorId = "npc_donor";
+        const donorBal = getBal(donorId);
+        if (donorBal < need) {
+          if (getBal("sink") >= need) {
+            try {
+              const txTop = Econ.transferPoints("sink", donorId, need, "dev_seed_donor_topup", {
+                context: { smoke: "econ_ui_seed", minPts: target },
+                meta: { smoke: "econ_ui_seed", source: "sink", to: donorId }
+              });
+              if (!txTop || txTop.ok !== true) return { ok: false, reason: txTop && txTop.reason ? String(txTop.reason) : "donor_topup_failed" };
+            } catch (_) {
+              return { ok: false, reason: "donor_topup_exception" };
+            }
+          } else {
+            return { ok: false, reason: "no_donor_funds" };
+          }
+        }
+        try {
+          const tx = Econ.transferPoints(donorId, "me", need, "dev_seed_points_for_smoke", {
+            context: { smoke: "econ_ui_seed", minPts: target },
+            meta: { smoke: "econ_ui_seed", minPts: target, source: donorId }
+          });
+          if (tx && tx.ok === true) {
+            method = "donor";
+            amount = need;
+            return { ok: true };
+          }
+          return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "donor_transfer_failed" };
+        } catch (_) {
+          return { ok: false, reason: "donor_transfer_exception" };
+        }
+      };
+
+      let seedRes = { ok: false, reason: "no_seed_path" };
+      if (canTransfer) {
+        seedRes = seedWithWorldBank();
+        if (!seedRes.ok) seedRes = seedWithSink();
+        if (!seedRes.ok) seedRes = seedWithDonor();
+      } else {
+        errReason = "transfer_unavailable";
       }
 
+      if (!seedRes.ok) errReason = seedRes.reason || errReason || "no_seed_path";
       const after = getMePoints();
       const afterLogLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLogLen;
       const rowsCount = Math.max(0, afterLogLen - beforeLogLen);
-      const ok = after >= target;
+      const ok = (after >= target) && rowsCount > 0;
       if (!ok && !errReason) errReason = "insufficient_after_seed";
-      return { ok, method, amount, before, after, errReason, rowsCount, minPtsTarget: target };
+      const worldBankAfterBal = (Econ && typeof Econ.sumPointsSnapshot === "function")
+        ? (Econ.sumPointsSnapshot({ includeWorld: true, includePools: true }).byId || {}).worldBank
+        : null;
+      worldBankAfter = Number.isFinite(worldBankAfterBal) ? (worldBankAfterBal | 0) : null;
+      return { ok, method, amount, before, after, errReason, rowsCount, donorId, worldBankBefore, worldBankAfter, minPtsTarget: target };
     };
     Game.__DEV.smokeEconUi_NoSilentReasonsOnce = function smokeEconUi_NoSilentReasonsOnce(opts = {}) {
       const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
@@ -4915,7 +4992,7 @@ window.Game = window.Game || {};
         };
         const preState = buildStateSig();
         const expectedCost = getExpectedRematchCost();
-        const minPtsTarget = Number.isFinite(expectedCost) ? Math.max(200, Math.ceil(expectedCost * 3 + 10)) : 300;
+        const minPtsTarget = Number.isFinite(expectedCost) ? Math.max(300, Math.ceil(expectedCost * 3 + 10)) : 300;
         const seedRes1 = seedForTarget(minPtsTarget);
         const pointsBeforeSeed = Number.isFinite(seedRes1.before) ? seedRes1.before : getMePoints();
         const pointsAfterSeed = Number.isFinite(seedRes1.after) ? seedRes1.after : getMePoints();
