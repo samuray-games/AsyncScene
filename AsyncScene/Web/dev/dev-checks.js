@@ -19850,9 +19850,34 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     };
     setPoints(S.me, capLimit + 5);
     if (S.players && S.players.me) setPoints(S.players.me, capLimit + 5);
-    const npcIds = Object.keys(S.players || {}).filter(id => id && String(id).startsWith("npc_"));
-    if (!npcIds.length) {
-      FAIL.push("7.4_no_npcs");
+    const ensurePlayer = (id, name) => {
+      if (!S.players) S.players = {};
+      if (!S.players[id]) {
+        S.players[id] = {
+          id,
+          name: name || id,
+          role: "civil",
+          influence: 0,
+          points: 0,
+          rep: 0
+        };
+      }
+    };
+    const existingNpcIds = Object.keys(S.players || {}).filter(id => id && String(id).startsWith("npc_") && id !== meId);
+    const requiredTargets = capLimit + 1;
+    const smokeTargets = existingNpcIds.slice();
+    let smokeNpcCounter = 0;
+    while (smokeTargets.length < requiredTargets) {
+      const suffix = Date.now().toString(36) + "_" + smokeNpcCounter;
+      const newId = `npc_smoke_respect_${suffix}`;
+      ensurePlayer(newId, `Smoke NPC ${smokeNpcCounter}`);
+      smokeTargets.push(newId);
+      smokeNpcCounter += 1;
+    }
+    if (G.ConflictEconomy && typeof G.ConflictEconomy.ensureNpcAccountsFromState === "function") {
+      try {
+        G.ConflictEconomy.ensureNpcAccountsFromState({ reason: "final_smoke_respect" });
+      } catch (_) {}
     }
     const opKeysUsed = new Set();
     const cleanupPairLedger = (targetId) => {
