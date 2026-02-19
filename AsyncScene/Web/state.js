@@ -4131,6 +4131,176 @@ window.Game = window.Game || {};
       } catch (_) {}
       return result;
     };
+    Game.__DEV.smokeEconUi_NoSilentReasonsOnce = async function smokeEconUi_NoSilentReasonsOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+      const sampleLimit = (opts && Number.isFinite(opts.sampleLimit)) ? (opts.sampleLimit | 0) : 5;
+      const summary = { rowsChecked: 0, silentCount: 0, silentSamples: [] };
+      const failed = [];
+      const scenarioAudit = [];
+
+      const ensurePointsForRematch = async (targetId, battleId) => {
+        if (!targetId) return;
+        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+        if (!Econ || typeof Econ.transferPoints !== "function") return;
+        const getSnapshotPoints = (pid) => {
+          const stateRef = Game.__S || Game.State || {};
+          if (!pid) return 0;
+          if (pid === "me") {
+            const me = stateRef.me || (stateRef.players && stateRef.players.me);
+            return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+          }
+          const player = stateRef.players ? stateRef.players[pid] : null;
+          return (player && Number.isFinite(player.points)) ? (player.points | 0) : 0;
+        };
+        if (getSnapshotPoints(targetId) >= 1) return;
+        try {
+          const seedRes = Econ.transferPoints("worldBank", targetId, 1, "smoke_rematch_seed", {
+            battleId,
+            context: { battleId },
+            meta: { smoke: "econ_ui_no_silent" }
+          });
+          if (seedRes && typeof seedRes.then === "function") await seedRes;
+        } catch (_) {}
+      };
+
+      const runRematchScenario = async () => {
+        const Core = Game.ConflictCore || Game._ConflictCore || null;
+        if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
+          return { ok: false, reason: "rematch_core_missing" };
+        }
+        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+        }
+        const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+        if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
+        const battleId = battleRes.battleId || null;
+        if (!battleId) return { ok: false, reason: "battle_id_missing" };
+        const stateRef = Game.__S || Game.State || {};
+        const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
+        if (!battle) return { ok: false, reason: "battle_missing", battleId };
+        const resultLabel = String(battle.result || "").toLowerCase();
+        const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
+        const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
+        if (!loserId) return { ok: false, reason: "loser_missing" };
+        await ensurePointsForRematch(loserId, battleId);
+        const request = Core.requestRematch(battleId, loserId);
+        if (!request || request.ok !== true) return { ok: false, reason: "rematch_request_failed", request };
+        const respond = Core.respondRematch(battleId, true, winnerId);
+        if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", respond };
+        return { ok: true, battleId, request, respond };
+      };
+
+      const scenarioDefs = [
+        {
+          label: "battle",
+          runner: () => {
+            if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
+              return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
+            }
+            return Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+          }
+        },
+        {
+          label: "crowd",
+          runner: () => {
+            if (!Game.__DEV || typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce !== "function") {
+              return { ok: false, reason: "smokeNpcCrowdEventEconomyOnce_missing" };
+            }
+            return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
+          }
+        },
+        {
+          label: "report",
+          runner: () => {
+            if (!Game.__DEV || typeof Game.__DEV.smokeEconSoc_Step3_FalseOnce !== "function") {
+              return { ok: false, reason: "smokeEconSoc_Step3_FalseOnce_missing" };
+            }
+            return Game.__DEV.smokeEconSoc_Step3_FalseOnce({ window: { lastN: 120 } });
+          }
+        },
+        { label: "rematch", runner: runRematchScenario },
+        {
+          label: "escape",
+          runner: () => {
+            if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
+              return { ok: false, reason: "smokeEscapeCrowdOutcomeOnce_missing" };
+            }
+            return Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
+          }
+        }
+      ];
+
+      const runScenario = async (def) => {
+        const beforeLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
+        let scenarioResult = null;
+        try {
+          scenarioResult = def.runner();
+          if (scenarioResult && typeof scenarioResult.then === "function") {
+            scenarioResult = await scenarioResult;
+          }
+        } catch (err) {
+          scenarioResult = { ok: false, reason: err && err.message ? String(err.message) : "exception" };
+        }
+        const afterLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
+        const rows = (Array.isArray(dbg.moneyLog) && afterLen > beforeLen) ? dbg.moneyLog.slice(beforeLen, afterLen) : [];
+        scenarioAudit.push({
+          label: def.label,
+          ok: scenarioResult ? (scenarioResult.ok !== false) : true,
+          reason: scenarioResult && scenarioResult.reason ? scenarioResult.reason : null,
+          rowsCount: rows.length
+        });
+        if (scenarioResult && scenarioResult.ok === false) {
+          failed.push(`scenario:${def.label}:${scenarioResult.reason || "failed"}`);
+        }
+        rows.forEach(row => {
+          if (shouldToastRow(row)) {
+            summary.rowsChecked += 1;
+            const hasToast = Array.isArray(dbg.toastLog) ? dbg.toastLog.some(t => t && t.kind === "econ" && row.txId && row.txId === t.txId) : false;
+            if (!hasToast) {
+              summary.silentCount += 1;
+              if (summary.silentSamples.length < sampleLimit) {
+                summary.silentSamples.push({
+                  scenario: def.label,
+                  reason: row.reason,
+                  currency: row.currency,
+                  amount: row.amount,
+                  txId: row.txId,
+                  battleId: row.battleId,
+                  eventId: row.eventId
+                });
+              }
+              failed.push(`silent:${def.label}:${String(row.reason || "unknown")}:${row.txId || "missing"}`);
+            }
+          }
+        });
+      };
+
+      for (const scenarioDef of scenarioDefs) {
+        // eslint-disable-next-line no-await-in-loop
+        await runScenario(scenarioDef);
+      }
+
+      const result = {
+        ok: failed.length === 0,
+        failed,
+        summary,
+        scenarios: scenarioAudit
+      };
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI5_COVERAGE_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI5_COVERAGE_END");
+      } catch (_) {}
+      return result;
+    };
   }
 
   installEconUiSideEffectGuards();

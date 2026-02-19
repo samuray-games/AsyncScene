@@ -246,6 +246,31 @@ Next Prompt (копипаст, кодблок обязателен):
   3. PASS if `ok:true`, `failed:[]`, `before`/`after` snapshots match, `forbiddenCalls:[]`, and Console shows `DUMP_AT [...]`, `ECON_UI4_NOAUTO_BEGIN`, JSON, `ECON_UI4_NOAUTO_END`.
 - Smoke output: pending (will log `ECON_UI4_*` block once guard + smoke are in place).
 
+### [T-20260220-005] ECON-UI [5] no silent econ transactions
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: DEV
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Везде, где moneyLog фиксирует points/rep deltas (amount ≠ 0) и reason не относится к dev/migration/internal, всегда появляется econ toast из той же записи без silent транзакций.
+- Acceptance:
+  - Добавлена функция `shouldToastRow(row)`, `pushMoneyLogRow` помечает `row.toastExpected`, и policy легко поддерживает итерации (currency {points,rep}, amount ≠ 0, reason без dev/migration/internal).
+  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` прогоняет battle/crowd/report/rematch/escape (через существующий smoke/CORE flow), собирает rows из moneyLog, проверяет `shouldToastRow(row)` и наличие econ-toast с этим `txId`, логирует `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON и `ECON_UI5_COVERAGE_END`, возвращая `ok:true` только при `failed:[]`.
+  - JSON включает `summary.rowsChecked`, `summary.silentCount`, `summary.silentSamples`, а также `scenarios` с результатами каждого проката.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `await Game.__DEV.smokeEconUi_NoSilentReasonsOnce();` (no tooling needed).
+  3. PASS if Console shows `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON with `ok:true`, `failed:[]`, `summary.silentCount===0`, and `ec` toasts exist for every `summary.rowsChecked`; otherwise attach console output and mark FAIL.
+- Smoke output: `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON {...}, `ECON_UI5_COVERAGE_END`.
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1.
+    (2) Run `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` and capture the console block containing `ECON_UI5_COVERAGE_BEGIN`/`END`.
+    (3) PASS if the JSON result is `ok:true`, `failed:[]`, `summary.silentCount===0`, and `summary.rowsChecked` > 0; otherwise attach the logged JSON and mark FAIL.
+    ```
+
 
 -### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
 -Status: PASS

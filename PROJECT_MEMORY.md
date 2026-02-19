@@ -3198,3 +3198,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - The UI helpers that open panels or set focus need guards that check `Game.__D.__econToastInFlight` and log `WARN ECON_UI4_FORBIDDEN_UI_SIDE_EFFECT fn=...` when econ toasts would otherwise trigger them.
   - `Game.__DEV.smokeEconUi_NoAutoOpenOnce()` will snapshot panel state and focus before/after three econ toasts (reasons `ui4_probe_*`) and assert they remain unchanged, logging `DUMP_AT [...]`, `ECON_UI4_NOAUTO_BEGIN`, JSON, `ECON_UI4_NOAUTO_END`.
 - Next: DEV (implement UI guards + smoke helper).
+
+### 2026-02-20 — ECON-UI [5] no silent econ transactions
+- Status: IN_PROGRESS
+- Facts:
+  - `shouldToastRow(row)` formalizes the policy (currency in `points`/`rep`, amount ≠ 0, reason outside dev/migration/internal) and `pushMoneyLogRow` tags `toastExpected` on each normalized entry.
+  - `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` runs battle/crowd/report/rematch/escape helpers, inspects every new moneyLog row for `shouldToastRow(row)` and confirms a matching econ toast per `txId`, logging `DUMP_AT […]`, `ECON_UI5_COVERAGE_BEGIN`, JSON + summary, `ECON_UI5_COVERAGE_END`.
+  - Smoke command is wired up, but runtime evidence is pending: QA needs to capture `ok:true`, `failed:[]`, `summary.silentCount===0`.
+- Next: DEV (run the smoke, confirm `summary.silentCount===0` and update logs).
