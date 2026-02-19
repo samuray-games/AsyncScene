@@ -53,7 +53,39 @@
       } catch (_) {}
       Game.__D.moneyLogByBattle = {};
     }
+    exportMoneyLog();
+    exportMoneyLog();
     return Game.__D;
+  }
+
+  function exportMoneyLog(){
+    try {
+      const dbg = ensureDebugStore();
+      const moneyLogArr = dbg.moneyLog || [];
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.__moneyLogExportedV1Calls__ = (Game.__DEV.__moneyLogExportedV1Calls__ || 0) + 1;
+      if (Game && Game.State) {
+        if (!Array.isArray(Game.State.moneyLog) || Game.State.moneyLog !== moneyLogArr) {
+          Game.State.moneyLog = moneyLogArr;
+        }
+      } else if (Game) {
+        Game.State = Game.State || {};
+        Game.State.moneyLog = moneyLogArr;
+      }
+      Game.__DEV.__debugMoneyLog__ = moneyLogArr;
+      if (!Game.__DEV.__moneyLogExportedV1Logged__) {
+        console.warn("ECON_MONEYLOG_EXPORTED_V1", {
+          len: moneyLogArr.length,
+          ts: Date.now(),
+          sameRef: !!(Game && Game.State && Game.State.moneyLog === moneyLogArr),
+          calls: Game.__DEV.__moneyLogExportedV1Calls__
+        });
+        Game.__DEV.__moneyLogExportedV1Logged__ = true;
+      }
+      return moneyLogArr;
+    } catch (_) {
+      return [];
+    }
   }
 
   function normalizeCrowdKey(poolId){

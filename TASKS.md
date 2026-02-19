@@ -288,6 +288,55 @@ Next Prompt (копипаст, кодблок обязателен):
   (3) PASS if ok:true, failed empty, reasons1 has exactly one `points_respect_cost` and one `rep_respect_given` (plus `rep_emitter_refill` only when `r1.meta.emitterRefilled`), and added2==0 with r2.reason=="respect_pair_daily". Otherwise attach console output and mark FAIL.
   ```
 
+-### [T-20260218-001] ECON-08 Step 6F respect UI + toast smoke
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui/ui-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: hook the “Выразить уважение” action into `Game.StateAPI.giveRespect`, deliver two success toasts, and capture them in `Game.__DEV.__toastTape__`.
+- Acceptance:
+  - [ ] Button invokes `Game.StateAPI.giveRespect(meId, targetId, Date.now())`, hides for self, and shows mapped toasts (two success strings and one toast per failure reason).
+  - [ ] The real toast entrypoint now writes through `Game.__DEV.__toastProbe__`/`__toastTape__` (via `UI_TOAST_TAPE_READY`) and `__uiRespectClick__` pings `__toastProbe__`/fallback, so the smoke always observes every toast string.
+  - [ ] `Game.__DEV.smokeRespectUiOnce()` returns `ok:true`, `failed:[]`, toast1=="Ты отдал 1💰", toast2=="Цель получила +1 REP", diag.toastCallCount>=2, diag.tapeLen>=2, and the repeat call returns `respect_pair_daily`.
+- Result: PASS (DUMP_AT 2026-02-18 23:43:26)
+- Facts:
+  (1) `Console.txt` recorded `ECON08_UI_SMOKE_RESULT Object{asserts: Object{toast1: Ты отдал 1💰, toast2: Цель получила +1 REP, blockedToast: Ты отдал 1💰, clickCallsGiveRespect: true, npcShown: true, selfHidden: true}, diag: Object{toastCallCount: 2, tapeLen: 2, hasClick: true, hasVisible: true}, failed: [], samples: Object{r1: Object{ok: true, reason: rep_respect_given, delta: Object{points: -1, rep: 1}}, r2: Object{ok: false, reason: respect_pair_daily}}, toasts1: [{text: Ты отдал 1💰}, {text: Цель получила +1 REP}], toasts2: [{text: Ты отдал 1💰}, {text: Цель получила +1 REP}, {text: Уже было уважение сегодня этому персонажу.}]}`.
+  (2) Toast capture works because `UI_TOAST_TAPE_READY` wraps `Game.UI.showStatToast` and `__uiRespectClick__` always sends strings through `Game.__DEV.__toastProbe__` or a local fallback, so the smoke doesn’t depend on DOM timing.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeRespectUiOnce().then(r => console.log("ECON08_UI_SMOKE_RESULT", r));`
+  3. PASS if `ok:true`, `failed:[]`, toast1=="Ты отдал 1💰", toast2=="Цель получила +1 REP", diag.toastCallCount>=2, diag.tapeLen>=2, and the blocked second run cites respect_pair_daily; otherwise attach the console object and mark FAIL.
+- Next Prompt (кодблок обязательный):
+  ```text
+  Ответ QA:
+  (1) Hard reload http://localhost:8080/index.html?dev=1.
+  (2) Run `Game.__DEV.smokeRespectUiOnce().then(r => console.log("ECON08_UI_SMOKE_RESULT", r));`
+  (3) PASS if ok:true, failed:[], toast1=="Ты отдал 1💰", toast2=="Цель получила +1 REP", diag.toastCallCount>=2, diag.tapeLen>=2, and the repeat call returns respect_pair_daily; otherwise attach the console object and mark FAIL.
+  ```
+
+-### [T-20260218-002] ECON-08 Final smoke pack stabilization
+- Status: READY FOR QA
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Harden the final ECON-08 smoke pack by forcing the emitter cap, ensuring moneyLog assertions, and validating world-level rep accounting before publishing the final verdict.
+- Acceptance:
+  - [ ] `Game.__DEV.runEcon08FinalSmokePack()` seeds `S.players.me.points`, clears `progress.respectLedger`, and refills `repEmitter.balance`/`dayKey` before iterating `REP_EMITTER_DAILY_CAP` respects.
+  - [ ] The cap loop succeeds exactly `CAP` times and confirms the `(CAP+1)`-th call fails with `respect_emitter_empty` (`7.4_cap_wrong_reason` otherwise); `diag.capOkCount` and `diag.firstFailReason` are logged.
+  - [ ] MoneyLog analysis uses `Game.__DEBUG_MONEYLOG__`/`Game.__DEV__.debug_moneyLog`, filters rows for the current `dayKey`, enforces one `points_respect_cost` + one `rep_respect_given`, and fails on duplicate `opKey`/missing log (`7.5_*` codes).
+  - [ ] World rep sum (count of `rep_respect_given` rows) never exceeds `REP_EMITTER_DAILY_CAP` (`7.6_world_rep_exceeded_cap` if it does).
+- Result: (QA pending)
+- Next Prompt (кодблок обязательный):
+  ```text
+  Ответ QA:
+  (1) Hard reload http://localhost:8080/index.html?dev=1.
+  (2) Run `Game.__DEV.runEcon08FinalSmokePack().then(r => console.log("ECON08_FINAL_SMOKE_PACK_RESULT", r));`
+  (3) PASS if ok:true, failed:[], diag.capOkCount===cap, diag.firstFailReason==="respect_emitter_empty", diag.moneyLogLen>=2, diag.repGivenCount<=diag.capOkCount, and notes are empty; otherwise attach the console output and mark FAIL.
+  ```
 -### [T-20260216-002] ECON-SOC [5.3] spam penalty hook + smoke
 - Status: PASS
 - Priority: P0

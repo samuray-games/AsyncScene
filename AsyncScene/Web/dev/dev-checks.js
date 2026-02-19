@@ -19799,6 +19799,193 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     return has;
   };
 
+  Game.__DEV.probeMoneyLogOnce = function () {
+    const stateLog = (Game.State && Array.isArray(Game.State.moneyLog)) ? Game.State.moneyLog : null;
+    const devLog = (Game.__DEV && Array.isArray(Game.__DEV.__debugMoneyLog__)) ? Game.__DEV.__debugMoneyLog__ : null;
+    const arr = stateLog || devLog;
+    return {
+      ok: !!arr,
+      len: arr ? arr.length : 0,
+      hasState: !!stateLog,
+      hasDev: !!devLog
+    };
+  };
+
+  Game.__DEV.runEcon08FinalSmokePack = async (opts = {}) => {
+    const FAIL = [];
+    const NOTE = [];
+    const diag = { capOkCount: 0, firstFailReason: null, moneyLogLen: 0, repGivenCount: 0 };
+    const facts = {};
+    const nowTs = Date.now();
+    const dayKey = new Date(nowTs).toISOString().slice(0, 10);
+    const G = window.Game;
+    if (!G || !G.State || !G.StateAPI || typeof G.StateAPI.giveRespect !== "function") {
+      const msg = { ok: false, failed: ["missing_Game_or_giveRespect"], note: "need index.html?dev=1 and ECON08 loaded" };
+      console.log("ECON08_FINAL_SMOKE_PACK", msg);
+      return msg;
+    }
+    const S = G.State;
+    const meId = (S && S.me && S.me.id) ? String(S.me.id) : "me";
+    const getCap = (G.__DEV && typeof G.__DEV.getRespectEmitterCap === "function")
+      ? (G.__DEV.getRespectEmitterCap() | 0)
+      : 20;
+    const capLimit = Math.max(1, getCap);
+    const progress = S.progress = S.progress || {};
+    const ledger = {
+      lastByPairDay: Object.create(null),
+      lastInboundDay: Object.create(null)
+    };
+    ledger.lastByPairDay[meId] = Object.create(null);
+    progress.respectLedger = ledger;
+    progress.repEmitter = progress.repEmitter || { balance: 0, dayKey: "" };
+    progress.repEmitter.balance = capLimit;
+    progress.repEmitter.dayKey = dayKey;
+    const setPoints = (obj, value) => {
+      if (!obj) return;
+      if (G && typeof G._withPointsWrite === "function") {
+        G._withPointsWrite(() => { obj.points = value; });
+      } else {
+        obj.points = value;
+      }
+    };
+    setPoints(S.me, capLimit + 5);
+    if (S.players && S.players.me) setPoints(S.players.me, capLimit + 5);
+    const npcIds = Object.keys(S.players || {}).filter(id => id && String(id).startsWith("npc_"));
+    if (!npcIds.length) {
+      FAIL.push("7.4_no_npcs");
+    }
+    const opKeysUsed = new Set();
+    const cleanupPairLedger = (targetId) => {
+      if (!ledger.lastByPairDay[meId]) ledger.lastByPairDay[meId] = Object.create(null);
+      if (ledger.lastByPairDay[meId]) delete ledger.lastByPairDay[meId][targetId];
+      if (ledger.lastInboundDay[targetId]) delete ledger.lastInboundDay[targetId][meId];
+    };
+    const runRespect = (targetId) => {
+      if (!targetId) return null;
+      const res = G.StateAPI.giveRespect(meId, targetId, Date.now());
+      if (res && res.meta && typeof res.meta.opKey === "string") {
+        opKeysUsed.add(res.meta.opKey);
+      }
+      cleanupPairLedger(targetId);
+      return res;
+    };
+    let firstFailReason = null;
+    let capOkCount = 0;
+    let firstSuccessOpKey = null;
+    for (let i = 0; i <= capLimit; i++) {
+      if (!npcIds.length) break;
+      const targetId = npcIds[i % npcIds.length];
+      const res = runRespect(targetId);
+      if (i < capLimit) {
+        if (res && res.ok === true) {
+          capOkCount += 1;
+          if (!firstSuccessOpKey && res.meta && typeof res.meta.opKey === "string") {
+            firstSuccessOpKey = res.meta.opKey;
+          }
+        } else {
+          FAIL.push("7.4_cap_failure_before_limit");
+          break;
+        }
+      } else {
+        if (res && res.ok === false) {
+          firstFailReason = res.reason;
+        } else {
+          FAIL.push("7.4_cap_missing_fail");
+        }
+      }
+    }
+    diag.capOkCount = capOkCount;
+    diag.firstFailReason = firstFailReason;
+    facts.cap = {
+      cap: capLimit,
+      okCount: capOkCount,
+      firstFailReason
+    };
+    if (firstFailReason !== "respect_emitter_empty") {
+      FAIL.push("7.4_cap_wrong_reason");
+    }
+    let moneyLogSource = null;
+    let logSource = "none";
+    if (G && G.State && Array.isArray(G.State.moneyLog)) {
+      moneyLogSource = G.State.moneyLog;
+      logSource = "state_moneyLog";
+    } else if (G && G.State && Array.isArray(G.State.debug_moneyLog)) {
+      moneyLogSource = G.State.debug_moneyLog;
+      logSource = "state_debug_moneyLog";
+    } else if (G && G.ConflictEconomy && Array.isArray(G.ConflictEconomy.debug_moneyLog)) {
+      moneyLogSource = G.ConflictEconomy.debug_moneyLog;
+      logSource = "conflict_debug_moneyLog";
+    } else if (G && G.__DEV && Array.isArray(G.__DEV.__debugMoneyLog__)) {
+      moneyLogSource = G.__DEV.__debugMoneyLog__;
+      logSource = "dev_debug_moneyLog";
+    }
+    const moneyLogBeforeLen = moneyLogSource ? moneyLogSource.length : 0;
+    let filteredMoneyLog = [];
+    const repRows = [];
+    const pointsRows = [];
+    if (!moneyLogSource) {
+      FAIL.push("7.5_moneylog_unavailable");
+      NOTE.push("moneyLog_unavailable_for_world_rep_scan");
+    } else {
+      filteredMoneyLog = moneyLogSource.filter(row => {
+        const meta = row && row.meta;
+        if (!meta || typeof meta !== "object") return false;
+        if (meta.dayKey !== dayKey) return false;
+        const opKey = meta.opKey;
+        if (!opKey) return false;
+        if (opKeysUsed.size && !opKeysUsed.has(opKey)) return false;
+        return true;
+      });
+      const seen = new Set();
+      filteredMoneyLog.forEach(row => {
+        const meta = row && row.meta;
+        const opKey = meta && meta.opKey;
+        if (opKey && seen.has(opKey)) {
+          FAIL.push("7.5_moneylog_duplicate_opkey");
+        }
+        if (opKey) seen.add(opKey);
+        if (row && row.reason === "rep_respect_given") repRows.push(row);
+        if (row && row.reason === "points_respect_cost") pointsRows.push(row);
+      });
+      if (!repRows.length) FAIL.push("7.5_no_rep_respect");
+      if (!pointsRows.length) FAIL.push("7.5_no_points_respect");
+    }
+    if (moneyLogSource && !filteredMoneyLog.length) {
+      if (opKeysUsed.size) {
+        const sampleOp = Array.from(opKeysUsed)[0];
+        NOTE.push("moneyLog_empty_after_success");
+        diag.sampleOpKey = sampleOp;
+      }
+      FAIL.push("7.5_moneylog_empty_after_success");
+    }
+    if (moneyLogSource && firstSuccessOpKey && !filteredMoneyLog.some(row => row && row.meta && row.meta.opKey === firstSuccessOpKey)) {
+      FAIL.push("7.5_moneylog_missing_sample");
+      diag.sampleOpKey = firstSuccessOpKey;
+    }
+    diag.logSource = logSource;
+    diag.moneyLogLen = filteredMoneyLog.length;
+    diag.repGivenCount = repRows.length;
+    facts.moneyLog = {
+      beforeLen: moneyLogBeforeLen,
+      filteredLen: filteredMoneyLog.length,
+      repRows: repRows.length,
+      pointsRows: pointsRows.length
+    };
+    facts.world = { repGivenCount: repRows.length };
+    if (repRows.length > capLimit) {
+      FAIL.push("7.6_world_rep_exceeded_cap");
+    }
+    const result = {
+      ok: FAIL.length === 0,
+      failed: FAIL,
+      facts,
+      diag,
+      notes: NOTE
+    };
+    console.log("ECON08_FINAL_SMOKE_PACK_RESULT", result);
+    return result;
+  };
+
   // Auto-run disabled by default to avoid boot-time failures; manual run only.
 
   // Dev shortcut: Ctrl+Shift+T

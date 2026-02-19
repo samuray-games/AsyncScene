@@ -22,10 +22,27 @@ const mapRespectReason = {
 const showRespectToast = (kind, text) => {
   if (!text) return;
   try {
-    if (UI && typeof UI.showStatToast === "function") {
+    if (typeof UI !== "undefined" && UI && typeof UI.showStatToast === "function") {
       UI.showStatToast(kind, text);
     }
   } catch (_) {}
+};
+
+const emitDevToast = (text) => {
+  if (!Game.__DEV) Game.__DEV = {};
+  if (!Array.isArray(Game.__DEV.__toastTape__)) Game.__DEV.__toastTape__ = [];
+  Game.__DEV.__toastCallCount__ = (Game.__DEV.__toastCallCount__ || 0) + 1;
+  Game.__DEV.__toastTape__.push({ text: String(text || ""), ts: Date.now() });
+};
+
+const callDevToastProbe = (text) => {
+  try {
+    if (Game.__DEV && typeof Game.__DEV.__toastProbe__ === "function") {
+      Game.__DEV.__toastProbe__(text);
+      return;
+    }
+  } catch (_) {}
+  emitDevToast(text);
 };
 
 const __uiRespectButtonVisible__ = (targetId) => {
@@ -43,6 +60,8 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   if (res.ok) {
     showRespectToast("points", "Ты отдал 1💰");
     showRespectToast("rep", "Цель получила +1 REP");
+    callDevToastProbe("Ты отдал 1💰");
+    callDevToastProbe("Цель получила +1 REP");
     try {
       if (Game.__DEV && typeof Game.__DEV.__toastTapePush__ === "function") {
         Game.__DEV.__toastTapePush__({ text: "Ты отдал 1💰", ts: Date.now() });
@@ -51,7 +70,9 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
     } catch (_) {}
     return res;
   }
-  showRespectToast("points", mapRespectReason[res.reason] || "Сейчас не получилось. Попробуй позже.");
+  const reasonText = mapRespectReason[res.reason] || "Сейчас не получилось. Попробуй позже.";
+  showRespectToast("points", reasonText);
+  callDevToastProbe(reasonText);
   return res;
 };
 

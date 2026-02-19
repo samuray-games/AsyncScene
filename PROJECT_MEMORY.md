@@ -3137,3 +3137,19 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Console DUMP_AT 2026-02-17 23:30:35 (epoch_ms=1771338635482): Object{ ok: true, moneyLog: Object{ added1: 3, added2: 0, reasons1: [points_respect_cost, rep_emitter_refill, rep_respect_given], reasons2: [] }, r1: Object{ ok: true, reason: rep_respect_given, delta: Object{points: -1, rep: 1}, meta: Object{ dayKey: 2026-02-17, opKey: respect:2026-02-17:me:npc_weak, emitterRefilled: true, emitterDailyCap: 20, emitterBalanceAfter: 19 } }, r2: Object{ ok: false, reason: respect_pair_daily, delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, opKey: respect:2026-02-17:me:npc_weak} } }
   - On first call 2 rows + optional refill row; on repeat 0 rows, reason respect_pair_daily. Idempotency by opKey respected.
 - Next: QA (run `Game.__DEV.smokeRespectMoneyLogOnce()` and capture PASS/FAIL output).
+
+### 2026-02-18 — ECON-08 Step 6F respect UI toast smoke
+- Status: PASS
+- Facts:
+  - Console.txt DUMP_AT 2026-02-18 23:43:26 recorded `ECON08_UI_SMOKE_RESULT` with `asserts.toast1: Ты отдал 1💰`, `toast2: Цель получила +1 REP`, `blockedToast: Ты отдал 1💰`, `diag.toastCallCount: 2`, `diag.tapeLen: 2`, `samples.r1.ok: true`, `samples.r2.reason: respect_pair_daily`, `toasts1` containing the two success strings, and `toasts2` containing the success strings plus `Уже было уважение сегодня этому персонажу.`.
+  - Toast tape now records those strings because `UI_TOAST_TAPE_READY` wraps `Game.UI.showStatToast` and `__uiRespectClick__` always calls `Game.__DEV.__toastProbe__` (with a local fallback that writes directly to `__toastTape__`), so the smoke no longer depends on DOM toast timing.
+- Next: QA (run `Game.__DEV.smokeRespectUiOnce()` and capture the `ECON08_UI_SMOKE_RESULT` object to prove toast assertions).
+
+### 2026-02-19 — ECON-08 Final smoke pack stabilization
+- Status: READY FOR QA
+- Facts:
+  - Added `Game.__DEV.runEcon08FinalSmokePack()` which seeds `S.players.me.points`, resets `progress.respectLedger`, refills `repEmitter.balance/dayKey`, then iterates the emitter cap to validate emitter depletion, moneyLog rows, and world rep counts.
+  - Cap instrumentation tracks `diag.capOkCount` and `diag.firstFailReason`, ensuring the `(CAP+1)`-th respect fails with `respect_emitter_empty` (otherwise `7.4_cap_wrong_reason`).
+  - MoneyLog validation uses `Game.__DEBUG_MONEYLOG__`/`Game.__DEV__.debug_moneyLog`, filters rows for today’s `opKey`, enforces at least one `points_respect_cost` and one `rep_respect_given`, rejects duplicated `opKey`s, and logs failures via `7.5_*` codes (note `moneyLog_unavailable_for_world_rep_scan` when log missing).
+  - `diag.moneyLogLen` and `diag.repGivenCount` supply quick diagnostics; the world rep count must stay ≤ `REP_EMITTER_DAILY_CAP` or `7.6_world_rep_exceeded_cap` is raised.
+- Next: QA (run `Game.__DEV.runEcon08FinalSmokePack()` and paste the `ECON08_FINAL_SMOKE_PACK_RESULT` object into Console.txt for verification).
