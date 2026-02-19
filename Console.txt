@@ -1,27 +1,27 @@
-[DUMP_AT] [2026-02-19 17:01:45] (epoch_ms=1771488105449)
+[DUMP_AT] [2026-02-19 18:00:51] (epoch_ms=1771491651583)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771488096970
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771491642635
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771488097026}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771491642692}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771488096982 1771488097027
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771491642656 1771491642692
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771488097027
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771491642692
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771488097027}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771491642693}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771488097038}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771491642709}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -44,94 +44,105 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771488097040
+LOG [AttackChoices] conflict-arguments loaded 1771491642710
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771488097043, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771488097046}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771488097046}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771491642715, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771491642717}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771491642717}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771488105412_8b9d77fc9e3428 Game.__DEV.runEcon08FinalSmokePack().then(r => console.log("ECON08_FINAL_SMOKE_PACK_RESULT", r));
-WARN [repl] > Game.__DEV.runEcon08FinalSmokePack().then(r => console.log("ECON08_FINAL_SMOKE_PACK_RESULT", r));
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 215, beforeTotal: 215, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 21, econAccountsBefore: 21, missingAfterCount: 0, npcIdsSeen: 21, reason: final_smoke_respect, skippedCount: 21, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 215
-  beforeTotal: 215
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 21
-  econAccountsBefore: 21
-  missingAfterCount: 0
-  npcIdsSeen: 21
-  reason: final_smoke_respect
-  skippedCount: 21
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 21, createdCount: 0, missingAfterCount: 0, npcSeen: 21, storageKeyUsed: S.players}
-LOG ECON08_FINAL_SMOKE_PACK_RESULT Object{diag: Object{capOkCount: 20, firstFailReason: respect_emitter_empty, logSource: state_moneyLog, moneyLogLen: 40, opKeyCardinalityIssues: 0, opKeyReasonIssues: 0, repGivenCount: 20, validOpKeys: 20}, facts: Object{cap: Object{cap: 20, firstFailReason: respect_emitter_empty, okCount: 20}, moneyLog: Object{beforeLen: 80, filteredLen: 40, pointsRows: 20, repRows: 20}, world: Object{repGivenCount: 20}}, failed: [], notes: [], ok: true}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  diag: Object{
-    capOkCount: 20
-    firstFailReason: respect_emitter_empty
-    logSource: state_moneyLog
-    moneyLogLen: 40
-    opKeyCardinalityIssues: 0
-    opKeyReasonIssues: 0
-    repGivenCount: 20
-    validOpKeys: 20
-  }
-  facts: Object{
-    cap: Object{
-      cap: 20
-      firstFailReason: respect_emitter_empty
-      okCount: 20
-    }
-    moneyLog: Object{
-      beforeLen: 80
-      filteredLen: 40
-      pointsRows: 20
-      repRows: 20
-    }
-    world: Object{
-      repGivenCoun…
-LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771491651562_a7863e41fa13c Game.__DEV.smokeToastContractProbeOnce()
+WARN [repl] > Game.__DEV.smokeToastContractProbeOnce()
+LOG DUMP_AT [2026-02-19 18:00:51]
+LOG ECON_UI0_TOAST_CONTRACT_BEGIN
+LOG {"ok":true,"failed":[],"sampleToast":{"kind":"econ","txId":"tx_1771491651564_228bfaa0cff1f8","logIndex":19,"reason":"toast_contract_probe","ts":1771491651565,"text":"+1💰"},"sampleRow":{"time":1771491651564,"reason":"toast_contract_probe","currency":"points","amount":1,"sourceId":"toast_contract_probe","targetId":"me","eventId":"toast_contract_probe","battleId":"toast_contract_probe","meta":{"probe":true},"ts":1771491651564,"txId":"tx_1771491651564_228bfaa0cff1f8"}}
+LOG ECON_UI0_TOAST_CONTRACT_END
 LOG [repl] < Promise{}
 WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 1, keys: [], preview: Promise{}, type: object}
-LOG ECON08_FINAL_SMOKE_PACK_RESULT Object{diag: Object{capOkCount: 20, firstFailReason: respect_emitter_empty, logSource: state_moneyLog, moneyLogLen: 40, opKeyCardinalityIssues: 0, opKeyReasonIssues: 0, repGivenCount: 20, validOpKeys: 20}, facts: Object{cap: Object{cap: 20, firstFailReason: respect_emitter_empty, okCount: 20}, moneyLog: Object{beforeLen: 80, filteredLen: 40, pointsRows: 20, repRows: 20}, world: Object{repGivenCount: 20}}, failed: [], notes: [], ok: true}
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, failed, sampleToast, sampleRow], preview: Object{
+  failed: [
+
+  ]
+  ok: true
+  sampleRow: Object{
+    amount: 1
+    battleId: toast_contract_probe
+    currency: points
+    eventId: toast_contract_probe
+    meta: Object{
+      probe: true
+    }
+    reason: toast_contract_probe
+    sourceId: toast_contract_probe
+    targetId: me
+    time: 1771491651564
+    ts: 1771491651564
+    txId: tx_1771491651564_228bfaa0cff1f8
+  }
+  sampleToast: Object{
+    kind: econ
+    logIndex: 19
+    reason: toast_contract_probe
+    text: +1💰
+    ts: 177149165…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  diag: Object{
-    capOkCount: 20
-    firstFailReason: respect_emitter_empty
-    logSource: state_moneyLog
-    moneyLogLen: 40
-    opKeyCardinalityIssues: 0
-    opKeyReasonIssues: 0
-    repGivenCount: 20
-    validOpKeys: 20
+  isPromise: 0
+  keys: [
+    ok
+    failed
+    sampleToast
+    sampleRow
+  ]
+  preview: Object{
+  failed: [
+
+  ]
+  ok: true
+  sampleRow: Object{
+    amount: 1
+    battleId: toast_contract_probe
+    currency: points
+    eventId: toast_contract_probe
+    meta: Object{
+      probe: true
+    }
+    reason: toast_contract_probe
+    sourceId: toast_contract_probe
+    targetId: me
+    time: 1771491651564
+    ts: 1771491651564
+    txId: tx_1771491651564_228bfaa0cff1f8
   }
-  facts: Object{
-    cap: Object{
-      cap: 20
-      firstFailReason: respect_emitter_empty
-      okCount: 20
-    }
-    moneyLog: Object{
-      beforeLen: 80
-      filteredLen: 40
-      pointsRows: 20
-      repRows: 20
-    }
-    world: Object{
-      repGivenCoun…
+  sampleToast: Object{
+ …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771488105412_8b9d77fc9e3428 Object{ok: true, value: undefined}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771491651562_a7863e41fa13c Object{failed: [], ok: true, sampleRow: Object{amount: 1, battleId: toast_contract_probe, currency: points, eventId: toast_contract_probe, meta: Object{probe: true}, reason: toast_contract_probe, sourceId: toast_contract_probe, targetId: me, time: 1771491651564, ts: 1771491651564, txId: tx_1771491651564_228bfaa0cff1f8}, sampleToast: Object{kind: econ, logIndex: 19, reason: toast_contract_probe, text: +1💰, ts: 1771491651565, txId: tx_1771491651564_228bfaa0cff1f8}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  failed: [
+
+  ]
+  ok: true
+  sampleRow: Object{
+    amount: 1
+    battleId: toast_contract_probe
+    currency: points
+    eventId: toast_contract_probe
+    meta: Object{
+      probe: true
+    }
+    reason: toast_contract_probe
+    sourceId: toast_contract_probe
+    targetId: me
+    time: 1771491651564
+    ts: 1771491651564
+    txId: tx_1771491651564_228bfaa0cff1f8
+  }
+  sampleToast: Object{
+    kind: econ
+    logIndex: 19
+    reason: toast_contract_probe
+    text: +1💰
+    ts: 177149165…
+LOG END CONSOLE_EXPAND_V1
 

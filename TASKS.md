@@ -2316,7 +2316,32 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Ответ QA:
     Проверьте Console.txt, затем вручную выполните клики для кейсов A–D, подтверждая, что элементы не выглядят disabled и тосты объясняют причину; если нужно, запустите `Game.__DEV.smokeP2PTransferOnce()`. PASS если все кейсы ведут себя как описано и amount вводится через prompt, иначе FAIL.
     ```
-    Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [T-20260219-008] ECON-UI [0] toast -> moneyLog contract
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: гарантировать, что каждый экономический toast связан с moneyLog-строкой (txId + reason) и никакие toasts не создаются вручную без ссылки.
+- Acceptance:
+  - Добавлен helper `pushMoneyLogRow(row)`, который нормализует `currency`/`amount`/`reason`, присваивает стабильный `txId`, пишет строку в `Game.__D.moneyLog` и, при наличии `battleId`, дублирует запись в `Game.__D.moneyLogByBattle`.
+  - Добавлен helper `pushEconToastFromLogRef(ref, overrideText)`, который читает reason из `moneyLog` и пушит `kind:"econ"` toast с `txId` и `logIndex`.
+  - Ложный/правдивый донос и fallback `crowd_vote_refund` используют новые helpers, чтобы toasts строились из записей moneyLog.
+  - Dev helper `Game.__DEV.smokeToastContractProbeOnce()` очищает `toastLog`, добавляет тестовую econ-строку/тост, проверяет соответствие `txId`/`reason` и пишет `DUMP_AT [YYYY-MM-DD HH:MM:SS]`, `ECON_UI0_TOAST_CONTRACT_BEGIN`, JSON-результат и `ECON_UI0_TOAST_CONTRACT_END`.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeToastContractProbeOnce().then(r => console.log("ECON_UI0_TOAST_CONTRACT_RESULT", r));`
+  3. PASS if `ok:true`, `failed:[]`, toastLog содержит ≥1 toast с `kind:"econ"`, `txId`, `logIndex`, `reason`, `moneyLog[logIndex]` существует и совпадает по `txId`/`reason`, и консоль показывает `DUMP_AT [YYYY-MM-DD HH:MM:SS]`, `ECON_UI0_TOAST_CONTRACT_BEGIN`, JSON-результат и `ECON_UI0_TOAST_CONTRACT_END`. Иначе приложить консоль и пометить FAIL.
+- Next Prompt (кодблок обязательный):
+  ```text
+  Ответ QA:
+  (1) Hard reload http://localhost:8080/index.html?dev=1.
+  (2) Run `Game.__DEV.smokeToastContractProbeOnce().then(r => console.log("ECON_UI0_TOAST_CONTRACT_RESULT", r));`
+  (3) PASS if ok:true, failed:[], toastLog has ≥1 kind:"econ" entry with txId/logIndex and reason matching moneyLog[logIndex], and console shows DUMP_AT + ECON_UI0_TOAST_CONTRACT_BEGIN/<JSON>/ECON_UI0_TOAST_CONTRACT_END; otherwise attach console output and mark FAIL.
+  ```
 
 
 ### [LOG-20260217-006] ECON-P2P P2P-A3 rate limit (smoke pending)

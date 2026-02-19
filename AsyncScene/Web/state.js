@@ -449,6 +449,70 @@ window.Game = window.Game || {};
     }
   }
 
+  function pushMoneyLogRow(row){
+    const entry = (row && typeof row === "object") ? row : {};
+    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+    const dbg = Game.__D;
+    if (!Array.isArray(dbg.moneyLog)) dbg.moneyLog = [];
+    if (!dbg.moneyLogByBattle || typeof dbg.moneyLogByBattle !== "object") dbg.moneyLogByBattle = {};
+    const timestamp = Number.isFinite(entry.time) ? entry.time : (Number.isFinite(entry.ts) ? entry.ts : Date.now());
+    const candidateCurrency = String(entry.currency || entry.kind || "points").toLowerCase();
+    const currency = (candidateCurrency === "rep") ? "rep" : "points";
+    const amountSource = (entry.amount !== undefined) ? entry.amount : ((entry.delta !== undefined) ? entry.delta : 0);
+    const parsedAmount = Number(amountSource);
+    const amount = Number.isFinite(parsedAmount) ? parsedAmount : 0;
+    const reasonSource = entry.reason || (entry.meta && entry.meta.reason) || entry.kind || "";
+    const reason = String(reasonSource || "").trim();
+    const txId = entry.txId ? String(entry.txId) : `tx_${timestamp}_${Math.random().toString(16).slice(2)}`;
+    const meta = (entry.meta && typeof entry.meta === "object") ? Object.assign({}, entry.meta) : {};
+    if (entry.delta !== undefined && meta.delta === undefined) {
+      meta.delta = entry.delta;
+    }
+    const normalized = Object.assign({}, entry, {
+      time: timestamp,
+      ts: timestamp,
+      currency,
+      amount,
+      reason,
+      txId,
+      meta
+    });
+    dbg.moneyLog.push(normalized);
+    const logIndex = dbg.moneyLog.length - 1;
+    const result = { txId, logIndex };
+    const battleId = normalized.battleId ? String(normalized.battleId) : "";
+    if (battleId) {
+      if (!Array.isArray(dbg.moneyLogByBattle[battleId])) dbg.moneyLogByBattle[battleId] = [];
+      dbg.moneyLogByBattle[battleId].push(normalized);
+      result.battleLogIndex = dbg.moneyLogByBattle[battleId].length - 1;
+    }
+    return result;
+  }
+
+  function pushEconToastFromLogRef(ref, overrideText){
+    if (!ref || typeof ref !== "object") return null;
+    if (!Game.__D || typeof Game.__D !== "object") return null;
+    const dbg = Game.__D;
+    if (!Array.isArray(dbg.moneyLog)) return null;
+    const logIndex = Number.isFinite(ref.logIndex) ? ref.logIndex : null;
+    if (logIndex === null) return null;
+    const row = dbg.moneyLog[logIndex];
+    if (!row || !row.reason) return null;
+    if (!Array.isArray(dbg.toastLog)) dbg.toastLog = [];
+    const toast = {
+      kind: "econ",
+      txId: row.txId,
+      logIndex,
+      reason: row.reason,
+      ts: Date.now()
+    };
+    if (typeof overrideText === "string" && overrideText) {
+      toast.text = overrideText;
+    }
+    dbg.toastLog.push(toast);
+    return toast;
+  }
+
   function transferRep(fromId, toId, amount, reason, battleId, meta){
     const meId = (State.me && State.me.id) ? State.me.id : "me";
     if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy") && ((fromId === meId) || (toId === meId))) {
@@ -2658,18 +2722,27 @@ window.Game = window.Game || {};
       try {
         const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
         dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
-        dbg.moneyLog.push({
-          time: Date.now(),
-          sourceId: "me",
-          targetId: "crowd_pool",
-          amount: repPenalty,
-          reason: "rep_report_false",
-          eventId: reportId || null,
-          battleId: reportId || null,
-          currency: "rep"
-        });
-        dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
-        dbg.toastLog.push({ ts: Date.now(), kind: "rep", delta: -(repPenalty), eventId: reportId || null, text: `-${repPenalty}⭐` });
+        const existingIndex = dbg.moneyLog.findIndex(x => x && String(x.reason || "") === "rep_report_false" && String(x.eventId || "") === String(reportId || "") && String(x.battleId || "") === String(reportId || ""));
+        let ref = null;
+        if (existingIndex >= 0) {
+          ref = { txId: dbg.moneyLog[existingIndex].txId, logIndex: existingIndex };
+        } else {
+          const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+          ref = rowHelper({
+            time: Date.now(),
+            sourceId: "me",
+            targetId: "crowd_pool",
+            amount: repPenalty,
+            reason: "rep_report_false",
+            eventId: reportId || null,
+            battleId: reportId || null,
+            currency: "rep"
+          });
+        }
+        const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
+        if (ref && typeof toastHelper === "function") {
+          toastHelper(ref, `-${repPenalty}⭐`);
+        }
       } catch (_) {}
 
       // DM to player: explicit penalty notice
@@ -2726,22 +2799,28 @@ window.Game = window.Game || {};
         try {
           const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
           dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
-          const existsRep = dbg.moneyLog.some(x => x && String(x.reason || "") === "rep_report_true" && String(x.eventId||x.battleId||"") === String(reportId || ""));
-          if (!existsRep) {
-            dbg.moneyLog.push({
-              time: Date.now(),
-              reason: "rep_report_true",
-              currency: "rep",
-              amount: repGain,
-              sourceId: "crowd_pool",
-              targetId: "me",
-              eventId: reportId || null,
-              battleId: reportId || null
-            });
-          }
-          dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
-          dbg.toastLog.push({ ts: Date.now(), kind: "rep", delta: repGain, eventId: reportId || null, text: `+${repGain}⭐` });
-        } catch (_) {}
+          const existingIndex = dbg.moneyLog.findIndex(x => x && String(x.reason || "") === "rep_report_true" && String(x.eventId||x.battleId||"") === String(reportId || ""));
+        let ref = null;
+        if (existingIndex >= 0) {
+          ref = { txId: dbg.moneyLog[existingIndex].txId, logIndex: existingIndex };
+        } else {
+          const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+          ref = rowHelper({
+            time: Date.now(),
+            reason: "rep_report_true",
+            currency: "rep",
+            amount: repGain,
+            sourceId: "crowd_pool",
+            targetId: "me",
+            eventId: reportId || null,
+            battleId: reportId || null
+          });
+        }
+        const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
+        if (ref && typeof toastHelper === "function") {
+          toastHelper(ref, `+${repGain}⭐`);
+        }
+      } catch (_) {}
         repTransferred = true;
       }
 
@@ -3330,6 +3409,72 @@ window.Game = window.Game || {};
   logRespectEntrypointReady();
   if (Game.__DEV && typeof Game.__DEV === "object") {
     Game.__DEV.getRespectEmitterCap = () => REP_EMITTER_DAILY_CAP;
+    Game.__DEV.smokeToastContractProbeOnce = function smokeToastContractProbeOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+      const savedToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
+      dbg.toastLog = [];
+      const failed = [];
+      let sampleToast = null;
+      let sampleRow = null;
+      let ref = null;
+      try {
+        const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+        ref = rowHelper({
+          time: Date.now(),
+          reason: "toast_contract_probe",
+          currency: "points",
+          amount: 1,
+          sourceId: "toast_contract_probe",
+          targetId: "me",
+          eventId: opts.eventId || "toast_contract_probe",
+          battleId: opts.battleId || "toast_contract_probe",
+          meta: { probe: true }
+        });
+        sampleRow = (ref && Array.isArray(dbg.moneyLog) && Number.isFinite(ref.logIndex)) ? dbg.moneyLog[ref.logIndex] : null;
+        if (!sampleRow) failed.push("moneylog_row_missing");
+      } catch (_) {
+        failed.push("moneylog_push_failed");
+      }
+      const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
+      if (ref && typeof toastHelper === "function") {
+        const toast = toastHelper(ref, opts.toastText || "+1💰");
+        if (toast) {
+          sampleToast = toast;
+          if (toast.kind !== "econ") failed.push("toast_wrong_kind");
+          if (!toast.txId) failed.push("toast_missing_txId");
+          if (!toast.reason) failed.push("toast_missing_reason");
+          if (sampleRow && toast.logIndex !== ref.logIndex) failed.push("toast_logindex_mismatch");
+          if (sampleRow && toast.txId !== sampleRow.txId) failed.push("toast_txid_mismatch");
+          if (sampleRow && toast.reason !== sampleRow.reason) failed.push("toast_reason_mismatch");
+        } else {
+          failed.push("toast_push_failed");
+        }
+      } else {
+        failed.push("toast_helper_missing");
+      }
+      const newToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
+      dbg.toastLog = savedToasts.concat(newToasts);
+      const result = {
+        ok: failed.length === 0,
+        failed,
+        sampleToast,
+        sampleRow
+      };
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI0_TOAST_CONTRACT_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI0_TOAST_CONTRACT_END");
+      } catch (_) {}
+      return result;
+    };
   }
 
   function createReactionPolicy(){
@@ -3642,6 +3787,12 @@ window.Game = window.Game || {};
   const debugStore = Game.__D || {};
   Security.defineHandleProp("__D", debugStore);
   Security.defineHandleProp("__SEC", Security.store);
+  if (typeof debugStore.pushMoneyLogRow !== "function") {
+    debugStore.pushMoneyLogRow = pushMoneyLogRow;
+  }
+  if (typeof debugStore.pushEconToastFromLogRef !== "function") {
+    debugStore.pushEconToastFromLogRef = pushEconToastFromLogRef;
+  }
   defineGameSurfaceProp("State", "__S");
   defineGameSurfaceProp("Debug", "__D");
   defineGameSurfaceProp("StateAPI", "__A");

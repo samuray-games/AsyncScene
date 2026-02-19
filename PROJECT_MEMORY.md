@@ -3154,3 +3154,13 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - World rep count matched `repGivenCount: 20`, staying at or below the emitter cap.
 - Console DUMP_AT 2026-02-19 17:01:45 recorded `ECON08_FINAL_SMOKE_PACK_RESULT Object{diag: Object{capOkCount: 20, firstFailReason: respect_emitter_empty, logSource: state_moneyLog, moneyLogLen: 40, repGivenCount: 20, validOpKeys: 20, opKeyCardinalityIssues: 0, opKeyReasonIssues: 0}, facts: Object{cap: Object{cap: 20, firstFailReason: respect_emitter_empty, okCount: 20}, moneyLog: Object{beforeLen: 80, filteredLen: 40, pointsRows: 20, repRows: 20}, world: Object{repGivenCount: 20}}, failed: [], notes: [], ok: true}`.
 - Next: —
+
+### 2026-02-19 — ECON-UI [0] toast -> moneyLog contract
+- Status: IN_PROGRESS
+- Facts:
+  - В `state.js` появились `pushMoneyLogRow` и `pushEconToastFromLogRef`: первая нормализует записи (`currency`, `amount`, `reason`, `time`/`ts`, `txId`) и точно вписывает их в `Game.__D.moneyLog`/`moneyLogByBattle`, вторая читает reason из строки и пушит `kind:"econ"` toast с `txId`/`logIndex`.
+  - Ложный/правдивый донос и fallback crowd vote refund теперь получают toast только через `pushEconToastFromLogRef`, так что тексты зависят от строки moneyLog и всегда имеют `txId`/`reason`.
+  - Добавлен dev helper `Game.__DEV.smokeToastContractProbeOnce()`: он очищает `toastLog`, добавляет тестовую строчку/тост через новую контрактную пару, проверяет, что `toast.txId===moneyLog[logIndex].txId`, `toast.reason===moneyLog[logIndex].reason`, и пишет `DUMP_AT [YYYY-MM-DD HH:MM:SS]` + `ECON_UI0_TOAST_CONTRACT_BEGIN`/`JSON`/`ECON_UI0_TOAST_CONTRACT_END`.
+  - Расширен `Game.__DEV` surface (QA может запускать `smokeToastContractProbeOnce`) и `Game.__D` теперь всегда предоставляет helpers для сторонних listeners.
+- Smoke output: `Game.__DEV.smokeToastContractProbeOnce()` logs `DUMP_AT ...`, `ECON_UI0_TOAST_CONTRACT_BEGIN`, JSON and `ECON_UI0_TOAST_CONTRACT_END` describing matching toast/moneyLog pair.
+- Next: QA (требуется запустить smoke, убедиться в `ok:true`/`failed:[]`, `toast.kind:"econ"` и совпадении `txId`/`reason` между toast и moneyLog).

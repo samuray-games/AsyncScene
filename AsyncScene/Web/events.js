@@ -251,43 +251,55 @@ window.Game ||= {};
               dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
               const existsPts = dbg.moneyLog.some(x => x && (String(x.reason || "") === "crowd_vote_refund") && String(x.eventId||x.battleId||"") === String(e && (e.id||battleId) || ""));
               if (!existsPts) {
-                dbg.moneyLog.push({
-                  ts: Date.now(),
+                const touchEntry = {
+                  time: Date.now(),
                   reason: "crowd_vote_refund",
-                  kind: "points",
-                  delta: 1,
-                  from: "sink",
-                  to: "me",
+                  currency: "points",
+                  amount: 1,
+                  sourceId: "sink",
+                  targetId: "me",
                   eventId: e && (e.id || null),
                   battleId: battleId || null,
-                });
+                  meta: { context: "crowd_vote_refund" }
+                };
+                touchEntry.txId = touchEntry.txId || `tx_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+                const ref = (typeof dbg.pushMoneyLogRow === "function")
+                  ? dbg.pushMoneyLogRow(touchEntry)
+                  : (() => { dbg.moneyLog.push(touchEntry); return { txId: touchEntry.txId || null, logIndex: dbg.moneyLog.length - 1 }; })();
+                if (ref && typeof dbg.pushEconToastFromLogRef === "function") {
+                  dbg.pushEconToastFromLogRef(ref, "+1💰");
+                }
               }
-              dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
-              dbg.toastLog.push({ ts: Date.now(), kind: "points", delta: 1, eventId: e && e.id || null, text: "+1💰" });
             } catch (_) {}
-          }
-        } else {
-          markLegacyEconHit("events.payoutCrowdPool.legacy");
-          const addPts = (Game.__A && typeof Game.__A.addPoints === "function") ? Game.__A.addPoints : null;
-          if (addPts) {
-            addPts(1, "crowd_vote_refund");
           } else {
-            // Fallback: ensure debug logs reflect the refund
-            try {
-              const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-              dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
-              dbg.moneyLog.push({
-                ts: Date.now(),
-                reason: "crowd_vote_refund",
-                kind: "points",
-                delta: 1,
-                from: "system",
-                to: "me",
-                eventId: e && e.id || null,
-              });
-              dbg.toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : (dbg.toastLog = dbg.toastLog || []);
-              dbg.toastLog.push({ ts: Date.now(), kind: "points", delta: 1, eventId: e && e.id || null, text: "+1💰" });
-            } catch (_) {}
+            markLegacyEconHit("events.payoutCrowdPool.legacy");
+            const addPts = (Game.__A && typeof Game.__A.addPoints === "function") ? Game.__A.addPoints : null;
+            if (addPts) {
+              addPts(1, "crowd_vote_refund");
+            } else {
+              // Fallback: ensure debug logs reflect the refund
+              try {
+                const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+                dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
+                const touchEntry = {
+                  time: Date.now(),
+                  reason: "crowd_vote_refund",
+                  currency: "points",
+                  amount: 1,
+                  sourceId: "system",
+                  targetId: "me",
+                  eventId: e && e.id || null,
+                  meta: { context: "legacy_crowd_vote_refund" }
+                };
+                touchEntry.txId = touchEntry.txId || `tx_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+                const ref = (typeof dbg.pushMoneyLogRow === "function")
+                  ? dbg.pushMoneyLogRow(touchEntry)
+                  : (() => { dbg.moneyLog.push(touchEntry); return { txId: touchEntry.txId || null, logIndex: dbg.moneyLog.length - 1 }; })();
+                if (ref && typeof dbg.pushEconToastFromLogRef === "function") {
+                  dbg.pushEconToastFromLogRef(ref, "+1💰");
+                }
+              } catch (_) {}
+            }
           }
         }
       } catch (_) {}
