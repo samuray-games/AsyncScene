@@ -3208,9 +3208,16 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: —
 
 ### 2026-02-20 — ECON-UI [6] zero-sum points audit
+### 2026-02-20 — ECON-UI [6] zero-sum points audit
+- Status: PASS
+- Facts:
+  - Console.txt DUMP_AT 2026-02-19 20:28:05 recorded `ECON_UI6_ZERO_SUM_BEGIN/END` with `ok:true`, `failed:[]`.
+  - Scenarios battle/crowd/report/rematch/escape all reported `delta:0` with equal before/after totals; includeIdsCount stable per scenario.
+- Next: —
+
+### 2026-02-20 — ECON-UI [7] regression pack (one-command)
 - Status: IN_PROGRESS
 - Facts:
-  - Need a zero-sum guard: `withZeroSumAssert(label, fn)` should compare `sumPointsSnapshot.total` before/after and report `delta` + `topIncreases` if points grow.
-  - `sumPointsSnapshot` now supports `includeIds`, and `withZeroSumAssert` uses a stable include set (players + worldBank/sink + ids from scenario moneyLog rows) to avoid false deltas from late-created pools.
-  - `Game.__DEV.smokeEconUi_ZeroSumOnce()` runs battle/crowd/report/rematch/escape with zero-sum checks, logging `DUMP_AT […]`, `ECON_UI6_ZERO_SUM_BEGIN`, JSON, `ECON_UI6_ZERO_SUM_END`, and `ECON_UI6_ZERO_SUM_RESULT`.
-- Next: DEV (run smoke and capture runtime evidence).
+  - `Game.__DEV.smokeEconUi_RegressionPackOnce()` added to run battle/crowd/report/rematch/escape + smoke_no_silent + smoke_zero_sum in one command, with per-step timing and `ECON_UI7_PACK_*` logs.
+  - Pack pre-cleans via `resetToIdleForSmokesOnce()` and adds `details` on failed steps for diagnostics.
+- Next: DEV (run the pack and capture runtime evidence).

@@ -278,10 +278,10 @@ Next Prompt (копипаст, кодблок обязателен):
     ```
 
 ### [T-20260220-006] ECON-UI [6] zero-sum points audit
-- Status: IN_PROGRESS
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
-- Next: DEV
+- Next: —
 - Area: Economy/UI
 - Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Goal: Проверить, что суммарные POINTS не растут в сценариях battle/crowd/report/rematch/escape (zero-sum).
@@ -294,12 +294,40 @@ Next Prompt (копипаст, кодблок обязателен):
   2. Run `Game.__DEV.smokeEconUi_ZeroSumOnce()`.
   3. PASS if JSON has `ok:true`, `failed:[]`, and every scenario shows `delta<=0`; otherwise attach JSON and mark FAIL.
 - Smoke output: `DUMP_AT […]`, `ECON_UI6_ZERO_SUM_BEGIN`, JSON {...}, `ECON_UI6_ZERO_SUM_END`.
+- Result: PASS (Console.txt DUMP_AT 2026-02-19 20:28:05)
+- Facts:
+  - `ok:true`, `failed:[]`.
+  - All scenarios delta=0: battle/crowd/report/rematch/escape with before/after totals equal.
 - Next Prompt (копипаст, кодблок обязателен):
     ```text
     Ответ QA:
     (1) Hard reload http://localhost:8080/index.html?dev=1.
     (2) Run `Game.__DEV.smokeEconUi_ZeroSumOnce()` and capture `ECON_UI6_ZERO_SUM_BEGIN/END`.
     (3) PASS if `ok:true`, `failed:[]`, and each scenario has `delta<=0`; otherwise attach JSON and mark FAIL.
+    ```
+
+### [T-20260220-007] ECON-UI [7] regression pack (one-command)
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: DEV
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Один smoke pack запускает 8-12 сценариев за <=180000ms без ручных действий и возвращает ok:true.
+- Acceptance:
+  - `Game.__DEV.smokeEconUi_RegressionPackOnce()` выполняет battle/crowd/report/rematch/escape + smoke_no_silent + smoke_zero_sum, логирует `DUMP_AT […]`, `ECON_UI7_PACK_BEGIN`, JSON, `ECON_UI7_PACK_END`, `ECON_UI7_PACK_RESULT`.
+  - В результате `steps` содержат `name/ok/ms/failedCount/notes/details`, `totalMs` и `ok` (only if all ok and <=180000ms).
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeEconUi_RegressionPackOnce()`.
+  3. PASS if JSON has `ok:true`, `failed:[]` and `totalMs<=180000`; otherwise attach JSON and mark FAIL.
+- Smoke output: `DUMP_AT […]`, `ECON_UI7_PACK_BEGIN`, JSON {...}, `ECON_UI7_PACK_END`.
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1.
+    (2) Run `Game.__DEV.smokeEconUi_RegressionPackOnce()` and capture `ECON_UI7_PACK_BEGIN/END`.
+    (3) PASS if `ok:true`, `failed:[]`, and `totalMs<=180000`; otherwise attach JSON and mark FAIL.
     ```
 
 
