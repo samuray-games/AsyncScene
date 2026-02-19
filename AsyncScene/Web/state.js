@@ -560,6 +560,189 @@ window.Game = window.Game || {};
     return formatEconToastText(payload);
   }
 
+  function logEconToastSideEffect(fn, detail){
+    if (!fn) return;
+    if (!Game || !Game.__D || typeof Game.__D !== "object") return;
+    const dbg = Game.__D;
+    if (!Array.isArray(dbg.__econToastForbiddenCalls)) dbg.__econToastForbiddenCalls = [];
+    dbg.__econToastForbiddenCalls.push({
+      fn,
+      detail: (detail && typeof detail === "object") ? Object.assign({}, detail) : detail,
+      ts: Date.now()
+    });
+    try {
+      console.warn("ECON_UI4_FORBIDDEN_UI_SIDE_EFFECT", { fn, detail });
+    } catch (_) {}
+  }
+
+  function sanitizePanelList(flags){
+    if (Array.isArray(flags)) return flags.slice();
+    if (!flags) return null;
+    try {
+      return Array.from(flags).slice();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function capturePanelStateSig(){
+    const notes = [];
+    let flags = null;
+    if (Game && Game.__S && Game.__S.flags) {
+      flags = Game.__S.flags;
+    } else if (Game && Game.State && Game.State.flags) {
+      flags = Game.State.flags;
+    }
+    const panelState = {
+      activePanel: null,
+      openPanels: null,
+      activeChip: null,
+      dmOpen: null,
+      battlesOpen: null,
+      eventsOpen: null
+    };
+    if (flags && typeof flags === "object") {
+      panelState.activePanel = flags.activePanel || flags.activePanelId || null;
+      panelState.openPanels = sanitizePanelList(flags.openPanels) || null;
+      panelState.activeChip = flags.activeChip || flags.activeChipId || null;
+      if (flags.dmHidden === true) panelState.dmOpen = false;
+      else if (flags.dmHidden === false) panelState.dmOpen = true;
+      if (flags.battlesHidden === true) panelState.battlesOpen = false;
+      else if (flags.battlesHidden === false) panelState.battlesOpen = true;
+      panelState.eventsOpen = (flags.eventsOpen === undefined) ? null : !!flags.eventsOpen;
+    } else {
+      notes.push("panelFlags_missing");
+    }
+    if (!panelState.openPanels && typeof document !== "undefined" && document && document.querySelectorAll) {
+      try {
+        const panelEls = document.querySelectorAll(".panel:not(.hidden), .panel.panel--full, .card:not(.hidden)");
+        const ids = Array.from(panelEls || []).map(el => String(el.id || (el.dataset ? el.dataset.panelKey : "") || el.className || "").trim()).filter(Boolean);
+        panelState.openPanels = ids.length ? ids : null;
+        if (ids.length) notes.push("panelList_from_dom");
+      } catch (_) {}
+    }
+    if (panelState.activePanel === null && typeof document !== "undefined" && document && document.querySelector) {
+      try {
+        const activeEl = document.querySelector(".panel.panel--full, .panel.is-open, .card.panel--full");
+        if (activeEl) {
+          panelState.activePanel = activeEl.id || (activeEl.dataset ? activeEl.dataset.panelKey : null) || null;
+          notes.push("activePanel_from_dom");
+        }
+      } catch (_) {}
+    }
+    return { panelStateSig: panelState, notes };
+  }
+
+  function captureFocusSig(){
+    const sig = { tag: null, id: null, cls: null };
+    if (typeof document === "undefined" || !document) return sig;
+    try {
+      const active = document.activeElement;
+      if (!active) return sig;
+      sig.tag = String(active.tagName || "").toLowerCase() || null;
+      sig.id = active.id || null;
+      const cls = (active.getAttribute && active.getAttribute("class")) ? active.getAttribute("class") : active.className;
+      sig.cls = cls ? String(cls) : null;
+    } catch (_) {}
+    return sig;
+  }
+
+  function sigEqual(a, b){
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function summarizeArg(arg){
+    if (arg == null) return null;
+    if (typeof arg === "string" || typeof arg === "number" || typeof arg === "boolean") return arg;
+    if (typeof arg === "object") {
+      if (typeof HTMLElement !== "undefined" && arg instanceof HTMLElement) {
+        return {
+          tag: String(arg.tagName || "").toLowerCase(),
+          id: String(arg.id || ""),
+          cls: String(arg.className || "")
+        };
+      }
+      if (arg && typeof arg.id === "string" && typeof arg.tagName === "string") {
+        return { tag: arg.tagName, id: arg.id };
+      }
+      try {
+        return JSON.stringify(arg);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  function wrapUiSideEffect(name){
+    if (!Game || !Game.UI) return;
+    const target = Game.UI[name];
+    if (typeof target !== "function" || target.__econGuarded) return;
+    Game.UI[name] = function(...args){
+      if (Game && Game.__D && Game.__D.__econToastInFlight) {
+        logEconToastSideEffect(name, { args: args.map(summarizeArg).filter(x => x != null) });
+      }
+      return target.apply(this, args);
+    };
+    Game.UI[name].__econGuarded = true;
+  }
+
+  function wrapDomMethod(proto, methodName, label){
+    if (!proto || typeof proto.prototype === "undefined") return;
+    const original = proto.prototype[methodName];
+    if (typeof original !== "function" || original.__econPatched) return;
+    proto.prototype[methodName] = function(...args){
+      if (Game && Game.__D && Game.__D.__econToastInFlight) {
+        logEconToastSideEffect(label, {
+          tag: this && this.tagName ? String(this.tagName).toLowerCase() : null,
+          id: this && this.id ? String(this.id) : null,
+          cls: this && this.className ? String(this.className) : null,
+          args: args.map(summarizeArg).filter(x => x != null)
+        });
+      }
+      return original.apply(this, args);
+    };
+    proto.prototype[methodName].__econPatched = true;
+  }
+
+  function installEconUiSideEffectGuards(){
+    const guardNames = [
+      "openDM",
+      "openDMByName",
+      "openDMBySpeakerId",
+      "openBattlesAndScroll",
+      "openEventsPanel",
+      "ensureEventsExpanded",
+      "highlightEventById",
+      "scrollToEventByBattleId"
+    ];
+    for (const name of guardNames) {
+      wrapUiSideEffect(name);
+    }
+    if (typeof HTMLElement !== "undefined") {
+      wrapDomMethod(HTMLElement, "focus", "element.focus");
+    }
+    if (typeof Element !== "undefined") {
+      wrapDomMethod(Element, "scrollIntoView", "element.scrollIntoView");
+    }
+    if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+      const originalScrollTo = window.scrollTo;
+      if (!originalScrollTo.__econPatched) {
+        window.scrollTo = function(...args){
+          if (Game && Game.__D && Game.__D.__econToastInFlight) {
+            logEconToastSideEffect("window.scrollTo", { args: args.map(summarizeArg).filter(x => x != null) });
+          }
+          return originalScrollTo.apply(this, args);
+        };
+        window.scrollTo.__econPatched = true;
+      }
+    }
+  }
+
   function emitEconToastNow(row, toast, overrideText){
     if (!row || !toast) return;
     const text = String(overrideText || toast.text || row.reason || "");
@@ -621,7 +804,13 @@ window.Game = window.Game || {};
       toast.text = overrideText;
     }
     dbg.toastLog.push(toast);
-    emitEconToastNow(row, toast, overrideText);
+    const flagHolder = Game && Game.__D ? Game.__D : null;
+    try {
+      if (flagHolder) flagHolder.__econToastInFlight = true;
+      emitEconToastNow(row, toast, overrideText);
+    } finally {
+      if (flagHolder) flagHolder.__econToastInFlight = false;
+    }
     return toast;
   }
 
@@ -3847,6 +4036,84 @@ window.Game = window.Game || {};
       } catch (_) {}
       return result;
     };
+    Game.__DEV.smokeEconUi_NoAutoOpenOnce = function smokeEconUi_NoAutoOpenOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+      const savedCalls = Array.isArray(dbg.__econToastForbiddenCalls) ? dbg.__econToastForbiddenCalls.slice() : [];
+      dbg.__econToastForbiddenCalls = [];
+      const beforePanel = capturePanelStateSig();
+      const beforeFocus = captureFocusSig();
+      const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+      const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
+      const ops = [
+        { reason: "ui4_probe_1", currency: "points", amount: 1, sourceId: "smoke_ui4", targetId: "me" },
+        { reason: "ui4_probe_2", currency: "points", amount: -1, sourceId: "me", targetId: "crowd_pool" },
+        { reason: "ui4_probe_3", currency: "rep", amount: 1, sourceId: "smoke_ui4", targetId: "me" }
+      ];
+      for (const op of ops) {
+        try {
+          const ref = rowHelper({
+            time: Date.now(),
+            reason: op.reason,
+            currency: op.currency,
+            amount: op.amount,
+            sourceId: op.sourceId,
+            targetId: op.targetId,
+            meta: { smoke: "econ_ui4", op: op.reason }
+          });
+          if (ref && typeof toastHelper === "function") {
+            toastHelper(ref, opts.toastText || `probe:${op.reason}`);
+          }
+        } catch (_) {}
+      }
+      const afterPanel = capturePanelStateSig();
+      const afterFocus = captureFocusSig();
+      const forbiddenCalls = Array.isArray(dbg.__econToastForbiddenCalls) ? dbg.__econToastForbiddenCalls.slice() : [];
+      dbg.__econToastForbiddenCalls = savedCalls.concat(forbiddenCalls);
+      const failed = [];
+      if (!sigEqual(beforePanel.panelStateSig, afterPanel.panelStateSig)) failed.push("panel_state_changed");
+      if (!sigEqual(beforeFocus, afterFocus)) failed.push("focus_changed");
+      if (forbiddenCalls.length) failed.push("forbidden_calls");
+      const result = {
+        ok: failed.length === 0,
+        failed,
+        before: {
+          panelStateSig: beforePanel.panelStateSig,
+          focusSig: beforeFocus,
+          notes: beforePanel.notes
+        },
+        after: {
+          panelStateSig: afterPanel.panelStateSig,
+          focusSig: afterFocus,
+          notes: afterPanel.notes
+        },
+        forbiddenCalls,
+        notes: []
+      };
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI4_NOAUTO_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI4_NOAUTO_END");
+      } catch (_) {}
+      return result;
+    };
+  }
+
+  installEconUiSideEffectGuards();
+  if (typeof window !== "undefined") {
+    const scheduleGuard = () => installEconUiSideEffectGuards();
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(scheduleGuard);
+    } else {
+      setTimeout(scheduleGuard, 0);
+    }
   }
 
   function createReactionPolicy(){
