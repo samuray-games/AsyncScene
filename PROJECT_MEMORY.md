@@ -3173,3 +3173,4 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Smoke гарантирует, что экономические тосты не батчатся и показываются мгновенно без дополнительного flush.
 - Smoke output: пока не запускался — требуется прогнать `Game.__DEV.smokeEconUi_ToastImmediateOnce()` в dev-окружении и убедиться в `ok:true`, пустом `failed`, dt≤16 и уникальных времени тостов.
 - Next: QA (запустить smoke, приложить `DUMP_AT`/`ECON_UI1_*` и подтвердить PASS/FAIL).
+- Evidence FAIL: Console.txt DUMP_AT 2026-02-19 18:29:54 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` with `ok:false`, `failed:["toast_batched:toast_immediate_crowd"]`, and samples for `toast_immediate_probe`/`toast_immediate_crowd` sharing identical `tsToast=1771493394016`.

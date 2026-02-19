@@ -490,6 +490,20 @@ window.Game = window.Game || {};
     return result;
   }
 
+  function calcEconToastTs(){
+    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
+    const dbg = Game.__D;
+    const nowMs = Date.now();
+    if (!Number.isFinite(dbg._econToastLastMs) || dbg._econToastLastMs !== nowMs) {
+      dbg._econToastSeq = 0;
+      dbg._econToastLastMs = nowMs;
+    }
+    const seq = Number.isFinite(dbg._econToastSeq) ? (dbg._econToastSeq | 0) : 0;
+    const ts = nowMs + (seq * 0.001);
+    dbg._econToastSeq = seq + 1;
+    return ts;
+  }
+
   function emitEconToastNow(row, toast, overrideText){
     if (!row || !toast) return;
     const text = String(overrideText || toast.text || row.reason || "");
@@ -513,12 +527,13 @@ window.Game = window.Game || {};
     if (!row || !row.reason) return null;
     if (!Array.isArray(dbg.toastLog)) dbg.toastLog = [];
     const displayText = String(overrideText || row.meta && row.meta.toastText || row.reason || "");
+    const tsToast = calcEconToastTs();
     const toast = {
       kind: "econ",
       txId: row.txId,
       logIndex,
       reason: row.reason,
-      ts: Date.now()
+      ts: tsToast
     };
     if (displayText) toast.text = displayText;
     if (typeof overrideText === "string" && overrideText) {

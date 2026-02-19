@@ -183,6 +183,7 @@ Next Prompt (копипаст, кодблок обязателен):
   1. Hard reload http://localhost:8080/index.html?dev=1.
   2. Run `Game.__DEV.smokeEconUi_ToastImmediateOnce().then(r => console.log("ECON_UI1_TOAST_IMMEDIATE_RESULT", r));`
   3. PASS if `ok:true`, `failed:[]`, каждый sample имеет `dt<=16`, `tsToast` уникальны, и Console выводит `DUMP_AT [...]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON, `ECON_UI1_TOAST_IMMEDIATE_END`; иначе attach console output and mark FAIL.
+  - FAIL evidence: Console.txt DUMP_AT 2026-02-19 18:29:54 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` with `ok:false`, `failed:["toast_batched:toast_immediate_crowd"]`, samples sharing tsToast=1771493394016 for `toast_immediate_probe`/`toast_immediate_crowd`.
 
 -### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
 -Status: PASS
