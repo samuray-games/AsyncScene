@@ -3176,9 +3176,25 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Evidence FAIL: Console.txt DUMP_AT 2026-02-19 18:29:54 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` with `ok:false`, `failed:["toast_batched:toast_immediate_crowd"]`, and samples for `toast_immediate_probe`/`toast_immediate_crowd` sharing identical `tsToast=1771493394016`.
 
 ### 2026-02-20 — ECON-UI [2] dedup econ toasts
+- Status: PASS
+- Facts:
+  - `pushEconToastFromLogRef` теперь проверяет `Game.__D.toastLog` на существующий `kind:"econ"` с таким же `txId`, возвращает `{skipped:true, reason:"dup_txId"}` и не пушит второй toast, плюс `WARN ECON_UI2_DUP_BLOCKED` при попытке дубликата.
+  - `Game.__DEV.smokeEconUi_DedupOnce()` создаёт одну транзакцию, двукратно вызывает `pushEconToastFromLogRef`, считает `count===1`, и регистрирует `warn`/`skipped` на втором вызове.
+- Smoke output: `Console.txt` DUMP_AT 2026-02-19 18:46:51 recorded `ECON_UI2_DEDUP_BEGIN` + JSON ({"ok":true,"failed":[],"count":1,...}) and `ECON_UI2_DEDUP_END`; the second push returned `{skipped:true,reason:"dup_txId"}` while toastLog kept exactly one entry for the txId.
+- Next: —
+
+### 2026-02-20 — ECON-UI [3] toast payload == moneyLog
+- Status: PASS
+- Facts:
+  - `pushEconToastFromLogRef` resolves the moneyLog row for the given `ref`, builds `toast.payload` straight from the row (currency/amount/reason/sourceId/targetId/battleId/eventId) and synthesizes text via `formatEconDelta(row)` unless overridden.
+  - `Game.__DEV.smokeEconUi_ToastMatchesMoneyLogOnce()` rolls four deterministic transactions (points+/points-/rep+/rep-), compares each toast payload with its row, and logs mismatches to `failed`.
+- Smoke output: `Console.txt` DUMP_AT 2026-02-19 19:02:26 recorded `ECON_UI3_MATCH_BEGIN`/`ECON_UI3_MATCH_END` with JSON {"ok":true,"failed":[],"samples":[...points+/points-/rep+/rep- rows matching their payloads...]}.
+- Next: —
+
+### 2026-02-20 — ECON-UI [4] no toast-triggered auto-open/focus
 - Status: IN_PROGRESS
 - Facts:
-  - `pushEconToastFromLogRef` перестал пускать дубль: до записи проверяется, есть ли уже `kind:"econ"` с таким `txId` в `Game.__D.toastLog`; в случае дубликата возвращается `{skipped:true, reason:"dup_txId"}` и при dev-режиме логируется `WARN ECON_UI2_DUP_BLOCKED txId=…`.
-  - `Game.__DEV.smokeEconUi_DedupOnce()` очищает `toastLog`, создаёт одну транзакцию/row, вызывает `pushEconToastFromLogRef` дважды с тем же ref, считает `count` записей с `txId`, и логирует `DUMP_AT […]`, `ECON_UI2_DEDUP_BEGIN`, JSON, `ECON_UI2_DEDUP_END`.
-  - Smoke обещает доказать, что один txId = один toast; PASS требует `count===1` и `failed:[]`.
-- Next: QA (запустить `Game.__DEV.smokeEconUi_DedupOnce()` и приложить `DUMP_AT`/`ECON_UI2_*` лог).
+  - Econ toasts must not touch panel UI state or focus: `Game.UI.showStatToast` for `kind:"econ"` should no longer call `openPanel`/`setActiveChip`/`scrollIntoView`/`focus`/`setTab` and should keep overlay-only behavior.
+  - The UI helpers that open panels or set focus need guards that check `Game.__D.__econToastInFlight` and log `WARN ECON_UI4_FORBIDDEN_UI_SIDE_EFFECT fn=...` when econ toasts would otherwise trigger them.
+  - `Game.__DEV.smokeEconUi_NoAutoOpenOnce()` will snapshot panel state and focus before/after three econ toasts (reasons `ui4_probe_*`) and assert they remain unchanged, logging `DUMP_AT [...]`, `ECON_UI4_NOAUTO_BEGIN`, JSON, `ECON_UI4_NOAUTO_END`.
+- Next: DEV (implement UI guards + smoke helper).

@@ -186,10 +186,10 @@ Next Prompt (копипаст, кодблок обязателен):
 - PASS evidence: Console.txt DUMP_AT 2026-02-19 18:40:22 recorded `ECON_UI1_TOAST_IMMEDIATE_BEGIN` result `{ok:true,failed:[],samples:[...tsToast uniq...]}` with dt<=1. Указаны tsToast 1771494022475/2476/2476.001.
 
 ### [T-20260220-002] ECON-UI [2] dedup econ toasts
-- Status: IN_PROGRESS
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
-- Next: QA
+- Next: —
 - Area: Economy/UI
 - Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Goal: каждая txn (txId) порождает ровно один econ toast — повторные `pushEconToastFromLogRef` с тем же `txId` не создают дубликаты.
@@ -200,7 +200,52 @@ Next Prompt (копипаст, кодблок обязателен):
 - How to verify:
   1. Hard reload http://localhost:8080/index.html?dev=1.
   2. Run `Game.__DEV.smokeEconUi_DedupOnce().then(r => console.log("ECON_UI2_DEDUP_RESULT", r));`
-  3. PASS if `ok:true`, `failed:[]`, `count===1`, and Console shows `DUMP_AT […]`, `ECON_UI2_DEDUP_BEGIN`, JSON, `ECON_UI2_DEDUP_END`; otherwise attach console output and mark FAIL.
+  3. PASS if `ok:true`, `failed:[]`, `count===1`, и Console показывает `DUMP_AT …`, `ECON_UI2_DEDUP_BEGIN`, JSON, `ECON_UI2_DEDUP_END`; иначе приложите консоль и пометьте FAIL.
+- Result: PASS (`Console.txt` DUMP_AT 2026-02-19 18:46:51 records {"ok":true,"failed":[],"count":1,...}, второй push вернул `skipped:true, reason:"dup_txId"`, а toastLog всё равно содержит только одну запись `kind:"econ"` для этого txId).
+- Facts:
+  - `Game.__DEV.smokeEconUi_DedupOnce()` подтвердил `count:1` после двух вызовов, вернул ожидаемый `skipped:true` payload на втором вызове и породил `WARN ECON_UI2_DUP_BLOCKED` в консоли.
+- Smoke output: `Console.txt` block `DUMP_AT [2026-02-19 18:46:51]`, `ECON_UI2_DEDUP_BEGIN`, JSON ({ok:true,failed:[],count:1,txId:...}), `ECON_UI2_DEDUP_END`.
+
+
+### [T-20260220-003] ECON-UI [3] toast payload == moneyLog
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: payload экономического toast (currency, amount, reason, ids) берется напрямую из соответствующей строки moneyLog без UI-вычислений.
+- Acceptance:
+  - `pushEconToastFromLogRef` resolve'ит row по `ref`, собирает `toast.payload` из row.{currency,amount,reason,sourceId,targetId,battleId,eventId}` и строит текст через `formatEconDelta(row)` unless overridden.
+  - `Game.__DEV.smokeEconUi_ToastMatchesMoneyLogOnce()` выполняет четыре детерминированные транзакции (points+/points-/rep+/rep-), проверяет, что `toast.payload` совпадает с row для каждой, логирует `ECON_UI3_MATCH_BEGIN`/`END` и собирает `samples`.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeEconUi_ToastMatchesMoneyLogOnce().then(r => console.log("ECON_UI3_MATCH_RESULT", r));`
+  3. PASS if `ok:true`, `failed:[]`, `samples` list exactly the four rows and their payloads match row.{currency,amount,reason}, and Console shows `DUMP_AT [...]`, `ECON_UI3_MATCH_BEGIN`, JSON, `ECON_UI3_MATCH_END`.
+- Result: PASS (`Console.txt` DUMP_AT 2026-02-19 19:02:26 recorded `ECON_UI3_MATCH_BEGIN` ... `ECON_UI3_MATCH_END` with {"ok":true,"failed":[],"samples":[...points+/points-/rep+/rep- matches...]}).
+- Facts:
+  - Все четыре тестовых транзакции (points+/points-/rep+/rep-) предоставили `toast.payload` fields matching `moneyLog` rows exactly (currency/amount/reason), so несоответствий нет.
+  - Все samples опубликованы в JSON под `ECON_UI3_MATCH_BEGIN`/`END` и содержат `txId`, `row`, `toastPayload` и `text`.
+- Smoke output: `Console.txt` block `DUMP_AT [2026-02-19 19:02:26]`, `ECON_UI3_MATCH_BEGIN`, JSON (`ok:true,failed:[],samples:[...]`), `ECON_UI3_MATCH_END`.
+
+### [T-20260220-004] ECON-UI [4] no toast-triggered auto-open/focus
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: DEV
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: econ тосты не должны раскрывать панели, менять фокус или триггерить UI side effects (openPanel/setActiveChip/scroll/focus).
+- Acceptance:
+  - `Game.UI.showStatToast` для `kind:"econ"` не вызывает `openPanel`, `setActiveChip`, `scrollIntoView` и т.п.; комбинированный путь, который ранее открывал панели, теперь щедро отделяет `kind:"econ"` и не изменяет UI state.
+  - Любые helpers `openPanel`, `setActiveChip`, focus/scroll/`setTab` получают guard, который проверяет `Game.__D.__econToastInFlight` и логирует `WARN ECON_UI4_FORBIDDEN_UI_SIDE_EFFECT fn=...` при попытке вызвать во время econ toast (то есть тост не должен менять UI).
+  - `Game.__DEV.smokeEconUi_NoAutoOpenOnce()` снимет snapshot panel state + focus before, запустит три `Game.__D.pushMoneyLogRow`+`pushEconToastFromLogRef` с reason`ui4_probe_*`, после снимет snapshot и проверит, что панель/фокус не изменились; результат логирует `DUMP_AT [...]`, `ECON_UI4_NOAUTO_BEGIN`, JSON, `ECON_UI4_NOAUTO_END`.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeEconUi_NoAutoOpenOnce().then(r => console.log("ECON_UI4_NOAUTO_RESULT", r));`
+  3. PASS if `ok:true`, `failed:[]`, `before`/`after` snapshots match, `forbiddenCalls:[]`, and Console shows `DUMP_AT [...]`, `ECON_UI4_NOAUTO_BEGIN`, JSON, `ECON_UI4_NOAUTO_END`.
+- Smoke output: pending (will log `ECON_UI4_*` block once guard + smoke are in place).
+
 
 -### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
 -Status: PASS
