@@ -167,6 +167,23 @@ Next Prompt (копипаст, кодблок обязателен):
   (3) PASS if r1 ok:true; r2 reason=respect_pair_daily; r3 reason=respect_no_chain; r4 reason=respect_self; dayKey matches ledger entry in `lastByPairDay.me[npcId]`. Otherwise attach console object and mark FAIL.
   ```
 
+### [T-20260220-001] ECON-UI [1] immediate econ toasts
+- Status: IN_PROGRESS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy/UI
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: обеспечить, что каждый экономический toast появляется в момент commit транзакции (в тот же tick) без батчей или отложенного flush.
+- Acceptance:
+  - `pushEconToastFromLogRef` синхронно вызывает `Game.UI.showStatToast` с текстом из `overrideText`/`reason`, гарантируя `kind:"econ"`, `txId`, `logIndex` и немедленный показ.
+  - Добавлен helper `Game.__DEV.smokeEconUi_ToastImmediateOnce()`, он выполняет три подряд econ-транзакции (probe/crowd/refund/report), замеряет `tsCommit` и `tsToast`, проверяет `dt<=16` и уникальность `tsToast`, и логирует `DUMP_AT [...]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON, `ECON_UI1_TOAST_IMMEDIATE_END`.
+  - В UI нет batching/flush; тосты выводятся в том же пикселе времени, что и запись moneyLog.
+- How to verify:
+  1. Hard reload http://localhost:8080/index.html?dev=1.
+  2. Run `Game.__DEV.smokeEconUi_ToastImmediateOnce().then(r => console.log("ECON_UI1_TOAST_IMMEDIATE_RESULT", r));`
+  3. PASS if `ok:true`, `failed:[]`, каждый sample имеет `dt<=16`, `tsToast` уникальны, и Console выводит `DUMP_AT [...]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON, `ECON_UI1_TOAST_IMMEDIATE_END`; иначе attach console output and mark FAIL.
+
 -### [T-20260217-004] ECON-08 Step 3C rep_emitter daily cap
 -Status: PASS
 -Priority: P1

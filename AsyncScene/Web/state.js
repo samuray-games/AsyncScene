@@ -3,6 +3,7 @@ window.Game = window.Game || {};
 
 (() => {
   const Game = window.Game;
+  if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
   let ReactionPolicy = null;
   const REP_EMITTER_DAILY_CAP = 20;
   const RESPECT_REASON_CODES = Object.freeze({
@@ -489,6 +490,18 @@ window.Game = window.Game || {};
     return result;
   }
 
+  function emitEconToastNow(row, toast, overrideText){
+    if (!row || !toast) return;
+    const text = String(overrideText || toast.text || row.reason || "");
+    if (!text) return;
+    const kind = String(row.currency || "points").toLowerCase() === "rep" ? "rep" : "points";
+    try {
+      if (Game && Game.UI && typeof Game.UI.showStatToast === "function") {
+        Game.UI.showStatToast(kind, text);
+      }
+    } catch (_) {}
+  }
+
   function pushEconToastFromLogRef(ref, overrideText){
     if (!ref || typeof ref !== "object") return null;
     if (!Game.__D || typeof Game.__D !== "object") return null;
@@ -499,6 +512,7 @@ window.Game = window.Game || {};
     const row = dbg.moneyLog[logIndex];
     if (!row || !row.reason) return null;
     if (!Array.isArray(dbg.toastLog)) dbg.toastLog = [];
+    const displayText = String(overrideText || row.meta && row.meta.toastText || row.reason || "");
     const toast = {
       kind: "econ",
       txId: row.txId,
@@ -506,10 +520,12 @@ window.Game = window.Game || {};
       reason: row.reason,
       ts: Date.now()
     };
+    if (displayText) toast.text = displayText;
     if (typeof overrideText === "string" && overrideText) {
       toast.text = overrideText;
     }
     dbg.toastLog.push(toast);
+    emitEconToastNow(row, toast, overrideText);
     return toast;
   }
 
@@ -3472,6 +3488,83 @@ window.Game = window.Game || {};
         console.log("ECON_UI0_TOAST_CONTRACT_BEGIN");
         console.log(JSON.stringify(result));
         console.log("ECON_UI0_TOAST_CONTRACT_END");
+      } catch (_) {}
+      return result;
+    };
+    Game.__DEV.smokeEconUi_ToastImmediateOnce = function smokeEconUi_ToastImmediateOnce(opts = {}) {
+      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
+      const formatTimestamp = (stamp) => {
+        const d = new Date(stamp);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
+      const failed = [];
+      const samples = [];
+      const seenToastTs = new Set();
+      const ops = [
+        { reason: "toast_immediate_probe", currency: "points", amount: 1, sourceId: "smoke_probe", targetId: "me", text: "+1💰" },
+        { reason: "toast_immediate_crowd", currency: "points", amount: 1, sourceId: "smoke_crowd", targetId: "me", text: "+1💰" },
+        { reason: "toast_immediate_report", currency: "rep", amount: -1, sourceId: "me", targetId: "crowd_pool", text: "-1⭐" }
+      ];
+      for (const op of ops) {
+        const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
+        let ref = null;
+        let row = null;
+        let toast = null;
+        try {
+          ref = rowHelper({
+            time: Date.now(),
+            reason: op.reason,
+            currency: op.currency,
+            amount: op.amount,
+            sourceId: op.sourceId,
+            targetId: op.targetId,
+            battleId: op.battleId || "smoke_econ_ui",
+            meta: { smoke: "econ_ui_immediate", op: op.reason }
+          });
+          row = (ref && Array.isArray(dbg.moneyLog) && Number.isFinite(ref.logIndex)) ? dbg.moneyLog[ref.logIndex] : null;
+        } catch (_) {
+          failed.push(`moneylog_push_failed:${op.reason}`);
+        }
+        try {
+          const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
+          if (ref && typeof toastHelper === "function") {
+            toast = toastHelper(ref, op.text);
+          }
+        } catch (_) {
+          failed.push(`toast_push_failed:${op.reason}`);
+        }
+        const tsRow = row ? Number(row.ts || row.time || 0) : 0;
+        const tsToast = toast ? Number(toast.ts || 0) : 0;
+        const dt = (tsRow && tsToast) ? (tsToast - tsRow) : null;
+        samples.push({
+          reason: op.reason,
+          tsRow,
+          tsToast,
+          dt
+        });
+        if (!row) failed.push(`moneylog_row_missing:${op.reason}`);
+        if (!toast) failed.push(`toast_missing:${op.reason}`);
+        if (dt != null && dt > (opts.maxDt || 16)) {
+          failed.push(`dt_too_large:${op.reason}:${dt}`);
+        }
+        if (tsToast && seenToastTs.has(tsToast)) {
+          failed.push(`toast_batched:${op.reason}`);
+        }
+        if (tsToast) seenToastTs.add(tsToast);
+      }
+      const result = {
+        ok: failed.length === 0,
+        failed,
+        samples
+      };
+      try {
+        const stamp = formatTimestamp(now());
+        console.log(`DUMP_AT [${stamp}]`);
+        console.log("ECON_UI1_TOAST_IMMEDIATE_BEGIN");
+        console.log(JSON.stringify(result));
+        console.log("ECON_UI1_TOAST_IMMEDIATE_END");
       } catch (_) {}
       return result;
     };

@@ -3164,3 +3164,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Расширен `Game.__DEV` surface (QA может запускать `smokeToastContractProbeOnce`) и `Game.__D` теперь всегда предоставляет helpers для сторонних listeners.
 - Smoke output: `Game.__DEV.smokeToastContractProbeOnce()` logs `DUMP_AT ...`, `ECON_UI0_TOAST_CONTRACT_BEGIN`, JSON and `ECON_UI0_TOAST_CONTRACT_END` describing matching toast/moneyLog pair.
 - Next: QA (требуется запустить smoke, убедиться в `ok:true`/`failed:[]`, `toast.kind:"econ"` и совпадении `txId`/`reason` между toast и moneyLog).
+
+### 2026-02-20 — ECON-UI [1] immediate econ toasts
+- Status: IN_PROGRESS
+- Facts:
+  - `pushEconToastFromLogRef` теперь вызывает `emitEconToastNow`, сразу отправляющую toast в `Game.UI.showStatToast`, используя текст из override/`row.reason`, и сохраняет `kind:"econ"`, `txId`, `logIndex`.
+  - Добавлен smoke `Game.__DEV.smokeEconUi_ToastImmediateOnce()`; он делает три подряд econ rows+toasts, измеряет `dt=tsToast−tsCommit`, проверяет `dt<=16` и уникальность `tsToast`, а результат логируется через `DUMP_AT [...]`, `ECON_UI1_TOAST_IMMEDIATE_BEGIN`, JSON, `ECON_UI1_TOAST_IMMEDIATE_END`.
+  - Smoke гарантирует, что экономические тосты не батчатся и показываются мгновенно без дополнительного flush.
+- Smoke output: пока не запускался — требуется прогнать `Game.__DEV.smokeEconUi_ToastImmediateOnce()` в dev-окружении и убедиться в `ok:true`, пустом `failed`, dt≤16 и уникальных времени тостов.
+- Next: QA (запустить smoke, приложить `DUMP_AT`/`ECON_UI1_*` и подтвердить PASS/FAIL).
