@@ -4765,6 +4765,8 @@ window.Game = window.Game || {};
         if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
           Game.__DEV.resetToIdleForSmokesOnce();
         }
+        const dbg = (Game && Game.__D) ? Game.__D : null;
+        const beforeLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
         const Core = Game.ConflictCore || Game._ConflictCore || null;
         if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
           return { ok: false, reason: "rematch_core_missing" };
@@ -4772,40 +4774,87 @@ window.Game = window.Game || {};
         if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
           return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
         }
-        const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-        if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
-        const battleId = battleRes.battleId || null;
-        if (!battleId) return { ok: false, reason: "battle_id_missing" };
         const stateRef = Game.__S || Game.State || {};
-        const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
-        if (!battle) return { ok: false, reason: "battle_missing", battleId };
-        const resultLabel = String(battle.result || "").toLowerCase();
-        const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
-        const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
-        if (!loserId) return { ok: false, reason: "loser_missing" };
-        const attempt1 = Core.requestRematch(battleId, loserId);
+        const countActiveBattles = () => {
+          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
+          return list.filter(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished").length;
+        };
+        const getMePoints = () => {
+          const me = stateRef.me || (stateRef.players && stateRef.players.me);
+          return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+        };
+        const ensureBattleContext = () => {
+          const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
+          if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
+          const battleId = battleRes.battleId || null;
+          if (!battleId) return { ok: false, reason: "battle_id_missing" };
+          const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
+          if (!battle) return { ok: false, reason: "battle_missing", battleId };
+          const resultLabel = String(battle.result || "").toLowerCase();
+          const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
+          const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
+          const canRematch = !!(battle.resolved || battle.finished || battle.status === "finished");
+          return { ok: true, battleId, winnerId, loserId, battle, canRematch };
+        };
+        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+        const preState = {
+          activeBattles: countActiveBattles(),
+          activeBattleId: (Array.isArray(stateRef.battles) ? stateRef.battles.find(b => b && b.resolved !== true && b.finished !== true) : null)?.id || null,
+          pointsMe: getMePoints(),
+          lastBattleId: (Array.isArray(stateRef.battles) && stateRef.battles.length) ? stateRef.battles[0].id || null : null,
+          canRematch: null
+        };
+        const ctx1 = ensureBattleContext();
+        if (!ctx1.ok) return Object.assign({ ok: false, preState }, ctx1);
+        preState.canRematch = ctx1.canRematch;
+        if (Econ && typeof Econ.transferPoints === "function") {
+          const mePts = getMePoints();
+          if (mePts < 1) {
+            try { Econ.transferPoints("worldBank", "me", 1, "smoke_rematch_seed", { battleId: ctx1.battleId }); } catch (_) {}
+          }
+        }
+        const attempt1 = Core.requestRematch(ctx1.battleId, ctx1.loserId);
         if (attempt1 && attempt1.ok === true) {
-          const respond = Core.respondRematch(battleId, true, winnerId);
-          if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", attempt1, respond };
-          return { ok: true, battleId, attempt1, respond };
+          const respond = Core.respondRematch(ctx1.battleId, true, ctx1.winnerId);
+          if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", attempt1, respond, preState, attempt1ReasonCode: attempt1 && attempt1.reason ? String(attempt1.reason) : null };
+          const postState = { activeBattles: countActiveBattles(), pointsMe: getMePoints(), lastBattleId: ctx1.battleId };
+          const afterLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLen;
+          const rowsCount = Math.max(0, afterLen - beforeLen);
+          const out = { ok: true, battleId: ctx1.battleId, attempt1, respond, preState, postState, attempt1ReasonCode: null, rowsCount };
+          out.__details = { preState, postState, attempt1ReasonCode: null, attempt2ReasonCode: null };
+          if (rowsCount === 0) return Object.assign(out, { ok: false, reason: "no_econ_rows" });
+          return out;
         }
         const attempt1Reason = attempt1 && attempt1.reason ? String(attempt1.reason) : "rematch_request_failed";
-        if (attempt1Reason === "no_points" || attempt1Reason === "insufficient" || attempt1Reason === "rematch_request_failed") {
-          const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+        const retryReasons = new Set(["no_points", "insufficient", "rematch_request_failed", "no_last_battle", "not_allowed", "active_battle_present"]);
+        if (retryReasons.has(attempt1Reason)) {
+          if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
+            Game.__DEV.resetToIdleForSmokesOnce();
+          }
+          const ctx2 = ensureBattleContext();
+          if (!ctx2.ok) return Object.assign({ ok: false, reason: "rematch_request_failed", attempt1, preState, attempt1ReasonCode: attempt1Reason }, ctx2);
           if (Econ && typeof Econ.transferPoints === "function") {
-            try {
-              Econ.transferPoints("worldBank", loserId, 1, "smoke_rematch_seed", { battleId, retry: true });
-            } catch (_) {}
+            const mePts2 = getMePoints();
+            if (mePts2 < 1) {
+              try { Econ.transferPoints("worldBank", "me", 1, "smoke_rematch_seed", { battleId: ctx2.battleId, retry: true }); } catch (_) {}
+            }
           }
-          const attempt2 = Core.requestRematch(battleId, loserId);
+          const attempt2 = Core.requestRematch(ctx2.battleId, ctx2.loserId);
           if (attempt2 && attempt2.ok === true) {
-            const respond2 = Core.respondRematch(battleId, true, winnerId);
-            if (!respond2 || respond2.ok !== true) return { ok: false, reason: "rematch_respond_failed", attempt1, attempt2, respond: respond2 };
-            return { ok: true, battleId, attempt1, attempt2, respond: respond2 };
+            const respond2 = Core.respondRematch(ctx2.battleId, true, ctx2.winnerId);
+            if (!respond2 || respond2.ok !== true) return { ok: false, reason: "rematch_respond_failed", attempt1, attempt2, respond: respond2, preState, attempt1ReasonCode: attempt1Reason, attempt2ReasonCode: attempt2 && attempt2.reason ? String(attempt2.reason) : null };
+            const postState = { activeBattles: countActiveBattles(), pointsMe: getMePoints(), lastBattleId: ctx2.battleId };
+            const afterLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLen;
+            const rowsCount = Math.max(0, afterLen - beforeLen);
+            const out = { ok: true, battleId: ctx2.battleId, attempt1, attempt2, respond: respond2, preState, postState, attempt1ReasonCode: attempt1Reason, attempt2ReasonCode: null, rowsCount };
+            out.__details = { preState, postState, attempt1ReasonCode: attempt1Reason, attempt2ReasonCode: null };
+            if (rowsCount === 0) return Object.assign(out, { ok: false, reason: "no_econ_rows" });
+            return out;
           }
-          return { ok: false, reason: "rematch_request_failed", attempt1, attempt2 };
+          const postState = { activeBattles: countActiveBattles(), pointsMe: getMePoints(), lastBattleId: ctx2.battleId };
+          return { ok: false, reason: "rematch_request_failed", attempt1, attempt2, preState, postState, attempt1ReasonCode: attempt1Reason, attempt2ReasonCode: attempt2 && attempt2.reason ? String(attempt2.reason) : null };
         }
-        return { ok: false, reason: "rematch_request_failed", attempt1 };
+        return { ok: false, reason: "rematch_request_failed", attempt1, preState, attempt1ReasonCode: attempt1Reason };
       });
       const escapeStep = () => safeRun("escape", () => {
         if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
