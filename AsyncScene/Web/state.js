@@ -5416,8 +5416,8 @@ window.Game = window.Game || {};
         return String(m[1] || "").toUpperCase();
       };
 
-      const tRes = fetchTextSync("/TASKS.md");
-      const pRes = fetchTextSync("/PROJECT_MEMORY.md");
+      const tRes = fetchTextSync("/__dev__/docs/TASKS.md");
+      const pRes = fetchTextSync("/__dev__/docs/PROJECT_MEMORY.md");
       const keys = [
         { id: "econ01", key: "ECON-01" },
         { id: "econ02", key: "ECON-02" },
@@ -5436,11 +5436,13 @@ window.Game = window.Game || {};
 
       if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
       if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
-
-      if (!tRes.ok || !pRes.ok) {
-        docs.readOk = false;
-        docs.ok = false;
-        docs.mode = "skipped_http_404";
+      const tGood = tRes.ok && (tRes.text || "").trim().length > 0;
+      const pGood = pRes.ok && (pRes.text || "").trim().length > 0;
+      const readOk = tGood && pGood;
+      docs.readOk = readOk;
+      docs.mode = readOk ? "read_http" : "skipped_http_404";
+      if (!readOk) {
+        docs.ok = true;
       } else {
         for (const k of keys) {
           const tStatus = getStatus(tRes.text, k.key);

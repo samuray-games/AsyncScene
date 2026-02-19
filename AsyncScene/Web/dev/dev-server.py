@@ -163,9 +163,45 @@ class DevHandler(SimpleHTTPRequestHandler):
         if path == "/__dev/console-dump":
             self._json(405, {"ok": False, "err": "method_not_allowed", "bytes": 0, "sepOk": False}, {"Allow": "POST"})
             return
+        if self.serve_docs():
+            return
         served = self.serve_dev_checks()
         if not served:
             return super().do_GET()
+
+    def serve_docs(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        if not path.startswith("/__dev__/docs/"):
+            return False
+        filename = path.split("/")[-1]
+        target_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        real_path = os.path.join(target_dir, filename)
+        if not os.path.isfile(real_path):
+            self.send_response(404)
+            body = f"{filename} not found".encode("utf-8")
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+            return True
+        try:
+            with open(real_path, "rb") as f:
+                data = f.read()
+        except Exception:
+            self.send_response(500)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return True
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+        return True
 
     def serve_dev_checks(self):
         parsed = urllib.parse.urlparse(self.path)
