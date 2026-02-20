@@ -20099,6 +20099,11 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       usedAuthorSelector: "Web/npcs.js · NPC.randomForChat",
       budget: { start: null, end: null, min: null, max: null },
       fallbackUsed: false,
+      allowCopTrueCount: 0,
+      finalPoolRoleCounts: null,
+      totalWeightByRole: null,
+      buildTag: null,
+      fileMarker: null,
     };
     const budgetValues = [];
     let firstBudgetBefore = null;
@@ -20119,6 +20124,21 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         const sel = diagCall.selectedRoleCounts || {};
         diagAgg.selectedRoleCounts.cop += sel.cop || 0;
         diagAgg.selectedRoleCounts.nonCop += sel.nonCop || 0;
+        if (diagCall.allowCopTrue) {
+          diagAgg.allowCopTrueCount += 1;
+        }
+        if (diagCall.finalPoolRoleCounts) {
+          diagAgg.finalPoolRoleCounts = diagCall.finalPoolRoleCounts;
+        }
+        if (diagCall.totalWeightByRole) {
+          diagAgg.totalWeightByRole = diagCall.totalWeightByRole;
+        }
+        if (diagCall.buildTag && !diagAgg.buildTag) {
+          diagAgg.buildTag = diagCall.buildTag;
+        }
+        if (diagCall.fileMarker && !diagAgg.fileMarker) {
+          diagAgg.fileMarker = diagCall.fileMarker;
+        }
         const budgetBefore = Number.isFinite(diagCall.budgetBefore) ? diagCall.budgetBefore : null;
         const budgetAfter = Number.isFinite(diagCall.budgetAfter) ? diagCall.budgetAfter : null;
         if (firstBudgetBefore == null && budgetBefore != null) firstBudgetBefore = budgetBefore;
@@ -20152,6 +20172,11 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const diag = {
         candidatesRoleCounts: diagAgg.candidatesRoleCounts,
         selectedRoleCounts: diagAgg.selectedRoleCounts,
+        allowCopTrueCount: diagAgg.allowCopTrueCount,
+        finalPoolRoleCounts: diagAgg.finalPoolRoleCounts,
+        totalWeightByRole: diagAgg.totalWeightByRole,
+        buildTag: diagAgg.buildTag,
+        fileMarker: diagAgg.fileMarker,
         budget: {
           start: firstBudgetBefore != null ? firstBudgetBefore : prevBudget,
           end: lastBudgetAfter != null ? lastBudgetAfter : prevBudget,

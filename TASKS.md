@@ -86,10 +86,11 @@
 - Result: FAIL (smoke not run — требует `http://localhost:8080/index.html?dev=1` и `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`)
 - Report (обязательный формат):
   - Status: FAIL
-  - Facts:
-    (1) `Game.Config.copQuota = 1/11` и `State.npc.copBudget` реализованы, budget увеличивается на quota, cop выборы уменьшают его на 1, и `resetAll` сбрасывает поле.
-    (2) `Game.NPC.randomForChat` помечает `author selection point`, исключает cops при low budget, но fallback log `cop_fallback_only_cops` оставляет возможность и пишет заметку.
-    (3) `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` обновлён: добавлен diag (candidatesRoleCounts/selectedRoleCounts/budget/usedAuthorSelector/note/fallback), ok проверяет ratio 0.05..0.15 и copCount 3..15, а `notes` восстанавливаются из `Game.__DEV.__publicChatCopQuotaNotes` (fallback только когда нет nonCop).
+- Facts:
+  (1) `Game.Config.copQuota = 1/11` и `State.npc.copBudget` реализованы, budget увеличивается на quota, cop выборы уменьшают его на 1, и `resetAll` сбрасывает поле.
+  (2) `Game.NPC.randomForChat` помечает `author selection point`, исключает cops при low budget, но fallback log `cop_fallback_only_cops` оставляет возможность и пишет заметку.
+    (3) `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` обновлён: добавлен diag (candidatesRoleCounts/selectedRoleCounts/allowCopTrueCount/finalPoolRoleCounts/totalWeightByRole/budget/usedAuthorSelector/buildTag/fileMarker), ok проверяет ratio 0.05..0.15 и copCount 3..15, а `notes` восстанавливаются из `Game.__DEV.__publicChatCopQuotaNotes` (fallback only при отсутствии nonCop).
+  - Smoke diag keys: `allowCopTrueCount`, `finalPoolRoleCounts`, `totalWeightByRole`, `buildTag`, `fileMarker`, `budget`.
   - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js`
   - How to verify:
     (1) Hard reload `http://localhost:8080/index.html?dev=1`.

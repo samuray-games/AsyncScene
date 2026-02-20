@@ -334,15 +334,19 @@ window.Game ||= {};
     }
 
     if (collector) {
+      collector.allowCopTrue = allowCop;
+      collector.buildTag = (Game && Game.__DEV && Game.__DEV["DEV_CHECKS_BUILD_TAG_V5"]) ? Game.__DEV["DEV_CHECKS_BUILD_TAG_V5"]
+        : ((Game && Game.__DEV && Game.__DEV.buildTag) ? Game.__DEV.buildTag : (window && window.__BUILD_TAG) ? window.__BUILD_TAG : null);
+      collector.fileMarker = "NPC.randomForChat@COP_BUDGET_V3";
       collector.budgetBefore = beforeBudget;
       collector.candidatesRoleCounts = {
         cop: cops.length,
         nonCop: others.length,
       };
-      collector.usedAuthorSelector = "Web/npcs.js · NPC.randomForChat";
+      collector.usedAuthorSelector = collector.fileMarker;
     }
 
-    let list = allowCop ? others.concat(cops) : others.slice();
+    let list = allowCop ? others.concat(cops.map(entry => ({ item: entry.item, weight: 1 }))) : others.slice();
     let fallback = false;
     if (!list.length && cops.length) {
       list = cops.slice();
@@ -362,6 +366,21 @@ window.Game ||= {};
       try { console.warn("cop_fallback_only_cops"); } catch (_) {}
     }
 
+    const totalWeights = { cop: 0, nonCop: 0 };
+    for (const entry of list) {
+      if (!entry) continue;
+      const role = String(entry.item.role || "").toLowerCase();
+      const w = Number.isFinite(entry.weight) ? entry.weight : 0;
+      if (role === "cop") totalWeights.cop += w;
+      else totalWeights.nonCop += w;
+    }
+    if (collector) {
+      collector.finalPoolRoleCounts = {
+        cop: cops.length,
+        nonCop: others.length,
+      };
+      collector.totalWeightByRole = totalWeights;
+    }
     const selected = pickWeightedPlayer(list);
     if (!npcState) {
       // ensure storage exists so we can keep tracking next time
@@ -382,15 +401,13 @@ window.Game ||= {};
           nonCop: isCopSelected ? 0 : 1,
         };
         collector.copSelected = isCopSelected;
-        if (fallback) {
-          collector.note = "cop_fallback_only_cops";
-        }
+        if (fallback) collector.note = "cop_fallback_only_cops";
       }
     } else {
-      if (collector) {
-        collector.budgetAfter = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : baseBudget;
-        collector.selectedRoleCounts = { cop: 0, nonCop: 0 };
-      }
+    if (collector) {
+      collector.budgetAfter = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : baseBudget;
+      collector.selectedRoleCounts = { cop: 0, nonCop: 0 };
+    }
     }
 
     // author selection point (Web/npcs.js · NPC.randomForChat)
