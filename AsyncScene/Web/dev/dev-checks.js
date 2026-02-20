@@ -13486,8 +13486,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const ensureDrawBattle = () => {
         const state = Game.__S || (Game.__S = {});
         if (!Array.isArray(state.battles)) state.battles = [];
-        let existing = state.battles.find(x => x && String(x.id) === String(battleId));
-        if (existing) return existing;
+    let existing = state.battles.find(x => x && String(x.id) === String(battleId));
+    if (existing) return existing;
         const nowStamp = Date.now();
         const totalPlayers = Math.max(3, (state.players ? Object.keys(state.players).length : 0) || 3);
         const newCrowd = {
@@ -15233,24 +15233,34 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       battleId: null,
       diag: Object.assign({}, diag, { trace: [...trace] })
     };
+    console.warn("CROWD_ELIG_SMOKE_V1_BEGIN", { seed, npcTotal, npcZeroPts });
+    const emitSmokeEnd = () => {
+      console.warn("CROWD_ELIG_SMOKE_V1_END", {
+        ok: result.ok === true,
+        reason: result.diag.reason || null,
+        battleId: result.battleId
+      });
+    };
     const fail = (reason, extras) => {
       result.diag.trace = [...trace];
       result.diag.reason = reason;
       if (extras) Object.assign(result.diag, extras);
+      emitSmokeEnd();
       return result;
     };
 
-    const Core = Game.ConflictCore || Game._ConflictCore || null;
-    const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-    const S = Game.__S || (Game.__S = {});
-    S.players = S.players || {};
-    S.battles = S.battles || [];
-    if (!Core || typeof Core.finalize !== "function") {
-      return fail("crowd_core_missing");
-    }
-    if (!Econ || typeof Econ.transferPoints !== "function") {
-      return fail("econ_missing");
-    }
+    try {
+      const Core = Game.ConflictCore || Game._ConflictCore || null;
+      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+      const S = Game.__S || (Game.__S = {});
+      S.players = S.players || {};
+      S.battles = S.battles || [];
+      if (!Core || typeof Core.finalize !== "function") {
+        return fail("crowd_core_missing");
+      }
+      if (!Econ || typeof Econ.transferPoints !== "function") {
+        return fail("econ_missing");
+      }
 
     const isNpc = (p) => p && (
       p.npc === true ||
@@ -15386,49 +15396,79 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
 
     trace.push("after_create_battle");
-    const finalBattle = (Game && Game.__S && Array.isArray(Game.__S.battles))
-      ? Game.__S.battles.find(b => b && String(b.id) === String(battleId))
+    const createdBattleId = battle && battle.id ? String(battle.id) : null;
+    result.battleId = createdBattleId;
+    result.diag.createdBattleId = createdBattleId;
+    const preBattle = (Game && Game.__S && Array.isArray(Game.__S.battles))
+      ? Game.__S.battles.find(b => b && String(b.id) === String(createdBattleId || battleId))
       : null;
-    const crowd = finalBattle ? finalBattle.crowd : null;
+    if (preBattle) {
+      result.diag.battleKeysSample = Object.keys(preBattle).slice(0, 20);
+      result.diag.battleCrowdType = typeof preBattle.crowd;
+      result.diag.battleCrowdIsObject = !!(preBattle.crowd && typeof preBattle.crowd === "object");
+    }
+    const crowd = preBattle ? preBattle.crowd : null;
     if (!crowd) {
       trace.push("after_find_crowd");
       return fail("crowd_missing", {
-        battleExists: !!finalBattle,
-        crowdKeysSample: finalBattle ? Object.keys(finalBattle) : [],
+        battleExists: !!stateBattle,
+        crowdKeysSample: stateBattle && stateBattle.crowd ? Object.keys(stateBattle.crowd).slice(0,20) : [],
         stateBattleIdsSample: (Game && Game.__S && Array.isArray(Game.__S.battles))
           ? Game.__S.battles.slice(0, 3).map(b => b && String(b.id))
-          : []
+          : [],
+        crowdType: "missing"
       });
     }
     trace.push("after_find_crowd");
+    result.diag.crowdFound = true;
+    result.diag.crowdType = typeof crowd;
+    result.diag.crowdKeysSample = Object.keys(crowd).slice(0, 20);
+    const votersIdsLen = Array.isArray(crowd.votersIds) ? crowd.votersIds.length : 0;
+    const votersIdsSample = Array.isArray(crowd.votersIds) ? crowd.votersIds.slice(0, 3) : [];
+    if (votersIdsLen !== npcTotal) {
+      return fail("voters_ignored", { votersIdsLen, npcTotal, votersIdsSample });
+    }
+    result.diag.votersIdsLen = votersIdsLen;
+    result.diag.votersIdsSample = votersIdsSample;
     const cap = Number.isFinite(crowd.cap) ? (crowd.cap | 0) : null;
     const eligibleCount = Number.isFinite(crowd.eligibleCount) ? (crowd.eligibleCount | 0) : 0;
     const breakdown = crowd.eligibleBreakdown || null;
     const rule = crowd.eligibilityRuleVersion || null;
-    trace.push("after_compute_elig");
-    diag.cap = cap;
-    diag.eligibleCount = eligibleCount;
-    diag.breakdown = breakdown ? { ...breakdown } : null;
-    diag.ruleVersion = rule;
-    diag.excludedReasonsCounts = {
-      zeroPts: breakdown ? Number.isFinite(breakdown.npcExcludedZeroPts) ? (breakdown.npcExcludedZeroPts | 0) : 0 : 0,
-      other: breakdown ? Number.isFinite(breakdown.otherExcluded) ? (breakdown.otherExcluded | 0) : 0 : 0
-    };
-    diag.meIncluded = breakdown ? !!breakdown.meEligible : false;
-    result.diag.trace = [...trace];
+      trace.push("after_compute_elig");
+      diag.cap = cap;
+      diag.eligibleCount = eligibleCount;
+      diag.breakdown = breakdown ? { ...breakdown } : null;
+      diag.ruleVersion = rule;
+      diag.excludedReasonsCounts = {
+        zeroPts: breakdown ? Number.isFinite(breakdown.npcExcludedZeroPts) ? (breakdown.npcExcludedZeroPts | 0) : 0 : 0,
+        other: breakdown ? Number.isFinite(breakdown.otherExcluded) ? (breakdown.otherExcluded | 0) : 0 : 0
+      };
+      diag.meIncluded = breakdown ? !!breakdown.meEligible : false;
+      result.diag.trace = [...trace];
 
-    const expectedCap = expectedEligible + (diag.meIncluded ? 1 : 0);
-    const ok = (cap === expectedCap) && (eligibleCount === expectedEligible);
-    result.cap = cap;
-    result.eligibleCount = eligibleCount;
-    result.breakdown = breakdown ? { ...breakdown } : null;
-    result.excludedZeroPtsCount = diag.excludedReasonsCounts.zeroPts;
-    result.ruleVersion = rule;
-    result.battleId = battleId;
-    result.ok = ok;
-    result.diag.ok = ok;
-    Game.__DEV.lastSmokeCrowdEligibleCap = result;
-    return result;
+      const expectedCap = expectedEligible + (diag.meIncluded ? 1 : 0);
+      const ok = (cap === expectedCap) && (eligibleCount === expectedEligible);
+      result.cap = cap;
+      result.eligibleCount = eligibleCount;
+      result.breakdown = breakdown ? { ...breakdown } : null;
+      result.excludedZeroPtsCount = diag.excludedReasonsCounts.zeroPts;
+      result.ruleVersion = rule;
+      result.battleId = battleId;
+      result.ok = ok;
+      result.diag.ok = ok;
+      result.diag.reason = result.diag.reason || (ok ? "ok" : null);
+      Game.__DEV.lastSmokeCrowdEligibleCap = result;
+      emitSmokeEnd();
+      return result;
+    } catch (err) {
+      trace.push("smoke_throw");
+      const payload = {
+        name: err && err.name ? err.name : "Error",
+        message: err && err.message ? err.message : String(err),
+        stack: err && err.stack ? err.stack : null
+      };
+      return fail("smoke_throw", { error: payload });
+    }
   };
 
   Game.__DEV.smokeBattleCrowdOutcomeOnce = (opts = {}) => {
