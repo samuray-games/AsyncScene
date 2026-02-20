@@ -12,9 +12,34 @@
     try { e && e.stopPropagation && e.stopPropagation(); } catch(_) {}
     try { e && e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_) {}
   };
- const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
-   ? Game.Data.t(key, vars)
-   : String(key || "");
+  const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
+    ? Game.Data.t(key, vars)
+    : String(key || "");
+
+  const isDevCrowdMode = (() => {
+    if (typeof window === "undefined") return false;
+    const devQuery = (typeof location !== "undefined" && location.search) ? location.search : "";
+    return window.__DEV__ === true || window.DEV === true || (devQuery && devQuery.includes("dev=1"));
+  })();
+
+  function formatCrowdEligibleLine(crowd) {
+    const breakdown = crowd && crowd.eligibleBreakdown;
+    if (!breakdown) return "";
+    const eligible = Number.isFinite(breakdown.npcEligible) ? (breakdown.npcEligible | 0) : 0;
+    const excluded0 = Number.isFinite(breakdown.npcExcludedZeroPts) ? (breakdown.npcExcludedZeroPts | 0) : 0;
+    return `eligible: ${eligible}, excluded0: ${excluded0}`;
+  }
+
+  function updateCrowdEligibleLine(el, crowd) {
+    if (!el) return;
+    const text = formatCrowdEligibleLine(crowd);
+    if (isDevCrowdMode && text) {
+      el.textContent = text;
+      el.style.display = "block";
+    } else {
+      el.style.display = "none";
+    }
+  }
 
   const requestAll = () => {
     try {
@@ -1255,6 +1280,13 @@ UI.renderBattles = () => {
           info.id = `escapeInfo_${b.id}`;
           escapeWrap.appendChild(info);
 
+          const diagLine = document.createElement("div");
+          diagLine.className = "noteLine crowdDiag";
+          diagLine.style.display = "none";
+          diagLine.style.fontSize = "11px";
+          diagLine.style.opacity = "0.7";
+          escapeWrap.appendChild(diagLine);
+
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
           voteHint.textContent = "Голосование идёт. Ты только смотришь.";
@@ -1311,6 +1343,7 @@ UI.renderBattles = () => {
               const cap = Number.isFinite(c.cap) ? (c.cap | 0) : 0;
               const raw = getRawCountsFromVoters(c);
               infoEl.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+              updateCrowdEligibleLine(diagLine, c);
             }
 
             try {
@@ -1469,6 +1502,13 @@ UI.renderBattles = () => {
           info.id = `drawInfo_${b.id}`;
           drawWrap.appendChild(info);
 
+          const diagLine = document.createElement("div");
+          diagLine.className = "noteLine crowdDiag";
+          diagLine.style.display = "none";
+          diagLine.style.fontSize = "11px";
+          diagLine.style.opacity = "0.7";
+          drawWrap.appendChild(diagLine);
+
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
@@ -1547,6 +1587,7 @@ UI.renderBattles = () => {
               const cap = Number.isFinite(c.cap) ? (c.cap | 0) : 0;
               const raw = getRawCountsFromVoters(c);
               infoEl.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+              updateCrowdEligibleLine(diagLine, c);
             }
 
             try {

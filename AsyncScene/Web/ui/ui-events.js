@@ -9,6 +9,28 @@ window.Game = window.Game || {};
     : String(key || "");
   const $ = UI.$;
   const escapeHtml = UI.escapeHtml;
+  const isDevCrowdMode = (() => {
+    if (typeof window === "undefined") return false;
+    const devQuery = (typeof location !== "undefined" && location.search) ? location.search : "";
+    return window.__DEV__ === true || window.DEV === true || (devQuery && devQuery.includes("dev=1"));
+  })();
+  function formatCrowdEligibleLine(crowd) {
+    const breakdown = crowd && crowd.eligibleBreakdown;
+    if (!breakdown) return "";
+    const eligible = Number.isFinite(breakdown.npcEligible) ? (breakdown.npcEligible | 0) : 0;
+    const excluded0 = Number.isFinite(breakdown.npcExcludedZeroPts) ? (breakdown.npcExcludedZeroPts | 0) : 0;
+    return `eligible: ${eligible}, excluded0: ${excluded0}`;
+  }
+  function updateCrowdEligibleLine(el, crowd) {
+    if (!el) return;
+    const text = formatCrowdEligibleLine(crowd);
+    if (isDevCrowdMode && text) {
+      el.textContent = text;
+      el.style.display = "block";
+    } else {
+      el.style.display = "none";
+    }
+  }
 
   function stop(ev){
     try { ev.preventDefault(); } catch(_) {}
@@ -915,6 +937,14 @@ window.Game = window.Game || {};
         capLine.className = "noteLine";
         capLine.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
         card.appendChild(capLine);
+
+        const diagLine = document.createElement("div");
+        diagLine.className = "noteLine crowdDiag";
+        diagLine.style.display = "none";
+        diagLine.style.fontSize = "11px";
+        diagLine.style.opacity = "0.7";
+        card.appendChild(diagLine);
+        updateCrowdEligibleLine(diagLine, crowd);
 
         const timerLine = document.createElement("div");
         timerLine.className = "noteLine crowdTimer";
