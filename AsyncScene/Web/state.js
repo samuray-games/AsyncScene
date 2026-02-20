@@ -1908,6 +1908,7 @@ window.Game = window.Game || {};
       lastDmAt: 0,
       timers: {}, // named timers for npc loops
       copBudget: 0,
+      copQuotaReady: false,
     },
 
     me: {
@@ -1943,6 +1944,7 @@ window.Game = window.Game || {};
     dayIndex: 0,
 
     chat: [], // {id,t,name,text,isSystem,isMe,playerId}
+    chatAutoReplyNonceByMessageId: {},
     dm: {
       open: false,
       withId: null,
@@ -2102,6 +2104,8 @@ window.Game = window.Game || {};
     State.training = buildTrainingStateFrom({});
     State.dayIndex = 0;
     State.chat = [];
+    State.chat.autoReplyNonceByMessageId = {};
+    State.chatAutoReplyNonceByMessageId = State.chat.autoReplyNonceByMessageId;
     State.dm = { open:false, withId:null, logs:{}, names:{}, inviteOpen:false, teachOpen:false, agroStarted:{} };
     State.battles = [];
     State.events = [];
@@ -2177,6 +2181,7 @@ window.Game = window.Game || {};
       actionCooldownMs: 0,
       timers: {},
       copBudget: 0,
+      copQuotaReady: false,
     };
     State.progress = {
       weeklyInfluenceGained: 0,
@@ -2283,6 +2288,201 @@ window.Game = window.Game || {};
     return pushChat("Система", text, { isSystem:true });
   }
 
+  const AUTO_REPLY_WEIGHTS = Object.freeze({
+    crowd: 1,
+    toxic: 2,
+    bandit: 2,
+    mafia: 3,
+    cop: 1,
+  });
+
+  const escapeRegex = (s) => String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  function getAutoReplyNonceMap(){
+    if (!State.chat || !Array.isArray(State.chat)) {
+      State.chat = [];
+    }
+    if (!State.chat.autoReplyNonceByMessageId || typeof State.chat.autoReplyNonceByMessageId !== "object") {
+      State.chat.autoReplyNonceByMessageId = {};
+    }
+    State.chatAutoReplyNonceByMessageId = State.chat.autoReplyNonceByMessageId;
+    return State.chat.autoReplyNonceByMessageId;
+  }
+
+  function isNpcAvailableForReply(npc){
+    if (!npc || !npc.id) return false;
+    const isJailed = (Game && Game.__A && typeof Game.__A.isNpcJailed === "function")
+      ? Game.__A.isNpcJailed(npc.id)
+      : false;
+    return !isJailed;
+  }
+
+  function findMentionedNpcForAutoReply(text){
+    const raw = String(text || "");
+    const lower = raw.toLowerCase();
+    const hasAt = lower.includes("@");
+    let firstMatch = null;
+    const players = Object.values(State.players || {});
+    for (const candidate of players) {
+      if (!candidate || !candidate.npc) continue;
+      if (!isNpcAvailableForReply(candidate)) continue;
+      const id = candidate.id ? String(candidate.id).trim() : "";
+      const name = candidate.name ? String(candidate.name).trim() : "";
+      const patterns = [];
+      if (name) patterns.push(escapeRegex(name.toLowerCase()));
+      if (id) patterns.push(escapeRegex(id.toLowerCase()));
+      for (const pattern of patterns) {
+        const regex = new RegExp(`(^|\\s)@?${pattern}(?=\\s|$)`, "iu");
+        if (regex.test(lower)) {
+          firstMatch = candidate;
+          break;
+        }
+      }
+      if (firstMatch) break;
+    }
+    return { npc: firstMatch, mentionHint: hasAt || /\b(id:|npc_)/i.test(raw) };
+  }
+
+  function pickRandomNpcForAutoReply(playerId, opts = {}, diagOut){
+    const entries = [];
+    const roleCounts = { cop: 0, crowd: 0, toxic: 0, bandit: 0, mafia: 0, other: 0 };
+    const weightTotals = { cop: 0, crowd: 0, toxic: 0, bandit: 0, mafia: 0, other: 0 };
+    const players = Object.values(State.players || {});
+    for (const candidate of players) {
+      if (!candidate || !candidate.npc) continue;
+      if (candidate.id === playerId) continue;
+      if (!isNpcAvailableForReply(candidate)) continue;
+      const role = String(candidate.role || "").toLowerCase() || "crowd";
+      const weight = AUTO_REPLY_WEIGHTS[role] || AUTO_REPLY_WEIGHTS.crowd;
+      entries.push({ npc: candidate, weight, role });
+      if (roleCounts[role] != null) roleCounts[role] += 1;
+      else roleCounts.other += 1;
+      if (weightTotals[role] != null) weightTotals[role] += weight;
+      else weightTotals.other += weight;
+    }
+    diagOut.finalPoolRoleCounts = roleCounts;
+    diagOut.totalWeightByRole = weightTotals;
+    if (!entries.length) {
+      diagOut.note = diagOut.note || "npc_pool_empty";
+      return null;
+    }
+    const rng = opts && typeof opts.rng === "function" ? opts.rng : Math.random;
+    const totalWeight = entries.reduce((sum, entry) => sum + Math.max(0, entry.weight || 0), 0);
+    if (totalWeight <= 0) {
+      diagOut.note = diagOut.note || "npc_weight_zero";
+      return null;
+    }
+    let roll = rng() * totalWeight;
+    for (const entry of entries) {
+      const w = Math.max(0, entry.weight || 0);
+      if (roll <= w) return entry.npc;
+      roll -= w;
+    }
+    return entries[entries.length - 1].npc;
+  }
+
+  function formatAutoReplyText(npc, playerName){
+    const mention = playerName ? `[${playerName}]` : "[Игрок]";
+    let reply = "";
+    if (Game && Game.NPC && typeof Game.NPC.generateReactionToMe === "function") {
+      reply = Game.NPC.generateReactionToMe(npc, playerName || "");
+    }
+    if (!reply && Game && Game.NPC && typeof Game.NPC.generateChatLine === "function") {
+      reply = Game.NPC.generateChatLine(npc);
+    }
+    if (!reply) return "";
+    return `${mention}, ${String(reply || "").trim()}`;
+  }
+
+  function handleNpcAutoReplyCore(payload = {}, opts = {}){
+    const nonce = getAutoReplyNonceMap();
+    const playerMessageId = payload.playerMessageId || payload.messageId;
+    const diag = {
+      mentionDetected: false,
+      mentionTargetId: null,
+      chosenRole: null,
+      note: null,
+      buildTag: (Game && Game.__DEV && Game.__DEV.DEV_CHECKS_BUILD_TAG_V5)
+        ? Game.__DEV.DEV_CHECKS_BUILD_TAG_V5
+        : ((Game && Game.__DEV && Game.__DEV.buildTag) ? Game.__DEV.buildTag : (window && window.__BUILD_TAG) ? window.__BUILD_TAG : null),
+      fileMarker: "handleNpcAutoReplyCore@COP_AUTO_V1"
+    };
+    if (!playerMessageId) {
+      diag.note = "missing_player_message_id";
+      return { didReply: false, diag };
+    }
+    if (nonce[playerMessageId]) {
+      diag.note = "duplicate_auto_reply";
+      return { didReply: false, diag };
+    }
+    nonce[playerMessageId] = true;
+    const playerId = payload.playerId || "me";
+    const mentionResult = findMentionedNpcForAutoReply(payload.text || "");
+    let selectedNpc = mentionResult.npc;
+    if (selectedNpc) {
+      diag.mentionDetected = true;
+      diag.mentionTargetId = selectedNpc.id;
+      if (!selectedNpc.name) {
+        diag.note = diag.note || "mention_npc_missing";
+      }
+    } else if (mentionResult.mentionHint) {
+      diag.mentionDetected = true;
+      diag.note = diag.note || "mention_not_found";
+    }
+    if (!selectedNpc) {
+      selectedNpc = pickRandomNpcForAutoReply(playerId, opts, diag);
+    }
+    if (!selectedNpc) {
+      diag.note = diag.note || "npc_selection_failed";
+      return { didReply: false, diag };
+    }
+    diag.chosenRole = String(selectedNpc.role || "crowd");
+    const playerName = payload.playerName
+      ? String(payload.playerName)
+      : (State.me && State.me.name) ? String(State.me.name) : "Игрок";
+    const replyText = formatAutoReplyText(selectedNpc, playerName);
+    if (!replyText) {
+      diag.note = diag.note || "reply_generation_failed";
+      return { didReply: false, diag };
+    }
+    return {
+      didReply: true,
+      replyAuthorId: selectedNpc.id,
+      replyName: selectedNpc.name || "NPC",
+      replyText,
+      diag,
+    };
+  }
+
+  function handleNpcAutoReply(payload = {}, opts = {}){
+    const result = opts.coreResult || handleNpcAutoReplyCore(payload, opts);
+    if (!result || !result.didReply) {
+      return { ok: false, diag: (result && result.diag) || null };
+    }
+    try {
+      const name = result.replyName || "NPC";
+      if (Game && Game.UI && typeof Game.UI.pushChat === "function") {
+        Game.UI.pushChat({ name, text: result.replyText, system: false });
+      } else if (typeof UI !== "undefined" && UI && typeof UI.pushChat === "function") {
+        UI.pushChat({ name, text: result.replyText, system: false });
+      } else {
+        State.chat = State.chat || [];
+        pushChat(name, result.replyText, {});
+      }
+    } catch (_) {}
+    return { ok: true, npcId: result.replyAuthorId, diag: result.diag };
+  }
+
+  if (typeof window !== "undefined") {
+    window.Core = window.Core || {};
+    if (typeof window.Core.handleNpcAutoReplyCore !== "function") {
+      window.Core.handleNpcAutoReplyCore = handleNpcAutoReplyCore;
+    }
+  }
+  Game.Core = Game.Core || {};
+  if (typeof Game.Core.handleNpcAutoReplyCore !== "function") {
+    Game.Core.handleNpcAutoReplyCore = handleNpcAutoReplyCore;
+  }
   function copLine(text){
     const N = Game.NPC || null;
     if (N && typeof N.normalizeCopLine === "function") return N.normalizeCopLine(text);
@@ -3936,6 +4136,7 @@ window.Game = window.Game || {};
     weeklyCapActive,
     syncMeToPlayers,
     setLocation,
+    handleNpcAutoReply,
 
     // Tier helpers for UI
     getMyArgumentTier: () => tierFromInfluence(State.me.influence),

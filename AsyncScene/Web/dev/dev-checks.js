@@ -20104,6 +20104,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       totalWeightByRole: null,
       buildTag: null,
       fileMarker: null,
+      forceCopSelections: 0,
     };
     const budgetValues = [];
     let firstBudgetBefore = null;
@@ -20126,6 +20127,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         diagAgg.selectedRoleCounts.nonCop += sel.nonCop || 0;
         if (diagCall.allowCopTrue) {
           diagAgg.allowCopTrueCount += 1;
+        }
+        if (diagCall.forceCopSelection) {
+          diagAgg.forceCopSelections += 1;
         }
         if (diagCall.finalPoolRoleCounts) {
           diagAgg.finalPoolRoleCounts = diagCall.finalPoolRoleCounts;
@@ -20173,6 +20177,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         candidatesRoleCounts: diagAgg.candidatesRoleCounts,
         selectedRoleCounts: diagAgg.selectedRoleCounts,
         allowCopTrueCount: diagAgg.allowCopTrueCount,
+        forceCopSelections: diagAgg.forceCopSelections,
         finalPoolRoleCounts: diagAgg.finalPoolRoleCounts,
         totalWeightByRole: diagAgg.totalWeightByRole,
         buildTag: diagAgg.buildTag,
@@ -20230,6 +20235,150 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       if (S && S.npc) S.npc.copBudget = prevBudget;
       if (Game.__DEV) {
         Game.__DEV.__publicChatCopQuotaNotes = prevNotes || [];
+      }
+    }
+  };
+
+  Game.__DEV.smokePublicChatAutoReplyOnce = (opts = {}) => {
+    const name = "smoke_public_chat_auto_reply_once";
+    emitLine("PUBLIC_CHAT_AUTO_REPLY_BEGIN");
+    const seed = (opts && Number.isFinite(opts.seed)) ? (opts.seed | 0) : 123;
+    const n = (opts && Number.isFinite(opts.n) && opts.n > 0) ? (opts.n | 0) : 100;
+    const S = Game.__S || Game.State || {};
+    const playerId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const playerName = (S.me && S.me.name) ? String(S.me.name) : "Игрок";
+    const mentionedNpc = (Game.NPC && typeof Game.NPC.getAll === "function")
+      ? Game.NPC.getAll().find(p => p && p.role && p.role !== "cop")
+      : null;
+    const mentionText = mentionedNpc && mentionedNpc.name
+      ? `@${mentionedNpc.name} привет`
+      : "привет";
+    const seedRandom = (() => {
+      let rng = seed >>> 0;
+      return () => {
+        rng ^= (rng << 13);
+        rng ^= (rng >>> 17);
+        rng ^= (rng << 5);
+        return (rng >>> 0) / 0x100000000;
+      };
+    })();
+    const CoreApi = (typeof window !== "undefined" && window.Core && typeof window.Core.handleNpcAutoReplyCore === "function")
+      ? window.Core
+      : null;
+    if (!CoreApi) {
+      const failure = {
+        name,
+        ok: false,
+        errorMessage: "Core.handleNpcAutoReplyCore missing",
+        failed: ["core_missing"],
+        seed,
+      };
+      emitLine(`PUBLIC_CHAT_AUTO_REPLY_JSON ${safeStringify(failure)}`);
+      emitLine("PUBLIC_CHAT_AUTO_REPLY_END");
+      return failure;
+    }
+    const origRandom = Math.random;
+    let randomOverridden = false;
+    try {
+      Math.random = seedRandom;
+      randomOverridden = true;
+    } catch (_) {
+      randomOverridden = false;
+    }
+    try {
+      const mentionMessageId = `smoke_mention_${seed}`;
+      const mentionResult = CoreApi.handleNpcAutoReplyCore({
+        playerMessageId: mentionMessageId,
+        text: mentionText,
+        playerId,
+        playerName,
+      }, { rng: seedRandom });
+      const mentionReplies = mentionResult && mentionResult.didReply ? 1 : 0;
+      const randomRoleCounts = { crowd: 0, toxic: 0, bandit: 0, mafia: 0, cop: 0 };
+      let randomReplies = 0;
+      let randomDuplicates = 0;
+      for (let i = 0; i < n; i += 1) {
+        const text = `smoke message ${i}`;
+        const msgId = `smoke_${seed}_${i}`;
+        const res = CoreApi.handleNpcAutoReplyCore({
+          playerMessageId: msgId,
+          text,
+          playerId,
+          playerName,
+        }, { rng: seedRandom });
+        if (!res) continue;
+        if (res.didReply) {
+          randomReplies += 1;
+          const role = String(res.diag && res.diag.chosenRole ? res.diag.chosenRole : "crowd").toLowerCase();
+          if (randomRoleCounts[role] != null) randomRoleCounts[role] += 1;
+          else randomRoleCounts.other = (randomRoleCounts.other || 0) + 1;
+        }
+        if (res.diag && res.diag.note === "duplicate_auto_reply") {
+          randomDuplicates += 1;
+        }
+      }
+      const totalRoleSamples = randomReplies;
+      const villainCount = (randomRoleCounts.toxic || 0) + (randomRoleCounts.bandit || 0) + (randomRoleCounts.mafia || 0);
+      const crowdCount = randomRoleCounts.crowd || 0;
+      const maxShare = totalRoleSamples > 0
+        ? Math.max(...Object.values(randomRoleCounts).map((count) => (count || 0))) / totalRoleSamples
+        : 0;
+      const shareOk = totalRoleSamples > 0 && maxShare <= 0.7;
+      const villainDominant = totalRoleSamples > 0 && villainCount > crowdCount;
+      const failed = [];
+      if (mentionReplies > 1) failed.push("mention_multiple_replies");
+      if (mentionReplies === 0) failed.push("mention_no_reply");
+      if (!mentionResult || !mentionResult.didReply) failed.push("mention_failed");
+      if (mentionedNpc && mentionResult && mentionResult.replyAuthorId !== mentionedNpc.id) {
+        failed.push("mention_wrong_author");
+      }
+      if (randomReplies < n) failed.push("random_replies_missing");
+      if (randomDuplicates > 0) failed.push("random_reply_duplicates");
+      if (totalRoleSamples === 0) {
+        failed.push("role_distribution_empty");
+      } else {
+        if (!villainDominant) failed.push("villains_not_dominant");
+        if (!shareOk) failed.push("role_share_exceeds_limit");
+      }
+      const diag = {
+        mentionDetected: !!(mentionResult && mentionResult.diag && mentionResult.diag.mentionDetected),
+        chosenRole: (mentionResult && mentionResult.diag && mentionResult.diag.chosenRole) || null,
+        buildTag: (mentionResult && mentionResult.diag && mentionResult.diag.buildTag) || null,
+        fileMarker: (mentionResult && mentionResult.diag && mentionResult.diag.fileMarker) || null,
+        note: (mentionResult && mentionResult.diag && mentionResult.diag.note) || null,
+      };
+      const result = {
+        name,
+        ok: failed.length === 0,
+        repliesCount: mentionReplies,
+        replyAuthorId: mentionResult && mentionResult.replyAuthorId ? mentionResult.replyAuthorId : null,
+        roleCounts: randomRoleCounts,
+        failed,
+        diag,
+        mentionTargetId: mentionedNpc ? mentionedNpc.id : null,
+        randomReplies,
+        randomDuplicates,
+        totalRoleSamples,
+        villainCount,
+        crowdCount,
+        seed,
+      };
+      emitLine(`PUBLIC_CHAT_AUTO_REPLY_JSON ${safeStringify(result)}`);
+      return result;
+    } catch (err) {
+      const failure = {
+        name,
+        ok: false,
+        errorMessage: err && err.message ? err.message : String(err),
+        failed: ["exception"],
+        seed,
+      };
+      emitLine(`PUBLIC_CHAT_AUTO_REPLY_JSON ${safeStringify(failure)}`);
+      return failure;
+    } finally {
+      emitLine("PUBLIC_CHAT_AUTO_REPLY_END");
+      if (randomOverridden) {
+        try { Math.random = origRandom; } catch (_) {}
       }
     }
   };

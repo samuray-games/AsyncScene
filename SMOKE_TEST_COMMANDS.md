@@ -397,3 +397,11 @@ for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window
 
 - PASS: `rowsScoped > 0`, `flowSummary` присутствует и стабильна, `meta.sinkDelta == 0`, `world.delta == 0`, `flowSummary.invariants` все `true`.
 - FAIL: `rowsScoped == 0` после refresh, `flowSummary` отсутствует/нестабильна, или `flowSummary.invariants` содержит `false`.
+## 9. Проверка автоответа NPC (Задача C[2])
+
+```js
+Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })
+```
+
+- PASS: mention-сообщение возвращает NPC с `replyAuthorId` согласно упоминанию, `repliesCount <= 1`, и 100 random-сообщений показывают, что villains (toxic/bandit/mafia) чаще crowd, ни одна роль не >70%, JSON содержит `diag` с `mentionDetected`, `chosenRole`, `roleCounts`, `randomReplies`, `randomDuplicates`, `totalRoleSamples`, `villainCount`, `crowdCount`.
+- FAIL: `repliesCount > 1`, mention-ответ отсутствует/идентичен неупомянутому NPC, `randomReplies < 100`, или распределение ролей нарушает долю >70% / villains <= crowd.

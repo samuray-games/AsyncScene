@@ -666,43 +666,45 @@ window.Game = window.Game || {};
 
     if (inp) inp.value = "";
     // Remove trailing @ if present (user typed "hi @" and sent)
+    const playerName = S.me.name;
     let sendText = txt.replace(/\s*@\s*$/, "").trim();
-    UI.pushChat({ name: S.me.name, text: sendText, system: false });
-    // Mention UI (autocomplete) is handled by ui-core/ui-boot; keep optional.
-
-    // If a specific NPC is mentioned, let them reply.
-    try {
-      const candidates = (Game.__A && typeof Game.__A.getAllMentionCandidates === "function")
-        ? Game.__A.getAllMentionCandidates()
-        : Object.values(S.players || {}).map(p => ({
-          id: p && p.id,
-          name: p && p.name,
-          npc: !!(p && p.npc)
-        }));
-      const textLower = String(sendText || "").toLowerCase();
-      const mentionedNpc = (candidates || []).find(c => {
-        if (!c || !c.npc || !c.name) return false;
-        const nm = String(c.name).toLowerCase();
-        if (!nm) return false;
-        const reAt = new RegExp(`(^|\\s)@${escapeRe(nm)}(?=\\s|$)`, "iu");
-        const reBare = new RegExp(`(^|\\s)${escapeRe(nm)}(?=\\s|$)`, "iu");
-        return reAt.test(textLower) || reBare.test(textLower);
-      });
-      if (mentionedNpc && Game.NPC && typeof Game.NPC.generateReactionToMe === "function") {
-        const npc = (S.players && mentionedNpc.id) ? S.players[mentionedNpc.id] : null;
-        if (npc && npc.name) {
-          try {
-            if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(npc.id)) {
-              return;
-            }
-          } catch (_) {}
-          const reply = Game.NPC.generateReactionToMe(npc, S.me.name);
-          if (reply && String(reply).trim().length) {
-            UI.pushChat({ name: npc.name, text: String(reply), system: false });
-          }
-        }
+    const playerId = (S.me && S.me.id) ? S.me.id : "me";
+    const playerMessageId = (Game && Game.Util && typeof Game.Util.safeId === "function")
+      ? Game.Util.safeId()
+      : `chat_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+    const coreApi = (typeof window !== "undefined" && window.Core && typeof window.Core.handleNpcAutoReplyCore === "function")
+      ? window.Core
+      : null;
+    let coreResult = null;
+    if (coreApi) {
+      try {
+        coreResult = coreApi.handleNpcAutoReplyCore({
+          playerMessageId,
+          playerName,
+          playerId,
+          text: sendText,
+        });
+      } catch (_) {
+        coreResult = null;
       }
-    } catch (_) {}
+    }
+    const playerMsg = UI.pushChat({
+      id: playerMessageId,
+      name: playerName,
+      text: sendText,
+      system: false,
+      playerId,
+      isMe: true
+    });
+    if (playerMsg && Game.__A && typeof Game.__A.handleNpcAutoReply === "function") {
+      try {
+        Game.__A.handleNpcAutoReply({
+          playerMessageId,
+          text: sendText,
+          playerId,
+        }, { coreResult });
+      } catch (_) {}
+    }
 
     // Chat activity reward disabled: chat messages must not change points or show economy toasts.
     try {

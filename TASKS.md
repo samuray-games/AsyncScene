@@ -69,7 +69,7 @@
 ## Inbox
 
 -### [T-20260220-010] C[1] “Сплошные копы” — cop quota in public chat
-- Status: FAIL (smoke not run)
+- Status: DOING (code updated, smoke pending)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -82,28 +82,64 @@
   - [ ] Исключать cops из выбора, пока `copBudget < 1`, добавляя `copQuota` после каждого NPC-сообщения и вычитая 1 при выборе cop; если других кандидатов нет, разрешать cop и логировать `cop_fallback_only_cops`.
   - [ ] Добавить `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` с BEGIN/JSON/END, ratio/notes/sampleAuthors, и учитывать `cop_fallback_only_cops`.
   - [ ] Документировать механику (copBudget/quotas/notes) и smoke-результат в `PROJECT_MEMORY.md` + `TASKS.md`.
-+ Notes: copBudget стартует 0, чоп — “cop тихий по замыслу”. Smoke проверяет ratio 0.05..0.15 и copCount 3..15 на 100, diag содержит `candidatesRoleCounts`, `selectedRoleCounts`, `budget`, `usedAuthorSelector` и `note`/`fallback` для диагностики.
-- Result: FAIL (smoke not run — требует `http://localhost:8080/index.html?dev=1` и `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`)
++ Notes: copBudget теперь хранит `copQuotaReady`, а `Game.NPC.randomForChat` принудительно выбирает копа, как только quota достигает 1 (diag `forceCopSelection`); smoke по-прежнему проверяет ratio 0.05..0.15, copCount 3..15 и добавил `forceCopSelections` в diag вместе с `budget`, `usedAuthorSelector`, `note`/`fallback`.
+ - Result: FAIL (смоук ещё не запускался после форсинга копов на `copQuotaReady`; требуется `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` в dev=1)
+ - Report (обязательный формат):
+   - Status: FAIL
+ - Facts:
+   (1) `State.npc.copQuotaReady` и `npcState.copQuotaReady` привязаны к `Game.Config.copQuota`: как только `copBudget` достигает 1, `NPC.randomForChat` метит флаг, в следующем тике на входе `forceCopSelection` выбирается только cop, а после ответа флаг сбрасывается.
+   (2) `NPC.randomForChat` теперь собирает `forceCopSelection`/`copQuotaReady` в `collector` и возвращает fallback заметку, ядро smoke собирает `forceCopSelections` за весь прогон, а `copBudget` всё ещё отщепляет cops, пока quota < 1.
+   (3) `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` остаётся вокруг `BEGIN/JSON/END`, но теперь проходит новые диагональные проверки (`forceCopSelections`, `budget`, `usedAuthorSelector`, `note`, `fallback`) и ждёт ratio 0.05..0.15, `copCount 3..15`.
+ - Smoke diag keys: `allowCopTrueCount`, `forceCopSelections`, `finalPoolRoleCounts`, `totalWeightByRole`, `buildTag`, `fileMarker`, `budget`.
+ - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js`
+ - How to verify:
+   (1) Hard reload `http://localhost:8080/index.html?dev=1`.
+   (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
+   (3) PASS if JSON shows `forceCopSelections` > 0, `ratio` 0.05..0.15, `copCount` 3..15, and `notes` содержит `cop_fallback_only_cops` только при реальном fallback; иначе attach JSON and mark FAIL.
+ - Next: QA
+ - Next Prompt (копипаст, кодблок обязателен):
+     ```text
+     Ответ по смоку:
+     (1) Hard reload http://localhost:8080/index.html?dev=1.
+     (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
+     (3) PASS if output has `ratio` between 0.05 and 0.15, `copCount` between 3 and 15, and `notes` only contains `cop_fallback_only_cops` if unavoidable; otherwise capture JSON and mark FAIL.
+     ```
+
+-### [T-20260221-001] C[2] Автоответ NPC — ровно 1 ответ
+- Status: DOING
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: NPC
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: обеспечить, что каждый игрок получает ровно один NPC-ответ в публичном чате, mention-префикс работает и без упоминания выбирается NPC по заданным весам.
+- Acceptance:
+  - [ ] `UI.sendChat` вызывает `handleNpcAutoReply` сразу после публикации игрока в истории.
+  - [ ] `State.chat.autoReplyNonceByMessageId` (и `State.chatAutoReplyNonceByMessageId`) фиксирует `playerMessageId`, чтобы повторные вызовы для одного сообщения возвращали ничего.
+  - [ ] `handleNpcAutoReply` обрабатывает упоминания (id/displayName), подставляет `[PLAYER_NICK]` и выбирает возвращающего NPC по весам (crowd=1, toxic/bandit=2, mafia=3, cop=1) с детерминированным RNG `opts.rng`.
+  - [ ] Dev-smoke `Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })` выводит `BEGIN/JSON/END`, отправляет упоминание + n сообщений, проверяет `repliesCount <= 1`, mention-ответ тот же NPC, распределение ролей (злодеи > толпа, никаких ролей >70%), и возвращает diag {mentionDetected, chosenRole, roleCounts, randomReplies, randomDuplicates, totalRoleSamples, villainCount, crowdCount, seed}.
+  - [ ] Документировать логику mention/nonce/rng и smoke-результат в `PROJECT_MEMORY.md` и `TASKS.md`.
+- Notes: патч ввёл `chat.autoReplyNonceByMessageId`, `handleNpcAutoReply` логирует `mentionDetected/mentionTargetId/diag.chosenRole` и форматирует текст `[PLAYER_NICK], reply`; smoke возвращает `repliesCount`, `replyAuthorId`, `roleCounts`, `randomReplies`, `randomDuplicates` и `failed[]`.
+- Result: FAIL (раньше smoke падал с `Can't find variable: UI` — dependence от UI, теперь smoke UI-free, но ещё не запускался)
 - Report (обязательный формат):
   - Status: FAIL
 - Facts:
-  (1) `Game.Config.copQuota = 1/11` и `State.npc.copBudget` реализованы, budget увеличивается на quota, cop выборы уменьшают его на 1, и `resetAll` сбрасывает поле.
-  (2) `Game.NPC.randomForChat` помечает `author selection point`, исключает cops при low budget, но fallback log `cop_fallback_only_cops` оставляет возможность и пишет заметку.
-    (3) `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` обновлён: добавлен diag (candidatesRoleCounts/selectedRoleCounts/allowCopTrueCount/finalPoolRoleCounts/totalWeightByRole/budget/usedAuthorSelector/buildTag/fileMarker), ok проверяет ratio 0.05..0.15 и copCount 3..15, а `notes` восстанавливаются из `Game.__DEV.__publicChatCopQuotaNotes` (fallback only при отсутствии nonCop).
-  - Smoke diag keys: `allowCopTrueCount`, `finalPoolRoleCounts`, `totalWeightByRole`, `buildTag`, `fileMarker`, `budget`.
-  - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js`
-  - How to verify:
-    (1) Hard reload `http://localhost:8080/index.html?dev=1`.
-    (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
-    (3) PASS if console logs `PUBLIC_CHAT_COP_QUOTA_BEGIN`, JSON with `ratio` 0.05..0.15, `copCount<=20`, `notes` only `cop_fallback_only_cops` when no other NPCs were available, and `PUBLIC_CHAT_COP_QUOTA_END`; otherwise capture JSON and mark FAIL.
-  - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
-      ```text
-      Ответ по смоку:
-      (1) Hard reload http://localhost:8080/index.html?dev=1.
-      (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
-      (3) PASS if output has `ratio` between 0.05 and 0.15, `copCount` between 3 and 15, and `notes` only contains `cop_fallback_only_cops` if unavoidable; otherwise capture JSON and mark FAIL.
-      ```
+ (1) `UI.sendChat` теперь вызывает `Core.handleNpcAutoReplyCore` до добавления игрока, передаёт `coreResult` в `Game.__A.handleNpcAutoReply`, чтобы UI перестал напрямую вызывать Core и smoke мог работать без UI.
+ (2) `handleNpcAutoReply` переписан на `handleNpcAutoReplyCore`: core решает, кто ответит, а обёртка только пушит текст в UI через `Game.UI.pushChat`/`UI.pushChat`.
+ (3) `Game.__DEV.smokePublicChatAutoReplyOnce` больше не обращается к UI и вызывает `Core.handleNpcAutoReplyCore` напрямую; smoke считает `randomReplies/randomDuplicates`, проверяет mention/распределение ролей и отдаёт diag с `mentionDetected`, `chosenRole`, `buildTag`, `fileMarker`.
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js`
+- How to verify:
+  (1) Hard reload `http://localhost:8080/index.html?dev=1`.
+  (2) Run `Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })`.
+  (3) PASS if the mention message produces `repliesCount <= 1` and `replyAuthorId` equals the expected NPC, random samples (`roleCounts`) show villains > crowd, no role exceeds 70% share, diag contains `mentionDetected`, `chosenRole`, `randomReplies`, `randomDuplicates`, `totalRoleSamples`, `villainCount`, `crowdCount`; otherwise capture JSON and mark FAIL.
+- Next: QA
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    Ответ QA:
+    (1) Hard reload http://localhost:8080/index.html?dev=1.
+    (2) Run `Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })`.
+    (3) PASS if mention replies once (`repliesCount <= 1`, `replyAuthorId` matches the mentioned NPC) and random samples obey villains > crowd but no role share >70% (`roleCounts`, `randomReplies`, `randomDuplicates`, `totalRoleSamples`, `villainCount`, `crowdCount` appear in JSON); otherwise attach JSON and mark FAIL.
+    ```
 
 ### [T-20260217-002] ECON-08 Step 1A respect entrypoint contract
 - Status: PASS

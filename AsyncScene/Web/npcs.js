@@ -317,7 +317,9 @@ window.Game ||= {};
     if (!filtered.length) return null;
 
     const S = (Game && (Game.__S || Game.State)) ? (Game.__S || Game.State) : null;
+    if (S && typeof S === "object" && !S.npc) S.npc = {};
     const npcState = (S && S.npc) ? S.npc : null;
+    if (npcState && typeof npcState.copQuotaReady !== "boolean") npcState.copQuotaReady = false;
     const prevBudget = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : 0;
     const quota = (Game && Game.Config && Number.isFinite(Game.Config.copQuota)) ? Game.Config.copQuota : (1 / 11);
     const beforeBudget = prevBudget;
@@ -333,6 +335,14 @@ window.Game ||= {};
       else others.push(entry);
     }
 
+    const hasCops = cops.length > 0;
+    let forceCopSelection = false;
+    if (npcState && allowCop && hasCops) {
+      if (!npcState.copQuotaReady) {
+        npcState.copQuotaReady = true;
+      }
+      forceCopSelection = !!npcState.copQuotaReady;
+    }
     if (collector) {
       collector.allowCopTrue = allowCop;
       collector.buildTag = (Game && Game.__DEV && Game.__DEV["DEV_CHECKS_BUILD_TAG_V5"]) ? Game.__DEV["DEV_CHECKS_BUILD_TAG_V5"]
@@ -344,10 +354,19 @@ window.Game ||= {};
         nonCop: others.length,
       };
       collector.usedAuthorSelector = collector.fileMarker;
+      collector.forceCopSelection = forceCopSelection;
+      collector.copQuotaReady = npcState ? !!npcState.copQuotaReady : false;
     }
 
-    let list = allowCop ? others.concat(cops.map(entry => ({ item: entry.item, weight: 1 }))) : others.slice();
+    let list = [];
     let fallback = false;
+    if (forceCopSelection && hasCops) {
+      list = cops.map(entry => ({ item: entry.item, weight: 1 }));
+    } else if (allowCop) {
+      list = others.concat(cops.map(entry => ({ item: entry.item, weight: 1 })));
+    } else {
+      list = others.slice();
+    }
     if (!list.length && cops.length) {
       list = cops.slice();
       fallback = true;
@@ -391,6 +410,9 @@ window.Game ||= {};
       const nextBudget = isCopSelected ? Math.max(0, baseBudget - 1) : baseBudget;
       if (npcState) {
         npcState.copBudget = nextBudget;
+        if (isCopSelected) {
+          npcState.copQuotaReady = false;
+        }
       } else if (S && S.npc) {
         S.npc.copBudget = nextBudget;
       }
@@ -404,10 +426,10 @@ window.Game ||= {};
         if (fallback) collector.note = "cop_fallback_only_cops";
       }
     } else {
-    if (collector) {
-      collector.budgetAfter = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : baseBudget;
-      collector.selectedRoleCounts = { cop: 0, nonCop: 0 };
-    }
+      if (collector) {
+        collector.budgetAfter = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : baseBudget;
+        collector.selectedRoleCounts = { cop: 0, nonCop: 0 };
+      }
     }
 
     // author selection point (Web/npcs.js · NPC.randomForChat)
