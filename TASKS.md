@@ -2531,23 +2531,68 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - [x] `applyReportByRole` делегирует guard/false/true ветки новым helper'ам и возвращает {ok, reasonCode, copId, targetId, opKey} без падений (state.js:3200-3470).
   - [x] False/true сценарии генерируют `rep_report_false`/`report_false_penalty`/`rep_report_true`/`report_true_compensation` rows через `ensureReportMoneyLogRow` и используют существующие Econ-пути без прямых мутаций points/rep.
 - Result: |
-    Status: PASS
+    Status: PASS (DUMP_AT 2026-02-20 16:55:06)
     Facts:
-      - `applyFalseReport` / `applyTrueReport` теперь пользуются `buildReportOpKey` и `ensureReportMoneyLogRow`, применяют `transferRep`/`transferPoints` с meta={fromId,toId,targetId,copId,reporterId,opKey}` и возвращают диагностику и объект результата.
-      - `applyReportByRole` проверяет guards, rate limits и, в зависимости от truth, возвращает helper'ы вместо ReferenceError-веток, so DM UI receives structured responses.
-      - Canonical moneyLog reasons (`report_false_penalty`, `rep_report_false`, `rep_report_true`, `report_true_compensation`) now appear only once per opKey, protecting against duplicate penalties when rate-limited.
-    Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+      - `applyFalseReport` / `applyTrueReport` теперь пользуются `buildReportOpKey` и `ensureReportMoneyLogRow`, применяют `transferRep`/`transferPoints` с meta={fromId,toId,targetId,copId,reporterId,opKey}` и возвращают диагностику.
+      - `applyReportByRole` проверяет guards, rate limits и отдаёт helper'ы вместо ReferenceError-веток, так что DM получает структурированные ответы и pending-состояние.
+      - Defensive opKey-based logging (`report_false_penalty`, `rep_report_false`, `rep_report_true`, `report_true_compensation`) появляется ровно один раз per opKey, а anti-dup guard оставляет rate-limited row вместо дублей.
+- Evidence:
+  - false report: `report_false_penalty amount 5 (me->sink)`, `rep_report_false amount 2 (me->crowd_pool)` with `opKey=report:2026-02-20:npc_cop_v:me:npc_weak:false`.
+  - true report: `rep_report_true amount 2 (crowd_pool->me)`, `report_true_compensation amount 0 (worldBank->me)` with `opKey=report:2026-02-20:npc_cop_v:me:npc_toxic:true`.
+  - anti-dup: second hit returned `{ok:false, reason:rate_limited}` and the moneyLog row `report_rate_limited` appears once.
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1. Reload http://localhost:8080/index.html?dev=1.
+    2. Smoke #1: `console.log("SMOKE_REPORT_REFERR", Game.__A.applyReportByRole("toxic"))` — expect neither ReferenceError nor missing result.
+    3. Smoke #2: Report a non-allowlisted name via DM and confirm moneyLog contains `report_false_penalty` + `rep_report_false` rows (single entry per attempt).
+    4. Smoke #3: Report a villain, verify `rep_report_true` + `report_true_compensation` appear and World delta equals compensation amount.
+    5. Smoke #4: Submit identical report twice; second call should return `rate_limited`/`cop_busy`/`report_repeat` without generating new penalty rows.
+  Manual QA: pending (run smokes 1-4 above).
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      QA:
+      (1) Reload http://localhost:8080/index.html?dev=1.
+      (2) Run the four smoke scenarios described under “How to verify.”
+      (3) PASS if the console call returns a structured object, false/true flows log canonical moneyLog rows, and duplicates are blocked; otherwise FAIL with console dumps.
+      ```
+
+### [T-20260220-006] COP report pending resolve flow (Step 3)
+- Status: FAIL
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md`
+- Goal: Сделать resolveReport(pendingId) детерминированным, добавить новый pending-state, логировать маркеры и UI pending-состояние в DM без изменения экономических правил.
+- Acceptance:
+  - [ ] `applyReportByRole` не применяет true/false эффекты сразу, возвращает `{ok:true, reasonCode:"pending" ...}` и создаёт pending-отчёт в `State.reports.pendingById`.
+  - [ ] `resolveReport(pendingId)` логирует `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, высчитывает `moneyLogDeltaCount`, `lastReasonsTail`, вызывает `applyTrueReport`/`applyFalseReport`, помечает pending как resolved и возврат результата.
+  - [ ] UI DM (submit handler) показывает локальное сообщение “Проверяем...”, логирует `UI_REPORT_PENDING_UI_V1`, ждёт `resolveAtMs`+50мс перед вызовом `resolveReport`, после resolve логирует `UI_REPORT_RESOLVE_DONE_V1` и рендерит DM.
+  - [ ] Антидубли защищают от повторного submit (pending_exists) и повторного resolve (`already_resolved`) без дублирования moneyLog.
+  - [ ] `resolvePendingReportsTick` логирует `REPORT_PENDING_TICK_V1` и по прежнему может резолвить просроченные pending за 0.8с, но resolve идёт напрямую из UI.
+  - [ ] New `REPORT_PENDING_*_V1` лог-записи содержат `pendingId`, `opKey`, `outcomeBucket`, `copId`, `targetId`, `moneyLogDeltaCount`, `lastReasonsTail` и `appliedReasonCodes`.
+- Result: |
+    Status: FAIL (DUMP_AT 2026-02-20 17:09:40)
+    Facts:
+      - Console dump shows `REPORT_PENDING_CREATED_V1` and `pending` reasonCode but `AFTER_RESOLVE_REPORT_ROWS` returns empty array, so `resolveReport` either not invoked or moneyLog delta still zero.
+      - Added deterministic pending lifecycle (State.reports.pendingById/pendingByActorId), resolve logs (`REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`), and UI pending logs/timeout (AsyncScene/Web/ui/ui-dm.js:1500-1610).
+      - `resolvePendingReportsTick` now warns `REPORT_PENDING_TICK_V1` and drains pendings older than `resolveAtMs`, but QA should drive resolve via UI to confirm logging and moneyLog delta.
+    Evidence:
+      - `Console.txt: [DUMP_AT] [2026-02-20 17:09:40]` shows `REPORT_PENDING_CREATED_V1` (pending_1771574948794_535552, resolveAtMs=1771574949594) and `AFTER_RESOLVE_REPORT_ROWS []` despite 1200ms delay; `REPORT_PENDING_RESOLVED_V1` absent after fix attempt (resolve not reporting moneyLog delta).
+      - MoneyLog tail still lacks `report_false_penalty`/`rep_report_true` rows, consistent with failure scenario C/D from instructions.
+- P1 Notes:
+  - WARN transferRep insufficient funds for `rep_report_false` (amount 2) may occur when `crowd_pool`/`me` wallet lacks rep; moneyLog row recorded but actual rep change must be validated in separate follow-up.
+  - `report_true_compensation amount 0` may be intended (no victimized funds) but needs product clarification before changing design.
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md`
 - How to verify:
   1. Reload http://localhost:8080/index.html?dev=1.
-  2. Smoke #1: `console.log("SMOKE_REPORT_REFERR", Game.__A.applyReportByRole("toxic"))` — expect neither ReferenceError nor missing result.
-  3. Smoke #2: Report a non-allowlisted name via DM and confirm moneyLog contains `report_false_penalty` + `rep_report_false` rows (single entry per attempt).
-  4. Smoke #3: Report a villain, verify `rep_report_true` + `report_true_compensation` appear and World delta equals compensation amount.
-  5. Smoke #4: Submit identical report twice; second call should return `rate_limited`/`cop_busy`/`report_repeat` without generating new penalty rows.
-  Manual QA: pending (run smokes 1-4 above).
+  2. Submit “Сдать” in DM, capture logs: `REPORT_PENDING_CREATED_V1`, `UI_REPORT_PENDING_UI_V1`, `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, `UI_REPORT_RESOLVE_DONE_V1`.
+  3. Confirm `Game.__D.moneyLog` tail now contains canonical `rep_report_true`/`report_true_compensation` or `rep_report_false`/`report_false_penalty` rows exactly once after resolve, and `AFTER_CLICK_REPORT_ROWS` stays empty before resolve.
+  4. Repeat submit; second call should return `pending_exists` (or `rate_limited`) and no duplicate moneyLog rows; calling `resolveReport(pendingId)` twice should return `already_resolved` without extra logs.
 - Next Prompt (копипаст, кодблок обязателен):
     ```text
     QA:
     (1) Reload http://localhost:8080/index.html?dev=1.
-    (2) Run the four smoke scenarios described under “How to verify.”
-    (3) PASS if the console call returns a structured object, false/true flows log canonical moneyLog rows, and duplicates are blocked; otherwise FAIL with console dumps.
+    (2) Trigger the DM “Сдать” flow twice: once to observe pending then resolve, and once to ensure pending_exists prevents duplicates.
+    (3) PASS if pending logs + resolve logs (`REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, `UI_REPORT_PENDING_UI_V1`, `UI_REPORT_RESOLVE_DONE_V1`) appear, moneyLog rows show canonical report reasons only after resolve, and duplicate resolves/report_submits don't add extra rows; otherwise FAIL with console dumps.
     ```

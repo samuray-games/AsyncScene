@@ -1566,6 +1566,53 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             const copId = (target && target.id) ? target.id : withId;
             const result = Game.__A.applyReportByRole(q0, { copId });
 
+            const handlePendingResult = (res) => {
+              if (!res || !res.pendingId) return;
+              const copName = (target && target.name) ? target.name : "Коп";
+              try {
+                if (copId) Game.__A.pushDm(copId, copName, "Проверяем...", { isSystem: true, playerId: copId });
+              } catch (_) {}
+              const now = Date.now();
+              const resolveAt = Number(res.resolveAtMs) || (now + 800);
+              const delayMs = Math.max(50, resolveAt - now + 50);
+              try {
+                console.warn("UI_REPORT_PENDING_UI_V1", {
+                  pendingId: res.pendingId,
+                  resolveAtMs: resolveAt,
+                  delayMs,
+                });
+              } catch (_) {}
+              const runResolve = async () => {
+                let resolved = null;
+                try {
+                  if (Game.__A && typeof Game.__A.resolveReport === "function") {
+                    const maybePromise = Game.__A.resolveReport(res.pendingId);
+                    if (maybePromise && typeof maybePromise.then === "function") {
+                      resolved = await maybePromise;
+                    } else {
+                      resolved = maybePromise;
+                    }
+                  }
+                } catch (_) {}
+                try {
+                  console.warn("UI_REPORT_RESOLVE_DONE_V1", {
+                    pendingId: res.pendingId,
+                    ok: resolved && resolved.ok,
+                    reasonCode: resolved && resolved.reasonCode,
+                  });
+                } catch (_) {}
+                UI.renderDM();
+                requestAll();
+                setTimeout(() => focusCopLine(), 0);
+              };
+              setTimeout(() => {
+                runResolve();
+              }, delayMs);
+            };
+            if (result && result.ok && (result.reasonCode === "pending" || result.reasonCode === "pending_exists")) {
+              handlePendingResult(result);
+            }
+
             // Collapse back to the "Сдать" button
             state.open = false;
             state.q = "";

@@ -3282,8 +3282,27 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 ### 2026-02-20 — COP report handler stop-fix
 - Status: PASS
 - Facts:
-  - `state.js` теперь содержит `buildReportOpKey`, `ensureReportMoneyLogRow`, `sendRevengeDM`, `applyFalseReport` и `applyTrueReport` (lines 2860-3197). Каждый helper строит `opKey`, записывает canonical moneyLog rows (`report_false_penalty`/`rep_report_false`/`rep_report_true`/`report_true_compensation`) via `ensureReportMoneyLogRow`, and relies on `transferRep`/`transferPoints` for actual econ mutations.
-  - `applyReportByRole` (state.js:3200-3470) now delegates guard, false, and true branches to these helpers, so UI “Сдать” calls no longer ReferenceError and always return structured `{ok, reasonCode, copId, targetId, opKey}` objects.
-  - opKey-based dedup prevents duplicate penalty rows on rate-limited/repeat reports and keeps `State.me.points` untouched outside Econ helpers.
+- `state.js` теперь содержит `buildReportOpKey`, `ensureReportMoneyLogRow`, `sendRevengeDM`, `applyFalseReport` и `applyTrueReport` (lines 2860-3197). Каждый helper строит `opKey`, записывает canonical moneyLog rows (`report_false_penalty`/`rep_report_false`/`rep_report_true`/`report_true_compensation`) via `ensureReportMoneyLogRow`, and relies on `transferRep`/`transferPoints` for actual econ mutations.
+- `applyReportByRole` (state.js:3200-3470) now delegates guard, false, and true branches to these helpers, so UI “Сдать” calls no longer ReferenceError and always return structured `{ok, reasonCode, copId, targetId, opKey}` objects.
+- opKey-based dedup prevents duplicate penalty rows on rate-limited/repeat reports and keeps `State.me.points` untouched outside Econ helpers.
+- Evidence: Console.txt `[DUMP_AT 2026-02-20 16:55:06]` logs false penalty `report_false_penalty amount 5 (me->sink)` + `rep_report_false amount 2 (me->crowd_pool)` with `opKey=report:2026-02-20:npc_cop_v:me:npc_weak:false`, true report rows `rep_report_true amount 2 (crowd_pool->me)` + `report_true_compensation amount 0 (worldBank->me)` with `opKey=report:2026-02-20:npc_cop_v:me:npc_toxic:true`, and anti-dup repeat `{ok:false, reason:rate_limited}` plus `report_rate_limited`.
 - How to verify: reload dev=1, run smokes 1–4 described in TASKS.md entry `[T-20260220-005]`, confirm no ReferenceError, canonical moneyLog rows exist, and repeated reports do not emit extra rows.
 - Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Notes:
+  - WARN transferRep insufficient funds for `rep_report_false` row in DUMP_AT 2026-02-20 16:55:06 despite moneyLog amount 2; follow-up should confirm the actual REP delta matches the log.
+  - `report_true_compensation amount 0` (worldBank->me) is logged for the true report; verify whether zero compensation is intentional or needs a follow-up task when nonzero recovery is expected.
+
+### 2026-02-20 — COP report pending resolve audit (Step 3)
+- Status: FAIL
+- Facts:
+  - `Console.txt` DUMP at 2026-02-20 17:09:40 shows `REPORT_PENDING_CREATED_V1` (pending_1771574948794_535552) and `pending` reasonCode, but the follow-up `AFTER_RESOLVE_REPORT_ROWS` call returns `[]` even after 1.2s, so `applyTrueReport` / `applyFalseReport` still never insert the canonical `rep_report_*` / `report_*` rows after resolve.
+  - `resolveReport(pendingId)` was extended with `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, `moneyLogDeltaCount`, `lastReasonsTail`, and uses existing apply helpers, yet the dump lacks any of these resolve logs, indicating resolve may not be invoked or the helper fails before writing moneyLog.
+  - UI DM pending handling now logs `UI_REPORT_PENDING_UI_V1` and `UI_REPORT_RESOLVE_DONE_V1` around the delayed resolve (delay computed from `resolveAtMs`), but the console evidence has no `REPORT_PENDING_RESOLVED_V1` nor `UI_REPORT_RESOLVE_DONE_V1` entries, so the flow still never finishes the econ transition at runtime.
+- Evidence:
+  - `Console.txt: [DUMP_AT] [2026-02-20 17:09:40]` contains `REPORT_PENDING_CREATED_V1 {pendingId: pending_1771574948794_535552, resolveAtMs: 1771574949594, opKey: report:2026-02-20:npc_cop_v:me:npc_toxic:true}` followed by `AFTER_CLICK_REPORT_ROWS []`, `AFTER_RESOLVE_REPORT_ROWS []` (1200ms delay), and a repeat submit yielding `pending_exists` with the same pendingId, but no `REPORT_PENDING_RESOLVED_V1` or canonical moneyLog rows.
+  - The moneyLog tail remains empty of `rep_report_true`, `report_true_compensation`, `rep_report_false`, or `report_false_penalty` rows for the new opKey, so the resolve outcome is never recorded even though pending was created and re-queried.
+- Next: QA
+
+### P1 NOTES — COP report handler stop-fix
+- WARN transferRep insufficient funds for `rep_report_false` despite moneyLog row amount 2; need follow-up to ensure Player REP actually decremented (log vs state) and no guard blocks silently swallow the penalty.
+- `report_true_compensation amount 0` (worldBank→me) logged in DUMP_AT 2026-02-20 16:55:06; confirm design covers zero-point compensation or schedule separate task if it should refund >0.

@@ -6,6 +6,7 @@ window.Game = window.Game || {};
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
   let ReactionPolicy = null;
   const REP_EMITTER_DAILY_CAP = 20;
+  const REPORT_PENDING_DELAY_MS = 800;
   const RESPECT_REASON_CODES = Object.freeze({
     POINTS_COST: "points_respect_cost",
     REP_GIVEN: "rep_respect_given",
@@ -2154,6 +2155,8 @@ window.Game = window.Game || {};
         introChatSentByCopId: {},
         introDmSentByCopId: {},
       },
+      pendingByActorId: {},
+      pendingById: {},
     };
     // Alias for external access (requested: state.copCooldowns)
     State.copCooldowns = State.reports.copCooldowns;
@@ -2905,6 +2908,147 @@ window.Game = window.Game || {};
     } catch (_) {}
   }
 
+  function ensurePendingStructures(){
+    const reports = State.reports || (State.reports = {});
+    if (!reports.pendingByActorId || typeof reports.pendingByActorId !== "object") reports.pendingByActorId = {};
+    if (!reports.pendingById || typeof reports.pendingById !== "object") reports.pendingById = {};
+    return reports;
+  }
+
+  function createPendingReport({ reporterId, copId, targetId, roleKey, truth, bucket, reportId, opKey } = {}) {
+    const now = Date.now();
+    const pendingId = `pending_${now}_${Math.floor(Math.random() * 1e6)}`;
+    const pending = {
+      id: pendingId,
+      reporterId: String(reporterId || ((State.me && State.me.id) ? State.me.id : "me")),
+      copId: String(copId || ""),
+      targetId: String(targetId || ""),
+      roleKey: String(roleKey || ""),
+      truth: !!truth,
+      bucket: String(bucket || (truth ? "true" : "false")),
+      reportId: String(reportId || ""),
+      opKey: String(opKey || ""),
+      createdAtMs: now,
+      resolveAtMs: now + REPORT_PENDING_DELAY_MS,
+      resolved: false,
+    };
+    const reports = ensurePendingStructures();
+    reports.pendingById[pendingId] = pending;
+    if (pending.reporterId) {
+      reports.pendingByActorId[pending.reporterId] = pending;
+    }
+    try {
+      console.warn("REPORT_PENDING_CREATED_V1", {
+        pendingId,
+        opKey: pending.opKey,
+        resolveAtMs: pending.resolveAtMs,
+        copId: pending.copId,
+        targetId: pending.targetId,
+      });
+    } catch (_) {}
+    return pending;
+  }
+
+  function resolveReport(pendingId){
+    const now = Date.now();
+    const reports = ensurePendingStructures();
+    const pending = (reports.pendingById || {})[pendingId] || null;
+    try {
+      console.warn("REPORT_RESOLVE_CALL_V1", {
+        pendingId,
+        now,
+        found: !!pending,
+        actorId: pending && pending.reporterId ? pending.reporterId : null,
+      });
+    } catch (_) {}
+    if (!pending) return { ok: false, reasonCode: "pending_missing", pendingId };
+    if (pending.resolved) {
+      try {
+        console.warn("REPORT_PENDING_RESOLVE_ALREADY_V1", {
+          pendingId,
+          opKey: pending.opKey,
+        });
+      } catch (_) {}
+      return { ok: false, reasonCode: "already_resolved", pendingId };
+    }
+    const cop = (pending.copId && State.players) ? State.players[pending.copId] : null;
+    const target = (pending.targetId && State.players) ? State.players[pending.targetId] : null;
+    const resolver = pending.truth ? applyTrueReport : applyFalseReport;
+    const bucket = String(pending.bucket || (pending.truth ? "true" : "false"));
+    const outcomeBucket = (bucket === "true") ? "true" : "false";
+    try {
+      console.warn("REPORT_PENDING_RESOLVING_V1", {
+        pendingId,
+        opKey: pending.opKey,
+        outcomeBucket,
+        copId: pending.copId,
+        targetId: pending.targetId,
+      });
+    } catch (_) {}
+    const moneyLogBefore = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
+    let result = null;
+    try {
+      result = resolver({
+        target,
+        roleKey: pending.roleKey,
+        cop,
+        reporterId: pending.reporterId,
+        reportId: pending.reportId,
+        bucket: pending.bucket,
+      });
+    } catch (err) {
+      try { console.warn("REPORT_PENDING_RESOLVE_ERROR_V1", { pendingId, error: String(err) }); } catch (_) {}
+      result = { ok: false, reasonCode: "resolve_error" };
+    }
+    pending.resolved = true;
+    if (pending.reporterId) delete reports.pendingByActorId[pending.reporterId];
+    const moneyLogAfter = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
+    const delta = Math.max(0, moneyLogAfter - moneyLogBefore);
+    const appliedReasonCodes = [];
+    if (result) {
+      if (Array.isArray(result.appliedReasonCodes)) appliedReasonCodes.push(...result.appliedReasonCodes);
+      if (result.reasonCode) appliedReasonCodes.push(result.reasonCode);
+      if (Array.isArray(result.appliedReasons)) appliedReasonCodes.push(...result.appliedReasons);
+    }
+    const uniqueReasons = Array.from(new Set(appliedReasonCodes.filter(r => !!r)));
+    const moneyLog = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+    let lastReasonsTail = [];
+    try {
+      lastReasonsTail = moneyLog.slice(-8).map(row => (row && row.reason) ? row.reason : null);
+    } catch (_) {}
+    try {
+      console.warn("REPORT_PENDING_RESOLVED_V1", {
+        pendingId,
+        opKey: pending.opKey,
+        outcomeBucket,
+        appliedReasonCodes: uniqueReasons,
+        moneyLogDeltaCount: delta,
+        lastReasonsTail,
+        alreadyResolved: false,
+      });
+    } catch (_) {}
+    const safeResult = result || { ok: false, reasonCode: "resolve_error" };
+    return Object.assign({}, safeResult, { pendingId, opKey: pending.opKey, copId: pending.copId, targetId: pending.targetId });
+  }
+
+  function resolvePendingReportsTick(nowTs){
+    const now = Number.isFinite(nowTs) ? nowTs : Date.now();
+    const reports = ensurePendingStructures();
+    const ids = Object.keys(reports.pendingById || {});
+    try {
+      console.warn("REPORT_PENDING_TICK_V1", { pendingCount: ids.length, now });
+    } catch (_) {}
+    const resolved = [];
+    for (const id of ids) {
+      const pending = reports.pendingById[id];
+      if (!pending || pending.resolved) continue;
+      if (now >= (pending.resolveAtMs || 0)) {
+        resolved.push(resolveReport(id));
+      }
+    }
+    return resolved;
+  }
+
   function applyFalseReport({ target, roleKey, cop, reporterId, reportId, reasonCode = "false_report", bucket = "false" } = {}) {
     const copId = (cop && cop.id) ? cop.id : "";
     const copName = (cop && cop.name) ? String(cop.name) : "Коп";
@@ -3476,14 +3620,49 @@ window.Game = window.Game || {};
       });
     }
 
-    return applyTrueReport({
-      target,
-      roleKey,
-      cop,
+    const reports = ensurePendingStructures();
+    const existingPending = (reports.pendingByActorId || {})[reporterId];
+    if (existingPending && !existingPending.resolved) {
+      return {
+        ok: true,
+        reasonCode: "pending_exists",
+        pendingId: existingPending.id,
+        resolveAtMs: existingPending.resolveAtMs,
+        copId: existingPending.copId,
+        targetId: existingPending.targetId,
+        opKey: existingPending.opKey,
+      };
+    }
+
+    const dayKey = dayKeyFromNowTs(Date.now());
+    const bucket = truthful ? "true" : "false";
+    const pendingOpKey = buildReportOpKey({
+      dayKey,
+      copId: cop.id,
       reporterId,
-      reportId,
-      bucket: "true",
+      targetId: target.id,
+      bucket,
     });
+    const pending = createPendingReport({
+      reporterId,
+      copId: cop.id,
+      targetId: target.id,
+      roleKey,
+      truth: truthful,
+      bucket,
+      reportId,
+      opKey: pendingOpKey,
+    });
+
+    return {
+      ok: true,
+      reasonCode: "pending",
+      pendingId: pending.id,
+      resolveAtMs: pending.resolveAtMs,
+      copId: pending.copId,
+      targetId: pending.targetId,
+      opKey: pending.opKey,
+    };
   }
 
   function ensureNonNegativePoints(){
@@ -3780,6 +3959,12 @@ window.Game = window.Game || {};
     getReportCooldownLeftMs,
     hasReported,
     applyReportByRole,
+    resolveReport: (pendingId) => resolveReport(pendingId),
+    resolvePendingReportsTick: (nowTs) => resolvePendingReportsTick(nowTs),
+    getPendingReport: (pendingId) => {
+      const rep = ensurePendingStructures();
+      return (rep.pendingById || {})[pendingId] || null;
+    },
     tickCops: (nowTs) => tickCopChatter(nowTs),
     setReportCooldownMs: (ms) => {
       if (typeof ms === "number" && ms >= 0) State.reports.cooldownMs = ms;

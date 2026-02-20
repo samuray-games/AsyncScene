@@ -1,27 +1,27 @@
-[DUMP_AT] [2026-02-20 16:52:01] (epoch_ms=1771573921107)
+[DUMP_AT] [2026-02-20 17:26:04] (epoch_ms=1771575964740)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771573827842
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771575845010
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771573827884}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771575845053}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771573827854 1771573827884
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771575845023 1771575845053
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771573827884
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771575845053
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771573827885}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771575845054}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771573827900}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771575845065}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -44,21 +44,42 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771573827901
+LOG [AttackChoices] conflict-arguments loaded 1771575845067
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771573827904, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771573827907}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771573827907}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771575845070, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771575845072}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771575845072}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771573847133_f9faac0850c98 console.log("SMOKE_REPORT_REFERR", Game.__A.applyReportByRole("toxic"))
-WARN [repl] > console.log("SMOKE_REPORT_REFERR", Game.__A.applyReportByRole("toxic"))
-WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771573847135}
-WARN REPORT_REPEAT_RL_V1_CHECK Object{actorId: me, blocked: false, now: 1771573847136, rawKey: report_repeat:me|npc_toxic|toxic, resetAt: 1771573851136, role: toxic, stableKey: me|npc_toxic|toxic, targetId: npc_toxic}
-LOG SMOKE_REPORT_REFERR Object{compensation: 0, copId: npc_cop_v, ok: true, opKey: report:2026-02-20:npc_cop_v:me:npc_toxic:true, reasonCode: true_report, repGain: 2, reward: 0, role: toxic, targetId: npc_toxic}
-LOG [repl] < undefined
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771573847133_f9faac0850c98 Object{ok: true, value: undefined}
+WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771575868014}
+WARN REPORT_REPEAT_RL_V1_CHECK Object{actorId: me, blocked: false, now: 1771575868016, rawKey: report_repeat:me|npc_bandit|, resetAt: 1771575872016, role: null, stableKey: me|npc_bandit|, targetId: npc_bandit}
+WARN REPORT_PENDING_CREATED_V1 Object{copId: npc_cop_v, opKey: report:2026-02-20:npc_cop_v:me:npc_bandit:true, pendingId: pending_1771575868017_86283, resolveAtMs: 1771575868817, targetId: npc_bandit}
+WARN UI_REPORT_PENDING_UI_V1 Object{delayMs: 849, pendingId: pending_1771575868017_86283, resolveAtMs: 1771575868817}
+WARN REPORT_RESOLVE_CALL_V1 Object{actorId: me, found: true, now: 1771575868869, pendingId: pending_1771575868017_86283}
+WARN REPORT_PENDING_RESOLVING_V1 Object{copId: npc_cop_v, opKey: report:2026-02-20:npc_cop_v:me:npc_bandit:true, outcomeBucket: true, pendingId: pending_1771575868017_86283, targetId: npc_bandit}
+WARN REPORT_PENDING_RESOLVED_V1 Object{alreadyResolved: false, appliedReasonCodes: [true_report], lastReasonsTail: [npc_account_init, npc_account_init, npc_account_init, npc_account_init, npc_account_init, rep_report_true, rep_report_true, report_true_compensation], moneyLogDeltaCount: 3, opKey: report:2026-02-20:npc_cop_v:me:npc_bandit:true, outcomeBucket: true, pendingId: pending_1771575868017_86283}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  alreadyResolved: false
+  appliedReasonCodes: [
+    true_report
+  ]
+  lastReasonsTail: [
+    npc_account_init
+    npc_account_init
+    npc_account_init
+    npc_account_init
+    npc_account_init
+    rep_report_true
+    rep_report_true
+    report_true_compensation
+  ]
+  moneyLogDeltaCount: 3
+  opKey: report:2026-02-20:npc_cop_v:me:npc_bandit:true
+  outcomeBucket: true
+  pendingId: pending_1771575868017_86283
+}
+LOG END CONSOLE_EXPAND_V1
+WARN UI_REPORT_RESOLVE_DONE_V1 Object{ok: true, pendingId: pending_1771575868017_86283, reasonCode: true_report}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -81,129 +102,80 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771573869306_feff043226dea8 console.log(Game.__D.moneyLog.filter(row => row.reason === "report_false_penalty").slice(-2))
-WARN [repl] > console.log(Game.__D.moneyLog.filter(row => row.reason === "report_false_penalty").slice(-2))
-LOG []
-LOG [repl] < undefined
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771573869306_feff043226dea8 Object{ok: true, value: undefined}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771573879881_07cdd61bd4e18 console.log(Game.__D.moneyLog.filter(row => row.reason.includes("report_true")).slice(-2))
-WARN [repl] > console.log(Game.__D.moneyLog.filter(row => row.reason.includes("report_true")).slice(-2))
-LOG [Object{amount: 2, battleId: report_npc_toxic_1771573847136, currency: rep, eventId: report_npc_toxic_1771573847136, meta: Object{copId: npc_cop_v, fromId: crowd_pool, opKey: report:2026-02-20:npc_cop_v:me:npc_toxic:true, reporterId: me, targetId: npc_toxic, toId: me}, reason: rep_report_true, sourceId: crowd_pool, targetId: me, time: 1771573847138, toastExpected: true, ts: 1771573847138, txId: tx_1771573847138_9147efd55e9cd8}, Object{amount: 0, battleId: report_npc_toxic_1771573847136, currency: points, eventId: report_npc_toxic_1771573847136, meta: Object{copId: npc_cop_v, fromId: worldBank, opKey: report:2026-02-20:npc_cop_v:me:npc_toxic:true, reportId: report_npc_toxic_1771573847136, reporterId: me, targetId: npc_toxic, toId: me}, reason: report_true_compensation, sourceId: worldBank, targetId: me, time: 1771573847139, toastExpected: false, ts: 1771573847139, txId: tx_1771573847139_8e277c8ab793e}]
-LOG BEGIN CONSOLE_EXPAND_V1 arg1
-LOG [
-  Object{
-    amount: 2
-    battleId: report_npc_toxic_1771573847136
-    currency: rep
-    eventId: report_npc_toxic_1771573847136
-    meta: Object{
-      copId: npc_cop_v
-      fromId: crowd_pool
-      opKey: report:2026-02-20:npc_cop_v:me:npc_toxic:true
-      reporterId: me
-      targetId: npc_toxic
-      toId: me
-    }
-    reason: rep_report_true
-    sourceId: crowd_pool
-    targetId: me
-    time: 1771573847138
-    toastExpected: true
-    ts: 1771573847138
-    txId: tx_1771573847138_9147efd…
-LOG END CONSOLE_EXPAND_V1
-LOG [repl] < undefined
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771573879881_07cdd61bd4e18 Object{ok: true, value: undefined}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771573896777_66e9bd234c6358 await Game.__A.applyReportByRole("villainName"); await Game.__A.applyReportByRole("villainName")
-WARN [repl] > await Game.__A.applyReportByRole("villainName"); await Game.__A.applyReportByRole("villainName")
-WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771573896780}
-LOG [repl] < Object{ok: false, reason: unknown_role}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [ok, reason], preview: Object{ok: false, reason: unknown_role}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, reason], preview: Object{
-  ok: false
-  reason: unknown_role
-}, type: object}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771573896777_66e9bd234c6358 Object{ok: false, reason: unknown_role}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771573907722_7311b5d9f7edb8 await Game.__A.applyReportByRole("villainName"); await Game.__A.applyReportByRole("villainName")
-WARN [repl] > await Game.__A.applyReportByRole("villainName"); await Game.__A.applyReportByRole("villainName")
-WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771573907724}
-LOG [repl] < Object{ok: false, reason: unknown_role}
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [ok, reason], preview: Object{ok: false, reason: unknown_role}, type: object}
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, reason], preview: Object{
-  ok: false
-  reason: unknown_role
-}, type: object}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771573907722_7311b5d9f7edb8 Object{ok: false, reason: unknown_role}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771573919357_491d28fab6f078 Game.__D.moneyLog.slice(-3)
-WARN [repl] > Game.__D.moneyLog.slice(-3)
-LOG [repl] < [Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_meme, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_queen, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_veteran, time: 1771573877957}]
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771575892657_df4317744242b Game.__D.moneyLog.slice(-10)
+WARN [repl] > Game.__D.moneyLog.slice(-10)
+LOG [repl] < [Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic2, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic2, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic3, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic3, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_bandit, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_bandit, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_bandit2, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_bandit2, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_bandit3, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_bandit3, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_cop_v, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_cop_v, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_cop_k, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_cop_k, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_cop_a, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_cop_a, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_mafia, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_mafia, time: 1771575892018}]
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG [
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_meme
-    time: 1771573877957
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic
+    time: 1771575892018
   }
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic2
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_queen
-    time: 1771573877957…
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic2
+    time: 1771575892018
+  }
+  Object{
+    amount: 0
+    battleId: null
+    meta: Object{
+     …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: [Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_meme, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_queen, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1},…, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: [Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic2, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic2, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic3, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic3, time…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
   keys: [
 
   ]
-  preview: [Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_meme, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_queen, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_177…
+  preview: [Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic2, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic2, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic3, reason: wealth_tax}, reason: npc_account…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: [
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_meme
-    time: 1771573877957
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic
+    time: 1771575892018
   }
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic2
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_queen
-    time: 1771573877957…, type: object}
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic2
+    time: 1771575892018
+  }
+  Object{
+    amount: 0
+    battleId: null
+    meta: Object{
+     …, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -212,56 +184,64 @@ LOG Object{
   ]
   preview: [
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_meme
-    time: 1771573877957
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic
+    time: 1771575892018
   }
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic2
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitte…
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic2
+    time: 1771575892018
+  }
+  Object{
+    amo…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771573919357_491d28fab6f078 [Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_meme, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_queen, time: 1771573877957}, Object{amount: 2, battleId: ed_escape_1771573855422_4626, before: Object{from: -1, to: 1}, currency: rep, reason: rep_crowd_vote_majority, sourceId: rep_emitter, targetId: npc_veteran, time: 1771573877957}]
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771575892657_df4317744242b [Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic2, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic2, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_toxic3, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_toxic3, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_bandit, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_bandit, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_bandit2, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_bandit2, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_bandit3, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_bandit3, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_cop_v, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_cop_v, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_cop_k, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_cop_k, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_cop_a, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_cop_a, time: 1771575892018}, Object{amount: 0, battleId: null, meta: Object{npcId: npc_mafia, reason: wealth_tax}, reason: npc_account_init, sourceId: sink, targetId: npc_mafia, time: 1771575892018}]
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG [
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_meme
-    time: 1771573877957
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic
+    time: 1771575892018
   }
   Object{
-    amount: 2
-    battleId: ed_escape_1771573855422_4626
-    before: Object{
-      from: -1
-      to: 1
+    amount: 0
+    battleId: null
+    meta: Object{
+      npcId: npc_toxic2
+      reason: wealth_tax
     }
-    currency: rep
-    reason: rep_crowd_vote_majority
-    sourceId: rep_emitter
-    targetId: npc_queen
-    time: 1771573877957…
+    reason: npc_account_init
+    sourceId: sink
+    targetId: npc_toxic2
+    time: 1771575892018
+  }
+  Object{
+    amount: 0
+    battleId: null
+    meta: Object{
+     …
 LOG END CONSOLE_EXPAND_V1
+WARN REPORT_REPEAT_RL_V1_LOADED Object{buildTag: null, file: state.js, ts: 1771575924097}
 
