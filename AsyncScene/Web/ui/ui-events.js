@@ -371,16 +371,18 @@ window.Game = window.Game || {};
   function getEventCrowdTimerState(crowd){
     const nowMs = Date.now();
     const startedAtMs = (crowd && Number.isFinite(crowd.startedAtMs)) ? (crowd.startedAtMs | 0) : (nowMs - EVENTS_CROWD_TIMER_WARMUP_MS);
+    const warmupEndMs = startedAtMs + EVENTS_CROWD_TIMER_WARMUP_MS;
     const countdownStartMs = (crowd && Number.isFinite(crowd.countdownStartMs))
       ? (crowd.countdownStartMs | 0)
-      : (startedAtMs + EVENTS_CROWD_TIMER_WARMUP_MS);
+      : null;
     const countdownEndMs = (crowd && Number.isFinite(crowd.countdownEndMs))
       ? (crowd.countdownEndMs | 0)
-      : (countdownStartMs + EVENTS_CROWD_TIMER_COUNTDOWN_MS);
-    const phase = nowMs < countdownStartMs ? "warmup" : "countdown";
-    const leftMs = Math.max(0, countdownEndMs - nowMs);
-    const seconds = Math.max(0, Math.ceil(leftMs / 1000));
-    return { phase, seconds, leftMs, countdownStartMs, countdownEndMs };
+      : null;
+    const countdownActive = countdownStartMs !== null && nowMs >= countdownStartMs;
+    const leftMs = countdownEndMs ? Math.max(0, countdownEndMs - nowMs) : 0;
+    const seconds = countdownEndMs ? Math.max(0, Math.ceil(leftMs / 1000)) : 0;
+    const inWarmup = nowMs < warmupEndMs && !countdownActive;
+    return { inWarmup, countdownActive, warmupEndMs, seconds, leftMs, countdownStartMs, countdownEndMs, startedAtMs };
   }
 
   function canVoteOnEvent(ne, rawEvent) {
@@ -917,9 +919,9 @@ window.Game = window.Game || {};
         const timerLine = document.createElement("div");
         timerLine.className = "noteLine crowdTimer";
         const timerState = getEventCrowdTimerState(crowd);
-        timerLine.textContent = (timerState.phase === "countdown")
-          ? `Таймер: ${timerState.seconds}с`
-          : "Голосование идёт";
+        const showTimer = timerState.countdownActive && Number.isFinite(timerState.countdownStartMs);
+        timerLine.style.display = "block";
+        timerLine.textContent = showTimer ? `Таймер: ${timerState.seconds}с` : "Голосование идёт";
         card.appendChild(timerLine);
 
         const D0 = Game.Data || {};

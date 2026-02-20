@@ -3334,9 +3334,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `Game.NPC.randomForChat` помечает `author selection point`, добавляет квоту **до** выбора автора, исключает cop-кандидатов, пока `copBudget < 1`, но при отсутствии других NPC включает cop, логирует `cop_fallback_only_cops`, и выбор cop уменьшает бюджет на 1 только после выбора.
   - smoke `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` дополнен `diag` (candidatesRoleCounts/selectedRoleCounts/allowCopTrueCount/finalPoolRoleCounts/totalWeightByRole/budget/usedAuthorSelector/buildTag/fileMarker) и требует ratio 0.05..0.15 + copCount 3..15; notes содержат `cop_fallback_only_cops` только в настоящем fallback, иначе пусто; smoke ещё не прогнан (dev=1).
 - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md` `SMOKE_TEST_COMMANDS.md`
-### 2026-02-20 — Crowd timer: warmup, countdown и forced resolve
+### 2026-02-20 — Crowd timer теперь основан на epoch_ms + diagnostic votersCount
 - Facts:
-  - Новый контракт для draw: crowd получает `startedAtMs`, `countdownStartMs/EndMs`, `endAt` фиксирован как `countdownEnd`, `startCrowdVoteTimer` и `applyCrowdVoteTick` используют `ensureCrowdTimerFields`, и до `countdownStartMs` таймер не резолвит событие по таймеру.
-  - После 60 с warmup появляется `CROWD_TIMER_V1_ARM`, затем `CROWD_TIMER_V1_TICK` (примерно раз в секунду), а при expiry, даже если NPC-голосование зависло, блокируются `CROWD_TIMER_V1_EXPIRE` + `CROWD_TIMER_V1_RESOLVE` (reason `timer`) и запускается `finalizeCrowdVote` с `endedBy:"crowd_timer_expired"`.
-  - Обычно cap-резолвы продолжают работать и пишут `resolvedBy:"cap"`; каждое разрешение логируется один раз благодаря `_crowdTimer*`-флагам, а UI battles/events отображают “Голосование идёт” первые 60 с, потом `Таймер: Nс` и отсчёт 10→0.
+  - Crowd-таймер работает исключительно на epoch_ms: `_normalizeCrowdTimerValue`, `resetCrowdTimerState`, `ensureCrowdTimerFields` и логика countdown не используют `|0`, а `startedAtMs`, `lastProgressAtMs`, `stallDetectedAtMs`, `countdownStartMs`, `countdownEndMs`, `endAt/endsAt` хранят `Math.floor(Date.now())`.
+  - После 60 с warmup прогресс не двигается, и через 10 с простоя countdown активируется один раз, логируя `CROWD_STALL_V1_ARM`, `CROWD_STALL_V1_TICK`, `CROWD_STALL_V1_EXPIRE` + `CROWD_STALL_V1_RESOLVE` (resolvedBy:"timer", endedBy:"crowd_timer_expired"), а `applyCrowdVoteTick` делает early-return; cap-резолвы всё ещё могут завершать с `resolvedBy:"cap"`.
+  - `CROWD_CREATE_V1` логируется при старте crowd, новая `CROWD_DIAG_V1` добавляет `{votersCount, whyVotersZero, phaseAtCreate:"warmup", timeDomain:"epoch"}` и помогает диагностировать `0/10`.
+  - UI battles/events показывает “Голосование идёт” до countdown; таймер появляется только в период countdown и исчезает после resolve.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/ui/ui-events.js` `PROJECT_MEMORY.md`
+- DUMP: не собран (нужен dev=1 draw/баттл без новых голосов, чтобы зафиксировать `CROWD_STALL_V1_ARM/EXPIRE/RESOLVE` и диагностические поля).

@@ -68,41 +68,44 @@
 
 ## Inbox
 
-### [T-20260220-009] D[2] Толпа — новый таймер warmup/countdown + форс-резолв
-- Status: FAIL (смоук ещё не прогонялся)
+### [T-20260220-009] D[2] Толпа — epoch_ms timer + stall gating + diag
+- Status: DOING (код обновлён, смоук ещё не прогонялся)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Conflict
 - Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/ui/ui-events.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: ввести двухфазный контракт для голосования толпы: первые 60 с warmup с отображением “Голосование идёт” без чисел, затем фиксированный 10 с countdown и форс-резолв (reason `crowd_timer_expired`) с логами `CROWD_TIMER_V1_*`.
+- Goal: заставить crowd-ти́мер оперировать только на epoch_ms, ждать 60 с warmup + 10 с простоя без прогресса, выстреливать countdown один раз, фиксировать CROWD_STALL_V1_* и резолвиться, а также логировать диагностику votersCount/whyVotersZero.
 - Acceptance:
-  - [ ] Crowd получает поля `startedAtMs`, `countdownStartMs`, `countdownEndMs`, `endAt= countStart+10s`; warmup (60 с) не резолвит события по таймеру.
-  - [ ] После 60 с фиксируются `CROWD_TIMER_V1_ARM` и `CROWD_TIMER_V1_TICK` (примерно раз в секунду), UI `draw`/`events` переключается на `Таймер: Nс` и отсчитывает до нуля.
-  - [ ] По истечении countdown (даже если cap не достигнут) появляется `CROWD_TIMER_V1_EXPIRE` + `CROWD_TIMER_V1_RESOLVE` (reason `timer`), `finalizeCrowdVote` с `endedBy:"crowd_timer_expired"` и `crowd.decided`=true; повторные вызовы noop.
-  - [ ] Если cap достигнут раньше — резолвится “cap” (текущий контракт сохраняется), таймер больше не мешает, `CROWD_TIMER_V1_RESOLVE` фиксирует `resolvedBy:"cap"`.
-- Result: FAIL (runtime-расстановка ещё не пройдена; нужно прогнать draw в dev-режиме и собрать Console-дамп).
+  - [ ] Все поля времени (`startedAtMs`, `lastProgressAtMs`, `stallDetectedAtMs`, `countdownStartMs`, `countdownEndMs`, `endAt/endsAt`) заполняются epoch_ms (Math.floor(Date.now())) и сравнения идут по этой шкале; если нужна относительная шкала — она хранится отдельно.
+  - [ ] `progressKey = total|aVotes|bVotes` обновляет `lastProgressAtMs` при каждом изменении, а `CROWD_STALL_V1_PROGRESS` логируется только на смене ключа.
+  - [ ] После warmup timer-arm условие `warmupDone && countdownStartMs == null && now - lastProgressAtMs >= 10000` срабатывает единожды, выставляя `countdownStartMs/endMs`, логируя `CROWD_STALL_V1_ARM`, затем (≈1 с) `CROWD_STALL_V1_TICK`, и по окончании `CROWD_STALL_V1_EXPIRE` + `CROWD_STALL_V1_RESOLVE` с `endedBy:"crowd_timer_expired"`.
+  - [ ] `finalizeCrowdVote` делает crowd.resolved, `applyCrowdVoteTick` после этого early-return без новых ARM/TICK/EXPIRE, cap-резолв продолжает писать `resolvedBy:"cap"` (одноразово).
+  - [ ] UI `ui-battles`/`ui-events` показывает “Голосование идёт” до countdownStart, таймер появляется только в countdown и исчезает после resolve.
+  - [ ] `CROWD_CREATE_V1` логирует `{battleId, cap, startedAtMs, votersCount, seed}`, `CROWD_DIAG_V1` сообщает `votersCount`, `whyVotersZero`, `phaseAtCreate: "warmup"`, `timeDomain: "epoch"`.
+- Result: FAIL (смоук в браузере не запускался, нужен dev=1 draw + Console-дамп с новыми маркерами).
 - Report:
   - Status: FAIL
   - Facts:
-    (1) Crowd-батл инициирует `crowd.startedAtMs`, `countdownStartMs/EndMs`, `endAt` и логика `startCrowdVoteTimer`/`applyCrowdVoteTick` теперь учитывают warmup + countdown, не резолвя по таймеру до 60 с.
-    (2) В фазе countdown записываются `CROWD_TIMER_V1_ARM`, `CROWD_TIMER_V1_TICK`, при expiry вызывается `CROWD_TIMER_V1_EXPIRE` и `CROWD_TIMER_V1_RESOLVE` (timer/cap), а форс-резолв выполняется даже при отсутствии новых голосов.
-    (3) UI `ui-battles` и `ui-events` считают фазу по новым полям и показывают “Голосование идёт” → `Таймер: Xс`; числовой таймер появляется строго после 60 с.
+    (1) `conflict-core` работает в epoch_ms: `_normalizeCrowdTimerValue`/`resetCrowdTimerState`/`ensureCrowdTimerFields` и логика countdown не используют `|0`, а `applyCrowdVoteTick` early-return предотвращает повторные ARM/TICK/EXPIRE после резолва.
+    (2) Stall-детектор активируется только после 60 с warmup и 10 с простоя, `countdownStartMs` выставляется один раз, `CROWD_STALL_V1_ARM/TICK/EXPIRE/RESOLVE` фиксируются в нужных точках, а cap всё ещё может резолвиться раньше (`resolvedBy:"cap"`).
+    (3) `startCrowdVoteTimer` логирует `CROWD_CREATE_V1` + новую `CROWD_DIAG_V1` с `whyVotersZero` и `timeDomain:"epoch"`, UI показывает первые 60 с “Голосование идёт” и таймер появляется только в countdown.
   - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/ui/ui-events.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
-    (1) Hard reload `http://localhost:8080/index.html?dev=1`, запусти draw (через UI или `Game.ConflictCore.startWith`).
-    (2) Первые 60 с UI показывает “Голосование идёт” без чисел, в Console/`AsyncSceneLogs/last.jsonl` нет `CROWD_TIMER`-логов; после 60 с появляются `CROWD_TIMER_V1_ARM`, `CROWD_TIMER_V1_TICK` (10..0) и по истечении `CROWD_TIMER_V1_EXPIRE` + `CROWD_TIMER_V1_RESOLVE` с `resolvedBy:"timer"`.
-    (3) Даже если NPC/голосование грохнутся на 8/9, после `CROWD_TIMER_V1_EXPIRE` событие точно резолвится, и в Console видно `crowd_timer_expired`.
+    (1) Hard reload `http://localhost:8080/index.html?dev=1` и запустить draw/баттл (например через `Game.ConflictCore.startWith`), убедиться, что первые 60 с UI не показывает таймер и Console не содержит `CROWD_STALL_*`.
+    (2) После 60 с не добавляй новых голосов и проверь Console: `CROWD_STALL_V1_ARM` появляется единожды, затем `CROWD_STALL_V1_TICK`, `CROWD_STALL_V1_EXPIRE` + `CROWD_STALL_V1_RESOLVE` (resolvedBy:"timer", endedBy:"crowd_timer_expired"), и crowd переходит в resolved.
+    (3) Повтори 3 раза, убедись, что ARM/EXPIRE не спамятся, cap-резолвы бывают раньше с `resolvedBy:"cap"`, а `CROWD_DIAG_V1` содержит `whyVotersZero`/`timeDomain:"epoch"`.
+    (4) Собери Console/DUMP с маркерами ARM/EXPIRE/RESOLVE и добавь `DUMP_AT` + ключевые поля (timeDomain, startedAtMs, now, lastProgressAtMs, armCount).
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
-      Ответ QA:
-      (1) Hard reload http://localhost:8080/index.html?dev=1 и мы запускаем draw (например, через Game.ConflictCore.startWith).
-      (2) Наблюдай UI battles/events: первые 60 с пишут “Голосование идёт”, после чего появляется `Таймер: Nс`, отсчёт идёт с 10 до 0 и UI не зависает.
-      (3) Проверь Console/`AsyncSceneLogs/last.jsonl`: ищи `CROWD_TIMER_V1_ARM`, `CROWD_TIMER_V1_TICK`, `CROWD_TIMER_V1_EXPIRE` и `CROWD_TIMER_V1_RESOLVE` (reason `timer`/`cap`). Если timer не появляется или голосование зависает на 8/9 — фиксируй FAIL.
+      QA instructions:
+      (1) Hard reload http://localhost:8080/index.html?dev=1 и запусти draw/баттл (например через Game.ConflictCore.startWith); убедись, что первые 60 с UI пишет только “Голосование идёт” и в Console нет `CROWD_STALL_*`.
+      (2) После 60 с не добавляй голосов: фиксируется один `CROWD_STALL_V1_ARM`, `CROWD_STALL_V1_TICK` (10..0), `CROWD_STALL_V1_EXPIRE` + `CROWD_STALL_V1_RESOLVE` (resolvedBy:"timer", endedBy:"crowd_timer_expired"), событие резолвится.
+      (3) Повтори 3 раза: `CROWD_STALL_V1_*` не спамит, `resolvedBy:"cap"` срабатывает раньше, `CROWD_DIAG_V1` логирует `whyVotersZero`/`timeDomain:"epoch"`.
+      (4) Приложи Console/DUMP с маркерами ARM/EXPIRE/RESOLVE и обнови TASKS.md/PROJECT_MEMORY.md до PASS + DUMP.
       ```
-
--### [T-20260220-010] C[1] “Сплошные копы” — cop quota in public chat
+### [T-20260220-010] C[1] “Сплошные копы” — cop quota in public chat
 - Status: DOING (code updated, smoke pending)
 - Priority: P1
 - Assignee: Codex-ассистент

@@ -18,90 +18,172 @@
   const CROWD_TIMER_COUNTDOWN_MS = DRAW_VOTE_DURATION_MS;
 
   function _normalizeCrowdTimerValue(value){
-    return Number.isFinite(value) ? (value | 0) : null;
+    if (!Number.isFinite(value)) return null;
+    return Math.floor(value);
   }
 
-  function ensureCrowdTimerFields(v, nowCandidate){
+  function getCrowdProgressKey(v){
     if (!v) return null;
-    const nowMs = Number.isFinite(nowCandidate) ? nowCandidate : now();
-    const startedAtMs = _normalizeCrowdTimerValue(v.startedAtMs) ?? nowMs;
-    const warmupEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS;
-    const countdownStartMs = _normalizeCrowdTimerValue(v.countdownStartMs) ?? warmupEndMs;
-    const countdownEndMs = _normalizeCrowdTimerValue(v.countdownEndMs) ?? (countdownStartMs + CROWD_TIMER_COUNTDOWN_MS);
-    const finalEndMs = countdownEndMs;
-    v.startedAtMs = startedAtMs;
-    v.countdownStartMs = countdownStartMs;
-    v.countdownEndMs = countdownEndMs;
-    v.endAt = finalEndMs;
-    v.endsAt = finalEndMs;
-    const phase = nowMs < countdownStartMs ? "warmup" : "countdown";
-    return {
-      nowMs,
-      startedAtMs,
-      warmupEndMs,
-      countdownStartMs,
-      countdownEndMs,
-      finalEndMs,
-      phase
-    };
+    const total = getCrowdTotalVotes(v);
+    const aVotes = Number.isFinite(v.aVotes) ? (v.aVotes | 0) : (Number.isFinite(v.votesA) ? (v.votesA | 0) : 0);
+    const bVotes = Number.isFinite(v.bVotes) ? (v.bVotes | 0) : (Number.isFinite(v.votesB) ? (v.votesB | 0) : 0);
+    return `${total}|${aVotes}|${bVotes}`;
   }
-  function _crowdTimerLog(name, payload){
+
+  function resetCrowdTimerState(v, startedMs){
+    if (!v) return;
+    const nowMs = Number.isFinite(startedMs) ? startedMs : now();
+    const epochNow = Math.floor(nowMs);
+    v.startedAtMs = epochNow;
+    v.countdownStartMs = null;
+    v.countdownEndMs = null;
+    v.stallDetectedAtMs = null;
+    v.lastProgressAtMs = epochNow;
+    v.lastProgressKey = null;
+    v._crowdTimerArmLogged = false;
+    v._crowdTimerLastTickSecond = null;
+    v._crowdTimerResolvedBy = null;
+    v._crowdTimerExpireLogged = false;
+  }
+
+  function _crowdLog(name, payload){
     try {
       console.warn(name, payload);
     } catch (_) {}
   }
 
-  function logCrowdTimerArm(b, v, state, votes, cap){
-    _crowdTimerLog("CROWD_TIMER_V1_ARM", {
+  function logCrowdStallProgress(b, v, nowMs, key){
+    if (!v || !key) return;
+    _crowdLog("CROWD_STALL_V1_PROGRESS", {
       battleId: b && (b.id || b.battleId) || null,
-      eventId: v && v.eventId ? v.eventId : (b && b.eventId ? b.eventId : null),
-      startedAtMs: state.startedAtMs,
-      armAtMs: state.countdownStartMs,
-      endAtMs: state.countdownEndMs,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      now: Math.floor(nowMs),
+      progressKey: key
+    });
+  }
+
+  function logCrowdStallArm(b, v, nowMs, votes, cap){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_ARM", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      now: Math.floor(nowMs),
+      lastProgressAtMs: Number.isFinite(v.lastProgressAtMs) ? Math.floor(v.lastProgressAtMs) : null,
+      progressKey: v.lastProgressKey || null,
       votesNow: votes,
       capNow: cap
     });
   }
 
-  function logCrowdTimerTick(v, state, leftMs, votes, cap){
-    _crowdTimerLog("CROWD_TIMER_V1_TICK", {
+  function logCrowdStallTick(v, leftMs, votes, cap){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_TICK", {
       leftMs,
       votesNow: votes,
       capNow: cap
     });
   }
 
-  function logCrowdTimerExpire(v, state, res, votes, cap){
-    _crowdTimerLog("CROWD_TIMER_V1_EXPIRE", {
-      nowMs: state.nowMs,
-      endAtMs: state.countdownEndMs,
-      votesNow: votes,
-      capNow: cap,
-      outcome: res && res.outcome ? res.outcome : null
-    });
-  }
-
-  function logCrowdTimerResolve(v, reason, votes, cap){
-    if (!reason) return;
-    _crowdTimerLog("CROWD_TIMER_V1_RESOLVE", {
-      resolvedBy: reason,
+  function logCrowdStallExpire(b, v, nowMs, votes, cap){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_EXPIRE", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      now: Math.floor(nowMs),
+      endAtMs: Number.isFinite(v.countdownEndMs) ? Math.floor(v.countdownEndMs) : null,
       votesNow: votes,
       capNow: cap
     });
   }
 
+  function logCrowdStallResolve(b, v, resolvedBy, votes, cap, endedBy){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_RESOLVE", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      resolvedBy,
+      votesNow: votes,
+      capNow: cap,
+      endedBy: endedBy || null
+    });
+  }
+
+  function logCrowdCreate(v, battleId){
+    if (!v) return;
+    const votersCount = (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
+    _crowdLog("CROWD_CREATE_V1", {
+      battleId: battleId || null,
+      eventId: v.eventId || null,
+      cap: Number.isFinite(v.cap) ? Math.floor(v.cap) : null,
+      startedAtMs: Number.isFinite(v.startedAtMs) ? Math.floor(v.startedAtMs) : null,
+      votersCount,
+      seed: (v && v.seed != null) ? v.seed : null
+    });
+    logCrowdDiagCreate(v, battleId || null);
+  }
+
+  function logCrowdDiag(v, battleId, reason){
+    if (!reason) return;
+    const resolvedBattleId = battleId || (v && (v.battleId || v.eventId)) || null;
+    const resolvedEventId = (v && (v.eventId || null)) || null;
+    const resolvedCap = (v && Number.isFinite(v.cap)) ? Math.floor(v.cap) : null;
+    _crowdLog("CROWD_DIAG_V1", {
+      battleId: resolvedBattleId,
+      eventId: resolvedEventId,
+      cap: resolvedCap,
+      reason
+    });
+  }
+
+  function logCrowdDiagCreate(v, battleId){
+    if (!v) return;
+    const votersCount = (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
+    const whyVotersZero = votersCount === 0 ? "no_votes_yet" : "has_votes";
+    _crowdLog("CROWD_DIAG_V1", {
+      battleId: battleId || null,
+      eventId: v.eventId || null,
+      cap: Number.isFinite(v.cap) ? Math.floor(v.cap) : null,
+      votersCount,
+      whyVotersZero,
+      phaseAtCreate: "warmup",
+      timeDomain: "epoch",
+      reason: "created"
+    });
+  }
+
+  function ensureCrowdTimerFields(v, nowCandidate){
+    if (!v) return null;
+    const nowMs = Math.floor(Number.isFinite(nowCandidate) ? nowCandidate : now());
+    const startedAtMs = _normalizeCrowdTimerValue(v.startedAtMs) ?? nowMs;
+    const warmupEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS;
+    const countdownStartMs = _normalizeCrowdTimerValue(v.countdownStartMs);
+    const countdownEndMs = countdownStartMs
+      ? (_normalizeCrowdTimerValue(v.countdownEndMs) ?? (countdownStartMs + CROWD_TIMER_COUNTDOWN_MS))
+      : null;
+    const fallbackEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS + CROWD_TIMER_COUNTDOWN_MS;
+    v.startedAtMs = startedAtMs;
+    v.countdownStartMs = countdownStartMs;
+    v.countdownEndMs = countdownEndMs;
+    v.endAt = countdownEndMs || fallbackEndMs;
+    v.endsAt = countdownEndMs || fallbackEndMs;
+    const phase = countdownStartMs ? "countdown" : "warmup";
+    return {
+      nowMs,
+      startedAtMs,
+      warmupEndMs,
+      countdownStartMs,
+      countdownEndMs,
+      phase
+    };
+  }
   function updateCrowdTimerLogging(b, v, state, votes, cap){
     if (!v || !state) return;
     if (state.phase !== "countdown") return;
-    if (!v._crowdTimerArmLogged) {
-      logCrowdTimerArm(b, v, state, votes, cap);
-      v._crowdTimerArmLogged = true;
-    }
-    const leftMs = Math.max(0, state.countdownEndMs - state.nowMs);
+    const leftMs = Math.max(0, (state.countdownEndMs || 0) - state.nowMs);
     const roundedSec = Math.max(0, Math.floor(leftMs / 1000));
     if (typeof v._crowdTimerLastTickSecond !== "number" || v._crowdTimerLastTickSecond !== roundedSec) {
       v._crowdTimerLastTickSecond = roundedSec;
-      logCrowdTimerTick(v, state, leftMs, votes, cap);
+      logCrowdStallTick(v, leftMs, votes, cap);
     }
   }
   function getPlayer(id){ return (Game.__S.players && Game.__S.players[id]) || null; }
@@ -1114,6 +1196,24 @@
     return (a + b) | 0;
   }
 
+  function updateCrowdProgressState(b, v, nowMs){
+    if (!v) return null;
+    const epochNow = Math.floor(nowMs);
+    const key = getCrowdProgressKey(v);
+    if (!Number.isFinite(v.lastProgressAtMs)) {
+      v.lastProgressAtMs = epochNow;
+    }
+    const prevKey = v.lastProgressKey;
+    if (key && key !== prevKey) {
+      v.lastProgressKey = key;
+      v.lastProgressAtMs = epochNow;
+      logCrowdStallProgress(b, v, epochNow, key);
+    } else if (!prevKey && key) {
+      v.lastProgressKey = key;
+    }
+    return key;
+  }
+
   function createCrowdCapMeta(b, endedBy){
     if (!b || !b.crowd) return null;
     const v = b.crowd;
@@ -1178,6 +1278,17 @@
     const battleId = (b && (b.id || b.battleId)) || battleIdFallback || null;
     const cacheKey = battleId ? String(battleId) : null;
     let pendingMeta = null;
+    if (b && b.crowd && b.crowd.decided) {
+      const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+      return {
+        ok: false,
+        battleId,
+        crowdCapMeta: cachedMeta,
+        pendingMeta,
+        cacheHit: !!cachedMeta,
+        why: "crowd_decided"
+      };
+    }
     if (b && b.crowd && b.crowd.noTimerResolution) {
       const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
       const meta = res ? res.crowdCapMeta : null;
@@ -1234,7 +1345,24 @@
       const nowMsValue = now();
       const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
       const totalVotes = getCrowdTotalVotes(b.crowd);
-      const cap = Number.isFinite(b.crowd.cap) ? (b.crowd.cap | 0) : 0;
+      const cap = Number.isFinite(b.crowd.cap) ? Math.floor(b.crowd.cap) : 0;
+      updateCrowdProgressState(b, b.crowd, nowMsValue);
+      const warmupElapsed = (nowMsValue - (b.crowd.startedAtMs || nowMsValue)) >= CROWD_TIMER_WARMUP_MS;
+      const countdownActive = Number.isFinite(b.crowd.countdownStartMs);
+      const lastProgressAt = Number.isFinite(b.crowd.lastProgressAtMs) ? Math.floor(b.crowd.lastProgressAtMs) : nowMsValue;
+      if (warmupElapsed && !countdownActive && (nowMsValue - lastProgressAt) >= CROWD_TIMER_COUNTDOWN_MS) {
+        const epochNow = Math.floor(nowMsValue);
+        b.crowd.stallDetectedAtMs = epochNow;
+        b.crowd.countdownStartMs = epochNow;
+        b.crowd.countdownEndMs = epochNow + CROWD_TIMER_COUNTDOWN_MS;
+        b.crowd._crowdTimerArmLogged = true;
+        logCrowdStallArm(b, b.crowd, nowMsValue, totalVotes, cap);
+        if (timerState) {
+          timerState.countdownStartMs = b.crowd.countdownStartMs;
+          timerState.countdownEndMs = b.crowd.countdownEndMs;
+          timerState.phase = "countdown";
+        }
+      }
       updateCrowdTimerLogging(b, b.crowd, timerState, totalVotes, cap);
       if (cap > 0 && totalVotes >= cap) {
         const res = finalizeCrowdVote(b, { force: true });
@@ -1242,7 +1370,7 @@
         if (meta && cacheKey) cache[cacheKey] = meta;
         if (res && res.outcome && res.outcome !== "TIE" && b.crowd && !b.crowd._crowdTimerResolvedBy) {
           const resolvedVotes = getCrowdTotalVotes(b.crowd);
-          logCrowdTimerResolve(b.crowd, "cap", resolvedVotes, cap);
+          logCrowdStallResolve(b, b.crowd, "cap", resolvedVotes, cap, meta && meta.endedBy ? meta.endedBy : "cap");
           b.crowd._crowdTimerResolvedBy = "cap";
         }
         return {
@@ -1255,17 +1383,17 @@
           why: meta ? null : "finalize_missing_meta"
         };
       }
-      if (timerState && timerState.phase === "countdown" && timerState.nowMs >= timerState.countdownEndMs && !b.crowd.decided) {
+      if (timerState && timerState.countdownEndMs && timerState.nowMs >= timerState.countdownEndMs && !b.crowd.decided) {
         const res = finalizeCrowdVote(b, { force: true, endedBy: "crowd_timer_expired" });
         const meta = res ? res.crowdCapMeta : null;
         if (meta && cacheKey) cache[cacheKey] = meta;
         if (b.crowd && !b.crowd._crowdTimerExpireLogged) {
-          logCrowdTimerExpire(b.crowd, timerState, res, totalVotes, cap);
+          logCrowdStallExpire(b, b.crowd, timerState.nowMs, totalVotes, cap);
           b.crowd._crowdTimerExpireLogged = true;
         }
         if (res && res.outcome && res.outcome !== "TIE" && b.crowd && !b.crowd._crowdTimerResolvedBy) {
           const resolvedVotes = getCrowdTotalVotes(b.crowd);
-          logCrowdTimerResolve(b.crowd, "timer", resolvedVotes, cap);
+          logCrowdStallResolve(b, b.crowd, "timer", resolvedVotes, cap, "crowd_timer_expired");
           b.crowd._crowdTimerResolvedBy = "timer";
         }
         return {
@@ -1331,17 +1459,7 @@
     if (res && res.outcome === "TIE") {
       // Restart the crowd vote on exact tie.
       const nowMs = now();
-      const countdownStartMs = nowMs + CROWD_TIMER_WARMUP_MS;
-      const countdownEndMs = countdownStartMs + CROWD_TIMER_COUNTDOWN_MS;
-      v.startedAtMs = nowMs;
-      v.countdownStartMs = countdownStartMs;
-      v.countdownEndMs = countdownEndMs;
-      v.endAt = countdownEndMs;
-      v.endsAt = countdownEndMs;
-      v._crowdTimerArmLogged = false;
-      v._crowdTimerLastTickSecond = null;
-      v._crowdTimerResolvedBy = null;
-      v._crowdTimerExpireLogged = false;
+      resetCrowdTimerState(v, nowMs);
       v.votesA = 0;
       v.votesB = 0;
       v.aVotes = 0;
@@ -1800,6 +1918,13 @@
   function startCrowdVoteTimer(b){
     if (!isBattleInDraw(b)) return;
     if (b._crowdTimer) return;
+    if (!b.crowd) {
+      logCrowdDiag(null, b.id || b.battleId || null, "state_missing");
+      return;
+    }
+    if (!Number.isFinite(b.crowd.cap) || b.crowd.cap <= 0) {
+      logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
+    }
 
     const tickMs = 700;
 
@@ -2190,23 +2315,10 @@
 
       const { attackerId, defenderId } = attackerDefenderIds(b);
       const nowMs = now();
-      const countdownStartMs = nowMs + CROWD_TIMER_WARMUP_MS;
-      const countdownEndMs = countdownStartMs + CROWD_TIMER_COUNTDOWN_MS;
       b.crowd = {
-        // Timer fields (keep both names, different UI modules may read either one)
-        startedAtMs: nowMs,
-        countdownStartMs,
-        countdownEndMs,
-        endAt: countdownEndMs,
-        endsAt: countdownEndMs,
-
-        // Vote counters (also mirrored into crowd.votes later)
-        votesA: 0,   // attacker side
-        votesB: 0,   // defender side
-
-        // Optional map to enforce "vote once" at the event/battle level (API/UI may also enforce)
+        votesA: 0,
+        votesB: 0,
         voters: {},
-
         decided: false,
         cap: getCrowdVoteCap(getTotalPlayersCount()),
         totalPlayers: getTotalPlayersCount(),
@@ -2217,8 +2329,11 @@
         _crowdTimerResolvedBy: null,
         _crowdTimerExpireLogged: false
       };
-      // Keep alias in sync
-      b.crowd.endsAt = b.crowd.endAt;
+      resetCrowdTimerState(b.crowd, nowMs);
+      if (!Number.isFinite(b.crowd.cap) || b.crowd.cap <= 0) {
+        b.crowd.cap = getCrowdVoteCap(getTotalPlayersCount());
+        logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
+      }
 
       startCrowdVoteTimer(b);
 
@@ -2235,6 +2350,7 @@
         b.eventId = evId;
         if (b.crowd) b.crowd.eventId = evId;
       }
+      logCrowdCreate(b.crowd, b.id || b.battleId || null);
 
       // Push a SYS chat line about draw with links to battleId and eventId.
       try {

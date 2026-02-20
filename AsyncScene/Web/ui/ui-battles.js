@@ -129,19 +129,21 @@
   const UI_CROWD_TIMER_WARMUP_MS = 60000;
   const UI_CROWD_TIMER_COUNTDOWN_MS = 10000;
   function getUiCrowdTimerState(crowd){
-    const nowMs = Date.now();
-    const startedAtMs = (crowd && Number.isFinite(crowd.startedAtMs)) ? (crowd.startedAtMs | 0) : (nowMs - UI_CROWD_TIMER_WARMUP_MS);
-    const countdownStartMs = (crowd && Number.isFinite(crowd.countdownStartMs))
-      ? (crowd.countdownStartMs | 0)
-      : (startedAtMs + UI_CROWD_TIMER_WARMUP_MS);
-    const countdownEndMs = (crowd && Number.isFinite(crowd.countdownEndMs))
-      ? (crowd.countdownEndMs | 0)
-      : (countdownStartMs + UI_CROWD_TIMER_COUNTDOWN_MS);
-    const phase = nowMs < countdownStartMs ? "warmup" : "countdown";
-    const leftMs = Math.max(0, countdownEndMs - nowMs);
-    const seconds = Math.max(0, Math.ceil(leftMs / 1000));
-    return { phase, seconds, leftMs, countdownStartMs, countdownEndMs };
-  }
+  const nowMs = Date.now();
+  const startedAtMs = (crowd && Number.isFinite(crowd.startedAtMs)) ? (crowd.startedAtMs | 0) : (nowMs - UI_CROWD_TIMER_WARMUP_MS);
+  const warmupEndMs = startedAtMs + UI_CROWD_TIMER_WARMUP_MS;
+  const countdownStartMs = (crowd && Number.isFinite(crowd.countdownStartMs))
+    ? (crowd.countdownStartMs | 0)
+    : null;
+  const countdownEndMs = (crowd && Number.isFinite(crowd.countdownEndMs))
+    ? (crowd.countdownEndMs | 0)
+    : null;
+  const countdownActive = countdownStartMs !== null && nowMs >= countdownStartMs;
+  const leftMs = countdownEndMs ? Math.max(0, countdownEndMs - nowMs) : 0;
+  const seconds = countdownEndMs ? Math.max(0, Math.ceil(leftMs / 1000)) : 0;
+  const inWarmup = nowMs < warmupEndMs && !countdownActive;
+  return { inWarmup, countdownActive, warmupEndMs, seconds, leftMs, countdownStartMs, countdownEndMs };
+}
 
   // Keep a specific battle card in view across re-renders.
   UI._battleFocus = UI._battleFocus || { id: null, offset: null, at: 0 };
@@ -1314,9 +1316,9 @@ UI.renderBattles = () => {
             try {
               if (timerLine) {
                 const timerState = getUiCrowdTimerState(c);
-                timerLine.textContent = (timerState.phase === "countdown")
-                  ? `Таймер: ${timerState.seconds}с`
-                  : "Голосование идёт";
+                const showTimer = timerState.countdownActive && Number.isFinite(timerState.countdownStartMs);
+                timerLine.style.display = "block";
+                timerLine.textContent = showTimer ? `Таймер: ${timerState.seconds}с` : "Голосование идёт";
               }
             } catch (_) {}
 
