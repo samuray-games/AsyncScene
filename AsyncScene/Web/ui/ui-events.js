@@ -366,6 +366,23 @@ window.Game = window.Game || {};
     return { a, b, total: (a + b) | 0 };
   }
 
+  const EVENTS_CROWD_TIMER_WARMUP_MS = 60000;
+  const EVENTS_CROWD_TIMER_COUNTDOWN_MS = 10000;
+  function getEventCrowdTimerState(crowd){
+    const nowMs = Date.now();
+    const startedAtMs = (crowd && Number.isFinite(crowd.startedAtMs)) ? (crowd.startedAtMs | 0) : (nowMs - EVENTS_CROWD_TIMER_WARMUP_MS);
+    const countdownStartMs = (crowd && Number.isFinite(crowd.countdownStartMs))
+      ? (crowd.countdownStartMs | 0)
+      : (startedAtMs + EVENTS_CROWD_TIMER_WARMUP_MS);
+    const countdownEndMs = (crowd && Number.isFinite(crowd.countdownEndMs))
+      ? (crowd.countdownEndMs | 0)
+      : (countdownStartMs + EVENTS_CROWD_TIMER_COUNTDOWN_MS);
+    const phase = nowMs < countdownStartMs ? "warmup" : "countdown";
+    const leftMs = Math.max(0, countdownEndMs - nowMs);
+    const seconds = Math.max(0, Math.ceil(leftMs / 1000));
+    return { phase, seconds, leftMs, countdownStartMs, countdownEndMs };
+  }
+
   function canVoteOnEvent(ne, rawEvent) {
     if (!ne || !rawEvent) return false;
     if (ne.resolved || rawEvent.resolved || rawEvent.state === "resolved") return false;
@@ -896,6 +913,14 @@ window.Game = window.Game || {};
         capLine.className = "noteLine";
         capLine.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
         card.appendChild(capLine);
+
+        const timerLine = document.createElement("div");
+        timerLine.className = "noteLine crowdTimer";
+        const timerState = getEventCrowdTimerState(crowd);
+        timerLine.textContent = (timerState.phase === "countdown")
+          ? `Таймер: ${timerState.seconds}с`
+          : "Голосование идёт";
+        card.appendChild(timerLine);
 
         const D0 = Game.Data || {};
         const extraCost = Number.isFinite(D0.COST_CROWD_EXTRA_VOTE) ? (D0.COST_CROWD_EXTRA_VOTE | 0) : 2;

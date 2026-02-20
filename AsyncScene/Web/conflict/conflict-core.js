@@ -14,6 +14,96 @@
   function now(){ return Date.now(); }
   function clamp0(n){ return Math.max(0, n|0); }
   const DRAW_VOTE_DURATION_MS = 10000;
+  const CROWD_TIMER_WARMUP_MS = 60000;
+  const CROWD_TIMER_COUNTDOWN_MS = DRAW_VOTE_DURATION_MS;
+
+  function _normalizeCrowdTimerValue(value){
+    return Number.isFinite(value) ? (value | 0) : null;
+  }
+
+  function ensureCrowdTimerFields(v, nowCandidate){
+    if (!v) return null;
+    const nowMs = Number.isFinite(nowCandidate) ? nowCandidate : now();
+    const startedAtMs = _normalizeCrowdTimerValue(v.startedAtMs) ?? nowMs;
+    const warmupEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS;
+    const countdownStartMs = _normalizeCrowdTimerValue(v.countdownStartMs) ?? warmupEndMs;
+    const countdownEndMs = _normalizeCrowdTimerValue(v.countdownEndMs) ?? (countdownStartMs + CROWD_TIMER_COUNTDOWN_MS);
+    const finalEndMs = countdownEndMs;
+    v.startedAtMs = startedAtMs;
+    v.countdownStartMs = countdownStartMs;
+    v.countdownEndMs = countdownEndMs;
+    v.endAt = finalEndMs;
+    v.endsAt = finalEndMs;
+    const phase = nowMs < countdownStartMs ? "warmup" : "countdown";
+    return {
+      nowMs,
+      startedAtMs,
+      warmupEndMs,
+      countdownStartMs,
+      countdownEndMs,
+      finalEndMs,
+      phase
+    };
+  }
+  function _crowdTimerLog(name, payload){
+    try {
+      console.warn(name, payload);
+    } catch (_) {}
+  }
+
+  function logCrowdTimerArm(b, v, state, votes, cap){
+    _crowdTimerLog("CROWD_TIMER_V1_ARM", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v && v.eventId ? v.eventId : (b && b.eventId ? b.eventId : null),
+      startedAtMs: state.startedAtMs,
+      armAtMs: state.countdownStartMs,
+      endAtMs: state.countdownEndMs,
+      votesNow: votes,
+      capNow: cap
+    });
+  }
+
+  function logCrowdTimerTick(v, state, leftMs, votes, cap){
+    _crowdTimerLog("CROWD_TIMER_V1_TICK", {
+      leftMs,
+      votesNow: votes,
+      capNow: cap
+    });
+  }
+
+  function logCrowdTimerExpire(v, state, res, votes, cap){
+    _crowdTimerLog("CROWD_TIMER_V1_EXPIRE", {
+      nowMs: state.nowMs,
+      endAtMs: state.countdownEndMs,
+      votesNow: votes,
+      capNow: cap,
+      outcome: res && res.outcome ? res.outcome : null
+    });
+  }
+
+  function logCrowdTimerResolve(v, reason, votes, cap){
+    if (!reason) return;
+    _crowdTimerLog("CROWD_TIMER_V1_RESOLVE", {
+      resolvedBy: reason,
+      votesNow: votes,
+      capNow: cap
+    });
+  }
+
+  function updateCrowdTimerLogging(b, v, state, votes, cap){
+    if (!v || !state) return;
+    if (state.phase !== "countdown") return;
+    if (!v._crowdTimerArmLogged) {
+      logCrowdTimerArm(b, v, state, votes, cap);
+      v._crowdTimerArmLogged = true;
+    }
+    const leftMs = Math.max(0, state.countdownEndMs - state.nowMs);
+    const roundedSec = Math.max(0, Math.floor(leftMs / 1000));
+    if (typeof v._crowdTimerLastTickSecond !== "number" || v._crowdTimerLastTickSecond !== roundedSec) {
+      v._crowdTimerLastTickSecond = roundedSec;
+      logCrowdTimerTick(v, state, leftMs, votes, cap);
+    }
+  }
   function getPlayer(id){ return (Game.__S.players && Game.__S.players[id]) || null; }
   function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function isActivePlayer(p){
@@ -1141,11 +1231,43 @@
     }
     if (b && b.crowd) {
       ensureBattleCrowdCap(b.crowd);
+      const nowMsValue = now();
+      const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
       const totalVotes = getCrowdTotalVotes(b.crowd);
-      if (Number.isFinite(b.crowd.cap) && totalVotes >= b.crowd.cap) {
+      const cap = Number.isFinite(b.crowd.cap) ? (b.crowd.cap | 0) : 0;
+      updateCrowdTimerLogging(b, b.crowd, timerState, totalVotes, cap);
+      if (cap > 0 && totalVotes >= cap) {
         const res = finalizeCrowdVote(b, { force: true });
         const meta = res ? res.crowdCapMeta : null;
         if (meta && cacheKey) cache[cacheKey] = meta;
+        if (res && res.outcome && res.outcome !== "TIE" && b.crowd && !b.crowd._crowdTimerResolvedBy) {
+          const resolvedVotes = getCrowdTotalVotes(b.crowd);
+          logCrowdTimerResolve(b.crowd, "cap", resolvedVotes, cap);
+          b.crowd._crowdTimerResolvedBy = "cap";
+        }
+        return {
+          ok: !!(res && res.outcome),
+          battleId,
+          outcome: (res && res.outcome) ? res.outcome : null,
+          crowdCapMeta: meta,
+          pendingMeta,
+          cacheHit: !!(meta && cacheKey && cache[cacheKey]),
+          why: meta ? null : "finalize_missing_meta"
+        };
+      }
+      if (timerState && timerState.phase === "countdown" && timerState.nowMs >= timerState.countdownEndMs && !b.crowd.decided) {
+        const res = finalizeCrowdVote(b, { force: true, endedBy: "crowd_timer_expired" });
+        const meta = res ? res.crowdCapMeta : null;
+        if (meta && cacheKey) cache[cacheKey] = meta;
+        if (b.crowd && !b.crowd._crowdTimerExpireLogged) {
+          logCrowdTimerExpire(b.crowd, timerState, res, totalVotes, cap);
+          b.crowd._crowdTimerExpireLogged = true;
+        }
+        if (res && res.outcome && res.outcome !== "TIE" && b.crowd && !b.crowd._crowdTimerResolvedBy) {
+          const resolvedVotes = getCrowdTotalVotes(b.crowd);
+          logCrowdTimerResolve(b.crowd, "timer", resolvedVotes, cap);
+          b.crowd._crowdTimerResolvedBy = "timer";
+        }
         return {
           ok: !!(res && res.outcome),
           battleId,
@@ -1183,8 +1305,9 @@
     const relate = { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
     const res = resolveCrowdCore(v, relate, participants);
     const totalVotes = getCrowdTotalVotes(v);
-    let endedBy = "cap";
-    if (force) endedBy = "cap";
+    const customEndedBy = (opts && typeof opts.endedBy === "string") ? opts.endedBy : null;
+    let endedBy = customEndedBy || "cap";
+    if (force && !customEndedBy) endedBy = "cap";
     const fiftyFifty = !!(opts && opts.fiftyFifty);
     if (fiftyFifty) {
       endedBy = "fifty_fifty_no_timer";
@@ -1207,8 +1330,18 @@
     v.bVotes = votesB;
     if (res && res.outcome === "TIE") {
       // Restart the crowd vote on exact tie.
-      v.endAt = now() + DRAW_VOTE_DURATION_MS;
-      v.endsAt = v.endAt;
+      const nowMs = now();
+      const countdownStartMs = nowMs + CROWD_TIMER_WARMUP_MS;
+      const countdownEndMs = countdownStartMs + CROWD_TIMER_COUNTDOWN_MS;
+      v.startedAtMs = nowMs;
+      v.countdownStartMs = countdownStartMs;
+      v.countdownEndMs = countdownEndMs;
+      v.endAt = countdownEndMs;
+      v.endsAt = countdownEndMs;
+      v._crowdTimerArmLogged = false;
+      v._crowdTimerLastTickSecond = null;
+      v._crowdTimerResolvedBy = null;
+      v._crowdTimerExpireLogged = false;
       v.votesA = 0;
       v.votesB = 0;
       v.aVotes = 0;
@@ -1679,25 +1812,7 @@
       }
 
       const v = cur.crowd;
-
-      // Normalize timer field names and repair invalid timers to avoid "0s forever".
-      if (v && typeof v.endsAt !== "number" && typeof v.endAt === "number") v.endsAt = v.endAt;
-      if (v && typeof v.endAt !== "number" && typeof v.endsAt === "number") v.endAt = v.endsAt;
-      if (!v || typeof v.endAt !== "number" || !Number.isFinite(v.endAt) || v.endAt <= now()) {
-        // If UI/other code created an invalid crowd timer, give it a sane default window.
-        if (v) {
-          v.endAt = now() + DRAW_VOTE_DURATION_MS;
-          v.endsAt = v.endAt;
-        }
-      }
-
-      if (now() >= (v && v.endAt ? v.endAt : 0)) {
-        if (v) {
-          v.endAt = now() + DRAW_VOTE_DURATION_MS;
-          v.endsAt = v.endAt;
-        }
-      }
-
+      ensureCrowdTimerFields(v, now());
       applyCrowdVoteTick(cur);
     }, tickMs);
   }
@@ -2074,10 +2189,16 @@
       b.finished = false;
 
       const { attackerId, defenderId } = attackerDefenderIds(b);
+      const nowMs = now();
+      const countdownStartMs = nowMs + CROWD_TIMER_WARMUP_MS;
+      const countdownEndMs = countdownStartMs + CROWD_TIMER_COUNTDOWN_MS;
       b.crowd = {
         // Timer fields (keep both names, different UI modules may read either one)
-        endAt: now() + DRAW_VOTE_DURATION_MS,
-        endsAt: null,
+        startedAtMs: nowMs,
+        countdownStartMs,
+        countdownEndMs,
+        endAt: countdownEndMs,
+        endsAt: countdownEndMs,
 
         // Vote counters (also mirrored into crowd.votes later)
         votesA: 0,   // attacker side
@@ -2090,7 +2211,11 @@
         cap: getCrowdVoteCap(getTotalPlayersCount()),
         totalPlayers: getTotalPlayersCount(),
         attackerId,
-        defenderId
+        defenderId,
+        _crowdTimerArmLogged: false,
+        _crowdTimerLastTickSecond: null,
+        _crowdTimerResolvedBy: null,
+        _crowdTimerExpireLogged: false
       };
       // Keep alias in sync
       b.crowd.endsAt = b.crowd.endAt;

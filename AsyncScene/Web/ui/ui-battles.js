@@ -126,6 +126,23 @@
     } catch (_) {}
   }
 
+  const UI_CROWD_TIMER_WARMUP_MS = 60000;
+  const UI_CROWD_TIMER_COUNTDOWN_MS = 10000;
+  function getUiCrowdTimerState(crowd){
+    const nowMs = Date.now();
+    const startedAtMs = (crowd && Number.isFinite(crowd.startedAtMs)) ? (crowd.startedAtMs | 0) : (nowMs - UI_CROWD_TIMER_WARMUP_MS);
+    const countdownStartMs = (crowd && Number.isFinite(crowd.countdownStartMs))
+      ? (crowd.countdownStartMs | 0)
+      : (startedAtMs + UI_CROWD_TIMER_WARMUP_MS);
+    const countdownEndMs = (crowd && Number.isFinite(crowd.countdownEndMs))
+      ? (crowd.countdownEndMs | 0)
+      : (countdownStartMs + UI_CROWD_TIMER_COUNTDOWN_MS);
+    const phase = nowMs < countdownStartMs ? "warmup" : "countdown";
+    const leftMs = Math.max(0, countdownEndMs - nowMs);
+    const seconds = Math.max(0, Math.ceil(leftMs / 1000));
+    return { phase, seconds, leftMs, countdownStartMs, countdownEndMs };
+  }
+
   // Keep a specific battle card in view across re-renders.
   UI._battleFocus = UI._battleFocus || { id: null, offset: null, at: 0 };
 
@@ -1295,6 +1312,15 @@ UI.renderBattles = () => {
             }
 
             try {
+              if (timerLine) {
+                const timerState = getUiCrowdTimerState(c);
+                timerLine.textContent = (timerState.phase === "countdown")
+                  ? `Таймер: ${timerState.seconds}с`
+                  : "Голосование идёт";
+              }
+            } catch (_) {}
+
+            try {
             // Best-effort: keep local battle in sync so other UI code reads fresh numbers.
             try {
               bb.escapeVote = bb.escapeVote || {};
@@ -1446,6 +1472,11 @@ UI.renderBattles = () => {
           voteHint.className = "pill";
           voteHint.textContent = isMyDraw ? "Голосование идёт. Ты только смотришь." : "Голосование идёт.";
           drawWrap.appendChild(voteHint);
+
+          const timerLine = document.createElement("div");
+          timerLine.className = "noteLine crowdTimer";
+          timerLine.textContent = "Голосование идёт";
+          drawWrap.appendChild(timerLine);
 
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
           // Any previously captured DOM nodes become detached. We keep a mutable
