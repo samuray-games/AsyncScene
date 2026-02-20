@@ -2126,6 +2126,60 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
     Facts:
       - Console.txt DUMP_AT `2026-02-15 22:29:49` показывает ECON_SOC_STEP4_JSON ok:false failed:[second_not_rate_limited], second.rateLimited=false, tailReasonsSample содержит повторные report_false_penalty без report_rate_limited.
 
+### [LOG-20260220-001] DM header collapse toggle reliability
+- Status: PASS
+- Priority: P3
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui/ui-boot.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS (smoke not run)
+    Facts:
+      - `AsyncScene/Web/ui/ui-dm.js` теперь вручную переключает `UI.getPanelSize("dm")` при клике по `.dm`-заголовку, стопит всплытие, не трогает `S.dm.activeId`, не вызывает автофокус/scrollIntoView и не изменяет другие части UI.
+      - `bindChatHeaderLocations` в `AsyncScene/Web/ui/ui-boot.js` обёрнут `try/catch`: ReferenceError больше не блокирует биндинги, ошибка логируется как `bindChatHeaderLocations failed to bind`, и остальные обработчики (включая DM header) всегда подключаются.
+      - Никакой дополнительной логики не изменено — только UI/handler/state, и поведение `setPanelSize` осталось прежним.
+      - A[1] “DM не сворачивается” — PASS подтверждён ручным smoke пользователя (см. инструкции: 5 кликов по DM header с сохранением `activeId` и отсутствием автоскролла).
+    Smoke: открывать DM, выбрать два треда, удерживать `activeId`, кликать шапку DM 5 раз подряд — панель должна сворачиваться/разворачиваться без автоскролла/ошибок.
+    Manual QA: PASS когда при пяти кликах по DM header активный тред сохраняется, ничего не скроллится само, ошибок в консоли нет.
+    Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui/ui-boot.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [LOG-20260220-002] DM UI “окно открыто” removal (A[2])
+- Status: PASS
+- Priority: P3
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS (smoke not run)
+    Facts:
+      - Console check (`Console.txt` tail at 2026-02-20) показывает только существующие WARN/LOG, новых ошибок по UI/DM нет (ok).
+      - Удалён system-line `arr.push(... "Окно открыто.")` из `UI.openDM` в `AsyncScene/Web/ui/ui-dm.js`, поэтому новый DM сразу отображает выбранный тред без текстов “окно открыто”.
+      - Благодаря удалению никакой бейдж/статус “окно открыто” больше не рендерится в DM header или списке логов.
+      - Ручной smoke (пользователь): две вкладки DM открыты/закрыты без появления “окно открыто” — PASS.
+    Smoke: открыть DM, переключить треды, свернуть/развернуть, убедиться, что текст “окно открыто” нигде не появляется.
+    Manual QA: PASS когда после любых действий “окно открыто” отсутствует (header/badge/tooltip/systems).
+    Changed: `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [LOG-20260220-003] DM threads counter (A[3])
+- Status: PASS (manual smoke done)
+- Priority: P3
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: |
+    Status: PASS (ручной smoke: два входа/выхода, входящее сообщение — счетчик стабильный)
+    Facts:
+      - Console tail (`Console.txt` at 2026-02-20) показывает только существующие WARN/LOG, новых ошибок по UI/DM нет (ok).
+      - Заголовок `Личка` теперь отображает `threadsCount`, считая `S.dm.openIds`, фильтруя через `isInteractiveDmThread` (отбрасывая системные `isSystem`-only потоки и специальные id вроде `security_owner`) и `getInteractiveDmThreadsCount`.
+      - Счетчик заряжается только при открытии/закрытии чипов, входящие сообщения оставляют `S.dm.openIds` без изменений, поэтому `threadsCount` не реагирует на сообщения.
+      - Bug: лишний серый счетчик `(5)` справа от “Личка (N)” — это `panelBadge.dmBadge`, он был удалён, так что header теперь показывает одну дату.
+    Smoke: DM закрыт, открыть по очереди 1–2 треда, закрыть один, затем принять входящее сообщение — счетчик “Личка (N)” меняется только от open/close.
+    Manual QA: PASS после ручного прогону (инструкция выше).
+    Changed: `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
+
 ### [LOG-20260215-021] ECON-SOC Step4 baseline (DUMP_AT 2026-02-15 22:33:13)
 - Status: STARTED
 - Priority: P1
@@ -2414,3 +2468,51 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
       3. Totals/snapshots stay constant, and `logTail` holds exactly one transfer plus one blocked attempt.
     Manual QA: PASS when command output matches evidence.
     Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### [T-20260220-004] ECON-SOC Cop report flow audit
+- Status: FAIL
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/state.js` `AsyncScene/Web/data.js` `AsyncScene/Web/conflict/conflict-core.js`
+- Goal: Пройти цепочку "Сдать" → `applyReportByRole`, зафиксировать state-переменные/guards и отметить блокирующий ReferenceError.
+- Acceptance:
+  - [x] Прописан UI → handler (submitBtn) и вызов `Game.__A.applyReportByRole` (ui-dm.js:1507-1572).
+  - [x] Обзор `State.applyReportByRole` показал rate-limit `(report_submit/report_repeat)`, cooldown по конкретному копу, `ALLOWED_REPORT_ROLES` и moneyLog-релизы `report_rate_limited`, `rep_report_false`, `report_false_penalty`, `rep_report_true`, `report_true_compensation`.
+  - [x] `State.sightings`/`markSightingByPlayerId` установлены, но `applyReportByRole` их не читает, так что evidence/sightings не влияют на true/false ветви.
+- Result: |
+    Status: FAIL
+    Facts:
+      - `AsyncScene/Web/ui/ui-dm.js:1507-1572` (кнопка "Сдать" + submit handler) проверяет `Game.__A.applyReportByRole`, очищает форму, вызывает `UI.renderDM` и фокусирует копа, так что click реально вызывает applyReport (YES).
+      - `AsyncScene/Web/state.js:2853-3220` подробно управляет report flow: `Security.rateLimit` для `report_submit/report_repeat`, `isCopBusyById` + `State.reports.cooldownMs`, `markReported`, reward/penalty transfers и moneyLog entries (reasons `report_rate_limited`, `rep_report_false`, `report_false_penalty`, `rep_report_true`, `report_true_compensation`).
+      - `AsyncScene/Web/state.js:3074-3114` применяет `ALLOWED_REPORT_ROLES` и в защитных ветках вызывает `applyFalseReport`, но такого helper'а нигде не определено — при ложном/невалидном/копа-чанге доносе будет ReferenceError, поэтому flow не может завершиться.
+      - `AsyncScene/Web/state.js:2037-2040,2264-2572` + `AsyncScene/Web/conflict/conflict-core.js:182-200` пишут `State.sightings` через `markSightingByPlayerId` и `recordVillainHarm`, но `applyReportByRole` никак не использует `State.sightings`, значит evidence/sightings не gate'ят true/false.
+- Evidence:
+  - `AsyncScene/Web/ui/ui-dm.js:1507-1572`
+  - `AsyncScene/Web/state.js:2037-2040,2264-2572,2853-3220`
+  - `AsyncScene/Web/state.js:3074-3114`
+  - `AsyncScene/Web/conflict/conflict-core.js:182-200`
+  - `AsyncScene/Web/data.js:2450-2451`
+- How to verify:
+  1. Hard reload `http://localhost:8080/index.html?dev=1`.
+  2. В DM вызвать "Сдать" на NPC и проверить консоль: при попадании в guard `applyFalseReport` бросает ReferenceError (или выполнить `Game.__A.applyReportByRole("bandit")`).
+  3. Убедиться, что `State.sightings` обновляется (через `markSightingByPlayerId` / `recordVillainHarm`), но `applyReportByRole` не читает значения.
+  4. После исправления `applyFalseReport` (или удаления вызовов) повторно прогнать flow, проследить `Game.__D.moneyLog` и `State.reports` для reason-строк выше; тогда можно отмечать PASS.
+  Manual QA: FAIL (ReferenceError в false-report ветке).
+  Changed: `TASKS.md`
+- Report:
+  - Status: FAIL
+  - Facts: см. выше.
+  - Changed: `TASKS.md`
+  - How to verify: см. шаги 1–4.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      QA steps:
+      (1) Hard reload http://localhost:8080/index.html?dev=1 и открой DM с копом.
+      (2) В консоли вызови `console.log(Game.__A.applyReportByRole("toxic"))` и посмотри, выбрасывается ли `ReferenceError: applyFalseReport is not defined`.
+      (3) Реализуй `applyFalseReport` (и, если нужно, `applyTrueReport`) либо исключи вызовы, убедись, что false/true ветки корректно пишут `Game.__D.moneyLog` с reason `report_false_penalty`/`rep_report_false`/`rep_report_true`.
+      (4) Повтори flow через UI: поле + кнопка "Сдать", подтверждай, что `State.reports`/`copCooldowns` актуальны и `State.sightings` остаётся заметкой.
+      PASS когда flow завершается без ReferenceError и false/true ответы задокументированы.
+      ```

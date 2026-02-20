@@ -166,6 +166,34 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     return right;
   }
 
+  const RESERVED_SYSTEM_DM_IDS = new Set(["security_owner"]);
+
+  function isInteractiveDmThread(S, rawId) {
+    if (!S || !S.dm) return false;
+    const id = String(rawId || "");
+    if (!id) return false;
+    if (RESERVED_SYSTEM_DM_IDS.has(id)) return false;
+    const logs = (S.dm.logs && Array.isArray(S.dm.logs[id])) ? S.dm.logs[id] : [];
+    if (!logs.length) return true;
+    for (const line of logs) {
+      if (line && !line.isSystem) return true;
+    }
+    return false;
+  }
+
+  function getInteractiveDmThreadsCount(S) {
+    if (!S || !S.dm || !Array.isArray(S.dm.openIds)) return 0;
+    const seen = new Set();
+    let count = 0;
+    for (const rawId of S.dm.openIds) {
+      const id = String(rawId || "");
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      if (isInteractiveDmThread(S, id)) count++;
+    }
+    return count;
+  }
+
   function getEscapeCostForRole(role){
     const D = (Game && Game.Data) ? Game.Data : null;
     const r = String(role || "").toLowerCase();
@@ -250,13 +278,6 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     // Ensure the DM becomes a visible tab even before any incoming messages.
     // This enables "open second DM while first stays available" behavior.
-    try {
-      const arr = S.dm.logs[playerId];
-      if (Array.isArray(arr) && arr.length === 0) {
-        arr.push({ t: UI.nowHHMM(), from: "Система", text: "Окно открыто." });
-      }
-    } catch (_) {}
-
     const dmBlock = $("dmBlock");
     if (dmBlock) dmBlock.classList.remove("hidden");
 
@@ -512,11 +533,12 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("dm") : 0;
     const unreadMap = (S.dm && S.dm.unread) ? S.dm.unread : {};
     const totalUnread = Object.values(unreadMap).reduce((sum, v) => sum + ((Number(v) || 0)), 0);
-    const displayCount = Math.max(collapsedCount, totalUnread);
-    if (dmHeaderCount) dmHeaderCount.textContent = displayCount ? ` (${displayCount})` : "";
+    const hotCount = Math.max(collapsedCount, totalUnread);
+    const threadsCount = getInteractiveDmThreadsCount(S);
+    if (dmHeaderCount) dmHeaderCount.textContent = threadsCount ? ` (${threadsCount})` : "";
     if (dmBlockHeader) {
-      if (displayCount > 0) dmBlockHeader.classList.add("panelHeader--hot");
-      UI.pulsePanelHeader && UI.pulsePanelHeader("dm", dmBlockHeader, displayCount, 0);
+      if (hotCount > 0) dmBlockHeader.classList.add("panelHeader--hot");
+      UI.pulsePanelHeader && UI.pulsePanelHeader("dm", dmBlockHeader, hotCount, 0);
     }
 
     // Apply 3-size layout classes and header controls (cycler + close)
@@ -532,12 +554,16 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const right = ensureHeaderRight(header);
       if (header) {
         header.onclick = (ev) => {
+          const t = ev && ev.target;
+          const clickedButton = t && (t.tagName === "BUTTON" || (t.closest && t.closest("button")));
+          try {
+            ev && ev.stopPropagation();
+          } catch (_) {}
+          if (clickedButton) return;
           try {
             header.classList.remove("panelHeader--hot");
             if (UI && typeof UI.resetCollapsedCounter === "function") UI.resetCollapsedCounter("dm");
           } catch (_) {}
-          const t = ev && ev.target;
-          if (t && (t.tagName === "BUTTON" || (t.closest && t.closest("button")))) return;
           const current = (UI && typeof UI.getPanelSize === "function") ? UI.getPanelSize("dm") : "medium";
           const next = (current === "collapsed") ? "medium" : "collapsed";
           try {
@@ -620,21 +646,6 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             }
           }, false);
         }
-        try {
-          const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("dm") : 0;
-          let badgeEl = header.querySelector(".panelBadge.dmBadge");
-          if (!badgeEl) {
-            badgeEl = document.createElement("span");
-            badgeEl.className = "badge panelBadge dmBadge";
-          }
-          badgeEl.textContent = collapsedCount ? `(${collapsedCount})` : "";
-          badgeEl.style.display = collapsedCount ? "" : "none";
-          if (right && badgeEl.parentNode !== header) {
-            header.insertBefore(badgeEl, right);
-          } else if (!right && badgeEl.parentNode !== header) {
-            header.appendChild(badgeEl);
-          }
-        } catch (_) {}
       }
     }
 

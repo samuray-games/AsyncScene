@@ -189,17 +189,26 @@ window.Game = window.Game || {};
   }
 
   function bindChatHeaderLocations(UI) {
-    const $ = UI.$;
-    const header = $("chatHeader");
-    if (!header || header.__locHeader) return;
-    header.__locHeader = true;
-    header.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      UI.S.flags = UI.S.flags || {};
-      UI.S.flags.locationsOpen = !UI.S.flags.locationsOpen;
-      if (typeof UI.renderLocations === "function") UI.renderLocations();
-    });
+    if (!UI) return;
+    try {
+      const $ = UI.$;
+      const header = $("chatHeader");
+      if (!header || header.__locHeader) return;
+      header.__locHeader = true;
+      header.addEventListener("click", (e) => {
+        try {
+          e.preventDefault();
+          e.stopPropagation();
+          UI.S.flags = UI.S.flags || {};
+          UI.S.flags.locationsOpen = !UI.S.flags.locationsOpen;
+          if (typeof UI.renderLocations === "function") UI.renderLocations();
+        } catch (innerError) {
+          console.warn("bindChatHeaderLocations: handler failed", innerError);
+        }
+      });
+    } catch (error) {
+      console.warn("bindChatHeaderLocations failed to bind", error);
+    }
   }
 
   function bindBlockHeaderToggles(UI) {

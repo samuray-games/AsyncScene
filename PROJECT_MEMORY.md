@@ -3228,3 +3228,52 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Console.txt DUMP_AT 2026-02-19 23:23:29 captured `ECON_UI7_PACK_BEGIN`/`END` and `ECON_UI7_PACK_RESULT` with `ok:true`, `failed:[]`, `totalMs<=180000`, and every step (battle/crowd/report/rematch/escape/smoke_no_silent/smoke_zero_sum) marked `ok:true`, while rematch_3 surfaces payer diagnostics instead of looping on `no_points`.
   - The console tape now logs `CONSOLE_TAPE_RUN_RESULT_V1` with `isPromise:0` for the pack command.
 - Next: QA
+
+### 2026-02-20 — DM header collapse toggle reliability
+- Status: PASS
+- Facts:
+  - `AsyncScene/Web/ui/ui-dm.js` теперь привязывает `header.onclick`, останавливает всплытие, правильно переключает `UI.getPanelSize("dm") → collapsed/medium`, не трогает `S.dm.activeId` и не вызывает `scrollIntoView`/focus/focusOnOpen`, так что DM остаётся открытым и без автоскролла.
+  - `bindChatHeaderLocations` в `AsyncScene/Web/ui/ui-boot.js` служит крепкой, обёрнутой в `try/catch` оболочкой: если хук падает (ReferenceError или отсутствие DOM), он логирует `bindChatHeaderLocations failed to bind` и не останавливает остальные биндинги, поэтому DM-панель всегда получает свою обработку.
+  - Никакие другие части логики не тронуты: мы только поправили обработчики UI/state, оставив `setPanelSize`/колбэки прежними.
+  - A[1] “DM не сворачивается” подтверждён: ручной smoke пользователя (описаны инструкции в entry) воспроизводит 5 кликов по заголовку, панель стабильно переключается, `activeId` сохраняется; статус PASS фиксирован как доказательство.
+- Smoke: вручную проверить, что клик по заголовку DM 5 раз подряд сворачивает/разворачивает панель, не сбрасывает `activeId`, и страница не скроллится сама.
+- Evidence: not run (см. Smoke выше).
+- Next: QA (пользовательский smoke по описанию).
+
+### 2026-02-20 — DM UI “окно открыто” badge removal (A[2])
+- Status: PASS
+- Facts:
+  - Console tail (`Console.txt` at 2026-02-20) содержит только существующие WARN/LOG, без новых UI/DM ошибок (ok).
+  - Удалён system-контент `arr.push(... "Окно открыто.")` из `AsyncScene/Web/ui/ui-dm.js` при `UI.openDM`, поэтому DM открывается без дополнительных статусных строк/бейджей.
+  - Текст “окно открыто” больше не может рендериться ни в header, ни в списке сообщений, ни в тултипах.
+  - Ручной smoke (пользовательский): два треда открыты/закрыты, text “окно открыто” отсутствует — статус PASS зафиксирован.
+- Smoke: открыть DM, переключить треды, свернуть/развернуть и убедиться, что ни в каком элементе UI не появляется “окно открыто”.
+- Next: QA (пользовательский smoke по описанию).
+
+### 2026-02-20 — DM threads counter (A[3])
+- Status: PASS
+- Facts:
+  - Console tail (`Console.txt` at 2026-02-20) показывает только существующие WARN/LOG, без свежих UI/DM ошибок.
+  - Заголовок `Личка (N)` теперь собирает `threadsCount` как количество интерактивных DM (S.dm.openIds фильтруется через `isInteractiveDmThread` и `getInteractiveDmThreadsCount`), так что счетчик реагирует только на открытие/закрытие чипов.
+  - Серые/phantom-треды вроде `security_owner`, цель которых — системные уведомления, не считаются (фильтр отвергает `isSystem`-only потоки и специальные id, но дорабатывается, если появятся новые).
+  - Bug: “лишний серый счетчик (5)” справа от заголовка — это уже убранный collapsed badge (`panelBadge.dmBadge`), теперь в header остаётся только “Личка (N)”.
+- Smoke: DM закрыт, открыть/закрыть треды и убедиться, что значение `N` меняется только при open/close, а при входящих сообщениях не реагирует.
+- Manual QA: PASS (ручной smoke пользователя: 3 чипа, collapsed/expanded, входящие — весь текст остаётся “Личка (N)” без серого counter).
+- Next: QA
+
+### 2026-02-20 — COP report flow audit (code review)
+- Status: FAIL
+- Facts:
+  - Modern DM submit button (`AsyncScene/Web/ui/ui-dm.js:1507-1572`) calls `Game.__A.applyReportByRole`, clears the form and reopens DM, so the click path is wired through `StateAPI` (click -> handler -> state).
+  - `AsyncScene/Web/state.js:2853-3220` implements `applyReportByRole`: `Security.rateLimit` для `report_submit/report_repeat`, guards `isCopBusyById` + `State.reports.cooldownMs`, records `State.reports.history`, and emits `Game.__D.moneyLog` entries with reasons `report_rate_limited`, `rep_report_false`, `report_false_penalty`, `rep_report_true`, `report_true_compensation` when false/true reports are processed.
+  - `AsyncScene/Web/state.js:3074-3114` applies `ALLOWED_REPORT_ROLES` but calls `applyFalseReport` in every && guard; no such helper is defined in the repo, so any false/invalid report winds up with `ReferenceError`, meaning the reported flow cannot finish even though the preceding logic looks complete.
+  - `AsyncScene/Web/state.js:2037-2040,2264-2572` + `AsyncScene/Web/conflict/conflict-core.js:182-200` keep `State.sightings` via `markSightingByPlayerId`/`recordVillainHarm`, but `applyReportByRole` never reads `State.sightings`, therefore evidence/sighting data do not gate true/false reports (truth is only `target.role`).
+- Evidence:
+  - `AsyncScene/Web/ui/ui-dm.js:1507-1572`
+  - `AsyncScene/Web/state.js:2037-2040,2264-2572,2853-3220`
+  - `AsyncScene/Web/state.js:3074-3114`
+  - `AsyncScene/Web/conflict/conflict-core.js:182-200`
+  - `AsyncScene/Web/data.js:2450-2451`
+- Smoke: not run (репорты проверены только чтением кода).
+- How to verify: открыты `index.html?dev=1`, нажать "Сдать" в DM на токсика/бандита/мафию и посмотреть консоль — ветки `applyFalseReport` бросают ReferenceError; можно также вызвать `Game.__A.applyReportByRole("bandit")` и убедиться в той же ошибке, затем реализовать helper и повторно прогнать flow до PASS.
+- Changed: `PROJECT_MEMORY.md`
