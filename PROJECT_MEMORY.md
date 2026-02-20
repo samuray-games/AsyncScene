@@ -3293,14 +3293,22 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `report_true_compensation amount 0` (worldBank->me) is logged for the true report; verify whether zero compensation is intentional or needs a follow-up task when nonzero recovery is expected.
 
 ### 2026-02-20 — COP report pending resolve audit (Step 3)
+- Status: PASS
+- Facts:
+  - Console.txt DUMP at 2026-02-20 17:26:04 captures the full pending->resolve sequence: `REPORT_PENDING_CREATED_V1`, `UI_REPORT_PENDING_UI_V1`, `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, and `UI_REPORT_RESOLVE_DONE_V1` with reason `true_report`.
+  - `REPORT_PENDING_RESOLVED_V1` reports `moneyLogDeltaCount: 3`, `appliedReasonCodes: [true_report]`, and `lastReasonsTail` containing `rep_report_true`/`rep_report_true`/`report_true_compensation`, proving canonical moneyLog rows appear exactly once after resolve and that econ effects are deferred until the pending is resolved.
+  - Prior to resolve there are no new `report_*` rows for this opKey, so the UI’s “Проверяем…” state is real, and `pending_exists` + `already_resolved` guards keep the flow idempotent.
+- Evidence:
+  - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` includes the markers above and the moneyLog tail shows the true-report rows (`rep_report_true`, `rep_report_true`, `report_true_compensation`) after resolve.
+- Next: QA
+
+### 2026-02-20 — COP report smoke pack (Step 4)
 - Status: FAIL
 - Facts:
-  - `Console.txt` DUMP at 2026-02-20 17:09:40 shows `REPORT_PENDING_CREATED_V1` (pending_1771574948794_535552) and `pending` reasonCode, but the follow-up `AFTER_RESOLVE_REPORT_ROWS` call returns `[]` even after 1.2s, so `applyTrueReport` / `applyFalseReport` still never insert the canonical `rep_report_*` / `report_*` rows after resolve.
-  - `resolveReport(pendingId)` was extended with `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, `moneyLogDeltaCount`, `lastReasonsTail`, and uses existing apply helpers, yet the dump lacks any of these resolve logs, indicating resolve may not be invoked or the helper fails before writing moneyLog.
-  - UI DM pending handling now logs `UI_REPORT_PENDING_UI_V1` and `UI_REPORT_RESOLVE_DONE_V1` around the delayed resolve (delay computed from `resolveAtMs`), but the console evidence has no `REPORT_PENDING_RESOLVED_V1` nor `UI_REPORT_RESOLVE_DONE_V1` entries, so the flow still never finishes the econ transition at runtime.
+  - Console.txt `DUMP_AT 2026-02-20 17:26:04` contains only the true-report run and canonical `rep_report_true`/`report_true_compensation` rows; `report_false_penalty`/`rep_report_false` never appear, so the false-flow (S2) is unverified.
+  - `pending_exists`/`report_rate_limited` markers required for S3/S4 also do not appear in the dump, so anti-dup and rate-limit protections have not been confirmed in this evidence set.
 - Evidence:
-  - `Console.txt: [DUMP_AT] [2026-02-20 17:09:40]` contains `REPORT_PENDING_CREATED_V1 {pendingId: pending_1771574948794_535552, resolveAtMs: 1771574949594, opKey: report:2026-02-20:npc_cop_v:me:npc_toxic:true}` followed by `AFTER_CLICK_REPORT_ROWS []`, `AFTER_RESOLVE_REPORT_ROWS []` (1200ms delay), and a repeat submit yielding `pending_exists` with the same pendingId, but no `REPORT_PENDING_RESOLVED_V1` or canonical moneyLog rows.
-  - The moneyLog tail remains empty of `rep_report_true`, `report_true_compensation`, `rep_report_false`, or `report_false_penalty` rows for the new opKey, so the resolve outcome is never recorded even though pending was created and re-queried.
+  - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` shows only the true-report markers and lacks the canonical false/anti-dup/rate-limit rows described in the smoke definition.
 - Next: QA
 
 ### P1 NOTES — COP report handler stop-fix

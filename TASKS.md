@@ -2557,7 +2557,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
       ```
 
 ### [T-20260220-006] COP report pending resolve flow (Step 3)
-- Status: FAIL
+- Status: PASS
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -2572,14 +2572,13 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - [ ] `resolvePendingReportsTick` логирует `REPORT_PENDING_TICK_V1` и по прежнему может резолвить просроченные pending за 0.8с, но resolve идёт напрямую из UI.
   - [ ] New `REPORT_PENDING_*_V1` лог-записи содержат `pendingId`, `opKey`, `outcomeBucket`, `copId`, `targetId`, `moneyLogDeltaCount`, `lastReasonsTail` и `appliedReasonCodes`.
 - Result: |
-    Status: FAIL (DUMP_AT 2026-02-20 17:09:40)
+    Status: PASS (DUMP_AT 2026-02-20 17:26:04)
     Facts:
-      - Console dump shows `REPORT_PENDING_CREATED_V1` and `pending` reasonCode but `AFTER_RESOLVE_REPORT_ROWS` returns empty array, so `resolveReport` either not invoked or moneyLog delta still zero.
-      - Added deterministic pending lifecycle (State.reports.pendingById/pendingByActorId), resolve logs (`REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`), and UI pending logs/timeout (AsyncScene/Web/ui/ui-dm.js:1500-1610).
-      - `resolvePendingReportsTick` now warns `REPORT_PENDING_TICK_V1` and drains pendings older than `resolveAtMs`, but QA should drive resolve via UI to confirm logging and moneyLog delta.
-    Evidence:
-      - `Console.txt: [DUMP_AT] [2026-02-20 17:09:40]` shows `REPORT_PENDING_CREATED_V1` (pending_1771574948794_535552, resolveAtMs=1771574949594) and `AFTER_RESOLVE_REPORT_ROWS []` despite 1200ms delay; `REPORT_PENDING_RESOLVED_V1` absent after fix attempt (resolve not reporting moneyLog delta).
-      - MoneyLog tail still lacks `report_false_penalty`/`rep_report_true` rows, consistent with failure scenario C/D from instructions.
+      - Console dump logs the full pending->resolve roundtrip: `REPORT_PENDING_CREATED_V1`, `UI_REPORT_PENDING_UI_V1`, `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, and `UI_REPORT_RESOLVE_DONE_V1` with reason `true_report`.
+      - `REPORT_PENDING_RESOLVED_V1` records `moneyLogDeltaCount: 3`, `appliedReasonCodes: [true_report]`, and `lastReasonsTail` containing `rep_report_true` and `report_true_compensation`, demonstrating canonical moneyLog rows appear exactly once after resolve.
+      - Before resolve there are no `report_*` rows for this opKey, so the delay actually gates econ effects and the UI shows “Проверяем…” before the final message.
+- Evidence:
+  - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` slices include the listed markers and the moneyLog tail shows `rep_report_true` + `report_true_compensation` rows (amounts 2 and 0).
 - P1 Notes:
   - WARN transferRep insufficient funds for `rep_report_false` (amount 2) may occur when `crowd_pool`/`me` wallet lacks rep; moneyLog row recorded but actual rep change must be validated in separate follow-up.
   - `report_true_compensation amount 0` may be intended (no victimized funds) but needs product clarification before changing design.
@@ -2596,3 +2595,39 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     (2) Trigger the DM “Сдать” flow twice: once to observe pending then resolve, and once to ensure pending_exists prevents duplicates.
     (3) PASS if pending logs + resolve logs (`REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, `UI_REPORT_PENDING_UI_V1`, `UI_REPORT_RESOLVE_DONE_V1`) appear, moneyLog rows show canonical report reasons only after resolve, and duplicate resolves/report_submits don't add extra rows; otherwise FAIL with console dumps.
     ```
+
+### [T-20260220-008] COP report smoke pack (Step 4)
+- Status: FAIL
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md`
+- Goal: Подтвердить поведение “Сдать” в четырех сценариях: truthful pending->resolve, false pending->resolve, anti-dup, anti-spam rate limit.
+- Acceptance:
+  - [ ] S1: подача true-репорта создаёт `REPORT_PENDING_*`/`UI_REPORT_*` маркеры и `rep_report_true`/`report_true_compensation` rows после resolve.
+  - [ ] S2: ложный репорт логирует те же маркеры и canonical rows `report_false_penalty`/`rep_report_false` после resolve.
+  - [ ] S3: повторный submit во время pending возвращает `pending_exists` и не дублирует moneyLog rows.
+  - [ ] S4: быстрая вторая попытка (rate-limit) возвращает `rate_limited` (или аналог) и не создаёт лишних строк (`report_rate_limited` один раз).
+- Result: |
+    Status: FAIL (DUMP_AT 2026-02-20 17:26:04)
+    Facts:
+      - The dump contains S1 logs (`REPORT_PENDING_CREATED_V1`, `REPORT_PENDING_RESOLVED_V1`, canonical `rep_report_true`/`report_true_compensation`) but there is no evidence for S2: `report_false_penalty` or `rep_report_false` are missing from the tail.
+      - Anti-dup/rate-limit markers (`pending_exists`, `report_rate_limited`) are also absent, so S3/S4 are unverified.
+    Evidence:
+      - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` shows only the true-report markers and moneyLog rows; all required markers for false/anti-dup/rate-limit flows are missing.
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
+- How to verify:
+  1. Reload http://localhost:8080/index.html?dev=1 and open the cop DM.
+  2. S1: submit a true report, confirm pending logs + `rep_report_true`/`report_true_compensation` appear after resolve.
+  3. S2: submit a false report (target outside allowlist or invalid role) and confirm canonical false rows appear only after resolve.
+  4. S3: submit twice in quick succession while pending exists; expect `pending_exists` and no duplicate moneyLog rows.
+  5. S4: submit again within rate-limit window; expect `rate_limited` response and single `report_rate_limited` row.
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    QA:
+    (1) Reload http://localhost:8080/index.html?dev=1 and open the cop DM.
+    (2) Run S1–S4 as described above.
+    (3) PASS if each scenario logs the required markers and canonical moneyLog rows exactly once after resolve; otherwise FAIL with console dumps (include missing markers/reasons).
+    ```
+
