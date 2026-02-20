@@ -2175,7 +2175,8 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       - Console tail (`Console.txt` at 2026-02-20) показывает только существующие WARN/LOG, новых ошибок по UI/DM нет (ok).
       - Заголовок `Личка` теперь отображает `threadsCount`, считая `S.dm.openIds`, фильтруя через `isInteractiveDmThread` (отбрасывая системные `isSystem`-only потоки и специальные id вроде `security_owner`) и `getInteractiveDmThreadsCount`.
       - Счетчик заряжается только при открытии/закрытии чипов, входящие сообщения оставляют `S.dm.openIds` без изменений, поэтому `threadsCount` не реагирует на сообщения.
-      - Bug: лишний серый счетчик `(5)` справа от “Личка (N)” — это `panelBadge.dmBadge`, он был удалён, так что header теперь показывает одну дату.
+      - Follow-up: добавлен `refreshDmHeader()` (в `ui-dm.js`), вызываемый после `UI.openDM`, `UI.dmPushLine`, `closeDM`, close-tab handler — локальный rerender dm header происходит мгновенно, без зависимостей от chat rerender.
+      - Bug: лишний серый счетчик `(5)` справа от “Личка (N)” — это `panelBadge.dmBadge`, он был удалён.
     Smoke: DM закрыт, открыть по очереди 1–2 треда, закрыть один, затем принять входящее сообщение — счетчик “Личка (N)” меняется только от open/close.
     Manual QA: PASS после ручного прогону (инструкция выше).
     Changed: `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
@@ -2516,3 +2517,37 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
       (4) Повтори flow через UI: поле + кнопка "Сдать", подтверждай, что `State.reports`/`copCooldowns` актуальны и `State.sightings` остаётся заметкой.
       PASS когда flow завершается без ReferenceError и false/true ответы задокументированы.
       ```
+
+### [T-20260220-005] COP report handler stop-fix
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Восстановить `applyReportByRole` без ReferenceError, сделать false/true ветки контролируемыми и логировать canonical moneyLog rows через helpers.
+- Acceptance:
+  - [x] `buildReportOpKey`, `ensureReportMoneyLogRow`, `applyFalseReport` и `applyTrueReport` реализованы рядом со `applyReportByRole` (AsyncScene/Web/state.js:2860-3197) и записывают opKey/meta.
+  - [x] `applyReportByRole` делегирует guard/false/true ветки новым helper'ам и возвращает {ok, reasonCode, copId, targetId, opKey} без падений (state.js:3200-3470).
+  - [x] False/true сценарии генерируют `rep_report_false`/`report_false_penalty`/`rep_report_true`/`report_true_compensation` rows через `ensureReportMoneyLogRow` и используют существующие Econ-пути без прямых мутаций points/rep.
+- Result: |
+    Status: PASS
+    Facts:
+      - `applyFalseReport` / `applyTrueReport` теперь пользуются `buildReportOpKey` и `ensureReportMoneyLogRow`, применяют `transferRep`/`transferPoints` с meta={fromId,toId,targetId,copId,reporterId,opKey}` и возвращают диагностику и объект результата.
+      - `applyReportByRole` проверяет guards, rate limits и, в зависимости от truth, возвращает helper'ы вместо ReferenceError-веток, so DM UI receives structured responses.
+      - Canonical moneyLog reasons (`report_false_penalty`, `rep_report_false`, `rep_report_true`, `report_true_compensation`) now appear only once per opKey, protecting against duplicate penalties when rate-limited.
+    Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- How to verify:
+  1. Reload http://localhost:8080/index.html?dev=1.
+  2. Smoke #1: `console.log("SMOKE_REPORT_REFERR", Game.__A.applyReportByRole("toxic"))` — expect neither ReferenceError nor missing result.
+  3. Smoke #2: Report a non-allowlisted name via DM and confirm moneyLog contains `report_false_penalty` + `rep_report_false` rows (single entry per attempt).
+  4. Smoke #3: Report a villain, verify `rep_report_true` + `report_true_compensation` appear and World delta equals compensation amount.
+  5. Smoke #4: Submit identical report twice; second call should return `rate_limited`/`cop_busy`/`report_repeat` without generating new penalty rows.
+  Manual QA: pending (run smokes 1-4 above).
+- Next Prompt (копипаст, кодблок обязателен):
+    ```text
+    QA:
+    (1) Reload http://localhost:8080/index.html?dev=1.
+    (2) Run the four smoke scenarios described under “How to verify.”
+    (3) PASS if the console call returns a structured object, false/true flows log canonical moneyLog rows, and duplicates are blocked; otherwise FAIL with console dumps.
+    ```

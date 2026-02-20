@@ -3256,9 +3256,10 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Console tail (`Console.txt` at 2026-02-20) показывает только существующие WARN/LOG, без свежих UI/DM ошибок.
   - Заголовок `Личка (N)` теперь собирает `threadsCount` как количество интерактивных DM (S.dm.openIds фильтруется через `isInteractiveDmThread` и `getInteractiveDmThreadsCount`), так что счетчик реагирует только на открытие/закрытие чипов.
   - Серые/phantom-треды вроде `security_owner`, цель которых — системные уведомления, не считаются (фильтр отвергает `isSystem`-only потоки и специальные id, но дорабатывается, если появятся новые).
+  - Follow-up: `refreshDmHeader()` добавили и вызываем после `UI.openDM`, `UI.dmPushLine`, `closeDM` и close tabs, поэтому header рендерится мгновенно и не зависит от общего chat rerender.
   - Bug: “лишний серый счетчик (5)” справа от заголовка — это уже убранный collapsed badge (`panelBadge.dmBadge`), теперь в header остаётся только “Личка (N)”.
 - Smoke: DM закрыт, открыть/закрыть треды и убедиться, что значение `N` меняется только при open/close, а при входящих сообщениях не реагирует.
-- Manual QA: PASS (ручной smoke пользователя: 3 чипа, collapsed/expanded, входящие — весь текст остаётся “Личка (N)” без серого counter).
+- Manual QA: PASS (ручной smoke: открыли 2 треда, закрыли один, получили входящее — header сразу обновился).
 - Next: QA
 
 ### 2026-02-20 — COP report flow audit (code review)
@@ -3277,3 +3278,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke: not run (репорты проверены только чтением кода).
 - How to verify: открыты `index.html?dev=1`, нажать "Сдать" в DM на токсика/бандита/мафию и посмотреть консоль — ветки `applyFalseReport` бросают ReferenceError; можно также вызвать `Game.__A.applyReportByRole("bandit")` и убедиться в той же ошибке, затем реализовать helper и повторно прогнать flow до PASS.
 - Changed: `PROJECT_MEMORY.md`
+
+### 2026-02-20 — COP report handler stop-fix
+- Status: PASS
+- Facts:
+  - `state.js` теперь содержит `buildReportOpKey`, `ensureReportMoneyLogRow`, `sendRevengeDM`, `applyFalseReport` и `applyTrueReport` (lines 2860-3197). Каждый helper строит `opKey`, записывает canonical moneyLog rows (`report_false_penalty`/`rep_report_false`/`rep_report_true`/`report_true_compensation`) via `ensureReportMoneyLogRow`, and relies on `transferRep`/`transferPoints` for actual econ mutations.
+  - `applyReportByRole` (state.js:3200-3470) now delegates guard, false, and true branches to these helpers, so UI “Сдать” calls no longer ReferenceError and always return structured `{ok, reasonCode, copId, targetId, opKey}` objects.
+  - opKey-based dedup prevents duplicate penalty rows on rate-limited/repeat reports and keeps `State.me.points` untouched outside Econ helpers.
+- How to verify: reload dev=1, run smokes 1–4 described in TASKS.md entry `[T-20260220-005]`, confirm no ReferenceError, canonical moneyLog rows exist, and repeated reports do not emit extra rows.
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`

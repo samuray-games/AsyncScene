@@ -166,6 +166,12 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     return right;
   }
 
+  function refreshDmHeader(){
+    try {
+      if (UI && typeof UI.renderDM === "function") UI.renderDM();
+    } catch (_) {}
+  }
+
   const RESERVED_SYSTEM_DM_IDS = new Set(["security_owner"]);
 
   function isInteractiveDmThread(S, rawId) {
@@ -234,6 +240,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         S.dm.withId = S.dm.activeId;
       }
     } catch (_) {}
+    refreshDmHeader();
   }
   UI.dmPushLine = dmPushLine;
 
@@ -256,6 +263,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const extra = $("dmExtraRow");
     if (extra) extra.classList.add("hidden");
+    refreshDmHeader();
+    requestAll();
   }
 
   UI.closeDM = closeDM;
@@ -282,7 +291,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     if (dmBlock) dmBlock.classList.remove("hidden");
 
     if (UI.setPanelSize) UI.setPanelSize("dm", "medium");
-    try { if (typeof UI.renderDM === "function") UI.renderDM(); } catch (_) {}
+    refreshDmHeader();
     requestAll();
   };
 
@@ -757,13 +766,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               S.dm.withId = next;
               if (!next) {
                 S.dm.open = false;
-                const dmBlock0 = $("dmBlock");
-                if (dmBlock0) dmBlock0.classList.add("hidden");
-              }
+              const dmBlock0 = $("dmBlock");
+              if (dmBlock0) dmBlock0.classList.add("hidden");
             }
-            try { UI.renderDM(); } catch (_) {}
-            requestAll();
-          };
+          }
+          refreshDmHeader();
+          requestAll();
+        };
           row.appendChild(x);
 
           tabs.appendChild(chip);

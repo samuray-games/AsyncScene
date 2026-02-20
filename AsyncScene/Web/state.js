@@ -2850,6 +2850,353 @@ window.Game = window.Game || {};
     return false;
   }
 
+  function buildReportOpKey({ dayKey, copId, reporterId, targetId, bucket }) {
+    const safeDay = String(dayKey || dayKeyFromNowTs(Date.now()));
+    const idParts = [
+      "report",
+      safeDay,
+      String(copId || "cop"),
+      String(reporterId || ((State.me && State.me.id) ? State.me.id : "me")),
+      String(targetId || "unknown"),
+      String(bucket || "false"),
+    ];
+    return idParts.join(":").toLowerCase();
+  }
+
+  function findMoneyLogRow(reason, opKey) {
+    if (!Game.__D || !Array.isArray(Game.__D.moneyLog)) return null;
+    return Game.__D.moneyLog.find(row => {
+      if (!row || String(row.reason || "").trim() !== String(reason || "").trim()) return false;
+      return row.meta && String(row.meta.opKey || "") === String(opKey || "");
+    }) || null;
+  }
+
+  function ensureReportMoneyLogRow({ reason, amount, currency, sourceId, targetId, meta, opKey, eventId, battleId }) {
+    if (!reason) return null;
+    const existing = findMoneyLogRow(reason, opKey);
+    if (existing) return existing;
+    const normalized = {
+      time: Date.now(),
+      reason: String(reason || ""),
+      currency: (String(currency || "").toLowerCase() === "rep") ? "rep" : "points",
+      amount: Number.isFinite(Number(amount)) ? (Number(amount) | 0) : 0,
+      sourceId: String(sourceId || ""),
+      targetId: String(targetId || ""),
+      eventId: eventId ? String(eventId) : null,
+      battleId: battleId ? String(battleId) : null,
+      meta: Object.assign({}, meta || {}, { opKey }),
+    };
+    return pushMoneyLogRow(normalized);
+  }
+
+  function sendRevengeDM(roleKey, jailedId) {
+    try {
+      const pool = Object.values(State.players || {}).filter(p => p && p.role === roleKey && p.id !== jailedId);
+      if (!pool.length) return;
+      const npc = pool[Math.floor(Math.random() * pool.length)];
+      if (!npc || !npc.id) return;
+      let line = "ты за это ответишь";
+      if (roleKey === "bandit") line = "долг вернем, не забудь";
+      if (Game.NPC && typeof Game.NPC.generateAggroDMLine === "function") {
+        const fallback = Game.NPC.generateAggroDMLine(npc);
+        if (!line && fallback) line = fallback;
+      }
+      pushDm(npc.id, npc.name, line, { isSystem: false, playerId: npc.id });
+    } catch (_) {}
+  }
+
+  function applyFalseReport({ target, roleKey, cop, reporterId, reportId, reasonCode = "false_report", bucket = "false" } = {}) {
+    const copId = (cop && cop.id) ? cop.id : "";
+    const copName = (cop && cop.name) ? String(cop.name) : "Коп";
+    const targetId = (target && target.id) ? target.id : `missing:${String(roleKey || "unknown")}`;
+    const reporter = String(reporterId || ((State.me && State.me.id) ? State.me.id : "me"));
+    const dayKey = dayKeyFromNowTs(Date.now());
+    const opKey = buildReportOpKey({ dayKey, copId, reporterId: reporter, targetId, bucket });
+    const metaBase = {
+      fromId: reporter,
+      toId: "sink",
+      targetId,
+      copId,
+      reporterId: reporter,
+      opKey,
+      reportId: String(reportId || ""),
+      bucket,
+    };
+    const D = (Game && Game.Data) ? Game.Data : null;
+    const prev = (State.reports && State.reports.history) ? State.reports.history[targetId] : null;
+    const baseRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE)) ? (D.REP_REPORT_FALSE | 0) : 2;
+    const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
+    const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
+    try {
+      transferRep(reporter, "crowd_pool", repPenalty, "rep_report_false", reportId);
+    } catch (_) {}
+    ensureReportMoneyLogRow({
+      reason: "rep_report_false",
+      amount: repPenalty,
+      currency: "rep",
+      sourceId: reporter,
+      targetId: "crowd_pool",
+      meta: Object.assign({}, metaBase, { fromId: reporter, toId: "crowd_pool" }),
+      opKey,
+      eventId: reportId,
+      battleId: reportId,
+    });
+
+    const N = Game.NPC || {};
+    const econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+    const penaltyPts = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty))
+      ? (N.COP.report.falsePenalty | 0)
+      : 5;
+    const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+    const amountWanted = penaltyPts | 0;
+    const amountActual = Math.min(amountWanted, Math.max(0, pointsBefore));
+    const pointsAfter = Math.max(0, pointsBefore - amountActual);
+    const pointsMeta = Object.assign({}, metaBase, {
+      amountWanted,
+      pointsBefore,
+      pointsAfter,
+      operation: "report_false_penalty",
+      fromId: reporter,
+      toId: "sink",
+    });
+    if (econ && typeof econ.transferPoints === "function" && amountActual > 0) {
+      econ.transferPoints(reporter, "sink", amountActual, "report_false_penalty", pointsMeta);
+    }
+    ensureReportMoneyLogRow({
+      reason: "report_false_penalty",
+      amount: amountActual,
+      currency: "points",
+      sourceId: reporter,
+      targetId: "sink",
+      meta: pointsMeta,
+      opKey,
+      eventId: reportId,
+      battleId: reportId,
+    });
+
+    try {
+      const penaltyMsg = `Это ложный донос — штраф ${repPenalty}⭐. Будьте внимательнее.`;
+      pushDm(copId, copName, copLine(penaltyMsg), { isSystem: false, playerId: copId });
+    } catch (_) {}
+    try { copDmTo(copId, "cop_fail"); } catch (_) {}
+    markReported(targetId, false, roleKey, copId);
+    if (isDevFlag()) {
+      const endPts = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : null;
+      console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
+        stage: "after_false_report",
+        reportId: reportId || null,
+        pointsAfter: endPts
+      });
+    }
+    return {
+      ok: false,
+      reasonCode: reasonCode,
+      role: roleKey,
+      targetId,
+      copId,
+      opKey,
+      reportId: String(reportId || ""),
+      repPenalty,
+      pointsPenalty: amountActual,
+    };
+  }
+
+  function applyTrueReport({ target, roleKey, cop, reporterId, reportId, bucket = "true" } = {}) {
+    const copId = (cop && cop.id) ? cop.id : "";
+    const copName = (cop && cop.name) ? cop.name : "Коп";
+    const targetId = (target && target.id) ? target.id : "";
+    const reporter = String(reporterId || ((State.me && State.me.id) ? State.me.id : "me"));
+    const dayKey = dayKeyFromNowTs(Date.now());
+    const opKey = buildReportOpKey({ dayKey, copId, reporterId: reporter, targetId, bucket });
+    const payout = 0;
+    const D = (Game && Game.Data) ? Game.Data : null;
+    const repGain = (D && Number.isFinite(D.REP_REPORT_TRUE)) ? (D.REP_REPORT_TRUE | 0) : 2;
+    try {
+      transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
+    } catch (_) {}
+    ensureReportMoneyLogRow({
+      reason: "rep_report_true",
+      amount: repGain,
+      currency: "rep",
+      sourceId: "crowd_pool",
+      targetId: "me",
+      meta: { fromId: "crowd_pool", toId: "me", targetId, copId, reporterId: reporter },
+      opKey,
+      eventId: reportId,
+      battleId: reportId,
+    });
+    markReported(targetId, true, roleKey, copId);
+
+    try {
+      let repSum = 0;
+      let ptsSum = 0;
+      try {
+        const logs = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
+        const bidStr = String(reportId || "");
+        for (const L of logs) {
+          if (!L) continue;
+          const tag = String(L.reason || "").toLowerCase();
+          const bidMatch = String(L.eventId || L.battleId || (L.meta && L.meta.eventId) || "").indexOf(bidStr) >= 0 || String(L.battleId || L.eventId || "") === bidStr;
+          if (!bidStr || bidMatch) {
+            if (tag.indexOf("rep_report_true") >= 0 || tag.indexOf("rep_") === 0 || String(L.currency || "").toLowerCase() === "rep") {
+              repSum += Number(L.amount || L.delta || 0);
+            }
+            if (tag.indexOf("cop_compensation_return") >= 0 || tag.indexOf("crowd_vote_refund") >= 0 || String(L.currency || "").toLowerCase() === "points") {
+              ptsSum += Number(L.amount || L.delta || 0);
+            }
+          }
+        }
+      } catch (_) {}
+      const repMsg = (repSum > 0) ? `+${repSum}⭐` : "";
+      const ptsMsg = (ptsSum > 0) ? ` +${ptsSum}💰` : "";
+      const bonusMsg = repMsg || ptsMsg ? `Благодарим за сдачу, получено ${repMsg}${ptsMsg}`.trim() : "Благодарим за сдачу, получено.";
+      pushDm(copId, copName, copLine(bonusMsg), { isSystem: false, playerId: copId });
+    } catch (_) {}
+
+    let compensationTotal = 0;
+    try {
+      const victimized = checkIfVictimized(targetId);
+      if (victimized) {
+        copDmTo(copId, "Я понимаю, что вас это задело. Меры приняты.");
+        const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+        const returnAmount = victimized.stolenAmount || 0;
+        if (returnAmount > 0 && Econ && typeof Econ.transferPoints === "function") {
+          const amountWanted = returnAmount | 0;
+          const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : null;
+          const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
+          const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+          const pointsAfter = pointsBefore + amountActual;
+          if (amountActual > 0) {
+            Econ.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
+              reportId: reportId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore,
+              pointsAfter,
+              partial: amountActual !== amountWanted,
+              kind: "return",
+              opKey,
+              fromId: "worldBank",
+              toId: "me",
+              targetId,
+              copId,
+              reporterId: reporter
+            });
+          }
+          compensationTotal += amountActual;
+        }
+        try {
+          if (Game.__A && typeof Game.__A.transferRep === "function") {
+            Game.__A.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
+          }
+        } catch (_) {}
+        try {
+          const Econ2 = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
+          const amountWanted = 1;
+          const bankBal = (Econ2 && typeof Econ2.getWorldBankBalance === "function") ? (Econ2.getWorldBankBalance() | 0) : null;
+          const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
+          const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
+          const pointsAfter = pointsBefore + amountActual;
+          if (Econ2 && typeof Econ2.transferPoints === "function" && amountActual > 0) {
+            Econ2.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
+              reportId: reportId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore,
+              pointsAfter,
+              partial: amountActual !== amountWanted,
+              kind: "victim_bonus",
+              opKey,
+              fromId: "worldBank",
+              toId: "me",
+              targetId,
+              copId,
+              reporterId: reporter
+            });
+          }
+          compensationTotal += amountActual;
+        } catch (_) {}
+
+        try {
+          if (Game.UI && typeof Game.UI.pushSystem === "function") {
+            Game.UI.pushSystem(`+1⭐ +1💰`);
+          }
+          if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
+            Game.UI.requestRenderAll();
+          }
+        } catch (_) {}
+
+        if (returnAmount > 0) {
+          try {
+            if (Game.UI && typeof Game.UI.pushSystem === "function") {
+              Game.UI.pushSystem(`+${returnAmount}💰`);
+            }
+          } catch (_) {}
+        }
+      } else {
+        copDmTo(copId, "Информация подтвердилась. Контакт отмечен.");
+      }
+    } catch (_) {}
+
+    try {
+      ensureReportMoneyLogRow({
+        reason: "report_true_compensation",
+        amount: compensationTotal,
+        currency: "points",
+        sourceId: "worldBank",
+        targetId: "me",
+        meta: {
+          opKey,
+          reportId: String(reportId || ""),
+          copId,
+          reporterId: reporter,
+          targetId,
+          fromId: "worldBank",
+          toId: "me",
+        },
+        opKey,
+        eventId: reportId,
+        battleId: reportId,
+      });
+    } catch (_) {}
+
+    try {
+      if (Array.isArray(State.battles)) {
+        State.battles = State.battles.filter(b => b && b.opponentId !== targetId && b.attackerId !== targetId);
+      }
+    } catch (_) {}
+
+    const now = Date.now();
+    if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
+      const jailMs = 5 * 60 * 1000;
+      State.jailed = State.jailed || {};
+      State.jailed[targetId] = { until: now + jailMs, role: roleKey };
+      State.revengeUntil = Math.max(State.revengeUntil || 0, now + jailMs);
+      try {
+        if (State.reports && State.reports.history) delete State.reports.history[targetId];
+      } catch (_) {}
+      try {
+        copChatFrom(copId, `${target.name} отправился за решётку на 5 минут.`);
+      } catch (_) {}
+      sendRevengeDM(roleKey, targetId);
+    }
+    if (State.victimByRole && State.victimByRole[roleKey]) {
+      State.victimByRole[roleKey] = null;
+    }
+
+    return {
+      ok: true,
+      reasonCode: "true_report",
+      targetId,
+      role: roleKey,
+      reward: payout,
+      copId,
+      opKey,
+      repGain,
+      compensation: compensationTotal,
+    };
+  }
+
   function applyReportByRole(role, opts = null){
     if (isDevFlag()) {
       console.warn("REPORT_REPEAT_RL_V1_LOADED", {
@@ -3078,354 +3425,65 @@ window.Game = window.Game || {};
       if (!reportedRole) reportedRole = normalizeRoleKey(r);
     } catch (_) { reportedRole = normalizeRoleKey(r); }
     const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
-
-    if (!ALLOWED_REPORT_ROLES.has(roleKey)) {
-      return { ok:false, reason:"report_invalid_target", role: roleKey };
-    }
-    const meId = (State.me && State.me.id) ? String(State.me.id) : "me";
-    if (target && target.id && String(target.id) === meId) {
-      return { ok:false, reason:"self_report", role: roleKey };
-    }
-    if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
-      return { ok:false, reason:"report_invalid_target", role: roleKey };
-    }
     const actual = getRoleOf(target && target.id);
     const truthful = Boolean(reportedRole && target && (reportedRole === normalizeRoleKey(actual)));
     const reportId = `report_${target.id}_${Date.now()}`;
-    let repTransferred = false;
+    const reporterId = repeatActorId;
 
-    // Reward/penalty values from NPC knowledge base if available
-    const N = Game.NPC || {};
-    const reward = (N.COP && N.COP.report && Number.isFinite(N.COP.report.rewardPoints)) ? (N.COP.report.rewardPoints|0) : 2;
-    const penalty = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty)) ? (N.COP.report.falsePenalty|0) : 5;
-
-    // Canon: truth is determined by actual role only. No "evidence window" gating.
-    // If role mismatched -> false report (REP penalty only) — REP v2 economy
     if (!ALLOWED_REPORT_ROLES.has(roleKey)) {
-      applyFalseReport(target, roleKey, cop.id, reportId);
-      return { ok:false, reason:"report_invalid_target", role: roleKey };
+      return applyFalseReport({
+        target,
+        roleKey,
+        cop,
+        reporterId,
+        reportId,
+        reasonCode: "report_invalid_target",
+        bucket: "false",
+      });
     }
+    const meId = (State.me && State.me.id) ? String(State.me.id) : "me";
     if (target && target.id && String(target.id) === meId) {
-      applyFalseReport(target, roleKey, cop.id, reportId);
-      return { ok:false, reason:"self_report", role: roleKey };
+      return applyFalseReport({
+        target,
+        roleKey,
+        cop,
+        reporterId,
+        reportId,
+        reasonCode: "self_report",
+        bucket: "false",
+      });
     }
     if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
-      applyFalseReport(target, roleKey, cop.id, reportId);
-      return { ok:false, reason:"report_invalid_target", role: roleKey };
+      return applyFalseReport({
+        target,
+        roleKey,
+        cop,
+        reporterId,
+        reportId,
+        reasonCode: "report_invalid_target",
+        bucket: "false",
+      });
     }
     if (!truthful) {
-      const D = (Game && Game.Data) ? Game.Data : null;
-      const prev = (State.reports && State.reports.history) ? State.reports.history[target.id] : null;
-      const baseRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE)) ? (D.REP_REPORT_FALSE | 0) : 2;
-      const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
-      const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
-      const penaltyPts = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty))
-        ? (N.COP.report.falsePenalty | 0)
-        : 5;
-      
-      // Apply REP penalty via transferRep; record and notify player explicitly.
-      try {
-        transferRep("me", "crowd_pool", repPenalty, "rep_report_false", reportId);
-      } catch (_) {}
-
-      // Apply points penalty via transferPoints (no emission).
-      try {
-        const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-        const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-        const amountWanted = penaltyPts | 0;
-        const amountActual = Math.min(amountWanted, Math.max(0, pointsBefore));
-        const pointsAfter = Math.max(0, pointsBefore - amountActual);
-        if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
-          if (isDevFlag()) {
-            let stackHint = "";
-            try {
-              const err = new Error();
-              const s = String(err && err.stack ? err.stack : "");
-              stackHint = s.split("\n").slice(0, 3).join(" | ");
-            } catch (_) {}
-            console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
-              stage: "before_points_penalty",
-              reportId: reportId || null,
-              pointsBefore,
-              amountWanted,
-              amountActual,
-              stackHint
-            });
-          }
-          const tx = Econ.transferPoints("me", "sink", amountActual, "report_false_penalty", {
-            reportId: reportId || null,
-            amountWanted,
-            amountActual,
-            pointsBefore,
-            pointsAfter,
-            partial: amountActual !== amountWanted,
-            operation: "report_false_penalty"
-          });
-          if (isDevFlag()) {
-            const afterPts = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : null;
-            console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
-              stage: "after_points_penalty",
-              reportId: reportId || null,
-              pointsAfter: afterPts,
-              tx
-            });
-          }
-        }
-      } catch (_) {}
-
-      // Ensure debug logs and toasts reflect the penalty even if econ path is silent.
-      try {
-        const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-        dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
-        const existingIndex = dbg.moneyLog.findIndex(x => x && String(x.reason || "") === "rep_report_false" && String(x.eventId || "") === String(reportId || "") && String(x.battleId || "") === String(reportId || ""));
-        let ref = null;
-        if (existingIndex >= 0) {
-          ref = { txId: dbg.moneyLog[existingIndex].txId, logIndex: existingIndex };
-        } else {
-          const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-          ref = rowHelper({
-            time: Date.now(),
-            sourceId: "me",
-            targetId: "crowd_pool",
-            amount: repPenalty,
-            reason: "rep_report_false",
-            eventId: reportId || null,
-            battleId: reportId || null,
-            currency: "rep"
-          });
-        }
-        const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
-        if (ref && typeof toastHelper === "function") {
-          toastHelper(ref, `-${repPenalty}⭐`);
-        }
-      } catch (_) {}
-
-      // DM to player: explicit penalty notice
-      try {
-        const penaltyMsg = `Это ложный донос — штраф ${repPenalty}⭐. Будьте внимательнее.`;
-        pushDm(cop.id, cop.name, copLine(penaltyMsg), { isSystem: false, playerId: cop.id });
-      } catch (_) {}
-
-      markReported(target.id, false, roleKey, cop.id);
-      try { copDmTo(cop.id, "cop_fail"); } catch (_) {}
-      if (isDevFlag()) {
-        const endPts = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : null;
-        console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
-          stage: "after_false_report",
-          reportId: reportId || null,
-          pointsAfter: endPts
-        });
-      }
-      return { ok: false, reason: "false_report", role: roleKey, repPenalty, copId: cop.id };
+      return applyFalseReport({
+        target,
+        roleKey,
+        cop,
+        reporterId,
+        reportId,
+        reasonCode: "false_report",
+        bucket: "false",
+      });
     }
 
-    const sendRevengeDM = (roleKey, jailedId) => {
-      try {
-        const pool = Object.values(State.players || {}).filter(p => p && p.role === roleKey && p.id !== jailedId);
-        if (!pool.length) return;
-        const npc = pool[Math.floor(Math.random() * pool.length)];
-        if (!npc || !npc.id) return;
-        let line = "ты за это ответишь";
-        if (roleKey === "bandit") line = "долг вернем, не забудь";
-        if (Game.NPC && typeof Game.NPC.generateAggroDMLine === "function") {
-          const fallback = Game.NPC.generateAggroDMLine(npc);
-          if (!line && fallback) line = fallback;
-        }
-        pushDm(npc.id, npc.name, line, { isSystem: false, playerId: npc.id });
-      } catch (_) {}
-    };
-
-    if (truthful) {
-      // REP v2 economy: truthful report gives fixed REP, no points reward.
-      const payout = 0;
-      const D = (Game && Game.Data) ? Game.Data : null;
-        if (!repTransferred) {
-        const repGain = (D && Number.isFinite(D.REP_REPORT_TRUE)) ? (D.REP_REPORT_TRUE | 0) : 2;
-        try {
-          transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
-        } catch (_) {}
-        // immediate DM: use known local values (repGain)
-        try {
-          const repMsg = repGain > 0 ? `+${repGain}⭐` : "";
-          const bonusMsg = repMsg ? `Благодарим за сдачу, получено ${repMsg}`.trim() : "Благодарим за сдачу, получено.";
-          pushDm(cop.id, cop.name, copLine(bonusMsg), { isSystem: false, playerId: cop.id });
-        } catch (_) {}
-        // Fallback logging: ensure debug logs / toasts reflect the rep transfer if econ didn't
-        try {
-          const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-          dbg.moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = dbg.moneyLog || []);
-          const existingIndex = dbg.moneyLog.findIndex(x => x && String(x.reason || "") === "rep_report_true" && String(x.eventId||x.battleId||"") === String(reportId || ""));
-        let ref = null;
-        if (existingIndex >= 0) {
-          ref = { txId: dbg.moneyLog[existingIndex].txId, logIndex: existingIndex };
-        } else {
-          const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-          ref = rowHelper({
-            time: Date.now(),
-            reason: "rep_report_true",
-            currency: "rep",
-            amount: repGain,
-            sourceId: "crowd_pool",
-            targetId: "me",
-            eventId: reportId || null,
-            battleId: reportId || null
-          });
-        }
-        const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
-        if (ref && typeof toastHelper === "function") {
-          toastHelper(ref, `+${repGain}⭐`);
-        }
-      } catch (_) {}
-        repTransferred = true;
-      }
-
-      markReported(target.id, true, roleKey, cop.id);
-      
-      // Notify player in DM about the successful report and rewards.
-      // Compute actual rep/points amounts from moneyLog (authoritative) to avoid mismatches.
-      try {
-        let repSum = 0;
-        let ptsSum = 0;
-        try {
-          const logs = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-          const bidStr = String(reportId || "");
-          for (const L of logs) {
-            if (!L) continue;
-            const tag = String(L.reason || "").toLowerCase();
-            const bidMatch = String(L.eventId || L.battleId || L.meta && L.meta.eventId || "").indexOf(bidStr) >= 0 || String(L.battleId || L.eventId || "") === bidStr;
-            if (!bidStr || bidMatch) {
-              // rep reasons
-              if (tag.indexOf("rep_report_true") >= 0 || tag.indexOf("rep_") === 0 || String(L.currency || "").toLowerCase() === "rep") {
-                repSum += Number(L.amount || L.delta || 0);
-              }
-              // points reasons
-              if (tag.indexOf("cop_compensation_return") >= 0 || tag.indexOf("crowd_vote_refund") >= 0 || String(L.currency || "").toLowerCase() === "points") {
-                ptsSum += Number(L.amount || L.delta || 0);
-              }
-            }
-          }
-        } catch (_) {}
-        const repMsg = (repSum > 0) ? `+${repSum}⭐` : "";
-        const ptsMsg = (ptsSum > 0) ? ` +${ptsSum}💰` : "";
-        const bonusMsg = repMsg || ptsMsg ? `Благодарим за сдачу, получено ${repMsg}${ptsMsg}`.trim() : "Благодарим за сдачу, получено.";
-        pushDm(cop.id, cop.name, copLine(bonusMsg), { isSystem: false, playerId: cop.id });
-      } catch(_) {}
-
-      if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
-        // P0-2: дополнительный DM если игрок пострадал + компенсация пойнтов
-        try {
-          const victimized = checkIfVictimized(target.id);
-          if (victimized) {
-            copDmTo(cop.id, "Я понимаю, что вас это задело. Меры приняты.");
-            
-            // P0-2: компенсация пойнтов по правилам проекта (возврат украденного)
-            const returnAmount = victimized.stolenAmount || 0; // возврат украденного
-            if (returnAmount > 0) {
-              const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-              const amountWanted = returnAmount | 0;
-              const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : null;
-              const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
-              const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-              const pointsAfter = pointsBefore + amountActual;
-              if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
-                Econ.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
-                  reportId: reportId || null,
-                  amountWanted,
-                  amountActual,
-                  pointsBefore,
-                  pointsAfter,
-                  partial: amountActual !== amountWanted,
-                  kind: "return"
-                });
-              }
-            }
-            // P0-2: grant extra +1 REP and +1 point (bonus) for victim case
-            try {
-              if (Game.__A && typeof Game.__A.transferRep === "function") {
-                Game.__A.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
-              }
-            } catch (_) {}
-            // Apply +1 point bonus via transfer
-            try {
-              const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-              const amountWanted = 1;
-              const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : null;
-              const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
-              const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-              const pointsAfter = pointsBefore + amountActual;
-              if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
-                Econ.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
-                  reportId: reportId || null,
-                  amountWanted,
-                  amountActual,
-                  pointsBefore,
-                  pointsAfter,
-                  partial: amountActual !== amountWanted,
-                  kind: "victim_bonus"
-                });
-              }
-            } catch (_) {}
-
-            // Immediate toast for the bonus
-            try {
-              if (Game.UI && typeof Game.UI.pushSystem === "function") {
-                Game.UI.pushSystem(`+1⭐ +1💰`);
-              }
-              if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
-                Game.UI.requestRenderAll();
-              }
-            } catch (_) {}
-
-            // If there was a return of stolen points, show a toast for that amount
-            if (returnAmount > 0) {
-              try {
-                if (Game.UI && typeof Game.UI.pushSystem === "function") {
-                  Game.UI.pushSystem(`+${returnAmount}💰`);
-                }
-              } catch (_) {}
-            }
-          }
-        } catch (_) {}
-      } else {
-        copDmTo(cop.id, "Информация подтвердилась. Контакт отмечен.");
-      }
-
-      // Remove any active battles with this target immediately (pipeline consistency).
-      try {
-        if (Array.isArray(State.battles)) {
-          State.battles = State.battles.filter(b => b && b.opponentId !== target.id && b.attackerId !== target.id);
-        }
-      } catch (_) {}
-
-      const now = Date.now();
-
-      if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
-        const jailMs = 5 * 60 * 1000;
-        State.jailed = State.jailed || {};
-        State.jailed[target.id] = { until: now + jailMs, role: roleKey };
-        State.revengeUntil = Math.max(State.revengeUntil || 0, now + jailMs);
-        try {
-          if (State.reports && State.reports.history) delete State.reports.history[target.id];
-        } catch (_) {}
-        // Public chat: ONLY this cop posts the jail notice. No благодарностей / наград в общем чате.
-        try {
-          copChatFrom(cop.id, `${target.name} отправился за решётку на 5 минут.`);
-        } catch (_) {}
-        sendRevengeDM(roleKey, target.id);
-      } else {
-        // Non-jail confirmations stay in DM only.
-      }
-
-      if (State.victimByRole && State.victimByRole[roleKey]) {
-        State.victimByRole[roleKey] = null;
-      }
-
-      return { ok: true, targetId: target.id, role: roleKey, reward: payout, copId: cop.id };
-    }
-
-    // False report (no confirmation branch - redundant with above check but kept for safety)
-    try { if (cop && cop.id) copDmTo(cop.id, "Подтверждений нет. Будьте осторожнее с обвинениями."); } catch (_) {}
-    return { ok: false, reason: "false_report" };
+    return applyTrueReport({
+      target,
+      roleKey,
+      cop,
+      reporterId,
+      reportId,
+      bucket: "true",
+    });
   }
 
   function ensureNonNegativePoints(){
