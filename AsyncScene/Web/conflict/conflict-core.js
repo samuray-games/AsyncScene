@@ -110,7 +110,9 @@
 
   function logCrowdCreate(v, battleId){
     if (!v) return;
-    const votersCount = (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
+    const votersCount = Array.isArray(v.votersIds)
+      ? v.votersIds.length
+      : (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
     _crowdLog("CROWD_CREATE_V1", {
       battleId: battleId || null,
       eventId: v.eventId || null,
@@ -137,7 +139,9 @@
 
   function logCrowdDiagCreate(v, battleId){
     if (!v) return;
-    const votersCount = (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
+    const votersCount = Array.isArray(v.votersIds)
+      ? v.votersIds.length
+      : (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
     const whyVotersZero = votersCount === 0 ? "no_votes_yet" : "has_votes";
     _crowdLog("CROWD_DIAG_V1", {
       battleId: battleId || null,
@@ -1278,30 +1282,72 @@
   function buildEligibleVoters(opts){
     const state = (Game && Game.__S) ? Game.__S : ((Game && Game.State) ? Game.State : null);
     const players = (state && state.players && typeof state.players === "object") ? state.players : {};
+    const meId = (state && state.me && state.me.id) ? String(state.me.id) : "me";
+    const sourcedIds = (() => {
+      const seen = new Set();
+      const out = [];
+      const pushId = (id) => {
+        const normalized = String(id || "");
+        if (!normalized) return;
+        if (seen.has(normalized)) return;
+        seen.add(normalized);
+        out.push(normalized);
+      };
+      const optIds = Array.isArray((opts && opts.votersIds)) ? opts.votersIds : null;
+      if (Array.isArray(optIds) && optIds.length) {
+        optIds.forEach(pushId);
+        return out;
+      }
+      const crowd = opts && opts.crowd;
+      if (crowd && Array.isArray(crowd.votersIds) && crowd.votersIds.length) {
+        crowd.votersIds.forEach(pushId);
+        return out;
+      }
+      if (crowd && crowd.voters && typeof crowd.voters === "object") {
+        Object.keys(crowd.voters).forEach(pushId);
+        if (out.length) return out;
+      }
+      Object.keys(players).forEach(pushId);
+      return out;
+    })();
+    const candidateIds = sourcedIds.slice();
+    const votersCount = candidateIds.length;
+    const votersSample = candidateIds.slice(0, 3);
     const eligibleIds = [];
     const excludedSample = [];
     let excludedZeroPtsCount = 0;
     let excludedOtherCount = 0;
-    const votersCount = Object.keys(players).length;
-    for (const id of Object.keys(players)) {
-      if (!id || id === "me") continue;
-      const player = players[id];
-      if (!player) {
+    let meEligible = false;
+    for (const id of candidateIds) {
+      const isMe = id === meId;
+      const actor = isMe ? (state && state.me ? state.me : (players[id] || null)) : players[id];
+      const pts = Number.isFinite(actor && actor.points) ? (actor.points | 0) : 0;
+      if (isMe) {
+        if (pts > 0) {
+          meEligible = true;
+        } else {
+          excludedOtherCount += 1;
+          if (excludedSample.length < 5) {
+            excludedSample.push({ id, reason: "me_ineligible", pts });
+          }
+        }
+        continue;
+      }
+      if (!actor) {
         excludedOtherCount += 1;
         if (excludedSample.length < 5) {
           excludedSample.push({ id, reason: "missing_state", pts: null });
         }
         continue;
       }
-      const isNpcLike = player.npc === true || String((player.type || "").toLowerCase()) === "npc";
+      const isNpcLike = actor.npc === true || String((actor.type || "").toLowerCase()) === "npc" || String(id || "").startsWith("npc_");
       if (!isNpcLike) {
         excludedOtherCount += 1;
         if (excludedSample.length < 5) {
-          excludedSample.push({ id, reason: "not_npc", pts: Number.isFinite(player.points) ? player.points : null });
+          excludedSample.push({ id, reason: "not_npc", pts });
         }
         continue;
       }
-      const pts = Number.isFinite(player.points) ? player.points : 0;
       if (pts > 0) {
         eligibleIds.push(id);
         continue;
@@ -1311,7 +1357,6 @@
         excludedSample.push({ id, reason: "zero_pts", pts });
       }
     }
-    const meEligible = (state && state.me && Number.isFinite(state.me.points) && state.me.points > 0);
     return {
       eligibleIds,
       excludedSample,
@@ -1320,6 +1365,9 @@
       eligibleNpcCount: eligibleIds.length,
       meEligible,
       votersCount,
+      votersIdsLen: votersCount,
+      votersIdsSample: votersSample,
+      votersIds: candidateIds,
       rule: ELIGIBILITY_RULE_VERSION
     };
   }
@@ -1330,8 +1378,11 @@
       battleId: b && (b.id || b.battleId) || null,
       eventId: v.eventId || null,
       votersCount: eligible.votersCount,
+      votersIdsLen: eligible.votersIdsLen,
+      votersIdsSample: eligible.votersIdsSample && eligible.votersIdsSample.length ? eligible.votersIdsSample.slice(0, 3) : null,
       eligibleCount: eligible.eligibleNpcCount,
       cap: (eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0)),
+      meIncluded: !!eligible.meEligible,
       rule: eligible.rule,
       excludedZeroPtsCount: eligible.excludedZeroPtsCount,
       excludedOtherCount: eligible.excludedOtherCount
@@ -2423,13 +2474,9 @@
         _crowdTimerExpireLogged: false
       };
       resetCrowdTimerState(b.crowd, nowMs);
-      if (!Number.isFinite(b.crowd.cap) || b.crowd.cap <= 0) {
-        logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
-      }
       let evId = null;
 
       // Events: create a draw event so chat can navigate to it.
-      let evId = null;
       try {
         if (Game.Events && typeof Game.Events.addDrawEventFromBattle === "function") {
           const ev = Game.Events.addDrawEventFromBattle(b);
@@ -2441,8 +2488,23 @@
         b.eventId = evId;
         if (b.crowd) b.crowd.eventId = evId;
       }
-      const eligible = buildEligibleVoters({ battleId: b.id || null, eventId: evId || null });
+      const candidateList = (Array.isArray(b._candidateVoterIds) && b._candidateVoterIds.length)
+        ? b._candidateVoterIds.slice()
+        : null;
+      if (candidateList) {
+        b.crowd.votersIds = candidateList.slice();
+      }
+      const eligible = buildEligibleVoters({
+        battleId: b.id || null,
+        eventId: evId || null,
+        votersIds: b.crowd.votersIds,
+        crowd: b.crowd
+      });
+      if (b._candidateVoterIds) delete b._candidateVoterIds;
       b.crowd.eligibleVotersIds = eligible.eligibleIds.slice();
+      if (!b.crowd.votersIds && Array.isArray(eligible.votersIds) && eligible.votersIds.length) {
+        b.crowd.votersIds = eligible.votersIds.slice();
+      }
       b.crowd.eligibleCount = eligible.eligibleNpcCount;
       b.crowd.eligibleBreakdown = {
         npcEligible: eligible.eligibleNpcCount,
@@ -2455,6 +2517,9 @@
       logCrowdElig(b, b.crowd, eligible);
       const votesNow = getCrowdTotalVotes(b.crowd);
       b.crowd.cap = Math.max(0, computedCap);
+      if (b.crowd.cap <= 0) {
+        logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
+      }
       logCrowdCapSet(b, b.crowd, b.crowd.cap, eligible);
       let forcedResolve = false;
       if (b.crowd.cap > 0 && votesNow >= b.crowd.cap) {
@@ -2896,4 +2961,9 @@
   const wrappedCore = wrapConflictCore(C);
   Game._ConflictCore = wrappedCore;
   Game.ConflictCore = wrappedCore;
+  try {
+    if (conflictMode === "dev") {
+      console.warn("CONFLICT_CORE_LOADED_V1", { ts: Date.now() });
+    }
+  } catch (_) {}
 })();

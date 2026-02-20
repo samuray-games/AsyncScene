@@ -15221,6 +15221,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       expectedEligible,
       meIncluded: false
     };
+    const trace = ["entered"];
     const result = {
       name,
       ok: false,
@@ -15230,7 +15231,13 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       excludedZeroPtsCount: null,
       ruleVersion: null,
       battleId: null,
-      diag
+      diag: Object.assign({}, diag, { trace: [...trace] })
+    };
+    const fail = (reason, extras) => {
+      result.diag.trace = [...trace];
+      result.diag.reason = reason;
+      if (extras) Object.assign(result.diag, extras);
+      return result;
     };
 
     const Core = Game.ConflictCore || Game._ConflictCore || null;
@@ -15239,12 +15246,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     S.players = S.players || {};
     S.battles = S.battles || [];
     if (!Core || typeof Core.finalize !== "function") {
-      result.diag.reason = "crowd_core_missing";
-      return result;
+      return fail("crowd_core_missing");
     }
     if (!Econ || typeof Econ.transferPoints !== "function") {
-      result.diag.reason = "econ_missing";
-      return result;
+      return fail("econ_missing");
     }
 
     const isNpc = (p) => p && (
@@ -15258,93 +15263,149 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       }
     };
     ensureNpcSeeded();
-    let npcs = Object.values(S.players).filter(p => isNpc(p));
-    if (npcs.length < npcTotal) ensureNpcSeeded();
-    npcs = Object.values(S.players).filter(p => isNpc(p));
     const nowStamp = Date.now();
-    while (npcs.length < npcTotal) {
-      const id = `npc_dev_${seed}_${npcs.length}_${nowStamp}`;
+    const collectNpcIds = () => Object.values(S.players || {}).filter(isNpc).map(p => String(p.id || "")).filter(Boolean);
+    let npcIds = Array.from(new Set(collectNpcIds()));
+    while (npcIds.length < npcTotal) {
+      const id = `npc_dev_${seed}_${npcIds.length}_${nowStamp}`;
       const npc = { id, npc: true, type: "npc", name: `dev npc ${id}`, points: 1 };
       S.players[id] = npc;
-      npcs.push(npc);
+      npcIds = Array.from(new Set(collectNpcIds()));
     }
-    const selected = npcs.slice(0, npcTotal);
-    const zeroList = selected.slice(0, npcZeroPts);
-    const positiveList = selected.slice(npcZeroPts);
+    const defaultRng = (() => {
+      let s = seed >>> 0;
+      return () => {
+        s = Math.imul(1664525, s) + 1013904223;
+        return (s >>> 0) / 0x100000000;
+      };
+    })();
+    const pool = npcIds.slice().sort();
+    const selectedIds = [];
+    while (selectedIds.length < npcTotal && pool.length) {
+      const idx = Math.floor(defaultRng() * pool.length);
+      selectedIds.push(pool.splice(idx, 1)[0]);
+    }
+    if (selectedIds.length < npcTotal) {
+      return fail("not_enough_npcs");
+    }
+    diag.votersIds = selectedIds.slice();
+    diag.votersCount = selectedIds.length;
+    diag.votersSample = selectedIds.slice(0, 3);
+    const zeroList = selectedIds.slice(0, npcZeroPts);
+    const positiveList = selectedIds.slice(npcZeroPts);
 
-    const adjustPoints = (actorId, targetPoints, reasonTag) => {
+    const DEV_DONOR_ID = "worldBank";
+    const DEV_SINK_ID = "sink";
+    const devEnsurePoints = (actorId, targetPoints) => {
       const normId = String(actorId || "");
+      if (!normId) return { ok: false, reason: "actor_missing", actorId: normId };
       const actor = (normId === "me") ? (S.players.me || S.me) : S.players[normId];
       if (!actor) return { ok: false, reason: "actor_missing", actorId: normId };
       const current = Number.isFinite(actor.points) ? (actor.points | 0) : 0;
       const delta = targetPoints - current;
       if (delta === 0) return { ok: true };
       const amount = Math.abs(delta);
-      const from = delta > 0 ? "worldBank" : normId;
-      const to = delta > 0 ? normId : "sink";
-      const reason = reasonTag || "smoke_crowd_eligible_cap";
-      const meta = { smoke: name, seed };
-      const res = Econ.transferPoints(from, to, amount, reason, meta);
+      const reason = "dev_set_points";
+      if (delta > 0) {
+        const res = Econ.transferPoints(DEV_DONOR_ID, normId, amount, reason, { smoke: name, seed });
+        return { ok: !!(res && res.ok), detail: res };
+      }
+      const res = Econ.transferPoints(normId, DEV_SINK_ID, amount, reason, { smoke: name, seed });
       return { ok: !!(res && res.ok), detail: res };
     };
 
-    const participantIds = selected.map(p => p.id);
-    for (const npc of zeroList) {
-      const adj = adjustPoints(npc.id, 0, "zero_pts");
+    trace.push("after_pick_voters");
+    for (const npcId of zeroList) {
+      const adj = devEnsurePoints(npcId, 0);
       if (!adj.ok) {
-        result.diag.reason = "adjust_zero_failed";
-        return result;
+        return fail("adjust_zero_failed", { details: adj.detail });
       }
     }
-    for (const npc of positiveList) {
-      const adj = adjustPoints(npc.id, 1, "positive_pts");
+    trace.push("after_seed_points");
+    for (const npcId of positiveList) {
+      const adj = devEnsurePoints(npcId, 1);
       if (!adj.ok) {
-        result.diag.reason = "adjust_positive_failed";
-        return result;
+        return fail("adjust_positive_failed", { details: adj.detail });
       }
     }
-    const resetMe = adjustPoints("me", 0, "me_reset");
+    const resetMe = devEnsurePoints("me", 0);
     if (!resetMe.ok) {
-      result.diag.reason = "me_reset_failed";
-      return result;
+      return fail("me_reset_failed", { details: resetMe.detail });
     }
 
     const battleId = `dev_crowd_eligible_${seed}_${Math.floor(nowStamp / 1000)}`;
-    const opponentId = selected[0] ? selected[0].id : `npc_dev_eligible_${seed}`;
-    const battle = {
-      id: battleId,
-      opponentId,
-      attackerId: "me",
-      defenderId: opponentId,
-      fromThem: false,
-      status: "draw",
-      draw: true,
-      result: "draw",
-      resolved: false,
-      finished: false,
-      attackHidden: false,
-      createdAt: nowStamp,
-      updatedAt: nowStamp
+    const opponentId = selectedIds[0] || `npc_dev_eligible_${seed}`;
+    const ensureBattle = () => {
+      const state = Game.__S || (Game.__S = {});
+      if (!Array.isArray(state.battles)) state.battles = [];
+      let existing = state.battles.find(x => x && String(x.id) === String(battleId));
+      if (existing) return existing;
+      const totalPlayers = Math.max(3, (state.players ? Object.keys(state.players).length : 0) || 3);
+      const crowd = {
+        endAt: nowStamp + 10000,
+        endsAt: nowStamp + 10000,
+        votesA: 0,
+        votesB: 0,
+        aVotes: 0,
+        bVotes: 0,
+        totalPlayers,
+        cap: Math.max(1, totalPlayers),
+        voters: {},
+        decided: false,
+        attackerId: "me",
+        defenderId: opponentId,
+        votersIds: selectedIds.slice(),
+        _candidateVoterIds: selectedIds.slice()
+      };
+      const newBattle = {
+        id: battleId,
+        opponentId,
+        attackerId: "me",
+        defenderId: opponentId,
+        fromThem: false,
+        status: "draw",
+        draw: true,
+        result: "draw",
+        resolved: false,
+        finished: false,
+        attackHidden: false,
+        createdAt: nowStamp,
+        updatedAt: nowStamp,
+        crowd
+      };
+      state.battles = [newBattle].concat(state.battles.filter(x => x && String(x.id) !== String(battleId)));
+      return newBattle;
     };
-    S.battles = [battle].concat(S.battles.filter(b => b && String(b.id) !== String(battleId)));
+    const battle = ensureBattle();
 
     try {
       Core.finalize(battleId, "draw");
     } catch (err) {
-      result.diag.reason = "finalize_exception";
-      result.diag.error = String(err && err.message ? err.message : err);
+      trace.push("after_find_crowd");
+      return fail("finalize_exception", { error: String(err && err.message ? err.message : err) });
     }
 
-    const finalBattle = S.battles.find(b => b && String(b.id) === String(battleId));
+    trace.push("after_create_battle");
+    const finalBattle = (Game && Game.__S && Array.isArray(Game.__S.battles))
+      ? Game.__S.battles.find(b => b && String(b.id) === String(battleId))
+      : null;
     const crowd = finalBattle ? finalBattle.crowd : null;
     if (!crowd) {
-      result.diag.reason = "crowd_missing";
-      return result;
+      trace.push("after_find_crowd");
+      return fail("crowd_missing", {
+        battleExists: !!finalBattle,
+        crowdKeysSample: finalBattle ? Object.keys(finalBattle) : [],
+        stateBattleIdsSample: (Game && Game.__S && Array.isArray(Game.__S.battles))
+          ? Game.__S.battles.slice(0, 3).map(b => b && String(b.id))
+          : []
+      });
     }
+    trace.push("after_find_crowd");
     const cap = Number.isFinite(crowd.cap) ? (crowd.cap | 0) : null;
     const eligibleCount = Number.isFinite(crowd.eligibleCount) ? (crowd.eligibleCount | 0) : 0;
     const breakdown = crowd.eligibleBreakdown || null;
     const rule = crowd.eligibilityRuleVersion || null;
+    trace.push("after_compute_elig");
     diag.cap = cap;
     diag.eligibleCount = eligibleCount;
     diag.breakdown = breakdown ? { ...breakdown } : null;
@@ -15354,6 +15415,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       other: breakdown ? Number.isFinite(breakdown.otherExcluded) ? (breakdown.otherExcluded | 0) : 0 : 0
     };
     diag.meIncluded = breakdown ? !!breakdown.meEligible : false;
+    result.diag.trace = [...trace];
 
     const expectedCap = expectedEligible + (diag.meIncluded ? 1 : 0);
     const ok = (cap === expectedCap) && (eligibleCount === expectedEligible);

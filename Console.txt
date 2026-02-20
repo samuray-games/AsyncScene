@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-20 23:16:58] (epoch_ms=1771597018556)
+[DUMP_AT] [2026-02-21 00:07:45] (epoch_ms=1771600065971)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771597005537
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771600051341
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771597005578}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771600051400}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771597005543 1771597005578
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771600051357 1771600051400
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771597005578
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771600051400
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771597005579}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771600051401}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-ERROR_EVENT SyntaxError: Cannot declare a let variable twice: 'evId'. http://localhost:8080/conflict/conflict-core.js?v=2 2432 0 SyntaxError: Cannot declare a let variable twice: 'evId'.
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771597005598}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771600051412}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771600051416}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,36 +45,49 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771597005600
-ERROR [ConflictAPI] Missing core module Object{core: false}
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771597005603, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771597005604}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771597005604}
+LOG [AttackChoices] conflict-arguments loaded 1771600051420
+LOG [ConflictAPI] ready
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771600051422, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771600051424}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771600051424}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771597013662_e31c14c183334 Game.__DEV.smokeCrowdEligibleCapOnce({seed:123,npcTotal:10,npcZeroPts:4})
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771600059677_bec417f09e104 Game.__DEV.smokeCrowdEligibleCapOnce({seed:123,npcTotal:10,npcZeroPts:4})
 WARN [repl] > Game.__DEV.smokeCrowdEligibleCapOnce({seed:123,npcTotal:10,npcZeroPts:4})
-LOG [repl] < Object{battleId: null, breakdown: null, cap: null, diag: Object{expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_core_missing, seed: 123}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
+LOG [repl] < Object{battleId: null, breakdown: null, cap: null, diag: Object{battleExists: true, crowdKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_missing, seed: 123, stateBattleIdsSample: [dev_crowd_eligible_123_1771600059], trace: [entered, after_pick_voters, after_seed_points, after_create_battle, after_find_crowd]}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   battleId: null
   breakdown: null
   cap: null
   diag: Object{
+    battleExists: true
+    crowdKeysSample: [
+      id
+      opponentId
+      attackerId
+      defenderId
+      fromThem
+      status
+      draw
+      result
+      resolved
+      finished
+      attackHidden
+      createdAt
+      updatedAt
+      crowd
+      copPenaltyApplied
+      note
+      resultLine
+    ]
     expectedEligible: 6
     meIncluded: false
     npcTotal: 10
     npcZeroPts: 4
-    reason: crowd_core_missing
-    seed: 123
-  }
-  eligibleCount: null
-  excludedZeroPtsCount: null
-  name: smoke_crowd_eligible_cap_once
-  ok: false
-  ruleVersion: null
-}
+    reason: crowd_missing
+    seed: 123…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eligibleCount, breakdown, excludedZeroPtsCount, ruleVersion, battleId, diag], preview: Object{battleId: null, breakdown: null, cap: null, diag: Object{expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_core_missing, seed: 123}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eligibleCount, breakdown, excludedZeroPtsCount, ruleVersion, battleId, diag], preview: Object{battleId: null, breakdown: null, cap: null, diag: Object{battleExists: true, crowdKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_missing, seed: 123, stateBattleIdsSample: [dev_crowd_eligible_123_1771600059], trace: [entered, after_pick_voters, after_seed_points, after_cr…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -89,28 +102,39 @@ LOG Object{
     battleId
     diag
   ]
-  preview: Object{battleId: null, breakdown: null, cap: null, diag: Object{expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_core_missing, seed: 123}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
-  type: object
-}
+  preview: Object{battleId: null, breakdown: null, cap: null, diag: Object{battleExists: true, crowdKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZ…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eligibleCount, breakdown, excludedZeroPtsCount, ruleVersion, battleId, diag], preview: Object{
   battleId: null
   breakdown: null
   cap: null
   diag: Object{
+    battleExists: true
+    crowdKeysSample: [
+      id
+      opponentId
+      attackerId
+      defenderId
+      fromThem
+      status
+      draw
+      result
+      resolved
+      finished
+      attackHidden
+      createdAt
+      updatedAt
+      crowd
+      copPenaltyApplied
+      note
+      resultLine
+    ]
     expectedEligible: 6
     meIncluded: false
     npcTotal: 10
     npcZeroPts: 4
-    reason: crowd_core_missing
-    seed: 123
-  }
-  eligibleCount: null
-  excludedZeroPtsCount: null
-  name: smoke_crowd_eligible_cap_once
-  ok: false
-  ruleVersion: null
-}, type: object}
+    reason: crowd_missing
+    seed: 123…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -130,40 +154,56 @@ LOG Object{
   breakdown: null
   cap: null
   diag: Object{
-    expectedEligible: 6
-    meIncluded: false
-    npcTotal: 10
-    npcZeroPts: 4
-    reason: crowd_core_missing
-    seed: 123
-  }
-  eligibleCount: null
-  excludedZeroPtsCount: null
-  name: smoke_crowd_eligible_cap_once
-  ok: false
-  ruleVersion: null
-}
-  type: o…
+    battleExists: true
+    crowdKeysSample: [
+      id
+      opponentId
+      attackerId
+      defenderId
+      fromThem
+      status
+      draw
+      result
+      resolved
+      finished
+      attackHidden
+      createdAt
+      updatedAt
+      crowd
+      copPe…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771597013662_e31c14c183334 Object{battleId: null, breakdown: null, cap: null, diag: Object{expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_core_missing, seed: 123}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771600059677_bec417f09e104 Object{battleId: null, breakdown: null, cap: null, diag: Object{battleExists: true, crowdKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_missing, seed: 123, stateBattleIdsSample: [dev_crowd_eligible_123_1771600059], trace: [entered, after_pick_voters, after_seed_points, after_create_battle, after_find_crowd]}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   battleId: null
   breakdown: null
   cap: null
   diag: Object{
+    battleExists: true
+    crowdKeysSample: [
+      id
+      opponentId
+      attackerId
+      defenderId
+      fromThem
+      status
+      draw
+      result
+      resolved
+      finished
+      attackHidden
+      createdAt
+      updatedAt
+      crowd
+      copPenaltyApplied
+      note
+      resultLine
+    ]
     expectedEligible: 6
     meIncluded: false
     npcTotal: 10
     npcZeroPts: 4
-    reason: crowd_core_missing
-    seed: 123
-  }
-  eligibleCount: null
-  excludedZeroPtsCount: null
-  name: smoke_crowd_eligible_cap_once
-  ok: false
-  ruleVersion: null
-}
+    reason: crowd_missing
+    seed: 123…
 LOG END CONSOLE_EXPAND_V1
 
