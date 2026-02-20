@@ -185,6 +185,7 @@ class DevHandler(SimpleHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
+            print("DEV_DOCS_V1_MISS", path, "len", len(body))
             return True
         try:
             with open(real_path, "rb") as f:
@@ -201,6 +202,7 @@ class DevHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(data)
+        print("DEV_DOCS_V1_HIT", path, "len", len(data))
         return True
 
     def serve_dev_checks(self):
