@@ -15238,7 +15238,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       console.warn("CROWD_ELIG_SMOKE_V1_END", {
         ok: result.ok === true,
         reason: result.diag.reason || null,
-        battleId: result.battleId
+        battleId: result.battleId,
+        cap: result.cap,
+        eligibleCount: result.eligibleCount
       });
     };
     const fail = (reason, extras) => {
@@ -15402,17 +15404,23 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const preBattle = (Game && Game.__S && Array.isArray(Game.__S.battles))
       ? Game.__S.battles.find(b => b && String(b.id) === String(createdBattleId || battleId))
       : null;
+    let battleCrowdValueTag = "missing";
     if (preBattle) {
       result.diag.battleKeysSample = Object.keys(preBattle).slice(0, 20);
       result.diag.battleCrowdType = typeof preBattle.crowd;
       result.diag.battleCrowdIsObject = !!(preBattle.crowd && typeof preBattle.crowd === "object");
+      if (preBattle.crowd === null) battleCrowdValueTag = "null";
+      else if (typeof preBattle.crowd === "undefined") battleCrowdValueTag = "undef";
+      else if (typeof preBattle.crowd === "object") battleCrowdValueTag = "obj";
+      else battleCrowdValueTag = `other:${typeof preBattle.crowd}`;
     }
     const crowd = preBattle ? preBattle.crowd : null;
     if (!crowd) {
       trace.push("after_find_crowd");
       return fail("crowd_missing", {
-        battleExists: !!stateBattle,
-        crowdKeysSample: stateBattle && stateBattle.crowd ? Object.keys(stateBattle.crowd).slice(0,20) : [],
+        battleExists: !!preBattle,
+        battleCrowdValueTag,
+        crowdKeysSample: preBattle && preBattle.crowd ? Object.keys(preBattle.crowd).slice(0,20) : [],
         stateBattleIdsSample: (Game && Game.__S && Array.isArray(Game.__S.battles))
           ? Game.__S.battles.slice(0, 3).map(b => b && String(b.id))
           : [],
@@ -15467,7 +15475,17 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         message: err && err.message ? err.message : String(err),
         stack: err && err.stack ? err.stack : null
       };
-      return fail("smoke_throw", { error: payload });
+      const stack = err && err.stack ? err.stack : "";
+      const match = stack.match(/dev-checks\\.js:(\\d+)/);
+      const fileLineHint = match ? `dev-checks.js:${match[1]}` : null;
+      const extras = {
+        error: payload,
+        throwAtTraceIndex: trace.length,
+        traceLast: trace[trace.length - 1] || null,
+        battleId: result.battleId,
+        fileLineHint
+      };
+      return fail("smoke_throw", extras);
     }
   };
 
