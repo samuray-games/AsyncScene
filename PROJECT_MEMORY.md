@@ -2284,6 +2284,13 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Changed: `AsyncScene/Web/dev/dev-checks.js`
 - Next: QA
 
+### 2026-02-12 — AsyncScene 4.2 ZIP backup
+- Status: NOTE
+- Facts:
+  - Бэкап `AsyncScene 4.2.zip` сохранён в корне репозитория `/Users/User/Documents/created apps/AsyncScene`.
+- Changed: `AsyncScene 4.2.zip`
+- Next: —
+
 ### 2026-02-05 — ECON-06.3 Runtime audit moneyLog meta — цены без обходов
 - Status: PASS
 - Facts:
