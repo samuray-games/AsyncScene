@@ -1553,7 +1553,25 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           submitBtn.id = "reportBtn";
           submitBtn.type = "button";
           submitBtn.className = "btn";
-          submitBtn.textContent = "Сдать";
+          const getReportUiState = () => state.reportUi || { status: "idle" };
+          const setReportUiState = (patch) => {
+            state.reportUi = Object.assign({}, getReportUiState(), patch);
+            renderSubmitButton();
+          };
+          const renderSubmitButton = () => {
+            const uiState = getReportUiState();
+            if (uiState.status === "pending") {
+              submitBtn.textContent = "Проверяем...";
+              submitBtn.disabled = true;
+            } else if (uiState.status === "cooldown") {
+              submitBtn.textContent = "Занят";
+              submitBtn.disabled = true;
+            } else {
+              submitBtn.textContent = "Сдать";
+              submitBtn.disabled = false;
+            }
+          };
+          renderSubmitButton();
           submitBtn.onclick = (e) => {
             stop(e);
             const q0 = String(input.value || "").trim();
@@ -1562,10 +1580,26 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               return;
             }
             if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") return;
-            // IMPORTANT: report is bound to the конкретному копу этой лички (per-cop cooldowns).
+            const reportUi = getReportUiState();
             const copId = (target && target.id) ? target.id : withId;
+            const targetId = target && target.id;
+            if (reportUi.status === "pending") {
+              try {
+                console.warn("UI_REPORT_SUBMIT_BLOCKED_V1", { copId, targetId, reason: "pending_exists" });
+              } catch (_) {}
+              return;
+            }
+            if (reportUi.status === "cooldown") {
+              try {
+                console.warn("UI_REPORT_SUBMIT_BLOCKED_V1", { copId, targetId, reason: "cooldown" });
+              } catch (_) {}
+              return;
+            }
+            setReportUiState({ status: "pending", copId, targetId, reason: "submitted", pendingId: null });
+            try {
+              console.warn("UI_REPORT_SUBMIT_DISABLED_V1", { copId, targetId, pendingId: null, reason: "submitted" });
+            } catch (_) {}
             const result = Game.__A.applyReportByRole(q0, { copId });
-
             const handlePendingResult = (res) => {
               if (!res || !res.pendingId) return;
               const copName = (target && target.name) ? target.name : "Коп";
@@ -1576,51 +1610,55 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               const resolveAt = Number(res.resolveAtMs) || (now + 800);
               const delayMs = Math.max(50, resolveAt - now + 50);
               try {
-                console.warn("UI_REPORT_PENDING_UI_V1", {
-                  pendingId: res.pendingId,
-                  resolveAtMs: resolveAt,
-                  delayMs,
-                });
+                console.warn("UI_REPORT_PENDING_UI_V1", { pendingId: res.pendingId, resolveAtMs: resolveAt, delayMs });
               } catch (_) {}
+              setReportUiState({ status: "pending", pendingId: res.pendingId, copId, targetId });
               const runResolve = async () => {
                 let resolved = null;
                 try {
                   if (Game.__A && typeof Game.__A.resolveReport === "function") {
                     const maybePromise = Game.__A.resolveReport(res.pendingId);
-                    if (maybePromise && typeof maybePromise.then === "function") {
-                      resolved = await maybePromise;
-                    } else {
-                      resolved = maybePromise;
-                    }
+                    resolved = (maybePromise && typeof maybePromise.then === "function") ? await maybePromise : maybePromise;
                   }
                 } catch (_) {}
                 try {
-                  console.warn("UI_REPORT_RESOLVE_DONE_V1", {
-                    pendingId: res.pendingId,
-                    ok: resolved && resolved.ok,
-                    reasonCode: resolved && resolved.reasonCode,
-                  });
+                  console.warn("UI_REPORT_RESOLVE_DONE_V1", { pendingId: res.pendingId, ok: resolved && resolved.ok, reasonCode: resolved && resolved.reasonCode });
+                } catch (_) {}
+                setReportUiState({ status: "cooldown", pendingId: res.pendingId, copId: res.copId || copId, targetId: res.targetId || targetId, reason: resolved && resolved.reasonCode });
+                try {
+                  console.warn("UI_REPORT_SUBMIT_REENABLED_V1", { copId: res.copId || copId, targetId: res.targetId || targetId, reason: "resolved" });
                 } catch (_) {}
                 UI.renderDM();
                 requestAll();
                 setTimeout(() => focusCopLine(), 0);
               };
-              setTimeout(() => {
-                runResolve();
-              }, delayMs);
+              setTimeout(runResolve, delayMs);
             };
             if (result && result.ok && (result.reasonCode === "pending" || result.reasonCode === "pending_exists")) {
+              if (result.reasonCode === "pending_exists") {
+                try {
+                  console.warn("UI_REPORT_SUBMIT_BLOCKED_V1", { copId, targetId, reason: "pending_exists" });
+                } catch (_) {}
+              }
               handlePendingResult(result);
+            } else if (result && result.ok) {
+              setReportUiState({ status: "cooldown", copId, targetId, reason: result.reasonCode });
+              try {
+                console.warn("UI_REPORT_SUBMIT_REENABLED_V1", { copId, targetId, reason: "resolved" });
+              } catch (_) {}
+            } else if (result && !result.ok) {
+              try {
+                console.warn("UI_REPORT_SUBMIT_BLOCKED_V1", { copId, targetId, reason: result.reason || "unknown" });
+              } catch (_) {}
+              setReportUiState({ status: "cooldown", copId, targetId, reason: result.reason });
             }
 
-            // Collapse back to the "Сдать" button
-            state.open = false;
             state.q = "";
             state.sel = 0;
+            state.open = true;
             state.dropdownOpen = false;
-            closeDropdown();
+            // keep the button in place instead of collapsing the form
 
-            // If jail applied, update battles immediately
             try {
               if (result && result.ok && UI && typeof UI.renderBattles === "function") UI.renderBattles();
             } catch (_) {}

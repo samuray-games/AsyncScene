@@ -2602,32 +2602,35 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Economy
-- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md`
-- Goal: Подтвердить поведение “Сдать” в четырех сценариях: truthful pending->resolve, false pending->resolve, anti-dup, anti-spam rate limit.
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Подтвердить четыре сценария (true/false/anti-dup/rate-limit) через DM и applyReportByRole с валидными roleKey; текущий DUMP_AT 2026-02-20 17:26:04 слишком ограничен — он фиксирует только true-донесение.
+- Goal: Как раньше, плюс сделать UX блокировку: кнопка остаётся на месте и показывает состояние pending/cooldown, чтобы антидубль/антиспам были очевидны и логировались.
 - Acceptance:
-  - [ ] S1: подача true-репорта создаёт `REPORT_PENDING_*`/`UI_REPORT_*` маркеры и `rep_report_true`/`report_true_compensation` rows после resolve.
-  - [ ] S2: ложный репорт логирует те же маркеры и canonical rows `report_false_penalty`/`rep_report_false` после resolve.
-  - [ ] S3: повторный submit во время pending возвращает `pending_exists` и не дублирует moneyLog rows.
-  - [ ] S4: быстрая вторая попытка (rate-limit) возвращает `rate_limited` (или аналог) и не создаёт лишних строк (`report_rate_limited` один раз).
+  - [ ] S0: запусти `Game.__DEV.listReportRoleKeysOnce()` и получи рекомендованные `roleKey` для true и false, а также подсказки по target-id/name.
+  - [ ] S1: true flow через UI DM + `applyReportByRole(trueKey)`, ожидаются pending/resolve лог и `rep_report_true`/`report_true_compensation` rows после resolve.
+  - [ ] S2: ложный flow через UI DM + `applyReportByRole(falseKey)`, ожидаются pending/resolve лог и `report_false_penalty`/`rep_report_false` rows.
+  - [ ] S3: anti-dup — повторный submit во время pending возвращает `pending_exists` (или `already_resolved` при повторном resolve) без дублирования moneyLog.
+  - [ ] S4: anti-spam — серия быстрых submit возвращает `rate_limited` и пишет ровно один `report_rate_limited`.
 - Result: |
     Status: FAIL (DUMP_AT 2026-02-20 17:26:04)
     Facts:
-      - The dump contains S1 logs (`REPORT_PENDING_CREATED_V1`, `REPORT_PENDING_RESOLVED_V1`, canonical `rep_report_true`/`report_true_compensation`) but there is no evidence for S2: `report_false_penalty` or `rep_report_false` are missing from the tail.
-      - Anti-dup/rate-limit markers (`pending_exists`, `report_rate_limited`) are also absent, so S3/S4 are unverified.
+      - Там есть только true-репорт (S1) с canonical rows (`rep_report_true`, `report_true_compensation`), но отсутствуют `report_false_penalty`/`rep_report_false` и `pending_exists`/`report_rate_limited`.
+      - Смоуки до сих пор использовали roleKey по NPC (например, `npc_bandit`), которые возвращают `unknown_role`, поэтому S2/S3/S4 не запускаются.
+      - UI всё ещё сглаживается: после клика кнопка исчезает, так что anti-dup и anti-spam воспринимаются как баг верстки.
     Evidence:
-      - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` shows only the true-report markers and moneyLog rows; all required markers for false/anti-dup/rate-limit flows are missing.
-- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-dm.js` `PROJECT_MEMORY.md` `TASKS.md`
+      - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` содержит лишь true-кейс и ровно три moneyLog rows, без нужных маркеров для ложного/антидублирующего flows.
+- Next steps: Собрать новый DUMP_AT после выполнения S0–S4 с helper-ключами.
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
 - How to verify:
-  1. Reload http://localhost:8080/index.html?dev=1 and open the cop DM.
-  2. S1: submit a true report, confirm pending logs + `rep_report_true`/`report_true_compensation` appear after resolve.
-  3. S2: submit a false report (target outside allowlist or invalid role) and confirm canonical false rows appear only after resolve.
-  4. S3: submit twice in quick succession while pending exists; expect `pending_exists` and no duplicate moneyLog rows.
-  5. S4: submit again within rate-limit window; expect `rate_limited` response and single `report_rate_limited` row.
-- Next Prompt (копипаст, кодблок обязателен):
+  1. `console.log(Game.__DEV.listReportRoleKeysOnce())`, используйте возвращённые `trueReport.roleKey`/`falseReport.roleKey` и note.
+  2. S1: нажмите “Сдать” → настоящую цель, дождитесь `REPORT_PENDING_*` + `REPORT_PENDING_RESOLVED_V1` + `rep_report_true`/`report_true_compensation`.
+  3. S2: нажмите “Сдать” → цель под false-ключом, дождитесь `report_false_penalty`/`rep_report_false` после resolve.
+  4. S3: пока pending активен, повторите submit — в ответ получите `pending_exists`/`already_resolved`, а moneyLog растёт только один раз.
+  5. S4: в течение rate-limit window (4 с) быстро нажмите “Сдать” — ожидается `rate_limited` и ровно одна строка `report_rate_limited`.
+- Next Prompt (копипаст, кодблок обязательно):
     ```text
     QA:
-    (1) Reload http://localhost:8080/index.html?dev=1 and open the cop DM.
-    (2) Run S1–S4 as described above.
-    (3) PASS if each scenario logs the required markers and canonical moneyLog rows exactly once after resolve; otherwise FAIL with console dumps (include missing markers/reasons).
+    (1) Run `console.log(Game.__DEV.listReportRoleKeysOnce())` and note `trueReport.roleKey`/`falseReport.roleKey` plus `examples` notes.
+    (2) Follow S1–S4 using the provided roleKey and DM hints, ensuring each scenario logs the pending/resolve markers and moneyLog rows described in the new acceptance criteria.
+    (3) PASS if you capture a new DUMP_AT where S1/S2/S3/S4 all show their expected markers/reasons exactly once; otherwise FAIL and include the console dump.
     ```
-

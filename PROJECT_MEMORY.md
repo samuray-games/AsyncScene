@@ -3304,13 +3304,15 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 
 ### 2026-02-20 — COP report smoke pack (Step 4)
 - Status: FAIL
+- Notes: UI кнопка будет теперь оставаться на месте и логировать блокировки.
 - Facts:
-  - Console.txt `DUMP_AT 2026-02-20 17:26:04` contains only the true-report run and canonical `rep_report_true`/`report_true_compensation` rows; `report_false_penalty`/`rep_report_false` never appear, so the false-flow (S2) is unverified.
-  - `pending_exists`/`report_rate_limited` markers required for S3/S4 also do not appear in the dump, so anti-dup and rate-limit protections have not been confirmed in this evidence set.
+  - UI кнопка раньше уезжала, теперь остаётся на месте и показывает pending/cooldown.
+  - Первый DUMP (17:26:04) показывает только true-кейс, потому что SMOKE использовал `applyReportByRole("npc_bandit")` и `applyReportByRole("npc_weak")`, которые возвращают `unknown_role` и не запускают false/duplicate flows.
+  - Добавлен helper `Game.__DEV.listReportRoleKeysOnce()` (dev-only) для получения валидных `roleKey` и подсказок по target-ам; QA должен стартовать с него.
+  - Требуется новый DUMP_AT, где S1–S4 (true, false, anti-dup, rate-limit) все дают ожидаемые маркеры/moneyLog rows, прежде чем Step 4 можно перевести в PASS.
 - Evidence:
-  - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` shows only the true-report markers and lacks the canonical false/anti-dup/rate-limit rows described in the smoke definition.
+  - `Console.txt: [DUMP_AT] [2026-02-20 17:26:04]` — только true-flow (`rep_report_true`, `report_true_compensation`) плюс отсутствие `report_false_penalty`/`rep_report_false` и `report_rate_limited`.
 - Next: QA
-
 ### P1 NOTES — COP report handler stop-fix
 - WARN transferRep insufficient funds for `rep_report_false` despite moneyLog row amount 2; need follow-up to ensure Player REP actually decremented (log vs state) and no guard blocks silently swallow the penalty.
 - `report_true_compensation amount 0` (worldBank→me) logged in DUMP_AT 2026-02-20 16:55:06; confirm design covers zero-point compensation or schedule separate task if it should refund >0.
