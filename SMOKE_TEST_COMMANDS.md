@@ -183,6 +183,23 @@ Game.StateAPI.applyReportByRole("toxic");
 // Ожидается: стандартный DM без дополнительного сообщения
 ```
 
+## 8. Проверка cop quota в public chat (Задача C[1])
+
+Включи dev=1 и запусти smoke, чтобы убедиться, что копы в публичном чате не появляются чаще одной реплики на 11 NPC-сообщений.
+
+```js
+Game.__DEV.smokePublicChatCopQuotaOnce({ n: 100, seed: 123 });
+```
+
+Ожидается:
+
+- В консоли есть `PUBLIC_CHAT_COP_QUOTA_BEGIN`, затем `PUBLIC_CHAT_COP_QUOTA_JSON {...}`, затем `PUBLIC_CHAT_COP_QUOTA_END`.
+- `copCount` в коридоре 3..15, `ratio` в диапазоне 0.05–0.15 (ориентир около 0.09).
+- JSON содержит `diag`: `candidatesRoleCounts`, `selectedRoleCounts`, `budget` (start/end/min/max), `usedAuthorSelector:"Web/npcs.js · NPC.randomForChat"` и `note`/`fallback` (флаг `copCandidates==0`/`cop_fallback_only_cops`).
+- `notes` пуст или содержит `cop_fallback_only_cops` только при реальном fallback, `sampleAuthors` показывает несколько id/role.
+
+PASS если все критерии соблюдены; иначе приложи JSON и пометь FAIL.
+
 ### Тест 2: Донос после robbery
 ```js
 // 1. Получить robbery от токсика/бандита

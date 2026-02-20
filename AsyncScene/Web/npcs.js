@@ -296,10 +296,105 @@ window.Game ||= {};
   };
 
   // Biased pickers for behavior loops (do NOT use these for crowd voting)
-  NPC.randomForChat = () => {
+  NPC.randomForChat = (opts = {}) => {
+    const collector = (opts && typeof opts === "object" && opts.diag && typeof opts.diag === "object") ? opts.diag : null;
     const all = NPC.getAll();
-    const list = all.map(p => ({ item: p, weight: roleWeight(p, "chat") }));
-    return pickWeightedPlayer(list);
+    const excludeRoles = [];
+    if (opts && opts.excludeRole) excludeRoles.push(String(opts.excludeRole).toLowerCase());
+    if (opts && Array.isArray(opts.excludeRoles)) {
+      opts.excludeRoles.forEach(r => {
+        if (r == null) return;
+        excludeRoles.push(String(r).toLowerCase());
+      });
+    }
+    const filtered = [];
+    for (const p of all) {
+      if (!p) continue;
+      const role = String(p.role || "").toLowerCase();
+      if (excludeRoles.length && excludeRoles.includes(role)) continue;
+      filtered.push({ item: p, weight: roleWeight(p, "chat") });
+    }
+    if (!filtered.length) return null;
+
+    const S = (Game && (Game.__S || Game.State)) ? (Game.__S || Game.State) : null;
+    const npcState = (S && S.npc) ? S.npc : null;
+    const prevBudget = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : 0;
+    const quota = (Game && Game.Config && Number.isFinite(Game.Config.copQuota)) ? Game.Config.copQuota : (1 / 11);
+    const beforeBudget = prevBudget;
+    const baseBudget = Math.min(1, prevBudget + quota);
+    const allowCop = baseBudget >= 1.0;
+
+    const cops = [];
+    const others = [];
+    for (const entry of filtered) {
+      if (!entry || !entry.item) continue;
+      const role = String(entry.item.role || "").toLowerCase();
+      if (role === "cop") cops.push(entry);
+      else others.push(entry);
+    }
+
+    if (collector) {
+      collector.budgetBefore = beforeBudget;
+      collector.candidatesRoleCounts = {
+        cop: cops.length,
+        nonCop: others.length,
+      };
+      collector.usedAuthorSelector = "Web/npcs.js · NPC.randomForChat";
+    }
+
+    let list = allowCop ? others.concat(cops) : others.slice();
+    let fallback = false;
+    if (!list.length && cops.length) {
+      list = cops.slice();
+      fallback = true;
+    }
+    if (!list.length) {
+      return null;
+    }
+
+    if (fallback) {
+      try {
+        if (Game && Game.__DEV) {
+          Game.__DEV.__publicChatCopQuotaNotes ||= [];
+          Game.__DEV.__publicChatCopQuotaNotes.push("cop_fallback_only_cops");
+        }
+      } catch (_) {}
+      try { console.warn("cop_fallback_only_cops"); } catch (_) {}
+    }
+
+    const selected = pickWeightedPlayer(list);
+    if (!npcState) {
+      // ensure storage exists so we can keep tracking next time
+      if (S) S.npc ||= {};
+    }
+    if (selected) {
+      const isCopSelected = (selected && String(selected.role || "").toLowerCase() === "cop");
+      const nextBudget = isCopSelected ? Math.max(0, baseBudget - 1) : baseBudget;
+      if (npcState) {
+        npcState.copBudget = nextBudget;
+      } else if (S && S.npc) {
+        S.npc.copBudget = nextBudget;
+      }
+      if (collector) {
+        collector.budgetAfter = nextBudget;
+        collector.selectedRoleCounts = {
+          cop: isCopSelected ? 1 : 0,
+          nonCop: isCopSelected ? 0 : 1,
+        };
+        collector.copSelected = isCopSelected;
+        if (fallback) {
+          collector.note = "cop_fallback_only_cops";
+        }
+      }
+    } else {
+      if (collector) {
+        collector.budgetAfter = (npcState && Number.isFinite(npcState.copBudget)) ? npcState.copBudget : baseBudget;
+        collector.selectedRoleCounts = { cop: 0, nonCop: 0 };
+      }
+    }
+
+    // author selection point (Web/npcs.js · NPC.randomForChat)
+    return selected;
   };
 
   NPC.randomForBattle = () => {

@@ -6,6 +6,7 @@ window.Game = window.Game || {};
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
   let ReactionPolicy = null;
   const REP_EMITTER_DAILY_CAP = 20;
+  const COP_CHAT_QUOTA = 1 / 11;
   const REPORT_PENDING_DELAY_MS = 800;
   const RESPECT_REASON_CODES = Object.freeze({
     POINTS_COST: "points_respect_cost",
@@ -38,6 +39,11 @@ window.Game = window.Game || {};
     if (typeof U.safeId === "function") return U.safeId();
     return `id_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   };
+
+  if (!Game.Config) Game.Config = {};
+  if (!Number.isFinite(Game.Config.copQuota)) {
+    Game.Config.copQuota = COP_CHAT_QUOTA;
+  }
 
   function getProgression() {
     const P = (Game.Data && Game.Data.PROGRESSION) ? Game.Data.PROGRESSION : null;
@@ -1901,6 +1907,7 @@ window.Game = window.Game || {};
       actionCooldownMs: 0,
       lastDmAt: 0,
       timers: {}, // named timers for npc loops
+      copBudget: 0,
     },
 
     me: {
@@ -2169,6 +2176,7 @@ window.Game = window.Game || {};
       lastActionAt: 0,
       actionCooldownMs: 0,
       timers: {},
+      copBudget: 0,
     };
     State.progress = {
       weeklyInfluenceGained: 0,
@@ -3952,6 +3960,16 @@ window.Game = window.Game || {};
     canNpcAct: () => {
       const cd = State.npc.actionCooldownMs || 0;
       return Date.now() - (State.npc.lastActionAt || 0) >= cd;
+    },
+    getPublicChatCopBudget: () => {
+      if (!State.npc) return 0;
+      const value = Number.isFinite(State.npc.copBudget) ? State.npc.copBudget : 0;
+      return value;
+    },
+    resetPublicChatCopBudget: (value = 0) => {
+      if (!State.npc) State.npc = {};
+      const next = Number.isFinite(value) ? value : 0;
+      State.npc.copBudget = next;
     },
 
     // Cop reports (denunciations)

@@ -68,6 +68,42 @@
 
 ## Inbox
 
+-### [T-20260220-010] C[1] “Сплошные копы” — cop quota in public chat
+- Status: FAIL (smoke not run)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: NPC
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: ограничить долю NPC-cop в публичном чате ~1/11 через copBudget + quota, не ломая логики и сохраняя fallback.
+- Acceptance:
+  - [ ] Зафиксировать точку “author selection point” в `Web/npcs.js` и описать, где выбирается NPC-автор public chat.
+  - [ ] Добавить в `State.npc` поле `copBudget`, `Game.Config.copQuota = 1/11`, и сбрасывать budget при reset.
+  - [ ] Исключать cops из выбора, пока `copBudget < 1`, добавляя `copQuota` после каждого NPC-сообщения и вычитая 1 при выборе cop; если других кандидатов нет, разрешать cop и логировать `cop_fallback_only_cops`.
+  - [ ] Добавить `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` с BEGIN/JSON/END, ratio/notes/sampleAuthors, и учитывать `cop_fallback_only_cops`.
+  - [ ] Документировать механику (copBudget/quotas/notes) и smoke-результат в `PROJECT_MEMORY.md` + `TASKS.md`.
++ Notes: copBudget стартует 0, чоп — “cop тихий по замыслу”. Smoke проверяет ratio 0.05..0.15 и copCount 3..15 на 100, diag содержит `candidatesRoleCounts`, `selectedRoleCounts`, `budget`, `usedAuthorSelector` и `note`/`fallback` для диагностики.
+- Result: FAIL (smoke not run — требует `http://localhost:8080/index.html?dev=1` и `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`)
+- Report (обязательный формат):
+  - Status: FAIL
+  - Facts:
+    (1) `Game.Config.copQuota = 1/11` и `State.npc.copBudget` реализованы, budget увеличивается на quota, cop выборы уменьшают его на 1, и `resetAll` сбрасывает поле.
+    (2) `Game.NPC.randomForChat` помечает `author selection point`, исключает cops при low budget, но fallback log `cop_fallback_only_cops` оставляет возможность и пишет заметку.
+    (3) `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` обновлён: добавлен diag (candidatesRoleCounts/selectedRoleCounts/budget/usedAuthorSelector/note/fallback), ok проверяет ratio 0.05..0.15 и copCount 3..15, а `notes` восстанавливаются из `Game.__DEV.__publicChatCopQuotaNotes` (fallback только когда нет nonCop).
+  - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js`
+  - How to verify:
+    (1) Hard reload `http://localhost:8080/index.html?dev=1`.
+    (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
+    (3) PASS if console logs `PUBLIC_CHAT_COP_QUOTA_BEGIN`, JSON with `ratio` 0.05..0.15, `copCount<=20`, `notes` only `cop_fallback_only_cops` when no other NPCs were available, and `PUBLIC_CHAT_COP_QUOTA_END`; otherwise capture JSON and mark FAIL.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ по смоку:
+      (1) Hard reload http://localhost:8080/index.html?dev=1.
+      (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
+      (3) PASS if output has `ratio` between 0.05 and 0.15, `copCount` between 3 and 15, and `notes` only contains `cop_fallback_only_cops` if unavoidable; otherwise capture JSON and mark FAIL.
+      ```
+
 ### [T-20260217-002] ECON-08 Step 1A respect entrypoint contract
 - Status: PASS
 - Priority: P2

@@ -20032,30 +20032,180 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       if (repRows.length > capLimit) {
         FAIL.push("7.6_world_rep_exceeded_cap");
       }
-      const result = {
-        ok: FAIL.length === 0,
-        failed: FAIL,
-        facts,
-        diag,
-        notes: NOTE
+  const result = {
+    ok: FAIL.length === 0,
+    failed: FAIL,
+    facts,
+    diag,
+    notes: NOTE
+  };
+  console.log("ECON08_FINAL_SMOKE_PACK_RESULT", result);
+  return result;
+} catch (err) {
+  const crashResult = {
+    ok: false,
+    failed: ["exception"],
+    facts,
+    diag: {
+      ...diag,
+      exception: String(err && err.message ? err.message : err),
+      exceptionStack: err && err.stack ? err.stack : null
+    },
+    notes: NOTE.concat(["exception"])
+  };
+  console.error("ECON08_FINAL_SMOKE_PACK_EXCEPTION", err);
+  console.log("ECON08_FINAL_SMOKE_PACK_RESULT", crashResult);
+  return crashResult;
+}
+};
+
+  Game.__DEV.smokePublicChatCopQuotaOnce = (opts = {}) => {
+    const name = "smoke_public_chat_cop_quota_once";
+    emitLine("PUBLIC_CHAT_COP_QUOTA_BEGIN");
+    const n = (opts && Number.isFinite(opts.n) && opts.n > 0) ? (opts.n | 0) : 100;
+    const seed = (opts && Number.isFinite(opts.seed)) ? (opts.seed | 0) : 123;
+    const S = Game.__S || Game.State || {};
+    const prevBudget = (S.npc && Number.isFinite(S.npc.copBudget)) ? S.npc.copBudget : 0;
+    const prevNotes = (Game.__DEV && Array.isArray(Game.__DEV.__publicChatCopQuotaNotes))
+      ? [...Game.__DEV.__publicChatCopQuotaNotes]
+      : null;
+    if (Game.__DEV) Game.__DEV.__publicChatCopQuotaNotes = [];
+    if (!S.npc) S.npc = {};
+    S.npc.copBudget = 0;
+    const maxAttempts = Math.max(n * 5, 500);
+    let copCount = 0;
+    let total = 0;
+    const sampleAuthors = [];
+    const sampleLimit = Math.min(10, n);
+    let rng = seed >>> 0;
+    const seededRandom = () => {
+      rng ^= (rng << 13);
+      rng ^= (rng >>> 17);
+      rng ^= (rng << 5);
+      return (rng >>> 0) / 0x100000000;
+    };
+    const origRandom = Math.random;
+    let randomOverridden = false;
+    try {
+      Math.random = seededRandom;
+      randomOverridden = true;
+    } catch (_) {
+      randomOverridden = false;
+    }
+    let attempts = 0;
+    const diagAgg = {
+      candidatesRoleCounts: { cop: 0, nonCop: 0 },
+      selectedRoleCounts: { cop: 0, nonCop: 0 },
+      usedAuthorSelector: "Web/npcs.js · NPC.randomForChat",
+      budget: { start: null, end: null, min: null, max: null },
+      fallbackUsed: false,
+    };
+    const budgetValues = [];
+    let firstBudgetBefore = null;
+    let lastBudgetAfter = null;
+    try {
+      while (total < n && attempts < maxAttempts) {
+        attempts += 1;
+        const diagCall = {};
+        const npc = Game.NPC.randomForChat({ diag: diagCall });
+        if (!npc) continue;
+        total += 1;
+        const role = String(npc.role || "").toLowerCase();
+        if (role === "cop") copCount += 1;
+        if (sampleAuthors.length < sampleLimit) sampleAuthors.push({ id: npc.id, role: npc.role || "" });
+        const cand = diagCall.candidatesRoleCounts || {};
+        diagAgg.candidatesRoleCounts.cop += cand.cop || 0;
+        diagAgg.candidatesRoleCounts.nonCop += cand.nonCop || 0;
+        const sel = diagCall.selectedRoleCounts || {};
+        diagAgg.selectedRoleCounts.cop += sel.cop || 0;
+        diagAgg.selectedRoleCounts.nonCop += sel.nonCop || 0;
+        const budgetBefore = Number.isFinite(diagCall.budgetBefore) ? diagCall.budgetBefore : null;
+        const budgetAfter = Number.isFinite(diagCall.budgetAfter) ? diagCall.budgetAfter : null;
+        if (firstBudgetBefore == null && budgetBefore != null) firstBudgetBefore = budgetBefore;
+        if (budgetBefore != null) budgetValues.push(budgetBefore);
+        if (budgetAfter != null) {
+          budgetValues.push(budgetAfter);
+          lastBudgetAfter = budgetAfter;
+        }
+        if (diagCall.note === "cop_fallback_only_cops") diagAgg.fallbackUsed = true;
+      }
+      const notes = (Game.__DEV && Array.isArray(Game.__DEV.__publicChatCopQuotaNotes))
+        ? Array.from(new Set(Game.__DEV.__publicChatCopQuotaNotes))
+        : [];
+      const ratio = total ? (copCount / total) : 0;
+      const insufficient = total < n;
+      const lowRatio = ratio < 0.05;
+      const highRatio = ratio > 0.15;
+      const lowCops = copCount < 3;
+      const highCops = copCount > 15;
+      const validCopCandidates = diagAgg.candidatesRoleCounts.cop > 0;
+      const failedReasons = [];
+      if (insufficient) failedReasons.push("not_enough_messages");
+      if (!validCopCandidates) failedReasons.push("cop_candidates_missing");
+      if (copCount === 0) failedReasons.push("no_cops_selected");
+      if (lowRatio) failedReasons.push("ratio_below_threshold");
+      if (highRatio) failedReasons.push("ratio_above_threshold");
+      if (lowCops) failedReasons.push("cop_count_too_low");
+      if (highCops) failedReasons.push("cop_count_too_high");
+      const budgetMin = budgetValues.length ? Math.min(...budgetValues) : null;
+      const budgetMax = budgetValues.length ? Math.max(...budgetValues) : null;
+      const diag = {
+        candidatesRoleCounts: diagAgg.candidatesRoleCounts,
+        selectedRoleCounts: diagAgg.selectedRoleCounts,
+        budget: {
+          start: firstBudgetBefore != null ? firstBudgetBefore : prevBudget,
+          end: lastBudgetAfter != null ? lastBudgetAfter : prevBudget,
+          min: budgetMin,
+          max: budgetMax,
+        },
+        usedAuthorSelector: diagAgg.usedAuthorSelector,
       };
-      console.log("ECON08_FINAL_SMOKE_PACK_RESULT", result);
+      if (!validCopCandidates) {
+        diag.note = "copCandidates==0";
+      }
+      if (diagAgg.fallbackUsed) {
+        diag.fallback = "cop_fallback_only_cops";
+        if (!notes.includes("cop_fallback_only_cops")) notes.push("cop_fallback_only_cops");
+      }
+      const ok = failedReasons.length === 0;
+      const result = {
+        name,
+        ok,
+        total,
+        copCount,
+        ratio,
+        notes: notes,
+        sampleAuthors,
+        attempts,
+        seed,
+        startedAt: Date.now(),
+        diag,
+        failed: ok ? [] : failedReasons,
+      };
+      emitLine(`PUBLIC_CHAT_COP_QUOTA_JSON ${safeStringify(result)}`);
       return result;
     } catch (err) {
-      const crashResult = {
+      const failure = {
+        name,
         ok: false,
+        errorMessage: err && err.message ? err.message : String(err),
+        attempts,
+        seed,
+        startedAt: Date.now(),
+        diag: null,
         failed: ["exception"],
-        facts,
-        diag: {
-          ...diag,
-          exception: String(err && err.message ? err.message : err),
-          exceptionStack: err && err.stack ? err.stack : null
-        },
-        notes: NOTE.concat(["exception"])
       };
-      console.error("ECON08_FINAL_SMOKE_PACK_EXCEPTION", err);
-      console.log("ECON08_FINAL_SMOKE_PACK_RESULT", crashResult);
-      return crashResult;
+      emitLine(`PUBLIC_CHAT_COP_QUOTA_JSON ${safeStringify(failure)}`);
+      return failure;
+    } finally {
+      emitLine("PUBLIC_CHAT_COP_QUOTA_END");
+      if (randomOverridden) {
+        try { Math.random = origRandom; } catch (_) {}
+      }
+      if (S && S.npc) S.npc.copBudget = prevBudget;
+      if (Game.__DEV) {
+        Game.__DEV.__publicChatCopQuotaNotes = prevNotes || [];
+      }
     }
   };
 

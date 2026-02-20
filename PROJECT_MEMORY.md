@@ -158,6 +158,11 @@
 - Добавить инструкцию для контентной команды с полями структуры.
 - После заполнения — прогер запускает smoke: проверить UI и NPC для каждого профиля.
 
+### Public chat cop quota (C[1])
+- `State.npc` получил `copBudget` и `Game.Config.copQuota = 1/11`, чтобы в публичном чате копы появлялись не чаще, чем одна реплика на 11 NPC-сообщений; `copBudget` растёт на quota после каждого NPC-сообщения и уменьшается на 1 при выборе копа.
+- `Game.NPC.randomForChat` включает `author selection point`, исключает cop-кандидатов, пока `copBudget < 1`, но при отсутствии других NPC возвращает cop с заметкой `cop_fallback_only_cops`, сохраняя запись в `Game.__DEV.__publicChatCopQuotaNotes`.
+- Добавлен детерминированный smoke `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`, который логирует `PUBLIC_CHAT_COP_QUOTA_BEGIN/JSON/END`, возвращает `copCount`, `ratio`, `notes:[]`, `sampleAuthors:[]`, и ожидает `ratio` около 0.09 (в диапазоне 0.05–0.15) с `copCount<=20`, позволяя `cop_fallback_only_cops` только если других NPC нет.
+
 ### 2026-01-29 — Stage 3 Step 4 dev surface gating PASS
 - Facts: Убраны эвристики `localhost`/`dev=` substrings из `isDevFlag()`/`DEV_FLAG`/`_isDevFlag()`, `UI.S.flags.devChecks` теперь рассчитывается через `URLSearchParams`, `dev-checks.js` стартует только если флаг явно выставлен, `Game.Dev`/`Game.__DEV`/`window.__defineGameSurfaceProp` удаляются при отсутствии флага и `defineGameSurfaceProp` больше не держит surface в prod, поэтому `[DEV] content testing hooks enabled` лог не вычитается без явного `?dev=1` или глобального флага.
 - Status: PASS (smokes pending external verification)
@@ -3316,3 +3321,10 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 ### P1 NOTES — COP report handler stop-fix
 - WARN transferRep insufficient funds for `rep_report_false` despite moneyLog row amount 2; need follow-up to ensure Player REP actually decremented (log vs state) and no guard blocks silently swallow the penalty.
 - `report_true_compensation amount 0` (worldBank→me) logged in DUMP_AT 2026-02-20 16:55:06; confirm design covers zero-point compensation or schedule separate task if it should refund >0.
+
+### 2026-02-20 — C[1] “Сплошные копы” и copQuota
+- Facts:
+  - Введены `copBudget` (float) в `State.npc`, `Game.Config.copQuota = 1/11`, и после `resetAll` бюджет обнуляется, чтобы копы оставались редкими в public chat.
+  - `Game.NPC.randomForChat` помечает `author selection point`, добавляет квоту **до** выбора автора, исключает cop-кандидатов, пока `copBudget < 1`, но при отсутствии других NPC включает cop, логирует `cop_fallback_only_cops`, и выбор cop уменьшает бюджет на 1 только после выбора.
+  - smoke `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` дополнен `diag` (candidatesRoleCounts/selectedRoleCounts/budget/usedAuthorSelector/note/fallback) и требует ratio 0.05..0.15 + copCount 3..15; notes содержат `cop_fallback_only_cops` только в настоящем fallback, иначе пусто; smoke ещё не прогнан (dev=1).
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md` `SMOKE_TEST_COMMANDS.md`
