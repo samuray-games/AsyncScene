@@ -1273,6 +1273,99 @@
     }
   }
 
+  const ELIGIBILITY_RULE_VERSION = "ELIG_V1_zero_pts";
+
+  function buildEligibleVoters(opts){
+    const state = (Game && Game.__S) ? Game.__S : ((Game && Game.State) ? Game.State : null);
+    const players = (state && state.players && typeof state.players === "object") ? state.players : {};
+    const eligibleIds = [];
+    const excludedSample = [];
+    let excludedZeroPtsCount = 0;
+    let excludedOtherCount = 0;
+    const votersCount = Object.keys(players).length;
+    for (const id of Object.keys(players)) {
+      if (!id || id === "me") continue;
+      const player = players[id];
+      if (!player) {
+        excludedOtherCount += 1;
+        if (excludedSample.length < 5) {
+          excludedSample.push({ id, reason: "missing_state", pts: null });
+        }
+        continue;
+      }
+      const isNpcLike = player.npc === true || String((player.type || "").toLowerCase()) === "npc";
+      if (!isNpcLike) {
+        excludedOtherCount += 1;
+        if (excludedSample.length < 5) {
+          excludedSample.push({ id, reason: "not_npc", pts: Number.isFinite(player.points) ? player.points : null });
+        }
+        continue;
+      }
+      const pts = Number.isFinite(player.points) ? player.points : 0;
+      if (pts > 0) {
+        eligibleIds.push(id);
+        continue;
+      }
+      excludedZeroPtsCount += 1;
+      if (excludedSample.length < 5) {
+        excludedSample.push({ id, reason: "zero_pts", pts });
+      }
+    }
+    const meEligible = (state && state.me && Number.isFinite(state.me.points) && state.me.points > 0);
+    return {
+      eligibleIds,
+      excludedSample,
+      excludedZeroPtsCount,
+      excludedOtherCount,
+      eligibleNpcCount: eligibleIds.length,
+      meEligible,
+      votersCount,
+      rule: ELIGIBILITY_RULE_VERSION
+    };
+  }
+
+  function logCrowdElig(b, v, eligible){
+    if (!v || !eligible) return;
+    _crowdLog("CROWD_ELIG_V1", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      votersCount: eligible.votersCount,
+      eligibleCount: eligible.eligibleNpcCount,
+      cap: (eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0)),
+      rule: eligible.rule,
+      excludedZeroPtsCount: eligible.excludedZeroPtsCount,
+      excludedOtherCount: eligible.excludedOtherCount
+    });
+    if (eligible.excludedSample && eligible.excludedSample.length) {
+      _crowdLog("CROWD_ELIG_V1_EXCLUDED_SAMPLE", {
+        battleId: b && (b.id || b.battleId) || null,
+        eventId: v.eventId || null,
+        samples: eligible.excludedSample.slice(0, 5)
+      });
+    }
+  }
+
+  function logCrowdCapSet(b, v, cap, eligible){
+    if (!v) return;
+    _crowdLog("CROWD_CAP_V1_SET", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      cap,
+      eligibleCount: eligible ? eligible.eligibleNpcCount : null,
+      meIncluded: eligible ? !!eligible.meEligible : null
+    });
+  }
+
+  function logCrowdCapForcedResolve(b, v, votesNow, cap){
+    if (!v) return;
+    _crowdLog("CROWD_CAP_V1_FORCED_RESOLVE", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      votesNow,
+      cap
+    });
+  }
+
   function applyCrowdVoteTick(b, battleIdFallback){
     const cache = ensureCrowdCapMetaCache();
     const battleId = (b && (b.id || b.battleId)) || battleIdFallback || null;
@@ -2320,7 +2413,7 @@
         votesB: 0,
         voters: {},
         decided: false,
-        cap: getCrowdVoteCap(getTotalPlayersCount()),
+        cap: null,
         totalPlayers: getTotalPlayersCount(),
         attackerId,
         defenderId,
@@ -2331,11 +2424,9 @@
       };
       resetCrowdTimerState(b.crowd, nowMs);
       if (!Number.isFinite(b.crowd.cap) || b.crowd.cap <= 0) {
-        b.crowd.cap = getCrowdVoteCap(getTotalPlayersCount());
         logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
       }
-
-      startCrowdVoteTimer(b);
+      let evId = null;
 
       // Events: create a draw event so chat can navigate to it.
       let evId = null;
@@ -2349,6 +2440,27 @@
       if (evId) {
         b.eventId = evId;
         if (b.crowd) b.crowd.eventId = evId;
+      }
+      const eligible = buildEligibleVoters({ battleId: b.id || null, eventId: evId || null });
+      b.crowd.eligibleVotersIds = eligible.eligibleIds.slice();
+      b.crowd.eligibleCount = eligible.eligibleNpcCount;
+      b.crowd.eligibleBreakdown = {
+        npcEligible: eligible.eligibleNpcCount,
+        npcExcludedZeroPts: eligible.excludedZeroPtsCount,
+        otherExcluded: eligible.excludedOtherCount,
+        meEligible: eligible.meEligible ? 1 : 0
+      };
+      b.crowd.eligibilityRuleVersion = eligible.rule;
+      const computedCap = eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0);
+      logCrowdElig(b, b.crowd, eligible);
+      const votesNow = getCrowdTotalVotes(b.crowd);
+      b.crowd.cap = Math.max(0, computedCap);
+      logCrowdCapSet(b, b.crowd, b.crowd.cap, eligible);
+      let forcedResolve = false;
+      if (b.crowd.cap > 0 && votesNow >= b.crowd.cap) {
+        forcedResolve = true;
+        logCrowdCapForcedResolve(b, b.crowd, votesNow, b.crowd.cap);
+        finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
       }
       logCrowdCreate(b.crowd, b.id || b.battleId || null);
 
@@ -2369,6 +2481,10 @@
           b.sysAnnounced = true;
         }
       } catch (_) {}
+
+      if (!forcedResolve) {
+        startCrowdVoteTimer(b);
+      }
 
       return;
     }

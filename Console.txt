@@ -1,27 +1,27 @@
-[DUMP_AT] [2026-02-20 22:09:02] (epoch_ms=1771592942775)
+[DUMP_AT] [2026-02-20 22:43:33] (epoch_ms=1771595013277)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771592905949
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771594918680
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771592905979}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771594918750}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771592905951 1771592905979
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771594918704 1771594918750
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771592905979
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771594918750
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771592905980}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771594918751}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771592905993}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771594918770}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -44,54 +44,94 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771592905995
+LOG [AttackChoices] conflict-arguments loaded 1771594918772
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771592905997, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771592905998}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771592905998}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771594918775, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771594918776}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771594918776}
 WARN CONSOLE_PANEL_V1_READY
-WARN CROWD_CREATE_V1 Object{battleId: battle_mluwovvq_xgyh4r, cap: 10, eventId: null, seed: null, startedAtMs: 2066409660, votersCount: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592936317, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066410365, now: 1771592936317, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592936620, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592937015, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066411063, now: 1771592937015, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592937620, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592937716, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066411764, now: 1771592937716, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592938416, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592938620, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066412668, now: 1771592938620, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592939116, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592939620, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066413668, now: 1771592939620, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592939817, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592940517, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066414565, now: 1771592940517, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592940620, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592941218, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066415266, now: 1771592941218, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592941620, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592941919, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066415967, now: 1771592941919, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 0, votesNow: 0}
-WARN CROWD_STALL_V1_EXPIRE Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, endAtMs: null, eventId: null, now: 1771592942620, votesNow: 0}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mluwovvq_xgyh4r, eventId: null, now: 1771592942620, progressKey: 0|0|0}
-WARN CROWD_STALL_V1_ARM Object{battleId: battle_mluwovvq_xgyh4r, capNow: 10, eventId: null, lastProgressAtMs: 2066416668, now: 1771592942620, progressKey: 0|0|0, votesNow: 0}
-WARN CROWD_STALL_V1_TICK Object{capNow: 10, leftMs: 10000, votesNow: 0}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771594928380_855d39aaec2538 // 0) Быстрый поиск активной толпы (баттл приоритет, иначе эвент)
+(function(){
+  const S = window.Game?.State;
+  if(!S) return console.warn("No Game.State");
+  const battles = Object.values(S.battles||{});
+  const openB = battles.find(b => b && b.crowd && !b.crowd.decided && !b.endedAt && !b.isEnded);
+  if(openB) return console.log("OPEN_BATTLE", openB.id, openB.crowd);
+  const events = Object.values(S.events||{});
+  const openE = events.find(e => e && e.crowd && !e.crowd.decided && !e.endedAt &…
+WARN [repl] > // 0) Быстрый поиск активной толпы (баттл приоритет, иначе эвент)
+(function(){
+  const S = window.Game?.State;
+  if(!S) return console.warn("No Game.State");
+  const battles = Object.values(S.battles||{});
+  const openB = battles.find(b => b && b.crowd && !b.crowd.decided && !b.endedAt && !b.isEnded);
+  if(openB) return console.log("OPEN_BATTLE", openB.id, openB.crowd);
+  const events = Object.values(S.events||{});
+  const openE = events.find(e => e && e.crowd && !e.crowd.decided && !e.endedAt &…
+WARN No open crowd found
+LOG [repl] < undefined
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771594928380_855d39aaec2538 Object{ok: true, value: undefined}
+WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1771594935054 1771594935053_cc1b87448924d8
+WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 4088, dumpAtEpochMs: 1771594935071, dumpAtLocal: 2026-02-20 22:42:15, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1771594935053_cc1b87448924d8, sepOk: false, status: 200}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  bytes: 4088
+  dumpAtEpochMs: 1771594935071
+  dumpAtLocal: 2026-02-20 22:42:15
+  ok: true
+  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
+  prepend: true
+  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
+  runId: 1771594935053_cc1b87448924d8
+  sepOk: false
+  status: 200
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771595007445_02fc9a3f22af8 // 0.5) Создать толпу, если ее нет: пробуем известные dev-триггеры, печатаем что сработало
+(async function(){
+  const G = window.Game;
+  const tries = [
+    ["Game.__DEV.drawAuditTrigger", () => G?.__DEV?.drawAuditTrigger?.({})],
+    ["Game.Dev.drawAuditTrigger", () => G?.Dev?.drawAuditTrigger?.({})],
+    ["Game.__DEV.drawCrowdBattleOnce", () => G?.__DEV?.drawCrowdBattleOnce?.({})],
+    ["Game.__DEV.smokeCrowdStep2", () => G?.__DEV?.smokeCrowdStep2?.({})],
+    ["Game.ConflictCore.startWith", () …
+WARN [repl] > // 0.5) Создать толпу, если ее нет: пробуем известные dev-триггеры, печатаем что сработало
+(async function(){
+  const G = window.Game;
+  const tries = [
+    ["Game.__DEV.drawAuditTrigger", () => G?.__DEV?.drawAuditTrigger?.({})],
+    ["Game.Dev.drawAuditTrigger", () => G?.Dev?.drawAuditTrigger?.({})],
+    ["Game.__DEV.drawCrowdBattleOnce", () => G?.__DEV?.drawCrowdBattleOnce?.({})],
+    ["Game.__DEV.smokeCrowdStep2", () => G?.__DEV?.smokeCrowdStep2?.({})],
+    ["Game.ConflictCore.startWith", () …
+LOG TRIGGER_OK Game.__DEV.drawAuditTrigger Object{activeCount: 1, details: active_battle_present, name: draw_audit_trigger, ok: false}
+LOG [repl] < undefined
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771595007445_02fc9a3f22af8 Object{ok: true, value: undefined}
 
