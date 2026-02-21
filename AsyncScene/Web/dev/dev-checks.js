@@ -15373,6 +15373,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         dev: true,
         devTag: "crowd_eligible",
         expectedVotersLen: npcTotal,
+        expectedVotersIds: selectedIds.slice(),
         expectedVotersSample: selectedIds.slice(0, 3),
         expectedVotersSource: "smoke"
       };

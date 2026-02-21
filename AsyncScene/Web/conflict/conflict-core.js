@@ -155,6 +155,31 @@
     });
   }
 
+  function applyDevCrowdEligiblePreset(b, v){
+    if (!b || !v) return;
+    const meta = (b.meta && typeof b.meta === "object") ? b.meta : null;
+    if (!meta) return;
+    if (String(meta.devTag || "") !== "crowd_eligible") return;
+    const preset = Array.isArray(meta.expectedVotersIds) && meta.expectedVotersIds.length
+      ? meta.expectedVotersIds.slice()
+      : null;
+    if (!preset) return;
+    if (v._devPresetApplied) return;
+    v._devPresetApplied = true;
+    v.votersIds = preset.slice();
+    v.totalPlayers = preset.length;
+    v.meta = v.meta || {};
+    v.meta.devTag = "crowd_eligible";
+    v.meta.expectedVotersLen = preset.length;
+    v.meta.expectedVotersIds = preset.slice();
+    const sample = preset.slice(0, 3);
+    _crowdLog("CROWD_DEV_PRESET_V1", {
+      battleId: b && (b.id || b.battleId) || null,
+      votersIdsLen: preset.length,
+      votersIdsSample: sample.length ? sample : null
+    });
+  }
+
   function logCrowdVotersOverrideDetected(b, v, meta, actualLen, expectedLen){
     if (!v || !meta) return;
     const beforeSample = Array.isArray(v.votersIds) ? v.votersIds.slice(0,3) : [];
@@ -1357,12 +1382,12 @@
         optIds.forEach(pushId);
         return out;
       }
-      if (strictVoters) {
-        return out;
-      }
       const crowd = opts && opts.crowd;
       if (crowd && Array.isArray(crowd.votersIds) && crowd.votersIds.length) {
         crowd.votersIds.forEach(pushId);
+        return out;
+      }
+      if (strictVoters) {
         return out;
       }
       if (crowd && crowd.voters && typeof crowd.voters === "object") {
@@ -2546,6 +2571,7 @@
       resetCrowdTimerState(b.crowd, nowMs);
       b.meta = b.meta || {};
       b.crowd.meta = b.crowd.meta || b.meta;
+      applyDevCrowdEligiblePreset(b, b.crowd);
       let evId = null;
 
       // Events: create a draw event so chat can navigate to it.
