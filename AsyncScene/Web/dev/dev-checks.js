@@ -15345,7 +15345,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       return fail("me_reset_failed", { details: resetMe.detail });
     }
 
-    const battleId = `dev_crowd_eligible_${seed}_${Math.floor(nowStamp / 1000)}`;
+    const battleId = `dev_crowd_eligible_${seed}_${nowStamp}_${Math.floor(Math.random() * 1e6)}`;
     const opponentId = selectedIds[0] || `npc_dev_eligible_${seed}`;
     const ensureBattle = () => {
       const state = Game.__S || (Game.__S = {});
@@ -15369,6 +15369,13 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         votersIds: selectedIds.slice(),
         _candidateVoterIds: selectedIds.slice()
       };
+      const battleMeta = {
+        dev: true,
+        devTag: "crowd_eligible",
+        expectedVotersLen: npcTotal,
+        expectedVotersSample: selectedIds.slice(0, 3),
+        expectedVotersSource: "smoke"
+      };
       const newBattle = {
         id: battleId,
         opponentId,
@@ -15383,8 +15390,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         attackHidden: false,
         createdAt: nowStamp,
         updatedAt: nowStamp,
-        crowd
+        crowd,
+        meta: battleMeta
       };
+      crowd.meta = battleMeta;
       state.battles = [newBattle].concat(state.battles.filter(x => x && String(x.id) !== String(battleId)));
       return newBattle;
     };
@@ -15433,8 +15442,22 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     result.diag.crowdKeysSample = Object.keys(crowd).slice(0, 20);
     const votersIdsLen = Array.isArray(crowd.votersIds) ? crowd.votersIds.length : 0;
     const votersIdsSample = Array.isArray(crowd.votersIds) ? crowd.votersIds.slice(0, 3) : [];
+    const crowdVotersLen = (crowd.voters && typeof crowd.voters === "object") ? Object.keys(crowd.voters).length : null;
+    const crowdVotersSample = (crowd.voters && typeof crowd.voters === "object")
+      ? Object.keys(crowd.voters).slice(0, 3)
+      : null;
+    const expectedVotersLen = (crowd.meta && Number.isFinite(crowd.meta.expectedVotersLen))
+      ? (crowd.meta.expectedVotersLen | 0)
+      : null;
     if (votersIdsLen !== npcTotal) {
-      return fail("voters_ignored", { votersIdsLen, npcTotal, votersIdsSample });
+      return fail("voters_ignored", {
+        crowdVotersIdsLen: votersIdsLen,
+        crowdVotersLen,
+        votersIdsSample,
+        crowdVotersIdsSample: votersIdsSample,
+        crowdVotersSample,
+        expectedVotersLen
+      });
     }
     result.diag.votersIdsLen = votersIdsLen;
     result.diag.votersIdsSample = votersIdsSample;

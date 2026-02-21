@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-21 00:54:53] (epoch_ms=1771602893449)
+[DUMP_AT] [2026-02-22 00:06:43] (epoch_ms=1771686403871)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771602878793
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771686346637
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771602878869}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771686346692}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771602878808 1771602878870
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771686346650 1771686346692
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771602878870
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771686346692
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771602878870}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771686346693}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771602878904}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771602878907}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771686346701}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771686346704}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,27 +45,47 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771602878908
+LOG [AttackChoices] conflict-arguments loaded 1771686346705
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771602878912, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771602878916}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771602878916}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771686346708, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771686346712}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771686346712}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771602888364_eee451119dadc Game.__DEV.smokeCrowdEligibleCapOnce({seed:123,npcTotal:10,npcZeroPts:4})
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771686364408_a74543f48c0a8 Game.__DEV.smokeCrowdEligibleCapOnce({seed:123,npcTotal:10,npcZeroPts:4})
 WARN [repl] > Game.__DEV.smokeCrowdEligibleCapOnce({seed:123,npcTotal:10,npcZeroPts:4})
 WARN CROWD_ELIG_SMOKE_V1_BEGIN Object{npcTotal: 10, npcZeroPts: 4, seed: 123}
-WARN CROWD_ELIG_SMOKE_V1_END Object{battleId: dev_crowd_eligible_123_1771602888, cap: null, eligibleCount: null, ok: false, reason: crowd_missing}
-LOG [repl] < Object{battleId: dev_crowd_eligible_123_1771602888, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: false, battleCrowdType: object, battleCrowdValueTag: null, battleExists: true, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], createdBattleId: dev_crowd_eligible_123_1771602888, crowdKeysSample: [], crowdType: missing, expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_missing, seed: 123, stateBattleIdsSample: [dev_crowd_eligible_123_1771602888], trace: [entered, after_pick_voters, after_seed_points, after_create_battle, after_find_crowd]}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
+WARN COP_FINE_SUPPRESSED_V1 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, devTag: crowd_eligible}
+WARN CROWD_ELIG_V1 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: 0, eligibleCount: 0, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 0, meIncluded: false, rule: ELIG_V1_zero_pts, votersCount: 0, votersIdsLen: 0, votersIdsSample: null}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_crowd_eligible_123_1771602888
+  battleId: dev_crowd_eligible_123_1771686364418_978315
+  cap: 0
+  eligibleCount: 0
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 0
+  meIncluded: false
+  rule: ELIG_V1_zero_pts
+  votersCount: 0
+  votersIdsLen: 0
+  votersIdsSample: null
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_DIAG_V1 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: 0, eventId: null, reason: cap_zero}
+WARN CROWD_CAP_V1_SET Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: 0, eligibleCount: 0, eventId: null, meIncluded: false}
+WARN CROWD_CREATE_V1 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: 0, eventId: null, seed: null, startedAtMs: 1771686364421, votersCount: 0}
+WARN CROWD_DIAG_V1 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: 0, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 0, whyVotersZero: no_votes_yet}
+WARN CROWD_VOTERS_OVERRIDE_DETECTED_V1 Object{afterLen: 10, afterSample: [npc_cop_v, npc_meme, npc_bandit], battleId: dev_crowd_eligible_123_1771686364418_978315, beforeLen: 0, beforeSample: null, source: smoke}
+WARN CROWD_ELIG_SMOKE_V1_END Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: null, eligibleCount: null, ok: false, reason: voters_ignored}
+LOG [repl] < Object{battleId: dev_crowd_eligible_123_1771686364418_978315, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: true, battleCrowdType: object, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, meta, _copFineSuppressedLogged, wasDraw, resultLine], createdBattleId: dev_crowd_eligible_123_1771686364418_978315, crowdFound: true, crowdKeysSample: [votesA, votesB, voters, decided, cap, totalPlayers, attackerId, defenderId, _crowdTimerArmLogged, _crowdTimerLastTickSecond, _crowdTimerResolvedBy, _crowdTimerExpireLogged, startedAtMs, countdownStartMs, countdownEndMs, stallDetectedAtMs, lastProgressAtMs, lastProgressKey, meta, eligibleVotersIds], crowdType: object, crowdVotersIdsLen: 0, crowdVotersIdsSample: [], crowdVotersLen: 0, crowdVotersSample: [], expectedEligible: 6, expectedVotersLen: 10, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: voters_ignored, seed: 123, trace: [entered, after_pick_voters, after_seed_points, after_create_battle, after_find_crowd], votersIdsSample: []}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: dev_crowd_eligible_123_1771686364418_978315
   breakdown: null
   cap: null
   diag: Object{
-    battleCrowdIsObject: false
+    battleCrowdIsObject: true
     battleCrowdType: object
-    battleCrowdValueTag: null
-    battleExists: true
     battleKeysSample: [
       id
       opponentId
@@ -81,13 +101,14 @@ LOG Object{
       createdAt
       updatedAt
       crowd
-      copPenaltyApplied
-      note
+      meta
+      _copFineSuppressedLogged
+      wasDraw
       resultLine
     ]
- …
+    createdBattleId: dev…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eligibleCount, breakdown, excludedZeroPtsCount, ruleVersion, battleId, diag], preview: Object{battleId: dev_crowd_eligible_123_1771602888, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: false, battleCrowdType: object, battleCrowdValueTag: null, battleExists: true, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], createdBattleId: dev_crowd_eligible_123_1771602888, crowdKeysSample: [], crowdType: missing, expectedEligible: 6, m…, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eligibleCount, breakdown, excludedZeroPtsCount, ruleVersion, battleId, diag], preview: Object{battleId: dev_crowd_eligible_123_1771686364418_978315, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: true, battleCrowdType: object, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, meta, _copFineSuppressedLogged, wasDraw, resultLine], createdBattleId: dev_crowd_eligible_123_1771686364418_978315, crowdFound: true, crowdKeysSample: [votesA, votesB, voters, decided, cap, t…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -102,17 +123,15 @@ LOG Object{
     battleId
     diag
   ]
-  preview: Object{battleId: dev_crowd_eligible_123_1771602888, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: false, battleCrowdType: object, battleCrowdValueTag: null, battleExists: true, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, upda…
+  preview: Object{battleId: dev_crowd_eligible_123_1771686364418_978315, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: true, battleCrowdType: object, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, meta, _copFineSuppressed…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eligibleCount, breakdown, excludedZeroPtsCount, ruleVersion, battleId, diag], preview: Object{
-  battleId: dev_crowd_eligible_123_1771602888
+  battleId: dev_crowd_eligible_123_1771686364418_978315
   breakdown: null
   cap: null
   diag: Object{
-    battleCrowdIsObject: false
+    battleCrowdIsObject: true
     battleCrowdType: object
-    battleCrowdValueTag: null
-    battleExists: true
     battleKeysSample: [
       id
       opponentId
@@ -128,11 +147,12 @@ WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, cap, eli
       createdAt
       updatedAt
       crowd
-      copPenaltyApplied
-      note
+      meta
+      _copFineSuppressedLogged
+      wasDraw
       resultLine
     ]
- …, type: object}
+    createdBattleId: dev…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -148,14 +168,12 @@ LOG Object{
     diag
   ]
   preview: Object{
-  battleId: dev_crowd_eligible_123_1771602888
+  battleId: dev_crowd_eligible_123_1771686364418_978315
   breakdown: null
   cap: null
   diag: Object{
-    battleCrowdIsObject: false
+    battleCrowdIsObject: true
     battleCrowdType: object
-    battleCrowdValueTag: null
-    battleExists: true
     battleKeysSample: [
       id
       opponentId
@@ -163,19 +181,20 @@ LOG Object{
       defenderId
       fromThem
       status
-      dra…
+      draw
+      result
+      resolved
+      finished…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771602888364_eee451119dadc Object{battleId: dev_crowd_eligible_123_1771602888, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: false, battleCrowdType: object, battleCrowdValueTag: null, battleExists: true, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, copPenaltyApplied, note, resultLine], createdBattleId: dev_crowd_eligible_123_1771602888, crowdKeysSample: [], crowdType: missing, expectedEligible: 6, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: crowd_missing, seed: 123, stateBattleIdsSample: [dev_crowd_eligible_123_1771602888], trace: [entered, after_pick_voters, after_seed_points, after_create_battle, after_find_crowd]}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771686364408_a74543f48c0a8 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, breakdown: null, cap: null, diag: Object{battleCrowdIsObject: true, battleCrowdType: object, battleKeysSample: [id, opponentId, attackerId, defenderId, fromThem, status, draw, result, resolved, finished, attackHidden, createdAt, updatedAt, crowd, meta, _copFineSuppressedLogged, wasDraw, resultLine], createdBattleId: dev_crowd_eligible_123_1771686364418_978315, crowdFound: true, crowdKeysSample: [votesA, votesB, voters, decided, cap, totalPlayers, attackerId, defenderId, _crowdTimerArmLogged, _crowdTimerLastTickSecond, _crowdTimerResolvedBy, _crowdTimerExpireLogged, startedAtMs, countdownStartMs, countdownEndMs, stallDetectedAtMs, lastProgressAtMs, lastProgressKey, meta, eligibleVotersIds], crowdType: object, crowdVotersIdsLen: 0, crowdVotersIdsSample: [], crowdVotersLen: 0, crowdVotersSample: [], expectedEligible: 6, expectedVotersLen: 10, meIncluded: false, npcTotal: 10, npcZeroPts: 4, reason: voters_ignored, seed: 123, trace: [entered, after_pick_voters, after_seed_points, after_create_battle, after_find_crowd], votersIdsSample: []}, eligibleCount: null, excludedZeroPtsCount: null, name: smoke_crowd_eligible_cap_once, ok: false, ruleVersion: null}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_crowd_eligible_123_1771602888
+  battleId: dev_crowd_eligible_123_1771686364418_978315
   breakdown: null
   cap: null
   diag: Object{
-    battleCrowdIsObject: false
+    battleCrowdIsObject: true
     battleCrowdType: object
-    battleCrowdValueTag: null
-    battleExists: true
     battleKeysSample: [
       id
       opponentId
@@ -191,10 +210,224 @@ LOG Object{
       createdAt
       updatedAt
       crowd
-      copPenaltyApplied
-      note
+      meta
+      _copFineSuppressedLogged
+      wasDraw
       resultLine
     ]
- …
+    createdBattleId: dev…
 LOG END CONSOLE_EXPAND_V1
+WARN CROWD_DIAG_V1 Object{battleId: dev_crowd_eligible_123_1771686364418_978315, cap: 0, eventId: null, reason: cap_zero}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686375225, progressKey: 0|0|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686375528, progressKey: 1|1|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686376526, progressKey: 2|1|1}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686377528, progressKey: 3|2|1}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686378527, progressKey: 4|3|1}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686380529, progressKey: 5|3|3}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686381530, progressKey: 6|3|5}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686383532, progressKey: 7|5|5}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686386534, progressKey: 8|6|5}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686393539, progressKey: 9|6|6}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_crowd_eligible_123_1771686364418_978315, eventId: null, now: 1771686394539, progressKey: 10|6|8}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1771686346712-tfb0, time: 1771686394545, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: defineProperty
+    key: Game.Debug.securityEvents
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1771686346712-tfb0
+  time: 1771686394545
+  type: tamper_detected
+  window: Object{…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.securityEvents
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.securityEvents
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1771686346712-tfb0, time: 1771686394545, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: defineProperty
+    key: Game.Debug.__debugSecurityEventsStore
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1771686346712-tfb0
+  time: 1771686394545
+  type: tamper_detected
+  win…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.__debugSecurityEventsStore
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.__debugSecurityEventsStore
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1771686346712-tfb0, time: 1771686394544, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: set
+    key: StateAPI.transferRep
+    mode: dev
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1771686346712-tfb0
+  time: 1771686394544
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
+WARN [SEC:notify] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1080:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1733:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1574:38}, playerId: me, reaction: log_only, sessionId: session-1771686346712-tfb0, time: 1771686394555, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 3
+    short: 3
+  }
+  meta: Object{
+    action: set_function
+    key: StateAPI.transferRep
+    mode: dev
+    stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1080:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1733:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1574:38
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-177168634671…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1080:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1733:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1574:38}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: set_function
+  key: StateAPI.transferRep
+  mode: dev
+  stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1080:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1733:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1574:38
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1080:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1733:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1574:38}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: set_function
+  key: StateAPI.transferRep
+  mode: dev
+  stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1080:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:1733:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:1574:38
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1771686346712-tfb0, time: 1771686394563, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1771686346712-tfb0
+  time: 1771686394563
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN CROWD_STALL_V1_RESOLVE Object{battleId: dev_crowd_eligible_123_1771686364418_978315, capNow: 10, endedBy: cap, eventId: null, resolvedBy: cap, votesNow: 10}
 

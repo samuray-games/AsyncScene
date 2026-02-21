@@ -155,6 +155,35 @@
     });
   }
 
+  function logCrowdVotersOverrideDetected(b, v, meta, actualLen, expectedLen){
+    if (!v || !meta) return;
+    const beforeSample = Array.isArray(v.votersIds) ? v.votersIds.slice(0,3) : [];
+    const afterSample = Array.isArray(meta.expectedVotersSample) ? meta.expectedVotersSample.slice(0,3) : null;
+    _crowdLog("CROWD_VOTERS_OVERRIDE_DETECTED_V1", {
+      battleId: b && (b.id || b.battleId) || null,
+      beforeLen: typeof actualLen === "number" ? actualLen : null,
+      afterLen: typeof expectedLen === "number" ? expectedLen : null,
+      beforeSample: beforeSample.length ? beforeSample : null,
+      afterSample,
+      source: meta.expectedVotersSource || "meta"
+    });
+  }
+
+  function checkCrowdVotersOverride(b, v){
+    if (!v) return false;
+    const meta = (v.meta && typeof v.meta === "object") ? v.meta :
+      (b && b.meta && typeof b.meta === "object") ? b.meta : null;
+    if (!meta) return false;
+    if (String(meta.devTag || "") !== "crowd_eligible") return false;
+    const expectedLen = Number.isFinite(meta.expectedVotersLen) ? (meta.expectedVotersLen | 0) : null;
+    if (expectedLen == null) return false;
+    const actualLen = Array.isArray(v.votersIds) ? v.votersIds.length : 0;
+    if (actualLen === expectedLen) return false;
+    logCrowdVotersOverrideDetected(b, v, meta, actualLen, expectedLen);
+    v._votersOverrideDetected = true;
+    return true;
+  }
+
   function ensureCrowdTimerFields(v, nowCandidate){
     if (!v) return null;
     const nowMs = Math.floor(Number.isFinite(nowCandidate) ? nowCandidate : now());
@@ -192,6 +221,30 @@
   }
   function getPlayer(id){ return (Game.__S.players && Game.__S.players[id]) || null; }
   function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function hasDevQueryParam() {
+    if (typeof location === "undefined" || !location) return false;
+    const search = (typeof location.search === "string") ? location.search : "";
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("dev") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+  function isDevModeFlag() {
+    if (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) return true;
+    return hasDevQueryParam();
+  }
+  function isDevBattle(battle) {
+    if (!battle) return false;
+    const meta = battle.meta || {};
+    const id = String(battle.id || battle.battleId || "");
+    if (id.startsWith("dev_")) return true;
+    if (meta.dev === true) return true;
+    if (meta.devTag === "crowd_eligible") return true;
+    return false;
+  }
   function isActivePlayer(p){
     if (!p || !p.id) return false;
     if (p.removed === true) return false;
@@ -1283,6 +1336,12 @@
     const state = (Game && Game.__S) ? Game.__S : ((Game && Game.State) ? Game.State : null);
     const players = (state && state.players && typeof state.players === "object") ? state.players : {};
     const meId = (state && state.me && state.me.id) ? String(state.me.id) : "me";
+    const meta = (opts && opts.meta && typeof opts.meta === "object")
+      ? opts.meta
+      : (opts && opts.crowd && opts.crowd.meta && typeof opts.crowd.meta === "object")
+        ? opts.crowd.meta
+        : null;
+    const strictVoters = meta && String(meta.devTag || "") === "crowd_eligible";
     const sourcedIds = (() => {
       const seen = new Set();
       const out = [];
@@ -1296,6 +1355,9 @@
       const optIds = Array.isArray((opts && opts.votersIds)) ? opts.votersIds : null;
       if (Array.isArray(optIds) && optIds.length) {
         optIds.forEach(pushId);
+        return out;
+      }
+      if (strictVoters) {
         return out;
       }
       const crowd = opts && opts.crowd;
@@ -2355,10 +2417,18 @@
     // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
     // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
     // а не при самом старте батла. Поэтому применяем штраф здесь, в finalize.
+    const devBattle = isDevBattle(b);
+    const devLogMode = isDevModeFlag();
     if (!b.fromThem) {
       const role = getRole(b.opponentId);
       if ((role === "cop" || role === "police") && outcome !== "escaped") {
-        if (!b.copPenaltyApplied) {
+        if (devBattle) {
+          if (devLogMode && !b._copFineSuppressedLogged) {
+            b._copFineSuppressedLogged = true;
+            const devTag = (b.meta && b.meta.devTag) ? b.meta.devTag : null;
+            console.warn("COP_FINE_SUPPRESSED_V1", { battleId: b.id || null, devTag });
+          }
+        } else if (!b.copPenaltyApplied) {
           const me = Game.__S && Game.__S.me;
           ensurePointsField(me);
           const penalty = 5;
@@ -2474,6 +2544,8 @@
         _crowdTimerExpireLogged: false
       };
       resetCrowdTimerState(b.crowd, nowMs);
+      b.meta = b.meta || {};
+      b.crowd.meta = b.crowd.meta || b.meta;
       let evId = null;
 
       // Events: create a draw event so chat can navigate to it.
@@ -2491,14 +2563,16 @@
       const candidateList = (Array.isArray(b._candidateVoterIds) && b._candidateVoterIds.length)
         ? b._candidateVoterIds.slice()
         : null;
-      if (candidateList) {
+      const hasPrepopulatedVoters = Array.isArray(b.crowd.votersIds) && b.crowd.votersIds.length;
+      if (!hasPrepopulatedVoters && candidateList && candidateList.length) {
         b.crowd.votersIds = candidateList.slice();
       }
       const eligible = buildEligibleVoters({
         battleId: b.id || null,
         eventId: evId || null,
         votersIds: b.crowd.votersIds,
-        crowd: b.crowd
+        crowd: b.crowd,
+        meta: b.meta
       });
       if (b._candidateVoterIds) delete b._candidateVoterIds;
       b.crowd.eligibleVotersIds = eligible.eligibleIds.slice();
@@ -2528,6 +2602,9 @@
         finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
       }
       logCrowdCreate(b.crowd, b.id || b.battleId || null);
+      if (checkCrowdVotersOverride(b, b.crowd)) {
+        return;
+      }
 
       // Push a SYS chat line about draw with links to battleId and eventId.
       try {
@@ -2547,7 +2624,7 @@
         }
       } catch (_) {}
 
-      if (!forcedResolve) {
+      if (!forcedResolve && !b.crowd._votersOverrideDetected) {
         startCrowdVoteTimer(b);
       }
 
