@@ -52,6 +52,22 @@
     } catch (_) {}
   }
 
+  function isVillainRole(role){
+    return role === "toxic" || role === "bandit" || role === "mafia";
+  }
+
+  function logBattleResolveVillain(b, result, penaltyApplied, villainRole){
+    try {
+      console.warn("BATTLE_RESOLVE_VILLAIN", {
+        battleId: b && (b.id || b.battleId) || null,
+        fromThem: !!(b && b.fromThem),
+        result: result || null,
+        penaltyApplied: !!penaltyApplied,
+        villainRole: villainRole || null
+      });
+    } catch (_) {}
+  }
+
   function logCrowdStallProgress(b, v, nowMs, key){
     if (!v || !key) return;
     _crowdLog("CROWD_STALL_V1_PROGRESS", {
@@ -716,7 +732,7 @@
   // wipe ALL player influence. Apply once per battle.
   function maybeApplyMafiaHumiliation(b){
     try {
-      if (!b) return;
+      if (!b || !b.fromThem) return;
       if (b.mafiaHumiliated) return;
       const role = getRole(b.opponentId);
       if (role !== "mafia") return;
@@ -896,12 +912,6 @@
       const attackerWins = aS > dS;
       const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
       return meWins ? "win" : "lose";
-    }
-
-    // Special roles: Toxic/Bandit (meaningful when THEY attacked and ME defended)
-    // Always a loss (no crowd) if they attacked.
-    if (b.fromThem && defenderId === "me" && (oppRole === "toxic" || oppRole === "bandit")) {
-      return "lose";
     }
 
     // Same color
@@ -1720,6 +1730,8 @@
 
     const oppRole = getRole(b.opponentId);
     const isVillain = (oppRole === "toxic" || oppRole === "bandit");
+    const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+    let penaltyApplied = false;
 
     b.attackHidden = false;
     b.finished = true;
@@ -1732,6 +1744,8 @@
       b.result = iLose ? "lose" : "win";
       b.note = attackerWins ? "Толпа решила: атакующий затащил." : "Толпа решила: защитник отбился.";
       if (iLose) {
+        const hadToxic = !!b.toxicHitApplied;
+        const hadBandit = !!b.banditRobbed;
         if (role === "bandit") {
           b.resultLine = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
             ? Game.Data.SYS.banditRobbed
@@ -1742,6 +1756,9 @@
             : "Токсик снял у тебя 5 💰. Все видели.";
         }
         applyVillainPenalty(b, "crowd");
+        if (shouldLogVillain) {
+          penaltyApplied = (!!b.toxicHitApplied && !hadToxic) || (!!b.banditRobbed && !hadBandit);
+        }
       } else {
         b.resultLine = "Победа";
         withRepSourceOverride(() => applyEconomyForOutcome(b.result, b));
@@ -1769,6 +1786,9 @@
     b.updatedAt = now();
     if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
     applyBattleCrowdEconomy(b, res);
+    if (shouldLogVillain) {
+      logBattleResolveVillain(b, b.result, penaltyApplied, oppRole);
+    }
     announceBattleResult(b);
 
     return {
@@ -2527,22 +2547,25 @@
     // Reveal attack only after we have an outcome.
     b.attackHidden = false;
 
-  // Special rule: Toxic can deal immediate damage if you answer quickly.
-  // Applies only when Toxic attacked (fromThem) and only once per battle.
-  if (outcome !== "escaped") {
-    maybeApplyToxicInstantHit(b);
-  }
+    const oppRole = getRole(b.opponentId);
+    const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+    let penaltyApplied = false;
 
-    // Special rule: Mafioso humiliation applies on ANY action except escape, only if mafia attacked.
-    if (outcome !== "escaped") {
+    // Special rules (villain penalties) apply ONLY on definitive loss (not escaped, not draw).
+    if (outcome === "lose" && !b.draw) {
+      // Toxic can deal immediate damage if you answer quickly.
+      // Applies only when Toxic attacked (fromThem) and only once per battle.
+      maybeApplyToxicInstantHit(b);
+
+      // Mafioso humiliation applies only if mafia attacked.
       maybeApplyMafiaHumiliation(b);
-    }
 
-    // Special rule: Bandit wipes all points ONLY on definitive loss (not escaped, not draw).
-    // Applies only when Bandit attacked (fromThem) and only once per battle.
-  if (outcome === "lose" && !b.draw) {
-    maybeApplyBanditRobbery(b);
-  }
+      // Bandit wipes all points on loss only.
+      maybeApplyBanditRobbery(b);
+    }
+    if (shouldLogVillain && outcome === "lose") {
+      penaltyApplied = !!(b.toxicHitApplied || b.banditRobbed || b.mafiaHumiliated);
+    }
 
     if (outcome === "draw") {
       b.draw = true;
@@ -2654,6 +2677,9 @@
         startCrowdVoteTimer(b);
       }
 
+      if (shouldLogVillain) {
+        logBattleResolveVillain(b, "draw", false, oppRole);
+      }
       return;
     }
 
@@ -2695,6 +2721,9 @@
       Game.__S.battles = [b].concat(Game.__S.battles.filter(x => x.id !== b.id));
     }
 
+    if (shouldLogVillain) {
+      logBattleResolveVillain(b, outcome, penaltyApplied, oppRole);
+    }
     announceBattleResult(b);
   };
 

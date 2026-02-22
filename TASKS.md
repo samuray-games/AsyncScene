@@ -68,6 +68,42 @@
 
 ## Inbox
 
+### [T-20260222-001] C[1] Villain fromThem penalties only on lose
+- Status: FAIL (смоук подготовлен, не запускался)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: исправить резолв villain-инициированных боёв (fromThem=true) — penalties только при result="lose", win/draw без penalty, формула result не зависит от fromThem; добавить лог `BATTLE_RESOLVE_VILLAIN`.
+- Acceptance:
+  - [ ] penalty применяется только при result="lose"
+  - [ ] win/draw не вызывают penalty
+  - [ ] fromThem не влияет на формулу result
+  - [ ] лог `BATTLE_RESOLVE_VILLAIN {battleId, fromThem, result, penaltyApplied, villainRole}`
+- Notes: не менять экономику, не вводить эмиссию, не трогать crowd, только корректный resolve + лог.
+- Result: FAIL (смоук не запускался, нужна проверка helper)
+- Report:
+  - Status: FAIL
+  - Facts:
+    (1) `computeOutcome` больше не форсит `lose` по `fromThem` для toxic/bandit.
+    (2) penalties (toxic/bandit/mafia) применяются только при `outcome === "lose"` в finalize; mafia-штраф зависит от `fromThem`.
+    (3) добавлен лог `BATTLE_RESOLVE_VILLAIN`, а в dev-пакет добавлен новый helper `Game.__DEV.smokeVillainFromThemResolveOnce`.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    (1) Hard reload http://localhost:8080/index.html?dev=1.
+    (2) Выполнить `Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})`.
+    (3) PASS, если smoke возвращает `ok:true`, `cases.win.penaltyApplied === false`, `cases.draw.penaltyApplied === false`, `cases.lose.penaltyApplied === true`, `cases.*.outcome` совпадает с `force`, `diag.createdBattleId` строка, `diag.defenseSource` указана, `diag.resolvedN === 3`, и в консоли появляются `BATTLE_RESOLVE_VILLAIN`-логи на все исходы без висящих incoming-battle.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      (1) Hard reload http://localhost:8080/index.html?dev=1.
+      (2) Выполни Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"}).
+      (3) Проверь, что helper вернул `ok:true`, `cases.win.penaltyApplied === false`, `cases.draw.penaltyApplied === false`, `cases.lose.penaltyApplied === true`, `cases.*.outcome` совпадают с `force`, и в консоли есть `BATTLE_RESOLVE_VILLAIN` для win/lose/draw.
+      (4) Приложи Console/JSON из `SMOKE_VILLAIN_FROMTHEM_V1_JSON`.
+      ```
+
+
 ### [T-20260220-009] D[2] Толпа — epoch_ms timer + stall gating + diag
 - Status: DOING (код обновлён, смоук ещё не прогонялся)
 - Priority: P1

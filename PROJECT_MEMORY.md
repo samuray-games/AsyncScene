@@ -1169,6 +1169,8 @@
   - Статус фаз/волн (только по `TASKS.md`)
   - Любые обязательные требования к коммуникации/копипастам
 
+Факт: 2026-02-22 — villain-инициированные бои: penalties теперь применяются только при result="lose"; fromThem не форсит outcome; добавлен лог `BATTLE_RESOLVE_VILLAIN`; smoke-хелпер `Game.__DEV.smokeVillainFromThemResolveOnce` теперь автоматически создаёт incoming fight/defense, резолвит win/lose/draw, логирует `SMOKE_VILLAIN_FROMTHEM_V1_JSON` (diag={core,createdBattleId,defenseSource,uiSuppressed,resolvedN}) и не требует UI; smoke ещё не запускался (см. `TASKS.md`).
+
 ## 2026-01-13 — Инвариант: эскалация реванша против противника
 
 **Правило 1: КАЖДОЕ поражение предлагает реванш**

@@ -13639,6 +13639,180 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
   };
 
+  Game.__DEV.smokeVillainFromThemResolveOnce = (opts = {}) => {
+    const name = "smoke_villain_fromthem_resolve_once";
+    const villainRoles = ["toxic", "bandit", "mafia"];
+    const debug = !!(opts && opts.debug);
+    const state = Game.__S || (Game.__S = {});
+    state.players = state.players || {};
+    state.battles = state.battles || [];
+    state.me = state.me || { id: "me", points: 0, influence: 0, wins: 0 };
+
+    const conflict = Game.Conflict || null;
+    const conflictCore = Game._ConflictCore || Game.ConflictCore || null;
+    const Args = Game._ConflictArguments || Game.ConflictArguments || null;
+    const hasResolve = !!(conflictCore && typeof conflictCore.resolveBattleOutcome === "function");
+    const hasIncoming = !!(conflict && typeof conflict.incoming === "function");
+    const diagCoreKeys = conflictCore ? Object.keys(conflictCore).slice(0, 5) : null;
+
+    const result = {
+      name,
+      ok: false,
+      villainId: null,
+      villainRole: null,
+      cases: { win: null, lose: null, draw: null },
+      notes: [],
+      error: null,
+      diag: {
+        core: {
+          hasConflict: !!conflict,
+          hasConflictCore: !!conflictCore,
+          hasResolve,
+          hasIncoming,
+          keysSample: diagCoreKeys
+        },
+        createdBattleId: null,
+        defenseSource: null,
+        uiSuppressed: true,
+        resolvedN: 0
+      }
+    };
+    const logBegin = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_BEGIN", payload || {});
+    const logJson = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_JSON", payload || {});
+    const logEnd = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_END", payload || {});
+
+    logBegin({ name, villainId: opts.villainId || null, debug, time: Date.now() });
+
+    if (!hasIncoming || !hasResolve) {
+      result.error = !hasIncoming ? "core_missing_incoming" : "core_missing_resolve";
+      result.notes.push(result.error);
+      logJson(result);
+      logEnd({ name, ok: false, reason: result.error });
+      return result;
+    }
+
+    const ensureVillainEntry = (id, role) => {
+      if (!state.players[id]) {
+        state.players[id] = {
+          id,
+          name: `villain_${role}`,
+          npc: true,
+          role,
+          influence: 12,
+          points: 5
+        };
+      }
+      return state.players[id];
+    };
+
+    const hasAnyVillain = Object.values(state.players || {}).some(p => p && villainRoles.includes(String(p.role || p.type || "").toLowerCase()));
+    if (!hasAnyVillain) {
+      ensureVillainEntry("npc_toxic", "toxic");
+      ensureVillainEntry("npc_bandit", "bandit");
+      ensureVillainEntry("npc_mafia", "mafia");
+    }
+
+    const pickVillainId = () => {
+      if (opts && opts.villainId && state.players[opts.villainId]) return opts.villainId;
+      const candidates = Object.values(state.players || {}).filter(p => p && villainRoles.includes(String(p.role || p.type || "").toLowerCase()));
+      return candidates.length ? candidates[0].id : null;
+    };
+
+    const villainId = pickVillainId();
+    if (!villainId) {
+      result.error = "villain_missing";
+      result.notes.push(result.error);
+      logJson(result);
+      logEnd({ name, ok: false, reason: result.error });
+      return result;
+    }
+
+    result.villainId = villainId;
+    const villainPlayer = state.players[villainId];
+    const villainRole = villainPlayer ? String(villainPlayer.role || villainPlayer.type || "").toLowerCase() : null;
+    result.villainRole = villainRole;
+
+    const buildDefenseArg = (battle) => {
+      if (conflict && typeof conflict.myDefenseOptions === "function") {
+        const list = conflict.myDefenseOptions(battle) || [];
+        if (list.length) {
+          result.diag.defenseSource = "myDefenseOptions";
+          return list[0];
+        }
+      }
+      if (Args && typeof Args.myDefenseOptions === "function") {
+        const list = Args.myDefenseOptions(battle) || [];
+        if (list.length) {
+          result.diag.defenseSource = "coreArgs";
+          return list[0];
+        }
+      }
+      result.diag.defenseSource = "fallback";
+      return { id: "canon_draw", group: "draw", type: "yn", text: "Fallback" };
+    };
+
+    const buildCase = (forceOutcome) => {
+      const createRes = conflict.incoming(villainId);
+      if (!createRes || !(createRes.battle || createRes.battleId)) {
+        throw new Error("create_battle_failed");
+      }
+      const battle = createRes.battle || (createRes.battleId ? state.battles.find(b => String(b.id || b.battleId) === String(createRes.battleId)) : null);
+      if (!battle || !battle.id) {
+        throw new Error("battle_id_missing");
+      }
+      result.diag.createdBattleId = battle.id;
+      const defenseArg = buildDefenseArg(battle);
+      if (!defenseArg || !defenseArg.id) {
+        throw new Error("defense_arg_missing");
+      }
+      const resolveRes = conflictCore.resolveBattleOutcome(battle.id, defenseArg, { forceOutcome });
+      result.diag.resolvedN += 1;
+      const stored = state.battles.find(b => b && String(b.id) === String(battle.id));
+      const outcomeResult = stored ? stored.result : (resolveRes && resolveRes.outcome) || null;
+      const penaltyStates = {
+        toxic: !!(stored && stored.toxicHitApplied),
+        bandit: !!(stored && stored.banditRobbed),
+        mafia: !!(stored && stored.mafiaHumiliated)
+      };
+      const penaltyApplied = !!(villainRole && penaltyStates[villainRole]);
+      const caseResult = {
+        battleId: battle.id,
+        force: forceOutcome,
+        outcome: outcomeResult,
+        penaltyApplied,
+        penaltyStates,
+        defenseArgId: defenseArg.id,
+        defenseArgKey: defenseArg.group || defenseArg.type || null,
+        resolveOk: !!(resolveRes && resolveRes.ok)
+      };
+      result.cases[forceOutcome] = caseResult;
+      if (!caseResult.resolveOk) result.notes.push(`resolve_failed:${forceOutcome}`);
+      if (outcomeResult !== forceOutcome) result.notes.push(`result_mismatch:${forceOutcome}`);
+      if (forceOutcome !== "lose" && penaltyApplied) result.notes.push(`penalty_on_${forceOutcome}`);
+      if (forceOutcome === "lose" && !penaltyApplied) result.notes.push("penalty_missing_on_lose");
+      const idx = state.battles.findIndex(b => b && String(b.id) === String(battle.id));
+      if (idx >= 0) state.battles.splice(idx, 1);
+    };
+
+    try {
+      ["win", "lose", "draw"].forEach(buildCase);
+      result.ok = !result.notes.length;
+    } catch (err) {
+      const reason = err && err.message ? String(err.message) : "smoke_throw";
+      result.error = reason;
+      result.notes.push(reason);
+      result.ok = false;
+      logJson(result);
+      logEnd({ name, ok: false, reason });
+      return result;
+    }
+
+    logJson(result);
+    logEnd({ name, ok: !!result.ok });
+    return result;
+  };
+
+
   Game.__DEV.smokeCrowdStep2 = (opts = {}) => {
     const name = "smoke_crowd_step2";
     const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
