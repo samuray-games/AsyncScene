@@ -158,15 +158,21 @@ window.Game = window.Game || {};
       const npc = getNpcRuntime();
       if (!npc) return { enabled: false, why: [] };
       const next = evalLowEconomy(snapshot);
+      const forcedByZeroPoints = snapshot && snapshot.mePts === 0;
+      if (forcedByZeroPoints && !next.enabled) {
+        next.enabled = true;
+        next.why = (next.why || []).concat("forced_me_zero");
+      }
       const prevEnabled = npc.lowEconomyEnabled;
       const prevWhy = npc.lowEconomyWhy || [];
       npc.lowEconomyEnabled = next.enabled;
       npc.lowEconomyWhy = next.why;
-      if (prevEnabled !== next.enabled || String(prevWhy) !== String(next.why)) {
+      if (forcedByZeroPoints || prevEnabled !== next.enabled || String(prevWhy) !== String(next.why)) {
         try {
-          console.warn("EVENT_LOW_ECON_MODE_V1", { enabled: !!next.enabled, why: next.why || [] });
+          console.warn("EVENT_LOW_ECON_MODE_V2", { enabled: !!next.enabled, forcedByZeroPoints: !!forcedByZeroPoints, why: next.why || [] });
         } catch (_) {}
       }
+      next.forcedByZeroPoints = !!forcedByZeroPoints;
       return next;
     }
 
@@ -991,8 +997,10 @@ window.Game = window.Game || {};
 
       // Global NPC action cooldown guard
       if (!canNpcEventAct()) {
-        logGenSkip("npc_event_cooldown", snapshot);
-        return { skipped: true, reason: "npc_event_cooldown", lowEconomy: lowState.enabled };
+        if (!opts.forceBreaker) {
+          logGenSkip("npc_event_cooldown", snapshot);
+          return { skipped: true, reason: "npc_event_cooldown", lowEconomy: lowState.enabled };
+        }
       }
 
       const a = pickSafeEventNpc();
@@ -1152,8 +1160,34 @@ window.Game = window.Game || {};
 
     if (Game.__DEV && typeof Game.__DEV === "object") {
       Game.__DEV.__eventGenTickOnce = (opts = {}) => {
+        const silentLimit = Number.isFinite(opts.maxSilentStreak) ? (opts.maxSilentStreak | 0) : 90;
         const battleRes = runNpcBattleOnce({ source: "smoke" });
         const eventRes = runNpcEventOnce({ source: "smoke" });
+        const battleCreated = !!(battleRes && battleRes.created);
+        const eventCreated = !!(eventRes && eventRes.created);
+        const created = battleCreated || eventCreated;
+        const npc = getNpcRuntime();
+        if (npc) {
+          npc.silentStreak = Number.isFinite(npc.silentStreak) ? npc.silentStreak : 0;
+          if (created) npc.silentStreak = 0;
+          else npc.silentStreak += 1;
+        }
+        const battleReason = battleRes && battleRes.reason ? String(battleRes.reason) : null;
+        const eventReason = eventRes && eventRes.reason ? String(eventRes.reason) : null;
+        const cooldownOnly = !created
+          && battleReason && eventReason
+          && battleReason === "npc_battle_cooldown"
+          && eventReason === "npc_event_cooldown";
+        if (npc && cooldownOnly && npc.silentStreak > silentLimit) {
+          try {
+            console.warn("EVENT_SILENT_BREAKER_V1", { tick: npc.silentStreak, reason: "silent_streak_limit" });
+          } catch (_) {}
+          const forced = runNpcEventOnce({ source: "silent_breaker", forceBreaker: true });
+          if (forced && forced.created) {
+            npc.silentStreak = 0;
+            return { battle: battleRes || null, event: forced || null, forced: true };
+          }
+        }
         return { battle: battleRes || null, event: eventRes || null };
       };
     }

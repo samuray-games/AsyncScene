@@ -2101,6 +2101,48 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     console.log("[DEV] points =", S.me.points);
   };
 
+  Game.__DEV.forceSetPoints = (playerId, value, opts = {}) => {
+    const targetId = playerId != null ? String(playerId) : "me";
+    if (!Number.isFinite(value)) return { ok: false, reason: "invalid_value" };
+    const S = getStateSafe();
+    if (!S) return { ok: false, reason: "state_missing" };
+    const reason = String((opts && opts.reason) || "dev_smoke");
+    const prevBypass = Game.__D ? Game.__D.BYPASS_POINTS_GUARD : undefined;
+    const prevAllow = Game.__D ? Game.__D.ALLOW_POINTS_WRITE : undefined;
+    if (!Game.__D) Game.__D = {};
+    Game.__D.BYPASS_POINTS_GUARD = true;
+    Game.__D.ALLOW_POINTS_WRITE = true;
+    const setPoints = (obj, v) => {
+      if (!obj) return;
+      const val = Number.isFinite(v) ? (v | 0) : 0;
+      if (typeof Game._withPointsWrite === "function") {
+        Game._withPointsWrite(() => { obj.points = val; });
+      } else {
+        obj.points = val;
+      }
+    };
+    const target = (targetId === "me") ? (S.me || (S.players && S.players.me)) : (S.players ? S.players[targetId] : null);
+    const before = target && Number.isFinite(target.points) ? (target.points | 0) : 0;
+    setPoints(target, value);
+    if (targetId === "me" && S.players && S.players.me) {
+      setPoints(S.players.me, value);
+    }
+    try {
+      if (targetId === "me" && Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        Game.__A.syncMeToPlayers();
+      }
+    } catch (_) {}
+    const after = target && Number.isFinite(target.points) ? (target.points | 0) : 0;
+    if (prevAllow !== undefined) Game.__D.ALLOW_POINTS_WRITE = prevAllow;
+    else delete Game.__D.ALLOW_POINTS_WRITE;
+    if (prevBypass !== undefined) Game.__D.BYPASS_POINTS_GUARD = prevBypass;
+    else delete Game.__D.BYPASS_POINTS_GUARD;
+    try {
+      console.warn("DEV_FORCE_SET_POINTS_V1", { playerId: targetId, before, after, reason });
+    } catch (_) {}
+    return { ok: true, playerId: targetId, before, after, reason };
+  };
+
   Game.__DEV.smokeStage3Step5Once = () => {
     const tries = [];
     const capture = (label, fn) => {
@@ -14690,7 +14732,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       diag: {
         ticks,
         maxSilentLimit,
-        skipReasons: {}
+        skipReasons: {},
+        zeroPointsAssert: null,
+        lowEconomySeen: false
       }
     };
 
@@ -14708,10 +14752,23 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     S.me = S.me || { id: "me", points: 0 };
     const me = S.me;
     const prevPoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-    try {
-      me.points = 0;
-      if (S.players.me) S.players.me.points = 0;
-    } catch (_) {}
+    if (!Game.__DEV || typeof Game.__DEV.forceSetPoints !== "function") {
+      result.error = "force_set_points_missing";
+      logJson(result);
+      logEnd({ ok: false, error: result.error });
+      return result;
+    }
+    Game.__DEV.forceSetPoints("me", 0, { reason: "dev_smoke_zero_points" });
+    const mePtsNow = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const zeroOk = mePtsNow === 0;
+    result.diag.zeroPointsAssert = { ok: zeroOk, mePts: mePtsNow };
+    try { console.warn("SMOKE_ZERO_POINTS_ASSERT_V1", { ok: zeroOk, mePts: mePtsNow }); } catch (_) {}
+    if (!zeroOk) {
+      result.error = "zero_points_assert_failed";
+      logJson(result);
+      logEnd({ ok: false, error: result.error });
+      return result;
+    }
 
     const gen = (Game.__DEV && typeof Game.__DEV.__eventGenTickOnce === "function")
       ? Game.__DEV.__eventGenTickOnce
@@ -14727,7 +14784,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     for (let i = 1; i <= ticks; i += 1) {
       let res = null;
       try {
-        res = gen({ source: "smoke" });
+        res = gen({ source: "smoke", maxSilentStreak: maxSilentLimit });
       } catch (err) {
         result.notes.push("event_gen_exception");
         break;
@@ -14768,6 +14825,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
       const actions = Array.isArray(S.lowEconomyActions) ? S.lowEconomyActions.length : 0;
       if (actions > result.myAvailableActionsCount) result.myAvailableActionsCount = actions;
+      if (S.npc && S.npc.lowEconomyEnabled === true) result.diag.lowEconomySeen = true;
 
       if ((battle && battle.stall) || (event && event.stall)) {
         if (opts.cleanup !== false) {
@@ -14795,11 +14853,16 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     if (result.createdTotal <= 0) result.error = "no_events_created";
     else if (result.maxSilentStreak > maxSilentLimit) result.error = "silent_streak_too_long";
     else if (!(result.createdTargetingMe > 0 || result.myAvailableActionsCount > 0)) result.error = "no_actions_or_incoming";
+    else if (!result.diag.lowEconomySeen) result.error = "low_economy_not_seen";
     else if (singleReasonStall) result.error = "single_reason_stall";
 
     result.ok = !result.error;
     if (Number.isFinite(prevPoints)) {
-      try { me.points = prevPoints; if (S.players.me) S.players.me.points = prevPoints; } catch (_) {}
+      try {
+        if (Game.__DEV && typeof Game.__DEV.forceSetPoints === "function") {
+          Game.__DEV.forceSetPoints("me", prevPoints, { reason: "dev_smoke_restore_points" });
+        }
+      } catch (_) {}
     }
 
     logJson(result);

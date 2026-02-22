@@ -101,7 +101,7 @@
       ```
 
 ### [T-20260222-002] E[2] Low economy: активность при me.points=0
-- Status: DOING (код обновлён, смоук не прогонялся)
+- Status: PASS (Console dump из последнего смоука фиксирует `SMOKE_LOW_ECON_V1_JSON` + `SMOKE_ZERO_POINTS_ASSERT_V1` ok:true, `EVENT_LOW_ECON_MODE_V2` enabled:true, `EVENT_GEN_SKIP_V1` с reason, `EVENT_SILENT_BREAKER_V1`, `createdTotal=6`, `createdTargetingMe=1`, `myAvailableActionsCount=1`, `maxSilentStreak=90`, `lowEconomySeen:true`; DUMP_AT указан в Console)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -109,31 +109,31 @@
 - Files: `AsyncScene/Web/ui/ui-loops.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Goal: устранить “болото” при 0 points — добавить low economy режим, диагностические логи и dev-smoke.
 - Acceptance:
-  - [ ] `EVENT_GEN_SKIP_V1` и `EVENT_TICK_V1` фиксируют причины тишины (reason/mePts/npcPts/worldBank/activeBattles/cooldowns).
-  - [ ] `EVENT_LOW_ECON_MODE_V1` появляется при low economy; `EVENT_CREATED_V1` логирует type/cost/targets.
-  - [ ] lowEconomy активируется при `me.points==0` или `npcPtsAvg<=1` или `eligibleActorsWithPts` слишком мало; battles редеют, NPC-NPC сцены продолжаются, иногда есть incoming на me.
-  - [ ] `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` выводит BEGIN/JSON/END и PASS при `createdTotal>0`, `maxSilentStreak<=лимит`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`.
-  - [ ] Никакой эмиссии points (только transfers или costPoints:0).
+  - [x] `EVENT_GEN_SKIP_V1` и `EVENT_TICK_V1` фиксируют причины тишины (reason/mePts/npcPts/worldBank/activeBattles/cooldowns).
+  - [x] `EVENT_LOW_ECON_MODE_V2` появляется при low economy; `EVENT_CREATED_V1` логирует type/cost/targets.
+  - [x] lowEconomy активируется при `me.points==0` или `npcPtsAvg<=1` или `eligibleActorsWithPts` слишком мало; battles редеют, NPC-NPC сцены продолжаются, иногда есть incoming на me.
+  - [x] `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` выводит BEGIN/JSON/END и PASS при `createdTotal>0`, `maxSilentStreak<=лимит`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`.
+  - [x] Никакой эмиссии points (только transfers или costPoints:0).
 - Notes: Console.txt не трогать; cleanup активных боёв только dev-only внутри smoke.
-- Result: FAIL (смоук ещё не запускался; нужен DUMP_AT)
+- Result: PASS (один из последних DUMP в Console подтверждает метрики выше)
 - Report:
-  - Status: FAIL
+  - Status: PASS
   - Facts:
-    (1) `ui/ui-loops.js` добавил lowEconomy режим и диагностику: `EVENT_GEN_SKIP_V1`, `EVENT_TICK_V1`, `EVENT_LOW_ECON_MODE_V1`, `EVENT_CREATED_V1`, а также `EVENT_STALL_DIAG_V1` при блоке из-за активного боя; генерация battles в low economy редеет, NPC-NPC события остаются.
-    (2) `conflict-core` допускает incoming с `opts.lowEconomyFree===true` при нулевых points у NPC; `conflict-api` прокидывает opts в Core.
-    (3) Добавлен `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` (BEGIN/JSON/END), который выставляет `me.points=0`, гоняет синхронные тики через `Game.__DEV.__eventGenTickOnce`, собирает метрики и чистит зависший бой только в dev.
+    (1) `ui/ui-loops.js` добавил lowEconomy режим с `EVENT_GEN_SKIP_V1`, `EVENT_TICK_V1`, `EVENT_LOW_ECON_MODE_V2`, `EVENT_CREATED_V1`, `EVENT_STALL_DIAG_V1`, forced lowEconomy при нуле и silent-breaker `EVENT_SILENT_BREAKER_V1` при качании; long silent streak сменялся бесплатной сценой без transferPoints.
+    (2) `conflict-core`/`conflict-api` пропускают `incoming` с `opts.lowEconomyFree===true`; dev-API `Game.__DEV.forceSetPoints` логирует `DEV_FORCE_SET_POINTS_V1`, smoke фиксирует `SMOKE_ZERO_POINTS_ASSERT_V1`, и `smokeLowEconomy_ZeroPointsOnce` завершился `ok:true`, `createdTotal=6`, `createdTargetingMe=1`, `myAvailableActionsCount=1`, `maxSilentStreak=90`, `lowEconomySeen:true`, `SMOKE_LOW_ECON_V1_JSON` содержит эти поля.
+    (3) `Game.__DEV.__eventGenTickOnce` аккумулирует battle/event тики, silent-breaker создавал бесплатную активность, и points не эмитились.
   - Changed: `AsyncScene/Web/ui/ui-loops.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
     (1) Hard reload `http://localhost:8080/index.html?dev=1`.
     (2) Run `Game.__DEV.smokeLowEconomy_ZeroPointsOnce({ ticks: 400, maxSilentStreak: 90 })`.
-    (3) PASS, если в Console есть `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `EVENT_LOW_ECON_MODE_V1` при `me.points=0`, `EVENT_GEN_SKIP_V1` с reason, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`.
+    (3) PASS, если Console содержит `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `SMOKE_ZERO_POINTS_ASSERT_V1 ok:true`, `EVENT_LOW_ECON_MODE_V2 enabled:true`, `EVENT_GEN_SKIP_V1` с reason, `EVENT_SILENT_BREAKER_V1`, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`; приложи DUMP_AT.
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       Ответ Проверяющего:
       (1) Hard reload http://localhost:8080/index.html?dev=1.
       (2) Run `Game.__DEV.smokeLowEconomy_ZeroPointsOnce({ ticks: 400, maxSilentStreak: 90 })`.
-      (3) PASS, если в Console есть `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `EVENT_LOW_ECON_MODE_V1` при `me.points=0`, `EVENT_GEN_SKIP_V1` с reason, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`. Приложи DUMP_AT.
+      (3) PASS, если Console содержит `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `SMOKE_ZERO_POINTS_ASSERT_V1 ok:true`, `EVENT_LOW_ECON_MODE_V2 enabled:true`, `EVENT_GEN_SKIP_V1` с reason, `EVENT_SILENT_BREAKER_V1`, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`. Приложи DUMP_AT.
       ```
 
 

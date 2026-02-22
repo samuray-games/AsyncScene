@@ -1008,13 +1008,21 @@
 - Длительность кулдауна “сдать” = время неактивности/тюрьмы злодея (5 минут).
 - Во время этого кулдауна сдавать повторно нельзя; после окончания — можно снова.
 
-### 2026-02-22 — E[2] Low economy: активность при me.points=0 (smoke pending)
-- Status: FAIL (smoke не запускался; нужен DUMP_AT)
+-### 2026-02-22 — E[2] Low economy: активность при me.points=0
+- Status: PASS (DUMP_AT фиксирует `SMOKE_LOW_ECON_V1_JSON` с `ok:true`, `createdTotal=6`, `createdTargetingMe=1`, `myAvailableActionsCount=1`, `maxSilentStreak=90`, `lowEconomySeen:true`; есть `SMOKE_ZERO_POINTS_ASSERT_V1` ok:true, `EVENT_LOW_ECON_MODE_V2` enabled:true, `EVENT_GEN_SKIP_V1`, `EVENT_SILENT_BREAKER_V1`)
 - Facts:
-  - `ui/ui-loops.js` добавляет lowEconomy режим и диагностику генератора: `EVENT_GEN_SKIP_V1`, `EVENT_TICK_V1`, `EVENT_LOW_ECON_MODE_V1`, `EVENT_CREATED_V1`, а также `EVENT_STALL_DIAG_V1` при блоке активным боем; battles редеют в low economy, NPC-NPC сцены продолжаются.
-  - `conflict-api` прокидывает opts в Core, а `conflict-core` допускает incoming при `opts.lowEconomyFree===true` даже если у NPC 0 points.
-  - Добавлен dev-smoke `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` (BEGIN/JSON/END), который выставляет `me.points=0`, гоняет синхронные тики через `Game.__DEV.__eventGenTickOnce`, собирает метрики и делает dev-only cleanup зависшего боя.
+  - `ui/ui-loops.js` добавил lowEconomy режим и диагностику генератора: `EVENT_GEN_SKIP_V1`, `EVENT_TICK_V1`, `EVENT_LOW_ECON_MODE_V2`, `EVENT_CREATED_V1`, `EVENT_STALL_DIAG_V1`, forced lowEconomy при `me.points==0` и silent-breaker `EVENT_SILENT_BREAKER_V1`.
+  - `conflict-api` прокидывает opts в Core, а `conflict-core` допускает incoming при `opts.lowEconomyFree===true`, сохраняя fake-free battle.
+  - Dev-API `Game.__DEV.forceSetPoints` логирует `DEV_FORCE_SET_POINTS_V1`, smoke делает `SMOKE_ZERO_POINTS_ASSERT_V1` и без лишней эмиссии points возвращает PASS.
 - Changed: `AsyncScene/Web/ui/ui-loops.js`, `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/conflict/conflict-api.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
+
+### 2026-02-22 — E[2] Low economy: zero-points smoke fix
+- Status: PASS (Console dump того же запуска содержит `SMOKE_ZERO_POINTS_ASSERT_V1 ok:true`, `EVENT_LOW_ECON_MODE_V2` enabled:true, `EVENT_SILENT_BREAKER_V1`, `SMOKE_LOW_ECON_V1_JSON` с `ok:true`, `createdTotal=6`, `createdTargetingMe=1`, `myAvailableActionsCount=1`, `maxSilentStreak=90`)
+- Facts:
+  - Dev-API `Game.__DEV.forceSetPoints` логирует `DEV_FORCE_SET_POINTS_V1`, smoke использует этот API для `me` и синхронно проверяет `SMOKE_ZERO_POINTS_ASSERT_V1`.
+  - `EVENT_LOW_ECON_MODE_V2` логирует `forcedByZeroPoints` и сразу включает lowEconomy при `me.points==0`, `EVENT_SILENT_BREAKER_V1` создаёт бесплатную активность после длинной серии `EVENT_TICK_V1`.
+  - Все события идут без direct transferPoints (только free scenes) и low economy остаётся включённым (`lowEconomySeen:true` в JSON).
+- Changed: `AsyncScene/Web/ui/ui-loops.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
 
 6) Дополнение: компенсация после ограбления (если применимо)
 - Если игрок пострадал от злодея (токсик/бандит снял points), и немедленно успешно сдаёт его копу:
