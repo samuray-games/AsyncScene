@@ -14667,6 +14667,146 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     };
   };
 
+  Game.__DEV.smokeLowEconomy_ZeroPointsOnce = (opts = {}) => {
+    const name = "smoke_low_economy_zero_points_once";
+    const ticks = Number.isFinite(opts.ticks) ? (opts.ticks | 0) : 400;
+    const maxSilentLimit = Number.isFinite(opts.maxSilentStreak) ? (opts.maxSilentStreak | 0) : 90;
+    const logBegin = (payload) => console.warn("SMOKE_LOW_ECON_V1_BEGIN", payload || {});
+    const logJson = (payload) => console.warn("SMOKE_LOW_ECON_V1_JSON", payload || {});
+    const logEnd = (payload) => console.warn("SMOKE_LOW_ECON_V1_END", payload || {});
+
+    const result = {
+      name,
+      ok: false,
+      createdTotal: 0,
+      createdByType: {},
+      createdTargetingMe: 0,
+      myAvailableActionsCount: 0,
+      skipReasonsTop: [],
+      firstCreatedAtTick: null,
+      maxSilentStreak: 0,
+      error: null,
+      notes: [],
+      diag: {
+        ticks,
+        maxSilentLimit,
+        skipReasons: {}
+      }
+    };
+
+    logBegin({ name, ticks, maxSilentLimit });
+
+    const S = Game.__S || Game.State || null;
+    if (!S) {
+      result.error = "state_missing";
+      logJson(result);
+      logEnd({ ok: false, error: result.error });
+      return result;
+    }
+
+    S.players = S.players || {};
+    S.me = S.me || { id: "me", points: 0 };
+    const me = S.me;
+    const prevPoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    try {
+      me.points = 0;
+      if (S.players.me) S.players.me.points = 0;
+    } catch (_) {}
+
+    const gen = (Game.__DEV && typeof Game.__DEV.__eventGenTickOnce === "function")
+      ? Game.__DEV.__eventGenTickOnce
+      : null;
+    if (!gen) {
+      result.error = "event_gen_hook_missing";
+      logJson(result);
+      logEnd({ ok: false, error: result.error });
+      return result;
+    }
+
+    let silentStreak = 0;
+    for (let i = 1; i <= ticks; i += 1) {
+      let res = null;
+      try {
+        res = gen({ source: "smoke" });
+      } catch (err) {
+        result.notes.push("event_gen_exception");
+        break;
+      }
+
+      let createdThisTick = false;
+      const battle = res && res.battle ? res.battle : null;
+      const event = res && res.event ? res.event : null;
+
+      if (battle && battle.created) {
+        createdThisTick = true;
+        result.createdTotal += 1;
+        const t = battle.type || "incoming_battle";
+        result.createdByType[t] = (result.createdByType[t] || 0) + 1;
+        if (battle.targetId === "me" || t === "incoming_battle") result.createdTargetingMe += 1;
+      } else if (battle && battle.skipped && battle.reason) {
+        const r = String(battle.reason);
+        result.diag.skipReasons[r] = (result.diag.skipReasons[r] || 0) + 1;
+      }
+
+      if (event && event.created) {
+        createdThisTick = true;
+        const t = event.type || "npc_event";
+        result.createdTotal += 1;
+        result.createdByType[t] = (result.createdByType[t] || 0) + 1;
+      } else if (event && event.skipped && event.reason) {
+        const r = String(event.reason);
+        result.diag.skipReasons[r] = (result.diag.skipReasons[r] || 0) + 1;
+      }
+
+      if (createdThisTick) {
+        if (result.firstCreatedAtTick == null) result.firstCreatedAtTick = i;
+        silentStreak = 0;
+      } else {
+        silentStreak += 1;
+        if (silentStreak > result.maxSilentStreak) result.maxSilentStreak = silentStreak;
+      }
+
+      const actions = Array.isArray(S.lowEconomyActions) ? S.lowEconomyActions.length : 0;
+      if (actions > result.myAvailableActionsCount) result.myAvailableActionsCount = actions;
+
+      if ((battle && battle.stall) || (event && event.stall)) {
+        if (opts.cleanup !== false) {
+          try {
+            const battles = Array.isArray(S.battles) ? S.battles : [];
+            for (let b = battles.length - 1; b >= 0; b -= 1) {
+              const bb = battles[b];
+              const st = bb && bb.status ? String(bb.status) : "";
+              if (st === "pickAttack" || st === "pickDefense") battles.splice(b, 1);
+            }
+            if (S.activeBattleId) S.activeBattleId = null;
+            if (S.currentBattleId) S.currentBattleId = null;
+          } catch (_) {}
+        }
+      }
+    }
+
+    const skipPairs = Object.keys(result.diag.skipReasons)
+      .map(r => ({ reason: r, count: result.diag.skipReasons[r] || 0 }))
+      .sort((a, b) => b.count - a.count);
+    result.skipReasonsTop = skipPairs.slice(0, 5);
+    const totalSkips = skipPairs.reduce((a, b) => a + (b.count | 0), 0);
+    const singleReasonStall = totalSkips > 0 && skipPairs.length === 1;
+
+    if (result.createdTotal <= 0) result.error = "no_events_created";
+    else if (result.maxSilentStreak > maxSilentLimit) result.error = "silent_streak_too_long";
+    else if (!(result.createdTargetingMe > 0 || result.myAvailableActionsCount > 0)) result.error = "no_actions_or_incoming";
+    else if (singleReasonStall) result.error = "single_reason_stall";
+
+    result.ok = !result.error;
+    if (Number.isFinite(prevPoints)) {
+      try { me.points = prevPoints; if (S.players.me) S.players.me.points = prevPoints; } catch (_) {}
+    }
+
+    logJson(result);
+    logEnd({ ok: result.ok, error: result.error });
+    return result;
+  };
+
   Game.__DEV.smokeNpcCrowdEventPaidVotesOnce = (opts = {}) => {
     try {
       const name = "smoke_npc_crowd_event_paid_votes_once";

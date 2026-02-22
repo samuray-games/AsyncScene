@@ -503,7 +503,7 @@
        return res;
      },
 
-     incoming(opponentId) {
+     incoming(opponentId, opts) {
        // Ensure opponent role is resolved and cached before delegating to Core
        let resolvedOpponentRole = null;
        if (Game.__S && Game.__S.players && opponentId) {
@@ -516,7 +516,7 @@
          return null;
        }
        // Economy + creation live in Core. API only coordinates UI/state.
-       let b = Core.incoming(opponentId);
+       let b = Core.incoming(opponentId, opts);
 
        // Keep newly created incoming battle at the top (active battles should be visible immediately).
        if (b && b.id) pinBattleToTop(b.id);

@@ -68,8 +68,7 @@
 
 ## Inbox
 
-### [T-20260222-001] C[1] Villain fromThem penalties only on lose
-- Status: DOING (Console.txt DUMP_AT 2026-02-22 23:30:21 фиксирует `smoke_impl_v2` с run1: только win прошёл, lose/draw `incoming_error(create_battle_failed)`, resolvedN=1, bypass-логов нет; run2: ни одна из win/lose/draw не создает battle (`incoming_error`), `incomingUsed:false`, `createdBattleId:null`, `resolvedN=0` — smoke остаётся FAIL без hard reload)
+- Status: PASS (Console.txt DUMP_AT 2026-02-22 23:48:28 фиксирует два подряд прогона после hard reload: оба OK (`ok:true`, `resolvedN=3`), `cases.win/lose/draw` заполнены, penaltyApplied только на lose, `diag.stateAfterCleanup` показывает чистый state, и в консоли есть три `BATTLE_RESOLVE_VILLAIN` + `CONFLICT_GUARD_BYPASS_V1`/`CONFLICT_COOLDOWN_BYPASS_V1`)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -82,13 +81,13 @@
   - [ ] fromThem не влияет на формулу result
   - [ ] лог `BATTLE_RESOLVE_VILLAIN {battleId, fromThem, result, penaltyApplied, villainRole}`
 - Notes: не менять экономику, не вводить эмиссию, не трогать crowd, только корректный resolve + лог.
-- Result: FAIL (Console.txt DUMP_AT 2026-02-22 23:30:21 фиксирует `smoke_impl_v2` с run1: win проходит, lose/draw `incoming_error(create_battle_failed)`, resolvedN=1, без bypass-логов; run2: ни один из win/lose/draw не создаёт баттл (`incoming_error`, `incomingUsed:false`, `createdBattleId:null`), resolvedN=0, `BATTLE_RESOLVE_VILLAIN` один раз). 
-- Report:
-  - Status: DOING
-  - Facts:
-    (1) Console.txt DUMP_AT 2026-02-22 23:30:21 фиксирует, что run1 отдаёт только win (lose/draw `incoming_error(create_battle_failed)`), а run2 не создаёт вообще ни одного `incoming` (все `incoming_error`, `incomingUsed:false`, `createdBattleId:null`, `resolvedN=0`), `BATTLE_RESOLVE_VILLAIN` жёстко один раз — значит smoke пока остается FAIL до hard reload.
-    (2) Код теперь явно создаёт по одному independent incoming для forces `"win"`/`"lose"`/`"draw"`, `perCase` хранит `createOk/createWhy/incomingReturnedKeys`, `diag.stateAfterCleanup` документирует, что state и cooldowns очищаются между прогонками, а `ConflictCore.incoming`/`startWith` логируют новый `CONFLICT_GUARD_BYPASS_V1` для `cooldown`/`no_points` с `devSmoke` bypass, плюс чувствительные `clearDevCooldownKeys`.
-  - Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Result: PASS (Console.txt DUMP_AT 2026-02-22 23:48:28 фиксирует два подряд прогона после hard reload, оба `ok:true`, `resolvedN=3`, penalty только на lose, cleanup очищает state (`diag.stateAfterCleanup` показывает пустой state), и вывод содержит три `BATTLE_RESOLVE_VILLAIN` + `CONFLICT_GUARD_BYPASS_V1`/`CONFLICT_COOLDOWN_BYPASS_V1`)
+  - Report:
+    - Status: PASS
+    - Facts:
+      (1) Console.txt DUMP_AT 2026-02-22 23:48:28 подтверждает PASS: после hard reload два подряд вызова smoke дают `ok:true`, `resolvedN=3`, penaltyApplied только у lose, `diag.perCase`/`diag.stateAfterCleanup` демонстрируют независимые incoming и полностью очищенный state между прогонками, а в консоли появились три `BATTLE_RESOLVE_VILLAIN` + `CONFLICT_GUARD_BYPASS_V1`/`CONFLICT_COOLDOWN_BYPASS_V1`.
+      (2) Код реализует `SMOKE_VILLAIN_FROMTHEM_IMPL_V2` с per-case diagnostics и `cleanupAfterCase`, делает create только через incoming, и добавляет `CONFLICT_GUARD_BYPASS_V1` (plus cooldown bypass) чтобы devSmoke прогоны были детерминированы.
+    - Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
     (1) Hard reload http://localhost:8080/index.html?dev=1, чтобы DevTools загрузили `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`.
     (2) Выполни `Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})` дважды подряд без перезагрузки и зафиксируй `SMOKE_VILLAIN_FROMTHEM_V1_JSON` + фрагмент Console.
@@ -99,6 +98,42 @@
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1, чтобы DevTools взяли `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`.
       (2) Выполни Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"}) два раза подряд без перезагрузки.
       (3) PASS, если `SMOKE_VILLAIN_FROMTHEM_V1_JSON` содержит `ok:true`, `resolvedN === 3`, `perCase.win/lose/draw` заполнены, `cases.*.outcome === force`, penaltyApplied только у `lose`, и в Console появились три `BATTLE_RESOLVE_VILLAIN` + хотя бы один `CONFLICT_GUARD_BYPASS_V1` (и `CONFLICT_COOLDOWN_BYPASS_V1`, если кулдаун обходится); приложи JSON + Console segment.
+      ```
+
+### [T-20260222-002] E[2] Low economy: активность при me.points=0
+- Status: DOING (код обновлён, смоук не прогонялся)
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: NPC|Events|Economy
+- Files: `AsyncScene/Web/ui/ui-loops.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: устранить “болото” при 0 points — добавить low economy режим, диагностические логи и dev-smoke.
+- Acceptance:
+  - [ ] `EVENT_GEN_SKIP_V1` и `EVENT_TICK_V1` фиксируют причины тишины (reason/mePts/npcPts/worldBank/activeBattles/cooldowns).
+  - [ ] `EVENT_LOW_ECON_MODE_V1` появляется при low economy; `EVENT_CREATED_V1` логирует type/cost/targets.
+  - [ ] lowEconomy активируется при `me.points==0` или `npcPtsAvg<=1` или `eligibleActorsWithPts` слишком мало; battles редеют, NPC-NPC сцены продолжаются, иногда есть incoming на me.
+  - [ ] `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` выводит BEGIN/JSON/END и PASS при `createdTotal>0`, `maxSilentStreak<=лимит`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`.
+  - [ ] Никакой эмиссии points (только transfers или costPoints:0).
+- Notes: Console.txt не трогать; cleanup активных боёв только dev-only внутри smoke.
+- Result: FAIL (смоук ещё не запускался; нужен DUMP_AT)
+- Report:
+  - Status: FAIL
+  - Facts:
+    (1) `ui/ui-loops.js` добавил lowEconomy режим и диагностику: `EVENT_GEN_SKIP_V1`, `EVENT_TICK_V1`, `EVENT_LOW_ECON_MODE_V1`, `EVENT_CREATED_V1`, а также `EVENT_STALL_DIAG_V1` при блоке из-за активного боя; генерация battles в low economy редеет, NPC-NPC события остаются.
+    (2) `conflict-core` допускает incoming с `opts.lowEconomyFree===true` при нулевых points у NPC; `conflict-api` прокидывает opts в Core.
+    (3) Добавлен `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` (BEGIN/JSON/END), который выставляет `me.points=0`, гоняет синхронные тики через `Game.__DEV.__eventGenTickOnce`, собирает метрики и чистит зависший бой только в dev.
+  - Changed: `AsyncScene/Web/ui/ui-loops.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    (1) Hard reload `http://localhost:8080/index.html?dev=1`.
+    (2) Run `Game.__DEV.smokeLowEconomy_ZeroPointsOnce({ ticks: 400, maxSilentStreak: 90 })`.
+    (3) PASS, если в Console есть `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `EVENT_LOW_ECON_MODE_V1` при `me.points=0`, `EVENT_GEN_SKIP_V1` с reason, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Проверяющего:
+      (1) Hard reload http://localhost:8080/index.html?dev=1.
+      (2) Run `Game.__DEV.smokeLowEconomy_ZeroPointsOnce({ ticks: 400, maxSilentStreak: 90 })`.
+      (3) PASS, если в Console есть `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `EVENT_LOW_ECON_MODE_V1` при `me.points=0`, `EVENT_GEN_SKIP_V1` с reason, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`. Приложи DUMP_AT.
       ```
 
 

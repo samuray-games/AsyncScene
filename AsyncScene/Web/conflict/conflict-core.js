@@ -2284,6 +2284,7 @@
   C.incoming = function (opponentId, opts) {
     const optz = (opts && typeof opts === "object") ? opts : {};
     const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
+    const allowZeroPoints = optz.lowEconomyFree === true || optz.allowZeroPoints === true;
     try {
       if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
         if (Game.__A.isNpcJailed(opponentId)) return null;
@@ -2298,7 +2299,7 @@
         if (pts <= 0 || (bal != null && bal <= 0)) {
           if (devSmokeBypass) {
             logGuardBypass("incoming", "no_points", opponentId, opponentId);
-          } else {
+          } else if (!allowZeroPoints) {
             return null;
           }
         }

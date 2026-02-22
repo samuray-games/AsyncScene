@@ -58,6 +58,14 @@ window.Game = window.Game || {};
       } catch (_) {}
     }
 
+    const genDiag = {
+      tick: 0,
+      createdN: 0,
+      skippedN: 0,
+      reasons: Object.create(null),
+      lastTickLoggedAt: 0
+    };
+
     function getStateSafe() {
       return (window.Game && Game.__S) ? Game.__S : null;
     }
@@ -93,6 +101,158 @@ window.Game = window.Game || {};
       const npc = getNpcRuntime();
       if (!npc) return;
       npc.lastBattleAt = Date.now();
+    }
+
+    function getEconomySnapshot() {
+      const st = getStateSafe();
+      const me = st && st.me ? st.me : null;
+      const mePts = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+      const players = st && st.players ? st.players : {};
+      const npcPts = [];
+      let eligibleActorsWithPts = 0;
+      for (const id of Object.keys(players || {})) {
+        const p = players[id];
+        if (!p) continue;
+        const isNpc = (p.npc === true || p.type === "npc" || String(id).startsWith("npc_"));
+        const isMe = id === "me";
+        if (!isNpc && !isMe) continue;
+        const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
+        if (pts >= 1) eligibleActorsWithPts += 1;
+        if (isNpc) npcPts.push(pts);
+      }
+      const npcPtsMin = npcPts.length ? Math.min.apply(null, npcPts) : 0;
+      const npcPtsAvg = npcPts.length ? (npcPts.reduce((a, b) => a + b, 0) / npcPts.length) : 0;
+      let worldBankPts = 0;
+      try {
+        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
+        const snap = Econ && typeof Econ.sumPointsSnapshot === "function" ? Econ.sumPointsSnapshot() : null;
+        if (snap && snap.byId && Number.isFinite(snap.byId.worldBank)) {
+          worldBankPts = snap.byId.worldBank | 0;
+        }
+      } catch (_) {}
+      const battles = st && Array.isArray(st.battles) ? st.battles : [];
+      const activeBattles = battles.filter(b => b && !b.resolved).length;
+      const cdMap = st && st.battleCooldowns ? st.battleCooldowns : null;
+      const cooldownsCount = cdMap ? Object.keys(cdMap).filter(k => cdMap[k] != null && cdMap[k] !== 0).length : 0;
+      return {
+        mePts,
+        npcPtsMin,
+        npcPtsAvg,
+        worldBankPts,
+        activeBattles,
+        cooldownsCount,
+        eligibleActorsWithPts
+      };
+    }
+
+    function evalLowEconomy(snapshot) {
+      const why = [];
+      if (!snapshot) return { enabled: false, why };
+      if (snapshot.mePts === 0) why.push("me_zero");
+      if (snapshot.npcPtsAvg <= 1) why.push("npc_avg_low");
+      if (snapshot.eligibleActorsWithPts <= 1) why.push("eligible_low");
+      return { enabled: why.length > 0, why };
+    }
+
+    function updateLowEconomyState(snapshot) {
+      const npc = getNpcRuntime();
+      if (!npc) return { enabled: false, why: [] };
+      const next = evalLowEconomy(snapshot);
+      const prevEnabled = npc.lowEconomyEnabled;
+      const prevWhy = npc.lowEconomyWhy || [];
+      npc.lowEconomyEnabled = next.enabled;
+      npc.lowEconomyWhy = next.why;
+      if (prevEnabled !== next.enabled || String(prevWhy) !== String(next.why)) {
+        try {
+          console.warn("EVENT_LOW_ECON_MODE_V1", { enabled: !!next.enabled, why: next.why || [] });
+        } catch (_) {}
+      }
+      return next;
+    }
+
+    function ensureLowEconomyActions(enabled) {
+      const st = getStateSafe();
+      if (!st) return 0;
+      if (!enabled) {
+        if (st.lowEconomyActions) st.lowEconomyActions = [];
+        return 0;
+      }
+      if (!Array.isArray(st.lowEconomyActions)) st.lowEconomyActions = [];
+      if (st.lowEconomyActions.length === 0) {
+        st.lowEconomyActions.push({
+          id: `low_econ_talk_${Date.now()}`,
+          type: "talk",
+          label: "Поговорить",
+          costPoints: 0
+        });
+      }
+      return st.lowEconomyActions.length;
+    }
+
+    function logGenSkip(reason, snapshot) {
+      genDiag.skippedN += 1;
+      genDiag.reasons[reason] = (genDiag.reasons[reason] || 0) + 1;
+      const snap = snapshot || getEconomySnapshot();
+      try {
+        console.warn("EVENT_GEN_SKIP_V1", {
+          reason,
+          mePts: snap.mePts,
+          npcPtsMin: snap.npcPtsMin,
+          npcPtsAvg: snap.npcPtsAvg,
+          worldBankPts: snap.worldBankPts,
+          activeBattles: snap.activeBattles,
+          cooldownsCount: snap.cooldownsCount
+        });
+      } catch (_) {}
+    }
+
+    function logGenCreated(payload) {
+      genDiag.createdN += 1;
+      try {
+        console.warn("EVENT_CREATED_V1", payload || {});
+      } catch (_) {}
+    }
+
+    function logGenTick() {
+      genDiag.tick += 1;
+      const every = 25;
+      if (genDiag.tick % every !== 0) return;
+      const reasonsTop = Object.keys(genDiag.reasons)
+        .map(r => ({ reason: r, count: genDiag.reasons[r] || 0 }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+      try {
+        console.warn("EVENT_TICK_V1", {
+          tick: genDiag.tick,
+          createdN: genDiag.createdN,
+          skippedN: genDiag.skippedN,
+          reasonsTop
+        });
+      } catch (_) {}
+      genDiag.createdN = 0;
+      genDiag.skippedN = 0;
+      genDiag.reasons = Object.create(null);
+      genDiag.lastTickLoggedAt = Date.now();
+    }
+
+    function logStallDiag() {
+      const st = getStateSafe();
+      if (!st || !Array.isArray(st.battles)) return;
+      const b = st.battles.find(x => {
+        const s = x && x.status ? String(x.status) : "";
+        return s === "pickAttack" || s === "pickDefense";
+      });
+      if (!b) return;
+      const ts = Date.now();
+      const at = (b.presentedAt || b.createdAt || b.updatedAt || 0);
+      const ageMs = at ? Math.max(0, ts - at) : null;
+      try {
+        console.warn("EVENT_STALL_DIAG_V1", {
+          activeBattleId: b.id || b.battleId || null,
+          status: b.status || null,
+          ageMs
+        });
+      } catch (_) {}
     }
 
     function getEventsArraySafe() {
@@ -521,6 +681,119 @@ window.Game = window.Game || {};
       return w[w.length - 1].item;
     }
 
+    function runNpcBattleOnce(opts = {}) {
+      logGenTick();
+      const snapshot = getEconomySnapshot();
+      const lowState = updateLowEconomyState(snapshot);
+      ensureLowEconomyActions(lowState.enabled);
+
+      if (!isLive()) {
+        logGenSkip("not_live", snapshot);
+        return { skipped: true, reason: "not_live", lowEconomy: lowState.enabled };
+      }
+
+      // Don't start new incoming battles while the player is choosing in an active battle.
+      if (isInBattleDecision()) {
+        logStallDiag();
+        logGenSkip("in_battle_decision", snapshot);
+        return { skipped: true, reason: "in_battle_decision", lowEconomy: lowState.enabled, stall: true };
+      }
+
+      // Global NPC action cooldown guard
+      if (!canNpcBattleAct()) {
+        logGenSkip("npc_battle_cooldown", snapshot);
+        return { skipped: true, reason: "npc_battle_cooldown", lowEconomy: lowState.enabled };
+      }
+
+      if (lowState.enabled && Math.random() > 0.25) {
+        logGenSkip("low_econ_skip_battle", snapshot);
+        return { skipped: true, reason: "low_econ_skip_battle", lowEconomy: lowState.enabled };
+      }
+
+      if (!Game.Conflict || typeof Game.Conflict.incoming !== "function") {
+        warnOnce("noIncoming", "[ui-loops] Game.Conflict.incoming is not available yet (check script order)");
+        logGenSkip("no_incoming_fn", snapshot);
+        return { skipped: true, reason: "no_incoming_fn", lowEconomy: lowState.enabled };
+      }
+
+      const tried = new Set();
+      let battle = null;
+      let oppId = null;
+      for (let i = 0; i < 3; i++) {
+        oppId = pickBattleOpponentId(tried);
+        if (!oppId) break;
+        tried.add(oppId);
+        // Compatibility: some builds accept (id) only
+        try {
+          battle = Game.Conflict.incoming(oppId, { pinned: false, lowEconomyFree: lowState.enabled, lowEconomy: lowState.enabled });
+        } catch (_) {
+          battle = Game.Conflict.incoming(oppId);
+        }
+        if (battle) break;
+      }
+
+      if (!oppId) {
+        logGenSkip("no_opponent", snapshot);
+        return { skipped: true, reason: "no_opponent", lowEconomy: lowState.enabled };
+      }
+
+      if (!battle) {
+        logGenSkip("incoming_null", snapshot);
+        return { skipped: true, reason: "incoming_null", lowEconomy: lowState.enabled, oppId };
+      }
+
+      markNpcBattleAct();
+      try { if (Game.__A && typeof Game.__A.markNpcAction === "function") Game.__A.markNpcAction(); } catch (_) {}
+      // If Bandit initiated, add a short local cooldown to avoid clustering
+      try {
+        const st2 = (window.Game && Game.__S) ? Game.__S : null;
+        const p2 = st2 && st2.players ? st2.players[oppId] : null;
+        if (p2 && p2.role === "bandit" && Game.__A && typeof Game.__A.markNpcAction === "function") {
+          // extra mark to space out bandit appearances
+          Game.__A.markNpcAction();
+        }
+      } catch (_) {}
+      // Extra spacing for Mafioso to avoid clustering
+      try {
+        const st3 = (window.Game && Game.__S) ? Game.__S : null;
+        const p3 = st3 && st3.players ? st3.players[oppId] : null;
+        if (p3 && p3.role === "mafia" && Game.__A && typeof Game.__A.markNpcAction === "function") {
+          // double mark to extend cooldown window
+          Game.__A.markNpcAction();
+        }
+      } catch (_) {}
+
+      // Optional: add a short NPC line when a battle is created.
+      const st = (window.Game && Game.__S) ? Game.__S : null;
+      const p = st && st.players ? st.players[oppId] : null;
+      if (p && p.name) {
+        try {
+          if (Game.NPC && typeof Game.NPC.generateChatLine === "function") {
+            const line = Game.NPC.generateChatLine(p);
+            if (line != null && String(line).trim().length > 0) {
+              UI.pushChat({ name: p.name, text: String(line), system: false });
+            }
+          }
+        } catch (_) {}
+      }
+
+      logGenCreated({
+        type: "incoming_battle",
+        costPoints: 0,
+        targetId: "me",
+        sourceId: oppId,
+        lowEconomy: lowState.enabled
+      });
+
+      return {
+        created: true,
+        type: "incoming_battle",
+        battleId: battle.id || battle.battleId || null,
+        oppId,
+        lowEconomy: lowState.enabled
+      };
+    }
+
     function scheduleNpcRematchResponse() {
       // Check pending rematch requests every 3-8s and auto-respond from NPC side
       const delay = 3000 + Math.floor(Math.random() * 5001);
@@ -664,86 +937,7 @@ window.Game = window.Game || {};
     function scheduleNpcBattle() {
       // Battle tempo: 50-110s (slower cadence x2).
       npcBattleTimer = setTimeout(() => {
-        if (!isLive()) {
-          scheduleNpcBattle();
-          return;
-        }
-
-        // Don't start new incoming battles while the player is choosing in an active battle.
-        if (isInBattleDecision()) {
-          npcBattleTimer = setTimeout(() => scheduleNpcBattle(), 1500);
-          return;
-        }
-
-        // Global NPC action cooldown guard
-        if (!canNpcBattleAct()) {
-          npcBattleTimer = setTimeout(() => scheduleNpcBattle(), 1500);
-          return;
-        }
-
-        if (!Game.Conflict || typeof Game.Conflict.incoming !== "function") {
-          warnOnce("noIncoming", "[ui-loops] Game.Conflict.incoming is not available yet (check script order)");
-        }
-
-        try {
-          if (Game.Conflict && typeof Game.Conflict.incoming === "function") {
-            const tried = new Set();
-            let battle = null;
-            let oppId = null;
-            for (let i = 0; i < 3; i++) {
-              oppId = pickBattleOpponentId(tried);
-              if (!oppId) break;
-              tried.add(oppId);
-              // Compatibility: some builds accept (id) only
-              try {
-                battle = Game.Conflict.incoming(oppId, { pinned: false });
-              } catch (_) {
-                battle = Game.Conflict.incoming(oppId);
-              }
-              if (battle) break;
-            }
-
-            if (battle && oppId) {
-              markNpcBattleAct();
-              try { if (Game.__A && typeof Game.__A.markNpcAction === "function") Game.__A.markNpcAction(); } catch (_) {}
-              // If Bandit initiated, add a short local cooldown to avoid clustering
-              try {
-                const st2 = (window.Game && Game.__S) ? Game.__S : null;
-                const p2 = st2 && st2.players ? st2.players[oppId] : null;
-                if (p2 && p2.role === "bandit" && Game.__A && typeof Game.__A.markNpcAction === "function") {
-                  // extra mark to space out bandit appearances
-                  Game.__A.markNpcAction();
-                }
-              } catch (_) {}
-              // Extra spacing for Mafioso to avoid clustering
-              try {
-                const st3 = (window.Game && Game.__S) ? Game.__S : null;
-                const p3 = st3 && st3.players ? st3.players[oppId] : null;
-                if (p3 && p3.role === "mafia" && Game.__A && typeof Game.__A.markNpcAction === "function") {
-                  // double mark to extend cooldown window
-                  Game.__A.markNpcAction();
-                }
-              } catch (_) {}
-
-              // Optional: add a short NPC line when a battle is created.
-              const st = (window.Game && Game.__S) ? Game.__S : null;
-              const p = st && st.players ? st.players[oppId] : null;
-              if (p && p.name) {
-                try {
-                  if (Game.NPC && typeof Game.NPC.generateChatLine === "function") {
-                    const line = Game.NPC.generateChatLine(p);
-                    if (line != null && String(line).trim().length > 0) {
-                      UI.pushChat({ name: p.name, text: String(line), system: false });
-                    }
-                  }
-                } catch (_) {}
-              }
-            }
-          }
-        } catch (e) {
-          warnOnce("npcBattle", "[ui-loops] NPC battle loop error", e);
-        }
-
+        try { runNpcBattleOnce({ source: "timer" }); } catch (e) { warnOnce("npcBattle", "[ui-loops] NPC battle loop error", e); }
         scheduleNpcBattle();
       }, 25000 + Math.floor(Math.random() * 30001));
     }
@@ -771,6 +965,137 @@ window.Game = window.Game || {};
       if (Game.NPC && typeof Game.NPC.randomNonCop === "function") return Game.NPC.randomNonCop();
       if (Game.NPC && typeof Game.NPC.randomAny === "function") return Game.NPC.randomAny();
       return null;
+    }
+
+    function runNpcEventOnce(opts = {}) {
+      logGenTick();
+      const snapshot = getEconomySnapshot();
+      const lowState = updateLowEconomyState(snapshot);
+      ensureLowEconomyActions(lowState.enabled);
+
+      if (!isLive()) {
+        logGenSkip("not_live", snapshot);
+        return { skipped: true, reason: "not_live", lowEconomy: lowState.enabled };
+      }
+      if (Game && Game.__D && Game.__D.PAUSE_EVENTS === true) {
+        logGenSkip("pause_events", snapshot);
+        return { skipped: true, reason: "pause_events", lowEconomy: lowState.enabled };
+      }
+
+      // Don't create/announce events only while the player is actively choosing a button.
+      if (isInBattleDecision()) {
+        logStallDiag();
+        logGenSkip("in_battle_decision", snapshot);
+        return { skipped: true, reason: "in_battle_decision", lowEconomy: lowState.enabled, stall: true };
+      }
+
+      // Global NPC action cooldown guard
+      if (!canNpcEventAct()) {
+        logGenSkip("npc_event_cooldown", snapshot);
+        return { skipped: true, reason: "npc_event_cooldown", lowEconomy: lowState.enabled };
+      }
+
+      const a = pickSafeEventNpc();
+      let b = pickSafeEventNpc();
+
+      if (!a || !b) {
+        logGenSkip("no_event_npcs", snapshot);
+        return { skipped: true, reason: "no_event_npcs", lowEconomy: lowState.enabled };
+      }
+
+      // Avoid duplicates
+      if (b.id === a.id) {
+        let tries = 0;
+        while (tries < 6 && b && a && b.id === a.id) {
+          b = pickSafeEventNpc();
+          tries += 1;
+        }
+      }
+
+      if (!a || !b || a.id === b.id) {
+        logGenSkip("event_same_npc", snapshot);
+        return { skipped: true, reason: "event_same_npc", lowEconomy: lowState.enabled };
+      }
+
+      let createdEventId = null;
+      let createdType = "npc_event";
+      let added = false;
+      try {
+        if (Game.Events && typeof Game.Events.makeNpcEvent === "function") {
+          const useEscape = Math.random() < 0.35;
+          let ev = null;
+          if (useEscape && typeof Game.Events.makeNpcEscapeEvent === "function") {
+            ev = Game.Events.makeNpcEscapeEvent(a.id, b.id);
+            if (ev) createdType = "npc_escape";
+          }
+          if (!ev) ev = Game.Events.makeNpcEvent(a.id, b.id);
+          if (ev) {
+            createdEventId = ev.id || ev.eventId || null;
+            if (Game.Events && typeof Game.Events.addEvent === "function") {
+              Game.Events.addEvent(ev);
+            }
+            added = !!(createdEventId && Game.__S && Array.isArray(Game.__S.events)
+              && Game.__S.events.some(x => x && x.id === createdEventId));
+          }
+        } else {
+          // Fallback maker might not return an id
+          makeNpcEventFallback(a.id, b.id);
+          added = true;
+        }
+      } catch (_) {}
+
+      if (!added) {
+        logGenSkip("event_create_failed", snapshot);
+        return { skipped: true, reason: "event_create_failed", lowEconomy: lowState.enabled };
+      }
+
+      // Announce the tie in chat with a clickable CTA bound to eventId (if available)
+      try {
+        if (added) {
+          const aName = a && a.name ? String(a.name) : "";
+          const bName = b && b.name ? String(b.name) : "";
+          const ev = createdEventId ? (Game.__S.events || []).find(x => x && (x.id === createdEventId)) : null;
+          const isEscape = !!(ev && (ev.kind === "escape" || ev.type === "escape"));
+          const extra = (aName && bName)
+            ? ("выбирай, за кого топишь: " + aName + " или " + bName + ".")
+            : "выбирай, за кого топишь.";
+          if (!isEscape && createdEventId && UI && typeof UI.pushTieCtaToChat === "function") {
+            UI.pushTieCtaToChat(createdEventId, extra);
+          } else if (UI && typeof UI.pushChat === "function") {
+            const text = isEscape
+              ? (ev && ev.text ? String(ev.text) : "Толпа решает: свалить или остаться.")
+              : ("Тут ничья!!! " + extra);
+            UI.pushChat({ name: "Система", text, system: true, isSystem: true, eventId: createdEventId || null });
+          }
+        }
+      } catch (_) {}
+
+      // Nudge the events system to compute initial remaining time immediately
+      try {
+        if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
+      } catch (_) {}
+
+      if (added) {
+        markNpcEventAct();
+        try { if (Game.__A && typeof Game.__A.markNpcAction === "function") Game.__A.markNpcAction(); } catch (_) {}
+      }
+
+      logGenCreated({
+        type: createdType,
+        costPoints: 0,
+        targetId: b.id,
+        sourceId: a.id,
+        lowEconomy: lowState.enabled
+      });
+
+      return {
+        created: true,
+        type: createdType,
+        eventId: createdEventId,
+        sourceId: a.id,
+        targetId: b.id,
+        lowEconomy: lowState.enabled
+      };
     }
 
     function scheduleNpcEventTick() {
@@ -820,111 +1145,17 @@ window.Game = window.Game || {};
     function scheduleNpcEvent() {
       // Events cadence: fixed 24s (x2 activity).
       npcEventTimer = setTimeout(() => {
-        if (!isLive()) {
-          scheduleNpcEvent();
-          return;
-        }
-        if (Game && Game.__D && Game.__D.PAUSE_EVENTS === true) {
-          scheduleNpcEvent();
-          return;
-        }
-
-        // Don't create/announce events only while the player is actively choosing a button.
-        // Draw/crowd votes are fine and must not freeze timers.
-        if (isInBattleDecision()) {
-          npcEventTimer = setTimeout(() => scheduleNpcEvent(), 1500);
-          return;
-        }
-
-        // Global NPC action cooldown guard
-        if (!canNpcEventAct()) {
-          npcEventTimer = setTimeout(() => scheduleNpcEvent(), 1500);
-          return;
-        }
-
-        const a = pickSafeEventNpc();
-        let b = pickSafeEventNpc();
-
-        if (!a || !b) {
-          scheduleNpcEvent();
-          return;
-        }
-
-        // Avoid duplicates
-        if (b.id === a.id) {
-          let tries = 0;
-          while (tries < 6 && b && a && b.id === a.id) {
-            b = pickSafeEventNpc();
-            tries += 1;
-          }
-        }
-
-        if (!a || !b || a.id === b.id) {
-          scheduleNpcEvent();
-          return;
-        }
-
-        try {
-          let createdEventId = null;
-
-          let added = false;
-          if (Game.Events && typeof Game.Events.makeNpcEvent === "function") {
-            const useEscape = Math.random() < 0.35;
-            let ev = null;
-            if (useEscape && typeof Game.Events.makeNpcEscapeEvent === "function") {
-              ev = Game.Events.makeNpcEscapeEvent(a.id, b.id);
-            }
-            if (!ev) ev = Game.Events.makeNpcEvent(a.id, b.id);
-            if (ev) {
-              createdEventId = ev.id || ev.eventId || null;
-              if (Game.Events && typeof Game.Events.addEvent === "function") {
-                Game.Events.addEvent(ev);
-              }
-              added = !!(createdEventId && Game.__S && Array.isArray(Game.__S.events)
-                && Game.__S.events.some(x => x && x.id === createdEventId));
-            }
-          } else {
-            // Fallback maker might not return an id
-            makeNpcEventFallback(a.id, b.id);
-            added = true;
-          }
-
-          // Announce the tie in chat with a clickable CTA bound to eventId (if available)
-          try {
-            if (added) {
-              const aName = a && a.name ? String(a.name) : "";
-              const bName = b && b.name ? String(b.name) : "";
-              const ev = createdEventId ? (Game.__S.events || []).find(x => x && (x.id === createdEventId)) : null;
-              const isEscape = !!(ev && (ev.kind === "escape" || ev.type === "escape"));
-              const extra = (aName && bName)
-                ? ("выбирай, за кого топишь: " + aName + " или " + bName + ".")
-                : "выбирай, за кого топишь.";
-              if (!isEscape && createdEventId && UI && typeof UI.pushTieCtaToChat === "function") {
-                UI.pushTieCtaToChat(createdEventId, extra);
-              } else if (UI && typeof UI.pushChat === "function") {
-                const text = isEscape
-                  ? (ev && ev.text ? String(ev.text) : "Толпа решает: свалить или остаться.")
-                  : ("Тут ничья!!! " + extra);
-                UI.pushChat({ name: "Система", text, system: true, isSystem: true, eventId: createdEventId || null });
-              }
-            }
-          } catch (_) {}
-
-          // Nudge the events system to compute initial remaining time immediately
-          try {
-            if (Game.Events && typeof Game.Events.tick === "function") Game.Events.tick();
-          } catch (_) {}
-
-          if (added) {
-            markNpcEventAct();
-            try { if (Game.__A && typeof Game.__A.markNpcAction === "function") Game.__A.markNpcAction(); } catch (_) {}
-          }
-        } catch (e) {
-          warnOnce("npcEvent", "[ui-loops] NPC event loop error", e);
-        }
-
+        try { runNpcEventOnce({ source: "timer" }); } catch (e) { warnOnce("npcEvent", "[ui-loops] NPC event loop error", e); }
         scheduleNpcEvent();
       }, 24000);
+    }
+
+    if (Game.__DEV && typeof Game.__DEV === "object") {
+      Game.__DEV.__eventGenTickOnce = (opts = {}) => {
+        const battleRes = runNpcBattleOnce({ source: "smoke" });
+        const eventRes = runNpcEventOnce({ source: "smoke" });
+        return { battle: battleRes || null, event: eventRes || null };
+      };
     }
 
     // Hook into player chat sending to add exactly one NPC reaction per player message

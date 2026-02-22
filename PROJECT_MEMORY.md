@@ -1008,6 +1008,14 @@
 - Длительность кулдауна “сдать” = время неактивности/тюрьмы злодея (5 минут).
 - Во время этого кулдауна сдавать повторно нельзя; после окончания — можно снова.
 
+### 2026-02-22 — E[2] Low economy: активность при me.points=0 (smoke pending)
+- Status: FAIL (smoke не запускался; нужен DUMP_AT)
+- Facts:
+  - `ui/ui-loops.js` добавляет lowEconomy режим и диагностику генератора: `EVENT_GEN_SKIP_V1`, `EVENT_TICK_V1`, `EVENT_LOW_ECON_MODE_V1`, `EVENT_CREATED_V1`, а также `EVENT_STALL_DIAG_V1` при блоке активным боем; battles редеют в low economy, NPC-NPC сцены продолжаются.
+  - `conflict-api` прокидывает opts в Core, а `conflict-core` допускает incoming при `opts.lowEconomyFree===true` даже если у NPC 0 points.
+  - Добавлен dev-smoke `Game.__DEV.smokeLowEconomy_ZeroPointsOnce` (BEGIN/JSON/END), который выставляет `me.points=0`, гоняет синхронные тики через `Game.__DEV.__eventGenTickOnce`, собирает метрики и делает dev-only cleanup зависшего боя.
+- Changed: `AsyncScene/Web/ui/ui-loops.js`, `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/conflict/conflict-api.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
+
 6) Дополнение: компенсация после ограбления (если применимо)
 - Если игрок пострадал от злодея (токсик/бандит снял points), и немедленно успешно сдаёт его копу:
   - украденные points возвращаются от злодея обратно игроку
@@ -1169,7 +1177,7 @@
   - Статус фаз/волн (только по `TASKS.md`)
   - Любые обязательные требования к коммуникации/копипастам
 
-Факт: 2026-02-22 — `Game.__DEV.smokeVillainFromThemResolveOnce` теперь помечен как `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`: helper создаёт три независимых incoming (win/lose/draw), весь flow — только через `Game.Conflict.incoming`, каждый кейс пишет `diag.perCase`/`cases.*` (createPath/createdBattleId/defenseSource/resolveOk/penaltyApplied/createOk/createWhy/incomingReturnedKeys), `result.error` выставляется по `diag.resolvedN`/`resolveFailed`, `create_battle_failed` появляется лишь при отсутствии battleId, а `ok:true` требует `diag.resolvedN === 3` + три cases; `ConflictCore.incoming` (и `startWith` для completeness) получили devSmoke-бипас на `cooldown`/`no_points` с логом `CONFLICT_GUARD_BYPASS_V1` (и `CONFLICT_COOLDOWN_BYPASS_V1`), а `cleanupAfterCase` гарантирует, что `diag.stateAfterCleanup`/`stateAfterCleanupHistory` фиксируют пустое state между прогонками. Браузерная Console.txt DUMP_AT 2026-02-22 23:30:21 всё ещё выдаёт старый smoke: run1 — только win OK, lose/draw `incoming_error(create_battle_failed)`, resolvedN=1, bypass-логов нет; run2 — ни win/lose/draw не создали баттл (`incoming_error`, `incomingUsed:false`, `createdBattleId:null`), resolvedN=0, `BATTLE_RESOLVE_VILLAIN` один раз → нужен hard reload + два подряд smoke для PASS.
+Факт: 2026-02-22 — `Game.__DEV.smokeVillainFromThemResolveOnce` теперь помечен как `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`: helper создаёт три независимых incoming (win/lose/draw), весь flow — только через `Game.Conflict.incoming`, каждый кейс пишет `diag.perCase`/`cases.*` (createPath/createdBattleId/defenseSource/resolveOk/penaltyApplied/createOk/createWhy/incomingReturnedKeys), `result.error` выставляется по `diag.resolvedN`/`resolveFailed`, `create_battle_failed` появляется лишь при отсутствии battleId, а `ok:true` требует `diag.resolvedN === 3` + три cases; `ConflictCore.incoming` (и `startWith` для completeness) получили devSmoke-бипас на `cooldown`/`no_points` с логом `CONFLICT_GUARD_BYPASS_V1` (и `CONFLICT_COOLDOWN_BYPASS_V1`), а `cleanupAfterCase` гарантирует, что `diag.stateAfterCleanup`/`stateAfterCleanupHistory` фиксируют пустое state между прогонками. Браузерная Console.txt DUMP_AT 2026-02-22 23:48:28 подтверждает PASS: после hard reload два подряд smoke дают `ok:true`, `resolvedN=3`, penaltyApplied только у lose, cleanup показывает пустой state, и в консоли появились три `BATTLE_RESOLVE_VILLAIN` + `CONFLICT_GUARD_BYPASS_V1`/`CONFLICT_COOLDOWN_BYPASS_V1`.
 
 ## 2026-01-13 — Инвариант: эскалация реванша против противника
 
