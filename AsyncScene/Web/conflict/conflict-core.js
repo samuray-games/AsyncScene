@@ -2193,7 +2193,8 @@
     }, tickMs);
   }
 
-  C.startWith = function (opponentId) {
+  C.startWith = function (opponentId, opts) {
+    const optz = (opts && typeof opts === "object") ? opts : {};
     const me = Game.__S.me;
     ensurePointsField(me);
 
@@ -2204,13 +2205,14 @@
     }
     // NOTE: start cost is applied by conflict-economy.js, not here
 
+    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     // Cooldown: prevent spamming the same opponent
     try {
       const cdMs = 3 * 60 * 1000;
       const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
       const last = cdMap[opponentId] || 0;
       const nowTs = now();
-      if (last && (nowTs - last) < cdMs) {
+      if (!devSmokeBypass && last && (nowTs - last) < cdMs) {
         const leftMs = cdMs - (nowTs - last);
         const oppName = getName(opponentId) || "Он";
         if (Game.__A && typeof Game.__A.pushDm === "function") {
@@ -2261,7 +2263,8 @@
     return { ok: true, battle };
   };
 
-  C.incoming = function (opponentId) {
+  C.incoming = function (opponentId, opts) {
+    const optz = (opts && typeof opts === "object") ? opts : {};
     try {
       if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
         if (Game.__A.isNpcJailed(opponentId)) return null;
@@ -2276,12 +2279,13 @@
         if (pts <= 0 || (bal != null && bal <= 0)) return null;
       }
     } catch (_) {}
+    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     try {
       const cdMs = 3 * 60 * 1000;
       const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
       const last = cdMap[opponentId] || 0;
       const nowTs = now();
-      if (last && (nowTs - last) < cdMs) {
+      if (!devSmokeBypass && last && (nowTs - last) < cdMs) {
         const oppName = getName(opponentId) || "Он";
         if (Game.__A && typeof Game.__A.pushDm === "function") {
           Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
