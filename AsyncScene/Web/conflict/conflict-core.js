@@ -2212,6 +2212,7 @@
       const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
       const last = cdMap[opponentId] || 0;
       const nowTs = now();
+      if (!devSmokeBypass && Game && Game.DEV && devSmokeBypass) {}
       if (!devSmokeBypass && last && (nowTs - last) < cdMs) {
         const leftMs = cdMs - (nowTs - last);
         const oppName = getName(opponentId) || "Он";
@@ -2285,12 +2286,23 @@
       const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
       const last = cdMap[opponentId] || 0;
       const nowTs = now();
-      if (!devSmokeBypass && last && (nowTs - last) < cdMs) {
-        const oppName = getName(opponentId) || "Он";
-        if (Game.__A && typeof Game.__A.pushDm === "function") {
-          Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
+      if (last && (nowTs - last) < cdMs) {
+        if (devSmokeBypass && typeof window !== "undefined") {
+          console.warn("CONFLICT_COOLDOWN_BYPASS_V1", {
+            used: true,
+            conflictMode,
+            devSmoke: devSmokeBypass,
+            villainId: opponentId,
+            key: opponentId
+          });
         }
-        return null;
+        if (!devSmokeBypass) {
+          const oppName = getName(opponentId) || "Он";
+          if (Game.__A && typeof Game.__A.pushDm === "function") {
+            Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
+          }
+          return null;
+        }
       }
     } catch (_) {}
 

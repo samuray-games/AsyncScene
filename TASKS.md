@@ -98,7 +98,7 @@
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       (1) Hard reload http://localhost:8080/index.html?dev=1.
-    (2) Убедись, что `Console.txt` больше не содержит SyntaxError про `const battle`, появился лог `DEV_CHECKS_VILLAIN_SMOKE_EXPORT_V1`, в `SMOKE_VILLAIN_FROMTHEM_V1_JSON` `diag.createIncomingRaw` присутствует, `diag.createPath` установлен (incoming или startWith_fallback), `diag.cooldownStoreKeyUsed` совпадает с `villainId`, `diag.cooldownKeyCleared === true`.
+    (2) Убедись, что `Console.txt` больше не содержит SyntaxError про `const battle`, появились логи `DEV_CHECKS_VILLAIN_SMOKE_EXPORT_V1` и `CONFLICT_COOLDOWN_BYPASS_V1`, в `SMOKE_VILLAIN_FROMTHEM_V1_JSON` `diag.createIncomingRaw` содержит `id`, `diag.incomingUsed === true`, `diag.cooldownKeysPreview` показывает guard keys, `diag.cooldownKeyCleared === true`.
     (3) Выполни Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"}); убедись, что helper вернул `ok:true`, `diag.createdBattleId` строку, `diag.resolvedN === 3`, `cases.win/lose/draw` заполнены, penaltyApplied только для lose, и в консоли есть `BATTLE_RESOLVE_VILLAIN` для всех исходов; повторно вызови smoke — тоже PASS.
       (4) Приложи Console/JSON из `SMOKE_VILLAIN_FROMTHEM_V1_JSON`.
       ```

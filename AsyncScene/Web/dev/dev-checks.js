@@ -13663,28 +13663,34 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       cases: { win: null, lose: null, draw: null },
       notes: [],
       error: null,
-      diag: {
-        core: {
-          hasConflict: !!conflict,
-          hasConflictCore: !!conflictCore,
-          hasResolve,
-          hasIncoming,
-          keysSample: diagCoreKeys
-        },
-        createdBattleId: null,
-        defenseSource: null,
-        uiSuppressed: true,
-        resolvedN: 0,
-        createArgs: null,
-        createIncomingRaw: null,
-        createIncomingErr: null,
-        createStartWithRaw: null,
-        createStartWithErr: null,
-        createPath: null,
-        cooldownStoreKeyUsed: null,
-        cooldownKeyCleared: false
-      }
-    };
+        diag: {
+          core: {
+            hasConflict: !!conflict,
+            hasConflictCore: !!conflictCore,
+            hasResolve,
+            hasIncoming,
+            keysSample: diagCoreKeys
+          },
+          createdBattleId: null,
+          incomingBattleId: null,
+          incomingUsed: false,
+          defenseSource: null,
+          uiSuppressed: true,
+          resolvedN: 0,
+          createArgs: null,
+          createIncomingRaw: null,
+          createIncomingErr: null,
+          createStartWithRaw: null,
+          createStartWithErr: null,
+          createPath: null,
+          cooldownStoreKeyUsed: null,
+          cooldownKeyCleared: false,
+          cooldownKeysPreview: null,
+          cooldownKeysFiltered: null,
+          clearedKeysCount: 0,
+          clearedKeysSample: null
+        }
+      };
     const logBegin = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_BEGIN", payload || {});
     const logJson = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_JSON", payload || {});
     const logEnd = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_END", payload || {});
@@ -13759,19 +13765,28 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       return { id: "canon_draw", group: "draw", type: "yn", text: "Fallback" };
     };
 
-    const resetCooldown = (id) => {
+    const inspectCooldowns = (id) => {
       try {
-        const cdMap = Game.__S && Game.__S.battleCooldowns ? Game.__S.battleCooldowns : (Game.__S && (Game.__S.battleCooldowns = {}));
-        if (cdMap && id) {
-          cdMap[id] = 0;
-          result.diag.cooldownStoreKeyUsed = id;
+        const cdMap = Game.__S && Game.__S.battleCooldowns ? Game.__S.battleCooldowns : null;
+        if (!cdMap) return;
+        const keys = Object.keys(cdMap || {});
+        result.diag.cooldownKeysPreview = keys.slice(0, 10);
+        const filtered = keys.filter(k => String(k).includes(villainId) || (Game.__S && Game.__S.me && String(k).includes(Game.__S.me.id)));
+        result.diag.cooldownKeysFiltered = filtered.slice(0, 10);
+        const cleared = [];
+        filtered.forEach(k => {
+          if (cdMap[k] != null) {
+            cdMap[k] = 0;
+            cleared.push(k);
+          }
+        });
+        if (cleared.length) {
+          result.diag.cooldownStoreKeyUsed = villainId;
           result.diag.cooldownKeyCleared = true;
+          result.diag.clearedKeysCount = cleared.length;
+          result.diag.clearedKeysSample = cleared.slice(0, 5);
         }
-      } catch (_) {
-        if (id) {
-          result.diag.cooldownStoreKeyUsed = id;
-        }
-      }
+      } catch (_) {}
     };
 
     const captureIncoming = () => {
@@ -13788,13 +13803,13 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         if (raw && raw.reason === "cooldown") {
           result.diag.createIncomingRaw.reason = raw.reason;
           result.diag.createIncomingRaw.leftMs = Number.isFinite(raw.leftMs) ? (raw.leftMs | 0) : null;
-          resetCooldown(villainId);
+          inspectCooldowns(villainId);
           return null;
         }
         return raw;
       } catch (err) {
         result.diag.createIncomingErr = err && err.stack ? String(err.stack) : String(err);
-        resetCooldown(villainId);
+        inspectCooldowns(villainId);
         return null;
       }
     };
@@ -13811,7 +13826,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         result.diag.createStartWithRaw.leftMs = pooled.leftMs;
         result.diag.createRaw = pooled;
         if (res.reason === "cooldown") {
-          resetCooldown(villainId);
+          inspectCooldowns(villainId);
           return null;
         }
         return res;
@@ -13823,7 +13838,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const findBattleFromRaw = (raw) => {
       if (!raw) return null;
       if (raw.battle) return raw.battle;
-      const id = raw.battleId || raw.battle && raw.battle.id;
+      const id = raw.id || raw.battleId || (raw.battle && raw.battle.id);
       if (id) return state.battles.find(b => b && (b.id === id || b.battleId === id)) || null;
       if (raw.eventId && raw.opponentId) {
         return state.battles.find(b => b && b.eventId === raw.eventId) || null;
@@ -13845,6 +13860,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         throw new Error("create_battle_failed");
       }
       result.diag.createdBattleId = battle.id;
+      result.diag.incomingBattleId = battle.id;
+      result.diag.incomingUsed = true;
       const defenseArg = buildDefenseArg(battle);
       if (!defenseArg || !defenseArg.id) {
         throw new Error("defense_arg_missing");
