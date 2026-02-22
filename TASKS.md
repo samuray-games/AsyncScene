@@ -69,7 +69,7 @@
 ## Inbox
 
 ### [T-20260222-001] C[1] Villain fromThem penalties only on lose
-- Status: FAIL (смоук подготовлен, не запускался)
+- Status: DOING (Console.txt DUMP_AT 2026-02-22 23:30:21 фиксирует `smoke_impl_v2` с run1: только win прошёл, lose/draw `incoming_error(create_battle_failed)`, resolvedN=1, bypass-логов нет; run2: ни одна из win/lose/draw не создает battle (`incoming_error`), `incomingUsed:false`, `createdBattleId:null`, `resolvedN=0` — smoke остаётся FAIL без hard reload)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
@@ -82,25 +82,23 @@
   - [ ] fromThem не влияет на формулу result
   - [ ] лог `BATTLE_RESOLVE_VILLAIN {battleId, fromThem, result, penaltyApplied, villainRole}`
 - Notes: не менять экономику, не вводить эмиссию, не трогать crowd, только корректный resolve + лог.
-- Result: FAIL (смоук не запускался, нужна проверка helper)
+- Result: FAIL (Console.txt DUMP_AT 2026-02-22 23:30:21 фиксирует `smoke_impl_v2` с run1: win проходит, lose/draw `incoming_error(create_battle_failed)`, resolvedN=1, без bypass-логов; run2: ни один из win/lose/draw не создаёт баттл (`incoming_error`, `incomingUsed:false`, `createdBattleId:null`), resolvedN=0, `BATTLE_RESOLVE_VILLAIN` один раз). 
 - Report:
-  - Status: FAIL
+  - Status: DOING
   - Facts:
-    (1) `computeOutcome` больше не форсит `lose` по `fromThem` для toxic/bandit.
-    (2) penalties (toxic/bandit/mafia) применяются только при `outcome === "lose"` в finalize; mafia-штраф зависит от `fromThem`.
-    (3) добавлен лог `BATTLE_RESOLVE_VILLAIN`, а в dev-пакет добавлен новый helper `Game.__DEV.smokeVillainFromThemResolveOnce`.
-  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+    (1) Console.txt DUMP_AT 2026-02-22 23:30:21 фиксирует, что run1 отдаёт только win (lose/draw `incoming_error(create_battle_failed)`), а run2 не создаёт вообще ни одного `incoming` (все `incoming_error`, `incomingUsed:false`, `createdBattleId:null`, `resolvedN=0`), `BATTLE_RESOLVE_VILLAIN` жёстко один раз — значит smoke пока остается FAIL до hard reload.
+    (2) Код теперь явно создаёт по одному independent incoming для forces `"win"`/`"lose"`/`"draw"`, `perCase` хранит `createOk/createWhy/incomingReturnedKeys`, `diag.stateAfterCleanup` документирует, что state и cooldowns очищаются между прогонками, а `ConflictCore.incoming`/`startWith` логируют новый `CONFLICT_GUARD_BYPASS_V1` для `cooldown`/`no_points` с `devSmoke` bypass, плюс чувствительные `clearDevCooldownKeys`.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
-    (1) Hard reload http://localhost:8080/index.html?dev=1.
-    (2) Выполнить `Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})`.
-    (3) PASS, если smoke возвращает `ok:true`, `cases.win.penaltyApplied === false`, `cases.draw.penaltyApplied === false`, `cases.lose.penaltyApplied === true`, `cases.*.outcome` совпадает с `force`, `diag.createdBattleId` строка, `diag.defenseSource` указана, `diag.resolvedN === 3`, и в консоли появляются `BATTLE_RESOLVE_VILLAIN`-логи на все исходы без висящих incoming-battle.
+    (1) Hard reload http://localhost:8080/index.html?dev=1, чтобы DevTools загрузили `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`.
+    (2) Выполни `Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})` дважды подряд без перезагрузки и зафиксируй `SMOKE_VILLAIN_FROMTHEM_V1_JSON` + фрагмент Console.
+    (3) PASS, если оба вызова возвращают `ok:true`, `resolvedN === 3`, `perCase.win/lose/draw` заполнены, `cases.*.outcome === force`, только `cases.lose.penaltyApplied === true`, `diag.perCase.*.createPath`/`diag.createPath` отражают реальные источники, и в консоли появились три `BATTLE_RESOLVE_VILLAIN` (win/lose/draw) + по крайней мере один `CONFLICT_GUARD_BYPASS_V1` (вместе с `CONFLICT_COOLDOWN_BYPASS_V1`, если был обход). Приложи JSON + Console.
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
-      (1) Hard reload http://localhost:8080/index.html?dev=1.
-    (2) Убедись, что `Console.txt` больше не содержит SyntaxError про `const battle`, появились логи `DEV_CHECKS_VILLAIN_SMOKE_EXPORT_V1` и `CONFLICT_COOLDOWN_BYPASS_V1`, в `SMOKE_VILLAIN_FROMTHEM_V1_JSON` `diag.createIncomingRaw` содержит `id`, `diag.incomingUsed === true`, `diag.cooldownKeysPreview` показывает guard keys, `diag.cooldownKeyCleared === true`.
-    (3) Выполни Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"}); убедись, что helper вернул `ok:true`, `diag.createdBattleId` строку, `diag.resolvedN === 3`, `cases.win/lose/draw` заполнены, penaltyApplied только для lose, и в консоли есть `BATTLE_RESOLVE_VILLAIN` для всех исходов; повторно вызови smoke — тоже PASS.
-      (4) Приложи Console/JSON из `SMOKE_VILLAIN_FROMTHEM_V1_JSON`.
+      (1) Сделай hard reload http://localhost:8080/index.html?dev=1, чтобы DevTools взяли `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`.
+      (2) Выполни Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"}) два раза подряд без перезагрузки.
+      (3) PASS, если `SMOKE_VILLAIN_FROMTHEM_V1_JSON` содержит `ok:true`, `resolvedN === 3`, `perCase.win/lose/draw` заполнены, `cases.*.outcome === force`, penaltyApplied только у `lose`, и в Console появились три `BATTLE_RESOLVE_VILLAIN` + хотя бы один `CONFLICT_GUARD_BYPASS_V1` (и `CONFLICT_COOLDOWN_BYPASS_V1`, если кулдаун обходится); приложи JSON + Console segment.
       ```
 
 

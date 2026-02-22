@@ -68,6 +68,19 @@
     } catch (_) {}
   }
 
+  function logGuardBypass(stage, reason, villainId, key){
+    try {
+      console.warn("CONFLICT_GUARD_BYPASS_V1", {
+        devSmoke: true,
+        mode: conflictMode,
+        stage,
+        reasonBypassed: reason,
+        villainId: villainId || null,
+        key: key || null
+      });
+    } catch (_) {}
+  }
+
   function logCrowdStallProgress(b, v, nowMs, key){
     if (!v || !key) return;
     _crowdLog("CROWD_STALL_V1_PROGRESS", {
@@ -2195,17 +2208,21 @@
 
   C.startWith = function (opponentId, opts) {
     const optz = (opts && typeof opts === "object") ? opts : {};
+    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     const me = Game.__S.me;
     ensurePointsField(me);
 
     // Canon: points may be 0; only negative is forbidden.
     // Allow starting a battle with 1 point (cost is applied elsewhere).
-    if ((me.points|0) <= 0) {
-      return { ok: false, reason: "no_points" };
+      if ((me.points|0) <= 0) {
+        if (devSmokeBypass) {
+          logGuardBypass("startWith", "no_points", opponentId, opponentId);
+        } else {
+          return { ok: false, reason: "no_points" };
+        }
     }
     // NOTE: start cost is applied by conflict-economy.js, not here
 
-    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     // Cooldown: prevent spamming the same opponent
     try {
       const cdMs = 3 * 60 * 1000;
@@ -2266,6 +2283,7 @@
 
   C.incoming = function (opponentId, opts) {
     const optz = (opts && typeof opts === "object") ? opts : {};
+    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     try {
       if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
         if (Game.__A.isNpcJailed(opponentId)) return null;
@@ -2277,16 +2295,24 @@
       if (opp && (opp.npc === true || opp.type === "npc")) {
         const pts = Number.isFinite(opp.points) ? (opp.points | 0) : 0;
         const bal = Number.isFinite(opp.balance) ? (opp.balance | 0) : null;
-        if (pts <= 0 || (bal != null && bal <= 0)) return null;
+        if (pts <= 0 || (bal != null && bal <= 0)) {
+          if (devSmokeBypass) {
+            logGuardBypass("incoming", "no_points", opponentId, opponentId);
+          } else {
+            return null;
+          }
+        }
       }
     } catch (_) {}
-    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     try {
       const cdMs = 3 * 60 * 1000;
       const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
       const last = cdMap[opponentId] || 0;
       const nowTs = now();
       if (last && (nowTs - last) < cdMs) {
+        if (devSmokeBypass) {
+          logGuardBypass("incoming", "cooldown", opponentId, opponentId);
+        }
         if (devSmokeBypass && typeof window !== "undefined") {
           console.warn("CONFLICT_COOLDOWN_BYPASS_V1", {
             used: true,

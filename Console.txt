@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-22 18:34:43] (epoch_ms=1771752883649)
+[DUMP_AT] [2026-02-22 23:48:28] (epoch_ms=1771771708661)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771752872078
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771771689221
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771752872132}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771771689265}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771752872088 1771752872132
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771771689229 1771771689266
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771752872132
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771771689266
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771752872133}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771771689267}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771752872146}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771752872149}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771771689283}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771771689286}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,15 +45,16 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771752872151
+LOG [AttackChoices] conflict-arguments loaded 1771771689288
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771752872153, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771752872154}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771752872154}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771771689290, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771771689291}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771771689291}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771752881501_6a98ef55271f5 Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771771698395_ed2f142c92f1d8 Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
 WARN [repl] > Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
-WARN SMOKE_VILLAIN_FROMTHEM_V1_BEGIN Object{debug: false, name: smoke_villain_fromthem_resolve_once, time: 1771752881503, villainId: npc_bandit}
+WARN SMOKE_VILLAIN_FROMTHEM_IMPL_V2 Object{buildTag: villain_smoke_refactor_v2, forces: [win, lose, draw], ts: 1771771698397}
+WARN SMOKE_VILLAIN_FROMTHEM_V1_BEGIN Object{debug: false, name: smoke_villain_fromthem_resolve_once, time: 1771771698398, villainId: npc_bandit}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -76,188 +77,7 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxjx4rl_43bjxg, fromThem: true, penaltyApplied: false, result: win, villainRole: bandit}
-WARN SMOKE_VILLAIN_FROMTHEM_V1_JSON Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createdBattleId: battle_mlxjx4rl_43bjxg, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx4rl_43bjxg, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
-      defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
-LOG END CONSOLE_EXPAND_V1
-WARN SMOKE_VILLAIN_FROMTHEM_V1_END Object{name: smoke_villain_fromthem_resolve_once, ok: false, reason: create_battle_failed}
-LOG [repl] < Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createdBattleId: battle_mlxjx4rl_43bjxg, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx4rl_43bjxg, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
-      defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasCo…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    name
-    ok
-    villainId
-    villainRole
-    cases
-    notes
-    error
-    diag
-  ]
-  preview: Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyClear…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
-      defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    name
-    ok
-    villainId
-    villainRole
-    cases
-    notes
-    error
-    diag
-  ]
-  preview: Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
-      defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771752881501_6a98ef55271f5 Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createdBattleId: battle_mlxjx4rl_43bjxg, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx4rl_43bjxg, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
-      defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1771752881524 1771752881524_ec5e4109f771b
-WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 12235, dumpAtEpochMs: 1771752881544, dumpAtLocal: 2026-02-22 18:34:41, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1771752881524_ec5e4109f771b, sepOk: false, status: 200}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  bytes: 12235
-  dumpAtEpochMs: 1771752881544
-  dumpAtLocal: 2026-02-22 18:34:41
-  ok: true
-  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
-  prepend: true
-  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-  runId: 1771752881524_ec5e4109f771b
-  sepOk: false
-  status: 200
-}
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771752883631_f15a21b8c8d59 Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
-WARN [repl] > Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
-WARN SMOKE_VILLAIN_FROMTHEM_V1_BEGIN Object{debug: false, name: smoke_villain_fromthem_resolve_once, time: 1771752883632, villainId: npc_bandit}
+WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxv4fz3_w6opmb, fromThem: true, penaltyApplied: false, result: win, villainRole: bandit}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -280,226 +100,6 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxjx6eo_lv9zm0, fromThem: true, penaltyApplied: false, result: win, villainRole: bandit}
-WARN SMOKE_VILLAIN_FROMTHEM_V1_JSON Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx6eo_lv9zm0, defenseArgId: canon_Y1_about_tlhu3i, defenseArgKey: about, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179991, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179991, reason: cooldown, type: object}, createdBattleId: battle_mlxjx6eo_lv9zm0, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx6eo_lv9zm0, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx6eo_lv9zm0
-      defenseArgId: canon_Y1_about_tlhu3i
-      defenseArgKey: about
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
-LOG END CONSOLE_EXPAND_V1
-WARN SMOKE_VILLAIN_FROMTHEM_V1_END Object{name: smoke_villain_fromthem_resolve_once, ok: false, reason: create_battle_failed}
-LOG [repl] < Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx6eo_lv9zm0, defenseArgId: canon_Y1_about_tlhu3i, defenseArgKey: about, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179991, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179991, reason: cooldown, type: object}, createdBattleId: battle_mlxjx6eo_lv9zm0, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx6eo_lv9zm0, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx6eo_lv9zm0
-      defenseArgId: canon_Y1_about_tlhu3i
-      defenseArgKey: about
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx6eo_lv9zm0, defenseArgId: canon_Y1_about_tlhu3i, defenseArgKey: about, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasCo…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    name
-    ok
-    villainId
-    villainRole
-    cases
-    notes
-    error
-    diag
-  ]
-  preview: Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx6eo_lv9zm0, defenseArgId: canon_Y1_about_tlhu3i, defenseArgKey: about, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyClear…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx6eo_lv9zm0
-      defenseArgId: canon_Y1_about_tlhu3i
-      defenseArgKey: about
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    name
-    ok
-    villainId
-    villainRole
-    cases
-    notes
-    error
-    diag
-  ]
-  preview: Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx6eo_lv9zm0
-      defenseArgId: canon_Y1_about_tlhu3i
-      defenseArgKey: about
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771752883631_f15a21b8c8d59 Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx6eo_lv9zm0, defenseArgId: canon_Y1_about_tlhu3i, defenseArgKey: about, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179991, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179991, reason: cooldown, type: object}, createdBattleId: battle_mlxjx6eo_lv9zm0, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx6eo_lv9zm0, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx6eo_lv9zm0
-      defenseArgId: canon_Y1_about_tlhu3i
-      defenseArgKey: about
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
-LOG END CONSOLE_EXPAND_V1
-
-[DUMP_AT] [2026-02-22 18:34:41] (epoch_ms=1771752881544)
-[DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771752872078
-WARN DEV_SW_DISABLED true
-WARN CONSOLE_TAPE_V1_READY
-WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
-WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
-WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771752872132}
-WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
-WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
-WARN DEV_CHECKS_SERVED_PROOF_V4
-WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771752872088 1771752872132
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771752872132
-WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
-WARN [DEV] content testing hooks enabled
-WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771752872133}
-LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771752872146}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771752872149}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: init
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-LOG [AttackChoices] conflict-arguments loaded 1771752872151
-LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771752872153, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1771752872154}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771752872154}
-WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771752881501_6a98ef55271f5 Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
-WARN [repl] > Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
-WARN SMOKE_VILLAIN_FROMTHEM_V1_BEGIN Object{debug: false, name: smoke_villain_fromthem_resolve_once, time: 1771752881503, villainId: npc_bandit}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -522,67 +122,111 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxjx4rl_43bjxg, fromThem: true, penaltyApplied: false, result: win, villainRole: bandit}
-WARN SMOKE_VILLAIN_FROMTHEM_V1_JSON Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createdBattleId: battle_mlxjx4rl_43bjxg, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx4rl_43bjxg, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
+WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxv4g01_zghbrw, fromThem: true, penaltyApplied: true, result: lose, villainRole: bandit}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlxv4g0b_mlu48f, cap: 19, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: false, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlxv4g0b_mlu48f
+  cap: 19
+  eligibleCount: 19
+  eventId: null
+  excludedOtherCount: 1
+  excludedZeroPtsCount: 0
+  meIncluded: false
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlxv4g0b_mlu48f, eventId: null, samples: [Object{id: me, pts: 0, reason: me_ineligible}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlxv4g0b_mlu48f, cap: 19, eligibleCount: 19, eventId: null, meIncluded: false}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlxv4g0b_mlu48f, cap: 19, eventId: null, seed: null, startedAtMs: 1771771698446, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlxv4g0b_mlu48f, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxv4g0b_mlu48f, fromThem: true, penaltyApplied: false, result: draw, villainRole: bandit}
+WARN SMOKE_VILLAIN_FROMTHEM_V1_JSON Object{cases: Object{draw: Object{battleId: battle_mlxv4g0b_mlu48f, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_3hgyo1, defenseArgKey: where, force: draw, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4g01_zghbrw, createOk: true, createWhy: ok, defenseArgId: canon_Y1_about_8v4jd3, defenseArgKey: about, force: lose, incomingReturnedId: battle_mlxv4g01_zghbrw, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: lose, penaltyApplied: true, penaltyStates: Object{bandit: true, mafia: false, toxic: false}, resolveOk: true}, win: Object{battleId: battle_mlxv4fz3_w6opmb, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_bko7a0, defenseArgKey: where, force: win, incomingReturnedId: battle_mlxv4fz3_w6opmb, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 3, clearedKeysSample: [npc_bandit, npc_bandit, npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: null, cooldownKeysPreview: null, cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true, silent: true, uiSuppressed: true}], createIncomingErr: null, createIncomingId: battle_mlxv4g0b_mlu48f, createIncomingKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], createIncomingRaw: Object{id: battle_mlxv4g0b_mlu48f, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createPath: incoming, createRaw: Object{id: battle_mlxv4g0b_mlu48f, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createStartWithErr: null, createStartWithRaw: null, createdBattleId: battle_mlxv4g0b_mlu48f, incomingBattleId: battle_mlxv4g0b_mlu48f, incomingUsed: true, perCase: Object{draw: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4g0b_mlu48f, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}, lose: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4g01_zghbrw, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4g01_zghbrw, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: true, resolveOk: true}, win: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4fz3_w6opmb, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4fz3_w6opmb, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}}, resolvedN: 3, stateAfterCleanup: Object{activeBattleId: null, battlesCount: 0, cooldownKeysCount: 0}, stateAfterCleanupHistory: [Object{activeBattleId: null, battleId: battle_mlxv4fz3_w6opmb, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: win}, Object{activeBattleId: null, battleId: battle_mlxv4g01_zghbrw, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: lose}, Object{activeBattleId: null, battleId: battle_mlxv4g0b_mlu48f, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: draw}, Object{activeBattleId: null, battleId: null, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: final}]}, …(truncated)
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
+    draw: Object{
+      battleId: battle_mlxv4g0b_mlu48f
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_where_3hgyo1
       defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
+      force: draw
+      incomingReturnedId: battle_mlxv4g0b_mlu48f
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false…
 LOG END CONSOLE_EXPAND_V1
-WARN SMOKE_VILLAIN_FROMTHEM_V1_END Object{name: smoke_villain_fromthem_resolve_once, ok: false, reason: create_battle_failed}
-LOG [repl] < Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createdBattleId: battle_mlxjx4rl_43bjxg, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx4rl_43bjxg, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
+WARN SMOKE_VILLAIN_FROMTHEM_V1_END Object{name: smoke_villain_fromthem_resolve_once, ok: true, reason: null}
+WARN DEV_CHECKS_VILLAIN_SMOKE_EXPORT_V1 Object{hasDev: true, hasFn: true, type: function}
+LOG [repl] < Object{cases: Object{draw: Object{battleId: battle_mlxv4g0b_mlu48f, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_3hgyo1, defenseArgKey: where, force: draw, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4g01_zghbrw, createOk: true, createWhy: ok, defenseArgId: canon_Y1_about_8v4jd3, defenseArgKey: about, force: lose, incomingReturnedId: battle_mlxv4g01_zghbrw, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: lose, penaltyApplied: true, penaltyStates: Object{bandit: true, mafia: false, toxic: false}, resolveOk: true}, win: Object{battleId: battle_mlxv4fz3_w6opmb, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_bko7a0, defenseArgKey: where, force: win, incomingReturnedId: battle_mlxv4fz3_w6opmb, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 3, clearedKeysSample: [npc_bandit, npc_bandit, npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: null, cooldownKeysPreview: null, cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true, silent: true, uiSuppressed: true}], createIncomingErr: null, createIncomingId: battle_mlxv4g0b_mlu48f, createIncomingKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], createIncomingRaw: Object{id: battle_mlxv4g0b_mlu48f, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createPath: incoming, createRaw: Object{id: battle_mlxv4g0b_mlu48f, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createStartWithErr: null, createStartWithRaw: null, createdBattleId: battle_mlxv4g0b_mlu48f, incomingBattleId: battle_mlxv4g0b_mlu48f, incomingUsed: true, perCase: Object{draw: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4g0b_mlu48f, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}, lose: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4g01_zghbrw, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4g01_zghbrw, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: true, resolveOk: true}, win: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4fz3_w6opmb, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4fz3_w6opmb, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}}, resolvedN: 3, stateAfterCleanup: Object{activeBattleId: null, battlesCount: 0, cooldownKeysCount: 0}, stateAfterCleanupHistory: [Object{activeBattleId: null, battleId: battle_mlxv4fz3_w6opmb, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: win}, Object{activeBattleId: null, battleId: battle_mlxv4g01_zghbrw, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: lose}, Object{activeBattleId: null, battleId: battle_mlxv4g0b_mlu48f, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: draw}, Object{activeBattleId: null, battleId: null, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: final}]}, …(truncated)
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
+    draw: Object{
+      battleId: battle_mlxv4g0b_mlu48f
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_where_3hgyo1
       defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
+      force: draw
+      incomingReturnedId: battle_mlxv4g0b_mlu48f
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasCo…, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{cases: Object{draw: Object{battleId: battle_mlxv4g0b_mlu48f, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_3hgyo1, defenseArgKey: where, force: draw, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4g01_zghbrw, create…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -596,34 +240,32 @@ LOG Object{
     error
     diag
   ]
-  preview: Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyClear…
+  preview: Object{cases: Object{draw: Object{battleId: battle_mlxv4g0b_mlu48f, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_3hgyo1, defenseArgKey: where, force: draw, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, pena…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{
   cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
+    draw: Object{
+      battleId: battle_mlxv4g0b_mlu48f
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_where_3hgyo1
       defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…, type: object}
+      force: draw
+      incomingReturnedId: battle_mlxv4g0b_mlu48f
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -639,50 +281,326 @@ LOG Object{
   ]
   preview: Object{
   cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
+    draw: Object{
+      battleId: battle_mlxv4g0b_mlu48f
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_where_3hgyo1
       defenseArgKey: where
-      force: win
-      outcome: win
-      penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-…
+      force: draw
+      incomingReturnedId: battle_mlxv4g0b_mlu48f
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+ …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1771752881501_6a98ef55271f5 Object{cases: Object{draw: null, lose: null, win: Object{battleId: battle_mlxjx4rl_43bjxg, defenseArgId: canon_Y1_where_fgi2jl, defenseArgKey: where, force: win, outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 1, clearedKeysSample: [npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: [npc_bandit], cooldownKeysPreview: [npc_bandit], cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true}], createIncomingErr: null, createIncomingRaw: null, createPath: startWith_fallback, createRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createStartWithErr: null, createStartWithRaw: Object{keys: [ok, reason, leftMs], leftMs: 179985, reason: cooldown, type: object}, createdBattleId: battle_mlxjx4rl_43bjxg, defenseSource: myDefenseOptions, incomingBattleId: battle_mlxjx4rl_43bjxg, incomingUsed: true, resolvedN: 1, uiSuppressed: true}, error: create_battle_failed, name: smoke_villain_fromthem_resolve_once, notes: [create_battle_failed], ok: false, villainId: npc_bandit, villainRole: bandit}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771771698395_ed2f142c92f1d8 Object{cases: Object{draw: Object{battleId: battle_mlxv4g0b_mlu48f, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_3hgyo1, defenseArgKey: where, force: draw, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4g01_zghbrw, createOk: true, createWhy: ok, defenseArgId: canon_Y1_about_8v4jd3, defenseArgKey: about, force: lose, incomingReturnedId: battle_mlxv4g01_zghbrw, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: lose, penaltyApplied: true, penaltyStates: Object{bandit: true, mafia: false, toxic: false}, resolveOk: true}, win: Object{battleId: battle_mlxv4fz3_w6opmb, createOk: true, createWhy: ok, defenseArgId: canon_Y1_where_bko7a0, defenseArgKey: where, force: win, incomingReturnedId: battle_mlxv4fz3_w6opmb, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 3, clearedKeysSample: [npc_bandit, npc_bandit, npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: null, cooldownKeysPreview: null, cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true, silent: true, uiSuppressed: true}], createIncomingErr: null, createIncomingId: battle_mlxv4g0b_mlu48f, createIncomingKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], createIncomingRaw: Object{id: battle_mlxv4g0b_mlu48f, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createPath: incoming, createRaw: Object{id: battle_mlxv4g0b_mlu48f, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createStartWithErr: null, createStartWithRaw: null, createdBattleId: battle_mlxv4g0b_mlu48f, incomingBattleId: battle_mlxv4g0b_mlu48f, incomingUsed: true, perCase: Object{draw: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4g0b_mlu48f, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4g0b_mlu48f, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}, lose: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4g01_zghbrw, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4g01_zghbrw, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: true, resolveOk: true}, win: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4fz3_w6opmb, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4fz3_w6opmb, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}}, resolvedN: 3, stateAfterCleanup: Object{activeBattleId: null, battlesCount: 0, cooldownKeysCount: 0}, stateAfterCleanupHistory: [Object{activeBattleId: null, battleId: battle_mlxv4fz3_w6opmb, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: win}, Object{activeBattleId: null, battleId: battle_mlxv4g01_zghbrw, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: lose}, Object{activeBattleId: null, battleId: battle_mlxv4g0b_mlu48f, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: draw}, Object{activeBattleId: null, battleId: null, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: final}]}, …(truncated)
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   cases: Object{
-    draw: null
-    lose: null
-    win: Object{
-      battleId: battle_mlxjx4rl_43bjxg
-      defenseArgId: canon_Y1_where_fgi2jl
+    draw: Object{
+      battleId: battle_mlxv4g0b_mlu48f
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_where_3hgyo1
       defenseArgKey: where
-      force: win
-      outcome: win
+      force: draw
+      incomingReturnedId: battle_mlxv4g0b_mlu48f
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771771704585_c7f772189090a8 Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
+WARN [repl] > Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})
+WARN SMOKE_VILLAIN_FROMTHEM_IMPL_V2 Object{buildTag: villain_smoke_refactor_v2, forces: [win, lose, draw], ts: 1771771704587}
+WARN SMOKE_VILLAIN_FROMTHEM_V1_BEGIN Object{debug: false, name: smoke_villain_fromthem_resolve_once, time: 1771771704587, villainId: npc_bandit}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxv4kr0_f2kjd3, fromThem: true, penaltyApplied: false, result: win, villainRole: bandit}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN NPC_ACTIVITY_TAX_ENTRY Object{amount: 1, reason: npc_activity_tax, sourceId: npc_bandit, targetId: worldBank}
+WARN NPC_ACTIVITY_TAX_V1_PROBE Object{gainPoints: 1, isNpcTarget: false, reason: npc_activity_tax, softCapBefore: null, sourceId: npc_bandit, targetId: worldBank}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxv4kr8_2h34hu, fromThem: true, penaltyApplied: true, result: lose, villainRole: bandit}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlxv4krf_oxc3pu, cap: 19, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: false, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlxv4krf_oxc3pu
+  cap: 19
+  eligibleCount: 19
+  eventId: null
+  excludedOtherCount: 1
+  excludedZeroPtsCount: 0
+  meIncluded: false
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlxv4krf_oxc3pu, eventId: null, samples: [Object{id: me, pts: 0, reason: me_ineligible}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlxv4krf_oxc3pu, cap: 19, eligibleCount: 19, eventId: null, meIncluded: false}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlxv4krf_oxc3pu, cap: 19, eventId: null, seed: null, startedAtMs: 1771771704605, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlxv4krf_oxc3pu, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_RESOLVE_VILLAIN Object{battleId: battle_mlxv4krf_oxc3pu, fromThem: true, penaltyApplied: false, result: draw, villainRole: bandit}
+WARN SMOKE_VILLAIN_FROMTHEM_V1_JSON Object{cases: Object{draw: Object{battleId: battle_mlxv4krf_oxc3pu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_nvl028, defenseArgKey: yn, force: draw, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4kr8_2h34hu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_fgbptt, defenseArgKey: yn, force: lose, incomingReturnedId: battle_mlxv4kr8_2h34hu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: lose, penaltyApplied: true, penaltyStates: Object{bandit: true, mafia: false, toxic: false}, resolveOk: true}, win: Object{battleId: battle_mlxv4kr0_f2kjd3, createOk: true, createWhy: ok, defenseArgId: canon_Y1_who_67snqx, defenseArgKey: who, force: win, incomingReturnedId: battle_mlxv4kr0_f2kjd3, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 3, clearedKeysSample: [npc_bandit, npc_bandit, npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: null, cooldownKeysPreview: null, cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true, silent: true, uiSuppressed: true}], createIncomingErr: null, createIncomingId: battle_mlxv4krf_oxc3pu, createIncomingKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], createIncomingRaw: Object{id: battle_mlxv4krf_oxc3pu, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createPath: incoming, createRaw: Object{id: battle_mlxv4krf_oxc3pu, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createStartWithErr: null, createStartWithRaw: null, createdBattleId: battle_mlxv4krf_oxc3pu, incomingBattleId: battle_mlxv4krf_oxc3pu, incomingUsed: true, perCase: Object{draw: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4krf_oxc3pu, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}, lose: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4kr8_2h34hu, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4kr8_2h34hu, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: true, resolveOk: true}, win: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4kr0_f2kjd3, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4kr0_f2kjd3, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}}, resolvedN: 3, stateAfterCleanup: Object{activeBattleId: null, battlesCount: 0, cooldownKeysCount: 0}, stateAfterCleanupHistory: [Object{activeBattleId: null, battleId: battle_mlxv4kr0_f2kjd3, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: win}, Object{activeBattleId: null, battleId: battle_mlxv4kr8_2h34hu, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: lose}, Object{activeBattleId: null, battleId: battle_mlxv4krf_oxc3pu, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: draw}, Object{activeBattleId: null, battleId: null, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: final}]}, error: null, nam…(truncated)
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  cases: Object{
+    draw: Object{
+      battleId: battle_mlxv4krf_oxc3pu
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_yn_nvl028
+      defenseArgKey: yn
+      force: draw
+      incomingReturnedId: battle_mlxv4krf_oxc3pu
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
       penaltyApplied: false
-      penaltyStates: Object{
-        bandit: false
-        mafia: false
-        toxic: false
-      }
-      resolveOk: true
-    }
-  }
-  diag: Object{
-    clearedKeysCount: 1
-    clearedKeysSample: [
-      npc_bandit
-    ]
-    cooldownKeyCleared: true
-    co…
+     …
+LOG END CONSOLE_EXPAND_V1
+WARN SMOKE_VILLAIN_FROMTHEM_V1_END Object{name: smoke_villain_fromthem_resolve_once, ok: true, reason: null}
+WARN DEV_CHECKS_VILLAIN_SMOKE_EXPORT_V1 Object{hasDev: true, hasFn: true, type: function}
+LOG [repl] < Object{cases: Object{draw: Object{battleId: battle_mlxv4krf_oxc3pu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_nvl028, defenseArgKey: yn, force: draw, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4kr8_2h34hu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_fgbptt, defenseArgKey: yn, force: lose, incomingReturnedId: battle_mlxv4kr8_2h34hu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: lose, penaltyApplied: true, penaltyStates: Object{bandit: true, mafia: false, toxic: false}, resolveOk: true}, win: Object{battleId: battle_mlxv4kr0_f2kjd3, createOk: true, createWhy: ok, defenseArgId: canon_Y1_who_67snqx, defenseArgKey: who, force: win, incomingReturnedId: battle_mlxv4kr0_f2kjd3, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 3, clearedKeysSample: [npc_bandit, npc_bandit, npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: null, cooldownKeysPreview: null, cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true, silent: true, uiSuppressed: true}], createIncomingErr: null, createIncomingId: battle_mlxv4krf_oxc3pu, createIncomingKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], createIncomingRaw: Object{id: battle_mlxv4krf_oxc3pu, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createPath: incoming, createRaw: Object{id: battle_mlxv4krf_oxc3pu, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createStartWithErr: null, createStartWithRaw: null, createdBattleId: battle_mlxv4krf_oxc3pu, incomingBattleId: battle_mlxv4krf_oxc3pu, incomingUsed: true, perCase: Object{draw: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4krf_oxc3pu, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}, lose: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4kr8_2h34hu, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4kr8_2h34hu, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: true, resolveOk: true}, win: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4kr0_f2kjd3, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4kr0_f2kjd3, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}}, resolvedN: 3, stateAfterCleanup: Object{activeBattleId: null, battlesCount: 0, cooldownKeysCount: 0}, stateAfterCleanupHistory: [Object{activeBattleId: null, battleId: battle_mlxv4kr0_f2kjd3, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: win}, Object{activeBattleId: null, battleId: battle_mlxv4kr8_2h34hu, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: lose}, Object{activeBattleId: null, battleId: battle_mlxv4krf_oxc3pu, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: draw}, Object{activeBattleId: null, battleId: null, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: final}]}, error: null, nam…(truncated)
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  cases: Object{
+    draw: Object{
+      battleId: battle_mlxv4krf_oxc3pu
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_yn_nvl028
+      defenseArgKey: yn
+      force: draw
+      incomingReturnedId: battle_mlxv4krf_oxc3pu
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false
+     …
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{cases: Object{draw: Object{battleId: battle_mlxv4krf_oxc3pu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_nvl028, defenseArgKey: yn, force: draw, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4kr8_2h34hu, createOk: tr…, type: object}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  isPromise: 0
+  keys: [
+    name
+    ok
+    villainId
+    villainRole
+    cases
+    notes
+    error
+    diag
+  ]
+  preview: Object{cases: Object{draw: Object{battleId: battle_mlxv4krf_oxc3pu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_nvl028, defenseArgKey: yn, force: draw, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltySta…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, villainId, villainRole, cases, notes, error, diag], preview: Object{
+  cases: Object{
+    draw: Object{
+      battleId: battle_mlxv4krf_oxc3pu
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_yn_nvl028
+      defenseArgKey: yn
+      force: draw
+      incomingReturnedId: battle_mlxv4krf_oxc3pu
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false
+     …, type: object}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  isPromise: 0
+  keys: [
+    name
+    ok
+    villainId
+    villainRole
+    cases
+    notes
+    error
+    diag
+  ]
+  preview: Object{
+  cases: Object{
+    draw: Object{
+      battleId: battle_mlxv4krf_oxc3pu
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_yn_nvl028
+      defenseArgKey: yn
+      force: draw
+      incomingReturnedId: battle_mlxv4krf_oxc3pu
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+       …
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771771704585_c7f772189090a8 Object{cases: Object{draw: Object{battleId: battle_mlxv4krf_oxc3pu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_nvl028, defenseArgKey: yn, force: draw, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: draw, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}, lose: Object{battleId: battle_mlxv4kr8_2h34hu, createOk: true, createWhy: ok, defenseArgId: canon_Y1_yn_fgbptt, defenseArgKey: yn, force: lose, incomingReturnedId: battle_mlxv4kr8_2h34hu, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: lose, penaltyApplied: true, penaltyStates: Object{bandit: true, mafia: false, toxic: false}, resolveOk: true}, win: Object{battleId: battle_mlxv4kr0_f2kjd3, createOk: true, createWhy: ok, defenseArgId: canon_Y1_who_67snqx, defenseArgKey: who, force: win, incomingReturnedId: battle_mlxv4kr0_f2kjd3, incomingReturnedKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], outcome: win, penaltyApplied: false, penaltyStates: Object{bandit: false, mafia: false, toxic: false}, resolveOk: true}}, diag: Object{clearedKeysCount: 3, clearedKeysSample: [npc_bandit, npc_bandit, npc_bandit], cooldownKeyCleared: true, cooldownKeysFiltered: null, cooldownKeysPreview: null, cooldownStoreKeyUsed: npc_bandit, core: Object{hasConflict: true, hasConflictCore: true, hasIncoming: true, hasResolve: true, keysSample: [startWith, incoming, escapeCost, escapeAllCost, escape]}, createArgs: [npc_bandit, Object{devSmoke: true, silent: true, uiSuppressed: true}], createIncomingErr: null, createIncomingId: battle_mlxv4krf_oxc3pu, createIncomingKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], createIncomingRaw: Object{id: battle_mlxv4krf_oxc3pu, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createPath: incoming, createRaw: Object{id: battle_mlxv4krf_oxc3pu, keys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense], type: object}, createStartWithErr: null, createStartWithRaw: null, createdBattleId: battle_mlxv4krf_oxc3pu, incomingBattleId: battle_mlxv4krf_oxc3pu, incomingUsed: true, perCase: Object{draw: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4krf_oxc3pu, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4krf_oxc3pu, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}, lose: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4kr8_2h34hu, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4kr8_2h34hu, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: true, resolveOk: true}, win: Object{createOk: true, createPath: incoming, createWhy: ok, createdBattleId: battle_mlxv4kr0_f2kjd3, defenseSource: myDefenseOptions, error: null, incomingReturnedId: battle_mlxv4kr0_f2kjd3, incomingReturnedKeys: [MaxDepth Array], penaltyApplied: false, resolveOk: true}}, resolvedN: 3, stateAfterCleanup: Object{activeBattleId: null, battlesCount: 0, cooldownKeysCount: 0}, stateAfterCleanupHistory: [Object{activeBattleId: null, battleId: battle_mlxv4kr0_f2kjd3, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: win}, Object{activeBattleId: null, battleId: battle_mlxv4kr8_2h34hu, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: lose}, Object{activeBattleId: null, battleId: battle_mlxv4krf_oxc3pu, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: draw}, Object{activeBattleId: null, battleId: null, battlesCount: 0, clearedCooldownKeys: [MaxDepth Array], cooldownKeysCount: 0, stage: final}]}, error: null, nam…(truncated)
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  cases: Object{
+    draw: Object{
+      battleId: battle_mlxv4krf_oxc3pu
+      createOk: true
+      createWhy: ok
+      defenseArgId: canon_Y1_yn_nvl028
+      defenseArgKey: yn
+      force: draw
+      incomingReturnedId: battle_mlxv4krf_oxc3pu
+      incomingReturnedKeys: [
+        id
+        opponentId
+        fromThem
+        status
+        attack
+        attackHidden
+        draw
+        crowd
+        pinned
+        defense
+      ]
+      outcome: draw
+      penaltyApplied: false
+     …
 LOG END CONSOLE_EXPAND_V1
 

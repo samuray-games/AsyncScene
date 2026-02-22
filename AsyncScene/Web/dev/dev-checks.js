@@ -13641,7 +13641,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   Game.__DEV.smokeVillainFromThemResolveOnce = (opts = {}) => {
     const name = "smoke_villain_fromthem_resolve_once";
-    const villainRoles = ["toxic", "bandit", "mafia"];
+    const forces = ["win", "lose", "draw"];
     const debug = !!(opts && opts.debug);
     const state = Game.__S || (Game.__S = {});
     state.players = state.players || {};
@@ -13651,9 +13651,53 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const conflict = Game.Conflict || null;
     const conflictCore = Game._ConflictCore || Game.ConflictCore || null;
     const Args = Game._ConflictArguments || Game.ConflictArguments || null;
-    const hasResolve = !!(conflictCore && typeof conflictCore.resolveBattleOutcome === "function");
-    const hasIncoming = !!(conflict && typeof conflict.incoming === "function");
     const diagCoreKeys = conflictCore ? Object.keys(conflictCore).slice(0, 5) : null;
+    const hasIncoming = !!(conflict && typeof conflict.incoming === "function");
+    const hasResolve = !!(conflictCore && typeof conflictCore.resolveBattleOutcome === "function");
+    const villainRoles = ["toxic", "bandit", "mafia"];
+    const devSmoke = typeof opts.devSmoke === "boolean" ? opts.devSmoke : true;
+    const incomingOptsTemplate = Object.assign(
+      {},
+      (opts.incomingOpts && typeof opts.incomingOpts === "object") ? opts.incomingOpts : {},
+      { devSmoke, uiSuppressed: true, silent: true }
+    );
+
+    const diag = {
+      core: {
+        hasConflict: !!conflict,
+        hasConflictCore: !!conflictCore,
+        hasResolve,
+        hasIncoming,
+        keysSample: diagCoreKeys
+      },
+      perCase: {},
+      createArgs: null,
+      createIncomingErr: null,
+      createStartWithErr: null,
+      createIncomingRaw: null,
+      createStartWithRaw: null,
+      createRaw: null,
+      createIncomingKeys: null,
+      createIncomingId: null,
+      createPath: null,
+      createdBattleId: null,
+      incomingBattleId: null,
+      incomingUsed: false,
+      cooldownKeyCleared: false,
+      clearedKeysCount: null,
+      clearedKeysSample: null,
+      cooldownKeysFiltered: null,
+      cooldownKeysPreview: null,
+      cooldownStoreKeyUsed: null,
+      resolvedN: 0,
+      stateAfterCleanup: null,
+      stateAfterCleanupHistory: []
+    };
+
+    try {
+      const implBuildTag = (typeof DEV_CHECKS_BUILD_TAG_V5 !== "undefined") ? DEV_CHECKS_BUILD_TAG_V5 : "villain_smoke_refactor_v2";
+      console.warn("SMOKE_VILLAIN_FROMTHEM_IMPL_V2", { ts: Date.now(), buildTag: implBuildTag, forces });
+    } catch (_) {}
 
     const result = {
       name,
@@ -13663,43 +13707,198 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       cases: { win: null, lose: null, draw: null },
       notes: [],
       error: null,
-        diag: {
-          core: {
-            hasConflict: !!conflict,
-            hasConflictCore: !!conflictCore,
-            hasResolve,
-            hasIncoming,
-            keysSample: diagCoreKeys
-          },
-          createdBattleId: null,
-          incomingBattleId: null,
-          incomingUsed: false,
-          defenseSource: null,
-          uiSuppressed: true,
-          resolvedN: 0,
-          createArgs: null,
-          createIncomingRaw: null,
-          createIncomingErr: null,
-          createStartWithRaw: null,
-          createStartWithErr: null,
-          createPath: null,
-          cooldownStoreKeyUsed: null,
-          cooldownKeyCleared: false,
-          cooldownKeysPreview: null,
-          cooldownKeysFiltered: null,
-          clearedKeysCount: 0,
-          clearedKeysSample: null
-        }
-      };
+      diag
+    };
+
     const logBegin = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_BEGIN", payload || {});
     const logJson = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_JSON", payload || {});
     const logEnd = (payload) => console.warn("SMOKE_VILLAIN_FROMTHEM_V1_END", payload || {});
+
+    const addNote = (note) => {
+      if (!note) return;
+      if (!result.notes.includes(note)) result.notes.push(note);
+    };
+
+    const formatError = (err) => {
+      if (!err) return null;
+      if (err && err.stack) return String(err.stack);
+      return String(err);
+    };
+
+    const summarizeRaw = (raw) => {
+      if (!raw) return null;
+      const summary = {
+        type: typeof raw,
+        keys: Object.keys(raw || {}).slice(0, 10)
+      };
+      if (raw.id) summary.id = raw.id;
+      if (raw.battleId) summary.battleId = raw.battleId;
+      if (raw.reason) summary.reason = raw.reason;
+      if (Number.isFinite(raw.leftMs)) summary.leftMs = raw.leftMs | 0;
+      return summary;
+    };
+
+    const inspectCooldowns = (id) => {
+      try {
+        const cdMap = Game.__S && Game.__S.battleCooldowns ? Game.__S.battleCooldowns : null;
+        if (!cdMap) return;
+        const keys = Object.keys(cdMap || {});
+        diag.cooldownKeysPreview = keys.slice(0, 10);
+        const filtered = keys.filter(k => String(k).includes(id) || (Game.__S && Game.__S.me && String(k).includes(Game.__S.me.id)));
+        diag.cooldownKeysFiltered = filtered.slice(0, 10);
+      } catch (_) {}
+    };
+
+    const clearDevCooldownKeys = () => {
+      const cdMap = Game.__S && Game.__S.battleCooldowns ? Game.__S.battleCooldowns : null;
+      if (!cdMap) return [];
+      const villainKey = villainId ? String(villainId) : "";
+      const meKey = (state.me && state.me.id) ? String(state.me.id) : "";
+      const cleared = [];
+      Object.keys(cdMap).forEach((key) => {
+        if (!key) return;
+        const keyStr = String(key);
+        if (villainKey && keyStr.includes(villainKey) || meKey && keyStr.includes(meKey)) {
+          if (cdMap[key] != null && cdMap[key] !== 0) {
+            cdMap[key] = 0;
+            cleared.push(keyStr);
+          }
+        }
+      });
+      if (cleared.length) {
+        diag.cooldownStoreKeyUsed = villainId;
+        diag.cooldownKeyCleared = true;
+        diag.clearedKeysCount = (diag.clearedKeysCount || 0) + cleared.length;
+        diag.clearedKeysSample = (diag.clearedKeysSample || []).concat(cleared).slice(0, 5);
+      }
+      return cleared;
+    };
+
+    const clearActiveBattleRefs = () => {
+      const refs = ["activeBattleId", "currentBattleId", "incomingBattleId", "latestBattleId", "currentBattle", "battle"];
+      refs.forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(state, key)) {
+          state[key] = null;
+        }
+      });
+      if (Game.__S && Game.__S.activeBattleId) {
+        Game.__S.activeBattleId = null;
+      }
+      if (Game.__S && Game.__S.currentBattleId) {
+        Game.__S.currentBattleId = null;
+      }
+    };
+
+    const snapshotState = () => {
+      const battles = Array.isArray(state.battles) ? state.battles.filter(b => !!b) : [];
+      const cdMap = Game.__S && Game.__S.battleCooldowns ? Game.__S.battleCooldowns : null;
+      const cooldownKeysCount = cdMap ? Object.keys(cdMap).filter(k => cdMap[k] != null && cdMap[k] !== 0).length : 0;
+      const currentRef = (Game.__S && Game.__S.activeBattleId) ? Game.__S.activeBattleId
+        : (Game.__S && Game.__S.currentBattleId) ? Game.__S.currentBattleId
+          : (battles.length ? (battles[0].id || battles[0].battleId) : null);
+      return {
+        battlesCount: battles.length,
+        activeBattleId: currentRef || null,
+        cooldownKeysCount
+      };
+    };
+
+    const recordCleanupState = (stage, battleId, clearedKeys) => {
+      const snapshot = snapshotState();
+      const historyEntry = Object.assign({
+        stage,
+        battleId: battleId || null,
+        clearedCooldownKeys: clearedKeys || []
+      }, snapshot);
+      diag.stateAfterCleanupHistory.push(historyEntry);
+      diag.stateAfterCleanup = snapshot;
+    };
+
+    const cleanupAfterCase = (stage, battleId) => {
+      if (battleId) cleanupBattle(battleId);
+      clearActiveBattleRefs();
+      const clearedKeys = clearDevCooldownKeys();
+      recordCleanupState(stage, battleId, clearedKeys);
+    };
+
+    const recordCreateRaw = (raw, label) => {
+      const summary = summarizeRaw(raw);
+      diag.createRaw = summary;
+      if (label === "incoming") {
+        diag.createIncomingRaw = summary;
+      } else if (label === "startWith") {
+        diag.createStartWithRaw = summary;
+      }
+    };
+
+    const captureIncoming = () => {
+      const args = [villainId, Object.assign({}, incomingOptsTemplate)];
+      diag.createArgs = args;
+      try {
+        const raw = conflict.incoming.apply(conflict, args);
+        recordCreateRaw(raw, "incoming");
+        const summary = summarizeRaw(raw);
+        if (summary) {
+          diag.createIncomingRaw = summary;
+          diag.createIncomingKeys = summary.keys;
+          diag.createIncomingId = summary.id || summary.battleId || null;
+        }
+        if (raw && raw.reason === "cooldown") {
+          inspectCooldowns(villainId);
+          return { raw: null, reason: "cooldown", summary };
+        }
+        return { raw, reason: null, summary };
+      } catch (err) {
+        diag.createIncomingErr = formatError(err);
+        inspectCooldowns(villainId);
+        return { raw: null, reason: "incoming_error", summary: null };
+      }
+    };
+
+    const findBattleFromRaw = (raw) => {
+      if (!raw) return null;
+      if (raw.battle) return raw.battle;
+      const id = raw.id || raw.battleId || (raw.battle && raw.battle.id);
+      if (id) {
+        return state.battles.find(b => b && (b.id === id || b.battleId === id)) || null;
+      }
+      if (raw.eventId && raw.opponentId) {
+        return state.battles.find(b => b && b.eventId === raw.eventId) || null;
+      }
+      return null;
+    };
+
+    const cleanupBattle = (battleId) => {
+      if (!battleId || !Array.isArray(state.battles)) return;
+      for (let i = state.battles.length - 1; i >= 0; i -= 1) {
+        const battle = state.battles[i];
+        if (battle && (String(battle.id) === String(battleId) || String(battle.battleId) === String(battleId))) {
+          state.battles.splice(i, 1);
+        }
+      }
+    };
+
+    const buildDefenseArg = (battle) => {
+      if (conflict && typeof conflict.myDefenseOptions === "function") {
+        const list = conflict.myDefenseOptions(battle) || [];
+        if (list.length) {
+          return { arg: list[0], source: "myDefenseOptions" };
+        }
+      }
+      if (Args && typeof Args.myDefenseOptions === "function") {
+        const list = Args.myDefenseOptions(battle) || [];
+        if (list.length) {
+          return { arg: list[0], source: "coreArgs" };
+        }
+      }
+      return { arg: { id: "canon_draw", group: "draw", type: "yn", text: "Fallback" }, source: "fallback" };
+    };
 
     logBegin({ name, villainId: opts.villainId || null, debug, time: Date.now() });
 
     if (!hasIncoming || !hasResolve) {
       result.error = !hasIncoming ? "core_missing_incoming" : "core_missing_resolve";
-      result.notes.push(result.error);
+      addNote(result.error);
       logJson(result);
       logEnd({ name, ok: false, reason: result.error });
       return result;
@@ -13735,7 +13934,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const villainId = pickVillainId();
     if (!villainId) {
       result.error = "villain_missing";
-      result.notes.push(result.error);
+      addNote(result.error);
       logJson(result);
       logEnd({ name, ok: false, reason: result.error });
       return result;
@@ -13746,170 +13945,163 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const villainRole = villainPlayer ? String(villainPlayer.role || villainPlayer.type || "").toLowerCase() : null;
     result.villainRole = villainRole;
 
-    const buildDefenseArg = (battle) => {
-      if (conflict && typeof conflict.myDefenseOptions === "function") {
-        const list = conflict.myDefenseOptions(battle) || [];
-        if (list.length) {
-          result.diag.defenseSource = "myDefenseOptions";
-          return list[0];
-        }
-      }
-      if (Args && typeof Args.myDefenseOptions === "function") {
-        const list = Args.myDefenseOptions(battle) || [];
-        if (list.length) {
-          result.diag.defenseSource = "coreArgs";
-          return list[0];
-        }
-      }
-      result.diag.defenseSource = "fallback";
-      return { id: "canon_draw", group: "draw", type: "yn", text: "Fallback" };
-    };
-
-    const inspectCooldowns = (id) => {
+    const conflictDevMode = (() => {
+      if (typeof window === "undefined") return false;
+      const w = window;
+      if (w.__DEV__ === true || w.DEV === true) return true;
       try {
-        const cdMap = Game.__S && Game.__S.battleCooldowns ? Game.__S.battleCooldowns : null;
-        if (!cdMap) return;
-        const keys = Object.keys(cdMap || {});
-        result.diag.cooldownKeysPreview = keys.slice(0, 10);
-        const filtered = keys.filter(k => String(k).includes(villainId) || (Game.__S && Game.__S.me && String(k).includes(Game.__S.me.id)));
-        result.diag.cooldownKeysFiltered = filtered.slice(0, 10);
-        const cleared = [];
-        filtered.forEach(k => {
-          if (cdMap[k] != null) {
-            cdMap[k] = 0;
-            cleared.push(k);
-          }
+        const params = new URLSearchParams(w.location && w.location.search ? w.location.search : "");
+        if (params.get("dev") === "1") return true;
+      } catch (_) {}
+      return false;
+    })();
+    const logCooldownBypass = (stage) => {
+      if (!devSmoke) return;
+      try {
+        console.warn("CONFLICT_COOLDOWN_BYPASS_V1", {
+          stage,
+          villainId,
+          devSmoke,
+          mode: conflictDevMode ? "dev" : "prod"
         });
-        if (cleared.length) {
-          result.diag.cooldownStoreKeyUsed = villainId;
-          result.diag.cooldownKeyCleared = true;
-          result.diag.clearedKeysCount = cleared.length;
-          result.diag.clearedKeysSample = cleared.slice(0, 5);
-        }
       } catch (_) {}
     };
 
-    const captureIncoming = () => {
-      const args = [villainId];
-      const incomingOpts = opts && opts.incomingOpts ? Object.assign({}, opts.incomingOpts) : {};
-      incomingOpts.devSmoke = true;
-      args.push(incomingOpts);
-      result.diag.createArgs = args;
+    let resolveFailed = false;
+
+    for (const force of forces) {
+      const caseDiag = {
+        createPath: null,
+        createdBattleId: null,
+        defenseSource: null,
+        resolveOk: false,
+        penaltyApplied: false,
+        error: null,
+        createOk: false,
+        createWhy: null,
+        incomingReturnedKeys: null,
+        incomingReturnedId: null
+      };
+      diag.perCase[force] = caseDiag;
+
+      let battle = null;
+      let battleId = null;
+
+      const incomingRes = captureIncoming();
+      const incomingSummary = incomingRes.summary || null;
+      caseDiag.createOk = !!incomingRes.raw;
+      caseDiag.incomingReturnedKeys = incomingSummary ? incomingSummary.keys : null;
+      caseDiag.incomingReturnedId = incomingSummary ? (incomingSummary.id || incomingSummary.battleId || null) : null;
+      caseDiag.createWhy = incomingRes.reason || (caseDiag.createOk ? "ok" : "no_battle");
+
+      const rawReason = incomingRes.reason || null;
+      let rawSource = incomingRes.raw ? "incoming" : "incoming_unknown";
+      if (!incomingRes.raw && rawReason) {
+        rawSource = `incoming_${rawReason}`;
+        if (rawReason === "cooldown") {
+          logCooldownBypass("incoming");
+        }
+      }
+
+      if (incomingRes.raw) {
+        const candidate = findBattleFromRaw(incomingRes.raw) || incomingRes.raw.battle || incomingRes.raw;
+        if (candidate && (candidate.id || candidate.battleId)) {
+          battle = candidate;
+        }
+      }
+
+      caseDiag.createPath = rawSource;
+      if (!battle || !(battle.id || battle.battleId)) {
+        caseDiag.createOk = false;
+        caseDiag.error = rawReason ? `create_${rawReason}` : "create_battle_failed";
+        cleanupAfterCase(force, null);
+        continue;
+      }
+
+      battleId = battle.id || battle.battleId;
+      caseDiag.createdBattleId = battleId;
+      diag.createdBattleId = battleId;
+      diag.createPath = diag.createPath || caseDiag.createPath;
+      diag.incomingUsed = true;
+      diag.incomingBattleId = battleId;
+
       try {
-        const raw = conflict.incoming.apply(conflict, args);
-        const pooled = raw ? { type: typeof raw, keys: Object.keys(raw).slice(0,5) } : null;
-        result.diag.createIncomingRaw = pooled;
-        result.diag.createRaw = pooled;
-        if (raw && raw.reason === "cooldown") {
-          result.diag.createIncomingRaw.reason = raw.reason;
-          result.diag.createIncomingRaw.leftMs = Number.isFinite(raw.leftMs) ? (raw.leftMs | 0) : null;
-          inspectCooldowns(villainId);
-          return null;
+        const defensePair = buildDefenseArg(battle);
+        caseDiag.defenseSource = defensePair.source;
+        const defenseArg = defensePair.arg;
+        if (!defenseArg || !defenseArg.id) {
+          caseDiag.error = "defense_arg_missing";
+          continue;
         }
-        return raw;
+
+        const resolveRes = conflictCore.resolveBattleOutcome(battleId, defenseArg, { forceOutcome: force });
+        const resolveOk = !!(resolveRes && resolveRes.ok);
+        caseDiag.resolveOk = resolveOk;
+        diag.resolvedN += 1;
+        if (!resolveOk) {
+          resolveFailed = true;
+          caseDiag.error = `resolve_failed:${force}`;
+        }
+
+        const stored = state.battles.find(b => b && String(b.id) === String(battleId));
+        const outcomeResult = (stored && stored.result) ? stored.result : (resolveRes && resolveRes.outcome) || null;
+        const penaltyStates = {
+          toxic: !!(stored && stored.toxicHitApplied),
+          bandit: !!(stored && stored.banditRobbed),
+          mafia: !!(stored && stored.mafiaHumiliated)
+        };
+        const penaltyApplied = !!(villainRole && penaltyStates[villainRole]);
+        caseDiag.penaltyApplied = penaltyApplied;
+
+        const caseResult = {
+          battleId,
+          force,
+          outcome: outcomeResult,
+          resolveOk,
+          penaltyApplied,
+          penaltyStates,
+          defenseArgId: defenseArg.id,
+          defenseArgKey: defenseArg.group || defenseArg.type || null,
+          createOk: caseDiag.createOk,
+          createWhy: caseDiag.createWhy,
+          incomingReturnedKeys: caseDiag.incomingReturnedKeys,
+          incomingReturnedId: caseDiag.incomingReturnedId
+        };
+        result.cases[force] = caseResult;
+
+        if (outcomeResult !== force) {
+          addNote(`result_mismatch:${force}`);
+        }
+        if (force !== "lose" && penaltyApplied) {
+          addNote(`penalty_on_${force}`);
+        }
+        if (force === "lose" && !penaltyApplied) {
+          addNote("penalty_missing_on_lose");
+        }
       } catch (err) {
-        result.diag.createIncomingErr = err && err.stack ? String(err.stack) : String(err);
-        inspectCooldowns(villainId);
-        return null;
+        caseDiag.error = formatError(err) || "smoke_throw";
+        addNote(caseDiag.error);
+      } finally {
+        cleanupAfterCase(force, battleId);
       }
-    };
-
-    const fallbackStartWith = () => {
-      result.diag.createPath = "startWith_fallback";
-      const res = conflict.startWith ? conflict.startWith(villainId, { devSmoke: true, silent: true }) : null;
-      const pooled = res ? { type: typeof res, keys: Object.keys(res).slice(0,5) } : null;
-      result.diag.createStartWithRaw = pooled;
-      if (res && res.reason) {
-        pooled.reason = res.reason;
-        pooled.leftMs = Number.isFinite(res.leftMs) ? (res.leftMs | 0) : null;
-        result.diag.createStartWithRaw.reason = pooled.reason;
-        result.diag.createStartWithRaw.leftMs = pooled.leftMs;
-        result.diag.createRaw = pooled;
-        if (res.reason === "cooldown") {
-          inspectCooldowns(villainId);
-          return null;
-        }
-        return res;
-      }
-      result.diag.createRaw = pooled;
-      return res;
-    };
-
-    const findBattleFromRaw = (raw) => {
-      if (!raw) return null;
-      if (raw.battle) return raw.battle;
-      const id = raw.id || raw.battleId || (raw.battle && raw.battle.id);
-      if (id) return state.battles.find(b => b && (b.id === id || b.battleId === id)) || null;
-      if (raw.eventId && raw.opponentId) {
-        return state.battles.find(b => b && b.eventId === raw.eventId) || null;
-      }
-      return null;
-    };
-
-    const buildCase = (forceOutcome) => {
-      let raw = captureIncoming();
-      let battle = raw ? findBattleFromRaw(raw) : null;
-      if (!battle) {
-        raw = fallbackStartWith();
-        battle = findBattleFromRaw(raw);
-        result.diag.createPath = "startWith_fallback";
-      } else {
-        result.diag.createPath = "incoming";
-      }
-      if (!battle || !battle.id) {
-        throw new Error("create_battle_failed");
-      }
-      result.diag.createdBattleId = battle.id;
-      result.diag.incomingBattleId = battle.id;
-      result.diag.incomingUsed = true;
-      const defenseArg = buildDefenseArg(battle);
-      if (!defenseArg || !defenseArg.id) {
-        throw new Error("defense_arg_missing");
-      }
-      const resolveRes = conflictCore.resolveBattleOutcome(battle.id, defenseArg, { forceOutcome });
-      result.diag.resolvedN += 1;
-      const stored = state.battles.find(b => b && String(b.id) === String(battle.id));
-      const outcomeResult = stored ? stored.result : (resolveRes && resolveRes.outcome) || null;
-      const penaltyStates = {
-        toxic: !!(stored && stored.toxicHitApplied),
-        bandit: !!(stored && stored.banditRobbed),
-        mafia: !!(stored && stored.mafiaHumiliated)
-      };
-      const penaltyApplied = !!(villainRole && penaltyStates[villainRole]);
-      const caseResult = {
-        battleId: battle.id,
-        force: forceOutcome,
-        outcome: outcomeResult,
-        penaltyApplied,
-        penaltyStates,
-        defenseArgId: defenseArg.id,
-        defenseArgKey: defenseArg.group || defenseArg.type || null,
-        resolveOk: !!(resolveRes && resolveRes.ok)
-      };
-      result.cases[forceOutcome] = caseResult;
-      if (!caseResult.resolveOk) result.notes.push(`resolve_failed:${forceOutcome}`);
-      if (outcomeResult !== forceOutcome) result.notes.push(`result_mismatch:${forceOutcome}`);
-      if (forceOutcome !== "lose" && penaltyApplied) result.notes.push(`penalty_on_${forceOutcome}`);
-      if (forceOutcome === "lose" && !penaltyApplied) result.notes.push("penalty_missing_on_lose");
-      const idx = state.battles.findIndex(b => b && String(b.id) === String(battle.id));
-      if (idx >= 0) state.battles.splice(idx, 1);
-    };
-
-    try {
-      ["win", "lose", "draw"].forEach(buildCase);
-      result.ok = !result.notes.length;
-    } catch (err) {
-      const reason = err && err.message ? String(err.message) : "smoke_throw";
-      result.error = reason;
-      result.notes.push(reason);
-      result.ok = false;
-      logJson(result);
-      logEnd({ name, ok: false, reason });
-      return result;
     }
 
+    cleanupAfterCase("final", null);
+
+    if (!forces.some(force => !!result.cases[force] && result.cases[force].createOk)) {
+      result.error = "create_battle_failed";
+      addNote("create_battle_failed");
+    } else if (diag.resolvedN < forces.length) {
+      result.error = "resolve_incomplete";
+      addNote("resolve_incomplete");
+    } else if (resolveFailed) {
+      result.error = "resolve_failed";
+      addNote("resolve_failed");
+    }
+    result.ok = !!(!result.error && diag.resolvedN === forces.length && forces.every(f => !!result.cases[f] && result.cases[f].resolveOk));
+
     logJson(result);
-    logEnd({ name, ok: !!result.ok });
+    logEnd({ name, ok: !!result.ok, reason: result.error });
     try {
       if (!Game.__DEV) Game.__DEV = {};
       console.warn("DEV_CHECKS_VILLAIN_SMOKE_EXPORT_V1", {
