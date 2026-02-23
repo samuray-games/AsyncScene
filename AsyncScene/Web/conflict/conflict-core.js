@@ -2331,17 +2331,32 @@
     return { ok: true, battle };
   };
 
+  function logProvokedIncomingDiag(meta){
+    if (!meta || meta.lowEconomyFree !== true) return;
+    try { console.warn("PROVOKE_BATTLE_INCOMING_DIAG_V1", meta); } catch (_) {}
+    try {
+      const dbg = Game.__D || (Game.__D = {});
+      const arr = Array.isArray(dbg.provokeIncomingDiagV1) ? dbg.provokeIncomingDiagV1 : (dbg.provokeIncomingDiagV1 = []);
+      arr.push(meta);
+      if (arr.length > 30) arr.splice(0, arr.length - 30);
+    } catch (_) {}
+  }
+
   C.incoming = function (opponentId, opts) {
     const optz = (opts && typeof opts === "object") ? opts : {};
     const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
     const me = Game.__S && Game.__S.me ? Game.__S.me : null;
     const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const lowEconomyFree = optz.lowEconomyFree === true;
     const allowZeroPoints =
       (optz.lowEconomyFree === true && (conflictMode === "dev" || mePoints <= 0)) ||
       (optz.allowZeroPoints === true && conflictMode === "dev");
     try {
       if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
-        if (Game.__A.isNpcJailed(opponentId)) return null;
+        if (Game.__A.isNpcJailed(opponentId)) {
+          logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: false, reason: "npc_jailed", rawKeys: [], returnedId: null });
+          return null;
+        }
       }
     } catch (_) {}
     // NPC with 0 points/balance cannot initiate a battle
@@ -2354,6 +2369,7 @@
           if (devSmokeBypass) {
             logGuardBypass("incoming", "no_points", opponentId, opponentId);
           } else if (!allowZeroPoints) {
+            logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: false, reason: "npc_low_points", rawKeys: [], returnedId: null });
             return null;
           }
         }
@@ -2377,11 +2393,12 @@
             key: opponentId
           });
         }
-        if (!devSmokeBypass) {
+        if (!devSmokeBypass && !allowZeroPoints) {
           const oppName = getName(opponentId) || "Он";
           if (Game.__A && typeof Game.__A.pushDm === "function") {
             Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
           }
+          logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: false, reason: "cooldown", rawKeys: [], returnedId: null });
           return null;
         }
       }
@@ -2404,6 +2421,7 @@
       bumpBattleBadgeIfCollapsed();
       if (!battle.attackerId) battle.attackerId = opponentId;
       try { if (typeof C.finalize === "function") C.finalize(battle.id, "draw"); } catch (_) {}
+      logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: true, reason: "ok_draw_fallback", rawKeys: ["battle"], returnedId: battle.id || null });
       return battle;
     }
 
@@ -2419,6 +2437,7 @@
         Game._ConflictEconomy.applyStart(battle);
       }
     } catch (_) {}
+    logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: true, reason: "ok", rawKeys: ["battle"], returnedId: battle.id || null });
     return battle;
   };
 

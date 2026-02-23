@@ -69,31 +69,40 @@
 ## Inbox
 
 ### [T-20260223-001] E[4] Провокация батла через текст при 0 points
-- Status: REVIEW
+- Status: DOING (код внедрён, нужен новый dev-smoke DUMP)
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Conflict
-- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
-- Goal: добавить детектор провокации батла при нулевых points и реакцию NPC (refusal/accept) с кулдауном, плюс dev smoke.
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: остановить E[4] на 100 %: расширить детектор батлов при `me.points==0`, дать NPC DM-отказ с ротацией, задать per-NPC кулдаун в prod/dev и зафиксировать стабильную accept chance 10‑20 % + доп. регулярные словосочетания.
  - Acceptance:
-   - [ ] `isBattleProvocationText` реагирует только когда `senderId=="me"` и `me.points==0`
-   - [ ] упомянутые NPC отвечают с `S.provocationCooldowns`, 10 фраз отказа без повторов подряд, и пока `untilMs > now` реакции не отправляются (log `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`)
-   - [ ] `acceptChance=0.15` вызывает `Conflict.incoming` с `lowEconomyFree` (ограничено `dev || me.points==0`), `PROVOKE_BATTLE_ACCEPTED_V1` логируется только при валидном `battleId`, `PROVOKE_BATTLE_ACCEPT_FAILED_V1` фиксирует неудачи (null/без id), без автопоказа UI
-   - [ ] dev-smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` фиксирует `acceptedBattleIdCount`, `acceptedBattleIdNullCount`, `acceptFailedCount`, `cooldownSkips`, `cooldownRangeUsed` и PASS при `accepted>0`, `acceptedBattleIdCount==accepted`, `acceptedBattleIdNullCount==0`, `cooldownSkips>0`, `refusals>accepted`, `uniqueRefusals>=3`
- - Notes: без лишних изменений; conflict bypass строго `lowEconomyFree && (dev || me.points==0)`
- - Result: добавлен обработчик провокации, стор cooldowns, логирование PROVOKE_BATTLE_*_V1, UI-интеграция, узкий bypass `incoming`, dev smoke с новым JSON и паузами.
- - Report (обязательный формат):
-   - Status: REVIEW
-   - Facts: `Game.__S.provocationCooldowns` теперь хранит `untilMs`+`lastRefusalIdx`, `handleBattleProvocationZeroPoints` отслеживает accept/acceptFailed, логирует accept/refusal/failure/skip, и DM хук запускает входящий battle при low economy; `Conflict.incoming` позволяет `lowEconomyFree` только для dev/me=0; `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` собирает новые метрики, ждёт после skip и возвращает JSON.
-   - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
-   - How to verify: в `?dev=1` консоли выполнить Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, devSmoke:true }), убедиться что `accepted>0`, `acceptedBattleIdCount==accepted`, `acceptedBattleIdNullCount==0`, `cooldownSkips>0`, `refusals>accepted`, `uniqueRefusals>=3`, в логе есть `PROVOKE_BATTLE_ACCEPTED_V1` без `battleId:null` и `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`; приложить `BATTLE_PROVOCATION_ZERO_POINTS_JSON` (BEGIN/JSON/END) и перевести задачу в PASS.
-   - Next: QA
-   - Next Prompt (копипаст, кодблок обязателен):
-       ```text
-       Ответ QA:
-       Прогони smoke: Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, devSmoke:true }). PASS если ok:true, accepted>0, acceptedBattleIdCount==accepted, acceptedBattleIdNullCount==0, refusals>accepted, uniqueRefusals>=3, cooldownSkips>0; приложи DUMP_AT с BEGIN/JSON/END и переведи T-20260223-001 в PASS (TASKS.md + PROJECT_MEMORY.md).
-       ```
+   - [ ] `isBattleProvocationText` с новыми ключевыми фразами (например «го в батл», «пойдём батл», «погнали в бой», «давай 1 на 1», «давай один на один», «выйдешь 1v1», «выходи на дуэль», «кидаю вызов», «принимаешь вызов», «го зарубимся», «го подеремся», «проверим силу» и существовавшими) реагирует только при `senderId=="me"`, `me.points==0` и упоминании NPC (`resolveMentionedNpcIds`).
+   - [ ] Отказные ответы ставят per-NPC запись `S.battleProvocationCooldowns[npcId]`, не повторяют `refusalIdx` подряд, отправляют DM через `pushDm`, логируют `PROVOKE_BATTLE_REFUSAL_DM_V1`, считаются в `dmSentCount`, и пока `untilMs > now` запоминается `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`.
+   - [ ] Кулдаун-диапазон сохраняется в `State.battleProvocationCooldowns`; prod держит 60_000..180_000 ms, dev-smoke (только при `devSmoke === true`) использует 200..400 ms и логирует `PROVOKE_BATTLE_COOLDOWN_RANGE_V1 {min,max,devSmoke}`; `cooldownRangeUsed`/`devSmoke` попадают в JSON.
+   - [ ] При `roll < acceptChance` (по умолчанию 0.15) вызывается `Conflict.incoming` с `lowEconomyFree`, `PROVOKE_BATTLE_ACCEPTED_V1` фиксируется только при валидном `battleId`, `PROVOKE_BATTLE_ACCEPT_FAILED_V1` распознаёт отказ/пустой id.
+   - [ ] Dev-smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ attempts:50, repeatRuns:5, devSmoke:true })` считает `acceptedBattleIdCount`, `acceptedBattleIdNullCount`, `acceptFailedCount`, `cooldownSkips`, `dmSentCount`, `cooldownRangeUsed`, `acceptChanceUsed`, `acceptedRate`, `assertRange`, `uniqueRefusals`, и P0-метрики: accepted>0, acceptedBattleIdCount==accepted, acceptedBattleIdNullCount==0, acceptFailedCount==0, cooldownSkips>0, refusals>accepted, uniqueRefusals>=3, dmSentCount==refusals, acceptedRate ∈ [0.10..0.20].
+- Notes: Console.txt не трогаем; lowEconomy bypass всё ещё через `lowEconomyFree && (dev || me.points==0)`.
+- Result: Код расширяет диагноз и DM-ответы, но PASS ждёт QA DUMP — `BATTLE_PROVOCATION_ZERO_POINTS_JSON` ещё не обновлён.
+- Report (обязательный формат):
+  - Status: DOING
+  - Facts:
+    1) `state.js` теперь использует `State.battleProvocationCooldowns`, расширяет список фраз, хранит acceptChance/`acceptChanceUsed`, логирует `PROVOKE_BATTLE_COOLDOWN_RANGE_V1`/`PROVOKE_BATTLE_REFUSAL_DM_V1`, как и `dmSentCount`.
+    2) Refusal отвечает DM через `pushDm`, контролирует per-npc `untilMs`, записывает `refusalIdx` и логирует `PROVOKE_BATTLE_REFUSED_V1`/`PROVOKE_BATTLE_REFUSAL_DM_V1`, а принятие проверяет `lowEconomyFree` + `Conflict.incoming`.
+    3) Dev-smoke теперь прогоняет 5×50 попыток, копит `dmSentCount`, `acceptedRate`, `assertRange`, `acceptChanceUsed`, `repeatRuns`, `attemptsPerRun`, и `uniqueRefusals`, чтобы смоук валидировал интерфейс + `acceptedRate` ∈ [0.10..0.20] при `dmSentCount == refusals`.
+  - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify:
+    1) Hard reload http://localhost:8080/index.html?dev=1, чтобы новые логи попали в Console.
+    2) Выполнить `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, repeatRuns:5, devSmoke:true, channel:"chat" })`.
+    3) PASS, если `BATTLE_PROVOCATION_ZERO_POINTS_JSON` содержит `ok:true`, `acceptedBattleIdCount === accepted`, `acceptedBattleIdNullCount===0`, `acceptFailedCount===0`, `cooldownSkips>0`, `refusals>accepted`, `uniqueRefusals>=3`, `dmSentCount===refusals`, `acceptChanceUsed ~0.15`, `acceptedRate` в `[0.10,0.20]`, `assertRange:[0.1,0.2]`, `cooldownRangeUsed.devSmoke===true`, и в Console есть `PROVOKE_BATTLE_COOLDOWN_RANGE_V1` + `PROVOKE_BATTLE_REFUSAL_DM_V1`; приложи новый DUMP и нужные Console-сегменты.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
+      (2) Run `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, repeatRuns:5, devSmoke:true, channel:"chat" })`.
+      (3) PASS, если `BATTLE_PROVOCATION_ZERO_POINTS_JSON` содержит `ok:true`, `acceptedBattleIdCount === accepted`, `acceptedBattleIdNullCount===0`, `acceptFailedCount===0`, `cooldownSkips>0`, `refusals>accepted`, `uniqueRefusals>=3`, `dmSentCount===refusals`, `acceptChanceUsed ~0.15`, `acceptedRate` в `[0.10,0.20]`, `assertRange:[0.1,0.2]`, `cooldownRangeUsed.devSmoke===true`, и Console зафиксировал `PROVOKE_BATTLE_COOLDOWN_RANGE_V1` + `PROVOKE_BATTLE_REFUSAL_DM_V1`; приложи DUMP + Console.
+      ```
 
 - Status: PASS (Console.txt DUMP_AT 2026-02-22 23:48:28 фиксирует два подряд прогона после hard reload: оба OK (`ok:true`, `resolvedN=3`), `cases.win/lose/draw` заполнены, penaltyApplied только на lose, `diag.stateAfterCleanup` показывает чистый state, и в консоли есть три `BATTLE_RESOLVE_VILLAIN` + `CONFLICT_GUARD_BYPASS_V1`/`CONFLICT_COOLDOWN_BYPASS_V1`)
 - Priority: P1

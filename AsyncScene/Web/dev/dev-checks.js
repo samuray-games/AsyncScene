@@ -12782,7 +12782,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
           } else {
             me.influence = 0;
             npcHigh.influence = 0;
-            const b = Game.Conflict.incoming(npcHigh.id);
+            const incomingRes = Game.Conflict.incoming(npcHigh.id);
+            const b = (incomingRes && incomingRes.ok === true) ? incomingRes.battle : null;
             if (!b || !b.id) return { ok: false, details: "incoming did not return battle" };
             battle = b;
             const opts = (Game.Conflict.myDefenseOptions) ? Game.Conflict.myDefenseOptions(battle) : [];
@@ -15016,7 +15017,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
             break;
           }
           const raw = Conflict.incoming(opponent.id, { devSmoke: true, uiSuppressed: true, silent: true, lowEconomyFree: true });
-          const battle = getBattleFromRaw(raw);
+          const battle = getBattleFromRaw(raw && raw.ok === true ? raw.battle : raw);
           const battleId = battle && (battle.id || battle.battleId) ? (battle.id || battle.battleId) : null;
           if (!battleId) {
             retriesUsed += 1;
@@ -19919,10 +19920,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     let foundBy = null;
     const oppId = (opts && opts.oppId && S.players[opts.oppId]) ? opts.oppId : "npc_weak";
     if (Conflict.incoming) {
-      const b = Conflict.incoming(oppId);
-      battle = (b && b.id) ? b : (b && b.battle && b.battle.id ? b.battle : null);
+      const incomingRes = Conflict.incoming(oppId);
+      battle = (incomingRes && incomingRes.ok === true) ? incomingRes.battle : null;
       battleId = battle ? battle.id : null;
-      battleIdCandidate = battleId;
+      battleIdCandidate = (incomingRes && incomingRes.battleId) ? incomingRes.battleId : battleId;
       pushStage("battle_created");
     } else {
       diag.whyNoCrowd = { status: "missing_incoming", missingField: "Conflict.incoming" };
@@ -20309,14 +20310,14 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
     const prevRuntimeId = Game.__DEV.__lastRuntimeAnyBattleId || null;
     if (Conflict.incoming) {
-      const b = Conflict.incoming(oppId);
-      battle = (b && b.id) ? b : (b && b.battle && b.battle.id ? b.battle : null);
+      const incomingRes = Conflict.incoming(oppId);
+      battle = (incomingRes && incomingRes.ok === true) ? incomingRes.battle : null;
       battleId = battle ? battle.id : null;
       if (prevRuntimeId && battleId && String(prevRuntimeId) === String(battleId)) {
         const altOpp = Object.keys(S.players || {}).find(id => id !== oppId && id !== "me" && String(id || "").startsWith("npc_")) || oppId;
         try {
           const b2 = Conflict.incoming(altOpp);
-          const battle2 = (b2 && b2.id) ? b2 : (b2 && b2.battle && b2.battle.id ? b2.battle : null);
+          const battle2 = (b2 && b2.ok === true) ? b2.battle : null;
           if (battle2 && battle2.id && String(battle2.id) !== String(battleId)) {
             battle = battle2;
             battleId = battle2.id;
@@ -21624,6 +21625,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   Game.__DEV.smokeBattleProvocation_ZeroPointsOnce = (opts = {}) => {
     const header = "BATTLE_PROVOCATION_ZERO_POINTS_BEGIN";
     const footer = "BATTLE_PROVOCATION_ZERO_POINTS_END";
+    const ACCEPT_RATE_ASSERT_RANGE = { min: 0.10, max: 0.20 };
+    const DEFAULT_ACCEPT_CHANCE = 0.15;
+    const DEFAULT_ATTEMPTS_PER_RUN = 50;
+    const DEFAULT_REPEAT_RUNS = 5;
     const result = {
       ok: false,
       attempts: 0,
@@ -21636,7 +21641,16 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       acceptedBattleIdNullCount: 0,
       acceptFailedCount: 0,
       cooldownRangeUsed: null,
+      acceptFailedReasons: {},
+      diagTail: [],
       notes: [],
+      dmSentCount: 0,
+      acceptChanceUsed: DEFAULT_ACCEPT_CHANCE,
+      acceptedRate: 0,
+      assertRange: [ACCEPT_RATE_ASSERT_RANGE.min, ACCEPT_RATE_ASSERT_RANGE.max],
+      repeatRuns: DEFAULT_REPEAT_RUNS,
+      attemptsPerRun: DEFAULT_ATTEMPTS_PER_RUN,
+      devSmoke: true,
       error: null
     };
     const busyWait = (ms) => {
@@ -21661,8 +21675,12 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         emitLine(footer);
         return result;
       }
-      const attempts = Number.isFinite(opts && opts.attempts) ? (opts.attempts | 0) : 50;
-      result.attempts = Math.max(1, attempts);
+      const attemptsPerRun = Number.isFinite(opts && opts.attempts) ? Math.max(1, opts.attempts | 0) : DEFAULT_ATTEMPTS_PER_RUN;
+      const repeatRuns = Number.isFinite(opts && opts.repeatRuns) ? Math.max(1, opts.repeatRuns | 0) : DEFAULT_REPEAT_RUNS;
+      const totalAttempts = Math.max(1, attemptsPerRun * repeatRuns);
+      result.attempts = totalAttempts;
+      result.repeatRuns = repeatRuns;
+      result.attemptsPerRun = attemptsPerRun;
       const channel = (opts && opts.channel) ? String(opts.channel) : "chat";
 
       if (Game.__DEV && typeof Game.__DEV.forceSetPoints === "function") {
@@ -21676,58 +21694,98 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const p = S.players[npcId];
       const npcName = p && p.name ? String(p.name) : npcId;
       const text = `@${npcName} го батл`;
-      const cooldownRangeForSmoke = (opts && opts.cooldownRangeMs && typeof opts.cooldownRangeMs === "object")
-        ? { min: opts.cooldownRangeMs.min, max: opts.cooldownRangeMs.max }
-        : (opts && opts.devSmoke ? { min: 200, max: 400 } : null);
-      if (cooldownRangeForSmoke) {
-        result.cooldownRangeUsed = cooldownRangeForSmoke;
-      }
+      const devSmoke = (opts && typeof opts.devSmoke === "boolean") ? opts.devSmoke : true;
+      result.devSmoke = devSmoke;
+      const hasCustomRange = opts && opts.cooldownRangeMs && typeof opts.cooldownRangeMs === "object";
+      const fallbackRange = devSmoke ? { min: 200, max: 400 } : null;
+      const cooldownRangeForSmoke = devSmoke
+        ? (hasCustomRange
+          ? { min: opts.cooldownRangeMs.min, max: opts.cooldownRangeMs.max }
+          : fallbackRange)
+        : null;
 
       const uniqueRefusals = new Set();
-      for (let i = 0; i < result.attempts; i += 1) {
-        const payload = { senderId: "me", text, channel };
-        if (cooldownRangeForSmoke) payload.cooldownRangeMs = cooldownRangeForSmoke;
-        const res = (Game.__A && typeof Game.__A.handleBattleProvocationZeroPoints === "function")
-          ? Game.__A.handleBattleProvocationZeroPoints(payload)
-          : null;
-        if (res && res.ok) {
-          result.detected += 1;
-          result.cooldownSkips += (res.cooldownSkips || 0);
-          result.refusals += (res.refusals || 0);
-          result.accepted += (res.accepted || 0);
-          result.acceptedBattleIdCount += (res.acceptedBattleIdCount || 0);
-          result.acceptedBattleIdNullCount += (res.acceptedBattleIdNullCount || 0);
-          result.acceptFailedCount += (res.acceptFailedCount || 0);
-          if (res.refusalIdxByNpc && res.refusalIdxByNpc[npcId] != null) {
-            uniqueRefusals.add(res.refusalIdxByNpc[npcId]);
+      for (let runIndex = 0; runIndex < repeatRuns; runIndex += 1) {
+        for (let attemptIndex = 0; attemptIndex < attemptsPerRun; attemptIndex += 1) {
+          const payload = { senderId: "me", text, channel, devSmoke };
+          if (cooldownRangeForSmoke) payload.cooldownRangeMs = cooldownRangeForSmoke;
+          const res = (Game.__A && typeof Game.__A.handleBattleProvocationZeroPoints === "function")
+            ? Game.__A.handleBattleProvocationZeroPoints(payload)
+            : null;
+          if (res && Number.isFinite(res.acceptChanceUsed)) {
+            result.acceptChanceUsed = Number(res.acceptChanceUsed);
           }
-          if (res.cooldownRangeUsed) {
-            result.cooldownRangeUsed = res.cooldownRangeUsed;
+          if (res && res.ok) {
+            result.detected += 1;
+            result.cooldownSkips += (res.cooldownSkips || 0);
+            result.refusals += (res.refusals || 0);
+            const dmCount = (res.dmSentCount != null && Number.isFinite(res.dmSentCount))
+              ? (res.dmSentCount | 0)
+              : 0;
+            result.dmSentCount += dmCount;
+            result.accepted += (res.accepted || 0);
+            result.acceptedBattleIdCount += (res.acceptedBattleIdCount || 0);
+            result.acceptedBattleIdNullCount += (res.acceptedBattleIdNullCount || 0);
+            result.acceptFailedCount += (res.acceptFailedCount || 0);
+            if (res.acceptFailedReasons && typeof res.acceptFailedReasons === "object") {
+              Object.keys(res.acceptFailedReasons).forEach((key) => {
+                const v = res.acceptFailedReasons[key];
+                if (!Number.isFinite(v)) return;
+                result.acceptFailedReasons[key] = (result.acceptFailedReasons[key] || 0) + (v | 0);
+              });
+            }
+            if (res.refusalIdxByNpc && res.refusalIdxByNpc[npcId] != null) {
+              uniqueRefusals.add(res.refusalIdxByNpc[npcId]);
+            }
+            if (res.cooldownRangeUsed) {
+              result.cooldownRangeUsed = res.cooldownRangeUsed;
+            }
           }
-        }
-        if (res && Number.isFinite(res.cooldownSkips) && res.cooldownSkips > 0) {
-          const waitMs = (res.cooldownRangeUsed && Number.isFinite(res.cooldownRangeUsed.max))
-            ? Math.max(0, (res.cooldownRangeUsed.max | 0) + 1)
-            : 400;
-          busyWait(waitMs);
+          if (res && Number.isFinite(res.cooldownSkips) && res.cooldownSkips > 0) {
+            const waitMs = (res.cooldownRangeUsed && Number.isFinite(res.cooldownRangeUsed.max))
+              ? Math.max(0, (res.cooldownRangeUsed.max | 0) + 1)
+              : 400;
+            busyWait(waitMs);
+          }
         }
       }
 
       result.uniqueRefusals = uniqueRefusals.size;
+      result.acceptedRate = result.attempts > 0 ? (result.accepted / result.attempts) : 0;
+      result.assertRange = [ACCEPT_RATE_ASSERT_RANGE.min, ACCEPT_RATE_ASSERT_RANGE.max];
+      const rateOk = result.acceptedRate >= ACCEPT_RATE_ASSERT_RANGE.min && result.acceptedRate <= ACCEPT_RATE_ASSERT_RANGE.max;
+      const dmOk = result.dmSentCount === result.refusals;
+      const incomingNullCount = (result.acceptFailedReasons && Number.isFinite(result.acceptFailedReasons.incoming_null))
+        ? (result.acceptFailedReasons.incoming_null | 0)
+        : 0;
       result.ok = result.accepted > 0 &&
         result.acceptedBattleIdCount === result.accepted &&
         result.acceptedBattleIdNullCount === 0 &&
+        result.acceptFailedCount === 0 &&
         result.cooldownSkips > 0 &&
         result.refusals > result.accepted &&
-        result.uniqueRefusals >= 3;
+        result.uniqueRefusals >= 3 &&
+        rateOk &&
+        dmOk;
+      try {
+        const diagArr = (Game.__D && Array.isArray(Game.__D.provokeIncomingDiagV1)) ? Game.__D.provokeIncomingDiagV1 : [];
+        result.diagTail = diagArr.slice(-5);
+      } catch (_) {}
+      if (incomingNullCount > 0) {
+        result.ok = false;
+        result.notes.push("incoming_null");
+      }
       if (!result.ok) {
         if (result.accepted <= 0) result.notes.push("accepted_zero");
         if (result.acceptedBattleIdCount !== result.accepted) result.notes.push("accepted_ids_mismatch");
         if (result.acceptedBattleIdNullCount > 0) result.notes.push("accepted_null");
+        if (result.acceptFailedCount > 0) result.notes.push("accept_failed");
         if (result.cooldownSkips <= 0) result.notes.push("cooldown_skips_missing");
         if (result.refusals <= result.accepted) result.notes.push("refusals_not_greater");
         if (result.uniqueRefusals < 3) result.notes.push("unique_refusals_low");
       }
+      if (!rateOk) result.notes.push("accepted_rate_out_of_range");
+      if (!dmOk) result.notes.push("dm_count_mismatch");
 
       emitLine(`BATTLE_PROVOCATION_ZERO_POINTS_JSON ${safeStringify(result)}`);
       emitLine(footer);

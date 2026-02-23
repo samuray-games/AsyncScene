@@ -3369,11 +3369,10 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - DUMP: не собран (нужен dev=1 draw/баттл без новых голосов, чтобы зафиксировать `CROWD_STALL_V1_ARM/EXPIRE/RESOLVE` и диагностические поля).
 
 ### 2026-02-23 — E[4] Провокация батла через текст при 0 points (чат/личка)
-- Status: REVIEW (smoke ждёт нового DUMP_AT)
+- Status: DOING (код готов, ждём новый `BATTLE_PROVOCATION_ZERO_POINTS_JSON`)
 - Facts:
-  - `handleBattleProvocationZeroPoints` теперь нормализует cooldown-диапазон, считает `acceptedBattleIdCount`, `acceptedBattleIdNullCount`, `acceptFailedCount`, возвращает `cooldownRangeUsed`, и логирует `PROVOKE_BATTLE_ACCEPT_FAILED_V1`/`PROVOKE_BATTLE_ACCEPTED_V1` только при валидном `battleId`.
-  - `State.provocationCooldowns` фильтрует реакции: пока `untilMs > now` никакой DM/боёв не отправляется, и появляется предупреждение `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`.
-  - Хуки чата/лички подключены к новому обработчику; `Conflict.incoming` обходит guard только когда `lowEconomyFree` и `dev` или `me.points==0`.
-  - Smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` использует короткий диапазон (200-400ms), ждет после `cooldownSkip`, и возвращает расширенный JSON (accepted counts, cooldownSkips, cooldownRangeUsed) с `BATTLE_PROVOCATION_ZERO_POINTS_JSON`.
-- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- DUMP: ждём `BATTLE_PROVOCATION_ZERO_POINTS_JSON` с `ok:true`, `accepted>0`, `acceptedBattleIdCount==accepted`, `acceptedBattleIdNullCount==0`, `refusals>accepted`, `uniqueRefusals>=3`, `cooldownSkips>0`.
+  - `handleBattleProvocationZeroPoints` расширяет словарь `BATTLE_PROVOCATION_PHRASES`, использует `State.battleProvocationCooldowns`, и при отказе посылает DM через `pushDm`, логирует `PROVOKE_BATTLE_REFUSAL_DM_V1`, вращает `refusalIdx`, и фиксирует `dmSentCount`/`acceptChanceUsed`.
+  - Принятие происходит только через `lowEconomyFree`/`Conflict.incoming` с `acceptChance=0.15`, `PROVOKE_BATTLE_ACCEPTED_V1` требует `battleId`, `PROVOKE_BATTLE_ACCEPT_FAILED_V1` собирает причины; `PROVOKE_BATTLE_COOLDOWN_RANGE_V1` показывает `min/max/devSmoke`.
+  - Dev-smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` теперь запускает `repeatRuns=5`, `attempts=50`, проверяет `dmSentCount===refusals`, `acceptedRate ∈ [0.10,0.20]`, `acceptedBattleIdNullCount===0`, `acceptFailedCount===0`, `cooldownSkips>0`, и логирует `acceptChanceUsed`, `acceptedRate`, `assertRange`, `repeatRuns`, `attemptsPerRun`.
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Smoke: нужен свежий DUMP — запустить `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, repeatRuns:5, devSmoke:true })`, подписать `BATTLE_PROVOCATION_ZERO_POINTS_JSON` + Console с `PROVOKE_BATTLE_COOLDOWN_RANGE_V1`, `PROVOKE_BATTLE_REFUSAL_DM_V1`, и `acceptRate`/`dmSentCount` метриками, чтобы перевести статус в PASS.

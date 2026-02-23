@@ -724,6 +724,7 @@ window.Game = window.Game || {};
 
       const tried = new Set();
       let battle = null;
+      let incomingRes = null;
       let oppId = null;
       for (let i = 0; i < 3; i++) {
         oppId = pickBattleOpponentId(tried);
@@ -731,9 +732,16 @@ window.Game = window.Game || {};
         tried.add(oppId);
         // Compatibility: some builds accept (id) only
         try {
-          battle = Game.Conflict.incoming(oppId, { pinned: false, lowEconomyFree: lowState.enabled, lowEconomy: lowState.enabled });
+          incomingRes = Game.Conflict.incoming(oppId, { pinned: false, lowEconomyFree: lowState.enabled, lowEconomy: lowState.enabled });
         } catch (_) {
-          battle = Game.Conflict.incoming(oppId);
+          incomingRes = Game.Conflict.incoming(oppId);
+        }
+        if (incomingRes && incomingRes.ok === true) {
+          battle = incomingRes.battle || null;
+        } else if (incomingRes && (incomingRes.id || incomingRes.battleId)) {
+          battle = incomingRes;
+        } else {
+          battle = null;
         }
         if (battle) break;
       }

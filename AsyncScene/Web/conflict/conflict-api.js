@@ -561,46 +561,103 @@
      },
 
      incoming(opponentId, opts) {
+       const logIncomingDiag = (payload) => {
+         if (!payload || payload.lowEconomyFree !== true) return;
+         try { console.warn("PROVOKE_BATTLE_INCOMING_DIAG_V1", payload); } catch (_) {}
+         try {
+           const dbg = Game.__D || (Game.__D = {});
+           const arr = Array.isArray(dbg.provokeIncomingDiagV1) ? dbg.provokeIncomingDiagV1 : (dbg.provokeIncomingDiagV1 = []);
+           arr.push(payload);
+           if (arr.length > 30) arr.splice(0, arr.length - 30);
+         } catch (_) {}
+       };
+
        // Ensure opponent role is resolved and cached before delegating to Core
        let resolvedOpponentRole = null;
        if (Game.__S && Game.__S.players && opponentId) {
          const opp = Game.__S.players[opponentId];
          if (opp && opp.role) resolvedOpponentRole = opp.role;
        }
-     // Cop must not initiate NPC-NPC battles
-     const oppCheck = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
-     if (oppCheck && (oppCheck.role === "cop" || oppCheck.role === "police")) {
-       return null;
-     }
-     // Economy + creation live in Core. API only coordinates UI/state.
-      let callOpts = opts;
-      try {
-        if (opts && opts.lowEconomyFree === true) {
-          const mePts = (Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
-          const isDev = (typeof isDevFlag === "function" && isDevFlag()) || (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true));
-          if (!(isDev || mePts <= 0)) {
-            callOpts = Object.assign({}, opts, { lowEconomyFree: false });
-          }
-        }
-      } catch (_) {}
-      let b = Core.incoming(opponentId, callOpts);
 
-       // Keep newly created incoming battle at the top (active battles should be visible immediately).
-       if (b && b.id) pinBattleToTop(b.id);
+       const mePts = (Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
+       const lowEconomyFree = !!(opts && opts.lowEconomyFree === true);
 
-       // Incoming attack must start with hidden color: keep true color in _color, expose color only after defense is chosen.
-       if (b && b.attack && b.attack.color != null && b.fromThem !== false) {
-         b.attack._color = b.attack._color || b.attack.color;
-         b.attack.color = null;
-         b.attackHidden = true;
+       // Cop must not initiate NPC-NPC battles
+       const oppCheck = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
+       if (oppCheck && (oppCheck.role === "cop" || oppCheck.role === "police")) {
+         logIncomingDiag({ npcId: opponentId, mePoints: mePts, lowEconomyFree, ok: false, reason: "cop_blocked", rawKeys: [], returnedId: null });
+         return { ok: false, reason: "cop_blocked" };
        }
-       // Ensure opponentRole is set on the battle object
-       if (b && !b.opponentRole) {
-         const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
-         if (opp && opp.role) b.opponentRole = opp.role;
+
+       // Economy + creation live in Core. API only coordinates UI/state.
+       let callOpts = opts;
+       try {
+         if (opts && opts.lowEconomyFree === true) {
+           const isDev = (typeof isDevFlag === "function" && isDevFlag()) || (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true));
+           if (!(isDev || mePts <= 0)) {
+             callOpts = Object.assign({}, opts, { lowEconomyFree: false });
+           }
+         }
+       } catch (_) {}
+
+       const raw = Core.incoming(opponentId, callOpts);
+       const rawKeys = (raw && typeof raw === "object") ? Object.keys(raw) : [];
+       let ok = false;
+       let reason = null;
+       let battle = null;
+       let battleId = null;
+       const isNormalized = raw && typeof raw === "object" && ("ok" in raw) && ("battleId" in raw || "battle" in raw || "reason" in raw);
+
+       if (!raw) {
+         ok = false;
+         reason = "incoming_null";
+       } else if (isNormalized) {
+         if (raw.ok === true) {
+           battle = raw.battle || null;
+           battleId = raw.battleId || (battle && (battle.id || battle.battleId || null));
+           ok = !!battleId;
+           if (!ok) reason = "missing_id";
+         } else {
+           ok = false;
+           reason = raw.reason || "incoming_failed";
+         }
+       } else {
+         battle = raw;
+         battleId = battle && (battle.id || battle.battleId || null);
+         ok = !!battleId;
+         if (!ok) reason = "missing_id";
        }
-       render();
-       return b;
+
+       logIncomingDiag({
+         npcId: opponentId,
+         mePoints: mePts,
+         lowEconomyFree,
+         ok,
+         reason: ok ? "ok" : (reason || "unknown"),
+         rawKeys,
+         returnedId: battleId
+       });
+
+       if (ok && battle) {
+         // Keep newly created incoming battle at the top (active battles should be visible immediately).
+         if (battle.id) pinBattleToTop(battle.id);
+
+         // Incoming attack must start with hidden color: keep true color in _color, expose color only after defense is chosen.
+         if (battle.attack && battle.attack.color != null && battle.fromThem !== false) {
+           battle.attack._color = battle.attack._color || battle.attack.color;
+           battle.attack.color = null;
+           battle.attackHidden = true;
+         }
+         // Ensure opponentRole is set on the battle object
+         if (!battle.opponentRole) {
+           const opp = (Game.__S && Game.__S.players && battle.opponentId) ? Game.__S.players[battle.opponentId] : null;
+           if (opp && opp.role) battle.opponentRole = opp.role;
+         }
+         render();
+         return { ok: true, battleId, battle };
+       }
+
+       return { ok: false, reason: reason || "unknown" };
      },
 
      escape(battleId, mode) {

@@ -1971,7 +1971,7 @@ window.Game = window.Game || {};
     victimByRole: {},
     revengeUntil: 0,
     battleCooldowns: {},
-    provocationCooldowns: {},
+    battleProvocationCooldowns: {},
 
     battles: [], // active battle cards
     events: [],  // npc vs npc events
@@ -2047,8 +2047,10 @@ window.Game = window.Game || {};
 
     // Evidence that certain roles were actually seen recently (chat/battles can mark this).
     // roleKey -> lastSeenAt (ms)
-    sightings: {},
-  };
+  sightings: {},
+};
+
+  State.provocationCooldowns = State.battleProvocationCooldowns;
 
   guardPointsObject(State.me, "State.me.points");
   let _stateRepValue = Number.isFinite(State.rep) ? (State.rep | 0) : 0;
@@ -2766,6 +2768,11 @@ window.Game = window.Game || {};
     return reAt.test(t) || reBare.test(t);
   }
 
+  const DEFAULT_ACCEPT_CHANCE = 0.15;
+  const ACCEPT_RATE_ASSERT_RANGE = {
+    min: 0.10,
+    max: 0.20
+  };
   const BATTLE_PROVOCATION_PHRASES = [
     "го батл",
     "go battle",
@@ -2779,6 +2786,19 @@ window.Game = window.Game || {};
     "погнали",
     "го 1 на 1",
     "1 v 1",
+    "го в батл",
+    "пойдём батл",
+    "пойдем батл",
+    "погнали в бой",
+    "давай 1 на 1",
+    "давай один на один",
+    "выйдешь 1v1",
+    "выходи на дуэль",
+    "кидаю вызов",
+    "принимаешь вызов",
+    "го зарубимся",
+    "го подеремся",
+    "проверим силу",
   ];
 
   function normalizeProvocationText(text){
@@ -2795,23 +2815,28 @@ window.Game = window.Game || {};
   }
 
   const DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS = { min: 60000, max: 180000 };
-  function normalizeProvocationCooldownRange(range){
-    const base = Object.assign({}, DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS);
-    if (!range || typeof range !== "object") return base;
+  const DEV_PROVOCATION_COOLDOWN_RANGE_MS = { min: 200, max: 400 };
+  function normalizeProvocationCooldownRange(range, opts = {}){
+    const devSmoke = !!opts.devSmoke;
+    const base = devSmoke ? DEV_PROVOCATION_COOLDOWN_RANGE_MS : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS;
     const clamp = (value, fallback) => {
       const n = Number.isFinite(value) ? (value | 0) : fallback;
       return Math.max(0, n);
     };
-    const min = clamp(range.min, base.min);
-    const max = clamp(range.max, base.max);
-    return {
-      min,
-      max: Math.max(min, max),
-    };
+    let min = clamp(range && range.min, base.min);
+    let max = clamp(range && range.max, base.max);
+    if (!devSmoke) {
+      min = Math.max(min, base.min);
+      max = Math.max(max, base.max);
+    }
+    if (max < min) max = min;
+    return { min, max, devSmoke };
   }
   function pickProvocationCooldown(range){
-    const min = Number.isFinite(range.min) ? range.min : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.min;
-    const max = Number.isFinite(range.max) ? Math.max(min, range.max) : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.max;
+    const source = (range && typeof range === "object") ? range : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS;
+    const min = Number.isFinite(source.min) ? source.min : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.min;
+    const maxCandidate = Number.isFinite(source.max) ? Math.max(min, source.max) : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.max;
+    const max = Math.max(min, maxCandidate);
     const delta = Math.max(0, max - min);
     const offset = delta > 0 ? Math.floor(Math.random() * (delta + 1)) : 0;
     return min + offset;
@@ -2841,6 +2866,32 @@ window.Game = window.Game || {};
     return Array.from(ids);
   }
 
+  function attemptProvokedIncoming(npcId){
+    const incoming = Game.Conflict && typeof Game.Conflict.incoming === "function"
+      ? Game.Conflict.incoming
+      : null;
+    if (!incoming) return { ok: false, reason: "incoming_missing", rawKeys: [] };
+    let res = null;
+    try {
+      res = incoming(npcId, { lowEconomyFree: true, reason: "provoked_battle_zero_points" });
+    } catch (_) {
+      return { ok: false, reason: "incoming_throw", rawKeys: [] };
+    }
+    if (!res) return { ok: false, reason: "incoming_null", rawKeys: [] , missingId: true };
+    if (res.ok === true) {
+      const battle = res.battle || null;
+      const battleId = res.battleId || (battle && (battle.id || battle.battleId || null));
+      if (battleId) return { ok: true, battleId, battle };
+      return { ok: false, reason: "missing_id", rawKeys: Object.keys(res || {}), missingId: true };
+    }
+    if (res.ok === false) {
+      return { ok: false, reason: res.reason || "incoming_failed", rawKeys: Object.keys(res || {}) };
+    }
+    const battleId = res && (res.id || res.battleId || null);
+    if (battleId) return { ok: true, battleId, battle: res };
+    return { ok: false, reason: "missing_id", rawKeys: Object.keys(res || {}), missingId: true };
+  }
+
   function handleBattleProvocationZeroPoints(payload = {}){
     const senderId = (payload && payload.senderId != null) ? String(payload.senderId) : "";
     if (senderId !== "me") return { ok: false, reason: "sender_not_me" };
@@ -2865,7 +2916,12 @@ window.Game = window.Game || {};
       });
     } catch (_) {}
 
-    const ACCEPT_CHANCE = 0.15;
+    const rawAcceptChance = (payload && Number.isFinite(payload.acceptChance))
+      ? Number(payload.acceptChance)
+      : null;
+    const acceptChanceUsed = (rawAcceptChance !== null)
+      ? Math.min(1, Math.max(0, rawAcceptChance))
+      : DEFAULT_ACCEPT_CHANCE;
     const REFUSAL_LINES = [
       "Ты сначала очки набери.",
       "С нулем в кармане бой неинтересен.",
@@ -2879,8 +2935,18 @@ window.Game = window.Game || {};
       "Попробуй позже.",
     ];
 
-    const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs);
-    const store = State.provocationCooldowns || (State.provocationCooldowns = {});
+    const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs, { devSmoke: !!payload.devSmoke });
+    try {
+      console.warn("PROVOKE_BATTLE_COOLDOWN_RANGE_V1", {
+        min: cooldownRange.min,
+        max: cooldownRange.max,
+        devSmoke: !!cooldownRange.devSmoke
+      });
+    } catch (_) {}
+    const store = State.battleProvocationCooldowns || (State.battleProvocationCooldowns = {});
+    if (!State.provocationCooldowns) {
+      State.provocationCooldowns = store;
+    }
     const nowMs = Date.now();
     let accepted = 0;
     let acceptedBattleIdCount = 0;
@@ -2888,9 +2954,22 @@ window.Game = window.Game || {};
     let acceptFailedCount = 0;
     let refusals = 0;
     let cooldownSkips = 0;
+    let dmSentCount = 0;
     const refusalIdxByNpc = {};
+    const acceptFailedReasons = {};
 
     for (const npcId of npcIds) {
+      try {
+        const p0 = State.players ? State.players[npcId] : null;
+        const role0 = p0 ? String(p0.role || p0.type || "") : "";
+        if (role0 === "cop" || role0 === "police") continue;
+      } catch (_) {}
+      try {
+        if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(npcId)) {
+          continue;
+        }
+      } catch (_) {}
+
       const rec = store[npcId] || {};
       const untilMs = Number.isFinite(rec.untilMs) ? rec.untilMs : 0;
       if (untilMs > nowMs) {
@@ -2901,32 +2980,23 @@ window.Game = window.Game || {};
       }
 
       const roll = Math.random();
-      if (roll < ACCEPT_CHANCE) {
-        let battleId = null;
-        let battle = null;
-        try {
-          if (Game.Conflict && typeof Game.Conflict.incoming === "function") {
-            battle = Game.Conflict.incoming(npcId, { lowEconomyFree: true, reason: "provoked_battle_zero_points" });
-            battleId = battle && (battle.id || battle.battleId || null);
-          }
-        } catch (_) {}
-        if (battleId) {
+      if (roll < acceptChanceUsed) {
+        const attempt = attemptProvokedIncoming(npcId);
+        if (attempt && attempt.ok && attempt.battleId) {
           accepted += 1;
           acceptedBattleIdCount += 1;
-          try { console.warn("PROVOKE_BATTLE_ACCEPTED_V1", { npcId, battleId }); } catch (_) {}
+          try { console.warn("PROVOKE_BATTLE_ACCEPTED_V1", { npcId, battleId: attempt.battleId }); } catch (_) {}
           continue;
         }
         acceptFailedCount += 1;
-        acceptedBattleIdNullCount += 1;
-        const reason = battle
-          ? (battle && battle.reason ? String(battle.reason) : "missing_id")
-          : "incoming_null";
-        const rawKeys = (battle && typeof battle === "object") ? Object.keys(battle) : [];
+        if (attempt && attempt.missingId === true) acceptedBattleIdNullCount += 1;
+        const reason = attempt && attempt.reason ? String(attempt.reason) : "incoming_failed";
+        acceptFailedReasons[reason] = (acceptFailedReasons[reason] || 0) + 1;
         try {
           console.warn("PROVOKE_BATTLE_ACCEPT_FAILED_V1", {
             npcId,
             reason,
-            rawKeys
+            rawKeys: attempt && attempt.rawKeys ? attempt.rawKeys : []
           });
         } catch (_) {}
       }
@@ -2940,13 +3010,30 @@ window.Game = window.Game || {};
       const cooldownMs = pickProvocationCooldown(cooldownRange);
       store[npcId] = { untilMs: nowMs + cooldownMs, lastRefusalIdx: idx };
 
+      const p = State.players ? State.players[npcId] : null;
+      const npcName = (p && p.name) ? String(p.name) : "NPC";
+      const dmOpts = { isSystem: false, playerId: npcId };
+      let dmPushed = false;
       try {
-        const p = State.players ? State.players[npcId] : null;
-        const npcName = (p && p.name) ? String(p.name) : "NPC";
-        if (Game.__A && typeof Game.__A.pushDm === "function") {
-          Game.__A.pushDm(npcId, npcName, line, { isSystem: false, playerId: npcId });
+        pushDm(npcId, npcName, line, dmOpts);
+        dmPushed = true;
+      } catch (_) {}
+      try {
+        if (Game.__A && typeof Game.__A.pushDm === "function" && Game.__A.pushDm !== pushDm) {
+          Game.__A.pushDm(npcId, npcName, line, dmOpts);
+          dmPushed = true;
         }
       } catch (_) {}
+      if (dmPushed) {
+        dmSentCount += 1;
+        try {
+          console.warn("PROVOKE_BATTLE_REFUSAL_DM_V1", {
+            npcId,
+            refusalIdx: idx,
+            textPreview: line.slice(0, 120)
+          });
+        } catch (_) {}
+      }
       refusals += 1;
       refusalIdxByNpc[npcId] = idx;
       try { console.warn("PROVOKE_BATTLE_REFUSED_V1", { npcId, refusalIdx: idx, cooldownMs }); } catch (_) {}
@@ -2962,7 +3049,10 @@ window.Game = window.Game || {};
       cooldownSkips,
       npcIds,
       refusalIdxByNpc,
-      cooldownRangeUsed: cooldownRange
+      acceptFailedReasons,
+      cooldownRangeUsed: cooldownRange,
+      acceptChanceUsed,
+      dmSentCount
     };
   }
 

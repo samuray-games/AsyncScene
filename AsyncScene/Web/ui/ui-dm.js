@@ -853,7 +853,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       // Mafioso: allow battle, but it should behave like an incoming threat.
       // This ensures the fatal rule applies unless the player escapes.
       if (isMafia && Game.Conflict && typeof Game.Conflict.incoming === "function") {
-        const b = Game.Conflict.incoming(withId);
+        const incomingRes = Game.Conflict.incoming(withId);
+        const b = (incomingRes && incomingRes.ok === true) ? incomingRes.battle : null;
         if (!b) {
           dmPushLine(withId, "Система", "Не залетело.");
           UI.renderDM();

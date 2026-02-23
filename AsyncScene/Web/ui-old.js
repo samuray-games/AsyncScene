@@ -1107,7 +1107,8 @@ window.Game = window.Game || {};
       if (!S.me.name) return;
 
       const npc = Game.NPC.randomNonCop();
-      const bid = Game.Conflict.incoming(npc.id, { pinned:false });
+      const incomingRes = Game.Conflict.incoming(npc.id, { pinned:false });
+      const bid = incomingRes && incomingRes.battleId ? incomingRes.battleId : null;
 
       // provocation in chat
       pushChat({ name: npc.name, text: Game.NPC.generateChatLine(npc), system:false });
@@ -1349,7 +1350,8 @@ window.Game = window.Game || {};
         if (!S.dm.aggro[key]) {
           S.dm.aggro[key] = true;
           dmPushLine(withId, target.name, target.role === "bandit" ? "ты че, самый смелый? ща разберемся" : "слыш, не умничай, выходи на баттл");
-          const bid = Game.Conflict.incoming(withId, { pinned:true });
+          const incomingRes = Game.Conflict.incoming(withId, { pinned:true });
+          const bid = incomingRes && incomingRes.battleId ? incomingRes.battleId : null;
           if (bid) {
             UI.pinBattleToTop(bid);
             UI.openBattlesAndScroll();
