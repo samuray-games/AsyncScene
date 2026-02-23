@@ -3369,10 +3369,10 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - DUMP: не собран (нужен dev=1 draw/баттл без новых голосов, чтобы зафиксировать `CROWD_STALL_V1_ARM/EXPIRE/RESOLVE` и диагностические поля).
 
 ### 2026-02-23 — E[4] Провокация батла через текст при 0 points (чат/личка)
-- Status: DOING (код готов, ждём новый `BATTLE_PROVOCATION_ZERO_POINTS_JSON`)
+- Status: PASS (Console.txt: `BATTLE_PROVOCATION_ZERO_POINTS_JSON ok:true`)
 - Facts:
   - `handleBattleProvocationZeroPoints` расширяет словарь `BATTLE_PROVOCATION_PHRASES`, использует `State.battleProvocationCooldowns`, и при отказе посылает DM через `pushDm`, логирует `PROVOKE_BATTLE_REFUSAL_DM_V1`, вращает `refusalIdx`, и фиксирует `dmSentCount`/`acceptChanceUsed`.
   - Принятие происходит только через `lowEconomyFree`/`Conflict.incoming` с `acceptChance=0.15`, `PROVOKE_BATTLE_ACCEPTED_V1` требует `battleId`, `PROVOKE_BATTLE_ACCEPT_FAILED_V1` собирает причины; `PROVOKE_BATTLE_COOLDOWN_RANGE_V1` показывает `min/max/devSmoke`.
   - Dev-smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` теперь запускает `repeatRuns=5`, `attempts=50`, проверяет `dmSentCount===refusals`, `acceptedRate ∈ [0.10,0.20]`, `acceptedBattleIdNullCount===0`, `acceptFailedCount===0`, `cooldownSkips>0`, и логирует `acceptChanceUsed`, `acceptedRate`, `assertRange`, `repeatRuns`, `attemptsPerRun`.
 - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Smoke: нужен свежий DUMP — запустить `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, repeatRuns:5, devSmoke:true })`, подписать `BATTLE_PROVOCATION_ZERO_POINTS_JSON` + Console с `PROVOKE_BATTLE_COOLDOWN_RANGE_V1`, `PROVOKE_BATTLE_REFUSAL_DM_V1`, и `acceptRate`/`dmSentCount` метриками, чтобы перевести статус в PASS.
+- Smoke: Console.txt содержит `BATTLE_PROVOCATION_ZERO_POINTS_JSON ok:true` с `acceptedRateEligible` в диапазоне `[0.10,0.20]`, `dmSentCount===refusals`, `uniqueRefusals>=3` и `cooldownSkips>0` (пер-NPC кулдауны реально блокируют спам).
