@@ -567,13 +567,23 @@
          const opp = Game.__S.players[opponentId];
          if (opp && opp.role) resolvedOpponentRole = opp.role;
        }
-       // Cop must not initiate NPC-NPC battles
-       const oppCheck = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
-       if (oppCheck && (oppCheck.role === "cop" || oppCheck.role === "police")) {
-         return null;
-       }
-       // Economy + creation live in Core. API only coordinates UI/state.
-       let b = Core.incoming(opponentId, opts);
+     // Cop must not initiate NPC-NPC battles
+     const oppCheck = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
+     if (oppCheck && (oppCheck.role === "cop" || oppCheck.role === "police")) {
+       return null;
+     }
+     // Economy + creation live in Core. API only coordinates UI/state.
+      let callOpts = opts;
+      try {
+        if (opts && opts.lowEconomyFree === true) {
+          const mePts = (Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
+          const isDev = (typeof isDevFlag === "function" && isDevFlag()) || (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true));
+          if (!(isDev || mePts <= 0)) {
+            callOpts = Object.assign({}, opts, { lowEconomyFree: false });
+          }
+        }
+      } catch (_) {}
+      let b = Core.incoming(opponentId, callOpts);
 
        // Keep newly created incoming battle at the top (active battles should be visible immediately).
        if (b && b.id) pinBattleToTop(b.id);

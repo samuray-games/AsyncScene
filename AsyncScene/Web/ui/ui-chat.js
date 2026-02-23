@@ -705,6 +705,15 @@ window.Game = window.Game || {};
         }, { coreResult });
       } catch (_) {}
     }
+    if (Game.__A && typeof Game.__A.handleBattleProvocationZeroPoints === "function") {
+      try {
+        Game.__A.handleBattleProvocationZeroPoints({
+          senderId: playerId,
+          text: sendText,
+          channel: "chat"
+        });
+      } catch (_) {}
+    }
 
     // Chat activity reward disabled: chat messages must not change points or show economy toasts.
     try {

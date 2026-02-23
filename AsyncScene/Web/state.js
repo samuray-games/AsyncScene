@@ -1971,6 +1971,7 @@ window.Game = window.Game || {};
     victimByRole: {},
     revengeUntil: 0,
     battleCooldowns: {},
+    provocationCooldowns: {},
 
     battles: [], // active battle cards
     events: [],  // npc vs npc events
@@ -2763,6 +2764,206 @@ window.Game = window.Game || {};
     const reAt = new RegExp(`(^|\\s)@${escapeRe(meName)}(?=\\s|$)`, "iu");
     const reBare = new RegExp(`(^|\\s)${escapeRe(meName)}(?=\\s|$)`, "iu");
     return reAt.test(t) || reBare.test(t);
+  }
+
+  const BATTLE_PROVOCATION_PHRASES = [
+    "го батл",
+    "go battle",
+    "го бой",
+    "бой?",
+    "батл?",
+    "1v1",
+    "дуэль",
+    "на бой",
+    "выходи",
+    "погнали",
+    "го 1 на 1",
+    "1 v 1",
+  ];
+
+  function normalizeProvocationText(text){
+    return String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  function isBattleProvocationText(text){
+    const t = normalizeProvocationText(text);
+    if (!t) return false;
+    for (const phrase of BATTLE_PROVOCATION_PHRASES) {
+      if (phrase && t.includes(phrase)) return true;
+    }
+    return false;
+  }
+
+  const DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS = { min: 60000, max: 180000 };
+  function normalizeProvocationCooldownRange(range){
+    const base = Object.assign({}, DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS);
+    if (!range || typeof range !== "object") return base;
+    const clamp = (value, fallback) => {
+      const n = Number.isFinite(value) ? (value | 0) : fallback;
+      return Math.max(0, n);
+    };
+    const min = clamp(range.min, base.min);
+    const max = clamp(range.max, base.max);
+    return {
+      min,
+      max: Math.max(min, max),
+    };
+  }
+  function pickProvocationCooldown(range){
+    const min = Number.isFinite(range.min) ? range.min : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.min;
+    const max = Number.isFinite(range.max) ? Math.max(min, range.max) : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.max;
+    const delta = Math.max(0, max - min);
+    const offset = delta > 0 ? Math.floor(Math.random() * (delta + 1)) : 0;
+    return min + offset;
+  }
+
+  function resolveMentionedNpcIds(text, mentions){
+    const ids = new Set();
+    const addIfNpc = (id) => {
+      if (!id) return;
+      const pid = String(id);
+      const p = State.players ? State.players[pid] : null;
+      const isNpc = p && (p.npc === true || p.type === "npc" || pid.startsWith("npc_"));
+      if (isNpc) ids.add(pid);
+    };
+    const base = Array.isArray(mentions) && mentions.length ? mentions : extractMentionedIds(text);
+    base.forEach(addIfNpc);
+    try {
+      const raw = String(text || "");
+      const reAtId = /(^|\s)@([A-Za-z0-9_\-]{1,64})/g;
+      let m;
+      while ((m = reAtId.exec(raw)) !== null) {
+        const token = m[2] || "";
+        if (!token) continue;
+        addIfNpc(token);
+      }
+    } catch (_) {}
+    return Array.from(ids);
+  }
+
+  function handleBattleProvocationZeroPoints(payload = {}){
+    const senderId = (payload && payload.senderId != null) ? String(payload.senderId) : "";
+    if (senderId !== "me") return { ok: false, reason: "sender_not_me" };
+    const me = State.me || null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    if (mePoints !== 0) return { ok: false, reason: "points_not_zero", mePoints };
+
+    const text = (payload && payload.text != null) ? String(payload.text) : "";
+    if (!isBattleProvocationText(text)) return { ok: false, reason: "not_provocation" };
+
+    const channel = (payload && payload.channel) ? String(payload.channel) : "chat";
+    const npcIds = resolveMentionedNpcIds(text, payload.mentions);
+    if (!npcIds.length) return { ok: false, reason: "no_npc_mentions" };
+
+    const preview = normalizeProvocationText(text).slice(0, 120);
+    try {
+      console.warn("PROVOKE_BATTLE_DETECTED_V1", {
+        channel: (channel === "dm") ? "dm" : "chat",
+        npcIds,
+        mePoints,
+        textPreview: preview
+      });
+    } catch (_) {}
+
+    const ACCEPT_CHANCE = 0.15;
+    const REFUSAL_LINES = [
+      "Ты сначала очки набери.",
+      "С нулем в кармане бой неинтересен.",
+      "Не сейчас. Прокачайся и приходи.",
+      "Бой? С такими ресурсами?",
+      "Я не благотворительность.",
+      "Сейчас не хочу.",
+      "Вернись, когда будет что ставить.",
+      "Пустой кошелек - пустой разговор.",
+      "Ты серьезно?",
+      "Попробуй позже.",
+    ];
+
+    const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs);
+    const store = State.provocationCooldowns || (State.provocationCooldowns = {});
+    const nowMs = Date.now();
+    let accepted = 0;
+    let acceptedBattleIdCount = 0;
+    let acceptedBattleIdNullCount = 0;
+    let acceptFailedCount = 0;
+    let refusals = 0;
+    let cooldownSkips = 0;
+    const refusalIdxByNpc = {};
+
+    for (const npcId of npcIds) {
+      const rec = store[npcId] || {};
+      const untilMs = Number.isFinite(rec.untilMs) ? rec.untilMs : 0;
+      if (untilMs > nowMs) {
+        const leftMs = Math.max(0, untilMs - nowMs);
+        cooldownSkips += 1;
+        try { console.warn("PROVOKE_BATTLE_COOLDOWN_SKIP_V1", { npcId, leftMs }); } catch (_) {}
+        continue;
+      }
+
+      const roll = Math.random();
+      if (roll < ACCEPT_CHANCE) {
+        let battleId = null;
+        let battle = null;
+        try {
+          if (Game.Conflict && typeof Game.Conflict.incoming === "function") {
+            battle = Game.Conflict.incoming(npcId, { lowEconomyFree: true, reason: "provoked_battle_zero_points" });
+            battleId = battle && (battle.id || battle.battleId || null);
+          }
+        } catch (_) {}
+        if (battleId) {
+          accepted += 1;
+          acceptedBattleIdCount += 1;
+          try { console.warn("PROVOKE_BATTLE_ACCEPTED_V1", { npcId, battleId }); } catch (_) {}
+          continue;
+        }
+        acceptFailedCount += 1;
+        acceptedBattleIdNullCount += 1;
+        const reason = battle
+          ? (battle && battle.reason ? String(battle.reason) : "missing_id")
+          : "incoming_null";
+        const rawKeys = (battle && typeof battle === "object") ? Object.keys(battle) : [];
+        try {
+          console.warn("PROVOKE_BATTLE_ACCEPT_FAILED_V1", {
+            npcId,
+            reason,
+            rawKeys
+          });
+        } catch (_) {}
+      }
+
+      let idx = Math.floor(Math.random() * REFUSAL_LINES.length);
+      const lastIdx = Number.isFinite(rec.lastRefusalIdx) ? rec.lastRefusalIdx : null;
+      if (REFUSAL_LINES.length > 1 && lastIdx != null && idx === lastIdx) {
+        idx = (idx + 1 + Math.floor(Math.random() * (REFUSAL_LINES.length - 1))) % REFUSAL_LINES.length;
+      }
+      const line = REFUSAL_LINES[idx] || REFUSAL_LINES[0];
+      const cooldownMs = pickProvocationCooldown(cooldownRange);
+      store[npcId] = { untilMs: nowMs + cooldownMs, lastRefusalIdx: idx };
+
+      try {
+        const p = State.players ? State.players[npcId] : null;
+        const npcName = (p && p.name) ? String(p.name) : "NPC";
+        if (Game.__A && typeof Game.__A.pushDm === "function") {
+          Game.__A.pushDm(npcId, npcName, line, { isSystem: false, playerId: npcId });
+        }
+      } catch (_) {}
+      refusals += 1;
+      refusalIdxByNpc[npcId] = idx;
+      try { console.warn("PROVOKE_BATTLE_REFUSED_V1", { npcId, refusalIdx: idx, cooldownMs }); } catch (_) {}
+    }
+
+    return {
+      ok: true,
+      accepted,
+      acceptedBattleIdCount,
+      acceptedBattleIdNullCount,
+      acceptFailedCount,
+      refusals,
+      cooldownSkips,
+      npcIds,
+      refusalIdxByNpc,
+      cooldownRangeUsed: cooldownRange
+    };
   }
 
   function markSightingByPlayerId(playerId){
@@ -4137,6 +4338,7 @@ window.Game = window.Game || {};
     syncMeToPlayers,
     setLocation,
     handleNpcAutoReply,
+    handleBattleProvocationZeroPoints,
 
     // Tier helpers for UI
     getMyArgumentTier: () => tierFromInfluence(State.me.influence),

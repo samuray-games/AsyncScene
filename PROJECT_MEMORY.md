@@ -1024,12 +1024,11 @@
   - Все события идут без direct transferPoints (только free scenes) и low economy остаётся включённым (`lowEconomySeen:true` в JSON).
 - Changed: `AsyncScene/Web/ui/ui-loops.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
 
-### 2026-02-23 — E[3] No phantom crowd после resolve (smoke pending)
-- Status: FAIL (смоук не запускался; нужен DUMP_AT)
+### 2026-02-23 — E[3] No phantom crowd после resolve (smoke PASS)
+- Status: PASS (Console.txt DUMP_AT 2026-02-23 21:40:43: `SMOKE_NO_PHANTOM_CROWD_V1_JSON ok:true` с `wins:20`, `draws:0`, `losses:0`, `phantomCrowdCount:0`, `tailReasons` содержит финальные resolve-маркеры, `SMOKE_NO_PHANTOM_CROWD_V1_END ok:true`, `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1` присутствуют, crowd не запускается после resolved боёв)
 - Facts:
-  - Добавлены diag-маркеры: `BATTLE_RESOLVE_DIAG_V1` (conflict-core), `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1` (conflict-api), `BATTLE_UI_DECISION_DIAG_V1` (ui-battles), все one-shot per battleId с dev trail.
-  - `startCrowdVoteTimer` suppresses crowd when battle уже resolved/result!=draw, а `ensureCrowdVoteStarted` блокирует crowd set при resolved и пишет suppression diag.
-  - Dev-smoke `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` добавлен, собирает `tailReasons` по battleId и проверяет `wins==20` и `phantomCrowdCount==0`.
+  - `conflict-core`/`conflict-api`/`ui-battles` добавили одноразовые `BATTLE_*_DIAG_V1`, guard-ы `crowd` и `resolved`, `BATTLE_CROWD_SUPPRESSED_DIAG_V1` ловит попытки crowd на уже завершённых боях.
+  - `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` теперь жёстко требует `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, ведёт `tailReasons`/`badBattleIds`, и DUMP_AT 2026-02-23 21:40:43 подтверждает отсутствие phantom-crowd логов.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/conflict/conflict-api.js`, `AsyncScene/Web/ui/ui-battles.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
 
 6) Дополнение: компенсация после ограбления (если применимо)
@@ -3368,3 +3367,13 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - UI battles/events показывает “Голосование идёт” до countdown; таймер появляется только в период countdown и исчезает после resolve.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/ui/ui-events.js` `PROJECT_MEMORY.md`
 - DUMP: не собран (нужен dev=1 draw/баттл без новых голосов, чтобы зафиксировать `CROWD_STALL_V1_ARM/EXPIRE/RESOLVE` и диагностические поля).
+
+### 2026-02-23 — E[4] Провокация батла через текст при 0 points (чат/личка)
+- Status: REVIEW (smoke ждёт нового DUMP_AT)
+- Facts:
+  - `handleBattleProvocationZeroPoints` теперь нормализует cooldown-диапазон, считает `acceptedBattleIdCount`, `acceptedBattleIdNullCount`, `acceptFailedCount`, возвращает `cooldownRangeUsed`, и логирует `PROVOKE_BATTLE_ACCEPT_FAILED_V1`/`PROVOKE_BATTLE_ACCEPTED_V1` только при валидном `battleId`.
+  - `State.provocationCooldowns` фильтрует реакции: пока `untilMs > now` никакой DM/боёв не отправляется, и появляется предупреждение `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`.
+  - Хуки чата/лички подключены к новому обработчику; `Conflict.incoming` обходит guard только когда `lowEconomyFree` и `dev` или `me.points==0`.
+  - Smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` использует короткий диапазон (200-400ms), ждет после `cooldownSkip`, и возвращает расширенный JSON (accepted counts, cooldownSkips, cooldownRangeUsed) с `BATTLE_PROVOCATION_ZERO_POINTS_JSON`.
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- DUMP: ждём `BATTLE_PROVOCATION_ZERO_POINTS_JSON` с `ok:true`, `accepted>0`, `acceptedBattleIdCount==accepted`, `acceptedBattleIdNullCount==0`, `refusals>accepted`, `uniqueRefusals>=3`, `cooldownSkips>0`.

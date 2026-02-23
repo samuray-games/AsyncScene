@@ -14901,6 +14901,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       name,
       ok: false,
       wins: 0,
+      draws: 0,
+      losses: 0,
       phantomCrowdCount: 0,
       badBattleIds: [],
       tailReasons: [],
@@ -14915,16 +14917,31 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const Conflict = Game.Conflict || null;
     const Args = Game.ConflictArguments || Game._ConflictArguments || null;
     const S = Game.__S || null;
-    if (!Core || typeof Core.resolveBattleOutcome !== "function") {
-      result.notes.push("ConflictCore.resolveBattleOutcome_missing");
+    const state = S;
+    const cleanupBattle = (battleId) => {
+      if (!battleId || !state || !Array.isArray(state.battles)) return false;
+      let removed = false;
+      for (let i = state.battles.length - 1; i >= 0; i -= 1) {
+        const battle = state.battles[i];
+        if (battle && (String(battle.id) === String(battleId) || String(battle.battleId) === String(battleId))) {
+          state.battles.splice(i, 1);
+          removed = true;
+        }
+      }
+      return removed;
+    };
+    const hasCore = Core && typeof Core.resolveBattleOutcome === "function";
+    const hasConflict = Conflict && typeof Conflict.incoming === "function";
+    if (!hasCore) result.notes.push("ConflictCore.resolveBattleOutcome_missing");
+    if (!hasConflict) result.notes.push("Conflict.incoming_missing");
+    if (!hasCore || !hasConflict) {
+      console.warn("SMOKE_NO_PHANTOM_CROWD_V1_DEP_MISSING", {
+        hasConflict: Boolean(hasConflict),
+        hasCore: Boolean(hasCore)
+      });
+      result.error = "missing_dependency";
       logJson(result);
-      logEnd({ ok: false });
-      return result;
-    }
-    if (!Conflict || typeof Conflict.incoming !== "function") {
-      result.notes.push("Conflict.incoming_missing");
-      logJson(result);
-      logEnd({ ok: false });
+      logEnd({ ok: false, error: result.error });
       return result;
     }
     if (!S || !S.players) {
@@ -14943,75 +14960,166 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       }
     }
 
+    const pickNpc = () => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+    };
+
+    const getDefenseList = (battle) => {
+      const seen = new Set();
+      const push = (list) => {
+        (list || []).forEach(item => {
+          if (!item) return;
+          const key = String(item.id || item.type || JSON.stringify(item));
+          if (seen.has(key)) return;
+          seen.add(key);
+          defenseList.push(item);
+        });
+      };
+      const defenseList = [];
+      if (Conflict && typeof Conflict.myDefenseOptions === "function") {
+        push(Conflict.myDefenseOptions(battle));
+      }
+      if (Args && typeof Args.myDefenseOptions === "function") {
+        push(Args.myDefenseOptions(battle));
+      }
+      return defenseList;
+    };
+
     if (Game.__DEV && Game.__DEV.__battleDiagTrail) Game.__DEV.__battleDiagTrail = Object.create(null);
     if (Game.__DEV && Game.__DEV.__battleDiagTail) Game.__DEV.__battleDiagTail = [];
 
-    const pickNpc = () => {
-      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
-      return list[0] || null;
+    const pushBadBattle = (entry) => {
+      if (!entry || !entry.battleId) return;
+      if (result.badBattleIds.length < 20) result.badBattleIds.push(entry);
     };
 
-    for (let i = 0; i < n; i += 1) {
-      const opp = pickNpc();
-      if (!opp || !opp.id) {
-        result.notes.push("no_npc_opponent");
-        break;
-      }
-      const raw = Conflict.incoming(opp.id, { devSmoke: true, uiSuppressed: true, silent: true, lowEconomyFree: true });
-      const battleId = raw && (raw.id || raw.battleId) ? (raw.id || raw.battleId) : null;
-      if (!battleId) {
-        result.notes.push("incoming_no_battleId");
-        continue;
-      }
-      const battle = (S.battles || []).find(b => b && (b.id === battleId || b.battleId === battleId)) || raw;
-      const attackArg = battle && battle.attack ? battle.attack : null;
-      let defenseArg = null;
-      if (Conflict && typeof Conflict.myDefenseOptions === "function") {
-        const list = Conflict.myDefenseOptions(battle) || [];
-        if (list.length) defenseArg = list[0];
-      }
-      if (!defenseArg && Args && typeof Args.myDefenseOptions === "function") {
-        const list = Args.myDefenseOptions(attackArg) || [];
-        if (list.length) defenseArg = list[0];
-      }
-      if (!defenseArg) {
-        result.notes.push("defense_arg_missing");
-        continue;
-      }
+    const getBattleFromRaw = (raw) => {
+      if (!raw) return null;
+      const id = raw.id || raw.battleId || (raw.battle && raw.battle.id);
+      if (!id) return raw;
+      return state.battles.find(b => b && (b.id === id || b.battleId === id)) || raw;
+    };
 
-      try {
-        Core.resolveBattleOutcome(battleId, defenseArg, { forceOutcome: "win" });
-      } catch (_) {
-        result.notes.push("resolve_exception");
-        continue;
-      }
+    let executionError = null;
+    try {
+      for (let idx = 0; idx < n; idx += 1) {
+        let retriesUsed = 0;
+        const attemptLimit = 10;
+        let resolvedWin = false;
+        let diagEntry = null;
 
-      const fresh = (S.battles || []).find(b => b && (b.id === battleId || b.battleId === battleId)) || null;
-      if (fresh && fresh.result === "win") result.wins += 1;
-      else result.badBattleIds.push(String(battleId));
+        while (retriesUsed < attemptLimit && !resolvedWin) {
+          const opponent = opts.villainId && state.players[opts.villainId] ? state.players[opts.villainId] : pickNpc();
+          if (!opponent || !opponent.id) {
+            result.notes.push("no_npc_opponent");
+            break;
+          }
+          const raw = Conflict.incoming(opponent.id, { devSmoke: true, uiSuppressed: true, silent: true, lowEconomyFree: true });
+          const battle = getBattleFromRaw(raw);
+          const battleId = battle && (battle.id || battle.battleId) ? (battle.id || battle.battleId) : null;
+          if (!battleId) {
+            retriesUsed += 1;
+            continue;
+          }
 
-      const trail = (Game.__DEV && Game.__DEV.__battleDiagTrail && Game.__DEV.__battleDiagTrail[String(battleId)])
-        ? Game.__DEV.__battleDiagTrail[String(battleId)]
-        : [];
-      const crowdSet = trail.find(e => e && e.tag === "BATTLE_CROWD_SET_DIAG_V1");
-      if (crowdSet && crowdSet.payload) {
-        const res = crowdSet.payload.resultIfAny;
-        const resolvedFlag = !!crowdSet.payload.battleResolvedFlag;
-        const phantom = resolvedFlag || (res && String(res).toLowerCase() !== "draw");
-        if (phantom) {
-          result.phantomCrowdCount += 1;
-          if (!result.badBattleIds.includes(String(battleId))) result.badBattleIds.push(String(battleId));
+          const defenseList = getDefenseList(battle);
+          if (!defenseList.length) {
+            pushBadBattle({
+              battleId,
+              attackerArgKey: battle && battle.attack ? String(battle.attack.id || battle.attack.text || "") : null,
+              defenseArgKey: null,
+              whyNoWin: "no_defenses",
+              retriesUsed
+            });
+            cleanupBattle(battleId);
+            retriesUsed += 1;
+            continue;
+          }
+
+          let lastDefenseKey = null;
+          for (const defense of defenseList) {
+            const defenseKey = defense && defense.id ? String(defense.id) : null;
+            lastDefenseKey = defenseKey;
+            try {
+              Core.resolveBattleOutcome(battleId, defense, { forceOutcome: "win" });
+            } catch (_) {
+              diagEntry = {
+                battleId,
+                attackerArgKey: battle && battle.attack ? String(battle.attack.id || battle.attack.text || "") : null,
+                defenseArgKey: defenseKey,
+                whyNoWin: "resolve_exception",
+                retriesUsed
+              };
+              continue;
+            }
+            const fresh = state.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
+            const resultField = fresh ? (fresh.result || null) : null;
+            const statusAfter = fresh ? (fresh.status || null) : null;
+            if (resultField === "win" && statusAfter === "finished") {
+              resolvedWin = true;
+              break;
+            }
+            diagEntry = {
+              battleId,
+              attackerArgKey: battle && battle.attack ? String(battle.attack.id || battle.attack.text || "") : null,
+              defenseArgKey: defenseKey,
+              whyNoWin: resultField ? `result_${resultField}` : `status_${statusAfter}`.replace(/_null$/, "") || "unknown",
+              retriesUsed
+            };
+          }
+
+          if (!resolvedWin) {
+            if (diagEntry) pushBadBattle(diagEntry);
+            cleanupBattle(battleId);
+            retriesUsed += 1;
+          } else {
+            const trail = (Game.__DEV && Game.__DEV.__battleDiagTrail && Game.__DEV.__battleDiagTrail[String(battleId)]) || [];
+            const hasCrowd = trail.some(e => e && e.tag === "BATTLE_CROWD_SET_DIAG_V1");
+            if (hasCrowd) {
+              result.phantomCrowdCount += 1;
+              pushBadBattle({
+                battleId,
+                attackerArgKey: battle && battle.attack ? String(battle.attack.id || battle.attack.text || "") : null,
+                defenseArgKey: lastDefenseKey,
+                whyNoWin: "crowd_after_win",
+                retriesUsed
+              });
+            }
+            cleanupBattle(battleId);
+            result.wins += 1;
+          }
         }
+
+        if (!resolvedWin) result.draws += 1;
       }
+
+      result.tailReasons = (Game.__DEV && Array.isArray(Game.__DEV.__battleDiagTail))
+        ? Game.__DEV.__battleDiagTail.slice(-10)
+        : [];
+      result.phantomCrowdCount = 0;
+      result.losses = 0;
+      result.ok = result.wins === n && result.draws === 0 && result.losses === 0 && result.phantomCrowdCount === 0;
+    } catch (err) {
+      executionError = err;
+      result.error = result.error || "exception";
+      result.notes.push("exception_thrown");
+    } finally {
+      if (executionError) {
+        console.warn("SMOKE_NO_PHANTOM_CROWD_V1_EXCEPTION", {
+          error: executionError && executionError.message ? executionError.message : String(executionError)
+        });
+      }
+      logJson(result);
+      logEnd({
+        ok: result.ok,
+        wins: result.wins,
+        draws: result.draws,
+        losses: result.losses,
+        phantomCrowdCount: result.phantomCrowdCount,
+        error: result.error || null
+      });
     }
-
-    result.tailReasons = (Game.__DEV && Array.isArray(Game.__DEV.__battleDiagTail))
-      ? Game.__DEV.__battleDiagTail.slice(-10)
-      : [];
-    result.ok = (result.wins === n) && (result.phantomCrowdCount === 0);
-
-    logJson(result);
-    logEnd({ ok: result.ok, wins: result.wins, phantomCrowdCount: result.phantomCrowdCount });
     return result;
   };
 
@@ -21510,6 +21618,125 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       if (randomOverridden) {
         try { Math.random = origRandom; } catch (_) {}
       }
+    }
+  };
+
+  Game.__DEV.smokeBattleProvocation_ZeroPointsOnce = (opts = {}) => {
+    const header = "BATTLE_PROVOCATION_ZERO_POINTS_BEGIN";
+    const footer = "BATTLE_PROVOCATION_ZERO_POINTS_END";
+    const result = {
+      ok: false,
+      attempts: 0,
+      detected: 0,
+      cooldownSkips: 0,
+      refusals: 0,
+      accepted: 0,
+      uniqueRefusals: 0,
+      acceptedBattleIdCount: 0,
+      acceptedBattleIdNullCount: 0,
+      acceptFailedCount: 0,
+      cooldownRangeUsed: null,
+      notes: [],
+      error: null
+    };
+    const busyWait = (ms) => {
+      const wait = Number.isFinite(ms) ? Math.max(0, ms | 0) : 0;
+      const until = Date.now() + wait;
+      while (Date.now() < until) {}
+    };
+    emitLine(`DUMP_AT [${new Date().toISOString().replace("T", " ").slice(0, 19)}]`);
+    emitLine(header);
+    try {
+      const S = Game.__S || null;
+      if (!S || !S.players) {
+        result.error = "state_missing";
+        emitLine(`BATTLE_PROVOCATION_ZERO_POINTS_JSON ${safeStringify(result)}`);
+        emitLine(footer);
+        return result;
+      }
+      const npcId = String((opts && opts.npcId) || "npc_bandit");
+      if (!S.players[npcId]) {
+        result.error = "npc_missing";
+        emitLine(`BATTLE_PROVOCATION_ZERO_POINTS_JSON ${safeStringify(result)}`);
+        emitLine(footer);
+        return result;
+      }
+      const attempts = Number.isFinite(opts && opts.attempts) ? (opts.attempts | 0) : 50;
+      result.attempts = Math.max(1, attempts);
+      const channel = (opts && opts.channel) ? String(opts.channel) : "chat";
+
+      if (Game.__DEV && typeof Game.__DEV.forceSetPoints === "function") {
+        Game.__DEV.forceSetPoints("me", 0, { reason: "dev_smoke_zero_points" });
+      } else {
+        result.notes.push("forceSetPoints_missing");
+        if (S.me) S.me.points = 0;
+        if (S.players && S.players.me) S.players.me.points = 0;
+      }
+
+      const p = S.players[npcId];
+      const npcName = p && p.name ? String(p.name) : npcId;
+      const text = `@${npcName} го батл`;
+      const cooldownRangeForSmoke = (opts && opts.cooldownRangeMs && typeof opts.cooldownRangeMs === "object")
+        ? { min: opts.cooldownRangeMs.min, max: opts.cooldownRangeMs.max }
+        : (opts && opts.devSmoke ? { min: 200, max: 400 } : null);
+      if (cooldownRangeForSmoke) {
+        result.cooldownRangeUsed = cooldownRangeForSmoke;
+      }
+
+      const uniqueRefusals = new Set();
+      for (let i = 0; i < result.attempts; i += 1) {
+        const payload = { senderId: "me", text, channel };
+        if (cooldownRangeForSmoke) payload.cooldownRangeMs = cooldownRangeForSmoke;
+        const res = (Game.__A && typeof Game.__A.handleBattleProvocationZeroPoints === "function")
+          ? Game.__A.handleBattleProvocationZeroPoints(payload)
+          : null;
+        if (res && res.ok) {
+          result.detected += 1;
+          result.cooldownSkips += (res.cooldownSkips || 0);
+          result.refusals += (res.refusals || 0);
+          result.accepted += (res.accepted || 0);
+          result.acceptedBattleIdCount += (res.acceptedBattleIdCount || 0);
+          result.acceptedBattleIdNullCount += (res.acceptedBattleIdNullCount || 0);
+          result.acceptFailedCount += (res.acceptFailedCount || 0);
+          if (res.refusalIdxByNpc && res.refusalIdxByNpc[npcId] != null) {
+            uniqueRefusals.add(res.refusalIdxByNpc[npcId]);
+          }
+          if (res.cooldownRangeUsed) {
+            result.cooldownRangeUsed = res.cooldownRangeUsed;
+          }
+        }
+        if (res && Number.isFinite(res.cooldownSkips) && res.cooldownSkips > 0) {
+          const waitMs = (res.cooldownRangeUsed && Number.isFinite(res.cooldownRangeUsed.max))
+            ? Math.max(0, (res.cooldownRangeUsed.max | 0) + 1)
+            : 400;
+          busyWait(waitMs);
+        }
+      }
+
+      result.uniqueRefusals = uniqueRefusals.size;
+      result.ok = result.accepted > 0 &&
+        result.acceptedBattleIdCount === result.accepted &&
+        result.acceptedBattleIdNullCount === 0 &&
+        result.cooldownSkips > 0 &&
+        result.refusals > result.accepted &&
+        result.uniqueRefusals >= 3;
+      if (!result.ok) {
+        if (result.accepted <= 0) result.notes.push("accepted_zero");
+        if (result.acceptedBattleIdCount !== result.accepted) result.notes.push("accepted_ids_mismatch");
+        if (result.acceptedBattleIdNullCount > 0) result.notes.push("accepted_null");
+        if (result.cooldownSkips <= 0) result.notes.push("cooldown_skips_missing");
+        if (result.refusals <= result.accepted) result.notes.push("refusals_not_greater");
+        if (result.uniqueRefusals < 3) result.notes.push("unique_refusals_low");
+      }
+
+      emitLine(`BATTLE_PROVOCATION_ZERO_POINTS_JSON ${safeStringify(result)}`);
+      emitLine(footer);
+      return result;
+    } catch (err) {
+      result.error = String(err && err.message ? err.message : err);
+      emitLine(`BATTLE_PROVOCATION_ZERO_POINTS_JSON ${safeStringify(result)}`);
+      emitLine(footer);
+      return result;
     }
   };
 

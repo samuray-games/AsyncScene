@@ -68,6 +68,33 @@
 
 ## Inbox
 
+### [T-20260223-001] E[4] Провокация батла через текст при 0 points
+- Status: REVIEW
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: добавить детектор провокации батла при нулевых points и реакцию NPC (refusal/accept) с кулдауном, плюс dev smoke.
+ - Acceptance:
+   - [ ] `isBattleProvocationText` реагирует только когда `senderId=="me"` и `me.points==0`
+   - [ ] упомянутые NPC отвечают с `S.provocationCooldowns`, 10 фраз отказа без повторов подряд, и пока `untilMs > now` реакции не отправляются (log `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`)
+   - [ ] `acceptChance=0.15` вызывает `Conflict.incoming` с `lowEconomyFree` (ограничено `dev || me.points==0`), `PROVOKE_BATTLE_ACCEPTED_V1` логируется только при валидном `battleId`, `PROVOKE_BATTLE_ACCEPT_FAILED_V1` фиксирует неудачи (null/без id), без автопоказа UI
+   - [ ] dev-smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` фиксирует `acceptedBattleIdCount`, `acceptedBattleIdNullCount`, `acceptFailedCount`, `cooldownSkips`, `cooldownRangeUsed` и PASS при `accepted>0`, `acceptedBattleIdCount==accepted`, `acceptedBattleIdNullCount==0`, `cooldownSkips>0`, `refusals>accepted`, `uniqueRefusals>=3`
+ - Notes: без лишних изменений; conflict bypass строго `lowEconomyFree && (dev || me.points==0)`
+ - Result: добавлен обработчик провокации, стор cooldowns, логирование PROVOKE_BATTLE_*_V1, UI-интеграция, узкий bypass `incoming`, dev smoke с новым JSON и паузами.
+ - Report (обязательный формат):
+   - Status: REVIEW
+   - Facts: `Game.__S.provocationCooldowns` теперь хранит `untilMs`+`lastRefusalIdx`, `handleBattleProvocationZeroPoints` отслеживает accept/acceptFailed, логирует accept/refusal/failure/skip, и DM хук запускает входящий battle при low economy; `Conflict.incoming` позволяет `lowEconomyFree` только для dev/me=0; `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` собирает новые метрики, ждёт после skip и возвращает JSON.
+   - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/ui/ui-chat.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+   - How to verify: в `?dev=1` консоли выполнить Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, devSmoke:true }), убедиться что `accepted>0`, `acceptedBattleIdCount==accepted`, `acceptedBattleIdNullCount==0`, `cooldownSkips>0`, `refusals>accepted`, `uniqueRefusals>=3`, в логе есть `PROVOKE_BATTLE_ACCEPTED_V1` без `battleId:null` и `PROVOKE_BATTLE_COOLDOWN_SKIP_V1`; приложить `BATTLE_PROVOCATION_ZERO_POINTS_JSON` (BEGIN/JSON/END) и перевести задачу в PASS.
+   - Next: QA
+   - Next Prompt (копипаст, кодблок обязателен):
+       ```text
+       Ответ QA:
+       Прогони smoke: Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, devSmoke:true }). PASS если ok:true, accepted>0, acceptedBattleIdCount==accepted, acceptedBattleIdNullCount==0, refusals>accepted, uniqueRefusals>=3, cooldownSkips>0; приложи DUMP_AT с BEGIN/JSON/END и переведи T-20260223-001 в PASS (TASKS.md + PROJECT_MEMORY.md).
+       ```
+
 - Status: PASS (Console.txt DUMP_AT 2026-02-22 23:48:28 фиксирует два подряд прогона после hard reload: оба OK (`ok:true`, `resolvedN=3`), `cases.win/lose/draw` заполнены, penaltyApplied только на lose, `diag.stateAfterCleanup` показывает чистый state, и в консоли есть три `BATTLE_RESOLVE_VILLAIN` + `CONFLICT_GUARD_BYPASS_V1`/`CONFLICT_COOLDOWN_BYPASS_V1`)
 - Priority: P1
 - Assignee: Codex-ассистент
@@ -137,39 +164,37 @@
       ```
 
 ### [T-20260223-001] E[3] No phantom crowd после resolve
-- Status: FAIL (смоук не запускался; нужен DUMP_AT)
+- Status: PASS (Console.txt DUMP_AT 2026-02-23 21:40:43 фиксирует `SMOKE_NO_PHANTOM_CROWD_V1_JSON ok:true` с `wins:20`, `draws:0`, `losses:0`, `phantomCrowdCount:0`, и `SMOKE_NO_PHANTOM_CROWD_V1_END ok:true`; в дампе также есть `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1`, без новых crowd после resolved боёв)
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Conflict|UI
 - Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: диагностировать и устранить рассинхрон resolve vs crowd, чтобы crowd не включалась после финального win/lose.
+- Goal: диагностировать и устранить рассинхрон resolve vs crowd, чтобы финальный resolve win/lose/draw не включал crowd из воздуха.
 - Acceptance:
-  - [ ] `BATTLE_RESOLVE_DIAG_V1` логируется один раз на battleId при финальном результате.
-  - [ ] `BATTLE_CROWD_SET_DIAG_V1` логируется один раз на battleId при старте crowd; `BATTLE_CROWD_SUPPRESSED_DIAG_V1` пишет reason:"already_resolved" если crowd пытаются ставить после финала.
-  - [ ] `BATTLE_UI_DECISION_DIAG_V1` логируется один раз на battleId с UI-решением.
-  - [ ] Smoke `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` PASS: wins=20 и phantomCrowdCount=0.
+  - [x] `BATTLE_RESOLVE_DIAG_V1` логируется один раз на battleId при финальном результате.
+  - [x] `BATTLE_CROWD_SET_DIAG_V1` появляется один раз, `BATTLE_CROWD_SUPPRESSED_DIAG_V1` блокирует crowd после resolved/result≠draw.
+  - [x] `BATTLE_UI_DECISION_DIAG_V1` логирует UI-решение по battleId.
+  - [x] Smoke `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` PASS: `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, `badBattleIds==[]`.
 - Notes: Console.txt не трогать; без изменений экономики.
-- Result: FAIL (смоук не запускался; нужен DUMP_AT)
+- Result: PASS (см. DUMP_AT 2026-02-23 21:40:43: ok:true, 20 побед, 0 draw/loss, 0 phantom crowd, `badBattleIds` пустые, `tailReasons` содержит последние resolve-маркеры)
 - Report:
-  - Status: FAIL
+  - Status: PASS
   - Facts:
-    (1) `conflict-core` добавил `BATTLE_RESOLVE_DIAG_V1` (one-shot per battleId) и guard в `startCrowdVoteTimer`, suppressing crowd after resolved with `BATTLE_CROWD_SUPPRESSED_DIAG_V1`.
-    (2) `conflict-api` добавил `BATTLE_CROWD_SET_DIAG_V1` (one-shot per battleId) + suppression при resolved/result!=draw, и общий dev diag trail.
-    (3) `ui-battles` читает свежий battle из `Game.__S.battles` и логирует `BATTLE_UI_DECISION_DIAG_V1` один раз на battleId.
-    (4) `dev-checks` добавил `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` с BEGIN/JSON/END и `tailReasons` из diag trail.
+    (1) `conflict-core`/`conflict-api`/`ui-battles` добавили одноразовые `BATTLE_*_DIAG_V1` и guard-ы `crowd`/`resolved`, что исключает crowd после финального резолва.
+    (2) `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` собирает `tailReasons`, `badBattleIds`, проверяет `phantomCrowdCount`, и DUMP_AT 2026-02-23 21:40:43 подтверждает `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`.
   - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
     (1) Hard reload `http://localhost:8080/index.html?dev=1`.
     (2) Run `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })`.
-    (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20` и `phantomCrowdCount==0`, а в Console есть `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1`.
+    (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, `tailReasons` содержит финальные resolve-маркеры, и Console содержит `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1` без crowd после resolve.
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       Ответ Проверяющего:
       (1) Hard reload http://localhost:8080/index.html?dev=1.
       (2) Run `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })`.
-      (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20` и `phantomCrowdCount==0`, а в Console есть `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1`. Приложи DUMP_AT.
+      (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, `tailReasons` содержит финальные resolve-маркеры, и Console содержит `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1` без дополнительного crowd; приложи DUMP_AT.
       ```
 
 

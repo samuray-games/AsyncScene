@@ -1233,6 +1233,15 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         if (!curId) return;
         const target = getS().players[curId];
         dmPushLine(curId, getS().me.name, text);
+        try {
+          if (Game.__A && typeof Game.__A.handleBattleProvocationZeroPoints === "function") {
+            Game.__A.handleBattleProvocationZeroPoints({
+              senderId: "me",
+              text,
+              channel: "dm"
+            });
+          }
+        } catch (_) {}
 
         // --- Агрессия toxic/bandit в DM ---
         (function() {

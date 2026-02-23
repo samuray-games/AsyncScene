@@ -2334,7 +2334,11 @@
   C.incoming = function (opponentId, opts) {
     const optz = (opts && typeof opts === "object") ? opts : {};
     const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
-    const allowZeroPoints = optz.lowEconomyFree === true || optz.allowZeroPoints === true;
+    const me = Game.__S && Game.__S.me ? Game.__S.me : null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const allowZeroPoints =
+      (optz.lowEconomyFree === true && (conflictMode === "dev" || mePoints <= 0)) ||
+      (optz.allowZeroPoints === true && conflictMode === "dev");
     try {
       if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
         if (Game.__A.isNpcJailed(opponentId)) return null;
