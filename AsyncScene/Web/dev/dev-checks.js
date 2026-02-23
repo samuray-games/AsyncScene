@@ -21751,9 +21751,15 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       }
 
       result.uniqueRefusals = uniqueRefusals.size;
-      result.acceptedRate = result.attempts > 0 ? (result.accepted / result.attempts) : 0;
+      const eligibleAttempts = result.accepted + result.refusals;
+      const acceptedRateEligible = eligibleAttempts > 0 ? (result.accepted / eligibleAttempts) : 0;
+      const acceptedRateAll = result.attempts > 0 ? (result.accepted / result.attempts) : 0;
+      result.acceptedRateEligible = acceptedRateEligible;
+      result.acceptedRateAll = acceptedRateAll;
+      result.acceptedRate = acceptedRateAll;
+      result.eligibleAttempts = eligibleAttempts;
       result.assertRange = [ACCEPT_RATE_ASSERT_RANGE.min, ACCEPT_RATE_ASSERT_RANGE.max];
-      const rateOk = result.acceptedRate >= ACCEPT_RATE_ASSERT_RANGE.min && result.acceptedRate <= ACCEPT_RATE_ASSERT_RANGE.max;
+      const rateOkEligible = acceptedRateEligible >= ACCEPT_RATE_ASSERT_RANGE.min && acceptedRateEligible <= ACCEPT_RATE_ASSERT_RANGE.max;
       const dmOk = result.dmSentCount === result.refusals;
       const incomingNullCount = (result.acceptFailedReasons && Number.isFinite(result.acceptFailedReasons.incoming_null))
         ? (result.acceptFailedReasons.incoming_null | 0)
@@ -21765,7 +21771,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         result.cooldownSkips > 0 &&
         result.refusals > result.accepted &&
         result.uniqueRefusals >= 3 &&
-        rateOk &&
+        rateOkEligible &&
         dmOk;
       try {
         const diagArr = (Game.__D && Array.isArray(Game.__D.provokeIncomingDiagV1)) ? Game.__D.provokeIncomingDiagV1 : [];
@@ -21784,7 +21790,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         if (result.refusals <= result.accepted) result.notes.push("refusals_not_greater");
         if (result.uniqueRefusals < 3) result.notes.push("unique_refusals_low");
       }
-      if (!rateOk) result.notes.push("accepted_rate_out_of_range");
+      if (!rateOkEligible) result.notes.push("accepted_rate_eligible_out_of_range");
       if (!dmOk) result.notes.push("dm_count_mismatch");
 
       emitLine(`BATTLE_PROVOCATION_ZERO_POINTS_JSON ${safeStringify(result)}`);
