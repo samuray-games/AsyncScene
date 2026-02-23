@@ -1024,6 +1024,14 @@
   - Все события идут без direct transferPoints (только free scenes) и low economy остаётся включённым (`lowEconomySeen:true` в JSON).
 - Changed: `AsyncScene/Web/ui/ui-loops.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
 
+### 2026-02-23 — E[3] No phantom crowd после resolve (smoke pending)
+- Status: FAIL (смоук не запускался; нужен DUMP_AT)
+- Facts:
+  - Добавлены diag-маркеры: `BATTLE_RESOLVE_DIAG_V1` (conflict-core), `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1` (conflict-api), `BATTLE_UI_DECISION_DIAG_V1` (ui-battles), все one-shot per battleId с dev trail.
+  - `startCrowdVoteTimer` suppresses crowd when battle уже resolved/result!=draw, а `ensureCrowdVoteStarted` блокирует crowd set при resolved и пишет suppression diag.
+  - Dev-smoke `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` добавлен, собирает `tailReasons` по battleId и проверяет `wins==20` и `phantomCrowdCount==0`.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js`, `AsyncScene/Web/conflict/conflict-api.js`, `AsyncScene/Web/ui/ui-battles.js`, `AsyncScene/Web/dev/dev-checks.js`, `PROJECT_MEMORY.md`, `TASKS.md`
+
 6) Дополнение: компенсация после ограбления (если применимо)
 - Если игрок пострадал от злодея (токсик/бандит снял points), и немедленно успешно сдаёт его копу:
   - украденные points возвращаются от злодея обратно игроку

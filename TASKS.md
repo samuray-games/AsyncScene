@@ -136,6 +136,42 @@
       (3) PASS, если Console содержит `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `SMOKE_ZERO_POINTS_ASSERT_V1 ok:true`, `EVENT_LOW_ECON_MODE_V2 enabled:true`, `EVENT_GEN_SKIP_V1` с reason, `EVENT_SILENT_BREAKER_V1`, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`. Приложи DUMP_AT.
       ```
 
+### [T-20260223-001] E[3] No phantom crowd после resolve
+- Status: FAIL (смоук не запускался; нужен DUMP_AT)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict|UI
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: диагностировать и устранить рассинхрон resolve vs crowd, чтобы crowd не включалась после финального win/lose.
+- Acceptance:
+  - [ ] `BATTLE_RESOLVE_DIAG_V1` логируется один раз на battleId при финальном результате.
+  - [ ] `BATTLE_CROWD_SET_DIAG_V1` логируется один раз на battleId при старте crowd; `BATTLE_CROWD_SUPPRESSED_DIAG_V1` пишет reason:"already_resolved" если crowd пытаются ставить после финала.
+  - [ ] `BATTLE_UI_DECISION_DIAG_V1` логируется один раз на battleId с UI-решением.
+  - [ ] Smoke `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` PASS: wins=20 и phantomCrowdCount=0.
+- Notes: Console.txt не трогать; без изменений экономики.
+- Result: FAIL (смоук не запускался; нужен DUMP_AT)
+- Report:
+  - Status: FAIL
+  - Facts:
+    (1) `conflict-core` добавил `BATTLE_RESOLVE_DIAG_V1` (one-shot per battleId) и guard в `startCrowdVoteTimer`, suppressing crowd after resolved with `BATTLE_CROWD_SUPPRESSED_DIAG_V1`.
+    (2) `conflict-api` добавил `BATTLE_CROWD_SET_DIAG_V1` (one-shot per battleId) + suppression при resolved/result!=draw, и общий dev diag trail.
+    (3) `ui-battles` читает свежий battle из `Game.__S.battles` и логирует `BATTLE_UI_DECISION_DIAG_V1` один раз на battleId.
+    (4) `dev-checks` добавил `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce` с BEGIN/JSON/END и `tailReasons` из diag trail.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    (1) Hard reload `http://localhost:8080/index.html?dev=1`.
+    (2) Run `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })`.
+    (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20` и `phantomCrowdCount==0`, а в Console есть `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1`.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Проверяющего:
+      (1) Hard reload http://localhost:8080/index.html?dev=1.
+      (2) Run `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })`.
+      (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20` и `phantomCrowdCount==0`, а в Console есть `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1`. Приложи DUMP_AT.
+      ```
+
 
 ### [T-20260220-009] D[2] Толпа — epoch_ms timer + stall gating + diag
 - Status: DOING (код обновлён, смоук ещё не прогонялся)

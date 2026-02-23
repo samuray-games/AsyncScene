@@ -1,0 +1,825 @@
+[DUMP_AT] [2026-02-23 21:12:05] (epoch_ms=1771848725083)
+[DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1771848667860
+WARN DEV_SW_DISABLED true
+WARN CONSOLE_TAPE_V1_READY
+WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1771848667916}
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1771848667875 1771848667916
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1771848667916
+WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1771848667917}
+LOG ECON08_RESPECT_ENTRYPOINT_READY
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1771848667931}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1771848667933}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: init
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [AttackChoices] conflict-arguments loaded 1771848667936
+LOG [ConflictAPI] ready
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1771848667939, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1771848667941}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1771848667941}
+WARN CONSOLE_PANEL_V1_READY
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1771848690755_4e236b3e380068 Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })
+WARN [repl] > Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })
+WARN SMOKE_NO_PHANTOM_CROWD_V1_BEGIN Object{allowParallel: true, answerMode: always_correct, n: 20, name: smoke_battle_no_phantom_crowd_20wins_once}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynnz_omrnj7, battleStatus: pickDefense, nowMs: 1771848690777, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynnz_omrnj7, endedBy: null, nowMs: 1771848690787, result: win, statusAfter: finished, statusBefore: pickDefense, winnerId: null}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynoo_8v4ct0, battleStatus: pickDefense, nowMs: 1771848690793, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynoo_8v4ct0, endedBy: null, nowMs: 1771848690795, result: win, statusAfter: finished, statusBefore: pickDefense, winnerId: null}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynor_wkhzlm, battleStatus: pickDefense, nowMs: 1771848690796, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynor_wkhzlm, endedBy: null, nowMs: 1771848690798, result: win, statusAfter: finished, statusBefore: pickDefense, winnerId: null}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynou_fjl4dd, battleStatus: pickDefense, nowMs: 1771848690799, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynou_fjl4dd, endedBy: null, nowMs: 1771848690802, result: win, statusAfter: finished, statusBefore: pickDefense, winnerId: null}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynoz_53nxr5, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynoz_53nxr5
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynoz_53nxr5, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynoz_53nxr5, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynoz_53nxr5, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690803, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynoz_53nxr5, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynoz_53nxr5, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690804, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynoz_53nxr5, endedBy: null, nowMs: 1771848690804, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynoz_53nxr5, battleStatus: draw, nowMs: 1771848690804, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynoz_53nxr5, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690805, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynp5_55t5qt, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynp5_55t5qt
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynp5_55t5qt, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynp5_55t5qt, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynp5_55t5qt, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690809, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynp5_55t5qt, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynp5_55t5qt, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690810, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynp5_55t5qt, endedBy: null, nowMs: 1771848690810, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynp5_55t5qt, battleStatus: draw, nowMs: 1771848690810, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynp5_55t5qt, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690810, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynp9_ape7h7, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynp9_ape7h7
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynp9_ape7h7, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynp9_ape7h7, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynp9_ape7h7, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690814, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynp9_ape7h7, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynp9_ape7h7, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690814, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynp9_ape7h7, endedBy: null, nowMs: 1771848690814, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynp9_ape7h7, battleStatus: draw, nowMs: 1771848690814, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynp9_ape7h7, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690814, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynpf_vgm8lo
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynpf_vgm8lo, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynpf_vgm8lo, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690819, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690819, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, endedBy: null, nowMs: 1771848690819, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, battleStatus: draw, nowMs: 1771848690820, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpf_vgm8lo, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690820, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynpj_53mok6, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynpj_53mok6
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynpj_53mok6, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynpj_53mok6, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynpj_53mok6, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690823, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynpj_53mok6, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpj_53mok6, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690824, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynpj_53mok6, endedBy: null, nowMs: 1771848690824, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynpj_53mok6, battleStatus: draw, nowMs: 1771848690824, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpj_53mok6, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690824, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynpo_4p3lgs
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynpo_4p3lgs, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynpo_4p3lgs, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690828, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690828, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, endedBy: null, nowMs: 1771848690828, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, battleStatus: draw, nowMs: 1771848690829, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpo_4p3lgs, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690829, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynps_pyso07, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynps_pyso07
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynps_pyso07, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynps_pyso07, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynps_pyso07, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690832, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynps_pyso07, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynps_pyso07, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690833, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynps_pyso07, endedBy: null, nowMs: 1771848690833, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynps_pyso07, battleStatus: draw, nowMs: 1771848690834, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynps_pyso07, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690834, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynpy_ki78r0, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynpy_ki78r0
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynpy_ki78r0, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynpy_ki78r0, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynpy_ki78r0, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690838, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynpy_ki78r0, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpy_ki78r0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690839, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynpy_ki78r0, endedBy: null, nowMs: 1771848690839, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynpy_ki78r0, battleStatus: draw, nowMs: 1771848690839, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynpy_ki78r0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690839, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynq3_4tw7jh
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynq3_4tw7jh, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynq3_4tw7jh, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690843, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690843, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, endedBy: null, nowMs: 1771848690843, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, battleStatus: draw, nowMs: 1771848690843, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynq3_4tw7jh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690843, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynq7_xigutl, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynq7_xigutl
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynq7_xigutl, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynq7_xigutl, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynq7_xigutl, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690847, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynq7_xigutl, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynq7_xigutl, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690847, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynq7_xigutl, endedBy: null, nowMs: 1771848690847, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynq7_xigutl, battleStatus: draw, nowMs: 1771848690848, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynq7_xigutl, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690848, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynqc_ojyc29, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynqc_ojyc29
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynqc_ojyc29, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynqc_ojyc29, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynqc_ojyc29, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690852, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynqc_ojyc29, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqc_ojyc29, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690852, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynqc_ojyc29, endedBy: null, nowMs: 1771848690852, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynqc_ojyc29, battleStatus: draw, nowMs: 1771848690853, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqc_ojyc29, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690853, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynqh_knqyvj, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynqh_knqyvj
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynqh_knqyvj, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynqh_knqyvj, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynqh_knqyvj, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690857, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynqh_knqyvj, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqh_knqyvj, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690857, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynqh_knqyvj, endedBy: null, nowMs: 1771848690857, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynqh_knqyvj, battleStatus: draw, nowMs: 1771848690857, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqh_knqyvj, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690857, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynql_mr4vz9, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynql_mr4vz9
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynql_mr4vz9, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynql_mr4vz9, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynql_mr4vz9, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690861, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynql_mr4vz9, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynql_mr4vz9, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690862, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynql_mr4vz9, endedBy: null, nowMs: 1771848690862, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynql_mr4vz9, battleStatus: draw, nowMs: 1771848690862, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynql_mr4vz9, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690862, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynqq_femhgi, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynqq_femhgi
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynqq_femhgi, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynqq_femhgi, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynqq_femhgi, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690867, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynqq_femhgi, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqq_femhgi, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690867, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynqq_femhgi, endedBy: null, nowMs: 1771848690867, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynqq_femhgi, battleStatus: draw, nowMs: 1771848690868, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqq_femhgi, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690868, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynqw_cs9tg0
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynqw_cs9tg0, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynqw_cs9tg0, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690872, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690873, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, endedBy: null, nowMs: 1771848690873, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, battleStatus: draw, nowMs: 1771848690873, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynqw_cs9tg0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690873, reason: already_resolved, resultIfAny: draw}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: no_points, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mlz4ynr1_x263wh, cap: 19, eligibleCount: 18, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 1, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mlz4ynr1_x263wh
+  cap: 19
+  eligibleCount: 18
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 1
+  meIncluded: true
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mlz4ynr1_x263wh, eventId: null, samples: [Object{id: npc_weak, pts: 0, reason: zero_pts}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mlz4ynr1_x263wh, cap: 19, eligibleCount: 18, eventId: null, meIncluded: true}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mlz4ynr1_x263wh, cap: 19, eventId: null, seed: null, startedAtMs: 1771848690877, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mlz4ynr1_x263wh, cap: 19, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynr1_x263wh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690878, reason: already_resolved, resultIfAny: draw}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mlz4ynr1_x263wh, endedBy: null, nowMs: 1771848690878, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4ynr1_x263wh, battleStatus: draw, nowMs: 1771848690878, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mlz4ynr1_x263wh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690878, reason: already_resolved, resultIfAny: draw}
+WARN SMOKE_NO_PHANTOM_CROWD_V1_JSON Object{answerMode: always_correct, badBattleIds: [battle_mlz4ynoz_53nxr5, battle_mlz4ynp5_55t5qt, battle_mlz4ynp9_ape7h7, battle_mlz4ynpf_vgm8lo, battle_mlz4ynpj_53mok6, battle_mlz4ynpo_4p3lgs, battle_mlz4ynps_pyso07, battle_mlz4ynpy_ki78r0, battle_mlz4ynq3_4tw7jh, battle_mlz4ynq7_xigutl, battle_mlz4ynqc_ojyc29, battle_mlz4ynqh_knqyvj, battle_mlz4ynql_mr4vz9, battle_mlz4ynqq_femhgi, battle_mlz4ynqw_cs9tg0, battle_mlz4ynr1_x263wh], n: 20, name: smoke_battle_no_phantom_crowd_20wins_once, notes: [], ok: false, phantomCrowdCount: 0, tailReasons: [Object{battleId: battle_mlz4ynqq_femhgi, nowMs: 1771848690868, payload: Object{battleId: battle_mlz4ynqq_femhgi, battleStatus: draw, nowMs: 1771848690868, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynqq_femhgi, nowMs: 1771848690868, payload: Object{battleId: battle_mlz4ynqq_femhgi, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690868, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{reason: already_resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, endedBy: null, nowMs: 1771848690873, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, battleStatus: draw, nowMs: 1771848690873, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690873, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{reason: already_resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, endedBy: null, nowMs: 1771848690878, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, battleStatus: draw, nowMs: 1771848690878, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690878, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}], wins: 4}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  answerMode: always_correct
+  badBattleIds: [
+    battle_mlz4ynoz_53nxr5
+    battle_mlz4ynp5_55t5qt
+    battle_mlz4ynp9_ape7h7
+    battle_mlz4ynpf_vgm8lo
+    battle_mlz4ynpj_53mok6
+    battle_mlz4ynpo_4p3lgs
+    battle_mlz4ynps_pyso07
+    battle_mlz4ynpy_ki78r0
+    battle_mlz4ynq3_4tw7jh
+    battle_mlz4ynq7_xigutl
+    battle_mlz4ynqc_ojyc29
+    battle_mlz4ynqh_knqyvj
+    battle_mlz4ynql_mr4vz9
+    battle_mlz4ynqq_femhgi
+    battle_mlz4ynqw_cs9tg0
+    battle_mlz4ynr1_x263wh
+  ]
+  n: 20
+ …
+LOG END CONSOLE_EXPAND_V1
+WARN SMOKE_NO_PHANTOM_CROWD_V1_END Object{ok: false, phantomCrowdCount: 0, wins: 4}
+LOG [repl] < Object{answerMode: always_correct, badBattleIds: [battle_mlz4ynoz_53nxr5, battle_mlz4ynp5_55t5qt, battle_mlz4ynp9_ape7h7, battle_mlz4ynpf_vgm8lo, battle_mlz4ynpj_53mok6, battle_mlz4ynpo_4p3lgs, battle_mlz4ynps_pyso07, battle_mlz4ynpy_ki78r0, battle_mlz4ynq3_4tw7jh, battle_mlz4ynq7_xigutl, battle_mlz4ynqc_ojyc29, battle_mlz4ynqh_knqyvj, battle_mlz4ynql_mr4vz9, battle_mlz4ynqq_femhgi, battle_mlz4ynqw_cs9tg0, battle_mlz4ynr1_x263wh], n: 20, name: smoke_battle_no_phantom_crowd_20wins_once, notes: [], ok: false, phantomCrowdCount: 0, tailReasons: [Object{battleId: battle_mlz4ynqq_femhgi, nowMs: 1771848690868, payload: Object{battleId: battle_mlz4ynqq_femhgi, battleStatus: draw, nowMs: 1771848690868, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynqq_femhgi, nowMs: 1771848690868, payload: Object{battleId: battle_mlz4ynqq_femhgi, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690868, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{reason: already_resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, endedBy: null, nowMs: 1771848690873, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, battleStatus: draw, nowMs: 1771848690873, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690873, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{reason: already_resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, endedBy: null, nowMs: 1771848690878, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, battleStatus: draw, nowMs: 1771848690878, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690878, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}], wins: 4}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  answerMode: always_correct
+  badBattleIds: [
+    battle_mlz4ynoz_53nxr5
+    battle_mlz4ynp5_55t5qt
+    battle_mlz4ynp9_ape7h7
+    battle_mlz4ynpf_vgm8lo
+    battle_mlz4ynpj_53mok6
+    battle_mlz4ynpo_4p3lgs
+    battle_mlz4ynps_pyso07
+    battle_mlz4ynpy_ki78r0
+    battle_mlz4ynq3_4tw7jh
+    battle_mlz4ynq7_xigutl
+    battle_mlz4ynqc_ojyc29
+    battle_mlz4ynqh_knqyvj
+    battle_mlz4ynql_mr4vz9
+    battle_mlz4ynqq_femhgi
+    battle_mlz4ynqw_cs9tg0
+    battle_mlz4ynr1_x263wh
+  ]
+  n: 20
+ …
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, wins, phantomCrowdCount, badBattleIds, tailReasons, notes, n, answerMode], preview: Object{answerMode: always_correct, badBattleIds: [battle_mlz4ynoz_53nxr5, battle_mlz4ynp5_55t5qt, battle_mlz4ynp9_ape7h7, battle_mlz4ynpf_vgm8lo, battle_mlz4ynpj_53mok6, battle_mlz4ynpo_4p3lgs, battle_mlz4ynps_pyso07, battle_mlz4ynpy_ki78r0, battle_mlz4ynq3_4tw7jh, battle_mlz4ynq7_xigutl, battle_mlz4ynqc_ojyc29, battle_mlz4ynqh_knqyvj, battle_mlz4ynql_mr4vz9, battle_mlz4ynqq_femhgi, battle_mlz4ynqw_cs9tg0, battle_mlz4ynr1_x263wh], n: 20, name: smoke_battle_no_phantom_crowd_20wins_once, notes: []…, type: object}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  isPromise: 0
+  keys: [
+    name
+    ok
+    wins
+    phantomCrowdCount
+    badBattleIds
+    tailReasons
+    notes
+    n
+    answerMode
+  ]
+  preview: Object{answerMode: always_correct, badBattleIds: [battle_mlz4ynoz_53nxr5, battle_mlz4ynp5_55t5qt, battle_mlz4ynp9_ape7h7, battle_mlz4ynpf_vgm8lo, battle_mlz4ynpj_53mok6, battle_mlz4ynpo_4p3lgs, battle_mlz4ynps_pyso07, battle_mlz4ynpy_ki78r0, battle_mlz4ynq3_4tw7jh, battle_mlz4ynq7_xigutl, battle_mlz4ynqc_ojyc29, battle_mlz4ynqh_knqyvj, bat…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, wins, phantomCrowdCount, badBattleIds, tailReasons, notes, n, answerMode], preview: Object{
+  answerMode: always_correct
+  badBattleIds: [
+    battle_mlz4ynoz_53nxr5
+    battle_mlz4ynp5_55t5qt
+    battle_mlz4ynp9_ape7h7
+    battle_mlz4ynpf_vgm8lo
+    battle_mlz4ynpj_53mok6
+    battle_mlz4ynpo_4p3lgs
+    battle_mlz4ynps_pyso07
+    battle_mlz4ynpy_ki78r0
+    battle_mlz4ynq3_4tw7jh
+    battle_mlz4ynq7_xigutl
+    battle_mlz4ynqc_ojyc29
+    battle_mlz4ynqh_knqyvj
+    battle_mlz4ynql_mr4vz9
+    battle_mlz4ynqq_femhgi
+    battle_mlz4ynqw_cs9tg0
+    battle_mlz4ynr1_x263wh
+  ]
+  n: 20
+ …, type: object}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  isPromise: 0
+  keys: [
+    name
+    ok
+    wins
+    phantomCrowdCount
+    badBattleIds
+    tailReasons
+    notes
+    n
+    answerMode
+  ]
+  preview: Object{
+  answerMode: always_correct
+  badBattleIds: [
+    battle_mlz4ynoz_53nxr5
+    battle_mlz4ynp5_55t5qt
+    battle_mlz4ynp9_ape7h7
+    battle_mlz4ynpf_vgm8lo
+    battle_mlz4ynpj_53mok6
+    battle_mlz4ynpo_4p3lgs
+    battle_mlz4ynps_pyso07
+    battle_mlz4ynpy_ki78r0
+    battle_mlz4ynq3_4tw7jh
+    battle_mlz4ynq7_xigutl
+    battle_mlz4y…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_OK id=panel_1771848690755_4e236b3e380068 Object{answerMode: always_correct, badBattleIds: [battle_mlz4ynoz_53nxr5, battle_mlz4ynp5_55t5qt, battle_mlz4ynp9_ape7h7, battle_mlz4ynpf_vgm8lo, battle_mlz4ynpj_53mok6, battle_mlz4ynpo_4p3lgs, battle_mlz4ynps_pyso07, battle_mlz4ynpy_ki78r0, battle_mlz4ynq3_4tw7jh, battle_mlz4ynq7_xigutl, battle_mlz4ynqc_ojyc29, battle_mlz4ynqh_knqyvj, battle_mlz4ynql_mr4vz9, battle_mlz4ynqq_femhgi, battle_mlz4ynqw_cs9tg0, battle_mlz4ynr1_x263wh], n: 20, name: smoke_battle_no_phantom_crowd_20wins_once, notes: [], ok: false, phantomCrowdCount: 0, tailReasons: [Object{battleId: battle_mlz4ynqq_femhgi, nowMs: 1771848690868, payload: Object{battleId: battle_mlz4ynqq_femhgi, battleStatus: draw, nowMs: 1771848690868, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynqq_femhgi, nowMs: 1771848690868, payload: Object{battleId: battle_mlz4ynqq_femhgi, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690868, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{reason: already_resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, endedBy: null, nowMs: 1771848690873, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, battleStatus: draw, nowMs: 1771848690873, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynqw_cs9tg0, nowMs: 1771848690873, payload: Object{battleId: battle_mlz4ynqw_cs9tg0, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690873, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{reason: already_resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, endedBy: null, nowMs: 1771848690878, result: draw, statusAfter: draw, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, battleStatus: draw, nowMs: 1771848690878, resultIfAny: draw, sourceKey: renderBattles, uiThinksCrowd: true, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{battleId: battle_mlz4ynr1_x263wh, nowMs: 1771848690878, payload: Object{battleId: battle_mlz4ynr1_x263wh, battleResolvedFlag: true, battleStatus: draw, nowMs: 1771848690878, reason: already_resolved, resultIfAny: draw}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}], wins: 4}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  answerMode: always_correct
+  badBattleIds: [
+    battle_mlz4ynoz_53nxr5
+    battle_mlz4ynp5_55t5qt
+    battle_mlz4ynp9_ape7h7
+    battle_mlz4ynpf_vgm8lo
+    battle_mlz4ynpj_53mok6
+    battle_mlz4ynpo_4p3lgs
+    battle_mlz4ynps_pyso07
+    battle_mlz4ynpy_ki78r0
+    battle_mlz4ynq3_4tw7jh
+    battle_mlz4ynq7_xigutl
+    battle_mlz4ynqc_ojyc29
+    battle_mlz4ynqh_knqyvj
+    battle_mlz4ynql_mr4vz9
+    battle_mlz4ynqq_femhgi
+    battle_mlz4ynqw_cs9tg0
+    battle_mlz4ynr1_x263wh
+  ]
+  n: 20
+ …
+LOG END CONSOLE_EXPAND_V1
+WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_sad, targetId: npc_yuna, type: npc_event}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mlz4z3xm_r7k2vc, battleStatus: pickDefense, nowMs: 1771848711858, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_bandit, targetId: me, type: incoming_battle}
+

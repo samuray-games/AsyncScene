@@ -68,6 +68,36 @@
     } catch (_) {}
   }
 
+  const _battleResolveDiagOnce = new Set();
+  function _pushBattleDiagTrail(battleId, tag, payload){
+    try {
+      const dev = Game && Game.__DEV;
+      if (dev && typeof dev.__pushBattleDiagTrail === "function") {
+        dev.__pushBattleDiagTrail(battleId, tag, payload);
+      }
+    } catch (_) {}
+  }
+
+  function logBattleResolveDiagOnce(b, result, endedBy, statusBefore, statusAfter){
+    try {
+      if (conflictMode !== "dev") return;
+      const battleId = b && (b.id || b.battleId);
+      if (!battleId || _battleResolveDiagOnce.has(battleId)) return;
+      _battleResolveDiagOnce.add(battleId);
+      const payload = {
+        battleId,
+        result: result || null,
+        winnerId: (b && (b.winnerId || (b.crowd && b.crowd.winnerId))) || null,
+        endedBy: endedBy || null,
+        nowMs: Date.now(),
+        statusBefore: statusBefore || null,
+        statusAfter: statusAfter || null
+      };
+      console.warn("BATTLE_RESOLVE_DIAG_V1", payload);
+      _pushBattleDiagTrail(battleId, "BATTLE_RESOLVE_DIAG_V1", payload);
+    } catch (_) {}
+  }
+
   function logGuardBypass(stage, reason, villainId, key){
     try {
       console.warn("CONFLICT_GUARD_BYPASS_V1", {
@@ -1675,6 +1705,7 @@
 
   function finalizeCrowdVote(b, opts){
     if (!isBattleInDraw(b)) return null;
+    const statusBefore = b.status || null;
     const v = b.crowd;
     const force = !!(opts && opts.force);
     if (!v) return null;
@@ -1802,6 +1833,7 @@
     if (shouldLogVillain) {
       logBattleResolveVillain(b, b.result, penaltyApplied, oppRole);
     }
+    logBattleResolveDiagOnce(b, b.result, endedBy || null, statusBefore, b.status || null);
     announceBattleResult(b);
 
     return {
@@ -2181,6 +2213,24 @@
 
   function startCrowdVoteTimer(b){
     if (!isBattleInDraw(b)) return;
+    if (b && (b.resolved || b.status === "finished" || (b.result && b.result !== "draw"))) {
+      try {
+        if (conflictMode === "dev") {
+          console.warn("BATTLE_CROWD_SUPPRESSED_DIAG_V1", {
+            battleId: b.id || b.battleId || null,
+            reason: "already_resolved",
+            nowMs: Date.now(),
+            battleStatus: b.status || null,
+            battleResolvedFlag: !!b.resolved,
+            resultIfAny: b.result || null
+          });
+          _pushBattleDiagTrail(b.id || b.battleId || null, "BATTLE_CROWD_SUPPRESSED_DIAG_V1", {
+            reason: "already_resolved"
+          });
+        }
+      } catch (_) {}
+      return;
+    }
     if (b._crowdTimer) return;
     if (!b.crowd) {
       logCrowdDiag(null, b.id || b.battleId || null, "state_missing");
@@ -2501,6 +2551,7 @@
   C.finalize = function (battleId, outcome) {
     const b = Game.__S.battles.find(x => x.id === battleId);
     if (!b || b.resolved) return;
+    const statusBefore = b.status || null;
 
     // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
     // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
@@ -2723,6 +2774,7 @@
       if (shouldLogVillain) {
         logBattleResolveVillain(b, "draw", false, oppRole);
       }
+      logBattleResolveDiagOnce(b, "draw", b.endedBy || (b.crowd && b.crowd.endedBy) || null, statusBefore, b.status || null);
       return;
     }
 
@@ -2767,6 +2819,7 @@
     if (shouldLogVillain) {
       logBattleResolveVillain(b, outcome, penaltyApplied, oppRole);
     }
+    logBattleResolveDiagOnce(b, outcome, b.endedBy || null, statusBefore, b.status || null);
     announceBattleResult(b);
   };
 

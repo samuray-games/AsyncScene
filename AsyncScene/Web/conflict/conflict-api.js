@@ -374,9 +374,65 @@
      return true;
    }
 
+   const _crowdSetDiagOnce = new Set();
+   function _conflictApiIsDev(){
+     if (typeof window === "undefined") return false;
+     if (window.__DEV__ === true || window.DEV === true) return true;
+     try {
+       const params = new URLSearchParams(window.location && window.location.search ? window.location.search : "");
+       return params.get("dev") === "1";
+     } catch (_) {}
+     return false;
+   }
+   function _pushBattleDiagTrail(battleId, tag, payload){
+     try {
+       const dev = Game && Game.__DEV;
+       if (dev && typeof dev.__pushBattleDiagTrail === "function") {
+         dev.__pushBattleDiagTrail(battleId, tag, payload);
+       }
+     } catch (_) {}
+   }
+   function _logCrowdSetDiagOnce(b, by, why){
+     try {
+       if (!_conflictApiIsDev()) return;
+       const battleId = b && (b.id || b.battleId);
+       if (!battleId || _crowdSetDiagOnce.has(battleId)) return;
+       _crowdSetDiagOnce.add(battleId);
+       const payload = {
+         battleId,
+         by: by || null,
+         why: why || null,
+         nowMs: Date.now(),
+         battleStatus: b.status || null,
+         battleResolvedFlag: !!b.resolved,
+         resultIfAny: b.result || null
+       };
+       console.warn("BATTLE_CROWD_SET_DIAG_V1", payload);
+       _pushBattleDiagTrail(battleId, "BATTLE_CROWD_SET_DIAG_V1", payload);
+     } catch (_) {}
+   }
+
    function ensureCrowdVoteStarted(battleId) {
      const b = findBattle(battleId);
      if (!b) return false;
+
+     if (b.resolved || b.status === "finished" || (b.result && b.result !== "draw")) {
+       try {
+         if (_conflictApiIsDev()) {
+           const payload = {
+             battleId: b.id || b.battleId || null,
+             reason: "already_resolved",
+             nowMs: Date.now(),
+             battleStatus: b.status || null,
+             battleResolvedFlag: !!b.resolved,
+             resultIfAny: b.result || null
+           };
+           console.warn("BATTLE_CROWD_SUPPRESSED_DIAG_V1", payload);
+           _pushBattleDiagTrail(b.id || b.battleId || null, "BATTLE_CROWD_SUPPRESSED_DIAG_V1", payload);
+         }
+       } catch (_) {}
+       return false;
+     }
 
      // Some core impls mark draw via flags.
      if (b.status !== "draw" && (b.result === "draw" || b.outcome === "draw" || b.draw === true)) {
@@ -392,6 +448,7 @@
      if (!b.crowd.voters) b.crowd.voters = {};
      if (!b.crowd.decided) b.crowd.decided = false;
 
+     _logCrowdSetDiagOnce(b, "ensureCrowdVoteStarted", "draw");
      return ensureCrowdVoteLoop(battleId);
    }
 

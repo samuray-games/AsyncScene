@@ -2143,6 +2143,24 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return { ok: true, playerId: targetId, before, after, reason };
   };
 
+  if (!Game.__DEV.__battleDiagTrail) Game.__DEV.__battleDiagTrail = Object.create(null);
+  if (!Game.__DEV.__battleDiagTail) Game.__DEV.__battleDiagTail = [];
+  if (typeof Game.__DEV.__pushBattleDiagTrail !== "function") {
+    Game.__DEV.__pushBattleDiagTrail = (battleId, tag, payload) => {
+      try {
+        const id = battleId != null ? String(battleId) : "unknown";
+        const trail = Game.__DEV.__battleDiagTrail || (Game.__DEV.__battleDiagTrail = Object.create(null));
+        const tail = Game.__DEV.__battleDiagTail || (Game.__DEV.__battleDiagTail = []);
+        const entry = { battleId: id, tag, payload: payload || null, nowMs: Date.now() };
+        if (!Array.isArray(trail[id])) trail[id] = [];
+        trail[id].push(entry);
+        if (trail[id].length > 20) trail[id].shift();
+        tail.push(entry);
+        if (tail.length > 200) tail.shift();
+      } catch (_) {}
+    };
+  }
+
   Game.__DEV.smokeStage3Step5Once = () => {
     const tries = [];
     const capture = (label, fn) => {
@@ -14867,6 +14885,133 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
     logJson(result);
     logEnd({ ok: result.ok, error: result.error });
+    return result;
+  };
+
+  Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce = (opts = {}) => {
+    const name = "smoke_battle_no_phantom_crowd_20wins_once";
+    const n = Number.isFinite(opts.n) ? (opts.n | 0) : 20;
+    const allowParallel = (opts && typeof opts.allowParallel === "boolean") ? opts.allowParallel : true;
+    const answerMode = (opts && opts.answerMode) ? String(opts.answerMode) : "always_correct";
+    const logBegin = (payload) => console.warn("SMOKE_NO_PHANTOM_CROWD_V1_BEGIN", payload || {});
+    const logJson = (payload) => console.warn("SMOKE_NO_PHANTOM_CROWD_V1_JSON", payload || {});
+    const logEnd = (payload) => console.warn("SMOKE_NO_PHANTOM_CROWD_V1_END", payload || {});
+
+    const result = {
+      name,
+      ok: false,
+      wins: 0,
+      phantomCrowdCount: 0,
+      badBattleIds: [],
+      tailReasons: [],
+      notes: [],
+      n,
+      answerMode
+    };
+
+    logBegin({ name, n, answerMode, allowParallel });
+
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const Conflict = Game.Conflict || null;
+    const Args = Game.ConflictArguments || Game._ConflictArguments || null;
+    const S = Game.__S || null;
+    if (!Core || typeof Core.resolveBattleOutcome !== "function") {
+      result.notes.push("ConflictCore.resolveBattleOutcome_missing");
+      logJson(result);
+      logEnd({ ok: false });
+      return result;
+    }
+    if (!Conflict || typeof Conflict.incoming !== "function") {
+      result.notes.push("Conflict.incoming_missing");
+      logJson(result);
+      logEnd({ ok: false });
+      return result;
+    }
+    if (!S || !S.players) {
+      result.notes.push("state_missing");
+      logJson(result);
+      logEnd({ ok: false });
+      return result;
+    }
+    if (!allowParallel) {
+      const active = Array.isArray(S.battles) ? S.battles.filter(b => b && b.status !== "finished" && !b.resolved) : [];
+      if (active.length) {
+        result.notes.push("active_battle_present");
+        logJson(result);
+        logEnd({ ok: false });
+        return result;
+      }
+    }
+
+    if (Game.__DEV && Game.__DEV.__battleDiagTrail) Game.__DEV.__battleDiagTrail = Object.create(null);
+    if (Game.__DEV && Game.__DEV.__battleDiagTail) Game.__DEV.__battleDiagTail = [];
+
+    const pickNpc = () => {
+      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+      return list[0] || null;
+    };
+
+    for (let i = 0; i < n; i += 1) {
+      const opp = pickNpc();
+      if (!opp || !opp.id) {
+        result.notes.push("no_npc_opponent");
+        break;
+      }
+      const raw = Conflict.incoming(opp.id, { devSmoke: true, uiSuppressed: true, silent: true, lowEconomyFree: true });
+      const battleId = raw && (raw.id || raw.battleId) ? (raw.id || raw.battleId) : null;
+      if (!battleId) {
+        result.notes.push("incoming_no_battleId");
+        continue;
+      }
+      const battle = (S.battles || []).find(b => b && (b.id === battleId || b.battleId === battleId)) || raw;
+      const attackArg = battle && battle.attack ? battle.attack : null;
+      let defenseArg = null;
+      if (Conflict && typeof Conflict.myDefenseOptions === "function") {
+        const list = Conflict.myDefenseOptions(battle) || [];
+        if (list.length) defenseArg = list[0];
+      }
+      if (!defenseArg && Args && typeof Args.myDefenseOptions === "function") {
+        const list = Args.myDefenseOptions(attackArg) || [];
+        if (list.length) defenseArg = list[0];
+      }
+      if (!defenseArg) {
+        result.notes.push("defense_arg_missing");
+        continue;
+      }
+
+      try {
+        Core.resolveBattleOutcome(battleId, defenseArg, { forceOutcome: "win" });
+      } catch (_) {
+        result.notes.push("resolve_exception");
+        continue;
+      }
+
+      const fresh = (S.battles || []).find(b => b && (b.id === battleId || b.battleId === battleId)) || null;
+      if (fresh && fresh.result === "win") result.wins += 1;
+      else result.badBattleIds.push(String(battleId));
+
+      const trail = (Game.__DEV && Game.__DEV.__battleDiagTrail && Game.__DEV.__battleDiagTrail[String(battleId)])
+        ? Game.__DEV.__battleDiagTrail[String(battleId)]
+        : [];
+      const crowdSet = trail.find(e => e && e.tag === "BATTLE_CROWD_SET_DIAG_V1");
+      if (crowdSet && crowdSet.payload) {
+        const res = crowdSet.payload.resultIfAny;
+        const resolvedFlag = !!crowdSet.payload.battleResolvedFlag;
+        const phantom = resolvedFlag || (res && String(res).toLowerCase() !== "draw");
+        if (phantom) {
+          result.phantomCrowdCount += 1;
+          if (!result.badBattleIds.includes(String(battleId))) result.badBattleIds.push(String(battleId));
+        }
+      }
+    }
+
+    result.tailReasons = (Game.__DEV && Array.isArray(Game.__DEV.__battleDiagTail))
+      ? Game.__DEV.__battleDiagTail.slice(-10)
+      : [];
+    result.ok = (result.wins === n) && (result.phantomCrowdCount === 0);
+
+    logJson(result);
+    logEnd({ ok: result.ok, wins: result.wins, phantomCrowdCount: result.phantomCrowdCount });
     return result;
   };
 

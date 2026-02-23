@@ -22,6 +22,35 @@
     return window.__DEV__ === true || window.DEV === true || (devQuery && devQuery.includes("dev=1"));
   })();
 
+  UI._battleUiDiagOnce = UI._battleUiDiagOnce || new Set();
+  function _pushBattleDiagTrail(battleId, tag, payload){
+    try {
+      const dev = Game && Game.__DEV;
+      if (dev && typeof dev.__pushBattleDiagTrail === "function") {
+        dev.__pushBattleDiagTrail(battleId, tag, payload);
+      }
+    } catch (_) {}
+  }
+  function logBattleUiDecisionDiagOnce(b, uiThinksResolved, uiThinksCrowd, sourceKey){
+    try {
+      if (!isDevCrowdMode) return;
+      const battleId = b && b.id;
+      if (!battleId || UI._battleUiDiagOnce.has(battleId)) return;
+      UI._battleUiDiagOnce.add(battleId);
+      const payload = {
+        battleId,
+        uiThinksResolved: !!uiThinksResolved,
+        uiThinksCrowd: !!uiThinksCrowd,
+        battleStatus: b.status || null,
+        resultIfAny: b.result || null,
+        nowMs: Date.now(),
+        sourceKey: sourceKey || "renderBattles"
+      };
+      console.warn("BATTLE_UI_DECISION_DIAG_V1", payload);
+      _pushBattleDiagTrail(battleId, "BATTLE_UI_DECISION_DIAG_V1", payload);
+    } catch (_) {}
+  }
+
   function formatCrowdEligibleLine(crowd) {
     const breakdown = crowd && crowd.eligibleBreakdown;
     if (!breakdown) return "";
@@ -1219,6 +1248,12 @@ UI.renderBattles = () => {
 
    // Cards
     sortedBattles().forEach(b => {
+      try {
+        if (Game && Game.__S && Array.isArray(Game.__S.battles)) {
+          const fresh = Game.__S.battles.find(x => x && x.id === b.id);
+          if (fresh) b = fresh;
+        }
+      } catch (_) {}
       const opp = S.players[b.opponentId];
       const oppName = opp ? (UI.displayName ? UI.displayName(opp) : opp.name) : "Кто-то";
 
@@ -1247,7 +1282,11 @@ UI.renderBattles = () => {
       const line = document.createElement("div");
       line.className = "noteLine";
 
-      if (b.resolved !== true) {
+      const uiThinksResolved = !!(b.resolved === true || b.status === "finished");
+      const uiThinksCrowd = !!(isDrawBattle(b) || isEscapeVote(b));
+      logBattleUiDecisionDiagOnce(b, uiThinksResolved, uiThinksCrowd, "renderBattles");
+
+      if (!uiThinksResolved) {
        if (b.status === "pickDefense") line.textContent = "Бери контраргумент";
        else if (b.status === "pickAttack") line.textContent = "Бери аргумент";
        else if (isEscapeVote(b)) {
