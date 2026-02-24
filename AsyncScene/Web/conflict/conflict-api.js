@@ -1113,8 +1113,18 @@
        // Always persist the chosen defense on the battle object.
        battle.defense = defenseArg ? { ...defenseArg } : null;
 
-       // For UI stability: once a choice is made, stop any "thinking" state.
-       battle.opponentThinking = false;
+      // For UI stability: once a choice is made, stop any "thinking" state.
+      battle.opponentThinking = false;
+      const canonMatcherAvailable = Core && typeof Core.matchCanonGroupKey === "function";
+      const canonGroupKey = canonMatcherAvailable ? Core.matchCanonGroupKey(battle.attack, defenseArg) : null;
+        : null;
+      const canonProblem = (canonMatcherAvailable && !canonGroupKey && Core && typeof Core.buildCanonProblem === "function")
+        ? Core.buildCanonProblem(battle.attack, defenseArg)
+        : null;
+      const canonMissing = canonMatcherAvailable && !canonGroupKey;
+      if (!battle.meta) battle.meta = {};
+      battle.meta.canonGroupKey = canonGroupKey || null;
+      battle.meta.canonProblem = canonProblem || null;
 
        // Prefer Args.resolve if present (it may also set extra fields), but do not require it.
        let result = null;
@@ -1122,8 +1132,9 @@
          result = Args.resolve(battle, defenseArg);
        }
 
-       const norm = normalizeOutcome(result);
-       const forcedOutcome = norm.explicit ? norm.outcome : null;
+      const norm = normalizeOutcome(result);
+      let forcedOutcome = norm.explicit ? norm.outcome : null;
+      if (canonMissing) forcedOutcome = "draw";
        let resolution = null;
        if (Core && typeof Core.resolveBattleOutcome === "function") {
          resolution = Core.resolveBattleOutcome(battle.id, defenseArg, { forceOutcome: forcedOutcome });
@@ -1151,7 +1162,13 @@
          }
        }
 
-       ensureCrowdVoteStarted(battle.id);
+      const logOutcome = (resolution && resolution.outcome) ? resolution.outcome : fallbackOutcome;
+      const resultLabel = (logOutcome === "draw") ? "needsCrowd" : logOutcome;
+      const logWhy = canonMissing ? "canon_missing" : (resolution ? "core" : "fallback");
+      if (Core && typeof Core.logDevSmokeDefenseChoice === "function") {
+        Core.logDevSmokeDefenseChoice(battle, defenseArg, resultLabel, logWhy, canonGroupKey, canonProblem);
+      }
+      ensureCrowdVoteStarted(battle.id);
        render();
        return result || resolution;
     }

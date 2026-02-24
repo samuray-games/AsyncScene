@@ -52,6 +52,102 @@
     } catch (_) {}
   }
 
+  function isDevSurfaceFlag(){
+    if (typeof window !== "undefined") {
+      if (window.__DEV__ === true || window.DEV === true) return true;
+    }
+    return !!(Game && Game.__DEV);
+  }
+
+  function isDevSmokeBattle(battle){
+    if (!battle || !battle.id) return false;
+    const id = String(battle.id);
+    return id.startsWith("dev_");
+  }
+
+  function normalizeCanonText(raw){
+    if (raw == null) return "";
+    return String(raw).trim();
+  }
+
+  function buildCanonGroupKey(attackArg, defenseArg){
+    const D = (Game && Game.Data) ? Game.Data : null;
+    if (!D || typeof D.getArgCanonGroup !== "function") return null;
+    const subCandidate = (defenseArg && defenseArg._sub)
+      ? String(defenseArg._sub).toUpperCase()
+      : (attackArg && attackArg._sub)
+        ? String(attackArg._sub).toUpperCase()
+        : null;
+    if (!subCandidate) return null;
+    const typeCandidate = (defenseArg && (defenseArg.type || defenseArg.group || defenseArg.kind))
+      ? (defenseArg.type || defenseArg.group || defenseArg.kind)
+      : (attackArg && (attackArg.type || attackArg.group || attackArg.kind))
+        ? (attackArg.type || attackArg.group || attackArg.kind)
+        : "yn";
+    const normalizedType = normalizeGroup(typeCandidate) || "yn";
+    const groupList = D.getArgCanonGroup(subCandidate, String(normalizedType || "yn").toUpperCase());
+    if (!Array.isArray(groupList) || !groupList.length) return null;
+    const attackText = normalizeCanonText(attackArg && attackArg._canonQ ? attackArg._canonQ : attackArg && attackArg.text ? attackArg.text : "");
+    const defenseText = normalizeCanonText(defenseArg && defenseArg._canonA ? defenseArg._canonA : defenseArg && defenseArg.text ? defenseArg.text : "");
+    if (!attackText || !defenseText) return null;
+    const matched = groupList.find(item => {
+      if (!item || !item.q || !item.a) return false;
+      return normalizeCanonText(item.q) === attackText && normalizeCanonText(item.a) === defenseText;
+    });
+    if (!matched) return null;
+    return `${subCandidate}|${normalizedType}`;
+  }
+
+  function buildCanonProblem(attackArg, defenseArg){
+    if (!attackArg || !defenseArg) return "missing_args";
+    if (!attackArg._canonQ && !(attackArg.text || "").trim()) return "attack_missing_canon";
+    if (!defenseArg._canonA && !(defenseArg.text || "").trim()) return "defense_missing_canon";
+    if (!defenseArg._sub) return "defense_missing_sub";
+    if (!(defenseArg.type || defenseArg.group || defenseArg.kind)) return "defense_missing_type";
+    return "no_match_found";
+  }
+
+  function isCrowdCapStageD2(){
+    return !!(Game && Game.__D && typeof Game.__D.CROWD_CAP_STAGE === "string" && String(Game.__D.CROWD_CAP_STAGE).toUpperCase() === "D2");
+  }
+
+  function logDevSmokeDefenseChoice(b, defenseArg, outcomeLabel, why, canonGroupKey, canonProblem){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !b.id) return;
+    const payload = {
+      battleId: b.id,
+      defenseId: defenseArg ? String(defenseArg.id || defenseArg.key || null) : null,
+      defenseType: defenseArg ? String(argGroup(defenseArg) || defenseArg.type || defenseArg.group || null) : null,
+      canonGroupKey: canonGroupKey || null,
+      canonBuilt: !!canonGroupKey,
+      canonProblem: canonGroupKey ? null : (canonProblem || null),
+      result: outcomeLabel || null,
+      why: why || null,
+      ts: Date.now()
+    };
+    try {
+      console.warn("DEV_SMOKE_DEFENSE_V1", payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(b.id, "DEV_SMOKE_DEFENSE_V1", payload);
+    } catch (_) {}
+  }
+
+  function logCrowdCapSource(b, v, capValue, source, eligibleCount){
+    if (!v) return;
+    const payload = {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      cap: (Number.isFinite(capValue) ? (capValue | 0) : null),
+      source: source || null,
+      eligibleCount: (Number.isFinite(eligibleCount) ? (eligibleCount | 0) : null),
+      ts: Date.now()
+    };
+    if (source) v.capSource = source;
+    if (typeof eligibleCount === "number") v.eligibleCount = eligibleCount;
+    _crowdLog("CROWD_CAP_SOURCE_V1", payload);
+  }
+
   function isVillainRole(role){
     return role === "toxic" || role === "bandit" || role === "mafia";
   }
@@ -877,7 +973,9 @@
       id,
       type,
       text: text || "ты тут?",
-      _color: color
+      _color: color,
+      _canonQ: (raw && raw._canonQ) ? String(raw._canonQ) : null,
+      _sub: (raw && raw._sub) ? String(raw._sub) : null
     };
   }
 
@@ -1312,12 +1410,13 @@
     return out;
   }
 
-  function ensureBattleCrowdCap(v){
+  function ensureBattleCrowdCap(v, battle){
     if (!v) return;
     if (!Number.isFinite(v.cap) || v.cap <= 0) {
       const total = getTotalPlayersCount();
       v.cap = getCrowdVoteCap(total);
       v.totalPlayers = total;
+      logCrowdCapSource(battle, v, v.cap, "default20", null);
     }
   }
 
@@ -1625,7 +1724,7 @@
       };
     }
     if (b && b.crowd) {
-      ensureBattleCrowdCap(b.crowd);
+      ensureBattleCrowdCap(b.crowd, b);
       const nowMsValue = now();
       const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
       const totalVotes = getCrowdTotalVotes(b.crowd);
@@ -1709,7 +1808,7 @@
     const v = b.crowd;
     const force = !!(opts && opts.force);
     if (!v) return null;
-    ensureBattleCrowdCap(v);
+    ensureBattleCrowdCap(v, b);
     if (!force) {
       const totalVotes = getCrowdTotalVotes(v);
       if (!Number.isFinite(v.cap) || totalVotes < (v.cap | 0)) return null;
@@ -1753,7 +1852,7 @@
       v.decided = false;
       v.winnerSide = null;
       v.winnerId = null;
-      ensureBattleCrowdCap(v);
+      ensureBattleCrowdCap(v, b);
       b.result = "draw";
       b.resultLine = "Толпа решает";
       b.note = "Поровну, без перевеса. Ещё круг.";
@@ -1850,7 +1949,7 @@
     if (!isEscapeVote(b)) return;
     const v = b.escapeVote;
     if (!v) return;
-    ensureBattleCrowdCap(v);
+    ensureBattleCrowdCap(v, b);
     const totalVotesNow = getCrowdTotalVotes(v);
     if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
@@ -1973,7 +2072,7 @@
     if (!isEscapeVote(b)) return { ok: false, reason: "not_escape_vote" };
     const v = b.escapeVote;
     if (!v || v.decided) return { ok: false, reason: "decided" };
-    ensureBattleCrowdCap(v);
+    ensureBattleCrowdCap(v, b);
 
     try {
       if (Game.NPC && typeof Game.NPC.voteInDraw === "function") {
@@ -2420,6 +2519,8 @@
       Game.__S.battles.unshift(battle);
       bumpBattleBadgeIfCollapsed();
       if (!battle.attackerId) battle.attackerId = opponentId;
+      if (!battle.meta) battle.meta = {};
+      battle.meta.drawFallback = true;
       try { if (typeof C.finalize === "function") C.finalize(battle.id, "draw"); } catch (_) {}
       logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: true, reason: "ok_draw_fallback", rawKeys: ["battle"], returnedId: battle.id || null });
       return battle;
@@ -2756,7 +2857,24 @@
       const computedCap = eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0);
       logCrowdElig(b, b.crowd, eligible);
       const votesNow = getCrowdTotalVotes(b.crowd);
-      b.crowd.cap = Math.max(0, computedCap);
+      const stageD2Enabled = isCrowdCapStageD2();
+      const drawFallbackForced = !!(b.meta && b.meta.drawFallback);
+      let capValue;
+      let capSource;
+      if (stageD2Enabled && computedCap > 0 && !drawFallbackForced) {
+        capValue = computedCap;
+        capSource = "eligible";
+      } else if (drawFallbackForced) {
+        capValue = 10;
+        capSource = "drawFallback";
+      } else {
+        capValue = 10;
+        capSource = "fixed10";
+      }
+      b.crowd.cap = Math.max(0, capValue);
+      if (!b.crowd.meta) b.crowd.meta = {};
+      b.crowd.meta.capSource = capSource;
+      logCrowdCapSource(b, b.crowd, b.crowd.cap, capSource, eligible.eligibleNpcCount);
       if (b.crowd.cap <= 0) {
         logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
       }
@@ -3154,6 +3272,9 @@
   C.applyVillainPenalty = applyVillainPenalty;
   C.resolveCrowdCore = resolveCrowdCore;
   C.getVoteWeight = getVoteWeight;
+  C.matchCanonGroupKey = buildCanonGroupKey;
+  C.buildCanonProblem = buildCanonProblem;
+  C.logDevSmokeDefenseChoice = logDevSmokeDefenseChoice;
 
   // Export ONLY the internal core. Public API must live in conflict-api.js.
   // This avoids double-definitions and accidental overwrites.
