@@ -15289,8 +15289,14 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       logEnd({ ok: false, notes: result.notes });
       return result;
     }
-    if (!conflictApiLoaded || typeof Conflict.incoming !== "function" || typeof Conflict.applyCrowdVoteTick !== "function") {
+    if (!conflictApiLoaded) {
       result.notes.push("conflict_missing");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes, conflictApiLoaded });
+      return result;
+    }
+    if (typeof Conflict.incoming !== "function" || typeof Conflict.applyCrowdVoteTick !== "function") {
+      result.notes.push("conflict_api_incomplete");
       logJson(result);
       logEnd({ ok: false, notes: result.notes, conflictApiLoaded });
       return result;

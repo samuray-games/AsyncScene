@@ -71,7 +71,23 @@
     return String(raw).trim();
   }
 
-  function buildCanonGroupKey(attackArg, defenseArg){
+  function shouldTraceDevCanonMatch(battle){
+    if (!battle || !battle.id) return false;
+    const id = String(battle.id);
+    if (!id.startsWith("dev_")) return false;
+    return isDevSurfaceFlag();
+  }
+
+  function traceDevCanonMatch(battle, payload){
+    if (!battle || !battle.id) return;
+    if (!shouldTraceDevCanonMatch(battle)) return;
+    const battleId = String(battle.id);
+    const data = Object.assign({ battleId }, payload || {});
+    try { console.warn("DEV_CANON_MATCH_TRACE_V1", data); } catch (_) {}
+    try { _pushBattleDiagTrail(battleId, "DEV_CANON_MATCH_TRACE_V1", data); } catch (_) {}
+  }
+
+  function buildCanonGroupKey(attackArg, defenseArg, battle){
     const D = (Game && Game.Data) ? Game.Data : null;
     if (!D || typeof D.getArgCanonGroup !== "function") return null;
     const subCandidate = (defenseArg && defenseArg._sub)
@@ -86,17 +102,79 @@
         ? (attackArg.type || attackArg.group || attackArg.kind)
         : "yn";
     const normalizedType = normalizeGroup(typeCandidate) || "yn";
+    const groupKey = `${subCandidate}|${String(normalizedType || "yn").toUpperCase()}`;
     const groupList = D.getArgCanonGroup(subCandidate, String(normalizedType || "yn").toUpperCase());
-    if (!Array.isArray(groupList) || !groupList.length) return null;
-    const attackText = normalizeCanonText(attackArg && attackArg._canonQ ? attackArg._canonQ : attackArg && attackArg.text ? attackArg.text : "");
-    const defenseText = normalizeCanonText(defenseArg && defenseArg._canonA ? defenseArg._canonA : defenseArg && defenseArg.text ? defenseArg.text : "");
-    if (!attackText || !defenseText) return null;
+    if (!Array.isArray(groupList) || !groupList.length) {
+      if (shouldTraceDevCanonMatch(battle)) {
+        traceDevCanonMatch(battle, {
+          attackId: attackArg && attackArg.id ? attackArg.id : null,
+          attackType: argGroup(attackArg),
+          defenseId: defenseArg && defenseArg.id ? defenseArg.id : null,
+          defenseType: argGroup(defenseArg),
+          attackGroupKey: groupKey,
+          defenseGroupKey: groupKey,
+          attackCandidates: [],
+          defenseCandidates: [],
+          candidatesSample: [],
+          problem: buildCanonProblem(attackArg, defenseArg) || "no_candidate_list",
+          candidateCount: 0
+        });
+      }
+      return null;
+    }
+
+    const normalizeCandidate = (value) => {
+      const trimmed = normalizeCanonText(value);
+      return trimmed ? trimmed : null;
+    };
+    const attackCandidates = [];
+    const defenseCandidates = [];
+    const addCandidate = (list, value) => {
+      try {
+        const normalized = normalizeCandidate(value);
+        if (normalized && !list.includes(normalized)) list.push(normalized);
+      } catch (_) {}
+    };
+    addCandidate(attackCandidates, attackArg && attackArg._canonQ);
+    addCandidate(attackCandidates, attackArg && attackArg.text);
+    addCandidate(defenseCandidates, defenseArg && defenseArg._canonA);
+    addCandidate(defenseCandidates, defenseArg && defenseArg.text);
+    const attackSet = new Set(attackCandidates);
+    const defenseSet = new Set(defenseCandidates);
+
+    const candidateSample = groupList.slice(0, 3).map(item => ({
+      q: normalizeCandidate(item && item.q),
+      a: normalizeCandidate(item && item.a)
+    })).filter(item => item && (item.q || item.a));
+
     const matched = groupList.find(item => {
       if (!item || !item.q || !item.a) return false;
-      return normalizeCanonText(item.q) === attackText && normalizeCanonText(item.a) === defenseText;
+      const q = normalizeCandidate(item.q);
+      const a = normalizeCandidate(item.a);
+      if (!q || !a) return false;
+      if (attackSet.size && !attackSet.has(q)) return false;
+      if (defenseSet.size && !defenseSet.has(a)) return false;
+      return true;
     });
-    if (!matched) return null;
-    return `${subCandidate}|${normalizedType}`;
+    if (!matched) {
+      if (shouldTraceDevCanonMatch(battle)) {
+        traceDevCanonMatch(battle, {
+          attackId: attackArg && attackArg.id ? attackArg.id : null,
+          attackType: argGroup(attackArg),
+          defenseId: defenseArg && defenseArg.id ? defenseArg.id : null,
+          defenseType: argGroup(defenseArg),
+          attackGroupKey: groupKey,
+          defenseGroupKey: groupKey,
+          attackCandidates: attackCandidates.slice(0),
+          defenseCandidates: defenseCandidates.slice(0),
+          candidatesSample: candidateSample,
+          candidateCount: groupList.length,
+          problem: buildCanonProblem(attackArg, defenseArg)
+        });
+      }
+      return null;
+    }
+    return groupKey;
   }
 
   function buildCanonProblem(attackArg, defenseArg){

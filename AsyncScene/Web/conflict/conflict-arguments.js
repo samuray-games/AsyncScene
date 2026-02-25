@@ -543,9 +543,6 @@
   })();
 
   function buildDefenseOptions(attackArg) {
-    // Support both calling conventions:
-    // - buildDefenseOptions(battle) where battle.attack exists
-    // - buildDefenseOptions({ opponentRole: 'mafia', ... }) for tests/adapters
     const battle = (attackArg && (attackArg.attack || attackArg.opponentRole)) ? attackArg : null;
     const level = normalizeInfluence(battle);
     const forced = getForcedColor();
@@ -554,6 +551,7 @@
     const opponentRoleRaw = (battle && (battle.opponentRole || (battle.opponent && battle.opponent.role)))
       ? String(battle.opponentRole || (battle.opponent && battle.opponent.role)).toLowerCase()
       : "";
+    const attackGroup = (attackArg && getGroup(attackArg)) ? String(getGroup(attackArg)).toLowerCase() : null;
 
     const canonSubKeysByColor = (color) => {
       if (color === "k") return ["K"];
@@ -625,12 +623,13 @@
 
     const subKey = pickCanonSub();
     const tierColor = forced || canonColorFromSub(subKey);
-    const attackGroup = getGroup(battle && battle.attack ? battle.attack : attackArg) || "yn";
-    const correctType = types.includes(attackGroup) ? attackGroup : "yn";
+    const battleAttackGroup = getGroup(battle && battle.attack ? battle.attack : attackArg) || "yn";
+    const correctType = types.includes(battleAttackGroup) ? battleAttackGroup : "yn";
+    const desiredGroup = battleAttackGroup && types.includes(battleAttackGroup) ? battleAttackGroup : null;
 
     const wrongTypes = types.filter(t => t !== correctType);
     const pickedWrong = pickN(wrongTypes, 2);
-    const wanted = [correctType].concat(pickedWrong);
+    const wanted = desiredGroup ? Array(3).fill(desiredGroup) : [correctType].concat(pickedWrong);
 
     const usedTexts = new Set();
     const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
@@ -758,7 +757,8 @@
       return "y";
     };
     const tierColor = canonColorFromSub(subKey);
-    const typesWanted = ["about", "who", "where", "yn"];
+    const baseTypes = ["about", "who", "where", "yn"];
+    const typesWanted = desiredGroup ? [desiredGroup] : baseTypes;
     const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
     const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, ctx) : String(text || "");
 
@@ -886,5 +886,14 @@
   Game._ConflictArguments = A;
   Game.ConflictArguments = A;
 
+  const markArgumentsLoaded = () => {
+    try {
+      console.warn("CONFLICT_ARGUMENTS_LOADED_V1", {
+        ts: Date.now(),
+        buildTag: (typeof Game !== "undefined" && Game && Game.__buildTag) ? Game.__buildTag : null
+      });
+    } catch (_) {}
+  };
+  markArgumentsLoaded();
   console.log("[AttackChoices] conflict-arguments loaded", Date.now());
 })();

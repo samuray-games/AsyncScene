@@ -801,14 +801,21 @@
        return { ok: true };
      },
 
-     applyCrowdVote(battleId) {
-       const b = findBattle(battleId);
-       // Let NPCs vote a little each tick while the draw is active.
-       if (b) applyNpcVotesToBattle(b);
-       if (typeof Core.applyCrowdVoteTick === "function") Core.applyCrowdVoteTick(battleId);
-       render();
-       return { ok: true };
-     },
+    applyCrowdVote(battleId) {
+      const b = findBattle(battleId);
+      // Let NPCs vote a little each tick while the draw is active.
+      if (b) applyNpcVotesToBattle(b);
+      if (typeof Core.applyCrowdVoteTick === "function") Core.applyCrowdVoteTick(battleId);
+      render();
+      return { ok: true };
+    },
+
+    applyCrowdVoteTick(battleId) {
+      if (typeof Core.applyCrowdVoteTick === "function") {
+        try { Core.applyCrowdVoteTick(battleId); } catch (_) {}
+      }
+      return { ok: true };
+    },
 
      applyEscapeVote(battleId) {
        if (typeof Core.applyEscapeVoteTick === "function") Core.applyEscapeVoteTick(battleId);
@@ -1121,7 +1128,7 @@
       // For UI stability: once a choice is made, stop any "thinking" state.
       battle.opponentThinking = false;
       const canonMatcherAvailable = Core && typeof Core.matchCanonGroupKey === "function";
-      const canonGroupKey = canonMatcherAvailable ? Core.matchCanonGroupKey(battle.attack, defenseArg) : null;
+      const canonGroupKey = canonMatcherAvailable ? Core.matchCanonGroupKey(battle.attack, defenseArg, battle) : null;
       const canonProblem = (canonMatcherAvailable && !canonGroupKey && Core && typeof Core.buildCanonProblem === "function")
         ? Core.buildCanonProblem(battle.attack, defenseArg)
         : null;
