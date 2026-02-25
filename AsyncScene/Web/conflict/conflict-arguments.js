@@ -777,7 +777,8 @@
     if (battleCtx && battleCtx.id && String(battleCtx.id).startsWith("dev_")) {
       try {
         console.warn("DEV_ARGS_BATTLE_IN_SCOPE_V1", {
-          hasBattle: !!battle,
+          hasBattle: !!battleCtx,
+          hasBattleCtx: !!battleCtx,
           battleId: battleCtx.id
         });
       } catch (_) {}
