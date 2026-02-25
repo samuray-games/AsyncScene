@@ -44,6 +44,7 @@
     v._crowdTimerLastTickSecond = null;
     v._crowdTimerResolvedBy = null;
     v._crowdTimerExpireLogged = false;
+    v._devNpcVoteLogged = false;
   }
 
   function _crowdLog(name, payload){
@@ -133,19 +134,65 @@
     } catch (_) {}
   }
 
-  function logCrowdCapSource(b, v, capValue, source, eligibleCount){
+  function logDevSmokeNpcVoteAttempt(b, payload){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !b.id) return;
+    const data = Object.assign({
+      battleId: b.id,
+      ts: Date.now()
+    }, payload || {});
+    try {
+      console.warn("DEV_SMOKE_NPC_VOTE_V1", data);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(b.id, "DEV_SMOKE_NPC_VOTE_V1", data);
+    } catch (_) {}
+  }
+
+  function logCrowdCapSource(b, v, capValue, source, eligibleCount, excludedZeroPtsCount){
     if (!v) return;
+    const cap = Number.isFinite(capValue) ? (capValue | 0) : null;
+    if (source) v.capSource = source;
+    if (cap != null) v.capValue = cap;
+    if (typeof eligibleCount === "number") v.eligibleCount = eligibleCount;
+    if (typeof excludedZeroPtsCount === "number") v.excludedZeroPtsCount = excludedZeroPtsCount;
     const payload = {
       battleId: b && (b.id || b.battleId) || null,
       eventId: v.eventId || null,
-      cap: (Number.isFinite(capValue) ? (capValue | 0) : null),
-      source: source || null,
+      capValue: cap,
+      capSource: source || null,
       eligibleCount: (Number.isFinite(eligibleCount) ? (eligibleCount | 0) : null),
+      excludedZeroPtsCount: (Number.isFinite(excludedZeroPtsCount) ? (excludedZeroPtsCount | 0) : null),
       ts: Date.now()
     };
-    if (source) v.capSource = source;
-    if (typeof eligibleCount === "number") v.eligibleCount = eligibleCount;
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
     _crowdLog("CROWD_CAP_SOURCE_V1", payload);
+  }
+
+  function setCrowdCapMeta(b, v, capValue, capSource, eligibleCount, excludedZeroPtsCount){
+    if (!v) return;
+    const cap = Number.isFinite(capValue) ? Math.max(0, capValue | 0) : 0;
+    v.cap = cap;
+    v.capValue = cap;
+    v.capSource = capSource || null;
+    v.eligibleCount = (typeof eligibleCount === "number") ? (eligibleCount | 0) : v.eligibleCount;
+    v.excludedZeroPtsCount = (typeof excludedZeroPtsCount === "number") ? (excludedZeroPtsCount | 0) : v.excludedZeroPtsCount;
+    if (b) {
+      if (!b.meta) b.meta = {};
+      b.meta.crowdCap = Object.assign({}, b.meta.crowdCap || {}, {
+        capValue: v.capValue,
+        capSource: v.capSource,
+        eligibleCount: v.eligibleCount,
+        excludedZeroPtsCount: v.excludedZeroPtsCount
+      });
+      if (v.meta && typeof v.meta === "object") {
+        v.meta.capValue = v.capValue;
+        v.meta.capSource = v.capSource;
+        v.meta.eligibleCount = v.eligibleCount;
+        v.meta.excludedZeroPtsCount = v.excludedZeroPtsCount;
+      }
+    }
+    logCrowdCapSource(b, v, v.cap, capSource, v.eligibleCount, v.excludedZeroPtsCount);
   }
 
   function isVillainRole(role){
@@ -1412,12 +1459,35 @@
 
   function ensureBattleCrowdCap(v, battle){
     if (!v) return;
-    if (!Number.isFinite(v.cap) || v.cap <= 0) {
-      const total = getTotalPlayersCount();
-      v.cap = getCrowdVoteCap(total);
-      v.totalPlayers = total;
-      logCrowdCapSource(battle, v, v.cap, "default20", null);
+    const meta = (battle && battle.meta && typeof battle.meta === "object") ? battle.meta : null;
+    const hasCap = Number.isFinite(v.cap) && (v.cap | 0) > 0;
+    if (hasCap) {
+      if (!v.capSource) {
+        setCrowdCapMeta(battle, v, v.cap, "existing", v.eligibleCount || 0, v.excludedZeroPtsCount || 0);
+      }
+      return;
     }
+    const eligible = buildEligibleVoters({
+      battleId: (battle && (battle.id || battle.battleId)) || null,
+      eventId: (v && v.eventId) || null,
+      crowd: v,
+      meta
+    });
+    const eligibleCount = eligible.eligibleNpcCount || 0;
+    const totalWithMe = eligibleCount + (eligible.meEligible ? 1 : 0);
+    const excludedZeroPts = eligible.excludedZeroPtsCount || 0;
+    const stageD2Enabled = isCrowdCapStageD2();
+    const drawFallbackForced = !!(meta && meta.drawFallback);
+    let capValue = 10;
+    let capSource = "canon10";
+    if (stageD2Enabled && totalWithMe > 0 && !drawFallbackForced) {
+      capValue = totalWithMe;
+      capSource = "eligible";
+    } else if (drawFallbackForced) {
+      capValue = 10;
+      capSource = "fallback_fixed";
+    }
+    setCrowdCapMeta(battle, v, capValue, capSource, eligibleCount, excludedZeroPts);
   }
 
   function getCrowdTotalVotes(v){
@@ -2081,10 +2151,22 @@
         const side = res && res.side ? res.side : null;
         if (voterId && side) {
           v.voters ||= {};
+          const attemptMeta = {
+            npcId: voterId,
+            eligible: false,
+            npcPtsBefore: 0,
+            voteAttempted: true,
+            costOk: false,
+            voteCounted: false,
+            votersTotal: Object.keys(v.voters).length,
+            side: side
+          };
           if (!v.voters[voterId]) {
             const Econ = getEcon();
             const battleId = b.id || b.battleId || null;
             const beforePts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
+            attemptMeta.npcPtsBefore = beforePts;
+            attemptMeta.eligible = beforePts > 0;
             const price = calcFinalPriceForActor(1, beforePts, "vote", { battleId });
             const cost = price.finalPrice;
             const ok = (Econ && typeof Econ.chargePriceOnce === "function")
@@ -2121,7 +2203,9 @@
                       }))
                 : { ok: false };
             const afterPts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
-            if (ok && ok.ok && (afterPts === (beforePts - cost))) {
+            const charged = !!(ok && ok.ok && (afterPts === (beforePts - cost)));
+            attemptMeta.costOk = charged;
+            if (charged) {
               v.voters[voterId] = (side === "attacker") ? "a" : "b";
               let w = 1;
               if (typeof getVoteWeight === "function") {
@@ -2132,7 +2216,8 @@
               }
               if (side === "attacker") v.votesA = (v.votesA|0) + w;
               else if (side === "defender") v.votesB = (v.votesB|0) + w;
-            } else if (ok && ok.ok && (afterPts !== (beforePts - cost))) {
+              attemptMeta.voteCounted = true;
+            } else if (ok && ok.ok && !charged) {
               try {
                 const dbg = Game && Game.__D ? Game.__D : null;
                 if (dbg && Array.isArray(dbg.moneyLog)) {
@@ -2159,6 +2244,11 @@
                 }
               } catch (_) {}
             }
+          }
+          attemptMeta.votersTotal = Object.keys(v.voters).length;
+          if (!v._devNpcVoteLogged) {
+            logDevSmokeNpcVoteAttempt(b, attemptMeta);
+            v._devNpcVoteLogged = true;
           }
         }
       }
@@ -2805,6 +2895,7 @@
         attackerId,
         defenderId,
         _crowdTimerArmLogged: false,
+        _devNpcVoteLogged: false,
         _crowdTimerLastTickSecond: null,
         _crowdTimerResolvedBy: null,
         _crowdTimerExpireLogged: false
@@ -2866,15 +2957,12 @@
         capSource = "eligible";
       } else if (drawFallbackForced) {
         capValue = 10;
-        capSource = "drawFallback";
+        capSource = "fallback_fixed";
       } else {
         capValue = 10;
-        capSource = "fixed10";
+        capSource = "canon10";
       }
-      b.crowd.cap = Math.max(0, capValue);
-      if (!b.crowd.meta) b.crowd.meta = {};
-      b.crowd.meta.capSource = capSource;
-      logCrowdCapSource(b, b.crowd, b.crowd.cap, capSource, eligible.eligibleNpcCount);
+      setCrowdCapMeta(b, b.crowd, capValue, capSource, eligible.eligibleNpcCount, eligible.excludedZeroPtsCount);
       if (b.crowd.cap <= 0) {
         logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
       }

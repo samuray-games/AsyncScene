@@ -15124,6 +15124,255 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     return result;
   };
 
+  Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce = (opts = {}) => {
+    const name = "smokeBattle_CounterArg_NoUnexpectedCrowdOnce";
+    const logBegin = (payload) => console.warn("SMOKE_COUNTERARG_NO_CROWD_BEGIN", payload || {});
+    const logJson = (payload) => console.warn("SMOKE_COUNTERARG_NO_CROWD_JSON", payload || {});
+    const logEnd = (payload) => console.warn("SMOKE_COUNTERARG_NO_CROWD_END", payload || {});
+    const result = {
+      name,
+      ok: false,
+      battleId: null,
+      canonBuilt: null,
+      result: null,
+      crowdStarted: false,
+      capValue: null,
+      why: null,
+      notes: []
+    };
+    logBegin({ name });
+
+    const S = Game.__S || Game.State || null;
+    const Conflict = Game.Conflict || null;
+    const Core = Game.ConflictCore || Game._ConflictCore || null;
+    if (!S || !Array.isArray(S.battles)) {
+      result.notes.push("state_missing");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+    if (!Conflict || !Core || typeof Conflict.incoming !== "function") {
+      result.notes.push("conflict_missing");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+    const npc = Object.values(S.players || {}).find(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+    if (!npc || !npc.id) {
+      result.notes.push("npc_not_found");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    const cleanupBattle = (battleId) => {
+      if (!battleId) return;
+      for (let i = S.battles.length - 1; i >= 0; i -= 1) {
+        const candidate = S.battles[i];
+        if (candidate && (String(candidate.id) === String(battleId) || String(candidate.battleId) === String(battleId))) {
+          S.battles.splice(i, 1);
+        }
+      }
+    };
+
+    const raw = Conflict.incoming(npc.id, { devSmoke: true, lowEconomyFree: true, silent: true, uiSuppressed: true });
+    const battle = raw && raw.battle ? raw.battle : raw;
+    if (!battle || !battle.id) {
+      result.notes.push("incoming_failed");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    const battleId = `dev_smoke_counterarg_${Date.now().toString(36)}`;
+    const patchId = (entry) => {
+      if (!entry) return;
+      entry.id = battleId;
+      entry.battleId = battleId;
+    };
+    patchId(battle);
+    const stored = S.battles.find(b => b && (b.id === battle.id || b.battleId === battle.id));
+    if (stored) patchId(stored);
+
+    const argsSurface = Game.ConflictArguments || Game._ConflictArguments || null;
+    const gatherDefenses = () => {
+      const seen = new Set();
+      const out = [];
+      const push = (list) => {
+        (list || []).forEach(item => {
+          if (!item || !item.id) return;
+          const key = String(item.id);
+          if (seen.has(key)) return;
+          seen.add(key);
+          out.push(item);
+        });
+      };
+      if (Conflict && typeof Conflict.myDefenseOptions === "function") {
+        try {
+          push(Conflict.myDefenseOptions(battle));
+        } catch (_) {
+          push(Conflict.myDefenseOptions());
+        }
+      }
+      if (argsSurface && typeof argsSurface.myDefenseOptions === "function") {
+        try {
+          push(argsSurface.myDefenseOptions(battle));
+        } catch (_) {
+          push(argsSurface.myDefenseOptions());
+        }
+      }
+      return out;
+    };
+
+    const defenseList = gatherDefenses();
+    if (!defenseList.length) {
+      result.notes.push("no_defense_options");
+      cleanupBattle(battleId);
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    const defense = defenseList[0];
+    Conflict.resolveBattle(battle, defense);
+    const resolved = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
+
+    result.battleId = battleId;
+    result.canonBuilt = !!(resolved && resolved.meta && resolved.meta.canonGroupKey);
+    result.result = resolved && resolved.result ? resolved.result : null;
+    const crowd = resolved && resolved.crowd;
+    result.crowdStarted = !!crowd;
+    result.capValue = result.crowdStarted && Number.isFinite(crowd.cap) ? (crowd.cap | 0) : null;
+    result.why = result.crowdStarted ? "crowd_started" : `resolved_${result.result || "unknown"}`;
+    result.ok = !result.crowdStarted && result.result && result.result !== "draw";
+    if (!result.ok) result.notes.push("unexpected_draw_or_crowd");
+
+    cleanupBattle(battleId);
+    logJson(result);
+    logEnd({ ok: result.ok, result: result.result, crowdStarted: result.crowdStarted });
+    return result;
+  };
+
+  Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce = (opts = {}) => {
+    const name = "smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce";
+    const logBegin = (payload) => console.warn("SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN", payload || {});
+    const logJson = (payload) => console.warn("SMOKE_BATTLE_DRAW_CROWD_CAP_JSON", payload || {});
+    const logEnd = (payload) => console.warn("SMOKE_BATTLE_DRAW_CROWD_CAP_END", payload || {});
+    const result = {
+      name,
+      ok: false,
+      battleId: null,
+      canonBuilt: null,
+      crowdStarted: false,
+      capValue: null,
+      capSource: null,
+      eligibleCount: null,
+      votesTotal: null,
+      endedBy: null,
+      ended: false,
+      why: null,
+      notes: []
+    };
+    logBegin({ name });
+
+    const S = Game.__S || Game.State || null;
+    const Conflict = Game.Conflict || null;
+    if (!S || !Array.isArray(S.battles)) {
+      result.notes.push("state_missing");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+    if (!Conflict || typeof Conflict.incoming !== "function" || typeof Conflict.applyCrowdVoteTick !== "function") {
+      result.notes.push("conflict_missing");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    const npc = Object.values(S.players || {}).find(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+    if (!npc || !npc.id) {
+      result.notes.push("npc_not_found");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    const cleanupBattle = (battleId) => {
+      if (!battleId) return;
+      for (let i = S.battles.length - 1; i >= 0; i -= 1) {
+        const entry = S.battles[i];
+        if (entry && (String(entry.id) === String(battleId) || String(entry.battleId) === String(battleId))) {
+          S.battles.splice(i, 1);
+        }
+      }
+    };
+
+    const raw = Conflict.incoming(npc.id, { devSmoke: true, lowEconomyFree: true, silent: true, uiSuppressed: true });
+    const battle = raw && raw.battle ? raw.battle : raw;
+    if (!battle || !battle.id) {
+      result.notes.push("incoming_failed");
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    const battleId = `dev_smoke_draw_${Date.now().toString(36)}`;
+    const applyId = (entry) => {
+      if (!entry) return;
+      entry.id = battleId;
+      entry.battleId = battleId;
+    };
+    applyId(battle);
+    const stateMatch = S.battles.find(b => b && (b.id === battle.id || b.battleId === battle.id));
+    if (stateMatch) applyId(stateMatch);
+
+    const defense = {
+      id: `smoke_draw_def_${Date.now().toString(36)}`,
+      type: (battle.attack && (battle.attack.type || battle.attack.group || battle.attack.kind)) ? battle.attack.type || battle.attack.group || battle.attack.kind : "yn",
+      text: "defy canon",
+      group: "yn",
+      _sub: (battle.attack && battle.attack._sub) ? battle.attack._sub : null
+    };
+    Conflict.resolveBattle(battle, defense);
+    const resolved = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
+    result.battleId = battleId;
+    result.canonBuilt = !!(resolved && resolved.meta && resolved.meta.canonGroupKey);
+    const crowd = resolved && resolved.crowd;
+    result.crowdStarted = !!crowd;
+    if (!result.crowdStarted) {
+      result.notes.push("crowd_not_started");
+      cleanupBattle(battleId);
+      logJson(result);
+      logEnd({ ok: false, notes: result.notes });
+      return result;
+    }
+
+    for (let i = 0; i < 8 && crowd && !crowd.decided; i += 1) {
+      Conflict.applyCrowdVoteTick(battleId);
+    }
+    const updated = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
+    const finalCrowd = updated && updated.crowd ? updated.crowd : crowd;
+    const votesA = Number.isFinite(finalCrowd && finalCrowd.votesA) ? (finalCrowd.votesA | 0) : 0;
+    const votesB = Number.isFinite(finalCrowd && finalCrowd.votesB) ? (finalCrowd.votesB | 0) : 0;
+    const votersTotal = votesA + votesB;
+    const capValue = finalCrowd && Number.isFinite(finalCrowd.cap) ? (finalCrowd.cap | 0) : null;
+    const endedBy = (finalCrowd && finalCrowd.endedBy) || (finalCrowd && finalCrowd.crowdCapDebug && finalCrowd.crowdCapDebug.endedBy) || null;
+    result.capValue = capValue;
+    result.capSource = finalCrowd && finalCrowd.capSource ? finalCrowd.capSource : (resolved && resolved.meta && resolved.meta.crowdCap && resolved.meta.crowdCap.capSource) || null;
+    result.eligibleCount = finalCrowd && Number.isFinite(finalCrowd.eligibleCount) ? (finalCrowd.eligibleCount | 0) : null;
+    result.votesTotal = votersTotal;
+    result.endedBy = endedBy;
+    result.ended = !!(finalCrowd && finalCrowd.decided);
+    result.why = `crowd_${endedBy || "unknown"}`;
+    result.ok = result.ended;
+
+    cleanupBattle(battleId);
+    logJson(result);
+    logEnd({ ok: result.ok, endedBy, votesTotal: votersTotal });
+    return result;
+  };
+
   Game.__DEV.smokeNpcCrowdEventPaidVotesOnce = (opts = {}) => {
     try {
       const name = "smoke_npc_crowd_event_paid_votes_once";

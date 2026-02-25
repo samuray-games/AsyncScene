@@ -203,6 +203,41 @@
       (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, `tailReasons` содержит финальные resolve-маркеры, и Console содержит `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1` без дополнительного crowd; приложи DUMP_AT.
       ```
 
+### [T-20260225-001] Контраргумент не должен запускать crowd с cap=10 и голосами
+- Status: PASS (`Console.txt` DUMP_AT 2026-02-25 10:48:02 + `SMOKE_COUNTERARG_NO_CROWD_*` / `SMOKE_BATTLE_DRAW_CROWD_CAP_*`)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict|DevSmoke
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: убрать “принудительный cap=20” и пустые crowd при выборе контраргумента, зафиксировать источник капа и NPC-лог, и покрыть сценарии двумя dev-smoke’ами (`smokeBattle_CounterArg_NoUnexpectedCrowdOnce`, `smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`).
+- Acceptance:
+  - [x] `ensureBattleCrowdCap` выставляет cap=10 (канон) или eligibleCount (D2, если есть не0), сохраняет `capValue/capSource/eligibleCount/excludedZeroPtsCount` и log `CROWD_CAP_SOURCE_V1` только для `dev_*`.
+  - [x] Dev-лог `DEV_SMOKE_DEFENSE_V1` получает `canonBuilt`/problem, `CROWD_CAP_SOURCE_V1` пишет `capSource`, `logDevSmokeNpcVoteAttempt` в dev‑батле показывает `npcId/eligible/costOk/voteCounted/votersTotal`.
+  - [x] Смок `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce` подтверждает `canonBuilt:true`, `result:win/lose`, `crowdStarted:false`.
+  - [x] Смок `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce` фиксирует `canonBuilt:false`, `crowdStarted:true`, `capValue`=10/eligible, `votesTotal` увеличивается и `endedBy` ≠ "stuck".
+- Notes: Логи `CROWD_CAP_SOURCE_V1`/`DEV_SMOKE_NPC_VOTE_V1` привязаны к `isDevSmokeBattle` и не спамят prod; `Console.txt` содержит DUMP_AT 2026-02-25 10:45:08/10:48:02.
+- Result: PASS (`Console.txt` DUMP_AT 2026-02-25 10:45:08 фиксирует `SMOKE_COUNTERARG_NO_CROWD_BEGIN/JSON/END`, DUMP_AT 2026-02-25 10:48:02 — `SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN/JSON/END` с cap=10, votesTotal>0, endedBy:"cap"`).
+- Report:
+  - Status: PASS
+  - Facts:
+    1) `ensureBattleCrowdCap` перестал использовать `getCrowdVoteCap` и выставляет `capSource` из канона (10/eligible) с прозрачными метами и `CROWD_CAP_SOURCE_V1` для dev_*.
+    2) `logDevSmokeNpcVoteAttempt` агрегирует первый npc-триал на событие, пишет `npcId/eligible/voteCounted/votersTotal`, а crowd-лог `setCrowdCapMeta` сохраняет `capValue/capSource/eligibleCount/excludedZeroPtsCount`.
+    3) Новые smokes (`smokeBattle_CounterArg_NoUnexpectedCrowdOnce`, `smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`) демонстрируют win/lose без crowd, draw/crowd с cap=10/eligible и голосами, и экспортируют BEGIN/JSON/END с указанными полями.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Hard reload http://localhost:8080/index.html?dev=1 (убедиться, что DevTools подхватили обновлённые `conflict-core`/`dev-checks`).
+    2) Run `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()`; JSON должен показать `canonBuilt:true`, `result!=draw`, `crowdStarted:false`, `why:resolved_*`, и `SMOKE_COUNTERARG_NO_CROWD_BEGIN/JSON/END` в Console.
+    3) Run `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()`; JSON должен показать `canonBuilt:false`, `crowdStarted:true`, `capValue`=10/eligible, `votesTotal>0`, `ended:true`, `endedBy`≠"stuck", и `SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN/JSON/END` в Console.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      QA instructions:
+      (1) Hard reload http://localhost:8080/index.html?dev=1.
+      (2) Run `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()` and confirm Console logs BEGIN/JSON/END with `canonBuilt:true`, `crowdStarted:false`, and that `result` is win/lose.
+      (3) Run `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()` and confirm Console logs BEGIN/JSON/END with `canonBuilt:false`, `crowdStarted:true`, `capValue=10 (или eligibleCount)`, `votesTotal>0`, `ended:true`, `endedBy:cap`, and that the draw resolves instead of getting stuck.
+      ```
+
 
 ### [T-20260220-009] D[2] Толпа — epoch_ms timer + stall gating + diag
 - Status: DOING (код обновлён, смоук ещё не прогонялся)
@@ -255,7 +290,7 @@
   - [ ] Исключать cops из выбора, пока `copBudget < 1`, добавляя `copQuota` после каждого NPC-сообщения и вычитая 1 при выборе cop; если других кандидатов нет, разрешать cop и логировать `cop_fallback_only_cops`.
   - [ ] Добавить `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` с BEGIN/JSON/END, ratio/notes/sampleAuthors, и учитывать `cop_fallback_only_cops`.
   - [ ] Документировать механику (copBudget/quotas/notes) и smoke-результат в `PROJECT_MEMORY.md` + `TASKS.md`.
-+ Notes: copBudget теперь хранит `copQuotaReady`, а `Game.NPC.randomForChat` принудительно выбирает копа, как только quota достигает 1 (diag `forceCopSelection`); smoke по-прежнему проверяет ratio 0.05..0.15, copCount 3..15 и добавил `forceCopSelections` в diag вместе с `budget`, `usedAuthorSelector`, `note`/`fallback`.
+- Notes: copBudget теперь хранит `copQuotaReady`, а `Game.NPC.randomForChat` принудительно выбирает копа, как только quota достигает 1 (diag `forceCopSelection`); smoke по-прежнему проверяет ratio 0.05..0.15, copCount 3..15 и добавил `forceCopSelections` в diag вместе с `budget`, `usedAuthorSelector`, `note`/`fallback`.
  - Result: FAIL (смоук ещё не запускался после форсинга копов на `copQuotaReady`; требуется `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})` в dev=1)
  - Report (обязательный формат):
    - Status: FAIL

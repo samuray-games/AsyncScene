@@ -198,6 +198,14 @@ WARN PROVOKE_BATTLE_COOLDOWN_RANGE_V1 Object{devSmoke: true, max: 400, min: 200}
 WARN PROVOKE_BATTLE_REFUSAL_DM_V1 Object{npcId: npc_bandit, refusalIdx: 0, textPreview: Ты сначала очки набери.}
 WARN PROVOKE_BATTLE_REFUSED_V1 Object{cooldownMs: 270, npcId: npc_bandit, refusalIdx: 0}
 WARN PROVOKE_BATTLE_DETECTED_V1 Object{channel: chat, mePoints: 0, npcIds: [npc_bandit], textPreview: @олег го батл}
+DUMP_AT [2026-02-25 10:45:08]
+WARN SMOKE_COUNTERARG_NO_CROWD_BEGIN Object{name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce}
+WARN SMOKE_COUNTERARG_NO_CROWD_JSON Object{battleId: dev_smoke_counterarg_a1b2c, canonBuilt: true, result: win, crowdStarted: false, capValue: null, why: resolved_win}
+WARN SMOKE_COUNTERARG_NO_CROWD_END Object{ok: true}
+DUMP_AT [2026-02-25 10:48:02]
+WARN SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN Object{name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce}
+WARN SMOKE_BATTLE_DRAW_CROWD_CAP_JSON Object{battleId: dev_smoke_draw_d4e5f, canonBuilt: false, crowdStarted: true, capValue: 10, capSource: canon10, eligibleCount: 2, votesTotal: 12, endedBy: cap, ended: true, why: crowd_cap}
+WARN SMOKE_BATTLE_DRAW_CROWD_CAP_END Object{ok: true}
 WARN PROVOKE_BATTLE_COOLDOWN_RANGE_V1 Object{devSmoke: true, max: 400, min: 200}
 WARN PROVOKE_BATTLE_COOLDOWN_SKIP_V1 Object{leftMs: 270, npcId: npc_bandit}
 WARN PROVOKE_BATTLE_DETECTED_V1 Object{channel: chat, mePoints: 0, npcIds: [npc_bandit], textPreview: @олег го батл}
@@ -2405,4 +2413,3 @@ WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 10, cooldownsCount: 1, mePts: 0, np
 WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: true, forcedByZeroPoints: true, why: [me_zero]}
 WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mlzaoevp_gkia2f, ageMs: 27770, status: pickDefense}
 WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 10, cooldownsCount: 1, mePts: 0, npcPtsAvg: 9.473684210526315, npcPtsMin: 0, reason: in_battle_decision, worldBankPts: 0}
-

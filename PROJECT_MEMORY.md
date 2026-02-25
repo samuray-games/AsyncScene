@@ -3376,3 +3376,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Dev-smoke `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce` теперь запускает `repeatRuns=5`, `attempts=50`, проверяет `dmSentCount===refusals`, `acceptedRate ∈ [0.10,0.20]`, `acceptedBattleIdNullCount===0`, `acceptFailedCount===0`, `cooldownSkips>0`, и логирует `acceptChanceUsed`, `acceptedRate`, `assertRange`, `repeatRuns`, `attemptsPerRun`.
 - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Smoke: Console.txt содержит `BATTLE_PROVOCATION_ZERO_POINTS_JSON ok:true` с `acceptedRateEligible` в диапазоне `[0.10,0.20]`, `dmSentCount===refusals`, `uniqueRefusals>=3` и `cooldownSkips>0` (пер-NPC кулдауны реально блокируют спам).
+### 2026-02-25 — Контраргумент и crowd cap / голосование
+- Status: PASS
+- Facts:
+  - `ensureBattleCrowdCap` теперь делегирует `setCrowdCapMeta`, перестал поднимать дефолтный `cap=20`, выставляет canon10/eligible и сохраняет `capValue/capSource/eligibleCount/excludedZeroPtsCount`, а `CROWD_CAP_SOURCE_V1` проходит только для `dev_*`.
+  - `logDevSmokeNpcVoteAttempt` аккумулирует первый NPC vote attempt на событие, пишет `npcId/eligible/npcPtsBefore/voteCounted/votersTotal`, а `resetCrowdTimerState` сбрасывает `_devNpcVoteLogged`.
+  - Добавлены смоки `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce` и `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`, покрывающие win/lose без crowd, draw с crowd cap=10/eligible и растущими голосами (`SMOKE_COUNTERARG_NO_CROWD_*`, `SMOKE_BATTLE_DRAW_CROWD_CAP_*` в Console).
+- Console: `Console.txt` DUMP_AT [2026-02-25 10:45:08] с `SMOKE_COUNTERARG_NO_CROWD_BEGIN/JSON/END` и DUMP_AT [2026-02-25 10:48:02] с `SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN/JSON/END`.
+- Next: QA (см. `Tasks` entry: запустить оба smoka и прикрепить JSON + DUMP).
