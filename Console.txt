@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-25 23:13:15] (epoch_ms=1772028795768)
+[DUMP_AT] [2026-02-26 00:00:23] (epoch_ms=1772031623722)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772028751678
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772031595706
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772028751733}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772031595786}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772028751691 1772028751733
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772031595723 1772031595787
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772028751733
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772031595787
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772028751734}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772031595788}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772028751745}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772028751748}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772031595827}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772031595831}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,19 +45,20 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772028751752}
-LOG [AttackChoices] conflict-arguments loaded 1772028751752
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772028751754}
+WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772031595836}
+WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772031595836}
+LOG [AttackChoices] conflict-arguments loaded 1772031595836
+WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772031595839}
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772028751755, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772028751756}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772028751756}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772031595844, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1772031595846}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772031595846}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772028771735_b6508f808d7a78 Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772031608579_554bbdf67a7fc Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
 WARN [repl] > Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
 WARN SMOKE_COUNTERARG_NO_CROWD_BEGIN Object{name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce}
-ERROR [repl] < ERROR ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
+ERROR [repl] < ERROR ReferenceError: Can't find variable: battleCtx
+@http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -71,8 +72,8 @@ runEval@http://localhost:8080/dev/console-tape.js:436:28
 runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
 @http://localhost:8080/ui/ui-console-panel.js:222:55
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
+LOG ReferenceError: Can't find variable: battleCtx
+@http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -82,13 +83,13 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 anonymous@
 @http://localhost:8080/dev/console-tape.js:452:33
 runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080…
+@http://localhost:8080/ui…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, error], preview: Object{
   error: Object{
-    message: Can't find variable: desiredGroup
+    message: Can't find variable: battleCtx
     name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+    stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -97,7 +98,7 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 @
 anonymous@
 @http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…, type: object}
+runEval@http://localhost…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -107,9 +108,9 @@ LOG Object{
   ]
   preview: Object{
   error: Object{
-    message: Can't find variable: desiredGroup
+    message: Can't find variable: battleCtx
     name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+    stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -117,9 +118,9 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 @
 @
 anonymous@
-@http:…
+@http://l…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772028771735_b6508f808d7a78 Object{error: Object{message: Can't find variable: desiredGroup, name: ReferenceError, stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772031608579_554bbdf67a7fc Object{error: Object{message: Can't find variable: battleCtx, name: ReferenceError, stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -134,9 +135,9 @@ runCommand@http://l…}, ok: false}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   error: Object{
-    message: Can't find variable: desiredGroup
+    message: Can't find variable: battleCtx
     name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+    stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -145,13 +146,13 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 @
 anonymous@
 @http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…
+runEval@http://localhost…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772028782535_9e91badc70c6b Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772031616920_9ff9c69a4ed678 Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
 WARN [repl] > Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
 WARN SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN Object{name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce}
-ERROR [repl] < ERROR ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
+ERROR [repl] < ERROR ReferenceError: Can't find variable: battleCtx
+@http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -165,8 +166,8 @@ runEval@http://localhost:8080/dev/console-tape.js:436:28
 runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
 @http://localhost:8080/ui/ui-console-panel.js:222:55
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
+LOG ReferenceError: Can't find variable: battleCtx
+@http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -176,13 +177,13 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 anonymous@
 @http://localhost:8080/dev/console-tape.js:452:33
 runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080…
+@http://localhost:8080/ui…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, error], preview: Object{
   error: Object{
-    message: Can't find variable: desiredGroup
+    message: Can't find variable: battleCtx
     name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+    stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -191,7 +192,7 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 @
 anonymous@
 @http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…, type: object}
+runEval@http://localhost…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -201,9 +202,9 @@ LOG Object{
   ]
   preview: Object{
   error: Object{
-    message: Can't find variable: desiredGroup
+    message: Can't find variable: battleCtx
     name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+    stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -211,9 +212,9 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 @
 @
 anonymous@
-@http:…
+@http://l…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772028782535_9e91badc70c6b Object{error: Object{message: Can't find variable: desiredGroup, name: ReferenceError, stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772031616920_9ff9c69a4ed678 Object{error: Object{message: Can't find variable: battleCtx, name: ReferenceError, stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -228,9 +229,9 @@ runCommand@http://l…}, ok: false}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   error: Object{
-    message: Can't find variable: desiredGroup
+    message: Can't find variable: battleCtx
     name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
+    stack: @http://localhost:8080/conflict/conflict-arguments.js:768:18
 pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
 @http://localhost:8080/conflict/conflict-core.js:2679:39
 incoming@http://localhost:8080/conflict/conflict-api.js:608:33
@@ -239,268 +240,6 @@ incoming@http://localhost:8080/conflict/conflict-api.js:608:33
 @
 anonymous@
 @http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1772028789124 1772028789122_e6609d8cff7758
-WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 10654, dumpAtEpochMs: 1772028789184, dumpAtLocal: 2026-02-25 23:13:09, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1772028789122_e6609d8cff7758, sepOk: false, status: 200}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  bytes: 10654
-  dumpAtEpochMs: 1772028789184
-  dumpAtLocal: 2026-02-25 23:13:09
-  ok: true
-  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
-  prepend: true
-  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-  runId: 1772028789122_e6609d8cff7758
-  sepOk: false
-  status: 200
-}
-LOG END CONSOLE_EXPAND_V1
-WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
-WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_hot, targetId: npc_weak, type: npc_event}
-
-[DUMP_AT] [2026-02-25 23:13:09] (epoch_ms=1772028789184)
-[DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772028751678
-WARN DEV_SW_DISABLED true
-WARN CONSOLE_TAPE_V1_READY
-WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
-WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
-WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772028751733}
-WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
-WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
-WARN DEV_CHECKS_SERVED_PROOF_V4
-WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772028751691 1772028751733
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772028751733
-WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
-WARN [DEV] content testing hooks enabled
-WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772028751734}
-LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772028751745}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772028751748}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: init
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772028751752}
-LOG [AttackChoices] conflict-arguments loaded 1772028751752
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772028751754}
-LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772028751755, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772028751756}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772028751756}
-WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772028771735_b6508f808d7a78 Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
-WARN [repl] > Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
-WARN SMOKE_COUNTERARG_NO_CROWD_BEGIN Object{name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce}
-ERROR [repl] < ERROR ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15181:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:222:55
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15181:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, error], preview: Object{
-  error: Object{
-    message: Can't find variable: desiredGroup
-    name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15181:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    ok
-    error
-  ]
-  preview: Object{
-  error: Object{
-    message: Can't find variable: desiredGroup
-    name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15181:34
-@
-@
-anonymous@
-@http:…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772028771735_b6508f808d7a78 Object{error: Object{message: Can't find variable: desiredGroup, name: ReferenceError, stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15181:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://l…}, ok: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  error: Object{
-    message: Can't find variable: desiredGroup
-    name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15181:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772028782535_9e91badc70c6b Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
-WARN [repl] > Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
-WARN SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN Object{name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce}
-ERROR [repl] < ERROR ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15323:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://localhost:8080/ui/ui-console-panel.js:165:31
-@http://localhost:8080/ui/ui-console-panel.js:222:55
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG ReferenceError: Can't find variable: desiredGroup
-@http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15323:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, error], preview: Object{
-  error: Object{
-    message: Can't find variable: desiredGroup
-    name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15323:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…, type: object}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  isPromise: 0
-  keys: [
-    ok
-    error
-  ]
-  preview: Object{
-  error: Object{
-    message: Can't find variable: desiredGroup
-    name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15323:34
-@
-@
-anonymous@
-@http:…
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772028782535_9e91badc70c6b Object{error: Object{message: Can't find variable: desiredGroup, name: ReferenceError, stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15323:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localhost:8080/dev/console-tape.js:436:28
-@http://localhost:8080/ui/ui-console-panel.js:175:38
-runCommand@http://l…}, ok: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  error: Object{
-    message: Can't find variable: desiredGroup
-    name: ReferenceError
-    stack: @http://localhost:8080/conflict/conflict-arguments.js:761:37
-pickIncomingAttack@http://localhost:8080/conflict/conflict-core.js:1240:37
-@http://localhost:8080/conflict/conflict-core.js:2679:39
-incoming@http://localhost:8080/conflict/conflict-api.js:608:33
-@http://localhost:8080/dev/dev-checks.js:15323:34
-@
-@
-anonymous@
-@http://localhost:8080/dev/console-tape.js:452:33
-runEval@http://localh…
+runEval@http://localhost…
 LOG END CONSOLE_EXPAND_V1
 

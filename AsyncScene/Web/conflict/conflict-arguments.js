@@ -9,6 +9,12 @@
 // conflict/conflict-arguments.js
 (function () {
   const A = {};
+  try {
+    console.warn("CONFLICT_ARGUMENTS_PARSE_OK_V1", {
+      ts: Date.now(),
+      buildTag: (typeof Game !== "undefined" && Game && Game.__buildTag) ? Game.__buildTag : null
+    });
+  } catch (_) {}
 
   function safeList(arr) {
     return Array.isArray(arr) ? arr : [];
@@ -543,15 +549,16 @@
   })();
 
   function buildDefenseOptions(attackArg) {
-    const battle = (attackArg && (attackArg.attack || attackArg.opponentRole)) ? attackArg : null;
+    const battleCtx = (attackArg && (attackArg.attack || attackArg.opponentRole)) ? attackArg : null;
     const level = normalizeInfluence(battle);
     const forced = getForcedColor();
     const D = (Game && Game.Data) ? Game.Data : null;
     const types = ["about", "who", "where", "yn"];
-    const opponentRoleRaw = (battle && (battle.opponentRole || (battle.opponent && battle.opponent.role)))
-      ? String(battle.opponentRole || (battle.opponent && battle.opponent.role)).toLowerCase()
+    const opponentRoleRaw = (battleCtx && (battleCtx.opponentRole || (battleCtx.opponent && battleCtx.opponent.role)))
+      ? String(battleCtx.opponentRole || (battleCtx.opponent && battleCtx.opponent.role)).toLowerCase()
       : "";
     const attackGroup = (attackArg && getGroup(attackArg)) ? String(getGroup(attackArg)).toLowerCase() : null;
+    let desiredGroup = attackGroup || null;
 
     const canonSubKeysByColor = (color) => {
       if (color === "k") return ["K"];
@@ -590,15 +597,15 @@
       let chooserInf = level;
       let chooserRole = "";
       try {
-        const incoming = !!(battle && battle.fromThem === true);
+        const incoming = !!(battleCtx && battleCtx.fromThem === true);
         if (incoming) {
           chooserInf = level;
           chooserRole = (Game && Game.__S && Game.__S.me && Game.__S.me.role) ? String(Game.__S.me.role) : "";
         } else {
           // Opponent chooser: battle.opponent may be missing; fall back to players lookup by opponentId.
           const oppObj =
-            (battle && battle.opponent) ? battle.opponent :
-            ((battle && battle.opponentId && Game && Game.__S && Game.__S.players) ? Game.__S.players[battle.opponentId] : null);
+            (battleCtx && battleCtx.opponent) ? battleCtx.opponent :
+            ((battleCtx && battleCtx.opponentId && Game && Game.__S && Game.__S.players) ? Game.__S.players[battleCtx.opponentId] : null);
           chooserInf = (oppObj && Number.isFinite(oppObj.influence)) ? (oppObj.influence | 0) : 0;
           chooserRole = opponentRoleRaw || (oppObj && oppObj.role ? String(oppObj.role) : "");
         }
@@ -623,9 +630,9 @@
 
     const subKey = pickCanonSub();
     const tierColor = forced || canonColorFromSub(subKey);
-    const battleAttackGroup = getGroup(battle && battle.attack ? battle.attack : attackArg) || "yn";
+      const battleAttackGroup = getGroup(battleCtx && battleCtx.attack ? battleCtx.attack : attackArg) || "yn";
     const correctType = types.includes(battleAttackGroup) ? battleAttackGroup : "yn";
-    const desiredGroup = battleAttackGroup && types.includes(battleAttackGroup) ? battleAttackGroup : null;
+    desiredGroup = battleAttackGroup && types.includes(battleAttackGroup) ? battleAttackGroup : null;
 
     const wrongTypes = types.filter(t => t !== correctType);
     const pickedWrong = pickN(wrongTypes, 2);
@@ -758,6 +765,23 @@
     };
     const tierColor = canonColorFromSub(subKey);
     const baseTypes = ["about", "who", "where", "yn"];
+    if (battleCtx && battleCtx.id && String(battleCtx.id).startsWith("dev_")) {
+      try {
+        console.warn("DEV_ARGS_DESIRED_GROUP_V1", {
+          battleId: battleCtx.id,
+          attackType: battleAttackGroup,
+          desiredGroup
+        });
+      } catch (_) {}
+    }
+    if (battleCtx && battleCtx.id && String(battleCtx.id).startsWith("dev_")) {
+      try {
+        console.warn("DEV_ARGS_BATTLE_IN_SCOPE_V1", {
+          hasBattle: !!battle,
+          battleId: battleCtx.id
+        });
+      } catch (_) {}
+    }
     const typesWanted = desiredGroup ? [desiredGroup] : baseTypes;
     const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
     const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, ctx) : String(text || "");
