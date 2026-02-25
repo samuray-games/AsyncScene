@@ -18,9 +18,14 @@
    }
 
    // If API already exists, do not recreate.
-   if (Game.Conflict && Game.Conflict.__ready) {
-     return;
-   }
+  if (Game.Conflict && Game.Conflict.__ready) {
+    return;
+  }
+
+  const CONFLICT_API_BUILD_TAG = "build_2026_02_26_a";
+  try {
+    console.warn("CONFLICT_API_LOADED_V1", { ts: Date.now(), buildTag: CONFLICT_API_BUILD_TAG });
+  } catch (_) {}
 
   function render() {
     try {
@@ -1117,7 +1122,6 @@
       battle.opponentThinking = false;
       const canonMatcherAvailable = Core && typeof Core.matchCanonGroupKey === "function";
       const canonGroupKey = canonMatcherAvailable ? Core.matchCanonGroupKey(battle.attack, defenseArg) : null;
-        : null;
       const canonProblem = (canonMatcherAvailable && !canonGroupKey && Core && typeof Core.buildCanonProblem === "function")
         ? Core.buildCanonProblem(battle.attack, defenseArg)
         : null;

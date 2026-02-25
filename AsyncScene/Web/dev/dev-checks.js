@@ -15138,23 +15138,26 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       crowdStarted: false,
       capValue: null,
       why: null,
-      notes: []
+      notes: [],
+      conflictApiLoaded: false
     };
     logBegin({ name });
 
     const S = Game.__S || Game.State || null;
     const Conflict = Game.Conflict || null;
     const Core = Game.ConflictCore || Game._ConflictCore || null;
+    const conflictApiLoaded = !!(Conflict && typeof Conflict.resolveBattle === "function");
+    result.conflictApiLoaded = conflictApiLoaded;
     if (!S || !Array.isArray(S.battles)) {
       result.notes.push("state_missing");
       logJson(result);
       logEnd({ ok: false, notes: result.notes });
       return result;
     }
-    if (!Conflict || !Core || typeof Conflict.incoming !== "function") {
+    if (!conflictApiLoaded || !Core || typeof Conflict.incoming !== "function") {
       result.notes.push("conflict_missing");
       logJson(result);
-      logEnd({ ok: false, notes: result.notes });
+      logEnd({ ok: false, notes: result.notes, conflictApiLoaded });
       return result;
     }
     const npc = Object.values(S.players || {}).find(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
@@ -15271,22 +15274,25 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       endedBy: null,
       ended: false,
       why: null,
-      notes: []
+      notes: [],
+      conflictApiLoaded: false
     };
     logBegin({ name });
 
     const S = Game.__S || Game.State || null;
     const Conflict = Game.Conflict || null;
+    const conflictApiLoaded = !!(Conflict && typeof Conflict.resolveBattle === "function");
+    result.conflictApiLoaded = conflictApiLoaded;
     if (!S || !Array.isArray(S.battles)) {
       result.notes.push("state_missing");
       logJson(result);
       logEnd({ ok: false, notes: result.notes });
       return result;
     }
-    if (!Conflict || typeof Conflict.incoming !== "function" || typeof Conflict.applyCrowdVoteTick !== "function") {
+    if (!conflictApiLoaded || typeof Conflict.incoming !== "function" || typeof Conflict.applyCrowdVoteTick !== "function") {
       result.notes.push("conflict_missing");
       logJson(result);
-      logEnd({ ok: false, notes: result.notes });
+      logEnd({ ok: false, notes: result.notes, conflictApiLoaded });
       return result;
     }
 
