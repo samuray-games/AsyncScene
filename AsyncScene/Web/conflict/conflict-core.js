@@ -1219,7 +1219,7 @@
   }
 
   // Pick an incoming attack argument for an opponent (kept hidden in UI until player answers)
-  function pickIncomingAttack(opponentId){
+  function pickIncomingAttack(opponentId, battle){
     const opp = getPlayer(opponentId);
     const inf = opp ? (opp.influence || 0) : 0;
 
@@ -1237,7 +1237,7 @@
     // Prefer a dedicated picker if the arguments module exposes one.
     const A = Game.ConflictArguments || Game._ConflictArguments || null;
     if (A && typeof A.pickIncomingAttack === "function") {
-      const a = A.pickIncomingAttack(opponentId);
+      const a = A.pickIncomingAttack(opponentId, battle);
       if (a) return sanitizeAttack(a);
     }
     // Canon-only: no base/data fallbacks.
@@ -2676,7 +2676,7 @@
       fromThem: true
     });
 
-    battle.attack = pickIncomingAttack(opponentId);
+    battle.attack = pickIncomingAttack(opponentId, battle);
     battle.attackHidden = true;
 
     // Timing hint for "answered immediately" mechanics (UI may overwrite with firstSeenAt)
@@ -3408,7 +3408,7 @@
     // otherwise UI gets stuck in pickDefense with empty args.
     // Mirror Core.incoming() initialization, but do NOT touch economy here.
     if (fromThem) {
-      nb.attack = pickIncomingAttack(nb.opponentId);
+      nb.attack = pickIncomingAttack(nb.opponentId, nb);
       nb.attackHidden = true;
       nb.presentedAt = now();
       // Canon-only: if no canonical incoming attack, degrade to draw.

@@ -15,6 +15,9 @@
       buildTag: (typeof Game !== "undefined" && Game && Game.__buildTag) ? Game.__buildTag : null
     });
   } catch (_) {}
+  try {
+    console.warn("ARGS_PARSE_OK_V2", { ts: Date.now(), tag: "ctx_dup_fix_1" });
+  } catch (_) {}
 
   function safeList(arr) {
     return Array.isArray(arr) ? arr : [];
@@ -550,7 +553,7 @@
 
   function buildDefenseOptions(attackArg) {
     const battleCtx = (attackArg && (attackArg.attack || attackArg.opponentRole)) ? attackArg : null;
-    const level = normalizeInfluence(battle);
+    const level = normalizeInfluence(battleCtx);
     const forced = getForcedColor();
     const D = (Game && Game.Data) ? Game.Data : null;
     const types = ["about", "who", "where", "yn"];
@@ -585,6 +588,12 @@
       if (s.startsWith("O")) return "o";
       return "y";
     };
+
+    if (typeof window !== "undefined" && window.location && String(window.location.search || "").includes("dev=1")) {
+      try {
+        console.warn("ARGS_FINGERPRINT_V3", "buildDefenseOptions_battle_fix_1", { ts: Date.now(), hasBattleCtx: !!battleCtx, battleId: battleCtx && battleCtx.id });
+      } catch (_) {}
+    }
 
     const pickCanonSub = () => {
       if (forced) {
@@ -714,7 +723,20 @@
   }
 
   // Canon-only incoming attack picker for core (used to avoid Data.ARGUMENTS/base fallbacks).
-  A.pickIncomingAttack = function (opponentId) {
+  A.pickIncomingAttack = function (opponentId, battle, ctx) {
+    let battleCtx;
+    let desiredGroup = null;
+    if (typeof battle !== "undefined") {
+      battleCtx = battle;
+    } else if (ctx && ctx.battle) {
+      battleCtx = ctx.battle;
+    }
+    if (typeof battleCtx === "undefined") {
+      try {
+        console.warn("ARGS_CTX_MISSING_V1", { ts: Date.now() });
+      } catch (_) {}
+      return null;
+    }
     const D = (Game && Game.Data) ? Game.Data : null;
     if (!D || typeof D.getArgCanonGroup !== "function") return null;
     const opp = (Game.__S && Game.__S.players && opponentId) ? Game.__S.players[opponentId] : null;
@@ -765,6 +787,8 @@
     };
     const tierColor = canonColorFromSub(subKey);
     const baseTypes = ["about", "who", "where", "yn"];
+    const battleAttackGroup = getGroup(battleCtx && battleCtx.attack ? battleCtx.attack : null) || "yn";
+    desiredGroup = battleAttackGroup && baseTypes.includes(battleAttackGroup) ? battleAttackGroup : null;
     if (battleCtx && battleCtx.id && String(battleCtx.id).startsWith("dev_")) {
       try {
         console.warn("DEV_ARGS_DESIRED_GROUP_V1", {
@@ -783,9 +807,21 @@
         });
       } catch (_) {}
     }
+    const devBattleMatch = battleCtx && String(battleCtx.id || "").startsWith("dev_smoke_");
+    const devFlagMatch = (typeof window !== "undefined" && window.location && String(window.location.search || "").includes("dev=1"));
+    if (devBattleMatch || devFlagMatch) {
+      try {
+        console.warn("ARGS_FINGERPRINT_V1", "line768_fix_1", { ts: Date.now() });
+      } catch (_) {}
+    }
+    if (devFlagMatch) {
+      try {
+        console.warn("ARGS_FINGERPRINT_V2", "desiredGroup_fix_1", { ts: Date.now(), hasDesiredGroup: typeof desiredGroup !== "undefined" });
+      } catch (_) {}
+    }
     const typesWanted = desiredGroup ? [desiredGroup] : baseTypes;
-    const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
-    const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, ctx) : String(text || "");
+    const attackCtx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
+    const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, attackCtx) : String(text || "");
 
     const t = pickN(typesWanted, 1)[0] || "yn";
     const list = D.getArgCanonGroup(subKey, String(t).toUpperCase()) || [];
@@ -810,7 +846,7 @@
     if (t === "yn" && q && q.match(/\b(в|на|у)\s*\{?[А-Я][а-я]+\}?/i)) {
       try {
         if (Game.__D && Game.__D.WARN_YN_PLACE) {
-          console.warn(`[YN_PLACE_BUG] YN answer contains location preposition: "${q}" (battleId: ${ctx.battleId || "unknown"})`);
+          console.warn(`[YN_PLACE_BUG] YN answer contains location preposition: "${q}" (battleId: ${attackCtx.battleId || "unknown"})`);
         }
       } catch (_) {}
     }
