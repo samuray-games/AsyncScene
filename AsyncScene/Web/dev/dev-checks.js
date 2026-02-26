@@ -15139,7 +15139,12 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       capValue: null,
       why: null,
       notes: [],
-      conflictApiLoaded: false
+      conflictApiLoaded: false,
+      chosenAttackId: null,
+      chosenAttackText: null,
+      chosenDefenseId: null,
+      chosenDefenseText: null,
+      canonMatchOk: false
     };
     logBegin({ name });
 
@@ -15196,6 +15201,41 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     patchId(battle);
     const stored = S.battles.find(b => b && (b.id === battle.id || b.battleId === battle.id));
     if (stored) patchId(stored);
+    const D = Game.Data || null;
+    const canonicalSub = "Y1";
+    const canonicalType = "yn";
+    const canonicalTypeKey = String(canonicalType || "yn").toUpperCase();
+    let canonicalDefenseEntry = null;
+    if (D && typeof D.getArgCanonGroup === "function") {
+      const canonList = D.getArgCanonGroup(canonicalSub, canonicalTypeKey) || [];
+      if (Array.isArray(canonList) && canonList.length) {
+        const canonEntry = canonList.find(item => item && item.q && item.a) || canonList[0];
+        if (canonEntry) {
+          const attackText = canonEntry.q != null ? String(canonEntry.q).trim() : "";
+          const defenseText = canonEntry.a != null ? String(canonEntry.a).trim() : "";
+          if (attackText) {
+            battle.attack = {
+              id: `dev_canon_attack_${battleId}`,
+              text: attackText,
+              _canonQ: attackText,
+              _sub: canonicalSub,
+              type: canonicalType,
+              group: canonicalType
+            };
+          }
+          if (defenseText) {
+            canonicalDefenseEntry = {
+              id: `dev_canon_def_${battleId}`,
+              text: defenseText,
+              _canonA: defenseText,
+              _sub: canonicalSub,
+              type: canonicalType,
+              group: canonicalType
+            };
+          }
+        }
+      }
+    }
 
     const argsSurface = Game.ConflictArguments || Game._ConflictArguments || null;
     const gatherDefenses = () => {
@@ -15228,6 +15268,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     };
 
     const defenseList = gatherDefenses();
+    if (canonicalDefenseEntry) {
+      const alreadyHas = defenseList.some(item => item && String(item.id) === String(canonicalDefenseEntry.id));
+      if (!alreadyHas) defenseList.unshift(canonicalDefenseEntry);
+    }
     if (!defenseList.length) {
       result.notes.push("no_defense_options");
       cleanupBattle(battleId);
@@ -15236,12 +15280,19 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       return result;
     }
 
-    const defense = defenseList[0];
+    const defense = canonicalDefenseEntry
+      ? defenseList.find(item => item && String(item.id) === String(canonicalDefenseEntry.id)) || defenseList[0]
+      : defenseList[0];
     Conflict.resolveBattle(battle, defense);
     const resolved = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
+    result.chosenAttackId = battle.attack && battle.attack.id ? battle.attack.id : null;
+    result.chosenAttackText = battle.attack && battle.attack.text ? battle.attack.text : null;
+    result.chosenDefenseId = defense && defense.id ? defense.id : null;
+    result.chosenDefenseText = defense && defense.text ? defense.text : null;
 
     result.battleId = battleId;
     result.canonBuilt = !!(resolved && resolved.meta && resolved.meta.canonGroupKey);
+    result.canonMatchOk = !!(resolved && resolved.meta && resolved.meta.canonGroupKey);
     result.result = resolved && resolved.result ? resolved.result : null;
     const crowd = resolved && resolved.crowd;
     result.crowdStarted = !!crowd;
@@ -15350,7 +15401,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const resolved = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
     result.battleId = battleId;
     result.canonBuilt = !!(resolved && resolved.meta && resolved.meta.canonGroupKey);
-    const crowd = resolved && resolved.crowd;
+    let crowd = resolved && resolved.crowd;
     result.crowdStarted = !!crowd;
     if (!result.crowdStarted) {
       result.notes.push("crowd_not_started");
@@ -15360,8 +15411,22 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       return result;
     }
 
-    for (let i = 0; i < 8 && crowd && !crowd.decided; i += 1) {
+    if (crowd) {
+      const WARMUP_SKIP_MS = 61000;
+      const nowMs = Date.now();
+      const startedAt = Number.isFinite(crowd.startedAtMs) ? (crowd.startedAtMs | 0) : nowMs;
+      const lastProgressAt = Number.isFinite(crowd.lastProgressAtMs) ? (crowd.lastProgressAtMs | 0) : startedAt;
+      crowd.startedAtMs = Math.max(0, startedAt - WARMUP_SKIP_MS);
+      crowd.lastProgressAtMs = Math.max(0, lastProgressAt - WARMUP_SKIP_MS);
+    }
+
+    for (let i = 0; i < 32; i += 1) {
       Conflict.applyCrowdVoteTick(battleId);
+      const check = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId));
+      const checkCrowd = check && check.crowd ? check.crowd : null;
+      if (checkCrowd && checkCrowd.decided) {
+        break;
+      }
     }
     const updated = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
     const finalCrowd = updated && updated.crowd ? updated.crowd : crowd;

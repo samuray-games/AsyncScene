@@ -1438,7 +1438,7 @@
   }
 
   function isBattleInDraw(b){
-    return !!(b && b.draw && b.crowd && !b.crowd.decided);
+    return !!(b && (b.status === "draw" || b.status === "crowd") && b.crowd && !b.crowd.decided);
   }
 
   function useWeightedTally(){
@@ -1809,31 +1809,49 @@
     const battleId = (b && (b.id || b.battleId)) || battleIdFallback || null;
     const cacheKey = battleId ? String(battleId) : null;
     let pendingMeta = null;
+    const votesBeforeSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
+    const shouldLogDevTick = () => isDevSurfaceFlag() && isDevSmokeBattle(b);
+    const logDevCrowdTick = (phaseLabel, endedFlag, endedByLabel) => {
+      if (!shouldLogDevTick()) return;
+      const votesAfterSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
+      _crowdLog("CROWD_TICK_V1", {
+        battleId,
+        phase: phaseLabel || (b && b.crowd && Number.isFinite(b.crowd.countdownStartMs) ? "countdown" : "warmup"),
+        votesTotalBefore: votesBeforeSnapshot,
+        votesTotalAfter: votesAfterSnapshot,
+        ended: !!endedFlag,
+        endedBy: endedByLabel || (b && b.crowd && b.crowd.endedBy ? b.crowd.endedBy : null)
+      });
+    };
+    const finishWithLog = (resultObj, phaseLabel, endedFlag, endedByLabel) => {
+      logDevCrowdTick(phaseLabel, endedFlag, endedByLabel);
+      return resultObj;
+    };
     if (b && b.crowd && b.crowd.decided) {
       const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
-      return {
+      return finishWithLog({
         ok: false,
         battleId,
         crowdCapMeta: cachedMeta,
         pendingMeta,
         cacheHit: !!cachedMeta,
         why: "crowd_decided"
-      };
+      }, "warmup", true, cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null);
     }
     if (b && b.crowd && b.crowd.noTimerResolution) {
       const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
       const meta = res ? res.crowdCapMeta : null;
       if (!meta) {
-        return {
+        return finishWithLog({
           ok: false,
           battleId,
           crowdCapMeta: null,
           pendingMeta: null,
           cacheHit: false,
           why: "fifty_missing_meta"
-        };
+        }, "warmup", true, null);
       }
-      return {
+      return finishWithLog({
         ok: true,
         battleId,
         outcome: (res && res.outcome) ? res.outcome : null,
@@ -1841,21 +1859,21 @@
         pendingMeta: null,
         cacheHit: true,
         why: null
-      };
+      }, "warmup", true, meta && meta.endedBy ? meta.endedBy : null);
     }
     if (b && b.crowd) {
       pendingMeta = createCrowdCapMeta(b, "pending");
     }
     if (!isBattleInDraw(b)) {
       const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
-      return {
+      return finishWithLog({
         ok: false,
         battleId,
         crowdCapMeta: cachedMeta,
         pendingMeta,
         cacheHit: !!cachedMeta,
         why: cachedMeta ? null : "battle_not_draw"
-      };
+      }, "warmup", false, cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null);
     }
     if (b && b.crowd && b.crowd.noTimerResolution) {
       const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
@@ -2081,6 +2099,7 @@
       logBattleResolveVillain(b, b.result, penaltyApplied, oppRole);
     }
     logBattleResolveDiagOnce(b, b.result, endedBy || null, statusBefore, b.status || null);
+    b.resolved = true;
     announceBattleResult(b);
 
     return {
@@ -2844,6 +2863,9 @@
     const b = Game.__S.battles.find(x => x.id === battleId);
     if (!b || b.resolved) return;
     const statusBefore = b.status || null;
+    const resolvedBefore = !!b.resolved;
+    const nowStamp = now();
+    b.updatedAt = nowStamp;
 
     // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
     // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
@@ -2927,9 +2949,6 @@
       }
     }
 
-    b.resolved = true;
-    b.updatedAt = now();
-
     // Reveal attack only after we have an outcome.
     b.attackHidden = false;
 
@@ -2954,12 +2973,13 @@
     }
 
     if (outcome === "draw") {
-      b.draw = true;
+      b.draw = false;
       b.wasDraw = true;
-      b.result = "draw";
-      b.status = "draw";
+      b.result = null;
       b.resultLine = "Толпа решает";
+      b.status = "crowd";
       b.finished = false;
+      b.resolved = false;
 
       const { attackerId, defenderId } = attackerDefenderIds(b);
       const nowMs = now();
@@ -3051,6 +3071,13 @@
         logCrowdCapForcedResolve(b, b.crowd, votesNow, b.crowd.cap);
         finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
       }
+      _crowdLog("CROWD_START_FLOW_V1", {
+        battleId: b.id || b.battleId || null,
+        statusBefore,
+        statusAfter: b.status || null,
+        battleResolvedBefore: resolvedBefore,
+        battleResolvedAfter: !!b.resolved
+      });
       logCrowdCreate(b.crowd, b.id || b.battleId || null);
       if (checkCrowdVotersOverride(b, b.crowd)) {
         return;
@@ -3081,7 +3108,6 @@
       if (shouldLogVillain) {
         logBattleResolveVillain(b, "draw", false, oppRole);
       }
-      logBattleResolveDiagOnce(b, "draw", b.endedBy || (b.crowd && b.crowd.endedBy) || null, statusBefore, b.status || null);
       return;
     }
 
