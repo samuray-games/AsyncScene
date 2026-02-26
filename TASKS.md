@@ -2928,3 +2928,12 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - `conflict-arguments.js` принимает `battleCtx` только через параметры, вычисляет `desiredGroup` локально и при отсутствии контекста возвращает `{ok:false, reason:"missing_battle_ctx"}` с `ARGS_CTX_MISSING_V1`, устраняя ReferenceError `desiredGroup`.
   - DUMP_AT 2026-02-26 20:06:26: `SmokeBattle_CounterArg_NoUnexpectedCrowdOnce` ok:true/crowdStarted:false, `DEV_OUTCOME_GATE_V2` forcedResolved:true, `CROWD_CREATE_V1` отсутствует, что облегчает QA.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-arguments.js`
+
+### 2026-02-26 — Контраргумент: категории
+- Status: FAIL
+- Facts:
+  - `buildDefenseOptions` ранее строил `wanted` через `desiredGroup`, из-за чего все три варианта иногда повторяли один и тот же тип (например, `yn`) и UI всегда показывал gradations вместо разных категорий.
+  - Исправил сборку: `wanted` теперь = `[correctType, ...pickN(wrongTypes, 2)]`, где `wrongTypes` берёт другие типы, так что варианты дают три разных групп и ровно одну совпадающую с incoming attack.
+  - Runtime окружение для smoke-команды `SmokeCounterArgCategories` недоступно здесь, поэтому тесты не прогнал — результат фиксируется как FAIL до выполнения команды на dev-сборке.
+- Changed: `AsyncScene/Web/conflict/conflict-arguments.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: Запустить `SmokeCounterArgCategories` (см. SMOKE_TEST_COMMANDS.md), убедиться в 10 прогонах по 3 уникальных `group` и ровно одном `correctType`, затем обновить этот блок в TASKS.md/PROJECT_MEMORY.md как PASS и задокументировать результат в `Console.txt`.

@@ -405,3 +405,39 @@ Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })
 
 - PASS: mention-сообщение возвращает NPC с `replyAuthorId` согласно упоминанию, `repliesCount <= 1`, и 100 random-сообщений показывают, что villains (toxic/bandit/mafia) чаще crowd, ни одна роль не >70%, JSON содержит `diag` с `mentionDetected`, `chosenRole`, `roleCounts`, `randomReplies`, `randomDuplicates`, `totalRoleSamples`, `villainCount`, `crowdCount`.
 - FAIL: `repliesCount > 1`, mention-ответ отсутствует/идентичен неупомянутому NPC, `randomReplies < 100`, или распределение ролей нарушает долю >70% / villains <= crowd.
+
+## 13. Контраргумент: категории
+### SmokeCounterArgCategories
+```js
+(() => {
+  const args = Game._ConflictArguments || Game.ConflictArguments;
+  if (!args || typeof args.myDefenseOptions !== "function") {
+    console.error("SmokeCounterArgCategories: Conflict arguments API missing");
+    return;
+  }
+  const runs = [];
+  for (let i = 0; i < 10; i++) {
+    const opts = args.myDefenseOptions({ attack: { type: "where" } }) || [];
+    const groups = opts
+      .map(opt => opt && (opt.group || opt.type || opt.qtype || opt.kind || "").toString().toLowerCase())
+      .filter(Boolean);
+    const unique = Array.from(new Set(groups));
+    const correctCount = groups.filter(g => g === "where").length;
+    const hasPad = opts.some(opt => opt && opt._pad);
+    runs.push({
+      run: i + 1,
+      count: opts.length,
+      uniqueGroups: unique.length,
+      groups,
+      correctCount,
+      hasPad,
+    });
+  }
+  console.table(runs);
+  const pass = runs.every(r => r.count === 3 && r.uniqueGroups === 3 && r.correctCount === 1 && !r.hasPad);
+  console.log("SmokeCounterArgCategories PASS?", pass);
+})();
+```
+
+- PASS: 10 прогонов дают ровно 3 кнопки, каждая имеет уникальную категорию (`group`), ровно одна повторяет входной `correctType`, и никаких `_pad` fillers.
+- FAIL: любой прогон нарушает 3 разных категорий, содержит дублирующийся `group`, более одного правильного или добавляет `_pad`-вариант; логировать вывод `SmokeCounterArgCategories` в `Console.txt`.

@@ -3406,3 +3406,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke: pending; awaiting QA to rerun both smokes on a dev instance and supply new DUMP_AT with the markers listed above.
 - Evidence: n/a (smoke DUMP not yet recorded in this environment).
 - Next: QA (run both smokes and capture DUMP_AT + logs verifying votesTotal/voting progression)
+
+### 2026-02-26 — Контраргумент: категории
+- Status: FAIL
+- Facts:
+  - Установлено, что `buildDefenseOptions` генерирует `wanted` из `desiredGroup`, поэтому когда `attack` имел тип, все три defense-чипа повторяли один и тот же тип, и UI показывал три вариации gradations вместо 3 разных категорий (about/who/where/yn).
+  - Изменил генерацию `wanted`: первый элемент всегда равен `correctType`, а остальные два выбираются через `pickN(wrongTypes, 2)` с остальными категориями, так что ответы дают одну правильную категорию и два других.
+  - Smoke-команду `SmokeCounterArgCategories` (описанную в SMOKE_TEST_COMMANDS.md) в этом окружении не запускал — тесты ещё не прогнаны, поэтому текущий статус фиксируется как FAIL; формат PASS/FAIL должен быть обновлён после выполнения команды в продуктиве.
+- Changed: `AsyncScene/Web/conflict/conflict-arguments.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: Прогнать `SmokeCounterArgCategories` на dev-сборке, убедиться в 10 прогонках с 3 разными group и точной 1 правильной, отметить PASS и зафиксировать результат в `Console.txt`/`PROJECT_MEMORY.md`/`TASKS.md`.

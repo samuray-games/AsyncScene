@@ -562,7 +562,7 @@
       ? String(battleCtx.opponentRole || (battleCtx.opponent && battleCtx.opponent.role)).toLowerCase()
       : "";
     const attackGroup = (attackArg && getGroup(attackArg)) ? String(getGroup(attackArg)).toLowerCase() : null;
-    let desiredGroup = attackGroup || null;
+    const desiredGroup = attackGroup && types.includes(attackGroup) ? attackGroup : null;
 
     const canonSubKeysByColor = (color) => {
       if (color === "k") return ["K"];
@@ -642,11 +642,10 @@
     const tierColor = forced || canonColorFromSub(subKey);
       const battleAttackGroup = getGroup(battleCtx && battleCtx.attack ? battleCtx.attack : attackArg) || "yn";
     const correctType = types.includes(battleAttackGroup) ? battleAttackGroup : "yn";
-    desiredGroup = battleAttackGroup && types.includes(battleAttackGroup) ? battleAttackGroup : null;
 
     const wrongTypes = types.filter(t => t !== correctType);
     const pickedWrong = pickN(wrongTypes, 2);
-    const wanted = desiredGroup ? Array(3).fill(desiredGroup) : [correctType].concat(pickedWrong);
+    const wanted = [correctType].concat(pickedWrong);
 
     const usedTexts = new Set();
     const ctx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
