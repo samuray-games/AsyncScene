@@ -522,22 +522,243 @@
     return "";
   }
 
-  function isOutgoingBattle(battle) {
-    if (!battle) return false;
-    if (typeof battle.direction === "string") {
-      const dir = battle.direction.toLowerCase();
-      if (dir === "outgoing" || dir === "out") return true;
-      if (dir === "incoming" || dir === "in") return false;
+  const OUTGOING_DIRECTION_TOKENS = new Set(["outgoing", "out"]);
+  const INCOMING_DIRECTION_TOKENS = new Set(["incoming", "in"]);
+  const ARG_TEXT_KEYS = ["text", "value", "arg", "statement", "line", "label", "title", "description", "q"];
+
+  function getSafeId(value) {
+    if (value == null) return null;
+    try {
+      const cleaned = String(value).trim();
+      return cleaned ? cleaned : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getMeId() {
+    return (S && S.me && S.me.id) ? String(S.me.id) : "me";
+  }
+
+  function getBattleAttackerId(battle) {
+    if (!battle) return null;
+    const keys = ["attackerId", "aId", "playerAId", "p1Id", "p1", "fromId", "from"]; 
+    for (const key of keys) {
+      if (battle[key] != null) {
+        return String(battle[key]);
+      }
     }
     if (typeof battle.fromThem === "boolean") {
-      return battle.fromThem === false;
+      return battle.fromThem ? (getSafeId(battle.opponentId) || "opponent") : getMeId();
     }
-    const myId = (S && S.me && S.me.id) ? String(S.me.id) : "me";
-    const attackerId = battle.attackerId || battle.aId || battle.playerAId || battle.p1Id || battle.p1;
+    return null;
+  }
+
+  function getBattleDefenderId(battle) {
+    if (!battle) return null;
+    const keys = ["defenderId", "dId", "playerBId", "p2Id", "p2", "toId", "to"];
+    for (const key of keys) {
+      if (battle[key] != null) {
+        return String(battle[key]);
+      }
+    }
+    if (typeof battle.fromThem === "boolean") {
+      return battle.fromThem ? getMeId() : (getSafeId(battle.opponentId) || "opponent");
+    }
+    if (battle.opponentId != null) {
+      return String(battle.opponentId);
+    }
+    return null;
+  }
+
+  function getBattleInitiatorId(battle) {
+    if (!battle) return null;
+    const keys = ["createdBy", "created_by", "creatorId", "initiatorId", "initiatedBy", "meInitiated", "meInitiatedBy", "initiated"];
+    for (const key of keys) {
+      if (battle[key] != null) {
+        return String(battle[key]);
+      }
+    }
+    return null;
+  }
+
+  function getBattleDirectionInfo(battle) {
+    const attackerId = getBattleAttackerId(battle);
+    const defenderId = getBattleDefenderId(battle);
+    const info = {
+      isOutgoing: false,
+      direction: null,
+      hasBDirection: false,
+      fallbackUsed: false,
+      reason: null,
+      unknownDirection: false,
+      attackerId: attackerId,
+      defenderId: defenderId,
+      hasAttackerId: !!attackerId,
+      hasDefenderId: !!defenderId
+    };
+    if (!battle) return info;
+    const meId = getMeId();
+    let rawDirection = null;
+    if (typeof battle.direction === "string") rawDirection = battle.direction;
+    else if (typeof battle.bDirection === "string") rawDirection = battle.bDirection;
+    else if (typeof battle.bdirection === "string") rawDirection = battle.bdirection;
+
+    if (rawDirection != null) {
+      const cleaned = String(rawDirection).trim();
+      info.direction = cleaned || null;
+      if (cleaned) {
+        const norm = cleaned.toLowerCase();
+        if (OUTGOING_DIRECTION_TOKENS.has(norm)) {
+          info.isOutgoing = true;
+          info.reason = "direction";
+          info.hasBDirection = !!battle.bDirection;
+          return info;
+        }
+        if (INCOMING_DIRECTION_TOKENS.has(norm)) {
+          info.isOutgoing = false;
+          info.reason = "direction";
+          info.hasBDirection = !!battle.bDirection;
+          return info;
+        }
+      }
+    }
+    info.hasBDirection = info.hasBDirection || (battle.bDirection != null);
+
+    const attackerId = getBattleAttackerId(battle);
     if (attackerId) {
-      return String(attackerId) === myId;
+      info.isOutgoing = attackerId === meId;
+      info.reason = "attackerId";
+      return info;
     }
-    return false;
+
+    const initiatorId = getBattleInitiatorId(battle);
+    if (initiatorId) {
+      info.isOutgoing = initiatorId === meId;
+      info.fallbackUsed = true;
+      info.reason = "initiator";
+      return info;
+    }
+
+    info.unknownDirection = true;
+    info.reason = "unknown";
+    return info;
+  }
+
+  function isOutgoingBattle(battle) {
+    return getBattleDirectionInfo(battle).isOutgoing;
+  }
+
+  function extractArgText(arg) {
+    if (!arg) return null;
+    for (const key of ARG_TEXT_KEYS) {
+      if (arg[key] != null) {
+        const value = String(arg[key]).trim();
+        if (value) return value;
+      }
+    }
+    return null;
+  }
+
+  function normalizeArgText(value) {
+    if (value == null) return null;
+    const text = String(value).trim();
+    return text ? text : null;
+  }
+
+  function findFirstArgText(sources) {
+    if (!Array.isArray(sources)) return null;
+    for (const src of sources) {
+      const text = extractArgText(src);
+      if (text) return text;
+    }
+    return null;
+  }
+
+  function getBattleArgumentTexts(battle) {
+    if (!battle) return { opponent: null, mine: null };
+    const opponent = findFirstArgText([
+      battle.attack,
+      battle.battleCtx && battle.battleCtx.attack,
+      battle.ctx && battle.ctx.attack,
+      battle.log && battle.log.attack
+    ]) || normalizeArgText(battle.opponentArgText || battle.opponentArg);
+
+    const mine = findFirstArgText([
+      battle.defense,
+      battle.battleCtx && battle.battleCtx.defense,
+      battle.ctx && battle.ctx.defense,
+      battle.log && battle.log.defense
+    ]) || normalizeArgText(battle.myCounterArgText || battle.myCounterArg);
+
+    return { opponent, mine };
+  }
+
+  function countIncomingRematchButtons(battle) {
+    if (!battle) return 0;
+    const rem = battle.rematch || null;
+    const isEligible = (battle.result === "win" || battle.result === "lose");
+    const youAreLoser = (battle.result === "lose");
+    let buttons = 0;
+    if (rem && rem.requestedAt && rem.decided !== true) {
+      const requesterId = rem.requestedBy || null;
+      const isFromMe = requesterId === "me";
+      if (!isFromMe) buttons += 2;
+    }
+    if (rem && rem.requestedAt && rem.decided === true) {
+      if (rem.accepted === false && isEligible && youAreLoser) {
+        buttons += 1;
+      }
+    }
+    if (!rem || (rem.decided === true && rem.accepted === true)) {
+      if (isEligible && youAreLoser) {
+        buttons += 1;
+      }
+    }
+    return buttons;
+  }
+
+  function getBattleOutcomeValue(battle) {
+    if (!battle) return null;
+    const keys = ["result", "outcome", "final", "status", "resultLine"];
+    for (const key of keys) {
+      if (battle[key] != null) {
+        const value = String(battle[key]).trim();
+        if (value) return value;
+      }
+    }
+    return null;
+  }
+
+  function buildBattleCardBranchPayload(battle, directionInfo, argumentTexts, branch) {
+    if (!battle || !directionInfo) return null;
+    const args = argumentTexts || { opponent: null, mine: null };
+    const rematchButtons = countIncomingRematchButtons(battle);
+    return {
+      battleId: battle.id != null ? String(battle.id) : null,
+      isResolved: battle.resolved === true,
+      isOutgoing: !!directionInfo.isOutgoing,
+      attackerId: directionInfo.attackerId || null,
+      defenderId: directionInfo.defenderId || null,
+      meId: getMeId(),
+      direction: directionInfo.direction || null,
+      hasBDirection: !!directionInfo.hasBDirection,
+      hasAttackerId: !!directionInfo.hasAttackerId,
+      hasDefenderId: !!directionInfo.hasDefenderId,
+      outcome: getBattleOutcomeValue(battle),
+      hasOppArg: !!args.opponent,
+      hasMyCounter: !!args.mine,
+      canRematch: !!directionInfo.isOutgoing || rematchButtons > 0,
+      fallbackUsed: !!directionInfo.fallbackUsed,
+      unknownDirection: !!directionInfo.unknownDirection,
+      branch: branch || null
+    };
+  }
+
+  function logBattleCardBranch(payload) {
+    if (!payload) return;
+    try { console.info("UI_BATTLE_CARD_BRANCH_V1", payload); } catch (_) {}
+    try { if (UI) UI._lastBattleCardBranchLog = payload; } catch (_) {}
   }
 
   function rematchErrorToast(reason) {
@@ -594,6 +815,7 @@
 
   // Keep 3-choice sets stable across UI re-renders.
   UI._battleChoiceCache = UI._battleChoiceCache || { attack: Object.create(null), defense: Object.create(null), status: Object.create(null) };
+  UI._lastBattleCardBranchLog = UI._lastBattleCardBranchLog || null;
   function _resetChoiceCacheIfNeeded(b) {
     if (!b) return;
     const id = b.id != null ? String(b.id) : null;
@@ -846,6 +1068,7 @@
   }
 
 UI.renderBattles = () => {
+  UI._lastBattleCardBranchLog = null;
   const body = $("battlesBody");
   let countEl = $("battleCount");
   const countWrapper = $("battleCountWrapper");
@@ -1391,16 +1614,28 @@ UI.renderBattles = () => {
       const line = document.createElement("div");
       line.className = "noteLine";
 
+      const isEscape = isEscapeVote(b);
+      const isDraw = isDrawBattle(b);
       const uiThinksResolved = !!(b.resolved === true || b.status === "finished");
-      const uiThinksCrowd = !!(isDrawBattle(b) || isEscapeVote(b));
-      const isOutgoingCard = isOutgoingBattle(b);
+      const uiThinksCrowd = !!(isEscape || isDraw);
+      const directionInfo = getBattleDirectionInfo(b);
+      const isOutgoingCard = directionInfo.isOutgoing;
+      const argumentTexts = getBattleArgumentTexts(b);
       const logMeta = {
-        hasOppArg: false,
-        hasMyCounter: false,
+        hasOppArg: !!argumentTexts.opponent,
+        hasMyCounter: !!argumentTexts.mine,
         hasResult: false,
         hasRematchBtn: false
       };
       logBattleUiDecisionDiagOnce(b, uiThinksResolved, uiThinksCrowd, "renderBattles");
+
+      if (uiThinksResolved) {
+        const branch = isEscape ? "escape_vote"
+          : isDraw ? "draw"
+          : (isOutgoingCard ? "outgoing_resolved" : "resolved_history");
+        const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch);
+        logBattleCardBranch(payload);
+      }
 
       if (!uiThinksResolved) {
        if (b.status === "pickDefense") line.textContent = "Бери контраргумент";
@@ -1414,8 +1649,6 @@ UI.renderBattles = () => {
       } else {
         line.textContent = _normalizeResultText(b);
       }
-      logMeta.hasOppArg = !!(b.attack && b.attack.text);
-      logMeta.hasMyCounter = !!(b.defense && b.defense.text);
       card.appendChild(line);
 
       // ESCAPE VOTE (crowd vote) - render even if resolved is true
@@ -2288,33 +2521,28 @@ UI.renderBattles = () => {
           card.appendChild(note);
         }
       } else if (isOutgoingCard) {
-        const formatText = (value) => {
-          return String(value || "").trim();
-        };
-        const opponentArgText = formatText(b.opponentArgText || b.opponentArg || (b.attack && b.attack.text));
-        const myCounterArgText = formatText(b.myCounterArgText || b.myCounterArg || (b.defense && b.defense.text));
-        const appendOutgoingRow = (label, text) => {
+        const appendStatRow = (label, text, testId) => {
           const title = document.createElement("div");
           title.className = "noteLine";
           title.textContent = label;
           card.appendChild(title);
           const row = document.createElement("div");
           row.className = "choiceRow";
+          if (testId) row.dataset.testid = testId;
           const chip = document.createElement("div");
           chip.className = clsForColor(null);
           chip.textContent = text || "—";
           row.appendChild(chip);
           card.appendChild(row);
         };
-        appendOutgoingRow("Аргумент оппонента", opponentArgText);
-        appendOutgoingRow("Мой контраргумент", myCounterArgText);
-        logMeta.hasOppArg = !!opponentArgText;
-        logMeta.hasMyCounter = !!myCounterArgText;
+        appendStatRow("Аргумент оппонента", argumentTexts.opponent, "outgoing-opp-arg");
+        appendStatRow("Мой контраргумент", argumentTexts.mine, "outgoing-my-counter");
         const canonicalOutcome = getBattleOutcomeLabel(b);
         const outcomeLabel = canonicalOutcome || _normalizeResultText(b);
         logMeta.hasResult = !!outcomeLabel;
         const res = document.createElement("div");
         res.className = "battleTop";
+        res.dataset.testid = "battle-result-pill";
         res.innerHTML = `<div class="kpill"><strong>${escapeHtml(outcomeLabel || "Результат готов.")}</strong></div>`;
         card.appendChild(res);
         const rematchActions = document.createElement("div");
@@ -2322,6 +2550,7 @@ UI.renderBattles = () => {
         const rematchBtn = document.createElement("button");
         rematchBtn.className = "btn small";
         rematchBtn.type = "button";
+        rematchBtn.dataset.testid = "battle-rematch-btn";
         rematchBtn.textContent = "Реванш";
         rematchBtn.onclick = (e) => {
           stop(e);

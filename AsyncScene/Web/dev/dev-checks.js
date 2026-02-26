@@ -21833,30 +21833,61 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const battle = {
       id: battleId,
       opponentId: opponent.id,
+      createdBy: meId,
       resolved: true,
       direction: "outgoing",
       result: "win",
-      opponentArgText: "Smoke: аргумент противника",
-      myCounterArgText: "Smoke: мой контраргумент"
+      attack: { text: "Smoke: аргумент противника" },
+      defense: { text: "Smoke: мой контраргумент" }
     };
     try {
       S.battles = [battle, ...originalBattles];
       renderBattles();
-      const card = document.querySelector(`[data-battle-id="${battleId}"]`);
-      const lines = card ? Array.from(card.querySelectorAll(".noteLine")) : [];
-      const hasOppArg = lines.some(el => el.textContent && el.textContent.includes("Аргумент оппонента"));
-      const hasMyCounter = lines.some(el => el.textContent && el.textContent.includes("Мой контраргумент"));
-      const resultNode = card ? card.querySelector(".battleTop .kpill strong") : null;
-      const winLabel = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t("battle_win") : "Победа";
-      const hasResult = !!(resultNode && resultNode.textContent && resultNode.textContent.includes(winLabel));
-      const rematchBtn = card ? Array.from(card.querySelectorAll(".actions button")).find(btn => btn.textContent && btn.textContent.includes("Реванш")) : null;
-      const hasRematchBtn = !!rematchBtn;
-      const status = (card && hasOppArg && hasMyCounter && hasResult && hasRematchBtn) ? "PASS" : "FAIL";
-      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status, battleId, hasOppArg, hasMyCounter, hasResult, hasRematchBtn });
+      const escapeSelector = (value) => {
+        if (typeof window !== "object") return String(value);
+        if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));
+        return String(value);
+      };
+      const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
+      const selectText = (selector) => {
+        const node = card ? card.querySelector(selector) : null;
+        return node ? String(node.textContent || "").trim() : null;
+      };
+      const nodes = {
+        outgoingOppArg: !!(card && card.querySelector('[data-testid="outgoing-opp-arg"]')),
+        outgoingMyCounter: !!(card && card.querySelector('[data-testid="outgoing-my-counter"]')),
+        battleResult: !!(card && card.querySelector('[data-testid="battle-result-pill"]')),
+        rematchButton: !!(card && card.querySelector('[data-testid="battle-rematch-btn"]'))
+      };
+      const nodeTexts = {
+        outgoingOppArg: selectText('[data-testid="outgoing-opp-arg"]'),
+        outgoingMyCounter: selectText('[data-testid="outgoing-my-counter"]'),
+        battleResult: selectText('[data-testid="battle-result-pill"]'),
+        rematchButton: selectText('[data-testid="battle-rematch-btn"]')
+      };
+      const branchLog = UI._lastBattleCardBranchLog || null;
+      const branchOk = branchLog
+        && branchLog.isOutgoing === true
+        && branchLog.hasOppArg === true
+        && branchLog.hasMyCounter === true
+        && branchLog.canRematch === true;
+      const nodesComplete = Object.values(nodes).every(Boolean);
+      const status = (nodesComplete && branchOk) ? "PASS" : "FAIL";
+      const missingNodes = Object.keys(nodes).filter(key => !nodes[key]);
+      const diag = {
+        battleId,
+        nodes,
+        nodeTexts,
+        branchLog
+      };
+      if (missingNodes.length) diag.missingNodes = missingNodes;
+      if (!branchOk) diag.branchIssue = branchLog ? "branch_log_missing_props" : "branch_log_missing";
+      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status, battleId, nodes, branchLog });
       return {
         name,
         ok: status === "PASS",
-        details: { battleId, hasOppArg, hasMyCounter, hasResult, hasRematchBtn }
+        status,
+        diag
       };
     } catch (err) {
       console.log("SMOKE_OUTGOING_BATTLE_CARD", { status: "FAIL", battleId, error: String(err) });
