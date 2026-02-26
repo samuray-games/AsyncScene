@@ -2921,5 +2921,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
 - Facts:
   - Canonical crowd matches теперь принудительно возвращают `{result:"resolved", skippedCrowd:true, forcedResolved:true}` и логируют `DEV_OUTCOME_GATE_V2` с `canonBuilt/canonProblem/attackType/defenseType`, предотвращая crowd flow на совпавших аргументах.
   - `applyCrowdVoteTick` логирует `CROWD_PHASE_DIAG_V2` (ageMs, warmupMs, phaseBefore/after), запрещает phaseSwitch при `startedAtMs <= 0` через `DEV_CROWD_INVALID_START_V1`, добавляет `phaseState` и `DEV_NPC_VOTE_APPLY_V2` (votesBefore/after) чтобы видеть рост голосов в voting и переход warmup→voting→countdown только при `ageMs >= warmupMs`.
+  - Если `startedAtMs <= 0`, crowd self-heal-ится (`startedAtMs = Date.now()`), пишется `DEV_CROWD_SELF_HEAL_START_V1`, и тики продолжают работу без зависания.
   - Conflict API logs `CROWD_ALREADY_ACTIVE_V2` (phase/cap/votersCount) и возвращает уже существующий crowd строго при `status==="draw"`/`draw===true`, предотвращая двойные `CROWD_CREATE`/eligibility recalc.
-- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js`
+  - `conflict-arguments.js` принимает `battleCtx` только через параметры, вычисляет `desiredGroup` локально и при отсутствии контекста возвращает `{ok:false, reason:"missing_battle_ctx"}` с `ARGS_CTX_MISSING_V1`, устраняя ReferenceError `desiredGroup`.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-arguments.js`

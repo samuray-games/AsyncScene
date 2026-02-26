@@ -350,6 +350,22 @@
     } catch (_) {}
   }
 
+  function logDevCrowdSelfHeal(b, healedAtMs){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b) return;
+    const payload = {
+      battleId: b.id || b.battleId || null,
+      healedAtMs,
+      ts: Date.now()
+    };
+    try {
+      console.warn("DEV_CROWD_SELF_HEAL_START_V1", payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(payload.battleId, "DEV_CROWD_SELF_HEAL_START_V1", payload);
+    } catch (_) {}
+  }
+
   function logBattleResolveDiagOnce(b, result, endedBy, statusBefore, statusAfter){
     try {
       if (conflictMode !== "dev") return;
@@ -1288,7 +1304,8 @@
     // Prefer a dedicated picker if the arguments module exposes one.
     const A = Game.ConflictArguments || Game._ConflictArguments || null;
     if (A && typeof A.pickIncomingAttack === "function") {
-      const a = A.pickIncomingAttack(opponentId, battle);
+      const a = A.pickIncomingAttack(opponentId, battle, { battle, battleCtx: battle });
+      if (a && a.ok === false) return null;
       if (a) return sanitizeAttack(a);
     }
     // Canon-only: no base/data fallbacks.
@@ -1880,7 +1897,7 @@
       if (!b || !b.crowd) return null;
       const startedAtMs = Number.isFinite(b.crowd.startedAtMs) ? (b.crowd.startedAtMs | 0) : null;
       const nowMs = Number.isFinite(overrideNowMs) ? Math.floor(overrideNowMs) : Math.floor(Date.now());
-    const ageMs = (startedAtMs != null && startedAtMs > 0) ? Math.max(0, nowMs - startedAtMs) : null;
+      const ageMs = (startedAtMs != null && startedAtMs > 0) ? Math.max(0, nowMs - startedAtMs) : null;
       return { nowMs, startedAtMs, ageMs };
     };
     const finishWithLog = (resultObj, { endedFlag = false, endedByLabel = null, why = null, diagContext = null } = {}) => {
@@ -1993,7 +2010,7 @@
     if (b && b.crowd) {
       ensureBattleCrowdCap(b.crowd, b);
       const nowMsValue = now();
-      const diagContext = buildDiagContext(nowMsValue);
+      let diagContext = buildDiagContext(nowMsValue);
       const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
       const totalVotes = getCrowdTotalVotes(b.crowd);
       const cap = Number.isFinite(b.crowd.cap) ? Math.floor(b.crowd.cap) : 0;
@@ -2006,6 +2023,10 @@
           logDevCrowdInvalidStart(b, b.crowd);
           b.crowd._invalidStartLogged = true;
         }
+        const healed = Math.max(1, Math.floor(nowMsValue));
+        b.crowd.startedAtMs = healed;
+        logDevCrowdSelfHeal(b, healed);
+        diagContext = { nowMs: nowMsValue, startedAtMs: healed, ageMs: 0 };
       } else {
         const warmupElapsed = ageMs != null ? ageMs >= CROWD_TIMER_WARMUP_MS : false;
         if (warmupElapsed && b.crowd.phaseState !== "voting" && b.crowd.phaseState !== "countdown") {
@@ -2014,7 +2035,7 @@
         if (countdownActive) {
           b.crowd.phaseState = "countdown";
         }
-        if (warmupElapsed && b.crowd.phaseState === "voting" && !countdownActive) {
+        if (warmupElapsed && b.crowd.phaseState === "voting" && phaseBefore === "voting" && !countdownActive) {
           const epochNow = Math.floor(nowMsValue);
           b.crowd.stallDetectedAtMs = epochNow;
           b.crowd.countdownStartMs = epochNow;
@@ -3133,6 +3154,9 @@
         _crowdTimerExpireLogged: false
       };
       resetCrowdTimerState(b.crowd, nowMs);
+      if (!Number.isFinite(b.crowd.startedAtMs) || b.crowd.startedAtMs <= 0) {
+        b.crowd.startedAtMs = nowMs;
+      }
       b.meta = b.meta || {};
       b.crowd.meta = b.crowd.meta || b.meta;
       applyDevCrowdEligiblePreset(b, b.crowd);

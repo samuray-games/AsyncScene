@@ -9,6 +9,7 @@
 // conflict/conflict-arguments.js
 (function () {
   const A = {};
+  const _argsCtxMissingOnce = new Set();
   try {
     console.warn("CONFLICT_ARGUMENTS_PARSE_OK_V1", {
       ts: Date.now(),
@@ -724,18 +725,16 @@
 
   // Canon-only incoming attack picker for core (used to avoid Data.ARGUMENTS/base fallbacks).
   A.pickIncomingAttack = function (opponentId, battle, ctx) {
-    let battleCtx;
-    let desiredGroup = null;
-    if (typeof battle !== "undefined") {
-      battleCtx = battle;
-    } else if (ctx && ctx.battle) {
-      battleCtx = ctx.battle;
-    }
-    if (typeof battleCtx === "undefined") {
+    const battleCtx = battle || (ctx && (ctx.battle || ctx.battleCtx)) || null;
+    if (!battleCtx) {
       try {
-        console.warn("ARGS_CTX_MISSING_V1", { ts: Date.now() });
+        const key = "missing_battle_ctx";
+        if (!_argsCtxMissingOnce.has(key)) {
+          _argsCtxMissingOnce.add(key);
+          console.warn("ARGS_CTX_MISSING_V1", { ts: Date.now() });
+        }
       } catch (_) {}
-      return null;
+      return { ok: false, reason: "missing_battle_ctx" };
     }
     const D = (Game && Game.Data) ? Game.Data : null;
     if (!D || typeof D.getArgCanonGroup !== "function") return null;
@@ -788,7 +787,7 @@
     const tierColor = canonColorFromSub(subKey);
     const baseTypes = ["about", "who", "where", "yn"];
     const battleAttackGroup = getGroup(battleCtx && battleCtx.attack ? battleCtx.attack : null) || "yn";
-    desiredGroup = battleAttackGroup && baseTypes.includes(battleAttackGroup) ? battleAttackGroup : null;
+    const desiredGroup = battleAttackGroup && baseTypes.includes(battleAttackGroup) ? battleAttackGroup : null;
     if (battleCtx && battleCtx.id && String(battleCtx.id).startsWith("dev_")) {
       try {
         console.warn("DEV_ARGS_DESIRED_GROUP_V1", {

@@ -1012,8 +1012,10 @@
 - Facts:
   - Добавлены runtime-инварианты `DEV_OUTCOME_GATE_V2`, `skippedCrowd:true`, принудительный `result:"resolved"` и `forcedResolved:true` для успешных canonMatch, чтобы canonical match не начинал crowd flow и логировал причины.
   - `applyCrowdVoteTick` теперь логирует `CROWD_PHASE_DIAG_V2` (ageMs, warmupMs, phaseBefore/after), выставляет `startedAtMs` > 0, запрещает переход в `voting`/`countdown` при `startedAtMs <= 0` через `DEV_CROWD_INVALID_START_V1`, и `DEV_NPC_VOTE_APPLY_V2` демонстрирует рост `votesTotal` в фазе voting.
+  - При `startedAtMs <= 0` crowd теперь корректно self-heal-ится (ставится `Date.now()`), логируется `DEV_CROWD_SELF_HEAL_START_V1` и subsequent ticks используют обновлённые timestamps вместо ReferenceError.
   - Crowd flow API получает `CROWD_ALREADY_ACTIVE_V2` (phase/cap/votersCount) и ранний return только при `status==="draw"`/`draw===true`, предотвращая повторный `CROWD_CREATE` и сохраняя eligibility.
-- Changed: `PROJECT_MEMORY.md`, `Web/conflict/conflict-core.js`, `Web/conflict/conflict-api.js`
+  - `conflict-arguments.js` теперь вычисляет `desiredGroup` локально от `battleCtx`, принимает контекст только через аргументы, и при отсутствии контекста возвращает `{ok:false, reason:"missing_battle_ctx"}` с `ARGS_CTX_MISSING_V1` (single-shot) вместо ReferenceError.
+- Changed: `PROJECT_MEMORY.md`, `Web/conflict/conflict-core.js`, `Web/conflict/conflict-api.js`, `Web/conflict/conflict-arguments.js`
 
 -### 2026-02-22 — E[2] Low economy: активность при me.points=0
 - Status: PASS (DUMP_AT фиксирует `SMOKE_LOW_ECON_V1_JSON` с `ok:true`, `createdTotal=6`, `createdTargetingMe=1`, `myAvailableActionsCount=1`, `maxSilentStreak=90`, `lowEconomySeen:true`; есть `SMOKE_ZERO_POINTS_ASSERT_V1` ok:true, `EVENT_LOW_ECON_MODE_V2` enabled:true, `EVENT_GEN_SKIP_V1`, `EVENT_SILENT_BREAKER_V1`)
