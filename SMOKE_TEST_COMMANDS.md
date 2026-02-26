@@ -114,6 +114,17 @@ console.log("REMATCH_REP_LOGS", rematchRep.length, "expected: 0");
 
 ---
 
+## 3.1. Проверка UI карточки исходящего баттла (новый SMOKE)
+
+```js
+Game.__DEV.smokeOutgoingBattleCardOnce();
+```
+
+- **PASS**: в консоли появляется `SMOKE_OUTGOING_BATTLE_CARD` с `status: "PASS"` и флагами `hasOppArg`, `hasMyCounter`, `hasResult`, `hasRematchBtn` равными `true`.
+- **FAIL**: `status: "FAIL"` и одно/несколько свойств — `false`; следите за полем `details`, чтобы понять, чего не хватает, затем поправьте UI и запустите smoke снова.
+
+---
+
 ## 4. Проверка совместимости по типу (Задача D)
 
 ```js

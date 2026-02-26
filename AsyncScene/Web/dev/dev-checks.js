@@ -21812,6 +21812,61 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
   };
 
+  Game.__DEV.smokeOutgoingBattleCardOnce = (opts = {}) => {
+    const name = "smoke_outgoing_battle_card_once";
+    const S = Game.__S || (Game.__S = {});
+    const UI = Game.UI || {};
+    const renderBattles = UI.renderBattles;
+    if (!renderBattles) {
+      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status: "FAIL", reason: "ui_missing" });
+      return { name, ok: false, reason: "ui_missing" };
+    }
+    const meId = (S.me && S.me.id) ? S.me.id : "me";
+    const opponents = Object.values(S.players || {}).filter(p => p && p.id !== meId);
+    if (!opponents.length) {
+      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status: "FAIL", reason: "no_opponent" });
+      return { name, ok: false, reason: "no_opponent" };
+    }
+    const opponent = opponents[0];
+    const originalBattles = Array.isArray(S.battles) ? S.battles.slice() : [];
+    const battleId = `dev_smoke_outgoing_card_${Date.now().toString(36)}`;
+    const battle = {
+      id: battleId,
+      opponentId: opponent.id,
+      resolved: true,
+      direction: "outgoing",
+      result: "win",
+      opponentArgText: "Smoke: аргумент противника",
+      myCounterArgText: "Smoke: мой контраргумент"
+    };
+    try {
+      S.battles = [battle, ...originalBattles];
+      renderBattles();
+      const card = document.querySelector(`[data-battle-id="${battleId}"]`);
+      const lines = card ? Array.from(card.querySelectorAll(".noteLine")) : [];
+      const hasOppArg = lines.some(el => el.textContent && el.textContent.includes("Аргумент оппонента"));
+      const hasMyCounter = lines.some(el => el.textContent && el.textContent.includes("Мой контраргумент"));
+      const resultNode = card ? card.querySelector(".battleTop .kpill strong") : null;
+      const winLabel = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t("battle_win") : "Победа";
+      const hasResult = !!(resultNode && resultNode.textContent && resultNode.textContent.includes(winLabel));
+      const rematchBtn = card ? Array.from(card.querySelectorAll(".actions button")).find(btn => btn.textContent && btn.textContent.includes("Реванш")) : null;
+      const hasRematchBtn = !!rematchBtn;
+      const status = (card && hasOppArg && hasMyCounter && hasResult && hasRematchBtn) ? "PASS" : "FAIL";
+      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status, battleId, hasOppArg, hasMyCounter, hasResult, hasRematchBtn });
+      return {
+        name,
+        ok: status === "PASS",
+        details: { battleId, hasOppArg, hasMyCounter, hasResult, hasRematchBtn }
+      };
+    } catch (err) {
+      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status: "FAIL", battleId, error: String(err) });
+      return { name, ok: false, reason: String(err) };
+    } finally {
+      S.battles = originalBattles;
+      try { renderBattles(); } catch (_) {}
+    }
+  };
+
   Game.__DEV.smokePublicChatAutoReplyOnce = (opts = {}) => {
     const name = "smoke_public_chat_auto_reply_once";
     emitLine("PUBLIC_CHAT_AUTO_REPLY_BEGIN");
