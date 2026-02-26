@@ -1008,6 +1008,13 @@
 - Длительность кулдауна “сдать” = время неактивности/тюрьмы злодея (5 минут).
 - Во время этого кулдауна сдавать повторно нельзя; после окончания — можно снова.
 
+### 2026-02-26 — Непрерывность crowds при каноне и warmup
+- Facts:
+  - Добавлены runtime-инварианты `DEV_OUTCOME_GATE_V2`, `skippedCrowd:true`, принудительный `result:"resolved"` и `forcedResolved:true` для успешных canonMatch, чтобы canonical match не начинал crowd flow и логировал причины.
+  - `applyCrowdVoteTick` теперь логирует `CROWD_PHASE_DIAG_V2` (ageMs, warmupMs, phaseBefore/after), выставляет `startedAtMs` > 0, запрещает переход в `voting`/`countdown` при `startedAtMs <= 0` через `DEV_CROWD_INVALID_START_V1`, и `DEV_NPC_VOTE_APPLY_V2` демонстрирует рост `votesTotal` в фазе voting.
+  - Crowd flow API получает `CROWD_ALREADY_ACTIVE_V2` (phase/cap/votersCount) и ранний return только при `status==="draw"`/`draw===true`, предотвращая повторный `CROWD_CREATE` и сохраняя eligibility.
+- Changed: `PROJECT_MEMORY.md`, `Web/conflict/conflict-core.js`, `Web/conflict/conflict-api.js`
+
 -### 2026-02-22 — E[2] Low economy: активность при me.points=0
 - Status: PASS (DUMP_AT фиксирует `SMOKE_LOW_ECON_V1_JSON` с `ok:true`, `createdTotal=6`, `createdTargetingMe=1`, `myAvailableActionsCount=1`, `maxSilentStreak=90`, `lowEconomySeen:true`; есть `SMOKE_ZERO_POINTS_ASSERT_V1` ok:true, `EVENT_LOW_ECON_MODE_V2` enabled:true, `EVENT_GEN_SKIP_V1`, `EVENT_SILENT_BREAKER_V1`)
 - Facts:

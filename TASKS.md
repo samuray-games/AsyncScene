@@ -2915,3 +2915,11 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     (2) Follow S1–S4 using the provided roleKey and DM hints, ensuring each scenario logs the pending/resolve markers and moneyLog rows described in the new acceptance criteria.
     (3) PASS if you capture a new DUMP_AT where S1/S2/S3/S4 all show their expected markers/reasons exactly once; otherwise FAIL and include the console dump.
     ```
+
+### 2026-02-26 — Crowd smoke staging fixes
+- Status: INFO
+- Facts:
+  - Canonical crowd matches теперь принудительно возвращают `{result:"resolved", skippedCrowd:true, forcedResolved:true}` и логируют `DEV_OUTCOME_GATE_V2` с `canonBuilt/canonProblem/attackType/defenseType`, предотвращая crowd flow на совпавших аргументах.
+  - `applyCrowdVoteTick` логирует `CROWD_PHASE_DIAG_V2` (ageMs, warmupMs, phaseBefore/after), запрещает phaseSwitch при `startedAtMs <= 0` через `DEV_CROWD_INVALID_START_V1`, добавляет `phaseState` и `DEV_NPC_VOTE_APPLY_V2` (votesBefore/after) чтобы видеть рост голосов в voting и переход warmup→voting→countdown только при `ageMs >= warmupMs`.
+  - Conflict API logs `CROWD_ALREADY_ACTIVE_V2` (phase/cap/votersCount) и возвращает уже существующий crowd строго при `status==="draw"`/`draw===true`, предотвращая двойные `CROWD_CREATE`/eligibility recalc.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js`

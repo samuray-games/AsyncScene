@@ -157,12 +157,22 @@
      }
    }
 
-   function isDrawWithCrowd(b) {
-     return !!(b && b.status === "draw" && b.draw === true && b.crowd && !b.crowd.decided);
-   }
+  function isDrawWithCrowd(b) {
+    return !!(b && b.status === "draw" && b.draw === true && b.crowd && !b.crowd.decided);
+  }
 
-   function applyNpcVotesToBattle(battle) {
-     try {
+  function getCrowdTotalVotesSnapshot(crowd) {
+    if (!crowd) return 0;
+    if (crowd.voters && typeof crowd.voters === "object" && Object.keys(crowd.voters).length > 0) {
+      return Object.keys(crowd.voters).length | 0;
+    }
+    const a = Number.isFinite(crowd.votesA) ? (crowd.votesA | 0) : (Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0) : 0);
+    const b = Number.isFinite(crowd.votesB) ? (crowd.votesB | 0) : (Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0) : 0);
+    return (a + b) | 0;
+  }
+
+  function applyNpcVotesToBattle(battle) {
+    try {
        if (!isDrawWithCrowd(battle)) return 0;
       if (!Game.NPC || typeof Game.NPC.getAll !== "function" || typeof Game.NPC.voteInDraw !== "function") return 0;
       const Econ = getEcon();
@@ -188,6 +198,7 @@
       const battleId = battle.id || battle.battleId || null;
       const crowd = battle.crowd || (battle.crowd = {});
       crowd.voters ||= {};
+      const beforeVotes = getCrowdTotalVotesSnapshot(crowd);
 
       const countCrowdVoteCostLogs = (voterId, bid) => {
         const dbg = (Game && Game.__D) ? Game.__D : null;
@@ -312,6 +323,17 @@
         applied++;
        }
 
+       if (applied > 0 && _conflictApiIsDev()) {
+         try {
+           const votesAfter = getCrowdTotalVotesSnapshot(crowd);
+           _crowdLog("DEV_NPC_VOTE_APPLY_V2", {
+             battleId,
+             votesBefore: beforeVotes,
+             votesAfter,
+             applied
+           });
+         } catch (_) {}
+       }
        return applied;
      } catch (_) {
        return 0;
@@ -417,25 +439,30 @@
      } catch (_) {}
    }
 
-   function _logCrowdAlreadyActive(b){
-     try {
-       if (!_conflictApiIsDev()) return;
-       if (!b || !b.crowd) return;
+  function _logCrowdAlreadyActive(b){
+    try {
+      if (!_conflictApiIsDev()) return;
+      if (!b || !b.crowd) return;
        const crowd = b.crowd;
+       const votersCount = Array.isArray(crowd.votersIds)
+         ? crowd.votersIds.length
+         : (crowd.voters && typeof crowd.voters === "object")
+           ? Object.keys(crowd.voters).length
+           : 0;
        const payload = {
          battleId: b.id || b.battleId || null,
          cap: Number.isFinite(crowd.cap) ? (crowd.cap | 0) : null,
          phase: Number.isFinite(crowd.countdownStartMs) ? "countdown" : "warmup",
-         startedAtMs: Number.isFinite(crowd.startedAtMs) ? (crowd.startedAtMs | 0) : null,
+         votersCount,
          status: b.status || null,
          nowMs: Date.now()
        };
-       console.warn("CROWD_ALREADY_ACTIVE_V1", payload);
-       _pushBattleDiagTrail(payload.battleId, "CROWD_ALREADY_ACTIVE_V1", payload);
-     } catch (_) {}
-   }
+       console.warn("CROWD_ALREADY_ACTIVE_V2", payload);
+      _pushBattleDiagTrail(payload.battleId, "CROWD_ALREADY_ACTIVE_V2", payload);
+    } catch (_) {}
+  }
 
-   function ensureCrowdVoteStarted(battleId) {
+  function ensureCrowdVoteStarted(battleId) {
      const b = findBattle(battleId);
      if (!b) return false;
 
@@ -457,7 +484,13 @@
        return false;
      }
 
-     if (b.crowd && Number.isFinite(b.crowd.startedAtMs) && Number.isFinite(b.crowd.cap) && (b.crowd.cap > 0)) {
+     const crowdActive = b.crowd
+       && b.status === "draw"
+       && b.draw === true
+       && Number.isFinite(b.crowd.startedAtMs)
+       && Number.isFinite(b.crowd.cap)
+       && (b.crowd.cap > 0);
+     if (crowdActive) {
        _logCrowdAlreadyActive(b);
        return ensureCrowdVoteLoop(battleId);
      }

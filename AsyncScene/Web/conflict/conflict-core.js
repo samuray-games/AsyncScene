@@ -45,6 +45,8 @@
     v._crowdTimerResolvedBy = null;
     v._crowdTimerExpireLogged = false;
     v._devNpcVoteLogged = false;
+    v.phaseState = "warmup";
+    v._invalidStartLogged = false;
   }
 
   function _crowdLog(name, payload){
@@ -231,15 +233,32 @@
     if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
     if (!b || !(b.id || b.battleId)) return;
     const battleId = b.id || b.battleId;
-    const data = Object.assign({
+    const base = Object.assign({
       battleId,
       ts: Date.now()
     }, payload || {});
     try {
-      console.warn("DEV_OUTCOME_GATE_V1", data);
+      console.warn("DEV_OUTCOME_GATE_V1", base);
     } catch (_) {}
     try {
-      _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V1", data);
+      _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V1", base);
+    } catch (_) {}
+    const v2Payload = {
+      battleId,
+      canonBuilt: !!base.canonBuilt,
+      canonProblem: base.canonProblem || null,
+      attackType: base.attackType || null,
+      defenseType: base.defenseType || null,
+      outcomeBefore: base.outcomeBefore || null,
+      outcomeAfter: base.outcomeAfter || null,
+      skippedCrowd: base.skippedCrowd === true,
+      forcedResolved: base.forcedResolved === true
+    };
+    try {
+      console.warn("DEV_OUTCOME_GATE_V2", v2Payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V2", v2Payload);
     } catch (_) {}
   }
 
@@ -312,6 +331,22 @@
       if (dev && typeof dev.__pushBattleDiagTrail === "function") {
         dev.__pushBattleDiagTrail(battleId, tag, payload);
       }
+    } catch (_) {}
+  }
+
+  function logDevCrowdInvalidStart(b, crowd){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !crowd) return;
+    const payload = {
+      battleId: b.id || b.battleId || null,
+      startedAtMs: Number.isFinite(crowd.startedAtMs) ? (crowd.startedAtMs | 0) : null,
+      nowMs: Date.now()
+    };
+    try {
+      console.warn("DEV_CROWD_INVALID_START_V1", payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(payload.battleId, "DEV_CROWD_INVALID_START_V1", payload);
     } catch (_) {}
   }
 
@@ -1833,15 +1868,27 @@
     const votesBeforeSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
     const computePhase = (crowd) => {
       if (!crowd) return "unknown";
-      return Number.isFinite(crowd.countdownStartMs) ? "countdown" : "warmup";
+      if (crowd.phaseState === "countdown") return "countdown";
+      if (crowd.phaseState === "voting") return "voting";
+      if (crowd.phaseState === "warmup") return "warmup";
+      if (Number.isFinite(crowd.countdownStartMs)) return "countdown";
+      return "warmup";
     };
     const phaseBefore = computePhase(b && b.crowd ? b.crowd : null);
     const shouldLogDevTick = () => isDevSurfaceFlag() && isDevSmokeBattle(b);
-    const finishWithLog = (resultObj, { endedFlag = false, endedByLabel = null, why = null } = {}) => {
+    const buildDiagContext = (overrideNowMs) => {
+      if (!b || !b.crowd) return null;
+      const startedAtMs = Number.isFinite(b.crowd.startedAtMs) ? (b.crowd.startedAtMs | 0) : null;
+      const nowMs = Number.isFinite(overrideNowMs) ? Math.floor(overrideNowMs) : Math.floor(Date.now());
+    const ageMs = (startedAtMs != null && startedAtMs > 0) ? Math.max(0, nowMs - startedAtMs) : null;
+      return { nowMs, startedAtMs, ageMs };
+    };
+    const finishWithLog = (resultObj, { endedFlag = false, endedByLabel = null, why = null, diagContext = null } = {}) => {
+      if (!b) return resultObj;
+      const votesAfterSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
+      const phaseAfter = computePhase(b && b.crowd ? b.crowd : null);
+      const progressed = (votesAfterSnapshot !== votesBeforeSnapshot) || !!endedFlag || phaseAfter !== phaseBefore;
       if (shouldLogDevTick()) {
-        const votesAfterSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
-        const phaseAfter = computePhase(b && b.crowd ? b.crowd : null);
-        const progressed = (votesAfterSnapshot !== votesBeforeSnapshot) || !!endedFlag || phaseAfter !== phaseBefore;
         _crowdLog("CROWD_TICK_V1", {
           battleId,
           phaseBefore,
@@ -1852,6 +1899,31 @@
           endedBy: endedByLabel || (b && b.crowd && b.crowd.endedBy ? b.crowd.endedBy : null),
           why: why || null,
           progressed
+        });
+        const diag = diagContext || buildDiagContext();
+        const nowMsDiag = diag ? diag.nowMs : Math.floor(Date.now());
+        const startedAtDiag = diag ? diag.startedAtMs : null;
+        const ageMs = diag ? diag.ageMs : null;
+        _crowdLog("CROWD_PHASE_DIAG_V2", {
+          battleId,
+          nowMs: nowMsDiag,
+          startedAtMs: startedAtDiag,
+          ageMs,
+          warmupMs: CROWD_TIMER_WARMUP_MS,
+          phaseBefore,
+          phaseAfter
+        });
+        const crowdState = b.crowd || {};
+        const aVotes = Number.isFinite(crowdState.votesA) ? (crowdState.votesA | 0) : (Number.isFinite(crowdState.aVotes) ? (crowdState.aVotes | 0) : 0);
+        const bVotes = Number.isFinite(crowdState.votesB) ? (crowdState.votesB | 0) : (Number.isFinite(crowdState.bVotes) ? (crowdState.bVotes | 0) : 0);
+        _crowdLog("DEV_SMOKE_NPC_VOTE_V1", {
+          battleId,
+          phase: phaseAfter,
+          votesBefore: votesBeforeSnapshot,
+          votesAfter: votesAfterSnapshot,
+          progressed,
+          votesA: aVotes,
+          votesB: bVotes
         });
       }
       return resultObj;
@@ -1921,24 +1993,40 @@
     if (b && b.crowd) {
       ensureBattleCrowdCap(b.crowd, b);
       const nowMsValue = now();
+      const diagContext = buildDiagContext(nowMsValue);
       const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
       const totalVotes = getCrowdTotalVotes(b.crowd);
       const cap = Number.isFinite(b.crowd.cap) ? Math.floor(b.crowd.cap) : 0;
       updateCrowdProgressState(b, b.crowd, nowMsValue);
-      const warmupElapsed = (nowMsValue - (b.crowd.startedAtMs || nowMsValue)) >= CROWD_TIMER_WARMUP_MS;
+      const ageMs = diagContext ? diagContext.ageMs : null;
       const countdownActive = Number.isFinite(b.crowd.countdownStartMs);
-      const lastProgressAt = Number.isFinite(b.crowd.lastProgressAtMs) ? Math.floor(b.crowd.lastProgressAtMs) : nowMsValue;
-      if (warmupElapsed && !countdownActive && (nowMsValue - lastProgressAt) >= CROWD_TIMER_COUNTDOWN_MS) {
-        const epochNow = Math.floor(nowMsValue);
-        b.crowd.stallDetectedAtMs = epochNow;
-        b.crowd.countdownStartMs = epochNow;
-        b.crowd.countdownEndMs = epochNow + CROWD_TIMER_COUNTDOWN_MS;
-        b.crowd._crowdTimerArmLogged = true;
-        logCrowdStallArm(b, b.crowd, nowMsValue, totalVotes, cap);
-        if (timerState) {
-          timerState.countdownStartMs = b.crowd.countdownStartMs;
-          timerState.countdownEndMs = b.crowd.countdownEndMs;
-          timerState.phase = "countdown";
+      const invalidStart = !diagContext || diagContext.startedAtMs == null || diagContext.startedAtMs <= 0;
+      if (invalidStart) {
+        if (!b.crowd._invalidStartLogged) {
+          logDevCrowdInvalidStart(b, b.crowd);
+          b.crowd._invalidStartLogged = true;
+        }
+      } else {
+        const warmupElapsed = ageMs != null ? ageMs >= CROWD_TIMER_WARMUP_MS : false;
+        if (warmupElapsed && b.crowd.phaseState !== "voting" && b.crowd.phaseState !== "countdown") {
+          b.crowd.phaseState = "voting";
+        }
+        if (countdownActive) {
+          b.crowd.phaseState = "countdown";
+        }
+        if (warmupElapsed && b.crowd.phaseState === "voting" && !countdownActive) {
+          const epochNow = Math.floor(nowMsValue);
+          b.crowd.stallDetectedAtMs = epochNow;
+          b.crowd.countdownStartMs = epochNow;
+          b.crowd.countdownEndMs = epochNow + CROWD_TIMER_COUNTDOWN_MS;
+          b.crowd._crowdTimerArmLogged = true;
+          logCrowdStallArm(b, b.crowd, nowMsValue, totalVotes, cap);
+          if (timerState) {
+            timerState.countdownStartMs = b.crowd.countdownStartMs;
+            timerState.countdownEndMs = b.crowd.countdownEndMs;
+            timerState.phase = "countdown";
+          }
+          b.crowd.phaseState = "countdown";
         }
       }
       updateCrowdTimerLogging(b, b.crowd, timerState, totalVotes, cap);
@@ -1959,7 +2047,12 @@
           pendingMeta,
           cacheHit: !!(meta && cacheKey && cache[cacheKey]),
           why: meta ? null : "finalize_missing_meta"
-        }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : null, why: meta ? null : "finalize_missing_meta" });
+        }, {
+          endedFlag: true,
+          endedByLabel: meta && meta.endedBy ? meta.endedBy : null,
+          why: meta ? null : "finalize_missing_meta",
+          diagContext
+        });
       }
       if (timerState && timerState.countdownEndMs && timerState.nowMs >= timerState.countdownEndMs && !b.crowd.decided) {
         const res = finalizeCrowdVote(b, { force: true, endedBy: "crowd_timer_expired" });
@@ -1982,11 +2075,17 @@
           pendingMeta,
           cacheHit: !!(meta && cacheKey && cache[cacheKey]),
           why: meta ? null : "finalize_missing_meta"
-        }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : "crowd_timer_expired", why: meta ? null : "finalize_missing_meta" });
+        }, {
+          endedFlag: true,
+          endedByLabel: meta && meta.endedBy ? meta.endedBy : "crowd_timer_expired",
+          why: meta ? null : "finalize_missing_meta",
+          diagContext
+        });
       }
     }
     if (b) b.updatedAt = now();
     const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+    const diagContext = buildDiagContext();
     return finishWithLog({
       ok: false,
       battleId,
@@ -1994,7 +2093,12 @@
       pendingMeta,
       cacheHit: !!cachedMeta,
       why: pendingMeta ? null : "cap_not_reached"
-    }, { endedFlag: false, endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null, why: pendingMeta ? null : "cap_not_reached" });
+    }, {
+      endedFlag: false,
+      endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null,
+      why: pendingMeta ? null : "cap_not_reached",
+      diagContext
+    });
   }
 
   function finalizeCrowdVote(b, opts){
@@ -3021,6 +3125,7 @@
         totalPlayers: getTotalPlayersCount(),
         attackerId,
         defenderId,
+        phaseState: "warmup",
         _crowdTimerArmLogged: false,
         _devNpcVoteLogged: false,
         _crowdTimerLastTickSecond: null,
@@ -3214,19 +3319,33 @@
     if (!outcome) {
       outcome = forced || "draw";
     }
-    const meta = b.meta || {};
-    const canonBuilt = !!meta.canonGroupKey;
-    const canonMatchOk = canonBuilt && !meta.canonProblem;
-    if (!forced && canonMatchOk && outcome === "draw") {
-      const overrideOutcome = "win";
+    const attackType = argGroup(b.attack);
+    const defenseType = argGroup(b.defense);
+    const canonGroupKey = buildCanonGroupKey(b.attack, b.defense, b);
+    const canonProblem = canonGroupKey ? null : buildCanonProblem(b.attack, b.defense);
+    const canonBuilt = !!canonGroupKey;
+    const typesMatch = attackType && defenseType && attackType === defenseType;
+    const canonMatchOk = canonBuilt && !canonProblem && typesMatch;
+    if (!b.meta) b.meta = {};
+    b.meta.canonGroupKey = canonGroupKey || null;
+    b.meta.canonProblem = canonProblem || null;
+    const guardActive = !forced && canonBuilt && !canonProblem && attackType && defenseType && attackType === defenseType;
+    if (guardActive) {
+      const overrideOutcome = "resolved";
       logDevOutcomeGate(b, {
         canonBuilt,
+        canonProblem,
         canonMatchOk,
+        attackType,
+        defenseType,
         outcomeBefore: outcome,
         outcomeAfter: overrideOutcome,
-        reason: "canon_match_guard"
+        skippedCrowd: true,
+        forcedResolved: true,
+        reason: "canon_match_force_resolve"
       });
-      outcome = overrideOutcome;
+      C.finalize(b.id, overrideOutcome);
+      return { ok: true, outcome: overrideOutcome };
     }
 
     C.finalize(b.id, outcome);
