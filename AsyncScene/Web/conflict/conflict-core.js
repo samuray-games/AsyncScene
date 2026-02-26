@@ -33,7 +33,7 @@
   function resetCrowdTimerState(v, startedMs){
     if (!v) return;
     const nowMs = Number.isFinite(startedMs) ? startedMs : now();
-    const epochNow = Math.floor(nowMs);
+    const epochNow = Math.max(1, Math.floor(nowMs));
     v.startedAtMs = epochNow;
     v.countdownStartMs = null;
     v.countdownEndMs = null;
@@ -262,6 +262,66 @@
     } catch (_) {}
   }
 
+  function ensureCanonMeta(battle){
+    if (!battle) return null;
+    const meta = (battle.meta && typeof battle.meta === "object") ? battle.meta : {};
+    const attackType = argGroup(battle.attack);
+    const defenseType = argGroup(battle.defense);
+    let canonGroupKey = (meta.canonGroupKey != null) ? meta.canonGroupKey : buildCanonGroupKey(battle.attack, battle.defense, battle);
+    let canonProblem = (meta.canonProblem != null) ? meta.canonProblem : null;
+    if (!canonGroupKey && canonProblem == null) {
+      canonProblem = buildCanonProblem(battle.attack, battle.defense);
+    }
+    const canonBuilt = !!canonGroupKey;
+    const canonMatchOk = canonBuilt && !canonProblem;
+    meta.canonGroupKey = canonGroupKey || null;
+    meta.canonProblem = canonProblem || null;
+    meta.canonMatchOk = canonMatchOk ? true : false;
+    battle.meta = meta;
+    return {
+      attackType,
+      defenseType,
+      canonGroupKey,
+      canonProblem,
+      canonBuilt,
+      canonMatchOk
+    };
+  }
+
+  function logCanonOutcomeGateOnce(battle, payload){
+    if (!battle || !payload) return;
+    if (battle._canonOutcomeGateLogged) return;
+    battle._canonOutcomeGateLogged = true;
+    logDevOutcomeGate(battle, payload);
+  }
+
+  function tryEngageCanonGuard(battle, outcome, options){
+    if (!battle) return false;
+    if (outcome !== "draw") return false;
+    const opts = (options && typeof options === "object") ? options : {};
+    const forcedString = opts.forcedString || null;
+    if (!opts.allowForced && forcedString && forcedString !== "draw") {
+      return false;
+    }
+    const meta = ensureCanonMeta(battle);
+    if (!meta || !meta.canonMatchOk) return false;
+    const overrideOutcome = opts.overrideOutcome || "resolved";
+    const payload = {
+      canonBuilt: meta.canonBuilt,
+      canonProblem: meta.canonProblem || null,
+      canonMatchOk: !!meta.canonMatchOk,
+      attackType: meta.attackType || null,
+      defenseType: meta.defenseType || null,
+      outcomeBefore: outcome,
+      outcomeAfter: overrideOutcome,
+      skippedCrowd: true,
+      forcedResolved: true,
+      reason: opts.reason || "canon_match_force_resolve"
+    };
+    logCanonOutcomeGateOnce(battle, payload);
+    return true;
+  }
+
   function logCrowdCapSource(b, v, capValue, source, eligibleCount, excludedZeroPtsCount){
     if (!v) return;
     const cap = Number.isFinite(capValue) ? (capValue | 0) : null;
@@ -339,7 +399,7 @@
     if (!b || !crowd) return;
     const payload = {
       battleId: b.id || b.battleId || null,
-      startedAtMs: Number.isFinite(crowd.startedAtMs) ? (crowd.startedAtMs | 0) : null,
+      startedAtMs: Number.isFinite(crowd.startedAtMs) ? Math.floor(crowd.startedAtMs) : null,
       nowMs: Date.now()
     };
     try {
@@ -559,7 +619,8 @@
   function ensureCrowdTimerFields(v, nowCandidate){
     if (!v) return null;
     const nowMs = Math.floor(Number.isFinite(nowCandidate) ? nowCandidate : now());
-    const startedAtMs = _normalizeCrowdTimerValue(v.startedAtMs) ?? nowMs;
+    const rawStartedAt = _normalizeCrowdTimerValue(v.startedAtMs);
+    const startedAtMs = (rawStartedAt != null && rawStartedAt > 0) ? rawStartedAt : nowMs;
     const warmupEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS;
     const countdownStartMs = _normalizeCrowdTimerValue(v.countdownStartMs);
     const countdownEndMs = countdownStartMs
@@ -1895,7 +1956,7 @@
     const shouldLogDevTick = () => isDevSurfaceFlag() && isDevSmokeBattle(b);
     const buildDiagContext = (overrideNowMs) => {
       if (!b || !b.crowd) return null;
-      const startedAtMs = Number.isFinite(b.crowd.startedAtMs) ? (b.crowd.startedAtMs | 0) : null;
+      const startedAtMs = Number.isFinite(b.crowd.startedAtMs) ? Math.floor(b.crowd.startedAtMs) : null;
       const nowMs = Number.isFinite(overrideNowMs) ? Math.floor(overrideNowMs) : Math.floor(Date.now());
       const ageMs = (startedAtMs != null && startedAtMs > 0) ? Math.max(0, nowMs - startedAtMs) : null;
       return { nowMs, startedAtMs, ageMs };
@@ -2024,8 +2085,13 @@
           b.crowd._invalidStartLogged = true;
         }
         const healed = Math.max(1, Math.floor(nowMsValue));
-        b.crowd.startedAtMs = healed;
-        logDevCrowdSelfHeal(b, healed);
+        if (!Number.isFinite(b.crowd.startedAtMs) || b.crowd.startedAtMs <= 0) {
+          b.crowd.startedAtMs = healed;
+        }
+        if (!b.crowd._crowdSelfHealTriggered) {
+          b.crowd._crowdSelfHealTriggered = true;
+          logDevCrowdSelfHeal(b, healed);
+        }
         diagContext = { nowMs: nowMsValue, startedAtMs: healed, ageMs: 0 };
       } else {
         const warmupElapsed = ageMs != null ? ageMs >= CROWD_TIMER_WARMUP_MS : false;
@@ -3020,6 +3086,12 @@
     const resolvedBefore = !!b.resolved;
     const nowStamp = now();
     b.updatedAt = nowStamp;
+    if (tryEngageCanonGuard(b, outcome, {
+      overrideOutcome: "resolved",
+      reason: "canon_match_force_resolve"
+    })) {
+      outcome = "resolved";
+    }
 
     // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
     // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
@@ -3229,14 +3301,23 @@
         logCrowdCapForcedResolve(b, b.crowd, votesNow, b.crowd.cap);
         finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
       }
-      _crowdLog("CROWD_START_FLOW_V1", {
-        battleId: b.id || b.battleId || null,
-        statusBefore,
-        statusAfter: b.status || null,
-        battleResolvedBefore: resolvedBefore,
-        battleResolvedAfter: !!b.resolved
-      });
-      logCrowdCreate(b.crowd, b.id || b.battleId || null);
+      const crowdState = b.crowd || {};
+      if (!crowdState._crowdFlowLogged) {
+        _crowdLog("CROWD_START_FLOW_V1", {
+          battleId: b.id || b.battleId || null,
+          statusBefore,
+          statusAfter: b.status || null,
+          battleResolvedBefore: resolvedBefore,
+          battleResolvedAfter: !!b.resolved
+        });
+        crowdState._crowdFlowLogged = true;
+        if (b.crowd) b.crowd._crowdFlowLogged = true;
+      }
+      if (!crowdState._crowdCreateLogged) {
+        logCrowdCreate(b.crowd, b.id || b.battleId || null);
+        crowdState._crowdCreateLogged = true;
+        if (b.crowd) b.crowd._crowdCreateLogged = true;
+      }
       if (checkCrowdVotersOverride(b, b.crowd)) {
         return;
       }
@@ -3266,6 +3347,21 @@
       if (shouldLogVillain) {
         logBattleResolveVillain(b, "draw", false, oppRole);
       }
+      return;
+    }
+
+    if (outcome === "resolved") {
+      b.draw = false;
+      b.crowd = null;
+      b.finished = true;
+      b.resolved = true;
+      b.result = "resolved";
+      b.status = "resolved";
+      b.note = b.note || "Canon разрешил результат.";
+      b.resultLine = b.resultLine || "Решено";
+      if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
+      logBattleResolveDiagOnce(b, outcome, null, statusBefore, b.status || null);
+      announceBattleResult(b);
       return;
     }
 
@@ -3343,33 +3439,15 @@
     if (!outcome) {
       outcome = forced || "draw";
     }
-    const attackType = argGroup(b.attack);
-    const defenseType = argGroup(b.defense);
-    const canonGroupKey = buildCanonGroupKey(b.attack, b.defense, b);
-    const canonProblem = canonGroupKey ? null : buildCanonProblem(b.attack, b.defense);
-    const canonBuilt = !!canonGroupKey;
-    const typesMatch = attackType && defenseType && attackType === defenseType;
-    const canonMatchOk = canonBuilt && !canonProblem && typesMatch;
-    if (!b.meta) b.meta = {};
-    b.meta.canonGroupKey = canonGroupKey || null;
-    b.meta.canonProblem = canonProblem || null;
-    const guardActive = !forced && canonBuilt && !canonProblem && attackType && defenseType && attackType === defenseType;
-    if (guardActive) {
-      const overrideOutcome = "resolved";
-      logDevOutcomeGate(b, {
-        canonBuilt,
-        canonProblem,
-        canonMatchOk,
-        attackType,
-        defenseType,
-        outcomeBefore: outcome,
-        outcomeAfter: overrideOutcome,
-        skippedCrowd: true,
-        forcedResolved: true,
-        reason: "canon_match_force_resolve"
-      });
-      C.finalize(b.id, overrideOutcome);
-      return { ok: true, outcome: overrideOutcome };
+    const canonicalGuardActive = tryEngageCanonGuard(b, outcome, {
+      allowForced: (!forced || forced === "draw"),
+      forcedString: forced,
+      overrideOutcome: "resolved",
+      reason: "canon_match_force_resolve"
+    });
+    if (canonicalGuardActive) {
+      C.finalize(b.id, "resolved");
+      return { ok: true, outcome: "resolved" };
     }
 
     C.finalize(b.id, outcome);

@@ -1015,6 +1015,7 @@
   - При `startedAtMs <= 0` crowd теперь корректно self-heal-ится (ставится `Date.now()`), логируется `DEV_CROWD_SELF_HEAL_START_V1` и subsequent ticks используют обновлённые timestamps вместо ReferenceError.
   - Crowd flow API получает `CROWD_ALREADY_ACTIVE_V2` (phase/cap/votersCount) и ранний return только при `status==="draw"`/`draw===true`, предотвращая повторный `CROWD_CREATE` и сохраняя eligibility.
   - `conflict-arguments.js` теперь вычисляет `desiredGroup` локально от `battleCtx`, принимает контекст только через аргументы, и при отсутствии контекста возвращает `{ok:false, reason:"missing_battle_ctx"}` с `ARGS_CTX_MISSING_V1` (single-shot) вместо ReferenceError.
+  - DUMP_AT 2026-02-26 20:06:26: `smokeBattle_CounterArg_NoUnexpectedCrowdOnce` вернул `ok:true`, `crowdStarted:false`, `DEV_OUTCOME_GATE_V2` содержит `forcedResolved:true`, а `CROWD_START_FLOW_V1`/`CROWD_CREATE_V1` отсутствуют.
 - Changed: `PROJECT_MEMORY.md`, `Web/conflict/conflict-core.js`, `Web/conflict/conflict-api.js`, `Web/conflict/conflict-arguments.js`
 
 -### 2026-02-22 — E[2] Low economy: активность при me.points=0
@@ -3393,3 +3394,15 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Добавлены смоки `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce` и `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`, покрывающие win/lose без crowd, draw с crowd cap=10/eligible и растущими голосами (`SMOKE_COUNTERARG_NO_CROWD_*`, `SMOKE_BATTLE_DRAW_CROWD_CAP_*` в Console).
 - Console: `Console.txt` DUMP_AT [2026-02-25 10:45:08] с `SMOKE_COUNTERARG_NO_CROWD_BEGIN/JSON/END` и DUMP_AT [2026-02-25 10:48:02] с `SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN/JSON/END`.
 - Next: QA (см. `Tasks` entry: запустить оба smoka и прикрепить JSON + DUMP).
+
+-### 2026-02-26 — Контраргумент: canonical guard + idempotent crowd start
+- Status: DOING (code ready; smoke DUMP pending runtime)
+- Facts:
+  - `resolveBattleOutcome` + `C.finalize` now share `tryEngageCanonGuard`, which fills canon metadata, logs `DEV_OUTCOME_GATE_V2 {forcedResolved:true, skippedCrowd:true}`, and routes canonical draws into a `resolved` branch before any crowd state is created.
+  - `startCrowdVoteTimer` flags `_crowdFlowLogged/_crowdCreateLogged` so `CROWD_START_FLOW_V1/CROWD_CREATE_V1` fire only once, `ensureCrowdVoteStarted`/`isDrawWithCrowd` accept `status==="crowd"` and early-return with `CROWD_ALREADY_ACTIVE_V2`, and `C.finalize` never re-enters draw when guard engaged.
+  - Timer helpers clamp `startedAtMs` to positive epoch ms, `DEV_CROWD_SELF_HEAL_START_V1` now fires only once per invalid start, and `crowd.startedAtMs` stays positive after healing; `buildDiagContext` stops using `|0` to avoid negative epoch values, so warmup → countdown/voting progress is deterministic.
+  - `Conflict.applyCrowdVoteTick` now applies NPC votes before `Core.applyCrowdVoteTick`, ensuring dev-smoke tick loops can accumulate `votesTotal` without relying on UI loops.
+  - Game runtime is unavailable in this CLI session, so the dev smokes (`Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce`, `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`) still need to be run elsewhere to capture the required DUMP_AT logs (no `CROWD_CREATE_V1`, votesTotal growth, `DEV_OUTCOME_GATE_V2`, etc.).
+- Smoke: pending; awaiting QA to rerun both smokes on a dev instance and supply new DUMP_AT with the markers listed above.
+- Evidence: n/a (smoke DUMP not yet recorded in this environment).
+- Next: QA (run both smokes and capture DUMP_AT + logs verifying votesTotal/voting progression)

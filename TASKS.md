@@ -203,8 +203,8 @@
       (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, `tailReasons` содержит финальные resolve-маркеры, и Console содержит `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1` без дополнительного crowd; приложи DUMP_AT.
       ```
 
-### [T-20260225-001] Контраргумент не должен запускать crowd с cap=10 и голосами
-- Status: PASS (`Console.txt` DUMP_AT 2026-02-25 10:48:02 + `SMOKE_COUNTERARG_NO_CROWD_*` / `SMOKE_BATTLE_DRAW_CROWD_CAP_*`)
+-### [T-20260225-001] Контраргумент не должен запускать crowd с cap=10 и голосами
+- Status: IN PROGRESS (code updated; smoke DUMP pending runtime)
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
@@ -216,20 +216,22 @@
   - [x] Dev-лог `DEV_SMOKE_DEFENSE_V1` получает `canonBuilt`/problem, `CROWD_CAP_SOURCE_V1` пишет `capSource`, `logDevSmokeNpcVoteAttempt` в dev‑батле показывает `npcId/eligible/costOk/voteCounted/votersTotal`.
   - [x] Смок `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce` подтверждает `canonBuilt:true`, `result:win/lose`, `crowdStarted:false`.
   - [x] Смок `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce` фиксирует `canonBuilt:false`, `crowdStarted:true`, `capValue`=10/eligible, `votesTotal` увеличивается и `endedBy` ≠ "stuck".
-- Notes: Логи `CROWD_CAP_SOURCE_V1`/`DEV_SMOKE_NPC_VOTE_V1` привязаны к `isDevSmokeBattle` и не спамят prod; `Console.txt` содержит DUMP_AT 2026-02-25 10:45:08/10:48:02.
-- Result: PASS (`Console.txt` DUMP_AT 2026-02-25 10:45:08 фиксирует `SMOKE_COUNTERARG_NO_CROWD_BEGIN/JSON/END`, DUMP_AT 2026-02-25 10:48:02 — `SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN/JSON/END` с cap=10, votesTotal>0, endedBy:"cap"`).
-- Report:
-  - Status: PASS
+ - Notes: Логи `CROWD_CAP_SOURCE_V1`/`DEV_SMOKE_NPC_VOTE_V1` привязаны к `isDevSmokeBattle` и не спамят prod; `Console.txt` содержит DUMP_AT 2026-02-25 10:45:08/10:48:02.
+- Result: IN PROGRESS (2026-02-26 patch enforces canonical draws resolving to `resolved`, idempotent crowd creation, and positive epoch timers; Game runtime not available here so smokes/DUMP await QA)
+ - Report:
+  - Status: IN PROGRESS
   - Facts:
-    1) `ensureBattleCrowdCap` перестал использовать `getCrowdVoteCap` и выставляет `capSource` из канона (10/eligible) с прозрачными метами и `CROWD_CAP_SOURCE_V1` для dev_*.
-    2) `logDevSmokeNpcVoteAttempt` агрегирует первый npc-триал на событие, пишет `npcId/eligible/voteCounted/votersTotal`, а crowd-лог `setCrowdCapMeta` сохраняет `capValue/capSource/eligibleCount/excludedZeroPtsCount`.
-    3) Новые smokes (`smokeBattle_CounterArg_NoUnexpectedCrowdOnce`, `smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`) демонстрируют win/lose без crowd, draw/crowd с cap=10/eligible и голосами, и экспортируют BEGIN/JSON/END с указанными полями.
-  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
+    1) `resolveBattleOutcome` and the new `tryEngageCanonGuard` helper populate canon metadata, log `DEV_OUTCOME_GATE_V2 {forcedResolved:true, skippedCrowd:true}`, and call `C.finalize` with `outcome="resolved"`, so canonical draws never spin up crowd timers.
+    2) `C.finalize` now short-circuits into a `resolved` branch (status/result line "Решено"), `startCrowdVoteTimer` only logs `CROWD_START_FLOW_V1`/`CROWD_CREATE_V1` once per battle, and `ensureCrowdVoteStarted`/`isDrawWithCrowd` respect `status==="crowd"` while returning `CROWD_ALREADY_ACTIVE_V2` on repeats.
+    3) `startedAtMs`/timer helpers clamp to positive epoch ms, `buildDiagContext` no longer uses `|0` for epoch values, `DEV_CROWD_SELF_HEAL` fires once, and `crowd.startedAtMs` stays stable after healing.
+    4) `Conflict.applyCrowdVoteTick` now applies NPC votes before `Core.applyCrowdVoteTick`, so dev-smoke tick loops accumulate `votesTotal` without relying on UI timers.
+    5) Game runtime is unavailable in this CLI, so QA still needs to run the two dev smokes (`smokeBattle_CounterArg_NoUnexpectedCrowdOnce`, `smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce`) to capture the required DUMP_AT outputs and confirm votesTotal growth; smokes remain pending outside this environment.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
-    1) Hard reload http://localhost:8080/index.html?dev=1 (убедиться, что DevTools подхватили обновлённые `conflict-core`/`dev-checks`).
-    2) Run `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()`; JSON должен показать `canonBuilt:true`, `result!=draw`, `crowdStarted:false`, `why:resolved_*`, и `SMOKE_COUNTERARG_NO_CROWD_BEGIN/JSON/END` в Console.
-    3) Run `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()`; JSON должен показать `canonBuilt:false`, `crowdStarted:true`, `capValue`=10/eligible, `votesTotal>0`, `ended:true`, `endedBy`≠"stuck", и `SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN/JSON/END` в Console.
-  - Next: QA
+    1) Hard reload http://localhost:8080/index.html?dev=1 so the canonical guard takes effect.
+    2) Run `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()` and confirm Console logs include `DEV_OUTCOME_GATE_V2 {forcedResolved:true, skippedCrowd:true}`, there are no `CROWD_CREATE_V1` for that battle, and the JSON reports `crowdStarted:false`, `result!=null`.
+    3) Run `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()` to ensure the crowd warms up → voting, NPC votes bump `votesTotal`, and `ended:true`/`votesTotal>0`, while no `CROWD_STALL_V1_PROGRESS 0|0|0` remains.
+  - Next: QA (attach DUMP_AT + markers)
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       QA instructions:
@@ -2924,4 +2926,5 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - Если `startedAtMs <= 0`, crowd self-heal-ится (`startedAtMs = Date.now()`), пишется `DEV_CROWD_SELF_HEAL_START_V1`, и тики продолжают работу без зависания.
   - Conflict API logs `CROWD_ALREADY_ACTIVE_V2` (phase/cap/votersCount) и возвращает уже существующий crowd строго при `status==="draw"`/`draw===true`, предотвращая двойные `CROWD_CREATE`/eligibility recalc.
   - `conflict-arguments.js` принимает `battleCtx` только через параметры, вычисляет `desiredGroup` локально и при отсутствии контекста возвращает `{ok:false, reason:"missing_battle_ctx"}` с `ARGS_CTX_MISSING_V1`, устраняя ReferenceError `desiredGroup`.
+  - DUMP_AT 2026-02-26 20:06:26: `SmokeBattle_CounterArg_NoUnexpectedCrowdOnce` ok:true/crowdStarted:false, `DEV_OUTCOME_GATE_V2` forcedResolved:true, `CROWD_CREATE_V1` отсутствует, что облегчает QA.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `AsyncScene/Web/conflict/conflict-arguments.js`

@@ -158,7 +158,10 @@
    }
 
   function isDrawWithCrowd(b) {
-    return !!(b && b.status === "draw" && b.draw === true && b.crowd && !b.crowd.decided);
+    if (!b || !b.crowd || b.crowd.decided) return false;
+    if (b.status === "draw" && b.draw === true) return true;
+    if (b.status === "crowd") return true;
+    return false;
   }
 
   function getCrowdTotalVotesSnapshot(crowd) {
@@ -485,8 +488,7 @@
      }
 
      const crowdActive = b.crowd
-       && b.status === "draw"
-       && b.draw === true
+       && (b.status === "draw" || b.status === "crowd")
        && Number.isFinite(b.crowd.startedAtMs)
        && Number.isFinite(b.crowd.cap)
        && (b.crowd.cap > 0);
@@ -496,7 +498,7 @@
      }
 
      // Some core impls mark draw via flags.
-     if (b.status !== "draw" && (b.result === "draw" || b.outcome === "draw" || b.draw === true)) {
+     if (b.status !== "draw" && b.status !== "crowd" && (b.result === "draw" || b.outcome === "draw" || b.draw === true)) {
        b.status = "draw";
        b.draw = true;
      }
@@ -867,6 +869,8 @@
     },
 
     applyCrowdVoteTick(battleId) {
+      const b = findBattle(battleId);
+      if (b) applyNpcVotesToBattle(b);
       if (typeof Core.applyCrowdVoteTick === "function") {
         try { Core.applyCrowdVoteTick(battleId); } catch (_) {}
       }
