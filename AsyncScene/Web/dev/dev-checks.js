@@ -21848,47 +21848,109 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));
         return String(value);
       };
+      const nodeSelectors = {
+        outgoingOppArg: '[data-testid="outgoing-opp-arg"]',
+        outgoingMyCounter: '[data-testid="outgoing-my-counter"]',
+        battleResult: '[data-testid="battle-result-pill"]',
+        rematchButton: '[data-testid="battle-rematch-btn"]'
+      };
+      const nodeSelectorKeys = Object.keys(nodeSelectors);
+      const nodeSelectorCount = nodeSelectorKeys.length;
+      const getNodePresence = (targetCard) => {
+        const presence = {};
+        for (const key of nodeSelectorKeys) {
+          const selector = nodeSelectors[key];
+          presence[key] = !!(targetCard && targetCard.querySelector(selector));
+        }
+        return presence;
+      };
+      const getNodeTexts = (targetCard) => {
+        const texts = {};
+        for (const key of nodeSelectorKeys) {
+          const selector = nodeSelectors[key];
+          const node = targetCard ? targetCard.querySelector(selector) : null;
+          texts[key] = node ? String(node.textContent || "").trim() : null;
+        }
+        return texts;
+      };
+      const countNodes = (map) => Object.values(map).filter(Boolean).length;
       const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
-      const selectText = (selector) => {
-        const node = card ? card.querySelector(selector) : null;
-        return node ? String(node.textContent || "").trim() : null;
+      const nodes = getNodePresence(card);
+      const nodeTexts = getNodeTexts(card);
+      const findRealOutgoingCard = () => {
+        if (typeof document !== "object") return null;
+        const cards = Array.from(document.querySelectorAll('.battleCard[data-battle-id]'));
+        for (const candidate of cards) {
+          const idAttribute = candidate.getAttribute("data-battle-id");
+          if (!idAttribute) continue;
+          const candidateId = String(idAttribute);
+          if (candidateId === battleId) continue;
+          if (candidateId.startsWith("dev_smoke_")) continue;
+          const candidateNodes = getNodePresence(candidate);
+          if (Object.values(candidateNodes).every(Boolean)) {
+            return {
+              battleId: candidateId,
+              card: candidate,
+              nodes: candidateNodes
+            };
+          }
+        }
+        return null;
       };
-      const nodes = {
-        outgoingOppArg: !!(card && card.querySelector('[data-testid="outgoing-opp-arg"]')),
-        outgoingMyCounter: !!(card && card.querySelector('[data-testid="outgoing-my-counter"]')),
-        battleResult: !!(card && card.querySelector('[data-testid="battle-result-pill"]')),
-        rematchButton: !!(card && card.querySelector('[data-testid="battle-rematch-btn"]'))
-      };
-      const nodeTexts = {
-        outgoingOppArg: selectText('[data-testid="outgoing-opp-arg"]'),
-        outgoingMyCounter: selectText('[data-testid="outgoing-my-counter"]'),
-        battleResult: selectText('[data-testid="battle-result-pill"]'),
-        rematchButton: selectText('[data-testid="battle-rematch-btn"]')
-      };
+      const realCard = findRealOutgoingCard();
+      const realBattleId = realCard ? realCard.battleId : null;
+      const realNodes = realCard ? realCard.nodes : getNodePresence(null);
+      const realNodeTexts = realCard ? getNodeTexts(realCard.card) : getNodeTexts(null);
+      const realNodeCount = countNodes(realNodes);
       const branchLog = UI._lastBattleCardBranchLog || null;
       const branchOk = branchLog
         && branchLog.isOutgoing === true
         && branchLog.hasOppArg === true
         && branchLog.hasMyCounter === true
         && branchLog.canRematch === true;
-      const nodesComplete = Object.values(nodes).every(Boolean);
-      const status = (nodesComplete && branchOk) ? "PASS" : "FAIL";
-      const missingNodes = Object.keys(nodes).filter(key => !nodes[key]);
+      const smokeNodeCount = countNodes(nodes);
+      const nodesComplete = (smokeNodeCount === nodeSelectorCount) && branchOk;
+      const realCardComplete = realNodeCount === nodeSelectorCount;
+      const status = (nodesComplete && realCardComplete) ? "PASS" : "FAIL";
+      const reason = realCard ? null : "real_outgoing_card_not_found";
+      const missingNodes = nodeSelectorKeys.filter(key => !nodes[key]);
       const diag = {
-        battleId,
-        nodes,
+        ids: {
+          smokeBattleId: battleId,
+          realBattleId
+        },
+        nodes: {
+          smokeBattleId: nodes,
+          realBattleId: realNodes
+        },
         nodeTexts,
+        realNodeTexts,
+        nodeCounts: {
+          smokeBattleId: smokeNodeCount,
+          realBattleId: realNodeCount
+        },
         branchLog
       };
       if (missingNodes.length) diag.missingNodes = missingNodes;
       if (!branchOk) diag.branchIssue = branchLog ? "branch_log_missing_props" : "branch_log_missing";
-      console.log("SMOKE_OUTGOING_BATTLE_CARD", { status, battleId, nodes, branchLog });
-      return {
+      const logPayload = {
+        status,
+        battleId,
+        nodes,
+        branchLog,
+        realBattleId,
+        realNodes
+      };
+      if (reason) logPayload.reason = reason;
+      console.log("SMOKE_OUTGOING_BATTLE_CARD", logPayload);
+      const result = {
         name,
         ok: status === "PASS",
         status,
         diag
       };
+      if (reason) result.reason = reason;
+      return result;
     } catch (err) {
       console.log("SMOKE_OUTGOING_BATTLE_CARD", { status: "FAIL", battleId, error: String(err) });
       return { name, ok: false, reason: String(err) };

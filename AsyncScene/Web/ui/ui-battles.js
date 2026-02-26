@@ -599,10 +599,13 @@
     };
     if (!battle) return info;
     const meId = getMeId();
-    let rawDirection = null;
-    if (typeof battle.direction === "string") rawDirection = battle.direction;
-    else if (typeof battle.bDirection === "string") rawDirection = battle.bDirection;
-    else if (typeof battle.bdirection === "string") rawDirection = battle.bdirection;
+    const explicitDirection = (typeof battle.direction === "string") ? battle.direction : null;
+    let rawDirection = explicitDirection;
+    if (rawDirection == null) {
+      if (typeof battle.bDirection === "string") rawDirection = battle.bDirection;
+      else if (typeof battle.bdirection === "string") rawDirection = battle.bdirection;
+    }
+    info.hasBDirection = typeof explicitDirection === "string" && explicitDirection.length > 0;
 
     if (rawDirection != null) {
       const cleaned = String(rawDirection).trim();
@@ -612,20 +615,16 @@
         if (OUTGOING_DIRECTION_TOKENS.has(norm)) {
           info.isOutgoing = true;
           info.reason = "direction";
-          info.hasBDirection = !!battle.bDirection;
           return info;
         }
         if (INCOMING_DIRECTION_TOKENS.has(norm)) {
           info.isOutgoing = false;
           info.reason = "direction";
-          info.hasBDirection = !!battle.bDirection;
           return info;
         }
       }
     }
-    info.hasBDirection = info.hasBDirection || (battle.bDirection != null);
 
-    const attackerId = getBattleAttackerId(battle);
     if (attackerId) {
       info.isOutgoing = attackerId === meId;
       info.reason = "attackerId";
@@ -730,13 +729,24 @@
     return null;
   }
 
-  function buildBattleCardBranchPayload(battle, directionInfo, argumentTexts, branch) {
+  function isBattleResolved(battle) {
+    if (!battle) return false;
+    if (battle.resolved === true) return true;
+    if (battle.status === "finished") return true;
+    if (battle.result != null || battle.outcome != null) return true;
+    if (battle.endedBy != null) return true;
+    if (battle.winnerId != null || battle.winner != null) return true;
+    if (battle.resultIfAny != null) return true;
+    return false;
+  }
+
+  function buildBattleCardBranchPayload(battle, directionInfo, argumentTexts, branch, resolved) {
     if (!battle || !directionInfo) return null;
     const args = argumentTexts || { opponent: null, mine: null };
     const rematchButtons = countIncomingRematchButtons(battle);
     return {
       battleId: battle.id != null ? String(battle.id) : null,
-      isResolved: battle.resolved === true,
+      isResolved: resolved === true || battle.resolved === true,
       isOutgoing: !!directionInfo.isOutgoing,
       attackerId: directionInfo.attackerId || null,
       defenderId: directionInfo.defenderId || null,
@@ -1616,7 +1626,7 @@ UI.renderBattles = () => {
 
       const isEscape = isEscapeVote(b);
       const isDraw = isDrawBattle(b);
-      const uiThinksResolved = !!(b.resolved === true || b.status === "finished");
+      const uiThinksResolved = isBattleResolved(b);
       const uiThinksCrowd = !!(isEscape || isDraw);
       const directionInfo = getBattleDirectionInfo(b);
       const isOutgoingCard = directionInfo.isOutgoing;
@@ -1633,7 +1643,7 @@ UI.renderBattles = () => {
         const branch = isEscape ? "escape_vote"
           : isDraw ? "draw"
           : (isOutgoingCard ? "outgoing_resolved" : "resolved_history");
-        const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch);
+        const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch, uiThinksResolved);
         logBattleCardBranch(payload);
       }
 
