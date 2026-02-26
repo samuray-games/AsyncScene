@@ -227,6 +227,22 @@
     } catch (_) {}
   }
 
+  function logDevOutcomeGate(b, payload){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !(b.id || b.battleId)) return;
+    const battleId = b.id || b.battleId;
+    const data = Object.assign({
+      battleId,
+      ts: Date.now()
+    }, payload || {});
+    try {
+      console.warn("DEV_OUTCOME_GATE_V1", data);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V1", data);
+    } catch (_) {}
+  }
+
   function logCrowdCapSource(b, v, capValue, source, eligibleCount, excludedZeroPtsCount){
     if (!v) return;
     const cap = Number.isFinite(capValue) ? (capValue | 0) : null;
@@ -1759,8 +1775,11 @@
     };
   }
 
-  function logCrowdElig(b, v, eligible){
+  function logCrowdElig(b, v, eligible, finalCap){
     if (!v || !eligible) return;
+    const rawCap = (eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0));
+    const capFinal = Number.isFinite(finalCap) ? (finalCap | 0) : null;
+    const capValue = (capFinal != null) ? capFinal : rawCap;
     _crowdLog("CROWD_ELIG_V1", {
       battleId: b && (b.id || b.battleId) || null,
       eventId: v.eventId || null,
@@ -1768,7 +1787,9 @@
       votersIdsLen: eligible.votersIdsLen,
       votersIdsSample: eligible.votersIdsSample && eligible.votersIdsSample.length ? eligible.votersIdsSample.slice(0, 3) : null,
       eligibleCount: eligible.eligibleNpcCount,
-      cap: (eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0)),
+      cap: capValue,
+      capFinal,
+      rawCap,
       meIncluded: !!eligible.meEligible,
       rule: eligible.rule,
       excludedZeroPtsCount: eligible.excludedZeroPtsCount,
@@ -1810,21 +1831,29 @@
     const cacheKey = battleId ? String(battleId) : null;
     let pendingMeta = null;
     const votesBeforeSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
-    const shouldLogDevTick = () => isDevSurfaceFlag() && isDevSmokeBattle(b);
-    const logDevCrowdTick = (phaseLabel, endedFlag, endedByLabel) => {
-      if (!shouldLogDevTick()) return;
-      const votesAfterSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
-      _crowdLog("CROWD_TICK_V1", {
-        battleId,
-        phase: phaseLabel || (b && b.crowd && Number.isFinite(b.crowd.countdownStartMs) ? "countdown" : "warmup"),
-        votesTotalBefore: votesBeforeSnapshot,
-        votesTotalAfter: votesAfterSnapshot,
-        ended: !!endedFlag,
-        endedBy: endedByLabel || (b && b.crowd && b.crowd.endedBy ? b.crowd.endedBy : null)
-      });
+    const computePhase = (crowd) => {
+      if (!crowd) return "unknown";
+      return Number.isFinite(crowd.countdownStartMs) ? "countdown" : "warmup";
     };
-    const finishWithLog = (resultObj, phaseLabel, endedFlag, endedByLabel) => {
-      logDevCrowdTick(phaseLabel, endedFlag, endedByLabel);
+    const phaseBefore = computePhase(b && b.crowd ? b.crowd : null);
+    const shouldLogDevTick = () => isDevSurfaceFlag() && isDevSmokeBattle(b);
+    const finishWithLog = (resultObj, { endedFlag = false, endedByLabel = null, why = null } = {}) => {
+      if (shouldLogDevTick()) {
+        const votesAfterSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
+        const phaseAfter = computePhase(b && b.crowd ? b.crowd : null);
+        const progressed = (votesAfterSnapshot !== votesBeforeSnapshot) || !!endedFlag || phaseAfter !== phaseBefore;
+        _crowdLog("CROWD_TICK_V1", {
+          battleId,
+          phaseBefore,
+          phaseAfter,
+          votesBefore: votesBeforeSnapshot,
+          votesAfter: votesAfterSnapshot,
+          ended: !!endedFlag,
+          endedBy: endedByLabel || (b && b.crowd && b.crowd.endedBy ? b.crowd.endedBy : null),
+          why: why || null,
+          progressed
+        });
+      }
       return resultObj;
     };
     if (b && b.crowd && b.crowd.decided) {
@@ -1836,7 +1865,7 @@
         pendingMeta,
         cacheHit: !!cachedMeta,
         why: "crowd_decided"
-      }, "warmup", true, cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null);
+      }, { endedFlag: true, endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null, why: "crowd_decided" });
     }
     if (b && b.crowd && b.crowd.noTimerResolution) {
       const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
@@ -1849,7 +1878,7 @@
           pendingMeta: null,
           cacheHit: false,
           why: "fifty_missing_meta"
-        }, "warmup", true, null);
+        }, { endedFlag: true, endedByLabel: null, why: "fifty_missing_meta" });
       }
       return finishWithLog({
         ok: true,
@@ -1859,7 +1888,7 @@
         pendingMeta: null,
         cacheHit: true,
         why: null
-      }, "warmup", true, meta && meta.endedBy ? meta.endedBy : null);
+      }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : null });
     }
     if (b && b.crowd) {
       pendingMeta = createCrowdCapMeta(b, "pending");
@@ -1873,13 +1902,13 @@
         pendingMeta,
         cacheHit: !!cachedMeta,
         why: cachedMeta ? null : "battle_not_draw"
-      }, "warmup", false, cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null);
+      }, { endedFlag: false, endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null, why: cachedMeta ? null : "battle_not_draw" });
     }
     if (b && b.crowd && b.crowd.noTimerResolution) {
       const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
       const meta = res ? res.crowdCapMeta : null;
       if (meta && cacheKey) cache[cacheKey] = meta;
-      return {
+      return finishWithLog({
         ok: !!(res && res.outcome),
         battleId,
         outcome: (res && res.outcome) ? res.outcome : null,
@@ -1887,7 +1916,7 @@
         pendingMeta,
         cacheHit: !!(meta && cacheKey && cache[cacheKey]),
         why: meta ? null : "finalize_missing_meta"
-      };
+      }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : null, why: meta ? null : "finalize_missing_meta" });
     }
     if (b && b.crowd) {
       ensureBattleCrowdCap(b.crowd, b);
@@ -1922,7 +1951,7 @@
           logCrowdStallResolve(b, b.crowd, "cap", resolvedVotes, cap, meta && meta.endedBy ? meta.endedBy : "cap");
           b.crowd._crowdTimerResolvedBy = "cap";
         }
-        return {
+        return finishWithLog({
           ok: !!(res && res.outcome),
           battleId,
           outcome: (res && res.outcome) ? res.outcome : null,
@@ -1930,7 +1959,7 @@
           pendingMeta,
           cacheHit: !!(meta && cacheKey && cache[cacheKey]),
           why: meta ? null : "finalize_missing_meta"
-        };
+        }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : null, why: meta ? null : "finalize_missing_meta" });
       }
       if (timerState && timerState.countdownEndMs && timerState.nowMs >= timerState.countdownEndMs && !b.crowd.decided) {
         const res = finalizeCrowdVote(b, { force: true, endedBy: "crowd_timer_expired" });
@@ -1945,7 +1974,7 @@
           logCrowdStallResolve(b, b.crowd, "timer", resolvedVotes, cap, "crowd_timer_expired");
           b.crowd._crowdTimerResolvedBy = "timer";
         }
-        return {
+        return finishWithLog({
           ok: !!(res && res.outcome),
           battleId,
           outcome: (res && res.outcome) ? res.outcome : null,
@@ -1953,19 +1982,19 @@
           pendingMeta,
           cacheHit: !!(meta && cacheKey && cache[cacheKey]),
           why: meta ? null : "finalize_missing_meta"
-        };
+        }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : "crowd_timer_expired", why: meta ? null : "finalize_missing_meta" });
       }
     }
     if (b) b.updatedAt = now();
     const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
-    return {
+    return finishWithLog({
       ok: false,
       battleId,
       crowdCapMeta: cachedMeta,
       pendingMeta,
       cacheHit: !!cachedMeta,
       why: pendingMeta ? null : "cap_not_reached"
-    };
+    }, { endedFlag: false, endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null, why: pendingMeta ? null : "cap_not_reached" });
   }
 
   function finalizeCrowdVote(b, opts){
@@ -3044,7 +3073,6 @@
       };
       b.crowd.eligibilityRuleVersion = eligible.rule;
       const computedCap = eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0);
-      logCrowdElig(b, b.crowd, eligible);
       const votesNow = getCrowdTotalVotes(b.crowd);
       const stageD2Enabled = isCrowdCapStageD2();
       const drawFallbackForced = !!(b.meta && b.meta.drawFallback);
@@ -3061,6 +3089,7 @@
         capSource = "canon10";
       }
       setCrowdCapMeta(b, b.crowd, capValue, capSource, eligible.eligibleNpcCount, eligible.excludedZeroPtsCount);
+      logCrowdElig(b, b.crowd, eligible, capValue);
       if (b.crowd.cap <= 0) {
         logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
       }
@@ -3184,6 +3213,20 @@
     }
     if (!outcome) {
       outcome = forced || "draw";
+    }
+    const meta = b.meta || {};
+    const canonBuilt = !!meta.canonGroupKey;
+    const canonMatchOk = canonBuilt && !meta.canonProblem;
+    if (!forced && canonMatchOk && outcome === "draw") {
+      const overrideOutcome = "win";
+      logDevOutcomeGate(b, {
+        canonBuilt,
+        canonMatchOk,
+        outcomeBefore: outcome,
+        outcomeAfter: overrideOutcome,
+        reason: "canon_match_guard"
+      });
+      outcome = overrideOutcome;
     }
 
     C.finalize(b.id, outcome);

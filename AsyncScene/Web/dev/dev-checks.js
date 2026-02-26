@@ -15420,12 +15420,18 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       crowd.lastProgressAtMs = Math.max(0, lastProgressAt - WARMUP_SKIP_MS);
     }
 
-    for (let i = 0; i < 32; i += 1) {
+    const MAX_CROWD_TICKS = 64;
+    for (let i = 0; i < MAX_CROWD_TICKS; i += 1) {
       Conflict.applyCrowdVoteTick(battleId);
       const check = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId));
       const checkCrowd = check && check.crowd ? check.crowd : null;
-      if (checkCrowd && checkCrowd.decided) {
-        break;
+      if (checkCrowd) {
+        const votesA = Number.isFinite(checkCrowd.votesA) ? (checkCrowd.votesA | 0) : 0;
+        const votesB = Number.isFinite(checkCrowd.votesB) ? (checkCrowd.votesB | 0) : 0;
+        const votesTotal = votesA + votesB;
+        if (votesTotal > 0 && checkCrowd.decided) {
+          break;
+        }
       }
     }
     const updated = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
@@ -15435,14 +15441,16 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const votersTotal = votesA + votesB;
     const capValue = finalCrowd && Number.isFinite(finalCrowd.cap) ? (finalCrowd.cap | 0) : null;
     const endedBy = (finalCrowd && finalCrowd.endedBy) || (finalCrowd && finalCrowd.crowdCapDebug && finalCrowd.crowdCapDebug.endedBy) || null;
+    const ended = !!(finalCrowd && finalCrowd.decided);
     result.capValue = capValue;
     result.capSource = finalCrowd && finalCrowd.capSource ? finalCrowd.capSource : (resolved && resolved.meta && resolved.meta.crowdCap && resolved.meta.crowdCap.capSource) || null;
     result.eligibleCount = finalCrowd && Number.isFinite(finalCrowd.eligibleCount) ? (finalCrowd.eligibleCount | 0) : null;
     result.votesTotal = votersTotal;
     result.endedBy = endedBy;
-    result.ended = !!(finalCrowd && finalCrowd.decided);
+    result.ended = ended;
     result.why = `crowd_${endedBy || "unknown"}`;
-    result.ok = result.ended;
+    result.ok = ended && votersTotal > 0;
+    if (votersTotal === 0) result.notes.push("crowd_no_votes_progress");
 
     cleanupBattle(battleId);
     logJson(result);

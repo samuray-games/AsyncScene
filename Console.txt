@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-26 17:25:14] (epoch_ms=1772094314768)
+[DUMP_AT] [2026-02-26 17:53:06] (epoch_ms=1772095986152)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772094192322
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772095936783
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772094192362}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772095936859}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772094192340 1772094192363
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772095936819 1772095936859
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772094192363
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772095936859
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772094192364}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772095936859}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772094192408}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772094192410}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772095936876}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772095936879}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,21 +45,21 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772094192412}
-WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772094192412}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772094192412}
-LOG [AttackChoices] conflict-arguments loaded 1772094192412
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772094192413}
+WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772095936882}
+WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772095936882}
+WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772095936882}
+LOG [AttackChoices] conflict-arguments loaded 1772095936882
+WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772095936883}
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772094192416, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772094192417}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772094192417}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772095936900, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1772095936902}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772095936902}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772094215437_04bfc1c6f778e8 Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772095948848_15217b8d09f9d Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
 WARN [repl] > Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()
 WARN SMOKE_COUNTERARG_NO_CROWD_BEGIN Object{name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce}
-WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772094215455}
-WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772094215455}
+WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772095948859}
+WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772095948859}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -82,7 +82,7 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN PROVOKE_BATTLE_INCOMING_DIAG_V1 Object{lowEconomyFree: true, mePoints: 10, npcId: npc_weak, ok: true, rawKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense, result, resolved, finished, createdAt, updatedAt, presentedAt, attackerId, startCostApplied], reason: ok, returnedId: battle_mm3753q6_i92hx4}
+WARN PROVOKE_BATTLE_INCOMING_DIAG_V1 Object{lowEconomyFree: true, mePoints: 10, npcId: npc_weak, ok: true, rawKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense, result, resolved, finished, createdAt, updatedAt, presentedAt, attackerId, startCostApplied], reason: ok, returnedId: battle_mm38698a_xr3n4i}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   lowEconomyFree: true
@@ -110,14 +110,14 @@ LOG Object{
     startCostApplied
   ]
   reason: ok
-  returnedId: battle_mm3753q6_i92hx4
+  returnedId: battle_mm38698a_xr3n4i
 }
 LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm3753q6_i92hx4, battleStatus: pickDefense, nowMs: 1772094215459, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm3753q6_i92hx4, hasBattleCtx: true, ts: 1772094215459}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: dev_smoke_counterarg_mm3753qf, hasBattleCtx: true, ts: 1772094215463}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: dev_smoke_counterarg_mm3753qf, hasBattleCtx: true, ts: 1772094215463}
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772094192418-wsy5, time: 1772094215464, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm38698a_xr3n4i, battleStatus: pickDefense, nowMs: 1772095948866, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm38698a_xr3n4i, hasBattleCtx: true, ts: 1772095948867}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: dev_smoke_counterarg_mm38698n, hasBattleCtx: true, ts: 1772095948871}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: dev_smoke_counterarg_mm38698n, hasBattleCtx: true, ts: 1772095948871}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772095936902-y2ql, time: 1772095948875, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -131,8 +131,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772094192418-wsy5
-  time: 1772094215464
+  sessionId: session-1772095936902-y2ql
+  time: 1772095948875
   type: tamper_detected
   window: Object{…
 LOG END CONSOLE_EXPAND_V1
@@ -152,7 +152,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772094192418-wsy5, time: 1772094215464, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772095936902-y2ql, time: 1772095948875, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -166,8 +166,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772094192418-wsy5
-  time: 1772094215464
+  sessionId: session-1772095936902-y2ql
+  time: 1772095948875
   type: tamper_detected
   win…
 LOG END CONSOLE_EXPAND_V1
@@ -187,7 +187,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31}, playerId: me, reaction: log_only, sessionId: session-1772094192418-wsy5, time: 1772094215464, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31}, playerId: me, reaction: log_only, sessionId: session-1772095936902-y2ql, time: 1772095948874, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -198,44 +198,47 @@ LOG Object{
     action: get
     key: Game._ConflictCore.computeOutcome
     mode: dev
-    stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31
+    stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772094192418-wsy5
-  time: 1772094215464
+  sessionId: session-1772095936902-y2ql
+  time: 1772095948874
   type: forbidden_api_access
   window: Object{
   …
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31}
+WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: get
   key: Game._ConflictCore.computeOutcome
   mode: dev
-  stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31
+  stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31}
+WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: get
   key: Game._ConflictCore.computeOutcome
   mode: dev
-  stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31
+  stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 20, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_counterarg_mm38698n, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772095948884}
+WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_counterarg_mm3753qf
-  cap: 20
+  battleId: dev_smoke_counterarg_mm38698n
+  cap: 10
+  capFinal: 10
   eligibleCount: 19
   eventId: null
   excludedOtherCount: 1
   excludedZeroPtsCount: 0
   meIncluded: true
+  rawCap: 20
   rule: ELIG_V1_zero_pts
   votersCount: 21
   votersIdsLen: 21
@@ -246,22 +249,24 @@ LOG Object{
   ]
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_counterarg_mm3753qf, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
-WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772094215471}
-WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
-WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: pickDefense}
-WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 10, eventId: null, seed: null, startedAtMs: 1772094215470, votersCount: 21}
-WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
-WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 20, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_counterarg_mm38698n, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
+WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_counterarg_mm38698n, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: pickDefense}
+WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, eventId: null, seed: null, startedAtMs: 1772095948883, votersCount: 21}
+WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
+WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_counterarg_mm38698n, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772095948885}
+WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_counterarg_mm3753qf
-  cap: 20
+  battleId: dev_smoke_counterarg_mm38698n
+  cap: 10
+  capFinal: 10
   eligibleCount: 19
   eventId: null
   excludedOtherCount: 1
   excludedZeroPtsCount: 0
   meIncluded: true
+  rawCap: 20
   rule: ELIG_V1_zero_pts
   votersCount: 21
   votersIdsLen: 21
@@ -272,37 +277,37 @@ LOG Object{
   ]
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_counterarg_mm3753qf, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
-WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772094215472}
-WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
-WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: crowd}
-WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 10, eventId: null, seed: null, startedAtMs: 1772094215472, votersCount: 21}
-WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
-WARN DEV_SMOKE_DEFENSE_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, canonBuilt: true, canonGroupKey: Y1|YN, canonProblem: null, defenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf, defenseType: yn, result: needsCrowd, ts: 1772094215472, why: core}
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_counterarg_mm38698n, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
+WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_counterarg_mm38698n, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: crowd}
+WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, eventId: null, seed: null, startedAtMs: 1772095948885, votersCount: 21}
+WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
+WARN DEV_SMOKE_DEFENSE_V1 Object{battleId: dev_smoke_counterarg_mm38698n, canonBuilt: true, canonGroupKey: Y1|YN, canonProblem: null, defenseId: dev_canon_def_dev_smoke_counterarg_mm38698n, defenseType: yn, result: needsCrowd, ts: 1772095948886, why: core}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_counterarg_mm3753qf
+  battleId: dev_smoke_counterarg_mm38698n
   canonBuilt: true
   canonGroupKey: Y1|YN
   canonProblem: null
-  defenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf
+  defenseId: dev_canon_def_dev_smoke_counterarg_mm38698n
   defenseType: yn
   result: needsCrowd
-  ts: 1772094215472
+  ts: 1772095948886
   why: core
 }
 LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_counterarg_mm3753qf, battleStatus: crowd, nowMs: 1772094215473, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN SMOKE_COUNTERARG_NO_CROWD_JSON Object{battleId: dev_smoke_counterarg_mm3753qf, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}
+WARN CROWD_ALREADY_ACTIVE_V1 Object{battleId: dev_smoke_counterarg_mm38698n, cap: 10, nowMs: 1772095948886, phase: warmup, startedAtMs: -1725544363, status: crowd}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_counterarg_mm38698n, battleStatus: crowd, nowMs: 1772095948887, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN SMOKE_COUNTERARG_NO_CROWD_JSON Object{battleId: dev_smoke_counterarg_mm38698n, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_counterarg_mm3753qf
+  battleId: dev_smoke_counterarg_mm38698n
   canonBuilt: true
   canonMatchOk: true
   capValue: 10
-  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf
+  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n
   chosenAttackText: Эм… простите, вы уверены?
-  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf
+  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n
   chosenDefenseText: Наверное, да.
   conflictApiLoaded: true
   crowdStarted: true
@@ -315,16 +320,16 @@ LOG Object{
   why: crowd_st…
 LOG END CONSOLE_EXPAND_V1
 WARN SMOKE_COUNTERARG_NO_CROWD_END Object{crowdStarted: true, ok: false, result: null}
-LOG [repl] < Object{battleId: dev_smoke_counterarg_mm3753qf, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}
+LOG [repl] < Object{battleId: dev_smoke_counterarg_mm38698n, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_counterarg_mm3753qf
+  battleId: dev_smoke_counterarg_mm38698n
   canonBuilt: true
   canonMatchOk: true
   capValue: 10
-  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf
+  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n
   chosenAttackText: Эм… простите, вы уверены?
-  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf
+  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n
   chosenDefenseText: Наверное, да.
   conflictApiLoaded: true
   crowdStarted: true
@@ -336,7 +341,7 @@ LOG Object{
   result: null
   why: crowd_st…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, canonBuilt, result, crowdStarted, capValue, why, notes, conflictApiLoaded, chosenAttackId, chosenAttackText, chosenDefenseId, chosenDefenseText, canonMatchOk], preview: Object{battleId: dev_smoke_counterarg_mm3753qf, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, canonBuilt, result, crowdStarted, capValue, why, notes, conflictApiLoaded, chosenAttackId, chosenAttackText, chosenDefenseId, chosenDefenseText, canonMatchOk], preview: Object{battleId: dev_smoke_counterarg_mm38698n, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -357,16 +362,16 @@ LOG Object{
     chosenDefenseText
     canonMatchOk
   ]
-  preview: Object{battleId: dev_smoke_counterarg_mm3753qf, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: de…
+  preview: Object{battleId: dev_smoke_counterarg_mm38698n, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: de…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, canonBuilt, result, crowdStarted, capValue, why, notes, conflictApiLoaded, chosenAttackId, chosenAttackText, chosenDefenseId, chosenDefenseText, canonMatchOk], preview: Object{
-  battleId: dev_smoke_counterarg_mm3753qf
+  battleId: dev_smoke_counterarg_mm38698n
   canonBuilt: true
   canonMatchOk: true
   capValue: 10
-  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf
+  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n
   chosenAttackText: Эм… простите, вы уверены?
-  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf
+  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n
   chosenDefenseText: Наверное, да.
   conflictApiLoaded: true
   crowdStarted: true
@@ -398,24 +403,24 @@ LOG Object{
     canonMatchOk
   ]
   preview: Object{
-  battleId: dev_smoke_counterarg_mm3753qf
+  battleId: dev_smoke_counterarg_mm38698n
   canonBuilt: true
   canonMatchOk: true
   capValue: 10
-  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf
+  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n
   chosenAttackText: Эм… простите, вы уверены?
   chosenDefe…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772094215437_04bfc1c6f778e8 Object{battleId: dev_smoke_counterarg_mm3753qf, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772095948848_15217b8d09f9d Object{battleId: dev_smoke_counterarg_mm38698n, canonBuilt: true, canonMatchOk: true, capValue: 10, chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n, chosenAttackText: Эм… простите, вы уверены?, chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n, chosenDefenseText: Наверное, да., conflictApiLoaded: true, crowdStarted: true, name: smokeBattle_CounterArg_NoUnexpectedCrowdOnce, notes: [unexpected_draw_or_crowd], ok: false, result: null, why: crowd_started}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_counterarg_mm3753qf
+  battleId: dev_smoke_counterarg_mm38698n
   canonBuilt: true
   canonMatchOk: true
   capValue: 10
-  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm3753qf
+  chosenAttackId: dev_canon_attack_dev_smoke_counterarg_mm38698n
   chosenAttackText: Эм… простите, вы уверены?
-  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm3753qf
+  chosenDefenseId: dev_canon_def_dev_smoke_counterarg_mm38698n
   chosenDefenseText: Наверное, да.
   conflictApiLoaded: true
   crowdStarted: true
@@ -428,9 +433,14 @@ LOG Object{
   why: crowd_st…
 LOG END CONSOLE_EXPAND_V1
 WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
-WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_queen, targetId: npc_sad, type: npc_event}
-WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772094245746}
-WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772094245747}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_veteran, targetId: npc_queen, type: npc_event}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772095973897_56acc7f7481ea8 Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
+WARN [repl] > Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
+WARN SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN Object{name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce}
+WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
+WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
+WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772095973906}
+WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772095973906}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -453,41 +463,7 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm375r3k_biggwg, battleStatus: pickDefense, nowMs: 1772094245752, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm375r3k_biggwg, hasBattleCtx: true, ts: 1772094245753}
-WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_rin, targetId: me, type: incoming_battle}
-WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm375r3k_biggwg, ageMs: 12445, status: pickDefense}
-WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 1, cooldownsCount: 2, mePts: 10, npcPtsAvg: 9.894736842105264, npcPtsMin: 9, reason: in_battle_decision, worldBankPts: 10}
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772094269139_3e95cdc841dfe Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
-WARN [repl] > Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()
-WARN SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN Object{name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce}
-WARN CONFLICT_GUARD_BYPASS_V1 Object{devSmoke: true, key: npc_weak, mode: dev, reasonBypassed: cooldown, stage: incoming, villainId: npc_weak}
-WARN CONFLICT_COOLDOWN_BYPASS_V1 Object{conflictMode: dev, devSmoke: true, key: npc_weak, used: true, villainId: npc_weak}
-WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772094269143}
-WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772094269144}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 208, beforeTotal: 208, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 208
-  beforeTotal: 208
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: wealth_tax
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN PROVOKE_BATTLE_INCOMING_DIAG_V1 Object{lowEconomyFree: true, mePoints: 10, npcId: npc_weak, ok: true, rawKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense, result, resolved, finished, createdAt, updatedAt, presentedAt, attackerId, startCostApplied], reason: ok, returnedId: battle_mm37695j_9zfkcs}
+WARN PROVOKE_BATTLE_INCOMING_DIAG_V1 Object{lowEconomyFree: true, mePoints: 10, npcId: npc_weak, ok: true, rawKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense, result, resolved, finished, createdAt, updatedAt, presentedAt, attackerId, startCostApplied], reason: ok, returnedId: battle_mm386sk2_auoatn}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   lowEconomyFree: true
@@ -515,21 +491,21 @@ LOG Object{
     startCostApplied
   ]
   reason: ok
-  returnedId: battle_mm37695j_9zfkcs
+  returnedId: battle_mm386sk2_auoatn
 }
 LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm37695j_9zfkcs, battleStatus: pickDefense, nowMs: 1772094269152, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm37695j_9zfkcs, hasBattleCtx: true, ts: 1772094269153}
-WARN DEV_CANON_MATCH_TRACE_V1 Object{attackCandidates: [Извините, лучше промолчать?], attackGroupKey: Y1|YN, attackId: canon_Y1_yn_xj8q7n, attackType: yn, battleId: dev_smoke_draw_mm37695x, candidateCount: 8, candidatesSample: [Object{a: Наверное, да., q: Эм… простите, вы уверены?}, Object{a: Скорее нет., q: Извините, это правда?}, Object{a: Наверное, нет., q: Извините, это было случайно?}], defenseCandidates: [defy canon], defenseGroupKey: Y1|YN, defenseId: smoke_draw_def_mm37695x, defenseType: yn, problem: no_match_found}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm386sk2_auoatn, battleStatus: pickDefense, nowMs: 1772095973910, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm386sk2_auoatn, hasBattleCtx: true, ts: 1772095973910}
+WARN DEV_CANON_MATCH_TRACE_V1 Object{attackCandidates: [Простите, есть согласие?], attackGroupKey: Y1|YN, attackId: canon_Y1_yn_cghqxa, attackType: yn, battleId: dev_smoke_draw_mm386ska, candidateCount: 8, candidatesSample: [Object{a: Наверное, да., q: Эм… простите, вы уверены?}, Object{a: Скорее нет., q: Извините, это правда?}, Object{a: Наверное, нет., q: Извините, это было случайно?}], defenseCandidates: [defy canon], defenseGroupKey: Y1|YN, defenseId: smoke_draw_def_mm386ska, defenseType: yn, problem: no_match_found}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   attackCandidates: [
-    Извините, лучше промолчать?
+    Простите, есть согласие?
   ]
   attackGroupKey: Y1|YN
-  attackId: canon_Y1_yn_xj8q7n
+  attackId: canon_Y1_yn_cghqxa
   attackType: yn
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   candidateCount: 8
   candidatesSample: [
     Object{
@@ -548,9 +524,9 @@ LOG Object{
   defenseCandidates: [
     defy canon
   ]
-  defenseGro…
+  defenseGroupK…
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31}, playerId: me, reaction: log_only, sessionId: session-1772094192418-wsy5, time: 1772094269159, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31}, playerId: me, reaction: log_only, sessionId: session-1772095936902-y2ql, time: 1772095973915, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -561,44 +537,47 @@ LOG Object{
     action: get
     key: Game._ConflictCore.computeOutcome
     mode: dev
-    stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31
+    stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772094192418-wsy5
-  time: 1772094269159
+  sessionId: session-1772095936902-y2ql
+  time: 1772095973915
   type: forbidden_api_access
   window: Object{
   …
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31}
+WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: get
   key: Game._ConflictCore.computeOutcome
   mode: dev
-  stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31
+  stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31}
+WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: get
   key: Game._ConflictCore.computeOutcome
   mode: dev
-  stack: get@http://localhost:8080/conflict/conflict-core.js:3509:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1143:31
+  stack: get@http://localhost:8080/conflict/conflict-core.js:3552:28 | @http://localhost:8080/conflict/conflict-arguments.js:915:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1166:31
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_draw_mm37695x, cap: 20, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_draw_mm386ska, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772095973918}
+WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_draw_mm37695x
-  cap: 20
+  battleId: dev_smoke_draw_mm386ska
+  cap: 10
+  capFinal: 10
   eligibleCount: 19
   eventId: null
   excludedOtherCount: 1
   excludedZeroPtsCount: 0
   meIncluded: true
+  rawCap: 20
   rule: ELIG_V1_zero_pts
   votersCount: 21
   votersIdsLen: 21
@@ -609,22 +588,24 @@ LOG Object{
   ]
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_draw_mm37695x, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
-WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_draw_mm37695x, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772094269167}
-WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_draw_mm37695x, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
-WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_draw_mm37695x, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: pickDefense}
-WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_draw_mm37695x, cap: 10, eventId: null, seed: null, startedAtMs: 1772094269166, votersCount: 21}
-WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_draw_mm37695x, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
-WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_draw_mm37695x, cap: 20, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_draw_mm386ska, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
+WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_draw_mm386ska, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_draw_mm386ska, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: pickDefense}
+WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, eventId: null, seed: null, startedAtMs: 1772095973917, votersCount: 21}
+WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
+WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_draw_mm386ska, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772095973918}
+WARN CROWD_ELIG_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_draw_mm37695x
-  cap: 20
+  battleId: dev_smoke_draw_mm386ska
+  cap: 10
+  capFinal: 10
   eligibleCount: 19
   eventId: null
   excludedOtherCount: 1
   excludedZeroPtsCount: 0
   meIncluded: true
+  rawCap: 20
   rule: ELIG_V1_zero_pts
   votersCount: 21
   votersIdsLen: 21
@@ -635,32 +616,96 @@ LOG Object{
   ]
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_draw_mm37695x, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
-WARN CROWD_CAP_SOURCE_V1 Object{battleId: dev_smoke_draw_mm37695x, capSource: canon10, capValue: 10, eligibleCount: 19, eventId: null, excludedZeroPtsCount: 0, ts: 1772094269167}
-WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_draw_mm37695x, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
-WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_draw_mm37695x, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: crowd}
-WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_draw_mm37695x, cap: 10, eventId: null, seed: null, startedAtMs: 1772094269167, votersCount: 21}
-WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_draw_mm37695x, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
-WARN DEV_SMOKE_DEFENSE_V1 Object{battleId: dev_smoke_draw_mm37695x, canonBuilt: false, canonGroupKey: null, canonProblem: no_match_found, defenseId: smoke_draw_def_mm37695x, defenseType: yn, result: needsCrowd, ts: 1772094269167, why: canon_missing}
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: dev_smoke_draw_mm386ska, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
+WARN CROWD_CAP_V1_SET Object{battleId: dev_smoke_draw_mm386ska, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: dev_smoke_draw_mm386ska, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: crowd}
+WARN CROWD_CREATE_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, eventId: null, seed: null, startedAtMs: 1772095973918, votersCount: 21}
+WARN CROWD_DIAG_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
+WARN DEV_SMOKE_DEFENSE_V1 Object{battleId: dev_smoke_draw_mm386ska, canonBuilt: false, canonGroupKey: null, canonProblem: no_match_found, defenseId: smoke_draw_def_mm386ska, defenseType: yn, result: needsCrowd, ts: 1772095973919, why: canon_missing}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   canonBuilt: false
   canonGroupKey: null
   canonProblem: no_match_found
-  defenseId: smoke_draw_def_mm37695x
+  defenseId: smoke_draw_def_mm386ska
   defenseType: yn
   result: needsCrowd
-  ts: 1772094269167
+  ts: 1772095973919
   why: canon_missing
 }
 LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_draw_mm37695x, battleStatus: crowd, nowMs: 1772094269168, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_smoke_draw_mm37695x, eventId: null, now: 1772094269172, progressKey: 0|0|0}
-WARN SMOKE_BATTLE_DRAW_CROWD_CAP_JSON Object{battleId: dev_smoke_draw_mm37695x, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [], ok: false, votesTotal: 0, why: crowd_unknown}
+WARN CROWD_ALREADY_ACTIVE_V1 Object{battleId: dev_smoke_draw_mm386ska, cap: 10, nowMs: 1772095973919, phase: warmup, startedAtMs: -1725519330, status: crowd}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_draw_mm386ska, battleStatus: crowd, nowMs: 1772095973919, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: dev_smoke_draw_mm386ska, eventId: null, now: 1772095973923, progressKey: 0|0|0}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN CROWD_TICK_V1 Object{battleId: dev_smoke_draw_mm386ska, ended: false, endedBy: null, phaseAfter: warmup, phaseBefore: warmup, progressed: false, votesAfter: 0, votesBefore: 0, why: null}
+WARN SMOKE_BATTLE_DRAW_CROWD_CAP_JSON Object{battleId: dev_smoke_draw_mm386ska, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [crowd_no_votes_progress], ok: false, votesTotal: 0, why: crowd_unknown}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   canonBuilt: false
   capSource: canon10
   capValue: 10
@@ -671,7 +716,7 @@ LOG Object{
   endedBy: null
   name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce
   notes: [
-
+    crowd_no_votes_progress
   ]
   ok: false
   votesTotal: 0
@@ -679,10 +724,10 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN SMOKE_BATTLE_DRAW_CROWD_CAP_END Object{endedBy: null, ok: false, votesTotal: 0}
-LOG [repl] < Object{battleId: dev_smoke_draw_mm37695x, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [], ok: false, votesTotal: 0, why: crowd_unknown}
+LOG [repl] < Object{battleId: dev_smoke_draw_mm386ska, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [crowd_no_votes_progress], ok: false, votesTotal: 0, why: crowd_unknown}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   canonBuilt: false
   capSource: canon10
   capValue: 10
@@ -693,14 +738,14 @@ LOG Object{
   endedBy: null
   name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce
   notes: [
-
+    crowd_no_votes_progress
   ]
   ok: false
   votesTotal: 0
   why: crowd_unknown
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, canonBuilt, crowdStarted, capValue, capSource, eligibleCount, votesTotal, endedBy, ended, why, notes, conflictApiLoaded], preview: Object{battleId: dev_smoke_draw_mm37695x, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [], ok: false, votesTotal: 0, why: crowd_unknown}, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, canonBuilt, crowdStarted, capValue, capSource, eligibleCount, votesTotal, endedBy, ended, why, notes, conflictApiLoaded], preview: Object{battleId: dev_smoke_draw_mm386ska, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [crowd_no_votes_progress], ok: false, votesTotal: 0, why: crowd_unknown}, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
@@ -720,10 +765,10 @@ LOG Object{
     notes
     conflictApiLoaded
   ]
-  preview: Object{battleId: dev_smoke_draw_mm37695x, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [], ok: false, vote…
+  preview: Object{battleId: dev_smoke_draw_mm386ska, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [crowd_no_votes_pro…
 LOG END CONSOLE_EXPAND_V1
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, canonBuilt, crowdStarted, capValue, capSource, eligibleCount, votesTotal, endedBy, ended, why, notes, conflictApiLoaded], preview: Object{
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   canonBuilt: false
   capSource: canon10
   capValue: 10
@@ -734,7 +779,7 @@ WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId
   endedBy: null
   name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce
   notes: [
-
+    crowd_no_votes_progress
   ]
   ok: false
   votesTotal: 0
@@ -760,7 +805,7 @@ LOG Object{
     conflictApiLoaded
   ]
   preview: Object{
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   canonBuilt: false
   capSource: canon10
   capValue: 10
@@ -771,13 +816,12 @@ LOG Object{
   endedBy: null
   name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce
   notes: [
-
-  ]…
+    …
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772094269139_3e95cdc841dfe Object{battleId: dev_smoke_draw_mm37695x, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [], ok: false, votesTotal: 0, why: crowd_unknown}
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772095973897_56acc7f7481ea8 Object{battleId: dev_smoke_draw_mm386ska, canonBuilt: false, capSource: canon10, capValue: 10, conflictApiLoaded: true, crowdStarted: true, eligibleCount: 19, ended: false, endedBy: null, name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce, notes: [crowd_no_votes_progress], ok: false, votesTotal: 0, why: crowd_unknown}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_draw_mm37695x
+  battleId: dev_smoke_draw_mm386ska
   canonBuilt: false
   capSource: canon10
   capValue: 10
@@ -788,17 +832,38 @@ LOG Object{
   endedBy: null
   name: smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce
   notes: [
-
+    crowd_no_votes_progress
   ]
   ok: false
   votesTotal: 0
   why: crowd_unknown
 }
 LOG END CONSOLE_EXPAND_V1
-WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm375r3k_biggwg, ageMs: 36449, status: pickDefense}
-WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 1, cooldownsCount: 2, mePts: 10, npcPtsAvg: 9.842105263157896, npcPtsMin: 8, reason: in_battle_decision, worldBankPts: 10}
-WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm375r3k_biggwg, ageMs: 42972, status: pickDefense}
-WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 1, cooldownsCount: 2, mePts: 10, npcPtsAvg: 9.842105263157896, npcPtsMin: 8, reason: in_battle_decision, worldBankPts: 10}
-WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm375r3k_biggwg, ageMs: 60453, status: pickDefense}
-WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 1, cooldownsCount: 2, mePts: 10, npcPtsAvg: 9.842105263157896, npcPtsMin: 8, reason: in_battle_decision, worldBankPts: 10}
+WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772095977131}
+WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772095977131}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm386v1n_g6hqrg, battleStatus: pickDefense, nowMs: 1772095977136, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm386v1n_g6hqrg, hasBattleCtx: true, ts: 1772095977136}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_meme, targetId: me, type: incoming_battle}
 

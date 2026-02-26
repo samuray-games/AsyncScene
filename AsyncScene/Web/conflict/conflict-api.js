@@ -417,6 +417,24 @@
      } catch (_) {}
    }
 
+   function _logCrowdAlreadyActive(b){
+     try {
+       if (!_conflictApiIsDev()) return;
+       if (!b || !b.crowd) return;
+       const crowd = b.crowd;
+       const payload = {
+         battleId: b.id || b.battleId || null,
+         cap: Number.isFinite(crowd.cap) ? (crowd.cap | 0) : null,
+         phase: Number.isFinite(crowd.countdownStartMs) ? "countdown" : "warmup",
+         startedAtMs: Number.isFinite(crowd.startedAtMs) ? (crowd.startedAtMs | 0) : null,
+         status: b.status || null,
+         nowMs: Date.now()
+       };
+       console.warn("CROWD_ALREADY_ACTIVE_V1", payload);
+       _pushBattleDiagTrail(payload.battleId, "CROWD_ALREADY_ACTIVE_V1", payload);
+     } catch (_) {}
+   }
+
    function ensureCrowdVoteStarted(battleId) {
      const b = findBattle(battleId);
      if (!b) return false;
@@ -437,6 +455,11 @@
          }
        } catch (_) {}
        return false;
+     }
+
+     if (b.crowd && Number.isFinite(b.crowd.startedAtMs) && Number.isFinite(b.crowd.cap) && (b.crowd.cap > 0)) {
+       _logCrowdAlreadyActive(b);
+       return ensureCrowdVoteLoop(battleId);
      }
 
      // Some core impls mark draw via flags.
@@ -1179,11 +1202,13 @@
       if (Core && typeof Core.logDevSmokeDefenseChoice === "function") {
         Core.logDevSmokeDefenseChoice(battle, defenseArg, resultLabel, logWhy, canonGroupKey, canonProblem);
       }
-      ensureCrowdVoteStarted(battle.id);
-       render();
-       return result || resolution;
+      if (logOutcome === "draw") {
+        ensureCrowdVoteStarted(battle.id);
+      }
+      render();
+      return result || resolution;
     }
-   };
+  };
 
   // --- Replace all random NPC selection for battle initiation with the preferred biased picker ---
   // Utility for preferred NPC selection for battle initiation:
