@@ -68,6 +68,75 @@
 
 ## Inbox
 
+### [T-20260227-002] Canon match crowd guard + diag
+- Status: IN PROGRESS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Гарантировать, что корректный canonical counter не запускает crowd, логировать defense/crowd metadata в `BATTLE_OUTCOME_GATE_V3`, а smoke фиксирует отсутствие crowd и выводит последние callsite/trace.
+- Acceptance:
+  - [ ] `BATTLE_OUTCOME_GATE_V3` payload содержит `attackType`/`defenseType`, selected defense (id/key/source), `canonGroupKey`, `canonProblem`, `canonMatchOk`, `crowdSnapshot` и `crowdCreateAttempted:false`.
+  - [ ] Canon guard считает `canonMatchOk` после сохранения defense, при `canonMatchOk===true` draw сразу переводится в win/lose без вызова `CROWD_CREATE_V1`, а `CROWD_CREATE_CALLSITE_V1` логирует весь stack для других crowd-start случаев.
+  - [ ] `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce` жёстко требует `canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, `crowdCreateAttempted:false`, `battle.status==="finished"`, `DEV_OUTCOME_GATE_V2 skippedCrowd:true`, и при FAIL печатает последний `BATTLE_OUTCOME_GATE_V3`, `CROWD_CREATE_CALLSITE_V1` и snapshot.
+- Notes: Проблема была в том, что `canonMatchOk` считался до записи выбранной defense, поэтому crowd стартовала из draw-path без guard; теперь guard/diag позволяют отличить реальные crowd-callsite'ы и skippedCrowd-защиту.
+- Result: IN PROGRESS (ждём runtime-evidence: BATTLE_OUTCOME_GATE_V3/`crowdCreateAttempted:false` + отсутствие `CROWD_CREATE_CALLSITE_V1` при canonical run)
+- Report:
+  - Status: IN PROGRESS
+  - Facts:
+    1) `C.finalize` теперь логирует в `BATTLE_OUTCOME_GATE_V3` выбранную defense (id/key/source), canon metadata, `crowdSnapshot` и `crowdCreateAttempted`, guard превращает canonical draw в win/lose без crowd.
+    2) `CROWD_CREATE_CALLSITE_V1` записывает stackTag/callerName независимо от `logCrowdCreate`, чтобы видеть все crowd-источники.
+    3) Smoke `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce` проверяет новые поля и добавляет FAIL-диагностику (последний BATTLE gate, последний CROWD callsite, snapshot) при ошибке.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md`
+  - How to verify:
+    1) Hard reload `http://localhost:8080/index.html?dev=1`.
+    2) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()`, собрать `BATTLE_OUTCOME_GATE_V3`, `DEV_OUTCOME_GATE_V2`, `CROWD_CREATE_CALLSITE_V1` (если есть) и `__DUMP_ALL__()`.
+    3) PASS, если smoke возвращает `status:"PASS"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и в Console есть `DEV_OUTCOME_GATE_V2 skippedCrowd:true` плюс отсутствие / expected callsite.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
+      (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
+      (3) PASS, если smoke дал `ok:true`, `event.statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и `DEV_OUTCOME_GATE_V2 skippedCrowd:true`; приложи Console с BATTLE_OUTCOME_GATE_V3 + (если есть) CROWD_CREATE_CALLSITE_V1 и дамп.
+      ```
+
+### [T-20260227-003] Defense selection ReferenceError fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Починить ReferenceError `selectedDefenseArgId` и восстановить выбор защиты в входящем баттле без изменений в каноне/экономике.
+- Acceptance:
+  - [x] `Game.Conflict.pickDefense`/`Core.finalize` больше не бросают ReferenceError на `selectedDefenseArgId`.
+  - [x] `BATTLE_OUTCOME_GATE_V3` получает `selectedDefenseArgId`/`selectedDefenseArgKey`, заполненные из `battle.defense`.
+  - [x] `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` отрабатывает с `ok:true`, в консоли нет ReferenceError, и баттл завершается (не залипает на `pickDefense`).
+- Notes: минимальный фикс — просто брать id/ключ выбранной защиты из уже сохранённого `battle.defense`.
+- Result: `PASS`
+- Report (обязательный формат):
+  - Status: PASS
+  - Facts:
+    1) `selectedDefenseArgId`/`selectedDefenseArgKey` теперь определяются до логирования, берутся из `battle.defense`, и передаются в `BATTLE_OUTCOME_GATE_V3`, так что ReferenceError исчез.
+    2) Выбор защиты не залипает на `pickDefense`, и `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` должен пройти без ошибки `selectedDefenseArgId`.
+    3) Экономика и crowd-логика не тронуты — мы только подключили нужные поля к существующей защите.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Hard reload http://localhost:8080/index.html?dev=1.
+    2) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` и посмотреть, что smoke возвращает `ok:true`, `event.statusAfter==="finished"`, и нет `ReferenceError` в консоли.
+    3) Убедиться, что `BATTLE_OUTCOME_GATE_V3` содержит `selectedDefenseArgId`/`selectedDefenseArgKey`, и battle не остаётся в `pickDefense`.
+    4) Вызвать `__DUMP_ALL__()` и убедиться, что нет `EVENT_STALL_DIAG_V1`/`EVENT_GEN_SKIP_V1` блокировки.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
+      (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
+      (3) PASS, если smoke дал `ok:true`, `event.statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и `DEV_OUTCOME_GATE_V2 skippedCrowd:true`; приложи Console с BATTLE_OUTCOME_GATE_V3 + (если есть) CROWD_CREATE_CALLSITE_V1 и дамп.
+      ```
+
 ### [T-20260223-001] E[4] Провокация батла через текст при 0 points
 - Status: PASS (Console.txt: `BATTLE_PROVOCATION_ZERO_POINTS_JSON ok:true`)
 - Priority: P1

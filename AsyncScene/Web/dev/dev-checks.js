@@ -15307,6 +15307,212 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     return result;
   };
 
+  Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce = (opts = {}) => {
+    const name = "smokeBattle_CanonMatch_NoCrowdOnce";
+    const logBegin = (payload) => console.warn("SMOKE_BATTLE_CANON_MATCH_NO_CROWD_BEGIN", payload || {});
+    const logJson = (payload) => console.warn("SMOKE_BATTLE_CANON_MATCH_NO_CROWD_JSON", payload || {});
+    const logEnd = (payload) => console.warn("SMOKE_BATTLE_CANON_MATCH_NO_CROWD_END", payload || {});
+    const result = {
+      name,
+      ok: false,
+      battleId: null,
+      statusAfter: null,
+      crowdStarted: false,
+      canonMatchOk: false,
+      canonProblem: null,
+      devGateSkippedCrowd: false,
+      v3GateOk: false,
+      v3GatePayload: null,
+      lastCrowdCallsite: null,
+      battleSnapshot: null,
+      notes: [],
+      diag: []
+    };
+    logBegin({ name });
+
+    const S = Game.__S || Game.State || null;
+    const Conflict = Game.Conflict || null;
+    const resolveLoaded = Conflict && typeof Conflict.resolveBattle === "function";
+    const incomingLoaded = Conflict && typeof Conflict.incoming === "function";
+    if (!S || !Array.isArray(S.battles)) {
+      result.notes.push("state_missing");
+      logJson(result);
+      logEnd({ ok: false, reason: "state_missing" });
+      return result;
+    }
+    if (!resolveLoaded || !incomingLoaded) {
+      result.notes.push("conflict_missing");
+      logJson(result);
+      logEnd({ ok: false, reason: "conflict_missing" });
+      return result;
+    }
+
+    const npc = Object.values(S.players || {}).find(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+    if (!npc || !npc.id) {
+      result.notes.push("npc_not_found");
+      logJson(result);
+      logEnd({ ok: false, reason: "npc_not_found" });
+      return result;
+    }
+
+    const cleanupBattle = (battleId) => {
+      if (!battleId) return;
+      for (let i = S.battles.length - 1; i >= 0; i -= 1) {
+        const entry = S.battles[i];
+        if (entry && (String(entry.id) === String(battleId) || String(entry.battleId) === String(battleId))) {
+          S.battles.splice(i, 1);
+        }
+      }
+    };
+
+    const raw = Conflict.incoming(npc.id, { devSmoke: true, lowEconomyFree: true, silent: true, uiSuppressed: true });
+    const battle = raw && raw.battle ? raw.battle : raw;
+    if (!battle || !battle.id) {
+      result.notes.push("incoming_failed");
+      logJson(result);
+      logEnd({ ok: false, reason: "incoming_failed" });
+      return result;
+    }
+
+    const battleId = `dev_smoke_canon_${Date.now().toString(36)}`;
+    const patchId = (entry) => {
+      if (!entry) return;
+      entry.id = battleId;
+      entry.battleId = battleId;
+    };
+    patchId(battle);
+    const stored = S.battles.find(b => b && (b.id === battle.id || b.battleId === battle.id));
+    if (stored) patchId(stored);
+
+    const D = Game.Data || null;
+    const canonicalSub = "Y1";
+    const canonicalType = "yn";
+    const canonicalTypeKey = String(canonicalType || "yn").toUpperCase();
+    let canonicalDefenseEntry = null;
+    if (D && typeof D.getArgCanonGroup === "function") {
+      const canonList = D.getArgCanonGroup(canonicalSub, canonicalTypeKey) || [];
+      if (Array.isArray(canonList) && canonList.length) {
+        const canonEntry = canonList.find(item => item && item.q && item.a) || canonList[0];
+        if (canonEntry) {
+          const attackText = canonEntry.q != null ? String(canonEntry.q).trim() : "";
+          const defenseText = canonEntry.a != null ? String(canonEntry.a).trim() : "";
+          if (attackText) {
+            battle.attack = {
+              id: `dev_canon_attack_${battleId}`,
+              text: attackText,
+              _canonQ: attackText,
+              _sub: canonicalSub,
+              type: canonicalType,
+              group: canonicalType
+            };
+          }
+          if (defenseText) {
+            canonicalDefenseEntry = {
+              id: `dev_canon_def_${battleId}`,
+              text: defenseText,
+              _canonA: defenseText,
+              _sub: canonicalSub,
+              type: canonicalType,
+              group: canonicalType
+            };
+          }
+        }
+      }
+    }
+    if (!canonicalDefenseEntry) {
+      result.notes.push("canon_missing");
+      cleanupBattle(battleId);
+      logJson(result);
+      logEnd({ ok: false, reason: "canon_missing" });
+      return result;
+    }
+
+    Conflict.resolveBattle(battle, canonicalDefenseEntry);
+    const resolved = S.battles.find(b => b && (b.id === battleId || b.battleId === battleId)) || battle;
+    result.battleId = battleId;
+    result.statusAfter = resolved && resolved.status ? resolved.status : null;
+    result.crowdStarted = !!(resolved && resolved.crowd);
+    result.canonMatchOk = !!(resolved && resolved.meta && resolved.meta.canonMatchOk);
+    result.canonProblem = resolved && resolved.meta ? (resolved.meta.canonProblem || null) : null;
+
+    const diagTrail = (Game.__DEV && Game.__DEV.__battleDiagTrail) ? Game.__DEV.__battleDiagTrail : null;
+    const diagEntries = diagTrail && diagTrail[String(battleId)] ? diagTrail[String(battleId)].slice() : [];
+    result.diag = diagEntries;
+    result.devGateSkippedCrowd = diagEntries.some(entry => entry && entry.tag === "DEV_OUTCOME_GATE_V2" && entry.payload && entry.payload.skippedCrowd === true);
+    const findLastEntryByTag = (tag) => {
+      if (!Array.isArray(diagEntries) || !diagEntries.length) return null;
+      for (let i = diagEntries.length - 1; i >= 0; i -= 1) {
+        const entry = diagEntries[i];
+        if (entry && entry.tag === tag) return entry;
+      }
+      return null;
+    };
+    const gateEntry = findLastEntryByTag("BATTLE_OUTCOME_GATE_V3");
+    const gatePayload = gateEntry && gateEntry.payload ? gateEntry.payload : null;
+    result.v3GatePayload = gatePayload;
+    result.lastCrowdCallsite = (findLastEntryByTag("CROWD_CREATE_CALLSITE_V1") || {}).payload || null;
+    const v3GateOk = !!(
+      gatePayload
+      && gatePayload.canonMatchOk === true
+      && gatePayload.willResolveNow === true
+      && gatePayload.willStartCrowd === false
+      && gatePayload.crowdCreateAttempted === false
+    );
+    result.v3GateOk = v3GateOk;
+
+    const battleSnapshot = resolved ? {
+      battleId,
+      status: resolved.status || null,
+      result: resolved.result || null,
+      finished: !!resolved.finished,
+      resolved: !!resolved.resolved,
+      draw: !!resolved.draw,
+      crowd: resolved.crowd ? {
+        status: resolved.crowd.status || null,
+        phase: resolved.crowd.phaseState || resolved.crowd.phase || null,
+        startedAtMs: Number.isFinite(resolved.crowd.startedAtMs) ? Math.floor(resolved.crowd.startedAtMs) : null,
+        cap: resolved.crowd && resolved.crowd.cap != null ? resolved.crowd.cap : null
+      } : null
+    } : null;
+    result.battleSnapshot = battleSnapshot;
+
+    result.ok = result.statusAfter === "finished"
+      && !result.crowdStarted
+      && result.canonMatchOk
+      && result.devGateSkippedCrowd
+      && result.v3GateOk;
+
+    if (!result.ok) {
+      const extraDiag = [];
+      if (gatePayload) {
+        extraDiag.push({ tag: "SMOKE_CANON_MATCH_LAST_OUTCOME_V1", payload: gatePayload });
+      }
+      const lastCrowdEntry = findLastEntryByTag("CROWD_CREATE_CALLSITE_V1");
+      if (lastCrowdEntry && lastCrowdEntry.payload) {
+        extraDiag.push({ tag: "SMOKE_CANON_MATCH_LAST_CROWD_CALLSITE_V1", payload: lastCrowdEntry.payload });
+      }
+      if (battleSnapshot) {
+        extraDiag.push({ tag: "SMOKE_CANON_MATCH_BATTLE_SNAPSHOT_V1", payload: battleSnapshot });
+      }
+      extraDiag.forEach(entry => {
+        result.diag.push(entry);
+        try {
+          console.warn(entry.tag, entry.payload);
+        } catch (_) {}
+      });
+    }
+
+    cleanupBattle(battleId);
+    logJson(result);
+    logEnd({
+      ok: result.ok,
+      statusAfter: result.statusAfter,
+      crowdStarted: result.crowdStarted,
+      canonMatchOk: result.canonMatchOk
+    });
+    return result;
+  };
+
   Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce = (opts = {}) => {
     const name = "smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce";
     const logBegin = (payload) => console.warn("SMOKE_BATTLE_DRAW_CROWD_CAP_BEGIN", payload || {});
@@ -22026,6 +22232,113 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       return result;
     } catch (err) {
       console.log("SMOKE_OUTGOING_BATTLE_CARD", { status: "FAIL", battleId, error: String(err) });
+      return { name, ok: false, reason: String(err) };
+    } finally {
+      S.battles = originalBattles;
+      try { renderBattles(); } catch (_) {}
+    }
+  };
+
+  Game.__DEV.smokeIncomingBattleCard_NoDuplicateArgsOnce = (opts = {}) => {
+    const name = "smoke_incoming_battle_card_no_duplicate_args_once";
+    const S = Game.__S || (Game.__S = {});
+    const UI = Game.UI || {};
+    const renderBattles = UI.renderBattles;
+    if (!renderBattles) {
+      console.log("SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS", { status: "FAIL", reason: "ui_missing" });
+      return { name, ok: false, reason: "ui_missing" };
+    }
+    const meId = (S.me && S.me.id) ? S.me.id : "me";
+    const opponents = Object.values(S.players || {}).filter(p => p && p.id !== meId);
+    let opponentId = null;
+    if (opponents.length) {
+      opponentId = opponents[0].id;
+    } else {
+      opponentId = `npc_smoke_incoming_${Date.now().toString(36).slice(-4)}`;
+      S.players = S.players || {};
+      S.players[opponentId] = { id: opponentId, name: "Smoke Incoming NPC" };
+    }
+    const originalBattles = Array.isArray(S.battles) ? S.battles.slice() : [];
+    const battleId = `dev_smoke_incoming_card_${Date.now().toString(36)}`;
+    const battle = {
+      id: battleId,
+      opponentId,
+      createdBy: opponentId,
+      resolved: true,
+      direction: "incoming",
+      fromThem: true,
+      result: "lose",
+      attack: { text: "Smoke: его аргумент", color: "o" },
+      defense: { text: "Smoke: мой контраргумент", color: "y" }
+    };
+    try {
+      S.battles = [battle, ...originalBattles];
+      renderBattles();
+      const escapeSelector = (value) => {
+        if (typeof window !== "object") return String(value);
+        if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));
+        return String(value);
+      };
+      const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
+      const captureArgNodes = (selector) => {
+        if (!card) return { count: 0, testIds: [], colorKeys: [] };
+        const nodes = Array.from(card.querySelectorAll(selector));
+        const colorKeys = nodes.map((node) => {
+          const chip = node.querySelector(".chip");
+          const value = chip && chip.dataset ? chip.dataset.argColorKey : null;
+          return (typeof value === "string" && value.trim()) ? value.trim() : null;
+        });
+        const ids = nodes.map((node) => (node.dataset && node.dataset.testid) ? node.dataset.testid : null);
+        return { count: nodes.length, testIds: ids, colorKeys };
+      };
+      const oppDiag = captureArgNodes('[data-testid="incoming-opp-arg"]');
+      const myDiag = captureArgNodes('[data-testid="incoming-my-counter"]');
+      const dupPayload = {
+        battleId,
+        mode: "incoming_resolved",
+        oppArgPillsCount: oppDiag.count,
+        myCounterPillsCount: myDiag.count,
+        oppArgColorKeys: oppDiag.colorKeys,
+        myCounterColorKeys: myDiag.colorKeys,
+        oppArgTestIds: oppDiag.testIds,
+        myCounterTestIds: myDiag.testIds,
+        dupFlags: {
+          oppDup: oppDiag.count > 1,
+          myDup: myDiag.count > 1
+        }
+      };
+      const status = (oppDiag.count === 1 && myDiag.count === 1) ? "PASS" : "FAIL";
+      const reason = !card ? "card_missing" : (status === "PASS" ? null : "arg_count_mismatch");
+      const logPayload = {
+        status,
+        battleId,
+        counts: {
+          oppArgPillsCount: oppDiag.count,
+          myCounterPillsCount: myDiag.count
+        },
+        dupPayload,
+        cardFound: !!card
+      };
+      console.log("SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS", logPayload);
+      const diagDetails = {
+        ids: { smokeBattleId: battleId },
+        dupPayload,
+        cardPresent: !!card
+      };
+      emitLine(`DUMP_AT [${new Date().toISOString().replace("T", " ").slice(0, 19)}]`);
+      emitLine("SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS_BEGIN");
+      emitLine(`SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS_JSON ${safeStringify({
+        name,
+        status,
+        reason,
+        diag: diagDetails
+      })}`);
+      emitLine("SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS_END");
+      const result = { name, ok: status === "PASS", status, diag: diagDetails };
+      if (reason) result.reason = reason;
+      return result;
+    } catch (err) {
+      console.log("SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS", { status: "FAIL", battleId, error: String(err) });
       return { name, ok: false, reason: String(err) };
     } finally {
       S.battles = originalBattles;

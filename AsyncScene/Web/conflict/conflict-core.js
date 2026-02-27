@@ -55,6 +55,32 @@
     } catch (_) {}
   }
 
+  function captureCallsiteStack(){
+    try {
+      const stack = (new Error().stack || "").split("\n");
+      for (let i = 2; i < stack.length; i += 1) {
+        const raw = (stack[i] || "").trim();
+        if (!raw) continue;
+        return {
+          stackTag: raw.replace(/\s+/g, " "),
+          callerName: (raw.split("@" )[0] || raw.split(" ")[0] || raw).trim() || null
+        };
+      }
+    } catch (_) {}
+    return { stackTag: null, callerName: null };
+  }
+
+  function logCrowdCreateCallsite(battleId){
+    if (!battleId) return;
+    const info = captureCallsiteStack() || {};
+    _crowdLog("CROWD_CREATE_CALLSITE_V1", {
+      battleId,
+      nowMs: now(),
+      stackTag: info.stackTag || null,
+      callerName: info.callerName || null
+    });
+  }
+
   function isDevSurfaceFlag(){
     if (typeof window !== "undefined") {
       if (window.__DEV__ === true || window.DEV === true) return true;
@@ -259,6 +285,21 @@
     } catch (_) {}
     try {
       _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V2", v2Payload);
+    } catch (_) {}
+  }
+
+  function logBattleOutcomeGate(battle, payload){
+    if (!battle || !(battle.id || battle.battleId)) return;
+    const battleId = battle.id || battle.battleId;
+    const base = Object.assign({
+      battleId,
+      ts: Date.now()
+    }, payload || {});
+    try {
+      console.warn("BATTLE_OUTCOME_GATE_V3", base);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(battleId, "BATTLE_OUTCOME_GATE_V3", base);
     } catch (_) {}
   }
 
@@ -3086,12 +3127,94 @@
     const resolvedBefore = !!b.resolved;
     const nowStamp = now();
     b.updatedAt = nowStamp;
-    if (tryEngageCanonGuard(b, outcome, {
+    const selectedDefense = b.defense || null;
+    const selectedDefenseArgId = selectedDefense ? (selectedDefense.id || selectedDefense.key || null) : null;
+    const selectedDefenseArgKey = selectedDefense ? (selectedDefense.group || selectedDefense.type || selectedDefense.kind || null) : null;
+    const defenseSource = selectedDefense ? "battle.defense" : null;
+    const canonGuardActive = tryEngageCanonGuard(b, outcome, {
       overrideOutcome: "resolved",
       reason: "canon_match_force_resolve"
-    })) {
+    });
+    if (canonGuardActive) {
       outcome = "resolved";
     }
+    const metaGate = ensureCanonMeta(b);
+    const canonMatchOk = !!(metaGate && metaGate.canonMatchOk);
+    const canonProblem = metaGate ? metaGate.canonProblem || null : null;
+    const attackType = metaGate ? metaGate.attackType || null : null;
+    const defenseType = metaGate ? metaGate.defenseType || null : null;
+    const canonGroupKey = metaGate ? metaGate.canonGroupKey || null : null;
+    const ids = attackerDefenderIds(b);
+    const rawOutcome = outcome;
+    let canonSkipDrawGuard = false;
+    if (!canonGuardActive && rawOutcome === "draw" && canonMatchOk) {
+      outcome = (ids.defenderId === "me") ? "win" : "lose";
+      canonSkipDrawGuard = true;
+      logDevOutcomeGate(b, {
+        canonBuilt: !!(metaGate && metaGate.canonBuilt),
+        canonProblem,
+        canonMatchOk,
+        attackType,
+        defenseType,
+        outcomeBefore: "draw",
+        outcomeAfter: outcome,
+        skippedCrowd: true,
+        forcedResolved: true,
+        reason: "canon_match_skip_draw"
+      });
+    }
+    if (!canonGuardActive && !canonSkipDrawGuard && canonMatchOk && outcome === "draw") {
+      canonSkipDrawGuard = true;
+      outcome = (ids.defenderId === "me") ? "win" : "lose";
+      logDevOutcomeGate(b, {
+        canonBuilt: !!(metaGate && metaGate.canonBuilt),
+        canonProblem,
+        canonMatchOk,
+        attackType,
+        defenseType,
+        outcomeBefore: "draw",
+        outcomeAfter: outcome,
+        skippedCrowd: true,
+        forcedResolved: true,
+        reason: "canon_match_draw_guard"
+      });
+    }
+    const willStartCrowd = (outcome === "draw");
+    const willResolveNow = !willStartCrowd;
+    const statusAfterExpected = willStartCrowd ? "crowd" : ((outcome === "resolved") ? "resolved" : "finished");
+    const canonKeyAttack = b.attack ? (b.attack._canonQ || b.attack.text || b.attack.id || null) : null;
+    const canonKeyDefense = selectedDefense ? (selectedDefense._canonA || selectedDefense.text || selectedDefense.id || null) : null;
+    const crowdSnapshot = (() => {
+      const c = b.crowd || null;
+      return {
+        hasCrowd: !!c,
+        status: c ? (c.status || null) : null,
+        startedAtMs: c ? (Number.isFinite(c.startedAtMs) ? Math.floor(c.startedAtMs) : null) : null,
+        phase: c ? (c.phaseState || c.phase || null) : null
+      };
+    })();
+    logBattleOutcomeGate(b, {
+      phase: "finalize",
+      canonMatchOk,
+      canonProblem,
+      canonGroupKey,
+      canonKeyAttack,
+      canonKeyDefense,
+      attackType,
+      defenseType,
+      willStartCrowd,
+      willResolveNow,
+      statusBefore,
+      statusAfter: statusAfterExpected,
+      selectedDefenseArgId,
+      selectedDefenseArgKey,
+      defenseSource,
+      crowdSnapshot,
+      crowdCreateAttempted: willStartCrowd,
+      canonGuardActive,
+      canonSkipDrawGuard,
+      ts: nowStamp
+    });
 
     // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
     // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
@@ -3315,6 +3438,7 @@
       }
       if (!crowdState._crowdCreateLogged) {
         logCrowdCreate(b.crowd, b.id || b.battleId || null);
+        logCrowdCreateCallsite(b.id || b.battleId || null);
         crowdState._crowdCreateLogged = true;
         if (b.crowd) b.crowd._crowdCreateLogged = true;
       }

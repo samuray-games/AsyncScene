@@ -797,12 +797,26 @@
       return text ? text : "—";
     };
 
+    const removeExistingArgRows = (testId) => {
+      if (!testId) return;
+      const selector = `[data-testid="${String(testId)}"]`;
+      const existingRows = Array.from(card.querySelectorAll(selector));
+      existingRows.forEach((row) => {
+        const prev = row.previousElementSibling;
+        if (prev && prev.classList && prev.classList.contains("noteLine")) {
+          prev.remove();
+        }
+        row.remove();
+      });
+    };
+
     const revealColor = battle.revealColor || (battle.attack && (battle.attack.color || battle.attack._color)) || (battle.defense && battle.defense.color) || null;
     if (battle.attack && !battle.attack.color && revealColor) {
       battle.attack.color = revealColor;
     }
 
     const appendArgRow = (label, text, colorKey, testId) => {
+      if (testId) removeExistingArgRows(testId);
       const title = document.createElement("div");
       title.className = "noteLine";
       title.textContent = label;
@@ -837,6 +851,41 @@
     result.wroteOppArgNode = true;
     const myChipInfo = appendArgRow(labels.mine, argumentTexts.mine, argumentColors.mine, testIds.mine);
     result.wroteMyCounterNode = true;
+
+    if (ctx.mode === "incoming_resolved") {
+      const gatherArgNodes = (testId) => {
+        if (!testId) return { nodes: [], colorKeys: [], testIds: [] };
+        const selector = `[data-testid="${String(testId)}"]`;
+        const nodes = Array.from(card.querySelectorAll(selector));
+        const colorKeys = nodes.map((node) => {
+          const chip = node.querySelector(".chip");
+          if (!chip || !chip.dataset) return null;
+          const key = chip.dataset.argColorKey;
+          return (typeof key === "string" && key.trim()) ? key.trim() : null;
+        });
+        const ids = nodes.map((node) => (node.dataset && node.dataset.testid) ? node.dataset.testid : null);
+        return { nodes, colorKeys, testIds: ids };
+      };
+      const oppDiag = gatherArgNodes(testIds.opponent);
+      const myDiag = gatherArgNodes(testIds.mine);
+      const dupPayload = {
+        battleId: battle.id != null ? String(battle.id) : null,
+        mode: ctx.mode,
+        oppArgPillsCount: oppDiag.nodes.length,
+        myCounterPillsCount: myDiag.nodes.length,
+        oppArgColorKeys: oppDiag.colorKeys,
+        myCounterColorKeys: myDiag.colorKeys,
+        oppArgTestIds: oppDiag.testIds,
+        myCounterTestIds: myDiag.testIds,
+        dupFlags: {
+          oppDup: oppDiag.nodes.length > 1,
+          myDup: myDiag.nodes.length > 1
+        }
+      };
+      try {
+        console.info("UI_BATTLE_RESOLVED_ARGS_DUP_V1", dupPayload);
+      } catch (_) {}
+    }
 
     try {
       const payload = {
@@ -2799,7 +2848,9 @@ UI.renderBattles = () => {
           labels: isOutgoingCard
             ? { opponent: "Аргумент оппонента", mine: "Мой контраргумент" }
             : { opponent: "Его аргумент", mine: "Мой контраргумент" },
-          testIds: { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" },
+          testIds: isOutgoingCard
+            ? { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" }
+            : { opponent: "incoming-opp-arg", mine: "incoming-my-counter" },
           showResolvedChoices: !isOutgoingCard,
           canRematch,
           outcomeLabel: getBattleOutcomeLabel(b),

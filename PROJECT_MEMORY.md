@@ -925,6 +925,23 @@
 
 ## Log (append-only)
 
+### 2026-02-27 — Canon match crowd guard + diag
+- Facts:
+  - `BATTLE_OUTCOME_GATE_V3` теперь логирует выбранную защиту (id/ключ/источник), canon metadata, `crowdSnapshot`, `crowdCreateAttempted` и guard-статус, чтобы сразу видеть, почему `canonMatchOk` не дёргает crowd.
+  - Guard в `C.finalize` считает `canonMatchOk` после сохранения defense, переводит canonical draw в win/lose без `CROWD_CREATE_V1`, а `CROWD_CREATE_CALLSITE_V1` фиксирует stackTag/callerName для всех действительно созданных crowd.
+  - `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce` проверяет `canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, `crowdCreateAttempted:false`, `battle.status==="finished"` и `DEV_OUTCOME_GATE_V2 skippedCrowd:true`, и при FAIL печатает последний `BATTLE_OUTCOME_GATE_V3`, `CROWD_CREATE_CALLSITE_V1` и snapshot для диагностики.
+  - Причина: `canonMatchOk` раньше считался до записи защиты, из-за чего crowd запускалась из draw-path без guard; теперь guard и новые маркеры показывают skip + callsite.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md`
+Память обновлена
+
+### 2026-02-27 — Defense selection ReferenceError fix
+- Facts:
+  - Выбор защиты в incoming-баттле глючил: UI ставил `battle.defense`, но `C.finalize` логи с `selectedDefenseArgId`/`selectedDefenseArgKey` делал до объявления переменных, поэтому на `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce` и при клике по защите возникал ReferenceError.
+  - Теперь `selectedDefenseArgId`/`selectedDefenseArgKey` берутся прямо из `battle.defense` в `C.finalize` перед вызовом `logBattleOutcomeGate`, так что ReferenceError исчезает, а BATTLE_OUTCOME_GATE_V3 получает корректные поля.
+  - Smoke-проверка PASS: `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` должна возвращать `ok:true`, battle завершается (`statusAfter==="finished"`), в консоли нет ReferenceError, и `EVENT_STALL_DIAG_V1`/`EVENT_GEN_SKIP_V1 reason in_battle_decision` не появляются.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `TASKS.md`
+Память обновлена
+
 ### 2026-01-11 — Init shared memory file
 - Facts: создан `PROJECT_MEMORY.md` как единая “память проекта” для всех чатов/агентов; договорённости фиксируются здесь и в `TASKS.md`.
 - Rule: все новые “памятные” договорённости, которые ассистент подтверждает строкой `Память обновлена` в чате, также добавляются записью в этот Log.
@@ -1183,6 +1200,7 @@
 Факт: Дополнительные правки по итогам аудитов UI honesty внесены в `AsyncScene/Web/ui/ui-core.js` и `AsyncScene/Web/ui/ui-battles.js` (убраны упоминания «цена удваивается», убраны подсказки с порогами ⚡ в формулировках).
 Факт: Economy wave 3 UI (реванш) реализован в `AsyncScene/Web/ui/ui-battles.js` (карточка завершённого баттла): уведомление «<name> просит реванш», действия «Принять/Отклонить», статусы «Реванш принят/Реванш отклонён», и для проигравшего действие «Хочешь реванш → Попросить».
 Факт: UI реванша вызывает только core API: `Game.Conflict.requestRematch(battleId)` и `Game.Conflict.respondRematch(battleId, accept)`; прямых правок механики/состояния из UI не добавлено.
+Факт: incoming_resolved карточки больше не дублируют пиллы «Его аргумент»/«Мой контраргумент»: они используют `data-testid="incoming-opp-arg"`/`incoming-my-counter`, `renderResolvedBattleCardCore` очищает старые секции и пишет `UI_BATTLE_RESOLVED_ARGS_DUP_V1`, а smoke `Game.__DEV.smokeIncomingBattleCard_NoDuplicateArgsOnce()` (см. `SMOKE_TEST_COMMANDS.md`) выводит `DUMP_AT`, `SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS_JSON` и `status:"PASS"` при counts=1.
 Ограничение: В UI запрещены числовые обещания/дельты по Points/REP/Influence и любые упоминания цен/награды/штрафов в цифрах (кроме dev-диагностики, если отдельно разрешена gate-ом).
 Ограничение: Коммуникация в чате: первая строка каждого моего сообщения и Next Prompt — «Ответ Саши:».
 

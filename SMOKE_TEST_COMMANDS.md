@@ -123,6 +123,15 @@ Game.__DEV.smokeOutgoingBattleCardOnce();
 - **PASS**: в консоли появляется `SMOKE_OUTGOING_BATTLE_CARD` с `status: "PASS"` и флагами `hasOppArg`, `hasMyCounter`, `hasResult`, `hasRematchBtn` равными `true`.
 - **FAIL**: `status: "FAIL"` и одно/несколько свойств — `false`; следите за полем `details`, чтобы понять, чего не хватает, затем поправьте UI и запустите smoke снова.
 
+## 3.2. Проверка incoming resolved args (новый SMOKE)
+
+```text
+Game.__DEV.smokeIncomingBattleCard_NoDuplicateArgsOnce();
+```
+
+- **PASS**: в консоли появляются `DUMP_AT [...]`, `SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS_BEGIN`, `SMOKE_INCOMING_BATTLE_CARD_NO_DUP_ARGS_JSON {... status:"PASS", reason:null, diag: { dupPayload } }` и лог `UI_BATTLE_RESOLVED_ARGS_DUP_V1` (счётчики равны 1, `dupFlags` на обоих аргументах false).
+- **FAIL**: `status:"FAIL"` и `diag.dupPayload` содержит `oppArgPillsCount>1` или `myCounterPillsCount>1`; smoke возвращает `ok:false` с `reason:"arg_count_mismatch"`/`"card_missing"`, а UI ещё показывает дубли.
+
 ---
 
 ## 4. Проверка совместимости по типу (Задача D)
