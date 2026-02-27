@@ -693,6 +693,49 @@
     return { opponent, mine };
   }
 
+  function normalizeArgColorKey(value) {
+    if (value == null) return null;
+    const str = String(value).trim().toLowerCase();
+    return str ? str : null;
+  }
+
+  function findFirstArgColorKey(sources) {
+    if (!Array.isArray(sources)) return null;
+    for (const arg of sources) {
+      if (!arg || typeof arg !== "object") continue;
+      const colorValue = arg.color || arg.argColor || arg.colorKey || arg.argColorKey || arg._color;
+      const normalized = normalizeArgColorKey(colorValue);
+      if (normalized) return normalized;
+    }
+    return null;
+  }
+
+  function getBattleArgumentColorKeys(battle) {
+    if (!battle) return { opponent: null, mine: null };
+    const opponentSources = [
+      battle.attack,
+      battle.battleCtx && battle.battleCtx.attack,
+      battle.ctx && battle.ctx.attack,
+      battle.log && battle.log.attack
+    ];
+    const mineSources = [
+      battle.defense,
+      battle.battleCtx && battle.battleCtx.defense,
+      battle.ctx && battle.ctx.defense,
+      battle.log && battle.log.defense
+    ];
+    const fallbackOpponent = normalizeArgColorKey(
+      battle.attackColor || battle.oppColor || battle.opponentColor || battle.attackColorKey || battle.color
+    );
+    const fallbackMine = normalizeArgColorKey(
+      battle.defenseColor || battle.myColor || battle.counterColor || battle.myColorKey
+    );
+    return {
+      opponent: findFirstArgColorKey(opponentSources) || fallbackOpponent,
+      mine: findFirstArgColorKey(mineSources) || fallbackMine
+    };
+  }
+
   function createBattleRenderNodeState() {
     return {
       wroteOppArgNode: false,
@@ -740,6 +783,11 @@
     }, opts || {});
 
     const argumentTexts = ctx.argumentTexts || getBattleArgumentTexts(battle);
+    const rawArgumentColors = ctx.argumentColors || getBattleArgumentColorKeys(battle);
+    const argumentColors = {
+      opponent: normalizeArgColorKey(rawArgumentColors && rawArgumentColors.opponent),
+      mine: normalizeArgColorKey(rawArgumentColors && rawArgumentColors.mine)
+    };
     const labels = ctx.labels || { opponent: "Аргумент оппонента", mine: "Мой контраргумент" };
     const testIds = ctx.testIds || { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" };
     const rematchHandler = (typeof ctx.rematchHandler === "function") ? ctx.rematchHandler : (id => triggerRematchFlow(id));
@@ -749,7 +797,12 @@
       return text ? text : "—";
     };
 
-    const appendArgRow = (label, text, testId) => {
+    const revealColor = battle.revealColor || (battle.attack && (battle.attack.color || battle.attack._color)) || (battle.defense && battle.defense.color) || null;
+    if (battle.attack && !battle.attack.color && revealColor) {
+      battle.attack.color = revealColor;
+    }
+
+    const appendArgRow = (label, text, colorKey, testId) => {
       const title = document.createElement("div");
       title.className = "noteLine";
       title.textContent = label;
@@ -758,21 +811,44 @@
       row.className = "choiceRow";
       if (testId) row.dataset.testid = testId;
       const chip = document.createElement("div");
-      chip.className = clsForColor(null);
+      const resolvedColorKey = normalizeArgColorKey(colorKey);
+      chip.className = clsForColor(resolvedColorKey);
+      if (!resolvedColorKey) {
+        chip.style.color = "rgba(255,255,255,.92)";
+        chip.dataset.argColorKey = "neutral";
+      } else {
+        chip.dataset.argColorKey = resolvedColorKey;
+        if (resolvedColorKey === "k") {
+          chip.style.color = "#ddd";
+        } else {
+          chip.style.color = "black";
+        }
+      }
       chip.textContent = normalizeLine(text);
       row.appendChild(chip);
       card.appendChild(row);
+      return {
+        colorKey: resolvedColorKey,
+        chipClass: chip.className
+      };
     };
 
-    appendArgRow(labels.opponent, argumentTexts.opponent, testIds.opponent);
+    const oppChipInfo = appendArgRow(labels.opponent, argumentTexts.opponent, argumentColors.opponent, testIds.opponent);
     result.wroteOppArgNode = true;
-    appendArgRow(labels.mine, argumentTexts.mine, testIds.mine);
+    const myChipInfo = appendArgRow(labels.mine, argumentTexts.mine, argumentColors.mine, testIds.mine);
     result.wroteMyCounterNode = true;
 
-    const revealColor = battle.revealColor || (battle.attack && (battle.attack.color || battle.attack._color)) || (battle.defense && battle.defense.color) || null;
-    if (battle.attack && !battle.attack.color && revealColor) {
-      battle.attack.color = revealColor;
-    }
+    try {
+      const payload = {
+        battleId: battle.id != null ? String(battle.id) : null,
+        mode: ctx.mode || null,
+        oppColorKey: oppChipInfo && oppChipInfo.colorKey ? oppChipInfo.colorKey : null,
+        myColorKey: myChipInfo && myChipInfo.colorKey ? myChipInfo.colorKey : null,
+        oppClass: oppChipInfo && oppChipInfo.chipClass ? oppChipInfo.chipClass : null,
+        myClass: myChipInfo && myChipInfo.chipClass ? myChipInfo.chipClass : null
+      };
+      console.info("UI_BATTLE_ARG_COLOR_V1", payload);
+    } catch (_) {}
 
     if (ctx.showResolvedChoices && battle.attack) {
       const aRow = document.createElement("div");
@@ -2727,7 +2803,8 @@ UI.renderBattles = () => {
           showResolvedChoices: !isOutgoingCard,
           canRematch,
           outcomeLabel: getBattleOutcomeLabel(b),
-          rematchHandler: (battleId) => triggerRematchFlow(battleId)
+          rematchHandler: (battleId) => triggerRematchFlow(battleId),
+          mode: nextMode
         };
         const renderResult = renderResolvedBattleCardCore(card, b, helperCtx);
         logMeta.hasOppArg = renderResult.wroteOppArgNode;

@@ -21874,6 +21874,22 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         return texts;
       };
       const countNodes = (map) => Object.values(map).filter(Boolean).length;
+      const getArgColorKey = (targetCard, selector) => {
+        if (!targetCard || !selector) return null;
+        const row = targetCard.querySelector(selector);
+        if (!row) return null;
+        const chip = row.querySelector(".chip");
+        if (!chip || !chip.dataset) return null;
+        const key = chip.dataset.argColorKey;
+        return (typeof key === "string" && key.trim()) ? key.trim() : null;
+      };
+      const isValidArgColorKey = (value) => {
+        if (!value) return false;
+        const normalized = String(value).trim().toLowerCase();
+        if (!normalized) return false;
+        const invalid = new Set(["neutral", "muted", "gray", "grey", "undefined", "null"]);
+        return !invalid.has(normalized);
+      };
       const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
       const nodes = getNodePresence(card);
       const nodeTexts = getNodeTexts(card);
@@ -21920,9 +21936,20 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const realCardElement = realBattleId
         ? document.querySelector(`[data-battle-id="${escapeSelector(realBattleId)}"]`)
         : null;
+      const smokeArgColors = {
+        opponent: getArgColorKey(card, nodeSelectors.outgoingOppArg),
+        mine: getArgColorKey(card, nodeSelectors.outgoingMyCounter)
+      };
+      const realArgColors = {
+        opponent: getArgColorKey(realCardElement, nodeSelectors.outgoingOppArg),
+        mine: getArgColorKey(realCardElement, nodeSelectors.outgoingMyCounter)
+      };
       const realNodes = getNodePresence(realCardElement);
       const realNodeTexts = getNodeTexts(realCardElement);
       const realNodeCount = countNodes(realNodes);
+      const colorOkOpp = isValidArgColorKey(smokeArgColors.opponent);
+      const colorOkMy = isValidArgColorKey(smokeArgColors.mine);
+      const colorIssue = !colorOkOpp || !colorOkMy;
       const branchLog = UI._lastBattleCardBranchLog || null;
       const branchOk = branchLog
         && branchLog.isOutgoing === true
@@ -21932,10 +21959,14 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const smokeNodeCount = countNodes(nodes);
       const nodesComplete = (smokeNodeCount === nodeSelectorCount) && branchOk;
       const realCardComplete = realNodeCount === nodeSelectorCount;
-      const status = (nodesComplete && realCardComplete) ? "PASS" : "FAIL";
-      const reason = !realBattle
+      const status = (nodesComplete && realCardComplete && !colorIssue) ? "PASS" : "FAIL";
+      let reason = !realBattle
         ? "real_outgoing_resolved_missing"
         : (realCardElement ? null : "real_outgoing_card_not_found");
+      if (colorIssue) {
+        const colorReason = "arg_color_muted";
+        reason = reason ? `${reason},${colorReason}` : colorReason;
+      }
       const missingNodes = nodeSelectorKeys.filter(key => !nodes[key]);
       const diag = {
         ids: {
@@ -21952,7 +21983,15 @@ const DIAG_VERSION = "npc_audit_diag_v2";
           smokeBattleId: smokeNodeCount,
           realBattleId: realNodeCount
         },
-        branchLog
+        branchLog,
+        argColors: {
+          smokeBattleId: smokeArgColors,
+          realBattleId: realArgColors
+        },
+        colorIssue: {
+          opponent: colorOkOpp,
+          mine: colorOkMy
+        }
       };
       diag.lastRenderFinalForRealBattle = (realBattleId && UI._lastBattleCardRenderFinalLog)
         ? (UI._lastBattleCardRenderFinalLog[realBattleId] || null)
@@ -21968,7 +22007,12 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         nodes,
         branchLog,
         realBattleId,
-        realNodes
+        realNodes,
+        argColors: smokeArgColors,
+        colorOk: {
+          opponent: colorOkOpp,
+          mine: colorOkMy
+        }
       };
       if (reason) logPayload.reason = reason;
       console.log("SMOKE_OUTGOING_BATTLE_CARD", logPayload);
