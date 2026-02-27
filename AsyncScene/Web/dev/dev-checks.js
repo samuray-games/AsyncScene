@@ -21877,30 +21877,51 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
       const nodes = getNodePresence(card);
       const nodeTexts = getNodeTexts(card);
-      const findRealOutgoingCard = () => {
-        if (typeof document !== "object") return null;
-        const cards = Array.from(document.querySelectorAll('.battleCard[data-battle-id]'));
-        for (const candidate of cards) {
-          const idAttribute = candidate.getAttribute("data-battle-id");
-          if (!idAttribute) continue;
-          const candidateId = String(idAttribute);
-          if (candidateId === battleId) continue;
-          if (candidateId.startsWith("dev_smoke_")) continue;
-          const candidateNodes = getNodePresence(candidate);
-          if (Object.values(candidateNodes).every(Boolean)) {
-            return {
-              battleId: candidateId,
-              card: candidate,
-              nodes: candidateNodes
-            };
+      const isOutgoingStateBattle = (candidate) => {
+        if (!candidate) return false;
+        const dir = candidate.direction;
+        if (typeof dir === "string") {
+          const normalized = dir.toLowerCase();
+          if (normalized === "outgoing" || normalized === "out") return true;
+          if (normalized === "incoming" || normalized === "in") return false;
+        }
+        const attackerId = candidate.attackerId || candidate.aId || candidate.fromId || candidate.from;
+        if (attackerId && String(attackerId) === meId) return true;
+        const initiatorId = candidate.createdBy || candidate.creatorId || candidate.initiatorId || candidate.initiatedBy;
+        if (initiatorId && String(initiatorId) === meId) return true;
+        return false;
+      };
+      const findRealOutgoingStateBattle = () => {
+        const seen = new Set();
+        const battleSources = [];
+        if (Game && Game.State && Array.isArray(Game.State.battles)) {
+          battleSources.push(Game.State.battles);
+        }
+        if (Game && Game.__S && Array.isArray(Game.__S.battles)) {
+          battleSources.push(Game.__S.battles);
+        }
+        for (const list of battleSources) {
+          for (const candidate of list) {
+            if (!candidate || !candidate.id) continue;
+            const candidateId = String(candidate.id);
+            if (seen.has(candidateId)) continue;
+            seen.add(candidateId);
+            if (candidateId === battleId) continue;
+            if (candidateId.startsWith("dev_smoke_")) continue;
+            if (candidate.resolved !== true) continue;
+            if (!isOutgoingStateBattle(candidate)) continue;
+            return candidate;
           }
         }
         return null;
       };
-      const realCard = findRealOutgoingCard();
-      const realBattleId = realCard ? realCard.battleId : null;
-      const realNodes = realCard ? realCard.nodes : getNodePresence(null);
-      const realNodeTexts = realCard ? getNodeTexts(realCard.card) : getNodeTexts(null);
+      const realBattle = findRealOutgoingStateBattle();
+      const realBattleId = realBattle ? String(realBattle.id) : null;
+      const realCardElement = realBattleId
+        ? document.querySelector(`[data-battle-id="${escapeSelector(realBattleId)}"]`)
+        : null;
+      const realNodes = getNodePresence(realCardElement);
+      const realNodeTexts = getNodeTexts(realCardElement);
       const realNodeCount = countNodes(realNodes);
       const branchLog = UI._lastBattleCardBranchLog || null;
       const branchOk = branchLog
@@ -21912,7 +21933,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const nodesComplete = (smokeNodeCount === nodeSelectorCount) && branchOk;
       const realCardComplete = realNodeCount === nodeSelectorCount;
       const status = (nodesComplete && realCardComplete) ? "PASS" : "FAIL";
-      const reason = realCard ? null : "real_outgoing_card_not_found";
+      const reason = !realBattle
+        ? "real_outgoing_resolved_missing"
+        : (realCardElement ? null : "real_outgoing_card_not_found");
       const missingNodes = nodeSelectorKeys.filter(key => !nodes[key]);
       const diag = {
         ids: {
@@ -21931,6 +21954,12 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         },
         branchLog
       };
+      diag.lastRenderFinalForRealBattle = (realBattleId && UI._lastBattleCardRenderFinalLog)
+        ? (UI._lastBattleCardRenderFinalLog[realBattleId] || null)
+        : null;
+      diag.lastCacheForRealBattle = (realBattleId && UI._lastBattleCardCacheLog)
+        ? (UI._lastBattleCardCacheLog[realBattleId] || null)
+        : null;
       if (missingNodes.length) diag.missingNodes = missingNodes;
       if (!branchOk) diag.branchIssue = branchLog ? "branch_log_missing_props" : "branch_log_missing";
       const logPayload = {

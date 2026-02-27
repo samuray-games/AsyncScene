@@ -693,6 +693,161 @@
     return { opponent, mine };
   }
 
+  function createBattleRenderNodeState() {
+    return {
+      wroteOppArgNode: false,
+      wroteMyCounterNode: false,
+      wroteResultNode: false,
+      wroteRematchNode: false
+    };
+  }
+
+  function determineBattleCardMode(isEscape, isDraw, isResolved, isOutgoingCard) {
+    if (isEscape) return "escape_vote";
+    if (isDraw) return "draw_vote";
+    if (isResolved) return isOutgoingCard ? "outgoing_resolved" : "incoming_resolved";
+    return "active";
+  }
+
+  function logBattleCardRenderFinal(battleId, mode, nodes) {
+    const bid = battleId != null ? String(battleId) : null;
+    const nodesState = nodes || createBattleRenderNodeState();
+    const payload = Object.assign(
+      {
+        battleId: bid,
+        mode: mode != null ? String(mode) : null
+      },
+      nodesState
+    );
+    try { console.info("UI_BATTLE_CARD_RENDER_FINAL_V1", payload); } catch (_) {}
+    try {
+      if (bid) {
+        UI._lastBattleCardRenderFinalLog[bid] = payload;
+      }
+    } catch (_) {}
+  }
+
+  function renderResolvedBattleCardCore(card, battle, opts) {
+    if (!card || !battle) return createBattleRenderNodeState();
+    const ctx = Object.assign({
+      argumentTexts: null,
+      labels: null,
+      testIds: null,
+      rematchHandler: null,
+      outcomeLabel: null,
+      showResolvedChoices: true,
+      canRematch: false
+    }, opts || {});
+
+    const argumentTexts = ctx.argumentTexts || getBattleArgumentTexts(battle);
+    const labels = ctx.labels || { opponent: "Аргумент оппонента", mine: "Мой контраргумент" };
+    const testIds = ctx.testIds || { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" };
+    const rematchHandler = (typeof ctx.rematchHandler === "function") ? ctx.rematchHandler : (id => triggerRematchFlow(id));
+    const result = createBattleRenderNodeState();
+    const normalizeLine = (value) => {
+      const text = (value != null) ? String(value).trim() : "";
+      return text ? text : "—";
+    };
+
+    const appendArgRow = (label, text, testId) => {
+      const title = document.createElement("div");
+      title.className = "noteLine";
+      title.textContent = label;
+      card.appendChild(title);
+      const row = document.createElement("div");
+      row.className = "choiceRow";
+      if (testId) row.dataset.testid = testId;
+      const chip = document.createElement("div");
+      chip.className = clsForColor(null);
+      chip.textContent = normalizeLine(text);
+      row.appendChild(chip);
+      card.appendChild(row);
+    };
+
+    appendArgRow(labels.opponent, argumentTexts.opponent, testIds.opponent);
+    result.wroteOppArgNode = true;
+    appendArgRow(labels.mine, argumentTexts.mine, testIds.mine);
+    result.wroteMyCounterNode = true;
+
+    const revealColor = battle.revealColor || (battle.attack && (battle.attack.color || battle.attack._color)) || (battle.defense && battle.defense.color) || null;
+    if (battle.attack && !battle.attack.color && revealColor) {
+      battle.attack.color = revealColor;
+    }
+
+    if (ctx.showResolvedChoices && battle.attack) {
+      const aRow = document.createElement("div");
+      aRow.className = "choiceRow";
+      const a = document.createElement("div");
+      a.className = clsForColor(battle.attack.color);
+      a.textContent = battle.attack.text;
+      if (!battle.attack.color) {
+        a.className = clsForColor(null, true);
+        a.style.color = "rgba(255,255,255,.92)";
+      } else if (battle.attack.color === "k") {
+        a.style.color = "#ddd";
+      } else {
+        a.style.color = "black";
+      }
+      aRow.appendChild(a);
+      card.appendChild(aRow);
+    }
+
+    if (ctx.showResolvedChoices && battle.defense) {
+      const dRow = document.createElement("div");
+      dRow.className = "choiceRow";
+      const d = document.createElement("div");
+      d.className = clsForColor(battle.defense.color);
+      d.textContent = battle.defense.text;
+      if (!battle.defense.color) {
+        d.className = clsForColor(null, true);
+        d.style.color = "rgba(255,255,255,.92)";
+      } else if (battle.defense.color === "k") {
+        d.style.color = "#ddd";
+      } else {
+        d.style.color = "black";
+      }
+      dRow.appendChild(d);
+      card.appendChild(dRow);
+    }
+
+    const outcomeLabel = (ctx.outcomeLabel && String(ctx.outcomeLabel).trim())
+      ? String(ctx.outcomeLabel).trim()
+      : (getBattleOutcomeLabel(battle) || _normalizeResultText(battle));
+    const res = document.createElement("div");
+    res.className = "battleTop";
+    res.dataset.testid = "battle-result-pill";
+    res.innerHTML = `<div class="kpill"><strong>${escapeHtml(outcomeLabel)}</strong></div>`;
+    card.appendChild(res);
+    result.wroteResultNode = true;
+    try {
+      const rl = (battle.resultLine != null) ? String(battle.resultLine) : "";
+      const rll = rl.toLowerCase();
+      if (!rl.trim() || rll.includes("чил") || rll.includes("peace") || rll.includes("draw") || rll.includes("tie")) {
+        battle.resultLine = outcomeLabel;
+      }
+    } catch (_) {}
+
+    if (ctx.canRematch) {
+      const rematchActions = document.createElement("div");
+      rematchActions.className = "actions";
+      const rematchBtn = document.createElement("button");
+      rematchBtn.className = "btn small";
+      rematchBtn.type = "button";
+      rematchBtn.dataset.testid = "battle-rematch-btn";
+      rematchBtn.textContent = "Реванш";
+      rematchBtn.onclick = (e) => {
+        stop(e);
+        _captureBattleFocus(battle.id, card);
+        rematchHandler(battle.id);
+      };
+      rematchActions.appendChild(rematchBtn);
+      card.appendChild(rematchActions);
+      result.wroteRematchNode = true;
+    }
+
+    return result;
+  }
+
   function countIncomingRematchButtons(battle) {
     if (!battle) return 0;
     const rem = battle.rematch || null;
@@ -826,6 +981,9 @@
   // Keep 3-choice sets stable across UI re-renders.
   UI._battleChoiceCache = UI._battleChoiceCache || { attack: Object.create(null), defense: Object.create(null), status: Object.create(null) };
   UI._lastBattleCardBranchLog = UI._lastBattleCardBranchLog || null;
+  UI._battleCardCache = UI._battleCardCache || Object.create(null);
+  UI._lastBattleCardRenderFinalLog = UI._lastBattleCardRenderFinalLog || Object.create(null);
+  UI._lastBattleCardCacheLog = UI._lastBattleCardCacheLog || Object.create(null);
   function _resetChoiceCacheIfNeeded(b) {
     if (!b) return;
     const id = b.id != null ? String(b.id) : null;
@@ -1602,6 +1760,7 @@ UI.renderBattles = () => {
       const card = document.createElement("div");
       card.className = "battleCard";
       card.setAttribute("data-battle-id", String(b.id));
+      const battleId = b.id != null ? String(b.id) : null;
 
       // Click card background to pin (chips/buttons stopPropagation)
       card.onclick = (e) => {
@@ -1637,15 +1796,33 @@ UI.renderBattles = () => {
         hasResult: false,
         hasRematchBtn: false
       };
+      const incomingRematchButtons = countIncomingRematchButtons(b);
+      let finalLogMode = "unknown";
+      let finalLogNodes = createBattleRenderNodeState();
+      const nextMode = determineBattleCardMode(isEscape, isDraw, uiThinksResolved, isOutgoingCard);
+      const cacheEntry = (battleId && UI._battleCardCache) ? UI._battleCardCache[battleId] : null;
+      const cachedMode = cacheEntry ? cacheEntry.mode : null;
+      const resolvedMode = nextMode === "outgoing_resolved" || nextMode === "incoming_resolved";
+      const forcedMiss = resolvedMode && cachedMode === "active";
+      const cacheHit = !!(cacheEntry && cachedMode === nextMode && !forcedMiss);
+      const cachePayload = { battleId, cacheHit, cachedMode, nextMode };
+      try { console.info("UI_BATTLE_CARD_CACHE_V1", cachePayload); } catch (_) {}
+      try {
+        if (battleId) UI._lastBattleCardCacheLog[battleId] = cachePayload;
+      } catch (_) {}
+      if (battleId && forcedMiss) {
+        delete UI._battleCardCache[battleId];
+      }
       logBattleUiDecisionDiagOnce(b, uiThinksResolved, uiThinksCrowd, "renderBattles");
 
       if (uiThinksResolved) {
         const branch = isEscape ? "escape_vote"
           : isDraw ? "draw"
-          : (isOutgoingCard ? "outgoing_resolved" : "resolved_history");
+          : nextMode;
         const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch, uiThinksResolved);
         logBattleCardBranch(payload);
       }
+      const shouldRenderResolvedCard = uiThinksResolved && !isEscape && !isDraw;
 
       if (!uiThinksResolved) {
        if (b.status === "pickDefense") line.textContent = "Бери контраргумент";
@@ -1830,6 +2007,9 @@ UI.renderBattles = () => {
 
           card.appendChild(escapeWrap);
           emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
+          finalLogMode = "escape_vote";
+          finalLogNodes = createBattleRenderNodeState();
+          logBattleCardRenderFinal(b.id, finalLogMode, finalLogNodes);
           body.appendChild(card);
           return;
         }
@@ -2072,12 +2252,17 @@ UI.renderBattles = () => {
           card.appendChild(drawWrap);
           logMeta.hasResult = true;
           emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
+          finalLogMode = "draw_vote";
+          finalLogNodes = createBattleRenderNodeState();
+          logBattleCardRenderFinal(b.id, finalLogMode, finalLogNodes);
           body.appendChild(card);
           return;
         }
 
       // UNRESOLVED
-      if (b.resolved !== true) {
+      if (!shouldRenderResolvedCard) {
+        finalLogMode = nextMode;
+        finalLogNodes = createBattleRenderNodeState();
         const D0 = Game.Data || {};
         const boostCost = Number.isFinite(D0.COST_BATTLE_BOOST) ? (D0.COST_BATTLE_BOOST | 0) : 2;
         const rerollCost = Number.isFinite(D0.COST_REROLL_ARGUMENTS) ? (D0.COST_REROLL_ARGUMENTS | 0) : 3;
@@ -2530,260 +2715,58 @@ UI.renderBattles = () => {
           note.textContent = b.inlineNote;
           card.appendChild(note);
         }
-      } else if (isOutgoingCard) {
-        const appendStatRow = (label, text, testId) => {
-          const title = document.createElement("div");
-          title.className = "noteLine";
-          title.textContent = label;
-          card.appendChild(title);
-          const row = document.createElement("div");
-          row.className = "choiceRow";
-          if (testId) row.dataset.testid = testId;
-          const chip = document.createElement("div");
-          chip.className = clsForColor(null);
-          chip.textContent = text || "—";
-          row.appendChild(chip);
-          card.appendChild(row);
-        };
-        appendStatRow("Аргумент оппонента", argumentTexts.opponent, "outgoing-opp-arg");
-        appendStatRow("Мой контраргумент", argumentTexts.mine, "outgoing-my-counter");
-        const canonicalOutcome = getBattleOutcomeLabel(b);
-        const outcomeLabel = canonicalOutcome || _normalizeResultText(b);
-        logMeta.hasResult = !!outcomeLabel;
-        const res = document.createElement("div");
-        res.className = "battleTop";
-        res.dataset.testid = "battle-result-pill";
-        res.innerHTML = `<div class="kpill"><strong>${escapeHtml(outcomeLabel || "Результат готов.")}</strong></div>`;
-        card.appendChild(res);
-        const rematchActions = document.createElement("div");
-        rematchActions.className = "actions";
-        const rematchBtn = document.createElement("button");
-        rematchBtn.className = "btn small";
-        rematchBtn.type = "button";
-        rematchBtn.dataset.testid = "battle-rematch-btn";
-        rematchBtn.textContent = "Реванш";
-        rematchBtn.onclick = (e) => {
-          stop(e);
-          _captureBattleFocus(b.id, card);
-          triggerRematchFlow(b.id);
-        };
-        rematchActions.appendChild(rematchBtn);
-        card.appendChild(rematchActions);
-        logMeta.hasRematchBtn = true;
       } else {
-        // RESOLVED: show revealed attack + defense with colors and a close button
-        const revealColor = b.revealColor || (b.attack && b.attack.color) || (b.defense && b.defense.color) || null;
-        if (b.attack && !b.attack.color && revealColor) {
-          b.attack.color = revealColor;
-        }
-
-        // Show attack first (вброс)
-        if (b.attack) {
-          const aRow = document.createElement("div");
-          aRow.className = "choiceRow";
-          const a = document.createElement("div");
-          a.className = clsForColor(b.attack.color);
-          a.textContent = b.attack.text;
-          if (!b.attack.color) {
-            a.className = clsForColor(null, true);
-            a.style.color = "rgba(255,255,255,.92)";
-          } else if (b.attack.color === "k") {
-            a.style.color = "#ddd";
-          } else {
-            a.style.color = "black";
-          }
-          aRow.appendChild(a);
-          card.appendChild(aRow);
-        }
-
-        // Then defense (контраргумент)
-        if (b.defense) {
-          const dRow = document.createElement("div");
-          dRow.className = "choiceRow";
-          const d = document.createElement("div");
-          d.className = clsForColor(b.defense.color);
-          d.textContent = b.defense.text;
-          if (!b.defense.color) {
-            d.className = clsForColor(null, true);
-            d.style.color = "rgba(255,255,255,.92)";
-          } else if (b.defense.color === "k") {
-            d.style.color = "#ddd";
-          } else {
-            d.style.color = "black";
-          }
-          dRow.appendChild(d);
-          card.appendChild(dRow);
-        }
-
-        const res = document.createElement("div");
-        res.className = "battleTop";
-        const resText = _normalizeResultText(b);
-        try {
-          const rl = (b.resultLine != null) ? String(b.resultLine) : "";
-          const rll = rl.toLowerCase();
-          if (!rl.trim() || rll.includes("чил") || rll.includes("peace") || rll.includes("draw") || rll.includes("tie")) {
-            b.resultLine = resText;
-          }
-        } catch (_) {}
-        res.innerHTML = `<div class="kpill"><strong>${escapeHtml(resText)}</strong></div>`;
-        card.appendChild(res);
-        logMeta.hasResult = true;
-
-        // Rematch UI (wave 3): request/accept/decline via core API only, no numeric promises.
-        try {
-          const rem = b.rematch || null;
-          // Allow rematch for any resolved battle (including those created via accept/rematchOf).
-          const isEligible = (b.result === "win" || b.result === "lose");
-          const youAreLoser = (b.result === "lose");
-          const nameById = (pid) => {
-            if (!pid) return "Кто-то";
-            if (pid === "me") {
-              const me = S && S.me ? S.me : null;
-              return me ? (UI.displayName ? UI.displayName(me) : (me.name || "Ты")) : "Ты";
-            }
-            const p = (S && S.players && S.players[pid]) ? S.players[pid] : null;
-            return p ? (UI.displayName ? UI.displayName(p) : (p.name || "Кто-то")) : "Кто-то";
-          };
-
-          const remWrap = document.createElement("div");
-          remWrap.className = "eventCard";
-
-          const remLine = document.createElement("div");
-          remLine.className = "noteLine";
-
-          const remActions = document.createElement("div");
-          remActions.className = "actions";
-
-          let show = false;
-          let incomingRematchButtons = 0;
-
-          // Pending rematch request (undecided)
-          if (rem && rem.requestedAt && rem.decided !== true) {
-            show = true;
-            const requesterId = rem.requestedBy || null;
-            const isFromMe = (requesterId === "me");
-
-            if (isFromMe) {
-              remLine.textContent = "Ты вызвал на реванш.";
-            } else {
-              const requesterName = nameById(requesterId);
-              remLine.textContent = `${requesterName} просит реванш`;
-
-              const btnAccept = document.createElement("button");
-              btnAccept.className = "btn small";
-              btnAccept.type = "button";
-              try { btnAccept.dataset.enterIgnore = "1"; } catch (_) {}
-              btnAccept.textContent = "Принять";
-              btnAccept.onclick = (e) => {
-                stop(e);
-                try {
-                  if (Game.Conflict && typeof Game.Conflict.respondRematch === "function") {
-                    Game.Conflict.respondRematch(b.id, true);
-                  }
-                } catch (_) {}
-                requestAll();
-              };
-              remActions.appendChild(btnAccept);
-              incomingRematchButtons += 1;
-
-              const btnDecline = document.createElement("button");
-              btnDecline.className = "btn small";
-              btnDecline.type = "button";
-              try { btnDecline.dataset.enterIgnore = "1"; } catch (_) {}
-              btnDecline.textContent = "Отклонить";
-              btnDecline.onclick = (e) => {
-                stop(e);
-                try {
-                  if (Game.Conflict && typeof Game.Conflict.respondRematch === "function") {
-                    Game.Conflict.respondRematch(b.id, false);
-                  }
-                } catch (_) {}
-                requestAll();
-              };
-              remActions.appendChild(btnDecline);
-              incomingRematchButtons += 1;
-            }
-          }
-          
-          if (rem && rem.requestedAt && rem.decided === true) {
-            show = true;
-            if (rem.accepted === true) {
-              remLine.textContent = "Реванш принят";
-            } else {
-              remLine.textContent = "Реванш отклонён.";
-              
-              if (isEligible && youAreLoser) {
-                const nextCost = (b.rematchRequestCount || 0) + 1;
-                const retryBtn = document.createElement("button");
-                retryBtn.className = "btn small";
-                retryBtn.disabled = false;
-                retryBtn.type = "button";
-                try { retryBtn.dataset.enterIgnore = "1"; } catch (_) {}
-                retryBtn.textContent = `Снова реванш? ${nextCost} 💰`;
-                retryBtn.onclick = (e) => {
-                  stop(e);
-                  _captureBattleFocus(b.id, card);
-                  triggerRematchFlow(b.id);
-                };
-                const retryActions = document.createElement("div");
-                retryActions.className = "actions";
-                retryActions.appendChild(retryBtn);
-                remWrap.appendChild(retryActions);
-                incomingRematchButtons += 1;
-              }
-            }
-          }
-          
-          if (!rem || (rem.decided === true && rem.accepted === true)) {
-            if (isEligible && youAreLoser) {
-              show = true;
-              const nextCost = (b.rematchRequestCount || 0) + 1;
-              const isFirstTime = (b.rematchRequestCount || 0) === 0;
-              const btnRematch = document.createElement("button");
-              btnRematch.className = "btn small";
-              btnRematch.disabled = false;
-              btnRematch.type = "button";
-              try { btnRematch.dataset.enterIgnore = "1"; } catch (_) {}
-              btnRematch.textContent = isFirstTime ? `Реванш? ${nextCost} 💰` : `Снова реванш? ${nextCost} 💰`;
-              btnRematch.onclick = (e) => {
-                stop(e);
-                _captureBattleFocus(b.id, card);
-                triggerRematchFlow(b.id);
-              };
-              remActions.appendChild(btnRematch);
-              incomingRematchButtons += 1;
-            }
-          }
-
-          if (show) {
-            remWrap.appendChild(remLine);
-            if (remActions.childElementCount > 0) remWrap.appendChild(remActions);
-            card.appendChild(remWrap);
-          }
-          logMeta.hasRematchBtn = incomingRematchButtons > 0;
-        } catch (_) {}
-
+        const finalMode = nextMode;
+        const canRematch = directionInfo.isOutgoing || incomingRematchButtons > 0;
+        const helperCtx = {
+          argumentTexts,
+          labels: isOutgoingCard
+            ? { opponent: "Аргумент оппонента", mine: "Мой контраргумент" }
+            : { opponent: "Его аргумент", mine: "Мой контраргумент" },
+          testIds: { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" },
+          showResolvedChoices: !isOutgoingCard,
+          canRematch,
+          outcomeLabel: getBattleOutcomeLabel(b),
+          rematchHandler: (battleId) => triggerRematchFlow(battleId)
+        };
+        const renderResult = renderResolvedBattleCardCore(card, b, helperCtx);
+        logMeta.hasOppArg = renderResult.wroteOppArgNode;
+        logMeta.hasMyCounter = renderResult.wroteMyCounterNode;
+        logMeta.hasResult = renderResult.wroteResultNode;
+        logMeta.hasRematchBtn = renderResult.wroteRematchNode;
         emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
 
         const closeRow = document.createElement("div");
         closeRow.className = "actions";
 
-            const closeBtn = document.createElement("button");
-            closeBtn.className = "btn small";
-            closeBtn.textContent = "Закрыть";
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "btn small";
+        closeBtn.textContent = "Закрыть";
         closeBtn.onclick = (e) => {
           stop(e);
           _captureBattleFocus(b.id, card);
           UI._clearDrawTicker(b.id);
-          // Remove only this resolved battle
           S.battles = S.battles.filter(x => x.id !== b.id);
           requestAll();
         };
         closeRow.appendChild(closeBtn);
 
         card.appendChild(closeRow);
+
+        finalLogMode = finalMode;
+        finalLogNodes = renderResult;
       }
 
+      logBattleCardRenderFinal(battleId, finalLogMode, finalLogNodes);
+      if (battleId) {
+        try {
+          UI._battleCardCache[battleId] = {
+            mode: nextMode,
+            updatedAt: Date.now(),
+            nodes: finalLogNodes ? Object.assign({}, finalLogNodes) : createBattleRenderNodeState()
+          };
+        } catch (_) {}
+      }
       body.appendChild(card);
     });
 

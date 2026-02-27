@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-27 01:44:52] (epoch_ms=1772124292612)
+[DUMP_AT] [2026-02-27 21:44:08] (epoch_ms=1772196248388)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772124261010
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772196109294
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772124261061}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772196109350}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772124261023 1772124261061
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772196109306 1772196109351
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772124261061
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772196109351
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772124261062}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772196109352}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772124261078}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772124261081}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772196109367}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772196109369}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,23 +45,599 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772124261083}
-WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772124261083}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772124261083}
-LOG [AttackChoices] conflict-arguments loaded 1772124261083
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772124261084}
+WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772196109370}
+WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772196109370}
+WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772196109371}
+LOG [AttackChoices] conflict-arguments loaded 1772196109371
+WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772196109372}
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772124261087, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772124261089}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772124261089}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772196109375, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1772196109376}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772196109376}
 WARN CONSOLE_PANEL_V1_READY
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm3p1azd_9q2qzh, battleStatus: pickAttack, nowMs: 1772124271328, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm3p1azd_9q2qzh, hasBattleCtx: true, ts: 1772124273346}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: false, cachedMode: null, nextMode: active}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm4vta5a_gb48c1, battleStatus: pickAttack, nowMs: 1772196120487, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm4vta5a_gb48c1, hasBattleCtx: true, ts: 1772196122516}
+WARN CROWD_ELIG_V1 Object{battleId: battle_mm4vta5a_gb48c1, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 0, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 20, votersIdsLen: 20, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
+  battleId: battle_mm4vta5a_gb48c1
+  cap: 10
+  capFinal: 10
+  eligibleCount: 19
+  eventId: null
+  excludedOtherCount: 0
+  excludedZeroPtsCount: 0
+  meIncluded: true
+  rawCap: 20
+  rule: ELIG_V1_zero_pts
+  votersCount: 20
+  votersIdsLen: 20
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mm4vta5a_gb48c1, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: battle_mm4vta5a_gb48c1, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: waiting}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cap: 10, eventId: null, seed: null, startedAtMs: 1772196122522, votersCount: 20}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mm4vta5a_gb48c1, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 20, whyVotersZero: has_votes}
+WARN CROWD_ALREADY_ACTIVE_V2 Object{battleId: battle_mm4vta5a_gb48c1, cap: 10, nowMs: 1772196122527, phase: warmup, status: crowd, votersCount: 20}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196123231, progressKey: 0|0|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196123534, progressKey: 1|1|0}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+WARN CROWD_ALREADY_ACTIVE_V2 Object{battleId: battle_mm4vta5a_gb48c1, cap: 10, nowMs: 1772196123538, phase: warmup, status: crowd, votersCount: 20}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196125531, progressKey: 2|2|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196126533, progressKey: 3|3|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196127534, progressKey: 4|5|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196128534, progressKey: 5|7|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196129535, progressKey: 6|7|1}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196131534, progressKey: 7|9|1}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196135538, progressKey: 8|10|1}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196137540, progressKey: 9|12|1}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mm4vta5a_gb48c1, eventId: null, now: 1772196139540, progressKey: 10|14|1}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196139549, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: defineProperty
+    key: Game.Debug.securityEvents
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196139549
+  type: tamper_detected
+  window: Object{…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.securityEvents
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.securityEvents
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196139548, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: defineProperty
+    key: Game.Debug.__debugSecurityEventsStore
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196139548
+  type: tamper_detected
+  win…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.__debugSecurityEventsStore
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.__debugSecurityEventsStore
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196139545, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: set
+    key: StateAPI.transferRep
+    mode: dev
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196139545
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
+WARN [SEC:notify] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1510:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2297:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2121:38}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196139559, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 3
+    short: 3
+  }
+  meta: Object{
+    action: set_function
+    key: StateAPI.transferRep
+    mode: dev
+    stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1510:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2297:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2121:38
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-177219610937…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1510:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2297:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2121:38}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: set_function
+  key: StateAPI.transferRep
+  mode: dev
+  stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1510:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2297:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2121:38
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1510:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2297:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2121:38}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: set_function
+  key: StateAPI.transferRep
+  mode: dev
+  stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1510:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2297:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2121:38
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196139563, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196139563
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mm4vta5a_gb48c1, endedBy: cap, nowMs: 1772196139569, result: win, statusAfter: finished, statusBefore: crowd, winnerId: me}
+WARN CROWD_STALL_V1_RESOLVE Object{battleId: battle_mm4vta5a_gb48c1, capNow: 10, endedBy: cap, eventId: null, resolvedBy: cap, votesNow: 10}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: false, cachedMode: active, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_yuna, targetId: npc_hot, type: npc_event}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196142808, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 3
+    short: 3
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196142808
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+LOG [SEC:reaction] Object{counts: Object{long: 4, short: 4}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196144616, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 4
+    short: 4
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196144616
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 5, short: 5}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196146423, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 5
+    short: 5
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196146423
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 6, short: 6}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196148231, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 6
+    short: 6
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196148231
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 7, short: 7}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196150639, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 7
+    short: 7
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196150639
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 8, short: 8}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196152447, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 8
+    short: 8
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196152447
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+LOG [SEC:reaction] Object{counts: Object{long: 9, short: 9}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196154256, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 9
+    short: 9
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196154256
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 10, short: 10}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196156664, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 10
+    short: 10
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196156664
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 11, short: 11}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772196109377-u3lz, time: 1772196158473, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 11
+    short: 11
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772196109377-u3lz
+  time: 1772196158473
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772196159253}
+WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772196159253}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 209, beforeTotal: 209, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 209
+  beforeTotal: 209
   branch: already_ok
   called: true
   createdCount: 0
@@ -79,176 +655,22 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mm3p1azd_9q2qzh, endedBy: null, nowMs: 1772124273365, result: lose, statusAfter: finished, statusBefore: waiting, winnerId: null}
-WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mm3p1azd_9q2qzh, battleResolvedFlag: false, battleStatus: finished, nowMs: 1772124273368, reason: already_resolved, resultIfAny: lose}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: false, cachedMode: null, nextMode: active}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm4vu42a_ehsjtj, battleStatus: pickDefense, nowMs: 1772196159261, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm4vu42a_ehsjtj, hasBattleCtx: true, ts: 1772196159263}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
+  battleId: battle_mm4vta5a_gb48c1
   branch: outgoing_resolved
   canRematch: true
   defenderId: npc_weak
   direction: null
   fallbackUsed: false
   hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772124286814_28427106da4938 // 1) Запусти smoke (верни результат)
-await Game.__DEV.smokeOutgoingBattleCardOnce();
-
-// 2) Проверь, появились ли data-testid узлы в DOM
-({
-  oppArg: document.querySelectorAll('[data-testid="outgoing-opp-arg"]').length,
-  myCounter: document.querySelectorAll('[data-testid="outgoing-my-counter"]').length,
-  resultPill: document.querySelectorAll('[data-testid="battle-result-pill"]').length,
-  rematchBtn: document.querySelectorAll('[data-testid="battle-rematch-btn"]').length,
-});
-
-// 3) Найди види…
-WARN [repl] > // 1) Запусти smoke (верни результат)
-await Game.__DEV.smokeOutgoingBattleCardOnce();
-
-// 2) Проверь, появились ли data-testid узлы в DOM
-({
-  oppArg: document.querySelectorAll('[data-testid="outgoing-opp-arg"]').length,
-  myCounter: document.querySelectorAll('[data-testid="outgoing-my-counter"]').length,
-  resultPill: document.querySelectorAll('[data-testid="battle-result-pill"]').length,
-  rematchBtn: document.querySelectorAll('[data-testid="battle-rematch-btn"]').length,
-});
-
-// 3) Найди види…
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_outgoing_card_mm3p1mxu, battleStatus: null, nowMs: 1772124286821, resultIfAny: win, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm3p1mxu, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: null
-  battleId: dev_smoke_outgoing_card_mm3p1mxu
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: outgoing
-  fallbackUsed: false
-  hasAttackerId: false
   hasBDirection: false
   hasDefenderId: true
   hasMyCounter: true
@@ -260,36 +682,17 @@ LOG Object{
   unknownDirection: false
 }
 LOG END CONSOLE_EXPAND_V1
-LOG SMOKE_OUTGOING_BATTLE_CARD Object{battleId: dev_smoke_outgoing_card_mm3p1mxu, branchLog: Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm3p1mxu, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}, nodes: Object{battleResult: true, outgoingMyCounter: true, outgoingOppArg: true, rematchButton: true}, status: PASS}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  battleId: dev_smoke_outgoing_card_mm3p1mxu
-  branchLog: Object{
-    attackerId: null
-    battleId: dev_smoke_outgoing_card_mm3p1mxu
-    branch: outgoing_resolved
-    canRematch: true
-    defenderId: npc_weak
-    direction: outgoing
-    fallbackUsed: false
-    hasAttackerId: false
-    hasBDirection: false
-    hasDefenderId: true
-    hasMyCounter: true
-    hasOppArg: true
-    isOutgoing: true
-    isResolved: true
-    meId: me
-    outcome: win
-    unknownDirection: false
-  }
-  nodes: Obje…
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_toxic2, targetId: me, type: incoming_battle}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
+  battleId: battle_mm4vta5a_gb48c1
   branch: outgoing_resolved
   canRematch: true
   defenderId: npc_weak
@@ -301,494 +704,482 @@ LOG Object{
   hasMyCounter: true
   hasOppArg: true
   isOutgoing: true
-  isResolved: false
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm4vu42a_ehsjtj, ageMs: 5118, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 1, cooldownsCount: 2, mePts: 14, npcPtsAvg: 9.68421052631579, npcPtsMin: 6, reason: in_battle_decision, worldBankPts: 10}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: false, cachedMode: null, nextMode: active}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm4vug0n_t2ty5o, battleStatus: pickAttack, nowMs: 1772196174746, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm4vug0n_t2ty5o, hasBattleCtx: true, ts: 1772196177150}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 209, beforeTotal: 209, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 209
+  beforeTotal: 209
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mm4vug0n_t2ty5o, endedBy: null, nowMs: 1772196177161, result: lose, statusAfter: finished, statusBefore: waiting, winnerId: null}
+WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mm4vug0n_t2ty5o, battleResolvedFlag: false, battleStatus: finished, nowMs: 1772196177163, reason: already_resolved, resultIfAny: lose}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: false, cachedMode: active, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vug0n_t2ty5o, branch: outgoing_resolved, canRematch: true, defenderId: npc_sad, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vug0n_t2ty5o
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_sad
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
   meId: me
   outcome: lose
   unknownDirection: false
 }
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1772124286829 1772124286828_569b1409651ba
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vug0n_t2ty5o, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vug0n_t2ty5o, branch: outgoing_resolved, canRematch: true, defenderId: npc_sad, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vug0n_t2ty5o
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_sad
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vug0n_t2ty5o, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm4vu42a_ehsjtj, ageMs: 29121, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 2, cooldownsCount: 3, mePts: 11, npcPtsAvg: 9.789473684210526, npcPtsMin: 6, reason: in_battle_decision, worldBankPts: 10}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm4vu42a_ehsjtj, ageMs: 39156, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 2, cooldownsCount: 3, mePts: 11, npcPtsAvg: 9.789473684210526, npcPtsMin: 6, reason: in_battle_decision, worldBankPts: 10}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm4vu42a_ehsjtj, ageMs: 53126, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 2, cooldownsCount: 3, mePts: 11, npcPtsAvg: 9.789473684210526, npcPtsMin: 6, reason: in_battle_decision, worldBankPts: 10}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vug0n_t2ty5o, branch: outgoing_resolved, canRematch: true, defenderId: npc_sad, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vug0n_t2ty5o
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_sad
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vug0n_t2ty5o, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772196235189_7fa7c84a71bde8 Game.__DEV.smokeOutgoingBattleCardOnce();
+WARN [repl] > Game.__DEV.smokeOutgoingBattleCardOnce();
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vug0n_t2ty5o, branch: outgoing_resolved, canRematch: true, defenderId: npc_sad, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vug0n_t2ty5o
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_sad
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vug0n_t2ty5o, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: dev_smoke_outgoing_card_mm4vvqnu, cacheHit: false, cachedMode: null, nextMode: outgoing_resolved}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_outgoing_card_mm4vvqnu, battleStatus: null, nowMs: 1772196235216, resultIfAny: win, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm4vvqnu, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: true, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: null
+  battleId: dev_smoke_outgoing_card_mm4vvqnu
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: outgoing
+  fallbackUsed: false
+  hasAttackerId: false
+  hasBDirection: true
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: dev_smoke_outgoing_card_mm4vvqnu, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: dev_smoke_outgoing_card_mm4vvqnu, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+LOG SMOKE_OUTGOING_BATTLE_CARD Object{battleId: dev_smoke_outgoing_card_mm4vvqnu, branchLog: Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}, nodes: Object{battleResult: true, outgoingMyCounter: true, outgoingOppArg: true, rematchButton: true}, realBattleId: null, realNodes: Object{battleResult: false, outgoingMyCounter: false, outgoingOppArg: false, rematchButton: false}, reason: real_outgoing_resolved_missing, status: FAIL}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: dev_smoke_outgoing_card_mm4vvqnu
+  branchLog: Object{
+    attackerId: me
+    battleId: battle_mm4vta5a_gb48c1
+    branch: outgoing_resolved
+    canRematch: true
+    defenderId: npc_weak
+    direction: null
+    fallbackUsed: false
+    hasAttackerId: true
+    hasBDirection: false
+    hasDefenderId: true
+    hasMyCounter: true
+    hasOppArg: true
+    isOutgoing: true
+    isResolved: true
+    meId: me
+    outcome: win
+    unknownDirection: false
+  }
+  nodes: Object{
+    battleRes…
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vug0n_t2ty5o, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vug0n_t2ty5o, branch: outgoing_resolved, canRematch: true, defenderId: npc_sad, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vug0n_t2ty5o
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_sad
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vug0n_t2ty5o, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vug0n_t2ty5o, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vu42a_ehsjtj, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vu42a_ehsjtj, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm4vta5a_gb48c1, cacheHit: true, cachedMode: outgoing_resolved, nextMode: outgoing_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm4vta5a_gb48c1, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: me
+  battleId: battle_mm4vta5a_gb48c1
+  branch: outgoing_resolved
+  canRematch: true
+  defenderId: npc_weak
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: true
+  isResolved: true
+  meId: me
+  outcome: win
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_CARD_OUTGOING_RENDER_V1 Object{battleId: battle_mm4vta5a_gb48c1, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm4vta5a_gb48c1, mode: outgoing_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
 LOG [repl] < undefined
 WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
 WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [], preview: undefined, type: undefined}
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772124286814_28427106da4938 Object{ok: true, value: undefined}
-WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 19793, dumpAtEpochMs: 1772124286840, dumpAtLocal: 2026-02-27 01:44:46, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1772124286828_569b1409651ba, sepOk: false, status: 200}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  bytes: 19793
-  dumpAtEpochMs: 1772124286840
-  dumpAtLocal: 2026-02-27 01:44:46
-  ok: true
-  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
-  prepend: true
-  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-  runId: 1772124286828_569b1409651ba
-  sepOk: false
-  status: 200
-}
-LOG END CONSOLE_EXPAND_V1
-WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
-WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_troll, targetId: npc_veteran, type: npc_event}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-
-[DUMP_AT] [2026-02-27 01:44:46] (epoch_ms=1772124286840)
-[DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772124261010
-WARN DEV_SW_DISABLED true
-WARN CONSOLE_TAPE_V1_READY
-WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
-WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
-WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772124261061}
-WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
-WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
-WARN DEV_CHECKS_SERVED_PROOF_V4
-WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772124261023 1772124261061
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772124261061
-WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
-WARN [DEV] content testing hooks enabled
-WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772124261062}
-LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772124261078}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772124261081}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: init
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772124261083}
-WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772124261083}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772124261083}
-LOG [AttackChoices] conflict-arguments loaded 1772124261083
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772124261084}
-LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772124261087, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772124261089}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772124261089}
-WARN CONSOLE_PANEL_V1_READY
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm3p1azd_9q2qzh, battleStatus: pickAttack, nowMs: 1772124271328, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm3p1azd_9q2qzh, hasBattleCtx: true, ts: 1772124273346}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: wealth_tax
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mm3p1azd_9q2qzh, endedBy: null, nowMs: 1772124273365, result: lose, statusAfter: finished, statusBefore: waiting, winnerId: null}
-WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: battle_mm3p1azd_9q2qzh, battleResolvedFlag: false, battleStatus: finished, nowMs: 1772124273368, reason: already_resolved, resultIfAny: lose}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772124286814_28427106da4938 // 1) Запусти smoke (верни результат)
-await Game.__DEV.smokeOutgoingBattleCardOnce();
-
-// 2) Проверь, появились ли data-testid узлы в DOM
-({
-  oppArg: document.querySelectorAll('[data-testid="outgoing-opp-arg"]').length,
-  myCounter: document.querySelectorAll('[data-testid="outgoing-my-counter"]').length,
-  resultPill: document.querySelectorAll('[data-testid="battle-result-pill"]').length,
-  rematchBtn: document.querySelectorAll('[data-testid="battle-rematch-btn"]').length,
-});
-
-// 3) Найди види…
-WARN [repl] > // 1) Запусти smoke (верни результат)
-await Game.__DEV.smokeOutgoingBattleCardOnce();
-
-// 2) Проверь, появились ли data-testid узлы в DOM
-({
-  oppArg: document.querySelectorAll('[data-testid="outgoing-opp-arg"]').length,
-  myCounter: document.querySelectorAll('[data-testid="outgoing-my-counter"]').length,
-  resultPill: document.querySelectorAll('[data-testid="battle-result-pill"]').length,
-  rematchBtn: document.querySelectorAll('[data-testid="battle-rematch-btn"]').length,
-});
-
-// 3) Найди види…
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_outgoing_card_mm3p1mxu, battleStatus: null, nowMs: 1772124286821, resultIfAny: win, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm3p1mxu, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: null
-  battleId: dev_smoke_outgoing_card_mm3p1mxu
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: outgoing
-  fallbackUsed: false
-  hasAttackerId: false
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: true
-  meId: me
-  outcome: win
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-LOG SMOKE_OUTGOING_BATTLE_CARD Object{battleId: dev_smoke_outgoing_card_mm3p1mxu, branchLog: Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm3p1mxu, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}, nodes: Object{battleResult: true, outgoingMyCounter: true, outgoingOppArg: true, rematchButton: true}, status: PASS}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  battleId: dev_smoke_outgoing_card_mm3p1mxu
-  branchLog: Object{
-    attackerId: null
-    battleId: dev_smoke_outgoing_card_mm3p1mxu
-    branch: outgoing_resolved
-    canRematch: true
-    defenderId: npc_weak
-    direction: outgoing
-    fallbackUsed: false
-    hasAttackerId: false
-    hasBDirection: false
-    hasDefenderId: true
-    hasMyCounter: true
-    hasOppArg: true
-    isOutgoing: true
-    isResolved: true
-    meId: me
-    outcome: win
-    unknownDirection: false
-  }
-  nodes: Obje…
-LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: me, battleId: battle_mm3p1azd_9q2qzh, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: false, meId: me, outcome: lose, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: me
-  battleId: battle_mm3p1azd_9q2qzh
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: false
-  meId: me
-  outcome: lose
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-
-[DUMP_AT] [2026-02-27 01:43:57] (epoch_ms=1772124237075)
-[DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772124221550
-WARN DEV_SW_DISABLED true
-WARN CONSOLE_TAPE_V1_READY
-WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
-WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
-WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772124221596}
-WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
-WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
-WARN DEV_CHECKS_SERVED_PROOF_V4
-WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772124221566 1772124221596
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
-WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772124221596
-WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
-WARN [DEV] content testing hooks enabled
-WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772124221597}
-LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772124221609}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772124221611}
-WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  afterTotal: 200
-  beforeTotal: 200
-  branch: already_ok
-  called: true
-  createdCount: 0
-  createdIds: [
-
-  ]
-  delta: 0
-  econAccountsAfter: 19
-  econAccountsBefore: 19
-  missingAfterCount: 0
-  npcIdsSeen: 19
-  reason: init
-  skippedCount: 19
-  syncedCount: 0
-}
-LOG END CONSOLE_EXPAND_V1
-WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772124221612}
-WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772124221612}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772124221612}
-LOG [AttackChoices] conflict-arguments loaded 1772124221612
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772124221613}
-LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772124221614, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772124221615}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772124221615}
-WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772124237041_572a059c49c718 // 1) Запусти smoke (верни результат)
-await Game.__DEV.smokeOutgoingBattleCardOnce();
-
-// 2) Проверь, появились ли data-testid узлы в DOM
-({
-  oppArg: document.querySelectorAll('[data-testid="outgoing-opp-arg"]').length,
-  myCounter: document.querySelectorAll('[data-testid="outgoing-my-counter"]').length,
-  resultPill: document.querySelectorAll('[data-testid="battle-result-pill"]').length,
-  rematchBtn: document.querySelectorAll('[data-testid="battle-rematch-btn"]').length,
-});
-
-// 3) Найди види…
-WARN [repl] > // 1) Запусти smoke (верни результат)
-await Game.__DEV.smokeOutgoingBattleCardOnce();
-
-// 2) Проверь, появились ли data-testid узлы в DOM
-({
-  oppArg: document.querySelectorAll('[data-testid="outgoing-opp-arg"]').length,
-  myCounter: document.querySelectorAll('[data-testid="outgoing-my-counter"]').length,
-  resultPill: document.querySelectorAll('[data-testid="battle-result-pill"]').length,
-  rematchBtn: document.querySelectorAll('[data-testid="battle-rematch-btn"]').length,
-});
-
-// 3) Найди види…
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_outgoing_card_mm3p0kj6, battleStatus: null, nowMs: 1772124237047, resultIfAny: win, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm3p0kj6, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: null
-  battleId: dev_smoke_outgoing_card_mm3p0kj6
-  branch: outgoing_resolved
-  canRematch: true
-  defenderId: npc_weak
-  direction: outgoing
-  fallbackUsed: false
-  hasAttackerId: false
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: true
-  isResolved: true
-  meId: me
-  outcome: win
-  unknownDirection: false
-}
-LOG END CONSOLE_EXPAND_V1
-LOG SMOKE_OUTGOING_BATTLE_CARD Object{battleId: dev_smoke_outgoing_card_mm3p0kj6, branchLog: Object{attackerId: null, battleId: dev_smoke_outgoing_card_mm3p0kj6, branch: outgoing_resolved, canRematch: true, defenderId: npc_weak, direction: outgoing, fallbackUsed: false, hasAttackerId: false, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: true, isResolved: true, meId: me, outcome: win, unknownDirection: false}, nodes: Object{battleResult: true, outgoingMyCounter: true, outgoingOppArg: true, rematchButton: true}, status: PASS}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  battleId: dev_smoke_outgoing_card_mm3p0kj6
-  branchLog: Object{
-    attackerId: null
-    battleId: dev_smoke_outgoing_card_mm3p0kj6
-    branch: outgoing_resolved
-    canRematch: true
-    defenderId: npc_weak
-    direction: outgoing
-    fallbackUsed: false
-    hasAttackerId: false
-    hasBDirection: false
-    hasDefenderId: true
-    hasMyCounter: true
-    hasOppArg: true
-    isOutgoing: true
-    isResolved: true
-    meId: me
-    outcome: win
-    unknownDirection: false
-  }
-  nodes: Obje…
-LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772196235189_7fa7c84a71bde8 Object{ok: true, value: undefined}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm4vu42a_ehsjtj, ageMs: 77131, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 2, cooldownsCount: 3, mePts: 11, npcPtsAvg: 9.789473684210526, npcPtsMin: 6, reason: in_battle_decision, worldBankPts: 10}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mm4vu42a_ehsjtj, ageMs: 79434, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 2, cooldownsCount: 3, mePts: 11, npcPtsAvg: 9.789473684210526, npcPtsMin: 6, reason: in_battle_decision, worldBankPts: 10}
 
