@@ -22346,6 +22346,74 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
   };
 
+  const smokeAttackTypeDiversityIncomingOnce = (opts = {}) => {
+    const name = "smoke_attack_type_diversity_incoming_once";
+    const runsCount = (opts && Number.isFinite(opts.n) && opts.n > 0) ? (opts.n | 0) : 10;
+    const emitBegin = () => emitLine("SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_BEGIN");
+    const emitJson1 = (payload) => emitLine(`SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1 ${safeStringify(payload)}`);
+    const emitJson2 = (payload) => emitLine(`SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2 ${safeStringify(payload)}`);
+    const emitEnd = (payload) => emitLine(`SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_END ${safeStringify(payload || {})}`);
+    const eventGen = (Game.__DEV && typeof Game.__DEV.__eventGenTickOnce === "function") ? Game.__DEV.__eventGenTickOnce : null;
+    if (!eventGen) {
+      const failure = { name, ok: false, reason: "event_gen_missing" };
+      emitBegin();
+      emitJson1({ name, ok: false, reason: failure.reason });
+      emitJson2({ runs: [], typeCounts: {}, ynShare: null });
+      emitEnd({ ok: false });
+      return failure;
+    }
+    emitBegin();
+    const diag = {
+      runs: [],
+      typeCounts: {},
+      attempts: 0,
+      captured: 0
+    };
+    for (let idx = 0; idx < runsCount; idx += 1) {
+      diag.attempts += 1;
+      let battle = null;
+      try {
+        const res = eventGen({ source: "smoke_attack_type_diversity", maxSilentStreak: 20 });
+        battle = res && res.battle ? res.battle : null;
+      } catch (err) {
+        diag.runs.push({ idx: idx + 1, error: String(err) });
+        continue;
+      }
+      const entry = {
+        idx: idx + 1,
+        battleId: battle && (battle.id || battle.battleId) || null,
+        opponentId: battle && (battle.opponentId || battle.oppId) || null,
+        type: battle && battle.attack && battle.attack.type ? String(battle.attack.type).toLowerCase() : null
+      };
+      diag.runs.push(entry);
+      if (entry.type) {
+        diag.captured += 1;
+        diag.typeCounts[entry.type] = (diag.typeCounts[entry.type] || 0) + 1;
+      }
+    }
+    const totalCaptured = diag.captured;
+    const uniqueTypes = Object.keys(diag.typeCounts).filter(Boolean).length;
+    const ynShare = totalCaptured ? ((diag.typeCounts.yn || 0) / totalCaptured) : 0;
+    const ok = totalCaptured > 0 && uniqueTypes >= 2 && ynShare <= 0.7;
+    const summary = {
+      name,
+      runsCount,
+      attempts: diag.attempts,
+      captured: totalCaptured,
+      uniqueTypes,
+      ynShare,
+      typeCounts: diag.typeCounts,
+      ok
+    };
+    emitJson1(summary);
+    emitJson2({ runs: diag.runs, typeCounts: diag.typeCounts });
+    emitEnd({ ok, uniqueTypes, ynShare });
+    return Object.assign({ name, ok, typeCounts: diag.typeCounts, runs: diag.runs, summary }, summary);
+  };
+
+  Game.Dev.smokeAttackTypeDiversity_IncomingOnce = smokeAttackTypeDiversityIncomingOnce;
+  Game.__DEV.smokeAttackTypeDiversity_IncomingOnce = smokeAttackTypeDiversityIncomingOnce;
+
   Game.__DEV.smokePublicChatAutoReplyOnce = (opts = {}) => {
     const name = "smoke_public_chat_auto_reply_once";
     emitLine("PUBLIC_CHAT_AUTO_REPLY_BEGIN");

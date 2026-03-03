@@ -47,8 +47,13 @@
   - Next: <кого созвать смотреть TASKS.md дальше и почему>
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
-      <готовый текст, который творец просто копипастит следующему исполнителю>
+      Ответ Проверяющего:
+      1) На 3 подряд incoming_battle проверьте `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
+      2) Для r vs y и y vs r найдите `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедитесь что `BATTLE_CANON_RESOLVE_V1` не draw и по тем же battleId нет `CROWD_CREATE_*`.
+      3) После hard reload dev=1 запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем приложите `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, как минимум 10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен) и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` с `ok:true`, `uniqueTypes>=2`, `ynShare<=0.7`.
+      4) Как только QA прикрепит Console.txt с перечисленными маркерами и JSON-выводом смоука — задачу можно переводить в PASS.
       ```
+
 ```
 
 ## Правила работы (коротко)
@@ -83,61 +88,28 @@
   - [ ] `ATTACK_TYPE_DIVERSITY_V2` пишет `availableTypes` длиной ≥2 (если типы существуют в контенте) хотя бы на 3 подряд incoming battle, и `selectedType` не всегда `yn`.
   - [ ] `ATTACK_TYPE_DIVERSITY_V2` включает поля `battleId`, `opponentId`, `counts`, `selectedType`, `reason`, `window`, `availableTypes`.
 - Notes: Не трогать экономику/REP/robbery/таймеры/толпу, кроме запрета crowd именно для r vs y/y vs r.
-- Result: FAIL — ждём runtime-доказательств от QA.
+- Result: FAIL — QA пока не принёс подтверждения от `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1`.
   - Report:
     - Status: FAIL
     - Facts:
-      1) `AsyncScene/Web/conflict/conflict-core.js`: в `C.finalize/runFinalize` добавлен hard-rule для r vs y/y vs r, который принудительно выставляет победу красного, запрещает crowd, и логирует `BATTLE_CANON_YR_LOCK_V1` с battleId/цветами/forcedOutcome/forcedNoCrowd.
-      2) `AsyncScene/Web/conflict/conflict-arguments.js`: входящие типы атак теперь ищут доступность по всем саб-ключам цвета, балансируются по истории, и логируют `ATTACK_TYPE_DIVERSITY_V2` с `availableTypes`, `counts`, `selectedType`, `reason`, `window`, `battleId`, `opponentId`.
-      3) `AsyncScene/Web/conflict/conflict-arguments.js`: удалено дублирующее `const canonSubKeysByColor`, чтобы устранить SyntaxError и позволить ConflictAPI загрузить модуль, и добавлен лог `CONFLICT_ARGUMENTS_LOADED_OK_V1 {ts, buildTag, hasDiversityV2:true}` после инициализации.
-      4) `PROJECT_MEMORY.md` и `TASKS.md` обновлены, статус оставлен FAIL до runtime доказательств.
-  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `PROJECT_MEMORY.md` `TASKS.md`
+      1) `Console.txt` DUMP_AT [2026-03-04 00:54:14] фиксирует последовательные `ATTACK_TYPE_DIVERSITY_V2` при incoming_battle, но у всех `reason:"desired:yn"` и `selectedType:"yn"`, так что баг воспроизводится на месте.
+      2) `AsyncScene/Web/conflict/conflict-arguments.js` теперь ведёт окно из 20 последних входящих, рассчитывает counts, использует детерминированный RNG (seed=battleId), понижает `yn`, повышает редкие типы и логирует `availableTypes`, `counts`, `selectedType`, `reason`, `window`, `seed`.
+      3) Добавлен smoke `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce` и описан в `SMOKE_TEST_COMMANDS.md`, он запускает 10 incoming_battle, проверяет `uniqueTypes>=2`, `ynShare<=0.7` и выдает `BEGIN/JSON1/JSON2/END` c `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2`.
+      4) `PROJECT_MEMORY.md`, `SMOKE_TEST_COMMANDS.md` и `TASKS.md` записали новую логику и требования, но пока нет runtime-отчета, чтобы переключить задачу в PASS.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md` `SMOKE_TEST_COMMANDS.md`
   - How to verify:
     1) Спровоцировать incoming battle r vs y и y vs r (например npc_bandit3 против жёлтой защиты) и в Console.txt найти `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедиться что `BATTLE_CANON_RESOLVE_V1` не draw и `CROWD_CREATE_*` отсутствуют по этому battleId.
-    2) На 3 подряд incoming_battle проверить `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` меняется (не всегда `yn`).
-    3) Зафиксировать DUMP_AT и приложить срез логов с обоими маркерами.
+    2) На 3 подряд incoming_battle проверить `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
+    3) Hard reload dev=1, запустить `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, и приложить к задаче `Console.txt` с DUMP_AT, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен) и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` (`ok:true`, `uniqueTypes>=2`, `ynShare<=0.7`).
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       Ответ Проверяющего:
       1) На 3 подряд incoming_battle проверьте `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
       2) Для r vs y и y vs r найдите `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедитесь что `BATTLE_CANON_RESOLVE_V1` не draw и по тем же battleId нет `CROWD_CREATE_*`.
-      3) После перезагрузки убедитесь, что `Console.txt` больше не содержит `SyntaxError: Cannot declare a const variable twice: 'canonSubKeysByColor'` и `[ConflictAPI] Arguments module not found`/fallback, а появляется `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` (ts/buildTag не пустые).
-      4) Приложите DUMP_AT и срез Console.txt со всеми маркерами — тогда можно переводить задачу в PASS.
+      3) После hard reload dev=1 запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем приложите `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, как минимум 10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен) и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` с `ok:true`, `uniqueTypes>=2`, `ynShare<=0.7`.
+      4) Как только QA прикрепит Console.txt с перечисленными маркерами и JSON-выводом смоука — задачу можно переводить в PASS.
       ```
-
-### [T-20260303-006] Canon resolve: tierDistance scope + same-color defender win + y-r lock logs
-- Status: FAIL
-- Priority: P0
-- Assignee: Codex-ассистент
-- Next: QA
-- Area: Conflict
-- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: Сделать y-r/r-y схватки без crowd: независимо от типа побеждает красный, crowd не стартует, и диагностика фиксирует reason/forcedNoCrowd для этих боёв.
-- Acceptance:
-  - [ ] Для любых y-r/r-y (tierDistance>=2, non-black) `computeOutcome` сохраняет `_yrLockState` с `forcedNoCrowd=1`, `reason:"yr_lock"`, а исход (`outcome`) всегда красный без draw, даже если тип правильный и батл во villain-ветке.
-  - [ ] `BATTLE_CANON_YR_LOCK_V3` появляется на каждом таком бою и содержит поля `battleId`, `attackColor`, `defenseColor`, `tierDistance`, `forcedOutcome`, `forcedNoCrowd:1`, `reason:"yr_lock"`, и `previousOutcomeIfAny`.
-  - [ ] `BATTLE_OUTCOME_GATE_V3` для этих батлов пишет `forcedNoCrowd=1`, `yrLock=1`, `yrLockTierDistance=2`, `willStartCrowd:false`, and `crowdCreateAttempted:false`.
-  - [ ] В `BATTLE_CANON_RESOLVE_V1` `outcome≠draw`, `crowdStarted=0`, `attackColor/defenseColor` отражают y-r, и `CROWD_CREATE_*` отсутствуют для этих battleId (за счёт `isYRRLockNoCrowd` и guard-логики).
-- Notes: Не трогать экономику/REP/UI; все отчёты должны упоминать `Console.txt` маркеры и сценарии “желтый против красного ветерана” и “желтый vs красный злодей”.
-- Result: FAIL — runtime-данные (5–10 y-r/r-y с красным ветераном и злодеем против желтого) пока не собраны.
-- Report:
-  - Status: FAIL
-  - Facts:
-    1) `computeOutcome` сохраняет `_yrLockState` для tierDistance=2 non-black, forcedNoCrowd=1, блокирует `typeRelevant`, и outcome теперь всегда отдаёт победу более сильному цвету (красному) даже при правильном типе в villain-ветке.
-    2) `startCrowdVoteTimer` проверяет `isYRRLockNoCrowd` и сразу выходит, так что никакие `CROWD_CREATE_*` не пишутся по данным battleId.
-    3) `finalize` логирует `BATTLE_CANON_YR_LOCK_V3`, обновлённый `BATTLE_OUTCOME_GATE_V3`, и `BATTLE_CANON_RESOLVE_V1` показывает `crowdStarted=0` и `forcedNoCrowd=1`.
-    4) `PROJECT_MEMORY.md` и `TASKS.md` зафиксировали новую метрику и инструкции по проверке через Console.txt, включая сценарии “красный ветеран против моей защиты на жёлтом” и “красный злодей против жёлтого”.
-    5) Добавлены диагностические маркеры (`BATTLE_YR_LOCK_CROWD_BLOCKED_V1`, `BATTLE_YR_LOCK_CROWD_TIMER_BLOCKED_V1`, `BATTLE_ROBBERY_V2`, `OUTGOING_RESOLVE_DIAG_V1`, `ATTACK_TYPE_DIVERSITY_V1`), и QA теперь ожидает их появление в Console.txt/логах при соответствующих сценариях.
-  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
-  - How to verify:
-    1) Включите dev/имитированную среду и сыграйте 5–10 боёв y-r и r-y, обязательно включая (a) красного ветерана против вашей защиты на жёлтом и (b) красного злодея в аналогичном конфликте.
-    2) В Console.txt на каждый бой найдите `BATTLE_CANON_YR_LOCK_V3` с `forcedNoCrowd:1`, `reason:"yr_lock"`, `tierDistance:2`, и `forcedOutcome` в пользу красного, затем проверьте `BATTLE_OUTCOME_GATE_V3` с `forcedNoCrowd=1`, `yrLock=1`, `willStartCrowd:false`.
-    3) Убедитесь, что `BATTLE_CANON_RESOLVE_V1` для этих баттлов имеет `crowdStarted=0`, `outcome`=победа красного, и по тем же `battleId` нет ни одного `CROWD_CREATE_*`.
-    4) Проверьте `ATTACK_TYPE_DIVERSITY_V1` (последние 50 входящих типов), `OUTGOING_RESOLVE_DIAG_V1` (цвета/типы/локи в исходящих) и `BATTLE_ROBBERY_V2` после проигрыша от бандита с `lostPts`/`transferred`.
-  - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
-      ```text
       Ответ QA:
       1) Прогоните 5–10 боёв y-r и r-y, включая красного ветерана против жёлтой защиты и красного злодея против жёлтой защиты, чтобы покрыть оба сценария.
       2) В Console.txt проверьте на каждое `battleId`:

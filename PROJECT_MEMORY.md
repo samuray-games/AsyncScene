@@ -3526,3 +3526,13 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke: pending. PASS критерий — в Console.txt для 3–5 боёв y-y с правильным типом есть `BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1`, `BATTLE_CANON_RESOLVE_V1 outcome=defender_win crowdStarted=0`, и нет `CROWD_CREATE_*` для этих battleId.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
 - Next: QA запустить SMOKE и приложить Console.txt с маркерами.
+
+### 2026-03-04 — Incoming argument type diversity balance
+- Status: FAIL (QA смоук не прогнан)
+- Facts:
+  - `Console.txt` DUMP_AT [2026-03-04 00:54:14] подтверждает баг: несколько `ATTACK_TYPE_DIVERSITY_V2` при incoming_battle все логируют `reason:"desired:yn"` и `selectedType:"yn"` из-за фиксированного дефолта.
+  - `AsyncScene/Web/conflict/conflict-arguments.js` теперь ведёт окно последних 20 входящих, балансирует типы по counts, использует детерминированный RNG (seed=battleId) и понижает `yn`, а `ATTACK_TYPE_DIVERSITY_V2` пишет `availableTypes`, `counts`, `selectedType`, `reason`, `window`, `seed`.
+  - Добавлен dev smoke `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce` и документированы шаги в `SMOKE_TEST_COMMANDS.md`: QA делает hard reload dev=1, запускает smoke, проверяет `uniqueTypes>=2`, `ynShare<=0.7`, и сохраняет `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`), `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` и `BEGIN/JSON1/JSON2/END`.
+  - `PROJECT_MEMORY.md`, `SMOKE_TEST_COMMANDS.md` и `TASKS.md` отражают новую логику, но без runtime-доказательств задача остаётся FAIL.
+- Next: QA (см. `Tasks` — run smoke и приложить Console.txt с маркерами).
+- Changed: `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`

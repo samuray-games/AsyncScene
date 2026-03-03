@@ -839,19 +839,23 @@
       if (hit) availableMap[type] = hit;
     });
     const availableTypes = Object.keys(availableMap);
-    let candidateTypes = [];
-    let selectedReason = "incoming_random";
-    if (desiredGroup && availableTypes.includes(desiredGroup)) {
-      candidateTypes = [desiredGroup];
-      selectedReason = `desired:${desiredGroup}`;
-    } else if (availableTypes.length) {
-      candidateTypes = availableTypes.slice();
-      selectedReason = desiredGroup ? `desired_missing:${desiredGroup}` : "incoming_random";
-    } else {
-      candidateTypes = baseTypes.slice();
-      selectedReason = "no_available_types";
-    }
-
+    const HISTORY_WINDOW = 20;
+    const typeSeed = String(battleCtx && battleCtx.id || "");
+    const createSeededRng = (seed) => {
+      let hash = 0;
+      const str = String(seed || "");
+      for (let i = 0; i < str.length; i += 1) {
+        hash = ((hash * 31) + str.charCodeAt(i)) % 2147483647;
+      }
+      if (hash <= 0) hash = 1;
+      return () => {
+        hash = (hash * 48271) % 2147483647;
+        return hash / 2147483647;
+      };
+    };
+    const rng = typeSeed ? createSeededRng(typeSeed) : null;
+    const normalizedDesired = desiredGroup ? String(desiredGroup).toLowerCase() : null;
+    const candidateTypes = availableTypes.length ? availableTypes.slice() : baseTypes.slice();
     const computeCounts = () => {
       const counts = {};
       baseTypes.forEach(type => { counts[type] = 0; });
@@ -863,29 +867,45 @@
       });
       return counts;
     };
-    const countsBefore = computeCounts();
-    const pickBalancedType = (choices, counts) => {
+    const pickDiversityType = (choices, counts, rngInstance, preferred) => {
       if (!choices || !choices.length) return null;
-      let minCount = Infinity;
-      const bucket = [];
+      const entries = [];
+      let totalWeight = 0;
+      const windowLen = Math.max(1, history.length);
       for (const type of choices) {
         const normalized = String(type || "").toLowerCase();
         const cnt = counts.hasOwnProperty(normalized) ? counts[normalized] : 0;
-        if (cnt < minCount) {
-          minCount = cnt;
-          bucket.length = 0;
-          bucket.push(type);
-        } else if (cnt === minCount) {
-          bucket.push(type);
+        let weight = 1 / (1 + cnt);
+        if (preferred && normalized === preferred) weight *= 1.25;
+        if (normalized === "yn") {
+          const share = cnt / windowLen;
+          if (share > 0.6) weight *= 0.3;
         }
+        const finalWeight = Math.max(weight, 0.01);
+        entries.push({ type, weight: finalWeight });
+        totalWeight += finalWeight;
       }
-      return bucket.length ? bucket[Math.floor(Math.random() * bucket.length)] : null;
+      if (totalWeight <= 0) return choices[0];
+      const roll = (rngInstance ? rngInstance() : Math.random()) * totalWeight;
+      let cursor = 0;
+      for (const entry of entries) {
+        cursor += entry.weight;
+        if (roll <= cursor) return entry.type;
+      }
+      return entries[entries.length - 1].type;
     };
-
-    const selectedType = pickBalancedType(candidateTypes, countsBefore) || candidateTypes[0] || "yn";
+    const countsBefore = computeCounts();
+    const selectedType = pickDiversityType(candidateTypes, countsBefore, rng, normalizedDesired) || candidateTypes[0] || "yn";
     history.push(selectedType);
-    if (history.length > 50) history.splice(0, history.length - 50);
+    if (history.length > HISTORY_WINDOW) history.splice(0, history.length - HISTORY_WINDOW);
     const countsAfter = computeCounts();
+    let selectedReason = availableTypes.length ? "diversity_balanced" : "no_available_types";
+    if (normalizedDesired) selectedReason += `|pref:${normalizedDesired}`;
+    if (selectedType === "yn") {
+      const totalWindow = Math.max(1, history.length);
+      const ynShare = (countsBefore.yn || 0) / totalWindow;
+      if (ynShare > 0.6) selectedReason += "|yn_dom";
+    }
     const diagPayload = {
       battleId: battleCtx.id || null,
       opponentId,
@@ -894,7 +914,7 @@
       window: history.length,
       availableTypes: availableTypes.slice(0),
       reason: selectedReason,
-      seed: battleCtx.id || null
+      seed: typeSeed || null
     };
     try {
       console.warn("ATTACK_TYPE_DIVERSITY_V2", diagPayload);
