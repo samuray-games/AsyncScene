@@ -1,28 +1,28 @@
-[DUMP_AT] [2026-02-28 01:16:33] (epoch_ms=1772208993531)
+[DUMP_AT] [2026-03-03 16:28:04] (epoch_ms=1772522884689)
 [DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
-WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772208969552
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772522804443
 WARN DEV_SW_DISABLED true
 WARN CONSOLE_TAPE_V1_READY
 WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
 WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
 WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
-WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772208969574}
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772522804491}
 WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
 WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
 WARN DEV_CHECKS_SERVED_PROOF_V4
 WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
-WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772208969555 1772208969574
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772522804453 1772522804492
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
 WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
-WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772208969574
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772522804492
 WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
 WARN [DEV] content testing hooks enabled
 WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
-WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772208969574}
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772522804494}
 LOG ECON08_RESPECT_ENTRYPOINT_READY
-WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772208969583}
-WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772208969585}
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772522804513}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772522804515}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -45,21 +45,277 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772208969586}
-WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772208969586}
-WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772208969586}
-LOG [AttackChoices] conflict-arguments loaded 1772208969586
-WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772208969586}
+WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772522804517}
+WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772522804517}
+WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772522804517}
+LOG [AttackChoices] conflict-arguments loaded 1772522804517
+WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772522804518}
 LOG [ConflictAPI] ready
-WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772208969587, wrapped: true}
-WARN UI_DM_V1_LOADED Object{ts: 1772208969588}
-WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772208969588}
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772522804520, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1772522804521}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772522804521}
 WARN CONSOLE_PANEL_V1_READY
-WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772208986135_d38ad887ae814 Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()
-WARN [repl] > Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()
-WARN SMOKE_BATTLE_CANON_MATCH_NO_CROWD_BEGIN Object{name: smokeBattle_CanonMatch_NoCrowdOnce}
-WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772208986142}
-WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772208986142}
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772522829410_4cb7591e2087c Game.__DEV.smokeStage3Step4Once()
+WARN [repl] > Game.__DEV.smokeStage3Step4Once()
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522829416, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: defineProperty
+    key: Game.Debug.securityEvents
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522829416
+  type: tamper_detected
+  window: Object{…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.securityEvents
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.securityEvents
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522829416, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: defineProperty
+    key: Game.Debug.__debugSecurityEventsStore
+    stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522829416
+  type: tamper_detected
+  win…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.__debugSecurityEventsStore
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: defineProperty
+  key: Game.Debug.__debugSecurityEventsStore
+  stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
+}
+LOG END CONSOLE_EXPAND_V1
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522829414, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: get
+    key: Game._ConflictCore.computeOutcome
+    mode: dev
+    stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522829414
+  type: forbidden_api_access
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: get
+  key: Game._ConflictCore.computeOutcome
+  mode: dev
+  stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: get
+  key: Game._ConflictCore.computeOutcome
+  mode: dev
+  stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN BATTLE_OUTCOME_GATE_V3 Object{attackType: yn, battleId: smoke_stage3_prod_bsdp, canonGroupKey: null, canonGuardActive: false, canonKeyAttack: Smoke attack, canonKeyDefense: Smoke defense, canonMatchOk: false, canonProblem: defense_missing_sub, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: Object{hasCrowd: false, phase: null, startedAtMs: null, status: null}, defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: canon_smoke_defense, selectedDefenseArgKey: yn, statusAfter: finished, statusBefore: pickDefense, ts: 1772522829422, willResolveNow: true, willStartCrowd: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackType: yn
+  battleId: smoke_stage3_prod_bsdp
+  canonGroupKey: null
+  canonGuardActive: false
+  canonKeyAttack: Smoke attack
+  canonKeyDefense: Smoke defense
+  canonMatchOk: false
+  canonProblem: defense_missing_sub
+  canonSkipDrawGuard: false
+  crowdCreateAttempted: false
+  crowdSnapshot: Object{
+    hasCrowd: false
+    phase: null
+    startedAtMs: null
+    status: null
+  }
+  defenseSource: battle.defense
+  defenseType: yn
+  phase: finalize
+  selectedDefenseArgId: canon_smoke_defe…
+LOG END CONSOLE_EXPAND_V1
+WARN BATTLE_CANON_RESOLVE_V1 Object{attackColor: y, attackerId: npc_smoke_stage3, battleId: smoke_stage3_prod_bsdp, crowdStarted: 0, defenderId: me, defenseColor: y, isAttackTypeCorrect: true, isBlackAttack: false, isBlackDefense: false, isDefenseTypeCorrect: true, isSameColor: true, outcome: defender_win, robberyAllowed: 0, robberyTriggered: 0, tierDistance: 0, typeMatchOk: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackColor: y
+  attackerId: npc_smoke_stage3
+  battleId: smoke_stage3_prod_bsdp
+  crowdStarted: 0
+  defenderId: me
+  defenseColor: y
+  isAttackTypeCorrect: true
+  isBlackAttack: false
+  isBlackDefense: false
+  isDefenseTypeCorrect: true
+  isSameColor: true
+  outcome: defender_win
+  robberyAllowed: 0
+  robberyTriggered: 0
+  tierDistance: 0
+  typeMatchOk: true
+}
+LOG END CONSOLE_EXPAND_V1
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: smoke_stage3_prod_bsdp, endedBy: null, nowMs: 1772522829427, result: win, statusAfter: finished, statusBefore: pickDefense, winnerId: null}
+LOG [repl] < Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.ConflictCore.computeOutcome undefined, Game.Conflict.computeOutcome undefined, Game.UI.computeOutcome undefined, Game.__A.computeOutcome undefined, computeOutcome hidden from public surfaces, resolveBattleOutcome returned win], hasComputeOutcome: false, mode: prod, ok: true, outcomeWorks: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.computeOutcome undefined
+    Game.ConflictCore.computeOutcome undefined
+    Game.Conflict.computeOutcome undefined
+    Game.UI.computeOutco…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [ok, mode, hasComputeOutcome, apiSurfaceKeys, outcomeWorks, evidence], preview: Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.ConflictCore.computeOutcome undefined, Game.Conflict.computeOutcome undefined, Game.UI.computeOutcome undefined, Game.__A.computeOutcome …, type: object}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  isPromise: 0
+  keys: [
+    ok
+    mode
+    hasComputeOutcome
+    apiSurfaceKeys
+    outcomeWorks
+    evidence
+  ]
+  preview: Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.Co…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, mode, hasComputeOutcome, apiSurfaceKeys, outcomeWorks, evidence], preview: Object{
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.computeOutcome undefined
+    Game.ConflictCore.computeOutcome undefined
+    Game.Conflict.computeOutcome undefined
+    Game.UI.computeOutco…, type: object}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  isPromise: 0
+  keys: [
+    ok
+    mode
+    hasComputeOutcome
+    apiSurfaceKeys
+    outcomeWorks
+    evidence
+  ]
+  preview: Object{
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.comp…
+LOG END CONSOLE_EXPAND_V1
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772522829410_4cb7591e2087c Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.ConflictCore.computeOutcome undefined, Game.Conflict.computeOutcome undefined, Game.UI.computeOutcome undefined, Game.__A.computeOutcome undefined, computeOutcome hidden from public surfaces, resolveBattleOutcome returned win], hasComputeOutcome: false, mode: prod, ok: true, outcomeWorks: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.computeOutcome undefined
+    Game.ConflictCore.computeOutcome undefined
+    Game.Conflict.computeOutcome undefined
+    Game.UI.computeOutco…
+LOG END CONSOLE_EXPAND_V1
+WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_sad, targetId: npc_troll, type: npc_event}
+WARN CONSOLE_DUMP_POSTING_TO /__dev/console-dump?v=1772522844653 1772522844651_4de70f115706f
+WARN CONSOLE_DUMP_WRITE_OK Object{bytes: 17466, dumpAtEpochMs: 1772522844721, dumpAtLocal: 2026-03-03 16:27:24, ok: true, path: /Users/User/Documents/created apps/AsyncScene/Console.txt, prepend: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, runId: 1772522844651_4de70f115706f, sepOk: false, status: 200}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  bytes: 17466
+  dumpAtEpochMs: 1772522844721
+  dumpAtLocal: 2026-03-03 16:27:24
+  ok: true
+  path: /Users/User/Documents/created apps/AsyncScene/Console.txt
+  prepend: true
+  proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
+  runId: 1772522844651_4de70f115706f
+  sepOk: false
+  status: 200
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ARGS_FINGERPRINT_V1 line768_fix_1 Object{ts: 1772522848311}
+WARN ARGS_FINGERPRINT_V2 desiredGroup_fix_1 Object{hasDesiredGroup: true, ts: 1772522848312}
 WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
@@ -82,42 +338,675 @@ LOG Object{
 }
 LOG END CONSOLE_EXPAND_V1
 WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
-WARN PROVOKE_BATTLE_INCOMING_DIAG_V1 Object{lowEconomyFree: true, mePoints: 10, npcId: npc_weak, ok: true, rawKeys: [id, opponentId, fromThem, status, attack, attackHidden, draw, crowd, pinned, defense, result, resolved, finished, createdAt, updatedAt, presentedAt, attackerId, startCostApplied], reason: ok, returnedId: battle_mm53h1ct_3adjha}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: false, cachedMode: null, nextMode: active}
+WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mmaac6yb_svzm0s, battleStatus: pickDefense, nowMs: 1772522848325, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mmaac6yb_svzm0s, hasBattleCtx: true, ts: 1772522848326}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_sad, targetId: me, type: incoming_battle}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN EVENT_STALL_DIAG_V1 Object{activeBattleId: battle_mmaac6yb_svzm0s, ageMs: 8055, status: pickDefense}
+WARN EVENT_GEN_SKIP_V1 Object{activeBattles: 1, cooldownsCount: 1, mePts: 10, npcPtsAvg: 9.947368421052632, npcPtsMin: 9, reason: in_battle_decision, worldBankPts: 10}
+WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mmaac6yb_svzm0s, hasBattleCtx: true, ts: 1772522857568}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1220:31}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522857570, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  lowEconomyFree: true
-  mePoints: 10
-  npcId: npc_weak
-  ok: true
-  rawKeys: [
-    id
-    opponentId
-    fromThem
-    status
-    attack
-    attackHidden
-    draw
-    crowd
-    pinned
-    defense
-    result
-    resolved
-    finished
-    createdAt
-    updatedAt
-    presentedAt
-    attackerId
-    startCostApplied
-  ]
-  reason: ok
-  returnedId: battle_mm53h1ct_3adjha
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: get
+    key: Game._ConflictCore.computeOutcome
+    mode: dev
+    stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1220:31
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522857570
+  type: forbidden_api_access
+  window: Object{
+  …
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1220:31}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: get
+  key: Game._ConflictCore.computeOutcome
+  mode: dev
+  stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1220:31
 }
 LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mm53h1ct_3adjha, cacheHit: false, cachedMode: null, nextMode: active}
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: battle_mm53h1ct_3adjha, battleStatus: pickDefense, nowMs: 1772208986156, resultIfAny: null, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: false}
-WARN ARGS_FINGERPRINT_V3 buildDefenseOptions_battle_fix_1 Object{battleId: battle_mm53h1ct_3adjha, hasBattleCtx: true, ts: 1772208986156}
-INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mm53h1ct_3adjha, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772208969589-k0xv, time: 1772208986162, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1220:31}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: get
+  key: Game._ConflictCore.computeOutcome
+  mode: dev
+  stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1220:31
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_CREATE_ATTEMPT_V1 Object{attackKey: Извините, это опасно?, battleId: battle_mmaac6yb_svzm0s, canonGuardActive: false, canonMatchOk: false, defenseKey: Ну… вряд ли., reason: finalize_draw, result: null, status: pickDefense}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackKey: Извините, это опасно?
+  battleId: battle_mmaac6yb_svzm0s
+  canonGuardActive: false
+  canonMatchOk: false
+  defenseKey: Ну… вряд ли.
+  reason: finalize_draw
+  result: null
+  status: pickDefense
+}
+LOG END CONSOLE_EXPAND_V1
+WARN BATTLE_OUTCOME_GATE_V3 Object{attackType: yn, battleId: battle_mmaac6yb_svzm0s, canonGroupKey: null, canonGuardActive: false, canonKeyAttack: Извините, это опасно?, canonKeyDefense: Ну… вряд ли., canonMatchOk: false, canonProblem: no_match_found, canonSkipDrawGuard: false, crowdCreateAttempted: true, crowdSnapshot: Object{hasCrowd: false, phase: null, startedAtMs: null, status: null}, defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: canon_Y1_yn_2kintt, selectedDefenseArgKey: yn, statusAfter: crowd, statusBefore: pickDefense, ts: 1772522857579, willResolveNow: false, willStartCrowd: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackType: yn
+  battleId: battle_mmaac6yb_svzm0s
+  canonGroupKey: null
+  canonGuardActive: false
+  canonKeyAttack: Извините, это опасно?
+  canonKeyDefense: Ну… вряд ли.
+  canonMatchOk: false
+  canonProblem: no_match_found
+  canonSkipDrawGuard: false
+  crowdCreateAttempted: true
+  crowdSnapshot: Object{
+    hasCrowd: false
+    phase: null
+    startedAtMs: null
+    status: null
+  }
+  defenseSource: battle.defense
+  defenseType: yn
+  phase: finalize
+  selectedDefenseArgId: canon_Y1_yn_2k…
+LOG END CONSOLE_EXPAND_V1
+WARN BATTLE_CANON_RESOLVE_V1 Object{attackColor: y, attackerId: npc_sad, battleId: battle_mmaac6yb_svzm0s, crowdStarted: 1, defenderId: me, defenseColor: y, isAttackTypeCorrect: true, isBlackAttack: false, isBlackDefense: false, isDefenseTypeCorrect: true, isSameColor: true, outcome: draw, robberyAllowed: 0, robberyTriggered: 0, tierDistance: 0, typeMatchOk: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackColor: y
+  attackerId: npc_sad
+  battleId: battle_mmaac6yb_svzm0s
+  crowdStarted: 1
+  defenderId: me
+  defenseColor: y
+  isAttackTypeCorrect: true
+  isBlackAttack: false
+  isBlackDefense: false
+  isDefenseTypeCorrect: true
+  isSameColor: true
+  outcome: draw
+  robberyAllowed: 0
+  robberyTriggered: 0
+  tierDistance: 0
+  typeMatchOk: true
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mmaac6yb_svzm0s
+  cap: 10
+  capFinal: 10
+  eligibleCount: 19
+  eventId: null
+  excludedOtherCount: 1
+  excludedZeroPtsCount: 0
+  meIncluded: true
+  rawCap: 20
+  rule: ELIG_V1_zero_pts
+  votersCount: 21
+  votersIdsLen: 21
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: battle_mmaac6yb_svzm0s, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: pickDefense}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, eventId: null, seed: null, startedAtMs: 1772522857582, votersCount: 21}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
+WARN CROWD_CREATE_CALLSITE_V1 Object{battleId: battle_mmaac6yb_svzm0s, callerName: @http://localhost:8080/conflict/conflict-core.js:3643:31, nowMs: 1772522857586, stackTag: @http://localhost:8080/conflict/conflict-core.js:3643:31}
+WARN CROWD_CREATE_ATTEMPT_V1 Object{attackKey: Извините, это опасно?, battleId: battle_mmaac6yb_svzm0s, canonGuardActive: false, canonMatchOk: false, defenseKey: Ну… вряд ли., reason: finalize_draw, result: null, status: crowd}
+WARN BATTLE_OUTCOME_GATE_V3 Object{attackType: yn, battleId: battle_mmaac6yb_svzm0s, canonGroupKey: null, canonGuardActive: false, canonKeyAttack: Извините, это опасно?, canonKeyDefense: Ну… вряд ли., canonMatchOk: false, canonProblem: no_match_found, canonSkipDrawGuard: false, crowdCreateAttempted: true, crowdSnapshot: Object{hasCrowd: true, phase: warmup, startedAtMs: 1772522857582, status: null}, defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: canon_Y1_yn_2kintt, selectedDefenseArgKey: yn, statusAfter: crowd, statusBefore: crowd, ts: 1772522857587, willResolveNow: false, willStartCrowd: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackType: yn
+  battleId: battle_mmaac6yb_svzm0s
+  canonGroupKey: null
+  canonGuardActive: false
+  canonKeyAttack: Извините, это опасно?
+  canonKeyDefense: Ну… вряд ли.
+  canonMatchOk: false
+  canonProblem: no_match_found
+  canonSkipDrawGuard: false
+  crowdCreateAttempted: true
+  crowdSnapshot: Object{
+    hasCrowd: true
+    phase: warmup
+    startedAtMs: 1772522857582
+    status: null
+  }
+  defenseSource: battle.defense
+  defenseType: yn
+  phase: finalize
+  selectedDefenseArgId: cano…
+LOG END CONSOLE_EXPAND_V1
+WARN BATTLE_CANON_RESOLVE_V1 Object{attackColor: y, attackerId: npc_sad, battleId: battle_mmaac6yb_svzm0s, crowdStarted: 1, defenderId: me, defenseColor: y, isAttackTypeCorrect: true, isBlackAttack: false, isBlackDefense: false, isDefenseTypeCorrect: true, isSameColor: true, outcome: draw, robberyAllowed: 0, robberyTriggered: 0, tierDistance: 0, typeMatchOk: true}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackColor: y
+  attackerId: npc_sad
+  battleId: battle_mmaac6yb_svzm0s
+  crowdStarted: 1
+  defenderId: me
+  defenseColor: y
+  isAttackTypeCorrect: true
+  isBlackAttack: false
+  isBlackDefense: false
+  isDefenseTypeCorrect: true
+  isSameColor: true
+  outcome: draw
+  robberyAllowed: 0
+  robberyTriggered: 0
+  tierDistance: 0
+  typeMatchOk: true
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, capFinal: 10, eligibleCount: 19, eventId: null, excludedOtherCount: 1, excludedZeroPtsCount: 0, meIncluded: true, rawCap: 20, rule: ELIG_V1_zero_pts, votersCount: 21, votersIdsLen: 21, votersIdsSample: [npc_weak, npc_sad, npc_meme]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mmaac6yb_svzm0s
+  cap: 10
+  capFinal: 10
+  eligibleCount: 19
+  eventId: null
+  excludedOtherCount: 1
+  excludedZeroPtsCount: 0
+  meIncluded: true
+  rawCap: 20
+  rule: ELIG_V1_zero_pts
+  votersCount: 21
+  votersIdsLen: 21
+  votersIdsSample: [
+    npc_weak
+    npc_sad
+    npc_meme
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ELIG_V1_EXCLUDED_SAMPLE Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, samples: [Object{id: security_owner, pts: 0, reason: not_npc}]}
+WARN CROWD_CAP_V1_SET Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, eligibleCount: 19, eventId: null, meIncluded: true}
+WARN CROWD_START_FLOW_V1 Object{battleId: battle_mmaac6yb_svzm0s, battleResolvedAfter: false, battleResolvedBefore: false, statusAfter: crowd, statusBefore: crowd}
+WARN CROWD_CREATE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, eventId: null, seed: null, startedAtMs: 1772522857589, votersCount: 21}
+WARN CROWD_DIAG_V1 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, eventId: null, phaseAtCreate: warmup, reason: created, timeDomain: epoch, votersCount: 21, whyVotersZero: has_votes}
+WARN CROWD_CREATE_CALLSITE_V1 Object{battleId: battle_mmaac6yb_svzm0s, callerName: @http://localhost:8080/conflict/conflict-core.js:3643:31, nowMs: 1772522857591, stackTag: @http://localhost:8080/conflict/conflict-core.js:3643:31}
+WARN CROWD_CREATE_ATTEMPT_V1 Object{attackKey: Извините, это опасно?, battleId: battle_mmaac6yb_svzm0s, canonGuardActive: false, canonMatchOk: false, defenseKey: Ну… вряд ли., reason: ensureCrowdVoteStarted, result: null, status: crowd}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackKey: Извините, это опасно?
+  battleId: battle_mmaac6yb_svzm0s
+  canonGuardActive: false
+  canonMatchOk: false
+  defenseKey: Ну… вряд ли.
+  reason: ensureCrowdVoteStarted
+  result: null
+  status: crowd
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ALREADY_ACTIVE_V2 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, nowMs: 1772522857591, phase: warmup, status: crowd, votersCount: 21}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: active, nextMode: active}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: active, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522858290, progressKey: 0|0|0}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522858595, progressKey: 1|0|2}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+WARN CROWD_CREATE_ATTEMPT_V1 Object{attackKey: Извините, это опасно?, battleId: battle_mmaac6yb_svzm0s, canonGuardActive: false, canonMatchOk: false, defenseKey: Ну… вряд ли., reason: ensureCrowdVoteStarted, result: null, status: crowd}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackKey: Извините, это опасно?
+  battleId: battle_mmaac6yb_svzm0s
+  canonGuardActive: false
+  canonMatchOk: false
+  defenseKey: Ну… вряд ли.
+  reason: ensureCrowdVoteStarted
+  result: null
+  status: crowd
+}
+LOG END CONSOLE_EXPAND_V1
+WARN CROWD_ALREADY_ACTIVE_V2 Object{battleId: battle_mmaac6yb_svzm0s, cap: 10, nowMs: 1772522858602, phase: warmup, status: crowd, votersCount: 21}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: battle_mmaac6yb_svzm0s, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: battle_mmaac6yb_svzm0s, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522859595, progressKey: 2|1|2}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: false, cachedMode: active, nextMode: draw_vote}
+INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: battle_mmaac6yb_svzm0s, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: draw_vote, wroteMyCounterNode: false, wroteOppArgNode: false, wroteRematchNode: false, wroteResultNode: false}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522860595, progressKey: 3|2|2}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522861597, progressKey: 4|4|2}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522862596, progressKey: 5|5|2}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522865597, progressKey: 6|5|3}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522866597, progressKey: 7|7|3}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522867598, progressKey: 8|9|3}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522875603, progressKey: 9|10|3}
+WARN CROWD_STALL_V1_PROGRESS Object{battleId: battle_mmaac6yb_svzm0s, eventId: null, now: 1772522878606, progressKey: 10|10|5}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: set, key: StateAPI.transferRep, mode: dev}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522878615, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 1
+    short: 1
+  }
+  meta: Object{
+    action: set
+    key: StateAPI.transferRep
+    mode: dev
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522878615
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
+WARN [SEC:notify] tamper_function Object{action: set, key: StateAPI.transferRep, mode: dev}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2432:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522878620, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 3
+    short: 3
+  }
+  meta: Object{
+    action: set_function
+    key: StateAPI.transferRep
+    mode: dev
+    stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2432:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-177252280452…
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2432:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: set_function
+  key: StateAPI.transferRep
+  mode: dev
+  stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2432:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC:notify] tamper_detected Object{action: set_function, key: StateAPI.transferRep, mode: dev, stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2432:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38}
+LOG BEGIN CONSOLE_EXPAND_V1 arg3
+LOG Object{
+  action: set_function
+  key: StateAPI.transferRep
+  mode: dev
+  stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2432:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 209, beforeTotal: 209, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: wealth_tax, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 209
+  beforeTotal: 209
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: wealth_tax
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522878641, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 2
+    short: 2
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522878641
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN NPC_ACTIVITY_TAX_ENTRY Object{amount: 1, reason: npc_activity_tax, sourceId: npc_sad, targetId: worldBank}
+WARN NPC_ACTIVITY_TAX_V1_PROBE Object{gainPoints: 1, isNpcTarget: false, reason: npc_activity_tax, softCapBefore: null, sourceId: npc_sad, targetId: worldBank}
+WARN NPC_ACTIVITY_TAX_ENTRY Object{amount: 1, reason: npc_activity_tax, sourceId: npc_sad, targetId: worldBank}
+WARN NPC_ACTIVITY_TAX_V1_PROBE Object{gainPoints: 1, isNpcTarget: false, reason: npc_activity_tax, softCapBefore: null, sourceId: npc_sad, targetId: worldBank}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: battle_mmaac6yb_svzm0s, endedBy: cap, nowMs: 1772522878648, result: lose, statusAfter: finished, statusBefore: crowd, winnerId: npc_sad}
+WARN CROWD_STALL_V1_RESOLVE Object{battleId: battle_mmaac6yb_svzm0s, capNow: 10, endedBy: cap, eventId: null, resolvedBy: cap, votesNow: 10}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: false, cachedMode: active, nextMode: incoming_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: npc_sad, battleId: battle_mmaac6yb_svzm0s, branch: incoming_resolved, canRematch: true, defenderId: me, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: false, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: npc_sad
+  battleId: battle_mmaac6yb_svzm0s
+  branch: incoming_resolved
+  canRematch: true
+  defenderId: me
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: false
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_RESOLVED_ARGS_DUP_V1 Object{battleId: battle_mmaac6yb_svzm0s, dupFlags: Object{myDup: false, oppDup: false}, mode: incoming_resolved, myCounterColorKeys: [y], myCounterPillsCount: 1, myCounterTestIds: [incoming-my-counter], oppArgColorKeys: [y], oppArgPillsCount: 1, oppArgTestIds: [incoming-opp-arg]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mmaac6yb_svzm0s
+  dupFlags: Object{
+    myDup: false
+    oppDup: false
+  }
+  mode: incoming_resolved
+  myCounterColorKeys: [
+    y
+  ]
+  myCounterPillsCount: 1
+  myCounterTestIds: [
+    incoming-my-counter
+  ]
+  oppArgColorKeys: [
+    y
+  ]
+  oppArgPillsCount: 1
+  oppArgTestIds: [
+    incoming-opp-arg
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_ARG_COLOR_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: incoming_resolved, myClass: chip y, myColorKey: y, oppClass: chip y, oppColorKey: y}
+INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: battle_mmaac6yb_svzm0s, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: incoming_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: incoming_resolved, nextMode: incoming_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: npc_sad, battleId: battle_mmaac6yb_svzm0s, branch: incoming_resolved, canRematch: true, defenderId: me, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: false, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: npc_sad
+  battleId: battle_mmaac6yb_svzm0s
+  branch: incoming_resolved
+  canRematch: true
+  defenderId: me
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: false
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_RESOLVED_ARGS_DUP_V1 Object{battleId: battle_mmaac6yb_svzm0s, dupFlags: Object{myDup: false, oppDup: false}, mode: incoming_resolved, myCounterColorKeys: [y], myCounterPillsCount: 1, myCounterTestIds: [incoming-my-counter], oppArgColorKeys: [y], oppArgPillsCount: 1, oppArgTestIds: [incoming-opp-arg]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mmaac6yb_svzm0s
+  dupFlags: Object{
+    myDup: false
+    oppDup: false
+  }
+  mode: incoming_resolved
+  myCounterColorKeys: [
+    y
+  ]
+  myCounterPillsCount: 1
+  myCounterTestIds: [
+    incoming-my-counter
+  ]
+  oppArgColorKeys: [
+    y
+  ]
+  oppArgPillsCount: 1
+  oppArgTestIds: [
+    incoming-opp-arg
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_ARG_COLOR_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: incoming_resolved, myClass: chip y, myColorKey: y, oppClass: chip y, oppColorKey: y}
+INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: battle_mmaac6yb_svzm0s, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: incoming_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+LOG [SEC:reaction] Object{counts: Object{long: 3, short: 3}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522880372, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 3
+    short: 3
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522880372
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_hot, targetId: npc_queen, type: npc_escape}
+INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: battle_mmaac6yb_svzm0s, cacheHit: true, cachedMode: incoming_resolved, nextMode: incoming_resolved}
+INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: npc_sad, battleId: battle_mmaac6yb_svzm0s, branch: incoming_resolved, canRematch: true, defenderId: me, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: false, isResolved: true, meId: me, outcome: lose, unknownDirection: false}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  attackerId: npc_sad
+  battleId: battle_mmaac6yb_svzm0s
+  branch: incoming_resolved
+  canRematch: true
+  defenderId: me
+  direction: null
+  fallbackUsed: false
+  hasAttackerId: true
+  hasBDirection: false
+  hasDefenderId: true
+  hasMyCounter: true
+  hasOppArg: true
+  isOutgoing: false
+  isResolved: true
+  meId: me
+  outcome: lose
+  unknownDirection: false
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_RESOLVED_ARGS_DUP_V1 Object{battleId: battle_mmaac6yb_svzm0s, dupFlags: Object{myDup: false, oppDup: false}, mode: incoming_resolved, myCounterColorKeys: [y], myCounterPillsCount: 1, myCounterTestIds: [incoming-my-counter], oppArgColorKeys: [y], oppArgPillsCount: 1, oppArgTestIds: [incoming-opp-arg]}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  battleId: battle_mmaac6yb_svzm0s
+  dupFlags: Object{
+    myDup: false
+    oppDup: false
+  }
+  mode: incoming_resolved
+  myCounterColorKeys: [
+    y
+  ]
+  myCounterPillsCount: 1
+  myCounterTestIds: [
+    incoming-my-counter
+  ]
+  oppArgColorKeys: [
+    y
+  ]
+  oppArgPillsCount: 1
+  oppArgTestIds: [
+    incoming-opp-arg
+  ]
+}
+LOG END CONSOLE_EXPAND_V1
+INFO UI_BATTLE_ARG_COLOR_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: incoming_resolved, myClass: chip y, myColorKey: y, oppClass: chip y, oppColorKey: y}
+INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: battle_mmaac6yb_svzm0s, hasMyCounter: true, hasOppArg: true, hasRematchBtn: true, hasResult: true}
+INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: battle_mmaac6yb_svzm0s, mode: incoming_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: true, wroteResultNode: true}
+LOG [SEC:reaction] Object{counts: Object{long: 4, short: 4}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522882083, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 4
+    short: 4
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522882083
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+LOG [SEC:reaction] Object{counts: Object{long: 5, short: 5}, meta: Object{action: call, key: transferRep, mode: dev, reason: blocked}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522884492, type: tamper_function, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  counts: Object{
+    long: 5
+    short: 5
+  }
+  meta: Object{
+    action: call
+    key: transferRep
+    mode: dev
+    reason: blocked
+  }
+  playerId: me
+  reaction: log_only
+  sessionId: session-1772522804523-2bol
+  time: 1772522884492
+  type: tamper_function
+  window: Object{
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
+LOG END CONSOLE_EXPAND_V1
+WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
+
+[DUMP_AT] [2026-03-03 16:27:24] (epoch_ms=1772522844721)
+[DUMP_PROOF] DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1
+WARN DEV_INDEX_HTML_PROOF_V1 build_2026_02_09b http://localhost:8080/index.html?dev=1 1772522804443
+WARN DEV_SW_DISABLED true
+WARN CONSOLE_TAPE_V1_READY
+WARN CONSOLE_DUMP_PROOF_OK Object{ok: true, proof: DEV_SERVER_CONSOLE_DUMP_V2_PROOF build_2026_02_11_b1, status: 200}
+WARN DEV_CHECKS_SERVED_PROOF_V3 served_probe_2026_02_08_1
+WARN DEV_CHECKS_SERVED_PROOF_V3_URL http://localhost:8080/index.html?dev=1
+WARN DEV_OBJ_INIT_V1 Object{keys: [], ts: 1772522804491}
+WARN ECON_NPC_ALLOWLIST_PACK_V1_LOADED
+WARN ECON_NPC_ALLOWLIST_PACK_V1_BUILD_TAG build_2026_02_08g
+WARN DEV_CHECKS_SERVED_PROOF_V4
+WARN DEV_CHECKS_SERVED_PROOF_V4_BUILD_TAG build_2026_02_09b
+WARN DEV_CHECKS_RUNTIME_PROOF_V4 build_2026_02_09b url http://localhost:8080/dev/dev-checks.js?v=1772522804453 1772522804492
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_LOADED
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_BUILD_TAG build_2026_02_09b
+WARN ECON_NPC_WEALTH_TAX_PACK_V1_READY_FLAG true
+WARN DEV_CHECKS_PROOF_V1 build_probe_2026_02_08_fix_try_1 1772522804492
+WARN DEV_CHECKS_BUILD_TAG_V5 build_2026_02_12_b2
+WARN [DEV] content testing hooks enabled
+WARN ECON_NPC_WORLD_CONTRACT_V1_EXPORTED econNpcWorldContractV1
+WARN ECON_SOC_STEP4_SMOKE_V1_LOADED Object{hasFn: true, ts: 1772522804494}
+LOG ECON08_RESPECT_ENTRYPOINT_READY
+WARN CONFLICT_CORE_LOADED_V1 Object{ts: 1772522804513}
+WARN ECON_MONEYLOG_EXPORTED_V1 Object{calls: 1, len: 0, sameRef: false, ts: 1772522804515}
+WARN ECON_NPC_ENSURE_V2 Object{afterTotal: 200, beforeTotal: 200, branch: already_ok, called: true, createdCount: 0, createdIds: [], delta: 0, econAccountsAfter: 19, econAccountsBefore: 19, missingAfterCount: 0, npcIdsSeen: 19, reason: init, skippedCount: 19, syncedCount: 0}
+LOG BEGIN CONSOLE_EXPAND_V1 arg2
+LOG Object{
+  afterTotal: 200
+  beforeTotal: 200
+  branch: already_ok
+  called: true
+  createdCount: 0
+  createdIds: [
+
+  ]
+  delta: 0
+  econAccountsAfter: 19
+  econAccountsBefore: 19
+  missingAfterCount: 0
+  npcIdsSeen: 19
+  reason: init
+  skippedCount: 19
+  syncedCount: 0
+}
+LOG END CONSOLE_EXPAND_V1
+WARN ECON_NPC_ACCOUNTS_CANON Object{afterCount: 19, createdCount: 0, missingAfterCount: 0, npcSeen: 19, storageKeyUsed: S.players}
+WARN CONFLICT_ARGUMENTS_PARSE_OK_V1 Object{buildTag: null, ts: 1772522804517}
+WARN ARGS_PARSE_OK_V2 Object{tag: ctx_dup_fix_1, ts: 1772522804517}
+WARN CONFLICT_ARGUMENTS_LOADED_V1 Object{buildTag: null, ts: 1772522804517}
+LOG [AttackChoices] conflict-arguments loaded 1772522804517
+WARN CONFLICT_API_LOADED_V1 Object{buildTag: build_2026_02_26_a, ts: 1772522804518}
+LOG [ConflictAPI] ready
+WARN UI_TOAST_TAPE_READY Object{hasGameUI: true, ts: 1772522804520, wrapped: true}
+WARN UI_DM_V1_LOADED Object{ts: 1772522804521}
+WARN UI_RESPECT_HOOKS_READY Object{hasClick: true, hasVisible: true, ts: 1772522804521}
+WARN CONSOLE_PANEL_V1_READY
+WARN CONSOLE_PANEL_RUN_BEGIN id=panel_1772522829410_4cb7591e2087c Game.__DEV.smokeStage3Step4Once()
+WARN [repl] > Game.__DEV.smokeStage3Step4Once()
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: defineProperty, key: Game.Debug.securityEvents, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522829416, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -131,8 +1020,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772208969589-k0xv
-  time: 1772208986162
+  sessionId: session-1772522804523-2bol
+  time: 1772522829416
   type: tamper_detected
   window: Object{…
 LOG END CONSOLE_EXPAND_V1
@@ -152,7 +1041,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1487:28 | emit@http://localhost:8080/state.js:1535:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772208969589-k0xv, time: 1772208986162, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 2, short: 2}, meta: Object{action: defineProperty, key: Game.Debug.__debugSecurityEventsStore, stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522829416, type: tamper_detected, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -166,8 +1055,8 @@ LOG Object{
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772208969589-k0xv
-  time: 1772208986162
+  sessionId: session-1772522804523-2bol
+  time: 1772522829416
   type: tamper_detected
   win…
 LOG END CONSOLE_EXPAND_V1
@@ -187,7 +1076,7 @@ LOG Object{
   stack: handleGlobalTamper@http://localhost:8080/state.js:1783:23 | @http://localhost:8080/state.js:1791:27 | ensureSecurityEventsArray@http://localhost:8080/state.js:1478:30 | emit@http://localhost:8080/state.js:1535:36
 }
 LOG END CONSOLE_EXPAND_V1
-LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3897:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1203:31}, playerId: me, reaction: log_only, sessionId: session-1772208969589-k0xv, time: 1772208986162, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
+LOG [SEC:reaction] Object{counts: Object{long: 1, short: 1}, meta: Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]}, playerId: me, reaction: log_only, sessionId: session-1772522804523-2bol, time: 1772522829414, type: forbidden_api_access, window: Object{longWindowMs: 600000, shortWindowMs: 60000}}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   counts: Object{
@@ -198,63 +1087,48 @@ LOG Object{
     action: get
     key: Game._ConflictCore.computeOutcome
     mode: dev
-    stack: get@http://localhost:8080/conflict/conflict-core.js:3897:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1203:31
+    stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]
   }
   playerId: me
   reaction: log_only
-  sessionId: session-1772208969589-k0xv
-  time: 1772208986162
+  sessionId: session-1772522804523-2bol
+  time: 1772522829414
   type: forbidden_api_access
   window: Object{
-  …
+    longWindowMs: 600000
+    shortWindowMs: 60000
+  }
+}
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3897:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1203:31}
+WARN [SEC] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: get
   key: Game._ConflictCore.computeOutcome
   mode: dev
-  stack: get@http://localhost:8080/conflict/conflict-core.js:3897:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1203:31
+  stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]
 }
 LOG END CONSOLE_EXPAND_V1
-WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:3897:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1203:31}
+WARN [SEC:notify] forbidden_api_access Object{action: get, key: Game._ConflictCore.computeOutcome, mode: dev, stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]}
 LOG BEGIN CONSOLE_EXPAND_V1 arg3
 LOG Object{
   action: get
   key: Game._ConflictCore.computeOutcome
   mode: dev
-  stack: get@http://localhost:8080/conflict/conflict-core.js:3897:28 | @http://localhost:8080/conflict/conflict-arguments.js:913:28 | resolveBattle@http://localhost:8080/conflict/conflict-api.js:1203:31
+  stack: get@http://localhost:8080/conflict/conflict-core.js:4107:28 | @http://localhost:8080/dev/dev-checks.js:170:26 | forEach@[native code]
 }
 LOG END CONSOLE_EXPAND_V1
-WARN DEV_OUTCOME_GATE_V1 Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonMatchOk: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, reason: canon_match_force_resolve, skippedCrowd: true, ts: 1772208986166}
+WARN BATTLE_OUTCOME_GATE_V3 Object{attackType: yn, battleId: smoke_stage3_prod_bsdp, canonGroupKey: null, canonGuardActive: false, canonKeyAttack: Smoke attack, canonKeyDefense: Smoke defense, canonMatchOk: false, canonProblem: defense_missing_sub, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: Object{hasCrowd: false, phase: null, startedAtMs: null, status: null}, defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: canon_smoke_defense, selectedDefenseArgKey: yn, statusAfter: finished, statusBefore: pickDefense, ts: 1772522829422, willResolveNow: true, willStartCrowd: false}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   attackType: yn
-  battleId: dev_smoke_canon_mm53h1dd
-  canonBuilt: true
-  canonMatchOk: true
-  canonProblem: null
-  defenseType: yn
-  forcedResolved: true
-  outcomeAfter: resolved
-  outcomeBefore: draw
-  reason: canon_match_force_resolve
-  skippedCrowd: true
-  ts: 1772208986166
-}
-LOG END CONSOLE_EXPAND_V1
-WARN DEV_OUTCOME_GATE_V2 Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, skippedCrowd: true}
-WARN BATTLE_OUTCOME_GATE_V3 Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: Object{hasCrowd: false, phase: null, startedAtMs: null, status: null}, defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackType: yn
-  battleId: dev_smoke_canon_mm53h1dd
-  canonGroupKey: Y1|YN
-  canonGuardActive: true
-  canonKeyAttack: Эм… простите, вы уверены?
-  canonKeyDefense: Наверное, да.
-  canonMatchOk: true
-  canonProblem: null
+  battleId: smoke_stage3_prod_bsdp
+  canonGroupKey: null
+  canonGuardActive: false
+  canonKeyAttack: Smoke attack
+  canonKeyDefense: Smoke defense
+  canonMatchOk: false
+  canonProblem: defense_missing_sub
   canonSkipDrawGuard: false
   crowdCreateAttempted: false
   crowdSnapshot: Object{
@@ -266,255 +1140,111 @@ LOG Object{
   defenseSource: battle.defense
   defenseType: yn
   phase: finalize
-  selectedDefenseArgId: dev_canon_def_dev…
+  selectedDefenseArgId: canon_smoke_defe…
 LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: dev_smoke_canon_mm53h1dd, endedBy: null, nowMs: 1772208986166, result: resolved, statusAfter: resolved, statusBefore: pickDefense, winnerId: null}
-WARN DEV_SMOKE_DEFENSE_V1 Object{battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonGroupKey: Y1|YN, canonProblem: null, defenseId: dev_canon_def_dev_smoke_canon_mm53h1dd, defenseType: yn, result: needsCrowd, ts: 1772208986167, why: core}
+WARN BATTLE_CANON_RESOLVE_V1 Object{attackColor: y, attackerId: npc_smoke_stage3, battleId: smoke_stage3_prod_bsdp, crowdStarted: 0, defenderId: me, defenseColor: y, isAttackTypeCorrect: true, isBlackAttack: false, isBlackDefense: false, isDefenseTypeCorrect: true, isSameColor: true, outcome: defender_win, robberyAllowed: 0, robberyTriggered: 0, tierDistance: 0, typeMatchOk: true}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  canonBuilt: true
-  canonGroupKey: Y1|YN
-  canonProblem: null
-  defenseId: dev_canon_def_dev_smoke_canon_mm53h1dd
-  defenseType: yn
-  result: needsCrowd
-  ts: 1772208986167
-  why: core
-}
-LOG END CONSOLE_EXPAND_V1
-WARN BATTLE_CROWD_SUPPRESSED_DIAG_V1 Object{battleId: dev_smoke_canon_mm53h1dd, battleResolvedFlag: true, battleStatus: resolved, nowMs: 1772208986167, reason: already_resolved, resultIfAny: resolved}
-INFO UI_BATTLE_CARD_CACHE_V1 Object{battleId: dev_smoke_canon_mm53h1dd, cacheHit: false, cachedMode: null, nextMode: incoming_resolved}
-WARN BATTLE_UI_DECISION_DIAG_V1 Object{battleId: dev_smoke_canon_mm53h1dd, battleStatus: resolved, nowMs: 1772208986167, resultIfAny: resolved, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}
-INFO UI_BATTLE_CARD_BRANCH_V1 Object{attackerId: npc_weak, battleId: dev_smoke_canon_mm53h1dd, branch: incoming_resolved, canRematch: false, defenderId: me, direction: null, fallbackUsed: false, hasAttackerId: true, hasBDirection: false, hasDefenderId: true, hasMyCounter: true, hasOppArg: true, isOutgoing: false, isResolved: true, meId: me, outcome: resolved, unknownDirection: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackerId: npc_weak
-  battleId: dev_smoke_canon_mm53h1dd
-  branch: incoming_resolved
-  canRematch: false
+  attackColor: y
+  attackerId: npc_smoke_stage3
+  battleId: smoke_stage3_prod_bsdp
+  crowdStarted: 0
   defenderId: me
-  direction: null
-  fallbackUsed: false
-  hasAttackerId: true
-  hasBDirection: false
-  hasDefenderId: true
-  hasMyCounter: true
-  hasOppArg: true
-  isOutgoing: false
-  isResolved: true
-  meId: me
-  outcome: resolved
-  unknownDirection: false
+  defenseColor: y
+  isAttackTypeCorrect: true
+  isBlackAttack: false
+  isBlackDefense: false
+  isDefenseTypeCorrect: true
+  isSameColor: true
+  outcome: defender_win
+  robberyAllowed: 0
+  robberyTriggered: 0
+  tierDistance: 0
+  typeMatchOk: true
 }
 LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_RESOLVED_ARGS_DUP_V1 Object{battleId: dev_smoke_canon_mm53h1dd, dupFlags: Object{myDup: false, oppDup: false}, mode: incoming_resolved, myCounterColorKeys: [neutral], myCounterPillsCount: 1, myCounterTestIds: [incoming-my-counter], oppArgColorKeys: [neutral], oppArgPillsCount: 1, oppArgTestIds: [incoming-opp-arg]}
+WARN BATTLE_RESOLVE_DIAG_V1 Object{battleId: smoke_stage3_prod_bsdp, endedBy: null, nowMs: 1772522829427, result: win, statusAfter: finished, statusBefore: pickDefense, winnerId: null}
+LOG [repl] < Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.ConflictCore.computeOutcome undefined, Game.Conflict.computeOutcome undefined, Game.UI.computeOutcome undefined, Game.__A.computeOutcome undefined, computeOutcome hidden from public surfaces, resolveBattleOutcome returned win], hasComputeOutcome: false, mode: prod, ok: true, outcomeWorks: true}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  dupFlags: Object{
-    myDup: false
-    oppDup: false
-  }
-  mode: incoming_resolved
-  myCounterColorKeys: [
-    neutral
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
   ]
-  myCounterPillsCount: 1
-  myCounterTestIds: [
-    incoming-my-counter
-  ]
-  oppArgColorKeys: [
-    neutral
-  ]
-  oppArgPillsCount: 1
-  oppArgTestIds: [
-    incoming-opp-arg
-  ]
-}
+  evidence: [
+    Game._ConflictCore.computeOutcome undefined
+    Game.ConflictCore.computeOutcome undefined
+    Game.Conflict.computeOutcome undefined
+    Game.UI.computeOutco…
 LOG END CONSOLE_EXPAND_V1
-INFO UI_BATTLE_ARG_COLOR_V1 Object{battleId: dev_smoke_canon_mm53h1dd, mode: incoming_resolved, myClass: chip, myColorKey: null, oppClass: chip, oppColorKey: null}
-INFO UI_BATTLE_CARD_INCOMING_RENDER_V1 Object{battleId: dev_smoke_canon_mm53h1dd, hasMyCounter: true, hasOppArg: true, hasRematchBtn: false, hasResult: true}
-INFO UI_BATTLE_CARD_RENDER_FINAL_V1 Object{battleId: dev_smoke_canon_mm53h1dd, mode: incoming_resolved, wroteMyCounterNode: true, wroteOppArgNode: true, wroteRematchNode: false, wroteResultNode: true}
-WARN SMOKE_CANON_MATCH_LAST_OUTCOME_V1 Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: Object{hasCrowd: false, phase: null, startedAtMs: null, status: null}, defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  attackType: yn
-  battleId: dev_smoke_canon_mm53h1dd
-  canonGroupKey: Y1|YN
-  canonGuardActive: true
-  canonKeyAttack: Эм… простите, вы уверены?
-  canonKeyDefense: Наверное, да.
-  canonMatchOk: true
-  canonProblem: null
-  canonSkipDrawGuard: false
-  crowdCreateAttempted: false
-  crowdSnapshot: Object{
-    hasCrowd: false
-    phase: null
-    startedAtMs: null
-    status: null
-  }
-  defenseSource: battle.defense
-  defenseType: yn
-  phase: finalize
-  selectedDefenseArgId: dev_canon_def_dev…
-LOG END CONSOLE_EXPAND_V1
-WARN SMOKE_CANON_MATCH_BATTLE_SNAPSHOT_V1 Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}
-WARN SMOKE_BATTLE_CANON_MATCH_NO_CROWD_JSON Object{battleId: dev_smoke_canon_mm53h1dd, battleSnapshot: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, canonMatchOk: true, canonProblem: null, crowdStarted: false, devGateSkippedCrowd: true, diag: [Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonMatchOk: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, reason: canon_match_force_resolve, skippedCrowd: true, ts: 1772208986166}, tag: DEV_OUTCOME_GATE_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, skippedCrowd: true}, tag: DEV_OUTCOME_GATE_V2}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: [MaxDepth Object], defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}, tag: BATTLE_OUTCOME_GATE_V3}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{battleId: dev_smoke_canon_mm53h1dd, endedBy: null, nowMs: 1772208986166, result: resolved, statusAfter: resolved, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonGroupKey: Y1|YN, canonProblem: null, defenseId: dev_canon_def_dev_smoke_canon_mm53h1dd, defenseType: yn, result: needsCrowd, ts: 1772208986167, why: core}, tag: DEV_SMOKE_DEFENSE_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, battleResolvedFlag: true, battleStatus: resolved, nowMs: 1772208986167, reason: already_resolved, resultIfAny: resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, battleStatus: resolved, nowMs: 1772208986167, resultIfAny: resolved, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: [MaxDepth Object], defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}, tag: SMOKE_CANON_MATCH_LAST_OUTCOME_V1}, Object{payload: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, tag: SMOKE_CANON_MATCH_BATTLE_SNAPSHOT_V1}], lastCrowdCallsite: null, name: smokeBattle_CanonMatch_NoCrowdOnce, notes: [], ok: false, statusAfter: resolved, v3GateOk: true, v3GatePayload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, can…(truncated)
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  battleSnapshot: Object{
-    battleId: dev_smoke_canon_mm53h1dd
-    crowd: null
-    draw: false
-    finished: true
-    resolved: true
-    result: resolved
-    status: resolved
-  }
-  canonMatchOk: true
-  canonProblem: null
-  crowdStarted: false
-  devGateSkippedCrowd: true
-  diag: [
-    Object{
-      battleId: dev_smoke_canon_mm53h1dd
-      nowMs: 1772208986166
-      payload: Object{
-        attackType: yn
-        battleId: dev_smoke_canon_mm53h1dd
-   …
-LOG END CONSOLE_EXPAND_V1
-WARN SMOKE_BATTLE_CANON_MATCH_NO_CROWD_END Object{canonMatchOk: true, crowdStarted: false, ok: false, statusAfter: resolved}
-LOG [repl] < Object{battleId: dev_smoke_canon_mm53h1dd, battleSnapshot: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, canonMatchOk: true, canonProblem: null, crowdStarted: false, devGateSkippedCrowd: true, diag: [Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonMatchOk: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, reason: canon_match_force_resolve, skippedCrowd: true, ts: 1772208986166}, tag: DEV_OUTCOME_GATE_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, skippedCrowd: true}, tag: DEV_OUTCOME_GATE_V2}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: [MaxDepth Object], defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}, tag: BATTLE_OUTCOME_GATE_V3}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{battleId: dev_smoke_canon_mm53h1dd, endedBy: null, nowMs: 1772208986166, result: resolved, statusAfter: resolved, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonGroupKey: Y1|YN, canonProblem: null, defenseId: dev_canon_def_dev_smoke_canon_mm53h1dd, defenseType: yn, result: needsCrowd, ts: 1772208986167, why: core}, tag: DEV_SMOKE_DEFENSE_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, battleResolvedFlag: true, battleStatus: resolved, nowMs: 1772208986167, reason: already_resolved, resultIfAny: resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, battleStatus: resolved, nowMs: 1772208986167, resultIfAny: resolved, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: [MaxDepth Object], defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}, tag: SMOKE_CANON_MATCH_LAST_OUTCOME_V1}, Object{payload: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, tag: SMOKE_CANON_MATCH_BATTLE_SNAPSHOT_V1}], lastCrowdCallsite: null, name: smokeBattle_CanonMatch_NoCrowdOnce, notes: [], ok: false, statusAfter: resolved, v3GateOk: true, v3GatePayload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, can…(truncated)
-LOG BEGIN CONSOLE_EXPAND_V1 arg2
-LOG Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  battleSnapshot: Object{
-    battleId: dev_smoke_canon_mm53h1dd
-    crowd: null
-    draw: false
-    finished: true
-    resolved: true
-    result: resolved
-    status: resolved
-  }
-  canonMatchOk: true
-  canonProblem: null
-  crowdStarted: false
-  devGateSkippedCrowd: true
-  diag: [
-    Object{
-      battleId: dev_smoke_canon_mm53h1dd
-      nowMs: 1772208986166
-      payload: Object{
-        attackType: yn
-        battleId: dev_smoke_canon_mm53h1dd
-   …
-LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, statusAfter, crowdStarted, canonMatchOk, canonProblem, devGateSkippedCrowd, v3GateOk, v3GatePayload, lastCrowdCallsite, battleSnapshot, notes, diag], preview: Object{battleId: dev_smoke_canon_mm53h1dd, battleSnapshot: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, canonMatchOk: true, canonProblem: null, crowdStarted: false, devGateSkippedCrowd: true, diag: [Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonMatchOk: true, canonProblem: null, defenseType: yn, …, type: object}
+WARN CONSOLE_TAPE_RUN_RESULT_V1 Object{isPromise: 0, keys: [ok, mode, hasComputeOutcome, apiSurfaceKeys, outcomeWorks, evidence], preview: Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.ConflictCore.computeOutcome undefined, Game.Conflict.computeOutcome undefined, Game.UI.computeOutcome undefined, Game.__A.computeOutcome …, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
   keys: [
-    name
     ok
-    battleId
-    statusAfter
-    crowdStarted
-    canonMatchOk
-    canonProblem
-    devGateSkippedCrowd
-    v3GateOk
-    v3GatePayload
-    lastCrowdCallsite
-    battleSnapshot
-    notes
-    diag
+    mode
+    hasComputeOutcome
+    apiSurfaceKeys
+    outcomeWorks
+    evidence
   ]
-  preview: Object{battleId: dev_smoke_canon_mm53h1dd, battleSnapshot: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, canonMatchOk: true, canonProblem: null, crow…
+  preview: Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.Co…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [name, ok, battleId, statusAfter, crowdStarted, canonMatchOk, canonProblem, devGateSkippedCrowd, v3GateOk, v3GatePayload, lastCrowdCallsite, battleSnapshot, notes, diag], preview: Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  battleSnapshot: Object{
-    battleId: dev_smoke_canon_mm53h1dd
-    crowd: null
-    draw: false
-    finished: true
-    resolved: true
-    result: resolved
-    status: resolved
-  }
-  canonMatchOk: true
-  canonProblem: null
-  crowdStarted: false
-  devGateSkippedCrowd: true
-  diag: [
-    Object{
-      battleId: dev_smoke_canon_mm53h1dd
-      nowMs: 1772208986166
-      payload: Object{
-        attackType: yn
-        battleId: dev_smoke_canon_mm53h1dd
-   …, type: object}
+WARN CONSOLE_PANEL_EVAL_RESULT_V1 Object{isPromise: 0, keys: [ok, mode, hasComputeOutcome, apiSurfaceKeys, outcomeWorks, evidence], preview: Object{
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.computeOutcome undefined
+    Game.ConflictCore.computeOutcome undefined
+    Game.Conflict.computeOutcome undefined
+    Game.UI.computeOutco…, type: object}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
   isPromise: 0
   keys: [
-    name
     ok
-    battleId
-    statusAfter
-    crowdStarted
-    canonMatchOk
-    canonProblem
-    devGateSkippedCrowd
-    v3GateOk
-    v3GatePayload
-    lastCrowdCallsite
-    battleSnapshot
-    notes
-    diag
+    mode
+    hasComputeOutcome
+    apiSurfaceKeys
+    outcomeWorks
+    evidence
   ]
   preview: Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  battleSnapshot: Object{
-    battleId: dev_smoke_canon_mm53h1dd
-    crowd: null
-    draw: false
-    finished: true
-    resolved: true
-    result: resolved
-    status: resolved
-  }
-  canonMatchOk:…
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.comp…
 LOG END CONSOLE_EXPAND_V1
-WARN CONSOLE_PANEL_RUN_OK id=panel_1772208986135_d38ad887ae814 Object{battleId: dev_smoke_canon_mm53h1dd, battleSnapshot: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, canonMatchOk: true, canonProblem: null, crowdStarted: false, devGateSkippedCrowd: true, diag: [Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonMatchOk: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, reason: canon_match_force_resolve, skippedCrowd: true, ts: 1772208986166}, tag: DEV_OUTCOME_GATE_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonProblem: null, defenseType: yn, forcedResolved: true, outcomeAfter: resolved, outcomeBefore: draw, skippedCrowd: true}, tag: DEV_OUTCOME_GATE_V2}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: [MaxDepth Object], defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}, tag: BATTLE_OUTCOME_GATE_V3}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986166, payload: Object{battleId: dev_smoke_canon_mm53h1dd, endedBy: null, nowMs: 1772208986166, result: resolved, statusAfter: resolved, statusBefore: pickDefense, winnerId: null}, tag: BATTLE_RESOLVE_DIAG_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, canonBuilt: true, canonGroupKey: Y1|YN, canonProblem: null, defenseId: dev_canon_def_dev_smoke_canon_mm53h1dd, defenseType: yn, result: needsCrowd, ts: 1772208986167, why: core}, tag: DEV_SMOKE_DEFENSE_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, battleResolvedFlag: true, battleStatus: resolved, nowMs: 1772208986167, reason: already_resolved, resultIfAny: resolved}, tag: BATTLE_CROWD_SUPPRESSED_DIAG_V1}, Object{battleId: dev_smoke_canon_mm53h1dd, nowMs: 1772208986167, payload: Object{battleId: dev_smoke_canon_mm53h1dd, battleStatus: resolved, nowMs: 1772208986167, resultIfAny: resolved, sourceKey: renderBattles, uiThinksCrowd: false, uiThinksResolved: true}, tag: BATTLE_UI_DECISION_DIAG_V1}, Object{payload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, canonProblem: null, canonSkipDrawGuard: false, crowdCreateAttempted: false, crowdSnapshot: [MaxDepth Object], defenseSource: battle.defense, defenseType: yn, phase: finalize, selectedDefenseArgId: dev_canon_def_dev_smoke_canon_mm53h1dd, selectedDefenseArgKey: yn, statusAfter: resolved, statusBefore: pickDefense, ts: 1772208986165, willResolveNow: true, willStartCrowd: false}, tag: SMOKE_CANON_MATCH_LAST_OUTCOME_V1}, Object{payload: Object{battleId: dev_smoke_canon_mm53h1dd, crowd: null, draw: false, finished: true, resolved: true, result: resolved, status: resolved}, tag: SMOKE_CANON_MATCH_BATTLE_SNAPSHOT_V1}], lastCrowdCallsite: null, name: smokeBattle_CanonMatch_NoCrowdOnce, notes: [], ok: false, statusAfter: resolved, v3GateOk: true, v3GatePayload: Object{attackType: yn, battleId: dev_smoke_canon_mm53h1dd, canonGroupKey: Y1|YN, canonGuardActive: true, canonKeyAttack: Эм… простите, вы уверены?, canonKeyDefense: Наверное, да., canonMatchOk: true, can…(truncated)
+WARN CONSOLE_PANEL_RUN_OK id=panel_1772522829410_4cb7591e2087c Object{apiSurfaceKeys: [Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty, Game.Conflict:__ready,_findArgById,_pickNpcForBattle, Game.UI:$,Logger,S, Game.__A:addPoints,addRep,applyCrowdVoteTick], evidence: [Game._ConflictCore.computeOutcome undefined, Game.ConflictCore.computeOutcome undefined, Game.Conflict.computeOutcome undefined, Game.UI.computeOutcome undefined, Game.__A.computeOutcome undefined, computeOutcome hidden from public surfaces, resolveBattleOutcome returned win], hasComputeOutcome: false, mode: prod, ok: true, outcomeWorks: true}
 LOG BEGIN CONSOLE_EXPAND_V1 arg2
 LOG Object{
-  battleId: dev_smoke_canon_mm53h1dd
-  battleSnapshot: Object{
-    battleId: dev_smoke_canon_mm53h1dd
-    crowd: null
-    draw: false
-    finished: true
-    resolved: true
-    result: resolved
-    status: resolved
-  }
-  canonMatchOk: true
-  canonProblem: null
-  crowdStarted: false
-  devGateSkippedCrowd: true
-  diag: [
-    Object{
-      battleId: dev_smoke_canon_mm53h1dd
-      nowMs: 1772208986166
-      payload: Object{
-        attackType: yn
-        battleId: dev_smoke_canon_mm53h1dd
-   …
+  apiSurfaceKeys: [
+    Game._ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.ConflictCore:applyCrowdVoteTick,applyEscapeVoteTick,applyVillainPenalty
+    Game.Conflict:__ready,_findArgById,_pickNpcForBattle
+    Game.UI:$,Logger,S
+    Game.__A:addPoints,addRep,applyCrowdVoteTick
+  ]
+  evidence: [
+    Game._ConflictCore.computeOutcome undefined
+    Game.ConflictCore.computeOutcome undefined
+    Game.Conflict.computeOutcome undefined
+    Game.UI.computeOutco…
 LOG END CONSOLE_EXPAND_V1
+WARN EVENT_LOW_ECON_MODE_V2 Object{enabled: false, forcedByZeroPoints: false, why: []}
+WARN EVENT_CREATED_V1 Object{costPoints: 0, lowEconomy: false, sourceId: npc_sad, targetId: npc_troll, type: npc_event}
 

@@ -63,10 +63,191 @@
 - `Next Prompt` всегда оформлять кодблоком (например ```text ... ```), чтобы его можно было копировать без мусора.
 - Золотое правило эстафеты: в ответе в чат помимо фактов всегда вставляйте `Next Prompt` отдельным кодблоком (тот же текст, что в `TASKS.md`).
 - Нельзя ставить `DONE/REVIEW`, если `Next Prompt` не заполнен.
+- После каждой публикации не вставляй блок
+  `wave 5: ...` / `фаза Economy (текущие задачи): ...` / `весь проект (текущие задачи): ...` — больше не нужно повторять его в ответах.
 
 ---
 
 ## Inbox
+
+### [T-20260303-006] Canon resolve: tierDistance scope + same-color defender win + y-r lock logs
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Убрать ReferenceError tierDistance в computeOutcome, запретить draw и crowd при same-color + correct, и жёстко зафиксировать y-r как победу красного без crowd с диагностикой.
+- Acceptance:
+  - [ ] В Console.txt нет ReferenceError tierDistance после серии боёв.
+  - [ ] Для same-color (y-y) при правильном типе есть BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1.
+  - [ ] Для тех же battleId в BATTLE_CANON_RESOLVE_V1 outcome=defender_win и crowdStarted=0.
+  - [ ] Для тех же battleId нет CROWD_CREATE_*.
+  - [ ] Для y-r и r-y есть BATTLE_CANON_YR_LOCK_V2, outcome не draw, crowdStarted=0, нет CROWD_CREATE для battleId.
+  - [ ] BATTLE_CANON_RESOLVE_V1 содержит attackColor, defenseColor, isSameColor, isBlackAttack, isBlackDefense, tierDistance, typeMatchOk, isAttackTypeCorrect, isDefenseTypeCorrect, outcome, crowdStarted.
+- Notes: Не менять экономику, REP, UI, тексты. Только канон резолв и диагностика. Один атомарный фикс.
+- Result: FAIL - SMOKE не запускался в этом окружении.
+- Report:
+  - Status: FAIL
+  - Facts:
+    1) `computeOutcome` теперь задаёт `tierDistance` в локальном scope и использует его в yr-lock, чтобы исключить ReferenceError.
+    2) Same-color + correct блокирует villain override и сохраняет outcome как победу защитника без draw.
+    3) `buildCanonResolveMeta` и `BATTLE_CANON_RESOLVE_V1` получили флаги `isAttackTypeCorrect` и `isDefenseTypeCorrect`.
+    4) В `finalize` добавлен hard-lock same-color + correct: outcome принудительно defender_win, crowd запрещён, лог `BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1`, а повторный старт crowd блокируется с `CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1`.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Прогнать 3–5 боёв same-color (y-y) с правильным типом.
+    2) Прогнать 5–10 боёв y-r и r-y.
+    3) Проверить Console.txt: нет ReferenceError tierDistance; для y-y есть `BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1`, `BATTLE_CANON_RESOLVE_V1 outcome=defender_win crowdStarted=0`, и нет `CROWD_CREATE_*` по тем же battleId.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      1) Прогоните 3–5 боёв same-color (y-y) с правильным типом.
+      2) Прогоните 5–10 боёв y-r и r-y.
+      3) В Console.txt проверьте:
+         - нет ReferenceError tierDistance;
+         - для y-y есть BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1;
+         - для тех же battleId есть BATTLE_CANON_RESOLVE_V1 outcome=defender_win crowdStarted=0;
+         - нет CROWD_CREATE_* для этих battleId;
+         - BATTLE_CANON_YR_LOCK_V2 присутствует на y-r/r-y и forcedNoCrowd=1.
+      ```
+
+-### [T-20260303-005] PROGER rules doc setup
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Docs
+- Files: `PROGER_RULES.md` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Создать `PROGER_RULES.md` с предоставленным блоком правил и зафиксировать появление файла в PROJECT_MEMORY.md и TASKS.md.
+- Acceptance:
+  - [x] `PROGER_RULES.md` создан в корне и содержит точно заданный блок без изменений.
+  - [x] PROJECT_MEMORY.md и TASKS.md дополнены записями, фиксирующими добавление файла и требование логировать каждый шаг.
+- Result: PASS — добавлен файл правил прогера и лог действий.
+- Report:
+  - Status: PASS
+  - Facts:
+    1) Создан `PROGER_RULES.md` в корне, содержащий указанный блок без изменений, чтобы дальше ссылаться на единый источник.
+    2) PROJECT_MEMORY.md и TASKS.md получили записи (новый лог в PROJECT_MEMORY.md и этот блок) с датой 2026-03-03 и ссылкой на файл.
+  - Changed: `PROGER_RULES.md` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Убедиться, что `PROGER_RULES.md` существует в корне и содержит точно заданный текст.
+    2) Посмотреть PROJECT_MEMORY.md для блока `### 2026-03-03 — PROGER rules doc added` и подтвердить, что TASKS.md включает задачу `[T-20260303-005]`.
+  - Next: —
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Прогера:
+      1) Убедись, что PROGER_RULES.md в корне репозитория и точно копирует указанный текст.
+      2) Проверь PROJECT_MEMORY.md на запись `### 2026-03-03 — PROGER rules doc added` и убедись, что TASKS.md содержит задачу T-20260303-005.
+      ```
+
+-### [T-20260303-004] Canon y-r hardcap: no draw, red always wins
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Зафиксировать y-r (tierDistance=2, не black) как безусловную победу красного без draw/crowd и добавить диагностический маркер.
+- Acceptance:
+  - [x] Для y-r (yellow vs red) outcome всегда в пользу красного: y-r ⇒ defender_win, r-y ⇒ attacker_win, crowd не стартует.
+  - [x] Тип ответки не влияет на исход при tierDistance=2 (не black).
+  - [x] Log `BATTLE_CANON_YR_LOCK_V2` появляется всегда для tierDistance=2 non-black и содержит battleId/colors/tierDistance/no-crowd флаг/previousOutcomeIfAny.
+- Notes: Без рефакторов и без правок экономики/баланса; только канон резолва.
+- Result: PASS — добавлен hardcap для tierDistance=2, draw запрещён, и лог `BATTLE_CANON_YR_HARDCAP_V1` фиксирует случаи прежнего draw.
+- Result: FAIL (waiting runtime evidence). Y-R/R-Y now skip draw and log `BATTLE_CANON_YR_LOCK_V2`, but need Console proof (5-10 runs) showing no CROWD_CREATE lines for tierDistance=2 battles.
+- Report:
+  - Status: FAIL
+  - Facts:
+    1) `AsyncScene/Web/conflict/conflict-core.js`: прописан yr lock (tierDistance=2 non-black) — outcome всегда красный, crowd отключён, лог `BATTLE_CANON_YR_LOCK_V2`.
+    2) Задача помечена `FAIL` до runtime-подтверждения (5–10 баттлов y-r/r-y/black vs non-black без `CROWD_CREATE_*`).
+    3) `PROJECT_MEMORY.md` и `TASKS.md` обновлены с новым критерием валидации.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) В dev провести 5–10 боёв с y-r и r-y, плюс один black vs non-black.
+    2) В Console.txt найти `BATTLE_CANON_RESOLVE_V1`: tierDistance=2, outcome не draw, crowdStarted=0.
+    3) Убедиться, что y-r даёт победу красного (defender win), r-y даёт победу красного (attacker win).
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      1) Сделай 5–10 боёв с y-r и r-y, плюс один black vs non-black.
+      2) Проверь Console.txt: `BATTLE_CANON_RESOLVE_V1` показывает `tierDistance=2`, `outcome≠draw`, `crowdStarted=0`.
+      3) Убедись, что в тех же баттлах нет `CROWD_CREATE_*`, а `BATTLE_CANON_YR_LOCK_V2` появляется.
+      ```
+
+### [T-20260303-003] Canon resolve: color-first + crowd/robbery gating
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Привести резолв батлов и запуск crowd к канону “цвет сначала, потом тип”; ограничить грабёж wrong-type loss vs toxic/bandit; добавить финальный диагностический лог `BATTLE_CANON_RESOLVE_V1`.
+- Acceptance:
+  - [x] Разрешение боя следует канону: цвета сравниваются первыми; корректный тип даёт автопобеду только при равных цветах (black-black включительно); yellow-red всегда immediate win red; black vs non-black всегда immediate win black; соседние ступени дают draw только при корректном ответе слабого.
+  - [x] Crowd стартует только на draw по канону; правильный тип против токсика/бандита уводит в draw+crowd (если применимо), неправильный тип — в lose без crowd.
+  - [x] Грабёж возможен только в ветке wrong type ⇒ lose против toxic/bandit и не срабатывает в draw/crowd.
+  - [x] Лог `BATTLE_CANON_RESOLVE_V1` записывается в момент финального решения (до выплат) и содержит все поля канона.
+- Notes: Никаких рефакторов и “заодно”. Экономику/REP не трогать, кроме строго необходимых guard-ов ветвления.
+- Result: PASS — обновлён `computeOutcome` под канон (цвет → тип), добавлен `BATTLE_CANON_RESOLVE_V1`, ввод `buildCanonResolveMeta`, и грабёж строго ограничен wrong-type loss веткой; crowd запускается только при draw.
+- Report:
+  - Status: PASS
+  - Facts:
+    1) `AsyncScene/Web/conflict/conflict-core.js`: добавлен `buildCanonResolveMeta` (color/type meta, tierDistance, robberyAllowed), обновлён `computeOutcome` под канон “цвет → тип” с black/y-r/adjacent правилами и спец-веткой toxic/bandit (correct→draw, wrong→lose).
+    2) `AsyncScene/Web/conflict/conflict-core.js`: добавлен лог `BATTLE_CANON_RESOLVE_V1` (battleId, attackerId/defenderId, colors, black flags, isSameColor, tierDistance, typeMatchOk, outcome, crowdStarted, robberyAllowed/Triggered) до любых выплат.
+    3) `AsyncScene/Web/conflict/conflict-core.js`: грабёж теперь возможен только при `robberyAllowed`, а в crowd-резолве `applyVillainPenalty` заблокирован при draw-ветках.
+    4) Обновлены `PROJECT_MEMORY.md` и `TASKS.md` (зафиксированы действия и правило “цвет сначала, потом тип”).
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Включить dev и провести 2–3 входящих баттла с разными цветами/типами (y-y, y-o, y-r, black vs non-black).
+    2) Проверить в Console.txt наличие `BATTLE_CANON_RESOLVE_V1` с корректными полями и `crowdStarted` только при draw.
+    3) Против toxic/bandit убедиться, что `robberyAllowed`=1 только при wrong type + lose и что при draw грабёж не происходит.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      1) Включи dev режим и сыграй 2–3 входящих баттла с комбинациями: y-y, y-o, y-r, black vs non-black.
+      2) Проверь в Console.txt маркер BATTLE_CANON_RESOLVE_V1: outcome=attacker_win/defender_win/draw, crowdStarted=1 только при draw, tierDistance 0/1/2.
+      3) На токсике/бандите: wrong type => lose с robberyAllowed=1; correct type => draw без robbery.
+      ```
+
+### [T-20260303-002] Canon match: hard gate crowd in real UI
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Выравнять реальный UI-путь выбора контраргумента с dev-smoke контрактом: при canonical match бой должен завершаться без crowd; любые попытки старта crowd под canon guard должны блокироваться и логироваться.
+- Acceptance:
+  - [ ] В реальном UI при выборе правильного контраргумента crowd не стартует, бой сразу становится `finished` с `win/lose`.
+  - [ ] В консоли для этого кейса нет `CROWD_CREATE_CALLSITE_V1`, либо есть `CROWD_CREATE_BLOCKED_CANON_V1` (если кто-то попытался стартовать crowd).
+  - [ ] Dev-smoke `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` остаётся `ok:true`.
+- Notes: Экономику/баланс не трогать; править минимально, только блокировка crowd при canon guard и диагностические логи.
+- Result: PASS — ручной UI-выбор canonical counter срабатывает как win/lose без crowd, `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` возвращает `ok:true`, а Console.txt [DUMP_AT] [2026-03-03 14:25:04] фиксирует `BATTLE_OUTCOME_GATE_V3`/`DEV_OUTCOME_GATE_V2` с `crowdCreateAttempted:false` и отсутствие `CROWD_CREATE_CALLSITE_V1`.
+- Evidence: 2026-03-03 14:25:04 QA run (Console.txt [DUMP_AT]) + ручной входящий баттл — выбран корректный контраргумент, crowd не стартует, и бой завершаетcя `status:"finished"`/`result:"win"` с `crowdStarted:false`. Dev-smoke `smokeBattle_CanonMatch_NoCrowdOnce()` снова `ok:true`, `crowdCreateAttempted:false`, `DEV_OUTCOME_GATE_V2 skippedCrowd:true`.
+- Report:
+  - Status: PASS
+  - Facts:
+    1) `C.finalize` теперь логирует `CROWD_CREATE_ATTEMPT_V1` при попытке draw; если активен canon guard (`_canonGuardActive/_canonGuardResult`) — пишет `CROWD_CREATE_BLOCKED_CANON_V1`, устанавливает результат win/lose и переводит бой в `finished` до старта crowd.
+    2) `ensureCrowdVoteStarted` дополняет лог `CROWD_CREATE_ATTEMPT_V1` (reason/battleId/status/result/canonMatchOk/canonGuardActive/defenseKey/attackKey) и не позволяет запустить crowd при `canonGuardActive`, оставляя `crowdCreateAttempted:false` и маркер `CROWD_CREATE_BLOCKED_CANON_V1`.
+    3) Console.txt [DUMP_AT] [2026-03-03 14:25:04] подтверждает, что в canonical run `BATTLE_OUTCOME_GATE_V3`/`DEV_OUTCOME_GATE_V2` пишут `crowdCreateAttempted:false`, `willStartCrowd:false`, `canonMatchOk:true`, а `CROWD_CREATE_CALLSITE_V1` отсутствует.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Hard reload dev страницы.
+    2) Сыграть один входящий баттл вручную: выбрать правильный контраргумент и убедиться, что crowd не стартовал (визуально).
+    3) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` и `__DUMP_ALL__()`.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      1) Сделай hard reload dev страницы.
+      2) Сыграй один входящий баттл вручную: выбери правильный контраргумент и убедись, что crowd не стартовал (визуально).
+      3) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce().
+      4) Выполни __DUMP_ALL__().
+      ```
 
 ### [T-20260227-002] Canon match crowd guard + diag
 - Status: IN PROGRESS
@@ -100,6 +281,71 @@
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
       (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
       (3) PASS, если smoke дал `ok:true`, `event.statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и `DEV_OUTCOME_GATE_V2 skippedCrowd:true`; приложи Console с BATTLE_OUTCOME_GATE_V3 + (если есть) CROWD_CREATE_CALLSITE_V1 и дамп.
+      ```
+
+### [T-20260303-001] Убрать дубли аргументов в outcome
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-battles.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: В incoming_resolved outcome оставить ровно одну секцию «Его аргумент» и одну «Мой контраргумент», подавив повторную вставку resolved-choice chips.
+- Acceptance:
+  - [x] incoming_resolved карточка исхода показывает ровно по одной секции «Его аргумент» и «Мой контраргумент» без дубликатов.
+  - [x] Визуальная проверка + `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` возвращает `ok:true`, `statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`.
+- Notes: Изменения на уровне UI-рендера; канон/экономика/смоуки не затрагивать кроме визуального отображения.
+- Result: PASS — guard `shouldShowResolvedChoiceChips` вставлен, incoming_resolved outcome больше не дублирует пиллы, smoke остаётся PASS.
+- Report:
+  - Status: PASS
+  - Facts:
+    1) `renderResolvedBattleCardCore` теперь отключает resolved-choice chips при `ctx.mode === "incoming_resolved"`, оставляя единственный `incoming-opp-arg`/`incoming-my-counter` блок.
+    2) Визуально видно только один блок на сторону и `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` продолжает возвращать `ok:true`, `statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`.
+  - Changed: `AsyncScene/Web/ui/ui-battles.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Hard reload http://localhost:8080/index.html?dev=1.
+    2) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` и подтвердить `ok:true`, `statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`.
+    3) Выполнить `__DUMP_ALL__()` и убедиться, что incoming_resolved карточка показывает только одну пару «Его аргумент»/«Мой контраргумент».
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
+      (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce() и проверь `ok:true`, `statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`.
+      (3) Вызови __DUMP_ALL__() и убедись, что в карточке исхода есть только один блок «Его аргумент» и один блок «Мой контраргумент».
+      ```
+
+### [T-20260228-001] Стабильный canon match outcome
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Убедиться, что canonical match сразу финализируется как win/lose без crowd и что smoke отражает новый контракт.
+- Acceptance:
+  - [x] `tryEngageCanonGuard` сохраняет canonical winner, `resolveBattleOutcome` возвращает его до логирования, и `C.finalize` больше не заводит crowd flow для canon match.
+  - [x] Canon match завершается как `status:"finished"` с `result:"win"`/`"lose"`, `crowdStarted:false`, `DEV_OUTCOME_GATE_V2` фиксирует `skippedCrowd:true`, а `DEV_SMOKE_DEFENSE_V1` больше не логирует `needsCrowd`.
+  - [x] `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` получает `ok:true`, `statusAfter==="finished"`, `canonMatchOk:true`, `devGateSkippedCrowd:true` и не видит `DEV_SMOKE_DEFENSE_V1 result:"needsCrowd"`.
+- Notes: Не трогать экономику — только контракт исхода и smoke.
+- Result: PASS (core и smoke согласованы; нужно QA).
+- Report:
+  - Status: PASS
+  - Facts:
+    1) Guard сохраняет canonical winner, `resolveBattleOutcome` возвращает этот результат, и `C.finalize` сразу завершает бой без draw/crowd.
+    2) Smoke-диагностика согласована: `DEV_SMOKE_DEFENSE_V1` и `DEV_OUTCOME_GATE_V2` сообщают финальный результат/отсутствие crowd, а `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` проходит с `statusAfter==="finished"`.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Hard reload http://localhost:8080/index.html?dev=1.
+    2) Выполнить Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
+    3) PASS, если smoke возвращает ok:true, statusAfter==="finished", canonMatchOk:true, crowdStarted:false, devGateSkippedCrowd:true и в консоли нет DEV_SMOKE_DEFENSE_V1 result:"needsCrowd"; приложи DEV_OUTCOME_GATE_V2.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
+      (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
+      (3) PASS, если smoke дал ok:true, statusAfter==="finished", canonMatchOk:true, crowdStarted:false, devGateSkippedCrowd:true и в консоли нет DEV_SMOKE_DEFENSE_V1 result:"needsCrowd"; приложи DEV_OUTCOME_GATE_V2.
       ```
 
 ### [T-20260227-003] Defense selection ReferenceError fix

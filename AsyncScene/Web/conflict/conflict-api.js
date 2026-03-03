@@ -468,6 +468,23 @@
   function ensureCrowdVoteStarted(battleId) {
      const b = findBattle(battleId);
      if (!b) return false;
+     const canonMatchOk = !!(b.meta && b.meta.canonMatchOk === true);
+     const canonGuardActive = !!(b._canonGuardActive || b._canonGuardResult);
+     const crowdAttemptPayload = {
+       reason: "ensureCrowdVoteStarted",
+       battleId: b.id || b.battleId || null,
+       status: b.status || null,
+       result: b.result || null,
+       canonMatchOk,
+       canonGuardActive,
+       defenseKey: b.defense ? (b.defense._canonA || b.defense.text || b.defense.id || null) : null,
+       attackKey: b.attack ? (b.attack._canonQ || b.attack.text || b.attack.id || null) : null
+     };
+     try { console.warn("CROWD_CREATE_ATTEMPT_V1", crowdAttemptPayload); } catch (_) {}
+     if (canonGuardActive) {
+       try { console.warn("CROWD_CREATE_BLOCKED_CANON_V1", Object.assign({}, crowdAttemptPayload, { blockReason: "canon_guard_active" })); } catch (_) {}
+       return false;
+     }
 
      if (b.resolved || b.status === "finished" || (b.result && b.result !== "draw")) {
        try {

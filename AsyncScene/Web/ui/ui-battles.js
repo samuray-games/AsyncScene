@@ -852,6 +852,8 @@
     const myChipInfo = appendArgRow(labels.mine, argumentTexts.mine, argumentColors.mine, testIds.mine);
     result.wroteMyCounterNode = true;
 
+    const shouldShowResolvedChoiceChips = !!ctx.showResolvedChoices && ctx.mode !== "incoming_resolved";
+
     if (ctx.mode === "incoming_resolved") {
       const gatherArgNodes = (testId) => {
         if (!testId) return { nodes: [], colorKeys: [], testIds: [] };
@@ -899,7 +901,7 @@
       console.info("UI_BATTLE_ARG_COLOR_V1", payload);
     } catch (_) {}
 
-    if (ctx.showResolvedChoices && battle.attack) {
+    if (shouldShowResolvedChoiceChips && battle.attack) {
       const aRow = document.createElement("div");
       aRow.className = "choiceRow";
       const a = document.createElement("div");
@@ -917,7 +919,7 @@
       card.appendChild(aRow);
     }
 
-    if (ctx.showResolvedChoices && battle.defense) {
+    if (shouldShowResolvedChoiceChips && battle.defense) {
       const dRow = document.createElement("div");
       dRow.className = "choiceRow";
       const d = document.createElement("div");
@@ -975,9 +977,9 @@
 
   function countIncomingRematchButtons(battle) {
     if (!battle) return 0;
+    const youAreLoser = isBattleLossForMe(battle);
+    if (!youAreLoser) return 0;
     const rem = battle.rematch || null;
-    const isEligible = (battle.result === "win" || battle.result === "lose");
-    const youAreLoser = (battle.result === "lose");
     let buttons = 0;
     if (rem && rem.requestedAt && rem.decided !== true) {
       const requesterId = rem.requestedBy || null;
@@ -985,14 +987,12 @@
       if (!isFromMe) buttons += 2;
     }
     if (rem && rem.requestedAt && rem.decided === true) {
-      if (rem.accepted === false && isEligible && youAreLoser) {
+      if (rem.accepted === false) {
         buttons += 1;
       }
     }
     if (!rem || (rem.decided === true && rem.accepted === true)) {
-      if (isEligible && youAreLoser) {
-        buttons += 1;
-      }
+      buttons += 1;
     }
     return buttons;
   }
@@ -1009,6 +1009,13 @@
     return null;
   }
 
+  function isBattleLossForMe(battle) {
+    const outcome = getBattleOutcomeValue(battle);
+    if (!outcome) return false;
+    const normalized = String(outcome).trim().toLowerCase();
+    return normalized === "lose" || normalized === "loss" || normalized === "defeat";
+  }
+
   function isBattleResolved(battle) {
     if (!battle) return false;
     if (battle.resolved === true) return true;
@@ -1020,10 +1027,11 @@
     return false;
   }
 
-  function buildBattleCardBranchPayload(battle, directionInfo, argumentTexts, branch, resolved) {
+  function buildBattleCardBranchPayload(battle, directionInfo, argumentTexts, branch, resolved, playerLost) {
     if (!battle || !directionInfo) return null;
     const args = argumentTexts || { opponent: null, mine: null };
     const rematchButtons = countIncomingRematchButtons(battle);
+    const lost = !!playerLost;
     return {
       battleId: battle.id != null ? String(battle.id) : null,
       isResolved: resolved === true || battle.resolved === true,
@@ -1038,7 +1046,7 @@
       outcome: getBattleOutcomeValue(battle),
       hasOppArg: !!args.opponent,
       hasMyCounter: !!args.mine,
-      canRematch: !!directionInfo.isOutgoing || rematchButtons > 0,
+      canRematch: lost && (!!directionInfo.isOutgoing || rematchButtons > 0),
       fallbackUsed: !!directionInfo.fallbackUsed,
       unknownDirection: !!directionInfo.unknownDirection,
       branch: branch || null
@@ -1915,6 +1923,7 @@ UI.renderBattles = () => {
       const directionInfo = getBattleDirectionInfo(b);
       const isOutgoingCard = directionInfo.isOutgoing;
       const argumentTexts = getBattleArgumentTexts(b);
+      const playerLost = isBattleLossForMe(b);
       const logMeta = {
         hasOppArg: !!argumentTexts.opponent,
         hasMyCounter: !!argumentTexts.mine,
@@ -1944,7 +1953,7 @@ UI.renderBattles = () => {
         const branch = isEscape ? "escape_vote"
           : isDraw ? "draw"
           : nextMode;
-        const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch, uiThinksResolved);
+      const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch, uiThinksResolved, playerLost);
         logBattleCardBranch(payload);
       }
       const shouldRenderResolvedCard = uiThinksResolved && !isEscape && !isDraw;
@@ -2842,7 +2851,7 @@ UI.renderBattles = () => {
         }
       } else {
         const finalMode = nextMode;
-        const canRematch = directionInfo.isOutgoing || incomingRematchButtons > 0;
+        const canRematch = playerLost && (directionInfo.isOutgoing || incomingRematchButtons > 0);
         const helperCtx = {
           argumentTexts,
           labels: isOutgoingCard

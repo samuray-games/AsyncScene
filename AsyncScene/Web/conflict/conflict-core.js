@@ -346,6 +346,8 @@
     }
     const meta = ensureCanonMeta(battle);
     if (!meta || !meta.canonMatchOk) return false;
+    const canonOutcome = resolveCanonicalMatchOutcome(battle);
+    if (!canonOutcome) return false;
     const overrideOutcome = opts.overrideOutcome || "resolved";
     const payload = {
       canonBuilt: meta.canonBuilt,
@@ -354,12 +356,16 @@
       attackType: meta.attackType || null,
       defenseType: meta.defenseType || null,
       outcomeBefore: outcome,
-      outcomeAfter: overrideOutcome,
+      outcomeAfter: canonOutcome,
       skippedCrowd: true,
       forcedResolved: true,
       reason: opts.reason || "canon_match_force_resolve"
     };
     logCanonOutcomeGateOnce(battle, payload);
+    try {
+      battle._canonGuardActive = true;
+      battle._canonGuardResult = canonOutcome;
+    } catch (_) {}
     return true;
   }
 
@@ -864,6 +870,14 @@
     return { attackerId, defenderId };
   }
 
+  function resolveCanonicalMatchOutcome(battle){
+    if (!battle) return null;
+    const ids = attackerDefenderIds(battle);
+    if (ids.defenderId === "me") return "win";
+    if (ids.attackerId === "me") return "lose";
+    return null;
+  }
+
   function ensurePointsField(p){
     if (!p) return;
     if (typeof p.points !== "number") p.points = 0;
@@ -1292,13 +1306,54 @@
 
   // Core outcome rules for battles.
   // Returns one of: "win" | "lose" | "draw" (relative to ME).
-  // IMPORTANT (agreed rules):
-  // - Same color: correct type => defender wins (guaranteed); wrong type => draw (crowd decides; attacker can still win).
-  // - Adjacent colors (y-o, o-r): if attacker is stronger and defender answers correct type => draw; otherwise stronger wins.
+  // IMPORTANT (canon rules):
+  // - Color is always evaluated first. Same color → type rules; different color → strength hierarchy rules.
+  // - Same color: correct type => defender wins (guaranteed); wrong type => draw (crowd decides).
+  // - Adjacent colors (y-o, o-r): defender correct while weaker => draw; otherwise stronger wins.
   // - Two-step gap (y-r): red wins always (no draw).
   // - Black is unbeatable vs non-black: black side wins automatically. Black-black follows same rules as other colors.
-  // - Toxic/Bandit: wrong type => loss; correct type => draw (caller may apply role-specific punishments).
+  // - Toxic/Bandit (incoming vs me): correct type => draw; wrong type => loss (robbery allowed).
   // - Mafia: outcome is handled in finalize (fatal influence wipe on any action except escape when mafia attacked).
+  function buildCanonResolveMeta(battle, attackArg, defenseArg, outcome){
+    const b = battle || {};
+    const { attackerId, defenderId } = attackerDefenderIds(b);
+    const oppRole = getRole(b.opponentId);
+    const isVillain = (oppRole === "toxic" || oppRole === "bandit");
+
+    const aColor = argColor(attackArg);
+    const dColor = argColor(defenseArg);
+    const isBlackAttack = (aColor === "k");
+    const isBlackDefense = (dColor === "k");
+    const aS = colorToStrength(aColor);
+    const dS = colorToStrength(dColor);
+    const diff = Math.abs(aS - dS);
+    const isSameColor = (aColor === dColor);
+    const attackType = argGroup(attackArg);
+    const defenseType = argGroup(defenseArg);
+    const typeMatchOk = (attackType === defenseType);
+    const isAttackTypeCorrect = (attackType === defenseType);
+    const isDefenseTypeCorrect = (defenseType === attackType);
+    const blackVsNonBlack = (isBlackAttack || isBlackDefense) && !(isBlackAttack && isBlackDefense);
+    const typeRelevant = !blackVsNonBlack && (isSameColor || diff === 1);
+    const tierDistance = (isBlackAttack || isBlackDefense)
+      ? ((isBlackAttack && isBlackDefense) ? 0 : 2)
+      : diff;
+    const robberyAllowed = !!(isVillain && defenderId === "me" && !typeMatchOk && outcome === "lose" && typeRelevant);
+
+    return {
+      attackColor: aColor,
+      defenseColor: dColor,
+      isBlackAttack,
+      isBlackDefense,
+      isSameColor,
+      tierDistance,
+      typeMatchOk,
+      isAttackTypeCorrect,
+      isDefenseTypeCorrect,
+      typeRelevant,
+      robberyAllowed
+    };
+  }
   function computeOutcome(battle, attackArg, defenseArg){
     const b0 = battle || {};
     // Persist arguments on the REAL battle in state (callers may pass a copy).
@@ -1313,13 +1368,25 @@
 
     const { attackerId, defenderId } = attackerDefenderIds(b);
     const oppRole = getRole(b.opponentId);
+    const isVillain = (oppRole === "toxic" || oppRole === "bandit");
+    const iAmDefender = (defenderId === "me");
 
     const aColor = argColor(attackArg);
     const dColor = argColor(defenseArg);
     const aS = colorToStrength(aColor);
     const dS = colorToStrength(dColor);
+    const isBlackAttack = (aColor === "k");
+    const isBlackDefense = (dColor === "k");
+    const blackVsNonBlack = (isBlackAttack || isBlackDefense) && !(isBlackAttack && isBlackDefense);
+    const diff = Math.abs(aS - dS);
+    const isSameColor = (aColor === dColor);
+    const typeRelevant = !blackVsNonBlack && (isSameColor || diff === 1);
+    const tierDistance = (isBlackAttack || isBlackDefense)
+      ? ((isBlackAttack && isBlackDefense) ? 0 : 2)
+      : diff;
 
     const correct = isCorrectType(attackArg, defenseArg);
+    const sameColorCorrect = isSameColor && correct;
     
     // Task D: dev-log для проверки типов
     try {
@@ -1330,61 +1397,83 @@
       }
     } catch (_) {}
 
+    let outcome = null;
+
     // Black logic
-    if (aColor === "k" || dColor === "k") {
-      if (aColor === "k" && dColor === "k") {
-        // black-black: follow normal rules below
-      } else {
-        // black vs non-black: black wins automatically
-        const attackerWins = (aColor === "k");
-        const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
-        return meWins ? "win" : "lose";
-      }
-    }
-
-    // Two-step gap: red beats yellow always
-    if ((aS === 3 && dS === 1) || (aS === 1 && dS === 3)) {
-      const attackerWins = aS > dS;
+    if (blackVsNonBlack) {
+      // black vs non-black: black wins automatically
+      const attackerWins = isBlackAttack;
       const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
-      return meWins ? "win" : "lose";
-    }
-
-    // Same color
-    if (aS === dS) {
+      outcome = meWins ? "win" : "lose";
+    } else if (isSameColor) {
       if (correct) {
         // Correct type guarantees victory (only for same color)
         const meWins = (defenderId === "me");
-        return meWins ? "win" : "lose";
+        outcome = meWins ? "win" : "lose";
+      } else {
+        // Wrong type => draw (crowd vote)
+        outcome = "draw";
       }
-      // Wrong type => draw (crowd vote)
-      return "draw";
-    }
-
-    // Adjacent colors (y-o, o-r): allow draw if
-    // - stronger is attacker and weaker defended correctly
-    // - stronger is defender but answered wrong (bad strong defense -> draw)
-    const diff = Math.abs(aS - dS);
-    if (diff === 1) {
-      const attackerIsStronger = aS > dS;
-      const defenderIsStronger = dS > aS;
-      if (attackerIsStronger && correct) {
-        // Weaker correct defense earns a draw chance via crowd
-        return "draw";
-      }
-      if (defenderIsStronger && !correct) {
-        // Wrong strong defense should not auto-win in adjacent colors
-        return "draw";
-      }
-      // Otherwise stronger wins
+    } else if (diff === 2) {
+      // Two-step gap: red beats yellow always
       const attackerWins = aS > dS;
       const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
-      return meWins ? "win" : "lose";
+      outcome = meWins ? "win" : "lose";
+    } else if (diff === 1) {
+      // Adjacent colors (y-o, o-r)
+      const defenderWeaker = dS < aS;
+      if (correct && defenderWeaker) {
+        // Weaker correct defense earns a draw chance via crowd
+        outcome = "draw";
+      } else {
+        const attackerWins = aS > dS;
+        const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+        outcome = meWins ? "win" : "lose";
+      }
+    } else {
+      // Any other gap - stronger wins
+      const attackerWins = aS > dS;
+      const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+      outcome = meWins ? "win" : "lose";
     }
 
-    // Any other gap - stronger wins
-    const attackerWins = aS > dS;
-    const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
-    return meWins ? "win" : "lose";
+    // Toxic/Bandit (incoming vs me): correct type => draw; wrong type => loss.
+    if (isVillain && iAmDefender && typeRelevant && !sameColorCorrect) {
+      outcome = correct ? "draw" : "lose";
+    }
+
+    // Colour gap rule: y-r/r-y (tierDistance=2, non-black) forces red victory and disables crowd.
+    if (!blackVsNonBlack && diff === 2) {
+      const attackerWins = aS > dS;
+      const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+      const forcedOutcome = meWins ? "win" : "lose";
+      const yrLockState = {
+        forcedOutcome,
+        previousOutcomeGuess: outcome,
+        forcedNoCrowd: 1,
+        attackColor: aColor,
+        defenseColor: dColor,
+          tierDistance,
+          isBlackAttack,
+          isBlackDefense,
+          isSameColor,
+          typeMatchOk: correct
+      };
+      try {
+        b._yrLockState = Object.assign({}, yrLockState);
+      } catch (_) {}
+      outcome = forcedOutcome;
+    } else {
+      if (b && b._yrLockState) {
+        try { delete b._yrLockState; } catch (_) {}
+      }
+    }
+
+    try {
+      b._canonResolveMeta = buildCanonResolveMeta(b, attackArg, defenseArg, outcome);
+    } catch (_) {}
+
+    return outcome;
   }
 
   // Pick an incoming attack argument for an opponent (kept hidden in UI until player answers)
@@ -2301,6 +2390,8 @@
     const oppRole = getRole(b.opponentId);
     const isVillain = (oppRole === "toxic" || oppRole === "bandit");
     const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+    const canonResolveMeta = b ? (b._canonResolveMeta || null) : null;
+    const robberyAllowed = !!(canonResolveMeta && canonResolveMeta.robberyAllowed);
     let penaltyApplied = false;
 
     b.attackHidden = false;
@@ -2325,9 +2416,11 @@
             ? Game.Data.SYS.toxicStealLine(5)
             : "Токсик снял у тебя 5 💰. Все видели.";
         }
-        applyVillainPenalty(b, "crowd");
-        if (shouldLogVillain) {
-          penaltyApplied = (!!b.toxicHitApplied && !hadToxic) || (!!b.banditRobbed && !hadBandit);
+        if (robberyAllowed) {
+          applyVillainPenalty(b, "crowd");
+          if (shouldLogVillain) {
+            penaltyApplied = (!!b.toxicHitApplied && !hadToxic) || (!!b.banditRobbed && !hadBandit);
+          }
         }
       } else {
         b.resultLine = "Победа";
@@ -3123,6 +3216,23 @@
   C.finalize = function (battleId, outcome) {
     const b = Game.__S.battles.find(x => x.id === battleId);
     if (!b || b.resolved) return;
+    const clearCanonGuardHint = () => {
+      if (b && b._canonGuardActive) {
+        try {
+          delete b._canonGuardActive;
+        } catch (_) {
+          b._canonGuardActive = false;
+        }
+      }
+      if (b && b._canonGuardResult) {
+        try {
+          delete b._canonGuardResult;
+        } catch (_) {
+          b._canonGuardResult = null;
+        }
+      }
+    };
+    try {
     const statusBefore = b.status || null;
     const resolvedBefore = !!b.resolved;
     const nowStamp = now();
@@ -3131,11 +3241,21 @@
     const selectedDefenseArgId = selectedDefense ? (selectedDefense.id || selectedDefense.key || null) : null;
     const selectedDefenseArgKey = selectedDefense ? (selectedDefense.group || selectedDefense.type || selectedDefense.kind || null) : null;
     const defenseSource = selectedDefense ? "battle.defense" : null;
-    const canonGuardActive = tryEngageCanonGuard(b, outcome, {
-      overrideOutcome: "resolved",
-      reason: "canon_match_force_resolve"
-    });
-    if (canonGuardActive) {
+    const guardHint = !!(b._canonGuardActive);
+    let canonGuardActive = guardHint;
+    let canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : null;
+    if (!canonGuardActive) {
+      canonGuardActive = tryEngageCanonGuard(b, outcome, {
+        overrideOutcome: "resolved",
+        reason: "canon_match_force_resolve"
+      });
+      if (canonGuardActive && !canonicalOutcome) {
+        canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : resolveCanonicalMatchOutcome(b);
+      }
+    }
+    if (canonGuardActive && canonicalOutcome) {
+      outcome = canonicalOutcome;
+    } else if (canonGuardActive && outcome === "draw") {
       outcome = "resolved";
     }
     const metaGate = ensureCanonMeta(b);
@@ -3147,6 +3267,31 @@
     const ids = attackerDefenderIds(b);
     const rawOutcome = outcome;
     let canonSkipDrawGuard = false;
+    const canonResolveMetaEarly = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
+    const sameColorAutoWinEligible = !!(canonResolveMetaEarly && canonResolveMetaEarly.isSameColor && canonResolveMetaEarly.isDefenseTypeCorrect);
+    if (sameColorAutoWinEligible) {
+      const priorWillStartCrowd = (outcome === "draw");
+      outcome = (ids.defenderId === "me") ? "win" : "lose";
+      try {
+        b.meta = b.meta || {};
+        b.meta.sameColorAutoWinLockApplied = true;
+      } catch (_) {}
+      try {
+        console.warn("BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1", {
+          battleId: b.id || b.battleId || null,
+          attackColor: canonResolveMetaEarly ? canonResolveMetaEarly.attackColor : null,
+          defenseColor: canonResolveMetaEarly ? canonResolveMetaEarly.defenseColor : null,
+          isSameColor: canonResolveMetaEarly ? !!canonResolveMetaEarly.isSameColor : false,
+          isDefenseTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isDefenseTypeCorrect : false,
+          isAttackTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isAttackTypeCorrect : false,
+          canonMatchOk,
+          canonProblem,
+          forcedOutcome: "defender_win",
+          forcedNoCrowd: 1,
+          priorWillStartCrowd: priorWillStartCrowd ? 1 : 0
+        });
+      } catch (_) {}
+    }
     if (!canonGuardActive && rawOutcome === "draw" && canonMatchOk) {
       outcome = (ids.defenderId === "me") ? "win" : "lose";
       canonSkipDrawGuard = true;
@@ -3179,11 +3324,69 @@
         reason: "canon_match_draw_guard"
       });
     }
+    if (b && b.meta && b.meta.sameColorAutoWinLockApplied && outcome === "draw") {
+      _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
+        battleId: b.id || b.battleId || null,
+        status: b.status || null,
+        result: b.result || null
+      });
+      outcome = (ids.defenderId === "me") ? "win" : "lose";
+    }
     const willStartCrowd = (outcome === "draw");
     const willResolveNow = !willStartCrowd;
     const statusAfterExpected = willStartCrowd ? "crowd" : ((outcome === "resolved") ? "resolved" : "finished");
     const canonKeyAttack = b.attack ? (b.attack._canonQ || b.attack.text || b.attack.id || null) : null;
     const canonKeyDefense = selectedDefense ? (selectedDefense._canonA || selectedDefense.text || selectedDefense.id || null) : null;
+    const canonGuardFlag = !!(canonGuardActive || (b && b._canonGuardResult));
+
+    const yrLockState = (b && b._yrLockState) ? b._yrLockState : null;
+    if (yrLockState) {
+      try {
+        console.warn("BATTLE_CANON_YR_LOCK_V2", {
+          battleId: b.id || b.battleId || null,
+          attackColor: (canonResolveMeta && canonResolveMeta.attackColor) ? canonResolveMeta.attackColor : yrLockState.attackColor,
+          defenseColor: (canonResolveMeta && canonResolveMeta.defenseColor) ? canonResolveMeta.defenseColor : yrLockState.defenseColor,
+          tierDistance: yrLockState.tierDistance || 2,
+          isBlackAttack: !!yrLockState.isBlackAttack,
+          isBlackDefense: !!yrLockState.isBlackDefense,
+          isSameColor: !!yrLockState.isSameColor,
+          canonMatchOk,
+          canonProblem,
+          typeMatchOk: (canonResolveMeta && typeof canonResolveMeta.typeMatchOk === "boolean") ? canonResolveMeta.typeMatchOk : !!yrLockState.typeMatchOk,
+          forcedOutcome: outcome,
+          forcedNoCrowd: yrLockState.forcedNoCrowd ? 1 : 0,
+          previousOutcomeIfAny: yrLockState.previousOutcomeGuess || null
+        });
+      } catch (_) {}
+    }
+    if (outcome === "draw") {
+      if (b && b.meta && b.meta.sameColorAutoWinLockApplied) {
+        _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
+          battleId: b.id || b.battleId || null,
+          status: b.status || null,
+          result: b.result || null
+        });
+        return;
+      }
+      const crowdAttemptPayload = {
+        reason: "finalize_draw",
+        battleId: b.id || b.battleId || null,
+        status: b.status || null,
+        result: b.result || null,
+        canonMatchOk,
+        canonGuardActive: canonGuardFlag,
+        defenseKey: canonKeyDefense || selectedDefenseArgId || null,
+        attackKey: canonKeyAttack || (b.attack ? (b.attack.id || null) : null)
+      };
+      _crowdLog("CROWD_CREATE_ATTEMPT_V1", crowdAttemptPayload);
+      if (canonGuardFlag) {
+        _crowdLog("CROWD_CREATE_BLOCKED_CANON_V1", Object.assign({}, crowdAttemptPayload, {
+          blockReason: "canon_guard_active"
+        }));
+        outcome = canonicalOutcome || ((ids.defenderId === "me") ? "win" : "lose");
+        canonSkipDrawGuard = true;
+      }
+    }
     const crowdSnapshot = (() => {
       const c = b.crowd || null;
       return {
@@ -3215,6 +3418,41 @@
       canonSkipDrawGuard,
       ts: nowStamp
     });
+
+    const canonResolveMeta = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
+    try { b._canonResolveMeta = canonResolveMeta; } catch (_) {}
+    try {
+      const attackerId = ids.attackerId || null;
+      const defenderId = ids.defenderId || null;
+      let outcomeLabel = "draw";
+      if (outcome === "win") {
+        outcomeLabel = (attackerId === "me") ? "attacker_win" : "defender_win";
+      } else if (outcome === "lose") {
+        outcomeLabel = (attackerId === "me") ? "defender_win" : "attacker_win";
+      } else if (outcome === "draw") {
+        outcomeLabel = "draw";
+      }
+      const robberyAllowed = canonResolveMeta ? (canonResolveMeta.robberyAllowed ? 1 : 0) : 0;
+      const robberyTriggered = robberyAllowed;
+      console.warn("BATTLE_CANON_RESOLVE_V1", {
+        battleId: b.id || b.battleId || null,
+        attackerId,
+        defenderId,
+        attackColor: canonResolveMeta ? canonResolveMeta.attackColor : null,
+        defenseColor: canonResolveMeta ? canonResolveMeta.defenseColor : null,
+        isBlackAttack: canonResolveMeta ? !!canonResolveMeta.isBlackAttack : false,
+        isBlackDefense: canonResolveMeta ? !!canonResolveMeta.isBlackDefense : false,
+        isSameColor: canonResolveMeta ? !!canonResolveMeta.isSameColor : false,
+        tierDistance: canonResolveMeta ? canonResolveMeta.tierDistance : null,
+        typeMatchOk: canonResolveMeta ? !!canonResolveMeta.typeMatchOk : false,
+        isAttackTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isAttackTypeCorrect : false,
+        isDefenseTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isDefenseTypeCorrect : false,
+        outcome: outcomeLabel,
+        crowdStarted: (outcome === "draw") ? 1 : 0,
+        robberyAllowed,
+        robberyTriggered
+      });
+    } catch (_) {}
 
     // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
     // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
@@ -3303,22 +3541,27 @@
 
     const oppRole = getRole(b.opponentId);
     const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+    const robberyAllowedNow = !!(canonResolveMeta && canonResolveMeta.robberyAllowed);
     let penaltyApplied = false;
 
     // Special rules (villain penalties) apply ONLY on definitive loss (not escaped, not draw).
     if (outcome === "lose" && !b.draw) {
-      // Toxic can deal immediate damage if you answer quickly.
-      // Applies only when Toxic attacked (fromThem) and only once per battle.
-      maybeApplyToxicInstantHit(b);
+      if (robberyAllowedNow) {
+        // Toxic can deal immediate damage if you answer quickly.
+        // Applies only when Toxic attacked (fromThem) and only once per battle.
+        maybeApplyToxicInstantHit(b);
+      }
 
       // Mafioso humiliation applies only if mafia attacked.
       maybeApplyMafiaHumiliation(b);
 
-      // Bandit wipes all points on loss only.
-      maybeApplyBanditRobbery(b);
+      if (robberyAllowedNow) {
+        // Bandit wipes all points on loss only.
+        maybeApplyBanditRobbery(b);
+      }
     }
     if (shouldLogVillain && outcome === "lose") {
-      penaltyApplied = !!(b.toxicHitApplied || b.banditRobbed || b.mafiaHumiliated);
+      penaltyApplied = robberyAllowedNow && !!(b.toxicHitApplied || b.banditRobbed);
     }
 
     if (outcome === "draw") {
@@ -3532,6 +3775,9 @@
     }
     logBattleResolveDiagOnce(b, outcome, b.endedBy || null, statusBefore, b.status || null);
     announceBattleResult(b);
+  } finally {
+    clearCanonGuardHint();
+  }
   };
 
   C.resolveBattleOutcome = function (battleId, defenseArg, opts) {
@@ -3570,6 +3816,11 @@
       reason: "canon_match_force_resolve"
     });
     if (canonicalGuardActive) {
+      const canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : resolveCanonicalMatchOutcome(b);
+      if (canonicalOutcome) {
+        C.finalize(b.id, canonicalOutcome);
+        return { ok: true, outcome: canonicalOutcome };
+      }
       C.finalize(b.id, "resolved");
       return { ok: true, outcome: "resolved" };
     }
