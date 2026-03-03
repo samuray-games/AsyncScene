@@ -3232,293 +3232,562 @@
         }
       }
     };
-    try {
-    const statusBefore = b.status || null;
-    const resolvedBefore = !!b.resolved;
-    const nowStamp = now();
-    b.updatedAt = nowStamp;
-    const selectedDefense = b.defense || null;
-    const selectedDefenseArgId = selectedDefense ? (selectedDefense.id || selectedDefense.key || null) : null;
-    const selectedDefenseArgKey = selectedDefense ? (selectedDefense.group || selectedDefense.type || selectedDefense.kind || null) : null;
-    const defenseSource = selectedDefense ? "battle.defense" : null;
-    const guardHint = !!(b._canonGuardActive);
-    let canonGuardActive = guardHint;
-    let canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : null;
-    if (!canonGuardActive) {
-      canonGuardActive = tryEngageCanonGuard(b, outcome, {
-        overrideOutcome: "resolved",
-        reason: "canon_match_force_resolve"
-      });
-      if (canonGuardActive && !canonicalOutcome) {
-        canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : resolveCanonicalMatchOutcome(b);
-      }
-    }
-    if (canonGuardActive && canonicalOutcome) {
-      outcome = canonicalOutcome;
-    } else if (canonGuardActive && outcome === "draw") {
-      outcome = "resolved";
-    }
-    const metaGate = ensureCanonMeta(b);
-    const canonMatchOk = !!(metaGate && metaGate.canonMatchOk);
-    const canonProblem = metaGate ? metaGate.canonProblem || null : null;
-    const attackType = metaGate ? metaGate.attackType || null : null;
-    const defenseType = metaGate ? metaGate.defenseType || null : null;
-    const canonGroupKey = metaGate ? metaGate.canonGroupKey || null : null;
-    const ids = attackerDefenderIds(b);
-    const rawOutcome = outcome;
-    let canonSkipDrawGuard = false;
-    const canonResolveMetaEarly = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
-    const sameColorAutoWinEligible = !!(canonResolveMetaEarly && canonResolveMetaEarly.isSameColor && canonResolveMetaEarly.isDefenseTypeCorrect);
-    if (sameColorAutoWinEligible) {
-      const priorWillStartCrowd = (outcome === "draw");
-      outcome = (ids.defenderId === "me") ? "win" : "lose";
-      try {
-        b.meta = b.meta || {};
-        b.meta.sameColorAutoWinLockApplied = true;
-      } catch (_) {}
-      try {
-        console.warn("BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1", {
-          battleId: b.id || b.battleId || null,
-          attackColor: canonResolveMetaEarly ? canonResolveMetaEarly.attackColor : null,
-          defenseColor: canonResolveMetaEarly ? canonResolveMetaEarly.defenseColor : null,
-          isSameColor: canonResolveMetaEarly ? !!canonResolveMetaEarly.isSameColor : false,
-          isDefenseTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isDefenseTypeCorrect : false,
-          isAttackTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isAttackTypeCorrect : false,
-          canonMatchOk,
-          canonProblem,
-          forcedOutcome: "defender_win",
-          forcedNoCrowd: 1,
-          priorWillStartCrowd: priorWillStartCrowd ? 1 : 0
-        });
-      } catch (_) {}
-    }
-    if (!canonGuardActive && rawOutcome === "draw" && canonMatchOk) {
-      outcome = (ids.defenderId === "me") ? "win" : "lose";
-      canonSkipDrawGuard = true;
-      logDevOutcomeGate(b, {
-        canonBuilt: !!(metaGate && metaGate.canonBuilt),
-        canonProblem,
-        canonMatchOk,
-        attackType,
-        defenseType,
-        outcomeBefore: "draw",
-        outcomeAfter: outcome,
-        skippedCrowd: true,
-        forcedResolved: true,
-        reason: "canon_match_skip_draw"
-      });
-    }
-    if (!canonGuardActive && !canonSkipDrawGuard && canonMatchOk && outcome === "draw") {
-      canonSkipDrawGuard = true;
-      outcome = (ids.defenderId === "me") ? "win" : "lose";
-      logDevOutcomeGate(b, {
-        canonBuilt: !!(metaGate && metaGate.canonBuilt),
-        canonProblem,
-        canonMatchOk,
-        attackType,
-        defenseType,
-        outcomeBefore: "draw",
-        outcomeAfter: outcome,
-        skippedCrowd: true,
-        forcedResolved: true,
-        reason: "canon_match_draw_guard"
-      });
-    }
-    if (b && b.meta && b.meta.sameColorAutoWinLockApplied && outcome === "draw") {
-      _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
-        battleId: b.id || b.battleId || null,
-        status: b.status || null,
-        result: b.result || null
-      });
-      outcome = (ids.defenderId === "me") ? "win" : "lose";
-    }
-    const willStartCrowd = (outcome === "draw");
-    const willResolveNow = !willStartCrowd;
-    const statusAfterExpected = willStartCrowd ? "crowd" : ((outcome === "resolved") ? "resolved" : "finished");
-    const canonKeyAttack = b.attack ? (b.attack._canonQ || b.attack.text || b.attack.id || null) : null;
-    const canonKeyDefense = selectedDefense ? (selectedDefense._canonA || selectedDefense.text || selectedDefense.id || null) : null;
-    const canonGuardFlag = !!(canonGuardActive || (b && b._canonGuardResult));
-
-    const yrLockState = (b && b._yrLockState) ? b._yrLockState : null;
-    if (yrLockState) {
-      try {
-        console.warn("BATTLE_CANON_YR_LOCK_V2", {
-          battleId: b.id || b.battleId || null,
-          attackColor: (canonResolveMeta && canonResolveMeta.attackColor) ? canonResolveMeta.attackColor : yrLockState.attackColor,
-          defenseColor: (canonResolveMeta && canonResolveMeta.defenseColor) ? canonResolveMeta.defenseColor : yrLockState.defenseColor,
-          tierDistance: yrLockState.tierDistance || 2,
-          isBlackAttack: !!yrLockState.isBlackAttack,
-          isBlackDefense: !!yrLockState.isBlackDefense,
-          isSameColor: !!yrLockState.isSameColor,
-          canonMatchOk,
-          canonProblem,
-          typeMatchOk: (canonResolveMeta && typeof canonResolveMeta.typeMatchOk === "boolean") ? canonResolveMeta.typeMatchOk : !!yrLockState.typeMatchOk,
-          forcedOutcome: outcome,
-          forcedNoCrowd: yrLockState.forcedNoCrowd ? 1 : 0,
-          previousOutcomeIfAny: yrLockState.previousOutcomeGuess || null
-        });
-      } catch (_) {}
-    }
-    if (outcome === "draw") {
-      if (b && b.meta && b.meta.sameColorAutoWinLockApplied) {
-        _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
-          battleId: b.id || b.battleId || null,
-          status: b.status || null,
-          result: b.result || null
-        });
-        return;
-      }
-      const crowdAttemptPayload = {
-        reason: "finalize_draw",
-        battleId: b.id || b.battleId || null,
-        status: b.status || null,
-        result: b.result || null,
-        canonMatchOk,
-        canonGuardActive: canonGuardFlag,
-        defenseKey: canonKeyDefense || selectedDefenseArgId || null,
-        attackKey: canonKeyAttack || (b.attack ? (b.attack.id || null) : null)
-      };
-      _crowdLog("CROWD_CREATE_ATTEMPT_V1", crowdAttemptPayload);
-      if (canonGuardFlag) {
-        _crowdLog("CROWD_CREATE_BLOCKED_CANON_V1", Object.assign({}, crowdAttemptPayload, {
-          blockReason: "canon_guard_active"
-        }));
-        outcome = canonicalOutcome || ((ids.defenderId === "me") ? "win" : "lose");
-        canonSkipDrawGuard = true;
-      }
-    }
-    const crowdSnapshot = (() => {
-      const c = b.crowd || null;
-      return {
-        hasCrowd: !!c,
-        status: c ? (c.status || null) : null,
-        startedAtMs: c ? (Number.isFinite(c.startedAtMs) ? Math.floor(c.startedAtMs) : null) : null,
-        phase: c ? (c.phaseState || c.phase || null) : null
-      };
-    })();
-    logBattleOutcomeGate(b, {
-      phase: "finalize",
-      canonMatchOk,
-      canonProblem,
-      canonGroupKey,
-      canonKeyAttack,
-      canonKeyDefense,
-      attackType,
-      defenseType,
-      willStartCrowd,
-      willResolveNow,
-      statusBefore,
-      statusAfter: statusAfterExpected,
-      selectedDefenseArgId,
-      selectedDefenseArgKey,
-      defenseSource,
-      crowdSnapshot,
-      crowdCreateAttempted: willStartCrowd,
-      canonGuardActive,
-      canonSkipDrawGuard,
-      ts: nowStamp
-    });
-
-    const canonResolveMeta = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
-    try { b._canonResolveMeta = canonResolveMeta; } catch (_) {}
-    try {
-      const attackerId = ids.attackerId || null;
-      const defenderId = ids.defenderId || null;
-      let outcomeLabel = "draw";
-      if (outcome === "win") {
-        outcomeLabel = (attackerId === "me") ? "attacker_win" : "defender_win";
-      } else if (outcome === "lose") {
-        outcomeLabel = (attackerId === "me") ? "defender_win" : "attacker_win";
-      } else if (outcome === "draw") {
-        outcomeLabel = "draw";
-      }
-      const robberyAllowed = canonResolveMeta ? (canonResolveMeta.robberyAllowed ? 1 : 0) : 0;
-      const robberyTriggered = robberyAllowed;
-      console.warn("BATTLE_CANON_RESOLVE_V1", {
-        battleId: b.id || b.battleId || null,
-        attackerId,
-        defenderId,
-        attackColor: canonResolveMeta ? canonResolveMeta.attackColor : null,
-        defenseColor: canonResolveMeta ? canonResolveMeta.defenseColor : null,
-        isBlackAttack: canonResolveMeta ? !!canonResolveMeta.isBlackAttack : false,
-        isBlackDefense: canonResolveMeta ? !!canonResolveMeta.isBlackDefense : false,
-        isSameColor: canonResolveMeta ? !!canonResolveMeta.isSameColor : false,
-        tierDistance: canonResolveMeta ? canonResolveMeta.tierDistance : null,
-        typeMatchOk: canonResolveMeta ? !!canonResolveMeta.typeMatchOk : false,
-        isAttackTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isAttackTypeCorrect : false,
-        isDefenseTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isDefenseTypeCorrect : false,
-        outcome: outcomeLabel,
-        crowdStarted: (outcome === "draw") ? 1 : 0,
-        robberyAllowed,
-        robberyTriggered
-      });
-    } catch (_) {}
-
-    // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
-    // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
-    // а не при самом старте батла. Поэтому применяем штраф здесь, в finalize.
-    const devBattle = isDevBattle(b);
-    const devLogMode = isDevModeFlag();
-    if (!b.fromThem) {
-      const role = getRole(b.opponentId);
-      if ((role === "cop" || role === "police") && outcome !== "escaped") {
-        if (devBattle) {
-          if (devLogMode && !b._copFineSuppressedLogged) {
-            b._copFineSuppressedLogged = true;
-            const devTag = (b.meta && b.meta.devTag) ? b.meta.devTag : null;
-            console.warn("COP_FINE_SUPPRESSED_V1", { battleId: b.id || null, devTag });
+    const runFinalize = () => {
+          const statusBefore = b.status || null;
+          const resolvedBefore = !!b.resolved;
+          const nowStamp = now();
+          b.updatedAt = nowStamp;
+          const selectedDefense = b.defense || null;
+          const selectedDefenseArgId = selectedDefense ? (selectedDefense.id || selectedDefense.key || null) : null;
+          const selectedDefenseArgKey = selectedDefense ? (selectedDefense.group || selectedDefense.type || selectedDefense.kind || null) : null;
+          const defenseSource = selectedDefense ? "battle.defense" : null;
+          const guardHint = !!(b._canonGuardActive);
+          let canonGuardActive = guardHint;
+          let canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : null;
+          if (!canonGuardActive) {
+            canonGuardActive = tryEngageCanonGuard(b, outcome, {
+              overrideOutcome: "resolved",
+              reason: "canon_match_force_resolve"
+            });
+            if (canonGuardActive && !canonicalOutcome) {
+              canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : resolveCanonicalMatchOutcome(b);
+            }
           }
-        } else if (!b.copPenaltyApplied) {
-          const me = Game.__S && Game.__S.me;
-          ensurePointsField(me);
-          const penalty = 5;
-          if (me) {
-            const beforePts = (me.points | 0);
-            const amountWanted = penalty | 0;
-            const amountActual = Math.min(amountWanted, Math.max(0, beforePts));
-            const pointsAfter = Math.max(0, beforePts - amountActual);
-            if (isCirculationEnabled()) {
-              if (amountActual > 0) {
-                econTransfer("me", "sink", amountActual, "cop_penalty", {
-                  battleId: b.id || b.battleId || null,
-                  amountWanted,
-                  amountActual,
-                  pointsBefore: beforePts,
-                  pointsAfter,
-                  partial: amountActual !== amountWanted
-                });
+          if (canonGuardActive && canonicalOutcome) {
+            outcome = canonicalOutcome;
+          } else if (canonGuardActive && outcome === "draw") {
+            outcome = "resolved";
+          }
+          const metaGate = ensureCanonMeta(b);
+          const canonMatchOk = !!(metaGate && metaGate.canonMatchOk);
+          const canonProblem = metaGate ? metaGate.canonProblem || null : null;
+          const attackType = metaGate ? metaGate.attackType || null : null;
+          const defenseType = metaGate ? metaGate.defenseType || null : null;
+          const canonGroupKey = metaGate ? metaGate.canonGroupKey || null : null;
+          const ids = attackerDefenderIds(b);
+          const rawOutcome = outcome;
+          let canonSkipDrawGuard = false;
+          const canonResolveMetaEarly = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
+          const yrHardLock = (() => {
+            const ac = canonResolveMetaEarly ? canonResolveMetaEarly.attackColor : null;
+            const dc = canonResolveMetaEarly ? canonResolveMetaEarly.defenseColor : null;
+            if (ac === "r" && dc === "y") return { winner: "attacker", attackColor: ac, defenseColor: dc };
+            if (ac === "y" && dc === "r") return { winner: "defender", attackColor: ac, defenseColor: dc };
+            return null;
+          })();
+          if (yrHardLock) {
+            const forcedOutcome = (yrHardLock.winner === "attacker")
+              ? ((ids.attackerId === "me") ? "win" : "lose")
+              : ((ids.defenderId === "me") ? "win" : "lose");
+            const forcedOutcomeLabel = (yrHardLock.winner === "attacker") ? "attacker_win" : "defender_win";
+            const previousOutcome = outcome;
+            outcome = forcedOutcome;
+            try {
+              if (b) {
+                b.meta = b.meta || {};
+                b.meta.yrHardLockApplied = true;
               }
-            } else {
-              if (amountActual > 0) {
-                econTransfer("me", "sink", amountActual, "cop_penalty", {
-                  battleId: b.id || b.battleId || null,
-                  amountWanted,
-                  amountActual,
-                  pointsBefore: beforePts,
-                  pointsAfter,
-                  partial: amountActual !== amountWanted
-                });
+            } catch (_) {}
+            try {
+              console.warn("BATTLE_CANON_YR_LOCK_V1", {
+                battleId: b.id || b.battleId || null,
+                attackColor: yrHardLock.attackColor,
+                defenseColor: yrHardLock.defenseColor,
+                forcedOutcome: forcedOutcomeLabel,
+                forcedNoCrowd: 1,
+                previousOutcome: previousOutcome || null
+              });
+            } catch (_) {}
+          }
+          const sameColorAutoWinEligible = !!(canonResolveMetaEarly && canonResolveMetaEarly.isSameColor && canonResolveMetaEarly.isDefenseTypeCorrect);
+          if (sameColorAutoWinEligible) {
+            const priorWillStartCrowd = (outcome === "draw");
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+            try {
+              b.meta = b.meta || {};
+              b.meta.sameColorAutoWinLockApplied = true;
+            } catch (_) {}
+            try {
+              console.warn("BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1", {
+                battleId: b.id || b.battleId || null,
+                attackColor: canonResolveMetaEarly ? canonResolveMetaEarly.attackColor : null,
+                defenseColor: canonResolveMetaEarly ? canonResolveMetaEarly.defenseColor : null,
+                isSameColor: canonResolveMetaEarly ? !!canonResolveMetaEarly.isSameColor : false,
+                isDefenseTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isDefenseTypeCorrect : false,
+                isAttackTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isAttackTypeCorrect : false,
+                canonMatchOk,
+                canonProblem,
+                forcedOutcome: "defender_win",
+                forcedNoCrowd: 1,
+                priorWillStartCrowd: priorWillStartCrowd ? 1 : 0
+              });
+            } catch (_) {}
+          }
+          if (!canonGuardActive && rawOutcome === "draw" && canonMatchOk) {
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+            canonSkipDrawGuard = true;
+            logDevOutcomeGate(b, {
+              canonBuilt: !!(metaGate && metaGate.canonBuilt),
+              canonProblem,
+              canonMatchOk,
+              attackType,
+              defenseType,
+              outcomeBefore: "draw",
+              outcomeAfter: outcome,
+              skippedCrowd: true,
+              forcedResolved: true,
+              reason: "canon_match_skip_draw"
+            });
+          }
+          if (!canonGuardActive && !canonSkipDrawGuard && canonMatchOk && outcome === "draw") {
+            canonSkipDrawGuard = true;
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+            logDevOutcomeGate(b, {
+              canonBuilt: !!(metaGate && metaGate.canonBuilt),
+              canonProblem,
+              canonMatchOk,
+              attackType,
+              defenseType,
+              outcomeBefore: "draw",
+              outcomeAfter: outcome,
+              skippedCrowd: true,
+              forcedResolved: true,
+              reason: "canon_match_draw_guard"
+            });
+          }
+          if (b && b.meta && b.meta.sameColorAutoWinLockApplied && outcome === "draw") {
+            _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
+              battleId: b.id || b.battleId || null,
+              status: b.status || null,
+              result: b.result || null
+            });
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+          }
+          const willStartCrowd = (outcome === "draw");
+          const willResolveNow = !willStartCrowd;
+          const statusAfterExpected = willStartCrowd ? "crowd" : ((outcome === "resolved") ? "resolved" : "finished");
+          const canonKeyAttack = b.attack ? (b.attack._canonQ || b.attack.text || b.attack.id || null) : null;
+          const canonKeyDefense = selectedDefense ? (selectedDefense._canonA || selectedDefense.text || selectedDefense.id || null) : null;
+          const canonGuardFlag = !!(canonGuardActive || (b && b._canonGuardResult));
+
+          const yrLockState = (b && b._yrLockState) ? b._yrLockState : null;
+          if (yrLockState) {
+            try {
+              console.warn("BATTLE_CANON_YR_LOCK_V2", {
+                battleId: b.id || b.battleId || null,
+                attackColor: (canonResolveMeta && canonResolveMeta.attackColor) ? canonResolveMeta.attackColor : yrLockState.attackColor,
+                defenseColor: (canonResolveMeta && canonResolveMeta.defenseColor) ? canonResolveMeta.defenseColor : yrLockState.defenseColor,
+                tierDistance: yrLockState.tierDistance || 2,
+                isBlackAttack: !!yrLockState.isBlackAttack,
+                isBlackDefense: !!yrLockState.isBlackDefense,
+                isSameColor: !!yrLockState.isSameColor,
+                canonMatchOk,
+                canonProblem,
+                typeMatchOk: (canonResolveMeta && typeof canonResolveMeta.typeMatchOk === "boolean") ? canonResolveMeta.typeMatchOk : !!yrLockState.typeMatchOk,
+                forcedOutcome: outcome,
+                forcedNoCrowd: yrLockState.forcedNoCrowd ? 1 : 0,
+                previousOutcomeIfAny: yrLockState.previousOutcomeGuess || null
+              });
+            } catch (_) {}
+          }
+          if (outcome === "draw") {
+            if (b && b.meta && b.meta.sameColorAutoWinLockApplied) {
+              _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
+                battleId: b.id || b.battleId || null,
+                status: b.status || null,
+                result: b.result || null
+              });
+              return;
+            }
+            const crowdAttemptPayload = {
+              reason: "finalize_draw",
+              battleId: b.id || b.battleId || null,
+              status: b.status || null,
+              result: b.result || null,
+              canonMatchOk,
+              canonGuardActive: canonGuardFlag,
+              defenseKey: canonKeyDefense || selectedDefenseArgId || null,
+              attackKey: canonKeyAttack || (b.attack ? (b.attack.id || null) : null)
+            };
+            _crowdLog("CROWD_CREATE_ATTEMPT_V1", crowdAttemptPayload);
+            if (canonGuardFlag) {
+              _crowdLog("CROWD_CREATE_BLOCKED_CANON_V1", Object.assign({}, crowdAttemptPayload, {
+                blockReason: "canon_guard_active"
+              }));
+              outcome = canonicalOutcome || ((ids.defenderId === "me") ? "win" : "lose");
+              canonSkipDrawGuard = true;
+            }
+          }
+          const crowdSnapshot = (() => {
+            const c = b.crowd || null;
+            return {
+              hasCrowd: !!c,
+              status: c ? (c.status || null) : null,
+              startedAtMs: c ? (Number.isFinite(c.startedAtMs) ? Math.floor(c.startedAtMs) : null) : null,
+              phase: c ? (c.phaseState || c.phase || null) : null
+            };
+          })();
+          logBattleOutcomeGate(b, {
+            phase: "finalize",
+            canonMatchOk,
+            canonProblem,
+            canonGroupKey,
+            canonKeyAttack,
+            canonKeyDefense,
+            attackType,
+            defenseType,
+            willStartCrowd,
+            willResolveNow,
+            statusBefore,
+            statusAfter: statusAfterExpected,
+            selectedDefenseArgId,
+            selectedDefenseArgKey,
+            defenseSource,
+            crowdSnapshot,
+            crowdCreateAttempted: willStartCrowd,
+            canonGuardActive,
+            canonSkipDrawGuard,
+            ts: nowStamp
+          });
+
+          const canonResolveMeta = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
+          try { b._canonResolveMeta = canonResolveMeta; } catch (_) {}
+          try {
+            const attackerId = ids.attackerId || null;
+            const defenderId = ids.defenderId || null;
+            let outcomeLabel = "draw";
+            if (outcome === "win") {
+              outcomeLabel = (attackerId === "me") ? "attacker_win" : "defender_win";
+            } else if (outcome === "lose") {
+              outcomeLabel = (attackerId === "me") ? "defender_win" : "attacker_win";
+            } else if (outcome === "draw") {
+              outcomeLabel = "draw";
+            }
+            const robberyAllowed = canonResolveMeta ? (canonResolveMeta.robberyAllowed ? 1 : 0) : 0;
+            const robberyTriggered = robberyAllowed;
+            console.warn("BATTLE_CANON_RESOLVE_V1", {
+              battleId: b.id || b.battleId || null,
+              attackerId,
+              defenderId,
+              attackColor: canonResolveMeta ? canonResolveMeta.attackColor : null,
+              defenseColor: canonResolveMeta ? canonResolveMeta.defenseColor : null,
+              isBlackAttack: canonResolveMeta ? !!canonResolveMeta.isBlackAttack : false,
+              isBlackDefense: canonResolveMeta ? !!canonResolveMeta.isBlackDefense : false,
+              isSameColor: canonResolveMeta ? !!canonResolveMeta.isSameColor : false,
+              tierDistance: canonResolveMeta ? canonResolveMeta.tierDistance : null,
+              typeMatchOk: canonResolveMeta ? !!canonResolveMeta.typeMatchOk : false,
+              isAttackTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isAttackTypeCorrect : false,
+              isDefenseTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isDefenseTypeCorrect : false,
+              outcome: outcomeLabel,
+              crowdStarted: (outcome === "draw") ? 1 : 0,
+              robberyAllowed,
+              robberyTriggered
+            });
+          } catch (_) {}
+
+          // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
+          // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
+          // а не при самом старте батла. Поэтому применяем штраф здесь, в finalize.
+          const devBattle = isDevBattle(b);
+          const devLogMode = isDevModeFlag();
+          if (!b.fromThem) {
+            const role = getRole(b.opponentId);
+            if ((role === "cop" || role === "police") && outcome !== "escaped") {
+              if (devBattle) {
+                if (devLogMode && !b._copFineSuppressedLogged) {
+                  b._copFineSuppressedLogged = true;
+                  const devTag = (b.meta && b.meta.devTag) ? b.meta.devTag : null;
+                  console.warn("COP_FINE_SUPPRESSED_V1", { battleId: b.id || null, devTag });
+                }
+              } else if (!b.copPenaltyApplied) {
+                const me = Game.__S && Game.__S.me;
+                ensurePointsField(me);
+                const penalty = 5;
+                if (me) {
+                  const beforePts = (me.points | 0);
+                  const amountWanted = penalty | 0;
+                  const amountActual = Math.min(amountWanted, Math.max(0, beforePts));
+                  const pointsAfter = Math.max(0, beforePts - amountActual);
+                  if (isCirculationEnabled()) {
+                    if (amountActual > 0) {
+                      econTransfer("me", "sink", amountActual, "cop_penalty", {
+                        battleId: b.id || b.battleId || null,
+                        amountWanted,
+                        amountActual,
+                        pointsBefore: beforePts,
+                        pointsAfter,
+                        partial: amountActual !== amountWanted
+                      });
+                    }
+                  } else {
+                    if (amountActual > 0) {
+                      econTransfer("me", "sink", amountActual, "cop_penalty", {
+                        battleId: b.id || b.battleId || null,
+                        amountWanted,
+                        amountActual,
+                        pointsBefore: beforePts,
+                        pointsAfter,
+                        partial: amountActual !== amountWanted
+                      });
+                    }
+                  }
+                }
+                b.copPenaltyApplied = true;
+
+                // notify Cop in DM + public chat (ideal punctuation is handled by normalizeCopLine)
+                notifyCopViolation(b.opponentId, penalty);
+
+                // finalize immediately: no battle economy, no crowd
+                b.resolved = true;
+                b.attackHidden = false;
+                b.draw = false;
+                b.crowd = null;
+                b.finished = true;
+                b.result = "cop_penalty";
+                b.status = "finished";
+                b.note = `Нарушение порядка. Штраф -${penalty} 💰.`;
+                b.resultLine = "Штраф";
+                b.updatedAt = now();
+
+                // sync mirrors if available
+                try {
+                  if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
+                    Game.__A.ensureNonNegativePoints();
+                  }
+                  if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+                    Game.__A.syncMeToPlayers();
+                  }
+                } catch (_) {}
+
+                if (b.pinned) {
+                  Game.__S.battles = [b].concat(Game.__S.battles.filter(x => x.id !== b.id));
+                }
+                return;
               }
             }
           }
-          b.copPenaltyApplied = true;
 
-          // notify Cop in DM + public chat (ideal punctuation is handled by normalizeCopLine)
-          notifyCopViolation(b.opponentId, penalty);
-
-          // finalize immediately: no battle economy, no crowd
-          b.resolved = true;
+          // Reveal attack only after we have an outcome.
           b.attackHidden = false;
+
+          const oppRole = getRole(b.opponentId);
+          const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+          const robberyAllowedNow = !!(canonResolveMeta && canonResolveMeta.robberyAllowed);
+          let penaltyApplied = false;
+
+          // Special rules (villain penalties) apply ONLY on definitive loss (not escaped, not draw).
+          if (outcome === "lose" && !b.draw) {
+            if (robberyAllowedNow) {
+              // Toxic can deal immediate damage if you answer quickly.
+              // Applies only when Toxic attacked (fromThem) and only once per battle.
+              maybeApplyToxicInstantHit(b);
+            }
+
+            // Mafioso humiliation applies only if mafia attacked.
+            maybeApplyMafiaHumiliation(b);
+
+            if (robberyAllowedNow) {
+              // Bandit wipes all points on loss only.
+              maybeApplyBanditRobbery(b);
+            }
+          }
+          if (shouldLogVillain && outcome === "lose") {
+            penaltyApplied = robberyAllowedNow && !!(b.toxicHitApplied || b.banditRobbed);
+          }
+
+          if (outcome === "draw") {
+            b.draw = false;
+            b.wasDraw = true;
+            b.result = null;
+            b.resultLine = "Толпа решает";
+            b.status = "crowd";
+            b.finished = false;
+            b.resolved = false;
+
+            const { attackerId, defenderId } = attackerDefenderIds(b);
+            const nowMs = now();
+            b.crowd = {
+              votesA: 0,
+              votesB: 0,
+              voters: {},
+              decided: false,
+              cap: null,
+              totalPlayers: getTotalPlayersCount(),
+              attackerId,
+              defenderId,
+              phaseState: "warmup",
+              _crowdTimerArmLogged: false,
+              _devNpcVoteLogged: false,
+              _crowdTimerLastTickSecond: null,
+              _crowdTimerResolvedBy: null,
+              _crowdTimerExpireLogged: false
+            };
+            resetCrowdTimerState(b.crowd, nowMs);
+            if (!Number.isFinite(b.crowd.startedAtMs) || b.crowd.startedAtMs <= 0) {
+              b.crowd.startedAtMs = nowMs;
+            }
+            b.meta = b.meta || {};
+            b.crowd.meta = b.crowd.meta || b.meta;
+            applyDevCrowdEligiblePreset(b, b.crowd);
+            let evId = null;
+
+            // Events: create a draw event so chat can navigate to it.
+            try {
+              if (Game.Events && typeof Game.Events.addDrawEventFromBattle === "function") {
+                const ev = Game.Events.addDrawEventFromBattle(b);
+                evId = (ev && (ev.id || ev.eventId)) ? (ev.id || ev.eventId) : (typeof ev === "string" ? ev : null);
+              }
+            } catch (_) {}
+
+            if (evId) {
+              b.eventId = evId;
+              if (b.crowd) b.crowd.eventId = evId;
+            }
+            const candidateList = (Array.isArray(b._candidateVoterIds) && b._candidateVoterIds.length)
+              ? b._candidateVoterIds.slice()
+              : null;
+            const hasPrepopulatedVoters = Array.isArray(b.crowd.votersIds) && b.crowd.votersIds.length;
+            if (!hasPrepopulatedVoters && candidateList && candidateList.length) {
+              b.crowd.votersIds = candidateList.slice();
+            }
+            const eligible = buildEligibleVoters({
+              battleId: b.id || null,
+              eventId: evId || null,
+              votersIds: b.crowd.votersIds,
+              crowd: b.crowd,
+              meta: b.meta
+            });
+            if (b._candidateVoterIds) delete b._candidateVoterIds;
+            b.crowd.eligibleVotersIds = eligible.eligibleIds.slice();
+            if (!b.crowd.votersIds && Array.isArray(eligible.votersIds) && eligible.votersIds.length) {
+              b.crowd.votersIds = eligible.votersIds.slice();
+            }
+            b.crowd.eligibleCount = eligible.eligibleNpcCount;
+            b.crowd.eligibleBreakdown = {
+              npcEligible: eligible.eligibleNpcCount,
+              npcExcludedZeroPts: eligible.excludedZeroPtsCount,
+              otherExcluded: eligible.excludedOtherCount,
+              meEligible: eligible.meEligible ? 1 : 0
+            };
+            b.crowd.eligibilityRuleVersion = eligible.rule;
+            const computedCap = eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0);
+            const votesNow = getCrowdTotalVotes(b.crowd);
+            const stageD2Enabled = isCrowdCapStageD2();
+            const drawFallbackForced = !!(b.meta && b.meta.drawFallback);
+            let capValue;
+            let capSource;
+            if (stageD2Enabled && computedCap > 0 && !drawFallbackForced) {
+              capValue = computedCap;
+              capSource = "eligible";
+            } else if (drawFallbackForced) {
+              capValue = 10;
+              capSource = "fallback_fixed";
+            } else {
+              capValue = 10;
+              capSource = "canon10";
+            }
+            setCrowdCapMeta(b, b.crowd, capValue, capSource, eligible.eligibleNpcCount, eligible.excludedZeroPtsCount);
+            logCrowdElig(b, b.crowd, eligible, capValue);
+            if (b.crowd.cap <= 0) {
+              logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
+            }
+            logCrowdCapSet(b, b.crowd, b.crowd.cap, eligible);
+            let forcedResolve = false;
+            if (b.crowd.cap > 0 && votesNow >= b.crowd.cap) {
+              forcedResolve = true;
+              logCrowdCapForcedResolve(b, b.crowd, votesNow, b.crowd.cap);
+              finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
+            }
+            const crowdState = b.crowd || {};
+            if (!crowdState._crowdFlowLogged) {
+              _crowdLog("CROWD_START_FLOW_V1", {
+                battleId: b.id || b.battleId || null,
+                statusBefore,
+                statusAfter: b.status || null,
+                battleResolvedBefore: resolvedBefore,
+                battleResolvedAfter: !!b.resolved
+              });
+              crowdState._crowdFlowLogged = true;
+              if (b.crowd) b.crowd._crowdFlowLogged = true;
+            }
+            if (!crowdState._crowdCreateLogged) {
+              logCrowdCreate(b.crowd, b.id || b.battleId || null);
+              logCrowdCreateCallsite(b.id || b.battleId || null);
+              crowdState._crowdCreateLogged = true;
+              if (b.crowd) b.crowd._crowdCreateLogged = true;
+            }
+            if (checkCrowdVotersOverride(b, b.crowd)) {
+              return;
+            }
+
+            // Push a SYS chat line about draw with links to battleId and eventId.
+            try {
+              const UI = (Game && Game.UI) ? Game.UI : null;
+              if (UI && typeof UI.pushChat === "function") {
+                const sysText = (Game && Game.Data && Game.Data.SYS && typeof Game.Data.SYS.drawCrowd === "string" && Game.Data.SYS.drawCrowd.trim())
+                  ? Game.Data.SYS.drawCrowd.trim()
+                  : "Толпа решает.";
+                UI.pushChat({
+                  name: "Система",
+                  text: sysText,
+                  system: true,
+                  battleId: b.id,
+                  eventId: b.eventId || null
+                });
+                b.sysAnnounced = true;
+              }
+            } catch (_) {}
+
+            if (!forcedResolve && !b.crowd._votersOverrideDetected) {
+              startCrowdVoteTimer(b);
+            }
+
+            if (shouldLogVillain) {
+              logBattleResolveVillain(b, "draw", false, oppRole);
+            }
+            return;
+          }
+
+          if (outcome === "resolved") {
+            b.draw = false;
+            b.crowd = null;
+            b.finished = true;
+            b.resolved = true;
+            b.result = "resolved";
+            b.status = "resolved";
+            b.note = b.note || "Canon разрешил результат.";
+            b.resultLine = b.resultLine || "Решено";
+            if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
+            logBattleResolveDiagOnce(b, outcome, null, statusBefore, b.status || null);
+            announceBattleResult(b);
+            return;
+          }
+
+          // Non-draw outcomes finalize immediately.
           b.draw = false;
           b.crowd = null;
           b.finished = true;
-          b.result = "cop_penalty";
+          b.result = outcome;
           b.status = "finished";
-          b.note = `Нарушение порядка. Штраф -${penalty} 💰.`;
-          b.resultLine = "Штраф";
-          b.updatedAt = now();
+          if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
 
-          // sync mirrors if available
+          // Mafioso: keep "Поражение" label, but economy is intentionally skipped (see applyEconomyForOutcome).
+          if (getRole(b.opponentId) === "mafia" && outcome !== "escaped") {
+            b.note = "Унижение. ⚡ обнулено.";
+            b.resultLine = "Поражение";
+            if (outcome === "lose" && !b.mafiaShameAnnounced) {
+              const meName = (Game.__S && Game.__S.me && Game.__S.me.name) ? Game.__S.me.name : "Игрок";
+              pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`);
+              b.mafiaShameAnnounced = true;
+            }
+          } else {
+            b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? "Свалил." : "Поражение.");
+            b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? "Свалил" : "Поражение");
+          }
+
+          if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);
+
+          // Keep me mirror clean
           try {
             if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
               Game.__A.ensureNonNegativePoints();
@@ -3531,253 +3800,18 @@
           if (b.pinned) {
             Game.__S.battles = [b].concat(Game.__S.battles.filter(x => x.id !== b.id));
           }
-          return;
-        }
-      }
-    }
 
-    // Reveal attack only after we have an outcome.
-    b.attackHidden = false;
-
-    const oppRole = getRole(b.opponentId);
-    const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
-    const robberyAllowedNow = !!(canonResolveMeta && canonResolveMeta.robberyAllowed);
-    let penaltyApplied = false;
-
-    // Special rules (villain penalties) apply ONLY on definitive loss (not escaped, not draw).
-    if (outcome === "lose" && !b.draw) {
-      if (robberyAllowedNow) {
-        // Toxic can deal immediate damage if you answer quickly.
-        // Applies only when Toxic attacked (fromThem) and only once per battle.
-        maybeApplyToxicInstantHit(b);
-      }
-
-      // Mafioso humiliation applies only if mafia attacked.
-      maybeApplyMafiaHumiliation(b);
-
-      if (robberyAllowedNow) {
-        // Bandit wipes all points on loss only.
-        maybeApplyBanditRobbery(b);
-      }
-    }
-    if (shouldLogVillain && outcome === "lose") {
-      penaltyApplied = robberyAllowedNow && !!(b.toxicHitApplied || b.banditRobbed);
-    }
-
-    if (outcome === "draw") {
-      b.draw = false;
-      b.wasDraw = true;
-      b.result = null;
-      b.resultLine = "Толпа решает";
-      b.status = "crowd";
-      b.finished = false;
-      b.resolved = false;
-
-      const { attackerId, defenderId } = attackerDefenderIds(b);
-      const nowMs = now();
-      b.crowd = {
-        votesA: 0,
-        votesB: 0,
-        voters: {},
-        decided: false,
-        cap: null,
-        totalPlayers: getTotalPlayersCount(),
-        attackerId,
-        defenderId,
-        phaseState: "warmup",
-        _crowdTimerArmLogged: false,
-        _devNpcVoteLogged: false,
-        _crowdTimerLastTickSecond: null,
-        _crowdTimerResolvedBy: null,
-        _crowdTimerExpireLogged: false
-      };
-      resetCrowdTimerState(b.crowd, nowMs);
-      if (!Number.isFinite(b.crowd.startedAtMs) || b.crowd.startedAtMs <= 0) {
-        b.crowd.startedAtMs = nowMs;
-      }
-      b.meta = b.meta || {};
-      b.crowd.meta = b.crowd.meta || b.meta;
-      applyDevCrowdEligiblePreset(b, b.crowd);
-      let evId = null;
-
-      // Events: create a draw event so chat can navigate to it.
-      try {
-        if (Game.Events && typeof Game.Events.addDrawEventFromBattle === "function") {
-          const ev = Game.Events.addDrawEventFromBattle(b);
-          evId = (ev && (ev.id || ev.eventId)) ? (ev.id || ev.eventId) : (typeof ev === "string" ? ev : null);
-        }
-      } catch (_) {}
-
-      if (evId) {
-        b.eventId = evId;
-        if (b.crowd) b.crowd.eventId = evId;
-      }
-      const candidateList = (Array.isArray(b._candidateVoterIds) && b._candidateVoterIds.length)
-        ? b._candidateVoterIds.slice()
-        : null;
-      const hasPrepopulatedVoters = Array.isArray(b.crowd.votersIds) && b.crowd.votersIds.length;
-      if (!hasPrepopulatedVoters && candidateList && candidateList.length) {
-        b.crowd.votersIds = candidateList.slice();
-      }
-      const eligible = buildEligibleVoters({
-        battleId: b.id || null,
-        eventId: evId || null,
-        votersIds: b.crowd.votersIds,
-        crowd: b.crowd,
-        meta: b.meta
-      });
-      if (b._candidateVoterIds) delete b._candidateVoterIds;
-      b.crowd.eligibleVotersIds = eligible.eligibleIds.slice();
-      if (!b.crowd.votersIds && Array.isArray(eligible.votersIds) && eligible.votersIds.length) {
-        b.crowd.votersIds = eligible.votersIds.slice();
-      }
-      b.crowd.eligibleCount = eligible.eligibleNpcCount;
-      b.crowd.eligibleBreakdown = {
-        npcEligible: eligible.eligibleNpcCount,
-        npcExcludedZeroPts: eligible.excludedZeroPtsCount,
-        otherExcluded: eligible.excludedOtherCount,
-        meEligible: eligible.meEligible ? 1 : 0
-      };
-      b.crowd.eligibilityRuleVersion = eligible.rule;
-      const computedCap = eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0);
-      const votesNow = getCrowdTotalVotes(b.crowd);
-      const stageD2Enabled = isCrowdCapStageD2();
-      const drawFallbackForced = !!(b.meta && b.meta.drawFallback);
-      let capValue;
-      let capSource;
-      if (stageD2Enabled && computedCap > 0 && !drawFallbackForced) {
-        capValue = computedCap;
-        capSource = "eligible";
-      } else if (drawFallbackForced) {
-        capValue = 10;
-        capSource = "fallback_fixed";
-      } else {
-        capValue = 10;
-        capSource = "canon10";
-      }
-      setCrowdCapMeta(b, b.crowd, capValue, capSource, eligible.eligibleNpcCount, eligible.excludedZeroPtsCount);
-      logCrowdElig(b, b.crowd, eligible, capValue);
-      if (b.crowd.cap <= 0) {
-        logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
-      }
-      logCrowdCapSet(b, b.crowd, b.crowd.cap, eligible);
-      let forcedResolve = false;
-      if (b.crowd.cap > 0 && votesNow >= b.crowd.cap) {
-        forcedResolve = true;
-        logCrowdCapForcedResolve(b, b.crowd, votesNow, b.crowd.cap);
-        finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
-      }
-      const crowdState = b.crowd || {};
-      if (!crowdState._crowdFlowLogged) {
-        _crowdLog("CROWD_START_FLOW_V1", {
-          battleId: b.id || b.battleId || null,
-          statusBefore,
-          statusAfter: b.status || null,
-          battleResolvedBefore: resolvedBefore,
-          battleResolvedAfter: !!b.resolved
-        });
-        crowdState._crowdFlowLogged = true;
-        if (b.crowd) b.crowd._crowdFlowLogged = true;
-      }
-      if (!crowdState._crowdCreateLogged) {
-        logCrowdCreate(b.crowd, b.id || b.battleId || null);
-        logCrowdCreateCallsite(b.id || b.battleId || null);
-        crowdState._crowdCreateLogged = true;
-        if (b.crowd) b.crowd._crowdCreateLogged = true;
-      }
-      if (checkCrowdVotersOverride(b, b.crowd)) {
-        return;
-      }
-
-      // Push a SYS chat line about draw with links to battleId and eventId.
-      try {
-        const UI = (Game && Game.UI) ? Game.UI : null;
-        if (UI && typeof UI.pushChat === "function") {
-          const sysText = (Game && Game.Data && Game.Data.SYS && typeof Game.Data.SYS.drawCrowd === "string" && Game.Data.SYS.drawCrowd.trim())
-            ? Game.Data.SYS.drawCrowd.trim()
-            : "Толпа решает.";
-          UI.pushChat({
-            name: "Система",
-            text: sysText,
-            system: true,
-            battleId: b.id,
-            eventId: b.eventId || null
-          });
-          b.sysAnnounced = true;
-        }
-      } catch (_) {}
-
-      if (!forcedResolve && !b.crowd._votersOverrideDetected) {
-        startCrowdVoteTimer(b);
-      }
-
-      if (shouldLogVillain) {
-        logBattleResolveVillain(b, "draw", false, oppRole);
-      }
-      return;
-    }
-
-    if (outcome === "resolved") {
-      b.draw = false;
-      b.crowd = null;
-      b.finished = true;
-      b.resolved = true;
-      b.result = "resolved";
-      b.status = "resolved";
-      b.note = b.note || "Canon разрешил результат.";
-      b.resultLine = b.resultLine || "Решено";
-      if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
-      logBattleResolveDiagOnce(b, outcome, null, statusBefore, b.status || null);
-      announceBattleResult(b);
-      return;
-    }
-
-    // Non-draw outcomes finalize immediately.
-    b.draw = false;
-    b.crowd = null;
-    b.finished = true;
-    b.result = outcome;
-    b.status = "finished";
-    if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
-
-    // Mafioso: keep "Поражение" label, but economy is intentionally skipped (see applyEconomyForOutcome).
-    if (getRole(b.opponentId) === "mafia" && outcome !== "escaped") {
-      b.note = "Унижение. ⚡ обнулено.";
-      b.resultLine = "Поражение";
-      if (outcome === "lose" && !b.mafiaShameAnnounced) {
-        const meName = (Game.__S && Game.__S.me && Game.__S.me.name) ? Game.__S.me.name : "Игрок";
-        pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`);
-        b.mafiaShameAnnounced = true;
-      }
-    } else {
-      b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? "Свалил." : "Поражение.");
-      b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? "Свалил" : "Поражение");
-    }
-
-    if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);
-
-    // Keep me mirror clean
+          if (shouldLogVillain) {
+            logBattleResolveVillain(b, outcome, penaltyApplied, oppRole);
+          }
+          logBattleResolveDiagOnce(b, outcome, b.endedBy || null, statusBefore, b.status || null);
+          announceBattleResult(b);
+    };
     try {
-      if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
-        Game.__A.ensureNonNegativePoints();
-      }
-      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
-        Game.__A.syncMeToPlayers();
-      }
-    } catch (_) {}
-
-    if (b.pinned) {
-      Game.__S.battles = [b].concat(Game.__S.battles.filter(x => x.id !== b.id));
+      return runFinalize();
+    } finally {
+      clearCanonGuardHint();
     }
-
-    if (shouldLogVillain) {
-      logBattleResolveVillain(b, outcome, penaltyApplied, oppRole);
-    }
-    logBattleResolveDiagOnce(b, outcome, b.endedBy || null, statusBefore, b.status || null);
-    announceBattleResult(b);
-  } finally {
-    clearCanonGuardHint();
-  }
   };
 
   C.resolveBattleOutcome = function (battleId, defenseArg, opts) {
@@ -4161,12 +4195,18 @@
     return proxy;
   }
 
+  const conflictCoreBuildTag = (() => {
+    if (Game && Game.__buildTag) return Game.__buildTag;
+    if (typeof window !== "undefined" && window.__BUILD_TAG) return window.__BUILD_TAG;
+    return null;
+  })();
   const wrappedCore = wrapConflictCore(C);
   Game._ConflictCore = wrappedCore;
   Game.ConflictCore = wrappedCore;
+  try { console.warn("CONFLICT_CORE_LOADED_OK_V1", { ts: Date.now(), buildTag: conflictCoreBuildTag }); } catch (_) {}
   try {
     if (conflictMode === "dev") {
-      console.warn("CONFLICT_CORE_LOADED_V1", { ts: Date.now() });
+      console.warn("CONFLICT_CORE_LOADED_V1", { ts: Date.now(), buildTag: conflictCoreBuildTag });
     }
   } catch (_) {}
 })();

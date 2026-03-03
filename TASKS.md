@@ -70,6 +70,42 @@
 
 ## Inbox
 
+### [T-20260303-008] Canon Y-R finalize lock + incoming attack type diversity V2
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Для r vs y/y vs r в finalize запретить draw/crowd и всегда отдавать победу красному; для incoming атак вернуть разнообразие типов аргументов.
+- Acceptance:
+  - [ ] В Console.txt для (attackColor:r, defenseColor:y) и (attackColor:y, defenseColor:r) фиксируется `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, `forcedOutcome` в пользу красного; в `BATTLE_CANON_RESOLVE_V1` outcome не draw, `crowdStarted=0`, и по тем же battleId нет `CROWD_CREATE_*`.
+  - [ ] `ATTACK_TYPE_DIVERSITY_V2` пишет `availableTypes` длиной ≥2 (если типы существуют в контенте) хотя бы на 3 подряд incoming battle, и `selectedType` не всегда `yn`.
+  - [ ] `ATTACK_TYPE_DIVERSITY_V2` включает поля `battleId`, `opponentId`, `counts`, `selectedType`, `reason`, `window`, `availableTypes`.
+- Notes: Не трогать экономику/REP/robbery/таймеры/толпу, кроме запрета crowd именно для r vs y/y vs r.
+- Result: FAIL — ждём runtime-доказательств от QA.
+  - Report:
+    - Status: FAIL
+    - Facts:
+      1) `AsyncScene/Web/conflict/conflict-core.js`: в `C.finalize/runFinalize` добавлен hard-rule для r vs y/y vs r, который принудительно выставляет победу красного, запрещает crowd, и логирует `BATTLE_CANON_YR_LOCK_V1` с battleId/цветами/forcedOutcome/forcedNoCrowd.
+      2) `AsyncScene/Web/conflict/conflict-arguments.js`: входящие типы атак теперь ищут доступность по всем саб-ключам цвета, балансируются по истории, и логируют `ATTACK_TYPE_DIVERSITY_V2` с `availableTypes`, `counts`, `selectedType`, `reason`, `window`, `battleId`, `opponentId`.
+      3) `AsyncScene/Web/conflict/conflict-arguments.js`: удалено дублирующее `const canonSubKeysByColor`, чтобы устранить SyntaxError и позволить ConflictAPI загрузить модуль, и добавлен лог `CONFLICT_ARGUMENTS_LOADED_OK_V1 {ts, buildTag, hasDiversityV2:true}` после инициализации.
+      4) `PROJECT_MEMORY.md` и `TASKS.md` обновлены, статус оставлен FAIL до runtime доказательств.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Спровоцировать incoming battle r vs y и y vs r (например npc_bandit3 против жёлтой защиты) и в Console.txt найти `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедиться что `BATTLE_CANON_RESOLVE_V1` не draw и `CROWD_CREATE_*` отсутствуют по этому battleId.
+    2) На 3 подряд incoming_battle проверить `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` меняется (не всегда `yn`).
+    3) Зафиксировать DUMP_AT и приложить срез логов с обоими маркерами.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ Проверяющего:
+      1) На 3 подряд incoming_battle проверьте `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
+      2) Для r vs y и y vs r найдите `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедитесь что `BATTLE_CANON_RESOLVE_V1` не draw и по тем же battleId нет `CROWD_CREATE_*`.
+      3) После перезагрузки убедитесь, что `Console.txt` больше не содержит `SyntaxError: Cannot declare a const variable twice: 'canonSubKeysByColor'` и `[ConflictAPI] Arguments module not found`/fallback, а появляется `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` (ts/buildTag не пустые).
+      4) Приложите DUMP_AT и срез Console.txt со всеми маркерами — тогда можно переводить задачу в PASS.
+      ```
+
 ### [T-20260303-006] Canon resolve: tierDistance scope + same-color defender win + y-r lock logs
 - Status: FAIL
 - Priority: P0
@@ -77,43 +113,75 @@
 - Next: QA
 - Area: Conflict
 - Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Goal: Убрать ReferenceError tierDistance в computeOutcome, запретить draw и crowd при same-color + correct, и жёстко зафиксировать y-r как победу красного без crowd с диагностикой.
+- Goal: Сделать y-r/r-y схватки без crowd: независимо от типа побеждает красный, crowd не стартует, и диагностика фиксирует reason/forcedNoCrowd для этих боёв.
 - Acceptance:
-  - [ ] В Console.txt нет ReferenceError tierDistance после серии боёв.
-  - [ ] Для same-color (y-y) при правильном типе есть BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1.
-  - [ ] Для тех же battleId в BATTLE_CANON_RESOLVE_V1 outcome=defender_win и crowdStarted=0.
-  - [ ] Для тех же battleId нет CROWD_CREATE_*.
-  - [ ] Для y-r и r-y есть BATTLE_CANON_YR_LOCK_V2, outcome не draw, crowdStarted=0, нет CROWD_CREATE для battleId.
-  - [ ] BATTLE_CANON_RESOLVE_V1 содержит attackColor, defenseColor, isSameColor, isBlackAttack, isBlackDefense, tierDistance, typeMatchOk, isAttackTypeCorrect, isDefenseTypeCorrect, outcome, crowdStarted.
-- Notes: Не менять экономику, REP, UI, тексты. Только канон резолв и диагностика. Один атомарный фикс.
-- Result: FAIL - SMOKE не запускался в этом окружении.
+  - [ ] Для любых y-r/r-y (tierDistance>=2, non-black) `computeOutcome` сохраняет `_yrLockState` с `forcedNoCrowd=1`, `reason:"yr_lock"`, а исход (`outcome`) всегда красный без draw, даже если тип правильный и батл во villain-ветке.
+  - [ ] `BATTLE_CANON_YR_LOCK_V3` появляется на каждом таком бою и содержит поля `battleId`, `attackColor`, `defenseColor`, `tierDistance`, `forcedOutcome`, `forcedNoCrowd:1`, `reason:"yr_lock"`, и `previousOutcomeIfAny`.
+  - [ ] `BATTLE_OUTCOME_GATE_V3` для этих батлов пишет `forcedNoCrowd=1`, `yrLock=1`, `yrLockTierDistance=2`, `willStartCrowd:false`, and `crowdCreateAttempted:false`.
+  - [ ] В `BATTLE_CANON_RESOLVE_V1` `outcome≠draw`, `crowdStarted=0`, `attackColor/defenseColor` отражают y-r, и `CROWD_CREATE_*` отсутствуют для этих battleId (за счёт `isYRRLockNoCrowd` и guard-логики).
+- Notes: Не трогать экономику/REP/UI; все отчёты должны упоминать `Console.txt` маркеры и сценарии “желтый против красного ветерана” и “желтый vs красный злодей”.
+- Result: FAIL — runtime-данные (5–10 y-r/r-y с красным ветераном и злодеем против желтого) пока не собраны.
 - Report:
   - Status: FAIL
   - Facts:
-    1) `computeOutcome` теперь задаёт `tierDistance` в локальном scope и использует его в yr-lock, чтобы исключить ReferenceError.
-    2) Same-color + correct блокирует villain override и сохраняет outcome как победу защитника без draw.
-    3) `buildCanonResolveMeta` и `BATTLE_CANON_RESOLVE_V1` получили флаги `isAttackTypeCorrect` и `isDefenseTypeCorrect`.
-    4) В `finalize` добавлен hard-lock same-color + correct: outcome принудительно defender_win, crowd запрещён, лог `BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1`, а повторный старт crowd блокируется с `CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1`.
+    1) `computeOutcome` сохраняет `_yrLockState` для tierDistance=2 non-black, forcedNoCrowd=1, блокирует `typeRelevant`, и outcome теперь всегда отдаёт победу более сильному цвету (красному) даже при правильном типе в villain-ветке.
+    2) `startCrowdVoteTimer` проверяет `isYRRLockNoCrowd` и сразу выходит, так что никакие `CROWD_CREATE_*` не пишутся по данным battleId.
+    3) `finalize` логирует `BATTLE_CANON_YR_LOCK_V3`, обновлённый `BATTLE_OUTCOME_GATE_V3`, и `BATTLE_CANON_RESOLVE_V1` показывает `crowdStarted=0` и `forcedNoCrowd=1`.
+    4) `PROJECT_MEMORY.md` и `TASKS.md` зафиксировали новую метрику и инструкции по проверке через Console.txt, включая сценарии “красный ветеран против моей защиты на жёлтом” и “красный злодей против жёлтого”.
+    5) Добавлены диагностические маркеры (`BATTLE_YR_LOCK_CROWD_BLOCKED_V1`, `BATTLE_YR_LOCK_CROWD_TIMER_BLOCKED_V1`, `BATTLE_ROBBERY_V2`, `OUTGOING_RESOLVE_DIAG_V1`, `ATTACK_TYPE_DIVERSITY_V1`), и QA теперь ожидает их появление в Console.txt/логах при соответствующих сценариях.
   - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
-    1) Прогнать 3–5 боёв same-color (y-y) с правильным типом.
-    2) Прогнать 5–10 боёв y-r и r-y.
-    3) Проверить Console.txt: нет ReferenceError tierDistance; для y-y есть `BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1`, `BATTLE_CANON_RESOLVE_V1 outcome=defender_win crowdStarted=0`, и нет `CROWD_CREATE_*` по тем же battleId.
+    1) Включите dev/имитированную среду и сыграйте 5–10 боёв y-r и r-y, обязательно включая (a) красного ветерана против вашей защиты на жёлтом и (b) красного злодея в аналогичном конфликте.
+    2) В Console.txt на каждый бой найдите `BATTLE_CANON_YR_LOCK_V3` с `forcedNoCrowd:1`, `reason:"yr_lock"`, `tierDistance:2`, и `forcedOutcome` в пользу красного, затем проверьте `BATTLE_OUTCOME_GATE_V3` с `forcedNoCrowd=1`, `yrLock=1`, `willStartCrowd:false`.
+    3) Убедитесь, что `BATTLE_CANON_RESOLVE_V1` для этих баттлов имеет `crowdStarted=0`, `outcome`=победа красного, и по тем же `battleId` нет ни одного `CROWD_CREATE_*`.
+    4) Проверьте `ATTACK_TYPE_DIVERSITY_V1` (последние 50 входящих типов), `OUTGOING_RESOLVE_DIAG_V1` (цвета/типы/локи в исходящих) и `BATTLE_ROBBERY_V2` после проигрыша от бандита с `lostPts`/`transferred`.
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       Ответ QA:
-      1) Прогоните 3–5 боёв same-color (y-y) с правильным типом.
-      2) Прогоните 5–10 боёв y-r и r-y.
-      3) В Console.txt проверьте:
-         - нет ReferenceError tierDistance;
-         - для y-y есть BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1;
-         - для тех же battleId есть BATTLE_CANON_RESOLVE_V1 outcome=defender_win crowdStarted=0;
-         - нет CROWD_CREATE_* для этих battleId;
-         - BATTLE_CANON_YR_LOCK_V2 присутствует на y-r/r-y и forcedNoCrowd=1.
+      1) Прогоните 5–10 боёв y-r и r-y, включая красного ветерана против жёлтой защиты и красного злодея против жёлтой защиты, чтобы покрыть оба сценария.
+      2) В Console.txt проверьте на каждое `battleId`:
+         - `BATTLE_CANON_YR_LOCK_V3` фиксирует `forcedNoCrowd:1`, `reason:"yr_lock"`, `tierDistance:2`, и `forcedOutcome` красного.
+         - `BATTLE_OUTCOME_GATE_V3` отражает `forcedNoCrowd=1`, `yrLock=1`, `yrLockTierDistance=2`, `willStartCrowd:false`, `crowdCreateAttempted:false`.
+         - `BATTLE_CANON_RESOLVE_V1` показывает `crowdStarted=0`, `outcome` красного, и нет `CROWD_CREATE_*` по этим battleId.
+      3) Убедитесь, что никто не видит толпу в игре при этих комбинациях; если какая-то барахлит, приложите лог с `CROWD_CREATE_*` и объясните расхождение.
       ```
 
--### [T-20260303-005] PROGER rules doc setup
+### [T-20260303-007] Conflict core runtime crash fix
+- Status: FAIL
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Conflict|Core
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Устранить SyntaxError `finally` в `conflict-core.js`, вернуть `ConflictAPI` доступ к core и зафиксировать новый маркер загрузки.
+- Acceptance:
+  - [ ] `conflict-core.js` загружается без SyntaxError и завершает `C.finalize` через `runFinalize` с гарантированным `clearCanonGuardHint`.
+  - [ ] В Console.txt появляется лог `CONFLICT_CORE_LOADED_OK_V1` с `ts` и `buildTag`, а `CONFLICT_CORE_LOADED_V1` тоже включает `buildTag`.
+  - [ ] `[ConflictAPI] Missing core module` больше не появляется, и модуль виден как `core:true`.
+- Notes: Минимальное изменение синтаксиса; поведение батлов оставлено без изменений. Статус остаётся FAIL до(runtime) подтверждения.
+- Result: FAIL — ждем runtime-доказательств (нет SyntaxError + log маркер + core:true).
+- Report:
+  - Status: FAIL
+  - Facts:
+    1) Атомарно обернули тело `C.finalize` в `runFinalize` и вызвали его через `try/finally`, чтобы `clearCanonGuardHint` не вызывал синтаксическую ошибку.
+    2) Добавили `CONFLICT_CORE_LOADED_OK_V1` c `ts`/`buildTag` и переиспользуем `conflictCoreBuildTag` для dev-маркера `CONFLICT_CORE_LOADED_V1`.
+    3) Поведение ConflictAPI в рантайме всё ещё ждёт QA: должно не быть SyntaxError/finally, нет `Missing core module`, есть новый лог.
+  - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify:
+    1) Перезагрузить http://localhost:8080/index.html?dev=1, проследить Console.txt: видеть `CONFLICT_CORE_LOADED_OK_V1` (с `buildTag`) и отсутствие `SyntaxError: Unexpected keyword 'finally'`.
+    2) Убедиться, что `[ConflictAPI] Missing core module` больше не появляется и ConflictAPI теперь логирует, что core найден (`core:true`).
+    3) Приложить вывод или `Console.txt` с новым сигналом, тогда можно перевести задачу в PASS.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      1) Перезагрузите http://localhost:8080/index.html?dev=1 и следите за Console.txt: теперь должен появиться `CONFLICT_CORE_LOADED_OK_V1` с `ts`/`buildTag`, а `SyntaxError: Unexpected keyword 'finally'` и `[ConflictAPI] Missing core module` больше не должны появляться.
+      2) После загрузки убедитесь, что `ConflictAPI` видит `core:true` и что больше нет упоминаний `core:false`.
+      3) Пришлите подтверждение runtime (скриншот/Console.txt) — тогда задача становится PASS.
+      ```
+
+### [T-20260303-005] PROGER rules doc setup
 - Status: PASS
 - Priority: P2
 - Assignee: Codex-ассистент
@@ -130,6 +198,7 @@
   - Facts:
     1) Создан `PROGER_RULES.md` в корне, содержащий указанный блок без изменений, чтобы дальше ссылаться на единый источник.
     2) PROJECT_MEMORY.md и TASKS.md получили записи (новый лог в PROJECT_MEMORY.md и этот блок) с датой 2026-03-03 и ссылкой на файл.
+    3) Правило “не писать в ответах `wave 1: ...` / `фаза Economy ...` / `весь проект ...`” добавлено в `PROGER_RULES.md`, и изменения отражены в записях TASKS/PROJECT_MEMORY.
   - Changed: `PROGER_RULES.md` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify:
     1) Убедиться, что `PROGER_RULES.md` существует в корне и содержит точно заданный текст.
@@ -142,7 +211,7 @@
       2) Проверь PROJECT_MEMORY.md на запись `### 2026-03-03 — PROGER rules doc added` и убедись, что TASKS.md содержит задачу T-20260303-005.
       ```
 
--### [T-20260303-004] Canon y-r hardcap: no draw, red always wins
+### [T-20260303-004] Canon y-r hardcap: no draw, red always wins
 - Status: FAIL
 - Priority: P0
 - Assignee: Codex-ассистент

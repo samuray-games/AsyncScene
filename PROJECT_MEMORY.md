@@ -925,10 +925,21 @@
 
 ## Log (append-only)
 
+### 2026-03-03 — Y-R finalize hard lock + incoming attack diversity V2 (runtime pending)
+- Facts:
+  - Console.txt проверен: `[DUMP_AT] [2026-03-03 23:36:04]` содержит `ATTACK_TYPE_DIVERSITY_V1 availableTypes:[yn]` и кейс `npc_bandit3` с `attackColor:r`, `defenseColor:y`, `outcome:draw`, `crowdStarted:1` (battleId `battle_mmapm7ec_inwr7m`).
+  - `AsyncScene/Web/conflict/conflict-core.js`: в `C.finalize/runFinalize` добавлен hard-rule для r vs y/y vs r (побеждает красный), лог `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`; draw/crowd больше не допускаются для этих цветов.
+  - `AsyncScene/Web/conflict/conflict-arguments.js`: входящие типы атак теперь ищутся по саб-ключам того же цвета, балансируются по истории и логируют `ATTACK_TYPE_DIVERSITY_V2` (availableTypes/counts/selectedType/reason/window/battleId/opponentId).
+  - `AsyncScene/Web/conflict/conflict-arguments.js`: удалено дублирующее `const canonSubKeysByColor`, чтобы устранить SyntaxError и предотвратить fallback ConflictAPI; добавлен лог `CONFLICT_ARGUMENTS_LOADED_OK_V1 {ts, buildTag, hasDiversityV2:true}` после инициализации модуля.
+  - Статус: FAIL — ждём runtime подтверждений от QA по маркерам `BATTLE_CANON_YR_LOCK_V1`, `BATTLE_CANON_RESOLVE_V1` (без draw) и `ATTACK_TYPE_DIVERSITY_V2` (availableTypes ≥2).
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `PROJECT_MEMORY.md` `TASKS.md`
+Память обновлена
+
 ### 2026-03-03 — Canon y‑r lock waiting evidence
 - Facts:
-  - `AsyncScene/Web/conflict/conflict-core.js`: yr-lock (tierDistance=2, non-black) теперь всегда выигрывает красное, crowd запрещён; `BATTLE_CANON_YR_LOCK_V2` логирует battleId, colors, tierDistance, canonMatchOk/problem, typeMatchOk, forcedOutcome, forcedNoCrowd и previousOutcomeIfAny.
-  - Статус задачи временно `FAIL` до runtime-доказательства (Console.txt: 5–10 боёв y-r/r-y/black vs non-black с `BATTLE_CANON_YR_LOCK_V2` и без `CROWD_CREATE_*`).
+  - `AsyncScene/Web/conflict/conflict-core.js`: `computeOutcome` теперь сохраняет `_yrLockState` для tierDistance=2 non-black с `forcedNoCrowd=1` и `reason:"yr_lock"`, так что красный побеждает независимо от типа, def/internal villain-ветка видит gap без typeRelevant, `startCrowdVoteTimer` проверяет `isYRRLockNoCrowd` и не запускает crowd.
+  - В `finalize` добавлены `BATTLE_CANON_YR_LOCK_V3`, `BATTLE_OUTCOME_GATE_V3` (с `forcedNoCrowd=1`, `yrLock=1`, `yrLockTierDistance=2`, `willStartCrowd:false`) и `BATTLE_CANON_RESOLVE_V1` остаётся `crowdStarted=0`, что вместе с `CROWD_CREATE_*` guardами гарантирует отсутствие crowd по этим battleId.
+  - Статус: FAIL — нужны runtime-данные (5–10 боёв y-r и r-y, включая красного ветерана и красного злодея против жёлтой защиты); в Console.txt должны быть `BATTLE_CANON_YR_LOCK_V3`, `BATTLE_OUTCOME_GATE_V3`, `BATTLE_CANON_RESOLVE_V1`/`crowdStarted=0` и отсутствие `CROWD_CREATE_*` на тех же `battleId`.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
 Память обновлена
 
@@ -946,6 +957,22 @@
   - `AsyncScene/Web/conflict/conflict-api.js` `ensureCrowdVoteStarted` дублирует `CROWD_CREATE_ATTEMPT_V1` (reason/battleId/status/result/canonMatchOk/canonGuardActive/defenseKey/attackKey) и не позволяет crowd стартовать, оставляя `crowdCreateAttempted:false`/`willStartCrowd:false` с маркером `CROWD_CREATE_BLOCKED_CANON_V1`.
   - Результат: canonical выбор в UI теперь сразу становится `finished win/lose` без crowd, `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` снова `ok:true` и Console.txt [DUMP_AT] [2026-03-03 14:25:04] фиксирует `BATTLE_OUTCOME_GATE_V3`/`DEV_OUTCOME_GATE_V2` с `crowdCreateAttempted:false`/`willStartCrowd:false`, а `CROWD_CREATE_CALLSITE_V1` отсутствует, доказывая, что guard гарантирует отсутствие crowd и immediate finish.
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-api.js` `PROJECT_MEMORY.md` `TASKS.md`
+Память обновлена
+
+### 2026-03-03 — Diagnostics for outgoing, robbery, and attack-type diversity
+- Facts:
+  - `AsyncScene/Web/conflict/conflict-core.js`: `C.finalize` now emits `OUTGOING_RESOLVE_DIAG_V1` when the player is the attacker so we can inspect colors/types/outcomes/locks for outgoing losses, and `BATTLE_YR_LOCK_CROWD_BLOCKED_V1` plus `BATTLE_YR_LOCK_CROWD_TIMER_BLOCKED_V1` warn when a crowd attempt runs while `yr_lock` is active.
+  - `AsyncScene/Web/conflict/conflict-core.js`: bandit robbery uses `maybeApplyBanditRobbery` to wipe the player’s points, track `loserPtsBefore/After`, and write `BATTLE_ROBBERY_V2` (battleId, loser/winner, transferred amount, reason, allowed/triggered, txId/logIndex).
+  - `AsyncScene/Web/conflict/conflict-arguments.js`: incoming attack picker balances types across the last 50 picks, logs `ATTACK_TYPE_DIVERSITY_V1` with window counters/seed/available types, and falls back to canonical options so incoming args are not all `yn`.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `PROJECT_MEMORY.md` `TASKS.md`
+Память обновлена
+
+### 2026-03-03 — Conflict core syntax clean load
+- Facts:
+  - `AsyncScene/Web/conflict/conflict-core.js`: весь `C.finalize` обернут в `runFinalize`, а вызов возвращается через `try/finally`, так что `clearCanonGuardHint` больше не пробрасывает «Unexpected keyword 'finally'» и модуль собирается без синтаксических ошибок.
+  - Добавлен `CONFLICT_CORE_LOADED_OK_V1` с `ts/buildTag` (и тот же `buildTag` используется в dev-маркере `CONFLICT_CORE_LOADED_V1`), чтобы QA видел явное подтверждение загрузки коревого модуля перед ConflictAPI.
+  - Статус: FAIL — ждём runtime-доказательств: нет `SyntaxError: Unexpected keyword 'finally'`, нет `[ConflictAPI] Missing core module`, есть `CONFLICT_CORE_LOADED_OK_V1` с `ts/buildTag`.
+- Changed: `AsyncScene/Web/conflict/conflict-core.js` `PROJECT_MEMORY.md` `TASKS.md`
 Память обновлена
 
 ### 2026-02-27 — Canon match crowd guard + diag
@@ -3469,6 +3496,14 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Facts:
   - Добавлен `PROGER_RULES.md` в корне со вставленным без изменений блоком правил прогера, чтобы дальнейшие промты ссылались на один источник.
   - PROJECT_MEMORY.md и TASKS.md обновлены, чтобы зафиксировать появление файла и требование логировать каждый шаг согласно новой инструкции.
+- Next: —
+- Changed: `PROGER_RULES.md` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-03-03 — PROGER rule: no progress headers
+- Status: PASS
+- Facts:
+  - `PROGER_RULES.md` дополнился правилом “не писать в ответах `wave 1: __%`, `фаза Economy (текущие задачи): __%`, `весь проект (текущие задачи): __%`”, чтобы избежать noisовых блоков и держать ответы компактными.
+  - PROJECT_MEMORY.md и TASKS.md отметили это уточнение как часть команды инструкций.
 - Next: —
 - Changed: `PROGER_RULES.md` `PROJECT_MEMORY.md` `TASKS.md`
 

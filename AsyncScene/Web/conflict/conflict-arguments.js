@@ -817,12 +817,92 @@
         console.warn("ARGS_FINGERPRINT_V2", "desiredGroup_fix_1", { ts: Date.now(), hasDesiredGroup: typeof desiredGroup !== "undefined" });
       } catch (_) {}
     }
-    const typesWanted = desiredGroup ? [desiredGroup] : baseTypes;
+    const diagState = (Game && Game.__D) ? Game.__D : (Game && (Game.__D = {}));
+    const history = Array.isArray(diagState.attackTypeHistory) ? diagState.attackTypeHistory : (diagState.attackTypeHistory = []);
     const attackCtx = { usedNames: new Set(), usedPlaces: new Set(), role: null };
     const fillText = (text) => (D && typeof D.fillPlaceholders === "function") ? D.fillPlaceholders(text, attackCtx) : String(text || "");
 
-    const t = pickN(typesWanted, 1)[0] || "yn";
-    const list = D.getArgCanonGroup(subKey, String(t).toUpperCase()) || [];
+    const findTypeGroup = (type) => {
+      const typeU = String(type || "").toUpperCase();
+      const primary = D.getArgCanonGroup(subKey, typeU) || [];
+      if (primary.length) return { subKey, list: primary, source: "primary" };
+      const colorSubs = canonSubKeysByColor(tierColor).filter(s => s !== subKey);
+      for (const alt of colorSubs) {
+        const altList = D.getArgCanonGroup(alt, typeU) || [];
+        if (altList.length) return { subKey: alt, list: altList, source: "fallback_color" };
+      }
+      return null;
+    };
+    const availableMap = {};
+    baseTypes.forEach(type => {
+      const hit = findTypeGroup(type);
+      if (hit) availableMap[type] = hit;
+    });
+    const availableTypes = Object.keys(availableMap);
+    let candidateTypes = [];
+    let selectedReason = "incoming_random";
+    if (desiredGroup && availableTypes.includes(desiredGroup)) {
+      candidateTypes = [desiredGroup];
+      selectedReason = `desired:${desiredGroup}`;
+    } else if (availableTypes.length) {
+      candidateTypes = availableTypes.slice();
+      selectedReason = desiredGroup ? `desired_missing:${desiredGroup}` : "incoming_random";
+    } else {
+      candidateTypes = baseTypes.slice();
+      selectedReason = "no_available_types";
+    }
+
+    const computeCounts = () => {
+      const counts = {};
+      baseTypes.forEach(type => { counts[type] = 0; });
+      history.forEach(type => {
+        const normalized = String(type || "").toLowerCase();
+        if (counts.hasOwnProperty(normalized)) {
+          counts[normalized] += 1;
+        }
+      });
+      return counts;
+    };
+    const countsBefore = computeCounts();
+    const pickBalancedType = (choices, counts) => {
+      if (!choices || !choices.length) return null;
+      let minCount = Infinity;
+      const bucket = [];
+      for (const type of choices) {
+        const normalized = String(type || "").toLowerCase();
+        const cnt = counts.hasOwnProperty(normalized) ? counts[normalized] : 0;
+        if (cnt < minCount) {
+          minCount = cnt;
+          bucket.length = 0;
+          bucket.push(type);
+        } else if (cnt === minCount) {
+          bucket.push(type);
+        }
+      }
+      return bucket.length ? bucket[Math.floor(Math.random() * bucket.length)] : null;
+    };
+
+    const selectedType = pickBalancedType(candidateTypes, countsBefore) || candidateTypes[0] || "yn";
+    history.push(selectedType);
+    if (history.length > 50) history.splice(0, history.length - 50);
+    const countsAfter = computeCounts();
+    const diagPayload = {
+      battleId: battleCtx.id || null,
+      opponentId,
+      selectedType,
+      counts: countsAfter,
+      window: history.length,
+      availableTypes: availableTypes.slice(0),
+      reason: selectedReason,
+      seed: battleCtx.id || null
+    };
+    try {
+      console.warn("ATTACK_TYPE_DIVERSITY_V2", diagPayload);
+    } catch (_) {}
+
+    const t = selectedType;
+    const pickedGroup = availableMap[t] || findTypeGroup(t);
+    const list = pickedGroup ? (pickedGroup.list || []) : (D.getArgCanonGroup(subKey, String(t).toUpperCase()) || []);
     if (!list.length) return null;
     const picked = pickN(list, 1)[0] || list[0];
     if (!picked || !picked.q) return null;
@@ -954,5 +1034,15 @@
     } catch (_) {}
   };
   markArgumentsLoaded();
+  const markArgumentsLoadedOk = () => {
+    try {
+      console.warn("CONFLICT_ARGUMENTS_LOADED_OK_V1", {
+        ts: Date.now(),
+        buildTag: (typeof Game !== "undefined" && Game && Game.__buildTag) ? Game.__buildTag : null,
+        hasDiversityV2: true
+      });
+    } catch (_) {}
+  };
+  markArgumentsLoadedOk();
   console.log("[AttackChoices] conflict-arguments loaded", Date.now());
 })();
