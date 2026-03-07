@@ -3576,3 +3576,24 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `git log --oneline origin/main..main`
   - `git ls-tree -r --name-only origin/main | rg '^docs/'`
 - Next: —
+
+### 2026-03-07 — GitHub docs contradiction investigation
+- Status: FAIL
+- Facts:
+  - Выполнены обязательные git-команды проверки удалённой ветки и содержимого `docs/` (см. Evidence).
+  - `git fetch origin` не изменил `origin/main`; `git rev-parse HEAD` == `git rev-parse origin/main` указывают на commit `7cfecc7e6cd451157e4a18bd03c0b420edf5fd47`.
+  - `git ls-tree --name-only origin/main` показывает папку `docs`, а `git ls-tree -r --name-only origin/main | rg '^docs/'` включает `docs/index.html`.
+  - `git cat-file -e origin/main:docs/index.html` вернул `OK`, подтверждая наличие entrypoint в опубликованной ветке.
+  - Противоречие с 404 на публичном GitHub не воспроизводится на уровне git-данных; значит корень проблемы вне git (не тот репозиторий/ветка или отсутствие доступа даёт 404).
+- Evidence:
+  - `git remote -v`
+  - `git branch --show-current`
+  - `git rev-parse HEAD`
+  - `git rev-parse origin/main`
+  - `git ls-tree --name-only origin/main`
+  - `git ls-tree -r --name-only origin/main | rg '^docs/'`
+  - `git show --stat --oneline origin/main`
+  - `git remote show origin`
+  - `git fetch origin`
+  - `git cat-file -e origin/main:docs/index.html`
+- Next: Нужен точный URL/скрин публичной страницы и настройка GitHub Pages (source: main + /docs) для проверки, иначе остаётся FAIL.
