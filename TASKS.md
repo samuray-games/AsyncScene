@@ -3325,3 +3325,33 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - Runtime окружение для smoke-команды `SmokeCounterArgCategories` недоступно здесь, поэтому тесты не прогнал — результат фиксируется как FAIL до выполнения команды на dev-сборке.
 - Changed: `AsyncScene/Web/conflict/conflict-arguments.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
 - Next: Запустить `SmokeCounterArgCategories` (см. SMOKE_TEST_COMMANDS.md), убедиться в 10 прогонах по 3 уникальных `group` и ровно одном `correctType`, затем обновить этот блок в TASKS.md/PROJECT_MEMORY.md как PASS и задокументировать результат в `Console.txt`.
+
+### 2026-03-07 — Repo verification for GitHub Pages docs
+- Status: PASS
+- Facts:
+  - Подтверждён абсолютный корень репозитория `/Users/User/Documents/created apps/AsyncScene` и совпадение с git top-level.
+  - Ветка `main` актуальна локально и в удалённом репо `https://github.com/samuray-games/AsyncScene.git`.
+  - `docs/index.html` существует рядом с `docs/`, что соответствует настройке GitHub Pages `main + /docs`.
+- Evidence:
+  - `pwd`
+  - `git rev-parse --show-toplevel`
+  - `git branch --show-current`
+  - `git remote -v`
+  - `find . -maxdepth 2 -type d -name docs -print`
+  - `find . -maxdepth 2 -name index.html -print`
+- Next: —
+
+### 2026-03-07 — Origin/main docs verification
+- Status: PASS
+- Facts:
+  - `git fetch origin` completed (origin/main now known) and `git log origin/main..main` reports no commits, so local `main` is in sync with `origin/main`.
+  - `git ls-tree -r --name-only origin/main | rg '^docs/'` lists `docs/index.html` plus the rest of the docs tree, proving the repository published to `origin/main` already contains the `docs` site assets.
+  - `git status --short` only shows staging changes in `PROJECT_MEMORY.md` and `TASKS.md`, confirming no other working tree drift.
+- Evidence:
+  - `git status --short`
+  - `git log --oneline --decorate -n 5`
+  - `git fetch origin`
+  - `git log --oneline --decorate origin/main -n 5`
+  - `git log --oneline origin/main..main`
+  - `git ls-tree -r --name-only origin/main | rg '^docs/'`
+- Next: —

@@ -3546,3 +3546,33 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Отредактировали `AsyncScene/Web/index.html`, чтобы `dev/dev-checks.js` грузился по относительному пути (без `/`), и `docs/index.html` получает ту же ссылку, поэтому ассет-пути стабильно работают на поддиректориях.
 - Changed: `docs/index.html` `docs/style.css` `docs/util.js` `docs/state.js` `docs/data.js` `docs/npcs.js` `docs/events.js` `docs/conflict/*` `docs/ui/*` `docs/dev/console-tape.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html`
 - Next: QA
+
+### 2026-03-07 — Repo verification for GitHub Pages docs
+- Status: PASS
+- Facts:
+  - Подтверждён абсолютный корень репозитория `/Users/User/Documents/created apps/AsyncScene` и он совпадает с git top-level.
+  - Ветка `main` и `origin` -> `https://github.com/samuray-games/AsyncScene.git` совпадают, так что работа ведётся в целевом репо samuray-games/AsyncScene.
+  - В каталоге `docs` присутствует `index.html`, что соответствует GitHub Pages на `main + /docs`.
+- Evidence:
+  - `pwd`
+  - `git rev-parse --show-toplevel`
+  - `git branch --show-current`
+  - `git remote -v`
+  - `find . -maxdepth 2 -type d -name docs -print`
+  - `find . -maxdepth 2 -name index.html -print`
+- Next: —
+
+### 2026-03-07 — Origin/main docs content proof
+- Status: PASS
+- Facts:
+  - `git fetch origin` finished and `git log origin/main..main` output is empty, proving local `main` is no longer ahead of `origin/main`.
+  - `git ls-tree -r --name-only origin/main | rg '^docs/'` includes `docs/index.html` along with the rest of the docs tree, confirming the published branch already contains the site assets.
+  - `git status --short` shows only changes to `PROJECT_MEMORY.md` and `TASKS.md`, so no unrelated work is pending and the repo is clean other than metadata.
+- Evidence:
+  - `git status --short`
+  - `git log --oneline --decorate -n 5`
+  - `git fetch origin`
+  - `git log --oneline --decorate origin/main -n 5`
+  - `git log --oneline origin/main..main`
+  - `git ls-tree -r --name-only origin/main | rg '^docs/'`
+- Next: —
