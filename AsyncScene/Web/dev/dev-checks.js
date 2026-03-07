@@ -22362,6 +22362,80 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       emitEnd({ ok: false });
       return failure;
     }
+    const Conflict = (Game && (Game.Conflict || Game._Conflict)) ? (Game.Conflict || Game._Conflict) : null;
+    const Args = (Game && (Game.ConflictArguments || Game._ConflictArguments || Game._ConflictArgs))
+      ? (Game.ConflictArguments || Game._ConflictArguments || Game._ConflictArgs)
+      : null;
+    const allowedTypes = new Set(["about", "who", "where", "yn"]);
+    const normalizeType = (value) => {
+      if (value == null) return null;
+      const normalized = String(value).trim().toLowerCase();
+      if (!normalized) return null;
+      if (normalized === "yesno") return "yn";
+      if (normalized === "yn") return "yn";
+      return normalized;
+    };
+    const getBattleAttackType = (battle) => {
+      if (!battle) return null;
+      const attack = battle.attack || {};
+      const directType = normalizeType(battle.attackType || attack.type);
+      if (directType) return directType;
+      const argKeyType = normalizeType(attack.argKey || attack.key);
+      if (argKeyType) return argKeyType;
+      return null;
+    };
+    const getDebugFallbackType = () => {
+      const debug = Game.Debug;
+      const last = debug && typeof debug === "object" ? debug.lastAttackTypeDiversity : null;
+      return last && last.selectedType ? normalizeType(last.selectedType) : null;
+    };
+    const collectDefenseArgs = (battle) => {
+      if (!battle) return [];
+      const seen = new Set();
+      const collector = [];
+      const pushArg = (arg) => {
+        if (!arg) return;
+        const id = arg.id || arg.key || null;
+        if (!id) return;
+        const key = String(id);
+        if (seen.has(key)) return;
+        seen.add(key);
+        collector.push(arg);
+      };
+      if (Array.isArray(battle._defenseChoices)) {
+        battle._defenseChoices.filter(arg => arg && !arg._pad).forEach(pushArg);
+      }
+      if (Args && typeof Args.myDefenseOptions === "function") {
+        try {
+          const optsList = Args.myDefenseOptions(battle);
+          if (Array.isArray(optsList)) optsList.forEach(pushArg);
+        } catch (_) {}
+      }
+      return collector;
+    };
+    const finishIncomingBattle = (battle) => {
+      if (!battle || !battle.id) return { ok: false, reason: "missing_battle" };
+      if (!Conflict || typeof Conflict.pickDefense !== "function") {
+        return { ok: false, reason: "conflict_pick_missing" };
+      }
+      const candidates = collectDefenseArgs(battle);
+      if (!candidates.length) return { ok: false, reason: "no_defense_candidates" };
+      let pick = candidates.find(arg => String(arg.id || "").startsWith("canon_"));
+      if (!pick) pick = candidates[0] || null;
+      if (!pick || !pick.id) return { ok: false, reason: "no_canon_defense" };
+      try {
+        const pickResult = Conflict.pickDefense(battle.id, pick.id);
+        if (Conflict && typeof Conflict.resolveBattle === "function" && String(battle.status || "") === "pickDefense") {
+          Conflict.resolveBattle(battle, pick);
+        }
+        if (pickResult && pickResult.ok === false) {
+          return { ok: false, reason: "pick_failed" };
+        }
+        return { ok: true, pick };
+      } catch (err) {
+        return { ok: false, reason: "pick_exception", error: String(err) };
+      }
+    };
     emitBegin();
     const diag = {
       runs: [],
@@ -22376,25 +22450,41 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         const res = eventGen({ source: "smoke_attack_type_diversity", maxSilentStreak: 20 });
         battle = res && res.battle ? res.battle : null;
       } catch (err) {
-        diag.runs.push({ idx: idx + 1, error: String(err) });
+        diag.runs.push({
+          idx: idx + 1,
+          battleId: null,
+          opponentId: null,
+          type: "unknown",
+          error: String(err)
+        });
         continue;
       }
+      let finishInfo = null;
+      if (battle) finishInfo = finishIncomingBattle(battle);
+      const battleId = battle && (battle.id || battle.battleId) || null;
+      const opponentId = battle && (battle.opponentId || battle.oppId) || null;
+      let type = getBattleAttackType(battle);
+      if (!type) type = getDebugFallbackType();
+      if (!type) type = "unknown";
       const entry = {
         idx: idx + 1,
-        battleId: battle && (battle.id || battle.battleId) || null,
-        opponentId: battle && (battle.opponentId || battle.oppId) || null,
-        type: battle && battle.attack && battle.attack.type ? String(battle.attack.type).toLowerCase() : null
+        battleId,
+        opponentId,
+        type
       };
+      if (finishInfo && finishInfo.ok === false) {
+        entry.finishError = finishInfo.reason || finishInfo.error || "finish_failed";
+      }
       diag.runs.push(entry);
-      if (entry.type) {
+      if (type && allowedTypes.has(type)) {
         diag.captured += 1;
-        diag.typeCounts[entry.type] = (diag.typeCounts[entry.type] || 0) + 1;
+        diag.typeCounts[type] = (diag.typeCounts[type] || 0) + 1;
       }
     }
     const totalCaptured = diag.captured;
     const uniqueTypes = Object.keys(diag.typeCounts).filter(Boolean).length;
     const ynShare = totalCaptured ? ((diag.typeCounts.yn || 0) / totalCaptured) : 0;
-    const ok = totalCaptured > 0 && uniqueTypes >= 2 && ynShare <= 0.7;
+    const ok = diag.attempts === runsCount && totalCaptured === runsCount && uniqueTypes >= 2 && ynShare <= 0.6;
     const summary = {
       name,
       runsCount,

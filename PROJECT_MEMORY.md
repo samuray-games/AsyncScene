@@ -3528,11 +3528,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA запустить SMOKE и приложить Console.txt с маркерами.
 
 ### 2026-03-04 — Incoming argument type diversity balance
-- Status: FAIL (QA смоук не прогнан)
+- Status: FAIL (QA смоук не програн)
 - Facts:
-  - `Console.txt` DUMP_AT [2026-03-04 00:54:14] подтверждает баг: несколько `ATTACK_TYPE_DIVERSITY_V2` при incoming_battle все логируют `reason:"desired:yn"` и `selectedType:"yn"` из-за фиксированного дефолта.
-  - `AsyncScene/Web/conflict/conflict-arguments.js` теперь ведёт окно последних 20 входящих, балансирует типы по counts, использует детерминированный RNG (seed=battleId) и понижает `yn`, а `ATTACK_TYPE_DIVERSITY_V2` пишет `availableTypes`, `counts`, `selectedType`, `reason`, `window`, `seed`.
-  - Добавлен dev smoke `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce` и документированы шаги в `SMOKE_TEST_COMMANDS.md`: QA делает hard reload dev=1, запускает smoke, проверяет `uniqueTypes>=2`, `ynShare<=0.7`, и сохраняет `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`), `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` и `BEGIN/JSON1/JSON2/END`.
-  - `PROJECT_MEMORY.md`, `SMOKE_TEST_COMMANDS.md` и `TASKS.md` отражают новую логику, но без runtime-доказательств задача остаётся FAIL.
+  - `Console.txt` DUMP_AT [2026-03-04 00:54:14] подтверждает баг: несколько `ATTACK_TYPE_DIVERSITY_V2` при incoming_battle все логируют `reason:"desired:yn"` и `selectedType:"yn"`, поэтому smoke не собирает разнообразие.
+  - `AsyncScene/Web/conflict/conflict-arguments.js` теперь хранит 20 последних incoming-битлов, балансирует `counts`, понижает вероятность `yn`, записывает `availableTypes/counts/selectedType/reason/window/seed` и сохраняет `Game.Debug.lastAttackTypeDiversity` (battleId/opponentId/selectedType/ts) для fallback.
+  - `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce` завершает каждый incoming battle через `Conflict.pickDefense`, читает тип из `battle.attackType`/`battle.attack.type`/`argKey` или `Game.Debug.lastAttackTypeDiversity`, и выводит `JSON1`/`JSON2` с `runsCount==n`, `attempts==n`, `captured==n`, `typeCounts` по ≥2 типам, `uniqueTypes>=2`, `ynShare<=0.6`, и `runs`, где каждый `idx` имеет `battleId/opponentId/type` без `finishError`.
+  - `SMOKE_TEST_COMMANDS.md`, `PROJECT_MEMORY.md` и `TASKS.md` обновлены с новой диагностикой, но без runtime-доказательств задача остаётся FAIL.
+- Smoke: QA hard reload dev=1, запускает `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, потом `Game.__DUMP_ALL__()`; ожидаются `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` (`ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` как минимум по двум типам, `uniqueTypes>=2`, `ynShare<=0.6`) и `JSON2` c 10 `runs` (каждый `battleId/opponentId/type` не `null`, no `finishError`), а в Console.txt рядом `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 `ATTACK_TYPE_DIVERSITY_V2` (`availableTypes.length>=2`, `reason`≠`desired:yn`, разнообразным `selectedType`). QA прикладывает Console.txt с DUMP и SMOKE-выводом.
 - Next: QA (см. `Tasks` — run smoke и приложить Console.txt с маркерами).
 - Changed: `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`

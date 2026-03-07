@@ -136,14 +136,14 @@ Game.__DEV.smokeIncomingBattleCard_NoDuplicateArgsOnce();
 
 ## 3.3. Проверка incoming attack type diversity (новый SMOKE)
 
-Перед запуском обязательно hard reload dev-сборки (`/index.html?dev=1`, Cmd/Ctrl+Shift+R) — это гарантирует, что в `Console.txt` появится свежий `DUMP_AT` и `ATTACK_TYPE_DIVERSITY_V2` после перезагрузки скриптов.
+Перед запуском обязательно hard reload dev-сборки (`/index.html?dev=1`, Cmd/Ctrl+Shift+R) — это гарантирует, что в `Console.txt` появится свежий `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1` и свежие `ATTACK_TYPE_DIVERSITY_V2` после перезагрузки скриптов.
 
 ```text
 Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 });
 ```
 
-- **PASS**: в консоли появляются `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_BEGIN` → `JSON1` → `JSON2` → `END`, `JSON1` и `JSON2` содержат `ok:true`, `uniqueTypes>=2`, `ynShare<=0.7` и массив `runs` с хотя бы одним `selectedType≠"yn"`. В `Console.txt` рядом должен быть `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и не меньше 10 строк `ATTACK_TYPE_DIVERSITY_V2`, где `availableTypes.length>=2`, `reason` не `desired:yn`, и `selectedType` меняется. QA прикладывает к задаче `Console.txt` с итоговым `DUMP_AT`, этими логами и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2`.
-- **FAIL**: `ok:false`, `uniqueTypes<2`, `ynShare>0.7`, smoke не выдал `BEGIN/JSON1/JSON2/END`, или `Console.txt` не содержит нужных маркеров/логов.
+- **PASS**: в консоли появляются последовательные `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_BEGIN`, `JSON1`, `JSON2`, `END`. `JSON1` отражает реальные цифры: `ok:true`, `runsCount==n`, `attempts==n`, `captured==n`, `uniqueTypes>=2`, `ynShare<=0.6`, а `typeCounts` содержит хотя бы два типа («about», «who», «where», «yn»). `JSON2` включает `runs` длиной `n`, где каждый `idx` имеет `battleId`, `opponentId` и ненулевой `type` (берётся из `battle.attackType`/`battle.attack.type`/`argKey` или `Game.Debug.lastAttackTypeDiversity`), `finishError` отсутствует, и `typeCounts` совпадает с теми же типами из `JSON1`. `Console.txt` рядом должен показать `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` с `availableTypes.length>=2`, `reason` не `desired:yn` и разнообразным `selectedType`. QA прикладывает к задаче `Console.txt` с `DUMP_AT`, этими данными и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2`.
+- **FAIL**: `JSON1` содержит `captured<n`, `uniqueTypes<2`, `ynShare>0.6` или `ok:false`, `JSON2` пропускает `type`/`battleId`/`opponentId`, смоук не дошёл до `END`, или `Console.txt` лишён требуемых маркеров `CONFLICT_ARGUMENTS_LOADED_OK_V1`/`ATTACK_TYPE_DIVERSITY_V2`.
 
 ### Что записать в `Console.txt`
 1. `DUMP_AT [YYYY-MM-DD HH:MM:SS]` после hard reload.

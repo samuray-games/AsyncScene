@@ -917,6 +917,15 @@
       seed: typeSeed || null
     };
     try {
+      if (!Game.Debug || typeof Game.Debug !== "object") Game.Debug = {};
+      Game.Debug.lastAttackTypeDiversity = {
+        battleId: diagPayload.battleId,
+        opponentId: diagPayload.opponentId,
+        selectedType: diagPayload.selectedType ? String(diagPayload.selectedType).toLowerCase() : null,
+        ts: Date.now()
+      };
+    } catch (_) {}
+    try {
       console.warn("ATTACK_TYPE_DIVERSITY_V2", diagPayload);
     } catch (_) {}
 

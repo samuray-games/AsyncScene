@@ -49532,3 +49532,33 @@ ConnectionResetError: [Errno 54] Connection reset by peer
 127.0.0.1 - - [04/Mar/2026 01:31:56] code 404, message File not found
 127.0.0.1 - - [04/Mar/2026 01:31:56] "GET /favicon.ico HTTP/1.1" 404 -
 127.0.0.1 - - [04/Mar/2026 01:34:29] "POST /__dev/console-dump?v=1772555669726 HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:32] "GET /index.html?dev=1 HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /util.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /conflict/conflict-arguments.js?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /conflict/conflict-economy.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /npcs.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /state.js?v=4 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /data.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /events.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /conflict/conflict-core.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /conflict/conflict-api.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/logger.js?v=1 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-chat.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-core.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-dm.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-battles.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-events.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-menu.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-loops.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-console-panel.js?v=1 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /ui/ui-boot.js?v=2 HTTP/1.1" 304 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /__dev/console-dump-proof?v=1772800413191 HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /dev/dev-checks.js?v=1772800413195 HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /dev/console-tape.js HTTP/1.1" 200 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] code 404, message File not found
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] code 404, message File not found
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+127.0.0.1 - - [06/Mar/2026 21:33:33] code 404, message File not found
+127.0.0.1 - - [06/Mar/2026 21:33:33] "GET /favicon.ico HTTP/1.1" 404 -

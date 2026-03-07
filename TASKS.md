@@ -81,33 +81,33 @@
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Conflict
-- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Files: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
 - Goal: Для r vs y/y vs r в finalize запретить draw/crowd и всегда отдавать победу красному; для incoming атак вернуть разнообразие типов аргументов.
 - Acceptance:
   - [ ] В Console.txt для (attackColor:r, defenseColor:y) и (attackColor:y, defenseColor:r) фиксируется `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, `forcedOutcome` в пользу красного; в `BATTLE_CANON_RESOLVE_V1` outcome не draw, `crowdStarted=0`, и по тем же battleId нет `CROWD_CREATE_*`.
-  - [ ] `ATTACK_TYPE_DIVERSITY_V2` пишет `availableTypes` длиной ≥2 (если типы существуют в контенте) хотя бы на 3 подряд incoming battle, и `selectedType` не всегда `yn`.
-  - [ ] `ATTACK_TYPE_DIVERSITY_V2` включает поля `battleId`, `opponentId`, `counts`, `selectedType`, `reason`, `window`, `availableTypes`.
+  - [ ] `ATTACK_TYPE_DIVERSITY_V2` пишет `availableTypes` длиной ≥2 хотя бы на 3 подряд incoming battle, `selectedType` не всегда `yn`, и payload включает `battleId`, `opponentId`, `counts`, `selectedType`, `reason`, `window`, `availableTypes`.
+  - [ ] `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })` возвращает `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` с `ok:true`, `runsCount==n`, `attempts==n`, `captured==n`, `uniqueTypes>=2`, `ynShare<=0.6`, и `typeCounts` как минимум по двум типам; `JSON2` содержит `runs` для каждого `idx` с `battleId`, `opponentId`, ненулевым `type` (из `battle.attackType`/`attack.type`/`argKey` или `Game.Debug.lastAttackTypeDiversity`), без `finishError`.
 - Notes: Не трогать экономику/REP/robbery/таймеры/толпу, кроме запрета crowd именно для r vs y/y vs r.
 - Result: FAIL — QA пока не принёс подтверждения от `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1`.
   - Report:
     - Status: FAIL
     - Facts:
-      1) `Console.txt` DUMP_AT [2026-03-04 00:54:14] фиксирует последовательные `ATTACK_TYPE_DIVERSITY_V2` при incoming_battle, но у всех `reason:"desired:yn"` и `selectedType:"yn"`, так что баг воспроизводится на месте.
-      2) `AsyncScene/Web/conflict/conflict-arguments.js` теперь ведёт окно из 20 последних входящих, рассчитывает counts, использует детерминированный RNG (seed=battleId), понижает `yn`, повышает редкие типы и логирует `availableTypes`, `counts`, `selectedType`, `reason`, `window`, `seed`.
-      3) Добавлен smoke `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce` и описан в `SMOKE_TEST_COMMANDS.md`, он запускает 10 incoming_battle, проверяет `uniqueTypes>=2`, `ynShare<=0.7` и выдает `BEGIN/JSON1/JSON2/END` c `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2`.
-      4) `PROJECT_MEMORY.md`, `SMOKE_TEST_COMMANDS.md` и `TASKS.md` записали новую логику и требования, но пока нет runtime-отчета, чтобы переключить задачу в PASS.
+      1) `Console.txt` DUMP_AT [2026-03-04 00:54:14] фиксирует последовательные `ATTACK_TYPE_DIVERSITY_V2`, но все `selectedType:"yn"` и `reason:"desired:yn"`, поэтому smoke не может собрать типы.
+      2) `AsyncScene/Web/conflict/conflict-arguments.js` теперь хранит 20 последних incoming-битлов, балансирует `counts`, снижает вероятность `yn`, пишет новые поля `battleId/opponentId/selectedType/availableTypes/reason/window/seed` и сохраняет `Game.Debug.lastAttackTypeDiversity` чтобы смоук мог достать тип даже при отсутствии явного `battle.attack.type`.
+      3) `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce` перестраивает каждый run: вызывает `eventGen`, сразу выбирает Canon defense, докидывает `finishError`-флаг при проблеме, считывает тип из `battle.attackType`/`attack.type`/`argKey` или `Game.Debug.lastAttackTypeDiversity`, и выпускает `JSON1`/`JSON2` с `runsCount==n`, `attempts==n`, `captured==n`, `typeCounts` по минимум двум типам, `uniqueTypes>=2`, `ynShare<=0.6` и массивом `runs` с ненулевым `type` для каждого `idx`.
+      4) `PROJECT_MEMORY.md`, `SMOKE_TEST_COMMANDS.md`, `TASKS.md` зафиксировали новую диагностику и QA-инструкции, но пока QA не приложил Console.txt и DUMP с выводом смоука.
   - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md` `SMOKE_TEST_COMMANDS.md`
   - How to verify:
     1) Спровоцировать incoming battle r vs y и y vs r (например npc_bandit3 против жёлтой защиты) и в Console.txt найти `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедиться что `BATTLE_CANON_RESOLVE_V1` не draw и `CROWD_CREATE_*` отсутствуют по этому battleId.
     2) На 3 подряд incoming_battle проверить `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
-    3) Hard reload dev=1, запустить `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, и приложить к задаче `Console.txt` с DUMP_AT, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен) и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` (`ok:true`, `uniqueTypes>=2`, `ynShare<=0.7`).
+    3) Hard reload dev=1, запустить `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем `Game.__DUMP_ALL__()`. Убедиться, что `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` содержит `ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` с как минимум двумя допустимыми типами, `uniqueTypes>=2`, `ynShare<=0.6`; `JSON2` публикует 10 `runs` с `battleId`, `opponentId`, `type` (ненулевой) и без `finishError`. В Console.txt рядом: `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен). Прикрепить этот Console.txt с DUMP и маркерами.
   - Next: QA
   - Next Prompt (копипаст, кодблок обязателен):
       ```text
       Ответ Проверяющего:
       1) На 3 подряд incoming_battle проверьте `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
       2) Для r vs y и y vs r найдите `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедитесь что `BATTLE_CANON_RESOLVE_V1` не draw и по тем же battleId нет `CROWD_CREATE_*`.
-      3) После hard reload dev=1 запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем приложите `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, как минимум 10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен) и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` с `ok:true`, `uniqueTypes>=2`, `ynShare<=0.7`.
+      3) После hard reload dev=1 запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем `Game.__DUMP_ALL__()`. `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` должен дать `ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` на два+ типа, `uniqueTypes>=2`, `ynShare<=0.6`, а `JSON2` — 10 `runs` с `battleId/opponentId/type` (type не `null`) и без `finishError`. В Console.txt рядом есть `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 `ATTACK_TYPE_DIVERSITY_V2` с `availableTypes.length>=2`, `reason`≠`desired:yn`, `selectedType` разнообразен. Приложите этот Console.txt и DUMP — тогда можно переводить в PASS.
       4) Как только QA прикрепит Console.txt с перечисленными маркерами и JSON-выводом смоука — задачу можно переводить в PASS.
       ```
       Ответ QA:
@@ -116,7 +116,7 @@
          - `BATTLE_CANON_YR_LOCK_V3` фиксирует `forcedNoCrowd:1`, `reason:"yr_lock"`, `tierDistance:2`, и `forcedOutcome` красного.
          - `BATTLE_OUTCOME_GATE_V3` отражает `forcedNoCrowd=1`, `yrLock=1`, `yrLockTierDistance=2`, `willStartCrowd:false`, `crowdCreateAttempted:false`.
          - `BATTLE_CANON_RESOLVE_V1` показывает `crowdStarted=0`, `outcome` красного, и нет `CROWD_CREATE_*` по этим battleId.
-      3) Убедитесь, что никто не видит толпу в игре при этих комбинациях; если какая-то барахлит, приложите лог с `CROWD_CREATE_*` и объясните расхождение.
+      3) Сделайте hard reload dev=1, запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })` + `Game.__DUMP_ALL__()`, и в Console.txt подтвердите (a) `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` с `ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` по минимум двум типам, `uniqueTypes>=2`, `ynShare<=0.6`, (b) `JSON2` с 10 `runs`, каждый содержит `battleId/opponentId/type` (type не `null`) и нет `finishError`, (c) `CONFLICT_ARGUMENTS_LOADED_OK_V1 {...true}` и ≥10 `ATTACK_TYPE_DIVERSITY_V2` с `availableTypes.length>=2`, `reason`≠`desired:yn`, разнообразным `selectedType`. Приложите Console.txt + DUMP, тогда задача PASS.
       ```
 
 ### [T-20260303-007] Conflict core runtime crash fix
