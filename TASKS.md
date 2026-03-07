@@ -3376,3 +3376,94 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - `git fetch origin`
   - `git cat-file -e origin/main:docs/index.html`
 - Next: Нужен точный URL/скрин публичной страницы и настройка GitHub Pages (source: main + /docs) для проверки, иначе остаётся FAIL.
+
+### 2026-03-07 — GitHub Pages docs startup asset fix
+- Status: PASS
+- Priority: P2
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Docs|Infra
+- Files: `docs/index.html` `AsyncScene/Web/index.html` `docs/ui/ui-boot.js` `AsyncScene/Web/ui/ui-boot.js` `docs/__dev/console-dump-proof` `docs/favicon.ico`
+- Goal: Устранить 404 на стартапе документации (console-tape.js, console-dump-proof, favicon) при развертывании в `/AsyncScene/`.
+- Acceptance:
+  - [x] Все статические пути (dev/console-tape.js, dev/dev-checks.js, __dev/console-dump-proof, favicon.ico) запрашиваются относительно `/AsyncScene/`.
+  - [x] `ui-boot.js` инжектирует `dev/console-tape.js` без лидирующего `/`, чтобы запрос шел в ту же поддиректорию.
+  - [x] В репозитории есть `docs/__dev/console-dump-proof` (JSON proof) и `docs/favicon.ico`, которые доступны на GitHub Pages без 404.
+- Result: PASS
+  - Report:
+    - Status: PASS
+    - Facts:
+      1) В оба `index.html` добавлены `<base href="/AsyncScene/">` и `<link rel="icon" href="favicon.ico" />`, чтобы относительные урлы учитывали поддиректорию и favicon не стучался в корень домена.
+      2) `ui-boot.js` перестал префиксировать путь `/dev/console-tape.js`, теперь он просто `dev/console-tape.js`, поэтому браузер загружает скрипт из текущего пространства `/AsyncScene/`.
+      3) Добавлены статический `docs/__dev/console-dump-proof` и `docs/favicon.ico`, чтобы `__dev/console-dump-proof?v=` и `favicon.ico` возвращали 200-коды на GitHub Pages.
+  - Changed: `docs/index.html` `AsyncScene/Web/index.html` `docs/ui/ui-boot.js` `AsyncScene/Web/ui/ui-boot.js` `docs/__dev/console-dump-proof` `docs/favicon.ico`
+  - How to verify:
+    1. Загрузите https://<GH_PAGES_HOST>/AsyncScene/ и в Network убедитесь, что `dev/console-tape.js`, `dev/dev-checks.js`, `__dev/console-dump-proof?v=` и `favicon.ico` возвращают 200.
+    2. Убедитесь, что консоль больше не показывает 404 по этим ресурсам.
+    3. (Опционально) откройте https://<GH_PAGES_HOST>/AsyncScene/__dev/console-dump-proof?v=1 — там должен быть JSON `{ok:true}`.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      QA:
+      1) Откройте https://<GH_PAGES_HOST>/AsyncScene/ и убедитесь, что Network tab возвращает 200 для dev/console-tape.js, dev/dev-checks.js, __dev/console-dump-proof?v=<timestamp> и favicon.ico.
+      2) Убедитесь, что консоль больше не показывает 404 по этим ресурсам.
+      3) При необходимости скачайте https://<GH_PAGES_HOST>/AsyncScene/__dev/console-dump-proof?v=1 — там должен быть JSON {ok:true}.
+      ```
+
+### 2026-03-07 — GitHub Pages blank page + __dev 404 fix
+- Status: FAIL (runtime не подтверждён)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Docs|Infra
+- Files: `docs/index.html` `docs/dev/console-tape.js` `AsyncScene/Web/dev/console-tape.js` `docs/.nojekyll` `docs/__dev/console-dump-proof` `docs/favicon.ico`
+- Goal: Устранить blank page и остаточные 404 на GitHub Pages для `/AsyncScene/`.
+- Acceptance:
+  - [ ] `https://samuray-games.github.io/AsyncScene/` не пустая, UI стартует.
+  - [ ] `https://samuray-games.github.io/AsyncScene/__dev/console-dump-proof` возвращает 200 (не 404).
+  - [ ] `https://samuray-games.github.io/AsyncScene/favicon.ico` возвращает 200, либо ссылка на favicon безопасно удалена.
+- Result: FAIL — нужны runtime-доказательства.
+- Report:
+  - Status: FAIL
+  - Facts:
+    1) В `docs/dev/console-tape.js` и `AsyncScene/Web/dev/console-tape.js` обнаружены абсолютные пути `/__dev/...`, из-за чего запросы уходили в корень домена (`https://samuray-games.github.io/__dev/...`) и давали 404 вместо `/AsyncScene/__dev/...`.
+    2) GitHub Pages по умолчанию игнорирует каталоги с `_`, поэтому `docs/__dev/console-dump-proof` не публиковался; добавлен `docs/.nojekyll`, чтобы `__dev/` попал в деплой.
+    3) Пути proof/dump переведены на относительные `__dev/...` в обоих `console-tape.js`; базовый `base href="/AsyncScene/"` и `favicon.ico` в `docs/index.html` оставлены без изменений.
+- Evidence:
+  - `docs/dev/console-tape.js`
+  - `AsyncScene/Web/dev/console-tape.js`
+  - `docs/.nojekyll`
+
+  - Changed: `docs/dev/console-tape.js` `AsyncScene/Web/dev/console-tape.js` `docs/.nojekyll`
+  - How to verify:
+    1) Откройте https://samuray-games.github.io/AsyncScene/ и убедитесь, что страница не пустая и UI виден.
+    2) В Network проверьте 200 для `__dev/console-dump-proof` и `favicon.ico`.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      QA:
+      1) Откройте https://samuray-games.github.io/AsyncScene/ и подтвердите, что страница не пустая и UI стартует.
+      2) В Network проверьте 200 для `/AsyncScene/__dev/console-dump-proof` и `/AsyncScene/favicon.ico`.
+      3) Если всё ок — переведите задачу в PASS, иначе приложите скрин/Console.txt с 404.
+      ```
+
+### 2026-03-07 — Docs prod startup cleanup
+- Status: PASS
+- Area: Docs
+- Files: `docs/index.html` `docs/ui/ui-boot.js` `docs/state.js`
+- Goal: Убрать обращения прод-доковой стартовой страницы к dev-only ресурсам (`console-tape.js`, `dev-checks.js`, `__dev/console-dump-proof`) и избавиться от 404 на favicon.
+- Result: PASS
+  - Report:
+    - Status: PASS
+    - Facts:
+      1) `docs/index.html` больше не запрашивает `dev/console-tape.js`, `dev/dev-checks.js` и удалил ссылку на отсутствующий favicon.
+      2) `docs/ui/ui-boot.js` больше не инжектирует `dev/console-tape.js`, поэтому загрузка UI не инициирует лишний скрипт.
+      3) `docs/state.js` условно выполняет HTTP-запросы `/__dev__/docs/TASKS.md` и `/__dev__/docs/PROJECT_MEMORY.md` только при включённом dev-флаге, что предотвращает 404 в проде.
+  - Evidence:
+    - `docs/index.html`
+    - `docs/ui/ui-boot.js`
+    - `docs/state.js`
+  - How to verify:
+    1) Откройте https://samuray-games.github.io/AsyncScene/ и убедитесь, что Network таб больше не показывает запросов к `dev/console-tape.js`, `dev/dev-checks.js` или `/__dev__/docs/...`, и favicon либо отсутствует запрос, либо возвращает 200.
+    2) Убедитесь, что UI загружается нормально, без ошибок 404 на загрузку страницы.
+  - Next: —

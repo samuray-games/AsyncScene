@@ -13,7 +13,7 @@ window.Game = window.Game || {};
   if (head && !window.__CONSOLE_TAPE_SCRIPT_LOADED__) {
     window.__CONSOLE_TAPE_SCRIPT_LOADED__ = true;
     const tapeScript = document.createElement("script");
-    tapeScript.src = "/dev/console-tape.js";
+    tapeScript.src = "dev/console-tape.js";
     tapeScript.async = false;
     head.insertBefore(tapeScript, head.firstChild);
   }

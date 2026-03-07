@@ -6198,70 +6198,75 @@ window.Game = window.Game || {};
       const totalStart = nowMs();
       const failed = [];
 
-      const fetchTextSync = (path) => {
-        try {
-          const xhr = new XMLHttpRequest();
-          xhr.open("GET", path, false);
-          xhr.send(null);
-          if (xhr.status >= 200 && xhr.status < 300) {
-            return { ok: true, text: xhr.responseText || "" };
-          }
-          return { ok: false, reason: `http_${xhr.status || 0}` };
-        } catch (_) {
-          return { ok: false, reason: "xhr_exception" };
-        }
-      };
-
-      const getStatus = (text, key) => {
-        if (!text) return "MISSING";
-        const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const re = new RegExp(`${esc}[\\s\\S]{0,240}?- Status:\\s*(\\w+)`, "i");
-        const m = re.exec(text);
-        if (!m) return "MISSING";
-        return String(m[1] || "").toUpperCase();
-      };
-
-      const tRes = fetchTextSync("/__dev__/docs/TASKS.md");
-      const pRes = fetchTextSync("/__dev__/docs/PROJECT_MEMORY.md");
-      const keys = [
-        { id: "econ01", key: "ECON-01" },
-        { id: "econ02", key: "ECON-02" },
-        { id: "econ03", key: "ECON-03" }
-      ];
       const docs = {
         ok: true,
         econ01: "MISSING",
         econ02: "MISSING",
         econ03: "MISSING",
-        readOk: true,
-        mode: "read_ok",
+        readOk: false,
+        mode: "skipped_http_disabled",
         missing: [],
         notes: []
       };
 
-      if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
-      if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
-      const tGood = tRes.ok && (tRes.text || "").trim().length > 0;
-      const pGood = pRes.ok && (pRes.text || "").trim().length > 0;
-      const readOk = tGood && pGood;
-      docs.readOk = readOk;
-      docs.mode = readOk ? "read_http" : "skipped_http_404";
-      if (!readOk) {
-        docs.ok = true;
-      } else {
-        for (const k of keys) {
-          const tStatus = getStatus(tRes.text, k.key);
-          const pStatus = getStatus(pRes.text, k.key);
-          let finalStatus = "MISSING";
-          if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
-          else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
-          else finalStatus = "FAIL";
-          docs[k.id] = finalStatus;
-          if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
-          if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
-          if (finalStatus !== "PASS") docs.ok = false;
+      if (isDevFlag()) {
+        const fetchTextSync = (path) => {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", path, false);
+            xhr.send(null);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              return { ok: true, text: xhr.responseText || "" };
+            }
+            return { ok: false, reason: `http_${xhr.status || 0}` };
+          } catch (_) {
+            return { ok: false, reason: "xhr_exception" };
+          }
+        };
+
+        const getStatus = (text, key) => {
+          if (!text) return "MISSING";
+          const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const re = new RegExp(`${esc}[\\s\\S]{0,240}?- Status:\\s*(\\w+)`, "i");
+          const m = re.exec(text);
+          if (!m) return "MISSING";
+          return String(m[1] || "").toUpperCase();
+        };
+
+        const tRes = fetchTextSync("/__dev__/docs/TASKS.md");
+        const pRes = fetchTextSync("/__dev__/docs/PROJECT_MEMORY.md");
+        const keys = [
+          { id: "econ01", key: "ECON-01" },
+          { id: "econ02", key: "ECON-02" },
+          { id: "econ03", key: "ECON-03" }
+        ];
+
+        if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
+        if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
+        const tGood = tRes.ok && (tRes.text || "").trim().length > 0;
+        const pGood = pRes.ok && (pRes.text || "").trim().length > 0;
+        const readOk = tGood && pGood;
+        docs.readOk = readOk;
+        docs.mode = readOk ? "read_http" : "skipped_http_404";
+        if (!readOk) {
+          docs.ok = true;
+        } else {
+          for (const k of keys) {
+            const tStatus = getStatus(tRes.text, k.key);
+            const pStatus = getStatus(pRes.text, k.key);
+            let finalStatus = "MISSING";
+            if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
+            else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
+            else finalStatus = "FAIL";
+            docs[k.id] = finalStatus;
+            if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
+            if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
+            if (finalStatus !== "PASS") docs.ok = false;
+          }
+          if (!docs.ok) failed.push("docs_not_pass");
         }
-        if (!docs.ok) failed.push("docs_not_pass");
+      } else {
+        docs.notes.push("docs_probe_disabled");
       }
 
       const runtime = { ok: true, steps: [] };

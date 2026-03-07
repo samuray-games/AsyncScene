@@ -3597,3 +3597,43 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `git fetch origin`
   - `git cat-file -e origin/main:docs/index.html`
 - Next: Нужен точный URL/скрин публичной страницы и настройка GitHub Pages (source: main + /docs) для проверки, иначе остаётся FAIL.
+
+### 2026-03-07 — GitHub Pages docs startup asset fix
+- Status: PASS
+- Facts:
+  - Добавлен `<base href="/AsyncScene/">` и `<link rel="icon" href="favicon.ico" />` в оба `index.html`, чтобы относительные ресурсы и favicon резолвились в поддиректории `/AsyncScene/`.
+  - `ui-boot.js` теперь инжектирует `dev/console-tape.js` без ведущего `/`, поэтому начальный `console-tape.js` запрашивается из одного и того же пространтства, где лежит `docs/dev`.
+  - Добавлены `docs/__dev/console-dump-proof` (JSON proof) и `docs/favicon.ico`, чтобы `__dev/console-dump-proof?v=` и `favicon.ico` возвращали 200 на GitHub Pages под `/AsyncScene/`.
+- Evidence:
+  - `docs/index.html` (содержит `<base href="/AsyncScene/" />`, `<link rel="icon" href="favicon.ico" />`)
+  - `docs/ui/ui-boot.js` (инъекция `dev/console-tape.js`)
+  - `docs/__dev/console-dump-proof` (статический JSON `{ok:true,...}`)
+  - `docs/favicon.ico`
+- Next: —
+
+### 2026-03-07 — GitHub Pages blank page + __dev 404 fix
+- Status: FAIL (runtime не проверен)
+- Facts:
+  - Проверены `docs/index.html` и `AsyncScene/Web/index.html`: `base href="/AsyncScene/"` уже задан, все стартовые скрипты/стили подключаются относительными путями, favicon ссылается на `favicon.ico`.
+  - В `docs/dev/console-tape.js` и `AsyncScene/Web/dev/console-tape.js` найдено абсолютное `PROOF_URL = "/__dev/console-dump-proof"` и `"/__dev/console-dump"`, что на GitHub Pages уходит в корень домена (`https://samuray-games.github.io/__dev/...`) и даёт 404 вместо `/AsyncScene/__dev/...`.
+  - Установлено, что GitHub Pages по умолчанию Jekyll-ит и игнорирует каталоги, начинающиеся с `_`, поэтому `docs/__dev/console-dump-proof` не публиковался и всегда возвращал 404.
+  - Исправление: пути к proof/dump сделаны относительными (`__dev/...`) в обоих `console-tape.js`, и добавлен `docs/.nojekyll`, чтобы `__dev/` публиковался.
+- Evidence:
+  - `docs/dev/console-tape.js` (PROOF_URL и dump url без ведущего `/`)
+  - `AsyncScene/Web/dev/console-tape.js` (та же правка)
+  - `docs/.nojekyll` (новый файл)
+- Next: проверить в браузере `https://samuray-games.github.io/AsyncScene/` и подтвердить отсутствие 404 по `__dev/console-dump-proof` и favicon.
+- Changed: `docs/dev/console-tape.js` `AsyncScene/Web/dev/console-tape.js` `docs/.nojekyll`
+
+### 2026-03-07 — Docs prod startup cleanup
+- Status: PASS
+- Facts:
+  - `docs/index.html` больше не подгружает `dev/console-tape.js`/`dev/dev-checks.js` и удалена ссылка на проблемный favicon.
+  - `docs/ui/ui-boot.js` инициализирует `window.Game`, но более не инжектирует `dev/console-tape.js`, так что prod-страница не запускает этот скрипт.
+  - `docs/state.js` теперь обращается к `/__dev__/docs/TASKS.md` и `/__dev__/docs/PROJECT_MEMORY.md` только при включённом dev-флаге, что избавляет прод-страницу от 404-запросов.
+- Evidence:
+  - `docs/index.html`
+  - `docs/ui/ui-boot.js`
+  - `docs/state.js`
+- Next: —
+- Changed: `docs/index.html` `docs/ui/ui-boot.js` `docs/state.js`

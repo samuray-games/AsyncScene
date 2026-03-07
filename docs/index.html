@@ -7,6 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>AsyncScene</title>
+  <base href="/AsyncScene/" />
   <link rel="stylesheet" href="style.css" />
   <script>
     (function () {
@@ -165,14 +166,6 @@
     </div>
   </div>
 
-  <script src="dev/console-tape.js"></script>
-  <script>
-    (function () {
-      var devChecksVersion = Date.now();
-      document.write('<script defer src="dev/dev-checks.js?v=' + devChecksVersion + '"><\\/script>');
-      document.write('<script defer src="dev/dev-checks.js?v=' + devChecksVersion + '"><\\/script>');
-    })();
-  </script>
   <script defer src="util.js?v=2"></script>
   <script defer src="state.js?v=4"></script>
   <script defer src="data.js?v=2"></script>

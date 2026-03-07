@@ -200,7 +200,7 @@
     }
   };
 
-  const PROOF_URL = "/__dev/console-dump-proof";
+  const PROOF_URL = "__dev/console-dump-proof";
   let proofCache = null;
   let proofPromise = null;
 
@@ -290,7 +290,7 @@
       }
       return failure;
     }
-    const url = `/__dev/console-dump?v=${Date.now()}`;
+    const url = `__dev/console-dump?v=${Date.now()}`;
     dumpInFlight = true;
     try {
       console.warn("CONSOLE_DUMP_POSTING_TO", url, runId);
