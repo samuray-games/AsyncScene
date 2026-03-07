@@ -183,6 +183,38 @@
       2) Проверь PROJECT_MEMORY.md на запись `### 2026-03-03 — PROGER rules doc added` и убедись, что TASKS.md содержит задачу T-20260303-005.
       ```
 
+### [T-20260307-001] GitHub Pages entrypoint fix
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Docs|Infra
+- Files: `AsyncScene/Web/index.html` `docs/index.html` `docs/conflict/conflict-core.js` `docs/ui/ui-core.js` `docs/dev/dev-checks.js`
+- Goal: Сделать рабочий entrypoint GitHub Pages в подкаталоге `/AsyncScene/` через docs/, не трогая механику.
+- Acceptance:
+  - [x] Каталог `docs/` содержит `index.html` и все нужные скрипты/стили, так что https://samuray-games.github.io/AsyncScene/ отдаёт игру без 404.
+  - [x] `dev/dev-checks.js` и остальные ассеты грузятся по относительным путям, поэтому подкаталог `/AsyncScene/` больше не ломает загрузку JS.
+- Notes: Не менять логику игры — только deployment.
+- Result: PASS — Docs-версияentrypoint и относительные пути настроены.
+  - Report:
+    - Status: PASS
+    - Facts:
+      1) `AsyncScene/Web/index.html` теперь вставляет `dev/dev-checks.js` с относительным URL, поэтому поддиректории не вызывают 404 у dev-хелпера.
+      2) Скопировали `style.css`, `util.js`, `state.js`, `data.js`, `npcs.js`, `events.js`, `conflict/*.js`, `ui/*.js`, `dev/*.js` в `docs/`, и этот каталог служит Pages source (`/AsyncScene/`).
+      3) Игра не тронута: изменений внутрь логики нет, только статические ресурсы/путь.
+  - Changed: `AsyncScene/Web/index.html` `docs/index.html` `docs/style.css` `docs/util.js` `docs/state.js` `docs/data.js` `docs/npcs.js` `docs/events.js` `docs/conflict/conflict-core.js` `docs/conflict/conflict-economy.js` `docs/conflict/conflict-arguments.js` `docs/conflict/conflict-api.js` `docs/ui/ui-core.js` `docs/ui/ui-chat.js` `docs/ui/ui-dm.js` `docs/ui/logger.js` `docs/ui/ui-battles.js` `docs/ui/ui-events.js` `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `docs/ui/ui-loops.js` `docs/dev/console-tape.js` `docs/dev/dev-checks.js`
+  - How to verify:
+    1) Открыть https://samuray-games.github.io/AsyncScene/ и убедиться, что игра загружается без 404 и консоль логирует `DEV_INDEX_HTML_PROOF_V1`.
+    2) Проверить Network: `dev/dev-checks.js`, `state.js`, `ui/ui-core.js` и другие скрипты возвращают 200 и не ломают загрузку.
+  - Next: QA
+  - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      Ответ QA:
+      1) Перейди по https://samuray-games.github.io/AsyncScene/ и убедись, что страница открывается без 404 и в консоли выводится `DEV_INDEX_HTML_PROOF_V1`.
+      2) Посмотри Network: `dev/dev-checks.js`, `state.js`, `ui/ui-core.js` и остальные скрипты возвращают 200.
+      3) Сообщи результат — тогда задачу можно закрыть.
+      ```
+
 ### [T-20260303-004] Canon y-r hardcap: no draw, red always wins
 - Status: FAIL
 - Priority: P0

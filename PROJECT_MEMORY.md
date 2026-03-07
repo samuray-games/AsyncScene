@@ -3537,3 +3537,12 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Smoke: QA hard reload dev=1, запускает `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, потом `Game.__DUMP_ALL__()`; ожидаются `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` (`ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` как минимум по двум типам, `uniqueTypes>=2`, `ynShare<=0.6`) и `JSON2` c 10 `runs` (каждый `battleId/opponentId/type` не `null`, no `finishError`), а в Console.txt рядом `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 `ATTACK_TYPE_DIVERSITY_V2` (`availableTypes.length>=2`, `reason`≠`desired:yn`, разнообразным `selectedType`). QA прикладывает Console.txt с DUMP и SMOKE-выводом.
 - Next: QA (см. `Tasks` — run smoke и приложить Console.txt с маркерами).
 - Changed: `AsyncScene/Web/conflict/conflict-arguments.js` `AsyncScene/Web/dev/dev-checks.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-03-07 — GitHub Pages docs entrypoint
+- Status: PASS
+- Facts:
+  - Выяснили, что продакшен-страница строится из `AsyncScene/Web/index.html`, и сделали её базой для GitHub Pages entrypoint.
+  - Перенесли `index.html`, стили и все используемые скрипты (`util.js`, `state.js`, `data.js`, `npcs.js`, `events.js`, `conflict/*.js`, `ui/*.js`, `dev/console-tape.js`, `dev/dev-checks.js`) в каталог `docs/`, чтобы Pages мог разворачивать сайт в подкаталоге `/AsyncScene/` без 404.
+  - Отредактировали `AsyncScene/Web/index.html`, чтобы `dev/dev-checks.js` грузился по относительному пути (без `/`), и `docs/index.html` получает ту же ссылку, поэтому ассет-пути стабильно работают на поддиректориях.
+- Changed: `docs/index.html` `docs/style.css` `docs/util.js` `docs/state.js` `docs/data.js` `docs/npcs.js` `docs/events.js` `docs/conflict/*` `docs/ui/*` `docs/dev/console-tape.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html`
+- Next: QA

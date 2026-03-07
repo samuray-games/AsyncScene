@@ -1,0 +1,4212 @@
+// conflict-core.js
+//
+//  conflict-core.js
+//  AsyncScene
+//
+//  Created by Ray on 2025/12/18.
+//
+
+// conflict/conflict-core.js
+(function () {
+  const C = {};
+
+  // Local helpers
+  function now(){ return Date.now(); }
+  function clamp0(n){ return Math.max(0, n|0); }
+  const DRAW_VOTE_DURATION_MS = 10000;
+  const CROWD_TIMER_WARMUP_MS = 60000;
+  const CROWD_TIMER_COUNTDOWN_MS = DRAW_VOTE_DURATION_MS;
+
+  function _normalizeCrowdTimerValue(value){
+    if (!Number.isFinite(value)) return null;
+    return Math.floor(value);
+  }
+
+  function getCrowdProgressKey(v){
+    if (!v) return null;
+    const total = getCrowdTotalVotes(v);
+    const aVotes = Number.isFinite(v.aVotes) ? (v.aVotes | 0) : (Number.isFinite(v.votesA) ? (v.votesA | 0) : 0);
+    const bVotes = Number.isFinite(v.bVotes) ? (v.bVotes | 0) : (Number.isFinite(v.votesB) ? (v.votesB | 0) : 0);
+    return `${total}|${aVotes}|${bVotes}`;
+  }
+
+  function resetCrowdTimerState(v, startedMs){
+    if (!v) return;
+    const nowMs = Number.isFinite(startedMs) ? startedMs : now();
+    const epochNow = Math.max(1, Math.floor(nowMs));
+    v.startedAtMs = epochNow;
+    v.countdownStartMs = null;
+    v.countdownEndMs = null;
+    v.stallDetectedAtMs = null;
+    v.lastProgressAtMs = epochNow;
+    v.lastProgressKey = null;
+    v._crowdTimerArmLogged = false;
+    v._crowdTimerLastTickSecond = null;
+    v._crowdTimerResolvedBy = null;
+    v._crowdTimerExpireLogged = false;
+    v._devNpcVoteLogged = false;
+    v.phaseState = "warmup";
+    v._invalidStartLogged = false;
+  }
+
+  function _crowdLog(name, payload){
+    try {
+      console.warn(name, payload);
+    } catch (_) {}
+  }
+
+  function captureCallsiteStack(){
+    try {
+      const stack = (new Error().stack || "").split("\n");
+      for (let i = 2; i < stack.length; i += 1) {
+        const raw = (stack[i] || "").trim();
+        if (!raw) continue;
+        return {
+          stackTag: raw.replace(/\s+/g, " "),
+          callerName: (raw.split("@" )[0] || raw.split(" ")[0] || raw).trim() || null
+        };
+      }
+    } catch (_) {}
+    return { stackTag: null, callerName: null };
+  }
+
+  function logCrowdCreateCallsite(battleId){
+    if (!battleId) return;
+    const info = captureCallsiteStack() || {};
+    _crowdLog("CROWD_CREATE_CALLSITE_V1", {
+      battleId,
+      nowMs: now(),
+      stackTag: info.stackTag || null,
+      callerName: info.callerName || null
+    });
+  }
+
+  function isDevSurfaceFlag(){
+    if (typeof window !== "undefined") {
+      if (window.__DEV__ === true || window.DEV === true) return true;
+    }
+    return !!(Game && Game.__DEV);
+  }
+
+  function isDevSmokeBattle(battle){
+    if (!battle || !battle.id) return false;
+    const id = String(battle.id);
+    return id.startsWith("dev_");
+  }
+
+  function normalizeCanonText(raw){
+    if (raw == null) return "";
+    return String(raw).trim();
+  }
+
+  function shouldTraceDevCanonMatch(battle){
+    if (!battle || !battle.id) return false;
+    const id = String(battle.id);
+    if (!id.startsWith("dev_")) return false;
+    return isDevSurfaceFlag();
+  }
+
+  function traceDevCanonMatch(battle, payload){
+    if (!battle || !battle.id) return;
+    if (!shouldTraceDevCanonMatch(battle)) return;
+    const battleId = String(battle.id);
+    const data = Object.assign({ battleId }, payload || {});
+    try { console.warn("DEV_CANON_MATCH_TRACE_V1", data); } catch (_) {}
+    try { _pushBattleDiagTrail(battleId, "DEV_CANON_MATCH_TRACE_V1", data); } catch (_) {}
+  }
+
+  function buildCanonGroupKey(attackArg, defenseArg, battle){
+    const D = (Game && Game.Data) ? Game.Data : null;
+    if (!D || typeof D.getArgCanonGroup !== "function") return null;
+    const subCandidate = (defenseArg && defenseArg._sub)
+      ? String(defenseArg._sub).toUpperCase()
+      : (attackArg && attackArg._sub)
+        ? String(attackArg._sub).toUpperCase()
+        : null;
+    if (!subCandidate) return null;
+    const typeCandidate = (defenseArg && (defenseArg.type || defenseArg.group || defenseArg.kind))
+      ? (defenseArg.type || defenseArg.group || defenseArg.kind)
+      : (attackArg && (attackArg.type || attackArg.group || attackArg.kind))
+        ? (attackArg.type || attackArg.group || attackArg.kind)
+        : "yn";
+    const normalizedType = normalizeGroup(typeCandidate) || "yn";
+    const groupKey = `${subCandidate}|${String(normalizedType || "yn").toUpperCase()}`;
+    const groupList = D.getArgCanonGroup(subCandidate, String(normalizedType || "yn").toUpperCase());
+    if (!Array.isArray(groupList) || !groupList.length) {
+      if (shouldTraceDevCanonMatch(battle)) {
+        traceDevCanonMatch(battle, {
+          attackId: attackArg && attackArg.id ? attackArg.id : null,
+          attackType: argGroup(attackArg),
+          defenseId: defenseArg && defenseArg.id ? defenseArg.id : null,
+          defenseType: argGroup(defenseArg),
+          attackGroupKey: groupKey,
+          defenseGroupKey: groupKey,
+          attackCandidates: [],
+          defenseCandidates: [],
+          candidatesSample: [],
+          problem: buildCanonProblem(attackArg, defenseArg) || "no_candidate_list",
+          candidateCount: 0
+        });
+      }
+      return null;
+    }
+
+    const normalizeCandidate = (value) => {
+      const trimmed = normalizeCanonText(value);
+      return trimmed ? trimmed : null;
+    };
+    const attackCandidates = [];
+    const defenseCandidates = [];
+    const addCandidate = (list, value) => {
+      try {
+        const normalized = normalizeCandidate(value);
+        if (normalized && !list.includes(normalized)) list.push(normalized);
+      } catch (_) {}
+    };
+    addCandidate(attackCandidates, attackArg && attackArg._canonQ);
+    addCandidate(attackCandidates, attackArg && attackArg.text);
+    addCandidate(defenseCandidates, defenseArg && defenseArg._canonA);
+    addCandidate(defenseCandidates, defenseArg && defenseArg.text);
+    const attackSet = new Set(attackCandidates);
+    const defenseSet = new Set(defenseCandidates);
+
+    const candidateSample = groupList.slice(0, 3).map(item => ({
+      q: normalizeCandidate(item && item.q),
+      a: normalizeCandidate(item && item.a)
+    })).filter(item => item && (item.q || item.a));
+
+    const matched = groupList.find(item => {
+      if (!item || !item.q || !item.a) return false;
+      const q = normalizeCandidate(item.q);
+      const a = normalizeCandidate(item.a);
+      if (!q || !a) return false;
+      if (attackSet.size && !attackSet.has(q)) return false;
+      if (defenseSet.size && !defenseSet.has(a)) return false;
+      return true;
+    });
+    if (!matched) {
+      if (shouldTraceDevCanonMatch(battle)) {
+        traceDevCanonMatch(battle, {
+          attackId: attackArg && attackArg.id ? attackArg.id : null,
+          attackType: argGroup(attackArg),
+          defenseId: defenseArg && defenseArg.id ? defenseArg.id : null,
+          defenseType: argGroup(defenseArg),
+          attackGroupKey: groupKey,
+          defenseGroupKey: groupKey,
+          attackCandidates: attackCandidates.slice(0),
+          defenseCandidates: defenseCandidates.slice(0),
+          candidatesSample: candidateSample,
+          candidateCount: groupList.length,
+          problem: buildCanonProblem(attackArg, defenseArg)
+        });
+      }
+      return null;
+    }
+    return groupKey;
+  }
+
+  function buildCanonProblem(attackArg, defenseArg){
+    if (!attackArg || !defenseArg) return "missing_args";
+    if (!attackArg._canonQ && !(attackArg.text || "").trim()) return "attack_missing_canon";
+    if (!defenseArg._canonA && !(defenseArg.text || "").trim()) return "defense_missing_canon";
+    if (!defenseArg._sub) return "defense_missing_sub";
+    if (!(defenseArg.type || defenseArg.group || defenseArg.kind)) return "defense_missing_type";
+    return "no_match_found";
+  }
+
+  function isCrowdCapStageD2(){
+    return !!(Game && Game.__D && typeof Game.__D.CROWD_CAP_STAGE === "string" && String(Game.__D.CROWD_CAP_STAGE).toUpperCase() === "D2");
+  }
+
+  function logDevSmokeDefenseChoice(b, defenseArg, outcomeLabel, why, canonGroupKey, canonProblem){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !b.id) return;
+    const payload = {
+      battleId: b.id,
+      defenseId: defenseArg ? String(defenseArg.id || defenseArg.key || null) : null,
+      defenseType: defenseArg ? String(argGroup(defenseArg) || defenseArg.type || defenseArg.group || null) : null,
+      canonGroupKey: canonGroupKey || null,
+      canonBuilt: !!canonGroupKey,
+      canonProblem: canonGroupKey ? null : (canonProblem || null),
+      result: outcomeLabel || null,
+      why: why || null,
+      ts: Date.now()
+    };
+    try {
+      console.warn("DEV_SMOKE_DEFENSE_V1", payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(b.id, "DEV_SMOKE_DEFENSE_V1", payload);
+    } catch (_) {}
+  }
+
+  function logDevSmokeNpcVoteAttempt(b, payload){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !b.id) return;
+    const data = Object.assign({
+      battleId: b.id,
+      ts: Date.now()
+    }, payload || {});
+    try {
+      console.warn("DEV_SMOKE_NPC_VOTE_V1", data);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(b.id, "DEV_SMOKE_NPC_VOTE_V1", data);
+    } catch (_) {}
+  }
+
+  function logDevOutcomeGate(b, payload){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !(b.id || b.battleId)) return;
+    const battleId = b.id || b.battleId;
+    const base = Object.assign({
+      battleId,
+      ts: Date.now()
+    }, payload || {});
+    try {
+      console.warn("DEV_OUTCOME_GATE_V1", base);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V1", base);
+    } catch (_) {}
+    const v2Payload = {
+      battleId,
+      canonBuilt: !!base.canonBuilt,
+      canonProblem: base.canonProblem || null,
+      attackType: base.attackType || null,
+      defenseType: base.defenseType || null,
+      outcomeBefore: base.outcomeBefore || null,
+      outcomeAfter: base.outcomeAfter || null,
+      skippedCrowd: base.skippedCrowd === true,
+      forcedResolved: base.forcedResolved === true
+    };
+    try {
+      console.warn("DEV_OUTCOME_GATE_V2", v2Payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(battleId, "DEV_OUTCOME_GATE_V2", v2Payload);
+    } catch (_) {}
+  }
+
+  function logBattleOutcomeGate(battle, payload){
+    if (!battle || !(battle.id || battle.battleId)) return;
+    const battleId = battle.id || battle.battleId;
+    const base = Object.assign({
+      battleId,
+      ts: Date.now()
+    }, payload || {});
+    try {
+      console.warn("BATTLE_OUTCOME_GATE_V3", base);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(battleId, "BATTLE_OUTCOME_GATE_V3", base);
+    } catch (_) {}
+  }
+
+  function ensureCanonMeta(battle){
+    if (!battle) return null;
+    const meta = (battle.meta && typeof battle.meta === "object") ? battle.meta : {};
+    const attackType = argGroup(battle.attack);
+    const defenseType = argGroup(battle.defense);
+    let canonGroupKey = (meta.canonGroupKey != null) ? meta.canonGroupKey : buildCanonGroupKey(battle.attack, battle.defense, battle);
+    let canonProblem = (meta.canonProblem != null) ? meta.canonProblem : null;
+    if (!canonGroupKey && canonProblem == null) {
+      canonProblem = buildCanonProblem(battle.attack, battle.defense);
+    }
+    const canonBuilt = !!canonGroupKey;
+    const canonMatchOk = canonBuilt && !canonProblem;
+    meta.canonGroupKey = canonGroupKey || null;
+    meta.canonProblem = canonProblem || null;
+    meta.canonMatchOk = canonMatchOk ? true : false;
+    battle.meta = meta;
+    return {
+      attackType,
+      defenseType,
+      canonGroupKey,
+      canonProblem,
+      canonBuilt,
+      canonMatchOk
+    };
+  }
+
+  function logCanonOutcomeGateOnce(battle, payload){
+    if (!battle || !payload) return;
+    if (battle._canonOutcomeGateLogged) return;
+    battle._canonOutcomeGateLogged = true;
+    logDevOutcomeGate(battle, payload);
+  }
+
+  function tryEngageCanonGuard(battle, outcome, options){
+    if (!battle) return false;
+    if (outcome !== "draw") return false;
+    const opts = (options && typeof options === "object") ? options : {};
+    const forcedString = opts.forcedString || null;
+    if (!opts.allowForced && forcedString && forcedString !== "draw") {
+      return false;
+    }
+    const meta = ensureCanonMeta(battle);
+    if (!meta || !meta.canonMatchOk) return false;
+    const canonOutcome = resolveCanonicalMatchOutcome(battle);
+    if (!canonOutcome) return false;
+    const overrideOutcome = opts.overrideOutcome || "resolved";
+    const payload = {
+      canonBuilt: meta.canonBuilt,
+      canonProblem: meta.canonProblem || null,
+      canonMatchOk: !!meta.canonMatchOk,
+      attackType: meta.attackType || null,
+      defenseType: meta.defenseType || null,
+      outcomeBefore: outcome,
+      outcomeAfter: canonOutcome,
+      skippedCrowd: true,
+      forcedResolved: true,
+      reason: opts.reason || "canon_match_force_resolve"
+    };
+    logCanonOutcomeGateOnce(battle, payload);
+    try {
+      battle._canonGuardActive = true;
+      battle._canonGuardResult = canonOutcome;
+    } catch (_) {}
+    return true;
+  }
+
+  function logCrowdCapSource(b, v, capValue, source, eligibleCount, excludedZeroPtsCount){
+    if (!v) return;
+    const cap = Number.isFinite(capValue) ? (capValue | 0) : null;
+    if (source) v.capSource = source;
+    if (cap != null) v.capValue = cap;
+    if (typeof eligibleCount === "number") v.eligibleCount = eligibleCount;
+    if (typeof excludedZeroPtsCount === "number") v.excludedZeroPtsCount = excludedZeroPtsCount;
+    const payload = {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      capValue: cap,
+      capSource: source || null,
+      eligibleCount: (Number.isFinite(eligibleCount) ? (eligibleCount | 0) : null),
+      excludedZeroPtsCount: (Number.isFinite(excludedZeroPtsCount) ? (excludedZeroPtsCount | 0) : null),
+      ts: Date.now()
+    };
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    _crowdLog("CROWD_CAP_SOURCE_V1", payload);
+  }
+
+  function setCrowdCapMeta(b, v, capValue, capSource, eligibleCount, excludedZeroPtsCount){
+    if (!v) return;
+    const cap = Number.isFinite(capValue) ? Math.max(0, capValue | 0) : 0;
+    v.cap = cap;
+    v.capValue = cap;
+    v.capSource = capSource || null;
+    v.eligibleCount = (typeof eligibleCount === "number") ? (eligibleCount | 0) : v.eligibleCount;
+    v.excludedZeroPtsCount = (typeof excludedZeroPtsCount === "number") ? (excludedZeroPtsCount | 0) : v.excludedZeroPtsCount;
+    if (b) {
+      if (!b.meta) b.meta = {};
+      b.meta.crowdCap = Object.assign({}, b.meta.crowdCap || {}, {
+        capValue: v.capValue,
+        capSource: v.capSource,
+        eligibleCount: v.eligibleCount,
+        excludedZeroPtsCount: v.excludedZeroPtsCount
+      });
+      if (v.meta && typeof v.meta === "object") {
+        v.meta.capValue = v.capValue;
+        v.meta.capSource = v.capSource;
+        v.meta.eligibleCount = v.eligibleCount;
+        v.meta.excludedZeroPtsCount = v.excludedZeroPtsCount;
+      }
+    }
+    logCrowdCapSource(b, v, v.cap, capSource, v.eligibleCount, v.excludedZeroPtsCount);
+  }
+
+  function isVillainRole(role){
+    return role === "toxic" || role === "bandit" || role === "mafia";
+  }
+
+  function logBattleResolveVillain(b, result, penaltyApplied, villainRole){
+    try {
+      console.warn("BATTLE_RESOLVE_VILLAIN", {
+        battleId: b && (b.id || b.battleId) || null,
+        fromThem: !!(b && b.fromThem),
+        result: result || null,
+        penaltyApplied: !!penaltyApplied,
+        villainRole: villainRole || null
+      });
+    } catch (_) {}
+  }
+
+  const _battleResolveDiagOnce = new Set();
+  function _pushBattleDiagTrail(battleId, tag, payload){
+    try {
+      const dev = Game && Game.__DEV;
+      if (dev && typeof dev.__pushBattleDiagTrail === "function") {
+        dev.__pushBattleDiagTrail(battleId, tag, payload);
+      }
+    } catch (_) {}
+  }
+
+  function logDevCrowdInvalidStart(b, crowd){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b || !crowd) return;
+    const payload = {
+      battleId: b.id || b.battleId || null,
+      startedAtMs: Number.isFinite(crowd.startedAtMs) ? Math.floor(crowd.startedAtMs) : null,
+      nowMs: Date.now()
+    };
+    try {
+      console.warn("DEV_CROWD_INVALID_START_V1", payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(payload.battleId, "DEV_CROWD_INVALID_START_V1", payload);
+    } catch (_) {}
+  }
+
+  function logDevCrowdSelfHeal(b, healedAtMs){
+    if (!isDevSurfaceFlag() || !isDevSmokeBattle(b)) return;
+    if (!b) return;
+    const payload = {
+      battleId: b.id || b.battleId || null,
+      healedAtMs,
+      ts: Date.now()
+    };
+    try {
+      console.warn("DEV_CROWD_SELF_HEAL_START_V1", payload);
+    } catch (_) {}
+    try {
+      _pushBattleDiagTrail(payload.battleId, "DEV_CROWD_SELF_HEAL_START_V1", payload);
+    } catch (_) {}
+  }
+
+  function logBattleResolveDiagOnce(b, result, endedBy, statusBefore, statusAfter){
+    try {
+      if (conflictMode !== "dev") return;
+      const battleId = b && (b.id || b.battleId);
+      if (!battleId || _battleResolveDiagOnce.has(battleId)) return;
+      _battleResolveDiagOnce.add(battleId);
+      const payload = {
+        battleId,
+        result: result || null,
+        winnerId: (b && (b.winnerId || (b.crowd && b.crowd.winnerId))) || null,
+        endedBy: endedBy || null,
+        nowMs: Date.now(),
+        statusBefore: statusBefore || null,
+        statusAfter: statusAfter || null
+      };
+      console.warn("BATTLE_RESOLVE_DIAG_V1", payload);
+      _pushBattleDiagTrail(battleId, "BATTLE_RESOLVE_DIAG_V1", payload);
+    } catch (_) {}
+  }
+
+  function logGuardBypass(stage, reason, villainId, key){
+    try {
+      console.warn("CONFLICT_GUARD_BYPASS_V1", {
+        devSmoke: true,
+        mode: conflictMode,
+        stage,
+        reasonBypassed: reason,
+        villainId: villainId || null,
+        key: key || null
+      });
+    } catch (_) {}
+  }
+
+  function logCrowdStallProgress(b, v, nowMs, key){
+    if (!v || !key) return;
+    _crowdLog("CROWD_STALL_V1_PROGRESS", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      now: Math.floor(nowMs),
+      progressKey: key
+    });
+  }
+
+  function logCrowdStallArm(b, v, nowMs, votes, cap){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_ARM", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      now: Math.floor(nowMs),
+      lastProgressAtMs: Number.isFinite(v.lastProgressAtMs) ? Math.floor(v.lastProgressAtMs) : null,
+      progressKey: v.lastProgressKey || null,
+      votesNow: votes,
+      capNow: cap
+    });
+  }
+
+  function logCrowdStallTick(v, leftMs, votes, cap){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_TICK", {
+      leftMs,
+      votesNow: votes,
+      capNow: cap
+    });
+  }
+
+  function logCrowdStallExpire(b, v, nowMs, votes, cap){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_EXPIRE", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      now: Math.floor(nowMs),
+      endAtMs: Number.isFinite(v.countdownEndMs) ? Math.floor(v.countdownEndMs) : null,
+      votesNow: votes,
+      capNow: cap
+    });
+  }
+
+  function logCrowdStallResolve(b, v, resolvedBy, votes, cap, endedBy){
+    if (!v) return;
+    _crowdLog("CROWD_STALL_V1_RESOLVE", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || (b && b.eventId ? b.eventId : null),
+      resolvedBy,
+      votesNow: votes,
+      capNow: cap,
+      endedBy: endedBy || null
+    });
+  }
+
+  function logCrowdCreate(v, battleId){
+    if (!v) return;
+    const votersCount = Array.isArray(v.votersIds)
+      ? v.votersIds.length
+      : (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
+    _crowdLog("CROWD_CREATE_V1", {
+      battleId: battleId || null,
+      eventId: v.eventId || null,
+      cap: Number.isFinite(v.cap) ? Math.floor(v.cap) : null,
+      startedAtMs: Number.isFinite(v.startedAtMs) ? Math.floor(v.startedAtMs) : null,
+      votersCount,
+      seed: (v && v.seed != null) ? v.seed : null
+    });
+    logCrowdDiagCreate(v, battleId || null);
+  }
+
+  function logCrowdDiag(v, battleId, reason){
+    if (!reason) return;
+    const resolvedBattleId = battleId || (v && (v.battleId || v.eventId)) || null;
+    const resolvedEventId = (v && (v.eventId || null)) || null;
+    const resolvedCap = (v && Number.isFinite(v.cap)) ? Math.floor(v.cap) : null;
+    _crowdLog("CROWD_DIAG_V1", {
+      battleId: resolvedBattleId,
+      eventId: resolvedEventId,
+      cap: resolvedCap,
+      reason
+    });
+  }
+
+  function logCrowdDiagCreate(v, battleId){
+    if (!v) return;
+    const votersCount = Array.isArray(v.votersIds)
+      ? v.votersIds.length
+      : (v.voters && typeof v.voters === "object") ? Object.keys(v.voters).length : 0;
+    const whyVotersZero = votersCount === 0 ? "no_votes_yet" : "has_votes";
+    _crowdLog("CROWD_DIAG_V1", {
+      battleId: battleId || null,
+      eventId: v.eventId || null,
+      cap: Number.isFinite(v.cap) ? Math.floor(v.cap) : null,
+      votersCount,
+      whyVotersZero,
+      phaseAtCreate: "warmup",
+      timeDomain: "epoch",
+      reason: "created"
+    });
+  }
+
+  function applyDevCrowdEligiblePreset(b, v){
+    if (!b || !v) return;
+    const meta = (b.meta && typeof b.meta === "object") ? b.meta : null;
+    if (!meta) return;
+    if (String(meta.devTag || "") !== "crowd_eligible") return;
+    const preset = Array.isArray(meta.expectedVotersIds) && meta.expectedVotersIds.length
+      ? meta.expectedVotersIds.slice()
+      : null;
+    if (!preset) return;
+    if (v._devPresetApplied) return;
+    v._devPresetApplied = true;
+    v.votersIds = preset.slice();
+    v.totalPlayers = preset.length;
+    v.meta = v.meta || {};
+    v.meta.devTag = "crowd_eligible";
+    v.meta.expectedVotersLen = preset.length;
+    v.meta.expectedVotersIds = preset.slice();
+    const sample = preset.slice(0, 3);
+    _crowdLog("CROWD_DEV_PRESET_V1", {
+      battleId: b && (b.id || b.battleId) || null,
+      votersIdsLen: preset.length,
+      votersIdsSample: sample.length ? sample : null
+    });
+  }
+
+  function logCrowdVotersOverrideDetected(b, v, meta, actualLen, expectedLen){
+    if (!v || !meta) return;
+    const beforeSample = Array.isArray(v.votersIds) ? v.votersIds.slice(0,3) : [];
+    const afterSample = Array.isArray(meta.expectedVotersSample) ? meta.expectedVotersSample.slice(0,3) : null;
+    _crowdLog("CROWD_VOTERS_OVERRIDE_DETECTED_V1", {
+      battleId: b && (b.id || b.battleId) || null,
+      beforeLen: typeof actualLen === "number" ? actualLen : null,
+      afterLen: typeof expectedLen === "number" ? expectedLen : null,
+      beforeSample: beforeSample.length ? beforeSample : null,
+      afterSample,
+      source: meta.expectedVotersSource || "meta"
+    });
+  }
+
+  function checkCrowdVotersOverride(b, v){
+    if (!v) return false;
+    const meta = (v.meta && typeof v.meta === "object") ? v.meta :
+      (b && b.meta && typeof b.meta === "object") ? b.meta : null;
+    if (!meta) return false;
+    if (String(meta.devTag || "") !== "crowd_eligible") return false;
+    const expectedLen = Number.isFinite(meta.expectedVotersLen) ? (meta.expectedVotersLen | 0) : null;
+    if (expectedLen == null) return false;
+    const actualLen = Array.isArray(v.votersIds) ? v.votersIds.length : 0;
+    if (actualLen === expectedLen) return false;
+    logCrowdVotersOverrideDetected(b, v, meta, actualLen, expectedLen);
+    v._votersOverrideDetected = true;
+    return true;
+  }
+
+  function ensureCrowdTimerFields(v, nowCandidate){
+    if (!v) return null;
+    const nowMs = Math.floor(Number.isFinite(nowCandidate) ? nowCandidate : now());
+    const rawStartedAt = _normalizeCrowdTimerValue(v.startedAtMs);
+    const startedAtMs = (rawStartedAt != null && rawStartedAt > 0) ? rawStartedAt : nowMs;
+    const warmupEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS;
+    const countdownStartMs = _normalizeCrowdTimerValue(v.countdownStartMs);
+    const countdownEndMs = countdownStartMs
+      ? (_normalizeCrowdTimerValue(v.countdownEndMs) ?? (countdownStartMs + CROWD_TIMER_COUNTDOWN_MS))
+      : null;
+    const fallbackEndMs = startedAtMs + CROWD_TIMER_WARMUP_MS + CROWD_TIMER_COUNTDOWN_MS;
+    v.startedAtMs = startedAtMs;
+    v.countdownStartMs = countdownStartMs;
+    v.countdownEndMs = countdownEndMs;
+    v.endAt = countdownEndMs || fallbackEndMs;
+    v.endsAt = countdownEndMs || fallbackEndMs;
+    const phase = countdownStartMs ? "countdown" : "warmup";
+    return {
+      nowMs,
+      startedAtMs,
+      warmupEndMs,
+      countdownStartMs,
+      countdownEndMs,
+      phase
+    };
+  }
+  function updateCrowdTimerLogging(b, v, state, votes, cap){
+    if (!v || !state) return;
+    if (state.phase !== "countdown") return;
+    const leftMs = Math.max(0, (state.countdownEndMs || 0) - state.nowMs);
+    const roundedSec = Math.max(0, Math.floor(leftMs / 1000));
+    if (typeof v._crowdTimerLastTickSecond !== "number" || v._crowdTimerLastTickSecond !== roundedSec) {
+      v._crowdTimerLastTickSecond = roundedSec;
+      logCrowdStallTick(v, leftMs, votes, cap);
+    }
+  }
+  function getPlayer(id){ return (Game.__S.players && Game.__S.players[id]) || null; }
+  function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function hasDevQueryParam() {
+    if (typeof location === "undefined" || !location) return false;
+    const search = (typeof location.search === "string") ? location.search : "";
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("dev") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+  function isDevModeFlag() {
+    if (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) return true;
+    return hasDevQueryParam();
+  }
+  function isDevBattle(battle) {
+    if (!battle) return false;
+    const meta = battle.meta || {};
+    const id = String(battle.id || battle.battleId || "");
+    if (id.startsWith("dev_")) return true;
+    if (meta.dev === true) return true;
+    if (meta.devTag === "crowd_eligible") return true;
+    return false;
+  }
+  function isActivePlayer(p){
+    if (!p || !p.id) return false;
+    if (p.removed === true) return false;
+    const jailed = (Game.__S && Game.__S.jailed) ? Game.__S.jailed : null;
+    if (jailed && jailed[p.id] && Number.isFinite(jailed[p.id].until) && now() < jailed[p.id].until) return false;
+    if (p.id === "me" || p.isMe) return true;
+    if (p.npc === true || p.type === "npc") return true;
+    return !!p.name;
+  }
+  function getTotalPlayersCount(){
+    const players = (Game.__S && Game.__S.players) ? Game.__S.players : {};
+    let n = 0;
+    for (const p of Object.values(players)) {
+      if (isActivePlayer(p)) n++;
+    }
+    return n;
+  }
+  function getCrowdVoteCap(totalPlayers){
+    const base = Math.round(0.4 * (totalPlayers | 0));
+    return Math.max(10, base);
+  }
+  const warnOnce = (() => {
+    const seen = Object.create(null);
+    return (key, msg, extra) => {
+      if (seen[key]) return;
+      seen[key] = true;
+      if (extra !== undefined) console.warn(msg, extra);
+      else console.warn(msg);
+    };
+  })();
+
+  // Decide argument tier by influence (y=weak, o=strong, r=power, k=absolute)
+  // Single source of truth: Game.Data.PROGRESSION.unlockInfluence (strong/power/absolute).
+  function tierByInfluence(inf){
+    const v = (inf || 0) | 0;
+    const P = (Game && Game.Data && Game.Data.PROGRESSION) ? Game.Data.PROGRESSION : null;
+    const U = (P && P.unlockInfluence) ? P.unlockInfluence : null;
+
+    const strongAt = (U && Number.isFinite(U.strong)) ? (U.strong | 0) : 5;
+    const powerAt = (U && Number.isFinite(U.power)) ? (U.power | 0) : 10;
+    const absoluteAt = (U && Number.isFinite(U.absolute)) ? (U.absolute | 0) : 100;
+
+    if (v >= absoluteAt) return "k";
+    if (v >= powerAt) return "r";
+    if (v >= strongAt) return "o";
+    return "y";
+  }
+
+  // =============================
+  // Argument rules (type + color)
+  // =============================
+  function colorToStrength(c){
+    const s = String(c || "").toLowerCase();
+    if (s === "y" || s === "yellow") return 1;
+    if (s === "o" || s === "orange") return 2;
+    if (s === "r" || s === "red") return 3;
+    if (s === "k" || s === "black" || s === "absolute") return 4;
+    return 1;
+  }
+
+  function normalizeColor(c){
+    const s = String(c || "").toLowerCase();
+    if (s === "yellow" || s === "y") return "y";
+    if (s === "orange" || s === "o") return "o";
+    if (s === "red" || s === "r") return "r";
+    if (s === "black" || s === "k" || s === "absolute") return "k";
+    return "y";
+  }
+
+  function normalizeGroup(g){
+    const s = String(g || "").toLowerCase();
+    // accept aliases
+    if (s === "yn" || s === "yesno" || s === "yes-no" || s === "da-net" || s === "да/нет" || s === "да-нет") return "yn";
+    if (s === "who" || s === "who/what" || s === "whowhat" || s === "кто" || s === "что" || s === "кто/что") return "who";
+    if (s === "where" || s === "где") return "where";
+    return s || "yn";
+  }
+
+  function bumpBattleBadgeIfCollapsed() {
+    try {
+      if (Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("battles")) {
+        if (typeof Game.UI.bumpCollapsedCounter === "function") Game.UI.bumpCollapsedCounter("battles");
+      }
+    } catch (_) {}
+  }
+
+  function argGroup(arg){
+    if (!arg) return "yesno";
+    return normalizeGroup(arg.type || arg.group || arg.g || arg.kindGroup || "yesno");
+  }
+
+  function argColor(arg){
+    if (!arg) return "y";
+    // IMPORTANT: also read hidden color stored in _color for attacks
+    return normalizeColor(arg.color || arg.c || arg._color || arg.power || "y");
+  }
+
+  function isCorrectType(attackArg, defenseArg){
+    return argGroup(attackArg) === argGroup(defenseArg);
+  }
+
+  function getRole(id){
+    const p = getPlayer(id);
+    return p ? String(p.role || p.type || "").toLowerCase() : "";
+  }
+
+  function getEcon(){
+    return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
+  }
+
+  function calcFinalPriceForActor(basePrice, actorPoints, priceKey, context){
+    const Econ = getEcon();
+    const base = Number.isFinite(basePrice) ? (basePrice | 0) : 0;
+    const points = Number.isFinite(actorPoints) ? (actorPoints | 0) : 0;
+    const baseNorm = Math.max(0, base);
+    const pointsNorm = Math.max(0, points);
+    if (Econ && typeof Econ.calcFinalPrice === "function") {
+      return Econ.calcFinalPrice({
+        basePrice: baseNorm,
+        actorPoints: pointsNorm,
+        priceKey,
+        context
+      });
+    }
+    return { basePrice: baseNorm, mult: 1, finalPrice: baseNorm, priceKey, context };
+  }
+
+  function isCirculationEnabled(){
+    return true;
+  }
+
+  function econTransfer(fromId, toId, amount, reason, meta){
+    const Econ = getEcon();
+    if (Econ && typeof Econ.transferPoints === "function") {
+      return Econ.transferPoints(fromId, toId, amount, reason, meta || {});
+    }
+    return { ok: false, reason: "no_econ" };
+  }
+
+  function attackerDefenderIds(b){
+    const attackerId = b.fromThem ? b.opponentId : "me";
+    const defenderId = b.fromThem ? "me" : b.opponentId;
+    return { attackerId, defenderId };
+  }
+
+  function resolveCanonicalMatchOutcome(battle){
+    if (!battle) return null;
+    const ids = attackerDefenderIds(battle);
+    if (ids.defenderId === "me") return "win";
+    if (ids.attackerId === "me") return "lose";
+    return null;
+  }
+
+  function ensurePointsField(p){
+    if (!p) return;
+    if (typeof p.points !== "number") p.points = 0;
+  }
+
+  function getName(id){
+    const p = getPlayer(id);
+    return p ? String(p.name || p.title || id) : String(id || "");
+  }
+
+  function pushSystem(line){
+    try {
+      if (Game.__A && typeof Game.__A.pushChat === "function") {
+        Game.__A.pushChat("Система", line, { system: true });
+      }
+    } catch (_) {}
+  }
+
+  function recordVillainHarm(role, loss, opponentId){
+    try {
+      if (!role) return;
+      const st = Game.__S || {};
+      st.victimByRole = st.victimByRole || {};
+      st.victimByRole[role] = {
+        at: now(),
+        loss: Math.max(0, loss | 0),
+        opponentId: opponentId || null
+      };
+      st.sightings = st.sightings || {};
+      st.sightings[role] = now();
+    } catch (_) {}
+  }
+
+  function battleResultText(b){
+    if (!b) return "";
+    if (b.resultLine && String(b.resultLine).trim()) return String(b.resultLine).trim();
+    const r = String(b.result || "").toLowerCase();
+    if (r === "win") return "Победа";
+    if (r === "lose") return "Поражение";
+    if (r === "draw") return "Толпа решает";
+    if (r === "escaped") return "Свалил";
+    if (r === "ignored") return "Отвалил";
+    if (r === "stay" || r === "blocked") return "Остался";
+    return "Итог";
+  }
+
+  function announceBattleResult(b){
+    try {
+      if (!b || b.chatResultAnnounced) return;
+      const oppName = getName(b.opponentId) || "Оппонент";
+      const text = battleResultText(b);
+      if (!text) return;
+      pushSystem(`Баттл с ${oppName}: ${text}.`);
+      b.chatResultAnnounced = true;
+    } catch (_) {}
+  }
+
+  function applyVillainPenalty(b, action){
+    try {
+      if (!b) return;
+      const role = getRole(b.opponentId);
+      if (role !== "toxic" && role !== "bandit") return;
+
+      const me = Game.__S && Game.__S.me;
+      if (!me) return;
+      ensurePointsField(me);
+
+      if (role === "toxic") {
+        if (b.toxicHitApplied) return;
+        const before = me.points | 0;
+        const cost = 5;
+        const amountWanted = cost | 0;
+        const amountActual = Math.min(amountWanted, Math.max(0, before));
+        const pointsAfter = Math.max(0, before - amountActual);
+        if (isCirculationEnabled()) {
+          const oppId = b.opponentId || "sink";
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "toxicHit", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
+        } else {
+          const oppId = b.opponentId || "sink";
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "toxicHit", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
+        }
+        b.toxicHitApplied = true;
+        b.toxicHitMs = now();
+        const actual = amountActual;
+        recordVillainHarm("toxic", actual || cost, b.opponentId);
+        
+        // REP падение при ограблении токсиком — REP v2 economy
+        try {
+          if (Game.__A && typeof Game.__A.transferRep === "function") {
+            const D = (Game && Game.Data) ? Game.Data : null;
+            const repLoss = (D && Number.isFinite(D.REP_TOXIC_ROBBERY)) ? (D.REP_TOXIC_ROBBERY | 0) : 2;
+            const repFloor = (D && Number.isFinite(D.REP_FLOOR)) ? (D.REP_FLOOR | 0) : 1;
+            const currentRep = (Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0;
+            const actualLoss = Math.min(repLoss, Math.max(0, currentRep - repFloor));
+            if (actualLoss > 0) {
+              Game.__A.transferRep("me", "crowd_pool", actualLoss, "rep_toxic_robbery", b.id || b.battleId || null);
+            }
+          }
+        } catch (_) {}
+        
+        const line = (Game.Data && Game.Data.SYS && typeof Game.Data.SYS.toxicStealLine === "function")
+          ? Game.Data.SYS.toxicStealLine(actual || cost)
+          : `Токсик снял у тебя ${actual || cost} 💰. Все видели.`;
+        if (actual > 0) pushSystem(line);
+      }
+
+      if (role === "bandit") {
+        if (b.banditRobbed) return;
+        const before = me.points | 0;
+        const keepOne = 1;
+        const stolen = Math.max(0, before - keepOne);
+        const amountWanted = stolen | 0;
+        const amountActual = Math.min(amountWanted, Math.max(0, before));
+        const pointsAfter = Math.max(0, before - amountActual);
+        if (isCirculationEnabled()) {
+          const oppId = b.opponentId || "sink";
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "bandit_robbery", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
+        } else {
+          const oppId = b.opponentId || "sink";
+          if (amountActual > 0) {
+            econTransfer("me", oppId, amountActual, "bandit_robbery", {
+              battleId: b.id || b.battleId || null,
+              amountWanted,
+              amountActual,
+              pointsBefore: before,
+              pointsAfter,
+              partial: amountActual !== amountWanted
+            });
+          }
+        }
+        b.banditRobbed = true;
+        recordVillainHarm("bandit", amountActual, b.opponentId);
+        
+        // REP падение при ограблении бандитом — REP v2 economy
+        try {
+          if (Game.__A && typeof Game.__A.transferRep === "function") {
+            const D = (Game && Game.Data) ? Game.Data : null;
+            const repLoss = (D && Number.isFinite(D.REP_BANDIT_ROBBERY)) ? (D.REP_BANDIT_ROBBERY | 0) : 3;
+            const repFloor = (D && Number.isFinite(D.REP_FLOOR)) ? (D.REP_FLOOR | 0) : 1;
+            const currentRep = (Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0;
+            const actualLoss = Math.min(repLoss, Math.max(0, currentRep - repFloor));
+            if (actualLoss > 0) {
+              Game.__A.transferRep("me", "crowd_pool", actualLoss, "rep_bandit_robbery", b.id || b.battleId || null);
+            }
+          }
+        } catch (_) {}
+        
+        const line = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
+          ? Game.Data.SYS.banditRobbed
+          : `Бандит забрал у тебя ${amountActual} 💰. Все видели.`;
+        if (amountActual > 0) pushSystem(line);
+      }
+
+      try {
+        if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
+          Game.__A.ensureNonNegativePoints();
+        }
+        if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+          Game.__A.syncMeToPlayers();
+        }
+      } catch (_) {}
+    } catch (_) {}
+  }
+
+  function notifyCopViolation(opponentId, penalty){
+    try {
+      const name = getName(opponentId) || "Коп";
+      const pen = (penalty|0) || 5;
+      const dmTextRaw = `Вы попытались забатлить ${name}. Это нарушение порядка. Штраф -${pen} 💰.`;
+      const chatTextRaw = `Нарушение порядка. За попытку вброса списан штраф -${pen} 💰.`;
+
+      const N = (Game && Game.NPC) ? Game.NPC : null;
+      const dmText = (N && typeof N.normalizeCopLine === "function") ? N.normalizeCopLine(dmTextRaw) : dmTextRaw;
+      const chatText = (N && typeof N.normalizeCopLine === "function") ? N.normalizeCopLine(chatTextRaw) : chatTextRaw;
+
+      // DM first (if supported)
+      const UI = (Game && Game.UI) ? Game.UI : null;
+      if (UI) {
+        if (typeof UI.pushDM === "function") {
+          UI.pushDM({ fromId: opponentId, toId: "me", name, text: dmText, system: false });
+        } else if (typeof UI.pushWhisper === "function") {
+          UI.pushWhisper({ fromId: opponentId, toId: "me", name, text: dmText });
+        } else if (typeof UI.pushPrivate === "function") {
+          UI.pushPrivate({ fromId: opponentId, toId: "me", name, text: dmText });
+        } else if (typeof UI.pushChat === "function") {
+          // Fallback: mark as DM-like in chat if no DM channel exists
+          UI.pushChat({ name, text: dmText, system: false, speakerId: opponentId, dm: true });
+        }
+
+        // Public chat notice
+        if (typeof UI.pushChat === "function") {
+          UI.pushChat({ name, text: chatText, system: false, speakerId: opponentId });
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Toxic instant hit: if Toxic attacked and you answered quickly, apply immediate point damage.
+  // This must not affect non-toxic battles and must apply at most once per battle.
+  // Timing source: prefer b.firstSeenAt (set by UI), then b.presentedAt, then createdAt.
+  function maybeApplyToxicInstantHit(b){
+    try {
+      if (!b || !b.fromThem) return;
+      if (b.toxicHitApplied) return;
+      const role = getRole(b.opponentId);
+      if (role !== "toxic") return;
+
+      const base =
+        (typeof b.firstSeenAt === "number" && b.firstSeenAt > 0) ? b.firstSeenAt :
+        (typeof b.presentedAt === "number" && b.presentedAt > 0) ? b.presentedAt :
+        (typeof b.createdAt === "number" && b.createdAt > 0) ? b.createdAt :
+        0;
+
+      const dt = base ? (now() - base) : 999999;
+
+      // "answered immediately" threshold (ms)
+      const TH = 2500;
+      if (dt > TH) return;
+
+      const me = Game.__S && Game.__S.me;
+      if (!me) return;
+      if (isCirculationEnabled()) {
+        const oppId = b.opponentId || "sink";
+        econTransfer("me", oppId, 1, "toxicHit", { battleId: b.id || b.battleId || null });
+      } else {
+        const beforePts = (me.points || 0) | 0;
+        const afterPts = clamp0(beforePts - 1);
+        me.points = afterPts;
+        try {
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "toxicHit", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
+
+      b.toxicHitApplied = true;
+      b.toxicHitMs = dt;
+    } catch (_) {}
+  }
+
+  // Bandit robbery: if Bandit attacked and you answered (not escaped),
+  // wipe all player points. Apply at most once per battle.
+  // NOTE: per rules, DO NOT wipe on draw. Call only on definitive lose.
+  function maybeApplyBanditRobbery(b){
+    try {
+      if (!b || !b.fromThem) return;
+      if (b.banditRobbed) return;
+      const role = getRole(b.opponentId);
+      if (role !== "bandit") return;
+
+      const me = Game.__S && Game.__S.me;
+      if (!me) return;
+
+      if (isCirculationEnabled()) {
+        const before = me.points | 0;
+        const oppId = b.opponentId || "sink";
+        econTransfer("me", oppId, before, "bandit_robbery", { battleId: b.id || b.battleId || null });
+      } else {
+        const beforePts = (me.points || 0) | 0;
+        me.points = 0;
+        try {
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("points", (0 - beforePts) | 0, { reason: "bandit_robbery", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
+      b.banditRobbed = true;
+    } catch (_) {}
+  }
+
+  // Mafioso humiliation: if Mafioso attacked and player made ANY action except escape,
+  // wipe ALL player influence. Apply once per battle.
+  function maybeApplyMafiaHumiliation(b){
+    try {
+      if (!b || !b.fromThem) return;
+      if (b.mafiaHumiliated) return;
+      const role = getRole(b.opponentId);
+      if (role !== "mafia") return;
+
+      const me = Game.__S && Game.__S.me;
+      if (!me) return;
+
+      {
+        const beforeInf = (me.influence || 0) | 0;
+        me.influence = 0;
+        try {
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("influence", (0 - beforeInf) | 0, { reason: "mafia_humiliation", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
+      if (isCirculationEnabled()) {
+        const before = me.points | 0;
+        econTransfer("me", "sink", before, "mafia_humiliation", { battleId: b.id || b.battleId || null });
+      } else {
+        const beforePts = (me.points || 0) | 0;
+        me.points = 0;
+        try {
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("points", (0 - beforePts) | 0, { reason: "mafia_humiliation", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
+      // IMPORTANT: do not modify Game.__S.rep directly — always use transferRep to log REP moves.
+      try {
+        const cur = (Game && Game.__S && Number.isFinite(Game.__S.rep)) ? (Game.__S.rep | 0) : 0;
+        if (cur > 0 && Game.__A && typeof Game.__A.transferRep === "function") {
+          Game.__A.transferRep("me", "crowd_pool", cur, "rep_mafia_humiliation_reset", b.id || b.battleId || null);
+        }
+      } catch (_) {}
+      {
+        const beforeWins = (me.wins || 0) | 0;
+        me.wins = 0;
+        try {
+          if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+            Game.__A.emitStatDelta("wins", (0 - beforeWins) | 0, { reason: "mafia_humiliation", battleId: b.id || b.battleId || null });
+          }
+        } catch (_) {}
+      }
+      if (typeof me.winsSinceInfluence === "number") me.winsSinceInfluence = 0;
+      if (Game.__S.progress) {
+        Game.__S.progress.weeklyInfluenceGained = 0;
+        Game.__S.progress.weekStartAt = Date.now();
+      }
+      me.unlockOrange = false;
+      me.unlockRed = false;
+      me.unlockBlack = false;
+      b.mafiaHumiliated = true;
+      try {
+        if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+          Game.__A.syncMeToPlayers();
+        }
+      } catch (_) {}
+    } catch (_) {}
+  }
+
+  // Ensure incoming attack always has:
+  // - attack.text
+  // - attack.type: yn|who|where
+  // - NO public color field before choice (store as _color)
+  function sanitizeAttack(raw, fallbackType){
+    const ft = normalizeGroup(fallbackType || "yesno");
+    if (!raw) {
+      // Canon-only: do not inject non-canon fallback strings.
+      // Try to fall back to a canonical template; if unavailable, return null.
+      try {
+        const D = Game.Data || null;
+        const typeU = String(ft || "yn").toUpperCase();
+        const list = (D && typeof D.getArgCanonGroup === "function") ? D.getArgCanonGroup("Y1", typeU) : [];
+        const item = (Array.isArray(list) && list.length) ? (list[0] || null) : null;
+        if (item && item.q) {
+          return {
+            id: "canon_Y1_" + String(ft || "yn") + "_" + Math.random().toString(36).slice(2, 6),
+            type: ft,
+            group: ft,
+            text: String(item.q),
+            _canonQ: String(item.q),
+            _sub: "Y1",
+            _color: "y"
+          };
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    const text = String(raw.text || raw.t || raw.line || raw.value || raw.msg || "").trim();
+    const type = normalizeGroup(raw.type || raw.group || raw.g || raw.kindGroup || ft);
+    const id = String(raw.id || raw.key || raw.tag || ("atk_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6)));
+    // IMPORTANT: some producers (conflict-arguments.js) store hidden power in `_color`.
+    // If we ignore it, incoming NPC attacks silently downgrade to yellow.
+    const color = normalizeColor(raw._color || raw.color || raw.c || raw.power || "y");
+
+    return {
+      id,
+      type,
+      text: text || "ты тут?",
+      _color: color,
+      _canonQ: (raw && raw._canonQ) ? String(raw._canonQ) : null,
+      _sub: (raw && raw._sub) ? String(raw._sub) : null
+    };
+  }
+
+  function escapeCostForBattle(b){
+    // Default escape costs 1. Special roles cost more.
+    // Source of truth: Game.Data.ESCAPE_COST
+    const role = getRole(b && b.opponentId);
+    const D = (Game && Game.Data) ? Game.Data : null;
+    const map = D && D.ESCAPE_COST ? D.ESCAPE_COST : null;
+
+    if (map && role && Object.prototype.hasOwnProperty.call(map, role)) {
+      const v = map[role];
+      const n = (typeof v === "number") ? v : parseInt(v, 10);
+      return (Number.isFinite(n) && n > 0) ? (n|0) : 1;
+    }
+
+    // Safe fallback if data is missing.
+    return 1;
+  }
+
+  // Core outcome rules for battles.
+  // Returns one of: "win" | "lose" | "draw" (relative to ME).
+  // IMPORTANT (canon rules):
+  // - Color is always evaluated first. Same color → type rules; different color → strength hierarchy rules.
+  // - Same color: correct type => defender wins (guaranteed); wrong type => draw (crowd decides).
+  // - Adjacent colors (y-o, o-r): defender correct while weaker => draw; otherwise stronger wins.
+  // - Two-step gap (y-r): red wins always (no draw).
+  // - Black is unbeatable vs non-black: black side wins automatically. Black-black follows same rules as other colors.
+  // - Toxic/Bandit (incoming vs me): correct type => draw; wrong type => loss (robbery allowed).
+  // - Mafia: outcome is handled in finalize (fatal influence wipe on any action except escape when mafia attacked).
+  function buildCanonResolveMeta(battle, attackArg, defenseArg, outcome){
+    const b = battle || {};
+    const { attackerId, defenderId } = attackerDefenderIds(b);
+    const oppRole = getRole(b.opponentId);
+    const isVillain = (oppRole === "toxic" || oppRole === "bandit");
+
+    const aColor = argColor(attackArg);
+    const dColor = argColor(defenseArg);
+    const isBlackAttack = (aColor === "k");
+    const isBlackDefense = (dColor === "k");
+    const aS = colorToStrength(aColor);
+    const dS = colorToStrength(dColor);
+    const diff = Math.abs(aS - dS);
+    const isSameColor = (aColor === dColor);
+    const attackType = argGroup(attackArg);
+    const defenseType = argGroup(defenseArg);
+    const typeMatchOk = (attackType === defenseType);
+    const isAttackTypeCorrect = (attackType === defenseType);
+    const isDefenseTypeCorrect = (defenseType === attackType);
+    const blackVsNonBlack = (isBlackAttack || isBlackDefense) && !(isBlackAttack && isBlackDefense);
+    const typeRelevant = !blackVsNonBlack && (isSameColor || diff === 1);
+    const tierDistance = (isBlackAttack || isBlackDefense)
+      ? ((isBlackAttack && isBlackDefense) ? 0 : 2)
+      : diff;
+    const robberyAllowed = !!(isVillain && defenderId === "me" && !typeMatchOk && outcome === "lose" && typeRelevant);
+
+    return {
+      attackColor: aColor,
+      defenseColor: dColor,
+      isBlackAttack,
+      isBlackDefense,
+      isSameColor,
+      tierDistance,
+      typeMatchOk,
+      isAttackTypeCorrect,
+      isDefenseTypeCorrect,
+      typeRelevant,
+      robberyAllowed
+    };
+  }
+  function computeOutcome(battle, attackArg, defenseArg){
+    const b0 = battle || {};
+    // Persist arguments on the REAL battle in state (callers may pass a copy).
+    const b = (b0 && b0.id && Game && Game.__S && Array.isArray(Game.__S.battles))
+      ? (Game.__S.battles.find(x => x && x.id === b0.id) || b0)
+      : b0;
+
+    try {
+      if (attackArg && !b.attack) b.attack = attackArg;
+      if (defenseArg && !b.defense) b.defense = defenseArg;
+    } catch (_) {}
+
+    const { attackerId, defenderId } = attackerDefenderIds(b);
+    const oppRole = getRole(b.opponentId);
+    const isVillain = (oppRole === "toxic" || oppRole === "bandit");
+    const iAmDefender = (defenderId === "me");
+
+    const aColor = argColor(attackArg);
+    const dColor = argColor(defenseArg);
+    const aS = colorToStrength(aColor);
+    const dS = colorToStrength(dColor);
+    const isBlackAttack = (aColor === "k");
+    const isBlackDefense = (dColor === "k");
+    const blackVsNonBlack = (isBlackAttack || isBlackDefense) && !(isBlackAttack && isBlackDefense);
+    const diff = Math.abs(aS - dS);
+    const isSameColor = (aColor === dColor);
+    const typeRelevant = !blackVsNonBlack && (isSameColor || diff === 1);
+    const tierDistance = (isBlackAttack || isBlackDefense)
+      ? ((isBlackAttack && isBlackDefense) ? 0 : 2)
+      : diff;
+
+    const correct = isCorrectType(attackArg, defenseArg);
+    const sameColorCorrect = isSameColor && correct;
+    
+    // Task D: dev-log для проверки типов
+    try {
+      if (Game.__D && Game.__D.LOG_TYPE_CHECK) {
+        const attackType = argGroup(attackArg);
+        const defenseType = argGroup(defenseArg);
+        console.log(`[TYPE_CHECK] attack=${attackType} defense=${defenseType} correct=${correct} reason=${correct ? "type_match" : "type_mismatch"}`);
+      }
+    } catch (_) {}
+
+    let outcome = null;
+
+    // Black logic
+    if (blackVsNonBlack) {
+      // black vs non-black: black wins automatically
+      const attackerWins = isBlackAttack;
+      const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+      outcome = meWins ? "win" : "lose";
+    } else if (isSameColor) {
+      if (correct) {
+        // Correct type guarantees victory (only for same color)
+        const meWins = (defenderId === "me");
+        outcome = meWins ? "win" : "lose";
+      } else {
+        // Wrong type => draw (crowd vote)
+        outcome = "draw";
+      }
+    } else if (diff === 2) {
+      // Two-step gap: red beats yellow always
+      const attackerWins = aS > dS;
+      const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+      outcome = meWins ? "win" : "lose";
+    } else if (diff === 1) {
+      // Adjacent colors (y-o, o-r)
+      const defenderWeaker = dS < aS;
+      if (correct && defenderWeaker) {
+        // Weaker correct defense earns a draw chance via crowd
+        outcome = "draw";
+      } else {
+        const attackerWins = aS > dS;
+        const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+        outcome = meWins ? "win" : "lose";
+      }
+    } else {
+      // Any other gap - stronger wins
+      const attackerWins = aS > dS;
+      const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+      outcome = meWins ? "win" : "lose";
+    }
+
+    // Toxic/Bandit (incoming vs me): correct type => draw; wrong type => loss.
+    if (isVillain && iAmDefender && typeRelevant && !sameColorCorrect) {
+      outcome = correct ? "draw" : "lose";
+    }
+
+    // Colour gap rule: y-r/r-y (tierDistance=2, non-black) forces red victory and disables crowd.
+    if (!blackVsNonBlack && diff === 2) {
+      const attackerWins = aS > dS;
+      const meWins = (attackerId === "me") ? attackerWins : !attackerWins;
+      const forcedOutcome = meWins ? "win" : "lose";
+      const yrLockState = {
+        forcedOutcome,
+        previousOutcomeGuess: outcome,
+        forcedNoCrowd: 1,
+        attackColor: aColor,
+        defenseColor: dColor,
+          tierDistance,
+          isBlackAttack,
+          isBlackDefense,
+          isSameColor,
+          typeMatchOk: correct
+      };
+      try {
+        b._yrLockState = Object.assign({}, yrLockState);
+      } catch (_) {}
+      outcome = forcedOutcome;
+    } else {
+      if (b && b._yrLockState) {
+        try { delete b._yrLockState; } catch (_) {}
+      }
+    }
+
+    try {
+      b._canonResolveMeta = buildCanonResolveMeta(b, attackArg, defenseArg, outcome);
+    } catch (_) {}
+
+    return outcome;
+  }
+
+  // Pick an incoming attack argument for an opponent (kept hidden in UI until player answers)
+  function pickIncomingAttack(opponentId, battle){
+    const opp = getPlayer(opponentId);
+    const inf = opp ? (opp.influence || 0) : 0;
+
+    // Prefer NPC picker if available (influence-based, uses current data)
+    if (Game.NPC && typeof Game.NPC.pickAttackByInfluence === "function") {
+      try {
+        const a = Game.NPC.pickAttackByInfluence(inf, opp && opp.role);
+        // Canon-only: accept NPC pick only if it already looks canonical.
+        if (a && (String(a.id || "").startsWith("canon_") || a._canonQ)) return sanitizeAttack(a);
+      } catch (e) {
+        warnOnce("npc_pick_attack_error", "[ConflictCore] NPC.pickAttackByInfluence failed", e);
+      }
+    }
+
+    // Prefer a dedicated picker if the arguments module exposes one.
+    const A = Game.ConflictArguments || Game._ConflictArguments || null;
+    if (A && typeof A.pickIncomingAttack === "function") {
+      const a = A.pickIncomingAttack(opponentId, battle, { battle, battleCtx: battle });
+      if (a && a.ok === false) return null;
+      if (a) return sanitizeAttack(a);
+    }
+    // Canon-only: no base/data fallbacks.
+    return null;
+  }
+
+  // Economy + progress: SINGLE source of truth is Web/conflict/conflict-economy.js (Game._ConflictEconomy).
+  // conflict-core.js must not mutate points/wins/influence directly to avoid double-charges and inconsistent unlock logic.
+  function applyEconomyForOutcome(outcome, battle){
+    try {
+      const Econ = (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
+      if (!Econ || typeof Econ.applyResult !== "function") return;
+
+      const b = battle || {};
+      const role = getRole(b.opponentId);
+
+      // Mafia battles: humiliation wipes influence, but base win/lose economy should NOT auto-apply here.
+      // (Keep economy clean and predictable.)
+      if (role === "mafia") return;
+
+      // Build a minimal battle-like object expected by economy:
+      const battleLike = {
+        result: String(outcome || ""),
+        opponentId: b.opponentId || null,
+        fromThem: !!b.fromThem,
+        economyApplied: false,
+        id: b.id || b.battleId || null,
+        status: b.status || null,
+      };
+
+      Econ.applyResult(battleLike);
+    } catch (_) {}
+  }
+
+  function getBattleCrowdPoolId(b){
+    const Econ = getEcon();
+    const bid = b && (b.id || b.battleId || null);
+    if (Econ && typeof Econ.getCrowdPoolId === "function") return Econ.getCrowdPoolId(bid);
+    return bid ? `crowd:${bid}` : "crowd";
+  }
+
+  function applyBattleCrowdEconomy(b, res, crowdOverride){
+    const crowd = crowdOverride || (b ? b.crowd : null);
+    if (!b || !crowd || !res) return;
+    if (crowd._econApplied) return;
+    crowd._econApplied = true;
+    if (!isCirculationEnabled()) return;
+
+    const Econ = getEcon();
+    if (!Econ || typeof Econ.transferPoints !== "function") return;
+
+    const battleId = b.id || b.battleId || (crowd && (crowd.battleId || crowd.eventId)) || null;
+    if (battleId && crowd && !crowd.battleId) crowd.battleId = battleId;
+    const voters = (crowd.voters && typeof crowd.voters === "object")
+      ? Object.keys(crowd.voters)
+      : [];
+    const poolId = getBattleCrowdPoolId(b);
+    if (Econ.ensurePool) Econ.ensurePool(poolId);
+
+    if (!crowd._poolInit && voters.length) {
+      econTransfer("sink", poolId, voters.length, "crowd_vote_pool_init", { battleId });
+      crowd._poolInit = true;
+    }
+
+    const refundAll = (res.outcome === "TIE");
+    const winnerSide = (res.outcome === "A_WIN") ? "a" : (res.outcome === "B_WIN" ? "b" : null);
+    const winnerAlt = (winnerSide === "a") ? "attacker" : (winnerSide === "b" ? "defender" : null);
+    const refundReason = refundAll ? "crowd_vote_refund" : "crowd_vote_refund_majority";
+    const transferFromPool = (Econ && typeof Econ.transferFromPool === "function") ? Econ.transferFromPool : null;
+
+    voters.forEach(id => {
+      if (!refundAll) {
+        const side = crowd.voters ? crowd.voters[id] : null;
+        if (side !== winnerSide && side !== winnerAlt) return;
+      }
+      if (transferFromPool) transferFromPool(poolId, id, 1, refundReason, { battleId });
+      else econTransfer(poolId, id, 1, refundReason, { battleId });
+    });
+
+    try {
+      const ids = attackerDefenderIds(b);
+      const attackerId = ids.attackerId || null;
+      const defenderId = ids.defenderId || null;
+      const attackerWins = (res && res.outcome === "A_WIN");
+      const defenderWins = (res && res.outcome === "B_WIN");
+      const isEscapeVote = !!(crowd && crowd.mode != null);
+      if (Econ && typeof Econ.getPoolBalance === "function") {
+        const remainder = Econ.getPoolBalance(poolId) | 0;
+          const splitRemainder = (extraToAttacker) => {
+            if (!attackerId && !defenderId) return;
+            if (!attackerId || !defenderId) {
+              const onlyId = attackerId || defenderId;
+              if (onlyId) {
+                const onlyReason = (onlyId === attackerId) ? "crowd_vote_remainder_split_attacker" : "crowd_vote_remainder_split_defender";
+                if (transferFromPool) transferFromPool(poolId, onlyId, remainder, onlyReason, { battleId });
+                else econTransfer(poolId, onlyId, remainder, onlyReason, { battleId });
+              }
+              return;
+            }
+            const hi = Math.ceil(remainder / 2);
+            const lo = remainder - hi;
+            const firstId = extraToAttacker ? attackerId : defenderId;
+            const secondId = extraToAttacker ? defenderId : attackerId;
+            const firstReason = extraToAttacker ? "crowd_vote_remainder_split_attacker" : "crowd_vote_remainder_split_defender";
+            const secondReason = extraToAttacker ? "crowd_vote_remainder_split_defender" : "crowd_vote_remainder_split_attacker";
+            if (hi > 0) {
+              if (transferFromPool) transferFromPool(poolId, firstId, hi, firstReason, { battleId });
+              else econTransfer(poolId, firstId, hi, firstReason, { battleId });
+            }
+            if (lo > 0) {
+              if (transferFromPool) transferFromPool(poolId, secondId, lo, secondReason, { battleId });
+              else econTransfer(poolId, secondId, lo, secondReason, { battleId });
+            }
+          };
+        if (remainder > 0) {
+          if (!isEscapeVote && attackerWins) {
+            if (attackerId) {
+              if (transferFromPool) transferFromPool(poolId, attackerId, remainder, "crowd_vote_remainder_win", { battleId });
+              else econTransfer(poolId, attackerId, remainder, "crowd_vote_remainder_win", { battleId });
+            }
+          } else if (isEscapeVote || defenderWins) {
+            splitRemainder(attackerWins);
+          } else {
+            splitRemainder(attackerWins);
+          }
+        }
+        if (!isEscapeVote && attackerId && defenderId && (attackerWins || defenderWins)) {
+          const winnerId = attackerWins ? attackerId : defenderId;
+          const loserId = attackerWins ? defenderId : attackerId;
+          econTransfer(loserId, winnerId, 2, "crowd_vote_loser_penalty", { battleId });
+        }
+      }
+    } catch (_) {}
+  }
+
+  function withRepSourceOverride(fn){
+    try {
+      const API = (Game && Game.__A) ? Game.__A : null;
+      if (!API || typeof API.transferRep !== "function") return fn();
+      const orig = API.transferRep;
+      API.transferRep = function(fromId, toId, amount, reason, battleId){
+        const src = (String(fromId || "") === "crowd_pool") ? "rep_emitter" : fromId;
+        return orig.call(this, src, toId, amount, reason, battleId);
+      };
+      try { return fn(); }
+      finally { API.transferRep = orig; }
+    } catch (_) {
+      return fn();
+    }
+  }
+
+  function logCrowdCapDebugRaw(meta){
+    if (!meta) return;
+    const dbg = Game.__D || (Game.__D = {});
+    const log = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    log.push({
+      ts: now(),
+      reason: "crowd_cap_debug",
+      battleId: meta.battleId,
+      kind: "debug",
+      meta
+    });
+    const cache = ensureCrowdCapMetaCache();
+    if (meta && meta.battleId) {
+      cache[String(meta.battleId)] = meta;
+    }
+    dbg.lastCrowdCapMeta = meta;
+  }
+
+  // Safety: ensure the state shape exists before we touch it.
+  Game.__S = Game.__S || {};
+  Game.__S.me = Game.__S.me || { points: 0, influence: 0, wins: 0 };
+  Game.__S.battles = Game.__S.battles || [];
+  Game.__S.players = Game.__S.players || {};
+
+  function createBattle({ opponentId, fromThem }) {
+    return {
+      id: (function(){
+        const U = (typeof Util !== "undefined" && Util) || (Game && Game.Util) || null;
+        if (U && typeof U.uid === "function") return U.uid("battle");
+        return "battle_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+      })(),
+      opponentId,
+      fromThem,
+      status: fromThem ? "pickDefense" : "pickAttack",
+      attack: null, // must become { id, type: yn|who|where, text, _color }
+      attackHidden: true,
+      draw: false,
+      crowd: null,
+      pinned: false,
+      defense: null,
+      result: null,
+      resolved: false,
+      finished: false,
+      createdAt: now(),
+      updatedAt: now()
+    };
+  }
+
+  function isBattleInDraw(b){
+    return !!(b && (b.status === "draw" || b.status === "crowd") && b.crowd && !b.crowd.decided);
+  }
+
+  function useWeightedTally(){
+    const dbg = Game && Game.__D ? Game.__D : null;
+    const D = Game && Game.Data ? Game.Data : null;
+    if (dbg && dbg.CROWD_WEIGHTED_TALLY === true) return true;
+    if (D && D.CROWD_WEIGHTED_TALLY === true) return true;
+    return false;
+  }
+
+  function getVoteWeight(voterId){
+    try {
+      const D = Game && Game.Data ? Game.Data : null;
+      const p = (voterId === "me" && Game && Game.__S && Game.__S.me)
+        ? Game.__S.me
+        : getPlayer(voterId);
+      const inf = (p && Number.isFinite(p.influence)) ? (p.influence | 0) : 0;
+      const role = p ? String(p.role || p.type || "") : "";
+      let tierKey = "y1";
+      if (D && typeof D.tierKeyByInfluence === "function") {
+        tierKey = D.tierKeyByInfluence(inf, role);
+      } else if (D && typeof D.tierKeysByInfluence === "function") {
+        const keys = D.tierKeysByInfluence(inf) || [];
+        tierKey = String(keys[0] || "y1");
+      }
+      const color = (D && typeof D.colorFromTierKey === "function") ? D.colorFromTierKey(tierKey) : "y";
+      const c = String(color || "y").toLowerCase();
+      const roleLower = String(role || "").toLowerCase();
+      const isMafiaRole = roleLower === "mafia";
+      const isMafiaId = String(voterId || "") === "npc_mafia";
+      if (c === "k" && isMafiaRole && isMafiaId) return 3;
+      if (c === "r") return 2;
+      return 1;
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  function getWeightedVotesFromCrowd(crowd){
+    if (!crowd || !crowd.voters || typeof crowd.voters !== "object") return null;
+    let a = 0;
+    let b = 0;
+    for (const vid of Object.keys(crowd.voters)) {
+      const side = crowd.voters[vid];
+      const w = getVoteWeight(vid);
+      if (side === "a" || side === "attacker") a += w;
+      else if (side === "b" || side === "defender") b += w;
+    }
+    return { a, b };
+  }
+
+  function resolveCrowdCore(crowd, ctx, participants){
+    const out = {
+      outcome: "TIE",
+      decided: false,
+      sideStats: {
+        a: { count: 0, weight: 0 },
+        b: { count: 0, weight: 0 },
+        total: { count: 0, weight: 0 },
+        totalPlayers: Array.isArray(participants) ? participants.length : 0
+      }
+    };
+    if (!crowd || typeof crowd !== "object") return out;
+    let aCount = 0;
+    let bCount = 0;
+    const weighted = useWeightedTally() ? getWeightedVotesFromCrowd(crowd) : null;
+    if (weighted) {
+      aCount = weighted.a | 0;
+      bCount = weighted.b | 0;
+    } else {
+      aCount = Number.isFinite(crowd.aVotes) ? (crowd.aVotes | 0)
+        : (Number.isFinite(crowd.votesA) ? (crowd.votesA | 0) : 0);
+      bCount = Number.isFinite(crowd.bVotes) ? (crowd.bVotes | 0)
+        : (Number.isFinite(crowd.votesB) ? (crowd.votesB | 0) : 0);
+    }
+    const aWeight = aCount | 0;
+    const bWeight = bCount | 0;
+    out.sideStats.a.count = aCount;
+    out.sideStats.a.weight = aWeight;
+    out.sideStats.b.count = bCount;
+    out.sideStats.b.weight = bWeight;
+    out.sideStats.total.count = (aCount + bCount) | 0;
+    out.sideStats.total.weight = (aWeight + bWeight) | 0;
+    if (aWeight > bWeight) {
+      out.outcome = "A_WIN";
+      out.decided = true;
+    } else if (bWeight > aWeight) {
+      out.outcome = "B_WIN";
+      out.decided = true;
+    } else {
+      out.outcome = "TIE";
+      out.decided = false;
+    }
+    return out;
+  }
+
+  function ensureBattleCrowdCap(v, battle){
+    if (!v) return;
+    const meta = (battle && battle.meta && typeof battle.meta === "object") ? battle.meta : null;
+    const hasCap = Number.isFinite(v.cap) && (v.cap | 0) > 0;
+    if (hasCap) {
+      if (!v.capSource) {
+        setCrowdCapMeta(battle, v, v.cap, "existing", v.eligibleCount || 0, v.excludedZeroPtsCount || 0);
+      }
+      return;
+    }
+    const eligible = buildEligibleVoters({
+      battleId: (battle && (battle.id || battle.battleId)) || null,
+      eventId: (v && v.eventId) || null,
+      crowd: v,
+      meta
+    });
+    const eligibleCount = eligible.eligibleNpcCount || 0;
+    const totalWithMe = eligibleCount + (eligible.meEligible ? 1 : 0);
+    const excludedZeroPts = eligible.excludedZeroPtsCount || 0;
+    const stageD2Enabled = isCrowdCapStageD2();
+    const drawFallbackForced = !!(meta && meta.drawFallback);
+    let capValue = 10;
+    let capSource = "canon10";
+    if (stageD2Enabled && totalWithMe > 0 && !drawFallbackForced) {
+      capValue = totalWithMe;
+      capSource = "eligible";
+    } else if (drawFallbackForced) {
+      capValue = 10;
+      capSource = "fallback_fixed";
+    }
+    setCrowdCapMeta(battle, v, capValue, capSource, eligibleCount, excludedZeroPts);
+  }
+
+  function getCrowdTotalVotes(v){
+    if (!v) return 0;
+    if (v.voters && typeof v.voters === "object" && Object.keys(v.voters).length > 0) {
+      return Object.keys(v.voters).length;
+    }
+    const a = Number.isFinite(v.votesA) ? (v.votesA | 0) : (Number.isFinite(v.aVotes) ? (v.aVotes | 0) : 0);
+    const b = Number.isFinite(v.votesB) ? (v.votesB | 0) : (Number.isFinite(v.bVotes) ? (v.bVotes | 0) : 0);
+    return (a + b) | 0;
+  }
+
+  function updateCrowdProgressState(b, v, nowMs){
+    if (!v) return null;
+    const epochNow = Math.floor(nowMs);
+    const key = getCrowdProgressKey(v);
+    if (!Number.isFinite(v.lastProgressAtMs)) {
+      v.lastProgressAtMs = epochNow;
+    }
+    const prevKey = v.lastProgressKey;
+    if (key && key !== prevKey) {
+      v.lastProgressKey = key;
+      v.lastProgressAtMs = epochNow;
+      logCrowdStallProgress(b, v, epochNow, key);
+    } else if (!prevKey && key) {
+      v.lastProgressKey = key;
+    }
+    return key;
+  }
+
+  function createCrowdCapMeta(b, endedBy){
+    if (!b || !b.crowd) return null;
+    const v = b.crowd;
+    const totalPlayers = Number.isFinite(v.totalPlayers) ? (v.totalPlayers | 0) : getTotalPlayersCount();
+    const cap = Number.isFinite(v.cap) ? (v.cap | 0) : 0;
+    const totalVotes = getCrowdTotalVotes(v);
+    let aVotes = 0;
+    let bVotes = 0;
+    const weighted = useWeightedTally() ? getWeightedVotesFromCrowd(v) : null;
+    if (weighted) {
+      aVotes = weighted.a | 0;
+      bVotes = weighted.b | 0;
+    } else {
+      aVotes = Number.isFinite(v.aVotes) ? (v.aVotes | 0) : (Number.isFinite(v.votesA) ? (v.votesA | 0) : 0);
+      bVotes = Number.isFinite(v.bVotes) ? (v.bVotes | 0) : (Number.isFinite(v.votesB) ? (v.votesB | 0) : 0);
+    }
+    return {
+      battleId: b.id || b.battleId || null,
+      totalPlayers,
+      cap,
+      totalVotes,
+      aVotes,
+      bVotes,
+      endedBy
+    };
+  }
+
+  function getOutcomeFromCapMeta(meta){
+    if (!meta) return null;
+    const a = Number.isFinite(meta.aVotes) ? (meta.aVotes | 0) : 0;
+    const b = Number.isFinite(meta.bVotes) ? (meta.bVotes | 0) : 0;
+    if (a === b) return "TIE";
+    return (a > b) ? "A_WIN" : "B_WIN";
+  }
+
+  function ensureCrowdCapMetaCache(){
+    const dbg = Game.__D || (Game.__D = {});
+    if (!dbg.crowdCapMetaByBattle) dbg.crowdCapMetaByBattle = Object.create(null);
+    return dbg.crowdCapMetaByBattle;
+  }
+
+  function logCrowdCapDebug(b, meta){
+    if (!b || !b.crowd) return;
+    if (!meta) return;
+    const dbg = Game.__D || (Game.__D = {});
+    const log = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : (dbg.moneyLog = []);
+    log.push({
+      ts: now(),
+      reason: "crowd_cap_debug",
+      battleId: meta.battleId,
+      kind: "debug",
+      meta
+    });
+    const cache = ensureCrowdCapMetaCache();
+    if (meta && meta.battleId) {
+      cache[String(meta.battleId)] = meta;
+    }
+  }
+
+  const ELIGIBILITY_RULE_VERSION = "ELIG_V1_zero_pts";
+
+  function buildEligibleVoters(opts){
+    const state = (Game && Game.__S) ? Game.__S : ((Game && Game.State) ? Game.State : null);
+    const players = (state && state.players && typeof state.players === "object") ? state.players : {};
+    const meId = (state && state.me && state.me.id) ? String(state.me.id) : "me";
+    const meta = (opts && opts.meta && typeof opts.meta === "object")
+      ? opts.meta
+      : (opts && opts.crowd && opts.crowd.meta && typeof opts.crowd.meta === "object")
+        ? opts.crowd.meta
+        : null;
+    const strictVoters = meta && String(meta.devTag || "") === "crowd_eligible";
+    const sourcedIds = (() => {
+      const seen = new Set();
+      const out = [];
+      const pushId = (id) => {
+        const normalized = String(id || "");
+        if (!normalized) return;
+        if (seen.has(normalized)) return;
+        seen.add(normalized);
+        out.push(normalized);
+      };
+      const optIds = Array.isArray((opts && opts.votersIds)) ? opts.votersIds : null;
+      if (Array.isArray(optIds) && optIds.length) {
+        optIds.forEach(pushId);
+        return out;
+      }
+      const crowd = opts && opts.crowd;
+      if (crowd && Array.isArray(crowd.votersIds) && crowd.votersIds.length) {
+        crowd.votersIds.forEach(pushId);
+        return out;
+      }
+      if (strictVoters) {
+        return out;
+      }
+      if (crowd && crowd.voters && typeof crowd.voters === "object") {
+        Object.keys(crowd.voters).forEach(pushId);
+        if (out.length) return out;
+      }
+      Object.keys(players).forEach(pushId);
+      return out;
+    })();
+    const candidateIds = sourcedIds.slice();
+    const votersCount = candidateIds.length;
+    const votersSample = candidateIds.slice(0, 3);
+    const eligibleIds = [];
+    const excludedSample = [];
+    let excludedZeroPtsCount = 0;
+    let excludedOtherCount = 0;
+    let meEligible = false;
+    for (const id of candidateIds) {
+      const isMe = id === meId;
+      const actor = isMe ? (state && state.me ? state.me : (players[id] || null)) : players[id];
+      const pts = Number.isFinite(actor && actor.points) ? (actor.points | 0) : 0;
+      if (isMe) {
+        if (pts > 0) {
+          meEligible = true;
+        } else {
+          excludedOtherCount += 1;
+          if (excludedSample.length < 5) {
+            excludedSample.push({ id, reason: "me_ineligible", pts });
+          }
+        }
+        continue;
+      }
+      if (!actor) {
+        excludedOtherCount += 1;
+        if (excludedSample.length < 5) {
+          excludedSample.push({ id, reason: "missing_state", pts: null });
+        }
+        continue;
+      }
+      const isNpcLike = actor.npc === true || String((actor.type || "").toLowerCase()) === "npc" || String(id || "").startsWith("npc_");
+      if (!isNpcLike) {
+        excludedOtherCount += 1;
+        if (excludedSample.length < 5) {
+          excludedSample.push({ id, reason: "not_npc", pts });
+        }
+        continue;
+      }
+      if (pts > 0) {
+        eligibleIds.push(id);
+        continue;
+      }
+      excludedZeroPtsCount += 1;
+      if (excludedSample.length < 5) {
+        excludedSample.push({ id, reason: "zero_pts", pts });
+      }
+    }
+    return {
+      eligibleIds,
+      excludedSample,
+      excludedZeroPtsCount,
+      excludedOtherCount,
+      eligibleNpcCount: eligibleIds.length,
+      meEligible,
+      votersCount,
+      votersIdsLen: votersCount,
+      votersIdsSample: votersSample,
+      votersIds: candidateIds,
+      rule: ELIGIBILITY_RULE_VERSION
+    };
+  }
+
+  function logCrowdElig(b, v, eligible, finalCap){
+    if (!v || !eligible) return;
+    const rawCap = (eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0));
+    const capFinal = Number.isFinite(finalCap) ? (finalCap | 0) : null;
+    const capValue = (capFinal != null) ? capFinal : rawCap;
+    _crowdLog("CROWD_ELIG_V1", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      votersCount: eligible.votersCount,
+      votersIdsLen: eligible.votersIdsLen,
+      votersIdsSample: eligible.votersIdsSample && eligible.votersIdsSample.length ? eligible.votersIdsSample.slice(0, 3) : null,
+      eligibleCount: eligible.eligibleNpcCount,
+      cap: capValue,
+      capFinal,
+      rawCap,
+      meIncluded: !!eligible.meEligible,
+      rule: eligible.rule,
+      excludedZeroPtsCount: eligible.excludedZeroPtsCount,
+      excludedOtherCount: eligible.excludedOtherCount
+    });
+    if (eligible.excludedSample && eligible.excludedSample.length) {
+      _crowdLog("CROWD_ELIG_V1_EXCLUDED_SAMPLE", {
+        battleId: b && (b.id || b.battleId) || null,
+        eventId: v.eventId || null,
+        samples: eligible.excludedSample.slice(0, 5)
+      });
+    }
+  }
+
+  function logCrowdCapSet(b, v, cap, eligible){
+    if (!v) return;
+    _crowdLog("CROWD_CAP_V1_SET", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      cap,
+      eligibleCount: eligible ? eligible.eligibleNpcCount : null,
+      meIncluded: eligible ? !!eligible.meEligible : null
+    });
+  }
+
+  function logCrowdCapForcedResolve(b, v, votesNow, cap){
+    if (!v) return;
+    _crowdLog("CROWD_CAP_V1_FORCED_RESOLVE", {
+      battleId: b && (b.id || b.battleId) || null,
+      eventId: v.eventId || null,
+      votesNow,
+      cap
+    });
+  }
+
+  function applyCrowdVoteTick(b, battleIdFallback){
+    const cache = ensureCrowdCapMetaCache();
+    const battleId = (b && (b.id || b.battleId)) || battleIdFallback || null;
+    const cacheKey = battleId ? String(battleId) : null;
+    let pendingMeta = null;
+    const votesBeforeSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
+    const computePhase = (crowd) => {
+      if (!crowd) return "unknown";
+      if (crowd.phaseState === "countdown") return "countdown";
+      if (crowd.phaseState === "voting") return "voting";
+      if (crowd.phaseState === "warmup") return "warmup";
+      if (Number.isFinite(crowd.countdownStartMs)) return "countdown";
+      return "warmup";
+    };
+    const phaseBefore = computePhase(b && b.crowd ? b.crowd : null);
+    const shouldLogDevTick = () => isDevSurfaceFlag() && isDevSmokeBattle(b);
+    const buildDiagContext = (overrideNowMs) => {
+      if (!b || !b.crowd) return null;
+      const startedAtMs = Number.isFinite(b.crowd.startedAtMs) ? Math.floor(b.crowd.startedAtMs) : null;
+      const nowMs = Number.isFinite(overrideNowMs) ? Math.floor(overrideNowMs) : Math.floor(Date.now());
+      const ageMs = (startedAtMs != null && startedAtMs > 0) ? Math.max(0, nowMs - startedAtMs) : null;
+      return { nowMs, startedAtMs, ageMs };
+    };
+    const finishWithLog = (resultObj, { endedFlag = false, endedByLabel = null, why = null, diagContext = null } = {}) => {
+      if (!b) return resultObj;
+      const votesAfterSnapshot = getCrowdTotalVotes(b && b.crowd ? b.crowd : null);
+      const phaseAfter = computePhase(b && b.crowd ? b.crowd : null);
+      const progressed = (votesAfterSnapshot !== votesBeforeSnapshot) || !!endedFlag || phaseAfter !== phaseBefore;
+      if (shouldLogDevTick()) {
+        _crowdLog("CROWD_TICK_V1", {
+          battleId,
+          phaseBefore,
+          phaseAfter,
+          votesBefore: votesBeforeSnapshot,
+          votesAfter: votesAfterSnapshot,
+          ended: !!endedFlag,
+          endedBy: endedByLabel || (b && b.crowd && b.crowd.endedBy ? b.crowd.endedBy : null),
+          why: why || null,
+          progressed
+        });
+        const diag = diagContext || buildDiagContext();
+        const nowMsDiag = diag ? diag.nowMs : Math.floor(Date.now());
+        const startedAtDiag = diag ? diag.startedAtMs : null;
+        const ageMs = diag ? diag.ageMs : null;
+        _crowdLog("CROWD_PHASE_DIAG_V2", {
+          battleId,
+          nowMs: nowMsDiag,
+          startedAtMs: startedAtDiag,
+          ageMs,
+          warmupMs: CROWD_TIMER_WARMUP_MS,
+          phaseBefore,
+          phaseAfter
+        });
+        const crowdState = b.crowd || {};
+        const aVotes = Number.isFinite(crowdState.votesA) ? (crowdState.votesA | 0) : (Number.isFinite(crowdState.aVotes) ? (crowdState.aVotes | 0) : 0);
+        const bVotes = Number.isFinite(crowdState.votesB) ? (crowdState.votesB | 0) : (Number.isFinite(crowdState.bVotes) ? (crowdState.bVotes | 0) : 0);
+        _crowdLog("DEV_SMOKE_NPC_VOTE_V1", {
+          battleId,
+          phase: phaseAfter,
+          votesBefore: votesBeforeSnapshot,
+          votesAfter: votesAfterSnapshot,
+          progressed,
+          votesA: aVotes,
+          votesB: bVotes
+        });
+      }
+      return resultObj;
+    };
+    if (b && b.crowd && b.crowd.decided) {
+      const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+      return finishWithLog({
+        ok: false,
+        battleId,
+        crowdCapMeta: cachedMeta,
+        pendingMeta,
+        cacheHit: !!cachedMeta,
+        why: "crowd_decided"
+      }, { endedFlag: true, endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null, why: "crowd_decided" });
+    }
+    if (b && b.crowd && b.crowd.noTimerResolution) {
+      const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
+      const meta = res ? res.crowdCapMeta : null;
+      if (!meta) {
+        return finishWithLog({
+          ok: false,
+          battleId,
+          crowdCapMeta: null,
+          pendingMeta: null,
+          cacheHit: false,
+          why: "fifty_missing_meta"
+        }, { endedFlag: true, endedByLabel: null, why: "fifty_missing_meta" });
+      }
+      return finishWithLog({
+        ok: true,
+        battleId,
+        outcome: (res && res.outcome) ? res.outcome : null,
+        crowdCapMeta: meta,
+        pendingMeta: null,
+        cacheHit: true,
+        why: null
+      }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : null });
+    }
+    if (b && b.crowd) {
+      pendingMeta = createCrowdCapMeta(b, "pending");
+    }
+    if (!isBattleInDraw(b)) {
+      const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+      return finishWithLog({
+        ok: false,
+        battleId,
+        crowdCapMeta: cachedMeta,
+        pendingMeta,
+        cacheHit: !!cachedMeta,
+        why: cachedMeta ? null : "battle_not_draw"
+      }, { endedFlag: false, endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null, why: cachedMeta ? null : "battle_not_draw" });
+    }
+    if (b && b.crowd && b.crowd.noTimerResolution) {
+      const res = finalizeCrowdVote(b, { force: true, fiftyFifty: true });
+      const meta = res ? res.crowdCapMeta : null;
+      if (meta && cacheKey) cache[cacheKey] = meta;
+      return finishWithLog({
+        ok: !!(res && res.outcome),
+        battleId,
+        outcome: (res && res.outcome) ? res.outcome : null,
+        crowdCapMeta: meta,
+        pendingMeta,
+        cacheHit: !!(meta && cacheKey && cache[cacheKey]),
+        why: meta ? null : "finalize_missing_meta"
+      }, { endedFlag: true, endedByLabel: meta && meta.endedBy ? meta.endedBy : null, why: meta ? null : "finalize_missing_meta" });
+    }
+    if (b && b.crowd) {
+      ensureBattleCrowdCap(b.crowd, b);
+      const nowMsValue = now();
+      let diagContext = buildDiagContext(nowMsValue);
+      const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
+      const totalVotes = getCrowdTotalVotes(b.crowd);
+      const cap = Number.isFinite(b.crowd.cap) ? Math.floor(b.crowd.cap) : 0;
+      updateCrowdProgressState(b, b.crowd, nowMsValue);
+      const ageMs = diagContext ? diagContext.ageMs : null;
+      const countdownActive = Number.isFinite(b.crowd.countdownStartMs);
+      const invalidStart = !diagContext || diagContext.startedAtMs == null || diagContext.startedAtMs <= 0;
+      if (invalidStart) {
+        if (!b.crowd._invalidStartLogged) {
+          logDevCrowdInvalidStart(b, b.crowd);
+          b.crowd._invalidStartLogged = true;
+        }
+        const healed = Math.max(1, Math.floor(nowMsValue));
+        if (!Number.isFinite(b.crowd.startedAtMs) || b.crowd.startedAtMs <= 0) {
+          b.crowd.startedAtMs = healed;
+        }
+        if (!b.crowd._crowdSelfHealTriggered) {
+          b.crowd._crowdSelfHealTriggered = true;
+          logDevCrowdSelfHeal(b, healed);
+        }
+        diagContext = { nowMs: nowMsValue, startedAtMs: healed, ageMs: 0 };
+      } else {
+        const warmupElapsed = ageMs != null ? ageMs >= CROWD_TIMER_WARMUP_MS : false;
+        if (warmupElapsed && b.crowd.phaseState !== "voting" && b.crowd.phaseState !== "countdown") {
+          b.crowd.phaseState = "voting";
+        }
+        if (countdownActive) {
+          b.crowd.phaseState = "countdown";
+        }
+        if (warmupElapsed && b.crowd.phaseState === "voting" && phaseBefore === "voting" && !countdownActive) {
+          const epochNow = Math.floor(nowMsValue);
+          b.crowd.stallDetectedAtMs = epochNow;
+          b.crowd.countdownStartMs = epochNow;
+          b.crowd.countdownEndMs = epochNow + CROWD_TIMER_COUNTDOWN_MS;
+          b.crowd._crowdTimerArmLogged = true;
+          logCrowdStallArm(b, b.crowd, nowMsValue, totalVotes, cap);
+          if (timerState) {
+            timerState.countdownStartMs = b.crowd.countdownStartMs;
+            timerState.countdownEndMs = b.crowd.countdownEndMs;
+            timerState.phase = "countdown";
+          }
+          b.crowd.phaseState = "countdown";
+        }
+      }
+      updateCrowdTimerLogging(b, b.crowd, timerState, totalVotes, cap);
+      if (cap > 0 && totalVotes >= cap) {
+        const res = finalizeCrowdVote(b, { force: true });
+        const meta = res ? res.crowdCapMeta : null;
+        if (meta && cacheKey) cache[cacheKey] = meta;
+        if (res && res.outcome && res.outcome !== "TIE" && b.crowd && !b.crowd._crowdTimerResolvedBy) {
+          const resolvedVotes = getCrowdTotalVotes(b.crowd);
+          logCrowdStallResolve(b, b.crowd, "cap", resolvedVotes, cap, meta && meta.endedBy ? meta.endedBy : "cap");
+          b.crowd._crowdTimerResolvedBy = "cap";
+        }
+        return finishWithLog({
+          ok: !!(res && res.outcome),
+          battleId,
+          outcome: (res && res.outcome) ? res.outcome : null,
+          crowdCapMeta: meta,
+          pendingMeta,
+          cacheHit: !!(meta && cacheKey && cache[cacheKey]),
+          why: meta ? null : "finalize_missing_meta"
+        }, {
+          endedFlag: true,
+          endedByLabel: meta && meta.endedBy ? meta.endedBy : null,
+          why: meta ? null : "finalize_missing_meta",
+          diagContext
+        });
+      }
+      if (timerState && timerState.countdownEndMs && timerState.nowMs >= timerState.countdownEndMs && !b.crowd.decided) {
+        const res = finalizeCrowdVote(b, { force: true, endedBy: "crowd_timer_expired" });
+        const meta = res ? res.crowdCapMeta : null;
+        if (meta && cacheKey) cache[cacheKey] = meta;
+        if (b.crowd && !b.crowd._crowdTimerExpireLogged) {
+          logCrowdStallExpire(b, b.crowd, timerState.nowMs, totalVotes, cap);
+          b.crowd._crowdTimerExpireLogged = true;
+        }
+        if (res && res.outcome && res.outcome !== "TIE" && b.crowd && !b.crowd._crowdTimerResolvedBy) {
+          const resolvedVotes = getCrowdTotalVotes(b.crowd);
+          logCrowdStallResolve(b, b.crowd, "timer", resolvedVotes, cap, "crowd_timer_expired");
+          b.crowd._crowdTimerResolvedBy = "timer";
+        }
+        return finishWithLog({
+          ok: !!(res && res.outcome),
+          battleId,
+          outcome: (res && res.outcome) ? res.outcome : null,
+          crowdCapMeta: meta,
+          pendingMeta,
+          cacheHit: !!(meta && cacheKey && cache[cacheKey]),
+          why: meta ? null : "finalize_missing_meta"
+        }, {
+          endedFlag: true,
+          endedByLabel: meta && meta.endedBy ? meta.endedBy : "crowd_timer_expired",
+          why: meta ? null : "finalize_missing_meta",
+          diagContext
+        });
+      }
+    }
+    if (b) b.updatedAt = now();
+    const cachedMeta = cacheKey ? cache[cacheKey] || null : null;
+    const diagContext = buildDiagContext();
+    return finishWithLog({
+      ok: false,
+      battleId,
+      crowdCapMeta: cachedMeta,
+      pendingMeta,
+      cacheHit: !!cachedMeta,
+      why: pendingMeta ? null : "cap_not_reached"
+    }, {
+      endedFlag: false,
+      endedByLabel: cachedMeta && cachedMeta.endedBy ? cachedMeta.endedBy : null,
+      why: pendingMeta ? null : "cap_not_reached",
+      diagContext
+    });
+  }
+
+  function finalizeCrowdVote(b, opts){
+    if (!isBattleInDraw(b)) return null;
+    const statusBefore = b.status || null;
+    const v = b.crowd;
+    const force = !!(opts && opts.force);
+    if (!v) return null;
+    ensureBattleCrowdCap(v, b);
+    if (!force) {
+      const totalVotes = getCrowdTotalVotes(v);
+      if (!Number.isFinite(v.cap) || totalVotes < (v.cap | 0)) return null;
+    }
+    const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
+    const relate = { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    const res = resolveCrowdCore(v, relate, participants);
+    const totalVotes = getCrowdTotalVotes(v);
+    const customEndedBy = (opts && typeof opts.endedBy === "string") ? opts.endedBy : null;
+    let endedBy = customEndedBy || "cap";
+    if (force && !customEndedBy) endedBy = "cap";
+    const fiftyFifty = !!(opts && opts.fiftyFifty);
+    if (fiftyFifty) {
+      endedBy = "fifty_fifty_no_timer";
+      const outcome = (Math.random() < 0.5) ? "A_WIN" : "B_WIN";
+      res.outcome = outcome;
+      res.decided = true;
+    }
+    const crowdCapMeta = createCrowdCapMeta(b, endedBy);
+    if (crowdCapMeta) {
+      v.crowdCapDebug = crowdCapMeta;
+      logCrowdCapDebug(b, crowdCapMeta);
+      const dbg = Game.__D || (Game.__D = {});
+      dbg.lastCrowdCapMeta = crowdCapMeta;
+    }
+    const votesA = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : (v.votesA | 0);
+    const votesB = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : (v.votesB | 0);
+    v.votesA = votesA;
+    v.votesB = votesB;
+    v.aVotes = votesA;
+    v.bVotes = votesB;
+    if (res && res.outcome === "TIE") {
+      // Restart the crowd vote on exact tie.
+      const nowMs = now();
+      resetCrowdTimerState(v, nowMs);
+      v.votesA = 0;
+      v.votesB = 0;
+      v.aVotes = 0;
+      v.bVotes = 0;
+      v.voters = {};
+      v.decided = false;
+      v.winnerSide = null;
+      v.winnerId = null;
+      ensureBattleCrowdCap(v, b);
+      b.result = "draw";
+      b.resultLine = "Толпа решает";
+      b.note = "Поровну, без перевеса. Ещё круг.";
+      b.updatedAt = now();
+      return { outcome: "TIE", crowdCapMeta };
+    }
+
+    v.decided = true;
+    // Mirror vote counters for UIs that read a grouped structure.
+    v.votes = { attacker: votesA, defender: votesB };
+
+    const attackerWins = res && res.outcome === "A_WIN";
+    const defenderWins = res && res.outcome === "B_WIN";
+
+    const { attackerId, defenderId } = attackerDefenderIds(b);
+    const iAmAttacker = attackerId === "me";
+    const iAmDefender = defenderId === "me";
+
+    const oppRole = getRole(b.opponentId);
+    const isVillain = (oppRole === "toxic" || oppRole === "bandit");
+    const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+    const canonResolveMeta = b ? (b._canonResolveMeta || null) : null;
+    const robberyAllowed = !!(canonResolveMeta && canonResolveMeta.robberyAllowed);
+    let penaltyApplied = false;
+
+    b.attackHidden = false;
+    b.finished = true;
+    b.status = "finished";
+
+    if (isVillain) {
+      // No standard economy on villain draws. Only apply robbery if villain wins.
+      const iLose = (iAmAttacker && defenderWins) || (iAmDefender && attackerWins);
+      const role = oppRole;
+      b.result = iLose ? "lose" : "win";
+      b.note = attackerWins ? "Толпа решила: атакующий затащил." : "Толпа решила: защитник отбился.";
+      if (iLose) {
+        const hadToxic = !!b.toxicHitApplied;
+        const hadBandit = !!b.banditRobbed;
+        if (role === "bandit") {
+          b.resultLine = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
+            ? Game.Data.SYS.banditRobbed
+            : "Бандит вынес тебя в ноль. Все видели.";
+        } else {
+          b.resultLine = (Game.Data && Game.Data.SYS && typeof Game.Data.SYS.toxicStealLine === "function")
+            ? Game.Data.SYS.toxicStealLine(5)
+            : "Токсик снял у тебя 5 💰. Все видели.";
+        }
+        if (robberyAllowed) {
+          applyVillainPenalty(b, "crowd");
+          if (shouldLogVillain) {
+            penaltyApplied = (!!b.toxicHitApplied && !hadToxic) || (!!b.banditRobbed && !hadBandit);
+          }
+        }
+      } else {
+        b.resultLine = "Победа";
+        withRepSourceOverride(() => applyEconomyForOutcome(b.result, b));
+      }
+    } else if (attackerWins) {
+      b.result = iAmAttacker ? "win" : (iAmDefender ? "lose" : "win");
+      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
+      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
+      b.note = "Толпа решила: атакующий затащил.";
+      b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
+    } else {
+      b.result = iAmDefender ? "win" : (iAmAttacker ? "lose" : "lose");
+      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
+      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
+      b.note = "Толпа решила: защитник отбился.";
+      b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
+    }
+
+    // Persist winner metadata for UI/events.
+    v.winnerSide = attackerWins ? "attacker" : "defender";
+    v.winnerId = attackerWins ? (v.attackerId || null) : (v.defenderId || null);
+    v.finalizedAt = now();
+
+    b.draw = false;
+    b.updatedAt = now();
+    if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
+    applyBattleCrowdEconomy(b, res);
+    if (shouldLogVillain) {
+      logBattleResolveVillain(b, b.result, penaltyApplied, oppRole);
+    }
+    logBattleResolveDiagOnce(b, b.result, endedBy || null, statusBefore, b.status || null);
+    b.resolved = true;
+    announceBattleResult(b);
+
+    return {
+      outcome: (res && res.outcome) ? res.outcome : null,
+      crowdCapMeta
+    };
+  }
+
+  function isEscapeVote(b){
+    return !!(b && b.escapeVote && !b.escapeVote.decided);
+  }
+
+  function finalizeEscapeVote(b){
+    if (!isEscapeVote(b)) return;
+    const v = b.escapeVote;
+    if (!v) return;
+    ensureBattleCrowdCap(v, b);
+    const totalVotesNow = getCrowdTotalVotes(v);
+    if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
+    const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
+    const relate = { kind: "escape", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    const res = resolveCrowdCore(v, relate, participants);
+    const votesA = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : (v.votesA | 0);
+    const votesB = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : (v.votesB | 0);
+    v.votesA = votesA;
+    v.votesB = votesB;
+    v.aVotes = votesA;
+    v.bVotes = votesB;
+    const totalVotes = getCrowdTotalVotes(v);
+    const endedBy = "cap";
+    const totalPlayers = Number.isFinite(v.totalPlayers) ? (v.totalPlayers | 0) : getTotalPlayersCount();
+    const crowdCapMeta = {
+      battleId: b.id || b.battleId || null,
+      totalPlayers,
+      cap: Number.isFinite(v.cap) ? (v.cap | 0) : 0,
+      totalVotes,
+      aVotes: votesA,
+      bVotes: votesB,
+      endedBy
+    };
+    logCrowdCapDebugRaw(crowdCapMeta);
+
+    const allow = !!(res && res.outcome === "A_WIN");
+    v.outcome = (res && res.outcome) ? res.outcome : null;
+
+    v.decided = true;
+    v.allowed = allow;
+    v.finalizedAt = now();
+
+    // Canon (variant B): escape/dismiss click applies -1 ⭐ once; successful escape refunds +1 ⭐.
+    // No additional REP penalties on finalize.
+    const REP_ESCAPE_PENALTY_OK = 0;
+    const REP_ESCAPE_PENALTY_STAY = 0;
+    const INF_ESCAPE_PENALTY_OK = 1;
+    const INF_ESCAPE_PENALTY_STAY = 2;
+
+    const applyEscapeEconomyPenalties = (repPenalty, repReason, infPenalty) => {
+      try {
+        const me = Game.__S && Game.__S.me ? Game.__S.me : null;
+        const oppId = b.opponentId || null;
+
+        if (me && Number.isFinite(me.influence)) {
+          const before = me.influence | 0;
+          const after = Math.max(0, before - (infPenalty | 0));
+          me.influence = after;
+          try {
+            if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+              Game.__A.emitStatDelta("influence", (after - before) | 0, { reason: "inf_escape_vote", battleId: b.id || null });
+            }
+          } catch (_) {}
+        }
+
+        // REP penalties are handled on click only (see C.escape)
+      } catch (_) {}
+    };
+
+    applyBattleCrowdEconomy(b, res, v);
+
+    if (allow) {
+      const mode = (v.mode || "smyt");
+      b.result = (mode === "off") ? "ignored" : "escaped";
+      b.note = (mode === "off") ? "Толпа решила: отвалил." : "Толпа решила: свалил.";
+      b.resultLine = (mode === "off") ? "Отвалил" : "Свалил";
+      applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);
+      // Refund +1 ⭐ on success (once)
+      try {
+        if (!b._repEscapeRefundApplied && Game.__A && typeof Game.__A.transferRep === "function") {
+          b._repEscapeRefundApplied = true;
+        }
+      } catch (_) {}
+    } else {
+      // Restore previous battle state when escape is denied.
+      const prev = b._escapePrev || null;
+      if (prev) {
+        b.status = prev.status;
+        b.result = prev.result;
+        b.note = prev.note;
+        b.resultLine = prev.resultLine;
+        b.finished = prev.finished;
+        b.resolved = prev.resolved;
+        b.draw = prev.draw;
+        b.crowd = prev.crowd;
+        b.attackHidden = prev.attackHidden;
+        b.opponentThinking = prev.opponentThinking;
+      }
+      b.inlineNote = (v && v.mode === "off") ? "Не отвалил." : "Не смог свалить.";
+      b.escapeVote = null;
+      b._escapePrev = null;
+      b.updatedAt = now();
+      applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_STAY, "rep_escape_stay_penalty", INF_ESCAPE_PENALTY_STAY);
+      return { outcome: v.outcome, crowdCapMeta };
+    }
+
+    b.attackHidden = false;
+    b.resolved = true;
+    b.finished = true;
+    b.status = "finished";
+    b.draw = false;
+    b.crowd = null;
+    b._escapePrev = null;
+    b.updatedAt = now();
+
+    try {
+      if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
+        Game.__A.ensureNonNegativePoints();
+      }
+      if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+        Game.__A.syncMeToPlayers();
+      }
+    } catch (_) {}
+
+    announceBattleResult(b);
+    return { outcome: v.outcome, crowdCapMeta };
+  }
+
+  function applyEscapeVoteTick(b){
+    if (!isEscapeVote(b)) return { ok: false, reason: "not_escape_vote" };
+    const v = b.escapeVote;
+    if (!v || v.decided) return { ok: false, reason: "decided" };
+    ensureBattleCrowdCap(v, b);
+
+    try {
+      if (Game.NPC && typeof Game.NPC.voteInDraw === "function") {
+        const res = Game.NPC.voteInDraw(b);
+        const voterId = res && res.voterId ? String(res.voterId) : "";
+        const side = res && res.side ? res.side : null;
+        if (voterId && side) {
+          v.voters ||= {};
+          const attemptMeta = {
+            npcId: voterId,
+            eligible: false,
+            npcPtsBefore: 0,
+            voteAttempted: true,
+            costOk: false,
+            voteCounted: false,
+            votersTotal: Object.keys(v.voters).length,
+            side: side
+          };
+          if (!v.voters[voterId]) {
+            const Econ = getEcon();
+            const battleId = b.id || b.battleId || null;
+            const beforePts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
+            attemptMeta.npcPtsBefore = beforePts;
+            attemptMeta.eligible = beforePts > 0;
+            const price = calcFinalPriceForActor(1, beforePts, "vote", { battleId });
+            const cost = price.finalPrice;
+            const ok = (Econ && typeof Econ.chargePriceOnce === "function")
+              ? Econ.chargePriceOnce({
+                  fromId: voterId,
+                  toId: "sink",
+                  actorId: voterId,
+                  reason: "crowd_vote_cost",
+                  priceKey: price.priceKey || "vote",
+                  basePrice: 1,
+                  actorPoints: beforePts,
+                  battleId,
+                  context: price.context || { battleId }
+                })
+              : (Econ && typeof Econ.transferPoints === "function")
+                ? (Econ && typeof Econ.transferCrowdVoteCost === "function"
+                    ? Econ.transferCrowdVoteCost(voterId, "sink", cost, {
+                        battleId,
+                        basePrice: price.basePrice,
+                        mult: price.mult,
+                        finalPrice: price.finalPrice,
+                        priceKey: price.priceKey || "vote",
+                        pointsAtPurchase: beforePts,
+                        context: price.context || { battleId }
+                      })
+                    : Econ.transferPoints(voterId, "sink", cost, "crowd_vote_cost", {
+                        battleId,
+                        basePrice: price.basePrice,
+                        mult: price.mult,
+                        finalPrice: price.finalPrice,
+                        priceKey: price.priceKey || "vote",
+                        pointsAtPurchase: beforePts,
+                        context: price.context || { battleId }
+                      }))
+                : { ok: false };
+            const afterPts = (getPlayer(voterId) && Number.isFinite(getPlayer(voterId).points)) ? (getPlayer(voterId).points | 0) : 0;
+            const charged = !!(ok && ok.ok && (afterPts === (beforePts - cost)));
+            attemptMeta.costOk = charged;
+            if (charged) {
+              v.voters[voterId] = (side === "attacker") ? "a" : "b";
+              let w = 1;
+              if (typeof getVoteWeight === "function") {
+                w = getVoteWeight(voterId) | 0;
+                if (w <= 0) w = 1;
+              } else if (res && Number.isFinite(res.weight)) {
+                w = Math.max(1, res.weight | 0);
+              }
+              if (side === "attacker") v.votesA = (v.votesA|0) + w;
+              else if (side === "defender") v.votesB = (v.votesB|0) + w;
+              attemptMeta.voteCounted = true;
+            } else if (ok && ok.ok && !charged) {
+              try {
+                const dbg = Game && Game.__D ? Game.__D : null;
+                if (dbg && Array.isArray(dbg.moneyLog)) {
+                  for (let i = dbg.moneyLog.length - 1; i >= 0; i--) {
+                    const x = dbg.moneyLog[i];
+                    if (!x) continue;
+                    if (String(x.reason || "") !== "crowd_vote_cost") continue;
+                    if (String(x.sourceId || "") !== voterId) continue;
+                    if (String(x.battleId || "") !== String(battleId || "")) continue;
+                    dbg.moneyLog.splice(i, 1);
+                    break;
+                  }
+                }
+                if (dbg && dbg.moneyLogByBattle && Array.isArray(dbg.moneyLogByBattle[battleId])) {
+                  const arr = dbg.moneyLogByBattle[battleId];
+                  for (let i = arr.length - 1; i >= 0; i--) {
+                    const x = arr[i];
+                    if (!x) continue;
+                    if (String(x.reason || "") !== "crowd_vote_cost") continue;
+                    if (String(x.sourceId || "") !== voterId) continue;
+                    arr.splice(i, 1);
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+          attemptMeta.votersTotal = Object.keys(v.voters).length;
+          if (!v._devNpcVoteLogged) {
+            logDevSmokeNpcVoteAttempt(b, attemptMeta);
+            v._devNpcVoteLogged = true;
+          }
+        }
+      }
+    } catch (_) {}
+
+    const totalVotes = getCrowdTotalVotes(v);
+    if (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) {
+      finalizeEscapeVote(b);
+      return { ok: true, decided: true, totalVotes };
+    }
+    try {
+      if (Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
+        const pool = Game.NPC.getVotingPool(b) || [];
+        if (pool.length > 0 && totalVotes >= pool.length) {
+          v.cap = totalVotes | 0;
+          finalizeEscapeVote(b);
+          return { ok: true, decided: true, totalVotes };
+        }
+      }
+    } catch (_) {}
+    return { ok: true, decided: false, totalVotes };
+  }
+
+  function startEscapeVoteTimer(b){
+    if (!isEscapeVote(b)) return;
+    if (b._escapeTimer) return;
+
+    const tickMs = 700;
+
+    b._escapeTimer = setInterval(() => {
+      const cur = Game.__S.battles.find(x => x.id === b.id);
+      if (!cur || !isEscapeVote(cur)) {
+        clearInterval(b._escapeTimer);
+        b._escapeTimer = null;
+        return;
+      }
+
+      const v = cur.escapeVote;
+      if (!v) return;
+
+      try { applyEscapeVoteTick(cur); } catch (_) {}
+
+      try {
+        ensureBattleCrowdCap(v);
+        const totalVotes = getCrowdTotalVotes(v);
+        if (Number.isFinite(v.cap) && totalVotes >= v.cap) {
+          clearInterval(cur._crowdTimer || b._crowdTimer);
+          cur._crowdTimer = null;
+          b._crowdTimer = null;
+          finalizeEscapeVote(cur);
+          return;
+        }
+        try {
+          if (Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
+            const pool = Game.NPC.getVotingPool(cur) || [];
+            if (pool.length > 0 && totalVotes >= pool.length) {
+              v.cap = totalVotes | 0;
+              finalizeEscapeVote(cur);
+              return;
+            }
+          }
+        } catch (_) {}
+      } catch (_) {}
+    }, tickMs);
+  }
+
+  function startEscapeVote(b, mode, cost){
+    if (!b || b.resolved) return { ok: false, reason: "already_resolved" };
+    if (isEscapeVote(b)) return { ok: true, pending: true };
+    const { attackerId, defenderId } = attackerDefenderIds(b);
+    b.attackerId = attackerId;
+    b.defenderId = defenderId;
+    if (!b._escapePrev) {
+      b._escapePrev = {
+        status: b.status,
+        result: b.result,
+        note: b.note,
+        resultLine: b.resultLine,
+        finished: b.finished,
+        resolved: b.resolved,
+        draw: b.draw,
+        crowd: b.crowd,
+        attackHidden: b.attackHidden,
+        opponentThinking: b.opponentThinking
+      };
+    }
+    const modeNorm = mode || "smyt";
+    const costBase = (cost != null) ? (cost | 0) : escapeCostForBattle(b);
+    const me = Game.__S && Game.__S.me;
+    const opp = getPlayer(b.opponentId);
+    const battleRef = b.id || b.battleId || `escape_${Date.now()}`;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPriceForActor(costBase, mePoints, "escape", { battleId: battleRef, mode: modeNorm });
+    const costFinal = price.finalPrice;
+    if (modeNorm !== "off" && costFinal > 0) {
+      ensurePointsField(me);
+      ensurePointsField(opp);
+      if (isCirculationEnabled()) {
+        if (me && opp && opp.id) {
+          const Econ = getEcon();
+          if (Econ && typeof Econ.chargePriceOnce === "function") {
+            Econ.chargePriceOnce({
+              fromId: "me",
+              toId: opp.id,
+              actorId: "me",
+              reason: "escape_vote_cost",
+              priceKey: price.priceKey || "escape",
+              basePrice: costBase,
+              actorPoints: mePoints,
+              battleId: battleRef,
+              context: price.context || { battleId: battleRef, mode: modeNorm }
+            });
+          } else {
+            econTransfer("me", opp.id, costFinal, "escape_vote_cost", { battleId: battleRef });
+          }
+        }
+      } else {
+        if (me) {
+          const beforePts = (me.points | 0);
+          const afterPts = clamp0(beforePts - costFinal);
+          me.points = afterPts;
+          try {
+            if (Game && Game.__A && typeof Game.__A.emitStatDelta === "function") {
+              Game.__A.emitStatDelta("points", (afterPts - beforePts) | 0, { reason: "escape_vote_cost", battleId: battleRef });
+            }
+          } catch (_) {}
+        }
+        if (opp) opp.points = clamp0((opp.points|0) + costFinal);
+      }
+    }
+    b.escapeVote = {
+      endAt: null,
+      endsAt: null,
+      votesA: 0,
+      votesB: 0,
+      voters: {},
+      decided: false,
+      mode: modeNorm,
+      cost: costFinal,
+      attackerId,
+      defenderId
+    };
+    b.status = "escape_vote";
+    b.result = "escape_vote";
+    b.note = (modeNorm === "off") ? "Толпа решает, отвалить ли." : "Толпа решает, свалить ли.";
+    b.resultLine = (modeNorm === "off") ? "Отвалить?" : "Свалить?";
+    b.updatedAt = now();
+    startEscapeVoteTimer(b);
+    return { ok: true, pending: true };
+  }
+
+  function startCrowdVoteTimer(b){
+    if (!isBattleInDraw(b)) return;
+    if (b && (b.resolved || b.status === "finished" || (b.result && b.result !== "draw"))) {
+      try {
+        if (conflictMode === "dev") {
+          console.warn("BATTLE_CROWD_SUPPRESSED_DIAG_V1", {
+            battleId: b.id || b.battleId || null,
+            reason: "already_resolved",
+            nowMs: Date.now(),
+            battleStatus: b.status || null,
+            battleResolvedFlag: !!b.resolved,
+            resultIfAny: b.result || null
+          });
+          _pushBattleDiagTrail(b.id || b.battleId || null, "BATTLE_CROWD_SUPPRESSED_DIAG_V1", {
+            reason: "already_resolved"
+          });
+        }
+      } catch (_) {}
+      return;
+    }
+    if (b._crowdTimer) return;
+    if (!b.crowd) {
+      logCrowdDiag(null, b.id || b.battleId || null, "state_missing");
+      return;
+    }
+    if (!Number.isFinite(b.crowd.cap) || b.crowd.cap <= 0) {
+      logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
+    }
+
+    const tickMs = 700;
+
+    b._crowdTimer = setInterval(() => {
+      const cur = Game.__S.battles.find(x => x.id === b.id);
+      if (!cur || !isBattleInDraw(cur)) {
+        clearInterval(b._crowdTimer);
+        b._crowdTimer = null;
+        return;
+      }
+
+      const v = cur.crowd;
+      ensureCrowdTimerFields(v, now());
+      applyCrowdVoteTick(cur);
+    }, tickMs);
+  }
+
+  C.startWith = function (opponentId, opts) {
+    const optz = (opts && typeof opts === "object") ? opts : {};
+    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
+    const me = Game.__S.me;
+    ensurePointsField(me);
+
+    // Canon: points may be 0; only negative is forbidden.
+    // Allow starting a battle with 1 point (cost is applied elsewhere).
+      if ((me.points|0) <= 0) {
+        if (devSmokeBypass) {
+          logGuardBypass("startWith", "no_points", opponentId, opponentId);
+        } else {
+          return { ok: false, reason: "no_points" };
+        }
+    }
+    // NOTE: start cost is applied by conflict-economy.js, not here
+
+    // Cooldown: prevent spamming the same opponent
+    try {
+      const cdMs = 3 * 60 * 1000;
+      const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
+      const last = cdMap[opponentId] || 0;
+      const nowTs = now();
+      if (!devSmokeBypass && Game && Game.DEV && devSmokeBypass) {}
+      if (!devSmokeBypass && last && (nowTs - last) < cdMs) {
+        const leftMs = cdMs - (nowTs - last);
+        const oppName = getName(opponentId) || "Он";
+        if (Game.__A && typeof Game.__A.pushDm === "function") {
+          Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
+        }
+        try {
+          const social = Game && Game.Social;
+          if (social && typeof social.applySocialPenalty === "function") {
+            const actorId = (Game.__S && Game.__S.me && Game.__S.me.id) ? String(Game.__S.me.id) : "me";
+            const spamPenaltyPoints = 1;
+            social.applySocialPenalty("spam", actorId, {
+              targetId: opponentId,
+              amountWanted: spamPenaltyPoints,
+              reason: "spam_penalty",
+              meta: {
+                key: `battle_start:${String(opponentId || "")}`,
+                resetIn: leftMs,
+                actionId: `battle_start_${String(opponentId || "")}`,
+                src: "soc_step5_3"
+              }
+            });
+          }
+        } catch (_) {}
+        return { ok: false, reason: "cooldown", leftMs };
+      }
+    } catch (_) {}
+
+    const battle = createBattle({
+      opponentId,
+      fromThem: false
+    });
+
+    battle.pinned = true;
+    Game.__S.battles.unshift(battle);
+    bumpBattleBadgeIfCollapsed();
+    try {
+      const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
+      cdMap[opponentId] = now();
+    } catch (_) {}
+
+    // Battle start cost lives in conflict-economy.js (single source of truth)
+    try {
+      if (Game._ConflictEconomy && typeof Game._ConflictEconomy.applyStart === "function") {
+        Game._ConflictEconomy.applyStart(battle);
+      }
+    } catch (_) {}
+
+    return { ok: true, battle };
+  };
+
+  function logProvokedIncomingDiag(meta){
+    if (!meta || meta.lowEconomyFree !== true) return;
+    try { console.warn("PROVOKE_BATTLE_INCOMING_DIAG_V1", meta); } catch (_) {}
+    try {
+      const dbg = Game.__D || (Game.__D = {});
+      const arr = Array.isArray(dbg.provokeIncomingDiagV1) ? dbg.provokeIncomingDiagV1 : (dbg.provokeIncomingDiagV1 = []);
+      arr.push(meta);
+      if (arr.length > 30) arr.splice(0, arr.length - 30);
+    } catch (_) {}
+  }
+
+  C.incoming = function (opponentId, opts) {
+    const optz = (opts && typeof opts === "object") ? opts : {};
+    const devSmokeBypass = optz.devSmoke === true && conflictMode === "dev";
+    const me = Game.__S && Game.__S.me ? Game.__S.me : null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const lowEconomyFree = optz.lowEconomyFree === true;
+    const allowZeroPoints =
+      (optz.lowEconomyFree === true && (conflictMode === "dev" || mePoints <= 0)) ||
+      (optz.allowZeroPoints === true && conflictMode === "dev");
+    try {
+      if (Game.__A && typeof Game.__A.isNpcJailed === "function") {
+        if (Game.__A.isNpcJailed(opponentId)) {
+          logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: false, reason: "npc_jailed", rawKeys: [], returnedId: null });
+          return null;
+        }
+      }
+    } catch (_) {}
+    // NPC with 0 points/balance cannot initiate a battle
+    try {
+      const opp = getPlayer(opponentId);
+      if (opp && (opp.npc === true || opp.type === "npc")) {
+        const pts = Number.isFinite(opp.points) ? (opp.points | 0) : 0;
+        const bal = Number.isFinite(opp.balance) ? (opp.balance | 0) : null;
+        if (pts <= 0 || (bal != null && bal <= 0)) {
+          if (devSmokeBypass) {
+            logGuardBypass("incoming", "no_points", opponentId, opponentId);
+          } else if (!allowZeroPoints) {
+            logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: false, reason: "npc_low_points", rawKeys: [], returnedId: null });
+            return null;
+          }
+        }
+      }
+    } catch (_) {}
+    try {
+      const cdMs = 3 * 60 * 1000;
+      const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
+      const last = cdMap[opponentId] || 0;
+      const nowTs = now();
+      if (last && (nowTs - last) < cdMs) {
+        if (devSmokeBypass) {
+          logGuardBypass("incoming", "cooldown", opponentId, opponentId);
+        }
+        if (devSmokeBypass && typeof window !== "undefined") {
+          console.warn("CONFLICT_COOLDOWN_BYPASS_V1", {
+            used: true,
+            conflictMode,
+            devSmoke: devSmokeBypass,
+            villainId: opponentId,
+            key: opponentId
+          });
+        }
+        if (!devSmokeBypass && !allowZeroPoints) {
+          const oppName = getName(opponentId) || "Он";
+          if (Game.__A && typeof Game.__A.pushDm === "function") {
+            Game.__A.pushDm(opponentId, oppName, "дай передохнуть а", { isSystem: false, playerId: opponentId });
+          }
+          logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: false, reason: "cooldown", rawKeys: [], returnedId: null });
+          return null;
+        }
+      }
+    } catch (_) {}
+
+    const battle = createBattle({
+      opponentId,
+      fromThem: true
+    });
+
+    battle.attack = pickIncomingAttack(opponentId, battle);
+    battle.attackHidden = true;
+
+    // Timing hint for "answered immediately" mechanics (UI may overwrite with firstSeenAt)
+    battle.presentedAt = now();
+
+    // Canon-only: if we cannot build a canonical incoming attack, degrade to draw.
+    if (!battle.attack || !battle.attack.text) {
+      Game.__S.battles.unshift(battle);
+      bumpBattleBadgeIfCollapsed();
+      if (!battle.attackerId) battle.attackerId = opponentId;
+      if (!battle.meta) battle.meta = {};
+      battle.meta.drawFallback = true;
+      try { if (typeof C.finalize === "function") C.finalize(battle.id, "draw"); } catch (_) {}
+      logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: true, reason: "ok_draw_fallback", rawKeys: ["battle"], returnedId: battle.id || null });
+      return battle;
+    }
+
+    Game.__S.battles.unshift(battle);
+    bumpBattleBadgeIfCollapsed();
+    try {
+      const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
+      cdMap[opponentId] = now();
+    } catch (_) {}
+    if (!battle.attackerId) battle.attackerId = opponentId;
+    try {
+      if (Game._ConflictEconomy && typeof Game._ConflictEconomy.applyStart === "function") {
+        Game._ConflictEconomy.applyStart(battle);
+      }
+    } catch (_) {}
+    logProvokedIncomingDiag({ npcId: opponentId, mePoints, lowEconomyFree, ok: true, reason: "ok", rawKeys: ["battle"], returnedId: battle.id || null });
+    return battle;
+  };
+
+  // Public helpers for UI (cost previews)
+  C.escapeCost = function(battleId){
+    const b = (typeof battleId === "string")
+      ? Game.__S.battles.find(x => x && x.id === battleId)
+      : battleId;
+    if (!b) return 0;
+    if (b.resolved) return 0;
+    return escapeCostForBattle(b);
+  };
+
+  C.escapeAllCost = function(){
+    const me = Game.__S.me;
+    if (!me) return 0;
+    const active = Game.__S.battles.filter(b => b && !b.resolved);
+    let total = 0;
+    for (const b of active) total += escapeCostForBattle(b);
+    return total;
+  };
+
+  C.escape = function (battleId, opts) {
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    if (!b) return { ok: false, reason: "not_found" };
+    if (b.resolved) return { ok: false, reason: "already_resolved" };
+
+    const me = Game.__S.me;
+    ensurePointsField(me);
+
+    const mode = (typeof opts === "string")
+      ? String(opts)
+      : (opts && opts.mode ? String(opts.mode) : "smyt");
+
+    // Canon: escape click accounted once per battle (REP via participation, not pool)
+    try {
+      if (!b._repEscapeClickApplied) {
+        b._repEscapeClickApplied = true;
+      }
+    } catch (_) {}
+
+    if (mode === "off") {
+      const opp = getPlayer(b.opponentId);
+      const meInf = (me && Number.isFinite(me.influence)) ? (me.influence | 0) : 0;
+      const oppInf = (opp && Number.isFinite(opp.influence)) ? (opp.influence | 0) : 0;
+      if (meInf > oppInf) {
+        b.resolved = true;
+        b.finished = true;
+        b.result = "ignored";
+        b.status = "finished";
+        b.note = "Отвалил.";
+        b.resultLine = "Отвалил";
+        b.attackHidden = false;
+        b.draw = false;
+        b.crowd = null;
+        b.updatedAt = now();
+        // Refund +1 ⭐ on immediate success (once)
+        try {
+          if (!b._repEscapeRefundApplied && Game.__A && typeof Game.__A.transferRep === "function") {
+            b._repEscapeRefundApplied = true;
+          }
+        } catch (_) {}
+        announceBattleResult(b);
+        return { ok: true, battleId: b.id, outcome: "ignored", mode };
+      }
+    }
+    const baseCost = (mode === "off") ? 0 : ((opts && typeof opts.cost === "number") ? (opts.cost | 0) : escapeCostForBattle(b));
+    const battleRef = b.id || b.battleId || null;
+    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
+    const price = calcFinalPriceForActor(baseCost, mePoints, "escape", { battleId: battleRef, mode });
+    const costFinal = (mode === "off") ? 0 : price.finalPrice;
+    if (mode !== "off" && (me.points|0) <= 0) return { ok: false, reason: "no_points", cost: costFinal, have: (me.points|0) };
+    if ((me.points|0) < costFinal) return { ok: false, reason: "no_points", cost: costFinal, have: (me.points|0) };
+
+    return startEscapeVote(b, mode, baseCost);
+  };
+
+  C.escapeAll = function () {
+    const me = Game.__S.me;
+    ensurePointsField(me);
+
+    const active = Game.__S.battles.filter(b => b && !b.resolved);
+    if (!active.length) return { ok: true, closed: 0, failed: [] };
+
+    // Compute total cost first (sequential, applying multiplier per current points).
+    let total = 0;
+    let tempPoints = (me.points | 0);
+    const costByBattle = [];
+    for (const b of active) {
+      const baseCost = escapeCostForBattle(b);
+      const bid = b.id || b.battleId || null;
+      const price = calcFinalPriceForActor(baseCost, tempPoints, "escape", { battleId: bid, mode: "smyt" });
+      const costFinal = price.finalPrice;
+      costByBattle.push({ battleId: bid, baseCost, costFinal });
+      total += costFinal;
+      tempPoints = Math.max(0, tempPoints - costFinal);
+    }
+
+    if (total > 0 && (me.points|0) <= 0) {
+      return { ok: false, reason: "no_points", cost: total, have: (me.points|0) };
+    }
+    if ((me.points|0) < total) {
+      // Not enough for all - close as many as possible from top to bottom.
+      const failed = [];
+      let closed = 0;
+      let runningPoints = (me.points | 0);
+      for (const item of costByBattle) {
+        if (runningPoints < item.costFinal) {
+          failed.push({ battleId: item.battleId, cost: item.costFinal });
+          continue;
+        }
+        const started = startEscapeVote(
+          Game.__S.battles.find(x => (x && (x.id || x.battleId)) === item.battleId),
+          "smyt",
+          item.baseCost
+        );
+        if (started && started.ok) {
+          closed++;
+          runningPoints = Math.max(0, runningPoints - item.costFinal);
+        }
+      }
+      return { ok: failed.length === 0, closed, failed, totalNeeded: total, have: (me.points|0) };
+    }
+
+    // Enough for all.
+    for (const item of costByBattle) {
+      const b = Game.__S.battles.find(x => (x && (x.id || x.battleId)) === item.battleId);
+      startEscapeVote(b, "smyt", item.baseCost);
+    }
+
+    return { ok: true, closed: active.length, failed: [] };
+  };
+
+  C.finalize = function (battleId, outcome) {
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    if (!b || b.resolved) return;
+    const clearCanonGuardHint = () => {
+      if (b && b._canonGuardActive) {
+        try {
+          delete b._canonGuardActive;
+        } catch (_) {
+          b._canonGuardActive = false;
+        }
+      }
+      if (b && b._canonGuardResult) {
+        try {
+          delete b._canonGuardResult;
+        } catch (_) {
+          b._canonGuardResult = null;
+        }
+      }
+    };
+    const runFinalize = () => {
+          const statusBefore = b.status || null;
+          const resolvedBefore = !!b.resolved;
+          const nowStamp = now();
+          b.updatedAt = nowStamp;
+          const selectedDefense = b.defense || null;
+          const selectedDefenseArgId = selectedDefense ? (selectedDefense.id || selectedDefense.key || null) : null;
+          const selectedDefenseArgKey = selectedDefense ? (selectedDefense.group || selectedDefense.type || selectedDefense.kind || null) : null;
+          const defenseSource = selectedDefense ? "battle.defense" : null;
+          const guardHint = !!(b._canonGuardActive);
+          let canonGuardActive = guardHint;
+          let canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : null;
+          if (!canonGuardActive) {
+            canonGuardActive = tryEngageCanonGuard(b, outcome, {
+              overrideOutcome: "resolved",
+              reason: "canon_match_force_resolve"
+            });
+            if (canonGuardActive && !canonicalOutcome) {
+              canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : resolveCanonicalMatchOutcome(b);
+            }
+          }
+          if (canonGuardActive && canonicalOutcome) {
+            outcome = canonicalOutcome;
+          } else if (canonGuardActive && outcome === "draw") {
+            outcome = "resolved";
+          }
+          const metaGate = ensureCanonMeta(b);
+          const canonMatchOk = !!(metaGate && metaGate.canonMatchOk);
+          const canonProblem = metaGate ? metaGate.canonProblem || null : null;
+          const attackType = metaGate ? metaGate.attackType || null : null;
+          const defenseType = metaGate ? metaGate.defenseType || null : null;
+          const canonGroupKey = metaGate ? metaGate.canonGroupKey || null : null;
+          const ids = attackerDefenderIds(b);
+          const rawOutcome = outcome;
+          let canonSkipDrawGuard = false;
+          const canonResolveMetaEarly = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
+          const yrHardLock = (() => {
+            const ac = canonResolveMetaEarly ? canonResolveMetaEarly.attackColor : null;
+            const dc = canonResolveMetaEarly ? canonResolveMetaEarly.defenseColor : null;
+            if (ac === "r" && dc === "y") return { winner: "attacker", attackColor: ac, defenseColor: dc };
+            if (ac === "y" && dc === "r") return { winner: "defender", attackColor: ac, defenseColor: dc };
+            return null;
+          })();
+          if (yrHardLock) {
+            const forcedOutcome = (yrHardLock.winner === "attacker")
+              ? ((ids.attackerId === "me") ? "win" : "lose")
+              : ((ids.defenderId === "me") ? "win" : "lose");
+            const forcedOutcomeLabel = (yrHardLock.winner === "attacker") ? "attacker_win" : "defender_win";
+            const previousOutcome = outcome;
+            outcome = forcedOutcome;
+            try {
+              if (b) {
+                b.meta = b.meta || {};
+                b.meta.yrHardLockApplied = true;
+              }
+            } catch (_) {}
+            try {
+              console.warn("BATTLE_CANON_YR_LOCK_V1", {
+                battleId: b.id || b.battleId || null,
+                attackColor: yrHardLock.attackColor,
+                defenseColor: yrHardLock.defenseColor,
+                forcedOutcome: forcedOutcomeLabel,
+                forcedNoCrowd: 1,
+                previousOutcome: previousOutcome || null
+              });
+            } catch (_) {}
+          }
+          const sameColorAutoWinEligible = !!(canonResolveMetaEarly && canonResolveMetaEarly.isSameColor && canonResolveMetaEarly.isDefenseTypeCorrect);
+          if (sameColorAutoWinEligible) {
+            const priorWillStartCrowd = (outcome === "draw");
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+            try {
+              b.meta = b.meta || {};
+              b.meta.sameColorAutoWinLockApplied = true;
+            } catch (_) {}
+            try {
+              console.warn("BATTLE_CANON_SAMECOLOR_AUTOWIN_LOCK_V1", {
+                battleId: b.id || b.battleId || null,
+                attackColor: canonResolveMetaEarly ? canonResolveMetaEarly.attackColor : null,
+                defenseColor: canonResolveMetaEarly ? canonResolveMetaEarly.defenseColor : null,
+                isSameColor: canonResolveMetaEarly ? !!canonResolveMetaEarly.isSameColor : false,
+                isDefenseTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isDefenseTypeCorrect : false,
+                isAttackTypeCorrect: canonResolveMetaEarly ? !!canonResolveMetaEarly.isAttackTypeCorrect : false,
+                canonMatchOk,
+                canonProblem,
+                forcedOutcome: "defender_win",
+                forcedNoCrowd: 1,
+                priorWillStartCrowd: priorWillStartCrowd ? 1 : 0
+              });
+            } catch (_) {}
+          }
+          if (!canonGuardActive && rawOutcome === "draw" && canonMatchOk) {
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+            canonSkipDrawGuard = true;
+            logDevOutcomeGate(b, {
+              canonBuilt: !!(metaGate && metaGate.canonBuilt),
+              canonProblem,
+              canonMatchOk,
+              attackType,
+              defenseType,
+              outcomeBefore: "draw",
+              outcomeAfter: outcome,
+              skippedCrowd: true,
+              forcedResolved: true,
+              reason: "canon_match_skip_draw"
+            });
+          }
+          if (!canonGuardActive && !canonSkipDrawGuard && canonMatchOk && outcome === "draw") {
+            canonSkipDrawGuard = true;
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+            logDevOutcomeGate(b, {
+              canonBuilt: !!(metaGate && metaGate.canonBuilt),
+              canonProblem,
+              canonMatchOk,
+              attackType,
+              defenseType,
+              outcomeBefore: "draw",
+              outcomeAfter: outcome,
+              skippedCrowd: true,
+              forcedResolved: true,
+              reason: "canon_match_draw_guard"
+            });
+          }
+          if (b && b.meta && b.meta.sameColorAutoWinLockApplied && outcome === "draw") {
+            _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
+              battleId: b.id || b.battleId || null,
+              status: b.status || null,
+              result: b.result || null
+            });
+            outcome = (ids.defenderId === "me") ? "win" : "lose";
+          }
+          const willStartCrowd = (outcome === "draw");
+          const willResolveNow = !willStartCrowd;
+          const statusAfterExpected = willStartCrowd ? "crowd" : ((outcome === "resolved") ? "resolved" : "finished");
+          const canonKeyAttack = b.attack ? (b.attack._canonQ || b.attack.text || b.attack.id || null) : null;
+          const canonKeyDefense = selectedDefense ? (selectedDefense._canonA || selectedDefense.text || selectedDefense.id || null) : null;
+          const canonGuardFlag = !!(canonGuardActive || (b && b._canonGuardResult));
+
+          const yrLockState = (b && b._yrLockState) ? b._yrLockState : null;
+          if (yrLockState) {
+            try {
+              console.warn("BATTLE_CANON_YR_LOCK_V2", {
+                battleId: b.id || b.battleId || null,
+                attackColor: (canonResolveMeta && canonResolveMeta.attackColor) ? canonResolveMeta.attackColor : yrLockState.attackColor,
+                defenseColor: (canonResolveMeta && canonResolveMeta.defenseColor) ? canonResolveMeta.defenseColor : yrLockState.defenseColor,
+                tierDistance: yrLockState.tierDistance || 2,
+                isBlackAttack: !!yrLockState.isBlackAttack,
+                isBlackDefense: !!yrLockState.isBlackDefense,
+                isSameColor: !!yrLockState.isSameColor,
+                canonMatchOk,
+                canonProblem,
+                typeMatchOk: (canonResolveMeta && typeof canonResolveMeta.typeMatchOk === "boolean") ? canonResolveMeta.typeMatchOk : !!yrLockState.typeMatchOk,
+                forcedOutcome: outcome,
+                forcedNoCrowd: yrLockState.forcedNoCrowd ? 1 : 0,
+                previousOutcomeIfAny: yrLockState.previousOutcomeGuess || null
+              });
+            } catch (_) {}
+          }
+          if (outcome === "draw") {
+            if (b && b.meta && b.meta.sameColorAutoWinLockApplied) {
+              _crowdLog("CROWD_CREATE_BLOCKED_SAMECOLOR_AUTOWIN_V1", {
+                battleId: b.id || b.battleId || null,
+                status: b.status || null,
+                result: b.result || null
+              });
+              return;
+            }
+            const crowdAttemptPayload = {
+              reason: "finalize_draw",
+              battleId: b.id || b.battleId || null,
+              status: b.status || null,
+              result: b.result || null,
+              canonMatchOk,
+              canonGuardActive: canonGuardFlag,
+              defenseKey: canonKeyDefense || selectedDefenseArgId || null,
+              attackKey: canonKeyAttack || (b.attack ? (b.attack.id || null) : null)
+            };
+            _crowdLog("CROWD_CREATE_ATTEMPT_V1", crowdAttemptPayload);
+            if (canonGuardFlag) {
+              _crowdLog("CROWD_CREATE_BLOCKED_CANON_V1", Object.assign({}, crowdAttemptPayload, {
+                blockReason: "canon_guard_active"
+              }));
+              outcome = canonicalOutcome || ((ids.defenderId === "me") ? "win" : "lose");
+              canonSkipDrawGuard = true;
+            }
+          }
+          const crowdSnapshot = (() => {
+            const c = b.crowd || null;
+            return {
+              hasCrowd: !!c,
+              status: c ? (c.status || null) : null,
+              startedAtMs: c ? (Number.isFinite(c.startedAtMs) ? Math.floor(c.startedAtMs) : null) : null,
+              phase: c ? (c.phaseState || c.phase || null) : null
+            };
+          })();
+          logBattleOutcomeGate(b, {
+            phase: "finalize",
+            canonMatchOk,
+            canonProblem,
+            canonGroupKey,
+            canonKeyAttack,
+            canonKeyDefense,
+            attackType,
+            defenseType,
+            willStartCrowd,
+            willResolveNow,
+            statusBefore,
+            statusAfter: statusAfterExpected,
+            selectedDefenseArgId,
+            selectedDefenseArgKey,
+            defenseSource,
+            crowdSnapshot,
+            crowdCreateAttempted: willStartCrowd,
+            canonGuardActive,
+            canonSkipDrawGuard,
+            ts: nowStamp
+          });
+
+          const canonResolveMeta = buildCanonResolveMeta(b, b.attack, b.defense, outcome);
+          try { b._canonResolveMeta = canonResolveMeta; } catch (_) {}
+          try {
+            const attackerId = ids.attackerId || null;
+            const defenderId = ids.defenderId || null;
+            let outcomeLabel = "draw";
+            if (outcome === "win") {
+              outcomeLabel = (attackerId === "me") ? "attacker_win" : "defender_win";
+            } else if (outcome === "lose") {
+              outcomeLabel = (attackerId === "me") ? "defender_win" : "attacker_win";
+            } else if (outcome === "draw") {
+              outcomeLabel = "draw";
+            }
+            const robberyAllowed = canonResolveMeta ? (canonResolveMeta.robberyAllowed ? 1 : 0) : 0;
+            const robberyTriggered = robberyAllowed;
+            console.warn("BATTLE_CANON_RESOLVE_V1", {
+              battleId: b.id || b.battleId || null,
+              attackerId,
+              defenderId,
+              attackColor: canonResolveMeta ? canonResolveMeta.attackColor : null,
+              defenseColor: canonResolveMeta ? canonResolveMeta.defenseColor : null,
+              isBlackAttack: canonResolveMeta ? !!canonResolveMeta.isBlackAttack : false,
+              isBlackDefense: canonResolveMeta ? !!canonResolveMeta.isBlackDefense : false,
+              isSameColor: canonResolveMeta ? !!canonResolveMeta.isSameColor : false,
+              tierDistance: canonResolveMeta ? canonResolveMeta.tierDistance : null,
+              typeMatchOk: canonResolveMeta ? !!canonResolveMeta.typeMatchOk : false,
+              isAttackTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isAttackTypeCorrect : false,
+              isDefenseTypeCorrect: canonResolveMeta ? !!canonResolveMeta.isDefenseTypeCorrect : false,
+              outcome: outcomeLabel,
+              crowdStarted: (outcome === "draw") ? 1 : 0,
+              robberyAllowed,
+              robberyTriggered
+            });
+          } catch (_) {}
+
+          // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
+          // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
+          // а не при самом старте батла. Поэтому применяем штраф здесь, в finalize.
+          const devBattle = isDevBattle(b);
+          const devLogMode = isDevModeFlag();
+          if (!b.fromThem) {
+            const role = getRole(b.opponentId);
+            if ((role === "cop" || role === "police") && outcome !== "escaped") {
+              if (devBattle) {
+                if (devLogMode && !b._copFineSuppressedLogged) {
+                  b._copFineSuppressedLogged = true;
+                  const devTag = (b.meta && b.meta.devTag) ? b.meta.devTag : null;
+                  console.warn("COP_FINE_SUPPRESSED_V1", { battleId: b.id || null, devTag });
+                }
+              } else if (!b.copPenaltyApplied) {
+                const me = Game.__S && Game.__S.me;
+                ensurePointsField(me);
+                const penalty = 5;
+                if (me) {
+                  const beforePts = (me.points | 0);
+                  const amountWanted = penalty | 0;
+                  const amountActual = Math.min(amountWanted, Math.max(0, beforePts));
+                  const pointsAfter = Math.max(0, beforePts - amountActual);
+                  if (isCirculationEnabled()) {
+                    if (amountActual > 0) {
+                      econTransfer("me", "sink", amountActual, "cop_penalty", {
+                        battleId: b.id || b.battleId || null,
+                        amountWanted,
+                        amountActual,
+                        pointsBefore: beforePts,
+                        pointsAfter,
+                        partial: amountActual !== amountWanted
+                      });
+                    }
+                  } else {
+                    if (amountActual > 0) {
+                      econTransfer("me", "sink", amountActual, "cop_penalty", {
+                        battleId: b.id || b.battleId || null,
+                        amountWanted,
+                        amountActual,
+                        pointsBefore: beforePts,
+                        pointsAfter,
+                        partial: amountActual !== amountWanted
+                      });
+                    }
+                  }
+                }
+                b.copPenaltyApplied = true;
+
+                // notify Cop in DM + public chat (ideal punctuation is handled by normalizeCopLine)
+                notifyCopViolation(b.opponentId, penalty);
+
+                // finalize immediately: no battle economy, no crowd
+                b.resolved = true;
+                b.attackHidden = false;
+                b.draw = false;
+                b.crowd = null;
+                b.finished = true;
+                b.result = "cop_penalty";
+                b.status = "finished";
+                b.note = `Нарушение порядка. Штраф -${penalty} 💰.`;
+                b.resultLine = "Штраф";
+                b.updatedAt = now();
+
+                // sync mirrors if available
+                try {
+                  if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
+                    Game.__A.ensureNonNegativePoints();
+                  }
+                  if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+                    Game.__A.syncMeToPlayers();
+                  }
+                } catch (_) {}
+
+                if (b.pinned) {
+                  Game.__S.battles = [b].concat(Game.__S.battles.filter(x => x.id !== b.id));
+                }
+                return;
+              }
+            }
+          }
+
+          // Reveal attack only after we have an outcome.
+          b.attackHidden = false;
+
+          const oppRole = getRole(b.opponentId);
+          const shouldLogVillain = (b.fromThem === true) && isVillainRole(oppRole);
+          const robberyAllowedNow = !!(canonResolveMeta && canonResolveMeta.robberyAllowed);
+          let penaltyApplied = false;
+
+          // Special rules (villain penalties) apply ONLY on definitive loss (not escaped, not draw).
+          if (outcome === "lose" && !b.draw) {
+            if (robberyAllowedNow) {
+              // Toxic can deal immediate damage if you answer quickly.
+              // Applies only when Toxic attacked (fromThem) and only once per battle.
+              maybeApplyToxicInstantHit(b);
+            }
+
+            // Mafioso humiliation applies only if mafia attacked.
+            maybeApplyMafiaHumiliation(b);
+
+            if (robberyAllowedNow) {
+              // Bandit wipes all points on loss only.
+              maybeApplyBanditRobbery(b);
+            }
+          }
+          if (shouldLogVillain && outcome === "lose") {
+            penaltyApplied = robberyAllowedNow && !!(b.toxicHitApplied || b.banditRobbed);
+          }
+
+          if (outcome === "draw") {
+            b.draw = false;
+            b.wasDraw = true;
+            b.result = null;
+            b.resultLine = "Толпа решает";
+            b.status = "crowd";
+            b.finished = false;
+            b.resolved = false;
+
+            const { attackerId, defenderId } = attackerDefenderIds(b);
+            const nowMs = now();
+            b.crowd = {
+              votesA: 0,
+              votesB: 0,
+              voters: {},
+              decided: false,
+              cap: null,
+              totalPlayers: getTotalPlayersCount(),
+              attackerId,
+              defenderId,
+              phaseState: "warmup",
+              _crowdTimerArmLogged: false,
+              _devNpcVoteLogged: false,
+              _crowdTimerLastTickSecond: null,
+              _crowdTimerResolvedBy: null,
+              _crowdTimerExpireLogged: false
+            };
+            resetCrowdTimerState(b.crowd, nowMs);
+            if (!Number.isFinite(b.crowd.startedAtMs) || b.crowd.startedAtMs <= 0) {
+              b.crowd.startedAtMs = nowMs;
+            }
+            b.meta = b.meta || {};
+            b.crowd.meta = b.crowd.meta || b.meta;
+            applyDevCrowdEligiblePreset(b, b.crowd);
+            let evId = null;
+
+            // Events: create a draw event so chat can navigate to it.
+            try {
+              if (Game.Events && typeof Game.Events.addDrawEventFromBattle === "function") {
+                const ev = Game.Events.addDrawEventFromBattle(b);
+                evId = (ev && (ev.id || ev.eventId)) ? (ev.id || ev.eventId) : (typeof ev === "string" ? ev : null);
+              }
+            } catch (_) {}
+
+            if (evId) {
+              b.eventId = evId;
+              if (b.crowd) b.crowd.eventId = evId;
+            }
+            const candidateList = (Array.isArray(b._candidateVoterIds) && b._candidateVoterIds.length)
+              ? b._candidateVoterIds.slice()
+              : null;
+            const hasPrepopulatedVoters = Array.isArray(b.crowd.votersIds) && b.crowd.votersIds.length;
+            if (!hasPrepopulatedVoters && candidateList && candidateList.length) {
+              b.crowd.votersIds = candidateList.slice();
+            }
+            const eligible = buildEligibleVoters({
+              battleId: b.id || null,
+              eventId: evId || null,
+              votersIds: b.crowd.votersIds,
+              crowd: b.crowd,
+              meta: b.meta
+            });
+            if (b._candidateVoterIds) delete b._candidateVoterIds;
+            b.crowd.eligibleVotersIds = eligible.eligibleIds.slice();
+            if (!b.crowd.votersIds && Array.isArray(eligible.votersIds) && eligible.votersIds.length) {
+              b.crowd.votersIds = eligible.votersIds.slice();
+            }
+            b.crowd.eligibleCount = eligible.eligibleNpcCount;
+            b.crowd.eligibleBreakdown = {
+              npcEligible: eligible.eligibleNpcCount,
+              npcExcludedZeroPts: eligible.excludedZeroPtsCount,
+              otherExcluded: eligible.excludedOtherCount,
+              meEligible: eligible.meEligible ? 1 : 0
+            };
+            b.crowd.eligibilityRuleVersion = eligible.rule;
+            const computedCap = eligible.eligibleNpcCount + (eligible.meEligible ? 1 : 0);
+            const votesNow = getCrowdTotalVotes(b.crowd);
+            const stageD2Enabled = isCrowdCapStageD2();
+            const drawFallbackForced = !!(b.meta && b.meta.drawFallback);
+            let capValue;
+            let capSource;
+            if (stageD2Enabled && computedCap > 0 && !drawFallbackForced) {
+              capValue = computedCap;
+              capSource = "eligible";
+            } else if (drawFallbackForced) {
+              capValue = 10;
+              capSource = "fallback_fixed";
+            } else {
+              capValue = 10;
+              capSource = "canon10";
+            }
+            setCrowdCapMeta(b, b.crowd, capValue, capSource, eligible.eligibleNpcCount, eligible.excludedZeroPtsCount);
+            logCrowdElig(b, b.crowd, eligible, capValue);
+            if (b.crowd.cap <= 0) {
+              logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
+            }
+            logCrowdCapSet(b, b.crowd, b.crowd.cap, eligible);
+            let forcedResolve = false;
+            if (b.crowd.cap > 0 && votesNow >= b.crowd.cap) {
+              forcedResolve = true;
+              logCrowdCapForcedResolve(b, b.crowd, votesNow, b.crowd.cap);
+              finalizeCrowdVote(b, { force: true, endedBy: "cap_reached_after_recap" });
+            }
+            const crowdState = b.crowd || {};
+            if (!crowdState._crowdFlowLogged) {
+              _crowdLog("CROWD_START_FLOW_V1", {
+                battleId: b.id || b.battleId || null,
+                statusBefore,
+                statusAfter: b.status || null,
+                battleResolvedBefore: resolvedBefore,
+                battleResolvedAfter: !!b.resolved
+              });
+              crowdState._crowdFlowLogged = true;
+              if (b.crowd) b.crowd._crowdFlowLogged = true;
+            }
+            if (!crowdState._crowdCreateLogged) {
+              logCrowdCreate(b.crowd, b.id || b.battleId || null);
+              logCrowdCreateCallsite(b.id || b.battleId || null);
+              crowdState._crowdCreateLogged = true;
+              if (b.crowd) b.crowd._crowdCreateLogged = true;
+            }
+            if (checkCrowdVotersOverride(b, b.crowd)) {
+              return;
+            }
+
+            // Push a SYS chat line about draw with links to battleId and eventId.
+            try {
+              const UI = (Game && Game.UI) ? Game.UI : null;
+              if (UI && typeof UI.pushChat === "function") {
+                const sysText = (Game && Game.Data && Game.Data.SYS && typeof Game.Data.SYS.drawCrowd === "string" && Game.Data.SYS.drawCrowd.trim())
+                  ? Game.Data.SYS.drawCrowd.trim()
+                  : "Толпа решает.";
+                UI.pushChat({
+                  name: "Система",
+                  text: sysText,
+                  system: true,
+                  battleId: b.id,
+                  eventId: b.eventId || null
+                });
+                b.sysAnnounced = true;
+              }
+            } catch (_) {}
+
+            if (!forcedResolve && !b.crowd._votersOverrideDetected) {
+              startCrowdVoteTimer(b);
+            }
+
+            if (shouldLogVillain) {
+              logBattleResolveVillain(b, "draw", false, oppRole);
+            }
+            return;
+          }
+
+          if (outcome === "resolved") {
+            b.draw = false;
+            b.crowd = null;
+            b.finished = true;
+            b.resolved = true;
+            b.result = "resolved";
+            b.status = "resolved";
+            b.note = b.note || "Canon разрешил результат.";
+            b.resultLine = b.resultLine || "Решено";
+            if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
+            logBattleResolveDiagOnce(b, outcome, null, statusBefore, b.status || null);
+            announceBattleResult(b);
+            return;
+          }
+
+          // Non-draw outcomes finalize immediately.
+          b.draw = false;
+          b.crowd = null;
+          b.finished = true;
+          b.result = outcome;
+          b.status = "finished";
+          if (b.tempInfluenceBoost) b.tempInfluenceBoost = 0;
+
+          // Mafioso: keep "Поражение" label, but economy is intentionally skipped (see applyEconomyForOutcome).
+          if (getRole(b.opponentId) === "mafia" && outcome !== "escaped") {
+            b.note = "Унижение. ⚡ обнулено.";
+            b.resultLine = "Поражение";
+            if (outcome === "lose" && !b.mafiaShameAnnounced) {
+              const meName = (Game.__S && Game.__S.me && Game.__S.me.name) ? Game.__S.me.name : "Игрок";
+              pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`);
+              b.mafiaShameAnnounced = true;
+            }
+          } else {
+            b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? "Свалил." : "Поражение.");
+            b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? "Свалил" : "Поражение");
+          }
+
+          if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);
+
+          // Keep me mirror clean
+          try {
+            if (Game.__A && typeof Game.__A.ensureNonNegativePoints === "function") {
+              Game.__A.ensureNonNegativePoints();
+            }
+            if (Game.__A && typeof Game.__A.syncMeToPlayers === "function") {
+              Game.__A.syncMeToPlayers();
+            }
+          } catch (_) {}
+
+          if (b.pinned) {
+            Game.__S.battles = [b].concat(Game.__S.battles.filter(x => x.id !== b.id));
+          }
+
+          if (shouldLogVillain) {
+            logBattleResolveVillain(b, outcome, penaltyApplied, oppRole);
+          }
+          logBattleResolveDiagOnce(b, outcome, b.endedBy || null, statusBefore, b.status || null);
+          announceBattleResult(b);
+    };
+    try {
+      return runFinalize();
+    } finally {
+      clearCanonGuardHint();
+    }
+  };
+
+  C.resolveBattleOutcome = function (battleId, defenseArg, opts) {
+    if (!battleId) return { ok: false, reason: "missing_battle_id" };
+    const id = String(battleId);
+    if (!Game || !Game.__S || !Array.isArray(Game.__S.battles)) {
+      return { ok: false, reason: "no_state", battleId: id };
+    }
+    const b = Game.__S.battles.find(x => x && x.id === id);
+    if (!b) return { ok: false, reason: "battle_not_found", battleId: id };
+    if (b.resolved) return { ok: false, reason: "already_resolved", battleId: id };
+
+    if (defenseArg) {
+      try {
+        b.defense = Object.assign({}, defenseArg);
+      } catch (_) {
+        b.defense = defenseArg;
+      }
+    } else if (b.defense == null) {
+      b.defense = null;
+    }
+
+    let forced = (opts && typeof opts.forceOutcome === "string") ? String(opts.forceOutcome).toLowerCase() : null;
+    if (forced && !forced.length) forced = null;
+    let outcome = forced;
+    if (!outcome && b.attack && b.defense) {
+      outcome = computeOutcome(b, b.attack, b.defense);
+    }
+    if (!outcome) {
+      outcome = forced || "draw";
+    }
+    const canonicalGuardActive = tryEngageCanonGuard(b, outcome, {
+      allowForced: (!forced || forced === "draw"),
+      forcedString: forced,
+      overrideOutcome: "resolved",
+      reason: "canon_match_force_resolve"
+    });
+    if (canonicalGuardActive) {
+      const canonicalOutcome = (b && b._canonGuardResult) ? b._canonGuardResult : resolveCanonicalMatchOutcome(b);
+      if (canonicalOutcome) {
+        C.finalize(b.id, canonicalOutcome);
+        return { ok: true, outcome: canonicalOutcome };
+      }
+      C.finalize(b.id, "resolved");
+      return { ok: true, outcome: "resolved" };
+    }
+
+    C.finalize(b.id, outcome);
+    return { ok: true, outcome };
+  };
+
+  C.startCrowdVoteTimer = function(battleId){
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    if (!b) return;
+    startCrowdVoteTimer(b);
+  };
+
+  C.applyCrowdVoteTick = function(battleId){
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    return applyCrowdVoteTick(b, battleId);
+  };
+
+  C.applyEscapeVoteTick = function(battleId){
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    return applyEscapeVoteTick(b);
+  };
+
+  C.finalizeCrowdVote = function(battleId){
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    if (!b) {
+      const helperCore = (Game.ConflictCore || Game._ConflictCore);
+      const snap = helperCore ? helperCore.applyCrowdVoteTick(battleId) : null;
+      const debug = {
+        __snapDebug: {
+          hasSnap: !!snap,
+          hasCap: !!(snap && snap.crowdCapMeta),
+          hasPending: !!(snap && snap.pendingMeta),
+          capEndedBy: snap && snap.crowdCapMeta ? snap.crowdCapMeta.endedBy : null,
+          pendingEndedBy: snap && snap.pendingMeta ? snap.pendingMeta.endedBy : null
+        }
+      };
+      if (!snap || (!snap.crowdCapMeta && !snap.pendingMeta)) {
+        return Object.assign({
+          ok: false,
+          battleId
+        }, debug);
+      }
+      const meta = snap.crowdCapMeta || snap.pendingMeta || null;
+      const fallbackOutcome = getOutcomeFromCapMeta(meta);
+      return Object.assign({
+        ok: false,
+        battleId,
+        outcome: fallbackOutcome || null,
+        crowdCapMeta: snap.crowdCapMeta || null,
+        pendingMeta: snap.pendingMeta || null,
+        cacheHit: !!snap.cacheHit,
+        why: snap.why || null
+      }, debug);
+    }
+    const snap = applyCrowdVoteTick(b, battleId);
+    const res = finalizeCrowdVote(b);
+    if (res && res.crowdCapMeta) {
+      return {
+        ok: true,
+        battleId: b.id || battleId,
+        outcome: res.outcome || null,
+        crowdCapMeta: res.crowdCapMeta
+      };
+    }
+    if (snap && (snap.crowdCapMeta || snap.pendingMeta)) {
+      const metaForOutcome = snap.crowdCapMeta ? snap.crowdCapMeta : (snap.pendingMeta || null);
+      const fallbackOutcome = metaForOutcome ? getOutcomeFromCapMeta(metaForOutcome) : null;
+      return {
+        ok: false,
+        battleId,
+        outcome: fallbackOutcome || null,
+        crowdCapMeta: snap.crowdCapMeta || null,
+        pendingMeta: snap.pendingMeta || null,
+        cacheHit: !!snap.cacheHit,
+        why: snap.why || null
+      };
+    }
+    return res || null;
+  };
+
+  C.finalizeEscapeVote = function(battleId){
+    const b = Game.__S.battles.find(x => x.id === battleId);
+    if (!b) return;
+    return finalizeEscapeVote(b);
+  };
+
+  function getRematchSides(b){
+    if (!b) return null;
+    if (!b.finished && !b.resolved) return null;
+    if (b.result !== "win" && b.result !== "lose") return null;
+    const oppId = b.opponentId || null;
+    if (!oppId) return null;
+    if (b.result === "win") return { winnerId: "me", loserId: oppId };
+    return { winnerId: oppId, loserId: "me" };
+  }
+
+  function repAvailable(id){
+    try {
+      if (id === "me") {
+        return Math.max(0, (Game.__S && Number.isFinite(Game.__S.rep) ? (Game.__S.rep | 0) : 0));
+      }
+      const p = (Game.__S && Game.__S.players && id) ? Game.__S.players[id] : null;
+      return Math.max(0, (p && Number.isFinite(p.rep) ? (p.rep | 0) : 0));
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  C.requestRematch = function(battleId, requesterId){
+    const b = Game.__S.battles.find(x => x && x.id === battleId);
+    if (!b) return { ok: false, reason: "not_found" };
+    // Allow multiple rematch requests with escalating cost: only block if there's an undecided request.
+    if (b.rematch && b.rematch.requestedAt && b.rematch.decided !== true) {
+      return { ok: false, reason: "already_requested" };
+    }
+    const sides = getRematchSides(b);
+    if (!sides) return { ok: false, reason: "not_eligible" };
+
+    const reqId = requesterId || "me";
+    if (reqId !== sides.loserId) return { ok: false, reason: "not_loser", expected: sides.loserId };
+
+    const winnerId = sides.winnerId;
+    const loserId = sides.loserId;
+
+    // Escalating cost: track rematch request count on the battle.
+    b.rematchRequestCount = (b.rematchRequestCount || 0) + 1;
+    const baseCost = b.rematchRequestCount;
+    const battleRef = b.id || b.battleId || null;
+    const loserPts =
+      (loserId === "me")
+        ? ((Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0)
+        : ((getPlayer(loserId) && Number.isFinite(getPlayer(loserId).points)) ? (getPlayer(loserId).points | 0) : 0);
+    const price = calcFinalPriceForActor(baseCost, loserPts, "rematch", { battleId: battleRef, rematchOf: b.id });
+    const cost = price.finalPrice;
+
+    // Cost: escalating point transfer loser -> winner. Must be loggable with battleId.
+    try {
+      const Econ = getEcon();
+      const tx = (Econ && typeof Econ.chargePriceOnce === "function")
+        ? Econ.chargePriceOnce({
+            fromId: loserId,
+            toId: winnerId,
+            actorId: loserId,
+            reason: "rematch_request_cost",
+            priceKey: price.priceKey || "rematch",
+            basePrice: baseCost,
+            actorPoints: loserPts,
+            battleId: battleRef,
+            rematchOf: b.id,
+            context: price.context || { battleId: battleRef, rematchOf: b.id, requestedBy: loserId }
+          })
+        : econTransfer(loserId, winnerId, cost, "rematch_request_cost", { battleId: battleRef, rematchOf: b.id });
+      if (!tx || tx.ok !== true) {
+        // If econ is present but refuses due to insufficient points, do NOT apply legacy fallback.
+        const have =
+          (loserId === "me")
+            ? ((Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0)
+            : ((getPlayer(loserId) && Number.isFinite(getPlayer(loserId).points)) ? (getPlayer(loserId).points | 0) : 0);
+
+        if (tx && tx.reason && tx.reason !== "no_econ") {
+          const needPoints = Number.isFinite(cost) ? Math.max(0, (cost | 0) - (have | 0)) : null;
+          return {
+            ok: false,
+            reason: "no_points",
+            cost,
+            have,
+            payerId: loserId,
+            havePoints: have,
+            needPoints,
+            computedCost: cost
+          };
+        }
+
+        return {
+          ok: false,
+          reason: "no_econ",
+          cost,
+          have,
+          payerId: loserId,
+          havePoints: have,
+          needPoints: Number.isFinite(cost) ? Math.max(0, (cost | 0) - (have | 0)) : null,
+          computedCost: cost
+        };
+      }
+    } catch (_) {}
+
+    // REP penalty: rematch request should NOT remove REP. 
+    // Fixed: removed Game.__A.transferRep call here.
+    // try {
+    //   const repPay = Math.max(0, Math.min(1, repAvailable(loserId)));
+    //   if (repPay > 0 && Game.__A && typeof Game.__A.transferRep === "function") {
+    //     Game.__A.transferRep(loserId, winnerId, repPay, "rep_rematch_request", b.id);
+    //   }
+    // } catch (_) {}
+
+    b.rematch = {
+      requestedAt: now(),
+      requestedBy: loserId,
+      opponentId: winnerId,
+      decided: false,
+      accepted: null
+    };
+    b.updatedAt = now();
+    return { ok: true, battleId: b.id, requestedBy: loserId, opponentId: winnerId };
+  };
+
+  C.respondRematch = function(battleId, accept, responderId){
+    const b = Game.__S.battles.find(x => x && x.id === battleId);
+    if (!b) return { ok: false, reason: "not_found" };
+    if (!b.rematch || !b.rematch.requestedAt) return { ok: false, reason: "no_request" };
+    if (b.rematch.decided) return { ok: false, reason: "already_decided" };
+
+    const sides = getRematchSides(b);
+    if (!sides) return { ok: false, reason: "not_eligible" };
+
+    const winnerId = sides.winnerId;
+    const loserId = sides.loserId;
+    const responder = responderId || "me";
+    if (responder !== winnerId) return { ok: false, reason: "not_responder", expected: winnerId };
+
+    const ok = (accept === true);
+    b.rematch.decided = true;
+    b.rematch.accepted = ok;
+    b.rematch.decidedAt = now();
+
+    if (!ok) {
+      // Decline keeps point transfer as-is; rematch should NOT remove REP.
+      // Fixed: removed Game.__A.transferRep call here.
+      // try {
+      //   const repPay = Math.max(0, Math.min(1, repAvailable(winnerId)));
+      //   if (repPay > 0 && Game.__A && typeof Game.__A.transferRep === "function") {
+      //     Game.__A.transferRep(winnerId, loserId, repPay, "rep_rematch_decline", b.id);
+      //   }
+      // } catch (_) {}
+      b.updatedAt = now();
+      return { ok: true, battleId: b.id, accepted: false };
+    }
+
+    // Accept: create a new battle and replace the old one at the same position.
+    const fromThem = (loserId !== "me");
+    const nb = createBattle({ opponentId: b.opponentId, fromThem });
+    nb.rematchOf = b.id;
+    nb.pinned = true;
+    // INVARIANT: rematch counter persists across battles (each loss against same opponent costs +1💰)
+    nb.rematchRequestCount = b.rematchRequestCount || 0;
+
+    // IMPORTANT: an incoming battle must have an attack argument immediately,
+    // otherwise UI gets stuck in pickDefense with empty args.
+    // Mirror Core.incoming() initialization, but do NOT touch economy here.
+    if (fromThem) {
+      nb.attack = pickIncomingAttack(nb.opponentId, nb);
+      nb.attackHidden = true;
+      nb.presentedAt = now();
+      // Canon-only: if no canonical incoming attack, degrade to draw.
+      if (!nb.attack || !nb.attack.text) {
+        try { if (typeof C.finalize === "function") C.finalize(nb.id, "draw"); } catch (_) {}
+      }
+      if (!nb.attackerId) nb.attackerId = nb.opponentId;
+      try {
+        const cdMap = Game.__S.battleCooldowns || (Game.__S.battleCooldowns = {});
+        cdMap[nb.opponentId] = now();
+      } catch (_) {}
+    }
+    
+    // Replace old battle at the same index (not unshift to top).
+    const oldIndex = Game.__S.battles.indexOf(b);
+    if (oldIndex >= 0) {
+      Game.__S.battles.splice(oldIndex, 1, nb);
+    } else {
+      // Fallback: if old battle not found, add new one to top.
+      Game.__S.battles.unshift(nb);
+      bumpBattleBadgeIfCollapsed();
+    }
+
+    return { ok: true, accepted: true, battle: nb };
+  };
+
+  C.applyVillainPenalty = applyVillainPenalty;
+  C.resolveCrowdCore = resolveCrowdCore;
+  C.getVoteWeight = getVoteWeight;
+  C.matchCanonGroupKey = buildCanonGroupKey;
+  C.buildCanonProblem = buildCanonProblem;
+  C.logDevSmokeDefenseChoice = logDevSmokeDefenseChoice;
+
+  // Export ONLY the internal core. Public API must live in conflict-api.js.
+  // This avoids double-definitions and accidental overwrites.
+  const conflictMode = (() => {
+    if (typeof window === "undefined") return "prod";
+    const w = window;
+    if (w.__DEV__ === true || w.DEV === true) return "dev";
+    try {
+      const params = new URLSearchParams(w.location && w.location.search ? w.location.search : "");
+      if (params.get("dev") === "1") return "dev";
+    } catch (_) {}
+    return "prod";
+  })();
+
+  function captureConflictStack(limit = 3){
+    try {
+      const err = new Error();
+      const stack = err && err.stack ? String(err.stack) : "";
+      const lines = stack.split("\n").map(x => x.trim()).filter(Boolean);
+      return lines.slice(2, 2 + (limit || 0)).join(" | ");
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function emitConflictEvent(type, details, options){
+    const emitter = (Game && Game.__SEC && typeof Game.__SEC.emit === "function") ? Game.__SEC.emit : null;
+    if (!emitter) return;
+    emitter(type, Object.assign({
+      stack: captureConflictStack(3),
+      mode: conflictMode
+    }, details || {}), options || {});
+  }
+
+  function wrapConflictCore(core){
+    if (!core || core.__intrusionWrapped) return core;
+    const handler = {
+      get(target, prop, receiver){
+        if (prop === "computeOutcome") {
+          emitConflictEvent("forbidden_api_access", { key: "Game._ConflictCore.computeOutcome", action: "get" }, { minGapMs: 1000 });
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+      set(target, prop, value, receiver){
+        if (prop === "computeOutcome") {
+          emitConflictEvent("tamper_detected", { key: "Game._ConflictCore.computeOutcome", action: "overwrite" }, { minGapMs: 1500 });
+        }
+        return Reflect.set(target, prop, value, receiver);
+      }
+    };
+    const proxy = new Proxy(core, handler);
+    try { Object.defineProperty(proxy, "__intrusionWrapped", { value: true, configurable: false }); } catch (_) {}
+    return proxy;
+  }
+
+  const conflictCoreBuildTag = (() => {
+    if (Game && Game.__buildTag) return Game.__buildTag;
+    if (typeof window !== "undefined" && window.__BUILD_TAG) return window.__BUILD_TAG;
+    return null;
+  })();
+  const wrappedCore = wrapConflictCore(C);
+  Game._ConflictCore = wrappedCore;
+  Game.ConflictCore = wrappedCore;
+  try { console.warn("CONFLICT_CORE_LOADED_OK_V1", { ts: Date.now(), buildTag: conflictCoreBuildTag }); } catch (_) {}
+  try {
+    if (conflictMode === "dev") {
+      console.warn("CONFLICT_CORE_LOADED_V1", { ts: Date.now(), buildTag: conflictCoreBuildTag });
+    }
+  } catch (_) {}
+})();
