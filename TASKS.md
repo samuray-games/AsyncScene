@@ -75,6 +75,42 @@
 
 ## Inbox
 
+### [T-20260308-001] Prod-only false ban state on GitHub Pages start
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Core|Docs
+- Files: `docs/state.js` `AsyncScene/Web/state.js`
+- Goal: Убрать ложную блокировку действий на свежем прод-старте GitHub Pages, не меняя механику боя/толпы.
+- Acceptance:
+  - [ ] На свежем прод-старте пользователь не считается забаненным/заблокированным.
+  - [ ] Можно начать баттл и голосовать в толпе.
+  - [ ] Нет изменений в нецелевой логике.
+- Notes: Патч минимальный, только причина ложной блокировки.
+- Result: FAIL — смоук не пройден (нужна проверка в проде).
+  - Report:
+    - Status: FAIL
+    - Facts:
+      1) Установлено, что `perma_flag_restore` приходит из `ReactionPolicy.restorePersistedFlags()` через localStorage ключ `AsyncScene_security_perma_flags_v1`, а затем `emitRestoreEvents()` вызывает `Security.emit("perma_flag_restore")`.
+      2) В `restorePersistedFlags()` добавлена проверка: legacy-формат (старый объект без envelope) в проде пропускается, а применяются только записи с `source:"runtime"`; добавлены диагностические логи `[SEC_RESTORE_SOURCE]`, `[SEC_RESTORE_SKIP]`, `[SEC_RESTORE_REASON]`, `[SEC_RESTORE_APPLY]`.
+      3) Персист формата переведён на envelope `{flags, source:"runtime", stamp, v:1}`; mirror-патч внесён в `docs/state.js` и `AsyncScene/Web/state.js`.
+      4) Риск: legacy-пермафлаги, сохранённые до патча без envelope, в проде больше не восстанавливаются.
+    - Changed: `docs/state.js` `AsyncScene/Web/state.js`
+    - How to verify:
+      1) Открыть https://samuray-games.github.io/AsyncScene/ (без `?dev=1`), сделать hard reload.
+      2) В Console найти `[SEC_RESTORE_SOURCE]` и убедиться, что при legacy-данных появляется `[SEC_RESTORE_SKIP]` + `[SEC_RESTORE_REASON]`, а `Game.SecurityPolicy.getFlag("me")` возвращает `null`.
+      3) Убедиться, что можно начать баттл и голосовать; нет причины `security_blocked`.
+    - Next: QA
+    - Next Prompt (копипаст, кодблок обязателен):
+      ```text
+      QA:
+      1) Откройте https://samuray-games.github.io/AsyncScene/ без `?dev=1`, сделайте hard reload.
+      2) В Console проверьте логи `[SEC_RESTORE_SOURCE]` и либо `[SEC_RESTORE_APPLY]`, либо `[SEC_RESTORE_SKIP]` + `[SEC_RESTORE_REASON]`.
+      3) Убедитесь, что `Game.SecurityPolicy.getFlag("me")` = null, и баттл стартует без `security_blocked`.
+      4) Приложите краткое подтверждение (Console.txt/скрин).
+      ```
+
 ### [T-20260303-008] Canon Y-R finalize lock + incoming attack type diversity V2
 - Status: FAIL
 - Priority: P0
@@ -3467,3 +3503,27 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     1) Откройте https://samuray-games.github.io/AsyncScene/ и убедитесь, что Network таб больше не показывает запросов к `dev/console-tape.js`, `dev/dev-checks.js` или `/__dev__/docs/...`, и favicon либо отсутствует запрос, либо возвращает 200.
     2) Убедитесь, что UI загружается нормально, без ошибок 404 на загрузку страницы.
   - Next: —
+
+### 2026-03-07 — Docs prod console-tape request removal
+- Status: FAIL (runtime не подтверждён)
+- Area: Docs
+- Files: `docs/index.html`
+- Goal: Устранить любые оставшиеся пути, способные запросить `console-tape.js` в прод-сборке GitHub Pages.
+- Acceptance:
+  - [ ] `https://samuray-games.github.io/AsyncScene/` рендерит UI.
+  - [ ] В Network нет стартовых запросов к `console-tape.js`.
+  - [ ] Логика игры не изменена.
+- Result: FAIL — нужны runtime-доказательства.
+- Report:
+  - Status: FAIL
+  - Facts:
+    1) В `docs/index.html` удалён inline bootstrap console-tape (dev-only), чтобы прод-страница не активировала tape-логику.
+    2) В `docs/index.html` удалены dev-only proof-логи `DEV_INDEX_HTML_PROOF_V1` и `DEV_SW_DISABLED`.
+- Evidence:
+  - `docs/index.html`
+- Changed: `docs/index.html`
+- How to verify:
+  1) Откройте https://samuray-games.github.io/AsyncScene/ (в том числе приватное окно) и убедитесь, что UI рендерится.
+  2) В Network убедитесь, что на старте нет запросов к `dev/console-tape.js` или `console-tape.js` (любого пути).
+  3) Убедитесь, что в Console нет ошибок, указывающих на отсутствие tape-скриптов.
+- Next: QA

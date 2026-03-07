@@ -3637,3 +3637,38 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `docs/state.js`
 - Next: —
 - Changed: `docs/index.html` `docs/ui/ui-boot.js` `docs/state.js`
+
+### 2026-03-07 — Docs prod console-tape request removal
+- Status: FAIL (runtime не подтверждён)
+- Facts:
+  - Удалён inline bootstrap console-tape из `docs/index.html`, чтобы прод-страница не активировала tape-логику.
+  - Удалены dev-only proof-логи `DEV_INDEX_HTML_PROOF_V1` и `DEV_SW_DISABLED` из `docs/index.html`.
+- Evidence:
+  - `docs/index.html`
+- Next: требуется проверить в браузере отсутствие стартового запроса `console-tape.js` на https://samuray-games.github.io/AsyncScene/.
+- Changed: `docs/index.html`
+
+### 2026-03-08 — Prod false ban on Pages start (security reaction softening)
+- Status: FAIL (смоук не пройден)
+- Facts:
+  - В `ReactionPolicy.handleEvent` события `forbidden_api_access` переведены в LOG_ONLY, чтобы стартовые обращения к закрытым surface не вызывали TEMP_BLOCK/PERMA_FLAG.
+  - Остальная логика реакций (hard types, perma restore, пороги short/long) сохранена.
+  - Патч применён в `docs/state.js` и зеркалирован в `AsyncScene/Web/state.js`.
+- Evidence:
+  - `docs/state.js` (createReactionPolicy → handleEvent)
+  - `AsyncScene/Web/state.js` (createReactionPolicy → handleEvent)
+- Next: QA должен проверить prod-страницу на отсутствие блокировки действий после hard reload.
+- Changed: `docs/state.js` `AsyncScene/Web/state.js`
+
+### 2026-03-08 — Prod perma_flag_restore startup guard (localStorage legacy skip)
+- Status: FAIL (нужен смоук)
+- Facts:
+  - Источник `perma_flag_restore` подтверждён: `restorePersistedFlags()` читает localStorage ключ `AsyncScene_security_perma_flags_v1`, затем `emitRestoreEvents()` вызывает `Security.emit("perma_flag_restore")`.
+  - В `restorePersistedFlags()` добавлена проверка: legacy-формат без envelope в проде пропускается, а применяются только записи с `source:"runtime"`.
+  - Персист переведён на envelope `{flags, source:"runtime", stamp, v:1}` и добавлены диагностические маркеры `[SEC_RESTORE_SOURCE]`, `[SEC_RESTORE_SKIP]`, `[SEC_RESTORE_REASON]`, `[SEC_RESTORE_APPLY]`.
+  - Риск: legacy-пермафлаги, сохранённые до патча без envelope, в проде больше не восстанавливаются.
+- Evidence:
+  - `docs/state.js` (createReactionPolicy → restorePersistedFlags/persistPermaFlags)
+  - `AsyncScene/Web/state.js` (createReactionPolicy → restorePersistedFlags/persistPermaFlags)
+- Next: QA — проверить прод-страницу на свежем старте и наличие новых логов.
+- Changed: `docs/state.js` `AsyncScene/Web/state.js`

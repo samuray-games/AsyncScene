@@ -6392,16 +6392,38 @@ window.Game = window.Game || {};
     };
     const STORAGE_KEY = "AsyncScene_security_perma_flags_v1";
     const storage = (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
+    const RUNTIME_SOURCE = "runtime";
+
+    function logRestore(marker, payload){
+      try {
+        console.log(marker, payload);
+      } catch (_) {}
+    }
+
+    function normalizePersisted(parsed){
+      if (!parsed || typeof parsed !== "object") {
+        return { flags: {}, source: "empty", format: "empty", stamp: 0 };
+      }
+      if (parsed.flags && typeof parsed.flags === "object") {
+        return {
+          flags: parsed.flags,
+          source: String(parsed.source || parsed._source || "wrapped"),
+          format: "wrapped",
+          stamp: Number(parsed.stamp || parsed._stamp || 0),
+        };
+      }
+      return { flags: parsed, source: "legacy", format: "legacy", stamp: 0 };
+    }
 
     function loadPersisted(){
-      if (!storage) return {};
+      if (!storage) return { flags: {}, source: "none", format: "none", stamp: 0 };
       try {
         const raw = storage.getItem(STORAGE_KEY);
-        if (!raw) return {};
+        if (!raw) return { flags: {}, source: "empty", format: "none", stamp: 0 };
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") return parsed;
+        if (parsed && typeof parsed === "object") return normalizePersisted(parsed);
       } catch (_) {}
-      return {};
+      return { flags: {}, source: "invalid", format: "invalid", stamp: 0 };
     }
 
     let persistedPerma = loadPersisted();
@@ -6440,9 +6462,10 @@ window.Game = window.Game || {};
         }
       }
       try {
-        storage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        const envelope = { flags: payload, source: RUNTIME_SOURCE, stamp: Date.now(), v: 1 };
+        storage.setItem(STORAGE_KEY, JSON.stringify(envelope));
       } catch (_) {}
-      persistedPerma = payload;
+      persistedPerma = { flags: payload, source: RUNTIME_SOURCE, format: "wrapped", stamp: Date.now() };
     }
 
     function setFlagForPlayer(playerId, level, stamp, extra = {}){
@@ -6469,23 +6492,65 @@ window.Game = window.Game || {};
       };
       State.securityFlags[key] = entry;
       if (level === LEVELS.PERMA_FLAG) {
-        persistedPerma = { ...persistedPerma, [key]: { since: stamp } };
+        persistedPerma = {
+          flags: { ...(persistedPerma.flags || {}), [key]: { since: stamp } },
+          source: RUNTIME_SOURCE,
+          format: "wrapped",
+          stamp: Date.now(),
+        };
         persistPermaFlags();
       }
       return entry;
     }
 
     function restorePersistedFlags(){
-      if (isDevFlag && isDevFlag()) {
+      const meta = persistedPerma || { flags: {}, source: "none", format: "none", stamp: 0 };
+      const flags = (meta.flags && typeof meta.flags === "object") ? meta.flags : {};
+      const count = Object.keys(flags).length;
+      const devMode = (isDevFlag && isDevFlag()) ? true : false;
+      logRestore("[SEC_RESTORE_SOURCE]", {
+        source: meta.source || "unknown",
+        format: meta.format || "unknown",
+        count,
+        devMode,
+        hasStorage: !!storage,
+      });
+      if (devMode) {
         ensureStateFlags();
         State.securityFlags = {};
         restoredPlayers.length = 0;
+        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
+        logRestore("[SEC_RESTORE_REASON]", "dev_mode");
+        return;
+      }
+      if (!count) {
+        ensureStateFlags();
+        State.securityFlags = {};
+        restoredPlayers.length = 0;
+        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
+        logRestore("[SEC_RESTORE_REASON]", "empty_flags");
+        return;
+      }
+      if (meta.format === "legacy") {
+        ensureStateFlags();
+        State.securityFlags = {};
+        restoredPlayers.length = 0;
+        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
+        logRestore("[SEC_RESTORE_REASON]", "legacy_untrusted_prod");
+        return;
+      }
+      if (meta.format === "wrapped" && meta.source !== RUNTIME_SOURCE) {
+        ensureStateFlags();
+        State.securityFlags = {};
+        restoredPlayers.length = 0;
+        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
+        logRestore("[SEC_RESTORE_REASON]", "source_not_runtime");
         return;
       }
       ensureStateFlags();
       State.securityFlags = {};
       restoredPlayers.length = 0;
-      for (const [pid, data] of Object.entries(persistedPerma || {})) {
+      for (const [pid, data] of Object.entries(flags)) {
         if (!pid) continue;
         State.securityFlags[pid] = {
           level: LEVELS.PERMA_FLAG,
@@ -6494,6 +6559,7 @@ window.Game = window.Game || {};
         };
         restoredPlayers.push(pid);
       }
+      logRestore("[SEC_RESTORE_APPLY]", { count: restoredPlayers.length, source: meta.source || "unknown", format: meta.format || "unknown" });
     }
 
     const REACTION_LOG_TTL_MS = 1500;
@@ -6596,13 +6662,17 @@ window.Game = window.Game || {};
       let level = LEVELS.LOG_ONLY;
       const devMode = (typeof isDevFlag === "function") ? isDevFlag() : false;
       if (!devMode) {
-      if (typeKey === "perma_flag_restore") {
-        level = LEVELS.PERMA_FLAG;
-      }
-      if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
-        level = LEVELS.PERMA_FLAG;
-      } else if (shortCount >= 2) {
-        level = LEVELS.TEMP_BLOCK;
+      if (typeKey === "forbidden_api_access") {
+        level = LEVELS.LOG_ONLY;
+      } else {
+        if (typeKey === "perma_flag_restore") {
+          level = LEVELS.PERMA_FLAG;
+        }
+        if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
+          level = LEVELS.PERMA_FLAG;
+        } else if (shortCount >= 2) {
+          level = LEVELS.TEMP_BLOCK;
+        }
       }
       }
       const counts = { short: shortCount, long: longCount };
