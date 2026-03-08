@@ -16,6 +16,37 @@ window.Game = window.Game || {};
     return;
   }
   const D = Game.Data;
+  const FLOW_STALE_SINCE = 1772946669418;
+  const flowRefIds = new WeakMap();
+  let flowRefSeq = 0;
+  function flowRefId(obj){
+    if (!obj || typeof obj !== "object") return "null";
+    let id = flowRefIds.get(obj);
+    if (!id) {
+      flowRefSeq += 1;
+      id = `game_ref_${flowRefSeq}`;
+      flowRefIds.set(obj, id);
+    }
+    return id;
+  }
+  function flowAuditGameState(source){
+    const src = String(source || "game.js");
+    const s = (Game && Game.__S && typeof Game.__S === "object") ? Game.__S : null;
+    const hasFlags = !!(s && s.securityFlags && typeof s.securityFlags === "object");
+    const keys = hasFlags ? Object.keys(s.securityFlags).length : 0;
+    try {
+      console.log(`[FLOW_AUDIT] game-state-store source=${src} stateRef=${flowRefId(s)} hasSecurityFlags=${hasFlags ? "true" : "false"} keys=${keys}`);
+    } catch (_) {}
+    if (hasFlags) {
+      const me = s.securityFlags.me;
+      const since = Number(me && me.since);
+      if (Number.isFinite(since) && since === FLOW_STALE_SINCE) {
+        try {
+          console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${FLOW_STALE_SINCE} source=${src} action=seen`);
+        } catch (_) {}
+      }
+    }
+  }
 
   Game.__S = {
     me: null,
@@ -35,6 +66,7 @@ window.Game = window.Game || {};
 
     timers: { chat:null, npcBattle:null, events:null }
   };
+  flowAuditGameState("game.js:init");
 
   function $(id){ return document.getElementById(id); }
 
@@ -45,6 +77,7 @@ window.Game = window.Game || {};
   // Core
   Game.Core = {
     login(name){
+      flowAuditGameState("Game.Core.login:before");
       const nick = String(name||"").trim().toLowerCase();
       if (!nick) return false;
 
@@ -120,6 +153,7 @@ window.Game = window.Game || {};
       if (Game.UI && typeof Game.UI.renderAll === "function") {
         Game.UI.renderAll();
       }
+      flowAuditGameState("Game.Core.login:after");
 
       return true;
     },
@@ -182,6 +216,7 @@ window.Game = window.Game || {};
     },
 
     resetAll(){
+      flowAuditGameState("Game.Core.resetAll:before");
       // мягкий ресет в рамках страницы
       try{
         clearTimeout(Game.__S.timers.chat);

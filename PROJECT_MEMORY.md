@@ -3726,3 +3726,68 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `node --check AsyncScene/Web/state.js` -> OK
 - Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md`
 - Next: QA runtime reload на prod: до violation `Game.SecurityPolicy.getFlag("me") === null` и call/vote не блокируются.
+
+### 2026-03-08 — FLOW_AUDIT: живой authoritative perma writer + post-finishBoot event attribution
+- Status: FAIL (ожидается runtime-smoke пользователем)
+- Facts:
+  - Повторный аудит текущего `AsyncScene/Web/state.js` подтвердил: authoritative `perma_flag` пишется только в живом runtime-пути `ReactionPolicy.handleEvent(...) -> setFlagForPlayer(... authority=AUTHORITATIVE) -> runtimePermaProofPlayers.add(playerId)`.
+  - Restore-only ветка сейчас не создает авторитетный perma: `restorePersistedFlags()` очищает `State.securityFlags` и не вызывает `setFlagForPlayer` для bootstrap restored players.
+  - Добавлены стабильные логи требуемого формата:
+    - `[FLOW_AUDIT] post-finishBoot-security-event ...` в `Security.emit` (только после `finishBoot`, т.к. до этого `SEC.bootPhase` блокирует emit).
+    - `[FLOW_AUDIT] authoritative-perma-write ...` при записи authoritative `PERMA_FLAG`.
+    - `[FLOW_AUDIT] runtime-proof-add ...` при `runtimePermaProofPlayers.add(...)`.
+    - `[FLOW_AUDIT] state-securityflags-write ...` на всех живых присваиваниях/удалениях `State.securityFlags` внутри policy + resetAll.
+    - `[FLOW_AUDIT] getFlag-result ...` сохранен и используется как финальный факт выдачи блокировки.
+  - Проверка на второй источник состояния: в текущем коде нет второй карты security-флагов кроме `State.securityFlags`; `persistedPerma` используется как storage-буфер и не участвует в `getFlag` напрямую.
+  - Потенциальный живой стартовый источник security-событий после boot: `conflict/conflict-core.js` (`emitConflictEvent`) через Proxy-хуки (`forbidden_api_access`/`tamper_detected`) при доступе к `computeOutcome`.
+- Evidence:
+  - `AsyncScene/Web/state.js` (Security.emit, createReactionPolicy)
+  - `AsyncScene/Web/conflict/conflict-core.js` (emitConflictEvent, wrapConflictCore)
+- Verification:
+  - `node --check AsyncScene/Web/state.js` -> OK
+
+### 2026-03-08 — FLOW_AUDIT hardening: preboot stale `since` attribution + purge
+- Status: PASS (код + синтаксис), runtime-подтверждение пользователем
+- Facts:
+  - По инварианту timestamp: `since=1772946669418` (`2026-03-08T05:11:09.418Z`) устойчив между reload, значит источник не fresh runtime emit этого boot.
+  - По текущему коду writer `State.securityFlags` централизован в `AsyncScene/Web/state.js`; добавлен тотальный аудит replacement/merge для доказательства точного source в рантайме.
+  - Добавлен boot-time baseline `BOOT_TIME_MS` и preboot stale purge для `perma_flag`: любые `since < BOOT_TIME_MS` удаляются до блокировок call/vote, с очисткой persist.
+- Added FLOW_AUDIT logs:
+  - `[FLOW_AUDIT] stale-flag-origin player=<id> since=<since> bootTime=<boot> source=<module/function>`
+  - `[FLOW_AUDIT] securityflags-replace source=<module/function> keys=<count>`
+  - `[FLOW_AUDIT] securityflags-merge player=<id> level=<level> since=<since> source=<module/function>`
+  - `[FLOW_AUDIT] stale-flag-detected player=<id> since=<since> preboot=<true|false> authoritative=<true|false>`
+  - `[FLOW_AUDIT] getFlag-result ... since=<since|null>`
+- Implementation notes:
+  - `State.securityFlags` теперь под accessor + Proxy аудитом (replace/defineProperty/set/deep-merge).
+  - Добавлен `purgePrebootStaleFlags(...)` в `ensureFlagStateFinalized`, `restorePersistedFlags:post_apply`, `isActionBlocked`, `getFlag`.
+  - Это устраняет surviving stale perma даже если старый объект повторно копируется/мерджится после restore.
+- Verification:
+  - `node -e "new Function(fs.readFileSync('AsyncScene/Web/state.js','utf8'))"` -> `parse_ok`
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md`
+
+### 2026-03-08 — FLOW_AUDIT fingerprint trace `since=1772946669418` (data-flow instrumentation)
+- Status: FAIL (root-cause не закрыт без runtime-доказательства)
+- Facts:
+  - В `AsyncScene/Web/game.js` добавлены FLOW_AUDIT-точки для bootstrap-пути `Game.__S` (`game-state-store`) и fingerprint-read (`action=seen`) в `init/login/resetAll`.
+  - В `AsyncScene/Web/state.js` добавлен строгий трассинг по fingerprint `since=1772946669418`:
+    - `[FLOW_AUDIT] policy-instance-created id=<id> bootTime=<boot>`
+    - `[FLOW_AUDIT] finalize-call id=<id> source=<source> beforeKeys=<count> afterKeys=<count>`
+    - `[FLOW_AUDIT] securityflags-me-write since=<since> level=<level> authority=<authority> source=<module/function>`
+    - `[FLOW_AUDIT] securityflags-object-replaced source=<module/function> sameRef=<true|false> keys=<count>`
+    - `[FLOW_AUDIT] stale-flag-fingerprint since=1772946669418 source=<module/function> action=<seen|write|replace|return>`
+    - `[FLOW_AUDIT] getFlag-result ... policyId=<id>`
+  - Добавлена обязательная трасса вызовов: `ensureFlagStateFinalized`, `restorePersistedFlags`, `getFlag`, `isActionBlocked`.
+  - Добавлена трасса ссылочной целостности:
+    - `state-store-binding` (сравнение `Game.__S` и внутреннего `State`)
+    - `policy-binding` (сравнение `Game.SecurityPolicy` и локального policy-instance)
+    - `statejs-executed` (детектор повторного исполнения `state.js`)
+  - По текущему коду writer-операции, способные вернуть stale-объект в `State.securityFlags["me"]`:
+    1) `setFlagForPlayer(...)` -> `State.securityFlags[key] = entry`
+    2) внешний re-assign `State.securityFlags = <obj>`/`State.securityFlags["me"] = <obj>` (через Proxy setter/set trap)
+    3) temp-refresh ветка `setFlagForPlayer` (мутация `current.since` для `me`)
+  - Эвристические чистки не добавлялись; anti-cheat логика не ослаблялась.
+- Verification:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `node --check AsyncScene/Web/game.js` -> OK
+- Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/game.js` `PROJECT_MEMORY.md`
