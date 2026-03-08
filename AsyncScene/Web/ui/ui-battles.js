@@ -1669,9 +1669,18 @@ UI.renderBattles = () => {
               res = Game.Conflict.startWith(cid);
             }
           } catch (_) {}
-          if (res && res.ok === false && (res.reason === "no_points" || res.reason === "insufficient")) {
-            UI.showStatToast("points", "Пойнтов не хватает.");
-            return;
+          if (res && res.ok === false) {
+            if (res.reason === "security_blocked") {
+              const blockerText = res.blocker || "security_flag";
+              const msg = `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`;
+              if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg);
+              try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
+              return;
+            }
+            if (res.reason === "no_points" || res.reason === "insufficient") {
+              UI.showStatToast("points", "Пойнтов не хватает.");
+              return;
+            }
           }
 
           // Close input and return to button

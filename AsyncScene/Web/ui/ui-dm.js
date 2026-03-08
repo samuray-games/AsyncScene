@@ -840,6 +840,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         // Penalty (-5) must apply ONLY when player presses an attack (вброс) in conflict-core.js.
         const res = Game.Conflict.startWith(withId);
         if (!res || !res.ok) {
+          if (res && res.reason === "security_blocked") {
+            const blockerText = res.blocker || "security_flag";
+            dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+            try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
+            UI.renderDM();
+            return;
+          }
           dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай человеку передохнуть." : "Не залетело.");
           UI.renderDM();
           return;
@@ -867,6 +874,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
       const res = Game.Conflict.startWith(withId);
       if (!res.ok) {
+        if (res.reason === "security_blocked") {
+          const blockerText = res.blocker || "security_flag";
+          dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+          try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
+          UI.renderDM();
+          return;
+        }
         dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай человеку передохнуть." : "Не залетело.");
         UI.renderDM();
         return;

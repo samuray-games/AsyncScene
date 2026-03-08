@@ -1632,22 +1632,6 @@
     } catch (_) {}
   }
 
-  function withRepSourceOverride(fn){
-    try {
-      const API = (Game && Game.__A) ? Game.__A : null;
-      if (!API || typeof API.transferRep !== "function") return fn();
-      const orig = API.transferRep;
-      API.transferRep = function(fromId, toId, amount, reason, battleId){
-        const src = (String(fromId || "") === "crowd_pool") ? "rep_emitter" : fromId;
-        return orig.call(this, src, toId, amount, reason, battleId);
-      };
-      try { return fn(); }
-      finally { API.transferRep = orig; }
-    } catch (_) {
-      return fn();
-    }
-  }
-
   function logCrowdCapDebugRaw(meta){
     if (!meta) return;
     const dbg = Game.__D || (Game.__D = {});
@@ -1747,6 +1731,15 @@
       else if (side === "b" || side === "defender") b += w;
     }
     return { a, b };
+  }
+
+  function conflictAuditLog(message){
+    if (!message) return;
+    try { console.warn(message); } catch (_) {}
+  }
+
+  function logBattleVoteAllowedFlow(flow){
+    conflictAuditLog(`[SEC_AUDIT] battle-vote-allowed-api-only flow=${String(flow || "unknown")}`);
   }
 
   function resolveCrowdCore(crowd, ctx, participants){
@@ -2331,6 +2324,7 @@
     }
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const relate = { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    logBattleVoteAllowedFlow("battle");
     const res = resolveCrowdCore(v, relate, participants);
     const totalVotes = getCrowdTotalVotes(v);
     const customEndedBy = (opts && typeof opts.endedBy === "string") ? opts.endedBy : null;
@@ -2424,18 +2418,18 @@
         }
       } else {
         b.resultLine = "Победа";
-        withRepSourceOverride(() => applyEconomyForOutcome(b.result, b));
+        applyEconomyForOutcome(b.result, b);
       }
     } else if (attackerWins) {
       b.result = iAmAttacker ? "win" : (iAmDefender ? "lose" : "win");
-      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
-      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
+      if (iAmAttacker) applyEconomyForOutcome("win", b);
+      if (iAmDefender) applyEconomyForOutcome("lose", b);
       b.note = "Толпа решила: атакующий затащил.";
       b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
     } else {
       b.result = iAmDefender ? "win" : (iAmAttacker ? "lose" : "lose");
-      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
-      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
+      if (iAmDefender) applyEconomyForOutcome("win", b);
+      if (iAmAttacker) applyEconomyForOutcome("lose", b);
       b.note = "Толпа решила: защитник отбился.";
       b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
     }
@@ -2475,6 +2469,7 @@
     if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const relate = { kind: "escape", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    logBattleVoteAllowedFlow("escape");
     const res = resolveCrowdCore(v, relate, participants);
     const votesA = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : (v.votesA | 0);
     const votesB = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : (v.votesB | 0);
@@ -4175,7 +4170,12 @@
   }
 
   function wrapConflictCore(core){
-    if (!core || core.__intrusionWrapped) return core;
+    if (!core) return core;
+    if (conflictMode !== "dev") {
+      conflictAuditLog("[SEC_AUDIT] prod-debug-hook-disabled hook=conflict-core.computeOutcome");
+      return core;
+    }
+    if (core.__intrusionWrapped) return core;
     const handler = {
       get(target, prop, receiver){
         if (prop === "computeOutcome") {

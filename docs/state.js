@@ -3,6 +3,7 @@ window.Game = window.Game || {};
 
 (() => {
   const Game = window.Game;
+  try { console.log("[SEC_BOOT_FILE]", "docs/state.js"); } catch (_) {}
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
   let ReactionPolicy = null;
   const REP_EMITTER_DAILY_CAP = 20;
@@ -6671,7 +6672,7 @@ window.Game = window.Game || {};
         level = LEVELS.LOG_ONLY;
       } else {
         if (typeKey === "perma_flag_restore") {
-          level = LEVELS.PERMA_FLAG;
+          level = LEVELS.LOG_ONLY;
         }
         if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
           level = LEVELS.PERMA_FLAG;

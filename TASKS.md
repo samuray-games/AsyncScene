@@ -45,14 +45,7 @@
   - Changed: `<file>` `<file>`
   - How to verify: <1–3 шага проверки>
   - Next: <кого созвать смотреть TASKS.md дальше и почему>
-  - Next Prompt (копипаст, кодблок обязателен):
-      ```text
-      Ответ Проверяющего:
-      1) На 3 подряд incoming_battle проверьте `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
-      2) Для r vs y и y vs r найдите `BATTLE_CANON_YR_LOCK_V1` с `forcedNoCrowd:1`, затем убедитесь что `BATTLE_CANON_RESOLVE_V1` не draw и по тем же battleId нет `CROWD_CREATE_*`.
-      3) После hard reload dev=1 запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем приложите `DUMP_AT`, `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}`, как минимум 10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен) и `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON2` с `ok:true`, `uniqueTypes>=2`, `ynShare<=0.7`.
-      4) Как только QA прикрепит Console.txt с перечисленными маркерами и JSON-выводом смоука — задачу можно переводить в PASS.
-      ```
+  - Next Prompt: <краткий текст/ссылка для следующего исполнителя; формат свободный, без обязательных кодблоков>
 
 ```
 
@@ -63,11 +56,8 @@
 - В `Files` указывать реальные пути (хотя бы 1), чтобы сразу было понятно где править.
 - Если вы “проверяете”, а не кодите (Дима) — ставьте `REVIEW` и пишите только PASS/FAIL + факты в `Result`.
 - Для интеграции (Валера) — задача считается `DONE`, когда пакет принят и не нарушены инварианты.
-- В каждом отчёте (`Report`/`Result`) обязательно указывать `Next` — кого звать смотреть таски дальше.
-- В каждом отчёте обязательно указывать `Next Prompt` — готовый промт для пересылки следующему исполнителю.
-- `Next Prompt` всегда оформлять кодблоком (например ```text ... ```), чтобы его можно было копировать без мусора.
-- Золотое правило эстафеты: в ответе в чат помимо фактов всегда вставляйте `Next Prompt` отдельным кодблоком (тот же текст, что в `TASKS.md`).
-- Нельзя ставить `DONE/REVIEW`, если `Next Prompt` не заполнен.
+- В каждом отчёте (`Report`/`Result`) достаточно указывать `Next` — кого привлекать дальше; `Next Prompt` можно не использовать.
+- `Next Prompt` при необходимости может быть простым текстом; не требуется кодблок или фиксированный префикс.
 - После каждой публикации не вставляй блок
   `wave 5: ...` / `фаза Economy (текущие задачи): ...` / `весь проект (текущие задачи): ...` — больше не нужно повторять его в ответах.
 
@@ -102,7 +92,7 @@
       2) В Console найти `[SEC_RESTORE_SOURCE]` и убедиться, что при legacy-данных появляется `[SEC_RESTORE_SKIP]` + `[SEC_RESTORE_REASON]`, а `Game.SecurityPolicy.getFlag("me")` возвращает `null`.
       3) Убедиться, что можно начать баттл и голосовать; нет причины `security_blocked`.
     - Next: QA
-    - Next Prompt (копипаст, кодблок обязателен):
+    - Next Prompt:
       ```text
       QA:
       1) Откройте https://samuray-games.github.io/AsyncScene/ без `?dev=1`, сделайте hard reload.
@@ -110,6 +100,74 @@
       3) Убедитесь, что `Game.SecurityPolicy.getFlag("me")` = null, и баттл стартует без `security_blocked`.
       4) Приложите краткое подтверждение (Console.txt/скрин).
       ```
+
+### [T-20260308-004] Restore-only perma flag cleanup
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Core|Security
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Исключить из blocking-потока perma-флаги, которые живут только в localStorage и не имеют runtime-доказательств, сохранив легитимные penalties и добавив recovery path.
+- Acceptance:
+  - [x] `restorePersistedFlags` пишет `[FLOW_AUDIT] perma-flag-restore-read`, отличает strong proof от restore-only reason и не реанимирует подозрительные записи.
+  - [x] Подозрительные записи логируют `[FLOW_AUDIT] perma-flag-restore-downgrade` + `[FLOW_AUDIT] perma-flag-restore-discard`, `identity-bind-flag` фиксирует `accepted=false`, и call/vote не блокируются до реального security event.
+  - [x] Хранилище очищается автоматически при обнаружении таких записей (recovery path), а legit perma-флаги остаются после нового события.
+- Notes: Логика доставки флагов прежняя — добавляем проверку `reason`, прозрачные downgrade/discard-логи и автоматическое удаление stale-entries, чтобы нормальный игрок сразу разблокировался.
+- Result:
+  - Report:
+    - Status: PASS
+    - Facts:
+      1) `normalizeFlagEntry` сохраняет `type`, `persistPermaFlags` записывает его, а `restorePersistedFlags` проверяет `reason` на strong proof, логирует `[FLOW_AUDIT] perma-flag-restore-*` и `[FLOW_AUDIT] identity-bind-flag` перед привязкой.
+      2) Подозрительные записи получают `TEMP_BLOCK` с `until=now`, ручку downgrade/discard и cleanup `AsyncScene_security_perma_flags_v1`, что нейтрализует poisoned localStorage до следующего старта.
+      3) Legit perma-флаги переживают проверку, call/vote доступны до новой security event, и recovery path стер localStorage без выключения valid penalties.
+    - Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+    - How to verify:
+      1) Вставьте в localStorage ключ `AsyncScene_security_perma_flags_v1` со значением `{"flags":{"me":{"since":1,"reason":"restored_security_state","type":"perma_flag_restore"}},"source":"runtime","stamp":1}` и hard reload prod (без ?dev=1). В Console.txt должны появиться `[FLOW_AUDIT] perma-flag-restore-read ... valid=false`, `[FLOW_AUDIT] perma-flag-restore-downgrade ...`, `[FLOW_AUDIT] perma-flag-restore-discard ...`, а `Game.SecurityPolicy.getFlag("me")` до реального нарушения остаётся `null`, call/vote проходят и пишут `[FLOW_AUDIT] isActionBlocked ... blocked=false`.
+      2) После такого запуска localStorage либо не содержит `AsyncScene_security_perma_flags_v1`, либо ключ переписан пустым envelope.
+      3) Спровоцируйте настоящий tamper/perma-flag (например, через dev сценарий) и убедитесь, что `Game.SecurityPolicy.getFlag("me")` снова возвращает флаг, `[FLOW_AUDIT] identity-bind-flag ... accepted=true` появляется, и call/vote блокируются по реальным причинам. Приложите Console.txt, если всё ок — PASS.
+    - Next: —
+    - Next Prompt:
+        ```text
+        
+        1) Создайте в localStorage ключ `AsyncScene_security_perma_flags_v1` с записью `{"flags":{"me":{"since":1,"reason":"restored_security_state","type":"perma_flag_restore"}},"source":"runtime","stamp":1}` и hard reload prod (без ?dev=1). В Console.txt должны появиться `[FLOW_AUDIT] perma-flag-restore-read ... valid=false`, `[FLOW_AUDIT] perma-flag-restore-downgrade ...`, `[FLOW_AUDIT] perma-flag-restore-discard ...`, и `Game.SecurityPolicy.getFlag("me")` остаётся `null` до реального нарушения.
+        2) После такого запуска проверьте localStorage: ключ либо удалён, либо переписан пустым envelope.
+        3) Вызовите настоящий `perma_flag` (например, через dev tamper). Убедитесь, что `Game.SecurityPolicy.getFlag("me")` снова возвращает flag, `[FLOW_AUDIT] identity-bind-flag ... accepted=true` логируется, и call/vote блокируются логично. Приложите Console.txt — если всё ок, PASS.
+        ```
+
+### [T-20260308-005] Harden restore-only perma flag bootstrap
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Core|Security
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Запретить restore-only записи (`type="perma_flag_restore"`/`reason="restored_security_state"`) блокировать игрока после запуска, обеспечить трейсинг start-to-getFlag и чистку poisoned storage без dev-дамп.
+- Acceptance:
+  - [x] `[FLOW_AUDIT] perma-flag-bootstrap-source` появляется для каждой сохраняемой записи и показывает accepted=false для restore-only payload, accepted=true для legit penalties.
+  - [x] `[FLOW_AUDIT] perma-flag-restore-rejected` + `[FLOW_AUDIT] poisoned-storage-cleanup` фиксируютreject/cleanup, и `Game.SecurityPolicy.getFlag("me")` возвращает null с `[FLOW_AUDIT] getFlag-result ... level=null`.
+  - [x] После такого bootstrap call/vote не блокируются до появления нового security event, `isActionBlocked`/`getFlag-result` логируют `blocked=false` и `level=null` соответственно.
+- Notes: Логика получения флагов не меняется; блокада может появиться только после реального runtime-события, а слушатели видят нулевой уровень через `[FLOW_AUDIT] getFlag-result`.
+- Result:
+  - Report:
+    - Status: PASS
+    - Facts:
+      1) В restore-процессе теперь обязательно проверяется `type`, а `perma_flag_restore`/`restored_security_state` записей категорично отклоняются, logPermaFlagBootstrapSource и logPermaFlagRestoreRejected фиксируют источник/причину.
+      2) Восстановленные restore-only записи получают TEMP_BLOCK с `until=now-1`; `poisoned-storage-cleanup` перезаписывает или убирает ключ, так что `Game.SecurityPolicy.getFlag("me")` и `isActionBlocked` видят `null`/`false` сразу после запуска.
+      3) `getFlag` теперь логирует `[FLOW_AUDIT] getFlag-result` при каждом обращении, поэтому call/vote трассируются без доступа к Console.txt.
+    - Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+    - How to verify:
+      1) Добавьте в localStorage ключ `AsyncScene_security_perma_flags_v1` со значением `{"flags":{"me":{"since":1,"reason":"restored_security_state","type":"perma_flag_restore"}},"source":"runtime","stamp":1}` и перезагрузите prod (без ?dev=1). В стандартных продовых логах/браузерной консоли должны появиться `[FLOW_AUDIT] perma-flag-bootstrap-source ... accepted=false`, `[FLOW_AUDIT] perma-flag-restore-rejected ...` и `[FLOW_AUDIT] poisoned-storage-cleanup ... removed=1` — без запроса Console.txt.
+      2) До реального нарушения `Game.SecurityPolicy.getFlag("me")` остаётся `null`, а `isActionBlocked`/`getFlag-result` показывают `blocked=false` и `level=null`, то есть call/vote можно выполнять и UI не сообщает о блокировке.
+      3) Спровоцируйте настоящий `perma_flag` (например, через dev tamper) и убедитесь, что `[FLOW_AUDIT] perma-flag-bootstrap-source ... accepted=true` пишется и блокировки возвращаются с причинами `security_blocked`.
+    - Next: QA
+    - Next Prompt:
+        ```text
+
+        1) Перезагрузите prod без `?dev=1` после того, как в localStorage появится `AsyncScene_security_perma_flags_v1` с `type:"perma_flag_restore"`/`reason:"restored_security_state"`.
+        2) Убедитесь, что в runtime-логах (браузерная консоль/серверные аудит-логи) есть `[FLOW_AUDIT] perma-flag-bootstrap-source player=me accepted=false`, `[FLOW_AUDIT] perma-flag-restore-rejected`, `[FLOW_AUDIT] poisoned-storage-cleanup changed=true removed=1` и `[FLOW_AUDIT] getFlag-result player=me level=null type=null`, при этом `isActionBlocked("me","call")`/`("vote")` фиксируют `blocked=false`.
+        3) Вызовите настоящий tamper/perma_flag и убедитесь, что `[FLOW_AUDIT] perma-flag-bootstrap-source ... accepted=true` и действия блокируются с `security_blocked`.
+        ```
 
 ### [T-20260303-008] Canon Y-R finalize lock + incoming attack type diversity V2
 - Status: FAIL
@@ -138,7 +196,7 @@
     2) На 3 подряд incoming_battle проверить `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
     3) Hard reload dev=1, запустить `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем `Game.__DUMP_ALL__()`. Убедиться, что `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` содержит `ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` с как минимум двумя допустимыми типами, `uniqueTypes>=2`, `ynShare<=0.6`; `JSON2` публикует 10 `runs` с `battleId`, `opponentId`, `type` (ненулевой) и без `finishError`. В Console.txt рядом: `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 строк `ATTACK_TYPE_DIVERSITY_V2` (reason≠`desired:yn`, `availableTypes.length>=2`, `selectedType` разнообразен). Прикрепить этот Console.txt с DUMP и маркерами.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       Ответ Проверяющего:
       1) На 3 подряд incoming_battle проверьте `ATTACK_TYPE_DIVERSITY_V2`: `availableTypes` длиной ≥2 и `selectedType` не всегда `yn`.
@@ -146,7 +204,7 @@
       3) После hard reload dev=1 запустите `Game.__DEV.smokeAttackTypeDiversity_IncomingOnce({ n: 10 })`, затем `Game.__DUMP_ALL__()`. `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_JSON1` должен дать `ok:true`, `runsCount==10`, `attempts==10`, `captured==10`, `typeCounts` на два+ типа, `uniqueTypes>=2`, `ynShare<=0.6`, а `JSON2` — 10 `runs` с `battleId/opponentId/type` (type не `null`) и без `finishError`. В Console.txt рядом есть `CONFLICT_ARGUMENTS_LOADED_OK_V1 {hasDiversityV2:true}` и ≥10 `ATTACK_TYPE_DIVERSITY_V2` с `availableTypes.length>=2`, `reason`≠`desired:yn`, `selectedType` разнообразен. Приложите этот Console.txt и DUMP — тогда можно переводить в PASS.
       4) Как только QA прикрепит Console.txt с перечисленными маркерами и JSON-выводом смоука — задачу можно переводить в PASS.
       ```
-      Ответ QA:
+      
       1) Прогоните 5–10 боёв y-r и r-y, включая красного ветерана против жёлтой защиты и красного злодея против жёлтой защиты, чтобы покрыть оба сценария.
       2) В Console.txt проверьте на каждое `battleId`:
          - `BATTLE_CANON_YR_LOCK_V3` фиксирует `forcedNoCrowd:1`, `reason:"yr_lock"`, `tierDistance:2`, и `forcedOutcome` красного.
@@ -181,9 +239,9 @@
     2) Убедиться, что `[ConflictAPI] Missing core module` больше не появляется и ConflictAPI теперь логирует, что core найден (`core:true`).
     3) Приложить вывод или `Console.txt` с новым сигналом, тогда можно перевести задачу в PASS.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       1) Перезагрузите http://localhost:8080/index.html?dev=1 и следите за Console.txt: теперь должен появиться `CONFLICT_CORE_LOADED_OK_V1` с `ts`/`buildTag`, а `SyntaxError: Unexpected keyword 'finally'` и `[ConflictAPI] Missing core module` больше не должны появляться.
       2) После загрузки убедитесь, что `ConflictAPI` видит `core:true` и что больше нет упоминаний `core:false`.
       3) Пришлите подтверждение runtime (скриншот/Console.txt) — тогда задача становится PASS.
@@ -212,7 +270,7 @@
     1) Убедиться, что `PROGER_RULES.md` существует в корне и содержит точно заданный текст.
     2) Посмотреть PROJECT_MEMORY.md для блока `### 2026-03-03 — PROGER rules doc added` и подтвердить, что TASKS.md включает задачу `[T-20260303-005]`.
   - Next: —
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       Ответ Прогера:
       1) Убедись, что PROGER_RULES.md в корне репозитория и точно копирует указанный текст.
@@ -243,9 +301,9 @@
     1) Открыть https://samuray-games.github.io/AsyncScene/ и убедиться, что игра загружается без 404 и консоль логирует `DEV_INDEX_HTML_PROOF_V1`.
     2) Проверить Network: `dev/dev-checks.js`, `state.js`, `ui/ui-core.js` и другие скрипты возвращают 200 и не ломают загрузку.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       1) Перейди по https://samuray-games.github.io/AsyncScene/ и убедись, что страница открывается без 404 и в консоли выводится `DEV_INDEX_HTML_PROOF_V1`.
       2) Посмотри Network: `dev/dev-checks.js`, `state.js`, `ui/ui-core.js` и остальные скрипты возвращают 200.
       3) Сообщи результат — тогда задачу можно закрыть.
@@ -278,9 +336,9 @@
     2) В Console.txt найти `BATTLE_CANON_RESOLVE_V1`: tierDistance=2, outcome не draw, crowdStarted=0.
     3) Убедиться, что y-r даёт победу красного (defender win), r-y даёт победу красного (attacker win).
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       1) Сделай 5–10 боёв с y-r и r-y, плюс один black vs non-black.
       2) Проверь Console.txt: `BATTLE_CANON_RESOLVE_V1` показывает `tierDistance=2`, `outcome≠draw`, `crowdStarted=0`.
       3) Убедись, что в тех же баттлах нет `CROWD_CREATE_*`, а `BATTLE_CANON_YR_LOCK_V2` появляется.
@@ -314,9 +372,9 @@
     2) Проверить в Console.txt наличие `BATTLE_CANON_RESOLVE_V1` с корректными полями и `crowdStarted` только при draw.
     3) Против toxic/bandit убедиться, что `robberyAllowed`=1 только при wrong type + lose и что при draw грабёж не происходит.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       1) Включи dev режим и сыграй 2–3 входящих баттла с комбинациями: y-y, y-o, y-r, black vs non-black.
       2) Проверь в Console.txt маркер BATTLE_CANON_RESOLVE_V1: outcome=attacker_win/defender_win/draw, crowdStarted=1 только при draw, tierDistance 0/1/2.
       3) На токсике/бандите: wrong type => lose с robberyAllowed=1; correct type => draw без robbery.
@@ -349,9 +407,9 @@
     2) Сыграть один входящий баттл вручную: выбрать правильный контраргумент и убедиться, что crowd не стартовал (визуально).
     3) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` и `__DUMP_ALL__()`.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       1) Сделай hard reload dev страницы.
       2) Сыграй один входящий баттл вручную: выбери правильный контраргумент и убедись, что crowd не стартовал (визуально).
       3) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce().
@@ -384,9 +442,9 @@
     2) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()`, собрать `BATTLE_OUTCOME_GATE_V3`, `DEV_OUTCOME_GATE_V2`, `CROWD_CREATE_CALLSITE_V1` (если есть) и `__DUMP_ALL__()`.
     3) PASS, если smoke возвращает `status:"PASS"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и в Console есть `DEV_OUTCOME_GATE_V2 skippedCrowd:true` плюс отсутствие / expected callsite.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
       (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
       (3) PASS, если smoke дал `ok:true`, `event.statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и `DEV_OUTCOME_GATE_V2 skippedCrowd:true`; приложи Console с BATTLE_OUTCOME_GATE_V3 + (если есть) CROWD_CREATE_CALLSITE_V1 и дамп.
@@ -416,9 +474,9 @@
     2) Выполнить `Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce()` и подтвердить `ok:true`, `statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`.
     3) Выполнить `__DUMP_ALL__()` и убедиться, что incoming_resolved карточка показывает только одну пару «Его аргумент»/«Мой контраргумент».
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
       (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce() и проверь `ok:true`, `statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`.
       (3) Вызови __DUMP_ALL__() и убедись, что в карточке исхода есть только один блок «Его аргумент» и один блок «Мой контраргумент».
@@ -449,9 +507,9 @@
     2) Выполнить Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
     3) PASS, если smoke возвращает ok:true, statusAfter==="finished", canonMatchOk:true, crowdStarted:false, devGateSkippedCrowd:true и в консоли нет DEV_SMOKE_DEFENSE_V1 result:"needsCrowd"; приложи DEV_OUTCOME_GATE_V2.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
       (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
       (3) PASS, если smoke дал ok:true, statusAfter==="finished", canonMatchOk:true, crowdStarted:false, devGateSkippedCrowd:true и в консоли нет DEV_SMOKE_DEFENSE_V1 result:"needsCrowd"; приложи DEV_OUTCOME_GATE_V2.
@@ -484,9 +542,9 @@
     3) Убедиться, что `BATTLE_OUTCOME_GATE_V3` содержит `selectedDefenseArgId`/`selectedDefenseArgKey`, и battle не остаётся в `pickDefense`.
     4) Вызвать `__DUMP_ALL__()` и убедиться, что нет `EVENT_STALL_DIAG_V1`/`EVENT_GEN_SKIP_V1` блокировки.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
-      Ответ QA:
+      
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1.
       (2) Выполни Game.__DEV.smokeBattle_CanonMatch_NoCrowdOnce(), затем __DUMP_ALL__().
       (3) PASS, если smoke дал `ok:true`, `event.statusAfter==="finished"`, `crowdStarted:false`, `crowdCreateAttempted:false`, `v3GatePayload.canonMatchOk:true`, `willResolveNow:true`, `willStartCrowd:false`, и `DEV_OUTCOME_GATE_V2 skippedCrowd:true`; приложи Console с BATTLE_OUTCOME_GATE_V3 + (если есть) CROWD_CREATE_CALLSITE_V1 и дамп.
@@ -520,7 +578,7 @@
     2) Выполнить `Game.__DEV.smokeBattleProvocation_ZeroPointsOnce({ npcId:"npc_bandit", attempts:50, repeatRuns:5, devSmoke:true, channel:"chat" })`.
     3) PASS, если JSON показывает `ok:true` и `acceptedRateEligible` в `[0.10,0.20]`, а также `dmSentCount===refusals`, `uniqueRefusals>=3`, `cooldownSkips>0`.
   - Next: —
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       E[4] закрыт PASS: smoke возвращает `ok:true`, `acceptedRateEligible` в диапазоне, `dmSentCount===refusals`, ротация отказов и кулдауны работают.
       ```
@@ -550,7 +608,7 @@
     (2) Выполни `Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"})` дважды подряд без перезагрузки и зафиксируй `SMOKE_VILLAIN_FROMTHEM_V1_JSON` + фрагмент Console.
     (3) PASS, если оба вызова возвращают `ok:true`, `resolvedN === 3`, `perCase.win/lose/draw` заполнены, `cases.*.outcome === force`, только `cases.lose.penaltyApplied === true`, `diag.perCase.*.createPath`/`diag.createPath` отражают реальные источники, и в консоли появились три `BATTLE_RESOLVE_VILLAIN` (win/lose/draw) + по крайней мере один `CONFLICT_GUARD_BYPASS_V1` (вместе с `CONFLICT_COOLDOWN_BYPASS_V1`, если был обход). Приложи JSON + Console.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       (1) Сделай hard reload http://localhost:8080/index.html?dev=1, чтобы DevTools взяли `SMOKE_VILLAIN_FROMTHEM_IMPL_V2`.
       (2) Выполни Game.__DEV.smokeVillainFromThemResolveOnce({villainId:"npc_bandit"}) два раза подряд без перезагрузки.
@@ -585,7 +643,7 @@
     (2) Run `Game.__DEV.smokeLowEconomy_ZeroPointsOnce({ ticks: 400, maxSilentStreak: 90 })`.
     (3) PASS, если Console содержит `SMOKE_LOW_ECON_V1_BEGIN/JSON/END`, `SMOKE_ZERO_POINTS_ASSERT_V1 ok:true`, `EVENT_LOW_ECON_MODE_V2 enabled:true`, `EVENT_GEN_SKIP_V1` с reason, `EVENT_SILENT_BREAKER_V1`, и JSON показывает `ok:true`, `createdTotal>0`, `maxSilentStreak<=90`, `createdTargetingMe>0` ИЛИ `myAvailableActionsCount>0`; приложи DUMP_AT.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       Ответ Проверяющего:
       (1) Hard reload http://localhost:8080/index.html?dev=1.
@@ -619,7 +677,7 @@
     (2) Run `Game.__DEV.smokeBattle_NoPhantomCrowd_20WinsOnce({ n: 20, answerMode: "always_correct", allowParallel: true })`.
     (3) PASS, если `SMOKE_NO_PHANTOM_CROWD_V1_JSON` показывает `wins==20`, `draws==0`, `losses==0`, `phantomCrowdCount==0`, `tailReasons` содержит финальные resolve-маркеры, и Console содержит `BATTLE_RESOLVE_DIAG_V1`, `BATTLE_CROWD_SET_DIAG_V1`/`BATTLE_CROWD_SUPPRESSED_DIAG_V1`, `BATTLE_UI_DECISION_DIAG_V1` без crowd после resolve.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       Ответ Проверяющего:
       (1) Hard reload http://localhost:8080/index.html?dev=1.
@@ -656,7 +714,7 @@
     2) Run `Game.__DEV.smokeBattle_CounterArg_NoUnexpectedCrowdOnce()` and confirm Console logs include `DEV_OUTCOME_GATE_V2 {forcedResolved:true, skippedCrowd:true}`, there are no `CROWD_CREATE_V1` for that battle, and the JSON reports `crowdStarted:false`, `result!=null`.
     3) Run `Game.__DEV.smokeBattle_Draw_CrowdCapAndVotesAccumulateOnce()` to ensure the crowd warms up → voting, NPC votes bump `votesTotal`, and `ended:true`/`votesTotal>0`, while no `CROWD_STALL_V1_PROGRESS 0|0|0` remains.
   - Next: QA (attach DUMP_AT + markers)
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       QA instructions:
       (1) Hard reload http://localhost:8080/index.html?dev=1.
@@ -694,7 +752,7 @@
     (3) Повтори 3 раза, убедись, что ARM/EXPIRE не спамятся, cap-резолвы бывают раньше с `resolvedBy:"cap"`, а `CROWD_DIAG_V1` содержит `whyVotersZero`/`timeDomain:"epoch"`.
     (4) Собери Console/DUMP с маркерами ARM/EXPIRE/RESOLVE и добавь `DUMP_AT` + ключевые поля (timeDomain, startedAtMs, now, lastProgressAtMs, armCount).
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       QA instructions:
       (1) Hard reload http://localhost:8080/index.html?dev=1 и запусти draw/баттл (например через Game.ConflictCore.startWith); убедись, что первые 60 с UI пишет только “Голосование идёт” и в Console нет `CROWD_STALL_*`.
@@ -731,7 +789,7 @@
    (2) Run `Game.__DEV.smokePublicChatCopQuotaOnce({n:100, seed:123})`.
    (3) PASS if JSON shows `forceCopSelections` > 0, `ratio` 0.05..0.15, `copCount` 3..15, and `notes` содержит `cop_fallback_only_cops` только при реальном fallback; иначе attach JSON and mark FAIL.
  - Next: QA
- - Next Prompt (копипаст, кодблок обязателен):
+ - Next Prompt:
      ```text
      Ответ по смоку:
      (1) Hard reload http://localhost:8080/index.html?dev=1.
@@ -767,9 +825,9 @@
   (2) Run `Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })`.
   (3) PASS if the mention message produces `repliesCount <= 1` and `replyAuthorId` equals the expected NPC, random samples (`roleCounts`) show villains > crowd, no role exceeds 70% share, diag contains `mentionDetected`, `chosenRole`, `randomReplies`, `randomDuplicates`, `totalRoleSamples`, `villainCount`, `crowdCount`; otherwise capture JSON and mark FAIL.
 - Next: QA
-- Next Prompt (копипаст, кодблок обязателен):
+- Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1.
     (2) Run `Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })`.
     (3) PASS if mention replies once (`repliesCount <= 1`, `replyAuthorId` matches the mentioned NPC) and random samples obey villains > crowd but no role share >70% (`roleCounts`, `randomReplies`, `randomDuplicates`, `totalRoleSamples`, `villainCount`, `crowdCount` appear in JSON); otherwise attach JSON and mark FAIL.
@@ -800,9 +858,9 @@
    Result: PASS (DUMP_AT 2026-02-17 22:36:39)
    Console evidence:
      Object{delta:{points:0,rep:0}, meta:{fromId:"me",toId:"npc_weak",nowTs:1771335399806,op:"respect",stub:true}, ok:true, reason:"rep_respect_given"}
-   Next Prompt (копипаст, кодблок обязателен):
+   Next Prompt:
    ```text
-   Ответ QA:
+   
    (1) Hard reload http://localhost:8080/index.html?dev=1 if needed.
    (2) const npcId = Object.keys(Game.State.players || {}).find(id => id && id.startsWith("npc_"));
    (3) console.log(Game.StateAPI.giveRespect("me", npcId, Date.now()));
@@ -835,9 +893,9 @@ Result: |
       (3) `Game.__DUMP_ALL__()`
       PASS if ECON_SOC_STEP5_JSON ok:true, drift=0, hasEmission=false, а enough/insufficient имеют transfer row; иначе FAIL.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1
     (2) Game.__DEV.smokeEconSoc_Step5_PenaltyHelperOnce({ window:{ lastN:200 } })
     (3) Game.__DUMP_ALL__()
@@ -866,9 +924,9 @@ How to verify:
   2. Run `console.log(Game.__DEV.smokeRespectLedgerOnce())`.
   3. Confirm results/reasons + ledger entry as described; dayKey should still match and rep log stays stubbed.
 Next: QA (archive once this entry is reviewed/smoke re-run if needed).
-Next Prompt (копипаст, кодблок обязателен):
+Next Prompt:
   ```text
-  Ответ QA:
+  
   (1) Reload http://localhost:8080/index.html?dev=1.
   (2) Run `console.log(Game.__DEV.smokeRespectLedgerOnce())`.
   (3) PASS if r1 ok:true; r2 reason=respect_pair_daily; r3 reason=respect_no_chain; r4 reason=respect_self; dayKey matches ledger entry in `lastByPairDay.me[npcId]`. Otherwise attach console object and mark FAIL.
@@ -976,9 +1034,9 @@ Next Prompt (копипаст, кодблок обязателен):
 - Facts:
   - `ok:true`, `failed:[]`, `summary.rowsChecked:9`, `summary.silentCount:0`.
   - Scenarios: battle ok (rowsCount:24), crowd ok (rowsCount:37), rematch ok (rowsCount:25), report ok (rowsCount:0), escape ok reason `no_econ_rows_expected` (nonfatal).
-- Next Prompt (копипаст, кодблок обязателен):
+- Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1.
     (2) Run `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()` and capture the console block containing `ECON_UI5_COVERAGE_BEGIN`/`END`.
     (3) PASS if the JSON result is `ok:true`, `failed:[]`, `summary.silentCount===0`, and `summary.rowsChecked` > 0; otherwise attach the logged JSON and mark FAIL.
@@ -1005,9 +1063,9 @@ Next Prompt (копипаст, кодблок обязателен):
 - Facts:
   - `ok:true`, `failed:[]`.
   - All scenarios delta=0: battle/crowd/report/rematch/escape with before/after totals equal.
-- Next Prompt (копипаст, кодблок обязателен):
+- Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1.
     (2) Run `Game.__DEV.smokeEconUi_ZeroSumOnce()` and capture `ECON_UI6_ZERO_SUM_BEGIN/END`.
     (3) PASS if `ok:true`, `failed:[]`, and each scenario has `delta<=0`; otherwise attach JSON and mark FAIL.
@@ -1032,9 +1090,9 @@ Next Prompt (копипаст, кодблок обязателен):
 - Facts:
   - Console.txt DUMP_AT 2026-02-19 23:23:29 captured `ECON_UI7_PACK_BEGIN`/`END` and `ECON_UI7_PACK_RESULT` with `ok:true`, `failed:[]`, `totalMs<=180000`, and each step reporting `ok:true` (rematch_3 now surfaces payer diagnostics instead of looping on `no_points`).
   - Console tape now records `CONSOLE_TAPE_RUN_RESULT_V1` with `isPromise:0` for `Game.__DEV.smokeEconUi_RegressionPackOnce()`.
-- Next Prompt (копипаст, кодоблок обязателен):
+- Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1.
     (2) Run `Game.__DEV.smokeEconUi_RegressionPackOnce()` and capture `ECON_UI7_PACK_BEGIN/END`.
     (3) PASS if `ok:true`, `failed:[]`, and `totalMs<=180000`; otherwise attach JSON and mark FAIL.
@@ -1067,17 +1125,17 @@ Next Prompt (копипаст, кодблок обязателен):
       (3) `Game.__DUMP_ALL__()`
       PASS if ECON_SOC_STEP6_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, reasonsTruth/reasonsFalse1 filled, rlKey1==rlKey2 non-null.
     Next: QA (нужен новый DUMP_AT)
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1
     (2) Game.__DEV.smokeEconSoc_Step6_ThreeShotsOnce({ window:{ lastN:500 } })
     (3) Game.__DUMP_ALL__()
     PASS если ECON_SOC_STEP6_JSON ok:true, drift=0, hasEmission=false, penaltyCount==1, reasonsTruth/reasonsFalse1 есть, rlKey1==rlKey2 и role не null; иначе FAIL и приложить JSON.
     ```
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Hard reload http://localhost:8080/index.html?dev=1
     (2) Game.__DEV.smokeEconSoc_Step5_3_SpamOnce({ window:{ lastN:300 } })
     (3) Game.__DUMP_ALL__()
@@ -1115,7 +1173,7 @@ Next Prompt (копипаст, кодблок обязателен):
       (2) `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{lastN:600}, long:{ticks:300}, repeatN:10, dumpHint:"Game.__DUMP_ALL__()" })`
       (3) `Game.__DUMP_ALL__()`
     Next: QA (нужен новый DUMP_AT с ECON_NPC_READINESS_PACK_* JSON1/JSON2/END)
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
     (1) Reload dev page
     (2) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
@@ -1148,9 +1206,9 @@ Next Prompt (копипаст, кодблок обязателен):
       (2) Выполнить `typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function"` и получить `true`.
       (3) Прогнать два смоука `Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })` и `Game.__DUMP_ALL__()`, затем зафиксировать новый DUMP.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     (1) Reload http://localhost:8080/index.html?dev=1 and confirm Console.txt no longer reports "Cannot declare a const variable twice: 'moneyLogAfterIndex'".
     (2) Run Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" }) twice, then Game.__DUMP_ALL__().
     PASS if the new DUMP_AT shows diag.moneyLogBeforeIndex/AfterIndex numbers and Game.__DEV.smokeBattle... remains defined; otherwise FAIL.
@@ -1179,9 +1237,9 @@ Next Prompt (копипаст, кодблок обязателен):
       (1) Run the regression command below when ready.
       (2) PASS if regressionPack.ok==true, invariants.worldDelta==0, insufficientCount==0, and no NPC_ACTIVITY_TAX_* log лавины.
     Next: regression QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Запусти в консоли:
     (1) Game.__DEV.runEconNpcLowFundsRegressionPackOnce({ seedLowFunds: true })
     PASS если regressionPack.ok==true, invariants.worldDelta==0, insufficientCount==0, и нет NPC_ACTIVITY_TAX_* лавины; иначе FAIL.
@@ -1216,9 +1274,9 @@ Next Prompt (копипаст, кодблок обязателен):
       (1) Execute the two pack commands above in dev console.
       (2) Confirm `evidencePack.ok==true`, `regressionPack.ok==true`, `worldDelta==0`, `taxRowsCount>0`, `totalTax>0`, `tailOk==true`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Запусти в консоли:
     (1) Game.__DEV.runEconNpcActivityTaxEvidencePackOnce({ ticks: 200, seedRichNpc: true, debugTelemetry: true, window: { lastN: 1200 } })
     (2) Game.__DEV.runEconNpcActivityTaxRegressionPackOnce({ seedRichNpc: true })
@@ -1249,7 +1307,7 @@ Next Prompt (копипаст, кодблок обязателен):
       (1) Confirm `Game.Debug.moneyLog.filter(r => r.reason === "npc_activity_tax").length` goes 4 → 5 → 6 when repeating the smoke twice.
       (2) Each `NPC_ACTIVITY_TAX_SUMMARY` reports `ok:true`, `taxRowsCount:1`, `totalTax:1`, `worldDelta:0`, with exactly one aggregated ENTRY/PRECHECK/DEBUG/TAX/POST per run.
     Next: Gate
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
     Ответ Gate:
     ECON-NPC [1.5] Activity Tax is PASS: `Game.__DEV.smokeNpcActivityTax_StabilityOnce({ mode: "tax_only", seedRichNpc: true })` ran twice in one session on 2026-02-11 JST, both `ok:true` with `taxRowsCount=1,totalTax=1`, `moneyLog` length went 4→5→6, and only aggregated markers logged. Please accept PASS.
@@ -1280,9 +1338,9 @@ Next Prompt (копипаст, кодблок обязателен):
       (2) Открыть `/Users/User/Documents/created apps/AsyncScene/Console.txt`, убедиться, что верхний блок `[DUMP_AT] [2026-02-11 02:03:59]` + следующий пустой разделитель не содержат banned-строк и что следующий `[DUMP_AT] [2026-02-11 02:03:57]` идёт сразу после пустой строки.
       (3) В логе dev-server увидеть `DEV_SERVER_FILTER_DUMP FILTER_V4_2026_02_11_02 ...` и отсутствие старых tape-tail строк в payload, то есть фильтр сработал.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Перезапусти dev=1, сделай два дампа и посмотри `/Users/User/Documents/created apps/AsyncScene/Console.txt`. PASS если новый верхний `[DUMP_AT]`-блок (2026-02-11 02:03:59) не содержит banned-строк (CONSOLE_DUMP_*, [TAPE_TAIL_*, REPL_TAPE_V1_READY, CONSOLE_TAPE_V1_READY, DEV_* и `/__dev/console-dump`) и следующий `[DUMP_AT]` идёт сразу после пустой строки. FAIL если появилась хотя бы одна banned-строка или вложенный `[DUMP_AT]`.
     ```
 
@@ -1308,9 +1366,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Перезагрузить `http://localhost:8080/index.html?dev=1`, убедиться, что dev-checks логирует `[ConflictAPI] ready` и `WORLD_ECON_*` без SyntaxError в консоли.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Перезагрузи http://localhost:8080/index.html?dev=1 и наблюдай консоль. PASS если после загрузки отсутствует `SyntaxError: Cannot declare a const variable twice: 'emitLine'`, `dev-checks.js` печатает `[ConflictAPI] ready` или схожие runtime-маркеры, и начальный пакет идет до конца без падения. FAIL если ошибка все еще появляется или dev-checks не завершает блок `WORLD_ECON_*`.
     ```
 
@@ -1335,9 +1393,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Перезагрузить `http://localhost:8080/index.html?dev=1` без лог-сервера и подтвердить, что Network больше не шлёт /log, консоль содержит ровно один маркер `DEV_LOG_SINK_DISABLED ...`, и игра стартует без сбоев.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
 ```text
-Ответ QA:
+
 Перезагрузи http://localhost:8080/index.html?dev=1 (лог-сервер не поднят). PASS если после загрузки Network не показывает повторяющихся запросов на `http://localhost:17321/log`, в консоли есть только один `DEV_LOG_SINK_DISABLED reason=connect_fail url=http://localhost:17321/log`, и игра загружается без ошибок. FAIL если запрос всё ещё спамит сеть или логгер продолжает писать ошибки.
 ```
 
@@ -1363,9 +1421,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) `node --check AsyncScene/Web/dev/dev-checks.js`
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Запусти `Game.__DEV.runEconNpcWealthTaxEvidencePackOnce()` и посмотри в консоль/дебаг. PASS если блоки BEGIN/END проходят без `ReferenceError`, `seedTransfer`-поля остаются `null` или содержат JSON, и evidence pack печатает JSON без ошибок. FAIL если ошибка `seedTransfer` возвращается.
         ```
 
@@ -1393,9 +1451,9 @@ Next Prompt (копипаст, кодблок обязателен):
       (1) Выполнить `Game.__DEV.smokeWealthTaxDumpOnce()` и дождаться нового `WEALTH_TAX_EVIDENCE` + `DUMP_AT`.
       (2) Выполнить PASS-проверки (seed source != sink, guard маркеры, ensure missing=0, asserts ensure ok, world.delta=0, world_tax rows с totalTax>0).
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Очисти консоль и запусти:
     Game.__DEV.smokeWealthTaxDumpOnce()
     PASS если в следующем DUMP_AT `diag.seedSourceId != "sink"`, `diag.seedTransfer.fromId == null`, `ensureNpcAccounts.missingAfterCount == 0`, `asserts.ensureNpcAccountsOk == true`, `world.delta == 0`, и если `tax.totalTaxInWindow > 0`, то в `world_tax_rows` есть мирные пары. FAIL если хоть одно условие нарушено.
@@ -1423,9 +1481,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Run the smoke (`for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`) and confirm `meta.logSource`, `rowsScoped`, `meta.sinkDelta`, and `leaks.toSink` align with the streamed values while `npcCount`/`accountsIncludedCount` stay deterministic.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони SMOKE: `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`.
         PASS если ok=true, `meta.logSource`=debug_moneyLog (or stable fallback), `meta.rowsScoped>0`, `meta.sinkDelta` equals the sum of `leaks.toSink.netToSink` and `leaks.emissionsSuspect` is empty, `npc.topReasons` only shows points reasons (no rep). Уточни первые выводы и key fields; убедись, что структура не меняется между прогонами.
         ```
@@ -1453,9 +1511,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) В браузерной консоли выполнить SMOKE, приложить вывод `meta.diag` и summary (meta + leaks + world.delta).
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони SMOKE: `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`.
         Приложи `meta.diag`/`meta.diagVersion` и summary `{meta, leaks, world.delta}`. PASS если хотя бы один прогон даёт `meta.logSource!="none"` и `rowsScoped>0`. FAIL если `logSource` остаётся `none` и все len=0 — это фиксирует корень проблемы.
         ```
@@ -1486,9 +1544,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Выполнить SMOKE, приложить `meta`, `leaks.toSink`, `flowSummary.invariants` и убедиться, что `sinkNetMatchesDelta` true и `net_to_sink_mismatch` отсутствует.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Сделай 1 points-событие, затем запусти:
         for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))
         PASS если rowsScoped>0, flowSummary присутствует и стабильна, totals.netDelta == sum(perNpc.netDelta), sinkNet == meta.sinkNetScoped, `notes` не содержат `net_to_sink_mismatch`, и sinkBalanceExplained либо true, либо null с note `balances_unavailable`.
@@ -1518,9 +1576,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Run smoke after NPC points work; expect ok:true, rowsScoped>0, allowlistSize=3, unexpectedCount=0, meta.nonNpcToSinkSkipped present, no unexpected_net_to_sink_reason.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Сделай 1 points-событие, затем запусти:
         Game.__DEV.smokeEconNpc_AllowlistOnce({window:{lastN:200}})
         PASS если `ok:true`, `rowsScoped>0`, `meta.allowlistSize=3`, `meta.unexpectedCount=0`, `meta.nonNpcToSinkSkipped` присутствует, `notes` не содержат `unexpected_net_to_sink_reason`. Приложи summary (meta, leaks, flowSummary.invariants).
@@ -1706,9 +1764,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Прогнать SMOKE трижды, подтвердить `flowSummary.invariants.sinkNetMatchesDelta === true`, `meta.sinkNetScoped` равен сумме `leaks.toSink.netToSink`, `notes` не содержат `net_to_sink_mismatch`, и `meta.sinkBalanceExplained === true`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони SMOKE: `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`.
         PASS если `rowsScoped>0`, `meta.logSource="debug_moneyLog"`, `meta.sinkNetScoped` равен сумме `leaks.toSink.netToSink`, `flowSummary.invariants` все true (особенно `sinkNetMatchesDelta` и `sinkBalanceExplained`), и `notes` не содержат `net_to_sink_mismatch`. Приложи summary `meta`, `leaks.toSink`, `flowSummary.invariants`.
         ```
@@ -1736,9 +1794,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Run the smoke (`for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`) and confirm at least one run hits `logSource="debug_moneyLog"` with `rowsScoped>0`; if the log stays empty, output should be `ok:false` with `notes:["no_scoped_rows_after_refresh"]`, `meta.sampleLogHeads`, and `meta.refreshAttempted:true`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони SMOKE: `for (let i=0;i<3;i++) console.log(i, Game.__DEV.auditNpcWorldBalanceOnce({window:{lastN:200}}))`.
         PASS если одна из трасс попадает на `debug_moneyLog`, `rowsScoped>0`, `meta.sinkDelta` совпадает с суммой `leaks.toSink.netToSink`, и структура стабильна. Если `rowsScoped===0`, убедись, что `ok:false`, `notes` содержит `no_scoped_rows_after_refresh`, `meta.sampleLogHeads` предоставляет первые строки и `refreshAttempted:true`. Сообщи PASS/FAIL и key fields.
         ```
@@ -1766,9 +1824,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Выполнить SMOKE из задачи (seed deposit=2, withdraw=1 ok, withdraw=999 insufficient), убедиться: totals неизменны, `bank_withdraw` 1 строка, meta.userReason заполнен.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони SMOKE из задачи Step 3 (seed deposit 2, withdraw 1, withdraw 999). Проверь totals неизменны, bankBalance/ownerPoints корректны, `bank_withdraw` ровно одна строка с meta.userReason, overdraft возвращает `insufficient_bank_funds` без новых логов. Сообщи PASS/FAIL и ключевые поля.
         ```
 
@@ -1794,9 +1852,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) `const smoke = Game.__DEV.smokeEcon05_BankOnce({ ownerId:"me" }); console.log(smoke);` — ожидается `ok:true`, `failed:[]`, `rows`/`deltas`/`details`, причем `details.disabled.rows` — две `bank_disabled_attempt`, `details.enabled.depositRows[0].reason==="bank_deposit"`, `details.enabled.withdrawRows[0].reason==="bank_withdraw"`, `details.negatives.deposit.reason==="insufficient_points"`, `details.negatives.withdraw.reason==="insufficient_bank_funds"`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони `Game.__DEV.smokeEcon05_BankOnce({ ownerId:"me" })` (или `Game.Dev.smokeEcon05BankOnce()`). Убедись, что `ok:true`, `failed:[]`, `rows.disabledAttempts===2`, `rows.deposits===1`, `rows.withdraws===1`, `totals.before===totals.after`, `deltas.bank===1`, `deltas.me===-1`, `details.disabled.rows` — две `bank_disabled_attempt`, `details.enabled.depositRows[0].reason==="bank_deposit"`, `details.enabled.withdrawRows[0].reason==="bank_withdraw"`, `details.negatives.deposit.reason==="insufficient_points"`, `details.negatives.withdraw.reason==="insufficient_bank_funds"`, и негативные проверки не добавляют логов. Сообщи PASS/FAIL и ключевые поля.
         ```
 
@@ -1828,9 +1886,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Прогнать указанные сниппеты из `SMOKE_TEST_COMMANDS.md` → prod-операции отвергаются, moneyLog получает `bank_disabled_attempt`, snapshot тот же, dev-сниппет при включении возвращает `ok:true`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         1) См. SMOKE TEST COMMANDS (раздел “Bank enable gate (ECON-05)”) — програйте prod-сниппет: deposit/withdraw при `Bank.enabled===false` = `reason:"bank_disabled"`, moneyLog получает `bank_disabled_attempt`, sumPointsSnapshot не меняется.
         2) Прогрейте dev-сниппет (`Game.Dev.setBankEnabled` → `Game.Bank.deposit/withdraw` → `Game.Dev.clearBankOverride`), подтверди `ok:true` после включения и отсутствие `bank_disabled_attempt` при включённом банке.
         ```
@@ -1858,9 +1916,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) SMOKE TEST COMMANDS §10 snippet: `Game.Dev.setBankEnabled(true)`, take snapshots, deposit amount=2, check totals/balance/moneyLog (one `bank_deposit` row), attempt deposit amount=999 (insufficient), finish with `Game.Dev.clearBankOverride()`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони SMOKE TEST COMMANDS §10: enable bank, deposit amount=2, verify totals/balance/moneyLog, then amount=999 (insufficient) и `Game.Dev.clearBankOverride()`. Сообщи PASS/FAIL + ключевые цифры.
         ```
 ### [T-20260205-020] ECON-04 C1-C1 probe battle Δ economy (dev-only)
@@ -1883,9 +1941,9 @@ Next Prompt (копипаст, кодблок обязателен):
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
 - How to verify:
     1) Run r1 & r2 commands and confirm per label sigs/reasons/nets/totals match; note repRowCount=0.
-- Next Prompt (копипаст, кодблок обязателен):
+- Next Prompt:
         ```text
-        Ответ QA:
+        
         Прогони `Game.__DEV.probeBattleEcon_DeltaOnce({debug:true, runTag:"r1"})` и `...runTag:"r2"`. Если оба ok:true, notes empty, sig/reasons/net/totals совпадают по каждому label, ставь PASS и приложи вывод.
 ```
 
@@ -1915,9 +1973,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Выполнить: `console.groupCollapsed("G1"); console.log("L1",{a:1}); console.warn("W1"); console.groupEnd(); console.error("E1"); Game.__DUMP_ALL__();` затем `console.group("G2"); console.log("L2",[1,2,3]); console.groupEnd(); Game.__DUMP_ALL__();`.
       (2) Убедиться, что Console.txt начинается с `[DUMP_AT]`, `CONSOLE_DUMP_PROOF_OK`, `CONSOLE_PANEL_RUN_BEGIN/OK` и `BEGIN CONSOLE_EXPAND_V1 ... END CONSOLE_EXPAND_V1`, затем пустая строка и второй `[DUMP_AT]`. Блоки должны содержать только прикладные логи, sepOk true, и Safari console — один `CONSOLE_DUMP_POSTING_TO` + `CONSOLE_DUMP_WRITE_OK` на клик без JSON-обёрток.
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Повтори SMOKE: console.groupCollapsed("G1"); console.log("L1",{a:1}); console.warn("W1"); console.groupEnd(); console.error("E1"); Game.__DUMP_ALL__(); затем console.group("G2"); console.log("L2",[1,2,3]); console.groupEnd(); Game.__DUMP_ALL__(). PASS если Console.txt топ-блок содержит DUMP_PROOF, CONSOLE_PANEL_RUN_* и CONSOLE_EXPAND с G1/L1/W1/E1, между блоками ровно одна пустая строка, и Safari логирует один CONSOLE_DUMP_POSTING_TO + CONSOLE_DUMP_WRITE_OK (sepOk:true) без JSON-обёрток. FAIL если что-то нарушено.
     ```
 ### [T-20260205-021] ECON-04 C1-C2 Battle Δ scenarios semantic validity
@@ -1932,7 +1990,7 @@ Next Prompt (копипаст, кодблок обязателен):
   - [ ] `Game.__DEV.probeBattleEcon_DeltaOnce` показывает distinct `reasonsSig`/`netSig`/`repSig` per label или документация объясняет, почему пока identical outputs expected and what to change to differentiate.
   - [ ] repRowCount/repProbe изучены: если rep rows отсутствуют, описать missing data and next steps.
 - Result: PENDING
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
         Ответ Прогера:
         Исследуй `rep_battle_win_delta` logic и ensure `Game.__DEV.probeBattleEcon_DeltaOnce` reflects intended deltas for weak/equal/strong. Если сигнатуры остаются одинаковыми, опиши почему и что требуется для future divergence.
@@ -1962,9 +2020,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) В Dev консоли: `Game.Dev.smokeTrainingDataOnce()` → ok:true, notes:[], checks все true; повторный вызов не меняет state.
     Next: —
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         ECON-04.1 PASS: `Game.Dev.smokeTrainingDataOnce()` ok:true (notes пусты, checks hasTraining/defaultsOk/migrateOk/serializeOk/idempotent === true). Ничего больше делать не нужно.
         ```
 
@@ -1991,9 +2049,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) В Dev консоли: `Game.Dev.smokeTrainingCostOnce()` → ok:true, notes:[].
     Next: —
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         ECON-04.2 PASS: `Game.Dev.smokeTrainingCostOnce()` ok:true, zero-sum соблюдён, moneyLogDelta=1, повторный вызов cacheHit:true без списаний.
         ```
 
@@ -2019,9 +2077,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) В Dev консоли: `Game.Dev.smokeTrainingCostOnce()` → ok:true, notes:[].
     Next: —
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         ECON-04.2a PASS: `Game.Dev.smokeTrainingCostOnce()` ok:true, SEC invalid_state_mutation нет, pointsDiff=-1, worldDiff=0, moneyLogDelta=1, repeat cacheHit:true.
         ```
 
@@ -2048,9 +2106,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) В Dev консоли: `Game.Dev.smokeTrainingProgressOnce()` → ok:true, notes:[].
     Next: —
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         ECON-04.3 PASS: `Game.Dev.smokeTrainingProgressOnce()` ok:true, zero-sum worldDiff=0, pointsDiffA/pointsDiffC=-1, cooldown блокирует, repeat cacheHit:true без xp/счетчиков.
         ```
 
@@ -2078,9 +2136,9 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) В Dev-консоли выполнить `Game.Dev.smokeTrainingUIOnce()` → ожидается `ok:true`, первая тренировка списывает 1 💰, cooldown/insufficient_points блокируют, zero-sum (`worldDiff=0`), moneyLogDelta=1.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         ECON-04.4 PASS: `Game.Dev.smokeTrainingUIOnce()` ok:true, первая тренировка списывает 1 💰, повторный клик блокирует кулдауном, insufficient_points не запускает `train`, moneyLogDelta=1, worldDiff=0.
         ```
 
@@ -2131,9 +2189,9 @@ Next Prompt (копипаст, кодблок обязателен):
       (1) Прочесть §11 SMOKE TEST COMMANDS и убедиться, что Bank описан как BACKLOG skeleton с canonical smoke вызовом.
       (2) Проверить PROJECT_MEMORY запись 08.02.2026 — totals/rows/deltas перечислены и mention BACKLOG skeleton.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
         ```text
-        Ответ QA:
+        
         Прочитай SMOKE TEST COMMANDS §11: Bank описан как BACKLOG skeleton, canonical smoke `Game.__DEV.smokeEcon05_BankOnce({ ownerId:"me" })`. Подтверди, что PROJECT_MEMORY содержит Step 4 PASS с_totals=10→10_, `rows`=2/1/1 и `deltas`=-1/+1, и что pack hook не требовался (нет общего smokeEconPack). Сообщи PASS/FAIL и ссылку на разделы.
         ```
 
@@ -2336,7 +2394,7 @@ Next Prompt (копипаст, кодблок обязателен):
       (1) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
       (2) `Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })`
     Expected evidence fields: `rowsScoped`, `fallbackUsed:true`, `topTransfersLen`, `ok:true`, `failed:[]`, `diagVersion:npc_audit_diag_v2`, `traceVersion:trace_v2`.
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
     Запусти в консоли:
     (1) Game.__DEV.smokeNpcWorldAuditExplainableOnce({ window:{lastN:200} })
@@ -2365,7 +2423,7 @@ Next Prompt (копипаст, кодблок обязателен):
       1. Запустить два smoke подряд и затем `Game.__DUMP_ALL__()` для нового `DUMP_AT`.
       2. PASS если оба smoke возвращают `asserts.worldMassOk:true`, `snapshotReport.deltaWorld:0`, `balanceCompareById.sink.afterMinusBefore == -10`, `balanceCompareById.worldBank.afterMinusBefore == +10`, `balanceSourceById.sink/worldBank == "econ.getLedgerBalanceAt"`, `balanceReadModeById.sink/worldBank == "ledger_at"`, `moneyLogReport.sumNetFromMoneyLog == 0`, `snapshotReport.sumNetDelta == 0`, и нет `CONSOLE_PANEL_RUN_ERR`.
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
     (1) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
     (2) Game.__DEV.smokeBattleCrowdOutcomeOnce({ mode:"majority" })
@@ -2398,7 +2456,7 @@ Next Prompt (копипаст, кодблок обязателен):
       (2) Run `await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })` via Console Panel.
       (3) `Game.__DUMP_ALL__()` to capture ECON_NPC_READINESS_PACK_* markers.
     Next: QA
-    Next Prompt (копипаст, кодблок обязательно):
+    Next Prompt:
     ```text
     (1) Reload dev page
     (2) await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
@@ -2423,7 +2481,7 @@ Next Prompt (копипаст, кодблок обязателен):
       (2) `Game.__DUMP_ALL__()`
     Evidence: DUMP_AT: n/a (QA не запускался)
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
     (1) Reload dev page (dev=1)
     (2) await Game.__DEV.smokeEconNpc_ReadinessPackOnce({ window:{ lastN:200 }, long:{ ticks:50 }, repeatN:2, dumpHint:"Game.__DUMP_ALL__()" })
@@ -2565,7 +2623,7 @@ Next Prompt (копипаст, кодблок обязателен):
     How to verify:
       (1) Прочитать секцию ECON_SOC_INV_V1 в итоговом сообщении.
       (2) Перезапустить `rg -n "addPoints|addRep|grantPoints|givePoints|incPoints|setPoints\(|points\s*\+=|\.points\s*=|reward|compensate|refund|penalty|fine|sanction|cooldown|rateLimit|abuse|spam|report" AsyncScene/Web` и `rg -n "transferPoints|Econ\.transferPoints|transferRep|Econ\.transferRep" AsyncScene/Web` и свериться с картой.
-  Next Prompt (копипаст, кодблок обязателен):
+  Next Prompt:
       ```text
       Ответ Ассистента:
       Если найдутся новые report/abuse/compensation/penalty callsite’ы, повторно собери карту ECON_SOC_INV_V1 и обнови TOTAL/Top risks/Next Prompt в TASKS.md + PROJECT_MEMORY.md.
@@ -2960,7 +3018,7 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       - Modern `Web/ui/ui-dm.js` replaces grey disabled buttons with informative buttons that log the helper state and never touch the economy.
       - Added `Game.__DEV.smokeP2PFlagUXOnce()` to print both UI points, force-enable the flag, re-log, and revert; smoke command: `Game.__DEV.smokeP2PFlagUXOnce()` in dev console.
     Changed: `Web/data.js` `Web/ui/ui-core.js` `Web/ui-old.js` `Web/ui/ui-dm.js` `Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
-- Next Prompt (копипаст, кодблок обязателен):
+- Next Prompt:
     ```text
     Ответ Codex-ассистент:
     Если появятся новые P2P-элементы или флаги, проверь `Game.Rules.isP2PTransfersEnabled()`, убедись, что UI равномерно реагирует, запусти `Game.__DEV.smokeP2PFlagUXOnce()` и занеси изменения в PROJECT_MEMORY.md/TASKS.md.
@@ -2986,9 +3044,9 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       2. `Game.__DEV.smokeP2PTransferOnce()`
       3. Убедиться: source=-1 target=+1 worldDelta=0 p2pCount=1 без отрицательных балансов
     Next: QA
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     В dev-консоли запусти `Game.__DEV.smokeP2PTransferOnce()` и приложи лог P2P_SMOKE before/after/world/log; PASS если source=-1 target=+1 worldDelta=0 p2pCount=1 и нет negative balance, иначе FAIL.
     ```
 
@@ -3012,9 +3070,9 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       1. Проверить Console.txt
       2. В dev-консоли: `Game.__DEV.smokeP2PTransfer_GuardsOnce()`
       3. PASS если все 4 кейса совпали с ожиданиями, worldDelta=0, p2pCount=0 в FAIL и p2pCount=1 в PASS
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Проверить Console.txt. Затем в dev-консоли запустить `Game.__DEV.smokeP2PTransfer_GuardsOnce()`. Приложить P2P_GUARD_CASE + P2P_GUARD_RESULT из консоли. PASS если кейсы 1-4 совпали с требованиями (FAIL без p2p_transfer логов и без изменений балансов; PASS с source -1, target +1, worldDelta=0, p2pCount=1), иначе FAIL.
     ```
 
@@ -3038,9 +3096,9 @@ QA: run Game.__DEV.smokeEconSoc_Step1_NoEmissionPackOnce({ window:{ lastN:200 } 
       2. Open DM с игроком: флаг false → клик, получить объяснение.
       3. С включённым флагом: клик → prompt, ввод 0 → `p2p_invalid_amount`.
       4. С вводом 1 → успешный перевод (или `Game.__DEV.smokeP2PTransferOnce()`).
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Проверьте Console.txt, затем вручную выполните клики для кейсов A–D, подтверждая, что элементы не выглядят disabled и тосты объясняют причину; если нужно, запустите `Game.__DEV.smokeP2PTransferOnce()`. PASS если все кейсы ведут себя как описано и amount вводится через prompt, иначе FAIL.
     ```
 Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY.md` `TASKS.md`
@@ -3062,9 +3120,9 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   1. Hard reload http://localhost:8080/index.html?dev=1.
   2. Run `Game.__DEV.smokeToastContractProbeOnce().then(r => console.log("ECON_UI0_TOAST_CONTRACT_RESULT", r));`
   3. PASS if `ok:true`, `failed:[]`, toastLog содержит ≥1 toast с `kind:"econ"`, `txId`, `logIndex`, `reason`, `moneyLog[logIndex]` существует и совпадает по `txId`/`reason`, и консоль показывает `DUMP_AT [YYYY-MM-DD HH:MM:SS]`, `ECON_UI0_TOAST_CONTRACT_BEGIN`, JSON-результат и `ECON_UI0_TOAST_CONTRACT_END`. Иначе приложить консоль и пометить FAIL.
-- Next Prompt (кодблок обязательный):
+- Next Prompt:
   ```text
-  Ответ QA:
+  
   (1) Hard reload http://localhost:8080/index.html?dev=1.
   (2) Run `Game.__DEV.smokeToastContractProbeOnce().then(r => console.log("ECON_UI0_TOAST_CONTRACT_RESULT", r));`
   (3) PASS if ok:true, failed:[], toastLog has ≥1 kind:"econ" entry with txId/logIndex and reason matching moneyLog[logIndex], and console shows DUMP_AT + ECON_UI0_TOAST_CONTRACT_BEGIN/<JSON>/ECON_UI0_TOAST_CONTRACT_END; otherwise attach console output and mark FAIL.
@@ -3094,9 +3152,9 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     How to verify:
       1. Проверить Console.txt и увидеть строки P2P_RL before/after/log/tx2.
       2. В dev-консоли запустить `Game.__DEV.smokeP2PTransfer_RateLimitOnce()` и подтвердить одинаковый worldDelta и 1 rate-limited строку.
-    Next Prompt (копипаст, кодблок обязателен):
+    Next Prompt:
     ```text
-    Ответ QA:
+    
     Проверь Console.txt, затем запусти `Game.__DEV.smokeP2PTransfer_RateLimitOnce()` и приложи строки P2P_RL before/after/log/tx2. PASS если второй вызов возвращает p2p_transfer_rate_limited, balance не меняется и worldDelta=0.
     ```
     Changed: `AsyncScene/Web/conflict/conflict-economy.js` `AsyncScene/Web/dev/dev-checks.js` `PROJECT_MEMORY.md` `TASKS.md`
@@ -3215,7 +3273,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - Changed: `TASKS.md`
   - How to verify: см. шаги 1–4.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       QA steps:
       (1) Hard reload http://localhost:8080/index.html?dev=1 и открой DM с копом.
@@ -3255,7 +3313,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     4. Smoke #3: Report a villain, verify `rep_report_true` + `report_true_compensation` appear and World delta equals compensation amount.
     5. Smoke #4: Submit identical report twice; second call should return `rate_limited`/`cop_busy`/`report_repeat` without generating new penalty rows.
   Manual QA: pending (run smokes 1-4 above).
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       QA:
       (1) Reload http://localhost:8080/index.html?dev=1.
@@ -3295,7 +3353,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   2. Submit “Сдать” in DM, capture logs: `REPORT_PENDING_CREATED_V1`, `UI_REPORT_PENDING_UI_V1`, `REPORT_RESOLVE_CALL_V1`, `REPORT_PENDING_RESOLVING_V1`, `REPORT_PENDING_RESOLVED_V1`, `UI_REPORT_RESOLVE_DONE_V1`.
   3. Confirm `Game.__D.moneyLog` tail now contains canonical `rep_report_true`/`report_true_compensation` or `rep_report_false`/`report_false_penalty` rows exactly once after resolve, and `AFTER_CLICK_REPORT_ROWS` stays empty before resolve.
   4. Repeat submit; second call should return `pending_exists` (or `rate_limited`) and no duplicate moneyLog rows; calling `resolveReport(pendingId)` twice should return `already_resolved` without extra logs.
-- Next Prompt (копипаст, кодблок обязателен):
+- Next Prompt:
     ```text
     QA:
     (1) Reload http://localhost:8080/index.html?dev=1.
@@ -3334,7 +3392,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   3. S2: нажмите “Сдать” → цель под false-ключом, дождитесь `report_false_penalty`/`rep_report_false` после resolve.
   4. S3: пока pending активен, повторите submit — в ответ получите `pending_exists`/`already_resolved`, а moneyLog растёт только один раз.
   5. S4: в течение rate-limit window (4 с) быстро нажмите “Сдать” — ожидается `rate_limited` и ровно одна строка `report_rate_limited`.
-- Next Prompt (копипаст, кодблок обязательно):
+- Next Prompt:
     ```text
     QA:
     (1) Run `console.log(Game.__DEV.listReportRoleKeysOnce())` and note `trueReport.roleKey`/`falseReport.roleKey` plus `examples` notes.
@@ -3438,7 +3496,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     2. Убедитесь, что консоль больше не показывает 404 по этим ресурсам.
     3. (Опционально) откройте https://<GH_PAGES_HOST>/AsyncScene/__dev/console-dump-proof?v=1 — там должен быть JSON `{ok:true}`.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       QA:
       1) Откройте https://<GH_PAGES_HOST>/AsyncScene/ и убедитесь, что Network tab возвращает 200 для dev/console-tape.js, dev/dev-checks.js, __dev/console-dump-proof?v=<timestamp> и favicon.ico.
@@ -3475,7 +3533,7 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
     1) Откройте https://samuray-games.github.io/AsyncScene/ и убедитесь, что страница не пустая и UI виден.
     2) В Network проверьте 200 для `__dev/console-dump-proof` и `favicon.ico`.
   - Next: QA
-  - Next Prompt (копипаст, кодблок обязателен):
+  - Next Prompt:
       ```text
       QA:
       1) Откройте https://samuray-games.github.io/AsyncScene/ и подтвердите, что страница не пустая и UI стартует.

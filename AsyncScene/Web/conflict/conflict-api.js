@@ -619,8 +619,15 @@
        }
        // Economy + creation live in Core. API only coordinates UI/state.
     const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : "me";
-    if (Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "battle")) {
-      return { ok: false, reason: "security_blocked" };
+    if (Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "call")) {
+      const flag = (Game.SecurityPolicy && typeof Game.SecurityPolicy.getFlag === "function")
+        ? Game.SecurityPolicy.getFlag(meId)
+        : null;
+      const blockerReason = flag ? (flag.reason || flag.type || "security_flag") : "security_flag";
+      try {
+        console.log(`[FLOW_AUDIT] startup-blocker action=call blocker=${blockerReason}`);
+      } catch (_) {}
+      return { ok: false, reason: "security_blocked", blocker: blockerReason };
     }
     let res = Core.startWith(opponentId);
 

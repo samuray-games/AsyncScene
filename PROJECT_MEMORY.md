@@ -27,11 +27,7 @@
 - Каждый исполнитель в конце:
   - заполняет `Result`/`Report` по шаблону
   - указывает `Next`
-  - прикладывает `Next Prompt` **кодблоком**
-
--### Формат “промтов для пересылки”
-- Первая строка в `Next Prompt`: `Ответ <роль>:` (пример: `Ответ Implementer:` / `Ответ Gate:` / `Ответ Auditor:`)
-- `Next Prompt` всегда в кодблоке (```text ... ```)
+  - при необходимости формулирует `Next Prompt` (свободный текст, без обязательных кодблоков или фиксированных префиксов)
 
 ### Статусы фаз/волн (по фактам из `TASKS.md`)
 - UI honesty phase: закрыта `PASS`
@@ -568,7 +564,7 @@
 - Next: run V5 smoke and mark ECON-01 PASS if criteria are satisfied.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     ECON-01 V5 smoke: tick+finalize until `crowd.decided && outcomeCount>0`, then assert outcome count stays steady after extra ticks/repeat finalizes (`delta=0`). Provide META + NO-DUP objects and then mark PASS.
     ```
 
@@ -596,7 +592,7 @@
 - Next: update QA assert with per-voter outcome checks and no-dup-on-extra-ticks validation before marking PASS; continue monitoring no-dup behavior and point invariants.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     ECON-01 runtime now emits majority/minority outcomes for each voter. Adjust assertions: verify for each participation entry (by targetId/battleId) there is exactly one outcome (`majority` or `minority`), extra ticks do not add outcomes, and moneyLog shows no point/pool changes. After these checks pass, mark ECON-01 PASS.
     ```
 
@@ -609,7 +605,7 @@
 - Next: QA smoke V2 becomes canonical for ECON-01; once tie-aware checks pass, mark ECON-01 PASS.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     ECON-01 smoke V2: tick until crowd decided/resolved (max 200 steps); if `endedBy` indicates tie/fifty, allow outcome=0 but confirm no entry growth on extra ticks; otherwise require exactly one `rep_crowd_vote_majority/minority` per participant keyed by battleId. After confirming behavior, update TASKS.md/PROJECT_MEMORY.md with PASS.
     ```
 
@@ -769,7 +765,7 @@
 - Next: Ассистент — оформить чек‑лист и план P0 LOGIC 3 (лимиты/веса) и обозначить следующее усилие в Crowd Economy Reforge (если нужно — обновить прогресс в `PROGRESS_SCALE.md`).  
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     1) Prod: после чистой загрузки попытайся прочитать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
     2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
     3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
@@ -2067,7 +2063,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогреть Stage 3 Step 5 smоуки (prod + `?dev=1`) и Stage 2 canonical checklist, затем зафиксировать PASS/FAIL.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     1) Prod: после чистой загрузки попытайся прочитать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
     2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
     3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
@@ -2126,7 +2122,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — замерить длину `Game.__D.securityEvents` до/после 5 секунд простоя и подтвердить, что ручное чтение `Game.State` по-прежнему создаёт событие.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     (1) В проде (без `?dev=1`) зафиксируй `const before = (Game?.__D?.securityEvents || []).length`, подожди 5+ секунд, затем `const after = (Game?.__D?.securityEvents || []).length` — должно быть `after === before`.
     (2) Выполни `console.log(Game.State)` один раз и убедись, что `Game.__D.securityEvents` увеличился на один `forbidden_api_access`.
     (3) Зафиксируй длины и последний event, обнови `PROJECT_MEMORY.md`/`TASKS.md`, отметь PASS/FAIL.
@@ -2153,7 +2149,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогнать Dev snippet, 5с growth probe и Prod snippet из SMOKE 8, задокументировать `evLen`/`rxLen`/`lastEv`/`lastRx`, убедиться, что `RangeError` не возникает, и только после этого обновить `PROJECT_MEMORY.md`/`TASKS.md` → PASS.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     1) Dev (`?dev=1`): выполните сниппет из SMOKE 8 и сравните с `Game.__DEV.securityProbeOnce()` — `RangeError` не должно быть, длины/lastEv/lastRx должны совпадать или быть близкими.
     2) Growth probe: запустите 5с скрипт, убедитесь, что логи выводят `snap1`, `snap2`, `grew` без ошибок.
     3) Prod (без `?dev=1`): повторите первый сниппет, зафиксируйте `evLen`/`rxLen`/`lastEv`/`lastRx`, убедитесь, что `Game.__D` читается стабильно и нет `RangeError`.
@@ -2201,7 +2197,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогнать смоуки по ECON-01: event + participation, затем повторный tick не добавляет реп-записи.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     1) Сделай `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a");` и дай событию разрешиться (`Game.Events.tick()`), потом проверь `Game.Debug.moneyLog.filter(t => t.reason.startsWith("rep_crowd_vote"))` — должны появиться `rep_crowd_vote_participation` и либо `rep_crowd_vote_majority` либо `rep_crowd_vote_minority` с `eventId === ev.id`.
     2) Сразу после этого снова вызови `Game.Events.tick()` по тому же `ev` и убедись, что новых записей `rep_crowd_vote_majority`/`rep_crowd_vote_minority` не добавилось.
     После смоуков обнови `PROJECT_MEMORY.md`/`TASKS.md` и отметь PASS/FAIL по ECON-01.
@@ -2217,7 +2213,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогнать ECON-01 смоуки, подтвердить resolved + outcome + diag, и обновить TASKS/PROJECT_MEMORY.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     1) `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a"); Game.Events.tick(20); console.log({ decided: ev.crowd.decided, winner: ev.crowd.winner, endedBy: ev.crowd.endedBy }); console.table(Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")));`
     2) `Game.Events.tick(); const filtered = Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && (entry.reason.startsWith("rep_crowd_vote_majority") || entry.reason.startsWith("rep_crowd_vote_minority"))); console.assert(filtered.filter(entry => entry.reason === "rep_crowd_vote_majority" || entry.reason === "rep_crowd_vote_minority").length === 2, "duplicate outcome?");`
     3) `const empty = Game.Events.makeNpcEvent(); Game.Events.addEvent(empty); Game.Events.finalizeOpenEventNow(empty); console.log({ resolved: empty.resolved, decided: empty.crowd.decided, winner: empty.crowd.winner, endedBy: empty.crowd.endedBy });`
@@ -2234,7 +2230,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA to run V4 smoke (inspect signature, try both invocations), mark PASS when call fires marker, resolves event (decided true, winner/endedBy set, resolved ≠ "open"), outcome REP present.
 - Next Prompt: |
     ```text
-    Ответ QA:
+    
     ECON-01 V4 smoke: inspect `Game.Events.finalizeOpenEventNow` signature/source, then try `finalizeOpenEventNow(ev,{debugFinalize:true})` and `finalizeOpenEventNow(ev.id,{debugFinalize:true})`. PASS once one call fires `EVENT_FINALIZE_API_CALLED`, resolves event (decided/winner/endedBy non-null), and outcome REP entries appear.
     ```
 
@@ -3664,11 +3660,28 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Status: FAIL (нужен смоук)
 - Facts:
   - Источник `perma_flag_restore` подтверждён: `restorePersistedFlags()` читает localStorage ключ `AsyncScene_security_perma_flags_v1`, затем `emitRestoreEvents()` вызывает `Security.emit("perma_flag_restore")`.
-  - В `restorePersistedFlags()` добавлена проверка: legacy-формат без envelope в проде пропускается, а применяются только записи с `source:"runtime"`.
-  - Персист переведён на envelope `{flags, source:"runtime", stamp, v:1}` и добавлены диагностические маркеры `[SEC_RESTORE_SOURCE]`, `[SEC_RESTORE_SKIP]`, `[SEC_RESTORE_REASON]`, `[SEC_RESTORE_APPLY]`.
-  - Риск: legacy-пермафлаги, сохранённые до патча без envelope, в проде больше не восстанавливаются.
+  - `restorePersistedFlags()` теперь фильтрует только envelope/`source:"runtime"` и игнорирует legacy-docs без envelope.
+  - Perma persistence переписан в envelope `{flags, source:"runtime", stamp, v:1}` и сопровождается логами `[SEC_RESTORE_SOURCE]`, `[SEC_RESTORE_SKIP]`, `[SEC_RESTORE_REASON]`, `[SEC_RESTORE_APPLY]`.
+  - Риск: legacy-данные без envelope больше не восстанавливаются до перезаписи.
 - Evidence:
   - `docs/state.js` (createReactionPolicy → restorePersistedFlags/persistPermaFlags)
   - `AsyncScene/Web/state.js` (createReactionPolicy → restorePersistedFlags/persistPermaFlags)
 - Next: QA — проверить прод-страницу на свежем старте и наличие новых логов.
 - Changed: `docs/state.js` `AsyncScene/Web/state.js`
+### 2026-03-08 — Restore-only perma flag cleanup
+- Status: PASS
+- Facts:
+  - `normalizeFlagEntry` теперь хранит `type`, `persistPermaFlags` пишут его в envelope, а `restorePersistedFlags` проверяет `reason` на strong proof, логирует `[FLOW_AUDIT] perma-flag-restore-read` и `[FLOW_AUDIT] identity-bind-flag`, затем выбирает живые perma-флаги.
+  - Подозрительные записи получают `TEMP_BLOCK` с `until=now`, лог `perma-flag-restore-downgrade`/`perma-flag-restore-discard`, и `AsyncScene_security_perma_flags_v1` автоматически очищается, так что poisoned localStorage нейтрализуется до следующего запуска.
+  - Legit перма-флаги продолжают блокировать после реального security event, а call/vote сразу работают, пока не появится новый flag; recovery путь обеспечивает автоматическое удаление stale restore-only данных.
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Next: —
+
+### 2026-03-08 — Harden restore-only perma flag bootstrap
+- Status: PASS
+- Facts:
+  - ReactionPolicy теперь требует, чтобы persisted записи имели non-restore type, отбрасывает `perma_flag_restore`/`restored_security_state` и логирует `[FLOW_AUDIT] perma-flag-bootstrap-source` с accepted=false для restore-only payload.
+  - Восстановленные restore-only записи получают TEMP_BLOCK с `until=now-1`, `perma-flag-restore-rejected` и `poisoned-storage-cleanup` стирают poisoned localStorage, так что `Game.SecurityPolicy.getFlag("me")` возвращает null до новых нарушений.
+  - `getFlag` теперь пишет `[FLOW_AUDIT] getFlag-result ...`, что позволяет call/vote проверять блокировки без обращения к Console.txt.
+- Changed: `AsyncScene/Web/state.js`
+- Next: QA
