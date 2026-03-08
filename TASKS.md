@@ -3585,3 +3585,50 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   2) В Network убедитесь, что на старте нет запросов к `dev/console-tape.js` или `console-tape.js` (любого пути).
   3) Убедитесь, что в Console нет ошибок, указывающих на отсутствие tape-скриптов.
 - Next: QA
+
+### 2026-03-08 — P0: eliminate surviving restore-only perma flag path
+- Status: PASS (локально), Next: QA
+- Area: Security
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Найти точный surviving-path `getFlag("me") => {level:"perma_flag", type:"perma_flag_restore", until:null}` и устранить его полностью без ослабления anti-cheat.
+- Result: PASS
+  - Report:
+    - Root-cause path (доказан):
+      1) `restorePersistedFlags()` восстанавливает perma-флаги.
+      2) На bootstrap вызывается `emitRestoreEvents()`.
+      3) `Security.emit("perma_flag_restore", {restored:true})` попадает в `handleEvent()`.
+      4) `handleEvent()` эскалировал это в `PERMA_FLAG` и писал `type=perma_flag_restore`.
+      5) `isActionBlocked/getFlag` читали этот stale флаг до нормальной игры.
+    - Fixes:
+      1) Добавлен early self-heal `selfHealIllegalPermaFlags` с чисткой памяти + `AsyncScene_security_perma_flags_v1`.
+      2) Добавлен `ensureFlagStateFinalized` перед `isActionBlocked/getFlag`.
+      3) Bootstrap restore-события (`meta.restored===true`) больше не создают `PERMA_FLAG` в `handleEvent`.
+      4) Убран fallback default type=`perma_flag_restore` в normalize/persist/restore ветках.
+      5) Добавлены обязательные FLOW_AUDIT логи: illegal-state, self-heal, bootstrap-flag-write.
+- Verification:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `rg` подтверждает присутствие всех требуемых FLOW_AUDIT маркеров.
+- Next: QA reload в prod:
+  1) до новых violation `Game.SecurityPolicy.getFlag("me")` должен быть `null`;
+  2) `call/vote` не должны блокироваться restore-only состоянием.
+
+### 2026-03-08 — P0: убрать relabel stale restore в `perma_flag` (non-authoritative split)
+- Status: FAIL (до пользовательского runtime-smoke)
+- Area: Security
+- Files: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Устранить путь, где stale local restore теряет тип `perma_flag_restore` и снова становится блокирующим `level=perma_flag, until=null` до нормальной игры.
+- Result:
+  - Root-cause (точная функция): `normalizeFlagEntry()` подставлял fallback `type="perma_flag"` для restore/localStorage записей без `type`, что делало их «valid strong proof» и позволяло `restorePersistedFlags()` восстановить бессрочную блокировку.
+  - Fixes:
+    1) Добавлено явное различие `authoritative perma` vs `restored local non-authoritative` через `FLAG_AUTHORITY`.
+    2) В `restorePersistedFlags()` локально восстановленные записи считаются `authoritative=false`, не пишутся в активные security flags и удаляются как stale (`stale-perma-removed`) до чтения `getFlag/isActionBlocked`.
+    3) `setFlagForPlayer()` сохраняет authority в entry/persist; runtime PERMA через `handleEvent()` маркируется `AUTHORITATIVE`.
+    4) `getFlag()` возвращает только авторитетный perma, иначе `null`; `isActionBlocked()` блокирует call/vote только при авторитетном perma.
+    5) Добавлены требуемые FLOW_AUDIT логи: authority-check, bootstrap-perma-write, stale-perma-removed, getFlag-result(authoritative), isActionBlocked.
+- Verification:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `rg` по `AsyncScene/Web/state.js` подтверждает наличие всех требуемых `[FLOW_AUDIT]` маркеров.
+- Next: QA на prod reload:
+  1) До violation `Game.SecurityPolicy.getFlag("me")` должен быть `null` (или non-blocking).
+  2) Call/Vote должны работать.
+  3) В логах не должно быть surviving restore-derived immortal `perma_flag`.

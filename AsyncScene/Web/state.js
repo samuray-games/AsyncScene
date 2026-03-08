@@ -6415,6 +6415,10 @@ window.Game = window.Game || {};
     const storage = (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
     const RUNTIME_SOURCE = "runtime";
     const BOOTSTRAP_SOURCE_NAME = "ReactionPolicy.restorePersistedFlags";
+    const FLAG_AUTHORITY = {
+      AUTHORITATIVE: "authoritative_perma_flag",
+      RESTORED_LOCAL: "restored_local_non_authoritative_flag",
+    };
 
     function logRestore(marker, payload){
       try {
@@ -6447,6 +6451,7 @@ window.Game = window.Game || {};
 
     function hasStrongRestoreProof(entry){
       if (!entry) return false;
+      if (entry.authority === FLAG_AUTHORITY.RESTORED_LOCAL) return false;
       const reasonBase = normalizeRestoreReason(entry.reason);
       const typeBase = normalizeRestoreReason(entry.type);
       if (!typeBase || RESTORED_WEAK_REASONS.has(typeBase)) return false;
@@ -6506,12 +6511,70 @@ window.Game = window.Game || {};
       } catch (_) {}
     }
 
-    function logGetFlagResult(playerId, flag){
+    function logPermaFlagAuthorityCheck(playerId, authoritative, source){
+      if (!playerId) playerId = "unknown";
+      const authoritativeText = authoritative ? "true" : "false";
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-authority-check player=${playerId} authoritative=${authoritativeText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logStalePermaRemoved(playerId, reason){
+      if (!playerId) playerId = "unknown";
+      const reasonText = sanitizeReason(reason, "stale_local_restore");
+      try {
+        console.log(`[FLOW_AUDIT] stale-perma-removed player=${playerId} reason=${reasonText}`);
+      } catch (_) {}
+    }
+
+    function isAuthoritativePermaFlag(playerId, flag, source){
+      const pid = playerId ? String(playerId) : "unknown";
+      let authoritative = false;
+      if (flag && flag.level === LEVELS.PERMA_FLAG) {
+        authoritative = runtimePermaProofPlayers.has(pid) || flag.authority === FLAG_AUTHORITY.AUTHORITATIVE;
+      }
+      logPermaFlagAuthorityCheck(pid, authoritative, source || "ReactionPolicy.isAuthoritativePermaFlag");
+      return authoritative;
+    }
+
+    function logGetFlagResult(playerId, flag, authoritative){
       if (!playerId) playerId = "unknown";
       const levelText = flag && flag.level ? String(flag.level) : "null";
       const typeText = flag && flag.type ? String(flag.type) : "null";
+      const authoritativeText = authoritative ? "true" : "false";
       try {
-        console.log(`[FLOW_AUDIT] getFlag-result player=${playerId} level=${levelText} type=${typeText}`);
+        console.log(`[FLOW_AUDIT] getFlag-result player=${playerId} level=${levelText} type=${typeText} authoritative=${authoritativeText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagIllegalState(playerId, type, level, source){
+      if (!playerId) playerId = "unknown";
+      const typeText = sanitizeReason(type, "perma_flag_restore");
+      const levelText = sanitizeReason(level, "perma_flag");
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-illegal-state player=${playerId} type=${typeText} level=${levelText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagSelfHeal(playerId, removed, source){
+      if (!playerId) playerId = "unknown";
+      const removedText = removed ? "true" : "false";
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-self-heal player=${playerId} removed=${removedText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logBootstrapPermaWrite(playerId, level, type, restored, caller){
+      if (!playerId) playerId = "unknown";
+      const levelText = sanitizeReason(level, "unknown");
+      const typeText = sanitizeReason(type, "null");
+      const restoredText = restored ? "true" : "false";
+      const callerText = caller || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] bootstrap-perma-write player=${playerId} level=${levelText} type=${typeText} restored=${restoredText} caller=${callerText}`);
       } catch (_) {}
     }
 
@@ -6552,7 +6615,8 @@ window.Game = window.Game || {};
       const rawType = entry.type || entry._type || entry.reason;
       const type = sanitizeReason(rawType, "perma_flag_restore");
       const reason = sanitizeReason(entry.reason || entry._reason || type, "restored_security_state");
-      return { since, reason, type };
+      const authority = FLAG_AUTHORITY.RESTORED_LOCAL;
+      return { since, reason, type, authority };
     }
 
     function logPermaFlagNormalized(key, reason){
@@ -6602,6 +6666,9 @@ window.Game = window.Game || {};
     let persistedPerma = loadPersisted();
     const restoredPlayers = [];
     const history = new Map();
+    const runtimePermaProofPlayers = new Set();
+    let flagStateFinalized = false;
+    let restoreInProgress = false;
 
     function ensureStateFlags(){
       if (!State.securityFlags || typeof State.securityFlags !== "object") {
@@ -6634,8 +6701,11 @@ window.Game = window.Game || {};
           const sinceValue = Number(flag.since);
           const since = Number.isFinite(sinceValue) ? Math.max(0, sinceValue) : Date.now();
           const reason = sanitizeReason(flag.reason || flag.type, "perma_flag");
-          const type = sanitizeReason(flag.type || flag.reason, "perma_flag_restore");
-          payload[pid] = { since, reason, type };
+          const type = sanitizeReason(flag.type || flag.reason, "perma_flag");
+          const authority = (flag.authority === FLAG_AUTHORITY.AUTHORITATIVE)
+            ? FLAG_AUTHORITY.AUTHORITATIVE
+            : FLAG_AUTHORITY.RESTORED_LOCAL;
+          payload[pid] = { since, reason, type, authority };
         }
       }
       try {
@@ -6643,6 +6713,87 @@ window.Game = window.Game || {};
         storage.setItem(STORAGE_KEY, JSON.stringify(envelope));
       } catch (_) {}
       persistedPerma = { flags: payload, source: RUNTIME_SOURCE, format: "wrapped", stamp: Date.now() };
+    }
+
+    function isIllegalRestoreOnlyPerma(flag){
+      if (!flag || flag.level !== LEVELS.PERMA_FLAG) return false;
+      const until = (flag.until == null) ? null : Number(flag.until);
+      if (until !== null) return false;
+      const typeBase = normalizeRestoreReason(flag.type);
+      const weakType = typeBase === "perma_flag_restore" || !typeBase;
+      if (!weakType) return false;
+      return flag.authority !== FLAG_AUTHORITY.AUTHORITATIVE;
+    }
+
+    function hasStrongCurrentRuntimeProof(playerId, flag){
+      return isAuthoritativePermaFlag(playerId, flag, "ReactionPolicy.hasStrongCurrentRuntimeProof");
+    }
+
+    function hasAnyPermaFlags(){
+      const flags = State.securityFlags || {};
+      for (const value of Object.values(flags)) {
+        if (value && value.level === LEVELS.PERMA_FLAG) return true;
+      }
+      return false;
+    }
+
+    function removePersistedFlagEntry(playerId){
+      const key = playerId ? String(playerId) : "";
+      if (!key) return false;
+      const bucket = (persistedPerma && persistedPerma.flags && typeof persistedPerma.flags === "object") ? persistedPerma.flags : null;
+      if (!bucket || !Object.prototype.hasOwnProperty.call(bucket, key)) return false;
+      delete bucket[key];
+      return true;
+    }
+
+    function finalizePersistedAfterHeal(removedCount){
+      if (!removedCount) return;
+      let storageChanged = false;
+      if (hasAnyPermaFlags()) {
+        persistPermaFlags();
+        storageChanged = true;
+      } else if (storage) {
+        try {
+          storage.removeItem(STORAGE_KEY);
+          storageChanged = true;
+        } catch (_) {}
+        persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
+      } else {
+        persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
+      }
+      logPoisonedStorageCleanup(storageChanged, removedCount);
+    }
+
+    function selfHealIllegalPermaFlags(source){
+      ensureStateFlags();
+      const sourceText = source || "ReactionPolicy.selfHealIllegalPermaFlags";
+      const flags = State.securityFlags || {};
+      let removedCount = 0;
+      for (const [pid, flag] of Object.entries(flags)) {
+        if (!isIllegalRestoreOnlyPerma(flag)) continue;
+        const hasStrongProof = hasStrongCurrentRuntimeProof(pid, flag);
+        if (hasStrongProof) {
+          logPermaFlagSelfHeal(pid, false, sourceText);
+          continue;
+        }
+        logPermaFlagIllegalState(pid, flag.type, flag.level, sourceText);
+        delete State.securityFlags[pid];
+        removePersistedFlagEntry(pid);
+        logStalePermaRemoved(pid, "restore_only_perma_without_runtime_proof");
+        removedCount++;
+        logPermaFlagSelfHeal(pid, true, sourceText);
+      }
+      finalizePersistedAfterHeal(removedCount);
+      return removedCount;
+    }
+
+    function ensureFlagStateFinalized(source){
+      if (flagStateFinalized) return;
+      if (!restoreInProgress) {
+        restorePersistedFlags();
+      }
+      selfHealIllegalPermaFlags(source || "ReactionPolicy.ensureFlagStateFinalized");
+      flagStateFinalized = true;
     }
 
     function setFlagForPlayer(playerId, level, stamp, extra = {}){
@@ -6668,11 +6819,20 @@ window.Game = window.Game || {};
         counts: extra.counts || null,
         type: extra.type || null,
         reason: entryReason,
+        authority: (level === LEVELS.PERMA_FLAG)
+          ? (extra.authority || FLAG_AUTHORITY.AUTHORITATIVE)
+          : FLAG_AUTHORITY.RESTORED_LOCAL,
       };
       State.securityFlags[key] = entry;
+      if (extra && extra.bootstrapWrite) {
+        logBootstrapPermaWrite(key, level, entry.type, !!extra.restored, extra.caller || BOOTSTRAP_SOURCE_NAME);
+      }
       if (level === LEVELS.PERMA_FLAG) {
         persistedPerma = {
-          flags: { ...(persistedPerma.flags || {}), [key]: { since: stamp } },
+          flags: {
+            ...(persistedPerma.flags || {}),
+            [key]: { since: stamp, type: entry.type, reason: entry.reason, authority: entry.authority },
+          },
           source: RUNTIME_SOURCE,
           format: "wrapped",
           stamp: Date.now(),
@@ -6683,6 +6843,9 @@ window.Game = window.Game || {};
     }
 
     function restorePersistedFlags(){
+      if (restoreInProgress) return;
+      restoreInProgress = true;
+      flagStateFinalized = false;
       const meta = persistedPerma || { flags: {}, source: "none", format: "none", stamp: 0 };
       const flags = (meta.flags && typeof meta.flags === "object") ? meta.flags : {};
       const count = Object.keys(flags).length;
@@ -6701,6 +6864,9 @@ window.Game = window.Game || {};
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "dev_mode");
         logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:dev_mode");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       if (!count) {
@@ -6710,6 +6876,9 @@ window.Game = window.Game || {};
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "empty_flags");
         logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:empty_flags");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       if (meta.format === "legacy") {
@@ -6719,6 +6888,9 @@ window.Game = window.Game || {};
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "legacy_untrusted_prod");
         logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:legacy_untrusted_prod");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       if (meta.format === "wrapped" && meta.source !== RUNTIME_SOURCE) {
@@ -6728,6 +6900,9 @@ window.Game = window.Game || {};
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "source_not_runtime");
         logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:source_not_runtime");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       ensureStateFlags();
@@ -6738,32 +6913,22 @@ window.Game = window.Game || {};
       const baseSource = meta.source || "unknown";
       for (const [pid, data] of Object.entries(flags)) {
         if (!pid) continue;
-        const typeCandidate = (data && data.type) ? data.type : ((data && data.reason) ? data.reason : "perma_flag_restore");
-        const sanitizedType = sanitizeReason(typeCandidate, "perma_flag_restore");
-        const isValid = hasStrongRestoreProof(data);
-        logPermaFlagRestoreRead(pid, sanitizedType, null, isValid);
-        logIdentityBindFlag(pid, baseSource, isValid);
-        logPermaFlagBootstrapSource(pid, BOOTSTRAP_SOURCE_NAME, isValid);
-        if (!isValid) {
-          const now = Date.now();
-          const degradeReason = sanitizeReason((data && data.reason) || sanitizedType, "restored_security_state");
-          const expireAt = Math.max(1, now - 1);
-          setFlagForPlayer(pid, LEVELS.TEMP_BLOCK, now, { until: expireAt, type: sanitizedType, reason: `restore:${degradeReason}` });
-          logPermaFlagRestoreDowngrade(pid, LEVELS.PERMA_FLAG, LEVELS.TEMP_BLOCK, degradeReason);
-          logPermaFlagRestoreDiscard(pid, degradeReason);
-          logPermaFlagRestoreRejected(pid, degradeReason, baseSource);
-          hadInvalidRestore = true;
-          invalidRestoreCount++;
-          continue;
-        }
-        State.securityFlags[pid] = {
-          level: LEVELS.PERMA_FLAG,
-          since: Number((data && data.since) || Date.now()),
-          until: null,
-          reason: sanitizeReason((data && data.reason) || sanitizedType, "restored_security_state"),
-          type: sanitizedType,
-        };
-        restoredPlayers.push(pid);
+        const normalizedData = normalizeFlagEntry(data);
+        const sanitizedType = sanitizeReason(normalizedData.type, "perma_flag_restore");
+        const authoritative = false;
+        logPermaFlagRestoreRead(pid, sanitizedType, null, authoritative);
+        logIdentityBindFlag(pid, baseSource, authoritative);
+        logPermaFlagBootstrapSource(pid, BOOTSTRAP_SOURCE_NAME, authoritative);
+        logPermaFlagAuthorityCheck(pid, authoritative, "ReactionPolicy.restorePersistedFlags");
+        logBootstrapPermaWrite(pid, LEVELS.PERMA_FLAG, sanitizedType, true, BOOTSTRAP_SOURCE_NAME);
+        const degradeReason = sanitizeReason(normalizedData.reason || sanitizedType, "restored_security_state");
+        logPermaFlagRestoreDowngrade(pid, LEVELS.PERMA_FLAG, LEVELS.TEMP_BLOCK, degradeReason);
+        logPermaFlagRestoreDiscard(pid, degradeReason);
+        logPermaFlagRestoreRejected(pid, degradeReason, baseSource);
+        logStalePermaRemoved(pid, "restored_local_without_runtime_proof");
+        removePersistedFlagEntry(pid);
+        hadInvalidRestore = true;
+        invalidRestoreCount++;
       }
       logRestore("[SEC_RESTORE_APPLY]", { count: restoredPlayers.length, source: meta.source || "unknown", format: meta.format || "unknown" });
       logSecurityRestore(meta, restoredPlayers.length, restoredPlayers.length > 0);
@@ -6792,6 +6957,9 @@ window.Game = window.Game || {};
         }
         logPoisonedStorageCleanup(storageChanged, invalidRestoreCount);
       }
+      selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:post_apply");
+      flagStateFinalized = true;
+      restoreInProgress = false;
     }
 
     const REACTION_LOG_TTL_MS = 1500;
@@ -6903,6 +7071,8 @@ window.Game = window.Game || {};
       const typeKey = origType.toLowerCase();
       const playerId = (ev.playerId && String(ev.playerId)) ? String(ev.playerId) : "me";
       const sessionId = (ev.sessionId && String(ev.sessionId)) ? String(ev.sessionId) : "";
+      const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
+      const isBootstrapRestoreEvent = typeKey === "perma_flag_restore" && !!meta.restored;
       const list = recordHistory(typeKey, stamp);
       const shortCutoff = stamp - SHORT_WINDOW_MS;
       let shortCount = 0;
@@ -6917,7 +7087,7 @@ window.Game = window.Game || {};
       if (typeKey === "forbidden_api_access") {
         level = LEVELS.LOG_ONLY;
       } else {
-        if (typeKey === "perma_flag_restore") {
+        if (typeKey === "perma_flag_restore" && !isBootstrapRestoreEvent) {
           level = LEVELS.PERMA_FLAG;
         }
         if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
@@ -6928,14 +7098,14 @@ window.Game = window.Game || {};
       }
       }
       const counts = { short: shortCount, long: longCount };
-      const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
       const blockReason = buildBlockReason(typeKey, meta);
       let until = null;
       if (!devMode && level === LEVELS.TEMP_BLOCK) {
         until = stamp + TEMP_BLOCK_TTL_MS;
         setFlagForPlayer(playerId, level, stamp, { until, type: origType, counts, reason: blockReason });
       } else if (!devMode && level === LEVELS.PERMA_FLAG) {
-        setFlagForPlayer(playerId, level, stamp, { type: origType, counts, reason: blockReason });
+        setFlagForPlayer(playerId, level, stamp, { type: origType, counts, reason: blockReason, authority: FLAG_AUTHORITY.AUTHORITATIVE });
+        runtimePermaProofPlayers.add(playerId);
       }
       const reactionEntry = {
         time: stamp,
@@ -6954,10 +7124,12 @@ window.Game = window.Game || {};
 
     function isActionBlocked(playerId, action){
       if (isDevFlag && isDevFlag()) return false;
+      ensureFlagStateFinalized("ReactionPolicy.isActionBlocked");
       const flag = getStateFlag(playerId);
-      const blocked = !!flag;
+      const authoritative = isAuthoritativePermaFlag(playerId, flag, "ReactionPolicy.isActionBlocked");
+      const blocked = !!flag && (flag.level !== LEVELS.PERMA_FLAG || authoritative);
       if (action === "call" || action === "vote") {
-        const reason = flag ? (flag.reason || flag.type || "security_flag") : "none";
+        const reason = blocked ? (flag.reason || flag.type || "security_flag") : "none";
         const safeReason = sanitizeReason(reason, "none");
         const blockedText = blocked ? "true" : "false";
         try {
@@ -6969,11 +7141,14 @@ window.Game = window.Game || {};
 
     function getFlag(playerId){
       if (isDevFlag && isDevFlag()) {
-        logGetFlagResult(playerId, null);
+        logGetFlagResult(playerId, null, false);
         return null;
       }
-      const flag = getStateFlag(playerId);
-      logGetFlagResult(playerId, flag);
+      ensureFlagStateFinalized("ReactionPolicy.getFlag");
+      const rawFlag = getStateFlag(playerId);
+      const authoritative = isAuthoritativePermaFlag(playerId, rawFlag, "ReactionPolicy.getFlag");
+      const flag = (rawFlag && rawFlag.level === LEVELS.PERMA_FLAG && !authoritative) ? null : rawFlag;
+      logGetFlagResult(playerId, flag, authoritative);
       return flag;
     }
 
