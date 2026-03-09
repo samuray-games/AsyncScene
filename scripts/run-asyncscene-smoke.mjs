@@ -7,6 +7,7 @@ const DEFAULT_URL = "https://samuray-games.github.io/AsyncScene/";
 const PAGE_LOAD_TIMEOUT_MS = 45000;
 const WAIT_GAME_TIMEOUT_MS = 30000;
 const WAIT_DEV_TIMEOUT_MS = 30000;
+const SMOKE_TIMEOUT_MS = 30000;
 
 const smokeName = process.argv[2];
 const targetUrl = process.env.ASYNCSCENE_SMOKE_URL || DEFAULT_URL;
@@ -283,22 +284,78 @@ async function run() {
 
     let evalResult;
     try {
-      evalResult = await page.evaluate(async (name) => {
+      evalResult = await page.evaluate(async ({ name, timeoutMs }) => {
+        const safeSerialize = (value) => {
+          const seen = new WeakSet();
+          const walk = (v) => {
+            if (v === null) return null;
+            if (v === undefined) return { __type: "undefined" };
+            const t = typeof v;
+            if (t === "string" || t === "number" || t === "boolean") return v;
+            if (t === "bigint") return { __type: "bigint", value: v.toString() };
+            if (t === "symbol") return { __type: "symbol", value: String(v) };
+            if (t === "function") return `[Function${v.name ? `: ${v.name}` : ""}]`;
+            if (v instanceof Date) return { __type: "date", value: v.toISOString() };
+            if (v instanceof RegExp) return { __type: "regexp", value: v.toString() };
+            if (v instanceof Error) {
+              return { name: v.name, message: v.message, stack: v.stack || null };
+            }
+            if (Array.isArray(v)) return v.map(walk);
+            if (t === "object") {
+              if (seen.has(v)) return "[Circular]";
+              seen.add(v);
+              if (v instanceof Map) {
+                return { __type: "map", value: Array.from(v.entries()).map(([k, val]) => [walk(k), walk(val)]) };
+              }
+              if (v instanceof Set) {
+                return { __type: "set", value: Array.from(v.values()).map(walk) };
+              }
+              const out = {};
+              for (const key of Object.keys(v)) {
+                out[key] = walk(v[key]);
+              }
+              return out;
+            }
+            return String(v);
+          };
+          return walk(value);
+        };
+
         const dev = window.Game?.__DEV || null;
         const legacy = window.Game?.Dev || null;
         const fn = (dev && dev[name]) || (legacy && legacy[name]);
+        const start = Date.now();
+        let timeoutId;
+        const timeoutPromise = new Promise((resolve) => {
+          timeoutId = setTimeout(() => {
+            resolve({
+              ok: false,
+              reason: "smoke_timeout",
+              error: { message: `Smoke timeout after ${timeoutMs}ms`, stack: null },
+              durationMs: Date.now() - start,
+            });
+          }, timeoutMs);
+        });
+        const invokePromise = (async () => {
+          try {
+            const output = fn();
+            const value = output && typeof output.then === "function" ? await output : output;
+            return { ok: true, value: safeSerialize(value), durationMs: Date.now() - start };
+          } catch (err) {
+            return {
+              ok: false,
+              reason: "smoke_exception",
+              error: { message: err?.message || String(err), stack: err?.stack || null },
+              durationMs: Date.now() - start,
+            };
+          }
+        })();
         try {
-          const output = fn();
-          const value = output && typeof output.then === "function" ? await output : output;
-          return { ok: true, value };
-        } catch (err) {
-          return {
-            ok: false,
-            reason: "smoke_exception",
-            error: { message: err?.message || String(err), stack: err?.stack || null },
-          };
+          return await Promise.race([invokePromise, timeoutPromise]);
+        } finally {
+          clearTimeout(timeoutId);
         }
-      }, smokeName);
+      }, { name: smokeName, timeoutMs: SMOKE_TIMEOUT_MS });
     } catch (err) {
       const screenshotPath = await captureScreenshot(page, "invoke_smoke");
       await finalize(
@@ -331,6 +388,26 @@ async function run() {
           consoleMessages,
           pageErrors,
           error: evalResult.error || null,
+          smokeDurationMs: evalResult.durationMs ?? null,
+        },
+        1
+      );
+      return;
+    }
+
+    if (!evalResult.ok && evalResult.reason === "smoke_timeout") {
+      await finalize(
+        {
+          ok: false,
+          reason: "smoke_timeout",
+          phase: "invoke_smoke",
+          smokeName,
+          pageTitle,
+          pageUrl,
+          consoleMessages,
+          pageErrors,
+          error: evalResult.error || null,
+          smokeDurationMs: evalResult.durationMs ?? null,
         },
         1
       );
@@ -346,7 +423,8 @@ async function run() {
         pageUrl,
         consoleMessages,
         pageErrors,
-        smokeResult: safeSerialize(evalResult.value),
+        smokeResult: evalResult.value,
+        smokeDurationMs: evalResult.durationMs ?? null,
       },
       0
     );

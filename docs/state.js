@@ -1199,6 +1199,25 @@ window.Game = window.Game || {};
     }
   }
 
+  function hasExplicitSmokeQueryParam() {
+    if (typeof location === "undefined" || !location) return false;
+    const search = location.search;
+    if (!search) return false;
+    try {
+      const params = new URLSearchParams(search);
+      return params.get("smoke") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function allowSmokeSurface(){
+    if (typeof location === "undefined" || !location) return false;
+    const host = String(location.hostname || "");
+    if (host === "samuray-games.github.io") return true;
+    return hasExplicitSmokeQueryParam();
+  }
+
   function isDevFlag(){
     return (
       (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) ||
@@ -1259,7 +1278,9 @@ window.Game = window.Game || {};
 
   if (typeof window !== "undefined" && !isDevFlag()) {
     tryRemove(Game, "Dev");
-    tryRemove(Game, "__DEV");
+    if (!allowSmokeSurface()) {
+      tryRemove(Game, "__DEV");
+    }
     tryRemove(window, "__defineGameSurfaceProp");
   }
 
@@ -6408,6 +6429,22 @@ window.Game = window.Game || {};
       return result;
     };
   }
+
+  try {
+    const dev = (Game && Game.__DEV && typeof Game.__DEV === "object") ? Game.__DEV : null;
+    const hasSmoke = !!(dev && typeof dev.smokeEconUi_RegressionPackOnce === "function");
+    console.log("SMOKE_REGISTRY_STATUS", {
+      smokeName: "smokeEconUi_RegressionPackOnce",
+      hasSmoke,
+      devFlag: isDevFlag(),
+      smokeSurface: allowSmokeSurface()
+    });
+  } catch (_) {}
+  try {
+    const dev = (Game && Game.__DEV && typeof Game.__DEV === "object") ? Game.__DEV : null;
+    const keys = dev ? Object.keys(dev) : [];
+    console.log("SMOKE_REGISTRY_KEYS", { count: keys.length, sample: keys.slice(0, 12) });
+  } catch (_) {}
 
   installEconUiSideEffectGuards();
   if (typeof window !== "undefined") {

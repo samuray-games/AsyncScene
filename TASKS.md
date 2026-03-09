@@ -3845,3 +3845,17 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   2) Реализованы env-переопределения `ASYNCSCENE_SMOKE_URL`, `HEADFUL`, `SLOWMO`, `SMOKE_LOG_JSON=1` и сбор console/pageerror.
   3) Прописана exit-политика: инфраструктурные сбои => non-zero, выполненный smoke (даже `{ok:false}`) => exit 0, smoke_not_found/smoke_exception => non-zero.
   4) Добавлен минимальный `package.json` с `playwright` и скриптом `smoke:asyncscene`.
+
+### 2026-03-10 — Smoke runner hardening: timeout + in-page serialize
+- Status: PASS (код)
+- Files: `scripts/run-asyncscene-smoke.mjs` `PROJECT_MEMORY.md` `TASKS.md`
+- Сделано:
+  1) Добавлен timeout smoke-вызова с `reason:"smoke_timeout"` и отдельной обработкой в runner.
+  2) Сериализация результата smoke перенесена внутрь `page.evaluate` для защиты от non-serializable/circular значений.
+
+### 2026-03-10 — GitHub Pages smoke registry: диагностика и восстановление surface
+- Status: PASS (код)
+- Files: `AsyncScene/Web/state.js` `docs/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Сделано:
+  1) Добавлены логи `SMOKE_REGISTRY_STATUS` и `SMOKE_REGISTRY_KEYS` для фиксации наличия `smokeEconUi_RegressionPackOnce` и состава ключей `Game.__DEV`.
+  2) На GitHub Pages сохранён `Game.__DEV` без dev-флага, чтобы smoke-функции регистрировались и были доступны внешнему раннеру.

@@ -3914,3 +3914,17 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Поддержаны env-переопределения URL/HEADFUL/SLOWMO/SMOKE_LOG_JSON и политика exit-кодов: инфраструктурные сбои => non-zero, выполненный smoke => exit 0.
   - Добавлен минимальный `package.json` с `playwright` и скриптом `smoke:asyncscene`.
 - Changed: `scripts/run-asyncscene-smoke.mjs` `package.json` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-03-10 — Smoke runner hardening: timeout + in-page serialize
+- Status: PASS (код)
+- Facts:
+  - В `scripts/run-asyncscene-smoke.mjs` добавлен timeout для smoke-вызова и обработка `reason:"smoke_timeout"` через `Promise.race`.
+  - Внутри `page.evaluate` добавлена безопасная сериализация результата smoke, чтобы избежать clone-failure при complex/циклических значениях.
+- Changed: `scripts/run-asyncscene-smoke.mjs` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-03-10 — GitHub Pages smoke registry: диагностика и восстановление surface
+- Status: PASS (код)
+- Facts:
+  - В `AsyncScene/Web/state.js` и `docs/state.js` добавлена диагностика `SMOKE_REGISTRY_STATUS`/`SMOKE_REGISTRY_KEYS` для фиксации регистрации `smokeEconUi_RegressionPackOnce`.
+  - Для GitHub Pages разрешено сохранять `Game.__DEV` (smoke surface) даже без dev-флага, чтобы внешний раннер видел smoke-эндпоинт.
+- Changed: `AsyncScene/Web/state.js` `docs/state.js` `PROJECT_MEMORY.md` `TASKS.md`
