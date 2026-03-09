@@ -3889,3 +3889,20 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   4) Проверка overwrite: в live ассетах единственное присваивание `Game.SecurityPolicy = ReactionPolicy` находится в `state.js?v=6`; дополнительных перезаписей в загружаемых скриптах не найдено.
 - Причина рассинхрона (окончательно):
   - GitHub Pages корректно обслуживает `docs`-артефакт, но до фикса в `origin/main` лежал старый `docs/index.html` (`state.js?v=4`) и старый `docs/state.js`; локальные незадеплоенные изменения не попадали в live.
+
+### 2026-03-09 — PROD runtime smoke: stale security policy asset
+- Status: PASS
+- Facts:
+  - Live https://samuray-games.github.io/AsyncScene/ теперь загружает `<script defer src="state.js?v=6">` и runtime-ресурс совпадает с `state.js?v=6`.
+  - `Game.SecurityPolicy.inspectFlag` определён как функция, `Game.SecurityPolicy.versionInfo()` тоже доступна и `versionInfo().buildMarker === "build_2026_03_09_flowaudit_v6"`.
+  - `Game.SecurityPolicy.getFlag("me") === null`, `Game.SecurityPolicy.isActionBlocked("me","call") === false`, `Game.SecurityPolicy.isActionBlocked("me","vote") === false`.
+- Root cause: GitHub Pages served stale docs asset (older state.js without inspectFlag and with stale blocking logic) until docs/state.js and cache-bust were updated and deployed.
+
+### 2026-03-09 — P0: fix emitForbiddenAccess mode reference
+- Status: PASS
+- Facts:
+  - `emitForbiddenAccess` теперь определяет `mode` через безопасный вызов `isDevFlag()` и логирует `[FORBID_MODE] mode=dev|prod`, сохраняя `key`/`action`/`stack`/`caller` прежними.
+  - Лог-сообщение теперь строится без обращения к недоступной переменной, так что forbidden-access path больше не вызывает `ReferenceError: Can't find variable: mode` и crash до `startGame` исчез.
+- Verification:
+  - Запустить игру и убедиться, что путь forbidden-access не выбрасывает ReferenceError и в консоли появляется `[FORBID_MODE] mode=dev|prod`.
+- Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`

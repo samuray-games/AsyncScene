@@ -48,6 +48,30 @@ window.Game = window.Game || {};
     }
   }
 
+  function flowAuditSecurityPolicy(source){
+    const src = String(source || "game.js");
+    const policy = (Game && Game.SecurityPolicy && typeof Game.SecurityPolicy === "object") ? Game.SecurityPolicy : null;
+    if (!policy) return;
+    const keys = Object.keys(policy).sort().join(",");
+    const hasInspectFlag = (typeof policy.inspectFlag === "function");
+    const hasInspectText = hasInspectFlag ? "true" : "false";
+    const policyId = policy.__flowAuditId ? String(policy.__flowAuditId) : "unknown";
+    try {
+      console.log(`[FLOW_AUDIT] securitypolicy-export keys=${keys || "none"} hasInspectFlag=${hasInspectText}`);
+    } catch (_) {}
+    try {
+      console.log(`[FLOW_AUDIT] policy-runtime-version source=${src} policyId=${policyId}`);
+    } catch (_) {}
+    if (!hasInspectFlag) {
+      try {
+        Game.__FLOW_AUDIT_POLICY_EXPORT_MISSING__ = { source: src, policyId, at: Date.now() };
+      } catch (_) {}
+      try {
+        console.log(`[FLOW_AUDIT] inspectFlag-export-missing source=${src}`);
+      } catch (_) {}
+    }
+  }
+
   Game.__S = {
     me: null,
     isStarted: false,
@@ -67,6 +91,7 @@ window.Game = window.Game || {};
     timers: { chat:null, npcBattle:null, events:null }
   };
   flowAuditGameState("game.js:init");
+  flowAuditSecurityPolicy("game.js:init");
 
   function $(id){ return document.getElementById(id); }
 
@@ -78,6 +103,7 @@ window.Game = window.Game || {};
   Game.Core = {
     login(name){
       flowAuditGameState("Game.Core.login:before");
+      flowAuditSecurityPolicy("Game.Core.login:before");
       const nick = String(name||"").trim().toLowerCase();
       if (!nick) return false;
 
@@ -154,6 +180,7 @@ window.Game = window.Game || {};
         Game.UI.renderAll();
       }
       flowAuditGameState("Game.Core.login:after");
+      flowAuditSecurityPolicy("Game.Core.login:after");
 
       return true;
     },
@@ -217,6 +244,7 @@ window.Game = window.Game || {};
 
     resetAll(){
       flowAuditGameState("Game.Core.resetAll:before");
+      flowAuditSecurityPolicy("Game.Core.resetAll:before");
       // мягкий ресет в рамках страницы
       try{
         clearTimeout(Game.__S.timers.chat);

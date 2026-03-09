@@ -1760,7 +1760,12 @@ window.Game = window.Game || {};
   function emitForbiddenAccess(key, action){
     const stack = captureSecurityStack(3);
     const caller = auditSecurityCaller(stack);
-    auditSecurityConsole(`[SEC_AUDIT] forbidden-access-source key=${securitySafeKey(key)} caller=${caller} mode=${mode()}`);
+    let resolvedMode = "prod";
+    try {
+      const devFlag = (typeof isDevFlag === "function") ? isDevFlag() : false;
+      resolvedMode = devFlag ? "dev" : "prod";
+    } catch (_) {}
+    auditSecurityConsole(`[SEC_AUDIT] forbidden-access-source key=${securitySafeKey(key)} caller=${caller} [FORBID_MODE] mode=${resolvedMode}`);
     Security.emit("forbidden_api_access", {
       key: securitySafeKey(key),
       action: securitySafeKey(action),

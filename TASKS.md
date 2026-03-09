@@ -101,6 +101,37 @@
       4) Приложите краткое подтверждение (Console.txt/скрин).
       ```
 
+### [T-20260309-006] Fix emitForbiddenAccess mode reference
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: —
+- Area: Core|Security
+- Files: `AsyncScene/Web/state.js`
+- Goal: Устранить ReferenceError `mode` в `emitForbiddenAccess`, сохранив anti-tamper flow и добавив маркер `[FORBID_MODE]`.
+- Acceptance:
+  - [x] `emitForbiddenAccess` больше не обращается к внеобласти `mode`.
+  - [x] Лог сообщения включает `[FORBID_MODE]` и безопасно выводит `mode=dev|prod`.
+  - [x] Crash до `startGame` из-за `ReferenceError: mode` исчез.
+- Notes: Патч минимальный; сохраняем существующий forbidden-access handling.
+- Result:
+  - Report:
+    - Status: DONE
+    - Facts:
+      1) `emitForbiddenAccess` теперь выводит `mode` через `isDevFlag` и всесторонне логирует `[FORBID_MODE] mode=…`.
+      2) Поток защиты остался прежним: key/action передаются в `Security.emit`, stack и caller собираются как раньше.
+    - Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+    - How to verify:
+      1) Перезапустить игру и убедиться, что `ReferenceError: Can't find variable: mode` больше не появляется.
+      2) Сработать путь forbidden-access (например, читать/писать Game.<prop> в prod) и найти `[FORBID_MODE]` в консоли с mode=dev|prod.
+    - Next: —
+    - Next Prompt:
+      ```text
+      QA:
+      1) Сбросить кеш/загрузить игру (dev/prod) и наблюдать консоль на предмет ошибок forbidden-access.
+      2) Если появляется `[FORBID_MODE]`, записать reported mode и убедиться, что доступ возвращается безопасно.
+      ```
+
 ### [T-20260308-004] Restore-only perma flag cleanup
 - Status: PASS
 - Priority: P0
@@ -3798,5 +3829,10 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   3) В live экспорте `Game.SecurityPolicy` присутствуют `inspectFlag` и `versionInfo`.
   4) В live присутствуют обязательные FLOW_AUDIT маркеры версии/экспорта/URL.
   5) Дополнительного перезаписывающего `Game.SecurityPolicy` скрипта в загружаемом наборе ассетов не обнаружено.
+- Verified:
+  1) https://samuray-games.github.io/AsyncScene/ теперь загружает `<script defer src="state.js?v=6">` и runtime-ресурс совпадает с `state.js?v=6`.
+  2) `Game.SecurityPolicy.inspectFlag` определён и `typeof Game.SecurityPolicy.inspectFlag === "function"`.
+  3) `Game.SecurityPolicy.versionInfo` доступна и `Game.SecurityPolicy.versionInfo().buildMarker === "build_2026_03_09_flowaudit_v6"`.
+  4) `Game.SecurityPolicy.getFlag("me") === null`, `Game.SecurityPolicy.isActionBlocked("me","call") === false`, `Game.SecurityPolicy.isActionBlocked("me","vote") === false`.
 - Root cause:
-  - Не путь/не другая ветка рантайма; проблема была в том, что в опубликованном `origin/main:docs` оставался stale артефакт (`index -> state.js?v=4` + старый `state.js`). После push live синхронизировался.
+-  - GitHub Pages served stale docs asset (older state.js without inspectFlag and with stale blocking logic) until docs/state.js and cache-bust were updated and deployed.
