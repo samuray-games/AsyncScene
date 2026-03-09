@@ -3729,3 +3729,60 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
 - Локальная верификация:
   - `node --check AsyncScene/Web/state.js` -> OK
   - `node --check AsyncScene/Web/game.js` -> OK
+
+### 2026-03-09 — P0: false PASS fix (prod SecurityPolicy export / stale perma blocker)
+- Status: PASS (локальная проверка), prod runtime smoke обязателен после деплоя
+- Files: `AsyncScene/Web/state.js` `AsyncScene/Web/game.js` `docs/state.js` `AsyncScene/Web/index.html` `docs/index.html` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Устранить ложный PASS, когда в проде отсутствует `Game.SecurityPolicy.inspectFlag`, а stale `perma_flag` продолжает блокировать `call/vote`.
+- Root cause (доказан):
+  1) В проде загружается `docs/state.js` (GitHub Pages), а не `AsyncScene/Web/state.js`.
+  2) `docs/state.js` был stale-версией, где API `createReactionPolicy()` не экспортировал `inspectFlag`.
+  3) Из-за stale bundle в runtime оставался старый blocking-путь для restore-derived `perma_flag`.
+- Сделано:
+  1) `docs/state.js` синхронизирован с актуальным `AsyncScene/Web/state.js` (одинаковый SHA-256).
+  2) Добавлен обязательный boot self-check экспорта policy:
+     - `[FLOW_AUDIT] securitypolicy-export keys=<keys> hasInspectFlag=<true|false>`
+     - `[FLOW_AUDIT] policy-runtime-version source=<file/build> policyId=<id>`
+     - `[FLOW_AUDIT] inspectFlag-export-missing source=<module/function>`
+     - fail-safe marker: `Game.__FLOW_AUDIT_POLICY_EXPORT_MISSING__`
+  3) Добавлен runtime-аудит экспорта в `AsyncScene/Web/game.js` для рантаймов, где используется этот bootstrap.
+  4) Поднят cache-bust версии подключения state:
+     - `AsyncScene/Web/index.html`: `state.js?v=5`
+     - `docs/index.html`: `state.js?v=5`
+- Verification:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `node --check docs/state.js` -> OK
+  - `node --check AsyncScene/Web/game.js` -> OK
+  - `shasum -a 256 AsyncScene/Web/state.js docs/state.js` -> одинаковые хэши
+- Expected prod runtime after reload:
+  1) `typeof Game.SecurityPolicy.inspectFlag === "function"`
+  2) `Game.SecurityPolicy.getFlag("me")` -> `null` или non-blocking до реального нарушения
+  3) `Game.SecurityPolicy.isActionBlocked("me","call") === false`
+  4) `Game.SecurityPolicy.isActionBlocked("me","vote") === false`
+
+### 2026-03-09 — P0: prod asset mismatch (`state.js`) root-cause + runtime fingerprint + cache-bust
+- Status: IN_PROGRESS (локальные правки готовы, live PASS после push/deploy)
+- Files: `docs/state.js` `docs/index.html` `AsyncScene/Web/state.js` `AsyncScene/Web/index.html` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Устранить mismatch, когда GitHub Pages live рантайм работает на stale `state.js` без `inspectFlag` и со старой блокирующей perma-логикой.
+- Root cause (доказано):
+  1) Live index `https://samuray-games.github.io/AsyncScene/` грузит `state.js?v=4`.
+  2) Live хэш `state.js?v=4` совпадает с `origin/main:docs/state.js` (`7ab8a9960ff0...c0a2`).
+  3) Значит live получает stale удалённый артефакт, а не локальный `docs/state.js` из рабочего дерева.
+- Сделано:
+  1) Добавлен runtime fingerprint API: `Game.SecurityPolicy.versionInfo()`.
+  2) Добавлены/стабилизированы логи:
+     - `[FLOW_AUDIT] securitypolicy-export keys=<keys> hasInspectFlag=<true|false>`
+     - `[FLOW_AUDIT] policy-runtime-version source=<file/build> policyId=<id> version=<tag>`
+     - `[FLOW_AUDIT] runtime-script-url state=<url>`
+     - `[FLOW_AUDIT] inspectFlag-export-missing source=<module/function>`
+     - `[FLOW_AUDIT] getFlag-result player=<id> level=<level|null> type=<type|null> authoritative=<true|false> since=<since|null>`
+  3) Убедились, что `inspectFlag` экспортируется в итоговом `Game.SecurityPolicy` объекте.
+  4) Поднят cache-bust в entrypoint: `state.js?v=6` (в `docs/index.html` и `AsyncScene/Web/index.html`).
+  5) Синхронизирован `docs/state.js` из `AsyncScene/Web/state.js`.
+- Verification:
+  - `node --check docs/state.js` -> OK
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `rg -n "versionInfo\(|runtime-script-url|policy-runtime-version|securitypolicy-export|inspectFlag-export-missing|getFlag-result" docs/state.js AsyncScene/Web/state.js`
+  - `rg -n "state.js\?v=" docs/index.html AsyncScene/Web/index.html` -> `v=6`
+  - `curl -s 'https://samuray-games.github.io/AsyncScene/state.js?v=4' | shasum -a 256`
+  - `git show origin/main:docs/state.js | shasum -a 256`

@@ -3824,3 +3824,47 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Проверка:
   - `node --check AsyncScene/Web/state.js` -> OK
   - `node --check AsyncScene/Web/game.js` -> OK
+
+### 2026-03-09 — P0: false PASS fix for SecurityPolicy export in shipped runtime
+- Status: PASS (код + синтаксис), runtime smoke требуется после деплоя
+- Root cause (конкретно):
+  - Прод-рантайм GitHub Pages загружал `docs/state.js`, а не `AsyncScene/Web/state.js`.
+  - `docs/state.js` был старым артефактом без `inspectFlag` в возвращаемом API `createReactionPolicy()`.
+  - Из-за этого `Game.SecurityPolicy.inspectFlag` отсутствовал в проде, и старый restore-derived `perma_flag` продолжал блокировать `call/vote`.
+- Сделано:
+  1) Добавлен boot self-check экспорта policy в `AsyncScene/Web/state.js` и `docs/state.js`:
+     - `[FLOW_AUDIT] securitypolicy-export keys=<keys> hasInspectFlag=<true|false>`
+     - `[FLOW_AUDIT] policy-runtime-version source=<file/build> policyId=<id>`
+     - `[FLOW_AUDIT] inspectFlag-export-missing source=<module/function>` (+ fail-safe marker `Game.__FLOW_AUDIT_POLICY_EXPORT_MISSING__`)
+  2) `docs/state.js` синхронизирован с актуальным `AsyncScene/Web/state.js` (sha256 совпадает), поэтому экспортируемый `ReactionPolicy` в проде теперь содержит `inspectFlag` и актуальную логику purge/authoritative-check.
+  3) В `AsyncScene/Web/game.js` добавлен runtime-аудит экспорта `SecurityPolicy` для сценариев, где используется этот оркестратор.
+  4) Для исключения кеш-артефакта поднят query-version подключения state:
+     - `AsyncScene/Web/index.html`: `state.js?v=5`
+     - `docs/index.html`: `state.js?v=5`
+- Проверка:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `node --check docs/state.js` -> OK
+  - `node --check AsyncScene/Web/game.js` -> OK
+  - `shasum -a 256 AsyncScene/Web/state.js docs/state.js` -> одинаковые хэши
+- Changed: `AsyncScene/Web/state.js` `docs/state.js` `AsyncScene/Web/game.js` `AsyncScene/Web/index.html` `docs/index.html` `PROJECT_MEMORY.md`
+
+### 2026-03-09 — PROD mismatch: live GitHub Pages отдавал stale `state.js?v=4` без inspectFlag/versionInfo
+- Status: IN_PROGRESS (код исправлен локально, требуется push/deploy для live PASS)
+- Root cause (доказано командами):
+  1) Live `https://samuray-games.github.io/AsyncScene/` загружал `<script defer src="state.js?v=4">`.
+  2) Хэш live `state.js?v=4` = `7ab8a9960ff0d8ceccd218120b2f6fd23692e8f9e3f0c21554d80e1fe538c0a2`.
+  3) Тот же хэш у `origin/main:docs/state.js` => в проде отдается удалённый stale артефакт ветки `origin/main`, а не локальные правки.
+  4) Локальный `docs/state.js` имел другой хэш (`4d3436...` до текущих правок), т.е. браузер реально получал другой файл, чем локальный рабочий `docs/state.js`.
+- Выполненные действия:
+  1) Проверен live index/state через `curl` и подтвержден `state.js?v=4`.
+  2) Сверены `origin/main:docs/index.html` и `origin/main:docs/state.js` — в удалённой ветке до фикса не было `inspectFlag`/`versionInfo` и был старый runtime policy.
+  3) В `AsyncScene/Web/state.js` добавлены runtime fingerprint и логи:
+     - `Game.SecurityPolicy.versionInfo()` с полями `sourceFileMarker`, `buildMarker`, `policyId`, `hasInspectFlag`, `stateJsVersionTag`, `runtimeScriptUrl`.
+     - `[FLOW_AUDIT] runtime-script-url state=<url>`.
+     - `[FLOW_AUDIT] policy-runtime-version source=<file/build> policyId=<id> version=<tag>`.
+  4) `docs/state.js` синхронизирован из актуального `AsyncScene/Web/state.js`.
+  5) Поднят cache-bust: `state.js?v=6` в `docs/index.html` и `AsyncScene/Web/index.html`.
+- Проверка после правок:
+  - `node --check docs/state.js` -> OK
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `shasum -a 256 docs/state.js AsyncScene/Web/state.js` -> одинаковые хэши (`731ac63817...ec58`)

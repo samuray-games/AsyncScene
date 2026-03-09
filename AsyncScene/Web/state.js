@@ -3,6 +3,9 @@ window.Game = window.Game || {};
 
 (() => {
   const Game = window.Game;
+  const SECURITY_POLICY_SOURCE_MARKER = "state.js:ReactionPolicy";
+  const SECURITY_POLICY_BUILD_MARKER = "build_2026_03_09_flowaudit_v6";
+  const SECURITY_POLICY_STATEJS_VERSION_TAG = "state.js?v=6";
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
   if (!Number.isFinite(Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__))) Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = 0;
   Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = (Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__) | 0) + 1;
@@ -7829,16 +7832,81 @@ window.Game = window.Game || {};
       return result;
     }
 
+    function versionInfo(){
+      const runtimeScriptUrl = getPolicyRuntimeSource();
+      return {
+        sourceFileMarker: SECURITY_POLICY_SOURCE_MARKER,
+        buildMarker: SECURITY_POLICY_BUILD_MARKER,
+        policyId: POLICY_ID,
+        hasInspectFlag: !!(policyApi && typeof policyApi.inspectFlag === "function"),
+        stateJsVersionTag: SECURITY_POLICY_STATEJS_VERSION_TAG,
+        runtimeScriptUrl,
+      };
+    }
+
     policyApi = {
       handleEvent,
       isActionBlocked,
       getFlag,
       inspectFlag,
+      versionInfo,
       restorePersistedFlags,
       emitRestoreEvents,
       __flowAuditId: POLICY_ID,
     };
     return policyApi;
+  }
+
+  function getPolicyRuntimeSource(){
+    try {
+      if (typeof document !== "undefined" && document.currentScript && document.currentScript.src) {
+        return String(document.currentScript.src);
+      }
+    } catch (_) {}
+    return "state.js";
+  }
+
+  function getPolicyBuildSource(){
+    return `${SECURITY_POLICY_SOURCE_MARKER}/${SECURITY_POLICY_BUILD_MARKER}`;
+  }
+
+  function logRuntimeScriptUrl(runtimeSource){
+    const src = (runtimeSource && String(runtimeSource).trim()) ? String(runtimeSource).trim() : "state.js";
+    try {
+      console.log(`[FLOW_AUDIT] runtime-script-url state=${src}`);
+    } catch (_) {}
+  }
+
+  function auditSecurityPolicyExport(source){
+    const src = source ? String(source).trim() : "state.js";
+    const runtimeSource = getPolicyRuntimeSource();
+    const buildSource = getPolicyBuildSource();
+    const versionTag = SECURITY_POLICY_STATEJS_VERSION_TAG;
+    const policy = (Game && Game.SecurityPolicy && typeof Game.SecurityPolicy === "object") ? Game.SecurityPolicy : null;
+    const keys = policy ? Object.keys(policy).sort().join(",") : "null";
+    const hasInspectFlag = !!(policy && typeof policy.inspectFlag === "function");
+    const hasInspectText = hasInspectFlag ? "true" : "false";
+    const policyId = (policy && policy.__flowAuditId) ? String(policy.__flowAuditId) : "unknown";
+    try {
+      console.log(`[FLOW_AUDIT] securitypolicy-export keys=${keys || "none"} hasInspectFlag=${hasInspectText}`);
+    } catch (_) {}
+    try {
+      console.log(`[FLOW_AUDIT] policy-runtime-version source=${buildSource} policyId=${policyId} version=${versionTag}`);
+    } catch (_) {}
+    logRuntimeScriptUrl(runtimeSource);
+    if (!hasInspectFlag) {
+      try {
+        Game.__FLOW_AUDIT_POLICY_EXPORT_MISSING__ = {
+          source: runtimeSource,
+          stage: src,
+          policyId,
+          at: Date.now(),
+        };
+      } catch (_) {}
+      try {
+        console.log(`[FLOW_AUDIT] inspectFlag-export-missing source=${src}`);
+      } catch (_) {}
+    }
   }
 
   ReactionPolicy = createReactionPolicy();
@@ -7852,6 +7920,7 @@ window.Game = window.Game || {};
     const sameRefText = (Game.SecurityPolicy === ReactionPolicy) ? "true" : "false";
     console.log(`[FLOW_AUDIT] securitypolicy-assigned id=${pid} sameRef=${sameRefText}`);
   } catch (_) {}
+  auditSecurityPolicyExport("state.js:post-assign");
   if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
     ReactionPolicy.restorePersistedFlags();
   }
@@ -7906,6 +7975,7 @@ window.Game = window.Game || {};
   Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
   Security.protectMethod(StateAPI, "giveRespect", giveRespect, "StateAPI.giveRespect");
   Security.finishBoot();
+  auditSecurityPolicyExport("state.js:post-finishBoot");
   if (ReactionPolicy && typeof ReactionPolicy.emitRestoreEvents === "function") {
     ReactionPolicy.emitRestoreEvents();
   }

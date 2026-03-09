@@ -3,8 +3,15 @@ window.Game = window.Game || {};
 
 (() => {
   const Game = window.Game;
-  try { console.log("[SEC_BOOT_FILE]", "docs/state.js"); } catch (_) {}
+  const SECURITY_POLICY_SOURCE_MARKER = "state.js:ReactionPolicy";
+  const SECURITY_POLICY_BUILD_MARKER = "build_2026_03_09_flowaudit_v6";
+  const SECURITY_POLICY_STATEJS_VERSION_TAG = "state.js?v=6";
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
+  if (!Number.isFinite(Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__))) Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = 0;
+  Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = (Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__) | 0) + 1;
+  try {
+    console.log(`[FLOW_AUDIT] statejs-executed count=${Game.__FLOW_AUDIT_STATE_EXEC_COUNT__}`);
+  } catch (_) {}
   let ReactionPolicy = null;
   const REP_EMITTER_DAILY_CAP = 20;
   const COP_CHAT_QUOTA = 1 / 11;
@@ -1007,9 +1014,10 @@ window.Game = window.Game || {};
     }
     const beforeRep = (State.rep || 0) | 0;
     const beforeInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
-    const beforeFrom = (fromId === "me") ? (State.rep | 0) : (fromAcc.rep | 0);
+    const normalizedFromId = (fromId != null) ? String(fromId) : "";
+    const beforeFrom = (normalizedFromId === "me") ? (State.rep | 0) : (fromAcc.rep | 0);
     const beforeTo = (toId === "me") ? (State.rep | 0) : (toAcc.rep | 0);
-    const isEmitter = (fromId === "rep_emitter");
+    const isEmitter = (normalizedFromId === "rep_emitter" || normalizedFromId === "crowd_pool");
     const amt = n | 0;
     
     // Check sufficient funds (fix DUM-022 #3)
@@ -1036,7 +1044,7 @@ window.Game = window.Game || {};
     
     // Apply transfer with clipping to prevent negative (fix DUM-022 #2)
     if (!isEmitter) {
-      if (fromId === "me") {
+      if (normalizedFromId === "me") {
         withRepWrite(() => {
           State.rep = Math.max(0, (State.rep | 0) - amt);
         });
@@ -1198,10 +1206,17 @@ window.Game = window.Game || {};
     );
   }
 
+  let globalTamperTrustedDepth = 0;
+  function withGlobalTamperTrust(fn){
+    globalTamperTrustedDepth++;
+    try { return fn(); }
+    finally { globalTamperTrustedDepth = Math.max(0, globalTamperTrustedDepth - 1); }
+  }
+
   function defineGameSurfaceProp(name, internalName) {
     if (!Game || !internalName) return;
     if (Object.getOwnPropertyDescriptor(Game, name)) return;
-    Object.defineProperty(Game, name, {
+    withGlobalTamperTrust(() => Object.defineProperty(Game, name, {
       configurable: false,
       enumerable: false,
       get() {
@@ -1218,7 +1233,7 @@ window.Game = window.Game || {};
         }
         Game[internalName] = value;
       }
-    });
+    }));
   }
 
   if (typeof window !== "undefined") {
@@ -1530,6 +1545,12 @@ window.Game = window.Game || {};
         key,
         mode: mode(),
       };
+      try {
+        const reasonRaw = (meta && (meta.reason || meta.action || meta.key)) ? (meta.reason || meta.action || meta.key) : null;
+        const reasonText = reasonRaw == null ? "none" : String(reasonRaw);
+        const pidText = playerId ? String(playerId) : "me";
+        console.log(`[FLOW_AUDIT] post-finishBoot-security-event type=${ev.type} player=${pidText} reason=${reasonText}`);
+      } catch (_) {}
       pushRing(SEC.events, ev, SEC.maxEvents);
       try {
         if (Game.__D && typeof Game.__D === "object") {
@@ -1616,7 +1637,7 @@ window.Game = window.Game || {};
       const desc = Object.getOwnPropertyDescriptor(Game, name);
       if (desc && desc.get && desc.get._secHandle) return;
       try {
-        Object.defineProperty(Game, name, {
+        withGlobalTamperTrust(() => Object.defineProperty(Game, name, {
           configurable: false,
           enumerable: false,
           get() { return value; },
@@ -1627,7 +1648,7 @@ window.Game = window.Game || {};
           emitTamperDetected({ key: name, action: "set_handle", mode: mode() });
         }
       }
-    });
+    }));
         const g = Object.getOwnPropertyDescriptor(Game, name).get;
         if (g) g._secHandle = true;
       } catch (_) {}
@@ -1639,7 +1660,7 @@ window.Game = window.Game || {};
       const desc = Object.getOwnPropertyDescriptor(obj, key);
       if (desc && desc.get && desc.get._secProtected) return;
       try {
-        Object.defineProperty(obj, key, {
+        withGlobalTamperTrust(() => Object.defineProperty(obj, key, {
           configurable: false,
           enumerable: true,
           get() { return fn; },
@@ -1648,9 +1669,15 @@ window.Game = window.Game || {};
           SEC.tampered = true;
           emit("tamper_function", { key: label || key, action: "set", mode: mode() });
           emitTamperDetected({ key: label || key, action: "set_function", mode: mode() });
+          const auditLabel = String(label || key || "").toLowerCase();
+          if (auditLabel.endsWith("transferrep")) {
+            const stack = captureSecurityStack(3);
+            const caller = auditSecurityCaller(stack);
+            auditSecurityConsole(`[SEC_AUDIT] transferRep-set-attempt caller=${caller} reason=set`);
+          }
         }
       }
-    });
+    }));
         const g = Object.getOwnPropertyDescriptor(obj, key).get;
         if (g) g._secProtected = true;
       } catch (_) {}
@@ -1710,6 +1737,17 @@ window.Game = window.Game || {};
     }
   }
 
+  function auditSecurityCaller(stack){
+    if (!stack) return "unknown";
+    const pieces = stack.split("|").map(x => x.trim()).filter(Boolean);
+    return pieces.length ? pieces[0] : "unknown";
+  }
+
+  function auditSecurityConsole(message){
+    if (!message) return;
+    try { console.warn(message); } catch (_) {}
+  }
+
   function securitySafeKey(value){
     if (value == null) return "";
     try {
@@ -1720,10 +1758,13 @@ window.Game = window.Game || {};
   }
 
   function emitForbiddenAccess(key, action){
+    const stack = captureSecurityStack(3);
+    const caller = auditSecurityCaller(stack);
+    auditSecurityConsole(`[SEC_AUDIT] forbidden-access-source key=${securitySafeKey(key)} caller=${caller} mode=${mode()}`);
     Security.emit("forbidden_api_access", {
       key: securitySafeKey(key),
       action: securitySafeKey(action),
-      stack: captureSecurityStack(3)
+      stack
     }, { minGapMs: 1000 });
   }
 
@@ -1781,6 +1822,7 @@ window.Game = window.Game || {};
 
   function handleGlobalTamper(target, prop, action){
     if (!isProtectedSurface(target)) return;
+    if (globalTamperTrustedDepth > 0) return;
     emitTamperDetected({ key: `${describeSurface(target)}.${String(prop || "<?>")}`, action });
   }
 
@@ -2156,6 +2198,9 @@ window.Game = window.Game || {};
     };
     State.sightings = {};
     State.securityFlags = {};
+    try {
+      console.log("[FLOW_AUDIT] state-securityflags-write player=* level=reset authority=resetAll caller=StateAPI.resetAll");
+    } catch (_) {}
     if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
       ReactionPolicy.restorePersistedFlags();
     }
@@ -6199,75 +6244,70 @@ window.Game = window.Game || {};
       const totalStart = nowMs();
       const failed = [];
 
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            return { ok: true, text: xhr.responseText || "" };
+          }
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+
+      const getStatus = (text, key) => {
+        if (!text) return "MISSING";
+        const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp(`${esc}[\\s\\S]{0,240}?- Status:\\s*(\\w+)`, "i");
+        const m = re.exec(text);
+        if (!m) return "MISSING";
+        return String(m[1] || "").toUpperCase();
+      };
+
+      const tRes = fetchTextSync("/__dev__/docs/TASKS.md");
+      const pRes = fetchTextSync("/__dev__/docs/PROJECT_MEMORY.md");
+      const keys = [
+        { id: "econ01", key: "ECON-01" },
+        { id: "econ02", key: "ECON-02" },
+        { id: "econ03", key: "ECON-03" }
+      ];
       const docs = {
         ok: true,
         econ01: "MISSING",
         econ02: "MISSING",
         econ03: "MISSING",
-        readOk: false,
-        mode: "skipped_http_disabled",
+        readOk: true,
+        mode: "read_ok",
         missing: [],
         notes: []
       };
 
-      if (isDevFlag()) {
-        const fetchTextSync = (path) => {
-          try {
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", path, false);
-            xhr.send(null);
-            if (xhr.status >= 200 && xhr.status < 300) {
-              return { ok: true, text: xhr.responseText || "" };
-            }
-            return { ok: false, reason: `http_${xhr.status || 0}` };
-          } catch (_) {
-            return { ok: false, reason: "xhr_exception" };
-          }
-        };
-
-        const getStatus = (text, key) => {
-          if (!text) return "MISSING";
-          const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          const re = new RegExp(`${esc}[\\s\\S]{0,240}?- Status:\\s*(\\w+)`, "i");
-          const m = re.exec(text);
-          if (!m) return "MISSING";
-          return String(m[1] || "").toUpperCase();
-        };
-
-        const tRes = fetchTextSync("/__dev__/docs/TASKS.md");
-        const pRes = fetchTextSync("/__dev__/docs/PROJECT_MEMORY.md");
-        const keys = [
-          { id: "econ01", key: "ECON-01" },
-          { id: "econ02", key: "ECON-02" },
-          { id: "econ03", key: "ECON-03" }
-        ];
-
-        if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
-        if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
-        const tGood = tRes.ok && (tRes.text || "").trim().length > 0;
-        const pGood = pRes.ok && (pRes.text || "").trim().length > 0;
-        const readOk = tGood && pGood;
-        docs.readOk = readOk;
-        docs.mode = readOk ? "read_http" : "skipped_http_404";
-        if (!readOk) {
-          docs.ok = true;
-        } else {
-          for (const k of keys) {
-            const tStatus = getStatus(tRes.text, k.key);
-            const pStatus = getStatus(pRes.text, k.key);
-            let finalStatus = "MISSING";
-            if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
-            else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
-            else finalStatus = "FAIL";
-            docs[k.id] = finalStatus;
-            if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
-            if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
-            if (finalStatus !== "PASS") docs.ok = false;
-          }
-          if (!docs.ok) failed.push("docs_not_pass");
-        }
+      if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
+      if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
+      const tGood = tRes.ok && (tRes.text || "").trim().length > 0;
+      const pGood = pRes.ok && (pRes.text || "").trim().length > 0;
+      const readOk = tGood && pGood;
+      docs.readOk = readOk;
+      docs.mode = readOk ? "read_http" : "skipped_http_404";
+      if (!readOk) {
+        docs.ok = true;
       } else {
-        docs.notes.push("docs_probe_disabled");
+        for (const k of keys) {
+          const tStatus = getStatus(tRes.text, k.key);
+          const pStatus = getStatus(pRes.text, k.key);
+          let finalStatus = "MISSING";
+          if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
+          else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
+          else finalStatus = "FAIL";
+          docs[k.id] = finalStatus;
+          if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
+          if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
+          if (finalStatus !== "PASS") docs.ok = false;
+        }
+        if (!docs.ok) failed.push("docs_not_pass");
       }
 
       const runtime = { ok: true, steps: [] };
@@ -6399,6 +6439,100 @@ window.Game = window.Game || {};
     const STORAGE_KEY = "AsyncScene_security_perma_flags_v1";
     const storage = (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
     const RUNTIME_SOURCE = "runtime";
+    const BOOTSTRAP_SOURCE_NAME = "ReactionPolicy.restorePersistedFlags";
+    const FLAG_AUTHORITY = {
+      AUTHORITATIVE: "authoritative_perma_flag",
+      RESTORED_LOCAL: "restored_local_non_authoritative_flag",
+    };
+    const BOOT_TIME_MS = Date.now();
+    const STALE_FINGERPRINT_SINCE = 1772946669418;
+    if (!Number.isFinite(Number(Game.__FLOW_AUDIT_POLICY_SEQ__))) Game.__FLOW_AUDIT_POLICY_SEQ__ = 0;
+    Game.__FLOW_AUDIT_POLICY_SEQ__ = (Number(Game.__FLOW_AUDIT_POLICY_SEQ__) | 0) + 1;
+    const POLICY_ID = `policy_${Game.__FLOW_AUDIT_POLICY_SEQ__}`;
+    const flowAuditObjectIds = new WeakMap();
+    const flowAuditProxyTargets = new WeakMap();
+    let flowAuditObjectSeq = 0;
+    let policyApi = null;
+
+    function flowAuditText(value, fallback){
+      if (typeof value === "string" && value.trim()) return value.trim();
+      if (value != null) {
+        const str = String(value).trim();
+        if (str) return str;
+      }
+      if (fallback != null) {
+        const fb = String(fallback).trim();
+        if (fb) return fb;
+      }
+      return "unknown";
+    }
+
+    function flowAuditRefId(obj){
+      if (!obj || typeof obj !== "object") return "null";
+      let id = flowAuditObjectIds.get(obj);
+      if (!id) {
+        flowAuditObjectSeq += 1;
+        id = `ref_${flowAuditObjectSeq}`;
+        flowAuditObjectIds.set(obj, id);
+      }
+      return id;
+    }
+
+    function isStaleFingerprintSince(value){
+      const since = Number(value);
+      return Number.isFinite(since) && since === STALE_FINGERPRINT_SINCE;
+    }
+
+    function logStaleFingerprint(source, action){
+      const src = flowAuditText(source, "unknown");
+      const actionText = flowAuditText(action, "seen");
+      try {
+        console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${STALE_FINGERPRINT_SINCE} action=${actionText} source=${src}`);
+      } catch (_) {}
+    }
+
+    function countSecurityFlagKeys(){
+      const flags = (State && typeof State === "object" && State.securityFlags && typeof State.securityFlags === "object")
+        ? State.securityFlags
+        : null;
+      return flags ? Object.keys(flags).length : 0;
+    }
+
+    function logPolicyCall(fnName, source, details){
+      const fnText = flowAuditText(fnName, "unknown");
+      const src = flowAuditText(source, "unknown");
+      const detailText = details ? ` details=${flowAuditText(details, "none")}` : "";
+      try {
+        console.log(`[FLOW_AUDIT] policy-call id=${POLICY_ID} fn=${fnText} source=${src}${detailText}`);
+      } catch (_) {}
+    }
+
+    function auditStateBinding(source){
+      const src = flowAuditText(source, "unknown");
+      const gameStateRef = (Game && Game.__S && typeof Game.__S === "object") ? Game.__S : null;
+      const sameRefText = (gameStateRef === State) ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] state-store-binding id=${POLICY_ID} source=${src} sameRef=${sameRefText} stateRef=${flowAuditRefId(State)} gameSRef=${flowAuditRefId(gameStateRef)}`);
+      } catch (_) {}
+    }
+
+    function auditPolicyBinding(fnName){
+      const fnText = flowAuditText(fnName, "unknown");
+      const currentPolicy = (Game && Game.SecurityPolicy) ? Game.SecurityPolicy : null;
+      const sameRefText = (policyApi && currentPolicy === policyApi) ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] policy-binding id=${POLICY_ID} fn=${fnText} sameRef=${sameRefText} localPolicyRef=${flowAuditRefId(policyApi)} gamePolicyRef=${flowAuditRefId(currentPolicy)}`);
+      } catch (_) {}
+    }
+
+    function logPolicyInstanceCreated(){
+      try {
+        console.log(`[FLOW_AUDIT] policy-instance-created id=${POLICY_ID} bootTime=${BOOT_TIME_MS}`);
+      } catch (_) {}
+      auditStateBinding("createReactionPolicy:init");
+    }
+
+    logPolicyInstanceCreated();
 
     function logRestore(marker, payload){
       try {
@@ -6406,19 +6540,338 @@ window.Game = window.Game || {};
       } catch (_) {}
     }
 
+    function logSecurityRestore(meta, count, valid){
+      const src = meta && meta.source ? String(meta.source) : "unknown";
+      const safeCount = Number.isFinite(count) ? count : 0;
+      const flagCount = Math.max(0, safeCount | 0);
+      const validText = valid ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] security-restore flags=${flagCount} source=${src} valid=${validText}`);
+      } catch (_) {}
+    }
+
+    const RESTORED_WEAK_REASONS = new Set(["perma_flag_restore", "restored_security_state"]);
+
+    function normalizeRestoreReason(value){
+      if (typeof value !== "string") {
+        if (value == null) return "";
+        value = String(value);
+      }
+      const trimmed = value.trim();
+      if (!trimmed) return "";
+      const base = trimmed.split(":")[0].trim().toLowerCase();
+      return base;
+    }
+
+    function hasStrongRestoreProof(entry){
+      if (!entry) return false;
+      if (entry.authority === FLAG_AUTHORITY.RESTORED_LOCAL) return false;
+      const reasonBase = normalizeRestoreReason(entry.reason);
+      const typeBase = normalizeRestoreReason(entry.type);
+      if (!typeBase || RESTORED_WEAK_REASONS.has(typeBase)) return false;
+      if (reasonBase && RESTORED_WEAK_REASONS.has(reasonBase)) return false;
+      return true;
+    }
+
+    function logPermaFlagRestoreRead(playerId, type, until, valid){
+      if (!playerId) playerId = "unknown";
+      const typeText = type || "perma_flag_restore";
+      const untilText = (until == null) ? "null" : String(until);
+      const validText = valid ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-restore-read player=${playerId} type=${typeText} until=${untilText} valid=${validText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagRestoreDiscard(playerId, reason){
+      if (!playerId) playerId = "unknown";
+      const reasonText = sanitizeReason(reason, "restored_security_state");
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-restore-discard player=${playerId} reason=${reasonText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagRestoreDowngrade(playerId, fromLevel, toLevel, reason){
+      if (!playerId) playerId = "unknown";
+      const reasonText = sanitizeReason(reason, "restored_security_state");
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-restore-downgrade player=${playerId} from=${fromLevel} to=${toLevel} reason=${reasonText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagRestoreRejected(playerId, reason, source){
+      if (!playerId) playerId = "unknown";
+      const reasonText = sanitizeReason(reason, "restored_security_state");
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-restore-rejected player=${playerId} reason=${reasonText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagBootstrapSource(playerId, source, accepted){
+      if (!playerId) playerId = "unknown";
+      const sourceText = source || "unknown";
+      const acceptedText = accepted ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-bootstrap-source player=${playerId} source=${sourceText} accepted=${acceptedText}`);
+      } catch (_) {}
+    }
+
+    function logPoisonedStorageCleanup(changed, removed){
+      const changedText = changed ? "true" : "false";
+      const removedCount = Number.isFinite(removed) ? (removed | 0) : 0;
+      try {
+        console.log(`[FLOW_AUDIT] poisoned-storage-cleanup changed=${changedText} removed=${removedCount}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagAuthorityCheck(playerId, authoritative, source){
+      if (!playerId) playerId = "unknown";
+      const authoritativeText = authoritative ? "true" : "false";
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-authority-check player=${playerId} authoritative=${authoritativeText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logStalePermaRemoved(playerId, reason){
+      if (!playerId) playerId = "unknown";
+      const reasonText = sanitizeReason(reason, "stale_local_restore");
+      try {
+        console.log(`[FLOW_AUDIT] stale-perma-removed player=${playerId} reason=${reasonText}`);
+      } catch (_) {}
+    }
+
+    function isAuthoritativePermaFlag(playerId, flag, source){
+      const pid = playerId ? String(playerId) : "unknown";
+      let authoritative = false;
+      if (flag && flag.level === LEVELS.PERMA_FLAG) {
+        authoritative = runtimePermaProofPlayers.has(pid) || flag.authority === FLAG_AUTHORITY.AUTHORITATIVE;
+      }
+      logPermaFlagAuthorityCheck(pid, authoritative, source || "ReactionPolicy.isAuthoritativePermaFlag");
+      return authoritative;
+    }
+
+    function logGetFlagResult(playerId, flag, authoritative){
+      if (!playerId) playerId = "unknown";
+      const levelText = flag && flag.level ? String(flag.level) : "null";
+      const typeText = flag && flag.type ? String(flag.type) : "null";
+      const authoritativeText = authoritative ? "true" : "false";
+      const sinceText = (flag && Number.isFinite(Number(flag.since))) ? String(Number(flag.since)) : "null";
+      try {
+        console.log(`[FLOW_AUDIT] getFlag-result player=${playerId} level=${levelText} type=${typeText} authoritative=${authoritativeText} since=${sinceText} policyId=${POLICY_ID}`);
+      } catch (_) {}
+    }
+
+    function flowAuditCaller(fallback){
+      try {
+        const stack = String((new Error().stack) || "").split("\n").map((line) => String(line || "").trim()).filter(Boolean);
+        for (let i = 2; i < stack.length; i += 1) {
+          const row = stack[i];
+          if (!row) continue;
+          if (row.includes("flowAuditCaller")) continue;
+          if (row.includes("logStateSecurityFlagsWrite")) continue;
+          if (row.includes("logAuthoritativePermaWrite")) continue;
+          if (row.includes("logRuntimeProofAdd")) continue;
+          return row.replace(/\s+/g, " ");
+        }
+      } catch (_) {}
+      return fallback || "unknown";
+    }
+
+    function hasFingerprintOnMe(flagsObj){
+      if (!flagsObj || typeof flagsObj !== "object") return false;
+      const meFlag = flagsObj.me;
+      if (!meFlag || typeof meFlag !== "object") return false;
+      return isStaleFingerprintSince(meFlag.since);
+    }
+
+    function logSecurityFlagsObjectReplaced(source, sameRef, flagsObj, meta = null){
+      const src = source || flowAuditCaller("ReactionPolicy.securityFlags.replace");
+      const keys = (flagsObj && typeof flagsObj === "object") ? Object.keys(flagsObj).length : 0;
+      const sameRefText = sameRef ? "true" : "false";
+      const writeSeq = Number.isFinite(Number(meta && meta.writeSeq)) ? Number(meta.writeSeq) : 0;
+      try {
+        console.log(`[FLOW_AUDIT] securityflags-object-replaced source=${src} writeSeq=${writeSeq} sameRef=${sameRefText} keys=${keys}`);
+      } catch (_) {}
+      if (hasFingerprintOnMe(flagsObj)) {
+        logStaleFingerprint(src, "replace");
+      }
+    }
+
+    function logSecurityFlagsMeWrite(value){
+      const sinceText = Number.isFinite(Number(value && value.since)) ? String(Number(value.since)) : "null";
+      const sourceKind = flowAuditText(value && value.sourceKind, "unknown");
+      const writer = flowAuditText(value && value.writerFunction, "unknown");
+      const writeSeq = Number.isFinite(Number(value && value.writeSeq)) ? String(Number(value.writeSeq)) : "0";
+      try {
+        console.log(`[FLOW_AUDIT] securityflags-me-write since=${sinceText} sourceKind=${sourceKind} writer=${writer} writeSeq=${writeSeq}`);
+      } catch (_) {}
+      if (isStaleFingerprintSince(value && value.since)) {
+        logStaleFingerprint(writer, "write");
+      }
+    }
+
+    function logSecurityFlagsMerge(playerId, level, since, source){
+      const pid = playerId ? String(playerId) : "unknown";
+      const lvl = (level != null) ? String(level) : "null";
+      const sinceText = Number.isFinite(Number(since)) ? String(Number(since)) : "null";
+      const src = source || flowAuditCaller("ReactionPolicy.securityFlags.merge");
+      try {
+        console.log(`[FLOW_AUDIT] securityflags-merge player=${pid} level=${lvl} since=${sinceText} source=${src}`);
+      } catch (_) {}
+    }
+
+    function logStaleFlagDetected(playerId, since, preboot, authoritative){
+      const pid = playerId ? String(playerId) : "unknown";
+      const sinceText = Number.isFinite(Number(since)) ? String(Number(since)) : "null";
+      const prebootText = preboot ? "true" : "false";
+      const authoritativeText = authoritative ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] stale-flag-detected player=${pid} since=${sinceText} preboot=${prebootText} authoritative=${authoritativeText}`);
+      } catch (_) {}
+    }
+
+    function logStaleFlagOrigin(playerId, since, source){
+      const pid = playerId ? String(playerId) : "unknown";
+      const sinceText = Number.isFinite(Number(since)) ? String(Number(since)) : "null";
+      const src = source || flowAuditCaller("ReactionPolicy.staleFlagOrigin");
+      try {
+        console.log(`[FLOW_AUDIT] stale-flag-origin player=${pid} since=${sinceText} bootTime=${BOOT_TIME_MS} source=${src}`);
+      } catch (_) {}
+    }
+
+    function logStateSecurityFlagsWrite(playerId, level, authority, caller){
+      const pid = playerId ? String(playerId) : "unknown";
+      const levelText = sanitizeReason(level, "unknown");
+      const authorityText = sanitizeReason(authority, "unknown");
+      const callerText = caller || flowAuditCaller("ReactionPolicy.logStateSecurityFlagsWrite");
+      try {
+        console.log(`[FLOW_AUDIT] state-securityflags-write player=${pid} level=${levelText} authority=${authorityText} caller=${callerText}`);
+      } catch (_) {}
+    }
+
+    function logAuthoritativePermaWrite(playerId, eventType, reason, caller){
+      const pid = playerId ? String(playerId) : "unknown";
+      const eventText = sanitizeReason(eventType, "unknown");
+      const reasonText = sanitizeReason(reason, "perma_flag");
+      const callerText = caller || flowAuditCaller("ReactionPolicy.logAuthoritativePermaWrite");
+      try {
+        console.log(`[FLOW_AUDIT] authoritative-perma-write player=${pid} event=${eventText} reason=${reasonText} caller=${callerText}`);
+      } catch (_) {}
+    }
+
+    function logRuntimeProofAdd(playerId, eventType, caller){
+      const pid = playerId ? String(playerId) : "unknown";
+      const eventText = sanitizeReason(eventType, "unknown");
+      const callerText = caller || flowAuditCaller("ReactionPolicy.logRuntimeProofAdd");
+      try {
+        console.log(`[FLOW_AUDIT] runtime-proof-add player=${pid} event=${eventText} caller=${callerText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagIllegalState(playerId, type, level, source){
+      if (!playerId) playerId = "unknown";
+      const typeText = sanitizeReason(type, "perma_flag_restore");
+      const levelText = sanitizeReason(level, "perma_flag");
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-illegal-state player=${playerId} type=${typeText} level=${levelText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logPermaFlagSelfHeal(playerId, removed, source){
+      if (!playerId) playerId = "unknown";
+      const removedText = removed ? "true" : "false";
+      const sourceText = source || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-self-heal player=${playerId} removed=${removedText} source=${sourceText}`);
+      } catch (_) {}
+    }
+
+    function logBootstrapPermaWrite(playerId, level, type, restored, caller){
+      if (!playerId) playerId = "unknown";
+      const levelText = sanitizeReason(level, "unknown");
+      const typeText = sanitizeReason(type, "null");
+      const restoredText = restored ? "true" : "false";
+      const callerText = caller || "unknown";
+      try {
+        console.log(`[FLOW_AUDIT] bootstrap-perma-write player=${playerId} level=${levelText} type=${typeText} restored=${restoredText} caller=${callerText}`);
+      } catch (_) {}
+    }
+
+    function logIdentityBindFlag(playerId, source, accepted){
+      if (!playerId) playerId = "unknown";
+      const src = source || "unknown";
+      const acceptedText = accepted ? "true" : "false";
+      try {
+        console.log(`[FLOW_AUDIT] identity-bind-flag player=${playerId} source=${src} accepted=${acceptedText}`);
+      } catch (_) {}
+    }
+
+    function sanitizeFlagKey(rawKey){
+      if (rawKey == null) return null;
+      const candidate = String(rawKey).trim();
+      if (!candidate) return null;
+      if (candidate === "__proto__" || candidate === "constructor" || candidate === "prototype") return null;
+      return candidate;
+    }
+
+    function sanitizeReason(value, fallback){
+      if (typeof value === "string" && value.trim()) return value.trim();
+      if (value != null) {
+        const str = String(value).trim();
+        if (str) return str;
+      }
+      if (fallback != null) {
+        const fbStr = String(fallback).trim();
+        if (fbStr) return fbStr;
+      }
+      return "restored_security_state";
+    }
+
+    function normalizeFlagEntry(rawValue){
+      const entry = (rawValue && typeof rawValue === "object") ? rawValue : {};
+      const sinceCandidate = Number(entry.since);
+      const since = Number.isFinite(sinceCandidate) ? Math.max(0, sinceCandidate) : Date.now();
+      const rawType = entry.type || entry._type || entry.reason;
+      const type = sanitizeReason(rawType, "perma_flag_restore");
+      const reason = sanitizeReason(entry.reason || entry._reason || type, "restored_security_state");
+      const authority = FLAG_AUTHORITY.RESTORED_LOCAL;
+      return { since, reason, type, authority };
+    }
+
+    function logPermaFlagNormalized(key, reason){
+      if (!key) return;
+      const safeReason = sanitizeReason(reason, "unknown");
+      try {
+        console.log(`[FLOW_AUDIT] perma-flag-normalized key=${key} reason=${safeReason}`);
+      } catch (_) {}
+    }
+
     function normalizePersisted(parsed){
       if (!parsed || typeof parsed !== "object") {
         return { flags: {}, source: "empty", format: "empty", stamp: 0 };
       }
-      if (parsed.flags && typeof parsed.flags === "object") {
-        return {
-          flags: parsed.flags,
-          source: String(parsed.source || parsed._source || "wrapped"),
-          format: "wrapped",
-          stamp: Number(parsed.stamp || parsed._stamp || 0),
-        };
+      const hasWrapped = parsed.flags && typeof parsed.flags === "object";
+      const bucket = hasWrapped ? parsed.flags : parsed;
+      const source = hasWrapped
+        ? String(parsed.source || parsed._source || "wrapped")
+        : "legacy";
+      const format = hasWrapped ? "wrapped" : "legacy";
+      const stampCandidate = Number(parsed.stamp || parsed._stamp || 0);
+      const stamp = Number.isFinite(stampCandidate) ? Math.max(0, stampCandidate) : 0;
+      const normalizedFlags = {};
+      if (bucket && typeof bucket === "object") {
+        for (const [rawKey, rawValue] of Object.entries(bucket)) {
+          const key = sanitizeFlagKey(rawKey);
+          if (!key) continue;
+          const entry = normalizeFlagEntry(rawValue);
+          normalizedFlags[key] = entry;
+          logPermaFlagNormalized(key, entry.reason);
+        }
       }
-      return { flags: parsed, source: "legacy", format: "legacy", stamp: 0 };
+      return { flags: normalizedFlags, source, format, stamp };
     }
 
     function loadPersisted(){
@@ -6435,11 +6888,340 @@ window.Game = window.Game || {};
     let persistedPerma = loadPersisted();
     const restoredPlayers = [];
     const history = new Map();
+    const runtimePermaProofPlayers = new Set();
+    let flagStateFinalized = false;
+    let restoreInProgress = false;
+    let securityFlagsStore = null;
+    let securityFlagsWriteSeq = 0;
+    let securityFlagsWriteContext = null;
+    const lastFlagProvenanceByPlayer = Object.create(null);
+
+    function sanitizeSecurityFlagsObject(raw){
+      return (raw && typeof raw === "object") ? raw : {};
+    }
+
+    function readEventType(value){
+      if (value == null) return null;
+      const text = String(value).trim();
+      return text ? text : null;
+    }
+
+    function nextSecurityFlagsWriteSeq(){
+      securityFlagsWriteSeq = (securityFlagsWriteSeq | 0) + 1;
+      return securityFlagsWriteSeq;
+    }
+
+    function withSecurityFlagsWriteContext(meta, fn){
+      const prev = securityFlagsWriteContext;
+      securityFlagsWriteContext = (meta && typeof meta === "object") ? meta : null;
+      try { return fn(); }
+      finally { securityFlagsWriteContext = prev; }
+    }
+
+    function normalizeSourceKind(rawKind, source, action){
+      const known = new Set(["restore", "hydrate", "runtime_event", "direct_write", "object_replace", "merge"]);
+      const fromRaw = rawKind ? String(rawKind).trim().toLowerCase() : "";
+      if (fromRaw && known.has(fromRaw)) return fromRaw;
+      const src = source ? String(source).toLowerCase() : "";
+      const act = action ? String(action).toLowerCase() : "";
+      if (src.includes("restorepersistedflags")) return "restore";
+      if (src.includes("bootstrap") || src.includes("hydrate") || src.includes("installsecurityflagshooks:init")) return "hydrate";
+      if (src.includes("setflagforplayer") || src.includes("handleevent")) return "runtime_event";
+      if (src.includes("securityflags.setter") || act === "replace") return "object_replace";
+      if (src.includes("proxy.") || act === "write") return "direct_write";
+      return "merge";
+    }
+
+    function buildFlagWriteMeta(overrides = null){
+      const patch = (overrides && typeof overrides === "object") ? overrides : {};
+      const ctx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object") ? securityFlagsWriteContext : null;
+      const src = flowAuditText(
+        patch.writerFunction || patch.source || (ctx && (ctx.writerFunction || ctx.source)) || flowAuditCaller("ReactionPolicy.securityFlags.write"),
+        "unknown"
+      );
+      const sourceKind = normalizeSourceKind(patch.sourceKind || (ctx && ctx.sourceKind), src, patch.action || (ctx && ctx.action) || "write");
+      const rawSeq = patch.writeSeq != null ? patch.writeSeq : (ctx && ctx.writeSeq);
+      const writeSeq = Number.isFinite(Number(rawSeq)) && Number(rawSeq) > 0 ? Number(rawSeq) : nextSecurityFlagsWriteSeq();
+      const writerTag = flowAuditText(
+        patch.writerTag || (ctx && ctx.writerTag) || `securityflags:${sourceKind}`,
+        "securityflags:unknown"
+      );
+      const bootTime = Number.isFinite(Number(patch.bootTime != null ? patch.bootTime : (ctx && ctx.bootTime)))
+        ? Number(patch.bootTime != null ? patch.bootTime : (ctx && ctx.bootTime))
+        : BOOT_TIME_MS;
+      const policyId = flowAuditText(patch.policyId || (ctx && ctx.policyId) || POLICY_ID, POLICY_ID);
+      const eventType = readEventType(
+        patch.eventType != null
+          ? patch.eventType
+          : (ctx && Object.prototype.hasOwnProperty.call(ctx, "eventType") ? ctx.eventType : null)
+      );
+      return { writerTag, writerFunction: src, policyId, writeSeq, bootTime, sourceKind, eventType };
+    }
+
+    function markFlagProvenance(playerId, value, meta = null){
+      if (!value || typeof value !== "object") return null;
+      const pid = playerId ? String(playerId) : "unknown";
+      const info = buildFlagWriteMeta(meta);
+      const eventType = readEventType(info.eventType != null ? info.eventType : (value.eventType != null ? value.eventType : value.type));
+      try {
+        value.writerTag = info.writerTag;
+        value.writerFunction = info.writerFunction;
+        value.policyId = info.policyId;
+        value.writeSeq = info.writeSeq;
+        value.bootTime = info.bootTime;
+        value.sourceKind = info.sourceKind;
+        value.eventType = eventType;
+      } catch (_) {}
+      lastFlagProvenanceByPlayer[pid] = {
+        writerTag: info.writerTag,
+        writerFunction: info.writerFunction,
+        policyId: info.policyId,
+        writeSeq: info.writeSeq,
+        bootTime: info.bootTime,
+        sourceKind: info.sourceKind,
+        eventType,
+      };
+      if (pid === "me" && (!meta || meta.logWrite !== false)) {
+        logSecurityFlagsMeWrite(value);
+      }
+      return value;
+    }
+
+    function cloneFlagForReturn(flag){
+      if (!flag || typeof flag !== "object") return null;
+      return {
+        level: flag.level || null,
+        since: Number.isFinite(Number(flag.since)) ? Number(flag.since) : null,
+        until: (flag.until == null) ? null : Number(flag.until),
+        counts: (flag.counts && typeof flag.counts === "object") ? Object.assign({}, flag.counts) : null,
+        type: flag.type || null,
+        reason: flag.reason || null,
+        authority: flag.authority || null,
+        writerTag: flag.writerTag || null,
+        writerFunction: flag.writerFunction || null,
+        policyId: flag.policyId || POLICY_ID,
+        writeSeq: Number.isFinite(Number(flag.writeSeq)) ? Number(flag.writeSeq) : null,
+        bootTime: Number.isFinite(Number(flag.bootTime)) ? Number(flag.bootTime) : BOOT_TIME_MS,
+        sourceKind: flag.sourceKind || null,
+        eventType: readEventType(flag.eventType),
+      };
+    }
+
+    function snapshotFlagProvenance(playerId, flag){
+      const pid = playerId ? String(playerId) : "unknown";
+      const fromFlag = flag && typeof flag === "object" ? flag : null;
+      const saved = (!fromFlag && Object.prototype.hasOwnProperty.call(lastFlagProvenanceByPlayer, pid))
+        ? lastFlagProvenanceByPlayer[pid]
+        : null;
+      const source = fromFlag || saved || null;
+      if (!source) return null;
+      return {
+        writerTag: source.writerTag || null,
+        writerFunction: source.writerFunction || null,
+        policyId: source.policyId || POLICY_ID,
+        writeSeq: Number.isFinite(Number(source.writeSeq)) ? Number(source.writeSeq) : null,
+        bootTime: Number.isFinite(Number(source.bootTime)) ? Number(source.bootTime) : BOOT_TIME_MS,
+        sourceKind: source.sourceKind || null,
+        eventType: readEventType(source.eventType),
+      };
+    }
+
+    function logFlagProvenanceReturn(playerId, flag){
+      const pid = playerId ? String(playerId) : "unknown";
+      const provenance = snapshotFlagProvenance(pid, flag);
+      const writer = provenance && provenance.writerFunction ? String(provenance.writerFunction) : "unknown";
+      const sourceKind = provenance && provenance.sourceKind ? String(provenance.sourceKind) : "unknown";
+      const policy = provenance && provenance.policyId ? String(provenance.policyId) : POLICY_ID;
+      try {
+        console.log(`[FLOW_AUDIT] flag-provenance-return player=${pid} writer=${writer} sourceKind=${sourceKind} policyId=${policy}`);
+      } catch (_) {}
+      if (flag && isStaleFingerprintSince(flag.since)) {
+        logStaleFingerprint(writer, "return");
+      }
+    }
+
+    function replaceSecurityFlagsStore(nextValue, meta = null){
+      const info = buildFlagWriteMeta(Object.assign({}, (meta && typeof meta === "object") ? meta : {}, { action: "replace" }));
+      return withSecurityFlagsWriteContext(info, () => {
+        State.securityFlags = sanitizeSecurityFlagsObject(nextValue);
+        return State.securityFlags;
+      });
+    }
+
+    function observeFlagWrite(playerId, value, source, action = "seen", meta = null){
+      if (!playerId) return;
+      if (!value || typeof value !== "object") return;
+      const src = source || flowAuditCaller("ReactionPolicy.securityFlags.observe");
+      const actionText = flowAuditText(action, "seen");
+      const sourceKind = normalizeSourceKind(meta && meta.sourceKind, src, actionText);
+      const shouldLogWrite = actionText === "write" || sourceKind === "object_replace" || sourceKind === "restore" || sourceKind === "hydrate";
+      markFlagProvenance(playerId, value, Object.assign({}, meta || {}, {
+        writerFunction: src,
+        sourceKind,
+        logWrite: shouldLogWrite,
+      }));
+      logSecurityFlagsMerge(playerId, value.level || null, value.since, src);
+      const since = Number(value.since);
+      if (!Number.isFinite(since)) return;
+      const preboot = since < BOOT_TIME_MS;
+      const authoritative = value.authority === FLAG_AUTHORITY.AUTHORITATIVE;
+      if (isStaleFingerprintSince(since)) {
+        logStaleFingerprint(src, "write");
+      }
+      logStaleFlagDetected(playerId, since, preboot, authoritative);
+      if (!preboot) return;
+      logStaleFlagOrigin(playerId, since, src);
+    }
+
+    function wrapSecurityFlagsObject(rawObj, source, meta = null){
+      const base = sanitizeSecurityFlagsObject(rawObj);
+      const src = source || flowAuditCaller("ReactionPolicy.wrapSecurityFlagsObject");
+      const sourceKind = normalizeSourceKind(meta && meta.sourceKind, src, "merge");
+      const writeSeq = Number.isFinite(Number(meta && meta.writeSeq)) ? Number(meta.writeSeq) : null;
+      for (const [pid, flag] of Object.entries(base)) {
+        observeFlagWrite(pid, flag, src, "seen", Object.assign({}, meta || {}, {
+          sourceKind,
+          writerFunction: src,
+          writeSeq,
+        }));
+      }
+      const proxy = new Proxy(base, {
+        set(target, prop, value){
+          target[prop] = value;
+          if (typeof prop === "string") {
+            const srcSet = flowAuditCaller("ReactionPolicy.securityFlags.proxy.set");
+            const activeCtx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object")
+              ? securityFlagsWriteContext
+              : null;
+            const writeMeta = buildFlagWriteMeta(activeCtx ? {
+              writerTag: activeCtx.writerTag,
+              writerFunction: activeCtx.writerFunction || srcSet,
+              sourceKind: activeCtx.sourceKind,
+              writeSeq: activeCtx.writeSeq,
+              eventType: activeCtx.eventType,
+              action: "write",
+            } : {
+              writerTag: "securityflags:proxy_set",
+              writerFunction: srcSet,
+              sourceKind: "direct_write",
+              action: "write",
+              eventType: value && value.eventType,
+            });
+            observeFlagWrite(prop, value, srcSet, "write", writeMeta);
+          }
+          return true;
+        },
+        defineProperty(target, prop, descriptor){
+          const ok = Reflect.defineProperty(target, prop, descriptor);
+          if (ok && typeof prop === "string" && descriptor && Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+            const srcDefine = flowAuditCaller("ReactionPolicy.securityFlags.proxy.defineProperty");
+            const activeCtx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object")
+              ? securityFlagsWriteContext
+              : null;
+            const writeMeta = buildFlagWriteMeta(activeCtx ? {
+              writerTag: activeCtx.writerTag,
+              writerFunction: activeCtx.writerFunction || srcDefine,
+              sourceKind: activeCtx.sourceKind,
+              writeSeq: activeCtx.writeSeq,
+              eventType: activeCtx.eventType,
+              action: "write",
+            } : {
+              writerTag: "securityflags:proxy_define",
+              writerFunction: srcDefine,
+              sourceKind: "direct_write",
+              action: "write",
+              eventType: descriptor.value && descriptor.value.eventType,
+            });
+            observeFlagWrite(prop, descriptor.value, srcDefine, "write", writeMeta);
+          }
+          return ok;
+        },
+        deleteProperty(target, prop){
+          return Reflect.deleteProperty(target, prop);
+        }
+      });
+      try {
+        flowAuditProxyTargets.set(proxy, base);
+      } catch (_) {}
+      return proxy;
+    }
+
+    function installSecurityFlagsHooks(){
+      if (!State || typeof State !== "object") return;
+      const currentDesc = Object.getOwnPropertyDescriptor(State, "securityFlags");
+      if (currentDesc && currentDesc.get && currentDesc.get._flowAuditSecurityFlags) return;
+      const initialRaw = sanitizeSecurityFlagsObject(State.securityFlags || {});
+      const initMeta = buildFlagWriteMeta({
+        writerTag: "securityflags:install_init",
+        writerFunction: "ReactionPolicy.installSecurityFlagsHooks:init",
+        sourceKind: "hydrate",
+        action: "replace",
+      });
+      securityFlagsStore = wrapSecurityFlagsObject(initialRaw, "ReactionPolicy.installSecurityFlagsHooks:init", initMeta);
+      logSecurityFlagsObjectReplaced("ReactionPolicy.installSecurityFlagsHooks:init", false, securityFlagsStore, initMeta);
+      Object.defineProperty(State, "securityFlags", {
+        configurable: true,
+        enumerable: true,
+        get(){ return securityFlagsStore; },
+        set(next){
+          const src = flowAuditText(
+            (securityFlagsWriteContext && securityFlagsWriteContext.writerFunction) || flowAuditCaller("ReactionPolicy.securityFlags.setter"),
+            "ReactionPolicy.securityFlags.setter"
+          );
+          const prevRaw = flowAuditProxyTargets.get(securityFlagsStore) || securityFlagsStore || null;
+          const nextRaw = sanitizeSecurityFlagsObject(next);
+          const sameRef = !!prevRaw && prevRaw === nextRaw;
+          const replaceMeta = buildFlagWriteMeta({
+            writerTag: (securityFlagsWriteContext && securityFlagsWriteContext.writerTag) || "securityflags:setter",
+            writerFunction: src,
+            sourceKind: (securityFlagsWriteContext && securityFlagsWriteContext.sourceKind) || "object_replace",
+            writeSeq: securityFlagsWriteContext && securityFlagsWriteContext.writeSeq,
+            eventType: securityFlagsWriteContext && securityFlagsWriteContext.eventType,
+            action: "replace",
+          });
+          securityFlagsStore = withSecurityFlagsWriteContext(replaceMeta, () => wrapSecurityFlagsObject(nextRaw, src, replaceMeta));
+          logSecurityFlagsObjectReplaced(src, sameRef, securityFlagsStore, replaceMeta);
+        }
+      });
+      const descAfter = Object.getOwnPropertyDescriptor(State, "securityFlags");
+      if (descAfter && descAfter.get) {
+        try { descAfter.get._flowAuditSecurityFlags = true; } catch (_) {}
+      }
+    }
 
     function ensureStateFlags(){
+      installSecurityFlagsHooks();
       if (!State.securityFlags || typeof State.securityFlags !== "object") {
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:ensure_state_flags",
+          writerFunction: "ReactionPolicy.ensureStateFlags",
+          sourceKind: "object_replace",
+        });
+        logStateSecurityFlagsWrite("*", "reset", "runtime_reset", "ReactionPolicy.ensureStateFlags");
       }
+    }
+
+    function purgePrebootStaleFlags(source){
+      ensureStateFlags();
+      const flags = State.securityFlags || {};
+      let removedCount = 0;
+      for (const [pid, flag] of Object.entries(flags)) {
+        if (!flag || flag.level !== LEVELS.PERMA_FLAG) continue;
+        const since = Number(flag.since);
+        if (!Number.isFinite(since)) continue;
+        const authoritative = isAuthoritativePermaFlag(pid, flag, `${source || "ReactionPolicy.purgePrebootStaleFlags"}:authority`);
+        const preboot = since < BOOT_TIME_MS;
+        if (!preboot) continue;
+        logStaleFlagDetected(pid, since, true, authoritative);
+        logStaleFlagOrigin(pid, since, source || "ReactionPolicy.purgePrebootStaleFlags");
+        delete State.securityFlags[pid];
+        runtimePermaProofPlayers.delete(String(pid));
+        logStateSecurityFlagsWrite(String(pid || "unknown"), "deleted", "preboot_stale_purge", source || "ReactionPolicy.purgePrebootStaleFlags");
+        removePersistedFlagEntry(pid);
+        removedCount++;
+      }
+      finalizePersistedAfterHeal(removedCount);
+      return removedCount;
     }
 
     function cleanupExpiredFlag(playerId){
@@ -6448,6 +7230,7 @@ window.Game = window.Game || {};
       if (!flag) return null;
       if (flag.level === LEVELS.TEMP_BLOCK && flag.until && Date.now() >= (flag.until || 0)) {
         delete State.securityFlags[playerId];
+        logStateSecurityFlagsWrite(String(playerId || "unknown"), "deleted", "expired_cleanup", "ReactionPolicy.cleanupExpiredFlag");
         return null;
       }
       return flag;
@@ -6464,7 +7247,14 @@ window.Game = window.Game || {};
       const flags = State.securityFlags || {};
       for (const [pid, flag] of Object.entries(flags)) {
         if (flag && flag.level === LEVELS.PERMA_FLAG) {
-          payload[pid] = { since: Number(flag.since || Date.now()) };
+          const sinceValue = Number(flag.since);
+          const since = Number.isFinite(sinceValue) ? Math.max(0, sinceValue) : Date.now();
+          const reason = sanitizeReason(flag.reason || flag.type, "perma_flag");
+          const type = sanitizeReason(flag.type || flag.reason, "perma_flag");
+          const authority = (flag.authority === FLAG_AUTHORITY.AUTHORITATIVE)
+            ? FLAG_AUTHORITY.AUTHORITATIVE
+            : FLAG_AUTHORITY.RESTORED_LOCAL;
+          payload[pid] = { since, reason, type, authority };
         }
       }
       try {
@@ -6474,32 +7264,179 @@ window.Game = window.Game || {};
       persistedPerma = { flags: payload, source: RUNTIME_SOURCE, format: "wrapped", stamp: Date.now() };
     }
 
+    function isIllegalRestoreOnlyPerma(flag){
+      if (!flag || flag.level !== LEVELS.PERMA_FLAG) return false;
+      const until = (flag.until == null) ? null : Number(flag.until);
+      if (until !== null) return false;
+      const typeBase = normalizeRestoreReason(flag.type);
+      const weakType = typeBase === "perma_flag_restore" || !typeBase;
+      if (!weakType) return false;
+      return flag.authority !== FLAG_AUTHORITY.AUTHORITATIVE;
+    }
+
+    function hasStrongCurrentRuntimeProof(playerId, flag){
+      return isAuthoritativePermaFlag(playerId, flag, "ReactionPolicy.hasStrongCurrentRuntimeProof");
+    }
+
+    function hasAnyPermaFlags(){
+      const flags = State.securityFlags || {};
+      for (const value of Object.values(flags)) {
+        if (value && value.level === LEVELS.PERMA_FLAG) return true;
+      }
+      return false;
+    }
+
+    function removePersistedFlagEntry(playerId){
+      const key = playerId ? String(playerId) : "";
+      if (!key) return false;
+      const bucket = (persistedPerma && persistedPerma.flags && typeof persistedPerma.flags === "object") ? persistedPerma.flags : null;
+      if (!bucket || !Object.prototype.hasOwnProperty.call(bucket, key)) return false;
+      delete bucket[key];
+      return true;
+    }
+
+    function finalizePersistedAfterHeal(removedCount){
+      if (!removedCount) return;
+      let storageChanged = false;
+      if (hasAnyPermaFlags()) {
+        persistPermaFlags();
+        storageChanged = true;
+      } else if (storage) {
+        try {
+          storage.removeItem(STORAGE_KEY);
+          storageChanged = true;
+        } catch (_) {}
+        persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
+      } else {
+        persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
+      }
+      logPoisonedStorageCleanup(storageChanged, removedCount);
+    }
+
+    function selfHealIllegalPermaFlags(source){
+      ensureStateFlags();
+      const sourceText = source || "ReactionPolicy.selfHealIllegalPermaFlags";
+      const flags = State.securityFlags || {};
+      let removedCount = 0;
+      for (const [pid, flag] of Object.entries(flags)) {
+        if (!isIllegalRestoreOnlyPerma(flag)) continue;
+        const hasStrongProof = hasStrongCurrentRuntimeProof(pid, flag);
+        if (hasStrongProof) {
+          logPermaFlagSelfHeal(pid, false, sourceText);
+          continue;
+        }
+        logPermaFlagIllegalState(pid, flag.type, flag.level, sourceText);
+        delete State.securityFlags[pid];
+        logStateSecurityFlagsWrite(String(pid || "unknown"), "deleted", "self_heal_remove", sourceText);
+        removePersistedFlagEntry(pid);
+        logStalePermaRemoved(pid, "restore_only_perma_without_runtime_proof");
+        removedCount++;
+        logPermaFlagSelfHeal(pid, true, sourceText);
+      }
+      finalizePersistedAfterHeal(removedCount);
+      return removedCount;
+    }
+
+    function ensureFlagStateFinalized(source){
+      const src = source || "ReactionPolicy.ensureFlagStateFinalized";
+      const beforeKeys = countSecurityFlagKeys();
+      logPolicyCall("ensureFlagStateFinalized", src, `flagStateFinalized=${flagStateFinalized ? "true" : "false"} restoreInProgress=${restoreInProgress ? "true" : "false"}`);
+      auditStateBinding(`${src}:before`);
+      if (flagStateFinalized) {
+        try {
+          console.log(`[FLOW_AUDIT] finalize-call id=${POLICY_ID} source=${src} beforeKeys=${beforeKeys} afterKeys=${beforeKeys}`);
+        } catch (_) {}
+        return;
+      }
+      if (!restoreInProgress) {
+        restorePersistedFlags();
+      }
+      selfHealIllegalPermaFlags(src);
+      purgePrebootStaleFlags(src);
+      flagStateFinalized = true;
+      const afterKeys = countSecurityFlagKeys();
+      try {
+        console.log(`[FLOW_AUDIT] finalize-call id=${POLICY_ID} source=${src} beforeKeys=${beforeKeys} afterKeys=${afterKeys}`);
+      } catch (_) {}
+      auditStateBinding(`${src}:after`);
+    }
+
     function setFlagForPlayer(playerId, level, stamp, extra = {}){
       ensureStateFlags();
       const key = playerId ? String(playerId) : "me";
       const current = cleanupExpiredFlag(key);
       const nextPriority = PRIORITY[level] || 0;
       const currentPriority = current ? (PRIORITY[current.level] || 0) : -1;
+      const callerText = flowAuditText(extra.caller, "ReactionPolicy.setFlagForPlayer");
+      const sourceKind = normalizeSourceKind(
+        extra.sourceKind || (extra.bootstrapWrite ? "restore" : "runtime_event"),
+        callerText,
+        "write"
+      );
       if (current && current.level === LEVELS.TEMP_BLOCK && level === LEVELS.TEMP_BLOCK) {
         current.until = Math.max(current.until || 0, Number(extra.until || 0));
         current.since = stamp;
         current.counts = extra.counts || current.counts;
+        markFlagProvenance(key, current, {
+          writerTag: "securityflags:setFlagForPlayer:temp_refresh",
+          writerFunction: callerText,
+          sourceKind,
+          eventType: extra.eventType || extra.type || current.type,
+          action: "write",
+        });
         return current;
       }
       if (current && currentPriority > nextPriority) {
         return current;
       }
+      const entryReason = sanitizeReason(extra.reason || extra.type, level === LEVELS.PERMA_FLAG ? "perma_flag" : "temp_block");
       const entry = {
         level,
         since: stamp,
         until: (level === LEVELS.TEMP_BLOCK) ? Number(extra.until || 0) : null,
         counts: extra.counts || null,
         type: extra.type || null,
+        reason: entryReason,
+        authority: (level === LEVELS.PERMA_FLAG)
+          ? (extra.authority || FLAG_AUTHORITY.AUTHORITATIVE)
+          : FLAG_AUTHORITY.RESTORED_LOCAL,
       };
-      State.securityFlags[key] = entry;
+      markFlagProvenance(key, entry, {
+        writerTag: "securityflags:setFlagForPlayer",
+        writerFunction: callerText,
+        sourceKind,
+        eventType: extra.eventType || extra.type || entry.type,
+        action: "write",
+      });
+      withSecurityFlagsWriteContext({
+        writerTag: entry.writerTag,
+        writerFunction: entry.writerFunction,
+        sourceKind: entry.sourceKind,
+        writeSeq: entry.writeSeq,
+        bootTime: entry.bootTime,
+        policyId: entry.policyId,
+        eventType: entry.eventType,
+      }, () => {
+        State.securityFlags[key] = entry;
+      });
+      logStateSecurityFlagsWrite(key, entry.level, entry.authority || "unknown", callerText);
+      if (entry.level === LEVELS.PERMA_FLAG && entry.authority === FLAG_AUTHORITY.AUTHORITATIVE) {
+        logAuthoritativePermaWrite(
+          key,
+          sanitizeReason(extra.eventType || entry.type, "unknown"),
+          sanitizeReason(entry.reason, "perma_flag"),
+          callerText
+        );
+      }
+      if (extra && extra.bootstrapWrite) {
+        logBootstrapPermaWrite(key, level, entry.type, !!extra.restored, extra.caller || BOOTSTRAP_SOURCE_NAME);
+      }
       if (level === LEVELS.PERMA_FLAG) {
         persistedPerma = {
-          flags: { ...(persistedPerma.flags || {}), [key]: { since: stamp } },
+          flags: {
+            ...(persistedPerma.flags || {}),
+            [key]: { since: stamp, type: entry.type, reason: entry.reason, authority: entry.authority },
+          },
           source: RUNTIME_SOURCE,
           format: "wrapped",
           stamp: Date.now(),
@@ -6510,6 +7447,11 @@ window.Game = window.Game || {};
     }
 
     function restorePersistedFlags(){
+      logPolicyCall("restorePersistedFlags", "ReactionPolicy.restorePersistedFlags", `restoreInProgress=${restoreInProgress ? "true" : "false"}`);
+      auditStateBinding("ReactionPolicy.restorePersistedFlags:enter");
+      if (restoreInProgress) return;
+      restoreInProgress = true;
+      flagStateFinalized = false;
       const meta = persistedPerma || { flags: {}, source: "none", format: "none", stamp: 0 };
       const flags = (meta.flags && typeof meta.flags === "object") ? meta.flags : {};
       const count = Object.keys(flags).length;
@@ -6523,49 +7465,133 @@ window.Game = window.Game || {};
       });
       if (devMode) {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_dev_mode",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:dev_mode",
+          sourceKind: "restore",
+        });
+        logStateSecurityFlagsWrite("*", "reset", "dev_mode", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "dev_mode");
+        logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:dev_mode");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       if (!count) {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_empty",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:empty_flags",
+          sourceKind: "restore",
+        });
+        logStateSecurityFlagsWrite("*", "reset", "empty_flags", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "empty_flags");
+        logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:empty_flags");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       if (meta.format === "legacy") {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_legacy",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:legacy_untrusted_prod",
+          sourceKind: "restore",
+        });
+        logStateSecurityFlagsWrite("*", "reset", "legacy_untrusted_prod", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "legacy_untrusted_prod");
+        logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:legacy_untrusted_prod");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       if (meta.format === "wrapped" && meta.source !== RUNTIME_SOURCE) {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_bad_source",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:source_not_runtime",
+          sourceKind: "restore",
+        });
+        logStateSecurityFlagsWrite("*", "reset", "source_not_runtime", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
         logRestore("[SEC_RESTORE_REASON]", "source_not_runtime");
+        logSecurityRestore(meta, 0, false);
+        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:source_not_runtime");
+        flagStateFinalized = true;
+        restoreInProgress = false;
         return;
       }
       ensureStateFlags();
-      State.securityFlags = {};
+      replaceSecurityFlagsStore({}, {
+        writerTag: "securityflags:restore_apply",
+        writerFunction: "ReactionPolicy.restorePersistedFlags:restore_apply",
+        sourceKind: "restore",
+      });
+      logStateSecurityFlagsWrite("*", "reset", "restore_apply", "ReactionPolicy.restorePersistedFlags");
       restoredPlayers.length = 0;
+      let hadInvalidRestore = false;
+      let invalidRestoreCount = 0;
+      const baseSource = meta.source || "unknown";
       for (const [pid, data] of Object.entries(flags)) {
         if (!pid) continue;
-        State.securityFlags[pid] = {
-          level: LEVELS.PERMA_FLAG,
-          since: Number((data && data.since) || Date.now()),
-          until: null,
-        };
-        restoredPlayers.push(pid);
+        const normalizedData = normalizeFlagEntry(data);
+        const sanitizedType = sanitizeReason(normalizedData.type, "perma_flag_restore");
+        const authoritative = false;
+        logPermaFlagRestoreRead(pid, sanitizedType, null, authoritative);
+        logIdentityBindFlag(pid, baseSource, authoritative);
+        logPermaFlagBootstrapSource(pid, BOOTSTRAP_SOURCE_NAME, authoritative);
+        logPermaFlagAuthorityCheck(pid, authoritative, "ReactionPolicy.restorePersistedFlags");
+        logBootstrapPermaWrite(pid, LEVELS.PERMA_FLAG, sanitizedType, true, BOOTSTRAP_SOURCE_NAME);
+        const degradeReason = sanitizeReason(normalizedData.reason || sanitizedType, "restored_security_state");
+        logPermaFlagRestoreDowngrade(pid, LEVELS.PERMA_FLAG, LEVELS.TEMP_BLOCK, degradeReason);
+        logPermaFlagRestoreDiscard(pid, degradeReason);
+        logPermaFlagRestoreRejected(pid, degradeReason, baseSource);
+        logStalePermaRemoved(pid, "restored_local_without_runtime_proof");
+        removePersistedFlagEntry(pid);
+        hadInvalidRestore = true;
+        invalidRestoreCount++;
       }
       logRestore("[SEC_RESTORE_APPLY]", { count: restoredPlayers.length, source: meta.source || "unknown", format: meta.format || "unknown" });
+      logSecurityRestore(meta, restoredPlayers.length, restoredPlayers.length > 0);
+      const permaFlags = State.securityFlags || {};
+      let permaCount = 0;
+      for (const flag of Object.values(permaFlags)) {
+        if (flag && flag.level === LEVELS.PERMA_FLAG) {
+          permaCount++;
+        }
+      }
+      if (hadInvalidRestore) {
+        let storageChanged = false;
+        if (storage) {
+          try {
+            if (permaCount) {
+              persistPermaFlags();
+              storageChanged = true;
+            } else {
+              storage.removeItem(STORAGE_KEY);
+              storageChanged = true;
+              persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
+            }
+          } catch (_) {}
+        } else if (!permaCount) {
+          persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
+        }
+        logPoisonedStorageCleanup(storageChanged, invalidRestoreCount);
+      }
+      selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:post_apply");
+      purgePrebootStaleFlags("ReactionPolicy.restorePersistedFlags:post_apply");
+      flagStateFinalized = true;
+      restoreInProgress = false;
     }
 
     const REACTION_LOG_TTL_MS = 1500;
@@ -6610,6 +7636,26 @@ window.Game = window.Game || {};
       try {
         console.log("[SEC:reaction]", payload);
       } catch (_) {}
+    }
+
+    function buildBlockReason(typeKey, meta){
+      const baseReason = sanitizeReason(typeKey || "", "security_event");
+      const detailParts = [];
+      if (meta && typeof meta === "object") {
+        const addDetail = (value) => {
+          const candidate = sanitizeReason(value, "");
+          if (candidate && candidate !== baseReason) {
+            detailParts.push(candidate);
+          }
+        };
+        addDetail(meta.reason);
+        addDetail(meta.action);
+        addDetail(meta.key);
+      }
+      if (detailParts.length) {
+        return `${baseReason}:${detailParts.join(":")}`;
+      }
+      return baseReason;
     }
 
     function emitRestoreEvents(){
@@ -6657,6 +7703,8 @@ window.Game = window.Game || {};
       const typeKey = origType.toLowerCase();
       const playerId = (ev.playerId && String(ev.playerId)) ? String(ev.playerId) : "me";
       const sessionId = (ev.sessionId && String(ev.sessionId)) ? String(ev.sessionId) : "";
+      const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
+      const isBootstrapRestoreEvent = typeKey === "perma_flag_restore" && !!meta.restored;
       const list = recordHistory(typeKey, stamp);
       const shortCutoff = stamp - SHORT_WINDOW_MS;
       let shortCount = 0;
@@ -6671,8 +7719,8 @@ window.Game = window.Game || {};
       if (typeKey === "forbidden_api_access") {
         level = LEVELS.LOG_ONLY;
       } else {
-        if (typeKey === "perma_flag_restore") {
-          level = LEVELS.LOG_ONLY;
+        if (typeKey === "perma_flag_restore" && !isBootstrapRestoreEvent) {
+          level = LEVELS.PERMA_FLAG;
         }
         if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
           level = LEVELS.PERMA_FLAG;
@@ -6682,13 +7730,29 @@ window.Game = window.Game || {};
       }
       }
       const counts = { short: shortCount, long: longCount };
-      const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
+      const blockReason = buildBlockReason(typeKey, meta);
       let until = null;
       if (!devMode && level === LEVELS.TEMP_BLOCK) {
         until = stamp + TEMP_BLOCK_TTL_MS;
-        setFlagForPlayer(playerId, level, stamp, { until, type: origType, counts });
+        setFlagForPlayer(playerId, level, stamp, {
+          until,
+          type: origType,
+          counts,
+          reason: blockReason,
+          caller: "ReactionPolicy.handleEvent",
+          eventType: origType,
+        });
       } else if (!devMode && level === LEVELS.PERMA_FLAG) {
-        setFlagForPlayer(playerId, level, stamp, { type: origType, counts });
+        setFlagForPlayer(playerId, level, stamp, {
+          type: origType,
+          counts,
+          reason: blockReason,
+          authority: FLAG_AUTHORITY.AUTHORITATIVE,
+          caller: "ReactionPolicy.handleEvent",
+          eventType: origType,
+        });
+        runtimePermaProofPlayers.add(playerId);
+        logRuntimeProofAdd(playerId, origType, "ReactionPolicy.handleEvent");
       }
       const reactionEntry = {
         time: stamp,
@@ -6699,32 +7763,164 @@ window.Game = window.Game || {};
         until: until,
         counts,
         meta,
+        reason: blockReason,
       };
       pushReactionLog(reactionEntry);
       return reactionEntry;
     }
 
-    function isActionBlocked(playerId){
+    function isActionBlocked(playerId, action){
+      const pid = playerId ? String(playerId) : "me";
+      const actionText = flowAuditText(action, "unknown");
+      logPolicyCall("isActionBlocked", "ReactionPolicy.isActionBlocked", `player=${pid} action=${actionText}`);
+      auditPolicyBinding("isActionBlocked");
+      auditStateBinding("ReactionPolicy.isActionBlocked");
       if (isDevFlag && isDevFlag()) return false;
-      return !!getStateFlag(playerId);
+      ensureFlagStateFinalized("ReactionPolicy.isActionBlocked");
+      purgePrebootStaleFlags("ReactionPolicy.isActionBlocked");
+      const flag = getStateFlag(pid);
+      const authoritative = isAuthoritativePermaFlag(pid, flag, "ReactionPolicy.isActionBlocked");
+      const blocked = !!flag && (flag.level !== LEVELS.PERMA_FLAG || authoritative);
+      if (action === "call" || action === "vote") {
+        const reason = blocked ? (flag.reason || flag.type || "security_flag") : "none";
+        const safeReason = sanitizeReason(reason, "none");
+        const blockedText = blocked ? "true" : "false";
+        try {
+          console.log(`[FLOW_AUDIT] isActionBlocked action=${action} blocked=${blockedText} reason=${safeReason}`);
+        } catch (_) {}
+      }
+      return blocked;
     }
 
     function getFlag(playerId){
-      if (isDevFlag && isDevFlag()) return null;
-      return getStateFlag(playerId);
+      const pid = playerId ? String(playerId) : "me";
+      logPolicyCall("getFlag", "ReactionPolicy.getFlag", `player=${pid}`);
+      auditPolicyBinding("getFlag");
+      auditStateBinding("ReactionPolicy.getFlag");
+      if (isDevFlag && isDevFlag()) {
+        logGetFlagResult(pid, null, false);
+        return null;
+      }
+      ensureFlagStateFinalized("ReactionPolicy.getFlag");
+      purgePrebootStaleFlags("ReactionPolicy.getFlag");
+      const rawFlag = getStateFlag(pid);
+      const authoritative = isAuthoritativePermaFlag(pid, rawFlag, "ReactionPolicy.getFlag");
+      const flag = (rawFlag && rawFlag.level === LEVELS.PERMA_FLAG && !authoritative) ? null : rawFlag;
+      logGetFlagResult(pid, flag, authoritative);
+      logFlagProvenanceReturn(pid, flag);
+      return cloneFlagForReturn(flag);
     }
 
-    return {
+    function inspectFlag(playerId){
+      const pid = playerId ? String(playerId) : "me";
+      logPolicyCall("inspectFlag", "ReactionPolicy.inspectFlag", `player=${pid}`);
+      auditPolicyBinding("inspectFlag");
+      auditStateBinding("ReactionPolicy.inspectFlag");
+      const flag = getFlag(pid);
+      const provenance = snapshotFlagProvenance(pid, flag);
+      const result = {
+        playerId: pid,
+        policyId: POLICY_ID,
+        policyRef: flowAuditRefId(policyApi),
+        gamePolicyRef: flowAuditRefId((Game && Game.SecurityPolicy) ? Game.SecurityPolicy : null),
+        stateRef: flowAuditRefId(State),
+        securityFlagsRef: flowAuditRefId(State && State.securityFlags ? State.securityFlags : null),
+        bootTime: BOOT_TIME_MS,
+        flag,
+        provenance,
+      };
+      return result;
+    }
+
+    function versionInfo(){
+      const runtimeScriptUrl = getPolicyRuntimeSource();
+      return {
+        sourceFileMarker: SECURITY_POLICY_SOURCE_MARKER,
+        buildMarker: SECURITY_POLICY_BUILD_MARKER,
+        policyId: POLICY_ID,
+        hasInspectFlag: !!(policyApi && typeof policyApi.inspectFlag === "function"),
+        stateJsVersionTag: SECURITY_POLICY_STATEJS_VERSION_TAG,
+        runtimeScriptUrl,
+      };
+    }
+
+    policyApi = {
       handleEvent,
       isActionBlocked,
       getFlag,
+      inspectFlag,
+      versionInfo,
       restorePersistedFlags,
       emitRestoreEvents,
+      __flowAuditId: POLICY_ID,
     };
+    return policyApi;
+  }
+
+  function getPolicyRuntimeSource(){
+    try {
+      if (typeof document !== "undefined" && document.currentScript && document.currentScript.src) {
+        return String(document.currentScript.src);
+      }
+    } catch (_) {}
+    return "state.js";
+  }
+
+  function getPolicyBuildSource(){
+    return `${SECURITY_POLICY_SOURCE_MARKER}/${SECURITY_POLICY_BUILD_MARKER}`;
+  }
+
+  function logRuntimeScriptUrl(runtimeSource){
+    const src = (runtimeSource && String(runtimeSource).trim()) ? String(runtimeSource).trim() : "state.js";
+    try {
+      console.log(`[FLOW_AUDIT] runtime-script-url state=${src}`);
+    } catch (_) {}
+  }
+
+  function auditSecurityPolicyExport(source){
+    const src = source ? String(source).trim() : "state.js";
+    const runtimeSource = getPolicyRuntimeSource();
+    const buildSource = getPolicyBuildSource();
+    const versionTag = SECURITY_POLICY_STATEJS_VERSION_TAG;
+    const policy = (Game && Game.SecurityPolicy && typeof Game.SecurityPolicy === "object") ? Game.SecurityPolicy : null;
+    const keys = policy ? Object.keys(policy).sort().join(",") : "null";
+    const hasInspectFlag = !!(policy && typeof policy.inspectFlag === "function");
+    const hasInspectText = hasInspectFlag ? "true" : "false";
+    const policyId = (policy && policy.__flowAuditId) ? String(policy.__flowAuditId) : "unknown";
+    try {
+      console.log(`[FLOW_AUDIT] securitypolicy-export keys=${keys || "none"} hasInspectFlag=${hasInspectText}`);
+    } catch (_) {}
+    try {
+      console.log(`[FLOW_AUDIT] policy-runtime-version source=${buildSource} policyId=${policyId} version=${versionTag}`);
+    } catch (_) {}
+    logRuntimeScriptUrl(runtimeSource);
+    if (!hasInspectFlag) {
+      try {
+        Game.__FLOW_AUDIT_POLICY_EXPORT_MISSING__ = {
+          source: runtimeSource,
+          stage: src,
+          policyId,
+          at: Date.now(),
+        };
+      } catch (_) {}
+      try {
+        console.log(`[FLOW_AUDIT] inspectFlag-export-missing source=${src}`);
+      } catch (_) {}
+    }
   }
 
   ReactionPolicy = createReactionPolicy();
+  try {
+    const pid = (ReactionPolicy && ReactionPolicy.__flowAuditId) ? String(ReactionPolicy.__flowAuditId) : "unknown";
+    console.log(`[FLOW_AUDIT] policy-instance-mounted id=${pid}`);
+  } catch (_) {}
   Game.SecurityPolicy = ReactionPolicy;
+  try {
+    const pid = (ReactionPolicy && ReactionPolicy.__flowAuditId) ? String(ReactionPolicy.__flowAuditId) : "unknown";
+    const sameRefText = (Game.SecurityPolicy === ReactionPolicy) ? "true" : "false";
+    console.log(`[FLOW_AUDIT] securitypolicy-assigned id=${pid} sameRef=${sameRefText}`);
+  } catch (_) {}
+  auditSecurityPolicyExport("state.js:post-assign");
   if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
     ReactionPolicy.restorePersistedFlags();
   }
@@ -6779,6 +7975,7 @@ window.Game = window.Game || {};
   Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
   Security.protectMethod(StateAPI, "giveRespect", giveRespect, "StateAPI.giveRespect");
   Security.finishBoot();
+  auditSecurityPolicyExport("state.js:post-finishBoot");
   if (ReactionPolicy && typeof ReactionPolicy.emitRestoreEvents === "function") {
     ReactionPolicy.emitRestoreEvents();
   }
