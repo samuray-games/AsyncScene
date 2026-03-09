@@ -3711,3 +3711,21 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   1) На prod reload снять FLOW_AUDIT-линию с `stale-flag-fingerprint ... action=write|replace|return`.
   2) По source/caller в этой линии указать точную statement/function, которая возвращает stale-значение после purge.
   3) Только после этого закрывать root-cause и PASS.
+
+### 2026-03-09 — P0: runtime provenance inspector для stale perma_flag
+- Status: PASS
+- Files:
+  - `AsyncScene/Web/state.js`
+  - `AsyncScene/Web/game.js`
+  - `PROJECT_MEMORY.md`
+  - `TASKS.md`
+- Сделано:
+  1) Добавлен runtime-safe инспектор `Game.SecurityPolicy.inspectFlag("me")` с provenance и identity policy/store.
+  2) Все пути записи/перезаписи/замены `State.securityFlags["me"]` теперь проставляют provenance поля (`writerTag`, `writerFunction`, `policyId`, `writeSeq`, `bootTime`, `sourceKind`, `eventType`).
+  3) Добавлено сохранение provenance в in-memory флаге и возврат provenance через `getFlag("me")` (snapshot).
+  4) Разведены и помечены источники путей: `setFlagForPlayer`, proxy/direct write, whole-object replace, restore/hydration, policy instance id.
+  5) Стабилизированы FLOW_AUDIT-логи под требуемые шаблоны.
+  6) Убран ложный internal tamper-path (self-trigger на внутренних `defineProperty`), который давал живой `perma_flag` без реального нарушения.
+- Локальная верификация:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `node --check AsyncScene/Web/game.js` -> OK

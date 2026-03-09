@@ -1203,10 +1203,17 @@ window.Game = window.Game || {};
     );
   }
 
+  let globalTamperTrustedDepth = 0;
+  function withGlobalTamperTrust(fn){
+    globalTamperTrustedDepth++;
+    try { return fn(); }
+    finally { globalTamperTrustedDepth = Math.max(0, globalTamperTrustedDepth - 1); }
+  }
+
   function defineGameSurfaceProp(name, internalName) {
     if (!Game || !internalName) return;
     if (Object.getOwnPropertyDescriptor(Game, name)) return;
-    Object.defineProperty(Game, name, {
+    withGlobalTamperTrust(() => Object.defineProperty(Game, name, {
       configurable: false,
       enumerable: false,
       get() {
@@ -1223,7 +1230,7 @@ window.Game = window.Game || {};
         }
         Game[internalName] = value;
       }
-    });
+    }));
   }
 
   if (typeof window !== "undefined") {
@@ -1627,7 +1634,7 @@ window.Game = window.Game || {};
       const desc = Object.getOwnPropertyDescriptor(Game, name);
       if (desc && desc.get && desc.get._secHandle) return;
       try {
-        Object.defineProperty(Game, name, {
+        withGlobalTamperTrust(() => Object.defineProperty(Game, name, {
           configurable: false,
           enumerable: false,
           get() { return value; },
@@ -1638,7 +1645,7 @@ window.Game = window.Game || {};
           emitTamperDetected({ key: name, action: "set_handle", mode: mode() });
         }
       }
-    });
+    }));
         const g = Object.getOwnPropertyDescriptor(Game, name).get;
         if (g) g._secHandle = true;
       } catch (_) {}
@@ -1650,7 +1657,7 @@ window.Game = window.Game || {};
       const desc = Object.getOwnPropertyDescriptor(obj, key);
       if (desc && desc.get && desc.get._secProtected) return;
       try {
-        Object.defineProperty(obj, key, {
+        withGlobalTamperTrust(() => Object.defineProperty(obj, key, {
           configurable: false,
           enumerable: true,
           get() { return fn; },
@@ -1667,7 +1674,7 @@ window.Game = window.Game || {};
           }
         }
       }
-    });
+    }));
         const g = Object.getOwnPropertyDescriptor(obj, key).get;
         if (g) g._secProtected = true;
       } catch (_) {}
@@ -1812,6 +1819,7 @@ window.Game = window.Game || {};
 
   function handleGlobalTamper(target, prop, action){
     if (!isProtectedSurface(target)) return;
+    if (globalTamperTrustedDepth > 0) return;
     emitTamperDetected({ key: `${describeSurface(target)}.${String(prop || "<?>")}`, action });
   }
 
@@ -6476,7 +6484,7 @@ window.Game = window.Game || {};
       const src = flowAuditText(source, "unknown");
       const actionText = flowAuditText(action, "seen");
       try {
-        console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${STALE_FINGERPRINT_SINCE} source=${src} action=${actionText}`);
+        console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${STALE_FINGERPRINT_SINCE} action=${actionText} source=${src}`);
       } catch (_) {}
     }
 
@@ -6675,28 +6683,29 @@ window.Game = window.Game || {};
       return isStaleFingerprintSince(meFlag.since);
     }
 
-    function logSecurityFlagsObjectReplaced(source, sameRef, flagsObj){
+    function logSecurityFlagsObjectReplaced(source, sameRef, flagsObj, meta = null){
       const src = source || flowAuditCaller("ReactionPolicy.securityFlags.replace");
       const keys = (flagsObj && typeof flagsObj === "object") ? Object.keys(flagsObj).length : 0;
       const sameRefText = sameRef ? "true" : "false";
+      const writeSeq = Number.isFinite(Number(meta && meta.writeSeq)) ? Number(meta.writeSeq) : 0;
       try {
-        console.log(`[FLOW_AUDIT] securityflags-object-replaced source=${src} sameRef=${sameRefText} keys=${keys}`);
+        console.log(`[FLOW_AUDIT] securityflags-object-replaced source=${src} writeSeq=${writeSeq} sameRef=${sameRefText} keys=${keys}`);
       } catch (_) {}
       if (hasFingerprintOnMe(flagsObj)) {
         logStaleFingerprint(src, "replace");
       }
     }
 
-    function logSecurityFlagsMeWrite(value, source){
+    function logSecurityFlagsMeWrite(value){
       const sinceText = Number.isFinite(Number(value && value.since)) ? String(Number(value.since)) : "null";
-      const levelText = flowAuditText(value && value.level, "null");
-      const authorityText = flowAuditText(value && value.authority, "null");
-      const src = flowAuditText(source, "unknown");
+      const sourceKind = flowAuditText(value && value.sourceKind, "unknown");
+      const writer = flowAuditText(value && value.writerFunction, "unknown");
+      const writeSeq = Number.isFinite(Number(value && value.writeSeq)) ? String(Number(value.writeSeq)) : "0";
       try {
-        console.log(`[FLOW_AUDIT] securityflags-me-write since=${sinceText} level=${levelText} authority=${authorityText} source=${src}`);
+        console.log(`[FLOW_AUDIT] securityflags-me-write since=${sinceText} sourceKind=${sourceKind} writer=${writer} writeSeq=${writeSeq}`);
       } catch (_) {}
       if (isStaleFingerprintSince(value && value.since)) {
-        logStaleFingerprint(src, "write");
+        logStaleFingerprint(writer, "write");
       }
     }
 
@@ -6880,50 +6889,247 @@ window.Game = window.Game || {};
     let flagStateFinalized = false;
     let restoreInProgress = false;
     let securityFlagsStore = null;
+    let securityFlagsWriteSeq = 0;
+    let securityFlagsWriteContext = null;
+    const lastFlagProvenanceByPlayer = Object.create(null);
 
     function sanitizeSecurityFlagsObject(raw){
       return (raw && typeof raw === "object") ? raw : {};
     }
 
-    function observeFlagWrite(playerId, value, source, action = "seen"){
+    function readEventType(value){
+      if (value == null) return null;
+      const text = String(value).trim();
+      return text ? text : null;
+    }
+
+    function nextSecurityFlagsWriteSeq(){
+      securityFlagsWriteSeq = (securityFlagsWriteSeq | 0) + 1;
+      return securityFlagsWriteSeq;
+    }
+
+    function withSecurityFlagsWriteContext(meta, fn){
+      const prev = securityFlagsWriteContext;
+      securityFlagsWriteContext = (meta && typeof meta === "object") ? meta : null;
+      try { return fn(); }
+      finally { securityFlagsWriteContext = prev; }
+    }
+
+    function normalizeSourceKind(rawKind, source, action){
+      const known = new Set(["restore", "hydrate", "runtime_event", "direct_write", "object_replace", "merge"]);
+      const fromRaw = rawKind ? String(rawKind).trim().toLowerCase() : "";
+      if (fromRaw && known.has(fromRaw)) return fromRaw;
+      const src = source ? String(source).toLowerCase() : "";
+      const act = action ? String(action).toLowerCase() : "";
+      if (src.includes("restorepersistedflags")) return "restore";
+      if (src.includes("bootstrap") || src.includes("hydrate") || src.includes("installsecurityflagshooks:init")) return "hydrate";
+      if (src.includes("setflagforplayer") || src.includes("handleevent")) return "runtime_event";
+      if (src.includes("securityflags.setter") || act === "replace") return "object_replace";
+      if (src.includes("proxy.") || act === "write") return "direct_write";
+      return "merge";
+    }
+
+    function buildFlagWriteMeta(overrides = null){
+      const patch = (overrides && typeof overrides === "object") ? overrides : {};
+      const ctx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object") ? securityFlagsWriteContext : null;
+      const src = flowAuditText(
+        patch.writerFunction || patch.source || (ctx && (ctx.writerFunction || ctx.source)) || flowAuditCaller("ReactionPolicy.securityFlags.write"),
+        "unknown"
+      );
+      const sourceKind = normalizeSourceKind(patch.sourceKind || (ctx && ctx.sourceKind), src, patch.action || (ctx && ctx.action) || "write");
+      const rawSeq = patch.writeSeq != null ? patch.writeSeq : (ctx && ctx.writeSeq);
+      const writeSeq = Number.isFinite(Number(rawSeq)) && Number(rawSeq) > 0 ? Number(rawSeq) : nextSecurityFlagsWriteSeq();
+      const writerTag = flowAuditText(
+        patch.writerTag || (ctx && ctx.writerTag) || `securityflags:${sourceKind}`,
+        "securityflags:unknown"
+      );
+      const bootTime = Number.isFinite(Number(patch.bootTime != null ? patch.bootTime : (ctx && ctx.bootTime)))
+        ? Number(patch.bootTime != null ? patch.bootTime : (ctx && ctx.bootTime))
+        : BOOT_TIME_MS;
+      const policyId = flowAuditText(patch.policyId || (ctx && ctx.policyId) || POLICY_ID, POLICY_ID);
+      const eventType = readEventType(
+        patch.eventType != null
+          ? patch.eventType
+          : (ctx && Object.prototype.hasOwnProperty.call(ctx, "eventType") ? ctx.eventType : null)
+      );
+      return { writerTag, writerFunction: src, policyId, writeSeq, bootTime, sourceKind, eventType };
+    }
+
+    function markFlagProvenance(playerId, value, meta = null){
+      if (!value || typeof value !== "object") return null;
+      const pid = playerId ? String(playerId) : "unknown";
+      const info = buildFlagWriteMeta(meta);
+      const eventType = readEventType(info.eventType != null ? info.eventType : (value.eventType != null ? value.eventType : value.type));
+      try {
+        value.writerTag = info.writerTag;
+        value.writerFunction = info.writerFunction;
+        value.policyId = info.policyId;
+        value.writeSeq = info.writeSeq;
+        value.bootTime = info.bootTime;
+        value.sourceKind = info.sourceKind;
+        value.eventType = eventType;
+      } catch (_) {}
+      lastFlagProvenanceByPlayer[pid] = {
+        writerTag: info.writerTag,
+        writerFunction: info.writerFunction,
+        policyId: info.policyId,
+        writeSeq: info.writeSeq,
+        bootTime: info.bootTime,
+        sourceKind: info.sourceKind,
+        eventType,
+      };
+      if (pid === "me" && (!meta || meta.logWrite !== false)) {
+        logSecurityFlagsMeWrite(value);
+      }
+      return value;
+    }
+
+    function cloneFlagForReturn(flag){
+      if (!flag || typeof flag !== "object") return null;
+      return {
+        level: flag.level || null,
+        since: Number.isFinite(Number(flag.since)) ? Number(flag.since) : null,
+        until: (flag.until == null) ? null : Number(flag.until),
+        counts: (flag.counts && typeof flag.counts === "object") ? Object.assign({}, flag.counts) : null,
+        type: flag.type || null,
+        reason: flag.reason || null,
+        authority: flag.authority || null,
+        writerTag: flag.writerTag || null,
+        writerFunction: flag.writerFunction || null,
+        policyId: flag.policyId || POLICY_ID,
+        writeSeq: Number.isFinite(Number(flag.writeSeq)) ? Number(flag.writeSeq) : null,
+        bootTime: Number.isFinite(Number(flag.bootTime)) ? Number(flag.bootTime) : BOOT_TIME_MS,
+        sourceKind: flag.sourceKind || null,
+        eventType: readEventType(flag.eventType),
+      };
+    }
+
+    function snapshotFlagProvenance(playerId, flag){
+      const pid = playerId ? String(playerId) : "unknown";
+      const fromFlag = flag && typeof flag === "object" ? flag : null;
+      const saved = (!fromFlag && Object.prototype.hasOwnProperty.call(lastFlagProvenanceByPlayer, pid))
+        ? lastFlagProvenanceByPlayer[pid]
+        : null;
+      const source = fromFlag || saved || null;
+      if (!source) return null;
+      return {
+        writerTag: source.writerTag || null,
+        writerFunction: source.writerFunction || null,
+        policyId: source.policyId || POLICY_ID,
+        writeSeq: Number.isFinite(Number(source.writeSeq)) ? Number(source.writeSeq) : null,
+        bootTime: Number.isFinite(Number(source.bootTime)) ? Number(source.bootTime) : BOOT_TIME_MS,
+        sourceKind: source.sourceKind || null,
+        eventType: readEventType(source.eventType),
+      };
+    }
+
+    function logFlagProvenanceReturn(playerId, flag){
+      const pid = playerId ? String(playerId) : "unknown";
+      const provenance = snapshotFlagProvenance(pid, flag);
+      const writer = provenance && provenance.writerFunction ? String(provenance.writerFunction) : "unknown";
+      const sourceKind = provenance && provenance.sourceKind ? String(provenance.sourceKind) : "unknown";
+      const policy = provenance && provenance.policyId ? String(provenance.policyId) : POLICY_ID;
+      try {
+        console.log(`[FLOW_AUDIT] flag-provenance-return player=${pid} writer=${writer} sourceKind=${sourceKind} policyId=${policy}`);
+      } catch (_) {}
+      if (flag && isStaleFingerprintSince(flag.since)) {
+        logStaleFingerprint(writer, "return");
+      }
+    }
+
+    function replaceSecurityFlagsStore(nextValue, meta = null){
+      const info = buildFlagWriteMeta(Object.assign({}, (meta && typeof meta === "object") ? meta : {}, { action: "replace" }));
+      return withSecurityFlagsWriteContext(info, () => {
+        State.securityFlags = sanitizeSecurityFlagsObject(nextValue);
+        return State.securityFlags;
+      });
+    }
+
+    function observeFlagWrite(playerId, value, source, action = "seen", meta = null){
       if (!playerId) return;
       if (!value || typeof value !== "object") return;
       const src = source || flowAuditCaller("ReactionPolicy.securityFlags.observe");
       const actionText = flowAuditText(action, "seen");
+      const sourceKind = normalizeSourceKind(meta && meta.sourceKind, src, actionText);
+      const shouldLogWrite = actionText === "write" || sourceKind === "object_replace" || sourceKind === "restore" || sourceKind === "hydrate";
+      markFlagProvenance(playerId, value, Object.assign({}, meta || {}, {
+        writerFunction: src,
+        sourceKind,
+        logWrite: shouldLogWrite,
+      }));
       logSecurityFlagsMerge(playerId, value.level || null, value.since, src);
-      if (String(playerId) === "me" && actionText === "write") {
-        logSecurityFlagsMeWrite(value, src);
-      }
       const since = Number(value.since);
       if (!Number.isFinite(since)) return;
       const preboot = since < BOOT_TIME_MS;
       const authoritative = value.authority === FLAG_AUTHORITY.AUTHORITATIVE;
       if (isStaleFingerprintSince(since)) {
-        logStaleFingerprint(src, actionText === "write" ? "write" : "seen");
+        logStaleFingerprint(src, "write");
       }
       logStaleFlagDetected(playerId, since, preboot, authoritative);
       if (!preboot) return;
       logStaleFlagOrigin(playerId, since, src);
     }
 
-    function wrapSecurityFlagsObject(rawObj, source){
+    function wrapSecurityFlagsObject(rawObj, source, meta = null){
       const base = sanitizeSecurityFlagsObject(rawObj);
       const src = source || flowAuditCaller("ReactionPolicy.wrapSecurityFlagsObject");
+      const sourceKind = normalizeSourceKind(meta && meta.sourceKind, src, "merge");
+      const writeSeq = Number.isFinite(Number(meta && meta.writeSeq)) ? Number(meta.writeSeq) : null;
       for (const [pid, flag] of Object.entries(base)) {
-        observeFlagWrite(pid, flag, src, "seen");
+        observeFlagWrite(pid, flag, src, "seen", Object.assign({}, meta || {}, {
+          sourceKind,
+          writerFunction: src,
+          writeSeq,
+        }));
       }
       const proxy = new Proxy(base, {
         set(target, prop, value){
           target[prop] = value;
           if (typeof prop === "string") {
-            observeFlagWrite(prop, value, flowAuditCaller("ReactionPolicy.securityFlags.proxy.set"), "write");
+            const srcSet = flowAuditCaller("ReactionPolicy.securityFlags.proxy.set");
+            const activeCtx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object")
+              ? securityFlagsWriteContext
+              : null;
+            const writeMeta = buildFlagWriteMeta(activeCtx ? {
+              writerTag: activeCtx.writerTag,
+              writerFunction: activeCtx.writerFunction || srcSet,
+              sourceKind: activeCtx.sourceKind,
+              writeSeq: activeCtx.writeSeq,
+              eventType: activeCtx.eventType,
+              action: "write",
+            } : {
+              writerTag: "securityflags:proxy_set",
+              writerFunction: srcSet,
+              sourceKind: "direct_write",
+              action: "write",
+              eventType: value && value.eventType,
+            });
+            observeFlagWrite(prop, value, srcSet, "write", writeMeta);
           }
           return true;
         },
         defineProperty(target, prop, descriptor){
           const ok = Reflect.defineProperty(target, prop, descriptor);
           if (ok && typeof prop === "string" && descriptor && Object.prototype.hasOwnProperty.call(descriptor, "value")) {
-            observeFlagWrite(prop, descriptor.value, flowAuditCaller("ReactionPolicy.securityFlags.proxy.defineProperty"), "write");
+            const srcDefine = flowAuditCaller("ReactionPolicy.securityFlags.proxy.defineProperty");
+            const activeCtx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object")
+              ? securityFlagsWriteContext
+              : null;
+            const writeMeta = buildFlagWriteMeta(activeCtx ? {
+              writerTag: activeCtx.writerTag,
+              writerFunction: activeCtx.writerFunction || srcDefine,
+              sourceKind: activeCtx.sourceKind,
+              writeSeq: activeCtx.writeSeq,
+              eventType: activeCtx.eventType,
+              action: "write",
+            } : {
+              writerTag: "securityflags:proxy_define",
+              writerFunction: srcDefine,
+              sourceKind: "direct_write",
+              action: "write",
+              eventType: descriptor.value && descriptor.value.eventType,
+            });
+            observeFlagWrite(prop, descriptor.value, srcDefine, "write", writeMeta);
           }
           return ok;
         },
@@ -6942,19 +7148,36 @@ window.Game = window.Game || {};
       const currentDesc = Object.getOwnPropertyDescriptor(State, "securityFlags");
       if (currentDesc && currentDesc.get && currentDesc.get._flowAuditSecurityFlags) return;
       const initialRaw = sanitizeSecurityFlagsObject(State.securityFlags || {});
-      securityFlagsStore = wrapSecurityFlagsObject(initialRaw, "ReactionPolicy.installSecurityFlagsHooks:init");
-      logSecurityFlagsObjectReplaced("ReactionPolicy.installSecurityFlagsHooks:init", false, securityFlagsStore);
+      const initMeta = buildFlagWriteMeta({
+        writerTag: "securityflags:install_init",
+        writerFunction: "ReactionPolicy.installSecurityFlagsHooks:init",
+        sourceKind: "hydrate",
+        action: "replace",
+      });
+      securityFlagsStore = wrapSecurityFlagsObject(initialRaw, "ReactionPolicy.installSecurityFlagsHooks:init", initMeta);
+      logSecurityFlagsObjectReplaced("ReactionPolicy.installSecurityFlagsHooks:init", false, securityFlagsStore, initMeta);
       Object.defineProperty(State, "securityFlags", {
         configurable: true,
         enumerable: true,
         get(){ return securityFlagsStore; },
         set(next){
-          const src = flowAuditCaller("ReactionPolicy.securityFlags.setter");
+          const src = flowAuditText(
+            (securityFlagsWriteContext && securityFlagsWriteContext.writerFunction) || flowAuditCaller("ReactionPolicy.securityFlags.setter"),
+            "ReactionPolicy.securityFlags.setter"
+          );
           const prevRaw = flowAuditProxyTargets.get(securityFlagsStore) || securityFlagsStore || null;
           const nextRaw = sanitizeSecurityFlagsObject(next);
           const sameRef = !!prevRaw && prevRaw === nextRaw;
-          securityFlagsStore = wrapSecurityFlagsObject(nextRaw, src);
-          logSecurityFlagsObjectReplaced(src, sameRef, securityFlagsStore);
+          const replaceMeta = buildFlagWriteMeta({
+            writerTag: (securityFlagsWriteContext && securityFlagsWriteContext.writerTag) || "securityflags:setter",
+            writerFunction: src,
+            sourceKind: (securityFlagsWriteContext && securityFlagsWriteContext.sourceKind) || "object_replace",
+            writeSeq: securityFlagsWriteContext && securityFlagsWriteContext.writeSeq,
+            eventType: securityFlagsWriteContext && securityFlagsWriteContext.eventType,
+            action: "replace",
+          });
+          securityFlagsStore = withSecurityFlagsWriteContext(replaceMeta, () => wrapSecurityFlagsObject(nextRaw, src, replaceMeta));
+          logSecurityFlagsObjectReplaced(src, sameRef, securityFlagsStore, replaceMeta);
         }
       });
       const descAfter = Object.getOwnPropertyDescriptor(State, "securityFlags");
@@ -6966,7 +7189,11 @@ window.Game = window.Game || {};
     function ensureStateFlags(){
       installSecurityFlagsHooks();
       if (!State.securityFlags || typeof State.securityFlags !== "object") {
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:ensure_state_flags",
+          writerFunction: "ReactionPolicy.ensureStateFlags",
+          sourceKind: "object_replace",
+        });
         logStateSecurityFlagsWrite("*", "reset", "runtime_reset", "ReactionPolicy.ensureStateFlags");
       }
     }
@@ -7137,13 +7364,23 @@ window.Game = window.Game || {};
       const current = cleanupExpiredFlag(key);
       const nextPriority = PRIORITY[level] || 0;
       const currentPriority = current ? (PRIORITY[current.level] || 0) : -1;
+      const callerText = flowAuditText(extra.caller, "ReactionPolicy.setFlagForPlayer");
+      const sourceKind = normalizeSourceKind(
+        extra.sourceKind || (extra.bootstrapWrite ? "restore" : "runtime_event"),
+        callerText,
+        "write"
+      );
       if (current && current.level === LEVELS.TEMP_BLOCK && level === LEVELS.TEMP_BLOCK) {
         current.until = Math.max(current.until || 0, Number(extra.until || 0));
         current.since = stamp;
         current.counts = extra.counts || current.counts;
-        if (key === "me") {
-          logSecurityFlagsMeWrite(current, String(extra.caller || "ReactionPolicy.setFlagForPlayer:temp_refresh"));
-        }
+        markFlagProvenance(key, current, {
+          writerTag: "securityflags:setFlagForPlayer:temp_refresh",
+          writerFunction: callerText,
+          sourceKind,
+          eventType: extra.eventType || extra.type || current.type,
+          action: "write",
+        });
         return current;
       }
       if (current && currentPriority > nextPriority) {
@@ -7161,14 +7398,31 @@ window.Game = window.Game || {};
           ? (extra.authority || FLAG_AUTHORITY.AUTHORITATIVE)
           : FLAG_AUTHORITY.RESTORED_LOCAL,
       };
-      State.securityFlags[key] = entry;
-      logStateSecurityFlagsWrite(key, entry.level, entry.authority || "unknown", String(extra.caller || "ReactionPolicy.setFlagForPlayer"));
+      markFlagProvenance(key, entry, {
+        writerTag: "securityflags:setFlagForPlayer",
+        writerFunction: callerText,
+        sourceKind,
+        eventType: extra.eventType || extra.type || entry.type,
+        action: "write",
+      });
+      withSecurityFlagsWriteContext({
+        writerTag: entry.writerTag,
+        writerFunction: entry.writerFunction,
+        sourceKind: entry.sourceKind,
+        writeSeq: entry.writeSeq,
+        bootTime: entry.bootTime,
+        policyId: entry.policyId,
+        eventType: entry.eventType,
+      }, () => {
+        State.securityFlags[key] = entry;
+      });
+      logStateSecurityFlagsWrite(key, entry.level, entry.authority || "unknown", callerText);
       if (entry.level === LEVELS.PERMA_FLAG && entry.authority === FLAG_AUTHORITY.AUTHORITATIVE) {
         logAuthoritativePermaWrite(
           key,
           sanitizeReason(extra.eventType || entry.type, "unknown"),
           sanitizeReason(entry.reason, "perma_flag"),
-          String(extra.caller || "ReactionPolicy.setFlagForPlayer")
+          callerText
         );
       }
       if (extra && extra.bootstrapWrite) {
@@ -7208,7 +7462,11 @@ window.Game = window.Game || {};
       });
       if (devMode) {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_dev_mode",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:dev_mode",
+          sourceKind: "restore",
+        });
         logStateSecurityFlagsWrite("*", "reset", "dev_mode", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
@@ -7221,7 +7479,11 @@ window.Game = window.Game || {};
       }
       if (!count) {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_empty",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:empty_flags",
+          sourceKind: "restore",
+        });
         logStateSecurityFlagsWrite("*", "reset", "empty_flags", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
@@ -7234,7 +7496,11 @@ window.Game = window.Game || {};
       }
       if (meta.format === "legacy") {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_legacy",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:legacy_untrusted_prod",
+          sourceKind: "restore",
+        });
         logStateSecurityFlagsWrite("*", "reset", "legacy_untrusted_prod", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
@@ -7247,7 +7513,11 @@ window.Game = window.Game || {};
       }
       if (meta.format === "wrapped" && meta.source !== RUNTIME_SOURCE) {
         ensureStateFlags();
-        State.securityFlags = {};
+        replaceSecurityFlagsStore({}, {
+          writerTag: "securityflags:restore_bad_source",
+          writerFunction: "ReactionPolicy.restorePersistedFlags:source_not_runtime",
+          sourceKind: "restore",
+        });
         logStateSecurityFlagsWrite("*", "reset", "source_not_runtime", "ReactionPolicy.restorePersistedFlags");
         restoredPlayers.length = 0;
         logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
@@ -7259,7 +7529,11 @@ window.Game = window.Game || {};
         return;
       }
       ensureStateFlags();
-      State.securityFlags = {};
+      replaceSecurityFlagsStore({}, {
+        writerTag: "securityflags:restore_apply",
+        writerFunction: "ReactionPolicy.restorePersistedFlags:restore_apply",
+        sourceKind: "restore",
+      });
       logStateSecurityFlagsWrite("*", "reset", "restore_apply", "ReactionPolicy.restorePersistedFlags");
       restoredPlayers.length = 0;
       let hadInvalidRestore = false;
@@ -7529,17 +7803,37 @@ window.Game = window.Game || {};
       const rawFlag = getStateFlag(pid);
       const authoritative = isAuthoritativePermaFlag(pid, rawFlag, "ReactionPolicy.getFlag");
       const flag = (rawFlag && rawFlag.level === LEVELS.PERMA_FLAG && !authoritative) ? null : rawFlag;
-      if (flag && isStaleFingerprintSince(flag.since)) {
-        logStaleFingerprint("ReactionPolicy.getFlag", "return");
-      }
       logGetFlagResult(pid, flag, authoritative);
-      return flag;
+      logFlagProvenanceReturn(pid, flag);
+      return cloneFlagForReturn(flag);
+    }
+
+    function inspectFlag(playerId){
+      const pid = playerId ? String(playerId) : "me";
+      logPolicyCall("inspectFlag", "ReactionPolicy.inspectFlag", `player=${pid}`);
+      auditPolicyBinding("inspectFlag");
+      auditStateBinding("ReactionPolicy.inspectFlag");
+      const flag = getFlag(pid);
+      const provenance = snapshotFlagProvenance(pid, flag);
+      const result = {
+        playerId: pid,
+        policyId: POLICY_ID,
+        policyRef: flowAuditRefId(policyApi),
+        gamePolicyRef: flowAuditRefId((Game && Game.SecurityPolicy) ? Game.SecurityPolicy : null),
+        stateRef: flowAuditRefId(State),
+        securityFlagsRef: flowAuditRefId(State && State.securityFlags ? State.securityFlags : null),
+        bootTime: BOOT_TIME_MS,
+        flag,
+        provenance,
+      };
+      return result;
     }
 
     policyApi = {
       handleEvent,
       isActionBlocked,
       getFlag,
+      inspectFlag,
       restorePersistedFlags,
       emitRestoreEvents,
       __flowAuditId: POLICY_ID,

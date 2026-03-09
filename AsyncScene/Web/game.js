@@ -42,7 +42,7 @@ window.Game = window.Game || {};
       const since = Number(me && me.since);
       if (Number.isFinite(since) && since === FLOW_STALE_SINCE) {
         try {
-          console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${FLOW_STALE_SINCE} source=${src} action=seen`);
+          console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${FLOW_STALE_SINCE} action=return source=${src}`);
         } catch (_) {}
       }
     }

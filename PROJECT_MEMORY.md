@@ -3791,3 +3791,36 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `node --check AsyncScene/Web/state.js` -> OK
   - `node --check AsyncScene/Web/game.js` -> OK
 - Changed: `AsyncScene/Web/state.js` `AsyncScene/Web/game.js` `PROJECT_MEMORY.md`
+
+### 2026-03-09 — P0 provenance inspector + source fix for stale perma_flag
+- Status: PASS (код + синтаксис)
+- Scope:
+  - `AsyncScene/Web/state.js`
+  - `AsyncScene/Web/game.js`
+- Выполненные действия:
+  1) Прочитан `PROGER_RULES.md`, подтверждено отсутствие конфликта STOP/FAIL.
+  2) Протрассированы все пути записи `State.securityFlags` (`setFlagForPlayer`, proxy set/defineProperty, whole-object replace, restore/reset/hydration).
+  3) Добавлена provenance-модель для флагов (в объекте флага сохраняются поля):
+     - `writerTag`
+     - `writerFunction`
+     - `policyId`
+     - `writeSeq`
+     - `bootTime`
+     - `sourceKind` (`restore|hydrate|runtime_event|direct_write|object_replace|merge`)
+     - `eventType`
+  4) Добавлен безопасный runtime-инспектор:
+     - `Game.SecurityPolicy.inspectFlag("me")`
+     - Возвращает текущий флаг + provenance + identity (`policyId`, `policyRef`, `gamePolicyRef`, `stateRef`, `securityFlagsRef`, `bootTime`).
+  5) `Game.SecurityPolicy.getFlag("me")` теперь возвращает snapshot c provenance-полями (read-only snapshot, не живую ссылку).
+  6) Добавлены стабильные FLOW_AUDIT логи требуемого формата:
+     - `[FLOW_AUDIT] securityflags-me-write since=<since> sourceKind=<kind> writer=<function> writeSeq=<n>`
+     - `[FLOW_AUDIT] securityflags-object-replaced source=<function> writeSeq=<n>`
+     - `[FLOW_AUDIT] flag-provenance-return player=<id> writer=<function> sourceKind=<kind> policyId=<id>`
+     - `[FLOW_AUDIT] stale-flag-fingerprint since=1772946669418 action=<write|replace|return> source=<function>`
+  7) Исправлен живой путь, создающий ложный authoritative `perma_flag` до реального нарушения:
+     - Источник: internal self-tamper через глобальный `Object.defineProperty`-hook на защищённых поверхностях при штатных внутренних define-операциях.
+     - Фикс: введён trusted-guard `withGlobalTamperTrust(...)` для внутренних define-путей (`defineGameSurfaceProp`, `Security.defineHandleProp`, `Security.protectMethod`) + early-return в `handleGlobalTamper` при trusted-depth.
+     - Anti-cheat не ослаблен для внешних попыток: guard применён только к внутренним штатным операциям.
+- Проверка:
+  - `node --check AsyncScene/Web/state.js` -> OK
+  - `node --check AsyncScene/Web/game.js` -> OK
