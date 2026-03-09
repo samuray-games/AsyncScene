@@ -3906,3 +3906,11 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Verification:
   - Запустить игру и убедиться, что путь forbidden-access не выбрасывает ReferenceError и в консоли появляется `[FORBID_MODE] mode=dev|prod`.
 - Changed: `AsyncScene/Web/state.js` `PROJECT_MEMORY.md` `TASKS.md`
+
+### 2026-03-09 — External Playwright smoke runner для AsyncScene
+- Status: PASS (код)
+- Facts:
+  - Добавлен внешний Playwright runner `scripts/run-asyncscene-smoke.mjs` (ESM) с вызовом smoke по `Game.__DEV`/`Game.Dev`, сбором консоли/ошибок и стабильным JSON-выводом `BEGIN_SMOKE_RESULT/END_SMOKE_RESULT`.
+  - Поддержаны env-переопределения URL/HEADFUL/SLOWMO/SMOKE_LOG_JSON и политика exit-кодов: инфраструктурные сбои => non-zero, выполненный smoke => exit 0.
+  - Добавлен минимальный `package.json` с `playwright` и скриптом `smoke:asyncscene`.
+- Changed: `scripts/run-asyncscene-smoke.mjs` `package.json` `PROJECT_MEMORY.md` `TASKS.md`

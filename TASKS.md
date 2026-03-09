@@ -3836,3 +3836,12 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   4) `Game.SecurityPolicy.getFlag("me") === null`, `Game.SecurityPolicy.isActionBlocked("me","call") === false`, `Game.SecurityPolicy.isActionBlocked("me","vote") === false`.
 - Root cause:
 -  - GitHub Pages served stale docs asset (older state.js without inspectFlag and with stale blocking logic) until docs/state.js and cache-bust were updated and deployed.
+
+### 2026-03-09 — External Playwright smoke runner для AsyncScene
+- Status: PASS (код)
+- Files: `scripts/run-asyncscene-smoke.mjs` `package.json` `PROJECT_MEMORY.md` `TASKS.md`
+- Сделано:
+  1) Добавлен внешний Playwright runner для GitHub Pages AsyncScene с поиском smoke в `Game.__DEV`/`Game.Dev`, обработкой sync/async результата и стабильным JSON-выводом.
+  2) Реализованы env-переопределения `ASYNCSCENE_SMOKE_URL`, `HEADFUL`, `SLOWMO`, `SMOKE_LOG_JSON=1` и сбор console/pageerror.
+  3) Прописана exit-политика: инфраструктурные сбои => non-zero, выполненный smoke (даже `{ok:false}`) => exit 0, smoke_not_found/smoke_exception => non-zero.
+  4) Добавлен минимальный `package.json` с `playwright` и скриптом `smoke:asyncscene`.
