@@ -3868,3 +3868,24 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - `node --check docs/state.js` -> OK
   - `node --check AsyncScene/Web/state.js` -> OK
   - `shasum -a 256 docs/state.js AsyncScene/Web/state.js` -> одинаковые хэши (`731ac63817...ec58`)
+
+### 2026-03-09 — PROD mismatch закрыт: deploy в origin/main + live GitHub Pages переключен на `state.js?v=6`
+- Status: PASS
+- Deploy:
+  - Commit: `9c27581` (`main` -> `origin/main`)
+  - Push: `ba1fd66..9c27581  main -> main`
+- Live verification (после push):
+  1) `https://samuray-games.github.io/AsyncScene/` теперь отдает `<script defer src="state.js?v=6">`.
+  2) Хэш live `state.js?v=6` совпадает с локальным `docs/state.js`:
+     - live: `731ac63817b466883f8c28605ba9c7c44931eb5a55d5df2bf7c35c30c978ec58`
+     - local docs/state.js: `731ac63817b466883f8c28605ba9c7c44931eb5a55d5df2bf7c35c30c978ec58`
+  3) В live `state.js?v=6` подтверждены маркеры:
+     - экспорт `inspectFlag` и `versionInfo` в `policyApi`
+     - `[FLOW_AUDIT] runtime-script-url state=<url>`
+     - `[FLOW_AUDIT] policy-runtime-version source=<file/build> policyId=<id> version=<tag>`
+     - `[FLOW_AUDIT] securitypolicy-export ... hasInspectFlag=...`
+     - `[FLOW_AUDIT] inspectFlag-export-missing source=...`
+     - `[FLOW_AUDIT] getFlag-result ... authoritative=... since=...`
+  4) Проверка overwrite: в live ассетах единственное присваивание `Game.SecurityPolicy = ReactionPolicy` находится в `state.js?v=6`; дополнительных перезаписей в загружаемых скриптах не найдено.
+- Причина рассинхрона (окончательно):
+  - GitHub Pages корректно обслуживает `docs`-артефакт, но до фикса в `origin/main` лежал старый `docs/index.html` (`state.js?v=4`) и старый `docs/state.js`; локальные незадеплоенные изменения не попадали в live.

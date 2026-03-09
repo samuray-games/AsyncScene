@@ -3786,3 +3786,17 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
   - `rg -n "state.js\?v=" docs/index.html AsyncScene/Web/index.html` -> `v=6`
   - `curl -s 'https://samuray-games.github.io/AsyncScene/state.js?v=4' | shasum -a 256`
   - `git show origin/main:docs/state.js | shasum -a 256`
+
+### 2026-03-09 — P0: prod asset mismatch (`state.js`) CLOSED
+- Status: PASS
+- Commit: `9c27581`
+- Push: `origin/main` updated (`ba1fd66..9c27581`)
+- Files: `docs/state.js` `docs/index.html` `AsyncScene/Web/state.js` `AsyncScene/Web/index.html` `PROJECT_MEMORY.md` `TASKS.md`
+- Итог:
+  1) GitHub Pages live теперь грузит `state.js?v=6` (вместо stale `v=4`).
+  2) Live файл байт-в-байт совпадает с локальным `docs/state.js` (sha256 `731ac63817...ec58`).
+  3) В live экспорте `Game.SecurityPolicy` присутствуют `inspectFlag` и `versionInfo`.
+  4) В live присутствуют обязательные FLOW_AUDIT маркеры версии/экспорта/URL.
+  5) Дополнительного перезаписывающего `Game.SecurityPolicy` скрипта в загружаемом наборе ассетов не обнаружено.
+- Root cause:
+  - Не путь/не другая ветка рантайма; проблема была в том, что в опубликованном `origin/main:docs` оставался stale артефакт (`index -> state.js?v=4` + старый `state.js`). После push live синхронизировался.
