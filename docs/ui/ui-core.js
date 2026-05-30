@@ -1676,11 +1676,52 @@ window.Game = window.Game || {};
   // Step 10: Panel sizes (collapsed / medium / max) - centralized helpers
   // Source of truth: Game.__A (preferred) -> S.flags fallback
   const __PANEL_ORDER = ["collapsed", "medium", "max"];
+  const __MOBILE_PANEL_QUERY = "(max-width: 860px)";
+  const __MOBILE_DEFAULT_PANEL_KEYS = ["battles", "events", "dm"];
 
   function __normalizePanelSize(size){
     const s = String(size || "").toLowerCase().trim();
     return (s === "collapsed" || s === "medium" || s === "max") ? s : "medium";
   }
+
+  UI.isMobilePanelMode = function(){
+    try {
+      return !!(window.matchMedia && window.matchMedia(__MOBILE_PANEL_QUERY).matches);
+    } catch (_) {
+      return false;
+    }
+  };
+
+  function __writePanelSizeDirect(key, size){
+    const k = String(key || "").toLowerCase();
+    const s = __normalizePanelSize(size);
+    try {
+      if (Game.__A && typeof Game.__A.setPanelSize === "function") {
+        Game.__A.setPanelSize(k, s);
+      }
+    } catch (_) {}
+    if (!S.flags) S.flags = {};
+    if (k === "dm") S.flags.dmSize = s;
+    if (k === "battles") S.flags.battlesSize = s;
+    if (k === "events") S.flags.eventsSize = s;
+    if (k === "locations") S.flags.locationsSize = s;
+  }
+
+  UI.applyMobilePanelDefaults = function(){
+    if (!UI.isMobilePanelMode || !UI.isMobilePanelMode()) return false;
+    if (!S.flags) S.flags = {};
+    if (S.flags.mobilePanelDefaultsApplied) return false;
+    S.flags.mobilePanelDefaultsApplied = true;
+    __MOBILE_DEFAULT_PANEL_KEYS.forEach((key) => __writePanelSizeDirect(key, "collapsed"));
+    S.flags.eventsCollapsed = true;
+    try {
+      if (Game.State && Game.State.flags) {
+        Game.State.flags.mobilePanelDefaultsApplied = true;
+        Game.State.flags.eventsCollapsed = true;
+      }
+    } catch (_) {}
+    return true;
+  };
 
   function __getSizesFromState(){
     // Preferred source: Game.__A (state.js)
