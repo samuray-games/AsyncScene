@@ -20,7 +20,8 @@ window.Game = window.Game || {};
 })();
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V4";
+  const UIBOOT_VERSION = "UIBOOT_V5";
+  const UIBOOT_MODE_FIX_MARKER = "UIBOOT_MODE_FIX_7E9D54F";
   const START_DIAG_MAX = 12;
   const startDiagLines = [];
 
@@ -40,6 +41,7 @@ window.Game = window.Game || {};
     setText("deployMarker", "BOOT_FIX_V4");
     setText("uiBootVersion", UIBOOT_VERSION);
     markStartDiag(`${UIBOOT_VERSION}_LOADED`);
+    markStartDiag(UIBOOT_MODE_FIX_MARKER);
   }
 
   function getStartName(UI) {
