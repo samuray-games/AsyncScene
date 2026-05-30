@@ -535,7 +535,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       S.dm.unread[String(withId)] = 0;
     }
     const dmBlock = $("dmBlock");
-    if (dmBlock) dmBlock.classList.toggle("hidden", !S.dm.open);
+    const showMobileCollapsedDm = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
+    if (dmBlock) dmBlock.classList.toggle("hidden", !S.dm.open && !showMobileCollapsedDm);
 
     const dmBlockHeader = $("dmBlockHeader");
     const dmHeaderCount = $("dmHeaderCount");
@@ -544,7 +545,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const totalUnread = Object.values(unreadMap).reduce((sum, v) => sum + ((Number(v) || 0)), 0);
     const hotCount = Math.max(collapsedCount, totalUnread);
     const threadsCount = getInteractiveDmThreadsCount(S);
-    if (dmHeaderCount) dmHeaderCount.textContent = threadsCount ? ` (${threadsCount})` : "";
+    if (dmHeaderCount) dmHeaderCount.textContent = (threadsCount || showMobileCollapsedDm) ? ` (${threadsCount})` : "";
     if (dmBlockHeader) {
       if (hotCount > 0) dmBlockHeader.classList.add("panelHeader--hot");
       UI.pulsePanelHeader && UI.pulsePanelHeader("dm", dmBlockHeader, hotCount, 0);

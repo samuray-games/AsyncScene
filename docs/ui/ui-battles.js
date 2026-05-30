@@ -1445,7 +1445,8 @@ UI.renderBattles = () => {
       const displayCount = Math.max(collapsedCount, battlesCount);
       const battleTitle = header.querySelector(".battleTitleText");
       if (battleTitle) battleTitle.textContent = "Баттлы";
-      if (countWrapper) countWrapper.style.display = displayCount ? "" : "none";
+      const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
+      if (countWrapper) countWrapper.style.display = (displayCount || showZeroCount) ? "" : "none";
       countEl.textContent = String(displayCount);
       if (header) {
         if (displayCount > 0) header.classList.add("panelHeader--hot");
@@ -1458,7 +1459,8 @@ UI.renderBattles = () => {
    S.flags = S.flags || {};
    if (!S.flags.battlesSize) S.flags.battlesSize = "medium";
 
-   if (!UI._battlesInitExpanded) {
+   const keepMobileDefaultCollapsed = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
+   if (!keepMobileDefaultCollapsed && !UI._battlesInitExpanded) {
      UI._battlesInitExpanded = true;
      try {
        if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles");

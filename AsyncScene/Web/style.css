@@ -1410,3 +1410,45 @@ button:disabled{opacity:.55; cursor:not-allowed}
   max-height:120px;
   overflow:auto;
 }
+
+
+/* Mobile UI Phase 1B: chat first, secondary panels compact and header-toggleable. */
+@media (max-width: 860px){
+  html,body{
+    height:auto;
+    min-height:100%;
+  }
+  body{
+    overflow:auto;
+  }
+  #app,.layout{
+    min-height:100svh;
+    height:auto;
+    grid-template-columns:1fr;
+    gap:10px;
+    padding:10px;
+  }
+  #left,.left{
+    min-height:62svh;
+    height:62svh;
+    order:1;
+  }
+  #right,.right{
+    height:auto;
+    overflow:visible;
+    order:2;
+  }
+  #blocks{
+    gap:8px;
+  }
+  .block.panel--collapsed .blockHeader,
+  .panel.panel--collapsed .panelHeader{
+    min-height:44px;
+    padding:9px 12px;
+    border-bottom:0;
+  }
+  .block.panel--collapsed .righty,
+  .panel.panel--collapsed .righty{
+    display:none;
+  }
+}
