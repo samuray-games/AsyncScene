@@ -20,8 +20,8 @@ window.Game = window.Game || {};
 })();
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V8";
-  const UIBOOT_MODE_FIX_MARKER = "MODE_TRACE_V8";
+  const UIBOOT_VERSION = "UIBOOT_V9";
+  const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V9";
   const START_DIAG_MAX = 16;
   const startDiagLines = [];
 
@@ -61,25 +61,10 @@ window.Game = window.Game || {};
     }
   }
 
-  function runStartTrace(label, fn) {
-    markStartDiag(`${label}_ENTER`);
-    try {
-      const result = fn();
-      markStartDiag(`${label}_OK`);
-      return result;
-    } catch (err) {
-      markStartError(`${label}_FAIL`, err);
-      throw err;
-    }
-  }
-
-  function logStartCall(name) {
-    markStartDiag(`CALL:${name}`);
-  }
 
   function installGlobalDiagnostics() {
-    if (window.__uiBootGlobalDiagnosticsV8) return;
-    window.__uiBootGlobalDiagnosticsV8 = true;
+    if (window.__uiBootGlobalDiagnosticsV9) return;
+    window.__uiBootGlobalDiagnosticsV9 = true;
     window.onerror = function(message, source, lineno, colno, error) {
       const file = source || "unknown";
       const line = lineno == null ? "?" : lineno;
@@ -618,27 +603,13 @@ window.Game = window.Game || {};
       }
 
       markStartDiag("START_STEP_2");
-      runStartTrace("STEP_2A", () => {
-        S.flags.started = true;
-      });
-      runStartTrace("STEP_2B", () => {
-        S.isStarted = true;
-      });
-      runStartTrace("STEP_2C", () => {
-        logStartCall("Game.State getter");
-        if (G.State) {
-          logStartCall("Game.State getter for isStarted write");
-          G.State.isStarted = true;
-          logStartCall("Game.State getter for flags check");
-          if (G.State.flags) {
-            logStartCall("Game.State getter for flags.started write");
-            G.State.flags.started = true;
-          }
-        }
-      });
-      runStartTrace("STEP_2D", () => {
-        if (!S.me) S.me = { id: "me" };
-      });
+      S.flags.started = true;
+      S.isStarted = true;
+      if (G.State) {
+        G.State.isStarted = true;
+        if (G.State.flags) G.State.flags.started = true;
+      }
+      if (!S.me) S.me = { id: "me" };
 
       markStartDiag("START_STEP_3");
 

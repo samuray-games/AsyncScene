@@ -1225,6 +1225,8 @@ window.Game = window.Game || {};
     );
   }
 
+  function securityAuditMode(){ return isDevFlag() ? "dev" : "prod"; }
+
   let globalTamperTrustedDepth = 0;
   function withGlobalTamperTrust(fn){
     globalTamperTrustedDepth++;
@@ -1430,7 +1432,7 @@ window.Game = window.Game || {};
     };
 
     function now(){ return Date.now(); }
-    function mode(){ return isDevFlag() ? "dev" : "prod"; }
+    function mode(){ return securityAuditMode(); }
 
     function safeStr(v){
       if (v == null) return "";
@@ -1781,7 +1783,8 @@ window.Game = window.Game || {};
   function emitForbiddenAccess(key, action){
     const stack = captureSecurityStack(3);
     const caller = auditSecurityCaller(stack);
-    auditSecurityConsole(`[SEC_AUDIT] forbidden-access-source key=${securitySafeKey(key)} caller=${caller} mode=${mode()}`);
+    const resolvedMode = securityAuditMode();
+    auditSecurityConsole(`[SEC_AUDIT] forbidden-access-source key=${securitySafeKey(key)} caller=${caller} mode=${resolvedMode}`);
     Security.emit("forbidden_api_access", {
       key: securitySafeKey(key),
       action: securitySafeKey(action),
