@@ -421,11 +421,12 @@ window.Game = window.Game || {};
       } catch (_) {}
     }
 
-    // Helper: is the session started (prefer canonical Game.__S)
+    // Helper: is the session started (prefer canonical Game.__S).
+    // A name alone is not enough: startup overlays can prefill inputs/state while the game must stay paused.
     const isLive = () => {
       const st = (window.Game && Game.__S) ? Game.__S : null;
-      if (st && st.me && st.me.name) return true;
-      return !!(S && S.me && S.me.name);
+      if (st && st.me && st.me.name) return st.isStarted === true || !!(st.flags && st.flags.started === true);
+      return !!(S && S.me && S.me.name && (S.isStarted === true || (S.flags && S.flags.started === true)));
     };
 
     // Helper: avoid re-rendering the UI only while the player is actively choosing a button.
@@ -499,10 +500,7 @@ window.Game = window.Game || {};
       scheduleNpcRematchRequest();
     };
 
-    // Auto-start loops once they are defined. startLoops() will self-retry until player name exists.
-    try {
-      UI.startLoops();
-    } catch (_) {}
+    // Do not auto-start behind the start overlay. ui-boot.js starts loops after the user presses Погнали.
 
     function scheduleNpcChat() {
       // Chat tempo: 3-20s (x2 activity).

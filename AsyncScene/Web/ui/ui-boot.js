@@ -20,6 +20,34 @@ window.Game = window.Game || {};
 })();
 
 (() => {
+  const UIBOOT_VERSION = "UIBOOT_V4";
+  const START_DIAG_MAX = 12;
+  const startDiagLines = [];
+
+  function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  function markStartDiag(label) {
+    const line = `${new Date().toLocaleTimeString()} ${label}`;
+    startDiagLines.push(line);
+    while (startDiagLines.length > START_DIAG_MAX) startDiagLines.shift();
+    setText("startDiag", startDiagLines.join("\n"));
+  }
+
+  function markUiBootVersion() {
+    setText("deployMarker", "BOOT_FIX_V4");
+    setText("uiBootVersion", UIBOOT_VERSION);
+    markStartDiag(`${UIBOOT_VERSION}_LOADED`);
+  }
+
+  function getStartName(UI) {
+    const $ = UI && UI.$;
+    const input = ($ && $("nameInput")) || document.getElementById("nameInput");
+    return input ? String(input.value || "").trim() : "";
+  }
+
   // Boot must run only when:
   // 1) DOM is ready
   // 2) Game.UI is already defined (ui-core.js loaded)
@@ -67,6 +95,9 @@ window.Game = window.Game || {};
           <div class="formRow">
             <label class="label" for="nameInput">Твой ник</label>
             <input id="nameInput" class="input" placeholder="Твой ник" data-enter-target="btnStart" />
+            <div id="deployMarker" class="pill deployMarker">BOOT_FIX_V4</div>
+            <div id="uiBootVersion" class="pill uiBootVersion">UIBOOT_PENDING</div>
+            <div id="startDiag" class="pill startDiag">DIAG_WAITING</div>
             <div id="startManifestShort" class="pill"></div>
             <div class="row mt12">
               <button id="btnRandom" class="btn">Случайный ник</button>
@@ -95,6 +126,7 @@ window.Game = window.Game || {};
 
   function applyStartManifest(UI) {
     const $ = UI.$;
+    markUiBootVersion();
     const el = $("startManifestShort") || document.getElementById("startManifestShort");
     if (!el) return;
     const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
@@ -374,8 +406,27 @@ window.Game = window.Game || {};
         else ni.value = `Игрок${Math.floor(Math.random() * 999)}`;
       };
 
-    // Start
-    if (btnStart) btnStart.onclick = () => startGame(UI);
+    // Start. Bind every mobile-relevant event visibly so iPhone Safari can be verified without a console.
+    if (btnStart) {
+      markStartDiag("START_HANDLER_FOUND");
+      let lastStartAt = 0;
+      const runStart = (source, e) => {
+        markStartDiag(source);
+        const now = Date.now();
+        if (now - lastStartAt < 450) return;
+        lastStartAt = now;
+        try {
+          if (e && typeof e.preventDefault === "function") e.preventDefault();
+        } catch (_) {}
+        startGame(UI);
+      };
+      btnStart.onclick = (e) => runStart("click", e);
+      btnStart.addEventListener("touchstart", (e) => { markStartDiag("touchstart"); }, { passive: true });
+      btnStart.addEventListener("touchend", (e) => runStart("touchend", e), { passive: false });
+      btnStart.addEventListener("pointerup", (e) => runStart("pointerup", e), false);
+    } else {
+      markStartDiag("START_HANDLER_MISSING");
+    }
 
     // Chat send
     if (btnSend) btnSend.onclick = () => UI.sendChat && UI.sendChat();
@@ -463,11 +514,16 @@ window.Game = window.Game || {};
     const S = UI.S;
     const $ = UI.$;
 
-    const name = ($("nameInput")?.value || "").trim();
-    if (!name) return;
+    markStartDiag("START_CLICKED");
+    const name = getStartName(UI);
+    if (!name) {
+      markStartDiag("START_NEEDS_NAME");
+      return;
+    }
 
     if (UI.S.flags.started) return;
     UI.S.flags.started = true;
+    S.isStarted = true;
 
     // Reset player state
     S.me.name = name;
@@ -535,6 +591,7 @@ window.Game = window.Game || {};
     ensureStartScreenHidden(UI);
     const st = $("startScreen") || document.getElementById("startScreen");
     if (st) st.style.pointerEvents = "none";
+    markStartDiag("STARTSCREEN_HIDDEN");
 
     // Welcome
     if (Game.Data && Game.Data.SYS && Game.Data.SYS.joined) UI.pushSystem && UI.pushSystem(Game.Data.SYS.joined(name));
