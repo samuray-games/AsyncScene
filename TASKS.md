@@ -3859,3 +3859,25 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
 - Сделано:
   1) Добавлены логи `SMOKE_REGISTRY_STATUS` и `SMOKE_REGISTRY_KEYS` для фиксации наличия `smokeEconUi_RegressionPackOnce` и состава ключей `Game.__DEV`.
   2) На GitHub Pages сохранён `Game.__DEV` без dev-флага, чтобы smoke-функции регистрировались и были доступны внешнему раннеру.
+
+### [T-20260530-001] Preserve GitHub Pages iPhone start-flow recovery log
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: DONE
+- Area: Documentation / Project memory
+- Files: `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Preserve the full iPhone GitHub Pages start-flow recovery story for future work without touching gameplay code or UI logic.
+- Result:
+  - Report:
+    - Status: PASS
+    - Facts:
+      1) Recorded the initial iPhone symptom: Random nickname worked and background/chat ran behind the start overlay, but “Погнали” did not enter the game.
+      2) Recorded the deployment lesson that GitHub Pages serves `docs/` at `https://samuray-games.github.io/AsyncScene/`, while `AsyncScene/Web` is source parity only for iPhone smoke.
+      3) Recorded marker/cache-buster progression from `BOOT_FIX_V4`/`UIBOOT_V4`/`DEPLOY_PROBE_403E2FF` through `UIBOOT_V9` and `ui/ui-boot.js?v=9`.
+      4) Recorded the live diagnostics that narrowed the failure to `Game.State` getter audit and `emitForbiddenAccess@.../state.js:1784:119` with `Can't find variable: mode`.
+      5) Recorded the root cause: `emitForbiddenAccess()` was outside the `Security` closure but called closure-scoped `mode()`.
+      6) Recorded final fix commit `7c133ba`: add `securityAuditMode()`, delegate internal `mode()`, update `emitForbiddenAccess()` to use `resolvedMode`, mirror to `AsyncScene/Web/state.js`, remove temporary step tracing, keep `UIBOOT_V9` and `STATE_MODE_FIX_V9`, and preserve audit behavior without try/catch suppression.
+      7) Recorded final iPhone smoke PASS after push+merge and the process lessons for Cloud Codex, GitHub Pages, marker verification, cache-busters, and one-paragraph Codex reporting for iPhone copyability.
+    - Changed: `PROJECT_MEMORY.md` `TASKS.md`
+    - Verification: documentation-only change; no gameplay or UI files changed.
