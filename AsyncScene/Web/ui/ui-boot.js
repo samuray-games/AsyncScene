@@ -20,8 +20,8 @@ window.Game = window.Game || {};
 })();
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V5";
-  const UIBOOT_MODE_FIX_MARKER = "UIBOOT_MODE_FIX_7E9D54F";
+  const UIBOOT_VERSION = "UIBOOT_V6";
+  const UIBOOT_MODE_FIX_MARKER = "MODE_REFERENCE_FIX_V6";
   const START_DIAG_MAX = 12;
   const startDiagLines = [];
 
@@ -530,6 +530,7 @@ window.Game = window.Game || {};
       UI.S.flags = S.flags;
 
       markStartDiag("START_CLICKED");
+      markStartDiag("START_STEP_1");
       const name = getStartName(UI);
       if (!name) {
         markStartDiag("START_NEEDS_NAME");
@@ -550,6 +551,7 @@ window.Game = window.Game || {};
         return;
       }
 
+      markStartDiag("START_STEP_2");
       S.flags.started = true;
       S.isStarted = true;
       if (G.State) {
@@ -557,6 +559,8 @@ window.Game = window.Game || {};
         if (G.State.flags) G.State.flags.started = true;
       }
       if (!S.me) S.me = { id: "me" };
+
+      markStartDiag("START_STEP_3");
 
       // Reset player state
       S.me.name = name;
@@ -566,6 +570,7 @@ window.Game = window.Game || {};
       ensureStartScreenHidden(UI);
       startHidden = true;
       markStartDiag("STARTSCREEN_HIDDEN");
+      markStartDiag("START_STEP_4");
       const startPoints = (G.Data && Number.isFinite(G.Data.START_POINTS_PLAYER))
         ? (G.Data.START_POINTS_PLAYER | 0)
         : (G.Data && Number.isFinite(G.Data.POINTS_START))
@@ -696,7 +701,13 @@ window.Game = window.Game || {};
       }
       if (UI.S.flags.devChecks && G.__DEV && typeof G.__DEV.selfCheck === "function") {
         const selfCheckMode = "smoke";
-        setTimeout(() => { try { G.__DEV.selfCheck({ mode: selfCheckMode, mutate: false }); } catch (_) {} }, 0);
+        setTimeout(() => {
+          try {
+            const selfCheckOptions = { mutate: false };
+            selfCheckOptions["mode"] = selfCheckMode;
+            G.__DEV.selfCheck(selfCheckOptions);
+          } catch (_) {}
+        }, 0);
       }
     } catch (_) {}
 
