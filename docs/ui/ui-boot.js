@@ -107,6 +107,8 @@ window.Game = window.Game || {};
     if (!st) return;
 
     // Make visible regardless of CSS implementation in index.html
+    st.classList.remove("hidden");
+    st.hidden = false;
     st.classList.add("active");
     st.style.display = "";
     st.removeAttribute("aria-hidden");
@@ -128,15 +130,19 @@ window.Game = window.Game || {};
   function ensureStartScreenHidden(UI) {
     const $ = UI.$;
     const st = $("startScreen") || document.getElementById("startScreen");
-    if (!st) return;
+    if (!st) return null;
 
     // Hide robustly: some index variants show the start screen by default
+    // and #startScreen has display:flex in CSS. Keep all hide mechanisms in sync.
     st.classList.remove("active");
+    st.classList.add("hidden");
+    st.hidden = true;
     st.style.display = "none";
     st.setAttribute("aria-hidden", "true");
 
     // Also stop clicks from being swallowed by the overlay in case CSS keeps it on top
     st.style.pointerEvents = "none";
+    return st;
   }
 
   function toggleAccordion(UI, bodyId, arrowId) {
@@ -407,7 +413,11 @@ window.Game = window.Game || {};
         try {
           if (e && typeof e.preventDefault === "function") e.preventDefault();
         } catch (_) {}
-        startGame(UI);
+        try {
+          startGame(UI);
+        } catch (err) {
+          markStartDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
+        }
       };
       btnStart.onclick = (e) => runStart("click", e);
       btnStart.addEventListener("touchstart", (e) => { markStartDiag("touchstart"); }, { passive: true });
@@ -498,105 +508,133 @@ window.Game = window.Game || {};
   }
 
   function startGame(UI) {
-    UI.S.flags = UI.S.flags || {};
+    try {
+      const S = UI.S;
+      const $ = UI.$;
+      S.flags = S.flags || {};
+      UI.S.flags = S.flags;
 
-    const S = UI.S;
-    const $ = UI.$;
-
-    markStartDiag("START_CLICKED");
-    const name = getStartName(UI);
-    if (!name) {
-      markStartDiag("START_NEEDS_NAME");
-      return;
-    }
-
-    if (UI.S.flags.started) return;
-    UI.S.flags.started = true;
-    S.isStarted = true;
-
-    // Reset player state
-    S.me.name = name;
-    const startPoints = (Game.Data && Number.isFinite(Game.Data.START_POINTS_PLAYER))
-      ? (Game.Data.START_POINTS_PLAYER | 0)
-      : (Game.Data && Number.isFinite(Game.Data.POINTS_START))
-        ? (Game.Data.POINTS_START | 0)
-        : 0;
-    const resetPlayerState = () => {
-      S.me.points = startPoints;
-      S.me.influence = 0;
-      S.me.wins = 0;
-      S.me.winsSinceInfluence = 0;
-      S.me.oneShots = [];
-      S.rep = 0;
-      S.influence = 0;
-      S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
-    };
-    if (typeof Game._withPointsWrite === "function") {
-      Game._withPointsWrite(resetPlayerState);
-    } else {
-      resetPlayerState();
-    }
-
-    // Build players first (includes NPCs)
-    if (Game.__A && typeof Game.__A.seedPlayers === "function") {
-      Game.__A.seedPlayers();
-    } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
-      Game.NPC.seedPlayers(S);
-    }
-    UI.buildPlayers && UI.buildPlayers();
-
-    if (S.players && S.players["me"]) {
-      const updatePlayer = () => {
-        S.players["me"].name = name;
-        S.players["me"].influence = 0;
-        S.players["me"].points = (S.me.points | 0);
-        S.players["me"].wins = 0;
-      };
-      if (UI && typeof UI.withPointsWrite === "function") {
-        UI.withPointsWrite(updatePlayer);
-      } else {
-        updatePlayer();
+      markStartDiag("START_CLICKED");
+      const name = getStartName(UI);
+      if (!name) {
+        markStartDiag("START_NEEDS_NAME");
+        return;
       }
+
+      if (S.flags.started || S.isStarted === true) {
+        S.flags.started = true;
+        S.isStarted = true;
+        if (window.Game && Game.State) {
+          Game.State.isStarted = true;
+          if (Game.State.flags) Game.State.flags.started = true;
+        }
+        markStartDiag("START_HIDE_ATTEMPT");
+        ensureStartScreenHidden(UI);
+        markStartDiag("STARTSCREEN_HIDDEN");
+        return;
+      }
+
+      S.flags.started = true;
+      S.isStarted = true;
+      if (window.Game && Game.State) {
+        Game.State.isStarted = true;
+        if (Game.State.flags) Game.State.flags.started = true;
+      }
+      if (!S.me) S.me = { id: "me" };
+
+      // Reset player state
+      S.me.name = name;
+      const startPoints = (Game.Data && Number.isFinite(Game.Data.START_POINTS_PLAYER))
+        ? (Game.Data.START_POINTS_PLAYER | 0)
+        : (Game.Data && Number.isFinite(Game.Data.POINTS_START))
+          ? (Game.Data.POINTS_START | 0)
+          : 0;
+      const resetPlayerState = () => {
+        S.me.points = startPoints;
+        S.me.influence = 0;
+        S.me.wins = 0;
+        S.me.winsSinceInfluence = 0;
+        S.me.oneShots = [];
+        S.rep = 0;
+        S.influence = 0;
+        S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
+      };
+      if (typeof Game._withPointsWrite === "function") {
+        Game._withPointsWrite(resetPlayerState);
+      } else {
+        resetPlayerState();
+      }
+
+      // Build players first (includes NPCs)
+      if (Game.__A && typeof Game.__A.seedPlayers === "function") {
+        Game.__A.seedPlayers();
+      } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
+        Game.NPC.seedPlayers(S);
+      }
+      UI.buildPlayers && UI.buildPlayers();
+
+      if (S.players && S.players["me"]) {
+        const updatePlayer = () => {
+          S.players["me"].name = name;
+          S.players["me"].influence = 0;
+          S.players["me"].points = (S.me.points | 0);
+          S.players["me"].wins = 0;
+        };
+        if (UI && typeof UI.withPointsWrite === "function") {
+          UI.withPointsWrite(updatePlayer);
+        } else {
+          updatePlayer();
+        }
+      }
+
+      S.locationId = "square";
+      const locPill = $("locPill");
+      if (locPill) locPill.textContent = "Локация: Площадь";
+
+      const meBar = $("meBar");
+      if (meBar) meBar.textContent = "Площадь";
+
+      // Clear runtime collections
+      S.chat = [];
+      S.dm = { open: false, withId: null, openIds: [], activeId: null, logs: {}, inviteOpen: false, copSilent: true, aggro: {} };
+      S.battles = [];
+      S.events = [];
+      S.flags = S.flags || {};
+      S.flags.started = true;
+      S.flags.highlightEventId = null;
+      S.isStarted = true;
+      if (window.Game && Game.State) {
+        Game.State.isStarted = true;
+        if (Game.State.flags) Game.State.flags.started = true;
+      }
+
+      if (UI.closeDM) UI.closeDM();
+
+      // Hide start before rendering and again after rendering so later UI work cannot re-show it.
+      markStartDiag("START_HIDE_ATTEMPT");
+      ensureStartScreenHidden(UI);
+
+      // Welcome
+      if (Game.Data && Game.Data.SYS && Game.Data.SYS.joined) UI.pushSystem && UI.pushSystem(Game.Data.SYS.joined(name));
+      else UI.pushSystem && UI.pushSystem(`${name} пришел(а) на площадь.`);
+
+      // Cop line
+      const cop = S.players ? Object.values(S.players).find((p) => p && p.role === "cop") : null;
+      if (cop && Game.NPC && Game.NPC.generateChatLine && UI.pushChat) {
+        UI.pushChat({ name: cop.name, text: Game.NPC.generateChatLine(cop), system: false });
+      }
+
+      // Start loops only after login
+      if (UI.startLoops) UI.startLoops();
+
+      // Render everything
+      UI.renderAll && UI.renderAll();
+
+      ensureStartScreenHidden(UI);
+      markStartDiag("STARTSCREEN_HIDDEN");
+    } catch (err) {
+      markStartDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
     }
-
-    S.locationId = "square";
-    const locPill = $("locPill");
-    if (locPill) locPill.textContent = "Локация: Площадь";
-
-    const meBar = $("meBar");
-    if (meBar) meBar.textContent = "Площадь";
-
-    // Clear runtime collections
-    S.chat = [];
-    S.dm = { open: false, withId: null, openIds: [], activeId: null, logs: {}, inviteOpen: false, copSilent: true, aggro: {} };
-    S.battles = [];
-    S.events = [];
-    S.flags = S.flags || {};
-    S.flags.highlightEventId = null;
-
-    if (UI.closeDM) UI.closeDM();
-
-    // Hide start
-    ensureStartScreenHidden(UI);
-    const st = $("startScreen") || document.getElementById("startScreen");
-    if (st) st.style.pointerEvents = "none";
-    markStartDiag("STARTSCREEN_HIDDEN");
-
-    // Welcome
-    if (Game.Data && Game.Data.SYS && Game.Data.SYS.joined) UI.pushSystem && UI.pushSystem(Game.Data.SYS.joined(name));
-    else UI.pushSystem && UI.pushSystem(`${name} пришел(а) на площадь.`);
-
-    // Cop line
-    const cop = S.players ? Object.values(S.players).find((p) => p && p.role === "cop") : null;
-    if (cop && Game.NPC && Game.NPC.generateChatLine && UI.pushChat) {
-      UI.pushChat({ name: cop.name, text: Game.NPC.generateChatLine(cop), system: false });
-    }
-
-    // Start loops only after login
-    if (UI.startLoops) UI.startLoops();
-
-    // Render everything
-    UI.renderAll && UI.renderAll();
   }
 
   function boot(UI) {
