@@ -663,7 +663,8 @@ window.Game = window.Game || {};
       const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("events") : 0;
       const displayCount = Math.max(collapsedCount, open.length);
       titleTextEl.textContent = "События";
-      if (headerCountEl) headerCountEl.textContent = displayCount ? ` (${displayCount})` : "";
+      const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
+      if (headerCountEl) headerCountEl.textContent = (displayCount || showZeroCount) ? ` (${displayCount})` : "";
       header && UI.pulsePanelHeader && UI.pulsePanelHeader("events", header, displayCount);
     }
 
