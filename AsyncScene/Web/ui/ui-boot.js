@@ -688,6 +688,9 @@ window.Game = window.Game || {};
 
       if (UI.closeDM) UI.closeDM();
 
+      // Mobile-only Phase 1B: compact secondary panels before the first full render.
+      if (UI.applyMobilePanelDefaults) UI.applyMobilePanelDefaults();
+
       // Hide start again before rendering so later UI work cannot re-show it.
       ensureStartScreenHidden(UI);
 
@@ -733,6 +736,7 @@ window.Game = window.Game || {};
     bindUI(UI);
     if (typeof bindChatHeaderLocations === "function") bindChatHeaderLocations(UI);
     bindBlockHeaderToggles(UI);
+    if (UI.applyMobilePanelDefaults) UI.applyMobilePanelDefaults();
 
     // Render minimal UI only
     UI.renderAllMinimal && UI.renderAllMinimal();
