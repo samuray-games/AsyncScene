@@ -508,7 +508,9 @@ window.Game = window.Game || {};
   }
 
   function startGame(UI) {
+    let startHidden = false;
     try {
+      const G = window.Game || {};
       const S = UI.S;
       const $ = UI.$;
       S.flags = S.flags || {};
@@ -524,30 +526,37 @@ window.Game = window.Game || {};
       if (S.flags.started || S.isStarted === true) {
         S.flags.started = true;
         S.isStarted = true;
-        if (window.Game && Game.State) {
-          Game.State.isStarted = true;
-          if (Game.State.flags) Game.State.flags.started = true;
+        if (G.State) {
+          G.State.isStarted = true;
+          if (G.State.flags) G.State.flags.started = true;
         }
         markStartDiag("START_HIDE_ATTEMPT");
         ensureStartScreenHidden(UI);
+        startHidden = true;
         markStartDiag("STARTSCREEN_HIDDEN");
         return;
       }
 
       S.flags.started = true;
       S.isStarted = true;
-      if (window.Game && Game.State) {
-        Game.State.isStarted = true;
-        if (Game.State.flags) Game.State.flags.started = true;
+      if (G.State) {
+        G.State.isStarted = true;
+        if (G.State.flags) G.State.flags.started = true;
       }
       if (!S.me) S.me = { id: "me" };
 
       // Reset player state
       S.me.name = name;
-      const startPoints = (Game.Data && Number.isFinite(Game.Data.START_POINTS_PLAYER))
-        ? (Game.Data.START_POINTS_PLAYER | 0)
-        : (Game.Data && Number.isFinite(Game.Data.POINTS_START))
-          ? (Game.Data.POINTS_START | 0)
+
+      // Hide as soon as the start input is accepted so later optional UI work cannot keep the overlay open.
+      markStartDiag("START_HIDE_ATTEMPT");
+      ensureStartScreenHidden(UI);
+      startHidden = true;
+      markStartDiag("STARTSCREEN_HIDDEN");
+      const startPoints = (G.Data && Number.isFinite(G.Data.START_POINTS_PLAYER))
+        ? (G.Data.START_POINTS_PLAYER | 0)
+        : (G.Data && Number.isFinite(G.Data.POINTS_START))
+          ? (G.Data.POINTS_START | 0)
           : 0;
       const resetPlayerState = () => {
         S.me.points = startPoints;
@@ -559,17 +568,17 @@ window.Game = window.Game || {};
         S.influence = 0;
         S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
       };
-      if (typeof Game._withPointsWrite === "function") {
-        Game._withPointsWrite(resetPlayerState);
+      if (typeof G._withPointsWrite === "function") {
+        G._withPointsWrite(resetPlayerState);
       } else {
         resetPlayerState();
       }
 
       // Build players first (includes NPCs)
-      if (Game.__A && typeof Game.__A.seedPlayers === "function") {
-        Game.__A.seedPlayers();
-      } else if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
-        Game.NPC.seedPlayers(S);
+      if (G.__A && typeof G.__A.seedPlayers === "function") {
+        G.__A.seedPlayers();
+      } else if (G.NPC && typeof G.NPC.seedPlayers === "function") {
+        G.NPC.seedPlayers(S);
       }
       UI.buildPlayers && UI.buildPlayers();
 
@@ -603,25 +612,24 @@ window.Game = window.Game || {};
       S.flags.started = true;
       S.flags.highlightEventId = null;
       S.isStarted = true;
-      if (window.Game && Game.State) {
-        Game.State.isStarted = true;
-        if (Game.State.flags) Game.State.flags.started = true;
+      if (G.State) {
+        G.State.isStarted = true;
+        if (G.State.flags) G.State.flags.started = true;
       }
 
       if (UI.closeDM) UI.closeDM();
 
-      // Hide start before rendering and again after rendering so later UI work cannot re-show it.
-      markStartDiag("START_HIDE_ATTEMPT");
+      // Hide start again before rendering so later UI work cannot re-show it.
       ensureStartScreenHidden(UI);
 
       // Welcome
-      if (Game.Data && Game.Data.SYS && Game.Data.SYS.joined) UI.pushSystem && UI.pushSystem(Game.Data.SYS.joined(name));
+      if (G.Data && G.Data.SYS && G.Data.SYS.joined) UI.pushSystem && UI.pushSystem(G.Data.SYS.joined(name));
       else UI.pushSystem && UI.pushSystem(`${name} пришел(а) на площадь.`);
 
       // Cop line
       const cop = S.players ? Object.values(S.players).find((p) => p && p.role === "cop") : null;
-      if (cop && Game.NPC && Game.NPC.generateChatLine && UI.pushChat) {
-        UI.pushChat({ name: cop.name, text: Game.NPC.generateChatLine(cop), system: false });
+      if (cop && G.NPC && G.NPC.generateChatLine && UI.pushChat) {
+        UI.pushChat({ name: cop.name, text: G.NPC.generateChatLine(cop), system: false });
       }
 
       // Start loops only after login
@@ -631,13 +639,17 @@ window.Game = window.Game || {};
       UI.renderAll && UI.renderAll();
 
       ensureStartScreenHidden(UI);
-      markStartDiag("STARTSCREEN_HIDDEN");
     } catch (err) {
-      markStartDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
+      if (startHidden) {
+        console.warn("startGame post-hide failed", err);
+      } else {
+        markStartDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
+      }
     }
   }
 
   function boot(UI) {
+    const G = window.Game || {};
     bindLocations(UI);
 
     ensureStartScreenVisible(UI);
@@ -669,8 +681,9 @@ window.Game = window.Game || {};
         }
         UI.S.flags.devChecks = dev;
       }
-      if (UI.S.flags.devChecks && Game.__DEV && typeof Game.__DEV.selfCheck === "function") {
-        setTimeout(() => { try { Game.__DEV.selfCheck({ mode: "smoke", mutate: false }); } catch (_) {} }, 0);
+      if (UI.S.flags.devChecks && G.__DEV && typeof G.__DEV.selfCheck === "function") {
+        const selfCheckMode = "smoke";
+        setTimeout(() => { try { G.__DEV.selfCheck({ mode: selfCheckMode, mutate: false }); } catch (_) {} }, 0);
       }
     } catch (_) {}
 
