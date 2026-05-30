@@ -9,8 +9,8 @@
 window.Game = window.Game || {};
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V7";
-  const UIBOOT_MODE_FIX_MARKER = "MODE_STEP2_FIX_V7";
+  const UIBOOT_VERSION = "UIBOOT_V8";
+  const UIBOOT_MODE_FIX_MARKER = "MODE_TRACE_V8";
   const START_DIAG_MAX = 16;
   const startDiagLines = [];
 
@@ -31,6 +31,72 @@ window.Game = window.Game || {};
     setText("uiBootVersion", UIBOOT_VERSION);
     markStartDiag(`${UIBOOT_VERSION}_LOADED`);
     markStartDiag(UIBOOT_MODE_FIX_MARKER);
+  }
+
+
+  function describeStartError(err) {
+    const message = err && err.message ? err.message : String(err);
+    const stack = err && err.stack ? String(err.stack) : "";
+    const firstFrame = stack.split("\n").map((x) => x.trim()).find((x) => /:\d+:\d+/.test(x)) || "";
+    return { message, stack, firstFrame };
+  }
+
+  function markStartError(prefix, err) {
+    const info = describeStartError(err);
+    markStartDiag(`${prefix}:${info.message}`);
+    if (info.firstFrame) markStartDiag(`${prefix}_AT:${info.firstFrame}`);
+    if (typeof console !== "undefined" && console.error) {
+      console.error(`[${prefix}] message=${info.message} frame=${info.firstFrame || "unknown"}`, err);
+    }
+  }
+
+  function runStartTrace(label, fn) {
+    markStartDiag(`${label}_ENTER`);
+    try {
+      const result = fn();
+      markStartDiag(`${label}_OK`);
+      return result;
+    } catch (err) {
+      markStartError(`${label}_FAIL`, err);
+      throw err;
+    }
+  }
+
+  function logStartCall(name) {
+    markStartDiag(`CALL:${name}`);
+  }
+
+  function installGlobalDiagnostics() {
+    if (window.__uiBootGlobalDiagnosticsV8) return;
+    window.__uiBootGlobalDiagnosticsV8 = true;
+    window.onerror = function(message, source, lineno, colno, error) {
+      const file = source || "unknown";
+      const line = lineno == null ? "?" : lineno;
+      const msg = message || (error && error.message) || "unknown";
+      markStartDiag(`GLOBAL_ONERROR:${file}:${line}:${msg}`);
+      if (typeof console !== "undefined" && console.error) {
+        console.error(`[GLOBAL_ONERROR] file=${file} line=${line} col=${colno == null ? "?" : colno} message=${msg}`, error || "");
+      }
+      return false;
+    };
+    window.addEventListener("error", (event) => {
+      const file = event.filename || "unknown";
+      const line = event.lineno == null ? "?" : event.lineno;
+      const msg = event.message || (event.error && event.error.message) || "unknown";
+      markStartDiag(`GLOBAL_ERROR:${file}:${line}:${msg}`);
+      if (typeof console !== "undefined" && console.error) {
+        console.error(`[GLOBAL_ERROR] file=${file} line=${line} col=${event.colno == null ? "?" : event.colno} message=${msg}`, event.error || event);
+      }
+    });
+    window.addEventListener("unhandledrejection", (event) => {
+      const reason = event.reason;
+      const msg = reason && reason.message ? reason.message : String(reason);
+      const info = describeStartError(reason || msg);
+      markStartDiag(`GLOBAL_UNHANDLEDREJECTION:${info.firstFrame || "unknown"}:${msg}`);
+      if (typeof console !== "undefined" && console.error) {
+        console.error(`[GLOBAL_UNHANDLEDREJECTION] fileLine=${info.firstFrame || "unknown"} message=${msg}`, reason);
+      }
+    });
   }
 
   function getStartName(UI) {
@@ -541,16 +607,27 @@ window.Game = window.Game || {};
       }
 
       markStartDiag("START_STEP_2");
-      markStartDiag("START_STEP_2A");
-      S.flags.started = true;
-      S.isStarted = true;
-      markStartDiag("START_STEP_2B");
-      if (G.State) {
-        G.State.isStarted = true;
-        if (G.State.flags) G.State.flags.started = true;
-      }
-      markStartDiag("START_STEP_2C");
-      if (!S.me) S.me = { id: "me" };
+      runStartTrace("STEP_2A", () => {
+        S.flags.started = true;
+      });
+      runStartTrace("STEP_2B", () => {
+        S.isStarted = true;
+      });
+      runStartTrace("STEP_2C", () => {
+        logStartCall("Game.State getter");
+        if (G.State) {
+          logStartCall("Game.State getter for isStarted write");
+          G.State.isStarted = true;
+          logStartCall("Game.State getter for flags check");
+          if (G.State.flags) {
+            logStartCall("Game.State getter for flags.started write");
+            G.State.flags.started = true;
+          }
+        }
+      });
+      runStartTrace("STEP_2D", () => {
+        if (!S.me) S.me = { id: "me" };
+      });
 
       markStartDiag("START_STEP_3");
 
@@ -717,5 +794,6 @@ window.Game = window.Game || {};
     boot(UI);
   }
 
+  installGlobalDiagnostics();
   whenReady(initWithRetry);
 })();
