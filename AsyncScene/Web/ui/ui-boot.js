@@ -20,9 +20,9 @@ window.Game = window.Game || {};
 })();
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V6";
-  const UIBOOT_MODE_FIX_MARKER = "MODE_REFERENCE_FIX_V6";
-  const START_DIAG_MAX = 12;
+  const UIBOOT_VERSION = "UIBOOT_V7";
+  const UIBOOT_MODE_FIX_MARKER = "MODE_STEP2_FIX_V7";
+  const START_DIAG_MAX = 16;
   const startDiagLines = [];
 
   function setText(id, text) {
@@ -552,12 +552,15 @@ window.Game = window.Game || {};
       }
 
       markStartDiag("START_STEP_2");
+      markStartDiag("START_STEP_2A");
       S.flags.started = true;
       S.isStarted = true;
+      markStartDiag("START_STEP_2B");
       if (G.State) {
         G.State.isStarted = true;
         if (G.State.flags) G.State.flags.started = true;
       }
+      markStartDiag("START_STEP_2C");
       if (!S.me) S.me = { id: "me" };
 
       markStartDiag("START_STEP_3");
