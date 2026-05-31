@@ -4085,3 +4085,18 @@ Error: Download failure, code=1
   - WARN: Browser/iPhone Safari clipboard smoke not run in this headless environment; manual smoke steps added to `SMOKE_TEST_COMMANDS.md`.
 - Changed: `docs/ui/ui-console-panel.js` `AsyncScene/Web/ui/ui-console-panel.js` `SMOKE_TEST_COMMANDS.md` `TASKS.md` `PROJECT_MEMORY.md`
 - Next: Manually verify on iPhone Safari because user-gesture clipboard behavior can vary by browser/version.
+
+### 2026-05-31 — AsyncScene Step 2 [3] Forbidden Lexicon and Replacement Hints
+- Status: PASS
+- Root cause: Step 2 [2] kept the taboo side of `StyleLex` small; the forbidden side needed clear categories and replacement guidance before any validators or copy rewrites are added.
+- Changed:
+  - Expanded only `docs/data/style-lex.js` taboo data so `Game.Data.styleLex.forbidden` now has required categories: memes/internet slang, teen slang, officialese/bureaucratic phrasing, toxicity/humiliation, teacher tone, and gray promises.
+  - Added 1-2 neutral replacements for every forbidden term/pattern and category through `Game.Data.styleLex.rewriteHints`.
+  - Added `Game.__DEV.smokeStyleLexForbiddenOnce()` while preserving `Game.__DEV.smokeStyleLexContractOnce()` and `Game.__DEV.smokeStyleLexAllowedOnce()`.
+  - No validators were added, no existing UI/NPC/toast copy was rewritten, and allowed domains were not changed.
+- Evidence:
+  - PASS: First-step `Console.txt` check completed. The dump is from 2026-03-04 and contains no current StyleLex Step 2 [3] result; it shows an unrelated old `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_END {"ok":false,"uniqueTypes":0,"ynShare":0}` record.
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Node VM runtime proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, and `smokeStyleLexForbiddenOnce()` all returned ok:true from `Game.Data.styleLex` with categories `memes/internet slang`, `teen slang`, `officialese/bureaucratic phrasing`, `toxicity/humiliation`, `teacher tone`, `gray promises`; item counts were 5,5,5,5,4,5; missing replacement guidance arrays were empty; console marker was `STYLELEX_CONTRACT_V1_PASS`.
+  - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexForbiddenOnce` was blocked by missing Playwright Chromium at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Smoke: PASS by local runtime proof because required forbidden categories exist, every forbidden category/item has neutral replacement guidance, runtime reads through `Game.Data.styleLex`, previous StyleLex helpers return ok:true, and `smokeStyleLexForbiddenOnce()` returns ok:true. Browser runner remains environment-blocked by missing Chromium.
