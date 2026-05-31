@@ -805,6 +805,32 @@ button:disabled{opacity:.55; cursor:not-allowed}
   gap:10px;
 }
 
+.chatResizeHandle{
+  display:none;
+  flex:0 0 18px;
+  align-items:center;
+  justify-content:center;
+  border-top:1px solid var(--line);
+  background:var(--surfaceSoft);
+  cursor:ns-resize;
+  touch-action:none;
+  -webkit-tap-highlight-color: transparent;
+}
+.chatResizeHandle::before{
+  content:"";
+  width:54px;
+  height:4px;
+  border-radius:999px;
+  background:var(--muted2);
+}
+.chatResizeHandle:focus-visible{
+  outline:2px solid rgba(120,180,255,.55);
+  outline-offset:-3px;
+}
+.chat.is-resizing .chatResizeHandle::before{
+  background:var(--text);
+}
+
 .h1{font-size:44px; font-weight:800; letter-spacing:.2px}
 .h2{font-size:18px; font-weight:800}
 .muted{color:var(--muted)}
@@ -1374,34 +1400,97 @@ button:disabled{opacity:.55; cursor:not-allowed}
 }
 
 
-/* Mobile UI Phase 1B: chat first, secondary panels compact and header-toggleable. */
+/* Mobile UI Phase 1B: fixed stats, pinned resizable chat, normal panels below. */
 @media (max-width: 860px){
+  :root{
+    --mobile-gap:10px;
+    --mobile-edge:10px;
+    --mobile-topbar-height:58px;
+    --mobile-chat-height:52svh;
+    --mobile-chat-min:220px;
+    --mobile-chat-max:calc(100svh - var(--mobile-topbar-height) - 150px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    --mobile-stack-offset:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-chat-height) + var(--mobile-gap));
+  }
   html,body{
-    height:auto;
+    width:100%;
     min-height:100%;
+    height:auto;
+    overflow-x:hidden;
   }
   body{
-    overflow:auto;
+    overflow-y:auto;
+    overscroll-behavior-x:none;
+    padding:0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   }
   #app,.layout{
+    width:100%;
     min-height:100svh;
     height:auto;
-    grid-template-columns:1fr;
-    gap:10px;
-    padding:10px;
+    display:block;
+    padding:var(--mobile-edge);
+    padding-top:0;
+    overflow:visible;
+  }
+  #topBar,.topbar{
+    position:fixed;
+    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge));
+    left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
+    right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
+    z-index:90;
+    max-width:calc(100vw - (var(--mobile-edge) * 2) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   }
   #left,.left{
-    min-height:62svh;
-    height:62svh;
-    order:1;
+    position:fixed;
+    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap));
+    left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
+    right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
+    z-index:80;
+    width:auto;
+    max-width:calc(100vw - (var(--mobile-edge) * 2) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    min-height:var(--mobile-chat-min);
+    height:clamp(var(--mobile-chat-min), var(--mobile-chat-height), var(--mobile-chat-max));
+    max-height:var(--mobile-chat-max);
+    order:0;
+    resize:none;
+    gap:0;
+    overflow:hidden;
+  }
+  #chatHeader,.chatHeader{
+    position:relative;
+    top:auto;
+    z-index:1;
+    flex:0 0 auto;
+  }
+  #chatLog,.chatLog{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+  #chatInputRow,.chatInputRow{
+    flex:0 0 auto;
+  }
+  #chatResizeHandle,.chatResizeHandle{
+    display:flex;
   }
   #right,.right{
     height:auto;
+    min-height:100svh;
     overflow:visible;
-    order:2;
+    padding-top:var(--mobile-stack-offset);
+    display:block;
   }
   #blocks{
+    min-height:0;
+    height:auto;
+    overflow:visible;
     gap:8px;
+    padding-bottom:calc(var(--mobile-gap) + env(safe-area-inset-bottom, 0px));
+  }
+  #rightScroll{
+    display:none;
   }
   .block.panel--collapsed .blockHeader,
   .panel.panel--collapsed .panelHeader{
