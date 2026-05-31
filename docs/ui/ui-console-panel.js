@@ -1,17 +1,17 @@
 (() => {
   if (typeof window === "undefined" || typeof document === "undefined") return;
-  const isDevMode = (() => {
+  const DEV_MODE_STORAGE_KEY = "asyncscene.devModeUnlocked";
+  const isDevMode = () => {
     try {
-      const flag = window.__DEV__ === true || window.DEV === true;
-      if (flag) return true;
-      if (typeof location !== "undefined" && location.search) {
-        const params = new URLSearchParams(location.search);
-        return params.get("dev") === "1";
-      }
-    } catch (_) {}
-    return false;
-  })();
-  if (!isDevMode) return;
+      return window.localStorage && window.localStorage.getItem(DEV_MODE_STORAGE_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  };
+  if (isDevMode()) {
+    window.__ASYNC_SCENE_DEV_MODE_UNLOCKED__ = true;
+    window.__DEV__ = true;
+  }
 
   const PANEL_ID = "consolePanel";
   if (document.getElementById(PANEL_ID)) return;
@@ -163,6 +163,10 @@
   };
 
   const runCommand = async (dumpAfter = false) => {
+    if (!isDevMode()) {
+      closePanel();
+      return;
+    }
     const code = textarea.value.trim();
     if (!code) return;
     const runId = `panel_${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -216,6 +220,10 @@
 
   const runAndDump = () => runCommand(true);
   const justDump = async () => {
+    if (!isDevMode()) {
+      closePanel();
+      return;
+    }
     if (typeof window.__DUMP_ALL__ === "function") await window.__DUMP_ALL__();
   };
 
@@ -241,8 +249,22 @@
   historyNext.addEventListener("click", () => cycleHistory(1));
   closeButton.addEventListener("click", () => panel.classList.add("hidden"));
 
-  const showPanel = () => panel.classList.remove("hidden");
-  const togglePanel = () => panel.classList.toggle("hidden");
+  const closePanel = () => panel.classList.add("hidden");
+  const showPanel = () => {
+    if (!isDevMode()) {
+      closePanel();
+      return;
+    }
+    panel.classList.remove("hidden");
+  };
+  const togglePanel = () => {
+    if (!isDevMode()) {
+      closePanel();
+      return;
+    }
+    panel.classList.toggle("hidden");
+  };
+  window.closeConsolePanel = closePanel;
   window.toggleConsolePanel = togglePanel;
   window.showConsolePanel = showPanel;
   console.warn("CONSOLE_PANEL_V1_READY");
