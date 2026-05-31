@@ -4210,3 +4210,19 @@ Error: Download failure, code=1
   - PASS: `node --check docs/dev/dev-checks.js`; PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
   - WARN: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyInventoryOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
 - Required Safari command for QA after cache refresh: `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
+
+### 2026-05-31 — AsyncScene Step 3 [1] runtime smoke wiring fix
+- Status: READY_FOR_RUNTIME_SMOKE; static checks PASS, iPhone Safari runtime PASS not claimed.
+- Root cause: the terminology inventory CSV was already present; the missing operational fix was reliable dev-only smoke helper registration in the GitHub Pages-loaded dev-checks runtime.
+- Changed:
+  - Registered `Game.__DEV.smokeStep3TerminologyInventoryOnce()` at dev-checks boot in both docs and Web copies so the helper is available even if later dev-check code fails before the file tail.
+  - Added compact smoke output with `ok`, `failures`, `rowCount`, `duplicateTermIds`, `missingBuckets`, `invalidRows`, and `buildMarker: STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1`.
+  - The smoke validates deployed CSV fetch, required columns, allowed categories, duplicate `TERM_ID`, required static fields, vague wording markers (`etc`, `и другие`, `and others`), and required feature bucket coverage.
+  - No terminology CSV content was renamed, rewritten, normalized, deduplicated, or modified.
+- PASS criteria: the Safari command `Game.__DEV.smokeStep3TerminologyInventoryOnce()` is defined and returns `ok:true`, `rowCount:3513`, no duplicate IDs, no missing buckets, no invalid rows, and build marker `STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1`.
+- FAIL criteria: helper undefined, deployed CSV fetch failure, missing required columns, duplicate `TERM_ID`, empty required static fields, invalid category, vague wording marker, missing required feature bucket, or claiming Safari runtime PASS without an actual Safari run.
+- Evidence:
+  - PASS: `node --check docs/dev/dev-checks.js`.
+  - PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
+  - PASS: Node static CSV validation returned `ok:true`, `rowCount:3513`, `duplicateTermIds:[]`, `missingBuckets:[]`, `invalidRows:[]`.
+- Required Safari command after cache refresh: `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
