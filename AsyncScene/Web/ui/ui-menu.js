@@ -11,6 +11,37 @@ window.Game = window.Game || {};
 
   const getMenuBlock = () => document.getElementById("menuBlock");
   const TRAINING_UI_ARG_KEY = "menu_training_arg";
+  const DEV_MODE_STORAGE_KEY = "asyncscene.devModeUnlocked";
+  const DEV_MODE_PIN = "2468";
+
+  function isLocalDevModeUnlocked() {
+    try {
+      return typeof window !== "undefined" &&
+        window.localStorage &&
+        window.localStorage.getItem(DEV_MODE_STORAGE_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function setLocalDevModeUnlocked(value) {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        if (value) window.localStorage.setItem(DEV_MODE_STORAGE_KEY, "1");
+        else window.localStorage.removeItem(DEV_MODE_STORAGE_KEY);
+      }
+    } catch (_) {}
+    if (typeof window !== "undefined") {
+      window.__ASYNC_SCENE_DEV_MODE_UNLOCKED__ = !!value;
+      if (value) window.__DEV__ = true;
+      else {
+        window.__DEV__ = false;
+        if (typeof window.closeConsolePanel === "function") window.closeConsolePanel();
+      }
+    }
+  }
+
+  setLocalDevModeUnlocked(isLocalDevModeUnlocked());
 
   function applyMenuLabels() {
     const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
@@ -104,28 +135,70 @@ window.Game = window.Game || {};
   }
 
   function isDevModeActive() {
-    try {
-      if (Game && Game.__D && Game.__D.SHOW_NPC_BALANCES === true) return true;
-      if (typeof window !== "undefined") {
-        if (window.__DEV__ === true || window.DEV === true) return true;
-        if (typeof location !== "undefined" && location && location.search) {
-          try {
-            const params = new URLSearchParams(location.search);
-            if (params.get("dev") === "1") return true;
-          } catch (_) {}
-        }
-      }
-      if (S && S.flags && S.flags.devChecks === true) return true;
-    } catch (_) {}
-    return false;
+    return isLocalDevModeUnlocked();
   }
 
   function isCirculationEnabledUI() {
     return true;
   }
 
+  function ensureDevModeControls() {
+    const block = getMenuBlock();
+    if (!block) return;
+    const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
+    if (!body) return;
+
+    let wrap = document.getElementById("devModeControls");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "devModeControls";
+      wrap.className = "eventRow";
+      wrap.style.gap = "8px";
+      wrap.style.flexWrap = "wrap";
+      wrap.style.alignItems = "center";
+      body.appendChild(wrap);
+    }
+    wrap.innerHTML = "";
+
+    const notify = (msg) => {
+      if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg);
+      else if (UI && typeof UI.pushSystem === "function") UI.pushSystem(msg);
+    };
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn small";
+    btn.textContent = isDevModeActive() ? "Disable Dev Mode" : "Unlock Dev Mode";
+    btn.title = "Local convenience gate for device-only dev tools";
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isDevModeActive()) {
+        setLocalDevModeUnlocked(false);
+        notify("Dev Mode disabled.");
+        if (UI.renderMenu) UI.renderMenu();
+        return;
+      }
+      const entered = typeof window !== "undefined" && typeof window.prompt === "function"
+        ? window.prompt("Enter Dev Mode PIN")
+        : "";
+      if (entered === DEV_MODE_PIN) {
+        setLocalDevModeUnlocked(true);
+        notify("Dev Mode unlocked on this device.");
+      } else if (entered !== null) {
+        notify("Incorrect Dev Mode PIN.");
+      }
+      if (UI.renderMenu) UI.renderMenu();
+    };
+    wrap.appendChild(btn);
+  }
+
   function ensureLoggerControls() {
-    if (!isDevModeActive()) return;
+    const stale = document.getElementById("loggerControls");
+    if (!isDevModeActive()) {
+      if (stale) stale.remove();
+      return;
+    }
     const block = getMenuBlock();
     if (!block) return;
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
@@ -234,9 +307,7 @@ window.Game = window.Game || {};
         notify("Console.txt write failed.");
       }
     });
-    const devQuery = typeof location !== "undefined" ? location.search : "";
-    const devMode = (window.__DEV__ === true || window.DEV === true || (devQuery && devQuery.includes("dev=1")));
-    if (devMode) {
+    if (isDevModeActive()) {
       makeButton("Console Panel", "Open expanded console panel (dev only)", () => {
         if (typeof window.toggleConsolePanel === "function") {
           window.toggleConsolePanel();
@@ -474,6 +545,8 @@ window.Game = window.Game || {};
     ensureLotteryControls();
     ensurePointsActions();
     ensureManifestControls();
+    ensureDevModeControls();
+    ensureLoggerControls();
     if (UI.trainingControls && typeof UI.trainingControls.refresh === "function") {
       UI.trainingControls.refresh();
     }
@@ -521,6 +594,7 @@ window.Game = window.Game || {};
     applyMenuLabels();
     if (S.flags && S.flags.menuOpen) ensureMenuHeaderHasCloseX();
     ensureManifestControls();
+    ensureDevModeControls();
     ensureLoggerControls();
   };
 
