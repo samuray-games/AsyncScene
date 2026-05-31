@@ -66,6 +66,31 @@
 ## Inbox
 
 
+### [T-20260531-006] AsyncScene Step 3 [1] interface terminology inventory scope freeze
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|UI|Docs|Runtime Smoke
+- Files: `docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/generate-step3-terminology-inventory.py`
+- Goal: Freeze the current interface terminology inventory only. No wording rename, rewrite, normalization, deduplication, or improvement is included in this step.
+- Acceptance:
+  - [x] Inventory artifact exists with required columns `TERM_ID`, `category`, `currentText`, `screenOrFeature`, `sourceFile`, `sourceKeyOrFunction`, `triggerCondition`, `notes`.
+  - [x] Inventory uses only the required category set: Button, BlockTitle, ResourceName, Status, Error, Hint, Toast, ResultCard, EmptyState, Cooldown, EconomyReason, ChatLine, DMLine, SystemLine, Other.
+  - [x] Static inventory rows have non-empty `TERM_ID`, `currentText`, `category`, and `sourceFile`; dynamic runtime-only templates are marked as forbidden placeholder rows with variables.
+  - [x] Required feature buckets are represented: chat UI, battle UI, DM UI, events/voting/crowd, reports/cop flow, escape, ignore, rematch, training/ECON-04, respect/ECON-08, P2P, price caps, cooldowns, economy toasts, result cards, empty states, disabled states, pending states, success/fail states.
+  - [x] `Game.__DEV.smokeStep3TerminologyInventoryOnce()` exists and checks required columns, duplicate `TERM_ID`, required static fields, category validity, vague coverage wording, and feature-bucket coverage.
+- PASS criteria: inventory artifact committed; required categories and buckets covered; no vague `etc`, `и другие`, or `and others` coverage wording; no duplicate `TERM_ID`; docs updated; exact Safari smoke command provided to QA.
+- FAIL criteria: any major UI area not scanned; artifact missing required columns; vague coverage wording; duplicate `TERM_ID`; fake browser/iPhone Safari runtime PASS claimed from Codex cloud.
+- Result: READY_FOR_RUNTIME_SMOKE. Codex static inventory validation passed for 3513 rows and no duplicate `TERM_ID`; browser smoke command was environment-blocked by missing Playwright Chromium; Codex did not claim iPhone Safari runtime PASS.
+- Report:
+  - Status: DONE / READY_FOR_RUNTIME_SMOKE
+  - Facts: Generated the inventory without renaming or improving copy; added a dev-only smoke helper; mirrored the artifact for the docs deployment and local Web tree.
+  - Changed: `docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/generate-step3-terminology-inventory.py` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `python3 tools/generate-step3-terminology-inventory.py`, run `node --check docs/dev/dev-checks.js`, run `node --check AsyncScene/Web/dev/dev-checks.js`, optionally run `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyInventoryOnce`, then in Safari after cache refresh run `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
+  - Next: QA should run the Safari runtime smoke and record PASS or FAIL; Step 3 [2] must not rewrite terminology until this scope freeze is accepted.
+
+
 ### [T-20260531-005] StyleLex Step 2 final readiness gate
 - Status: DONE
 - Priority: P0
