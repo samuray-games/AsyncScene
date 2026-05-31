@@ -87,6 +87,24 @@
       cursor: pointer;
       text-decoration: underline;
     }
+    .console-panel .panel-output {
+      max-height: 120px;
+      margin: 0;
+      padding: 8px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 6px;
+      color: #d7f7ff;
+      font-size: 11px;
+    }
+    .console-panel .panel-status {
+      min-height: 14px;
+      font-size: 11px;
+      color: #9ef7b9;
+    }
   `;
   document.head.appendChild(style);
 
@@ -105,18 +123,24 @@
     </div>
     <div class="button-row">
       <button data-panel-run>Run</button>
+      <button data-panel-run-copy>Run+Copy</button>
       <button data-panel-run-dump>Run+Dump</button>
       <button data-panel-dump>Dump</button>
       <button data-panel-clear>Clear Tape</button>
     </div>
+    <pre class="panel-output" data-panel-output aria-live="polite"></pre>
+    <div class="panel-status" data-panel-status aria-live="polite"></div>
   `;
   document.body.appendChild(panel);
 
   const textarea = panel.querySelector("[data-panel-input]");
   const buttonRun = panel.querySelector("[data-panel-run]");
+  const buttonRunCopy = panel.querySelector("[data-panel-run-copy]");
   const buttonRunDump = panel.querySelector("[data-panel-run-dump]");
   const buttonDump = panel.querySelector("[data-panel-dump]");
   const buttonClear = panel.querySelector("[data-panel-clear]");
+  const outputNode = panel.querySelector("[data-panel-output]");
+  const statusNode = panel.querySelector("[data-panel-status]");
   const closeButton = panel.querySelector("[data-panel-close]");
   const historyPrev = panel.querySelector("[data-panel-history-prev]");
   const historyNext = panel.querySelector("[data-panel-history-next]");
@@ -162,18 +186,62 @@
     textarea.value = historyStore[historyIndex];
   };
 
+  const setCopyStatus = (message, failed = false) => {
+    if (!statusNode) return;
+    statusNode.textContent = message || "";
+    statusNode.style.color = failed ? "#ffb3b3" : "#9ef7b9";
+  };
+
+  const setOutputText = (text) => {
+    if (outputNode) outputNode.textContent = text || "";
+  };
+
+  const copyTextFallback = (text) => {
+    const copyBox = document.createElement("textarea");
+    copyBox.value = text;
+    copyBox.setAttribute("readonly", "");
+    copyBox.style.position = "fixed";
+    copyBox.style.left = "-9999px";
+    copyBox.style.top = "0";
+    document.body.appendChild(copyBox);
+    copyBox.focus();
+    copyBox.select();
+    copyBox.setSelectionRange(0, copyBox.value.length);
+    let ok = false;
+    try {
+      ok = document.execCommand && document.execCommand("copy");
+    } catch (_) {
+      ok = false;
+    }
+    document.body.removeChild(copyBox);
+    return !!ok;
+  };
+
+  const copyText = async (text) => {
+    const nav = window.navigator || {};
+    if (nav.clipboard && typeof nav.clipboard.writeText === "function") {
+      try {
+        await nav.clipboard.writeText(text);
+        return true;
+      } catch (_) {}
+    }
+    return copyTextFallback(text);
+  };
+
   const runCommand = async (dumpAfter = false) => {
     if (!isDevMode()) {
       closePanel();
-      return;
+      return null;
     }
     const code = textarea.value.trim();
-    if (!code) return;
+    if (!code) return null;
+    setCopyStatus("");
     const runId = `panel_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     console.warn("CONSOLE_PANEL_RUN_BEGIN id=" + runId, code);
     pushHistory(code);
     let result;
     let failed = false;
+    let outputText = "";
     try {
       if (typeof window.__RUN__ === "function") {
         result = await window.__RUN__(code);
@@ -185,6 +253,7 @@
       const evalType = typeof result;
       const evalKeys = (result && typeof result === "object" && !Array.isArray(result)) ? Object.keys(result) : [];
       const panelPreview = serializePreview(result);
+      outputText = panelPreview;
       console.warn("CONSOLE_PANEL_EVAL_RESULT_V1", {
         type: evalType,
         isPromise: 0,
@@ -199,23 +268,36 @@
         if (wantsPanelError) {
           failed = true;
           const errorPreview = result.error || result;
+          outputText = serializePreview(errorPreview);
           console.error("CONSOLE_PANEL_RUN_ERR id=" + runId, errorPreview);
         } else {
           const preview = result;
+          outputText = serializePreview(preview);
           console.warn("CONSOLE_PANEL_RUN_OK id=" + runId, preview);
         }
       } else {
         const preview = result;
+        outputText = serializePreview(preview);
         console.warn("CONSOLE_PANEL_RUN_OK id=" + runId, preview);
       }
     } catch (err) {
       failed = true;
+      outputText = serializePreview(err && (err.stack || err.message) ? (err.stack || err.message) : err);
       console.error("CONSOLE_PANEL_RUN_ERR id=" + runId, err);
     } finally {
+      setOutputText(outputText);
       if (dumpAfter && typeof window.__DUMP_ALL__ === "function") {
         await window.__DUMP_ALL__();
       }
     }
+    return { failed, text: outputText };
+  };
+
+  const runAndCopy = async () => {
+    const runResult = await runCommand(false);
+    if (!runResult) return;
+    const copied = await copyText(runResult.text);
+    setCopyStatus(copied ? "Copied" : "Copy failed", !copied);
   };
 
   const runAndDump = () => runCommand(true);
@@ -228,6 +310,7 @@
   };
 
   buttonRun.addEventListener("click", () => runCommand(false));
+  buttonRunCopy.addEventListener("click", runAndCopy);
   buttonRunDump.addEventListener("click", () => runCommand(true));
   buttonDump.addEventListener("click", justDump);
   buttonClear.addEventListener("click", () => {

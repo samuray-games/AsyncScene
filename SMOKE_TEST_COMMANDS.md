@@ -480,3 +480,17 @@ Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })
 
 - PASS: 10 прогонов дают ровно 3 кнопки, каждая имеет уникальную категорию (`group`), ровно одна повторяет входной `correctType`, и никаких `_pad` fillers.
 - FAIL: любой прогон нарушает 3 разных категорий, содержит дублирующийся `group`, более одного правильного или добавляет `_pad`-вариант; логировать вывод `SmokeCounterArgCategories` в `Console.txt`.
+
+## Console Panel Run+Copy manual smoke (2026-05-31)
+
+Use on iPhone Safari or desktop Safari with Dev Mode unlocked:
+
+1. Unlock Dev Mode, open the Console Panel, enter `1 + 1`, and tap `Run+Copy`.
+   - PASS: the command runs, the panel output shows the result text, status shows `Copied`, and pasting into Notes/messages yields the same result text.
+   - FAIL: the command does not run, output is blank/stale, status shows `Copy failed`, or paste does not match the panel output.
+2. Enter `throw new Error("copy smoke")` and tap `Run+Copy`.
+   - PASS: the panel output shows the error text and pasting yields the same error text.
+   - FAIL: the error is not shown or copied.
+3. Lock/disable Dev Mode, reopen/try the Console Panel action if reachable, and tap `Run+Copy`.
+   - PASS: the panel closes or stays locked; the command does not run and clipboard content is not replaced.
+   - FAIL: a locked panel run executes or copies anything.
