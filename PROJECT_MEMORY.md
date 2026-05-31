@@ -76,6 +76,13 @@
 
 Если этот чеклист пройден — Stage 2 считается DONE.
 
+
+## 2026-05-31 — GitHub Pages protected Dev Mode gate
+- Implemented a local-only Dev Mode safety gate for the public static app: the menu shows `Unlock Dev Mode`, prompts for PIN `2468`, stores unlock state in `localStorage` key `asyncscene.devModeUnlocked`, and shows `Disable Dev Mode` while unlocked.
+- Console Panel access is now tied to the local unlock state instead of `?dev=1`/global dev flags, so normal public users do not see the menu control and panel commands close/no-op when locked.
+- No accounts, roles, backend services, cloud auth, FaceID, server dependencies, or node_modules changes were introduced by this task.
+- Changed: `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-console-panel.js` `TASKS.md` `PROJECT_MEMORY.md`
+
 ### Также
 - TEAM_LOG теперь архив: не обновляем его, используем только `PROJECT_MEMORY.md`/`PROGRESS_SCALE.md` как живой источник. `Память обновлена`.
 

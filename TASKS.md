@@ -65,6 +65,28 @@
 
 ## Inbox
 
+### [T-20260531-001] GitHub Pages protected Dev Mode gate
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Docs
+- Files: `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-console-panel.js` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Re-create a local PIN-gated Dev Mode unlock in the app menu while keeping the GitHub Pages build public.
+- Acceptance:
+  - [x] Menu contains `Unlock Dev Mode` before unlock and prompts for a local PIN.
+  - [x] Dev console controls are unavailable before unlock and become available after entering the PIN.
+  - [x] Menu contains `Disable Dev Mode` after unlock; disabling removes access again.
+  - [x] Unlock state survives page refresh through localStorage only; no backend/auth/accounts added.
+- Notes: Convenience/safety gate only, not real authentication; PIN is client-side by design for the public static Pages build.
+- Result: Implemented minimal menu/console-panel changes in source and Pages docs copies; docs updated.
+  - Report:
+    - Status: DONE
+    - Facts: LocalStorage key `asyncscene.devModeUnlocked` now controls Dev Mode; `?dev=1` no longer exposes the Console Panel menu control or panel access.
+    - Changed: `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-console-panel.js` `PROJECT_MEMORY.md` `TASKS.md`
+    - How to verify: Open menu, click `Unlock Dev Mode`, enter PIN `2468`, confirm Console Panel control appears; reload and confirm it persists; click `Disable Dev Mode` and confirm access is removed.
+    - Next: QA should smoke-test the GitHub Pages/docs build in a browser.
+
 ### [T-20260308-001] Prod-only false ban state on GitHub Pages start
 - Status: REVIEW
 - Priority: P0
