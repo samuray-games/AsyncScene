@@ -4052,3 +4052,18 @@ Error: Download failure, code=1
   - PASS: Node VM loading `docs/data.js` and `docs/data/style-lex.js` read `Game.Data.styleLex` and returned ok with keys `version,address,stance,phraseLength,allowed,forbidden,rewriteHints` and proof log `STYLELEX_CONTRACT_V1_PASS`.
   - WARN: Playwright browser smoke was blocked by missing Chromium executable in `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
 - Next: Keep StyleLex as source of truth; later work may add validators or copy rewrites only in separate scoped steps.
+
+### 2026-05-31 — AsyncScene Step 2 [2] Allowed Lexicon Skeleton
+- Status: PASS
+- Root cause: The Step 2 [1] runtime contract had a readable StyleLex object, but its allowed vocabulary remained flat and too small to serve as the canonical base for economy, decision, conflict, social, and interface copy.
+- Changed:
+  - Expanded `docs/data/style-lex.js` so `Game.Data.styleLex.allowed` is the canonical allowed vocabulary base.
+  - Added required domain groups `economy`, `decision`, `conflict`, `social`, and `interface` with all required seed words.
+  - Added only two obvious support words, `баланс` and `победа`, to improve common economy/conflict coverage without expanding scope.
+  - Updated the runtime proof to verify required allowed domains, seed words, and domain sizes, and exposed the same proof as `Game.__DEV.smokeStyleLexAllowedOnce()` for direct enumeration.
+- Evidence:
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Node VM proof for `docs/data/style-lex.js` returned `ok:true`, required direct domain names `economy,decision,conflict,social,interface`, domain sizes `economy:7, decision:5, conflict:6, social:5, interface:4`, and console marker `STYLELEX_CONTRACT_V1_PASS`.
+  - WARN: Local Playwright smoke with `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexAllowedOnce` was blocked by missing browser executable under `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Constraints honored: No validators, no UI text rewrites, no forbidden vocabulary changes, and no rewrite hint changes.
+- Next: Future scoped steps can add validators or copy rewrite usage after the allowed vocabulary base is accepted.
