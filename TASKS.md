@@ -4273,3 +4273,22 @@ Error: Download failure, code=1
   - PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
   - PASS: Node static CSV validation returned `ok:true`, `rowCount:3513`, `duplicateTermIds:[]`, `missingBuckets:[]`, `invalidRows:[]`.
 - Required Safari command after cache refresh: `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
+
+### 2026-05-31 — AsyncScene Step 3 [1] Safari dev-checks cache-bust proof
+- Status: READY_FOR_RUNTIME_SMOKE; static checks PASS, Safari runtime PASS not claimed.
+- Root cause: GitHub Pages served a fresh `dev/dev-checks.js` when fetched with `cache:'no-store'`, but Safari runtime still executed a stale cached script, leaving `Game.__DEV.smokeStep3TerminologyInventoryOnce` undefined.
+- Changed:
+  - Added deterministic `dev/dev-checks.js?v=step3-terminology-smoke-v1` script URLs to `docs/index.html` and `AsyncScene/Web/index.html` so the deployed entrypoints cannot reuse the stale unversioned Safari cache entry.
+  - Removed the old Web `Date.now()` double document-write include and replaced it with one deterministic cache-busted include.
+  - Added runtime proof marker `STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1` near both Step 3 smoke installer executions in docs and Web dev-checks.
+  - Gameplay was not changed.
+- PASS criteria: after Safari hard refresh, Network shows `dev/dev-checks.js?v=step3-terminology-smoke-v1`, console logs `STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1 function`, and `Game.__DEV.smokeStep3TerminologyInventoryOnce()` returns `ok:true`, `rowCount:3513`, `duplicateTermIds:[]`, `missingBuckets:[]`, `invalidRows:[]`, and `buildMarker:"STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1"`.
+- FAIL criteria: Safari loads an unversioned/stale `dev-checks.js`, the installed marker is absent or reports anything other than `function`, `Game.__DEV.smokeStep3TerminologyInventoryOnce` is undefined, deployed CSV fetch fails, row count differs from 3513, duplicate IDs/missing buckets/invalid rows appear, or runtime PASS is claimed without an actual Safari run.
+- Exact Safari commands after deploying and cache refresh:
+  - `await fetch('/AsyncScene/dev/dev-checks.js?v=step3-terminology-smoke-v1&cb=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => ({ hasHelper: t.includes('smokeStep3TerminologyInventoryOnce'), hasMarker: t.includes('STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1') }))`
+  - `({ hasStep3: typeof Game.__DEV.smokeStep3TerminologyInventoryOnce, devKeys: Object.keys(Game.__DEV).filter(k => /Step3|Terminology/.test(k)) })`
+  - `await Game.__DEV.smokeStep3TerminologyInventoryOnce()`
+- Evidence:
+  - PASS: `node --check docs/dev/dev-checks.js`.
+  - PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
+  - PASS: static check confirmed both HTML entrypoints include `dev/dev-checks.js?v=step3-terminology-smoke-v1` and both dev-checks copies contain `STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1`.

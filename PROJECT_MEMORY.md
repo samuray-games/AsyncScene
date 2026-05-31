@@ -4226,3 +4226,15 @@ Error: Download failure, code=1
   - PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
   - PASS: Node static CSV validation returned `ok:true`, `rowCount:3513`, `duplicateTermIds:[]`, `missingBuckets:[]`, `invalidRows:[]`.
 - Required Safari command after cache refresh: `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
+
+### 2026-05-31 — AsyncScene Step 3 [1] Safari dev-checks cache-bust proof
+- Status: READY_FOR_RUNTIME_SMOKE; static checks PASS, Safari runtime PASS not claimed.
+- Facts: GitHub Pages no-store fetch proved the deployed dev-checks file contained `smokeStep3TerminologyInventoryOnce` and the Step 3 build marker, while Safari runtime still had `typeof Game.__DEV.smokeStep3TerminologyInventoryOnce === "undefined"`; this points to the page executing a stale cached script rather than a stale deployed file.
+- Changed: `docs/index.html` and `AsyncScene/Web/index.html` now include `dev/dev-checks.js?v=step3-terminology-smoke-v1`; the Web entrypoint no longer double-loads dev-checks through `Date.now()` document writes; `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` now log `STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1` with the installed helper type immediately after Step 3 smoke installation points.
+- PASS criteria: Safari Network shows the versioned dev-checks URL, console logs `STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1 function`, and `await Game.__DEV.smokeStep3TerminologyInventoryOnce()` returns `ok:true`, `rowCount:3513`, empty `duplicateTermIds`, empty `missingBuckets`, empty `invalidRows`, and build marker `STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1`.
+- FAIL criteria: unversioned/stale dev-checks load, missing installed marker, marker type not `function`, undefined helper, deployed CSV fetch failure, row count not 3513, duplicate IDs, missing buckets, invalid rows, or claiming Safari runtime PASS without the actual Safari run.
+- Exact Safari commands:
+  - `await fetch('/AsyncScene/dev/dev-checks.js?v=step3-terminology-smoke-v1&cb=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => ({ hasHelper: t.includes('smokeStep3TerminologyInventoryOnce'), hasMarker: t.includes('STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1') }))`
+  - `({ hasStep3: typeof Game.__DEV.smokeStep3TerminologyInventoryOnce, devKeys: Object.keys(Game.__DEV).filter(k => /Step3|Terminology/.test(k)) })`
+  - `await Game.__DEV.smokeStep3TerminologyInventoryOnce()`
+- Evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS static check for both versioned HTML URLs and both installed-marker strings.

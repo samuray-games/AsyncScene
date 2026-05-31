@@ -134,6 +134,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
   installStep3TerminologyInventorySmoke(G.__DEV);
+  console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
@@ -23152,6 +23153,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
+  console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
 
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
