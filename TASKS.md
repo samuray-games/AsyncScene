@@ -3984,3 +3984,21 @@ Error: Download failure, code=1
     - Changed: `STYLELEX.md` `TASKS.md` `PROJECT_MEMORY.md`
     - How to verify: Read `STYLELEX.md` and confirm it names StyleLex as the single future style contract, includes UI/NPC/dev-card/toasts/hints/errors, includes all required future artifacts, and says no runtime implementation was done.
     - Next: Content/UX — write the actual allowed dictionary, taboo list, tone rules, phrase length rules, and addressing rules in later Step 2 artifacts.
+
+### 2026-05-31 — AsyncScene Step 2 [1] StyleLex runtime contract v1
+- Status: PASS
+- Root cause: Step 2 [0] defined StyleLex as docs-only, so runtime still had no single readable contract object for style rules.
+- Facts:
+  - `docs/data/style-lex.js` adds one runtime StyleLex contract at `Game.Data.styleLex`.
+  - Required fields are present: `address`, `stance`, `phraseLength`, `allowed`, `forbidden`, `rewriteHints`.
+  - Runtime values include `address: "ты"`, `stance: "partner"`, phrase length min/max 1-2 short phrases, allowed baseline words `очки`, `риск`, `выбор`, `результат`, forbidden taboo categories `memes`, `officialese`, `teen slang`, and neutral rewrite hints for taboo forms.
+  - `docs/index.html` loads `data/style-lex.js?v=1` immediately after `data.js?v=2`, so `Game.Data` exists before StyleLex attaches.
+  - Tiny runtime proof exists: the file logs `STYLELEX_CONTRACT_V1_PASS` or `STYLELEX_CONTRACT_V1_FAIL` and exposes `Game.__DEV.smokeStyleLexContractOnce()` as a read-only contract proof.
+  - No validators were wired and no UI/NPC/toast text was rewritten.
+- Evidence:
+  - PASS: `node --check docs/data/style-lex.js`
+  - PASS: Node VM load of `docs/data.js` plus `docs/data/style-lex.js` returned `{ "ok": true, "keys": ["version", "address", "stance", "phraseLength", "allowed", "forbidden", "rewriteHints"], "proofLog": "STYLELEX_CONTRACT_V1_PASS" }`.
+  - WARN: `npm run smoke:asyncscene -- smokeStyleLexContractOnce` could not launch Playwright because Chromium is not installed at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; the app-level browser smoke did not execute in this environment.
+- Smoke: PASS by local runtime proof for file/object existence, startup-safe JS evaluation, and readable required keys at `Game.Data.styleLex`; browser smoke is environment-blocked by missing Playwright browser.
+- Changed: `docs/data/style-lex.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Next: Content/UX — later Step 2 work can consume `Game.Data.styleLex`, but validators and text rewrites remain intentionally unwired.

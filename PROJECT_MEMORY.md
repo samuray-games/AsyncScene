@@ -4036,3 +4036,19 @@ Error: Download failure, code=1
 - FAIL criteria recorded: vague style-only docs, missing surfaces/artifacts, implied runtime implementation, or missing task/memory log.
 - Changed: `STYLELEX.md` `TASKS.md` `PROJECT_MEMORY.md`
 - Next: Content/UX — create the concrete StyleLex artifacts in later Step 2 work.
+
+### 2026-05-31 — AsyncScene Step 2 [1] StyleLex runtime contract v1
+- Status: PASS
+- Root cause: Step 2 [0] was docs-only; runtime needed one stable source of truth for style rules before validators or copy rewrites.
+- Facts:
+  - `Game.Data.styleLex` is now the stable runtime path for the StyleLex contract.
+  - The contract lives in `docs/data/style-lex.js` and is loaded by `docs/index.html` after `docs/data.js`.
+  - Required fields are present: `address`, `stance`, `phraseLength`, `allowed`, `forbidden`, `rewriteHints`.
+  - Baseline values are present: `address: "ты"`, `stance: "partner"`, phrase length min/max 1-2 short phrases, allowed baseline words `очки`, `риск`, `выбор`, `результат`, forbidden categories `memes`, `officialese`, `teen slang`, and neutral rewrite hints for taboo forms.
+  - Runtime proof is console-safe: `STYLELEX_CONTRACT_V1_PASS` / `STYLELEX_CONTRACT_V1_FAIL`; read-only helper: `Game.__DEV.smokeStyleLexContractOnce()`.
+  - Validators, text rewrites, and unrelated data refactors were not added.
+- Evidence:
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Node VM loading `docs/data.js` and `docs/data/style-lex.js` read `Game.Data.styleLex` and returned ok with keys `version,address,stance,phraseLength,allowed,forbidden,rewriteHints` and proof log `STYLELEX_CONTRACT_V1_PASS`.
+  - WARN: Playwright browser smoke was blocked by missing Chromium executable in `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Next: Keep StyleLex as source of truth; later work may add validators or copy rewrites only in separate scoped steps.
