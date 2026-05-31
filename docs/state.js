@@ -972,6 +972,23 @@ window.Game = window.Game || {};
     if (typeof overrideText === "string" && overrideText) {
       toast.text = overrideText;
     }
+    try {
+      const helper = Game && Game.Text && typeof Game.Text.normalizeText === "function" ? Game.Text.normalizeText : null;
+      if (helper && toast.text) {
+        const normalized = helper(toast.text, { surface: "toast", source: "Game.__D.pushEconToastFromLogRef", reason: row.reason || null });
+        if (normalized && typeof normalized.text === "string") {
+          toast.rawText = toast.text;
+          toast.text = normalized.text;
+          toast.styleLex = {
+            ok: normalized.ok,
+            changed: normalized.changed,
+            replacements: normalized.replacements,
+            forbiddenHits: normalized.forbiddenHits,
+            lengthLimited: normalized.lengthLimited
+          };
+        }
+      }
+    } catch (_) {}
     dbg.toastLog.push(toast);
     const flagHolder = Game && Game.__D ? Game.__D : null;
     try {

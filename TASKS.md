@@ -4132,3 +4132,27 @@ Error: Download failure, code=1
   - PASS: Node VM runtime proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, `smokeStyleLexForbiddenOnce()`, `smokeStyleLexPhraseLengthOnce()`, and `smokeStyleLexStanceOnce()` all returned ok:true; stance/address were `partner`/`ты`; tone stance/address were `partner`/`ты`; partner rules were present; missing partner preferences, missing teacher-tone taboos, and missing teacher-tone guidance arrays were empty; replacement guidance included `обучаю -> подсказываю`, `ты должен -> можешь`, `ошибка -> не получилось/не хватает`, `урок -> подсказка/разбор хода`, `наказание -> последствие/штраф`, `правильно -> получилось/ход сработал`, and `неправильно -> не получилось/проверь ход`; previous StyleLex smokes stayed ok:true; marker `STYLELEX_CONTRACT_V1_PASS`.
   - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexStanceOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; local Node runtime proof is the PASS evidence for this step.
 - Smoke: PASS by local runtime proof because `Game.Data.styleLex` exposes partner stance rules, includes the required wording replacements, teacher-tone terms have neutral replacements, previous StyleLex smokes still pass, and `smokeStyleLexStanceOnce()` returns ok:true.
+
+### 2026-05-31 — AsyncScene Step 2 [6] StyleLex integration touchpoints via one helper
+- Status: PASS
+- Root cause: Step 2 [0]-[5] proved the StyleLex runtime contract on iPhone Safari smokes, but generated copy still had no canonical low-risk runtime helper for applying the lexicon before text reaches UI surfaces.
+- Changed:
+  - Added one canonical runtime helper at `Game.Text.normalizeText` with stable aliases `Game.StyleLex.normalizeText`, `Game.Text.normalize`, and `Game.StyleLex.normalize`.
+  - The helper reads `Game.Data.styleLex`, applies safe exact-boundary rewrite hints, reports `detectedForbidden` and remaining `forbiddenHits`, enforces `phraseLength.surfaces` line limits, and returns structured diagnostics: `ok`, `text`/`finalText`, `changed`, `replacements`, `forbiddenHits`, `detectedForbidden`, `lengthLimited`, line counts, limits, and `context`.
+  - Wired only low-risk boundaries: `Game.UI.showStatToast` normalizes visible stat/economy toast copy; `Game.__D.pushEconToastFromLogRef` normalizes stored economy toastLog text before display.
+  - Added `Game.__DEV.smokeStyleLexNormalizeOnce()` plus `Game.__DEV.styleLexTouchpointsOnce()` proof lists.
+  - No mass manual rewrite of scattered strings, no game economy/battle logic changes, and no StyleLex schema/data changes.
+- Wired touchpoints now:
+  - `Game.UI.showStatToast`: visible stat/economy toast text at final UI boundary.
+  - `Game.__D.pushEconToastFromLogRef`: economy toastLog text before display.
+- Pending touchpoints, explicitly not faked:
+  - Battle/escape/ignore/crowd result-card copy: pending direct boundary adapter after outcome-card audit.
+  - ECON-SOC report/sanction messages: pending direct boundary adapter after message template audit.
+  - ECON-08 respect action copy: pending direct boundary adapter after respect UI copy audit.
+  - ECON-04 training copy: pending until confirmed inside 100% economy flow.
+- Evidence:
+  - PASS: First-step `Console.txt` check completed. The dump is from 2026-03-04 01:34:29, has no current StyleLex Step 2 [6] output, and contains unrelated old `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_END {"ok":false,"uniqueTypes":0,"ynShare":0}` records.
+  - PASS: `node --check docs/data/style-lex.js && node --check docs/state.js && node --check docs/ui/ui-core.js`.
+  - PASS: Node VM proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexNormalizeOnce()` returned ok:true; helper existed at `Game.Text.normalizeText`/`Game.StyleLex.normalizeText`; it read `Game.Data.styleLex`; it rewrote `ты должен` to `можешь`; it rewrote bare `ошибка` to `не получилось`; it detected forbidden `лох`; toast limit was max 2 lines with trimming; resultCard limit was max 4 lines with trimming; previous StyleLex smokes stayed ok:true; wiredNow contained the two safe toast/economy boundaries and pending contained the audited non-wired areas.
+  - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexNormalizeOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; local runtime proof remains the PASS evidence.
+- Smoke: PASS by local runtime proof because one canonical helper exists on a runtime path, runtime can call it, it performs replacements/checks/length limiting, previous StyleLex smokes still pass, and a safe initial generated text boundary set is wired while broader touchpoints are explicitly pending.

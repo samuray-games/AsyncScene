@@ -144,6 +144,187 @@ window.Game = window.Game || {};
 
   Data.styleLex = styleLex;
 
+
+  const STYLELEX_WORD_RE = /[0-9A-Za-zА-Яа-яЁё_]/;
+
+  const escapeRegExp = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const isWordChar = (char) => !!char && STYLELEX_WORD_RE.test(char);
+
+  const isSafeTermBoundary = (text, start, end) => !isWordChar(text.charAt(start - 1)) && !isWordChar(text.charAt(end));
+
+  const sortStyleLexTerms = (terms) => terms.sort((a, b) => b.term.length - a.term.length || a.term.localeCompare(b.term));
+
+  const flattenForbiddenTerms = (lex) => {
+    const tabooForms = lex && lex.forbidden && lex.forbidden.tabooForms ? lex.forbidden.tabooForms : {};
+    const terms = [];
+    for (const category of Object.keys(tabooForms)) {
+      const list = Array.isArray(tabooForms[category]) ? tabooForms[category] : [];
+      for (const term of list) {
+        const value = String(term || "").trim();
+        if (value) terms.push({ category, term: value });
+      }
+    }
+    return sortStyleLexTerms(terms);
+  };
+
+  const flattenRewriteTerms = (lex) => {
+    const byKey = new Map();
+    for (const item of flattenForbiddenTerms(lex)) {
+      byKey.set(`${item.category}:${item.term}`, item);
+    }
+    const rewriteHints = lex && lex.rewriteHints ? lex.rewriteHints : {};
+    for (const category of Object.keys(rewriteHints)) {
+      const hints = rewriteHints[category] || {};
+      for (const term of Object.keys(hints)) {
+        if (term === "_category") continue;
+        const value = String(term || "").trim();
+        if (value && Array.isArray(hints[term]) && hints[term].length) {
+          byKey.set(`${category}:${value}`, { category, term: value });
+        }
+      }
+    }
+    const prefer = lex && lex.tone && lex.tone.partnerLanguage && Array.isArray(lex.tone.partnerLanguage.prefer)
+      ? lex.tone.partnerLanguage.prefer
+      : [];
+    for (const rule of prefer) {
+      const term = String(rule && rule.insteadOf || "").trim();
+      if (!term || !Array.isArray(rule.use) || !rule.use.length) continue;
+      byKey.set(`tone.partnerLanguage:${term}`, { category: "tone.partnerLanguage", term, replacement: String(rule.use[0] || "").trim() });
+    }
+    return sortStyleLexTerms(Array.from(byKey.values()));
+  };
+
+  const firstRewriteHint = (lex, category, term, item) => {
+    if (item && typeof item.replacement === "string" && item.replacement.trim()) return item.replacement.trim();
+    const hints = lex && lex.rewriteHints && lex.rewriteHints[category] ? lex.rewriteHints[category] : null;
+    const direct = hints && Array.isArray(hints[term]) ? hints[term] : null;
+    if (direct && typeof direct[0] === "string" && direct[0].trim()) return direct[0].trim();
+    return "";
+  };
+
+  const scanForbiddenTerms = (text, terms) => {
+    const source = String(text || "");
+    const lower = source.toLocaleLowerCase("ru-RU");
+    const hits = [];
+    for (const item of terms) {
+      const needle = item.term.toLocaleLowerCase("ru-RU");
+      let from = 0;
+      while (needle && from < lower.length) {
+        const idx = lower.indexOf(needle, from);
+        if (idx < 0) break;
+        const end = idx + needle.length;
+        if (isSafeTermBoundary(source, idx, end)) {
+          hits.push({ category: item.category, term: item.term, index: idx, text: source.slice(idx, end) });
+        }
+        from = Math.max(end, idx + 1);
+      }
+    }
+    return hits.sort((a, b) => a.index - b.index || b.term.length - a.term.length);
+  };
+
+  const applyStyleLexRewrites = (text, lex, terms) => {
+    let output = String(text || "");
+    const replacements = [];
+    for (const item of terms) {
+      const replacement = firstRewriteHint(lex, item.category, item.term, item);
+      if (!replacement) continue;
+      const re = new RegExp(escapeRegExp(item.term), "giu");
+      output = output.replace(re, (match, offset) => {
+        if (!isSafeTermBoundary(output, offset, offset + match.length)) return match;
+        replacements.push({ category: item.category, from: match, to: replacement, index: offset });
+        return replacement;
+      });
+    }
+    return { text: output, replacements };
+  };
+
+  const getSurfaceMaxLines = (lex, surface) => {
+    const phraseLength = lex && lex.phraseLength ? lex.phraseLength : {};
+    const surfaces = phraseLength.surfaces || {};
+    const raw = surfaces[surface] && surfaces[surface].maxLines;
+    if (Array.isArray(raw)) return Math.max(1, Number(raw[1] || raw[0] || 0) || 1);
+    if (Number.isFinite(Number(raw))) return Math.max(1, Number(raw) | 0);
+    return 0;
+  };
+
+  const splitStyleLexLines = (text) => String(text || "")
+    .replace(/\s*([.!?…。！？]+)\s+/g, "$1\n")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const enforcePhraseLength = (text, lex, context) => {
+    const ctx = (context && typeof context === "object") ? context : { surface: String(context || "") };
+    const surface = String(ctx.surface || ctx.kind || "").trim();
+    const maxLines = getSurfaceMaxLines(lex, surface);
+    const lines = splitStyleLexLines(text);
+    let finalLines = lines.length ? lines : [String(text || "").trim()].filter(Boolean);
+    let lengthLimited = false;
+    if (maxLines > 0 && finalLines.length > maxLines) {
+      finalLines = finalLines.slice(0, maxLines);
+      lengthLimited = true;
+    }
+    return {
+      text: finalLines.join("\n"),
+      lengthLimited,
+      lineCount: finalLines.length,
+      maxLines: maxLines || null,
+      surface: surface || null
+    };
+  };
+
+  const normalizeText = (text, context) => {
+    const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
+    const original = String(text == null ? "" : text);
+    const terms = flattenForbiddenTerms(lex);
+    const rewriteTerms = flattenRewriteTerms(lex);
+    const detectedForbidden = scanForbiddenTerms(original, terms);
+    const rewritten = applyStyleLexRewrites(original, lex, rewriteTerms);
+    const limited = enforcePhraseLength(rewritten.text, lex, context || {});
+    const forbiddenHits = scanForbiddenTerms(limited.text, terms);
+    const result = {
+      ok: forbiddenHits.length === 0,
+      text: limited.text,
+      finalText: limited.text,
+      originalText: original,
+      changed: limited.text !== original,
+      replacements: rewritten.replacements,
+      forbiddenHits,
+      detectedForbidden,
+      lengthLimited: limited.lengthLimited,
+      lineCount: limited.lineCount,
+      maxLines: limited.maxLines,
+      context: (context && typeof context === "object") ? Object.assign({}, context) : { surface: String(context || "") },
+      source: "Game.Data.styleLex"
+    };
+    return result;
+  };
+
+  Game.StyleLex = Game.StyleLex || {};
+  Game.StyleLex.normalizeText = normalizeText;
+  Game.StyleLex.normalize = normalizeText;
+  Game.Text = Game.Text || {};
+  Game.Text.normalizeText = normalizeText;
+  Game.Text.normalize = normalizeText;
+
+  const styleLexTouchpointProof = () => ({
+    ok: true,
+    helperPath: "Game.Text.normalizeText",
+    aliasPath: "Game.StyleLex.normalizeText",
+    wiredNow: [
+      "Game.UI.showStatToast: normalizes visible stat/economy toast text at the final UI boundary",
+      "Game.__D.pushEconToastFromLogRef: stores normalized economy toastLog text before display"
+    ],
+    pending: [
+      "battle/escape/ignore/crowd result-card copy: pending direct boundary adapter after outcome-card audit",
+      "ECON-SOC report/sanction messages: pending direct boundary adapter after message template audit",
+      "ECON-08 respect action copy: pending direct boundary adapter after respect UI copy audit",
+      "ECON-04 training copy: pending until confirmed inside 100% economy flow"
+    ],
+    note: "No mass rewrite: this step adds the canonical helper and low-risk toast/economy adapters only."
+  });
+
   const requiredKeys = ["address", "stance", "phraseLength", "allowed", "forbidden", "rewriteHints"];
   const requiredAllowedDomains = ["economy", "decision", "conflict", "social", "interface"];
   const requiredForbiddenCategories = [
@@ -404,6 +585,64 @@ window.Game = window.Game || {};
     };
   };
 
+
+
+  const smokeStyleLexNormalizeOnce = () => {
+    const helper = Game.Text && Game.StyleLex
+      && Game.Text.normalizeText === Game.StyleLex.normalizeText
+      && typeof Game.Text.normalizeText === "function"
+      ? Game.Text.normalizeText
+      : null;
+    const previous = {
+      contract: readProof(),
+      allowed: readProof(),
+      forbidden: readForbiddenProof(),
+      phraseLength: readPhraseLengthProof(),
+      stance: readStanceProof()
+    };
+    const previousSmokesOk = Object.keys(previous).every((key) => previous[key] && previous[key].ok === true);
+    const sample = helper ? helper("ты должен исправить ошибка", { surface: "toast", source: "smoke" }) : null;
+    const forbiddenSample = helper ? helper("кринжовый лох", { surface: "toast", source: "smoke_forbidden_remaining" }) : null;
+    const toastLong = helper ? helper("Первая строка. Вторая строка. Третья строка.", { surface: "toast", source: "smoke_toast_limit" }) : null;
+    const resultLong = helper ? helper("Раз. Два. Три. Четыре. Пять.", { surface: "resultCard", source: "smoke_result_limit" }) : null;
+    const touchpoints = styleLexTouchpointProof();
+    const replacesMust = !!sample
+      && sample.text.includes("можешь")
+      && (sample.text.includes("не получилось") || sample.text.includes("не хватает"))
+      && !sample.text.includes("ты должен")
+      && !sample.text.includes("ошибка");
+    const detectsForbidden = !!forbiddenSample
+      && forbiddenSample.detectedForbidden.some((hit) => hit.term === "лох")
+      && forbiddenSample.replacements.some((hit) => hit.from === "лох");
+    const toastLimitOk = !!toastLong && toastLong.maxLines === 2 && toastLong.lineCount <= 2 && toastLong.lengthLimited === true;
+    const resultLimitOk = !!resultLong && resultLong.maxLines === 4 && resultLong.lineCount <= 4 && resultLong.lengthLimited === true;
+    return {
+      ok: !!helper
+        && !!(Game.Data && Game.Data.styleLex)
+        && replacesMust
+        && detectsForbidden
+        && toastLimitOk
+        && resultLimitOk
+        && previousSmokesOk
+        && touchpoints.wiredNow.length >= 1,
+      helperExists: !!helper,
+      helperPath: "Game.Text.normalizeText",
+      aliasPath: "Game.StyleLex.normalizeText",
+      readsStyleLex: !!(Game.Data && Game.Data.styleLex),
+      replacesMust,
+      detectsForbidden,
+      toastLimitOk,
+      resultLimitOk,
+      previousSmokesOk,
+      sample,
+      forbiddenSample,
+      toastLong,
+      resultLong,
+      touchpoints,
+      previous
+    };
+  };
+
   const proof = readProof();
 
   if (!Game.__DEV) Game.__DEV = {};
@@ -421,6 +660,12 @@ window.Game = window.Game || {};
   }
   if (typeof Game.__DEV.smokeStyleLexStanceOnce !== "function") {
     Game.__DEV.smokeStyleLexStanceOnce = readStanceProof;
+  }
+  if (typeof Game.__DEV.smokeStyleLexNormalizeOnce !== "function") {
+    Game.__DEV.smokeStyleLexNormalizeOnce = smokeStyleLexNormalizeOnce;
+  }
+  if (typeof Game.__DEV.styleLexTouchpointsOnce !== "function") {
+    Game.__DEV.styleLexTouchpointsOnce = styleLexTouchpointProof;
   }
 
   try {

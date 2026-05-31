@@ -940,6 +940,14 @@ window.Game = window.Game || {};
     if (isDeltaToast(kind, text)) {
       return;
     }
+    let displayText = String(text == null ? "" : text);
+    try {
+      const helper = Game && Game.Text && typeof Game.Text.normalizeText === "function" ? Game.Text.normalizeText : null;
+      if (helper) {
+        const normalized = helper(displayText, { surface: "toast", kind, source: "Game.UI.showStatToast" });
+        if (normalized && typeof normalized.text === "string") displayText = normalized.text;
+      }
+    } catch (_) {}
     const anchor = statAnchor(kind);
     if (!anchor) return;
     const id = `statToast_${kind}`;
@@ -951,7 +959,7 @@ window.Game = window.Game || {};
       toast.onclick = () => { toast.style.display = "none"; };
       document.body.appendChild(toast);
     }
-    toast.textContent = text;
+    toast.textContent = displayText;
     const r = anchor.getBoundingClientRect();
     const left = Math.round(r.left + (r.width / 2));
     const top = Math.round(r.bottom + 8);
@@ -963,7 +971,7 @@ window.Game = window.Game || {};
     try {
       if (typeof Game !== "undefined" && Game && Game.__DEV && typeof Game.__DEV === "object") {
         const tape = Game.__DEV.__toastTape__ || [];
-        tape.push({ kind, text: String(text || ""), ts: Date.now() });
+        tape.push({ kind, text: displayText, rawText: String(text || ""), ts: Date.now() });
         if (tape.length > 40) tape.shift();
         Game.__DEV.__toastTape__ = tape;
         Game.__DEV.__toastTapePush__ = Game.__DEV.__toastTapePush__ || ((entry) => {
