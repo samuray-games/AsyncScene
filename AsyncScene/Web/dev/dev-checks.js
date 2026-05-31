@@ -23028,6 +23028,96 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   // Auto-run disabled by default to avoid boot-time failures; manual run only.
 
+
+  Game.__DEV.smokeStep3TerminologyInventoryOnce = async (opts = {}) => {
+    const requiredColumns = ["TERM_ID", "category", "currentText", "screenOrFeature", "sourceFile", "sourceKeyOrFunction", "triggerCondition", "notes"];
+    const allowedCategories = new Set(["Button", "BlockTitle", "ResourceName", "Status", "Error", "Hint", "Toast", "ResultCard", "EmptyState", "Cooldown", "EconomyReason", "ChatLine", "DMLine", "SystemLine", "Other"]);
+    const requiredBuckets = [
+      "chat_ui", "battle_ui", "dm_ui", "events_voting_crowd", "reports_cop_flow", "escape", "ignore", "rematch", "training_econ04", "respect_econ08",
+      "p2p", "price_caps", "cooldowns", "economy_toasts", "result_cards", "empty_states", "disabled_states", "pending_states", "success_fail_states"
+    ];
+    const urls = Array.isArray(opts.urls) && opts.urls.length ? opts.urls : ["terminology/STEP3_TERMINOLOGY_INVENTORY.csv", "docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv", "/AsyncScene/terminology/STEP3_TERMINOLOGY_INVENTORY.csv"];
+    const result = { ok: false, buildMarker: "STEP3_TERMINOLOGY_INVENTORY_SCOPE_FREEZE_V1", checkedAt: new Date().toISOString(), urlsTried: [], sourceUrl: null, rowCount: 0, requiredColumns, requiredBuckets, failures: [], warnings: [] };
+    const fail = (code, detail) => result.failures.push({ code, detail });
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text.charAt(i);
+        const next = text.charAt(i + 1);
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') inQuotes = false;
+          else cell += ch;
+        } else if (ch === '"') inQuotes = true;
+        else if (ch === ',') { row.push(cell); cell = ""; }
+        else if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== '\r') cell += ch;
+      }
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      if (!rows.length) return { header: [], records: [] };
+      const header = rows[0];
+      const records = rows.slice(1).filter(r => r.some(v => String(v || "").trim())).map(r => {
+        const obj = {};
+        header.forEach((h, idx) => { obj[h] = r[idx] == null ? "" : r[idx]; });
+        return obj;
+      });
+      return { header, records };
+    };
+    let csvText = null;
+    for (const url of urls) {
+      result.urlsTried.push(url);
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (res && res.ok) {
+          csvText = await res.text();
+          result.sourceUrl = url;
+          break;
+        }
+        result.warnings.push({ code: "fetch_not_ok", url, status: res && res.status });
+      } catch (err) {
+        result.warnings.push({ code: "fetch_exception", url, message: err && err.message ? err.message : String(err) });
+      }
+    }
+    if (!csvText) {
+      fail("inventory_file_missing", { urls });
+      console.log("STEP3_TERMINOLOGY_INVENTORY_SMOKE", "FAIL", JSON.stringify(result));
+      return result;
+    }
+    const parsed = parseCsv(csvText);
+    result.rowCount = parsed.records.length;
+    for (const col of requiredColumns) if (!parsed.header.includes(col)) fail("missing_required_column", col);
+    const seen = new Set();
+    const buckets = new Set();
+    parsed.records.forEach((row, idx) => {
+      const rowNum = idx + 2;
+      const id = String(row.TERM_ID || "").trim();
+      const currentText = String(row.currentText || "").trim();
+      const category = String(row.category || "").trim();
+      const sourceFile = String(row.sourceFile || "").trim();
+      const trigger = String(row.triggerCondition || "").trim();
+      if (!id) fail("empty_TERM_ID", { rowNum });
+      else if (seen.has(id)) fail("duplicate_TERM_ID", { rowNum, id });
+      else seen.add(id);
+      if (!allowedCategories.has(category)) fail("invalid_category", { rowNum, id, category });
+      if (trigger !== "forbidden_placeholder_dynamic_template") {
+        if (!currentText) fail("empty_currentText", { rowNum, id });
+        if (!category) fail("empty_category", { rowNum, id });
+        if (!sourceFile) fail("empty_sourceFile", { rowNum, id });
+      }
+      String(row.screenOrFeature || "").split(",").map(s => s.trim()).filter(Boolean).forEach(b => buckets.add(b));
+      const vague = `${row.currentText || ""} ${row.notes || ""}`.toLowerCase();
+      if (/\betc\b|и другие|and others/.test(vague)) fail("vague_coverage_wording", { rowNum, id });
+    });
+    result.coveredBuckets = Array.from(buckets).sort();
+    for (const bucket of requiredBuckets) if (!buckets.has(bucket)) fail("missing_required_feature_bucket", bucket);
+    result.ok = result.failures.length === 0;
+    console.log("STEP3_TERMINOLOGY_INVENTORY_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+    return result;
+  };
+
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
     Game.__DEV.__shortcutBound = true;

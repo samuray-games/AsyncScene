@@ -4193,3 +4193,20 @@ Error: Download failure, code=1
   - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexReadinessOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
 - Result: PASS for AsyncScene Step 2 [9] by local runtime gate; StyleLex Step 2 is complete. Browser/iPhone Safari QA can still repeat the smoke after cache refresh.
 
+
+
+### 2026-05-31 — AsyncScene Step 3 [1] interface terminology inventory scope freeze
+- Status: READY_FOR_RUNTIME_SMOKE; Codex static checks PASS, iPhone Safari runtime PASS not claimed from cloud.
+- Facts:
+  - Step 2 StyleLex remains closed and was not reopened; the final accepted runtime smoke fact remains `Game.__DEV.smokeStyleLexReadinessOnce()` with `ok:true`, build marker `STYLELEX_STEP2_COMPLETION_GATE_V1`, `failedChecks:[]`, `checkedCount:52`, and `violationsCount:0`.
+  - Added `docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv` and mirrored `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv`; both contain 3513 rows with required columns `TERM_ID`, `category`, `currentText`, `screenOrFeature`, `sourceFile`, `sourceKeyOrFunction`, `triggerCondition`, `notes`.
+  - The inventory is a scope-freeze artifact only: no UI copy was renamed, rewritten, normalized, deduplicated, or improved.
+  - Added `Game.__DEV.smokeStep3TerminologyInventoryOnce()` in docs and Web dev checks. It validates file fetch, required columns, allowed categories, required static fields, duplicate `TERM_ID`, vague coverage wording, and required feature buckets.
+- PASS criteria for this substep: committed inventory artifact, required categories covered, required feature buckets covered, no vague `etc` / `и другие` / `and others` coverage wording, no duplicate `TERM_ID`, docs updated, and Safari smoke command supplied.
+- FAIL criteria for this substep: any major UI area not scanned, missing required columns, vague coverage wording, duplicate `TERM_ID`, or claiming browser/iPhone Safari runtime PASS without the actual Safari run.
+- Cloud evidence:
+  - PASS: `python3 tools/generate-step3-terminology-inventory.py` regenerated both inventory files with 3513 rows.
+  - PASS: Node CSV validation checked 3513 rows, required columns, required categories, duplicate `TERM_ID`, static required fields, vague wording, and all required feature buckets with no failures.
+  - PASS: `node --check docs/dev/dev-checks.js`; PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
+  - WARN: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyInventoryOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Required Safari command for QA after cache refresh: `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
