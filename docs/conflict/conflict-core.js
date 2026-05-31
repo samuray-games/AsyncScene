@@ -1634,15 +1634,11 @@
 
   function withRepSourceOverride(fn){
     try {
-      const API = (Game && Game.__A) ? Game.__A : null;
-      if (!API || typeof API.transferRep !== "function") return fn();
-      const orig = API.transferRep;
-      API.transferRep = function(fromId, toId, amount, reason, battleId){
-        const src = (String(fromId || "") === "crowd_pool") ? "rep_emitter" : fromId;
-        return orig.call(this, src, toId, amount, reason, battleId);
-      };
-      try { return fn(); }
-      finally { API.transferRep = orig; }
+      // Do not swap Game.__A.transferRep here: StateAPI methods are protected by
+      // state.js security guards, and crowd_pool is already an emitter source in
+      // transferRep. A temporary method replacement is valid-looking gameplay work
+      // but trips tamper detection and can make later normal actions appear blocked.
+      return fn();
     } catch (_) {
       return fn();
     }
