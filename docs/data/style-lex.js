@@ -643,6 +643,221 @@ window.Game = window.Game || {};
     };
   };
 
+
+
+  const STYLELEX_SMOKE_DIRECT_TOKENS = /(^|[^0-9A-Za-zА-Яа-яЁё_])(ты|твой|твоя|твоё|твои|тебе|тебя|тобой|можешь|попробуй|кликни|введи|выбери|ответь|пиши|дай)(?=$|[^0-9A-Za-zА-Яа-яЁё_])/i;
+  const STYLELEX_SMOKE_FORMAL_TOKENS = /(^|[^0-9A-Za-zА-Яа-яЁё_])(вы|вам|вас|ваш|ваша|ваше|ваши|вами)(?=$|[^0-9A-Za-zА-Яа-яЁё_])/i;
+
+  const getStyleLexSurfaceLimit = (lex, surface) => {
+    const maxLines = getSurfaceMaxLines(lex, surface);
+    const global = lex && lex.phraseLength && lex.phraseLength.global ? lex.phraseLength.global : {};
+    const chars = Array.isArray(global.maxCharsTarget) ? Number(global.maxCharsTarget[1]) : 0;
+    const words = Array.isArray(global.maxWordsTarget) ? Number(global.maxWordsTarget[1]) : 0;
+    return {
+      maxLines: maxLines || null,
+      maxChars: Number.isFinite(chars) && chars > 0 ? chars : 80,
+      maxWords: Number.isFinite(words) && words > 0 ? words : 14
+    };
+  };
+
+  const styleLexSmokeWordCount = (line) => {
+    const words = String(line || "").match(/[0-9A-Za-zА-Яа-яЁё]+/g);
+    return words ? words.length : 0;
+  };
+
+  const makeStyleLexSmokeSample = (text, surface, category, opts = {}) => ({
+    text: String(text || ""),
+    surface: surface || "toast",
+    category: category || "sample",
+    directAddress: opts.directAddress === true,
+    source: opts.source || category || "stylelex_pack"
+  });
+
+  const buildStyleLexSmokeSamples = () => {
+    const data = Game.Data || {};
+    const texts = data.TEXTS && data.TEXTS.genz ? data.TEXTS.genz : {};
+    const lex = data.styleLex || {};
+    const formulas = lex.allowed && Array.isArray(lex.allowed.formulas) ? lex.allowed.formulas : [];
+    const samples = [];
+    const add = (text, surface, category, opts) => {
+      const value = String(text || "").trim();
+      if (!value) return;
+      samples.push(makeStyleLexSmokeSample(value, surface, category, opts));
+    };
+
+    formulas.forEach((text) => add(text, "toast", "styleLex.allowed.formulas", { directAddress: /\b(твой|ты)\b/i.test(String(text || "")) }));
+
+    add(texts.vote_ok || "Принято. Ты вписался.", "toast", "common.vote", { directAddress: true, source: "Game.Data.TEXTS.genz.vote_ok" });
+    add(texts.vote_already || "Ты уже вписался.", "toast", "common.vote", { directAddress: true, source: "Game.Data.TEXTS.genz.vote_already" });
+    add(texts.vote_fail || "Не удалось вписаться.", "error", "common.error", { source: "Game.Data.TEXTS.genz.vote_fail" });
+    add(texts.battle_not_enough_points || "Не хватает 💰.", "toast", "economy.toast", { source: "Game.Data.TEXTS.genz.battle_not_enough_points" });
+    add("Не хватает пойнтов.", "toast", "economy.toast", { source: "ui-events vote failure" });
+    add("Нужно 1💰, сейчас не хватает.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_no_points" });
+    add("Ты отдал 1💰", "toast", "ECON-08.respect", { directAddress: true, source: "__uiRespectClick__ success" });
+    add("Цель получила +1 REP", "toast", "ECON-08.respect", { source: "__uiRespectClick__ success" });
+    add("Уже было уважение сегодня этому персонажу.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_pair_daily" });
+    add("Цепочка A->B->A сегодня не работает.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_no_chain" });
+    add("Лимит уважения на сегодня исчерпан.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_emitter_empty" });
+    add("Сейчас не получилось. Попробуй позже.", "toast", "common.error", { directAddress: true, source: "respect fallback reason" });
+
+    add(texts.tie_start || "Толпа решает.", "resultCard", "crowd.outcome", { source: "Game.Data.TEXTS.genz.tie_start" });
+    add(texts.tie_call_to_action || "Вписывайся - кликни на имя, за кого ты.", "hint", "crowd.hint", { directAddress: true, source: "Game.Data.TEXTS.genz.tie_call_to_action" });
+    add(texts.tie_click_name_hint || "Кликни на имя, за кого хочешь вписаться.", "hint", "crowd.hint", { directAddress: true, source: "Game.Data.TEXTS.genz.tie_click_name_hint" });
+    add(texts.tie_end_winner || "Победил {name} - {aVotes}:{bVotes}.", "resultCard", "crowd.outcome", { source: "Game.Data.TEXTS.genz.tie_end_winner" });
+    add(texts.tie_end_draw || "Поровну по голосам - {aVotes}:{bVotes}.", "resultCard", "crowd.outcome", { source: "Game.Data.TEXTS.genz.tie_end_draw" });
+    add("Твой выбор: Аки", "resultCard", "crowd.outcome", { directAddress: true, source: "ui-events result card choice" });
+    add("Итог голосования: 2:1", "resultCard", "crowd.outcome", { source: "ui-events result card votes" });
+    add("+1⭐ +1💰", "resultCard", "crowd.outcome", { source: "ui-events result card deltas" });
+    add("Голосование идёт", "hint", "crowd.hint", { source: "ui-events timer line" });
+    add("Таймер: 5с", "hint", "crowd.hint", { source: "ui-events timer line" });
+    add("Ты уже проголосовал.", "toast", "crowd.error", { directAddress: true, source: "events helpEvent note" });
+    add("Щит голоса активен.", "toast", "crowd.result", { source: "events vote shield note" });
+
+    add(texts.battle_win || "Победа", "resultCard", "battle.result", { source: "Game.Data.TEXTS.genz.battle_win" });
+    add(texts.battle_lose || "Поражение", "resultCard", "battle.result", { source: "Game.Data.TEXTS.genz.battle_lose" });
+    add(texts.battle_draw || "Толпа решает", "resultCard", "battle.result", { source: "Game.Data.TEXTS.genz.battle_draw" });
+    add("Аки победил Рин", "resultCard", "battle.result", { source: "ui-events canonical result" });
+    add("Аки не победил Рин", "resultCard", "battle.result", { source: "ui-events canonical result" });
+    add("Силы равны. Аки и Рин расходятся под шум площади.", "resultCard", "battle.result", { source: "events npcBattleEndDraw fallback" });
+    add("Исход решён. Аки одержал верх над Рин.", "resultCard", "battle.result", { source: "events npcBattleEndWin fallback" });
+    add("Аки свалил от Рин", "resultCard", "escape.result", { source: "npcEscapeResolvedLines card" });
+    add("Аки не свалил от Рин", "resultCard", "escape.result", { source: "npcEscapeResolvedLines card" });
+    add("Решением толпы Аки свалил от Рин.", "resultCard", "escape.result", { source: "npcEscapeResolvedLines chat" });
+    add("Решением толпы Аки не смог свалить от Рин.", "resultCard", "escape.result", { source: "npcEscapeResolvedLines chat" });
+    add("Аки послал Рин", "resultCard", "ignore.result", { source: "npcEscapeResolvedLines off card" });
+    add("Аки не послал Рин", "resultCard", "ignore.result", { source: "npcEscapeResolvedLines off card" });
+
+    add("Сообщить о токсике, бандите или мафиози.", "hint", "ECON-SOC.report", { source: "ui-dm reportHint" });
+    add("Выбери игрока.", "toast", "ECON-SOC.report", { directAddress: true, source: "ui-dm report empty toast" });
+    add("Проверяем...", "toast", "ECON-SOC.report", { source: "ui-dm report pending" });
+    add("Сдать", "hint", "ECON-SOC.report", { source: "ui-dm report button" });
+    add("Занят", "hint", "ECON-SOC.report", { source: "ui-dm report button cooldown" });
+    add("Нельзя отправить пойнты самому себе.", "error", "economy.error", { source: "ui-dm p2p_self_transfer_forbidden" });
+    add("Передача пока отключена.", "error", "economy.error", { source: "ui-dm p2p_disabled" });
+
+    if (texts.teach_sent_dm) add(texts.teach_sent_dm, "toast", "ECON-04.training", { directAddress: true, source: "Game.Data.TEXTS.genz.teach_sent_dm" });
+    if (texts.teach_sent_chat) add(texts.teach_sent_chat, "toast", "ECON-04.training", { source: "Game.Data.TEXTS.genz.teach_sent_chat" });
+
+    const seen = new Set();
+    return samples.filter((sample) => {
+      const key = `${sample.surface}\n${sample.text}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 60);
+  };
+
+  const makeStyleLexViolation = (sample, normalized, rule, reason, category) => ({
+    text: sample.text,
+    normalizedText: normalized && typeof normalized.text === "string" ? normalized.text : "",
+    surface: sample.surface,
+    rule,
+    category: category || sample.category || "styleLexPack",
+    reason
+  });
+
+  const smokeStyleLexPack = () => {
+    const helper = Game.Text && typeof Game.Text.normalizeText === "function" ? Game.Text.normalizeText : null;
+    const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
+    const previous = {
+      contract: readProof(),
+      allowed: readProof(),
+      forbidden: readForbiddenProof(),
+      phraseLength: readPhraseLengthProof(),
+      stance: readStanceProof(),
+      normalize: smokeStyleLexNormalizeOnce()
+    };
+    const previousSmokesOk = Object.keys(previous).every((key) => previous[key] && previous[key].ok === true);
+    const samples = buildStyleLexSmokeSamples();
+    const terms = flattenForbiddenTerms(lex);
+    const violations = [];
+    const checks = {
+      forbidden: true,
+      phraseLength: true,
+      address: true,
+      officialese: true,
+      memeInternetSlang: true,
+      teenSlang: true,
+      previousSmokes: true
+    };
+
+    if (!helper) {
+      violations.push(makeStyleLexViolation({ text: "", surface: "devCard", category: "helper" }, null, "helper", "Game.Text.normalizeText is missing", "runtime"));
+    }
+
+    for (const sample of samples) {
+      if (!helper) break;
+      const context = { surface: sample.surface, source: sample.source, smoke: "styleLexPack" };
+      const normalized = helper(sample.text, context);
+      const normalizedText = String(normalized && (normalized.text || normalized.finalText) || "");
+      const limit = getStyleLexSurfaceLimit(lex, sample.surface);
+      const lines = splitStyleLexLines(normalizedText);
+      const visibleLines = lines.length ? lines : [normalizedText].filter(Boolean);
+      const remainingForbidden = scanForbiddenTerms(normalizedText, terms);
+
+      if (remainingForbidden.length) {
+        const hit = remainingForbidden[0];
+        violations.push(makeStyleLexViolation(sample, normalized, "forbidden", `remaining forbidden term: ${hit.term}`, hit.category || sample.category));
+      }
+
+      if (normalized && normalized.lengthLimited === true) {
+        violations.push(makeStyleLexViolation(sample, normalized, "phraseLength", "normalizeText had to trim lines", sample.category));
+      }
+      if (limit.maxLines && visibleLines.length > limit.maxLines) {
+        violations.push(makeStyleLexViolation(sample, normalized, "phraseLength", `line count ${visibleLines.length} exceeds ${limit.maxLines}`, sample.category));
+      }
+      const longLine = visibleLines.find((line) => line.length > limit.maxChars || styleLexSmokeWordCount(line) > limit.maxWords);
+      if (longLine) {
+        violations.push(makeStyleLexViolation(sample, normalized, "phraseLength", `line exceeds ${limit.maxChars} chars or ${limit.maxWords} words`, sample.category));
+      }
+
+      if (STYLELEX_SMOKE_FORMAL_TOKENS.test(normalizedText)) {
+        violations.push(makeStyleLexViolation(sample, normalized, "address", "formal direct-address marker remains; expected ты-style", sample.category));
+      }
+      if (sample.directAddress && !STYLELEX_SMOKE_DIRECT_TOKENS.test(normalizedText)) {
+        violations.push(makeStyleLexViolation(sample, normalized, "address", "direct-address sample lacks ты-style marker", sample.category));
+      }
+
+      const categoryHits = remainingForbidden.reduce((acc, hit) => {
+        acc[hit.category] = hit;
+        return acc;
+      }, {});
+      if (categoryHits["officialese/bureaucratic phrasing"]) {
+        violations.push(makeStyleLexViolation(sample, normalized, "officialese", `officialese marker remains: ${categoryHits["officialese/bureaucratic phrasing"].term}`, "officialese/bureaucratic phrasing"));
+      }
+      if (categoryHits["memes/internet slang"]) {
+        violations.push(makeStyleLexViolation(sample, normalized, "meme/internet slang", `meme marker remains: ${categoryHits["memes/internet slang"].term}`, "memes/internet slang"));
+      }
+      if (categoryHits["teen slang"]) {
+        violations.push(makeStyleLexViolation(sample, normalized, "teen slang", `teen slang marker remains: ${categoryHits["teen slang"].term}`, "teen slang"));
+      }
+    }
+
+    if (!previousSmokesOk) {
+      violations.push(makeStyleLexViolation({ text: "previous StyleLex smokes", surface: "devCard", category: "previousSmokes" }, { text: "previous StyleLex smokes" }, "previousSmokes", "one or more previous StyleLex smokes failed", "previousSmokes"));
+    }
+    if (samples.length < 30 || samples.length > 60) {
+      violations.push(makeStyleLexViolation({ text: `checkedCount=${samples.length}`, surface: "devCard", category: "checkedCount" }, { text: `checkedCount=${samples.length}` }, "checkedCount", "checkedCount must be between 30 and 60", "coverage"));
+    }
+
+    const ok = previousSmokesOk && helper && samples.length >= 30 && samples.length <= 60 && violations.length === 0;
+    return {
+      ok,
+      name: "smoke_stylelex_pack",
+      checkedCount: samples.length,
+      expectedRange: [30, 60],
+      previousSmokesOk,
+      checks,
+      violationsCount: violations.length,
+      violationsSample: violations.slice(0, 5),
+      categories: samples.reduce((acc, sample) => {
+        acc[sample.category] = (acc[sample.category] || 0) + 1;
+        return acc;
+      }, {}),
+      previous
+    };
+  };
+
   const proof = readProof();
 
   if (!Game.__DEV) Game.__DEV = {};
@@ -663,6 +878,12 @@ window.Game = window.Game || {};
   }
   if (typeof Game.__DEV.smokeStyleLexNormalizeOnce !== "function") {
     Game.__DEV.smokeStyleLexNormalizeOnce = smokeStyleLexNormalizeOnce;
+  }
+  if (typeof Game.__DEV.smokeStyleLexPack !== "function") {
+    Game.__DEV.smokeStyleLexPack = smokeStyleLexPack;
+  }
+  if (Game.Dev && typeof Game.Dev === "object" && typeof Game.Dev.smokeStyleLexPack !== "function") {
+    Game.Dev.smokeStyleLexPack = Game.__DEV.smokeStyleLexPack;
   }
   if (typeof Game.__DEV.styleLexTouchpointsOnce !== "function") {
     Game.__DEV.styleLexTouchpointsOnce = styleLexTouchpointProof;

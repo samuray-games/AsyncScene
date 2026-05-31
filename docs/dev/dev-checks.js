@@ -13,6 +13,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (!G.__DEV) G.__DEV = {};
   console.warn("DEV_OBJ_INIT_V1", { ts: Date.now(), keys: Object.keys(G.__DEV || {}) });
   if (!G.Dev) G.Dev = {};
+  if (G.__DEV && typeof G.__DEV.smokeStyleLexPack === "function" && typeof G.Dev.smokeStyleLexPack !== "function") {
+    G.Dev.smokeStyleLexPack = G.__DEV.smokeStyleLexPack;
+  }
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
     console.warn("ECON_NPC_ALLOWLIST_PACK_V1_LOADED");

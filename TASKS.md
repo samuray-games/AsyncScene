@@ -65,6 +65,30 @@
 
 ## Inbox
 
+
+### [T-20260531-003] StyleLex regression smoke pack
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|Dev Mode|Runtime Smoke
+- Files: `docs/data/style-lex.js` `docs/dev/dev-checks.js` `docs/index.html` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Add a fast player-facing StyleLex regression pack without changing economy/battle logic or rewriting copy.
+- Acceptance:
+  - [x] `Game.__DEV.smokeStyleLexPack()` exists and returns `ok:true` only when previous StyleLex smokes pass, checkedCount is 30..60, and forbidden/length/address/officialese/meme/teen checks have no violations.
+  - [x] `Game.Dev.smokeStyleLexPack` is aliased when `Game.Dev` exists.
+  - [x] Smoke samples cover existing StyleLex formulas, economy/stat toasts, common error/hint/result phrases, battle/escape/ignore/crowd examples, ECON-SOC report examples, ECON-08 respect examples, and existing ECON-04 training text inside the economy flow.
+  - [x] FAIL returns `ok:false` with `violationsSample` capped at 5 and each item includes text, normalizedText, surface, rule, category, reason.
+- Notes: No economy or battle logic changed; no mass copy rewrite; style-lex cache bust bumped in `docs/index.html`.
+- Result: PASS; Console.txt check result shows `ok:true`, `checkedCount:50`, `previousSmokesOk:true`, `violationsCount:0`, `violationsSample:[]`, and alias type `function`.
+- Report:
+  - Status: DONE
+  - Facts: Added `smokeStyleLexPack` with explicit checks for remaining forbidden terms, phraseLength line/word/char limits, ты-style direct address, officialese, meme/internet slang, teen slang, previous StyleLex smokes, and 30..60 coverage. The smoke currently checks 50 samples and returns no violations.
+  - Changed: `docs/data/style-lex.js` `docs/dev/dev-checks.js` `docs/index.html` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify: Run `Game.__DEV.smokeStyleLexPack()` in the browser console or run the local VM smoke command recorded in Console.txt.
+  - Evidence: PASS `node --check docs/data/style-lex.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node /tmp/stylelex-smoke.js` -> `{ok:true, checkedCount:50, previousSmokesOk:true, violationsCount:0, violationsSample:[], alias:"function"}`; WARN `npx playwright install chromium` failed with CDN 403, so browser automation could not be used in this environment.
+  - Next: QA can repeat `Game.__DEV.smokeStyleLexPack()` on iPhone Safari runtime after cache refresh.
+
 ### [T-20260531-002] GitHub Pages Console Panel helper load
 - Status: DONE
 - Priority: P0
