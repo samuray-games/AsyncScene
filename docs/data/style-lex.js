@@ -9,6 +9,19 @@ window.Game = window.Game || {};
     version: "style-lex-runtime-contract-v1",
     address: "ты",
     stance: "partner",
+    tone: {
+      stance: "partner",
+      address: "ты",
+      partnerLanguage: {
+        prefer: [
+          { insteadOf: "обучаю", use: ["подсказываю"] },
+          { insteadOf: "ты должен", use: ["можешь"] },
+          { insteadOf: "ошибка", use: ["не хватает", "не получилось"] }
+        ],
+        avoidTeacherTone: ["урок", "наказание", "правильно", "неправильно"],
+        teacherToneException: "Можно оставить только при конкретной игровой причине и с нейтральной заменой в rewriteHints."
+      }
+    },
     phraseLength: {
       min: 1,
       max: 2,
@@ -94,6 +107,7 @@ window.Game = window.Game || {};
         "необходимо": ["нужно", "можно"],
         "осуществить": ["сделать", "провести"],
         "произошла ошибка": ["не получилось", "сбой"],
+        "ошибка": ["не получилось", "не хватает"],
         "в рамках": ["для", "в этой части"],
         "данная функция": ["эта функция", "этот ход"]
       },
@@ -108,7 +122,12 @@ window.Game = window.Game || {};
       "teacher tone": {
         _category: ["партнёрская подсказка", "нейтральное объяснение"],
         "запомни": ["подсказка", "важно"],
-        "ты должен": ["можно", "выбери"],
+        "обучаю": ["подсказываю"],
+        "ты должен": ["можешь"],
+        "урок": ["подсказка", "разбор хода"],
+        "наказание": ["последствие", "штраф"],
+        "правильно": ["получилось", "ход сработал"],
+        "неправильно": ["не получилось", "проверь ход"],
         "неправильно, думай": ["проверь выбор", "есть другой ход"],
         "как тебе не стыдно": ["такой ход рискованный", "это ухудшит доверие"]
       },
@@ -135,6 +154,13 @@ window.Game = window.Game || {};
     "teacher tone",
     "gray promises"
   ];
+
+  const requiredPartnerPreferences = [
+    { insteadOf: "обучаю", use: "подсказываю" },
+    { insteadOf: "ты должен", use: "можешь" },
+    { insteadOf: "ошибка", useAny: ["не хватает", "не получилось"] }
+  ];
+  const requiredTeacherToneTerms = ["урок", "наказание", "правильно", "неправильно"];
 
   const isGuidanceList = (value) => Array.isArray(value)
     && value.length >= 1
@@ -242,6 +268,91 @@ window.Game = window.Game || {};
     };
   };
 
+  const listIncludes = (list, value) => Array.isArray(list) && list.includes(value);
+
+  const readStanceProof = () => {
+    const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
+    const tone = lex && lex.tone ? lex.tone : {};
+    const partnerLanguage = tone.partnerLanguage || {};
+    const prefer = Array.isArray(partnerLanguage.prefer) ? partnerLanguage.prefer : [];
+    const avoidTeacherTone = Array.isArray(partnerLanguage.avoidTeacherTone) ? partnerLanguage.avoidTeacherTone : [];
+    const rewriteHints = lex && lex.rewriteHints ? lex.rewriteHints : {};
+    const teacherHints = rewriteHints["teacher tone"] || {};
+    const officialHints = rewriteHints["officialese/bureaucratic phrasing"] || {};
+
+    const hasPreference = (insteadOf, use) => prefer.some((rule) => rule
+      && rule.insteadOf === insteadOf
+      && listIncludes(rule.use, use));
+    const hasAnyPreference = (insteadOf, replacements) => prefer.some((rule) => rule
+      && rule.insteadOf === insteadOf
+      && replacements.every((replacement) => listIncludes(rule.use, replacement)));
+
+    const missingPartnerPreferences = [];
+    for (const rule of requiredPartnerPreferences) {
+      if (rule.use && !hasPreference(rule.insteadOf, rule.use)) {
+        missingPartnerPreferences.push(`${rule.insteadOf}->${rule.use}`);
+      }
+      if (rule.useAny && !hasAnyPreference(rule.insteadOf, rule.useAny)) {
+        missingPartnerPreferences.push(`${rule.insteadOf}->${rule.useAny.join("|")}`);
+      }
+    }
+
+    const missingTeacherToneGuidance = requiredTeacherToneTerms.filter((term) => !isGuidanceList(teacherHints[term]));
+    const missingTeacherToneTaboos = requiredTeacherToneTerms.filter((term) => !avoidTeacherTone.includes(term));
+    const replacementGuidance = {
+      "обучаю": teacherHints["обучаю"] || [],
+      "ты должен": teacherHints["ты должен"] || [],
+      "ошибка": officialHints["ошибка"] || [],
+      "урок": teacherHints["урок"] || [],
+      "наказание": teacherHints["наказание"] || [],
+      "правильно": teacherHints["правильно"] || [],
+      "неправильно": teacherHints["неправильно"] || []
+    };
+    const previous = {
+      contract: readProof(),
+      allowed: readProof(),
+      forbidden: readForbiddenProof(),
+      phraseLength: readPhraseLengthProof()
+    };
+    const previousSmokesOk = previous.contract.ok
+      && previous.allowed.ok
+      && previous.forbidden.ok
+      && previous.phraseLength.ok;
+    const hasPartnerRules = tone.stance === "partner"
+      && partnerLanguage
+      && missingPartnerPreferences.length === 0
+      && missingTeacherToneTaboos.length === 0;
+
+    return {
+      ok: !!lex
+        && lex.stance === "partner"
+        && lex.address === "ты"
+        && tone.stance === "partner"
+        && tone.address === "ты"
+        && hasPartnerRules
+        && missingTeacherToneGuidance.length === 0
+        && isGuidanceList(replacementGuidance["обучаю"])
+        && isGuidanceList(replacementGuidance["ты должен"])
+        && isGuidanceList(replacementGuidance["ошибка"])
+        && previousSmokesOk,
+      path: "Game.Data.styleLex.tone",
+      stance: lex ? lex.stance : null,
+      address: lex ? lex.address : null,
+      toneStance: tone.stance || null,
+      toneAddress: tone.address || null,
+      hasPartnerRules,
+      requiredPartnerPreferences,
+      missingPartnerPreferences,
+      requiredTeacherToneTerms,
+      missingTeacherToneTaboos,
+      missingTeacherToneGuidance,
+      replacementGuidance,
+      teacherToneException: partnerLanguage.teacherToneException || null,
+      previousSmokesOk,
+      previous
+    };
+  };
+
   const readProof = () => {
     const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
     const keys = lex ? Object.keys(lex) : [];
@@ -307,6 +418,9 @@ window.Game = window.Game || {};
   }
   if (typeof Game.__DEV.smokeStyleLexPhraseLengthOnce !== "function") {
     Game.__DEV.smokeStyleLexPhraseLengthOnce = readPhraseLengthProof;
+  }
+  if (typeof Game.__DEV.smokeStyleLexStanceOnce !== "function") {
+    Game.__DEV.smokeStyleLexStanceOnce = readStanceProof;
   }
 
   try {
