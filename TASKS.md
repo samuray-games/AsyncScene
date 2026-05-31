@@ -3962,3 +3962,25 @@ Error: Download failure, code=1
     at ChildProcess.emit (node:events:524:28)
     at ChildProcess._handle.onexit (node:internal/child_process:293:12)
 ```
+
+### 2026-05-31 — AsyncScene Step 2 [0] StyleLex scope and artifacts
+- Status: PASS (docs-only)
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Content/UX
+- Area: Docs|Content|UI|NPC
+- Files: `STYLELEX.md` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Define StyleLex as the future single style contract for all player-facing text without adding runtime logic.
+- Acceptance:
+  - [x] StyleLex purpose is documented as the single future style contract.
+  - [x] Covered surfaces are listed: UI, NPC, dev-card, toasts, hints, errors.
+  - [x] Required future artifacts are listed: allowed dictionary, forbidden/taboo list, tone rules, phrase length rules, addressing rules.
+  - [x] Step 2 [0] explicitly states no runtime implementation is done.
+  - [x] Step is logged in both `TASKS.md` and `PROJECT_MEMORY.md`.
+- Result:
+  - Report:
+    - Status: PASS
+    - Facts: Created `STYLELEX.md` with Step 2 [0] purpose, covered surfaces, required future artifacts, explicit docs-only non-goal, and PASS/FAIL criteria.
+    - Changed: `STYLELEX.md` `TASKS.md` `PROJECT_MEMORY.md`
+    - How to verify: Read `STYLELEX.md` and confirm it names StyleLex as the single future style contract, includes UI/NPC/dev-card/toasts/hints/errors, includes all required future artifacts, and says no runtime implementation was done.
+    - Next: Content/UX — write the actual allowed dictionary, taboo list, tone rules, phrase length rules, and addressing rules in later Step 2 artifacts.
