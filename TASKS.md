@@ -66,6 +66,33 @@
 ## Inbox
 
 
+### [T-20260531-005] StyleLex Step 2 final readiness gate
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|Runtime Smoke|Economy
+- Files: `TASKS.md` `PROJECT_MEMORY.md` `docs/data/style-lex.js` `Console.txt`
+- Goal: Add one final completion smoke for StyleLex Step 2 [9] that evaluates the already-proven Step 2 [0]-[8] criteria without creating a new feature or fake PASS.
+- Acceptance:
+  - [x] `Game.__DEV.smokeStyleLexReadinessOnce()` exists and returns compact readiness data with `ok`, `failedChecks`, `passedChecks`, `evidence`, and a version/build marker.
+  - [x] The readiness gate verifies `Game.Data.styleLex` has allowed domains, forbidden categories, and phrase-length rules.
+  - [x] The readiness gate verifies `Game.Text.normalizeText` / `Game.StyleLex.normalizeText` are runtime-accessible.
+  - [x] The readiness gate verifies taboo replacement/detection and phrase-length enforcement through live `normalizeText` samples.
+  - [x] The readiness gate verifies `Game.__DEV.smokeStyleLexPack()` exists and returns `ok:true`.
+  - [x] ECON-08, ECON-SOC, ECON-P2P, and ECON-UI StyleLex coverage is present through explicit smoke-pack sample categories.
+  - [x] The readiness gate fails if any unresolved StyleLex decision is still reported.
+- Notes: This is a final gate only. It does not rewrite gameplay/economy/battle logic. `styleLexTouchpointsOnce()` now reports no pending StyleLex decisions because Step 2 [7]-[8] direct smoke-pack coverage resolves the previously pending coverage questions.
+- Result: PASS; local VM `Game.__DEV.smokeStyleLexReadinessOnce()` returned `ok:true`, `failedChecks:[]`, passed checks `styleLexContract`, `normalizeTextAccessible`, `normalizeTextRuntimeBehavior`, `smokeStyleLexPack`, `requiredEconomyCoverage`, and `noUnresolvedStyleLexDecision`; build marker `STYLELEX_STEP2_COMPLETION_GATE_V1`.
+- Report:
+  - Status: DONE
+  - Facts: Added the final readiness smoke and aliases, converted P2P samples to explicit `ECON-P2P.transfer`, added explicit `ECON-UI.status`/`ECON-UI.hint` coverage, kept `smokeStyleLexPack` PASS at `checkedCount:52`, and reported no unresolved StyleLex decisions.
+  - Changed: `docs/data/style-lex.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `node --check docs/data/style-lex.js`, then load `docs/data.js` + `docs/data/style-lex.js` in a VM/browser and call `Game.__DEV.smokeStyleLexReadinessOnce()`.
+  - Evidence: PASS `node --check docs/data/style-lex.js`; PASS local VM readiness proof -> `{ok:true, failedChecks:[], passedChecks:[styleLexContract, normalizeTextAccessible, normalizeTextRuntimeBehavior, smokeStyleLexPack, requiredEconomyCoverage, noUnresolvedStyleLexDecision], packCheckedCount:52, packViolationsCount:0, coverage:{ECON-08:6, ECON-SOC:5, ECON-P2P:2, ECON-UI:2}}`; PASS `Console.txt` check found current StyleLex regression pack evidence and no blocking Step 2 [9] failure; WARN browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexReadinessOnce` was environment-blocked by missing Playwright Chromium.
+  - Next: QA can run `Game.__DEV.smokeStyleLexReadinessOnce()` on iPhone Safari after cache refresh.
+
+
 
 ### [T-20260531-004] ECON-04 Training decision for StyleLex
 - Status: DONE

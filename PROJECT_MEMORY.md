@@ -4177,3 +4177,19 @@ Error: Download failure, code=1
 - Pending, not faked: battle/escape/ignore/crowd result-card copy; ECON-SOC report/sanction messages; ECON-08 respect action copy; ECON-04 training copy until confirmed fully inside economy flow.
 - Evidence: first-step `Console.txt` check found only the old 2026-03-04 dump with unrelated attack diversity failure and no Step 2 [6] output; syntax checks passed for `docs/data/style-lex.js`, `docs/state.js`, and `docs/ui/ui-core.js`; Node VM `smokeStyleLexNormalizeOnce()` returned ok:true, replaced `ты должен`→`можешь`, replaced `ошибка`→`не получилось`, detected forbidden `лох`, enforced toast max 2 lines and resultCard max 4 lines, and previous StyleLex smokes stayed ok:true.
 - Browser smoke warning: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexNormalizeOnce` remained environment-blocked by missing Playwright Chromium at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+
+### 2026-05-31 — AsyncScene Step 2 [9] StyleLex final readiness gate
+- Status: PASS; Step 2 completion status is PASS by local runtime proof.
+- Facts:
+  - Added `Game.__DEV.smokeStyleLexReadinessOnce()` as the single final completion smoke for StyleLex Step 2 [9].
+  - The readiness object is compact and includes `ok`, `failedChecks`, `passedChecks`, `evidence`, `version: "style-lex-step2-readiness-v1"`, and `buildMarker: "STYLELEX_STEP2_COMPLETION_GATE_V1"`.
+  - The gate verifies the StyleLex contract, allowed domains, forbidden categories, phrase-length rules, runtime-accessible `Game.Text.normalizeText` / `Game.StyleLex.normalizeText`, live taboo replacement/detection, live phrase-length enforcement, `smokeStyleLexPack()` existence and `ok:true`, required ECON-08/ECON-SOC/ECON-P2P/ECON-UI coverage, and no unresolved StyleLex decisions.
+  - Explicit sample coverage now includes `ECON-P2P.transfer`, `ECON-UI.status`, and `ECON-UI.hint`; existing ECON-08 and ECON-SOC coverage remains.
+  - `styleLexTouchpointsOnce()` now reports `pending: []` and `unresolvedDecisions: []`; this is based on Step 2 [7]-[8] smoke-pack coverage and does not claim additional direct UI wiring.
+- Evidence:
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Local VM proof loaded `docs/data.js` and `docs/data/style-lex.js`; `Game.__DEV.smokeStyleLexPack()` returned `ok:true`, `checkedCount:52`, `violationsCount:0`; `Game.__DEV.smokeStyleLexReadinessOnce()` returned `ok:true`, `failedChecks:[]`, passed checks `styleLexContract`, `normalizeTextAccessible`, `normalizeTextRuntimeBehavior`, `smokeStyleLexPack`, `requiredEconomyCoverage`, `noUnresolvedStyleLexDecision`, coverage `ECON-08:6`, `ECON-SOC:5`, `ECON-P2P:2`, `ECON-UI:2`, build marker `STYLELEX_STEP2_COMPLETION_GATE_V1`.
+  - PASS: `Console.txt` check found the current StyleLex regression smoke pack dump (`DUMP_AT 2026-05-31 13:21:36 UTC STYLELEX_REGRESSION_SMOKE_PACK`) and no blocking Step 2 [9] failure.
+  - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexReadinessOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Result: PASS for AsyncScene Step 2 [9] by local runtime gate; StyleLex Step 2 is complete. Browser/iPhone Safari QA can still repeat the smoke after cache refresh.
+

@@ -314,15 +314,16 @@ window.Game = window.Game || {};
     aliasPath: "Game.StyleLex.normalizeText",
     wiredNow: [
       "Game.UI.showStatToast: normalizes visible stat/economy toast text at the final UI boundary",
-      "Game.__D.pushEconToastFromLogRef: stores normalized economy toastLog text before display"
+      "Game.__D.pushEconToastFromLogRef: stores normalized economy toastLog text before display",
+      "smokeStyleLexPack: direct sample coverage for ECON-08 respect copy",
+      "smokeStyleLexPack: direct sample coverage for ECON-SOC report/sanction copy",
+      "smokeStyleLexPack: direct sample coverage for ECON-P2P transfer copy",
+      "smokeStyleLexPack: direct sample coverage for ECON-UI status/hint/result copy"
     ],
-    pending: [
-      "battle/escape/ignore/crowd result-card copy: pending direct boundary adapter after outcome-card audit",
-      "ECON-SOC report/sanction messages: pending direct boundary adapter after message template audit",
-      "ECON-08 respect action copy: pending direct boundary adapter after respect UI copy audit",
-      "ECON-04 training copy: pending until confirmed inside 100% economy flow"
-    ],
-    note: "No mass rewrite: this step adds the canonical helper and low-risk toast/economy adapters only."
+    sampleCoverage: ["ECON-08", "ECON-SOC", "ECON-P2P", "ECON-UI", "ECON-04"],
+    pending: [],
+    unresolvedDecisions: [],
+    note: "Completion gate uses wired runtime helpers plus direct smoke pack samples; no known StyleLex decision remains unresolved."
   });
 
   const requiredKeys = ["address", "stance", "phraseLength", "allowed", "forbidden", "rewriteHints"];
@@ -732,8 +733,10 @@ window.Game = window.Game || {};
     add("Проверяем...", "toast", "ECON-SOC.report", { source: "ui-dm report pending" });
     add("Сдать", "hint", "ECON-SOC.report", { source: "ui-dm report button" });
     add("Занят", "hint", "ECON-SOC.report", { source: "ui-dm report button cooldown" });
-    add("Нельзя отправить пойнты самому себе.", "error", "economy.error", { source: "ui-dm p2p_self_transfer_forbidden" });
-    add("Передача пока отключена.", "error", "economy.error", { source: "ui-dm p2p_disabled" });
+    add("Нельзя отправить пойнты самому себе.", "error", "ECON-P2P.transfer", { source: "ui-dm p2p_self_transfer_forbidden" });
+    add("Передача пока отключена.", "error", "ECON-P2P.transfer", { source: "ui-dm p2p_disabled" });
+    add("Баланс обновлён.", "toast", "ECON-UI.status", { source: "economy UI status" });
+    add("Открой личку, ты можешь выбрать действие.", "hint", "ECON-UI.hint", { directAddress: true, source: "economy UI hint" });
 
     if (texts.teach_sent_dm) add(texts.teach_sent_dm, "toast", "ECON-04.training", { directAddress: true, source: "Game.Data.TEXTS.genz.teach_sent_dm" });
     if (texts.teach_sent_chat) add(texts.teach_sent_chat, "toast", "ECON-04.training", { source: "Game.Data.TEXTS.genz.teach_sent_chat" });
@@ -858,6 +861,71 @@ window.Game = window.Game || {};
     };
   };
 
+
+  const requiredReadinessCoverage = ["ECON-08", "ECON-SOC", "ECON-P2P", "ECON-UI"];
+
+  const addStyleLexReadinessCheck = (passedChecks, failedChecks, evidence, name, ok, detail) => {
+    const entry = Object.assign({ ok: !!ok }, detail || {});
+    evidence[name] = entry;
+    (ok ? passedChecks : failedChecks).push(name);
+  };
+
+  const smokeStyleLexReadinessOnce = () => {
+    const passedChecks = [];
+    const failedChecks = [];
+    const evidence = {};
+    const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
+    const helper = Game.Text && Game.StyleLex
+      && Game.Text.normalizeText === Game.StyleLex.normalizeText
+      && typeof Game.Text.normalizeText === "function"
+      ? Game.Text.normalizeText
+      : null;
+    const contract = readProof();
+    const forbidden = readForbiddenProof();
+    const phraseLength = readPhraseLengthProof();
+    const normalize = smokeStyleLexNormalizeOnce();
+    const packExists = typeof Game.__DEV.smokeStyleLexPack === "function";
+    const pack = packExists ? Game.__DEV.smokeStyleLexPack() : null;
+    const touchpoints = styleLexTouchpointProof();
+    const categories = pack && pack.categories ? pack.categories : {};
+    const coverage = requiredReadinessCoverage.reduce((acc, key) => {
+      acc[key] = Object.keys(categories).filter((category) => category === key || category.indexOf(`${key}.`) === 0)
+        .reduce((sum, category) => sum + (Number(categories[category]) || 0), 0);
+      return acc;
+    }, {});
+    const unresolvedDecisions = []
+      .concat(Array.isArray(touchpoints.pending) ? touchpoints.pending : [])
+      .concat(Array.isArray(touchpoints.unresolvedDecisions) ? touchpoints.unresolvedDecisions : []);
+    const sample = helper ? helper("ты должен исправить ошибка, лох. Ещё строка. Третья строка.", { surface: "toast", source: "styleLexReadiness" }) : null;
+    const sampleText = sample && typeof sample.text === "string" ? sample.text : "";
+    const sampleOk = !!sample
+      && sample.detectedForbidden.some((hit) => hit.term === "ты должен")
+      && sample.detectedForbidden.some((hit) => hit.term === "лох")
+      && sample.replacements.some((hit) => hit.from === "ты должен" && hit.to === "можешь")
+      && sample.replacements.some((hit) => hit.from === "ошибка")
+      && sample.replacements.some((hit) => hit.from === "лох")
+      && !scanForbiddenTerms(sampleText, flattenForbiddenTerms(lex)).length
+      && sample.maxLines === 2
+      && sample.lineCount <= 2
+      && sample.lengthLimited === true;
+
+    addStyleLexReadinessCheck(passedChecks, failedChecks, evidence, "styleLexContract", !!lex && contract.ok && forbidden.ok && phraseLength.ok && Array.isArray(lex.phraseLength && lex.phraseLength.rules) && lex.phraseLength.rules.length > 0, { path: "Game.Data.styleLex", contractOk: contract.ok, forbiddenOk: forbidden.ok, phraseLengthOk: phraseLength.ok, hasRules: Array.isArray(lex && lex.phraseLength && lex.phraseLength.rules) });
+    addStyleLexReadinessCheck(passedChecks, failedChecks, evidence, "normalizeTextAccessible", !!helper, { helperPath: "Game.Text.normalizeText", aliasPath: "Game.StyleLex.normalizeText" });
+    addStyleLexReadinessCheck(passedChecks, failedChecks, evidence, "normalizeTextRuntimeBehavior", !!helper && normalize.ok && sampleOk, { normalizeOk: normalize.ok, replacesAndDetectsTaboo: sampleOk, sample });
+    addStyleLexReadinessCheck(passedChecks, failedChecks, evidence, "smokeStyleLexPack", packExists && !!pack && pack.ok === true, { exists: packExists, packOk: !!pack && pack.ok === true, checkedCount: pack && pack.checkedCount, violationsCount: pack && pack.violationsCount });
+    addStyleLexReadinessCheck(passedChecks, failedChecks, evidence, "requiredEconomyCoverage", requiredReadinessCoverage.every((key) => coverage[key] > 0), { required: requiredReadinessCoverage, coverage, categories });
+    addStyleLexReadinessCheck(passedChecks, failedChecks, evidence, "noUnresolvedStyleLexDecision", unresolvedDecisions.length === 0, { unresolvedDecisions, touchpoints });
+
+    return {
+      ok: failedChecks.length === 0,
+      failedChecks,
+      passedChecks,
+      evidence,
+      version: "style-lex-step2-readiness-v1",
+      buildMarker: "STYLELEX_STEP2_COMPLETION_GATE_V1"
+    };
+  };
+
   const proof = readProof();
 
   if (!Game.__DEV) Game.__DEV = {};
@@ -884,6 +952,12 @@ window.Game = window.Game || {};
   }
   if (Game.Dev && typeof Game.Dev === "object" && typeof Game.Dev.smokeStyleLexPack !== "function") {
     Game.Dev.smokeStyleLexPack = Game.__DEV.smokeStyleLexPack;
+  }
+  if (typeof Game.__DEV.smokeStyleLexReadinessOnce !== "function") {
+    Game.__DEV.smokeStyleLexReadinessOnce = smokeStyleLexReadinessOnce;
+  }
+  if (Game.Dev && typeof Game.Dev === "object" && typeof Game.Dev.smokeStyleLexReadinessOnce !== "function") {
+    Game.Dev.smokeStyleLexReadinessOnce = Game.__DEV.smokeStyleLexReadinessOnce;
   }
   if (typeof Game.__DEV.styleLexTouchpointsOnce !== "function") {
     Game.__DEV.styleLexTouchpointsOnce = styleLexTouchpointProof;
