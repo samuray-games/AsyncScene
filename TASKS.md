@@ -65,6 +65,32 @@
 
 ## Inbox
 
+### [T-20260531-002] GitHub Pages Console Panel helper load
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Dev Mode|Docs
+- Files: `docs/index.html` `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `docs/dev/console-tape.js` `AsyncScene/Web/index.html` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-console-panel.js` `AsyncScene/Web/dev/console-tape.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
+- Goal: Fix GitHub Pages Console Panel Run/Run+Copy by loading the existing console helper after protected Dev Mode unlock.
+- Acceptance:
+  - [x] After Dev Mode unlock, `dev/console-tape.js` is dynamically loaded before Console Panel Run/Run+Copy executes.
+  - [x] `window.RUN`/`window.EVAL` aliases are exported by the helper alongside `window.__RUN__`/`window.__EVAL__`.
+  - [x] `1+1` evaluates to/copies `2`; `unknownVariable` returns readable `ReferenceError`; object output uses the helper pretty serializer.
+  - [x] Locked Dev Mode still returns before helper load, run, or copy.
+  - [x] `docs/index.html` cache-busts the updated Console Panel script; docs and `AsyncScene/Web` are mirrored where applicable.
+- Notes: No broad eval was added to random UI paths; evaluation remains delegated to the existing `dev/console-tape.js` helper.
+- Result: PASS; root cause was docs deployment missing `docs/dev/console-tape.js`, leaving helper globals absent and causing `Run helper missing`.
+- Report:
+  - Status: DONE
+  - Facts: Dynamic helper load is gated by `asyncscene.devModeUnlocked`; unlock preloads the helper; Run awaits it; Web static pre-unlock helper load was removed; `console-tape.js` now exposes `RUN`/`EVAL` aliases.
+  - Changed: `docs/index.html` `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `docs/dev/console-tape.js` `AsyncScene/Web/index.html` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-console-panel.js` `AsyncScene/Web/dev/console-tape.js` `SMOKE_TEST_COMMANDS.md` `PROJECT_MEMORY.md` `TASKS.md`
+  - How to verify: Unlock Dev Mode with PIN, open Console Panel, run/copy `1+1`, run/copy `unknownVariable`, then Disable Dev Mode and confirm no run/copy.
+  - Evidence: PASS `node --check docs/ui/ui-console-panel.js`; PASS `node --check AsyncScene/Web/ui/ui-console-panel.js`; PASS `node --check docs/ui/ui-menu.js`; PASS `node --check AsyncScene/Web/ui/ui-menu.js`; PASS `node --check docs/dev/console-tape.js`; PASS `node --check AsyncScene/Web/dev/console-tape.js`; PASS `cmp -s docs/ui/ui-console-panel.js AsyncScene/Web/ui/ui-console-panel.js`; PASS `cmp -s docs/dev/console-tape.js AsyncScene/Web/dev/console-tape.js`; WARN iPhone Safari clipboard smoke is manual.
+  - Manual smoke: iPhone Safari — unlock Dev Mode with PIN, open Console Panel, `1+1` Run -> `2`, `1+1` Run+Copy -> copied `2`, `unknownVariable` -> copied readable `ReferenceError`, Disable Dev Mode -> no run/copy.
+  - Next: QA should run the iPhone Safari manual smoke because clipboard behavior requires a real browser/user gesture.
+
+
 ### [T-20260531-001] GitHub Pages protected Dev Mode gate
 - Status: DONE
 - Priority: P0
