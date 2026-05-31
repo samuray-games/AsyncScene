@@ -22,26 +22,19 @@ window.Game = window.Game || {};
 (() => {
   const UIBOOT_VERSION = "UIBOOT_V9";
   const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V9";
-  const START_DIAG_MAX = 16;
-  const startDiagLines = [];
+  const BOOT_DIAG_MAX = 16;
+  const bootDiagLines = [];
+  window.__uiBootDiagLines = bootDiagLines;
 
-  function setText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  }
-
-  function markStartDiag(label) {
+  function markBootDiag(label) {
     const line = `${new Date().toLocaleTimeString()} ${label}`;
-    startDiagLines.push(line);
-    while (startDiagLines.length > START_DIAG_MAX) startDiagLines.shift();
-    setText("startDiag", startDiagLines.join("\n"));
+    bootDiagLines.push(line);
+    while (bootDiagLines.length > BOOT_DIAG_MAX) bootDiagLines.shift();
   }
 
   function markUiBootVersion() {
-    setText("deployMarker", "BOOT_FIX_V4");
-    setText("uiBootVersion", UIBOOT_VERSION);
-    markStartDiag(`${UIBOOT_VERSION}_LOADED`);
-    markStartDiag(UIBOOT_MODE_FIX_MARKER);
+    markBootDiag(`${UIBOOT_VERSION}_LOADED`);
+    markBootDiag(UIBOOT_MODE_FIX_MARKER);
   }
 
 
@@ -54,8 +47,8 @@ window.Game = window.Game || {};
 
   function markStartError(prefix, err) {
     const info = describeStartError(err);
-    markStartDiag(`${prefix}:${info.message}`);
-    if (info.firstFrame) markStartDiag(`${prefix}_AT:${info.firstFrame}`);
+    markBootDiag(`${prefix}:${info.message}`);
+    if (info.firstFrame) markBootDiag(`${prefix}_AT:${info.firstFrame}`);
     if (typeof console !== "undefined" && console.error) {
       console.error(`[${prefix}] message=${info.message} frame=${info.firstFrame || "unknown"}`, err);
     }
@@ -69,7 +62,7 @@ window.Game = window.Game || {};
       const file = source || "unknown";
       const line = lineno == null ? "?" : lineno;
       const msg = message || (error && error.message) || "unknown";
-      markStartDiag(`GLOBAL_ONERROR:${file}:${line}:${msg}`);
+      markBootDiag(`GLOBAL_ONERROR:${file}:${line}:${msg}`);
       if (typeof console !== "undefined" && console.error) {
         console.error(`[GLOBAL_ONERROR] file=${file} line=${line} col=${colno == null ? "?" : colno} message=${msg}`, error || "");
       }
@@ -79,7 +72,7 @@ window.Game = window.Game || {};
       const file = event.filename || "unknown";
       const line = event.lineno == null ? "?" : event.lineno;
       const msg = event.message || (event.error && event.error.message) || "unknown";
-      markStartDiag(`GLOBAL_ERROR:${file}:${line}:${msg}`);
+      markBootDiag(`GLOBAL_ERROR:${file}:${line}:${msg}`);
       if (typeof console !== "undefined" && console.error) {
         console.error(`[GLOBAL_ERROR] file=${file} line=${line} col=${event.colno == null ? "?" : event.colno} message=${msg}`, event.error || event);
       }
@@ -88,7 +81,7 @@ window.Game = window.Game || {};
       const reason = event.reason;
       const msg = reason && reason.message ? reason.message : String(reason);
       const info = describeStartError(reason || msg);
-      markStartDiag(`GLOBAL_UNHANDLEDREJECTION:${info.firstFrame || "unknown"}:${msg}`);
+      markBootDiag(`GLOBAL_UNHANDLEDREJECTION:${info.firstFrame || "unknown"}:${msg}`);
       if (typeof console !== "undefined" && console.error) {
         console.error(`[GLOBAL_UNHANDLEDREJECTION] fileLine=${info.firstFrame || "unknown"} message=${msg}`, reason);
       }
@@ -148,9 +141,6 @@ window.Game = window.Game || {};
           <div class="formRow">
             <label class="label" for="nameInput">Твой ник</label>
             <input id="nameInput" class="input" placeholder="Твой ник" data-enter-target="btnStart" />
-            <div id="deployMarker" class="pill deployMarker">BOOT_FIX_V4</div>
-            <div id="uiBootVersion" class="pill uiBootVersion">UIBOOT_PENDING</div>
-            <div id="startDiag" class="pill startDiag">DIAG_WAITING</div>
             <div id="startManifestShort" class="pill"></div>
             <div class="row mt12">
               <button id="btnRandom" class="btn">Случайный ник</button>
@@ -465,12 +455,12 @@ window.Game = window.Game || {};
         else ni.value = `Игрок${Math.floor(Math.random() * 999)}`;
       };
 
-    // Start. Bind every mobile-relevant event visibly so iPhone Safari can be verified without a console.
+    // Start. Bind every mobile-relevant event so iPhone Safari can be diagnosed internally.
     if (btnStart) {
-      markStartDiag("START_HANDLER_FOUND");
+      markBootDiag("START_HANDLER_FOUND");
       let lastStartAt = 0;
       const runStart = (source, e) => {
-        markStartDiag(source);
+        markBootDiag(source);
         const now = Date.now();
         if (now - lastStartAt < 450) return;
         lastStartAt = now;
@@ -480,15 +470,15 @@ window.Game = window.Game || {};
         try {
           startGame(UI);
         } catch (err) {
-          markStartDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
+          markBootDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
         }
       };
       btnStart.onclick = (e) => runStart("click", e);
-      btnStart.addEventListener("touchstart", (e) => { markStartDiag("touchstart"); }, { passive: true });
+      btnStart.addEventListener("touchstart", (e) => { markBootDiag("touchstart"); }, { passive: true });
       btnStart.addEventListener("touchend", (e) => runStart("touchend", e), { passive: false });
       btnStart.addEventListener("pointerup", (e) => runStart("pointerup", e), false);
     } else {
-      markStartDiag("START_HANDLER_MISSING");
+      markBootDiag("START_HANDLER_MISSING");
     }
 
     // Chat send
@@ -580,11 +570,11 @@ window.Game = window.Game || {};
       S.flags = S.flags || {};
       UI.S.flags = S.flags;
 
-      markStartDiag("START_CLICKED");
-      markStartDiag("START_STEP_1");
+      markBootDiag("START_CLICKED");
+      markBootDiag("START_STEP_1");
       const name = getStartName(UI);
       if (!name) {
-        markStartDiag("START_NEEDS_NAME");
+        markBootDiag("START_NEEDS_NAME");
         return;
       }
 
@@ -595,14 +585,14 @@ window.Game = window.Game || {};
           G.State.isStarted = true;
           if (G.State.flags) G.State.flags.started = true;
         }
-        markStartDiag("START_HIDE_ATTEMPT");
+        markBootDiag("START_HIDE_ATTEMPT");
         ensureStartScreenHidden(UI);
         startHidden = true;
-        markStartDiag("STARTSCREEN_HIDDEN");
+        markBootDiag("STARTSCREEN_HIDDEN");
         return;
       }
 
-      markStartDiag("START_STEP_2");
+      markBootDiag("START_STEP_2");
       S.flags.started = true;
       S.isStarted = true;
       if (G.State) {
@@ -611,17 +601,17 @@ window.Game = window.Game || {};
       }
       if (!S.me) S.me = { id: "me" };
 
-      markStartDiag("START_STEP_3");
+      markBootDiag("START_STEP_3");
 
       // Reset player state
       S.me.name = name;
 
       // Hide as soon as the start input is accepted so later optional UI work cannot keep the overlay open.
-      markStartDiag("START_HIDE_ATTEMPT");
+      markBootDiag("START_HIDE_ATTEMPT");
       ensureStartScreenHidden(UI);
       startHidden = true;
-      markStartDiag("STARTSCREEN_HIDDEN");
-      markStartDiag("START_STEP_4");
+      markBootDiag("STARTSCREEN_HIDDEN");
+      markBootDiag("START_STEP_4");
       const startPoints = (G.Data && Number.isFinite(G.Data.START_POINTS_PLAYER))
         ? (G.Data.START_POINTS_PLAYER | 0)
         : (G.Data && Number.isFinite(G.Data.POINTS_START))
@@ -715,7 +705,7 @@ window.Game = window.Game || {};
       if (startHidden) {
         console.warn("startGame post-hide failed", err);
       } else {
-        markStartDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
+        markBootDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
       }
     }
   }
