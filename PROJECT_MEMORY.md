@@ -4074,3 +4074,20 @@ Error: Download failure, code=1
   - WARN: Local Playwright smoke with `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexAllowedOnce` was blocked by missing browser executable under `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
 - Constraints honored: No validators, no UI text rewrites, no forbidden vocabulary changes, and no rewrite hint changes.
 - Next: Future scoped steps can add validators or copy rewrite usage after the allowed vocabulary base is accepted.
+
+### 2026-05-31 — Console Panel Run+Copy for iPhone Safari
+- Status: PASS
+- Root cause: Protected Dev Mode works on GitHub Pages, but iPhone Safari lacks a convenient console/file dump workflow for sharing command output.
+- Facts:
+  - Console Panel now has a `Run+Copy` button adjacent to `Run` in both mirrored UI files.
+  - `Run+Copy` calls the same `runCommand(false)` path as normal Run, so command evaluation/history/log markers stay aligned with existing behavior.
+  - The panel now renders the latest command result/error in a small visible output area and uses that same text for copy.
+  - Copy prefers `navigator.clipboard.writeText` and falls back to a temporary readonly textarea with select/setSelectionRange plus `document.execCommand("copy")` for older/mobile browsers.
+  - If Dev Mode is locked, the existing guard closes the panel and returns `null`; `Run+Copy` does not copy when that happens.
+  - If command execution throws, the caught error stack/message is displayed and copied.
+- Evidence:
+  - PASS: `node --check docs/ui/ui-console-panel.js`.
+  - PASS: `node --check AsyncScene/Web/ui/ui-console-panel.js`.
+  - PASS: `cmp -s docs/ui/ui-console-panel.js AsyncScene/Web/ui/ui-console-panel.js`.
+  - WARN: No iPhone Safari/manual clipboard smoke was run in this environment; `SMOKE_TEST_COMMANDS.md` contains the manual PASS/FAIL checklist.
+- Remaining risks: iPhone Safari may reject clipboard writes after async command execution; fallback selection is present, but physical-device verification is still needed.

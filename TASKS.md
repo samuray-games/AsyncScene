@@ -4040,3 +4040,22 @@ Error: Download failure, code=1
   - PASS: Node VM loading `docs/data/style-lex.js` returned `ok:true`, allowed domain names `economy,decision,conflict,social,interface`, sizes `economy:7, decision:5, conflict:6, social:5, interface:4`, and marker `STYLELEX_CONTRACT_V1_PASS`.
   - WARN: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexAllowedOnce` could not launch Playwright because Chromium executable was missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
 - Result: PASS; `StyleLex.allowed` is structured by required domains, readable at runtime through `Game.Data.styleLex`, and enumerable through the dev proof helper.
+
+### 2026-05-31 — Console Panel Run+Copy for iPhone Safari
+- Status: PASS
+- Priority: P0
+- Assignee: Codex-ассистент
+- Area: UI|Dev Mode|Console Panel
+- Goal: Add a minimal Run+Copy action for unlocked Dev Mode so iPhone Safari users can run a console command and copy the resulting panel text without the file dump workflow.
+- Result:
+  - Added `Run+Copy` next to the existing `Run` action in both mirrored console panel source copies.
+  - The action reuses the existing command runner path, updates the panel result text, copies the same text with `navigator.clipboard.writeText` when available, and falls back to a temporary textarea selection plus `document.execCommand("copy")`.
+  - Locked Dev Mode returns before command execution/copy and closes the panel like the existing run guard.
+  - Error results are rendered and copied as error text.
+- Evidence:
+  - PASS: `node --check docs/ui/ui-console-panel.js`.
+  - PASS: `node --check AsyncScene/Web/ui/ui-console-panel.js`.
+  - PASS: `cmp -s docs/ui/ui-console-panel.js AsyncScene/Web/ui/ui-console-panel.js`.
+  - WARN: Browser/iPhone Safari clipboard smoke not run in this headless environment; manual smoke steps added to `SMOKE_TEST_COMMANDS.md`.
+- Changed: `docs/ui/ui-console-panel.js` `AsyncScene/Web/ui/ui-console-panel.js` `SMOKE_TEST_COMMANDS.md` `TASKS.md` `PROJECT_MEMORY.md`
+- Next: Manually verify on iPhone Safari because user-gesture clipboard behavior can vary by browser/version.
