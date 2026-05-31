@@ -77,6 +77,15 @@
 Если этот чеклист пройден — Stage 2 считается DONE.
 
 
+## 2026-05-31 — GitHub Pages Console Panel helper load fix
+- Status: PASS. Root cause: `docs/index.html` no longer loaded `docs/dev/console-tape.js`, while Console Panel `Run`/`Run+Copy` depended on the helper globals and therefore threw `Run helper missing`; Run+Copy copied that stack instead of the evaluated result.
+- Fix: the mirrored Console Panel now dynamically loads `dev/console-tape.js?v=20260531_run_helper_gate_1` only after local Dev Mode is unlocked, the Dev Mode unlock path preloads it, and command execution awaits the helper before evaluating.
+- `console-tape.js` now exports both existing underscore globals (`window.__RUN__`, `window.__EVAL__`) and compatibility aliases (`window.RUN`, `window.EVAL`, plus `Game.RUN`/`Game.EVAL`).
+- Locked Dev Mode still closes/no-ops before helper loading, command execution, or copy; `AsyncScene/Web/index.html` no longer loads `dev/console-tape.js` before unlock, matching the docs gate.
+- Evidence: PASS `node --check` on mirrored menu/panel/tape files; PASS docs/Web console panel mirror compare; PASS docs/Web console tape mirror compare; PASS static checks that docs index has no static `console-tape.js` and Web static preload was removed; WARN browser/iPhone Safari smoke remains manual.
+- Manual smoke note for iPhone Safari: unlock Dev Mode with PIN, open Console Panel, `1+1` Run -> `2`, `1+1` Run+Copy -> copied `2`, `unknownVariable` -> copied readable `ReferenceError`, Disable Dev Mode -> no run/copy.
+- Changed: `docs/index.html` `docs/ui/ui-menu.js` `docs/ui/ui-console-panel.js` `docs/dev/console-tape.js` `AsyncScene/Web/index.html` `AsyncScene/Web/ui/ui-menu.js` `AsyncScene/Web/ui/ui-console-panel.js` `AsyncScene/Web/dev/console-tape.js` `SMOKE_TEST_COMMANDS.md` `TASKS.md` `PROJECT_MEMORY.md`
+
 ## 2026-05-31 — GitHub Pages protected Dev Mode gate
 - Implemented a local-only Dev Mode safety gate for the public static app: the menu shows `Unlock Dev Mode`, prompts for PIN `2468`, stores unlock state in `localStorage` key `asyncscene.devModeUnlocked`, and shows `Disable Dev Mode` while unlocked.
 - Console Panel access is now tied to the local unlock state instead of `?dev=1`/global dev flags, so normal public users do not see the menu control and panel commands close/no-op when locked.
