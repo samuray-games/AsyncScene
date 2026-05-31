@@ -4002,3 +4002,19 @@ Error: Download failure, code=1
 - Smoke: PASS by local runtime proof for file/object existence, startup-safe JS evaluation, and readable required keys at `Game.Data.styleLex`; browser smoke is environment-blocked by missing Playwright browser.
 - Changed: `docs/data/style-lex.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
 - Next: Content/UX — later Step 2 work can consume `Game.Data.styleLex`, but validators and text rewrites remain intentionally unwired.
+
+### 2026-05-31 — AsyncScene Step 2 [2] Allowed Lexicon Skeleton
+- Status: PASS
+- Root cause: Step 2 [1] exposed `Game.Data.styleLex`, but the allowed vocabulary base was still a small flat baseline instead of canonical domain groups.
+- Facts:
+  - `docs/data/style-lex.js` now makes `StyleLex.allowed` the canonical allowed vocabulary base.
+  - Required domains are present and non-empty: `economy`, `decision`, `conflict`, `social`, `interface`.
+  - Required seed words are present in their domains: economy `очки`, `стоимость`, `плата`, `возврат`, `остаток`, `лимит`; decision `выбор`, `риск`, `ставка`, `итог`, `результат`; conflict `аргумент`, `ход`, `защита`, `атака`, `ничья`; social `уважение`, `репутация`, `доверие`, `донос`, `штраф`; interface `подсказка`, `сообщение`, `событие`, `личка`.
+  - Tiny supporting words were limited to `баланс` and `победа` for common economy/conflict copy coverage.
+  - Runtime proof now enumerates allowed domain names and sizes via `Game.__DEV.smokeStyleLexAllowedOnce()` while preserving `Game.__DEV.smokeStyleLexContractOnce()`.
+  - Validators, UI text rewrites, forbidden list changes, and rewrite hint changes were not added.
+- Evidence:
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Node VM loading `docs/data/style-lex.js` returned `ok:true`, allowed domain names `economy,decision,conflict,social,interface`, sizes `economy:7, decision:5, conflict:6, social:5, interface:4`, and marker `STYLELEX_CONTRACT_V1_PASS`.
+  - WARN: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexAllowedOnce` could not launch Playwright because Chromium executable was missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Result: PASS; `StyleLex.allowed` is structured by required domains, readable at runtime through `Game.Data.styleLex`, and enumerable through the dev proof helper.

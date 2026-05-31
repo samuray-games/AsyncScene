@@ -20,7 +20,11 @@ window.Game = window.Game || {};
       ]
     },
     allowed: {
-      baselineWords: ["очки", "риск", "выбор", "результат"],
+      economy: ["очки", "стоимость", "плата", "возврат", "остаток", "лимит", "баланс"],
+      decision: ["выбор", "риск", "ставка", "итог", "результат"],
+      conflict: ["аргумент", "ход", "защита", "атака", "ничья", "победа"],
+      social: ["уважение", "репутация", "доверие", "донос", "штраф"],
+      interface: ["подсказка", "сообщение", "событие", "личка"],
       formulas: [
         "Твой выбор.",
         "Есть риск.",
@@ -58,18 +62,32 @@ window.Game = window.Game || {};
   Data.styleLex = styleLex;
 
   const requiredKeys = ["address", "stance", "phraseLength", "allowed", "forbidden", "rewriteHints"];
+  const requiredAllowedDomains = ["economy", "decision", "conflict", "social", "interface"];
   const readProof = () => {
     const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
     const keys = lex ? Object.keys(lex) : [];
-    const baselineOk = !!(lex && lex.allowed && Array.isArray(lex.allowed.baselineWords))
-      && ["очки", "риск", "выбор", "результат"].every((word) => lex.allowed.baselineWords.includes(word));
+    const allowedDomains = lex && lex.allowed ? lex.allowed : {};
+    const allowedDomainNames = requiredAllowedDomains.filter((domain) => Array.isArray(allowedDomains[domain]));
+    const requiredAllowedWords = {
+      economy: ["очки", "стоимость", "плата", "возврат", "остаток", "лимит"],
+      decision: ["выбор", "риск", "ставка", "итог", "результат"],
+      conflict: ["аргумент", "ход", "защита", "атака", "ничья"],
+      social: ["уважение", "репутация", "доверие", "донос", "штраф"],
+      interface: ["подсказка", "сообщение", "событие", "личка"]
+    };
+    const allowedDomainsOk = requiredAllowedDomains.every((domain) => {
+      const words = allowedDomains[domain];
+      return Array.isArray(words)
+        && words.length > 0
+        && requiredAllowedWords[domain].every((word) => words.includes(word));
+    });
     const taboosOk = !!(lex && lex.forbidden && Array.isArray(lex.forbidden.categories))
       && ["memes", "officialese", "teen slang"].every((category) => lex.forbidden.categories.includes(category));
     const contractOk = !!lex
       && lex.address === "ты"
       && lex.stance === "partner"
       && requiredKeys.every((key) => Object.prototype.hasOwnProperty.call(lex, key))
-      && baselineOk
+      && allowedDomainsOk
       && taboosOk;
 
     return {
@@ -79,7 +97,13 @@ window.Game = window.Game || {};
       actualKeys: keys,
       address: lex ? lex.address : null,
       stance: lex ? lex.stance : null,
-      hasBaseline: baselineOk,
+      requiredAllowedDomains,
+      allowedDomainNames,
+      allowedDomainSizes: requiredAllowedDomains.reduce((acc, domain) => {
+        acc[domain] = Array.isArray(allowedDomains[domain]) ? allowedDomains[domain].length : 0;
+        return acc;
+      }, {}),
+      hasAllowedDomains: allowedDomainsOk,
       hasTaboos: taboosOk
     };
   };
@@ -89,6 +113,9 @@ window.Game = window.Game || {};
   if (!Game.__DEV) Game.__DEV = {};
   if (typeof Game.__DEV.smokeStyleLexContractOnce !== "function") {
     Game.__DEV.smokeStyleLexContractOnce = readProof;
+  }
+  if (typeof Game.__DEV.smokeStyleLexAllowedOnce !== "function") {
+    Game.__DEV.smokeStyleLexAllowedOnce = readProof;
   }
 
   try {
