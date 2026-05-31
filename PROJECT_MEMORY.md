@@ -4022,3 +4022,17 @@ Error: Download failure, code=1
     at ChildProcess.emit (node:events:524:28)
     at ChildProcess._handle.onexit (node:internal/child_process:293:12)
 ```
+
+### 2026-05-31 — AsyncScene Step 2 [0] StyleLex scope and artifacts
+- Status: PASS (docs-only)
+- Root cause: AsyncScene needs one future source of truth for all player-facing text style before UI, NPC, dev-card, toast, hint, and error copy diverge into separate local conventions.
+- Facts:
+  - `STYLELEX.md` now defines StyleLex as the single future style contract for all player-facing text.
+  - Covered surfaces are explicit: UI, NPC, dev-card, toasts, hints, errors.
+  - Required future artifacts are explicit: allowed dictionary, forbidden/taboo list, tone rules, phrase length rules, addressing rules.
+  - Baseline voice is documented: the system speaks as a partner, not a teacher; addressing is `ты`; default text is short, calm, direct, not official, not meme-like, and not teen slang.
+  - Step 2 [0] is documentation only and does not implement runtime logic, validators, linters, text replacement, UI wiring, NPC generation changes, or automated enforcement.
+- PASS criteria recorded: docs define StyleLex as the future single style contract, list all required surfaces and future artifacts, state no runtime implementation, and log the step in `TASKS.md` and `PROJECT_MEMORY.md`.
+- FAIL criteria recorded: vague style-only docs, missing surfaces/artifacts, implied runtime implementation, or missing task/memory log.
+- Changed: `STYLELEX.md` `TASKS.md` `PROJECT_MEMORY.md`
+- Next: Content/UX — create the concrete StyleLex artifacts in later Step 2 work.
