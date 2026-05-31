@@ -13,8 +13,30 @@ window.Game = window.Game || {};
       min: 1,
       max: 2,
       unit: "short phrases",
+      global: {
+        oneThoughtPerLine: true,
+        maxCharsTarget: [60, 80],
+        maxWordsTarget: [12, 14],
+        noLongParentheticalBlocks: true,
+        noBracketedTextWalls: true
+      },
+      surfaces: {
+        toast: { maxLines: 2 },
+        resultCard: { maxLines: [3, 4] },
+        hint: { maxLines: 2 },
+        error: { maxLines: 2 },
+        npcLine: { maxLines: 2 },
+        devCard: { maxLines: [3, 4] }
+      },
       rules: [
         "Пиши 1-2 короткие фразы.",
+        "Одна мысль — одна строка.",
+        "Цель строки: 60-80 символов или максимум 12-14 слов.",
+        "Toast: максимум 2 строки.",
+        "Result card: максимум 3-4 строки.",
+        "Hint/error/NPC line: максимум 2 строки.",
+        "Dev card: максимум 3-4 строки.",
+        "Не делай длинные скобочные блоки и стены текста в квадратных скобках.",
         "Делай одно действие или один смысл на фразу.",
         "Если строка перегружена, раздели её на две короткие фразы."
       ]
@@ -119,6 +141,63 @@ window.Game = window.Game || {};
     && value.length <= 2
     && value.every((hint) => typeof hint === "string" && hint.trim().length > 0);
 
+  const readPhraseLengthProof = () => {
+    const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
+    const phraseLength = lex && lex.phraseLength ? lex.phraseLength : null;
+    const global = phraseLength && phraseLength.global ? phraseLength.global : {};
+    const surfaces = phraseLength && phraseLength.surfaces ? phraseLength.surfaces : {};
+    const rules = phraseLength && Array.isArray(phraseLength.rules) ? phraseLength.rules : [];
+    const ruleText = rules.join(" ").toLowerCase();
+    const requiredSurfaces = ["toast", "resultCard", "hint", "error", "npcLine", "devCard"];
+    const surfaceLineLimits = requiredSurfaces.reduce((acc, surface) => {
+      const limit = surfaces[surface] && surfaces[surface].maxLines;
+      acc[surface] = Array.isArray(limit) ? limit.slice() : limit;
+      return acc;
+    }, {});
+    const hasPhraseLength = !!phraseLength;
+    const hasOneThoughtPerLine = global.oneThoughtPerLine === true
+      && (ruleText.includes("одна мысль") || ruleText.includes("one thought"));
+    const hasMaxChars = Array.isArray(global.maxCharsTarget)
+      && global.maxCharsTarget[0] === 60
+      && global.maxCharsTarget[1] === 80;
+    const hasMaxWords = Array.isArray(global.maxWordsTarget)
+      && global.maxWordsTarget[0] === 12
+      && global.maxWordsTarget[1] === 14;
+    const hasToastLimit = surfaces.toast && surfaces.toast.maxLines === 2;
+    const hasResultCardLimit = surfaces.resultCard
+      && Array.isArray(surfaces.resultCard.maxLines)
+      && surfaces.resultCard.maxLines[0] === 3
+      && surfaces.resultCard.maxLines[1] === 4;
+    const hasRequiredSurfaces = requiredSurfaces.every((surface) => Object.prototype.hasOwnProperty.call(surfaces, surface));
+    const hasNoTextWallRule = global.noLongParentheticalBlocks === true
+      && global.noBracketedTextWalls === true
+      && ruleText.includes("скоб")
+      && ruleText.includes("квадрат");
+
+    return {
+      ok: hasPhraseLength
+        && hasOneThoughtPerLine
+        && (hasMaxChars || hasMaxWords)
+        && hasToastLimit
+        && hasResultCardLimit
+        && hasRequiredSurfaces
+        && hasNoTextWallRule,
+      path: "Game.Data.styleLex.phraseLength",
+      hasPhraseLength,
+      requiredSurfaces,
+      surfaceLineLimits,
+      hasOneThoughtPerLine,
+      hasMaxChars,
+      hasMaxWords,
+      hasToastLimit,
+      hasResultCardLimit,
+      hasRequiredSurfaces,
+      hasNoTextWallRule,
+      global,
+      rules
+    };
+  };
+
   const readForbiddenProof = () => {
     const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
     const forbidden = lex && lex.forbidden ? lex.forbidden : {};
@@ -182,13 +261,16 @@ window.Game = window.Game || {};
         && requiredAllowedWords[domain].every((word) => words.includes(word));
     });
     const forbiddenProof = readForbiddenProof();
+    const phraseLengthProof = readPhraseLengthProof();
     const taboosOk = forbiddenProof.ok;
+    const phraseLengthOk = phraseLengthProof.ok;
     const contractOk = !!lex
       && lex.address === "ты"
       && lex.stance === "partner"
       && requiredKeys.every((key) => Object.prototype.hasOwnProperty.call(lex, key))
       && allowedDomainsOk
-      && taboosOk;
+      && taboosOk
+      && phraseLengthOk;
 
     return {
       ok: contractOk,
@@ -205,6 +287,8 @@ window.Game = window.Game || {};
       }, {}),
       hasAllowedDomains: allowedDomainsOk,
       hasTaboos: taboosOk,
+      hasPhraseLength: phraseLengthOk,
+      phraseLengthProof,
       forbiddenProof
     };
   };
@@ -220,6 +304,9 @@ window.Game = window.Game || {};
   }
   if (typeof Game.__DEV.smokeStyleLexForbiddenOnce !== "function") {
     Game.__DEV.smokeStyleLexForbiddenOnce = readForbiddenProof;
+  }
+  if (typeof Game.__DEV.smokeStyleLexPhraseLengthOnce !== "function") {
+    Game.__DEV.smokeStyleLexPhraseLengthOnce = readPhraseLengthProof;
   }
 
   try {

@@ -4100,3 +4100,19 @@ Error: Download failure, code=1
   - PASS: Node VM runtime proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, and `smokeStyleLexForbiddenOnce()` all returned ok:true from `Game.Data.styleLex` with categories `memes/internet slang`, `teen slang`, `officialese/bureaucratic phrasing`, `toxicity/humiliation`, `teacher tone`, `gray promises`; item counts were 5,5,5,5,4,5; missing replacement guidance arrays were empty; console marker was `STYLELEX_CONTRACT_V1_PASS`.
   - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexForbiddenOnce` was blocked by missing Playwright Chromium at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
 - Smoke: PASS by local runtime proof because required forbidden categories exist, every forbidden category/item has neutral replacement guidance, runtime reads through `Game.Data.styleLex`, previous StyleLex helpers return ok:true, and `smokeStyleLexForbiddenOnce()` returns ok:true. Browser runner remains environment-blocked by missing Chromium.
+
+### 2026-05-31 — AsyncScene Step 2 [4] Phrase Length and Rhythm Rules
+- Status: PASS
+- Root cause: Step 2 [3] completed taboo categories and rewrite guidance, but `StyleLex.phraseLength` still lacked explicit line rhythm, global max targets, and per-surface line limits.
+- Changed:
+  - Expanded only `docs/data/style-lex.js` phrase-length data under `Game.Data.styleLex.phraseLength`.
+  - Added explicit global rhythm rules: one thought per line, 60-80 character target, 12-14 word target, and no long parenthetical blocks or bracketed text walls.
+  - Added per-surface limits for `toast`, `resultCard`, `hint`, `error`, `npcLine`, and `devCard` without adding validators or rewriting UI/NPC/toast text.
+  - Added `Game.__DEV.smokeStyleLexPhraseLengthOnce()` while preserving `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, and `smokeStyleLexForbiddenOnce()`.
+  - Left `allowed`, `forbidden`, and `rewriteHints` unchanged.
+- Evidence:
+  - PASS: First-step `Console.txt` check completed. The dump is from 2026-03-04 01:34:29, contains no current StyleLex Step 2 [4] smoke result, and still shows only unrelated old `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_END {"ok":false,"uniqueTypes":0,"ynShare":0}` records.
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Node VM runtime proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, `smokeStyleLexForbiddenOnce()`, and `smokeStyleLexPhraseLengthOnce()` all returned ok:true; phrase proof path was `Game.Data.styleLex.phraseLength`; global max values were `maxCharsTarget:[60,80]` and `maxWordsTarget:[12,14]`; surface limits were toast:2, resultCard:[3,4], hint:2, error:2, npcLine:2, devCard:[3,4]; no-long-parentheses/text-wall rule was present; startup marker was `STYLELEX_CONTRACT_V1_PASS`.
+  - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexPhraseLengthOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; local Node runtime proof is the PASS evidence for this step.
+- Smoke: PASS by local runtime proof because phrase rules are concrete, per-surface limits are present, runtime reads through `Game.Data.styleLex.phraseLength`, previous StyleLex helpers still return ok:true, and `smokeStyleLexPhraseLengthOnce()` returns ok:true.
