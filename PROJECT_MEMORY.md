@@ -4134,3 +4134,19 @@ Error: Download failure, code=1
   - PASS: Node VM proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, `smokeStyleLexForbiddenOnce()`, and `smokeStyleLexPhraseLengthOnce()` all returned ok:true; phrase path was `Game.Data.styleLex.phraseLength`; global targets were `[60,80]` chars and `[12,14]` words; surface limits were toast:2, resultCard:[3,4], hint:2, error:2, npcLine:2, devCard:[3,4]; `hasNoTextWallRule:true`; marker `STYLELEX_CONTRACT_V1_PASS`.
   - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexPhraseLengthOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; no browser runtime regression was observed in local Node proof.
 - Result: PASS for Step 2 [4] by local runtime proof; future scoped work can add validators or copy rewrites separately.
+
+### 2026-05-31 — AsyncScene Step 2 [5] System Stance to Player - Partner, Not Teacher
+- Status: PASS
+- Facts:
+  - `docs/data/style-lex.js` now expands only the system stance/tone side of `Game.Data.styleLex` with `tone.stance: "partner"` and `tone.address: "ты"`.
+  - Partner-language preferences are data-driven: use `подсказываю` instead of `обучаю`, `можешь` instead of `ты должен`, and `не хватает`/`не получилось` instead of bare `ошибка`.
+  - Teacher-tone terms `урок`, `наказание`, `правильно`, and `неправильно` are listed in the tone guidance and have neutral replacements in `rewriteHints`.
+  - `Game.__DEV.smokeStyleLexStanceOnce()` verifies partner stance, `ты` address, required partner preferences, teacher-tone replacement guidance, and previous StyleLex smoke results.
+  - Previous `smokeStyleLexContractOnce()`, `smokeStyleLexAllowedOnce()`, `smokeStyleLexForbiddenOnce()`, and `smokeStyleLexPhraseLengthOnce()` remain available and return ok:true in the local runtime proof.
+  - Validators were not added, existing UI/NPC/toast copy was not rewritten, and `allowed`/`forbidden`/`phraseLength` were not changed.
+- Evidence:
+  - PASS: First-step `Console.txt` check completed. The dump is from 2026-03-04 01:34:29, has no current StyleLex Step 2 [5] output, and contains unrelated old attack diversity failures only.
+  - PASS: `node --check docs/data/style-lex.js`.
+  - PASS: Node VM proof loaded `docs/data.js` and `docs/data/style-lex.js`; all five StyleLex smokes returned ok:true; stance/address were `partner`/`ты`; tone stance/address were `partner`/`ты`; partner rules were present; missing partner preferences, missing teacher-tone taboos, and missing teacher-tone guidance arrays were empty; replacement guidance included the requested partner-language and neutral teacher-tone replacements; previous smokes stayed ok:true; marker `STYLELEX_CONTRACT_V1_PASS`.
+  - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexStanceOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; local Node proof remains the PASS evidence.
+- Result: PASS for Step 2 [5] by local runtime proof; future scoped work can add validators or copy rewrites separately.
