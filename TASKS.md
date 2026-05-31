@@ -66,6 +66,31 @@
 ## Inbox
 
 
+
+### [T-20260531-004] ECON-04 Training decision for StyleLex
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Economy|Content|Runtime Smoke
+- Files: `TASKS.md` `PROJECT_MEMORY.md` `docs/data/style-lex.js` `Console.txt`
+- Goal: Record the project decision that ECON-04 Training belongs to the 100% economy scope and therefore training copy is not a postponed/suspended StyleLex stage.
+- Acceptance:
+  - [x] Docs explicitly state ECON-04 Training is inside 100% economy.
+  - [x] All ECON-04 training copy must pass through `Game.Text.normalizeText` / `Game.StyleLex.normalizeText` at runtime boundaries or be covered by `Game.__DEV.smokeStyleLexPack()` samples before release.
+  - [x] Step 2 [7] regression pack coverage already includes `ECON-04.training` samples, and smoke metadata proves `categories["ECON-04.training"] > 0`.
+  - [x] No training gameplay or economy logic changed for this decision record.
+  - [x] No suspended/postponed decision remains for ECON-04 Training StyleLex coverage.
+- Notes: This is a documentation-only decision record. Existing Step 2 [7] code already samples `Game.Data.TEXTS.genz.teach_sent_dm` and `Game.Data.TEXTS.genz.teach_sent_chat` as category `ECON-04.training`; the local VM smoke returned `econ04TrainingCount:2`.
+- Result: PASS; ECON-04 Training is included in 100% economy, training copy is in the StyleLex contract, and `smokeStyleLexPack` metadata shows `ECON-04.training` coverage count 2 (>0). Console.txt first-step check result: PASS checked; repository dump is old (`DUMP_AT 2026-03-04 01:34:29`) and contains no current Step 2 [8] output or blocking StyleLex-pack failure, so current proof is the local VM smoke.
+- Report:
+  - Status: DONE
+  - Facts: Updated docs only; no training gameplay, economy logic, or training UI copy changed. ECON-04 Training is now recorded as part of 100% economy, not a separate postponed stage. All future training copy must either run through StyleLex normalization (`Game.Text.normalizeText` / `Game.StyleLex.normalizeText`) before player-facing display or be represented in `smokeStyleLexPack` samples.
+  - Changed: `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Read this task, read the 2026-05-31 PROJECT_MEMORY decision entry, then run `Game.__DEV.smokeStyleLexPack()` or the local VM proof command.
+  - Evidence: PASS `node --check docs/data/style-lex.js`; PASS local VM proof loading `docs/data.js` + `docs/data/style-lex.js` -> `{ok:true, checkedCount:50, previousSmokesOk:true, violationsCount:0, violationsSample:[], econ04TrainingCount:2}`; PASS `Console.txt` check completed with no current Step 2 [8] output and no blocking StyleLex-pack failure in the old dump.
+  - Next: QA can repeat `Game.__DEV.smokeStyleLexPack()` on iPhone Safari runtime after cache refresh and verify `categories["ECON-04.training"] > 0`.
+
 ### [T-20260531-003] StyleLex regression smoke pack
 - Status: DONE
 - Priority: P0
@@ -77,16 +102,16 @@
 - Acceptance:
   - [x] `Game.__DEV.smokeStyleLexPack()` exists and returns `ok:true` only when previous StyleLex smokes pass, checkedCount is 30..60, and forbidden/length/address/officialese/meme/teen checks have no violations.
   - [x] `Game.Dev.smokeStyleLexPack` is aliased when `Game.Dev` exists.
-  - [x] Smoke samples cover existing StyleLex formulas, economy/stat toasts, common error/hint/result phrases, battle/escape/ignore/crowd examples, ECON-SOC report examples, ECON-08 respect examples, and existing ECON-04 training text inside the economy flow.
+  - [x] Smoke samples cover existing StyleLex formulas, economy/stat toasts, common error/hint/result phrases, battle/escape/ignore/crowd examples, ECON-SOC report examples, ECON-08 respect examples, and existing ECON-04 training text inside the economy flow, with `categories["ECON-04.training"] > 0` in smoke metadata.
   - [x] FAIL returns `ok:false` with `violationsSample` capped at 5 and each item includes text, normalizedText, surface, rule, category, reason.
 - Notes: No economy or battle logic changed; no mass copy rewrite; style-lex cache bust bumped in `docs/index.html`.
-- Result: PASS; Console.txt check result shows `ok:true`, `checkedCount:50`, `previousSmokesOk:true`, `violationsCount:0`, `violationsSample:[]`, and alias type `function`.
+- Result: PASS; Console.txt check result shows `ok:true`, `checkedCount:50`, `previousSmokesOk:true`, `violationsCount:0`, `violationsSample:[]`, alias type `function`, and Step 2 [8] local VM proof confirms `categories["ECON-04.training"] == 2` (>0).
 - Report:
   - Status: DONE
-  - Facts: Added `smokeStyleLexPack` with explicit checks for remaining forbidden terms, phraseLength line/word/char limits, ты-style direct address, officialese, meme/internet slang, teen slang, previous StyleLex smokes, and 30..60 coverage. The smoke currently checks 50 samples and returns no violations.
+  - Facts: Added `smokeStyleLexPack` with explicit checks for remaining forbidden terms, phraseLength line/word/char limits, ты-style direct address, officialese, meme/internet slang, teen slang, previous StyleLex smokes, and 30..60 coverage. The smoke currently checks 50 samples, returns no violations, and includes `ECON-04.training` coverage count 2 (>0).
   - Changed: `docs/data/style-lex.js` `docs/dev/dev-checks.js` `docs/index.html` `Console.txt` `PROJECT_MEMORY.md` `TASKS.md`
   - How to verify: Run `Game.__DEV.smokeStyleLexPack()` in the browser console or run the local VM smoke command recorded in Console.txt.
-  - Evidence: PASS `node --check docs/data/style-lex.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node /tmp/stylelex-smoke.js` -> `{ok:true, checkedCount:50, previousSmokesOk:true, violationsCount:0, violationsSample:[], alias:"function"}`; WARN `npx playwright install chromium` failed with CDN 403, so browser automation could not be used in this environment.
+  - Evidence: PASS `node --check docs/data/style-lex.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node /tmp/stylelex-smoke.js` -> `{ok:true, checkedCount:50, previousSmokesOk:true, violationsCount:0, violationsSample:[], alias:"function"}`; PASS Step 2 [8] local VM proof -> `{ok:true, checkedCount:50, previousSmokesOk:true, violationsCount:0, violationsSample:[], econ04TrainingCount:2}`; WARN `npx playwright install chromium` failed with CDN 403, so browser automation could not be used in this environment.
   - Next: QA can repeat `Game.__DEV.smokeStyleLexPack()` on iPhone Safari runtime after cache refresh.
 
 ### [T-20260531-002] GitHub Pages Console Panel helper load
@@ -4173,7 +4198,7 @@ Error: Download failure, code=1
   - Battle/escape/ignore/crowd result-card copy: pending direct boundary adapter after outcome-card audit.
   - ECON-SOC report/sanction messages: pending direct boundary adapter after message template audit.
   - ECON-08 respect action copy: pending direct boundary adapter after respect UI copy audit.
-  - ECON-04 training copy: pending until confirmed inside 100% economy flow.
+  - ECON-04 training copy: confirmed inside 100% economy flow; not postponed or suspended. Future player-facing training copy must pass `Game.Text.normalizeText` / `Game.StyleLex.normalizeText` at runtime boundaries or be represented in `smokeStyleLexPack` `ECON-04.training` samples before release.
 - Evidence:
   - PASS: First-step `Console.txt` check completed. The dump is from 2026-03-04 01:34:29, has no current StyleLex Step 2 [6] output, and contains unrelated old `SMOKE_ATTACK_TYPE_DIVERSITY_INCOMING_V1_END {"ok":false,"uniqueTypes":0,"ynShare":0}` records.
   - PASS: `node --check docs/data/style-lex.js && node --check docs/state.js && node --check docs/ui/ui-core.js`.
