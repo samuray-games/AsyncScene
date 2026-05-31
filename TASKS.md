@@ -3881,3 +3881,12 @@ Changed: `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui-old.js` `PROJECT_MEMORY
       7) Recorded final iPhone smoke PASS after push+merge and the process lessons for Cloud Codex, GitHub Pages, marker verification, cache-busters, and one-paragraph Codex reporting for iPhone copyability.
     - Changed: `PROJECT_MEMORY.md` `TASKS.md`
     - Verification: documentation-only change; no gameplay or UI files changed.
+
+### 2026-05-31 — Remove temporary boot/debug UI from login screen
+- Status: PASS (code/static)
+- Root cause: iPhone startup debugging left production-visible deployment/boot markers in `docs/index.html`/`AsyncScene/Web/index.html`, fallback login markup in `ui/ui-boot.js`, and loud marker CSS in `style.css`.
+- PASS: Removed the yellow `DEPLOY_PROBE_403E2FF` DOM badge from GitHub Pages HTML, removed the red `BOOT_FIX_V4` and green `UIBOOT_V9`/`UIBOOT_PENDING` login badges from normal and fallback login markup, and removed the black visible start diagnostic panel markup/styles.
+- PASS: Kept boot diagnostics internal via `window.__uiBootDiagLines` and did not change start guards or gameplay logic.
+- PASS: Static checks confirmed the production UI files no longer contain `DEPLOY_PROBE`, `BOOT_FIX_V4`, `UIBOOT_PENDING`, `deployProbe`, `deployMarker`, `uiBootVersion`, or `startDiag` render targets.
+- FAIL/WARN: Browser layout smoke could not run in this container because Playwright Chromium is not installed and `npx playwright install chromium` failed with CDN 403; iPhone Safari GitHub Pages smoke remains manual after merge.
+- Changed: `docs/index.html` `docs/style.css` `docs/ui/ui-boot.js` `AsyncScene/Web/index.html` `AsyncScene/Web/style.css` `AsyncScene/Web/ui/ui-boot.js` `PROJECT_MEMORY.md` `TASKS.md`
