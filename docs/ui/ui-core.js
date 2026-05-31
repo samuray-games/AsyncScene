@@ -1286,6 +1286,97 @@ window.Game = window.Game || {};
     }
   }
 
+
+  function ensureMobilePinnedChatLayout(){
+    const mq = window.matchMedia ? window.matchMedia("(max-width: 860px)") : null;
+    const isMobile = () => (mq ? mq.matches : (window.innerWidth <= 860));
+    const root = document.documentElement;
+    const topBar = document.getElementById("topBar");
+    const chat = document.getElementById("left");
+    const handle = document.getElementById("chatResizeHandle");
+    if (!root || !topBar || !chat || !handle) return;
+
+    const MIN_CHAT_HEIGHT = 220;
+    const RESERVED_BELOW_CHAT = 150;
+    const DEFAULT_CHAT_RATIO = 0.52;
+    let chatHeight = Number.parseFloat(root.style.getPropertyValue("--mobile-chat-height")) || 0;
+    let dragging = false;
+    let dragStartY = 0;
+    let dragStartHeight = 0;
+
+    const visualViewportHeight = () => {
+      const vv = window.visualViewport;
+      return Math.max(320, Math.round((vv && vv.height) ? vv.height : window.innerHeight));
+    };
+
+    const topbarHeight = () => Math.max(44, Math.ceil(topBar.getBoundingClientRect().height || topBar.offsetHeight || 58));
+    const maxChatHeight = () => Math.max(MIN_CHAT_HEIGHT, visualViewportHeight() - topbarHeight() - RESERVED_BELOW_CHAT);
+    const clampChatHeight = (value) => Math.max(MIN_CHAT_HEIGHT, Math.min(maxChatHeight(), Math.round(value)));
+
+    const sync = (requestedHeight) => {
+      if (!isMobile()) {
+        chat.classList.remove("is-resizing");
+        root.style.removeProperty("--mobile-topbar-height");
+        root.style.removeProperty("--mobile-chat-height");
+        return;
+      }
+
+      const topHeight = topbarHeight();
+      root.style.setProperty("--mobile-topbar-height", `${topHeight}px`);
+      root.style.setProperty("--mobile-chat-min", `${MIN_CHAT_HEIGHT}px`);
+      root.style.setProperty("--mobile-chat-max", `${maxChatHeight()}px`);
+
+      if (!chatHeight) chatHeight = visualViewportHeight() * DEFAULT_CHAT_RATIO;
+      if (Number.isFinite(requestedHeight)) chatHeight = requestedHeight;
+      chatHeight = clampChatHeight(chatHeight);
+      root.style.setProperty("--mobile-chat-height", `${chatHeight}px`);
+    };
+
+    if (!handle.__mobileChatResizeBound) {
+      handle.__mobileChatResizeBound = true;
+
+      const onPointerMove = (e) => {
+        if (!dragging) return;
+        e.preventDefault();
+        sync(dragStartHeight + (e.clientY - dragStartY));
+      };
+
+      const onPointerUp = () => {
+        if (!dragging) return;
+        dragging = false;
+        chat.classList.remove("is-resizing");
+      };
+
+      handle.addEventListener("pointerdown", (e) => {
+        if (!isMobile()) return;
+        e.preventDefault();
+        dragging = true;
+        dragStartY = e.clientY;
+        dragStartHeight = chat.getBoundingClientRect().height || chatHeight || MIN_CHAT_HEIGHT;
+        chat.classList.add("is-resizing");
+        try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+
+      handle.addEventListener("keydown", (e) => {
+        if (!isMobile()) return;
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+        e.preventDefault();
+        const delta = e.key === "ArrowUp" ? -24 : 24;
+        sync((chat.getBoundingClientRect().height || chatHeight || MIN_CHAT_HEIGHT) + delta);
+      });
+
+      document.addEventListener("pointermove", onPointerMove, { passive: false });
+      document.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("resize", () => sync());
+      window.addEventListener("orientationchange", () => setTimeout(() => sync(), 80));
+      if (window.visualViewport) window.visualViewport.addEventListener("resize", () => sync());
+      if (mq && mq.addEventListener) mq.addEventListener("change", () => sync());
+      else if (mq && mq.addListener) mq.addListener(() => sync());
+    }
+
+    sync();
+  }
+
   function ensureRightScrollBar(){
     const right = document.getElementById("right");
     const blocks = document.getElementById("blocks");
@@ -1656,6 +1747,7 @@ window.Game = window.Game || {};
 
       if (UI.renderLocations) UI.renderLocations();
       if (UI.renderDM && S.dm.open) UI.renderDM();
+      ensureMobilePinnedChatLayout();
       ensureRightScrollBar();
       try { if (UI.ensureClearButtons) UI.ensureClearButtons(document); } catch (_) {}
 
