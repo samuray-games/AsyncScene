@@ -33,28 +33,70 @@ window.Game = window.Game || {};
       ]
     },
     forbidden: {
-      categories: ["memes", "officialese", "teen slang"],
+      categories: [
+        "memes/internet slang",
+        "teen slang",
+        "officialese/bureaucratic phrasing",
+        "toxicity/humiliation",
+        "teacher tone",
+        "gray promises"
+      ],
       tabooForms: {
-        memes: ["лол", "кек", "мемно"],
-        officialese: ["необходимо", "осуществить", "произошла ошибка"],
-        teenSlang: ["краш", "вайб", "имба"]
+        "memes/internet slang": ["лол", "кек", "мемно", "рофл", "жиза"],
+        "teen slang": ["краш", "вайб", "имба", "кринж", "топчик"],
+        "officialese/bureaucratic phrasing": ["необходимо", "осуществить", "произошла ошибка", "в рамках", "данная функция"],
+        "toxicity/humiliation": ["тупой", "лох", "позор", "унижен", "заткнись"],
+        "teacher tone": ["запомни", "ты должен", "неправильно, думай", "как тебе не стыдно"],
+        "gray promises": ["награда получена", "очки начислены", "мы уже сделали", "платёж прошёл", "предмет выдан"]
       }
     },
     rewriteHints: {
-      memes: {
-        "лол": "смешно",
-        "кек": "смешно",
-        "мемно": "странно"
+      "memes/internet slang": {
+        _category: ["простое описание", "спокойная реакция"],
+        "лол": ["смешно", "забавно"],
+        "кек": ["смешно", "неожиданно"],
+        "мемно": ["странно", "похоже на шутку"],
+        "рофл": ["шутка", "смешной момент"],
+        "жиза": ["знакомая ситуация", "похоже на правду"]
       },
-      officialese: {
-        "необходимо": "нужно",
-        "осуществить": "сделать",
-        "произошла ошибка": "не получилось"
+      "teen slang": {
+        _category: ["нейтральная оценка", "обычное слово"],
+        "краш": ["симпатия", "тот, кто нравится"],
+        "вайб": ["настрой", "ощущение"],
+        "имба": ["сильный выбор", "заметное преимущество"],
+        "кринж": ["неловко", "неудачно"],
+        "топчик": ["хорошо", "сильный вариант"]
       },
-      teenSlang: {
-        "краш": "симпатия",
-        "вайб": "настрой",
-        "имба": "сильный выбор"
+      "officialese/bureaucratic phrasing": {
+        _category: ["короткая фраза", "прямое действие"],
+        "необходимо": ["нужно", "можно"],
+        "осуществить": ["сделать", "провести"],
+        "произошла ошибка": ["не получилось", "сбой"],
+        "в рамках": ["для", "в этой части"],
+        "данная функция": ["эта функция", "этот ход"]
+      },
+      "toxicity/humiliation": {
+        _category: ["описание действия", "спокойный отказ"],
+        "тупой": ["неверный", "слабый"],
+        "лох": ["соперник", "игрок"],
+        "позор": ["плохой итог", "неудача"],
+        "унижен": ["проиграл", "потерял очки"],
+        "заткнись": ["остановись", "не продолжай"]
+      },
+      "teacher tone": {
+        _category: ["партнёрская подсказка", "нейтральное объяснение"],
+        "запомни": ["подсказка", "важно"],
+        "ты должен": ["можно", "выбери"],
+        "неправильно, думай": ["проверь выбор", "есть другой ход"],
+        "как тебе не стыдно": ["такой ход рискованный", "это ухудшит доверие"]
+      },
+      "gray promises": {
+        _category: ["статус до подтверждения", "условная формулировка"],
+        "награда получена": ["награда ждёт подтверждения", "проверяем награду"],
+        "очки начислены": ["очки будут видны после подтверждения", "проверяем очки"],
+        "мы уже сделали": ["делаем", "проверяем результат"],
+        "платёж прошёл": ["платёж проверяется", "ждём подтверждение"],
+        "предмет выдан": ["предмет появится после подтверждения", "проверяем выдачу"]
       }
     }
   };
@@ -63,6 +105,64 @@ window.Game = window.Game || {};
 
   const requiredKeys = ["address", "stance", "phraseLength", "allowed", "forbidden", "rewriteHints"];
   const requiredAllowedDomains = ["economy", "decision", "conflict", "social", "interface"];
+  const requiredForbiddenCategories = [
+    "memes/internet slang",
+    "teen slang",
+    "officialese/bureaucratic phrasing",
+    "toxicity/humiliation",
+    "teacher tone",
+    "gray promises"
+  ];
+
+  const isGuidanceList = (value) => Array.isArray(value)
+    && value.length >= 1
+    && value.length <= 2
+    && value.every((hint) => typeof hint === "string" && hint.trim().length > 0);
+
+  const readForbiddenProof = () => {
+    const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
+    const forbidden = lex && lex.forbidden ? lex.forbidden : {};
+    const categories = Array.isArray(forbidden.categories) ? forbidden.categories : [];
+    const tabooForms = forbidden.tabooForms || {};
+    const rewriteHints = lex && lex.rewriteHints ? lex.rewriteHints : {};
+    const missingCategories = requiredForbiddenCategories.filter((category) => !categories.includes(category));
+    const missingCategoryGuidance = [];
+    const missingItemGuidance = [];
+    const categoryItemCounts = {};
+
+    for (const category of requiredForbiddenCategories) {
+      const items = Array.isArray(tabooForms[category]) ? tabooForms[category] : [];
+      const hints = rewriteHints[category] || {};
+      categoryItemCounts[category] = items.length;
+      if (!isGuidanceList(hints._category)) {
+        missingCategoryGuidance.push(category);
+      }
+      for (const item of items) {
+        if (!isGuidanceList(hints[item])) {
+          missingItemGuidance.push(`${category}:${item}`);
+        }
+      }
+    }
+
+    const hasRequiredCategories = missingCategories.length === 0;
+    const hasForbiddenItems = requiredForbiddenCategories.every((category) => categoryItemCounts[category] > 0);
+    const hasRewriteHints = missingCategoryGuidance.length === 0 && missingItemGuidance.length === 0;
+
+    return {
+      ok: !!lex && hasRequiredCategories && hasForbiddenItems && hasRewriteHints,
+      path: "Game.Data.styleLex",
+      requiredForbiddenCategories,
+      forbiddenCategories: categories,
+      categoryItemCounts,
+      hasRequiredCategories,
+      hasForbiddenItems,
+      hasRewriteHints,
+      missingCategories,
+      missingCategoryGuidance,
+      missingItemGuidance
+    };
+  };
+
   const readProof = () => {
     const lex = Game.Data && Game.Data.styleLex ? Game.Data.styleLex : null;
     const keys = lex ? Object.keys(lex) : [];
@@ -81,8 +181,8 @@ window.Game = window.Game || {};
         && words.length > 0
         && requiredAllowedWords[domain].every((word) => words.includes(word));
     });
-    const taboosOk = !!(lex && lex.forbidden && Array.isArray(lex.forbidden.categories))
-      && ["memes", "officialese", "teen slang"].every((category) => lex.forbidden.categories.includes(category));
+    const forbiddenProof = readForbiddenProof();
+    const taboosOk = forbiddenProof.ok;
     const contractOk = !!lex
       && lex.address === "ты"
       && lex.stance === "partner"
@@ -104,7 +204,8 @@ window.Game = window.Game || {};
         return acc;
       }, {}),
       hasAllowedDomains: allowedDomainsOk,
-      hasTaboos: taboosOk
+      hasTaboos: taboosOk,
+      forbiddenProof
     };
   };
 
@@ -116,6 +217,9 @@ window.Game = window.Game || {};
   }
   if (typeof Game.__DEV.smokeStyleLexAllowedOnce !== "function") {
     Game.__DEV.smokeStyleLexAllowedOnce = readProof;
+  }
+  if (typeof Game.__DEV.smokeStyleLexForbiddenOnce !== "function") {
+    Game.__DEV.smokeStyleLexForbiddenOnce = readForbiddenProof;
   }
 
   try {
