@@ -3950,3 +3950,75 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - PASS: Bumped `style.css` and `ui/ui-boot.js` cache-busters in both HTML entrypoints so GitHub Pages hard refresh picks up the cleanup.
 - FAIL/WARN: Automated browser/iPhone Safari smoke was not completed inside the container because Playwright Chromium download failed with HTTP 403; manual GitHub Pages iPhone Safari smoke is still required after merge.
 - Changed: `docs/index.html` `docs/style.css` `docs/ui/ui-boot.js` `AsyncScene/Web/index.html` `AsyncScene/Web/style.css` `AsyncScene/Web/ui/ui-boot.js` `TASKS.md` `PROJECT_MEMORY.md`
+
+### 2026-05-31 — Security false-positive transferRep crowd finalization fix
+- Status: FAIL/WARN (browser smoke blocked by environment; code/static checks PASS)
+- Root cause found from `Console.txt`: the latest relevant security markers show `withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10` attempting to set protected `StateAPI.transferRep`, followed by `tamper_detected`, then repeated `tamper_function` `transferRep` calls with `reason: blocked`; exact markers include `Console.txt:2581 LOG [SEC:reaction] ... type: tamper_function ... key: StateAPI.transferRep`, `Console.txt:2606 LOG [SEC:reaction] ... stack: set@http://localhost:8080/state.js:1649:29 | withRepSourceOverride@http://localhost:8080/conflict/conflict-core.js:1640:10 | finalizeCrowdVote@http://localhost:8080/conflict/conflict-core.js:2437:45 | applyCrowdVoteTick@http://localhost:8080/conflict/conflict-core.js:2251:38 ... type: tamper_detected`, and repeated `Console.txt:2641`, `2722`, `2933`, `2958`, `3235`, `3361`, `3666`, `3691` `transferRep` blocked reactions.
+- Changed: `docs/conflict/conflict-core.js` no longer temporarily overwrites protected `Game.__A.transferRep` during crowd finalization; `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` add `smokeSecurityNoFalseBlockAfterCrowdOnce`.
+- PASS exact syntax output:
+```text
+$ node --check docs/conflict/conflict-core.js && node --check docs/dev/dev-checks.js && node --check AsyncScene/Web/dev/dev-checks.js
+```
+- FAIL/WARN exact smoke output:
+```text
+$ ASYNCSCENE_SMOKE_URL='http://127.0.0.1:8080/?smoke=1' node scripts/run-asyncscene-smoke.mjs smokeSecurityNoFalseBlockAfterCrowdOnce
+BEGIN_SMOKE_RESULT
+{
+  "consoleMessages": [],
+  "error": {
+    "message": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
+    "name": "Error",
+    "stack": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝\n    at run (/workspace/AsyncScene/scripts/run-asyncscene-smoke.mjs:152:30)\n    at /workspace/AsyncScene/scripts/run-asyncscene-smoke.mjs:459:1"
+  },
+  "ok": false,
+  "pageErrors": [],
+  "pageTitle": null,
+  "pageUrl": "http://127.0.0.1:8080/?smoke=1",
+  "phase": "browser",
+  "reason": "browser_failed",
+  "screenshotPath": null,
+  "smokeName": "smokeSecurityNoFalseBlockAfterCrowdOnce"
+}
+END_SMOKE_RESULT
+```
+- FAIL/WARN exact browser install output:
+```text
+$ npx playwright install chromium
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+Error: Download failed: server returned code 403 body 'Forbidden'. URL: https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+    at IncomingMessage.handleError (/workspace/AsyncScene/node_modules/playwright-core/lib/server/registry/oopDownloadBrowserMain.js:58:23)
+    at IncomingMessage.emit (node:events:536:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+Error: Download failed: server returned code 403 body 'Forbidden'. URL: https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+    at IncomingMessage.handleError (/workspace/AsyncScene/node_modules/playwright-core/lib/server/registry/oopDownloadBrowserMain.js:58:23)
+    at IncomingMessage.emit (node:events:536:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+Error: Download failed: server returned code 403 body 'Forbidden'. URL: https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+    at IncomingMessage.handleError (/workspace/AsyncScene/node_modules/playwright-core/lib/server/registry/oopDownloadBrowserMain.js:58:23)
+    at IncomingMessage.emit (node:events:536:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+Error: Download failed: server returned code 403 body 'Forbidden'. URL: https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+    at IncomingMessage.handleError (/workspace/AsyncScene/node_modules/playwright-core/lib/server/registry/oopDownloadBrowserMain.js:58:23)
+    at IncomingMessage.emit (node:events:536:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+Error: Download failed: server returned code 403 body 'Forbidden'. URL: https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+    at IncomingMessage.handleError (/workspace/AsyncScene/node_modules/playwright-core/lib/server/registry/oopDownloadBrowserMain.js:58:23)
+    at IncomingMessage.emit (node:events:536:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Failed to install browsers
+Error: Failed to download Chrome for Testing 145.0.7632.6 (playwright chromium v1208), caused by
+Error: Download failure, code=1
+    at ChildProcess.<anonymous> (/workspace/AsyncScene/node_modules/playwright-core/lib/server/registry/browserFetcher.js:96:32)
+    at ChildProcess.emit (node:events:524:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+```

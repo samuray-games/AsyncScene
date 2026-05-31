@@ -22830,6 +22830,202 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     }
   };
 
+
+  Game.__DEV.smokeSecurityNoFalseBlockAfterCrowdOnce = async (opts = {}) => {
+    const name = "smoke_security_no_false_block_after_crowd_once";
+    const startedAt = Date.now();
+    const result = {
+      name,
+      ok: false,
+      steps: {},
+      notes: [],
+      before: {},
+      after: {},
+      failures: [],
+    };
+    const fail = (key, detail) => {
+      result.failures.push(key);
+      if (detail !== undefined) result.steps[key] = detail;
+    };
+    const S = Game.__S || (Game.__S = {});
+    S.players ||= {};
+    S.battles ||= [];
+    S.events ||= [];
+    const meId = (S.me && S.me.id) ? String(S.me.id) : "me";
+    const securityEventsBefore = (Game.__D && Array.isArray(Game.__D.securityEvents)) ? Game.__D.securityEvents.length : 0;
+    const securityReactionsBefore = (Game.__D && Array.isArray(Game.__D.securityReactions)) ? Game.__D.securityReactions.length : 0;
+    result.before.securityEvents = securityEventsBefore;
+    result.before.securityReactions = securityReactionsBefore;
+    result.before.battleBlocked = !!(Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "battle"));
+    result.before.voteBlocked = !!(Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "vote"));
+    result.before.economyBlocked = !!(Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "economy"));
+    const seed = `${Date.now().toString(36)}_${Math.floor(Math.random() * 1e6).toString(36)}`;
+    const npcA = `npc_security_smoke_a_${seed}`;
+    const npcB = `npc_security_smoke_b_${seed}`;
+    const npcC = `npc_security_smoke_c_${seed}`;
+    const ensureNpc = (id, nameText, influence = 5) => {
+      const player = Object.assign({
+        id,
+        name: nameText,
+        npc: true,
+        type: "npc",
+        role: "normal",
+        points: 12,
+        rep: 0,
+        influence,
+        wins: 0,
+      }, S.players[id] || {});
+      player.id = id;
+      player.name = player.name || nameText;
+      player.npc = true;
+      player.type = "npc";
+      player.role = "normal";
+      if (!Number.isFinite(player.points) || player.points < 12) player.points = 12;
+      if (!Number.isFinite(player.influence)) player.influence = influence;
+      S.players[id] = player;
+      return player;
+    };
+    ensureNpc(npcA, "Security Smoke A", 5);
+    ensureNpc(npcB, "Security Smoke B", 6);
+    ensureNpc(npcC, "Security Smoke C", 7);
+    try {
+      if (S.me && Number.isFinite(S.me.points) && S.me.points < 10 && Game.__A && typeof Game.__A.addPoints === "function") {
+        Game.__A.addPoints(10 - (S.me.points | 0), "security_smoke_seed_points", { actionId: `${name}:seed_points:${seed}` });
+      }
+    } catch (err) {
+      result.notes.push(`seed_points_failed:${err && err.message ? err.message : String(err)}`);
+    }
+
+    const crowdBattleId = `dev_smoke_security_crowd_${seed}`;
+    const nowMs = Date.now();
+    const crowdBattle = {
+      id: crowdBattleId,
+      battleId: crowdBattleId,
+      opponentId: npcA,
+      attackerId: meId,
+      defenderId: npcA,
+      createdBy: meId,
+      fromThem: false,
+      status: "crowd",
+      result: "draw",
+      resultLine: "Толпа решает",
+      draw: true,
+      resolved: false,
+      finished: false,
+      attackHidden: false,
+      attack: { id: "canon_security_smoke_attack", text: "Smoke attack", type: "yn", _sub: "Y", _canonQ: "Smoke attack", color: "y" },
+      defense: { id: "canon_security_smoke_defense", text: "Smoke defense", type: "yn", _sub: "Y", _canonA: "Smoke defense", color: "y" },
+      meta: { devSmoke: true, canonMatchOk: true },
+      crowd: {
+        votesA: 1,
+        votesB: 0,
+        aVotes: 1,
+        bVotes: 0,
+        voters: { [meId]: "a" },
+        decided: false,
+        cap: 1,
+        attackerId: meId,
+        defenderId: npcA,
+        startedAtMs: nowMs - 90000,
+        endAt: nowMs - 1,
+        endsAt: nowMs - 1,
+        phaseState: "voting",
+        meta: { devSmoke: true },
+      },
+    };
+    S.battles.unshift(crowdBattle);
+    let finalizeRes = null;
+    try {
+      finalizeRes = (Game.Conflict && typeof Game.Conflict.finalizeCrowdVote === "function")
+        ? Game.Conflict.finalizeCrowdVote(crowdBattleId)
+        : { ok: false, reason: "finalize_missing" };
+    } catch (err) {
+      finalizeRes = { ok: false, reason: "finalize_exception", error: err && err.message ? err.message : String(err) };
+    }
+    result.steps.finalizeCrowdVote = finalizeRes;
+    const finalizedBattle = S.battles.find(b => b && b.id === crowdBattleId) || crowdBattle;
+    const finalizedOk = !!(finalizeRes && finalizeRes.ok) || !!(finalizedBattle && (finalizedBattle.finished || finalizedBattle.resolved || finalizedBattle.status === "finished"));
+    if (!finalizedOk) fail("finalize_crowd_vote_failed", { finalizeRes, status: finalizedBattle && finalizedBattle.status, result: finalizedBattle && finalizedBattle.result });
+
+    const transferHealth = [];
+    for (let i = 0; i < 2; i += 1) {
+      try {
+        const tx = (Game.__A && typeof Game.__A.transferRep === "function")
+          ? Game.__A.transferRep("crowd_pool", meId, 1, `security_smoke_rep_health_${i}_${seed}`, `${crowdBattleId}_health_${i}`, { actionId: `${name}:rep:${i}:${seed}` })
+          : { ok: false, reason: "transfer_missing" };
+        transferHealth.push(tx || null);
+      } catch (err) {
+        transferHealth.push({ ok: false, reason: "transfer_exception", error: err && err.message ? err.message : String(err) });
+      }
+    }
+    result.steps.transferRepHealth = transferHealth;
+    if (transferHealth.some(x => !x || x.ok !== true)) fail("transfer_rep_health_failed", transferHealth);
+
+    let voteRes = false;
+    let eventId = null;
+    try {
+      const ev = (Game.Events && typeof Game.Events.makeNpcEvent === "function") ? Game.Events.makeNpcEvent(npcA, npcB) : null;
+      if (ev) {
+        ev.id = `dev_smoke_security_event_${seed}`;
+        ev.skipSys = true;
+        if (ev.crowd) {
+          ev.crowd.cap = Math.max(3, Number(ev.crowd.cap || 3));
+          ev.crowd.voters = ev.crowd.voters || {};
+        }
+        if (Game.Events && typeof Game.Events.addEvent === "function") Game.Events.addEvent(ev);
+        eventId = ev.id;
+        voteRes = (Game.Events && typeof Game.Events.helpEvent === "function") ? !!Game.Events.helpEvent(eventId, "a") : false;
+      }
+    } catch (err) {
+      result.steps.voteException = err && err.message ? err.message : String(err);
+    }
+    result.steps.vote = { ok: voteRes, eventId };
+    if (!voteRes) fail("vote_failed", result.steps.vote);
+
+    let startRes = null;
+    try {
+      startRes = (Game.Conflict && typeof Game.Conflict.startWith === "function")
+        ? Game.Conflict.startWith(npcC)
+        : { ok: false, reason: "start_missing" };
+    } catch (err) {
+      startRes = { ok: false, reason: "start_exception", error: err && err.message ? err.message : String(err) };
+    }
+    result.steps.startBattle = startRes;
+    if (!startRes || startRes.ok !== true) fail("start_battle_failed", startRes);
+
+    const invalidBefore = (Game.__D && Array.isArray(Game.__D.securityEvents))
+      ? Game.__D.securityEvents.filter(ev => ev && ev.type === "invalid_state_mutation").length
+      : 0;
+    const pointsBeforeInvalid = S.me && Number.isFinite(S.me.points) ? (S.me.points | 0) : null;
+    try {
+      if (S.me) S.me.points = (pointsBeforeInvalid == null ? 999 : pointsBeforeInvalid + 999);
+    } catch (err) {
+      result.steps.invalidMutationException = err && err.message ? err.message : String(err);
+    }
+    const pointsAfterInvalid = S.me && Number.isFinite(S.me.points) ? (S.me.points | 0) : null;
+    const invalidAfter = (Game.__D && Array.isArray(Game.__D.securityEvents))
+      ? Game.__D.securityEvents.filter(ev => ev && ev.type === "invalid_state_mutation").length
+      : invalidBefore;
+    const invalidMutationProtected = pointsBeforeInvalid === pointsAfterInvalid && invalidAfter > invalidBefore;
+    result.steps.invalidMutationProtection = { ok: invalidMutationProtected, before: pointsBeforeInvalid, after: pointsAfterInvalid, invalidBefore, invalidAfter };
+    if (!invalidMutationProtected) fail("invalid_mutation_protection_failed", result.steps.invalidMutationProtection);
+
+    result.after.battleBlocked = !!(Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "battle"));
+    result.after.voteBlocked = !!(Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "vote"));
+    result.after.economyBlocked = !!(Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "economy"));
+    result.after.securityEvents = (Game.__D && Array.isArray(Game.__D.securityEvents)) ? Game.__D.securityEvents.length : securityEventsBefore;
+    result.after.securityReactions = (Game.__D && Array.isArray(Game.__D.securityReactions)) ? Game.__D.securityReactions.length : securityReactionsBefore;
+    const newSecurityEvents = (Game.__D && Array.isArray(Game.__D.securityEvents)) ? Game.__D.securityEvents.slice(securityEventsBefore) : [];
+    result.after.newSecurityEventTypes = newSecurityEvents.map(ev => ev && ev.type).filter(Boolean);
+    result.after.securityFlag = (Game.SecurityPolicy && typeof Game.SecurityPolicy.getFlag === "function") ? Game.SecurityPolicy.getFlag(meId) : null;
+    const blockedAfter = result.after.battleBlocked || result.after.voteBlocked || result.after.economyBlocked;
+    if (blockedAfter) fail("security_blocked_valid_actions", { battle: result.after.battleBlocked, vote: result.after.voteBlocked, economy: result.after.economyBlocked, flag: result.after.securityFlag });
+    result.durationMs = Date.now() - startedAt;
+    result.ok = result.failures.length === 0;
+    console.log("SECURITY_NO_FALSE_BLOCK_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify({ ok: result.ok, failures: result.failures, steps: result.steps, after: result.after }));
+    return result;
+  };
+
   // Auto-run disabled by default to avoid boot-time failures; manual run only.
 
   // Dev shortcut: Ctrl+Shift+T
