@@ -184,6 +184,11 @@ window.Game = window.Game || {};
         : "";
       if (entered === DEV_MODE_PIN) {
         setLocalDevModeUnlocked(true);
+        if (typeof window.__ASYNC_SCENE_ENSURE_CONSOLE_TAPE__ === "function") {
+          window.__ASYNC_SCENE_ENSURE_CONSOLE_TAPE__().catch((err) => {
+            console.error("DEV_MODE_CONSOLE_TAPE_LOAD_ERR", err);
+          });
+        }
         notify("Dev Mode unlocked on this device.");
       } else if (entered !== null) {
         notify("Incorrect Dev Mode PIN.");

@@ -483,14 +483,23 @@ Game.__DEV.smokePublicChatAutoReplyOnce({ seed: 123 })
 
 ## Console Panel Run+Copy manual smoke (2026-05-31)
 
-Use on iPhone Safari or desktop Safari with Dev Mode unlocked:
+Use on iPhone Safari with GitHub Pages Dev Mode unlocked by PIN:
 
-1. Unlock Dev Mode, open the Console Panel, enter `1 + 1`, and tap `Run+Copy`.
-   - PASS: the command runs, the panel output shows the result text, status shows `Copied`, and pasting into Notes/messages yields the same result text.
-   - FAIL: the command does not run, output is blank/stale, status shows `Copy failed`, or paste does not match the panel output.
-2. Enter `throw new Error("copy smoke")` and tap `Run+Copy`.
-   - PASS: the panel output shows the error text and pasting yields the same error text.
-   - FAIL: the error is not shown or copied.
-3. Lock/disable Dev Mode, reopen/try the Console Panel action if reachable, and tap `Run+Copy`.
-   - PASS: the panel closes or stays locked; the command does not run and clipboard content is not replaced.
+1. Unlock Dev Mode with the PIN and open the Console Panel.
+   - PASS: the panel opens and Network shows `dev/console-tape.js?v=20260531_run_helper_gate_1` loaded only after unlock.
+   - FAIL: the helper loads before unlock, or the panel opens while locked.
+2. Enter `1+1` and tap `Run`.
+   - PASS: the panel output is `2`.
+   - FAIL: output is `Run helper missing`, blank/stale, or not `2`.
+3. Enter `1+1` and tap `Run+Copy`, then paste into Notes/messages.
+   - PASS: pasted text is `2`.
+   - FAIL: paste is blank/stale, a stack trace, or anything other than `2`.
+4. Enter `unknownVariable` and tap `Run+Copy`, then paste into Notes/messages.
+   - PASS: panel/paste contain a readable `ReferenceError`.
+   - FAIL: the error is missing, unreadable, or replaced by `Run helper missing`.
+5. Enter `({ b: 2, a: 1 })` and tap `Run+Copy`, then paste into Notes/messages.
+   - PASS: panel/paste contain readable helper-standard object output with stable key order.
+   - FAIL: object output is `[object Object]`, blank, or unstable/unreadable.
+6. Disable Dev Mode, reopen/try the Console Panel action if reachable, and tap `Run`/`Run+Copy`.
+   - PASS: the panel closes or stays locked; no command runs and clipboard content is not replaced.
    - FAIL: a locked panel run executes or copies anything.

@@ -500,10 +500,14 @@
   };
   window.__RUN__ = runEval;
   window.__EVAL__ = evalFn;
+  window.RUN = runEval;
+  window.EVAL = evalFn;
 
   if (window.Game && typeof window.Game === "object") {
     window.Game.__RUN__ = runEval;
     window.Game.__EVAL__ = evalFn;
+    window.Game.RUN = runEval;
+    window.Game.EVAL = evalFn;
   }
 
   console.warn("CONSOLE_TAPE_V1_READY");

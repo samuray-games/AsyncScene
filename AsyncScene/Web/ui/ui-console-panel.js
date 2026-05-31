@@ -13,6 +13,50 @@
     window.__DEV__ = true;
   }
 
+  const CONSOLE_TAPE_SCRIPT_SRC = "dev/console-tape.js";
+  const hasRunHelper = () => (
+    typeof window.__RUN__ === "function" ||
+    typeof window.RUN === "function" ||
+    typeof window.__EVAL__ === "function" ||
+    typeof window.EVAL === "function"
+  );
+  const ensureConsoleTapeLoaded = () => {
+    if (!isDevMode()) return Promise.resolve(false);
+    if (hasRunHelper()) return Promise.resolve(true);
+    if (window.__ASYNC_SCENE_CONSOLE_TAPE_PROMISE__) {
+      return window.__ASYNC_SCENE_CONSOLE_TAPE_PROMISE__.then(() => hasRunHelper());
+    }
+    window.__ASYNC_SCENE_CONSOLE_TAPE_PROMISE__ = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-asyncscene-console-tape="1"]');
+      if (existing) {
+        if (existing.dataset.asyncsceneConsoleTapeLoaded === "1" || hasRunHelper()) {
+          resolve();
+          return;
+        }
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error("Console tape failed to load")), { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = `${CONSOLE_TAPE_SCRIPT_SRC}?v=20260531_run_helper_gate_1`;
+      script.defer = true;
+      script.dataset.asyncsceneConsoleTape = "1";
+      script.onload = () => {
+        script.dataset.asyncsceneConsoleTapeLoaded = "1";
+        resolve();
+      };
+      script.onerror = () => reject(new Error("Console tape failed to load"));
+      document.head.appendChild(script);
+    }).then(() => {
+      if (!hasRunHelper()) throw new Error("Run helper missing after console tape load");
+      return true;
+    }).catch((err) => {
+      window.__ASYNC_SCENE_CONSOLE_TAPE_PROMISE__ = null;
+      throw err;
+    });
+    return window.__ASYNC_SCENE_CONSOLE_TAPE_PROMISE__;
+  };
+
   const PANEL_ID = "consolePanel";
   if (document.getElementById(PANEL_ID)) return;
 
@@ -243,10 +287,15 @@
     let failed = false;
     let outputText = "";
     try {
+      await ensureConsoleTapeLoaded();
       if (typeof window.__RUN__ === "function") {
         result = await window.__RUN__(code);
+      } else if (typeof window.RUN === "function") {
+        result = await window.RUN(code);
       } else if (typeof window.__EVAL__ === "function") {
         result = await window.__EVAL__(() => eval(code));
+      } else if (typeof window.EVAL === "function") {
+        result = await window.EVAL(() => eval(code));
       } else {
         throw new Error("Run helper missing");
       }
@@ -338,6 +387,10 @@
       closePanel();
       return;
     }
+    ensureConsoleTapeLoaded().catch((err) => {
+      console.error("CONSOLE_PANEL_TAPE_LOAD_ERR", err);
+      setCopyStatus("Console tape load failed", true);
+    });
     panel.classList.remove("hidden");
   };
   const togglePanel = () => {
@@ -345,8 +398,13 @@
       closePanel();
       return;
     }
-    panel.classList.toggle("hidden");
+    if (panel.classList.contains("hidden")) {
+      showPanel();
+    } else {
+      panel.classList.add("hidden");
+    }
   };
+  window.__ASYNC_SCENE_ENSURE_CONSOLE_TAPE__ = ensureConsoleTapeLoaded;
   window.closeConsolePanel = closePanel;
   window.toggleConsolePanel = togglePanel;
   window.showConsolePanel = showPanel;
