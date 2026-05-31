@@ -3715,3 +3715,7 @@ LOG END CONSOLE_EXPAND_V1
 WARN [SEC] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
 WARN [SEC:notify] tamper_function Object{action: call, key: transferRep, mode: dev, reason: blocked}
 
+
+DUMP_AT 2026-05-31 13:21:36 UTC STYLELEX_REGRESSION_SMOKE_PACK
+COMMAND node /tmp/stylelex-smoke.js
+RESULT {"ok":true,"checkedCount":50,"previousSmokesOk":true,"violationsCount":0,"violationsSample":[],"alias":"function"}

@@ -77,6 +77,15 @@
 Если этот чеклист пройден — Stage 2 считается DONE.
 
 
+
+## 2026-05-31 — StyleLex regression smoke pack
+
+- Added `Game.__DEV.smokeStyleLexPack()` in `docs/data/style-lex.js`; when `Game.Dev` exists, `Game.Dev.smokeStyleLexPack` points to the same function, including the `docs/dev/dev-checks.js` late-dev-surface path.
+- The pack is a fast regression smoke only: it samples existing player-facing strings and does not change economy, battle, or UI copy logic.
+- Coverage currently checks 50 strings from StyleLex formulas, economy/stat toasts, common errors/hints/results, battle/escape/ignore/crowd outcomes, ECON-SOC report UI, ECON-08 respect UI, and existing ECON-04 training strings.
+- PASS evidence recorded in `Console.txt`: `ok:true`, `checkedCount:50`, `previousSmokesOk:true`, `violationsCount:0`, `violationsSample:[]`, alias type `function`.
+- Local checks: PASS `node --check docs/data/style-lex.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node /tmp/stylelex-smoke.js`. Browser automation warning: `npx playwright install chromium` failed with CDN 403, so iPhone Safari/runtime QA should rerun `Game.__DEV.smokeStyleLexPack()` after cache refresh.
+
 ## 2026-05-31 — GitHub Pages Console Panel helper load fix
 - Status: PASS. Root cause: `docs/index.html` no longer loaded `docs/dev/console-tape.js`, while Console Panel `Run`/`Run+Copy` depended on the helper globals and therefore threw `Run helper missing`; Run+Copy copied that stack instead of the evaluated result.
 - Fix: the mirrored Console Panel now dynamically loads `dev/console-tape.js?v=20260531_run_helper_gate_1` only after local Dev Mode is unlocked, the Dev Mode unlock path preloads it, and command execution awaits the helper before evaluating.
