@@ -4257,3 +4257,19 @@ Error: Download failure, code=1
   - PASS: Node VM proof loaded `docs/data.js` and `docs/data/style-lex.js`; `smokeStyleLexNormalizeOnce()` returned ok:true; helper existed at `Game.Text.normalizeText`/`Game.StyleLex.normalizeText`; it read `Game.Data.styleLex`; it rewrote `ты должен` to `можешь`; it rewrote bare `ошибка` to `не получилось`; it detected forbidden `лох`; toast limit was max 2 lines with trimming; resultCard limit was max 4 lines with trimming; previous StyleLex smokes stayed ok:true; wiredNow contained the two safe toast/economy boundaries and pending contained the audited non-wired areas.
   - WARN: Browser smoke `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStyleLexNormalizeOnce` returned `browser_failed` because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; local runtime proof remains the PASS evidence.
 - Smoke: PASS by local runtime proof because one canonical helper exists on a runtime path, runtime can call it, it performs replacements/checks/length limiting, previous StyleLex smokes still pass, and a safe initial generated text boundary set is wired while broader touchpoints are explicitly pending.
+
+### 2026-05-31 — AsyncScene Step 3 [1] runtime smoke wiring fix
+- Status: READY_FOR_RUNTIME_SMOKE; static checks PASS, iPhone Safari runtime PASS not claimed.
+- Root cause: the terminology CSV artifact was already present, but the runtime helper needed dev-checks registration that is available before later dev-check code can interrupt script execution on deployed pages.
+- Changed:
+  - Registered `Game.__DEV.smokeStep3TerminologyInventoryOnce()` near dev-checks boot in both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`.
+  - Added build marker `STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1` and compact return fields `ok`, `failures`, `rowCount`, `duplicateTermIds`, `missingBuckets`, `invalidRows`, and `buildMarker`.
+  - The helper fetches the deployed terminology CSV path, validates required columns, allowed categories, duplicate `TERM_ID`, static required fields, vague wording markers, and required feature bucket coverage.
+  - Terminology content was not renamed, rewritten, normalized, deduplicated, or otherwise modified.
+- PASS criteria: Safari console command exists as a function, returns `ok:true`, `rowCount:3513`, no duplicate `TERM_ID`, no missing buckets, no invalid rows, and build marker `STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1`.
+- FAIL criteria: `Game.__DEV.smokeStep3TerminologyInventoryOnce` is undefined, CSV fetch fails on the deployed app, required columns are missing, duplicate `TERM_ID` appears, static rows have empty `TERM_ID`/`category`/`currentText`/`sourceFile`, vague markers appear, required buckets are missing, or runtime PASS is claimed without the Safari run.
+- Evidence:
+  - PASS: `node --check docs/dev/dev-checks.js`.
+  - PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
+  - PASS: Node static CSV validation returned `ok:true`, `rowCount:3513`, `duplicateTermIds:[]`, `missingBuckets:[]`, `invalidRows:[]`.
+- Required Safari command after cache refresh: `Game.__DEV.smokeStep3TerminologyInventoryOnce()`.
