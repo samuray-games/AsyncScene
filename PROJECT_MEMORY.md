@@ -4249,3 +4249,13 @@ Error: Download failure, code=1
 - Governance-only scope guard: no gameplay changes, no UI string rewrites, and no mass replacements in code.
 - Static evidence: PASS `tools/validate-step3-terminology-canon.py docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv` returned `ok: True`, `conceptCount: 12`, `failures: []`, `mappedForbiddenSynonymCount: 53`.
 - Safari command for QA: `Game.__DEV.smokeStep3TerminologyCanonOnce()`.
+
+## 2026-06-01 — Step 3 [3] Millennial UI Style Guide governance
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Added formal machine-readable `STYLE_GUIDE_MILLENNIAL_V1` artifacts at `docs/style/STYLE_GUIDE_MILLENNIAL_V1.json` and `AsyncScene/Web/style/STYLE_GUIDE_MILLENNIAL_V1.json` with build marker `STEP3_MILLENNIAL_STYLE_GUIDE_V1`.
+- Governance scope only: no gameplay changes and no mass UI string rewrite.
+- The style guide fixes millennial UI language rules: address user as `ты`, neutral-confident tone, short product sentences, no lecturing, no flirting, no bureaucracy/officialese, no memes, no teen slang, no humiliation, no hype/fanfare victory language, and no moral judgment.
+- It defines maximum phrase lengths for buttons, errors, hints, toasts, empty states, system messages, economy messages, battle messages, and cooldown messages; allowed CTA verb patterns; forbidden CTA alternatives; canonical error and hint wording; explicit forbidden categories; and replacement guidance for future validators.
+- Added `Game.__DEV.smokeStep3MillennialStyleGuideOnce()` to both dev-checks copies. The smoke is static-only and validates required sections, required rules, forbidden categories, CTA/error/hint rules, positive phrase limits, and no internal contradictions between preferred/forbidden vocabulary or CTA verbs.
+- Static evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS Node static artifact validation printed `STEP3_MILLENNIAL_STYLE_GUIDE_STATIC PASS`.
+- Safari command for QA: `Game.__DEV.smokeStep3MillennialStyleGuideOnce()`.

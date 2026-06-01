@@ -4317,3 +4317,12 @@ Error: Download failure, code=1
   - PASS: `node --check docs/dev/dev-checks.js`.
   - PASS: `node --check AsyncScene/Web/dev/dev-checks.js`.
   - PASS: static check confirmed both HTML entrypoints include `dev/dev-checks.js?v=step3-terminology-smoke-v1` and both dev-checks copies contain `STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1`.
+
+## 2026-06-01 — AsyncScene Step 3 [3] Millennial UI Style Guide governance
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS is not claimed in this coding pass.
+- Added formal machine-readable artifact `STYLE_GUIDE_MILLENNIAL_V1.json` in both `docs/style/` and `AsyncScene/Web/style/` with build marker `STEP3_MILLENNIAL_STYLE_GUIDE_V1`.
+- Scope guard: language governance only; no gameplay changes and no mass rewrite of existing UI strings.
+- The guide defines `ты` address, neutral-confident short product phrasing, CTA verb patterns, vocabulary guidance, maximum lengths for buttons/errors/hints/toasts and other surfaces, error wording, hint wording, system/economy/battle/cooldown/empty-state wording, explicit forbidden categories, and replacement guidance.
+- Added `Game.__DEV.smokeStep3MillennialStyleGuideOnce()` in mirrored dev-checks; it fetches the artifact and validates required sections/rules, forbidden categories, CTA rules, error rules, hint rules, phrase length limits, and internal contradiction checks.
+- Evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS Node static artifact validation returned `STEP3_MILLENNIAL_STYLE_GUIDE_STATIC PASS`.
+- Safari command for QA after cache refresh: `Game.__DEV.smokeStep3MillennialStyleGuideOnce()`.
