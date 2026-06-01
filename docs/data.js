@@ -1949,6 +1949,178 @@ K YN A9: Нет.
     });
     return count;
   };
+  Data.ARG_CANON_MILLENNIAL_TEMPLATE_RULES = {
+    ABOUT: {
+      description: "same person/topic canon, conversational openings",
+      variants: [
+        { id: "about-direct", q: "{core}", a: "{target}" },
+        { id: "about-soft", q: "А {core}", a: "Похоже, {target}" },
+        { id: "about-chat", q: "Слушай, {core}", a: "Я бы сказал(а), {target}" }
+      ]
+    },
+    WHO: {
+      description: "same person identity canon, conversational openings",
+      variants: [
+        { id: "who-direct", q: "{core}", a: "{target}" },
+        { id: "who-soft", q: "А {core}", a: "Похоже, {target}" },
+        { id: "who-chat", q: "Слушай, {core}", a: "Я бы поставил(а) на {target}" }
+      ]
+    },
+    WHERE: {
+      description: "same place canon, conversational openings",
+      variants: [
+        { id: "where-direct", q: "{core}", a: "{target}" },
+        { id: "where-soft", q: "А {core}", a: "Похоже, {target}" },
+        { id: "where-chat", q: "Слушай, {core}", a: "Я бы смотрел(а) {target}" }
+      ]
+    },
+    YN: {
+      description: "same yes/no canon, conversational openings",
+      variants: [
+        { id: "yn-direct", q: "{core}", a: "{target}" },
+        { id: "yn-soft", q: "А {core}", a: "Похоже, {target}" },
+        { id: "yn-chat", q: "Слушай, {core}", a: "Я бы сказал(а): {target}" }
+      ]
+    }
+  };
+
+  Data.normalizeArgCanonMillennialTemplateType = (type) => {
+    const t = String(type || "").trim().toUpperCase();
+    return (t === "ABOUT" || t === "WHO" || t === "WHERE" || t === "YN") ? t : "";
+  };
+
+  Data.pickArgCanonMillennialTemplateVariant = (canonId, type) => {
+    const t = Data.normalizeArgCanonMillennialTemplateType(type);
+    const rules = t && Data.ARG_CANON_MILLENNIAL_TEMPLATE_RULES ? Data.ARG_CANON_MILLENNIAL_TEMPLATE_RULES[t] : null;
+    const variants = rules && Array.isArray(rules.variants) ? rules.variants : [];
+    if (!variants.length) return null;
+    const id = String(canonId || "");
+    let hash = 0;
+    for (let i = 0; i < id.length; i += 1) hash = ((hash * 31) + id.charCodeAt(i)) >>> 0;
+    return variants[hash % variants.length] || variants[0] || null;
+  };
+
+  Data.cleanArgCanonMillennialCore = (text) => {
+    let core = String(text || "").trim();
+    core = core.replace(/^(эм[.…\.]*\s*)/iu, "");
+    core = core.replace(/^(извините|простите|скажите|подскажите),?\s*/iu, "");
+    core = core.replace(/^(ну[.…\.]*\s*)/iu, "");
+    core = core.trim();
+    return core || String(text || "").trim();
+  };
+
+  Data.extractArgCanonMillennialTarget = (text, type, qa) => {
+    const original = String(text || "").trim();
+    const side = String(qa || "").toUpperCase() === "A" ? "A" : "Q";
+    if (side !== "A") return Data.cleanArgCanonMillennialCore(original);
+    const t = Data.normalizeArgCanonMillennialTemplateType(type);
+    if (t === "ABOUT") return "про {NAME}";
+    if (t === "WHO") return "{NAME}";
+    if (t === "WHERE") return "там, где {PLACE}";
+    return Data.cleanArgCanonMillennialCore(original);
+  };
+
+  Data.applyArgCanonMillennialTemplate = (canonId, type, qa, classicText) => {
+    const original = String(classicText || "");
+    if (String(canonId || "").toUpperCase().indexOf("K|") === 0) return original;
+    const t = Data.normalizeArgCanonMillennialTemplateType(type);
+    const side = String(qa || "").toUpperCase() === "A" ? "A" : "Q";
+    const variant = Data.pickArgCanonMillennialTemplateVariant(canonId, t);
+    if (!variant) return original;
+    const pattern = side === "A" ? String(variant.a || "{target}") : String(variant.q || "{core}");
+    const core = Data.cleanArgCanonMillennialCore(original);
+    const target = Data.extractArgCanonMillennialTarget(original, t, side);
+    let out = pattern.replace(/\{core\}/g, core).replace(/\{target\}/g, target);
+    out = out.replace(/\s+/g, " ").trim();
+    out = out.replace(/\s+([?.!,…:])/g, "$1");
+    if (out && !/[?.!…]$/u.test(out)) out += ".";
+    return out || original;
+  };
+
+  Data.seedArgCanonMillennialTemplateTexts = () => {
+    const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || (Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID = Object.create(null));
+    const index = Data.ARG_CANON_INDEX || {};
+    let count = 0;
+    Object.keys(index).forEach((key) => {
+      const rec = index[key];
+      const type = rec && rec.type ? String(rec.type).toUpperCase() : "";
+      if (!Data.normalizeArgCanonMillennialTemplateType(type) || !rec || !Array.isArray(rec.items)) return;
+      rec.items.forEach((it, idx) => {
+        if (!it) return;
+        const qId = Data.argCanonTextId(rec.sub, rec.type, "Q", idx);
+        const aId = Data.argCanonTextId(rec.sub, rec.type, "A", idx);
+        if (qId && it.q) { store[qId] = Data.applyArgCanonMillennialTemplate(qId, type, "Q", it.q); count++; }
+        if (aId && it.a) { store[aId] = Data.applyArgCanonMillennialTemplate(aId, type, "A", it.a); count++; }
+      });
+    });
+    return count;
+  };
+
+  Data.smokeArgCanonMillennialTemplatesOnce = () => {
+    const requiredTypes = ["ABOUT", "WHO", "WHERE", "YN"];
+    const rules = Data.ARG_CANON_MILLENNIAL_TEMPLATE_RULES || {};
+    const result = {
+      ok: false,
+      checkedTypes: [],
+      missingTypes: [],
+      repeatedTemplateProblems: [],
+      failedChecks: [],
+      sampleCount: 0
+    };
+    const forbidden = ["аргумент", "механик", "уров", "очки", "ресурс", "интерфейс", "кноп", "систем", "учебник", "необходимо", "следует", "туториал", "геймплей"];
+    const openingOf = (text) => String(text || "").trim().toLowerCase().split(/\s+/).slice(0, 2).join(" ");
+    requiredTypes.forEach((type) => {
+      const rule = rules[type];
+      const variants = rule && Array.isArray(rule.variants) ? rule.variants : [];
+      if (!rule || variants.length < 2 || variants.length > 3) {
+        result.missingTypes.push(type);
+        return;
+      }
+      result.checkedTypes.push(type);
+      const seenIds = Object.create(null);
+      const seenOpenings = { q: Object.create(null), a: Object.create(null) };
+      variants.forEach((variant, idx) => {
+        const id = String((variant && variant.id) || "");
+        if (!id) result.failedChecks.push({ type, check: "variant_id", idx });
+        if (id && seenIds[id]) result.repeatedTemplateProblems.push({ type, check: "variant_id", id });
+        seenIds[id] = true;
+        ["q", "a"].forEach((side) => {
+          const pattern = String((variant && variant[side]) || "");
+          if (!pattern) result.failedChecks.push({ type, check: "template_missing", side, idx });
+          const opening = openingOf(pattern.replace(/\{core\}|\{target\}/g, "пример"));
+          if (opening && seenOpenings[side][opening]) result.repeatedTemplateProblems.push({ type, check: "opening", side, opening });
+          seenOpenings[side][opening] = true;
+          forbidden.forEach((term) => {
+            if (pattern.toLowerCase().indexOf(term) >= 0) result.failedChecks.push({ type, check: "forbidden_term", side, term, idx });
+          });
+        });
+      });
+    });
+    const index = Data.ARG_CANON_INDEX || {};
+    Object.keys(index).forEach((key) => {
+      const rec = index[key];
+      const type = rec && rec.type ? String(rec.type).toUpperCase() : "";
+      if (requiredTypes.indexOf(type) < 0 || !rec || !Array.isArray(rec.items)) return;
+      rec.items.forEach((it, idx) => {
+        if (!it) return;
+        [["Q", it.q], ["A", it.a]].forEach((pair) => {
+          if (!pair[1]) return;
+          const id = Data.argCanonTextId(rec.sub, rec.type, pair[0], idx);
+          const rendered = Data.applyArgCanonMillennialTemplate(id, type, pair[0], pair[1]);
+          result.sampleCount += 1;
+          if (!id) result.failedChecks.push({ type, check: "canon_id_missing", key, idx, side: pair[0] });
+          if (!rendered || typeof rendered !== "string") result.failedChecks.push({ type, check: "render_empty", id });
+          if (String(id || "").indexOf(`|${type}|`) < 0) result.failedChecks.push({ type, check: "canon_id_type", id });
+        });
+      });
+    });
+    result.ok = result.missingTypes.length === 0
+      && result.repeatedTemplateProblems.length === 0
+      && result.failedChecks.length === 0
+      && requiredTypes.every((type) => result.checkedTypes.indexOf(type) >= 0);
+    return result;
+  };
+
   Data.ARG_CANON_MILLENNIAL_STYLELEX = {
     forbidden: [
       { category: "game_words", id: "argument", terms: ["аргумент", "аргумента", "аргументу", "аргументом", "аргументе", "аргументы", "аргументов", "аргументам", "аргументами", "аргументах"] },
@@ -2056,6 +2228,7 @@ K YN A9: Нет.
 
 
   Data.buildArgCanon();
+  Data.seedArgCanonMillennialTemplateTexts();
 
   // Post-process canonical text and the built index to enforce place phrasing and YN "здесь" ban.
   (function sanitizeCanonWhereInText(){
@@ -2789,6 +2962,29 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialStyleLexSmoke();
+
+
+  const installArgCanonMillennialTemplatesSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    if (typeof root.__DEV.smokeArgCanonMillennialTemplatesOnce === "function") return;
+    root.__DEV.smokeArgCanonMillennialTemplatesOnce = function smokeArgCanonMillennialTemplatesOnce() {
+      let result;
+      try {
+        result = (typeof Data.smokeArgCanonMillennialTemplatesOnce === "function")
+          ? Data.smokeArgCanonMillennialTemplatesOnce()
+          : { ok: false, checkedTypes: [], missingTypes: ["ABOUT", "WHO", "WHERE", "YN"], repeatedTemplateProblems: [], failedChecks: ["template_helper_missing"], sampleCount: 0 };
+      } catch (err) {
+        result = { ok: false, checkedTypes: [], missingTypes: [], repeatedTemplateProblems: [], failedChecks: [err && err.message ? String(err.message) : String(err)], sampleCount: 0 };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_TEMPLATES_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_TEMPLATES_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialTemplatesOnce);
+  };
+
+  installArgCanonMillennialTemplatesSmoke();
 
   Game.Data = Data;
 })();

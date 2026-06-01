@@ -4715,3 +4715,12 @@ Error: Download failure, code=1
 - Browser automation warning: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:4173/index.html npm run smoke:asyncscene -- smokeStep3TerminologyRegressionPackOnce` could not launch because Playwright Chromium is not installed in `/root/.cache/ms-playwright`; this is not an iPhone Safari PASS.
 - PASS criteria: iPhone Safari returns `ok:true`, `buildMarker:"STEP3_TERMINOLOGY_REGRESSION_PACK_V1"`, `scenarioCount` between 8 and 12, `checkedCount > 0`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and every `scenarioResults[*].ok === true` within the 2-3 minute target. FAIL criteria: any forbidden synonym/new variant remains, any required coverage tag is missing, any applicable concept/canonical string is outside `STEP3_TERMINOLOGY_TABLE_V1`, any scenario fails, or runtime PASS is claimed without iPhone Safari.
 - Safari QA command: `Game.__DEV.smokeStep3TerminologyRegressionPackOnce()`.
+
+## 2026-06-01 - STEP4-[3] ARG CANON MILLENNIAL template style for ABOUT/WHO/WHERE/YN
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS and local VM smoke PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Added ARG canon millennial style-template rules for ABOUT, WHO, WHERE, and YN with 2-3 conversational variants per type. Variants are keyed through the existing ARG_CANON_ID format and preserve canon type coverage without changing matching, weights, economy, battle logic, or UI behavior.
+- Added `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()` with contract fields `ok`, `checkedTypes`, `missingTypes`, `repeatedTemplateProblems`, `failedChecks`, and `sampleCount`.
+- Scope guard: ARG_CANON_ID format, canon meaning source, argument types, y/o/r/k tier selection, weights, matching logic, economy, battle logic, and UI behavior were not changed. Absolute/K canon text is left unsoftened by the template renderer to preserve tone.
+- Evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke returned `ok:true`, `checkedTypes:["ABOUT","WHO","WHERE","YN"]`, `missingTypes:[]`, `repeatedTemplateProblems:[]`, `failedChecks:[]`, and `sampleCount:692`; PASS existing millennial StyleLex smoke remained `ok:true`.
+- Commit hash: recorded in the final one-line READY report.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()`.
