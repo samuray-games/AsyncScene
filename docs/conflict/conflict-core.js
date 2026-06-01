@@ -918,8 +918,8 @@
     if (r === "win") return "Победа";
     if (r === "lose") return "Поражение";
     if (r === "draw") return "Толпа решает";
-    if (r === "escaped") return "Свалил";
-    if (r === "ignored") return "Отвалил";
+    if (r === "escaped") return "Свалить";
+    if (r === "ignored") return "Отвали";
     if (r === "stay" || r === "blocked") return "Остался";
     return "Итог";
   }
@@ -2531,8 +2531,8 @@
     if (allow) {
       const mode = (v.mode || "smyt");
       b.result = (mode === "off") ? "ignored" : "escaped";
-      b.note = (mode === "off") ? "Толпа решила: отвалил." : "Толпа решила: свалил.";
-      b.resultLine = (mode === "off") ? "Отвалил" : "Свалил";
+      b.note = (mode === "off") ? "Толпа решает: Отвали." : "Толпа решает: Свалить.";
+      b.resultLine = (mode === "off") ? "Отвали" : "Свалить";
       applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);
       // Refund +1 ⭐ on success (once)
       try {
@@ -2555,7 +2555,7 @@
         b.attackHidden = prev.attackHidden;
         b.opponentThinking = prev.opponentThinking;
       }
-      b.inlineNote = (v && v.mode === "off") ? "Не отвалил." : "Не смог свалить.";
+      b.inlineNote = (v && v.mode === "off") ? "Отвали не прошел." : "Свалить не удалось.";
       b.escapeVote = null;
       b._escapePrev = null;
       b.updatedAt = now();
@@ -2840,8 +2840,8 @@
     };
     b.status = "escape_vote";
     b.result = "escape_vote";
-    b.note = (modeNorm === "off") ? "Толпа решает, отвалить ли." : "Толпа решает, свалить ли.";
-    b.resultLine = (modeNorm === "off") ? "Отвалить?" : "Свалить?";
+    b.note = (modeNorm === "off") ? "Толпа решает: Отвали?" : "Толпа решает: Свалить?";
+    b.resultLine = (modeNorm === "off") ? "Отвали?" : "Свалить?";
     b.updatedAt = now();
     startEscapeVoteTimer(b);
     return { ok: true, pending: true };
@@ -3126,8 +3126,8 @@
         b.finished = true;
         b.result = "ignored";
         b.status = "finished";
-        b.note = "Отвалил.";
-        b.resultLine = "Отвалил";
+        b.note = "Отвали.";
+        b.resultLine = "Отвали";
         b.attackHidden = false;
         b.draw = false;
         b.crowd = null;
@@ -3777,8 +3777,8 @@
               b.mafiaShameAnnounced = true;
             }
           } else {
-            b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? "Свалил." : "Поражение.");
-            b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? "Свалил" : "Поражение");
+            b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? "Свалить." : "Поражение.");
+            b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? "Свалить" : "Поражение");
           }
 
           if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);

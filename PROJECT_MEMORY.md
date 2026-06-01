@@ -4343,3 +4343,13 @@ Error: Download failure, code=1
 - Updated both HTML entrypoints to load `dev/dev-checks.js?v=step3-terminology-where-used-v1` so Safari does not reuse the prior dev-checks cache entry.
 - Static evidence: PASS `python3 tools/validate-step3-terminology-where-used.py`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
 - Safari command for QA: `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()`.
+
+## 2026-06-01 — Step 3 [7.5] Escape/Ignore terminology layer
+
+- Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. iPhone Safari still must run `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` before claiming runtime PASS.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for Escape/Ignore runtime-facing UI strings. Canonical scoped strings now use `Свалить`, `Отвали`, `Толпа решает`, and `💰`.
+- Added `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` with build marker `STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_V1`. The smoke loads table/where-used artifacts, checks Escape/Ignore where-used coverage, inspects scoped runtime-facing strings, reports `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`, and verifies previous Step 3 helpers [1]-[6] plus [7.1]-[7.4] are available.
+- Local evidence: PASS syntax checks for changed JS files; PASS static scoped forbidden-synonym scan over Escape/Ignore runtime files with `checkedCount:12` and no failures.
+- Browser automation warning: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8000/docs/ node scripts/run-asyncscene-smoke.mjs smokeStep3TerminologyEscapeIgnoreLayerOnce` could not launch because Playwright Chromium is not installed in `/root/.cache/ms-playwright`; this is not an iPhone Safari PASS.
+- PASS criteria: iPhone Safari returns `ok:true`, build marker `STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_V1`, `forbiddenRemaining:[]`, expected canonical terms present, where-used rows covered, previous helpers available. FAIL criteria: any scoped forbidden synonym remains, any required canonical term is missing, Escape/Ignore where-used coverage is incomplete, or a previous Step 3 helper is missing.
+- Scope guard: no gameplay, economy, escape mechanics, ignore mechanics, crowd outcomes, rewards, penalties, timers, eligibility rules, or data models were changed. Previous Step 3 steps were not reopened.
