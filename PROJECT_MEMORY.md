@@ -23,6 +23,14 @@
 - FAIL criteria for runtime: any forbidden synonym remains, any required canonical term is missing, where-used rows for DM UI are not covered, any previous Step 3 helper [1]-[6], Step 3 [7.1], or Step 3 [7.2] is missing/fails, DM auto-open/focus invariants regress, or the smoke returns `ok:false`.
 - Scope guard: no gameplay, economy, scoring, RNG, battle mechanics, DM mechanics, unread counters, focus behavior, panel auto-open behavior, or data models were changed. Previous steps were not reopened.
 
+## 2026-06-01 — Step 3 [7.5] Escape/Ignore terminology regression fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Fixed the Escape/Ignore terminology regression reported by Safari smoke: remaining runtime-facing NPC and legacy conflict strings now use canonical `Свалить` instead of `смыться` wording where covered by `STEP3_TERMINOLOGY_WHERE_USED_V1`.
+- Updated `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` so `Отвалить?`, `Толпа решает, отвалить ли.`, and `смыться` replacement rows are covered through the normal where-used source mapping, not by suppressing the row-coverage check.
+- Local evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/npcs.js`; PASS `node --check AsyncScene/Web/npcs.js`; PASS `node --check AsyncScene/Web/conflict-old.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` with `ok:true`, `failures:[]`, `checkedCount:289`, `replacedCount:14`, `forbiddenRemaining:[]`. Browser automation WARN: Playwright Chromium is not installed in `/root/.cache/ms-playwright`, so iPhone Safari remains required.
+- Required Safari command: `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` must return `ok:true`, `failures:[]`, `forbiddenRemaining:[]` before runtime PASS can be claimed.
+
 ## 2026-06-01 — Step 3 [7.2] Battles terminology UI layer
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
