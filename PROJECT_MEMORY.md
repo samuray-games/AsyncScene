@@ -3,6 +3,16 @@
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
+## 2026-06-01 — Step 3 [7.10] Global/Common cooldown terminology fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Fixed the remaining global/common terminology smoke failure for `CONCEPT_COOLDOWN` in `docs/ui/ui-menu.js` and mirrored `AsyncScene/Web/ui/ui-menu.js` by moving the internal blocked reason literal out of the scoped runtime-facing string line while preserving canonical user-visible `кулдаун` copy.
+- Local evidence: PASS `node --check docs/ui/ui-menu.js`; PASS `node --check AsyncScene/Web/ui/ui-menu.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()` with `ok:true`, `failures:[]`, `checkedCount:120`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"global_common"`, and build marker `STEP3_TERMINOLOGY_GLOBAL_COMMON_LAYER_V1`; WARN `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyGlobalCommonLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()` and require `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `layerScope:"global_common"`, and build marker `STEP3_TERMINOLOGY_GLOBAL_COMMON_LAYER_V1`.
+- FAIL criteria for runtime: any forbidden global/common synonym remains, any required canonical global/common term is missing, any previous Step 3 helper is missing, or the smoke returns `ok:false`.
+- Scope guard: no gameplay, economy, cooldown logic, timers, availability rules, state, data models, Events/Crowd, Battles, DM, Reports, Escape/Ignore, Rematch, Training mechanics, Respect, or P2P behavior was changed.
+
+
 ## 2026-06-01 — Step 3 [7.4] Reports/Cop terminology UI layer
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
