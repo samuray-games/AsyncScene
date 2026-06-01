@@ -1069,7 +1069,7 @@
     };
     const normalized = String(reason).toLowerCase();
     if (["no_points", "insufficient", "min_reserve", "minreserve"].includes(normalized)) {
-      statToast("Пойнтов не хватает.");
+      statToast("Не хватает 💰.");
       return;
     }
     if (normalized === "already_requested") {
@@ -1081,7 +1081,7 @@
       return;
     }
     if (normalized === "not_found") {
-      toast("Баттл не найден.");
+      toast("баттл не найден.");
     }
   }
 
@@ -1198,7 +1198,7 @@
       try {
         const mePts = (Game && Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
         if ((mePts | 0) <= 0 && opts && String(opts.mode || "").toLowerCase() !== "off") {
-          const msg = "Не хватает пойнтов.";
+          const msg = "Не хватает 💰.";
           if (anchorBtn) {
             showBtnToastRight(anchorBtn, msg);
           } else if (UI && typeof UI.showStatToast === "function") {
@@ -1217,7 +1217,7 @@
           res.reason === "min_reserve" ||
           res.error === "not_enough_points"
         ) {
-         const msg = "Не хватает пойнтов.";
+         const msg = "Не хватает 💰.";
          if (anchorBtn) {
            showBtnToastRight(anchorBtn, msg);
          } else if (UI && typeof UI.showStatToast === "function") {
@@ -1290,7 +1290,7 @@
          if (isMafia) {
            hadMafia = true;
            // Show note inside that mafia battle card
-           if (b && b.id) setInlineNote(b.id, "С мафиози так нельзя. Только смыться.");
+           if (b && b.id) setInlineNote(b.id, "С мафиози так нельзя. Только свалить.");
            return;
          }
          if (Game.Conflict && typeof Game.Conflict.escape === "function") {
@@ -1312,7 +1312,7 @@
     } catch (_) {}
 
     if ((S.me.points || 0) < need) {
-      const msg = "Пойнтов не хватает.";
+      const msg = "Не хватает 💰.";
       if (UI && typeof UI.showStatToast === "function") {
         UI.showStatToast("points", msg);
       } else if (act[0] && act[0].id) {
@@ -1444,7 +1444,7 @@ UI.renderBattles = () => {
       const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
       const displayCount = Math.max(collapsedCount, battlesCount);
       const battleTitle = header.querySelector(".battleTitleText");
-      if (battleTitle) battleTitle.textContent = "Баттлы";
+      if (battleTitle) battleTitle.textContent = "баттл";
       const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
       if (countWrapper) countWrapper.style.display = (displayCount || showZeroCount) ? "" : "none";
       countEl.textContent = String(displayCount);
@@ -1574,7 +1574,7 @@ UI.renderBattles = () => {
         };
         inviteRow.appendChild(inviteBtn);
       } else {
-        // Show input with clear × inside + "Баттл!" button + dropdown below
+        // Show input with clear × inside + "баттл" button + dropdown below
         const inputWrap = document.createElement("div");
         inputWrap.style.position = "relative";
         inputWrap.style.display = "flex";
@@ -1624,7 +1624,7 @@ UI.renderBattles = () => {
 
         const battleBtn = document.createElement("button");
         battleBtn.className = "btn small";
-        battleBtn.textContent = "Баттл!";
+        battleBtn.textContent = "баттл";
         battleBtn.onclick = (e) => {
           stop(e);
           // Start battle from input value
@@ -1672,7 +1672,7 @@ UI.renderBattles = () => {
             }
           } catch (_) {}
           if (res && res.ok === false && (res.reason === "no_points" || res.reason === "insufficient")) {
-            UI.showStatToast("points", "Пойнтов не хватает.");
+            UI.showStatToast("points", "Не хватает 💰.");
             return;
           }
 
@@ -1798,7 +1798,7 @@ UI.renderBattles = () => {
               UI._battleInvite.q = list[UI._battleInvite.sel || 0].name;
               input.value = UI._battleInvite.q;
             }
-            // Trigger "Баттл!" button click
+            // Trigger "баттл" button click
             battleBtn.click();
             return;
           }
@@ -1965,7 +1965,7 @@ UI.renderBattles = () => {
        else if (b.status === "pickAttack") line.textContent = "Бери аргумент";
        else if (isEscapeVote(b)) {
          const mode = (b.escapeVote && b.escapeVote.mode) ? b.escapeVote.mode : "smyt";
-         line.textContent = (mode === "off") ? "Отвалить?" : "Свалить?";
+         line.textContent = (mode === "off") ? "Отвали?" : "Свалить?";
        }
        else if (isDrawBattle(b)) line.textContent = t("battle_draw");
        else line.textContent = "Бери аргумент";
@@ -1978,14 +1978,14 @@ UI.renderBattles = () => {
       if (isEscapeVote(b)) {
           const v = b.escapeVote || {};
           const isOff = v.mode === "off";
-          const voteLabelA = isOff ? "Отвалить" : "Свалить";
+          const voteLabelA = isOff ? "Отвали" : "Свалить";
           const voteLabelB = isOff ? "Останься" : "Остаться";
           const escapeWrap = document.createElement("div");
           escapeWrap.className = "eventCard";
 
           const ttl = document.createElement("div");
           ttl.className = "battleTop";
-          ttl.innerHTML = `<div class="kpill"><strong>${voteLabelA} — толпа решает</strong></div>`;
+          ttl.innerHTML = `<div class="kpill"><strong>${voteLabelA} — Толпа решает</strong></div>`;
           escapeWrap.appendChild(ttl);
 
           const info = document.createElement("div");
@@ -2002,7 +2002,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = "Голосование идёт. Ты только смотришь.";
+          voteHint.textContent = "Толпа решает. Ты только смотришь.";
           escapeWrap.appendChild(voteHint);
 
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
@@ -2055,7 +2055,7 @@ UI.renderBattles = () => {
             if (infoEl) {
               const cap = Number.isFinite(c.cap) ? (c.cap | 0) : 0;
               const raw = getRawCountsFromVoters(c);
-              infoEl.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+              infoEl.textContent = cap > 0 ? `Толпа решает: ${raw.total}/${cap}` : `Толпа решает: ${raw.total}`;
               updateCrowdEligibleLine(diagLine, c);
             }
 
@@ -2064,7 +2064,7 @@ UI.renderBattles = () => {
                 const timerState = getUiCrowdTimerState(c);
                 const showTimer = timerState.countdownActive && Number.isFinite(timerState.countdownStartMs);
                 timerLine.style.display = "block";
-                timerLine.textContent = showTimer ? `Таймер: ${timerState.seconds}с` : "Голосование идёт";
+                timerLine.textContent = showTimer ? `Таймер: ${timerState.seconds}с` : "Толпа решает";
               }
             } catch (_) {}
 
@@ -2229,12 +2229,12 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = isMyDraw ? "Голосование идёт. Ты только смотришь." : "Голосование идёт.";
+          voteHint.textContent = isMyDraw ? "Толпа решает. Ты только смотришь." : "Толпа решает.";
           drawWrap.appendChild(voteHint);
 
           const timerLine = document.createElement("div");
           timerLine.className = "noteLine crowdTimer";
-          timerLine.textContent = "Голосование идёт";
+          timerLine.textContent = "Толпа решает";
           drawWrap.appendChild(timerLine);
 
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
@@ -2303,7 +2303,7 @@ UI.renderBattles = () => {
             if (infoEl) {
               const cap = Number.isFinite(c.cap) ? (c.cap | 0) : 0;
               const raw = getRawCountsFromVoters(c);
-              infoEl.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+              infoEl.textContent = cap > 0 ? `Толпа решает: ${raw.total}/${cap}` : `Толпа решает: ${raw.total}`;
               updateCrowdEligibleLine(diagLine, c);
             }
 
@@ -2408,7 +2408,7 @@ UI.renderBattles = () => {
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
 
-      // Removed 3 "Недоступно" buttons (boost/reroll/hint) - they are not displayed anymore
+      // Removed 3 "Недоступно." buttons (boost/reroll/hint) - they are not displayed anymore
 
         if (tactRow.childElementCount > 0) card.appendChild(tactRow);
 
@@ -2590,13 +2590,13 @@ UI.renderBattles = () => {
 
           card.appendChild(row);
 
-          // "Уйти за 1💰" button
+          // "Свалить за 1💰" button
           const leaveActions = document.createElement("div");
           leaveActions.className = "actions";
 
           const leaveBtn = document.createElement("button");
           leaveBtn.className = "btn small";
-          leaveBtn.textContent = "Уйти за 1💰";
+          leaveBtn.textContent = "Свалить за 1💰";
           leaveBtn.title = "−1⭐, при успехе +1⭐";
           leaveBtn.onclick = (e) => {
             stop(e);
