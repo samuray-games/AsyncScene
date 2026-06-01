@@ -26351,6 +26351,27 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   };
   console.warn("STEP4_ARG_CANON_MILLENNIAL_CONTRACT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialContractOnce);
 
+  Game.__DEV.smokeArgCanonMillennialStyleLexOnce = function smokeArgCanonMillennialStyleLexOnce() {
+    const D = Game.Data || {};
+    let result;
+    try {
+      result = (D && typeof D.lintArgCanonMillennialStyleLex === "function")
+        ? D.lintArgCanonMillennialStyleLex()
+        : { ok: false, checkedCount: 0, forbiddenRemaining: [], failedChecks: ["lint_helper_missing"], missingCoverage: ["lint_helper"] };
+    } catch (err) {
+      result = {
+        ok: false,
+        checkedCount: 0,
+        forbiddenRemaining: [],
+        failedChecks: [err && err.message ? String(err.message) : String(err)],
+        missingCoverage: []
+      };
+    }
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_STYLELEX_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("STEP4_ARG_CANON_MILLENNIAL_STYLELEX_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialStyleLexOnce);
+
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
