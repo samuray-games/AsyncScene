@@ -54,6 +54,24 @@ FORBIDDEN_OVERLAPS = {
     frozenset(("Status", "BlockTitle")),
 }
 
+# Step 3 [4] requires one category per visible text unless the taxonomy
+# artifact documents why the same surface text is truly multiple concepts.
+# These are source-artifact taxonomy cleanups only; no gameplay strings change.
+CURRENT_TEXT_CATEGORY_RESOLUTIONS = {
+    "$1там, где {PLACE}": ("Status", "single_surface_text_is_runtime_status_template"),
+    "Лимит уважения на сегодня исчерпан.": ("Status", "single_surface_text_is_user_visible_limit_status"),
+    "Принял. Сейчас разберёмся.": ("Status", "single_surface_text_is_user_visible_pending_status"),
+    "Сейчас не получилось. Попробуй позже.": ("Status", "single_surface_text_is_user_visible_retry_status"),
+    "вброс": ("ReasonName", "single_surface_text_is_economy_reason_name"),
+    "обучаю": ("Status", "single_surface_text_is_style_lexeme_not_resource_name"),
+    "ошибка": ("Error", "single_surface_text_is_error_lexeme"),
+    "ты должен": ("Status", "single_surface_text_is_style_lexeme_not_resource_name"),
+    "урок": ("Status", "single_surface_text_is_style_lexeme_not_resource_name"),
+}
+CURRENT_TEXT_CATEGORY_ALLOWLIST = {
+    "Уйти за 1💰": "same_surface_text_is_both_escape_action_label_and_currency_cost_evidence",
+}
+
 CONCEPT_PRIORITY = {
     "Error": 0,
     "Button": 1,
@@ -135,6 +153,15 @@ def main() -> int:
         if forced_category and row["taxonomyCategory"] != forced_category:
             row["notes"] = f"{row['notes']}; taxonomyTextDriftResolvedFrom={row['taxonomyCategory']}; taxonomyTextDriftReason=forbidden_overlap_prevention"
             row["taxonomyCategory"] = forced_category
+        resolved = CURRENT_TEXT_CATEGORY_RESOLUTIONS.get(current_text)
+        if resolved:
+            resolved_category, resolved_reason = resolved
+            if row["taxonomyCategory"] != resolved_category:
+                row["notes"] = f"{row['notes']}; taxonomyCurrentTextDriftResolvedFrom={row['taxonomyCategory']}; taxonomyCurrentTextDriftReason={resolved_reason}"
+                row["taxonomyCategory"] = resolved_category
+        allow_reason = CURRENT_TEXT_CATEGORY_ALLOWLIST.get(current_text)
+        if allow_reason:
+            row["notes"] = f"{row['notes']}; taxonomy-current-text-drift-allowed; reason={allow_reason}"
 
     for out in OUTS:
         out.parent.mkdir(parents=True, exist_ok=True)
