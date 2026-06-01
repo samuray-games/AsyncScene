@@ -4500,3 +4500,13 @@ Error: Download failure, code=1
 - Previous Step4 smokes stayed green locally: `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()` and `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()` both returned `ok:true`.
 - Commit hash: recorded in the final one-line READY report.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`.
+
+## 2026-06-01 - STEP4-[5] ARG CANON MILLENNIAL aggregate quality validation helper
+- Status: READY_FOR_RUNTIME_SMOKE only; no iPhone Safari runtime PASS is claimed.
+- Added mirrored aggregate quality helper `Game.__DEV.smokeArgCanonMillennialOnce()` for the millennial ARG canon layer.
+- Contract: `{ ok, checkedCount, errors, warnings, forbiddenRemaining, missingCoverage, failedChecks }`.
+- Local VM evidence: aggregate returned `ok:true`, `checkedCount:692`, `errors:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`; sub-smokes for coverage, StyleLex, and templates also returned `ok:true`.
+- Warnings from the aggregate are only explicitly allowed minor `minor_length_target_under_20` notices for compact canon answer forms; no fail criteria were triggered.
+- Scope guard preserved: no ARG_CANON_ID changes, no canon-meaning rewrite, no type/tone/weight/matching/battle/economy/UI behavior changes, and no `Console.txt` usage.
+- Commit hash: recorded in the final one-line READY report.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialOnce()`.
