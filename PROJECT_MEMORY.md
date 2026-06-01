@@ -4269,3 +4269,12 @@ Error: Download failure, code=1
 - Added static generator/validator tooling and mirrored dev smoke `Game.__DEV.smokeStep3UiTaxonomyOnce()` with build marker `STEP3_UI_TAXONOMY_V1`.
 - Static evidence: PASS `tools/validate-step3-ui-taxonomy.py docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
 - Safari command for QA: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
+
+## 2026-06-01 — Step 3 [4] UI taxonomy smoke gate drift enforcement
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; Safari runtime smoke has not been executed in this pass.
+- Step 3 [4] taxonomy drift is now a hard gate: unresolved non-empty `currentTextCategoryDrift` fails both the static validator and `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
+- The taxonomy artifact still does not change gameplay and does not rewrite UI strings. It only adjusts `taxonomyCategory` assignment/notes in generated governance CSVs.
+- Current drift review outcome: `resolvedDrifts:9` and `allowlistedDrifts:1`.
+- Resolved drift surfaces: `$1там, где {PLACE}`, `Лимит уважения на сегодня исчерпан.`, `Принял. Сейчас разберёмся.`, `Сейчас не получилось. Попробуй позже.`, `вброс`, `обучаю`, `ошибка`, `ты должен`, and `урок`.
+- Only allowlisted drift: `Уйти за 1💰`, documented per row with `taxonomy-current-text-drift-allowed; reason=same_surface_text_is_both_escape_action_label_and_currency_cost_evidence` because the same surface text is both an escape action label and currency-cost evidence in the taxonomy source.
+- QA command remains: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.

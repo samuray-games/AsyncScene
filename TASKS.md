@@ -4338,3 +4338,12 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeStep3UiTaxonomyOnce()` with build marker `STEP3_UI_TAXONOMY_V1` to both dev-checks copies.
 - Static evidence: PASS `tools/validate-step3-ui-taxonomy.py docs/terminology/STEP3_UI_TAXONOMY_V1.csv` returned `ok:true`, `rowCount:3513`, no duplicate term IDs, no invalid/empty taxonomy categories, no forbidden overlap violations, and no concept category drift. Current-text drift is detected and reported for non-forbidden overlaps only.
 - Safari command for QA: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
+
+## 2026-06-01 — Step 3 [4] UI taxonomy smoke gate drift enforcement
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; Safari runtime smoke has not been executed in this pass.
+- Fixed the Step 3 [4] gate so `currentTextCategoryDrift` is no longer informational-only: unresolved current-text category drift now fails both the static validator and `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
+- Added `allowedCurrentTextCategoryDrift`, `resolvedDrifts`, and `allowlistedDrifts` reporting to the static validator and both dev-checks copies.
+- Resolved 9 current-text drift surfaces in the generated taxonomy artifact by assigning a single strict category without changing gameplay or UI strings: `$1там, где {PLACE}`, `Лимит уважения на сегодня исчерпан.`, `Принял. Сейчас разберёмся.`, `Сейчас не получилось. Попробуй позже.`, `вброс`, `обучаю`, `ошибка`, `ты должен`, and `урок`.
+- Strictly allowlisted 1 remaining drift surface, `Уйти за 1💰`, because the same visible surface is both the escape action label and the currency-cost evidence row; every row for that surface carries `taxonomy-current-text-drift-allowed` with a non-empty documented `reason=` in the artifact.
+- Static evidence: PASS `python3 tools/generate-step3-ui-taxonomy.py`; PASS `python3 tools/validate-step3-ui-taxonomy.py docs/terminology/STEP3_UI_TAXONOMY_V1.csv` returned `ok:true`, `resolvedDrifts:9`, `allowlistedDrifts:1`, one allowed current-text drift row, and no failures; PASS `python3 tools/validate-step3-ui-taxonomy.py AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
+- Safari command for QA: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
