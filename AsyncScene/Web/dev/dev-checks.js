@@ -268,10 +268,134 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
   };
+  const installStep3MillennialStyleGuideSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_MILLENNIAL_STYLE_GUIDE_V1";
+    const ARTIFACT_ID = "STYLE_GUIDE_MILLENNIAL_V1";
+    const requiredSections = ["tone", "phraseLengths", "vocabulary", "ctaVerbs", "errors", "hints", "systemMessages", "economyMessages", "battleMessages", "cooldownMessages", "emptyStates", "forbiddenCategories"];
+    const requiredToneRules = ["address_user_as_ty", "neutral_confident", "short_product_sentences", "no_lecturing", "no_flirting", "no_officialese", "no_memes", "no_teen_slang", "no_humiliation", "no_hype_fanfare", "no_moral_judgment"];
+    const requiredForbiddenCategories = ["lecturing", "flirting", "officialese", "memes", "teenSlang", "humiliation", "hypeFanfare", "moralJudgment", "pressure", "outcomePromise"];
+    const defaultUrls = () => {
+      const fileName = "STYLE_GUIDE_MILLENNIAL_V1.json";
+      const urls = [`style/${fileName}`];
+      try {
+        if (typeof location !== "undefined" && location && location.pathname) {
+          const base = location.pathname.replace(/[^/]*$/, "");
+          urls.push(`${base}style/${fileName}`);
+        }
+      } catch (_) {}
+      urls.push(`/AsyncScene/style/${fileName}`, `docs/style/${fileName}`, `/docs/style/${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstJson = async (urls) => {
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res && res.ok) return { json: await res.json(), url };
+        } catch (_) {}
+      }
+      return { json: null, url: null };
+    };
+    const toLowerSet = (items) => new Set((Array.isArray(items) ? items : []).map(item => String(item || "").trim().toLocaleLowerCase()).filter(Boolean));
+    const hasText = (value) => typeof value === "string" && value.trim().length > 0;
+    devStore.smokeStep3MillennialStyleGuideOnce = async (opts = {}) => {
+      const result = {
+        ok: false,
+        failures: [],
+        artifactId: ARTIFACT_ID,
+        buildMarker: BUILD_MARKER,
+        loadedUrl: null,
+        sectionCount: 0,
+        forbiddenCategoryCount: 0,
+        ctaAllowedVerbCount: 0,
+        staticValidationOnly: true,
+      };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const urls = Array.isArray(opts.urls) && opts.urls.length ? opts.urls : defaultUrls();
+      const loaded = await fetchFirstJson(urls);
+      if (!loaded.json) {
+        fail("style_guide_file_missing_or_invalid_json", { urls });
+        console.log("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE", "FAIL", JSON.stringify(result));
+        return result;
+      }
+      const guide = loaded.json;
+      result.loadedUrl = loaded.url;
+      if (guide.buildMarker !== BUILD_MARKER) fail("build_marker_mismatch", { expected: BUILD_MARKER, actual: guide.buildMarker });
+      if (guide.artifactId !== ARTIFACT_ID) fail("artifact_id_mismatch", { expected: ARTIFACT_ID, actual: guide.artifactId });
+      if (guide.profile !== "millennial") fail("profile_mismatch", guide.profile);
+      const sections = guide.sections && typeof guide.sections === "object" ? guide.sections : null;
+      if (!sections) fail("sections_missing");
+      if (sections) {
+        result.sectionCount = Object.keys(sections).length;
+        requiredSections.forEach(sectionName => {
+          if (!sections[sectionName] || typeof sections[sectionName] !== "object") fail("required_section_missing", sectionName);
+        });
+        const tone = sections.tone || {};
+        const toneRequired = Array.isArray(tone.required) ? tone.required : [];
+        const toneRules = tone.rules && typeof tone.rules === "object" ? tone.rules : {};
+        requiredToneRules.forEach(ruleName => {
+          if (!toneRequired.includes(ruleName)) fail("required_tone_rule_not_listed", ruleName);
+          if (!hasText(toneRules[ruleName])) fail("required_tone_rule_text_missing", ruleName);
+        });
+        if (!String(toneRules.address_user_as_ty || "").includes("ты")) fail("address_ty_rule_missing_ty");
+        const lengths = sections.phraseLengths || {};
+        ["buttons", "errors", "hints", "toasts"].forEach(key => {
+          const limits = lengths[key] || {};
+          if (!Number.isFinite(limits.maxWords) || limits.maxWords <= 0) fail("phrase_max_words_invalid", key);
+          if (!Number.isFinite(limits.maxChars) || limits.maxChars <= 0) fail("phrase_max_chars_invalid", key);
+        });
+        const cta = sections.ctaVerbs || {};
+        const ctaRules = Array.isArray(cta.rules) ? cta.rules : [];
+        const allowedVerbs = Array.isArray(cta.allowedVerbs) ? cta.allowedVerbs : [];
+        const allowedPatterns = Array.isArray(cta.allowedPatterns) ? cta.allowedPatterns : [];
+        const forbiddenAlternatives = Array.isArray(cta.forbiddenAlternatives) ? cta.forbiddenAlternatives : [];
+        result.ctaAllowedVerbCount = allowedVerbs.length;
+        if (allowedPatterns.length < 3) fail("cta_allowed_patterns_missing");
+        if (allowedVerbs.length < 6) fail("cta_allowed_verbs_missing");
+        if (forbiddenAlternatives.length < 6) fail("cta_forbidden_alternatives_missing");
+        ["CTA must name one action only.", "CTA must not promise outcomes.", "CTA must not pressure the user."].forEach(rule => {
+          if (!ctaRules.includes(rule)) fail("cta_required_rule_missing", rule);
+        });
+        const errors = sections.errors || {};
+        if (errors.canonicalPattern !== "state_first_then_next_step") fail("error_canonical_pattern_mismatch", errors.canonicalPattern);
+        if (!Array.isArray(errors.rules) || errors.rules.length < 5) fail("error_rules_missing");
+        if (!Array.isArray(errors.templates) || errors.templates.length < 3) fail("error_templates_missing");
+        const hints = sections.hints || {};
+        if (hints.canonicalPattern !== "optional_next_step_with_context") fail("hint_canonical_pattern_mismatch", hints.canonicalPattern);
+        if (!Array.isArray(hints.rules) || hints.rules.length < 5) fail("hint_rules_missing");
+        if (!Array.isArray(hints.templates) || hints.templates.length < 3) fail("hint_templates_missing");
+        const forbidden = sections.forbiddenCategories || {};
+        result.forbiddenCategoryCount = Object.keys(forbidden).length;
+        requiredForbiddenCategories.forEach(category => {
+          const entry = forbidden[category];
+          if (!entry || typeof entry !== "object") fail("forbidden_category_missing", category);
+          else {
+            if (!Array.isArray(entry.examples) || !entry.examples.length) fail("forbidden_category_examples_missing", category);
+            if (!hasText(entry.replaceWith)) fail("forbidden_category_replacement_missing", category);
+          }
+        });
+        const prefer = toLowerSet(sections.vocabulary && sections.vocabulary.prefer);
+        const avoid = toLowerSet(sections.vocabulary && sections.vocabulary.avoid);
+        prefer.forEach(word => { if (avoid.has(word)) fail("vocabulary_prefer_avoid_contradiction", word); });
+        const allowed = toLowerSet(allowedVerbs);
+        const disallowed = toLowerSet(forbiddenAlternatives);
+        allowed.forEach(verb => { if (disallowed.has(verb)) fail("cta_allowed_forbidden_contradiction", verb); });
+        if (sections.validationContract) {
+          if (sections.validationContract.mustAddressUserAs !== "ты") fail("validation_contract_address_mismatch", sections.validationContract.mustAddressUserAs);
+          if (sections.validationContract.mustNotRewriteGameplay !== true) fail("validation_contract_gameplay_guard_missing");
+        } else fail("validation_contract_missing");
+      }
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
   installStep3TerminologyInventorySmoke(G.__DEV);
   installStep3TerminologyCanonSmoke(G.__DEV);
+  installStep3MillennialStyleGuideSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
+  console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
@@ -23291,8 +23415,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
+  installStep3MillennialStyleGuideSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
+  console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
