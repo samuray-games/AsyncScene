@@ -475,8 +475,9 @@ window.Game = window.Game || {};
     });
 
     function formatCooldownText(status) {
+      const blockedReasonCooldown = "cooldown";
       if (!status) return "";
-      if (status.whyBlocked === "cooldown") return `кулдаун: день ${status.cooldownUntilDay}`;
+      if (status.whyBlocked === blockedReasonCooldown) return `кулдаун: день ${status.cooldownUntilDay}`;
       if (status.whyBlocked === "insufficient_points") return "Не хватает 💰.";
       return "Обучить аргументу доступно";
     }

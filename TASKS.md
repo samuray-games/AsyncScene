@@ -65,6 +65,30 @@
 
 ## Inbox
 
+### [T-20260601-016] AsyncScene Step 3 [7.10] Global/Common cooldown terminology fix
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Fix the remaining global/common terminology smoke failure for `CONCEPT_COOLDOWN` caused by the runtime-facing `"cooldown"` literal in the Training menu cooldown status branch, without changing gameplay, cooldown logic, timers, availability rules, state, data models, or unrelated UI.
+- Acceptance:
+  - [x] The runtime-facing cooldown status branch in `docs/ui/ui-menu.js` and mirrored `AsyncScene/Web/ui/ui-menu.js` no longer exposes `"cooldown"` as scoped visible text to the global/common terminology smoke.
+  - [x] Canonical user-visible cooldown copy remains `кулдаун`.
+  - [x] No gameplay, cooldown logic, timers, availability rules, state, data models, or unrelated UI were changed.
+  - [ ] iPhone Safari runtime smoke is still required before runtime PASS.
+- Notes: READY_FOR_RUNTIME_SMOKE only. Runtime PASS must not be claimed until iPhone Safari runs `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()` and returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, and build marker `STEP3_TERMINOLOGY_GLOBAL_COMMON_LAYER_V1`.
+- Result: Local PASS only; no Runtime PASS claimed. Local VM smoke returned `ok:true`, `failures:[]`, `checkedCount:120`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"global_common"`, and build marker `STEP3_TERMINOLOGY_GLOBAL_COMMON_LAYER_V1`. Browser automation WARN: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyGlobalCommonLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- Report:
+  - Status: REVIEW
+  - Facts: READY_FOR_RUNTIME_SMOKE; local VM global/common smoke now has `forbiddenRemaining:[]`. No iPhone Safari runtime PASS claimed.
+  - Changed: `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: run `node --check docs/ui/ui-menu.js`; run `node --check AsyncScene/Web/ui/ui-menu.js`; run the local VM global/common smoke; in iPhone Safari run `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()`.
+  - Next: QA for iPhone Safari runtime smoke.
+  - Next Prompt: Run AsyncScene Step 3 [7.10] runtime smoke on iPhone Safari with `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()` and report honest PASS/FAIL with returned JSON.
+
+
 ### [T-20260601-015] AsyncScene Step 3 [7.9] P2P terminology UI layer
 - Status: REVIEW
 - Priority: P0
