@@ -23,6 +23,24 @@ def split_allowed_categories(notes: str) -> bool:
     return "taxonomy-multicategory-allowed" in lower and "reason=" in lower
 
 
+def current_text_drift_allowed(notes_list: list[str]) -> tuple[bool, list[str]]:
+    reasons = []
+    for note in notes_list:
+        parts = [part.strip() for part in (note or "").split(";")]
+        lower_parts = [part.lower() for part in parts]
+        if "taxonomy-current-text-drift-allowed" not in lower_parts:
+            return False, []
+        reason = ""
+        for part in parts:
+            if part.lower().startswith("reason="):
+                reason = part.split("=", 1)[1].strip()
+                break
+        if not reason:
+            return False, []
+        reasons.append(reason)
+    return True, sorted(set(reasons))
+
+
 def validate(path: Path) -> dict:
     result = {
         "ok": False,
@@ -36,6 +54,9 @@ def validate(path: Path) -> dict:
         "forbiddenOverlapViolations": [],
         "conceptCategoryDrift": [],
         "currentTextCategoryDrift": [],
+        "allowedCurrentTextCategoryDrift": [],
+        "resolvedDrifts": 0,
+        "allowlistedDrifts": 0,
     }
     if not path.exists():
         result["failures"].append({"code": "taxonomy_file_missing", "path": str(path)})
@@ -55,6 +76,8 @@ def validate(path: Path) -> dict:
     concept_categories: dict[str, set[str]] = defaultdict(set)
     concept_notes: dict[str, list[str]] = defaultdict(list)
     text_categories: dict[str, set[str]] = defaultdict(set)
+    text_notes: dict[str, list[str]] = defaultdict(list)
+    resolved_drift_texts: set[str] = set()
     for index, row in enumerate(rows, start=2):
         term_id = (row.get("termId") or "").strip()
         taxonomy = (row.get("taxonomyCategory") or "").strip()
@@ -81,6 +104,10 @@ def validate(path: Path) -> dict:
             concept_notes[concept].append(notes)
         if current_text and taxonomy:
             text_categories[current_text].add(taxonomy)
+            text_notes[current_text].append(notes)
+        lower_notes = notes.lower()
+        if current_text and "taxonomycurrenttextdriftresolvedfrom=" in lower_notes:
+            resolved_drift_texts.add(current_text)
     for concept, categories in sorted(concept_categories.items()):
         if len(categories) > 1 and not any(split_allowed_categories(note) for note in concept_notes[concept]):
             item = {"conceptId": concept, "taxonomyCategories": sorted(categories)}
@@ -93,12 +120,20 @@ def validate(path: Path) -> dict:
                 result["failures"].append({"code": "forbidden_category_overlap", **item})
     for current_text, categories in sorted(text_categories.items()):
         if len(categories) > 1:
-            result["currentTextCategoryDrift"].append({"currentText": current_text, "taxonomyCategories": sorted(categories)})
+            item = {"currentText": current_text, "taxonomyCategories": sorted(categories)}
+            result["currentTextCategoryDrift"].append(item)
+            allowed, reasons = current_text_drift_allowed(text_notes[current_text])
+            if allowed:
+                result["allowedCurrentTextCategoryDrift"].append({**item, "reasons": reasons})
+            else:
+                result["failures"].append({"code": "current_text_mapped_to_multiple_taxonomy_categories", **item})
         for pair in FORBIDDEN_OVERLAPS:
             if pair.issubset(categories):
                 item = {"scope": "currentText", "currentText": current_text, "taxonomyCategories": sorted(pair)}
                 result["forbiddenOverlapViolations"].append(item)
                 result["failures"].append({"code": "forbidden_category_overlap", **item})
+    result["resolvedDrifts"] = len(resolved_drift_texts)
+    result["allowlistedDrifts"] = len(result["allowedCurrentTextCategoryDrift"])
     result["ok"] = len(result["failures"]) == 0
     return result
 

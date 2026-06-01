@@ -326,6 +326,19 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const lower = String(note || "").toLocaleLowerCase();
       return lower.includes("taxonomy-multicategory-allowed") && lower.includes("reason=");
     });
+    const getAllowedCurrentTextDriftReasons = (notesList) => {
+      const reasons = [];
+      for (const note of notesList) {
+        const parts = String(note || "").split(";").map(part => part.trim()).filter(Boolean);
+        const lowerParts = parts.map(part => part.toLocaleLowerCase());
+        if (!lowerParts.includes("taxonomy-current-text-drift-allowed")) return null;
+        const reasonPart = parts.find(part => part.toLocaleLowerCase().startsWith("reason="));
+        const reason = reasonPart ? reasonPart.slice(reasonPart.indexOf("=") + 1).trim() : "";
+        if (!reason) return null;
+        reasons.push(reason);
+      }
+      return Array.from(new Set(reasons)).sort();
+    };
     const hasForbiddenOverlap = (categories) => forbiddenOverlaps.some(pair => pair.every(category => categories.has(category)));
     devStore.smokeStep3UiTaxonomyOnce = async (opts = {}) => {
       const result = {
@@ -338,6 +351,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         forbiddenOverlapViolations: [],
         conceptCategoryDrift: [],
         currentTextCategoryDrift: [],
+        allowedCurrentTextCategoryDrift: [],
+        resolvedDrifts: 0,
+        allowlistedDrifts: 0,
         loadedUrl: null,
         buildMarker: BUILD_MARKER,
       };
@@ -358,6 +374,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const conceptCategories = new Map();
       const conceptNotes = new Map();
       const textCategories = new Map();
+      const textNotes = new Map();
+      const resolvedDriftTexts = new Set();
       parsed.records.forEach((row, idx) => {
         const rowNum = idx + 2;
         const termId = String(row.termId || "").trim();
@@ -388,7 +406,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (currentText && taxonomyCategory) {
           if (!textCategories.has(currentText)) textCategories.set(currentText, new Set());
           textCategories.get(currentText).add(taxonomyCategory);
+          if (!textNotes.has(currentText)) textNotes.set(currentText, []);
+          textNotes.get(currentText).push(notes);
         }
+        const lowerNotes = notes.toLocaleLowerCase();
+        if (currentText && lowerNotes.includes("taxonomycurrenttextdriftresolvedfrom=")) resolvedDriftTexts.add(currentText);
       });
       conceptCategories.forEach((categories, conceptId) => {
         const sorted = Array.from(categories).sort();
@@ -405,7 +427,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       });
       textCategories.forEach((categories, currentText) => {
         const sorted = Array.from(categories).sort();
-        if (categories.size > 1) result.currentTextCategoryDrift.push({ currentText, taxonomyCategories: sorted });
+        if (categories.size > 1) {
+          const item = { currentText, taxonomyCategories: sorted };
+          result.currentTextCategoryDrift.push(item);
+          const reasons = getAllowedCurrentTextDriftReasons(textNotes.get(currentText) || []);
+          if (reasons) result.allowedCurrentTextCategoryDrift.push({ ...item, reasons });
+          else fail("current_text_mapped_to_multiple_taxonomy_categories", item);
+        }
         if (hasForbiddenOverlap(categories)) {
           const item = { scope: "currentText", currentText, taxonomyCategories: sorted };
           result.forbiddenOverlapViolations.push(item);
@@ -413,6 +441,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         }
       });
       result.duplicateTermIds = Array.from(duplicateTerms).sort();
+      result.resolvedDrifts = resolvedDriftTexts.size;
+      result.allowlistedDrifts = result.allowedCurrentTextCategoryDrift.length;
       result.ok = result.failures.length === 0;
       console.log("STEP3_UI_TAXONOMY_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
       return result;
