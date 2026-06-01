@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "asyncscene.styleGuide.v1",
+  "buildMarker": "STEP3_MILLENNIAL_STYLE_GUIDE_V1",
+  "artifactId": "STYLE_GUIDE_MILLENNIAL_V1",
+  "profile": "millennial",
+  "purpose": "Tone and phrasing governance for future UI string validation only. This artifact does not rewrite gameplay text and does not change gameplay rules.",
+  "sections": {
+    "tone": {
+      "required": ["address_user_as_ty", "neutral_confident", "short_product_sentences", "no_lecturing", "no_flirting", "no_officialese", "no_memes", "no_teen_slang", "no_humiliation", "no_hype_fanfare", "no_moral_judgment"],
+      "rules": {
+        "address_user_as_ty": "Address the user as ты when direct address is needed. Avoid вы, пользователь, клиент.",
+        "neutral_confident": "Sound calm, clear, and competent. Do not over-explain or dramatize.",
+        "short_product_sentences": "Use compact product-style sentences with one action or state per sentence.",
+        "no_lecturing": "Do not teach from above. Give the next useful step.",
+        "no_flirting": "Do not use romantic, suggestive, or intimate phrasing.",
+        "no_officialese": "Avoid bureaucracy, formal notices, and legalistic phrasing.",
+        "no_memes": "Do not use meme formats, ironic catchphrases, or viral references.",
+        "no_teen_slang": "Avoid teen-coded slang and trend words.",
+        "no_humiliation": "Never shame the user or NPC. Do not mock losses or mistakes.",
+        "no_hype_fanfare": "Avoid victory fanfare, hero worship, and exaggerated excitement.",
+        "no_moral_judgment": "Do not judge the user's character or morality. Describe action outcomes only."
+      }
+    },
+    "phraseLengths": {
+      "buttons": { "maxWords": 3, "maxChars": 24 },
+      "errors": { "maxWords": 12, "maxChars": 80 },
+      "hints": { "maxWords": 16, "maxChars": 110 },
+      "toasts": { "maxWords": 10, "maxChars": 70 },
+      "emptyStates": { "maxWords": 14, "maxChars": 90 },
+      "systemMessages": { "maxWords": 14, "maxChars": 100 },
+      "battleMessages": { "maxWords": 12, "maxChars": 90 },
+      "economyMessages": { "maxWords": 12, "maxChars": 90 },
+      "cooldownMessages": { "maxWords": 10, "maxChars": 70 }
+    },
+    "vocabulary": {
+      "prefer": ["выбери", "открой", "проверь", "попробуй", "вернись", "обнови", "закрой", "ждём", "готово", "не вышло", "не хватает", "доступно", "недоступно"],
+      "avoid": ["обязан", "должен", "немедленно", "в срочном порядке", "уважаемый пользователь", "поздравляем с триумфом", "легенда", "краш", "рофл", "жиза"],
+      "replacementGuidance": "Prefer plain action and state words. Replace judgment or hype with confirmed state and next step."
+    },
+    "ctaVerbs": {
+      "allowedPatterns": [
+        "verb_imperative_short: one clear imperative verb, optional object, e.g. Открой чат",
+        "verb_plus_target: action + target, e.g. Выбери бой",
+        "state_action: neutral state action, e.g. Проверить статус",
+        "return_action: Вернуться + destination"
+      ],
+      "allowedVerbs": ["выбери", "открой", "проверь", "попробуй", "вернись", "обнови", "закрой", "продолжи", "пропусти", "сохрани", "покажи"],
+      "forbiddenAlternatives": ["жми", "кликай", "тащи", "влетай", "нагибай", "срочно", "обязан", "победи всех", "докажи", "стань легендой"],
+      "rules": [
+        "CTA must name one action only.",
+        "CTA must not promise outcomes.",
+        "CTA must not pressure the user.",
+        "CTA must fit button phrase limits."
+      ]
+    },
+    "errors": {
+      "canonicalPattern": "state_first_then_next_step",
+      "rules": [
+        "Say what failed in neutral words.",
+        "Give one recovery action when available.",
+        "Do not blame the user.",
+        "Do not apologize repeatedly.",
+        "Do not expose implementation details unless this is a dev-only message."
+      ],
+      "templates": ["Не вышло. Попробуй ещё раз.", "Нет доступа. Проверь условие.", "Не хватает очков.", "Сеть недоступна. Обнови позже."],
+      "forbidden": ["сам виноват", "ты ошибся", "некорректный пользователь", "фатальная ошибка", "ужасная ошибка"]
+    },
+    "hints": {
+      "canonicalPattern": "optional_next_step_with_context",
+      "rules": [
+        "Make hints optional, not commanding.",
+        "Explain the next useful step, not the whole system.",
+        "Use можешь when direct advice is needed.",
+        "Avoid teacher tone and moral framing.",
+        "Keep one idea per hint."
+      ],
+      "templates": ["Можешь выбрать слабое место.", "Проверь ресурс перед ходом.", "Новый ход откроется позже.", "Если передумал, вернись назад."],
+      "forbidden": ["запомни", "ты должен", "урок", "правильно/неправильно", "думай лучше"]
+    },
+    "systemMessages": {
+      "rules": ["Use confirmed state only.", "Separate pending, success, and failure states.", "Avoid official notices.", "Do not imply backend guarantees before confirmation."],
+      "preferredStateWords": ["готово", "проверяем", "ожидает", "доступно", "недоступно", "обновлено"]
+    },
+    "economyMessages": {
+      "rules": ["Name the resource and delta clearly.", "Do not celebrate wealth or shame lack of resources.", "For pending rewards, say checking/pending.", "Do not imply real-money value."],
+      "preferredPatterns": ["+{amount} {resource}", "-{amount} {resource}", "Не хватает {resource}", "{resource} обновлены"]
+    },
+    "battleMessages": {
+      "rules": ["Describe battle state, not personal worth.", "No hype or fanfare victory language.", "No humiliation after loss.", "No moral judgment of tactics.", "Keep outcomes factual."],
+      "preferredPatterns": ["Бой начался.", "Ход принят.", "Раунд завершён.", "Победа засчитана.", "Поражение засчитано.", "Ничья."]
+    },
+    "cooldownMessages": {
+      "rules": ["Say that the action is temporarily unavailable.", "Show wait time when known.", "Offer a safe alternate action when useful.", "Do not scold repeated attempts."],
+      "preferredPatterns": ["Доступно через {time}.", "Подожди {time}.", "Ход скоро обновится.", "Пока недоступно."]
+    },
+    "emptyStates": {
+      "rules": ["State what is absent.", "Give one next action when useful.", "Avoid sad jokes or blame.", "Do not over-explain."],
+      "preferredPatterns": ["Пока пусто.", "Сообщений нет.", "Боев пока нет.", "Можно вернуться позже."]
+    },
+    "forbiddenCategories": {
+      "lecturing": { "examples": ["запомни", "урок", "ты должен"], "replaceWith": "optional hint or direct next step" },
+      "flirting": { "examples": ["красавчик", "милый", "детка"], "replaceWith": "neutral acknowledgement" },
+      "officialese": { "examples": ["уважаемый пользователь", "в соответствии", "уведомляем"], "replaceWith": "plain product wording" },
+      "memes": { "examples": ["рофл", "жиза", "мемный формат"], "replaceWith": "plain state or action" },
+      "teenSlang": { "examples": ["краш", "имба", "вайб чек"], "replaceWith": "stable neutral vocabulary" },
+      "humiliation": { "examples": ["позор", "слабак", "сам виноват"], "replaceWith": "factual outcome and recovery action" },
+      "hypeFanfare": { "examples": ["легендарная победа", "триумф", "разнёс всех"], "replaceWith": "confirmed result" },
+      "moralJudgment": { "examples": ["плохой поступок", "стыдно", "нечестный человек"], "replaceWith": "mechanical consequence or state" },
+      "pressure": { "examples": ["срочно", "немедленно", "обязан"], "replaceWith": "neutral CTA" },
+      "outcomePromise": { "examples": ["точно победишь", "награда уже твоя", "гарантируем"], "replaceWith": "pending or confirmed state" }
+    },
+    "validationContract": {
+      "requiredSections": ["tone", "phraseLengths", "vocabulary", "ctaVerbs", "errors", "hints", "systemMessages", "economyMessages", "battleMessages", "cooldownMessages", "emptyStates", "forbiddenCategories"],
+      "mustAddressUserAs": "ты",
+      "mustNotRewriteGameplay": true,
+      "internalContradictions": [
+        "allowed CTA verbs must not appear in forbidden alternatives",
+        "preferred vocabulary must not appear in avoid vocabulary",
+        "required tone rules must have matching rule text",
+        "all phrase length maximums must be positive numbers",
+        "forbidden categories must include replacement guidance"
+      ]
+    }
+  }
+}
