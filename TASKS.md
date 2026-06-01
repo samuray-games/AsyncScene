@@ -65,6 +65,30 @@
 
 ## Inbox
 
+### [T-20260601-013] AsyncScene Step 3 [7.7] Training terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/ui-old.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to Training UI/runtime-facing training strings, without reopening prior Step 3 layers or changing gameplay, economy, costs, availability, progression, caps, rewards, cooldown values, or data models.
+- Acceptance:
+  - [x] Training-facing UI strings use canonical `Обучить аргументу`, `💰`, and `кулдаун` in the covered where-used rows.
+  - [x] Old Training variants such as `Тренировка аргумента`, `Загрузка тренировки`, `Тренинг`, `обучил(а)`, `Цена: {cost} 💰`, `Кулдаун`, and `кулдаун до дня` are removed from scoped runtime-facing Training strings.
+  - [x] `Game.__DEV.smokeStep3TerminologyTrainingLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_TRAINING_LAYER_V1` and reports `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Smoke verifies previous Step 3 helper availability for [1]-[6] and [7.1]-[7.6].
+  - [ ] iPhone Safari runtime smoke returns PASS.
+- Notes: Scope is Training UI only. Events/Crowd, Battles, generic DM UI, Reports, Escape/Ignore, Rematch, Respect, P2P, gameplay, economy, cost, availability, progression, caps, rewards, cooldown mechanics, and data models were not changed.
+- Result: READY_FOR_RUNTIME_SMOKE. Local VM smoke returned `ok:true`, `failures:[]`, `checkedCount:19`, `replacedCount:11`, `forbiddenRemaining:[]`, `layerScope:"training_econ04"`; Playwright browser smoke is blocked locally because Chromium is not installed. Runtime PASS is not claimed without iPhone Safari.
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: Training terminology strings and Training layer smoke are updated; local static checks and local VM smoke pass; browser automation is environment-blocked.
+  - Changed: `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/ui-old.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `Game.__DEV.smokeStep3TerminologyTrainingLayerOnce()` on iPhone Safari after cache refresh and require `ok:true`, `failures:[]`, `checkedCount:19`, `replacedCount:11`, `forbiddenRemaining:[]`, `layerScope:"training_econ04"`, and build marker `STEP3_TERMINOLOGY_TRAINING_LAYER_V1`.
+  - Next: QA — perform required iPhone Safari runtime smoke.
+  - Next Prompt: Run Training terminology layer Safari smoke and report honest PASS/FAIL only.
+
 ### [T-20260601-011] AsyncScene Step 3 [7.5] Escape/Ignore terminology UI layer
 - Status: REVIEW
 - Priority: P0
