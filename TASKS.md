@@ -66,6 +66,29 @@
 ## Inbox
 
 
+### [T-20260601-006] AsyncScene Step 3 [6] terminology where-used map V1
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|UI|Docs|Runtime Smoke
+- Files: `docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `docs/index.html` `AsyncScene/Web/index.html` `tools/generate-step3-terminology-where-used.py` `tools/validate-step3-terminology-where-used.py`
+- Goal: Create a replacement-map-only where-used artifact that tells a future developer exactly where each mapped terminology concept/term lives and what file/function/key should change later.
+- Acceptance:
+  - [x] `STEP3_TERMINOLOGY_WHERE_USED_V1.csv` exists in both deployment trees with required columns `Key`, `ConceptId`, `CanonicalTermRU`, `CurrentTextOrVariant`, `SourceTermId`, `SourceFile`, `SourceKeyOrFunction`, `ComponentOrModule`, `ContextOrScreen`, `TriggerCondition`, `ReplacementTarget`, and `Notes`.
+  - [x] Every inventory `TERM_ID` referenced by the mapped Step 3 terminology table appears in the where-used map.
+  - [x] Every forbidden synonym from `STEP3_TERMINOLOGY_TABLE_V1.csv` is either mapped to current text or documented as not currently present/historical in row notes.
+  - [x] `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()` is installed with build marker `STEP3_TERMINOLOGY_WHERE_USED_V1` and validates required columns, table concept coverage, inventory references, forbidden synonym mapping/documentation, non-empty source files/replacement targets, duplicate `SourceTermId`+`ReplacementTarget` rows, and runtime-facing concept coverage.
+  - [x] Gameplay unchanged; UI strings were not rewritten and replacements were not performed.
+- Result: READY_FOR_RUNTIME_SMOKE. Static where-used validation passed for 657 rows, 12 concepts, and 552 unique inventory source-term references; iPhone Safari runtime PASS was not claimed.
+- Report:
+  - Status: DONE / READY_FOR_RUNTIME_SMOKE
+  - Facts: Built `STEP3_TERMINOLOGY_WHERE_USED_V1` from inventory, canon, taxonomy, and terminology table artifacts without reopening prior steps or editing UI copy.
+  - Changed: `docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `docs/index.html` `AsyncScene/Web/index.html` `tools/generate-step3-terminology-where-used.py` `tools/validate-step3-terminology-where-used.py` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: run `python3 tools/validate-step3-terminology-where-used.py`; run `node --check docs/dev/dev-checks.js`; run `node --check AsyncScene/Web/dev/dev-checks.js`; then in Safari run `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()`.
+  - Next: QA should run iPhone Safari runtime smoke and report honest PASS/FAIL.
+  - Next Prompt: Run AsyncScene Step 3 [6] runtime smoke on iPhone Safari with `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()` and record PASS/FAIL evidence.
+
 ### [T-20260601-004] AsyncScene Step 3 [5] unified terminology table V1
 - Status: DONE
 - Priority: P0

@@ -4291,3 +4291,16 @@ Error: Download failure, code=1
 - Static evidence: PASS `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS same validator for `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
 - Browser smoke evidence: WARNING `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyTableOnce` was blocked by missing Playwright Chromium in the environment.
 - Safari command for QA: `Game.__DEV.smokeStep3TerminologyTableOnce()`.
+
+## 2026-06-01 — Step 3 [6] terminology where-used map V1
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Added replacement-map-only artifact `STEP3_TERMINOLOGY_WHERE_USED_V1.csv` under both `docs/terminology/` and `AsyncScene/Web/terminology/`.
+- The where-used map is generated from the frozen Step 3 inventory, canon, taxonomy, and terminology table artifacts; previous steps were not reopened.
+- The artifact contains 657 rows across the 12 terminology concepts and references 552 unique inventory `TERM_ID` values that belong to mapped concepts.
+- Each row identifies `SourceFile`, `SourceKeyOrFunction`, derived `ComponentOrModule`, `ContextOrScreen`, `TriggerCondition`, and the later `ReplacementTarget`; no UI strings were edited and no replacements were performed.
+- Forbidden synonyms from `STEP3_TERMINOLOGY_TABLE_V1.csv` are either linked to current text rows or documented in notes as `forbiddenSynonymNotCurrentlyPresent=...` when historical/not currently present.
+- Added generator and validator tooling: `tools/generate-step3-terminology-where-used.py` and `tools/validate-step3-terminology-where-used.py`.
+- Added mirrored dev smoke `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()` with build marker `STEP3_TERMINOLOGY_WHERE_USED_V1`; it checks required columns, concept coverage, inventory references, forbidden synonym mapping/documentation, non-empty source files/replacement targets, duplicate `SourceTermId`+`ReplacementTarget` rows, and runtime-facing concept coverage.
+- Updated both HTML entrypoints to load `dev/dev-checks.js?v=step3-terminology-where-used-v1` so Safari does not reuse the prior dev-checks cache entry.
+- Static evidence: PASS `python3 tools/validate-step3-terminology-where-used.py`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
+- Safari command for QA: `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()`.
