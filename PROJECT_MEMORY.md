@@ -4397,3 +4397,12 @@ Error: Download failure, code=1
 - The runtime smoke now scans only explicit Rematch where-used rows and exact runtime-facing Rematch strings, avoiding broad file windows, comments, generic battle invite/NPC loop code, and non-user-visible identifiers.
 - Evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS static scoped Rematch scan with `forbiddenRemaining:[]`; PASS local VM smoke for both copies with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`, and `scannedRows:16`.
 - Safari QA command: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
+
+## 2026-06-01 — Step 3 [7.8] Respect terminology layer
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` for Respect UI runtime-facing strings only.
+- Canonical Respect-facing strings now avoid the old `REP`, `сверхпойнты`, `Cap`, `max REP`, and old emitter-empty wording in the Respect UI layer.
+- Added `Game.__DEV.smokeStep3TerminologyRespectLayerOnce()` with build marker `STEP3_TERMINOLOGY_RESPECT_LAYER_V1`, `layerScope:"respect_econ08"`, where-used coverage checks, forbidden synonym checks, canonical-term checks, and previous-helper availability checks through Step 3 [7.7].
+- Local evidence: PASS JS syntax checks for changed JS files; PASS terminology table and where-used validators; PASS local static Respect forbidden-synonym scan.
+- Environment warning: Playwright browser smoke could not run because Chromium is not installed and browser download returned 403; no runtime PASS is claimed.
+- Safari QA command: `Game.__DEV.smokeStep3TerminologyRespectLayerOnce()`.
