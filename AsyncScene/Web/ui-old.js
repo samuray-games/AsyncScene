@@ -565,7 +565,7 @@ window.Game = window.Game || {};
 
     if (isCop) {
       if (extra) extra.classList.remove("hidden");
-      if (hint) hint.textContent = "Сдать бандита или гопника за вознаграждение в 2 💰. Ложный донос: штраф -1 💰.";
+      if (hint) hint.textContent = "Сдать бандита или гопника за вознаграждение в 2 💰. «Сдать» без фактов: штраф -1 💰.";
     } else {
       if (extra) extra.classList.add("hidden");
     }
@@ -1070,8 +1070,8 @@ window.Game = window.Game || {};
     if (!opp) return;
 
     // warnings by Cop, not System
-    if (opp.role === "bandit") UI.pushCop("Внимание. Похоже, тут бандит. В конфликт лучше не лезть: смывайтесь или отшивайте, если можете.");
-    if (opp.role === "gopnik") UI.pushCop("Внимание. Похоже, тут гопник. Лучше смыться или отшить: иначе утащит 💰.");
+    if (opp.role === "bandit") UI.pushCop("Внимание. Похоже, тут бандит. В баттл лучше не лезть: Свалить или отшить, если можете.");
+    if (opp.role === "gopnik") UI.pushCop("Внимание. Похоже, тут гопник. Лучше Свалить или отшить: иначе утащит 💰.");
 
     const line = Game.Data.SYS.challengedLine(opp.name, opp.influence || 0);
     UI.pushSystem(line, { action:"pinBattle", battleId });
@@ -1341,7 +1341,7 @@ window.Game = window.Game || {};
       // Cop: silent until user speaks
       if (target && target.role === "cop") {
         dmPushLine(withId, "Коп", "Совет: распознавайте гопника и бандита по стилю сообщений. Они провоцируют и давят.");
-        dmPushLine(withId, "Коп", "Лучше не вступать в конфликт. Гопник утащит 💰, бандит обнулит. Безопаснее смыться или отшить, если можете.");
+        dmPushLine(withId, "Коп", "Лучше не вступать в баттл. Гопник утащит 💰, бандит обнулит. Безопаснее Свалить или отшить, если можете.");
       }
 
       // Bandit/Gopnik: after first user msg, they rage and challenge
@@ -1394,7 +1394,7 @@ window.Game = window.Game || {};
       if (suspect && (suspect.role === "bandit" || suspect.role === "gopnik")) {
         S.me.points = (S.me.points || 0) + 2;
         UI.pushSystem(Game.Data.SYS.reportOk(suspect.name));
-        dmPushLine(withId, "Коп", `Принято. ${suspect.name} отмечен(а).`);
+        dmPushLine(withId, "Коп", `Принято. Сдать ${suspect.name}: засчитано.`);
       } else {
         S.me.points = Math.max(0, (S.me.points || 0) - 1);
         UI.pushSystem(Game.Data.SYS.reportNo);
