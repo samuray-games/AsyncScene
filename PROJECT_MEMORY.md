@@ -4491,3 +4491,12 @@ Error: Download failure, code=1
 - The smoke contract is `{ ok, checkedTypes, missingTypes, repeatedTemplateProblems, failedChecks, sampleCount }`; local VM returned `ok:true` with all four required checked types and empty failure arrays.
 - Guardrails retained: no ARG_CANON_ID format change, no canon source rewrite, no type/tone/weight/matching/economy/battle/UI behavior changes; K tone remains classic in rendered millennial templates.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()`.
+
+## 2026-06-01 - STEP4-[4] ARG CANON MILLENNIAL 100% coverage
+- Status: READY_FOR_RUNTIME_SMOKE only; iPhone Safari must run `Game.__DEV.smokeArgCanonMillennialCoverageOnce()` before runtime PASS is claimed.
+- Added a millennial coverage smoke for every existing ARG canon text id and mirrored it through both runtime data bundles and dev-check bundles.
+- The smoke contract is `{ ok, totalCanonIds, millennialCount, coveragePct, missingCoverage, duplicateIds, brokenKeys, indexBuildOk, failedChecks }` and local VM evidence returned the required pass shape with `totalCanonIds:692`, `millennialCount:692`, `coveragePct:100`, empty arrays, and `indexBuildOk:true`.
+- Pruned stale millennial text-store keys that came from pre-sanitize seeding so only current canon ids remain; no canon ids, canon meanings, argument types, y/o/r/k tones, weights, matching logic, battle logic, economy, or UI behavior were changed. `Console.txt` was not used.
+- Previous Step4 smokes stayed green locally: `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()` and `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()` both returned `ok:true`.
+- Commit hash: recorded in the final one-line READY report.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`.
