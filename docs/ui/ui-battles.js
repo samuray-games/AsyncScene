@@ -1077,11 +1077,11 @@
       return;
     }
     if (normalized === "not_eligible") {
-      toast("Пока нельзя: баттл ещё не завершён.");
+      toast("Недоступно. Баттл не завершён.");
       return;
     }
     if (normalized === "not_found") {
-      toast("баттл не найден.");
+      toast("Баттл не найден.");
     }
   }
 
