@@ -2303,6 +2303,114 @@ K YN A9: Нет.
   };
 
 
+  Data.smokeArgCanonMillennialOnce = () => {
+    const result = {
+      ok: false,
+      checkedCount: 0,
+      errors: [],
+      warnings: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const pushUnique = (list, value) => {
+      const key = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+    };
+    const appendArray = (target, items) => {
+      if (!Array.isArray(items)) return;
+      items.forEach((item) => pushUnique(target, item));
+    };
+    const runCheck = (name, fn) => {
+      try {
+        if (typeof fn !== "function") {
+          pushUnique(result.failedChecks, `${name}_missing`);
+          return null;
+        }
+        const out = fn();
+        if (!out || typeof out !== "object") {
+          pushUnique(result.failedChecks, { check: name, reason: "invalid_result" });
+          return null;
+        }
+        if (out.ok !== true) pushUnique(result.failedChecks, { check: name, reason: "not_ok" });
+        return out;
+      } catch (err) {
+        pushUnique(result.errors, { check: name, error: err && err.message ? String(err.message) : String(err) });
+        return null;
+      }
+    };
+
+    try {
+      const coverage = runCheck("coverage", Data.smokeArgCanonMillennialCoverageOnce);
+      const styleLex = runCheck("style_lex", Data.lintArgCanonMillennialStyleLex);
+      const templates = runCheck("templates", Data.smokeArgCanonMillennialTemplatesOnce);
+
+      if (coverage) {
+        result.checkedCount = Number(coverage.totalCanonIds) || 0;
+        appendArray(result.missingCoverage, coverage.missingCoverage);
+        appendArray(result.failedChecks, coverage.failedChecks);
+        appendArray(result.failedChecks, (coverage.duplicateIds || []).map((id) => ({ id, check: "duplicate_canon_id" })));
+        appendArray(result.failedChecks, (coverage.brokenKeys || []).map((id) => ({ id, check: "broken_key" })));
+      }
+      if (styleLex) {
+        appendArray(result.forbiddenRemaining, styleLex.forbiddenRemaining);
+        appendArray(result.missingCoverage, styleLex.missingCoverage);
+        appendArray(result.failedChecks, styleLex.failedChecks);
+      }
+      if (templates) {
+        appendArray(result.missingCoverage, templates.missingTypes);
+        appendArray(result.failedChecks, templates.failedChecks);
+        appendArray(result.failedChecks, templates.repeatedTemplateProblems);
+      }
+
+      const ids = (typeof Data.listArgCanonTextIds === "function") ? Data.listArgCanonTextIds() : [];
+      if (!result.checkedCount) result.checkedCount = ids.length;
+      const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || {};
+      const canonical = Object.create(null);
+      ids.forEach((id) => { canonical[id] = true; });
+      if (result.checkedCount !== ids.length) {
+        pushUnique(result.failedChecks, { check: "checked_count_mismatch", checkedCount: result.checkedCount, totalCanonIds: ids.length });
+      }
+
+      ids.forEach((id) => {
+        const raw = Object.prototype.hasOwnProperty.call(store, id) ? store[id] : "";
+        const text = typeof raw === "string" ? raw : "";
+        const trimmed = text.trim();
+        if (!trimmed) {
+          pushUnique(result.failedChecks, { id, check: "empty_text" });
+          return;
+        }
+        if (text !== trimmed) pushUnique(result.failedChecks, { id, check: "edge_whitespace", text });
+        if (/ {2,}/.test(text)) pushUnique(result.failedChecks, { id, check: "double_spaces", text });
+        if (/[.]{3,}|…{2,}|(?:\.\s*){3,}/u.test(text)) pushUnique(result.failedChecks, { id, check: "excessive_ellipses", text });
+        if (/[!?.,:;]{4,}/u.test(text) || /([!?.,:;])\1{2,}/u.test(text)) pushUnique(result.failedChecks, { id, check: "repeated_junk_punctuation", text });
+        const letters = (text.match(/[A-Za-zА-Яа-яЁё]/gu) || []);
+        const caps = (text.match(/[A-ZА-ЯЁ]/gu) || []);
+        if (letters.length >= 8 && caps.length / letters.length > 0.72) pushUnique(result.failedChecks, { id, check: "excessive_caps", text });
+        if (/\{\s*(core|target)\s*\}/iu.test(text)) pushUnique(result.failedChecks, { id, check: "unrendered_template_token", text });
+        if (/\{(?!NAME\}|PLACE\})[^}]+\}/u.test(text)) pushUnique(result.failedChecks, { id, check: "unknown_placeholder", text });
+        if (trimmed.length < 20) pushUnique(result.warnings, { id, check: "minor_length_target_under_20", length: trimmed.length, text: trimmed, allowedMinor: true });
+        if (trimmed.length > 120) pushUnique(result.failedChecks, { id, check: "length_over_120", length: trimmed.length, text: trimmed });
+      });
+
+      Object.keys(store).forEach((key) => {
+        if (!canonical[key]) pushUnique(result.failedChecks, { id: key, check: "broken_key" });
+      });
+
+      result.ok = result.checkedCount === ids.length
+        && ids.length > 0
+        && result.errors.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+    } catch (err) {
+      pushUnique(result.errors, err && err.message ? String(err.message) : String(err));
+      result.ok = false;
+    }
+    return result;
+  };
+
+
   Data.buildArgCanon();
   Data.seedArgCanonMillennialTemplateTexts();
 
@@ -3084,6 +3192,29 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialCoverageSmoke();
+
+
+  const installArgCanonMillennialAggregateSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    if (typeof root.__DEV.smokeArgCanonMillennialOnce === "function") return;
+    root.__DEV.smokeArgCanonMillennialOnce = function smokeArgCanonMillennialOnce() {
+      let result;
+      try {
+        result = (typeof Data.smokeArgCanonMillennialOnce === "function")
+          ? Data.smokeArgCanonMillennialOnce()
+          : { ok: false, checkedCount: 0, errors: [], warnings: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: ["aggregate_helper_missing"] };
+      } catch (err) {
+        result = { ok: false, checkedCount: 0, errors: [err && err.message ? String(err.message) : String(err)], warnings: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_AGGREGATE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_AGGREGATE_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialOnce);
+  };
+
+  installArgCanonMillennialAggregateSmoke();
 
   Game.Data = Data;
 })();
