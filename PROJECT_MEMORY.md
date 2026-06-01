@@ -1,5 +1,15 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-01 — Step 4 [6] ARG canon millennial human readability QA smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Added `Game.__DEV.smokeArgCanonMillennialReadableOnce()` as a QA-only helper with direct sample rows and contract fields `{ ok, sampleCount, badRows, badStreakMax, forbiddenRemaining, failedChecks, samples }`.
+- The smoke builds a deterministic 50-row sample covering ABOUT, WHO, WHERE, YN plus questions and answers, then detects forbidden StyleLex terms, textbook wording, teacher/school wording, meta/game wording, repetitive openings, and streaks of bad samples.
+- Runtime exposure is installed in both `data.js` copies as a Safari-loaded fallback and in both `dev/dev-checks.js` copies as a dev wrapper. No ARG_CANON_ID, canon meaning, type/tone/weight/matching logic, battles, economy, UI, or data generation changes were made.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeArgCanonMillennialReadableOnce()` with `ok:true`, `sampleCount:50`, `badRows:[]`, `badStreakMax:0`, `forbiddenRemaining:[]`, and `failedChecks:[]`.
+- Required Safari command: `Game.__DEV.smokeArgCanonMillennialReadableOnce()` must return `ok:true`, `sampleCount` between 30 and 50, `badRows:[]`, `badStreakMax < 5`, `forbiddenRemaining:[]`, and `failedChecks:[]` before runtime PASS can be claimed.
+
+
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
