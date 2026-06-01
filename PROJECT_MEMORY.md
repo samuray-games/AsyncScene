@@ -3,6 +3,16 @@
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
+## 2026-06-01 — Step 3 [7.2] Battles terminology UI layer
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for Battles UI strings. Canonical runtime-facing strings now use `баттл`, `Не хватает 💰.`, `Толпа решает`, `Свалить`, `Отвали`, `💰`, and `⭐` in this layer.
+- Added `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` with build marker `STEP3_TERMINOLOGY_BATTLES_LAYER_V1`. The smoke loads table/where-used artifacts, statically inspects Battles UI runtime strings, checks forbidden synonym removal, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6] plus Step 3 [7.1] are available with optional `{runPrevious:true}` execution.
+- Local evidence: PASS `node --check docs/ui/ui-battles.js`; PASS `node --check AsyncScene/Web/ui/ui-battles.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` with `ok:true`, `checkedCount:91`, `replacedCount:10`, `forbiddenRemaining:[]`, `layerScope:"battle_ui"`; PASS local VM smoke with `{runPrevious:true}` where previous Step 3 helper results, including Step 3 [7.1], were all `pass`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` and require `ok:true`, `failures:[]`, `checkedCount:91`, `replacedCount:10`, `forbiddenRemaining:[]`, `layerScope:"battle_ui"`, and build marker `STEP3_TERMINOLOGY_BATTLES_LAYER_V1`.
+- FAIL criteria for runtime: any forbidden synonym remains, any required canonical term is missing, where-used rows for Battles UI are not covered, any previous Step 3 helper [1]-[6] or Step 3 [7.1] is missing/fails, or the smoke returns `ok:false`.
+- Scope guard: no gameplay, economy, scoring, RNG, battle mechanics, canon logic, tone logic, influence logic, or data models were changed. Previous steps were not reopened.
+
 ## Правило обновления
 - Любая новая договорённость/ограничение/решение/статус фазы, которое ассистент считает “памятью”, фиксируется здесь.
 - Формат: добавляем запись в **Log** (внизу) и при необходимости обновляем **Current Snapshot**.

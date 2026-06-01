@@ -65,6 +65,30 @@
 
 ## Inbox
 
+### [T-20260601-008] AsyncScene Step 3 [7.2] Battles terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `docs/ui/ui-battles.js` `AsyncScene/Web/ui/ui-battles.js` `docs/index.html` `AsyncScene/Web/index.html` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` + `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to Battles UI-facing strings without changing gameplay, economy, scoring, RNG, battle mechanics, canon logic, tone logic, influence logic, or data models.
+- Acceptance:
+  - [x] Battles UI strings use canonical terms for `баттл`, `Не хватает 💰.`, `Толпа решает`, `Свалить`, `Отвали`, `💰`, and `⭐`.
+  - [x] Forbidden variants from the terminology table are removed from Battles runtime-facing strings covered by the where-used rows.
+  - [x] `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_BATTLES_LAYER_V1` and returns `ok:true`, `failures:[]`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Previous Step 3 smoke helpers [1]-[6] and Step 3 [7.1] are available to the new smoke and can be run via `{runPrevious:true}`.
+  - [ ] iPhone Safari runtime smoke has run and recorded final PASS.
+- Notes: READY_FOR_RUNTIME_SMOKE. Scope explicitly excludes gameplay/economy/scoring/RNG/battle mechanics/canon/tone/influence/data-model changes. Events/Crowd, DM, Reports, Rematch, Training, Respect, P2P, and generic toast surfaces were not reopened except where the where-used rows are explicitly Battles UI.
+- Result: Local PASS only; no Runtime PASS claimed. Updated battle card/button/hint/error/result-facing terminology and cache markers, added the Battles layer smoke, and mirrored docs/Web files. PASS criteria: iPhone Safari runs `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` and returns `ok:true`, `failures:[]`, `checkedCount:91`, `replacedCount:10`, `forbiddenRemaining:[]`, `layerScope:"battle_ui"`. FAIL criteria: any forbidden synonym remains, any previous Step 3 helper or Step 3 [7.1] helper is missing/fails, or Safari runtime returns `ok:false`.
+- Report:
+  - Status: REVIEW
+  - Facts: Static checks PASS; local VM smoke PASS with `{runPrevious:true}` and previous helpers all `pass`; iPhone Safari runtime smoke still required.
+  - Changed: `docs/ui/ui-battles.js` `AsyncScene/Web/ui/ui-battles.js` `docs/index.html` `AsyncScene/Web/index.html` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` in iPhone Safari after cache refresh.
+  - Next: QA for required iPhone Safari runtime smoke.
+
+
 
 ### [T-20260601-007] AsyncScene Step 3 [7.1] Events + Voting/Crowd terminology UI layer
 - Status: REVIEW
