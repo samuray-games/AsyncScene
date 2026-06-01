@@ -56,6 +56,17 @@
 - FAIL criteria for runtime: any forbidden Training synonym remains, any required canonical Training term is missing, where-used rows for Training are not covered, any previous Step 3 helper [1]-[6] or [7.1]-[7.6] is missing, or the smoke returns `ok:false`.
 - Scope guard: no gameplay, economy, training cost, training availability, argument progression, caps, rewards, cooldown mechanics, data models, Events/Crowd, Battles, generic DM UI, Reports, Escape/Ignore, Rematch, Respect, or P2P behavior was changed.
 
+
+## 2026-06-01 — Step 3 [7.9] P2P terminology UI layer
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for P2P UI/runtime-facing transfer strings. Canonical strings now use `💰`, `Не хватает 💰.`, and `Недоступно.` in covered P2P rows.
+- Added `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()` with build marker `STEP3_TERMINOLOGY_P2P_LAYER_V1`. The smoke validates P2P where-used coverage, forbidden synonym removal, canonical term presence, no new P2P synonym variants, `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and availability of previous Step 3 helpers [1]-[6] and [7.1]-[7.8].
+- Local evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/ui/ui-core.js`; PASS `node --check docs/ui/ui-dm.js`; PASS `node --check AsyncScene/Web/ui/ui-core.js`; PASS `node --check AsyncScene/Web/ui/ui-dm.js`; PASS `node --check AsyncScene/Web/ui-old.js`; PASS `node --check docs/data/style-lex.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()` with `ok:true`, `failures:[]`, `checkedCount:33`, `replacedCount:8`, `forbiddenRemaining:[]`, `layerScope:"p2p"`; WARN `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyP2PLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()` and require `ok:true`, `failures:[]`, `checkedCount:33`, `replacedCount:8`, `forbiddenRemaining:[]`, `layerScope:"p2p"`, and build marker `STEP3_TERMINOLOGY_P2P_LAYER_V1`.
+- FAIL criteria for runtime: any forbidden P2P synonym remains, any required canonical P2P term is missing, where-used rows for P2P are not covered, any previous Step 3 helper [1]-[6] or [7.1]-[7.8] is missing, or the smoke returns `ok:false`.
+- Scope guard: no gameplay, economy, P2P transfer logic, rate limits, eligibility rules, caps, balances, moneyLog, notifications, data models, Events/Crowd, Battles, generic DM UI, Reports, Escape/Ignore, Rematch, Training, or Respect behavior was changed.
+
 ## Current Snapshot
 
 ### Проект

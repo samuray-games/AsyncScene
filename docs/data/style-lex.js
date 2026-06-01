@@ -733,8 +733,8 @@ window.Game = window.Game || {};
     add("Проверяем...", "toast", "ECON-SOC.report", { source: "ui-dm report pending" });
     add("Сдать", "hint", "ECON-SOC.report", { source: "ui-dm report button" });
     add("Занят", "hint", "ECON-SOC.report", { source: "ui-dm report button cooldown" });
-    add("Нельзя отправить пойнты самому себе.", "error", "ECON-P2P.transfer", { source: "ui-dm p2p_self_transfer_forbidden" });
-    add("Передача пока отключена.", "error", "ECON-P2P.transfer", { source: "ui-dm p2p_disabled" });
+    add("Нельзя отправить 💰 самому себе.", "error", "ECON-P2P.transfer", { source: "ui-dm p2p_self_transfer_forbidden" });
+    add("Недоступно.", "error", "ECON-P2P.transfer", { source: "ui-dm p2p_disabled" });
     add("Баланс обновлён.", "toast", "ECON-UI.status", { source: "economy UI status" });
     add("Открой личку, ты можешь выбрать действие.", "hint", "ECON-UI.hint", { directAddress: true, source: "economy UI hint" });
 

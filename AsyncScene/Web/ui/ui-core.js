@@ -261,9 +261,9 @@ window.Game = window.Game || {};
     Game.Data.RULES.p2pPlayerToPlayerEnabled = !!value;
     return Game.Data.RULES.p2pPlayerToPlayerEnabled;
   };
-  const P2P_BACKLOG_TITLE = "Передача пойнтов: пока недоступна.";
+  const P2P_BACKLOG_TITLE = "Недоступно.";
   const P2P_BACKLOG_REASON = "Причина: анти-абуз и баланс.";
-  const P2P_BACKLOG_EXPLAIN = "Передача пока отключена из-за анти-абуза и баланса.";
+  const P2P_BACKLOG_EXPLAIN = "Недоступно.";
   Game.Rules.isP2PBacklogActive = function() {
     const transfersEnabled = Game.Rules.isP2PTransfersEnabled();
     const playerToPlayerEnabled = Game.Rules.isP2PPlayerToPlayerEnabled();
