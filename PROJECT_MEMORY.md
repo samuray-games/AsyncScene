@@ -4484,3 +4484,10 @@ Error: Download failure, code=1
 - Evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke returned `ok:true`, `checkedCount:692`, `forbiddenRemaining:[]`, `failedChecks:[]`, and `missingCoverage:[]`.
 - Commit hash: recorded in the final one-line READY report.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()`.
+
+## 2026-06-01 - STEP4-[3] ARG CANON MILLENNIAL template style rules
+- Status: READY_FOR_RUNTIME_SMOKE only; iPhone Safari must run `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()` before runtime PASS is claimed.
+- Added data-level millennial template rules for ABOUT/WHO/WHERE/YN, a deterministic ARG_CANON_ID-to-template variant picker, template rendering helpers, and mirrored dev smoke exposure.
+- The smoke contract is `{ ok, checkedTypes, missingTypes, repeatedTemplateProblems, failedChecks, sampleCount }`; local VM returned `ok:true` with all four required checked types and empty failure arrays.
+- Guardrails retained: no ARG_CANON_ID format change, no canon source rewrite, no type/tone/weight/matching/economy/battle/UI behavior changes; K tone remains classic in rendered millennial templates.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()`.
