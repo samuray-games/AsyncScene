@@ -4733,3 +4733,12 @@ Error: Download failure, code=1
 - Evidence: PASS `node --check docs/data.js && node --check AsyncScene/Web/data.js && node --check docs/dev/dev-checks.js && node --check AsyncScene/Web/dev/dev-checks.js`; PASS local Node VM smoke for docs and Web returned coverage `ok:true`, `totalCanonIds:692`, `millennialCount:692`, `coveragePct:100`, `missingCoverage:[]`, `duplicateIds:[]`, `brokenKeys:[]`, `indexBuildOk:true`, `failedChecks:[]`; PASS previous `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()` and `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()` remained `ok:true`.
 - Commit hash: recorded in the final one-line READY report.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`.
+
+## 2026-06-01 - STEP4-[5] ARG CANON MILLENNIAL aggregate quality validation helper
+- Status: READY_FOR_RUNTIME_SMOKE only; iPhone Safari must run `Game.__DEV.smokeArgCanonMillennialOnce()` before runtime PASS is claimed.
+- Added aggregate smoke helper `Game.__DEV.smokeArgCanonMillennialOnce()` for all ARG_CANON_ID millennial texts.
+- Smoke contract is `{ ok, checkedCount, errors, warnings, forbiddenRemaining, missingCoverage, failedChecks }`; local VM evidence returned `ok:true`, `checkedCount:692`, no errors, no forbidden terms, no missing coverage, and no failed checks. Warnings are explicitly allowed minor under-20-character length-target notices for compact canon answers only.
+- Aggregate validates Step4-[2] forbidden words, full coverage, broken keys, empty text, double spaces, excessive ellipses, excessive caps, repeated junk punctuation, 20-120 character target/limit handling, and Step4-[3] template problems without changing ARG_CANON_ID, canon meaning, matching, battle logic, economy, types, tones, weights, or UI behavior. `Console.txt` was not used.
+- Also verified local green status for `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`, `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()`, and `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()`.
+- Commit hash: recorded in the final one-line READY report.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialOnce()`.
