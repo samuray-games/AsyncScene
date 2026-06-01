@@ -66,6 +66,32 @@
 ## Inbox
 
 
+### [T-20260601-004] AsyncScene Step 3 [5] unified terminology table V1
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|UI|Docs|Runtime Smoke
+- Files: `docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/generate-step3-terminology-table.py` `tools/validate-step3-terminology-table.py`
+- Goal: Create the unified source-of-truth terminology table for future UI language governance from the Step 3 inventory, canon, and taxonomy artifacts.
+- Acceptance:
+  - [x] Table artifact exists with required columns `Key`, `Category`, `CanonicalTermRU`, `ContextOrScreen`, `TriggerCondition`, `ForbiddenVariants`, and `Notes`.
+  - [x] Recommended governance columns `ConceptId`, `SourceTermIds`, `TaxonomyCategory`, and `StyleGuideRefs` are present.
+  - [x] Each canon UI concept appears exactly once; the table contains 12 rows for the 12 existing canon concepts.
+  - [x] `CanonicalTermRU` and `ForbiddenVariants` are sourced from `STEP3_TERMINOLOGY_CANON.csv`; all known forbidden synonyms remain linked to their canon concepts.
+  - [x] `ContextOrScreen` and `TriggerCondition` include specific screen, source, trigger, and taxonomy-instance context for developer use.
+  - [x] `Game.__DEV.smokeStep3TerminologyTableOnce()` is installed with build marker `STEP3_TERMINOLOGY_TABLE_V1` and validates required columns, uniqueness, non-empty governance fields, canon references, and forbidden synonym linkage.
+  - [x] Gameplay unchanged; no UI strings were rewritten or mass-replaced.
+- Result: READY_FOR_RUNTIME_SMOKE. Static validators passed for both mirrored terminology table files; browser smoke was environment-blocked by missing Playwright Chromium, and iPhone Safari runtime PASS was not claimed.
+- Report:
+  - Status: DONE / READY_FOR_RUNTIME_SMOKE
+  - Facts: Built the governance-only table from existing Step 3 artifacts without reopening previous steps.
+  - Changed: `docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/generate-step3-terminology-table.py` `tools/validate-step3-terminology-table.py` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: run `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; then in Safari run `Game.__DEV.smokeStep3TerminologyTableOnce()`.
+  - Next: QA should run iPhone Safari runtime smoke and report honest PASS/FAIL.
+  - Next Prompt: Run AsyncScene Step 3 [5] runtime smoke on iPhone Safari with `Game.__DEV.smokeStep3TerminologyTableOnce()` and record PASS/FAIL evidence.
+
+
 ### [T-20260601-001] AsyncScene Step 3 [2] terminology canon and semantic deduplication
 - Status: DONE
 - Priority: P0
