@@ -448,6 +448,13 @@
       return String(text || "");
     };
 
+    const resolveDisplayText = (item, side, classicText, ctx) => {
+      const raw = (D && typeof D.resolveArgCanonDisplayText === "function")
+        ? D.resolveArgCanonDisplayText(item, side, classicText)
+        : String(classicText || "");
+      return normalizeFinalText(fillText(raw, ctx));
+    };
+
     const hasHere = (s) => {
       try { return String(s || "").toLowerCase().includes("здесь"); } catch (_) { return false; }
     };
@@ -492,7 +499,7 @@
         if (usedTexts.has(text) || usedPairs.has(key)) continue;
         usedTexts.add(text);
         usedPairs.add(key);
-        chosen = { item, text };
+        chosen = { item, text, displayText: resolveDisplayText(item, "Q", item.q, ctx) };
         break;
       }
       if (!chosen) {
@@ -505,7 +512,7 @@
               const text = normalizeFinalText(fillText(fallback.q, ctx));
               if (!hasHere(text)) {
                 const aText = fallback && fallback.a ? normalizeFinalText(fillText(fallback.a, ctx)) : "";
-                if (!aText || !hasHere(aText)) chosen = { item: fallback, text };
+                if (!aText || !hasHere(aText)) chosen = { item: fallback, text, displayText: resolveDisplayText(fallback, "Q", fallback.q, ctx) };
               }
             }
           } catch (_) {}
@@ -518,7 +525,10 @@
           group: t,
           type: t,
           text: chosen.text,
+          displayText: chosen.displayText || chosen.text,
           _canonQ: chosen.item && chosen.item.q ? String(chosen.item.q) : null,
+          _canonQId: chosen.item && chosen.item._canonQId ? String(chosen.item._canonQId) : null,
+          _canonTextIndex: chosen.item && Number.isFinite(chosen.item._canonTextIndex) ? chosen.item._canonTextIndex : null,
           _sub: subKey
         });
       }
@@ -655,6 +665,13 @@
       return String(text || "");
     };
 
+    const resolveDisplayText = (item, side, classicText) => {
+      const raw = (D && typeof D.resolveArgCanonDisplayText === "function")
+        ? D.resolveArgCanonDisplayText(item, side, classicText)
+        : String(classicText || "");
+      return normalizeFinalText(fillText(raw));
+    };
+
     const hasHere = (s) => {
       try { return String(s || "").toLowerCase().includes("здесь"); } catch (_) { return false; }
     };
@@ -691,7 +708,13 @@
         } catch (_) {}
         if (usedTexts.has(text)) continue;
         usedTexts.add(text);
-        return { text, canonA: String(item.a) };
+        return {
+          text,
+          displayText: resolveDisplayText(item, "A", item.a),
+          canonA: String(item.a),
+          canonAId: item && item._canonAId ? String(item._canonAId) : null,
+          canonTextIndex: item && Number.isFinite(item._canonTextIndex) ? item._canonTextIndex : null
+        };
       }
       return null;
     };
@@ -706,7 +729,10 @@
           group: t,
           type: t,
           text: picked.text,
+          displayText: picked.displayText || picked.text,
           _canonA: picked.canonA || null,
+          _canonAId: picked.canonAId || null,
+          _canonTextIndex: Number.isFinite(picked.canonTextIndex) ? picked.canonTextIndex : null,
           _sub: subKey
         });
       }
@@ -943,6 +969,16 @@
       if (hasHere(picked.q) || hasHere(picked.a)) return null;
     } catch (_) {}
     const q = normalizeFinalText(fillText(picked.q));
+    const displayQ = (() => {
+      try {
+        const raw = (D && typeof D.resolveArgCanonDisplayText === "function")
+          ? D.resolveArgCanonDisplayText(picked, "Q", picked.q)
+          : String(picked.q || "");
+        return normalizeFinalText(fillText(raw));
+      } catch (_) {
+        return q;
+      }
+    })();
     try { if (hasHere(q)) return null; } catch (_) {}
     try {
       const aText = picked && picked.a ? normalizeFinalText(fillText(picked.a)) : "";
@@ -963,7 +999,10 @@
       type: t,
       group: t,
       text: q,
+      displayText: displayQ || q,
       _canonQ: String(picked.q),
+      _canonQId: picked && picked._canonQId ? String(picked._canonQId) : null,
+      _canonTextIndex: picked && Number.isFinite(picked._canonTextIndex) ? picked._canonTextIndex : null,
       _sub: subKey,
       _color: tierColor,
     };
