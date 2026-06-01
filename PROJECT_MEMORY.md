@@ -79,6 +79,15 @@
 
 
 
+## 2026-06-01 — Step 3 [7.1] Events + Voting/Crowd terminology layer
+
+- Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. iPhone Safari still must run `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` before claiming runtime PASS.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for Events + Voting/Crowd UI strings. Canonical runtime-facing strings now use `Не хватает 💰.`, `Толпа решает`, `лимит`, `Недоступно.`, `💰`, and `⭐` in this layer.
+- Added `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` with build marker `STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_V1`. The smoke loads table/where-used artifacts, statically inspects `events.js` + `ui/ui-events.js`, checks forbidden synonym removal, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and safely references previous Step 3 helpers [1]-[6] with optional `{runPrevious:true}` execution.
+- Local evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` with `ok:true`, `checkedCount:110`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"events_voting_crowd"`; PASS local VM smoke with `{runPrevious:true}` where all previous Step 3 helper results were `pass`.
+- Browser automation warning: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:4173/ node scripts/run-asyncscene-smoke.mjs smokeStep3TerminologyEventsCrowdLayerOnce` could not launch because Playwright Chromium is not installed in `/root/.cache/ms-playwright`; this is not an iPhone Safari PASS.
+- Scope guard: no gameplay, economy, scoring, RNG, battle mechanics, or data models were changed. Step 3 [1]-[6] were not reopened.
+
 ## 2026-05-31 — ECON-04 Training StyleLex decision
 
 - Status: PASS. ECON-04 Training is part of the 100% economy scope, not a separate postponed or suspended stage.

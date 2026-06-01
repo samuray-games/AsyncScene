@@ -66,6 +66,31 @@
 ## Inbox
 
 
+### [T-20260601-007] AsyncScene Step 3 [7.1] Events + Voting/Crowd terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `docs/events.js` `AsyncScene/Web/events.js` `docs/ui/ui-events.js` `AsyncScene/Web/ui/ui-events.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `docs/index.html` `AsyncScene/Web/index.html`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` + `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to Events + Voting/Crowd UI-facing strings without changing gameplay, economy, scoring, RNG, battle mechanics, or data models.
+- Acceptance:
+  - [x] Events/Voting/Crowd UI strings use canonical terms for insufficient funds, crowd decision status, price limit, unavailable state, and resource glyphs.
+  - [x] Forbidden variants from the terminology table are removed from this layer's runtime-facing strings covered by the where-used rows.
+  - [x] `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_V1` and returns `ok:true`, `failures:[]`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Previous Step 3 smoke helpers [1]-[6] are safely referenced by the new smoke and can be run via `{runPrevious:true}`.
+  - [ ] iPhone Safari runtime smoke has run and recorded final PASS.
+- Notes: Scope explicitly excludes gameplay/economy/scoring/RNG/battle/data-model changes and does not reopen Step 3 [1]-[6]. Escape/Ignore/Battles/DM/Reports/Rematch/Training/Respect/P2P/global generic toasts remain out of scope unless a checked where-used row belongs to Events/Voting/Crowd runtime UI.
+- Result: READY_FOR_RUNTIME_SMOKE. Local static/dev smoke PASS: `node --check docs/dev/dev-checks.js`; `node --check AsyncScene/Web/dev/dev-checks.js`; local VM invocation of `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` returned `ok:true`, `checkedCount:110`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"events_voting_crowd"`; local VM invocation with `{runPrevious:true}` returned all previous Step 3 helper results `pass`. Browser automation WARN: Playwright Chromium executable missing in this environment, so iPhone Safari runtime PASS is not claimed.
+- Report:
+  - Status: REVIEW
+  - Facts: Events/Voting/Crowd UI copy was canonicalized; smoke helper added; cache-bust query strings updated; docs updated. No runtime Safari PASS claimed.
+  - Changed: `docs/events.js` `AsyncScene/Web/events.js` `docs/ui/ui-events.js` `AsyncScene/Web/ui/ui-events.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `docs/index.html` `AsyncScene/Web/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: run `node --check docs/dev/dev-checks.js`; run `node --check AsyncScene/Web/dev/dev-checks.js`; in iPhone Safari run `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()`.
+  - Next: QA — run iPhone Safari runtime smoke and record PASS/FAIL evidence.
+  - Next Prompt: Run AsyncScene Step 3 [7.1] runtime smoke on iPhone Safari with `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` and record PASS/FAIL evidence in TASKS.md/PROJECT_MEMORY.md.
+
+
 ### [T-20260601-006] AsyncScene Step 3 [6] terminology where-used map V1
 - Status: DONE
 - Priority: P0
