@@ -439,13 +439,13 @@ window.Game = window.Game || {};
     const statusText = document.createElement("div");
     statusText.id = "trainingStatusText";
     statusText.className = "trainingStatus";
-    statusText.textContent = "Загрузка тренировки...";
+    statusText.textContent = "Загрузка обучения аргументу...";
 
     const btn = document.createElement("button");
     btn.id = "trainingActionBtn";
     btn.type = "button";
     btn.className = "btn small";
-    btn.textContent = "Тренировка аргумента";
+    btn.textContent = "Обучить аргументу";
 
     const resultText = document.createElement("div");
     resultText.id = "trainingResultText";
@@ -476,16 +476,16 @@ window.Game = window.Game || {};
 
     function formatCooldownText(status) {
       if (!status) return "";
-      if (status.whyBlocked === "cooldown") return `Кулдаун до дня ${status.cooldownUntilDay} (ещё ${status.remainingDays || 0} дн.)`;
-      if (status.whyBlocked === "insufficient_points") return "Не хватает 💰";
-      return "Готово к тренировке";
+      if (status.whyBlocked === "cooldown") return `кулдаун: день ${status.cooldownUntilDay}`;
+      if (status.whyBlocked === "insufficient_points") return "Не хватает 💰.";
+      return "Обучить аргументу доступно";
     }
 
     function updateTrainingStatus() {
       const api = Game.TrainingAPI || null;
       if (!api || typeof api.status !== "function") {
         trainingControls.latestStatus = null;
-        trainingControls.statusEl.textContent = "Тренинг недоступен.";
+        trainingControls.statusEl.textContent = "Обучить аргументу недоступно.";
         trainingControls.resultEl.textContent = "";
         trainingControls.button.disabled = true;
         return;
@@ -493,13 +493,13 @@ window.Game = window.Game || {};
       const status = api.status({ argKey: TRAINING_UI_ARG_KEY });
       trainingControls.latestStatus = status;
       if (!status || !status.ok) {
-        trainingControls.statusEl.textContent = "Статус тренинга недоступен.";
+        trainingControls.statusEl.textContent = "Статус обучения аргументу недоступен.";
         trainingControls.button.disabled = true;
         trainingControls.resultEl.textContent = "";
         return;
       }
       const price = Number.isFinite(status.price) ? (status.price | 0) : 0;
-      trainingControls.button.textContent = `Тренировка аргумента (${price} 💰)`;
+      trainingControls.button.textContent = `Обучить аргументу (${price} 💰)`;
       trainingControls.button.disabled = !status.canTrain;
       trainingControls.statusEl.textContent = `Цена ${price} 💰 • ${status.canTrain ? "доступно" : formatCooldownText(status)}`;
       const xp = status.progress && Number.isFinite(status.progress.xp) ? (status.progress.xp | 0) : 0;
@@ -519,7 +519,7 @@ window.Game = window.Game || {};
         const snap = res.snapshotAfter;
         const xp = snap.progress && Number.isFinite(snap.progress.xp) ? (snap.progress.xp | 0) : 0;
         const level = snap.progress && Number.isFinite(snap.progress.level) ? (snap.progress.level | 0) : 0;
-        trainingControls.resultEl.textContent = `XP ${xp}, уровень ${level}, кулдаун до дня ${snap.cooldownUntilDay}`;
+        trainingControls.resultEl.textContent = `XP ${xp}, уровень ${level}, кулдаун: день ${snap.cooldownUntilDay}`;
       }
       setTimeout(updateTrainingStatus, 0);
       return res;
