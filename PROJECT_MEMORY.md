@@ -1,5 +1,14 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-01 — Step 4 [8] ARG canon millennial regression pack
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Added `Game.__DEV.smokeArgCanonMillennialRegressionOnce()` as a QA-only stable regression pack command with contract fields `{ ok, durationMs, deterministic, requiresManualClicks, coverageOk, forbiddenOk, sampleRenderOk, noCrashOk, failedChecks }`.
+- The regression pack composes the existing millennial ARG canon coverage check, forbidden/style scan, template scan, readable sample render, and aggregate no-crash smoke without changing ARG_CANON_ID, argument text, gameplay logic, matching, battles, economy, or UI behavior.
+- Runtime exposure is installed in both `data.js` copies as a Safari-loaded fallback and in both `dev/dev-checks.js` copies as a dev wrapper.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeArgCanonMillennialRegressionOnce()` with `ok:true`, `durationMs:296`, `deterministic:true`, `requiresManualClicks:false`, `coverageOk:true`, `forbiddenOk:true`, `sampleRenderOk:true`, `noCrashOk:true`, and `failedChecks:[]`.
+- Required Safari command: `Game.__DEV.smokeArgCanonMillennialRegressionOnce()` must return `ok:true`, `durationMs <= 60000`, `deterministic:true`, `requiresManualClicks:false`, `coverageOk:true`, `forbiddenOk:true`, `sampleRenderOk:true`, `noCrashOk:true`, and `failedChecks:[]` before runtime PASS can be claimed.
+
 ## 2026-06-01 — Step 4 [6] ARG canon millennial human readability QA smoke
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
