@@ -4361,3 +4361,12 @@ Error: Download failure, code=1
 - Browser automation warning: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8000/docs/ node scripts/run-asyncscene-smoke.mjs smokeStep3TerminologyEscapeIgnoreLayerOnce` could not launch because Playwright Chromium is not installed in `/root/.cache/ms-playwright`; this is not an iPhone Safari PASS.
 - PASS criteria: iPhone Safari returns `ok:true`, build marker `STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_V1`, `forbiddenRemaining:[]`, expected canonical terms present, where-used rows covered, previous helpers available. FAIL criteria: any scoped forbidden synonym remains, any required canonical term is missing, Escape/Ignore where-used coverage is incomplete, or a previous Step 3 helper is missing.
 - Scope guard: no gameplay, economy, escape mechanics, ignore mechanics, crowd outcomes, rewards, penalties, timers, eligibility rules, or data models were changed. Previous Step 3 steps were not reopened.
+
+## 2026-06-01 — Step 3 [7.6] Rematch terminology layer
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Rematch UI copy only was updated: insufficient funds uses `Не хватает 💰.`, not-eligible uses `Недоступно. Баттл не завершён.`, not-found uses `Баттл не найден.`, and NPC rematch-facing chat lines now use `Реванш?`, `Реванш принят.`, and `Реванш отклонён.`.
+- Added mirrored dev smoke `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()` with build marker `STEP3_TERMINOLOGY_REMATCH_LAYER_V1` in both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`.
+- Smoke contract: returns `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6] and [7.1]-[7.5] are available.
+- Static evidence: PASS `node --check` for changed Web/docs JS files; PASS `python3 tools/validate-step3-terminology-table.py` for docs and Web artifacts; PASS `python3 tools/validate-step3-terminology-where-used.py`; PASS local static Rematch forbidden-synonym scan.
+- Browser automation warning: Playwright Chromium is missing, so local browser smoke failed at launch and is not runtime PASS.
+- Safari command for QA: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.

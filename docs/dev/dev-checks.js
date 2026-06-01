@@ -1782,6 +1782,130 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
+  const installStep3TerminologyRematchLayerSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_TERMINOLOGY_REMATCH_LAYER_V1";
+    const layerScope = "rematch";
+    const whereUsedSourceTermIds = new Set(["ST3_1412", "ST3_1414", "ST3_3150", "ST3_3152"]);
+    const taxonomySourceTermIds = new Set(["ST3_1411", "ST3_1413", "ST3_1732", "ST3_1734", "ST3_1735", "ST3_1737", "ST3_3149", "ST3_3151", "ST3_3465", "ST3_3467", "ST3_3468", "ST3_3470"]);
+    const runtimeFiles = [
+      { logical: "docs/ui/ui-battles.js", path: "ui/ui-battles.js" },
+      { logical: "docs/ui/ui-loops.js", path: "ui/ui-loops.js" }
+    ];
+    const expectedCanonicalTerms = ["Реванш", "Не хватает 💰.", "Недоступно."];
+    const knownReplacedTexts = ["Пойнтов не хватает.", "Пока нельзя: баттл ещё не завершён.", "баттл не найден.", "давай ещё раз", "ещё раз?", "давай по новой", "не сдаюсь", "реванш", "не, хватит"];
+    const parseCsv = (text) => {
+      const rows = []; let row = []; let cell = ""; let inQuotes = false;
+      for (let i = 0; i < String(text || "").length; i += 1) {
+        const ch = text.charAt(i); const next = text.charAt(i + 1);
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') inQuotes = false;
+          else cell += ch;
+        } else if (ch === '"') inQuotes = true;
+        else if (ch === ",") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      }
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      const header = (rows.shift() || []).map(h => String(h || "").trim());
+      return { header, records: rows.filter(r => r.some(v => String(v || "").trim())).map(r => { const o = {}; header.forEach((h, i) => { o[h] = r[i] == null ? "" : r[i]; }); return o; }) };
+    };
+    const splitPipe = (value) => String(value || "").split("|").map(part => part.trim()).filter(Boolean);
+    const defaultUrls = (fileName, prefix = "terminology/") => {
+      const urls = [`${prefix}${fileName}`];
+      try { if (typeof location !== "undefined" && location && location.pathname) urls.push(`${location.pathname.replace(/[^/]*$/, "")}${prefix}${fileName}`); } catch (_) {}
+      urls.push(`/AsyncScene/${prefix}${fileName}`, `docs/${prefix}${fileName}`, `/docs/${prefix}${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const sourceUrls = (path) => {
+      const urls = [path];
+      try { if (typeof location !== "undefined" && location && location.pathname) urls.push(`${location.pathname.replace(/[^/]*$/, "")}${path}`); } catch (_) {}
+      urls.push(`/AsyncScene/${path}`, `docs/${path}`, `/docs/${path}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstText = async (urls) => {
+      for (const url of urls) {
+        try { const res = await fetch(url, { cache: "no-store" }); if (res && res.ok) return { url, text: await res.text() }; } catch (_) {}
+      }
+      return { url: null, text: null };
+    };
+    const extractStringLiterals = (source) => {
+      const out = []; const re = /(["'`])((?:\\.|(?!\1)[\s\S])*)\1/g; let m;
+      while ((m = re.exec(String(source || "")))) out.push(String(m[2] || "").replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\'/g, "'"));
+      return out;
+    };
+    const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const synonymPattern = (synonym) => new RegExp(escapeRegex(synonym), /[A-Za-zА-Яа-яЁё]/.test(synonym) ? "i" : "");
+    const isRematchRuntimeString = (value) => {
+      const text = String(value || "");
+      return /Реванш|реванш|rematch|Пойнтов не хватает|Не хватает 💰|Пока нельзя: баттл|Недоступно\. Баттл|баттл не найден|Баттл не найден|давай ещё раз|ещё раз\?|давай по новой|не сдаюсь|не, хватит/.test(text);
+    };
+    devStore.smokeStep3TerminologyRematchLayerOnce = async (opts = {}) => {
+      const result = { ok: false, failures: [], checkedCount: 0, replacedCount: 0, forbiddenRemaining: [], layerScope, buildMarker: BUILD_MARKER, coveredWhereUsedRows: [], coveredTaxonomyRows: [], loadedRuntimeUrls: [], previousSmokeHelpers: {} };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const tableFetch = await fetchFirstText(defaultUrls("STEP3_TERMINOLOGY_TABLE_V1.csv"));
+      const whereFetch = await fetchFirstText(defaultUrls("STEP3_TERMINOLOGY_WHERE_USED_V1.csv"));
+      const taxonomyFetch = await fetchFirstText(defaultUrls("STEP3_UI_TAXONOMY_V1.csv"));
+      if (!tableFetch.text) fail("terminology_table_missing");
+      if (!whereFetch.text) fail("where_used_missing");
+      if (!taxonomyFetch.text) fail("taxonomy_missing");
+      const runtime = [];
+      for (const spec of runtimeFiles) {
+        const loaded = await fetchFirstText(sourceUrls(spec.path));
+        if (!loaded.text) fail("runtime_source_missing", { file: spec.logical });
+        else { result.loadedRuntimeUrls.push(loaded.url); runtime.push({ logical: spec.logical, text: loaded.text, strings: extractStringLiterals(loaded.text) }); }
+      }
+      if (!tableFetch.text || !whereFetch.text || !taxonomyFetch.text || runtime.length !== runtimeFiles.length) {
+        console.log("STEP3_TERMINOLOGY_REMATCH_LAYER_SMOKE", "FAIL", JSON.stringify(result));
+        return result;
+      }
+      const table = parseCsv(tableFetch.text);
+      const whereUsed = parseCsv(whereFetch.text);
+      const taxonomy = parseCsv(taxonomyFetch.text);
+      const layerRows = whereUsed.records.filter(row => whereUsedSourceTermIds.has(String(row.SourceTermId || "")) || (String(row.ContextOrScreen || "").includes(layerScope) && String(row.SourceFile || "").includes("ui-battles.js")));
+      const taxonomyRows = taxonomy.records.filter(row => taxonomySourceTermIds.has(String(row.termId || "")) || (String(row.screenOrFeature || "").includes(layerScope) && /ui-battles\.js|ui-loops\.js/.test(String(row.sourceFile || ""))));
+      result.checkedCount = layerRows.length + taxonomyRows.length;
+      result.coveredWhereUsedRows = layerRows.map(row => String(row.SourceTermId || "")).filter(Boolean);
+      result.coveredTaxonomyRows = taxonomyRows.map(row => String(row.termId || "")).filter(Boolean);
+      if (layerRows.length < 3) fail("layer_where_used_rows_missing", { expectedAtLeast: 3, actual: layerRows.length });
+      if (taxonomyRows.length < 10) fail("layer_taxonomy_rows_missing", { expectedAtLeast: 10, actual: taxonomyRows.length });
+      const conceptsInLayer = new Set(layerRows.map(row => String(row.ConceptId || "").trim()).filter(Boolean));
+      ["CONCEPT_POINTS_CURRENCY", "CONCEPT_INSUFFICIENT_FUNDS", "CONCEPT_BATTLE_ACTION"].forEach(conceptId => { if (!conceptsInLayer.has(conceptId)) fail("layer_concept_missing_from_where_used", conceptId); });
+      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+      conceptsInLayer.forEach(conceptId => { if (!tableRowsByConcept.has(conceptId)) fail("layer_concept_missing_from_table", conceptId); });
+      const runtimeStrings = runtime.flatMap(item => item.strings.map(value => ({ file: item.logical, value }))).filter(item => isRematchRuntimeString(item.value));
+      const runtimeText = runtimeStrings.map(item => item.value).join("\n");
+      expectedCanonicalTerms.forEach(term => { if (!runtimeText.includes(term)) fail("canonical_term_missing_from_layer_runtime_strings", term); });
+      if (!/[Бб]аттл/.test(runtimeText)) fail("canonical_term_missing_from_layer_runtime_strings", "баттл");
+      const forbiddenChecks = [];
+      conceptsInLayer.forEach(conceptId => {
+        const row = tableRowsByConcept.get(conceptId);
+        splitPipe(row && row.ForbiddenVariants).forEach(synonym => { if (synonym && synonym !== "не хватает") forbiddenChecks.push({ conceptId, synonym, pattern: synonymPattern(synonym) }); });
+      });
+      ["Пока нельзя: баттл ещё не завершён.", "баттл не найден.", "давай ещё раз", "ещё раз?", "давай по новой", "не сдаюсь", "не, хватит", "повтор", "по новой", "еще раз", "ещё раз"].forEach(synonym => forbiddenChecks.push({ conceptId: "NO_NEW_REMATCH_VARIANT", synonym, pattern: synonymPattern(synonym) }));
+      runtimeStrings.forEach(item => forbiddenChecks.forEach(check => {
+        const visibleText = String(item.value || "").replace(/\$\{[^}]*\}/g, "");
+        if (check.pattern.test(visibleText)) result.forbiddenRemaining.push({ conceptId: check.conceptId, synonym: check.synonym, file: item.file, text: item.value });
+      }));
+      const seen = new Set();
+      result.forbiddenRemaining = result.forbiddenRemaining.filter(row => { const key = `${row.conceptId}|${row.synonym}|${row.file}|${row.text}`; if (seen.has(key)) return false; seen.add(key); return true; });
+      if (result.forbiddenRemaining.length) fail("forbidden_synonyms_remaining", result.forbiddenRemaining);
+      result.replacedCount = knownReplacedTexts.reduce((count, text) => count + (runtimeText.includes(text) ? 0 : 1), 0);
+      if (result.replacedCount < knownReplacedTexts.length) fail("known_replacements_not_all_observed", { expected: knownReplacedTexts.length, actual: result.replacedCount });
+      const rowText = layerRows.map(row => [row.CurrentTextOrVariant, row.ReplacementTarget, row.Notes].join(" ")).join("\n");
+      ["Пойнтов не хватает.", "Пока нельзя: баттл ещё не завершён."].forEach(text => { if (!rowText.includes(text)) fail("where_used_replacement_row_not_covered", text); });
+      ["smokeStep3TerminologyInventoryOnce", "smokeStep3TerminologyCanonOnce", "smokeStep3UiTaxonomyOnce", "smokeStep3MillennialStyleGuideOnce", "smokeStep3TerminologyTableOnce", "smokeStep3TerminologyWhereUsedOnce", "smokeStep3TerminologyEventsCrowdLayerOnce", "smokeStep3TerminologyBattlesLayerOnce", "smokeStep3TerminologyDmLayerOnce", "smokeStep3TerminologyReportsCopLayerOnce", "smokeStep3TerminologyEscapeIgnoreLayerOnce"].forEach(name => {
+        result.previousSmokeHelpers[name] = typeof devStore[name] === "function" ? "available" : "missing";
+        if (result.previousSmokeHelpers[name] !== "available") fail("previous_step3_smoke_helper_missing", name);
+      });
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_TERMINOLOGY_REMATCH_LAYER_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
+
+
   const installStep3MillennialStyleGuideSmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_MILLENNIAL_STYLE_GUIDE_V1";
@@ -1914,6 +2038,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   installStep3TerminologyDmLayerSmoke(G.__DEV);
   installStep3TerminologyReportsCopLayerSmoke(G.__DEV);
   installStep3TerminologyEscapeIgnoreLayerSmoke(G.__DEV);
+  installStep3TerminologyRematchLayerSmoke(G.__DEV);
   installStep3MillennialStyleGuideSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
@@ -1925,6 +2050,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   console.warn("STEP3_TERMINOLOGY_DM_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyDmLayerOnce);
   console.warn("STEP3_TERMINOLOGY_REPORTS_COP_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyReportsCopLayerOnce);
   console.warn("STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_REMATCH_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyRematchLayerOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
@@ -24952,6 +25078,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyBattlesLayerSmoke(Game.__DEV);
   installStep3TerminologyDmLayerSmoke(Game.__DEV);
   installStep3TerminologyReportsCopLayerSmoke(Game.__DEV);
+  installStep3TerminologyEscapeIgnoreLayerSmoke(Game.__DEV);
+  installStep3TerminologyRematchLayerSmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
@@ -24962,6 +25090,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STEP3_TERMINOLOGY_BATTLES_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyBattlesLayerOnce);
   console.warn("STEP3_TERMINOLOGY_DM_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyDmLayerOnce);
   console.warn("STEP3_TERMINOLOGY_REPORTS_COP_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_REMATCH_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyRematchLayerOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   // Dev shortcut: Ctrl+Shift+T
