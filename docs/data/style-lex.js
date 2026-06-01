@@ -58,7 +58,7 @@ window.Game = window.Game || {};
       economy: ["очки", "стоимость", "плата", "возврат", "остаток", "лимит", "баланс"],
       decision: ["выбор", "риск", "ставка", "итог", "результат"],
       conflict: ["аргумент", "ход", "защита", "атака", "ничья", "победа"],
-      social: ["уважение", "репутация", "доверие", "донос", "штраф"],
+      social: ["уважение", "⭐", "доверие", "Сдать", "штраф"],
       interface: ["подсказка", "сообщение", "событие", "личка"],
       formulas: [
         "Твой выбор.",
@@ -544,7 +544,7 @@ window.Game = window.Game || {};
       economy: ["очки", "стоимость", "плата", "возврат", "остаток", "лимит"],
       decision: ["выбор", "риск", "ставка", "итог", "результат"],
       conflict: ["аргумент", "ход", "защита", "атака", "ничья"],
-      social: ["уважение", "репутация", "доверие", "донос", "штраф"],
+      social: ["уважение", "⭐", "доверие", "Сдать", "штраф"],
       interface: ["подсказка", "сообщение", "событие", "личка"]
     };
     const allowedDomainsOk = requiredAllowedDomains.every((domain) => {
@@ -692,10 +692,10 @@ window.Game = window.Game || {};
     add(texts.vote_already || "Ты уже вписался.", "toast", "common.vote", { directAddress: true, source: "Game.Data.TEXTS.genz.vote_already" });
     add(texts.vote_fail || "Не удалось вписаться.", "error", "common.error", { source: "Game.Data.TEXTS.genz.vote_fail" });
     add(texts.battle_not_enough_points || "Не хватает 💰.", "toast", "economy.toast", { source: "Game.Data.TEXTS.genz.battle_not_enough_points" });
-    add("Не хватает пойнтов.", "toast", "economy.toast", { source: "ui-events vote failure" });
-    add("Нужно 1💰, сейчас не хватает.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_no_points" });
+    add("Не хватает 💰.", "toast", "economy.toast", { source: "ui-events vote failure" });
+    add("Не хватает 💰.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_no_points" });
     add("Ты отдал 1💰", "toast", "ECON-08.respect", { directAddress: true, source: "__uiRespectClick__ success" });
-    add("Цель получила +1 REP", "toast", "ECON-08.respect", { source: "__uiRespectClick__ success" });
+    add("Цель получила +1 ⭐", "toast", "ECON-08.respect", { source: "__uiRespectClick__ success" });
     add("Уже было уважение сегодня этому персонажу.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_pair_daily" });
     add("Цепочка A->B->A сегодня не работает.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_no_chain" });
     add("Лимит уважения на сегодня исчерпан.", "toast", "ECON-08.respect", { source: "mapRespectReason.respect_emitter_empty" });
