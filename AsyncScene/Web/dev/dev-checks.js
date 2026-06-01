@@ -26420,6 +26420,30 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STEP4_ARG_CANON_MILLENNIAL_STYLELEX_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialStyleLexOnce);
 
 
+  Game.__DEV.smokeArgCanonMillennialReadableOnce = function smokeArgCanonMillennialReadableOnce() {
+    const D = Game.Data || {};
+    let result;
+    try {
+      result = (D && typeof D.smokeArgCanonMillennialReadableOnce === "function")
+        ? D.smokeArgCanonMillennialReadableOnce()
+        : { ok: false, sampleCount: 0, badRows: [], badStreakMax: 0, forbiddenRemaining: [], failedChecks: ["readable_helper_missing"], samples: [] };
+    } catch (err) {
+      result = {
+        ok: false,
+        sampleCount: 0,
+        badRows: [],
+        badStreakMax: 0,
+        forbiddenRemaining: [],
+        failedChecks: [err && err.message ? String(err.message) : String(err)],
+        samples: []
+      };
+    }
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_READABLE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("STEP4_ARG_CANON_MILLENNIAL_READABLE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialReadableOnce);
+
+
   Game.__DEV.smokeArgCanonMillennialOnce = function smokeArgCanonMillennialOnce() {
     const D = Game.Data || {};
     let result;

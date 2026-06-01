@@ -2303,6 +2303,158 @@ K YN A9: Нет.
   };
 
 
+  Data.smokeArgCanonMillennialReadableOnce = () => {
+    const result = {
+      ok: false,
+      sampleCount: 0,
+      badRows: [],
+      badStreakMax: 0,
+      forbiddenRemaining: [],
+      failedChecks: [],
+      samples: []
+    };
+    const sampleTarget = 50;
+    const requiredTypes = ["ABOUT", "WHO", "WHERE", "YN"];
+    const requiredSides = ["Q", "A"];
+    const pushUnique = (list, value) => {
+      const key = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+    };
+    const makeRx = (term) => {
+      if (typeof Data.buildArgCanonMillennialStyleLexRegex === "function") return Data.buildArgCanonMillennialStyleLexRegex(term);
+      const escaped = String(term || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return escaped ? new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9_])${escaped}([^A-Za-zА-Яа-яЁё0-9_]|$)`, "iu") : null;
+    };
+    const openingOf = (text) => String(text || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^[«"'“”„]+/u, "")
+      .split(/\s+/)
+      .slice(0, 2)
+      .join(" ");
+    const rowRank = (row) => {
+      const sub = String(row.sub || "").toUpperCase();
+      const text = String(row.text || "").toLowerCase();
+      let score = 0;
+      if (sub === "K") score += 80;
+      if (/^(назови|укажи|сообщи|подтверди|дай|запрети|отклони|останови|отмени)\b/iu.test(text)) score += 20;
+      if (/^(а|слушай|похоже|наверное|скорее|кажется)\b/iu.test(text)) score -= 10;
+      return score;
+    };
+    try {
+      const sourceRows = [];
+      const index = Data.ARG_CANON_INDEX || {};
+      const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || {};
+      Object.keys(index).sort().forEach((key) => {
+        const rec = index[key];
+        const type = rec && rec.type ? String(rec.type).toUpperCase() : "";
+        if (requiredTypes.indexOf(type) < 0 || !rec || !Array.isArray(rec.items)) return;
+        rec.items.forEach((it, idx) => {
+          if (!it) return;
+          requiredSides.forEach((side) => {
+            const classic = side === "Q" ? it.q : it.a;
+            if (!classic) return;
+            const id = Data.argCanonTextId(rec.sub, rec.type, side, idx);
+            const text = Object.prototype.hasOwnProperty.call(store, id) ? String(store[id] || "") : String(classic || "");
+            sourceRows.push({ id, sub: String(rec.sub || ""), type, side, role: side === "Q" ? "question" : "answer", text });
+          });
+        });
+      });
+
+      const buckets = Object.create(null);
+      requiredTypes.forEach((type) => requiredSides.forEach((side) => { buckets[`${type}|${side}`] = []; }));
+      sourceRows.forEach((row) => {
+        const key = `${row.type}|${row.side}`;
+        if (buckets[key]) buckets[key].push(row);
+      });
+      Object.keys(buckets).forEach((key) => {
+        buckets[key].sort((a, b) => (rowRank(a) - rowRank(b)) || String(a.id).localeCompare(String(b.id)));
+      });
+
+      let guard = 0;
+      const bucketKeys = ["ABOUT|Q", "ABOUT|A", "WHO|Q", "WHO|A", "WHERE|Q", "WHERE|A", "YN|Q", "YN|A"];
+      while (result.samples.length < sampleTarget && guard < sampleTarget * bucketKeys.length * 2) {
+        const bucketKey = bucketKeys[guard % bucketKeys.length];
+        const bucket = buckets[bucketKey] || [];
+        const pickIndex = Math.floor(guard / bucketKeys.length);
+        if (bucket[pickIndex]) result.samples.push(bucket[pickIndex]);
+        guard += 1;
+      }
+      result.sampleCount = result.samples.length;
+
+      if (result.sampleCount < 30 || result.sampleCount > 50) {
+        result.failedChecks.push({ check: "sample_count_range", sampleCount: result.sampleCount });
+      }
+      requiredTypes.forEach((type) => {
+        if (!result.samples.some((row) => row.type === type)) result.failedChecks.push({ check: "missing_type", type });
+      });
+      requiredSides.forEach((side) => {
+        if (!result.samples.some((row) => row.side === side)) result.failedChecks.push({ check: "missing_side", side });
+      });
+
+      const checkGroups = [];
+      const lex = Data.ARG_CANON_MILLENNIAL_STYLELEX || {};
+      (Array.isArray(lex.forbidden) ? lex.forbidden : []).forEach((group) => {
+        checkGroups.push({ kind: "forbidden_words", category: group.category || "forbidden", terms: Array.isArray(group.terms) ? group.terms : [] });
+      });
+      checkGroups.push(
+        { kind: "textbook_wording", category: "textbook", terms: ["учебник", "учебниковый", "канцелярит", "таким образом", "представляет собой", "является", "необходимо", "следует", "согласно"] },
+        { kind: "teacher_wording", category: "teacher", terms: ["урок", "домашнее задание", "контрольная", "учитель", "учительница", "преподаватель", "ученик", "ученица", "классная работа", "параграф", "упражнение"] },
+        { kind: "meta_game_wording", category: "meta", terms: ["игрок", "игроки", "game", "runtime", "smoke", "ui", "геймплей", "интерфейс", "кнопка"] }
+      );
+
+      let currentBadStreak = 0;
+      let currentOpening = "";
+      let currentOpeningStreak = 0;
+      result.samples = result.samples.map((row, index) => {
+        const checks = [];
+        const text = String(row.text || "").trim();
+        if (!text) checks.push("empty_text");
+        if (text.length > 90) checks.push("long_sample_text");
+        if (/\{\s*(core|target)\s*\}/iu.test(text)) checks.push("unrendered_template_token");
+        checkGroups.forEach((group) => {
+          group.terms.forEach((term) => {
+            const rx = makeRx(term);
+            if (rx && rx.test(text)) {
+              const hit = { id: row.id, check: group.kind, category: group.category, term: String(term), text };
+              if (group.kind === "forbidden_words") pushUnique(result.forbiddenRemaining, hit);
+              checks.push(`${group.kind}:${term}`);
+            }
+          });
+        });
+        const opening = openingOf(text);
+        if (opening && opening === currentOpening) currentOpeningStreak += 1;
+        else { currentOpening = opening; currentOpeningStreak = opening ? 1 : 0; }
+        if (currentOpeningStreak >= 5) checks.push(`repetitive_opening:${opening}`);
+
+        const sample = { n: index + 1, id: row.id, type: row.type, side: row.side, role: row.role, text, badChecks: checks };
+        if (checks.length) {
+          currentBadStreak += 1;
+          result.badRows.push(sample);
+        } else {
+          currentBadStreak = 0;
+        }
+        if (currentBadStreak > result.badStreakMax) result.badStreakMax = currentBadStreak;
+        return sample;
+      });
+
+      if (result.badStreakMax >= 5) result.failedChecks.push({ check: "bad_streak_max", badStreakMax: result.badStreakMax });
+      if (result.badRows.length) result.failedChecks.push({ check: "bad_rows_present", count: result.badRows.length });
+      if (result.forbiddenRemaining.length) result.failedChecks.push({ check: "forbidden_remaining", count: result.forbiddenRemaining.length });
+      result.ok = result.sampleCount >= 30
+        && result.sampleCount <= 50
+        && result.badRows.length === 0
+        && result.badStreakMax < 5
+        && result.forbiddenRemaining.length === 0
+        && result.failedChecks.length === 0;
+    } catch (err) {
+      result.failedChecks.push(err && err.message ? String(err.message) : String(err));
+      result.ok = false;
+    }
+    return result;
+  };
+
+
   Data.smokeArgCanonMillennialOnce = () => {
     const result = {
       ok: false,
@@ -3192,6 +3344,29 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialCoverageSmoke();
+
+
+  const installArgCanonMillennialReadableSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    if (typeof root.__DEV.smokeArgCanonMillennialReadableOnce === "function") return;
+    root.__DEV.smokeArgCanonMillennialReadableOnce = function smokeArgCanonMillennialReadableOnce() {
+      let result;
+      try {
+        result = (typeof Data.smokeArgCanonMillennialReadableOnce === "function")
+          ? Data.smokeArgCanonMillennialReadableOnce()
+          : { ok: false, sampleCount: 0, badRows: [], badStreakMax: 0, forbiddenRemaining: [], failedChecks: ["readable_helper_missing"], samples: [] };
+      } catch (err) {
+        result = { ok: false, sampleCount: 0, badRows: [], badStreakMax: 0, forbiddenRemaining: [], failedChecks: [err && err.message ? String(err.message) : String(err)], samples: [] };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_READABLE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_READABLE_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialReadableOnce);
+  };
+
+  installArgCanonMillennialReadableSmoke();
 
 
   const installArgCanonMillennialAggregateSmoke = () => {
