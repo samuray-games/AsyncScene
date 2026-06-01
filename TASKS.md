@@ -4526,3 +4526,13 @@ Error: Download failure, code=1
 - PASS criteria: iPhone Safari returns `ok:true`, build marker `STEP3_TERMINOLOGY_REMATCH_LAYER_V1`, `forbiddenRemaining:[]`, expected canonical rematch terms present, Rematch where-used/taxonomy rows covered, and all previous Step 3 helpers available.
 - FAIL criteria: any scoped forbidden synonym remains, any required canonical Rematch term is missing, Rematch coverage is incomplete, a previous Step 3 helper is missing, or runtime PASS is claimed without the Safari run.
 - Scope guard: no gameplay, economy, rematch price growth, transfer logic, battle state, cooldowns, eligibility rules, notifications data models, or non-Rematch layers were changed. Previous Step 3 steps were not reopened.
+
+## 2026-06-01 — Step 3 [7.6] Rematch smoke scope follow-up
+- Status: READY_FOR_RUNTIME_SMOKE. Static scoped validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Safari-reported failure was audited: broad comment/code windows in `docs/ui/ui-battles.js` and `docs/ui/ui-loops.js` caused `Points` and `P` non-visible tokens to be reported as Rematch failures.
+- Tightened `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()` so the forbidden-synonym scan reads comment-free string literals only on audited Rematch runtime-facing rows: Rematch button/toasts and NPC Rematch chat strings.
+- Updated the Rematch `not_found` toast from `Баттл не найден.` to canonical `Недоступно.`; no rematch mechanics, eligibility, battle invite behavior, NPC loops, economy, or gameplay logic changed.
+- Static evidence: PASS `node --check docs/dev/dev-checks.js AsyncScene/Web/dev/dev-checks.js docs/ui/ui-battles.js AsyncScene/Web/ui/ui-battles.js docs/ui/ui-loops.js AsyncScene/Web/ui/ui-loops.js`; PASS local static Rematch scoped forbidden-synonym scan with `ok:true`, `failures:[]`, and `forbiddenRemaining:[]`.
+- Browser automation warning: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyRematchLayerOnce` still cannot launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; this is not an iPhone Safari PASS.
+- Required Safari command after deployment/cache refresh: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
+- Runtime PASS criteria remain: iPhone Safari returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, and `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`.

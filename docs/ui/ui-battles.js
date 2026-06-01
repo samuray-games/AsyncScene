@@ -1081,7 +1081,7 @@
       return;
     }
     if (normalized === "not_found") {
-      toast("Баттл не найден.");
+      toast("Недоступно.");
     }
   }
 

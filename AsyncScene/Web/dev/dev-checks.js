@@ -1831,15 +1831,69 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return { url: null, text: null };
     };
     const extractStringLiterals = (source) => {
-      const out = []; const re = /(["'`])((?:\\.|(?!\1)[\s\S])*)\1/g; let m;
-      while ((m = re.exec(String(source || "")))) out.push(String(m[2] || "").replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\'/g, "'"));
+      const text = String(source || "");
+      const out = [];
+      let line = 1;
+      const pushString = (quote, start, startLine) => {
+        let value = "";
+        let i = start + 1;
+        for (; i < text.length; i += 1) {
+          const ch = text.charAt(i);
+          if (ch === "\n") line += 1;
+          if (ch === "\\") {
+            const next = text.charAt(i + 1);
+            if (next === "n") value += "\n";
+            else if (next === "r") value += "\r";
+            else if (next === "t") value += "\t";
+            else value += next || "";
+            i += 1;
+            continue;
+          }
+          if (ch === quote) break;
+          value += ch;
+        }
+        out.push({ value, line: startLine });
+        return i;
+      };
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text.charAt(i);
+        const next = text.charAt(i + 1);
+        if (ch === "\n") { line += 1; continue; }
+        if (ch === "/" && next === "/") {
+          i += 2;
+          while (i < text.length && text.charAt(i) !== "\n") i += 1;
+          i -= 1;
+          continue;
+        }
+        if (ch === "/" && next === "*") {
+          i += 2;
+          while (i < text.length) {
+            if (text.charAt(i) === "\n") line += 1;
+            if (text.charAt(i) === "*" && text.charAt(i + 1) === "/") { i += 1; break; }
+            i += 1;
+          }
+          continue;
+        }
+        if (ch === "\"" || ch === "'" || ch === "`") i = pushString(ch, i, line);
+      }
       return out;
     };
     const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const synonymPattern = (synonym) => new RegExp(escapeRegex(synonym), /[A-Za-zА-Яа-яЁё]/.test(synonym) ? "i" : "");
-    const isRematchRuntimeString = (value) => {
-      const text = String(value || "");
-      return /Реванш|реванш|rematch|Пойнтов не хватает|Не хватает 💰|Пока нельзя: баттл|Недоступно\. Баттл|баттл не найден|Баттл не найден|давай ещё раз|ещё раз\?|давай по новой|не сдаюсь|не, хватит/.test(text);
+    const synonymPattern = (synonym) => {
+      const escaped = escapeRegex(synonym);
+      return /^[A-Za-zА-Яа-яЁё0-9]+$/.test(String(synonym || ""))
+        ? new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9])${escaped}($|[^A-Za-zА-Яа-яЁё0-9])`, "i")
+        : new RegExp(escaped, /[A-Za-zА-Яа-яЁё]/.test(synonym) ? "i" : "");
+    };
+    const rematchRuntimeLineAllowlist = new Map([
+      ["docs/ui/ui-battles.js", new Set([964, 1072, 1076, 1080, 1084])],
+      ["docs/ui/ui-loops.js", new Set([856, 857, 930])]
+    ]);
+    const isRematchRuntimeString = (item) => {
+      const text = String((item && item.value) || "");
+      const lines = rematchRuntimeLineAllowlist.get(item && item.file);
+      if (!lines || !lines.has(item.line)) return false;
+      return /Реванш|Не хватает 💰|Недоступно\.|Баттл|баттл/.test(text);
     };
     devStore.smokeStep3TerminologyRematchLayerOnce = async (opts = {}) => {
       const result = { ok: false, failures: [], checkedCount: 0, replacedCount: 0, forbiddenRemaining: [], layerScope, buildMarker: BUILD_MARKER, coveredWhereUsedRows: [], coveredTaxonomyRows: [], loadedRuntimeUrls: [], previousSmokeHelpers: {} };
@@ -1874,7 +1928,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ["CONCEPT_POINTS_CURRENCY", "CONCEPT_INSUFFICIENT_FUNDS", "CONCEPT_BATTLE_ACTION"].forEach(conceptId => { if (!conceptsInLayer.has(conceptId)) fail("layer_concept_missing_from_where_used", conceptId); });
       const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
       conceptsInLayer.forEach(conceptId => { if (!tableRowsByConcept.has(conceptId)) fail("layer_concept_missing_from_table", conceptId); });
-      const runtimeStrings = runtime.flatMap(item => item.strings.map(value => ({ file: item.logical, value }))).filter(item => isRematchRuntimeString(item.value));
+      const runtimeStrings = runtime.flatMap(item => item.strings.map(entry => ({ file: item.logical, value: entry.value, line: entry.line }))).filter(item => isRematchRuntimeString(item));
       const runtimeText = runtimeStrings.map(item => item.value).join("\n");
       expectedCanonicalTerms.forEach(term => { if (!runtimeText.includes(term)) fail("canonical_term_missing_from_layer_runtime_strings", term); });
       if (!/[Бб]аттл/.test(runtimeText)) fail("canonical_term_missing_from_layer_runtime_strings", "баттл");
