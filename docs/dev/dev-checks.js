@@ -26373,6 +26373,31 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   };
   console.warn("STEP4_ARG_CANON_MILLENNIAL_TEMPLATES_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialTemplatesOnce);
 
+  Game.__DEV.smokeArgCanonMillennialCoverageOnce = function smokeArgCanonMillennialCoverageOnce() {
+    const D = Game.Data || {};
+    let result;
+    try {
+      result = (D && typeof D.smokeArgCanonMillennialCoverageOnce === "function")
+        ? D.smokeArgCanonMillennialCoverageOnce()
+        : { ok: false, totalCanonIds: 0, millennialCount: 0, coveragePct: 0, missingCoverage: [], duplicateIds: [], brokenKeys: [], indexBuildOk: false, failedChecks: ["coverage_helper_missing"] };
+    } catch (err) {
+      result = {
+        ok: false,
+        totalCanonIds: 0,
+        millennialCount: 0,
+        coveragePct: 0,
+        missingCoverage: [],
+        duplicateIds: [],
+        brokenKeys: [],
+        indexBuildOk: false,
+        failedChecks: [err && err.message ? String(err.message) : String(err)]
+      };
+    }
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_COVERAGE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("STEP4_ARG_CANON_MILLENNIAL_COVERAGE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialCoverageOnce);
+
   Game.__DEV.smokeArgCanonMillennialStyleLexOnce = function smokeArgCanonMillennialStyleLexOnce() {
     const D = Game.Data || {};
     let result;
