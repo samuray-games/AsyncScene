@@ -988,18 +988,18 @@ window.Game ||= {};
     const mode = e.escapeMode || "smyt";
     const aWins = (winner === "a");
     if (mode === "off") {
-      const cardLine = aWins ? `${aName} послал ${bName}` : `${aName} не послал ${bName}`;
+      const cardLine = aWins ? `${aName}: Отвали ${bName}` : `${aName}: Отвали не прошел ${bName}`;
       const chatLine = aWins
-        ? `Решением толпы ${aName} послал ${bName}.`
-        : `Решением толпы ${aName} не смог послать ${bName}.`;
+        ? `Решением толпы ${aName}: Отвали ${bName}.`
+        : `Решением толпы ${aName}: Отвали не прошел ${bName}.`;
       return { cardLine, chatLine };
     }
     const cardLine = aWins
-      ? `${aName} свалил от ${bName}`
-      : `${aName} не свалил от ${bName}`;
+      ? `${aName}: Свалить ${bName}`
+      : `${aName}: Свалить не удалось ${bName}`;
     const chatLine = aWins
-      ? `Решением толпы ${aName} свалил от ${bName}.`
-      : `Решением толпы ${aName} не смог свалить от ${bName}.`;
+      ? `Решением толпы ${aName}: Свалить ${bName}.`
+      : `Решением толпы ${aName}: Свалить не удалось ${bName}.`;
     return { cardLine, chatLine };
   }
 
@@ -1154,11 +1154,11 @@ window.Game ||= {};
       : { a: "Свали!", b: "Останься!" };
 
     const title = isStrong
-      ? `${a.name} хочет, чтобы ${b.name} отвалил`
-      : `${a.name} хочет свалить от ${b.name}`;
+      ? `${a.name} хочет: Отвали ${b.name}`
+      : `${a.name} хочет: Свалить ${b.name}`;
     const line = isStrong
-      ? `Толпа решает: ${a.name} хочет, чтобы ${b.name} отвалил.`
-      : `Толпа решает: ${a.name} хочет свалить от ${b.name}.`;
+      ? `Толпа решает: ${a.name} хочет Отвали ${b.name}.`
+      : `Толпа решает: ${a.name} хочет Свалить ${b.name}.`;
 
     return {
       id,

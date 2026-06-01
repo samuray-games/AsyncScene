@@ -601,7 +601,7 @@ window.Game = window.Game || {};
 
     const btnAll = document.createElement("button");
     btnAll.className = "miniBtn danger";
-    btnAll.textContent = `Свалить от всех за ${S.battles.length}`;
+    btnAll.textContent = `Свалить всех за ${S.battles.length}`;
     btnAll.onclick = () => Game.Conflict.escapeAll("smyt");
     row.appendChild(btnAll);
 
