@@ -1636,7 +1636,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       { logical: "docs/events.js", path: "events.js" },
       { logical: "docs/ui/ui-events.js", path: "ui/ui-events.js" },
       { logical: "docs/ui/ui-battles.js", path: "ui/ui-battles.js" },
-      { logical: "docs/data/style-lex.js", path: "data/style-lex.js" }
+      { logical: "docs/data/style-lex.js", path: "data/style-lex.js" },
+      { logical: "docs/npcs.js", path: "npcs.js" }
     ];
     const expectedCanonicalTerms = ["💰", "Толпа решает", "Свалить", "Отвали"];
     const knownReplacedTexts = [
@@ -1734,9 +1735,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       if (!tableFetch.text || !whereFetch.text || runtime.length !== runtimeFiles.length) { console.log("STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_SMOKE", "FAIL", JSON.stringify(result)); return result; }
       const table = parseCsv(tableFetch.text); const whereUsed = parseCsv(whereFetch.text);
+      const sourceFilesInScope = new Set(runtimeFiles.flatMap(spec => {
+        const logical = String(spec.logical || "");
+        const web = logical.replace(/^docs\//, "AsyncScene/Web/");
+        return [logical, web];
+      }));
       const layerRows = whereUsed.records.filter(row => {
-        const ctx = String(row.ContextOrScreen || ""); const concept = String(row.ConceptId || "");
-        return layerConcepts.has(concept) && (ctx.includes("escape") || ctx.includes("ignore"));
+        const ctx = String(row.ContextOrScreen || ""); const concept = String(row.ConceptId || ""); const sourceFile = String(row.SourceFile || "");
+        return layerConcepts.has(concept) && (ctx.includes("escape") || ctx.includes("ignore") || sourceFilesInScope.has(sourceFile));
       });
       result.checkedCount = layerRows.length;
       if (result.checkedCount < 60) fail("layer_where_used_rows_missing", { expectedAtLeast: 60, actual: result.checkedCount });
