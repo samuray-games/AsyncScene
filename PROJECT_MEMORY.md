@@ -3,6 +3,15 @@
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
+## 2026-06-01 — Step 4 [1] ARG canon millennial runtime exposure fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Console check: the repo copy of `Console.txt` did not contain the exact reported `Game.__DEV.smokeArgCanonMillennialContractOnce is not a function` line and did not contain the STEP4 install marker, so the user-reported Safari namespace miss remains the pre-fix FAIL condition to verify on device.
+- Source check PASS: `Game.__DEV.smokeArgCanonMillennialContractOnce()` already existed in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`; runtime exposure was missing on the Safari-loaded path.
+- Fix PASS: `docs/data.js` and `AsyncScene/Web/data.js` now install the same PASS/FAIL-logging helper into `Game.__DEV` as a load-path fallback when `dev/dev-checks.js` did not expose it, and both index files cache-bust `data.js` for the Safari load path. No ARG_CANON_ID, canon structure, types, tones, weights, matching logic, battle outcomes, economy, or argument text was changed.
+- Local evidence: PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/data.js`; PASS local VM smoke for both files with `ok:true`, `missingIds:[]`, `duplicateIds:[]`, `logicChanged:false`, `styleSwitchWorks:true`, `fallbackWorks:true`. Commit hash: recorded in the final one-line READY report.
+- Required Safari command: `Game.__DEV.smokeArgCanonMillennialContractOnce()` must return `ok:true`, `missingIds:[]`, `duplicateIds:[]`, `logicChanged:false`, `styleSwitchWorks:true`, and `fallbackWorks:true` before runtime PASS can be claimed.
+
 ## 2026-06-01 — Step 3 [9] Terminology completion gate
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
