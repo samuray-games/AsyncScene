@@ -1296,7 +1296,7 @@ window.Game ||= {};
         ? Game.SecurityPolicy.getFlag(meId)
         : null;
       const blockerText = flag ? (flag.reason || flag.type || "security_flag") : "security_flag";
-      const hint = `Служба безопасности блокирует голосование.${blockerText ? ` Причина: ${blockerText}` : ""}`;
+      const hint = `Толпа решает: Недоступно.${blockerText ? ` Причина: ${blockerText}` : ""}`;
       e.note = hint;
       requestRender();
       try {
@@ -1363,14 +1363,14 @@ window.Game ||= {};
           })
         : null;
       if (!ok || !ok.ok) {
-        e.note = "Не хватает пойнтов.";
+        e.note = "Не хватает 💰.";
         requestRender();
         return false;
       }
     } else if (spend) {
       markLegacyEconHit("events.voteCost.spendPoints");
       if (!spend(voteCost, "crowd_vote_cost")) {
-        e.note = "Не хватает пойнтов.";
+        e.note = "Не хватает 💰.";
         requestRender();
         return false;
       }
@@ -1378,7 +1378,7 @@ window.Game ||= {};
       markLegacyEconHit("events.voteCost.directPoints");
       const me2 = Game.__S && Game.__S.me ? Game.__S.me : null;
       if (!me2 || (me2.points | 0) < voteCost) {
-        e.note = "Не хватает пойнтов.";
+        e.note = "Не хватает 💰.";
         requestRender();
         return false;
       }
@@ -1496,13 +1496,13 @@ window.Game ||= {};
           })
         : null;
       if (!ok || !ok.ok) {
-        e.note = "Не прокает: нет P.";
+        e.note = "Не хватает 💰.";
         requestRender();
         return false;
       }
     } else if (spend && !spend(cost, "crowd_vote_cost")) {
       markLegacyEconHit("events.addExtraVote.spendPoints");
-      e.note = "Не прокает: нет P.";
+      e.note = "Не хватает 💰.";
       requestRender();
       return false;
     }
@@ -1578,18 +1578,18 @@ window.Game ||= {};
           })
         : null;
       if (!ok || !ok.ok) {
-        e.note = "Не прокает: нет P.";
+        e.note = "Не хватает 💰.";
         requestRender();
         return false;
       }
     } else if (spend && !spend(cost, "tie_vote_shield")) {
       markLegacyEconHit("events.activateVoteShield.spendPoints");
-      e.note = "Не прокает: нет P.";
+      e.note = "Не хватает 💰.";
       requestRender();
       return false;
     }
     e.voteShielded = true;
-    e.note = "Щит голоса активен.";
+    e.note = "Защита выбора активна.";
     requestRender();
     return true;
   }
@@ -1698,8 +1698,8 @@ window.Game ||= {};
     }
     const total = (vA + vB) | 0;
     const cap = (crowd && Number.isFinite(crowd.cap)) ? (crowd.cap | 0) : 0;
-    const capPart = cap > 0 ? ` Лимит: ${cap}.` : "";
-    return `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}]. Голоса: ${vA}-${vB} (всего ${total}${cap ? "/" + cap : ""}).${capPart}`;
+    const capPart = cap > 0 ? ` лимит: ${cap}.` : "";
+    return `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}]. Счёт: ${vA}-${vB} (всего ${total}${cap ? "/" + cap : ""}).${capPart}`;
   }
 
   function decideCrowdWinner(aInf, bInf, crowd){
@@ -1864,7 +1864,7 @@ window.Game ||= {};
         e.resultLine = finalLine;
       }
     } else {
-      finalLine = `Голосование толпы закончилось ничьей между ${aName} и ${bName}.`;
+      finalLine = `Толпа решает: ничья между ${aName} и ${bName}.`;
       e.resultLine = finalLine;
     }
     e.text = finalLine;
