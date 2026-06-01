@@ -4520,3 +4520,11 @@ Error: Download failure, code=1
 - Scope guard preserved: no ARG_CANON_ID changes, no canon-meaning rewrite, no type/tone/weight/matching/battle/economy/UI behavior changes, and no `Console.txt` usage.
 - Commit hash: recorded in the final one-line READY report.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialOnce()`.
+
+## 2026-06-01 - STEP4-[7] ARG CANON MILLENNIAL safe UI integration
+- Status: READY_FOR_RUNTIME_SMOKE only; iPhone Safari must run `Game.__DEV.smokeArgCanonMillennialUiSafeOnce()` before runtime PASS is claimed.
+- Implemented UI-only millennial argument text selection via the single safe resolver/switch, with classic canon text retained for option identity, ids, matching, outcomes, economy, and answer identity.
+- Added runtime/dev smoke coverage for safe UI switching, classic text, millennial text, missing-millennial fallback, stable canon ids, stable option identity, and stable outcome signature.
+- Local evidence: PASS syntax checks for mirrored data/dev/conflict/UI bundles; PASS local VM smoke for `Game.__DEV.smokeArgCanonMillennialUiSafeOnce()`, `Game.__DEV.smokeArgCanonMillennialOnce()`, and `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`.
+- Playwright browser smoke could not run locally because Chromium is not installed in the environment; this is a warning only and not a Safari PASS.
+- Commit hash: recorded in the final one-line READY report.
