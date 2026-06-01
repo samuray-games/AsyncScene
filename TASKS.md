@@ -66,6 +66,31 @@
 ## Inbox
 
 
+### [T-20260601-001] AsyncScene Step 3 [2] terminology canon and semantic deduplication
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|UI|Docs|Runtime Smoke
+- Files: `docs/terminology/STEP3_TERMINOLOGY_CANON.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_CANON.csv` `docs/terminology/STEP3_TERMINOLOGY_CANON_REPORT.md` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_CANON_REPORT.md` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/validate-step3-terminology-canon.py`
+- Goal: Normalize terminology governance by identifying semantic duplicate concepts from the frozen Step 3 [1] inventory and assigning exactly one canonical term per concept.
+- Acceptance:
+  - [x] Canon artifact exists with `conceptId`, `category`, `canonicalTerm`, `forbiddenSynonyms`, `sourceTermIds`, `screens`, and `notes`.
+  - [x] Every duplicate group resolves to exactly one `canonicalTerm`; all alternative wording is recorded in `forbiddenSynonyms`.
+  - [x] Static validation checks the inventory and canon artifacts for duplicate concept IDs, empty canonical terms, missing source TERM_IDs, synonym conflicts, and build marker `STEP3_TERMINOLOGY_CANON_V1`.
+  - [x] Dev smoke helper `Game.__DEV.smokeStep3TerminologyCanonOnce()` is installed for Safari/runtime validation.
+  - [x] Gameplay unchanged; UI strings were not rewritten and code was not mass-replaced.
+- Notes: Step 3 [1] inventory remains the source of truth and was not regenerated. Runtime status is READY_FOR_RUNTIME_SMOKE until QA executes `Game.__DEV.smokeStep3TerminologyCanonOnce()` on iPhone Safari.
+- Result: PASS static validation; 12 semantic duplicate concept groups captured in the canon/report artifacts.
+- Report:
+  - Status: DONE
+  - Facts: Added canonical terminology governance artifacts and smoke validation only. No gameplay or UI wording rewrite.
+  - Changed: `docs/terminology/STEP3_TERMINOLOGY_CANON.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_CANON.csv` `docs/terminology/STEP3_TERMINOLOGY_CANON_REPORT.md` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_CANON_REPORT.md` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/validate-step3-terminology-canon.py` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: run `tools/validate-step3-terminology-canon.py docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv`; then in Safari run `Game.__DEV.smokeStep3TerminologyCanonOnce()`.
+  - Next: QA should run iPhone Safari runtime smoke and report honest PASS/FAIL.
+  - Next Prompt: Run AsyncScene Step 3 [2] runtime smoke on iPhone Safari with `Game.__DEV.smokeStep3TerminologyCanonOnce()` and record PASS/FAIL evidence.
+
+
 ### [T-20260531-006] AsyncScene Step 3 [1] interface terminology inventory scope freeze
 - Status: DONE
 - Priority: P0
