@@ -142,8 +142,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       battle_not_enough_points: "Не хватает 💰.",
 
       escape_button_label: "Свалить за взятку {X} 💰",
-      teach_sent_dm: "Ты обучил(а) {student} аргументу {arg}. Цена: {cost} 💰.",
-      teach_sent_chat: "{teacher} обучил(а) {student} аргументу.",
+      teach_sent_dm: "Обучить аргументу: {student} получает {arg}. Стоимость {cost} 💰.",
+      teach_sent_chat: "Обучить аргументу: {teacher} → {student}.",
       invite_open_hint: "Введи ник игрока. Без ошибок, иначе не сработает.",
       invite_invalid: "Такого игрока нет.",
       menu_title: "Меню",

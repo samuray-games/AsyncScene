@@ -326,7 +326,7 @@ window.Game = window.Game || {};
         }
 
         if (!paidOk) {
-          dmPushLine(targetId, "Система", "Не хватает 💰 на обучение.");
+          dmPushLine(targetId, "Система", "Не хватает 💰.");
           renderDM();
           return;
         }
