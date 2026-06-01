@@ -65,6 +65,30 @@
 
 ## Inbox
 
+### [T-20260601-017] AsyncScene Step 3 [9] Terminology completion gate
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add the final Step 3 terminology Definition of Done gate without changing gameplay, economy, mechanics, data models, timers, rewards, caps, RNG, or UI behavior.
+- Acceptance:
+  - [x] `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` exists with build marker `STEP3_TERMINOLOGY_COMPLETION_GATE_V1`.
+  - [x] The gate verifies Step 3 [1]-[6], all layer smokes [7.1]-[7.10], and regression pack [8] are available and passing.
+  - [x] The gate verifies terminology table coverage for required UI concepts/new feature concepts, no runtime-facing taxonomy/where-used concepts outside the table, no forbidden synonyms, no missing coverage, no duplicate canon concepts, no unapproved taxonomy drift, and no failed layer smoke.
+  - [x] Return shape includes `ok`, `buildMarker`, `failedChecks`, `passedChecks`, `summary`, `totalMs`, `regressionPackResult`, and `layerResults`.
+  - [ ] iPhone Safari runtime smoke is still required before Runtime PASS.
+- Notes: READY_FOR_RUNTIME_SMOKE only. Runtime PASS must not be claimed until iPhone Safari runs `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` and returns `ok:true`, `failedChecks:[]`, `regressionPackResult.ok:true`, every `layerResults.*.ok:true`, no forbidden synonyms, no missing coverage, and build marker `STEP3_TERMINOLOGY_COMPLETION_GATE_V1`. Closed substeps: [1] inventory, [2] canon, [3] style guide, [4] taxonomy, [5] terminology table, [6] where-used map, [7.1] Events/Crowd, [7.2] Battles, [7.3] DM, [7.4] Reports/Cop, [7.5] Escape/Ignore, [7.6] Rematch, [7.7] Training, [7.8] Respect, [7.9] P2P, [7.10] Global/Common, [8] regression pack.
+- Result: Local PASS only; no iPhone Safari Runtime PASS claimed. PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` with `ok:true`, `failedChecks:[]`, `regressionPackResult.ok:true`, all layer results ok; WARN Playwright smoke could not launch because local Chromium is missing.
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: Added final Step 3 [9] completion gate and documented exact PASS/FAIL criteria. The gate returned local VM PASS. iPhone Safari runtime smoke remains pending.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` in iPhone Safari after cache refresh. Require `ok:true`, `failedChecks:[]`, `regressionPackResult.ok:true`, and all `layerResults` ok.
+  - Next: QA for iPhone Safari runtime smoke because only device Safari can close Runtime PASS.
+
+
 ### [T-20260601-016] AsyncScene Step 3 [7.10] Global/Common cooldown terminology fix
 - Status: REVIEW
 - Priority: P0
