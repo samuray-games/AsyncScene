@@ -3,6 +3,16 @@
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
+## 2026-06-01 — Step 3 [7.4] Reports/Cop terminology UI layer
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for Reports/Cop UI-facing strings. Canonical runtime-facing strings now use `Сдать` and `💰` for report buttons, hints, report success/fail copy, cop report guidance, pending/busy labels, and report reward/penalty visible texts covered by this layer.
+- Added `Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce()` with build marker `STEP3_TERMINOLOGY_REPORTS_COP_LAYER_V1`. The smoke loads table/where-used artifacts, validates Reports/Cop layer coverage, checks forbidden synonym removal in runtime-facing report/cop strings, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6] plus Step 3 [7.1]-[7.3] are available.
+- Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce()` with `ok:true`, `checkedCount:28`, `replacedCount:6`, `forbiddenRemaining:[]`, `layerScope:"reports_cop_flow"`; WARN `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyReportsCopLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce()` and require `ok:true`, `failures:[]`, `checkedCount:28`, `replacedCount:6`, `forbiddenRemaining:[]`, `layerScope:"reports_cop_flow"`, and build marker `STEP3_TERMINOLOGY_REPORTS_COP_LAYER_V1`.
+- FAIL criteria for runtime: any forbidden synonym remains in Reports/Cop runtime-facing strings, any required canonical term is missing, Reports/Cop where-used rows are not covered, any previous Step 3 helper [1]-[6] or Step 3 [7.1]-[7.3] is missing/fails, report/cop UI behavior regresses, or the smoke returns `ok:false`.
+- Scope guard: no gameplay, economy, report mechanics, cop cooldown logic, cop rewards, DM delivery behavior, NPC behavior, or data models were changed. Previous steps were not reopened.
+
 ## 2026-06-01 — Step 3 [7.3] DM terminology UI layer
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.

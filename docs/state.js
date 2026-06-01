@@ -3705,7 +3705,7 @@ window.Game = window.Game || {};
     });
 
     try {
-      const penaltyMsg = `Это ложный донос — штраф ${repPenalty}⭐. Будьте внимательнее.`;
+      const penaltyMsg = `«Сдать» без фактов — штраф ${repPenalty}⭐. Будьте внимательнее.`;
       pushDm(copId, copName, copLine(penaltyMsg), { isSystem: false, playerId: copId });
     } catch (_) {}
     try { copDmTo(copId, "cop_fail"); } catch (_) {}
@@ -5292,13 +5292,13 @@ window.Game = window.Game || {};
         const falseTargetRole = normalize(falseTarget && falseTarget.role) || normalize(falseTarget && falseTarget.type) || (allowedRoleKeys[1] || allowedRoleKeys[0]);
         const falseRoleKey = allowedRoleKeys.find(r => r !== falseTargetRole) || allowedRoleKeys.find(r => r !== trueRoleKey) || allowedRoleKeys[0];
         const buildHint = (target, reportedRole) => {
-          if (!target) return `введите "${reportedRole}" в поле отчёта.`;
+          if (!target) return `введите "${reportedRole}" в поле «Сдать».`;
           const name = target.name || target.id || "NPC";
           const actual = normalize(target.role) || normalize(target.type) || "unknown";
           if (actual && reportedRole && actual !== reportedRole) {
-            return `откройте DM с ${name} (роль ${actual}) и сообщите "${reportedRole}" — получится ложный репорт.`;
+            return `откройте DM с ${name} (роль ${actual}) и выберите «Сдать» как "${reportedRole}" — факты не подтвердятся.`;
           }
-          return `откройте DM с ${name} и сообщите "${reportedRole}".`;
+          return `откройте DM с ${name} и выберите «Сдать» как "${reportedRole}".`;
         };
         return {
           ok: true,
