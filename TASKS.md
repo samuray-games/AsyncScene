@@ -4569,3 +4569,14 @@ Error: Download failure, code=1
 - Required Safari command after deployment/cache refresh: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
 - Runtime PASS criteria remain: iPhone Safari returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`, and `scopeMode:"rematch_where_used_only_v2"`.
 - Scope guard: no gameplay, economy, rematch mechanics, battle state, cooldowns, eligibility rules, or data models were changed.
+
+## 2026-06-01 — Step 3 [7.8] Respect terminology layer
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Scope: Respect UI runtime-facing strings only. No gameplay, economy, respect emission, REP emitter balance, daily cap, cooldown, eligibility, reward, or data model logic was changed.
+- Updated Respect-facing cap and unavailable text to canonical terminology: `лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.`, `Не хватает 💰.`, `Сегодня уважение исчерпано.`, `Ты отдал 1💰`, and `Цель получила +1 ⭐`.
+- Added mirrored dev smoke `Game.__DEV.smokeStep3TerminologyRespectLayerOnce()` with build marker `STEP3_TERMINOLOGY_RESPECT_LAYER_V1` in both dev-checks bundles. The smoke returns `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`, validates Respect where-used coverage, and verifies previous Step 3 helpers [1]-[6] and [7.1]-[7.7] are available.
+- Static evidence: PASS `node --check docs/dev/dev-checks.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/ui/ui-dm.js && node --check AsyncScene/Web/ui/ui-dm.js && node --check docs/data.js && node --check AsyncScene/Web/data.js`; PASS `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv && python3 tools/validate-step3-terminology-where-used.py`; PASS local static Respect forbidden-synonym scan.
+- Browser automation warning: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:4173/ node scripts/run-asyncscene-smoke.mjs smokeStep3TerminologyRespectLayerOnce` could not launch because Playwright Chromium is missing; `npx playwright install chromium` was blocked by 403 from the CDN. This is not a Safari runtime PASS.
+- PASS criteria: iPhone Safari returns `ok:true`, build marker `STEP3_TERMINOLOGY_RESPECT_LAYER_V1`, `layerScope:"respect_econ08"`, `forbiddenRemaining:[]`, expected canonical terms present, Respect where-used rows covered, and previous Step 3 helpers available.
+- FAIL criteria: any scoped forbidden synonym remains, any required canonical term is missing, Respect where-used coverage is incomplete, a previous Step 3 helper is missing, or runtime PASS is claimed without iPhone Safari.
+- Safari command for QA: `Game.__DEV.smokeStep3TerminologyRespectLayerOnce()`.
