@@ -451,6 +451,170 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
   };
+  const installStep3TerminologyTableSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_TERMINOLOGY_TABLE_V1";
+    const requiredColumns = ["Key", "Category", "CanonicalTermRU", "ContextOrScreen", "TriggerCondition", "ForbiddenVariants", "Notes"];
+    const recommendedColumns = ["ConceptId", "SourceTermIds", "TaxonomyCategory", "StyleGuideRefs"];
+    const canonColumns = ["conceptId", "category", "canonicalTerm", "forbiddenSynonyms", "sourceTermIds"];
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text.charAt(i);
+        const next = text.charAt(i + 1);
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') inQuotes = false;
+          else cell += ch;
+        } else if (ch === '"') inQuotes = true;
+        else if (ch === ",") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      }
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      if (!rows.length) return { header: [], records: [] };
+      const header = rows[0].map(h => String(h || "").trim());
+      const records = rows.slice(1).filter(r => r.some(v => String(v || "").trim())).map(r => {
+        const obj = {};
+        header.forEach((h, idx) => { obj[h] = r[idx] == null ? "" : r[idx]; });
+        return obj;
+      });
+      return { header, records };
+    };
+    const splitPipe = (value) => String(value || "").split("|").map(part => part.trim()).filter(Boolean);
+    const defaultUrls = (fileName) => {
+      const urls = [`terminology/${fileName}`];
+      try {
+        if (typeof location !== "undefined" && location && location.pathname) {
+          const base = location.pathname.replace(/[^/]*$/, "");
+          urls.push(`${base}terminology/${fileName}`);
+        }
+      } catch (_) {}
+      urls.push(`/AsyncScene/terminology/${fileName}`, `docs/terminology/${fileName}`, `/docs/terminology/${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstText = async (urls) => {
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res && res.ok) return { text: await res.text(), url };
+        } catch (_) {}
+      }
+      return { text: null, url: null };
+    };
+    devStore.smokeStep3TerminologyTableOnce = async (opts = {}) => {
+      const result = {
+        ok: false,
+        failures: [],
+        rowCount: 0,
+        canonConceptCount: 0,
+        duplicateConceptIds: [],
+        missingCanonConceptIds: [],
+        extraConceptIds: [],
+        emptyCanonicalConceptIds: [],
+        emptyCategoryConceptIds: [],
+        emptyContextConceptIds: [],
+        emptyTriggerConceptIds: [],
+        forbiddenSynonymCount: 0,
+        loadedTableUrl: null,
+        loadedCanonUrl: null,
+        buildMarker: BUILD_MARKER,
+      };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const tableUrls = Array.isArray(opts.tableUrls) && opts.tableUrls.length ? opts.tableUrls : defaultUrls("STEP3_TERMINOLOGY_TABLE_V1.csv");
+      const canonUrls = Array.isArray(opts.canonUrls) && opts.canonUrls.length ? opts.canonUrls : defaultUrls("STEP3_TERMINOLOGY_CANON.csv");
+      const tableFetch = await fetchFirstText(tableUrls);
+      const canonFetch = await fetchFirstText(canonUrls);
+      result.loadedTableUrl = tableFetch.url;
+      result.loadedCanonUrl = canonFetch.url;
+      if (!tableFetch.text) fail("terminology_table_file_missing", { urls: tableUrls });
+      if (!canonFetch.text) fail("canon_file_missing", { urls: canonUrls });
+      if (!tableFetch.text || !canonFetch.text) {
+        console.log("STEP3_TERMINOLOGY_TABLE_SMOKE", "FAIL", JSON.stringify(result));
+        return result;
+      }
+      const table = parseCsv(tableFetch.text);
+      const canon = parseCsv(canonFetch.text);
+      result.rowCount = table.records.length;
+      result.canonConceptCount = canon.records.length;
+      requiredColumns.forEach(col => { if (!table.header.includes(col)) fail("missing_required_column", col); });
+      recommendedColumns.forEach(col => { if (!table.header.includes(col)) fail("missing_recommended_column", col); });
+      canonColumns.forEach(col => { if (!canon.header.includes(col)) fail("canon_missing_required_column", col); });
+      const canonById = new Map();
+      canon.records.forEach(row => {
+        const conceptId = String(row.conceptId || "").trim();
+        if (conceptId) canonById.set(conceptId, row);
+      });
+      const conceptCounts = new Map();
+      table.records.forEach((row, idx) => {
+        const rowNum = idx + 2;
+        const conceptId = String(row.ConceptId || row.Key || "").trim();
+        if (!conceptId) fail("empty_ConceptId", { rowNum });
+        else conceptCounts.set(conceptId, (conceptCounts.get(conceptId) || 0) + 1);
+      });
+      conceptCounts.forEach((count, conceptId) => {
+        if (count > 1) {
+          result.duplicateConceptIds.push(conceptId);
+          fail("duplicate_concept", { conceptId, count });
+        }
+      });
+      canonById.forEach((_, conceptId) => {
+        if (!conceptCounts.has(conceptId)) {
+          result.missingCanonConceptIds.push(conceptId);
+          fail("canon_concept_missing_from_table", conceptId);
+        }
+      });
+      conceptCounts.forEach((_, conceptId) => {
+        if (!canonById.has(conceptId)) {
+          result.extraConceptIds.push(conceptId);
+          fail("table_references_missing_canon_concept", conceptId);
+        }
+      });
+      table.records.forEach((row, idx) => {
+        const rowNum = idx + 2;
+        const conceptId = String(row.ConceptId || row.Key || "").trim();
+        const category = String(row.Category || "").trim();
+        const canonicalTerm = String(row.CanonicalTermRU || "").trim();
+        const context = String(row.ContextOrScreen || "").trim();
+        const trigger = String(row.TriggerCondition || "").trim();
+        const forbidden = splitPipe(row.ForbiddenVariants);
+        const notes = String(row.Notes || "");
+        if (!category) { result.emptyCategoryConceptIds.push(conceptId); fail("empty_Category", { rowNum, conceptId }); }
+        if (!canonicalTerm) { result.emptyCanonicalConceptIds.push(conceptId); fail("empty_CanonicalTermRU", { rowNum, conceptId }); }
+        if (!context) { result.emptyContextConceptIds.push(conceptId); fail("empty_ContextOrScreen", { rowNum, conceptId }); }
+        if (!trigger) { result.emptyTriggerConceptIds.push(conceptId); fail("empty_TriggerCondition", { rowNum, conceptId }); }
+        if (!forbidden.length) fail("empty_ForbiddenVariants", { rowNum, conceptId });
+        if (!notes.includes(BUILD_MARKER)) fail("missing_build_marker_in_notes", { rowNum, conceptId });
+        const canonRow = canonById.get(conceptId);
+        if (!canonRow) return;
+        if (category !== String(canonRow.category || "").trim()) fail("category_mismatch", { conceptId, category, canonCategory: canonRow.category });
+        if (canonicalTerm !== String(canonRow.canonicalTerm || "").trim()) fail("canonical_term_mismatch", { conceptId, canonicalTerm, canonTerm: canonRow.canonicalTerm });
+        const canonForbidden = splitPipe(canonRow.forbiddenSynonyms);
+        const missingSynonyms = canonForbidden.filter(synonym => !forbidden.includes(synonym));
+        result.forbiddenSynonymCount += forbidden.length;
+        if (missingSynonyms.length) fail("missing_forbidden_synonyms", { conceptId, missingSynonyms });
+        forbidden.forEach(synonym => {
+          if (!canonForbidden.includes(synonym)) fail("forbidden_synonym_not_linked_to_canon_concept", { conceptId, synonym });
+          if (synonym === canonicalTerm) fail("forbidden_synonym_equals_canonical", { conceptId, synonym });
+        });
+        if (String(row.SourceTermIds || "").trim() !== String(canonRow.sourceTermIds || "").trim()) fail("source_term_ids_mismatch", { conceptId });
+      });
+      result.duplicateConceptIds = Array.from(new Set(result.duplicateConceptIds)).sort();
+      result.missingCanonConceptIds = Array.from(new Set(result.missingCanonConceptIds)).sort();
+      result.extraConceptIds = Array.from(new Set(result.extraConceptIds)).sort();
+      result.emptyCanonicalConceptIds = Array.from(new Set(result.emptyCanonicalConceptIds.filter(Boolean))).sort();
+      result.emptyCategoryConceptIds = Array.from(new Set(result.emptyCategoryConceptIds.filter(Boolean))).sort();
+      result.emptyContextConceptIds = Array.from(new Set(result.emptyContextConceptIds.filter(Boolean))).sort();
+      result.emptyTriggerConceptIds = Array.from(new Set(result.emptyTriggerConceptIds.filter(Boolean))).sort();
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_TERMINOLOGY_TABLE_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
+
   const installStep3MillennialStyleGuideSmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_MILLENNIAL_STYLE_GUIDE_V1";
@@ -576,10 +740,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   installStep3TerminologyInventorySmoke(G.__DEV);
   installStep3TerminologyCanonSmoke(G.__DEV);
   installStep3UiTaxonomySmoke(G.__DEV);
+  installStep3TerminologyTableSmoke(G.__DEV);
   installStep3MillennialStyleGuideSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3UiTaxonomyOnce);
+  console.warn("STEP3_TERMINOLOGY_TABLE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyTableOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
@@ -23601,10 +23767,12 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
   installStep3UiTaxonomySmoke(Game.__DEV);
+  installStep3TerminologyTableSmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);
+  console.warn("STEP3_TERMINOLOGY_TABLE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyTableOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   // Dev shortcut: Ctrl+Shift+T
