@@ -3,6 +3,16 @@
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
+## 2026-06-01 — Step 3 [7.3] DM terminology UI layer
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for DM UI strings. Canonical runtime-facing strings now use `💰`, `⭐`, `Не хватает 💰.`, `Недоступно.`, `баттл`, `Сдать`, and `Обучить аргументу` where this layer is covered.
+- Added `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` with build marker `STEP3_TERMINOLOGY_DM_LAYER_V1`. The smoke loads table/where-used artifacts, statically inspects DM UI runtime strings, checks forbidden synonym removal, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6], Step 3 [7.1], and Step 3 [7.2] are available with optional `{runPrevious:true}` execution.
+- Local evidence: PASS `node --check AsyncScene/Web/ui/ui-dm.js`; PASS `node --check docs/ui/ui-dm.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` with `ok:true`, `checkedCount:58`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"dm_ui"`; WARN `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyDmLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` and require `ok:true`, `failures:[]`, `checkedCount:58`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"dm_ui"`, and build marker `STEP3_TERMINOLOGY_DM_LAYER_V1`.
+- FAIL criteria for runtime: any forbidden synonym remains, any required canonical term is missing, where-used rows for DM UI are not covered, any previous Step 3 helper [1]-[6], Step 3 [7.1], or Step 3 [7.2] is missing/fails, DM auto-open/focus invariants regress, or the smoke returns `ok:false`.
+- Scope guard: no gameplay, economy, scoring, RNG, battle mechanics, DM mechanics, unread counters, focus behavior, panel auto-open behavior, or data models were changed. Previous steps were not reopened.
+
 ## 2026-06-01 — Step 3 [7.2] Battles terminology UI layer
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.

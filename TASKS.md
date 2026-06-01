@@ -65,6 +65,31 @@
 
 ## Inbox
 
+### [T-20260601-009] AsyncScene Step 3 [7.3] DM terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `docs/ui/ui-dm.js` `AsyncScene/Web/ui/ui-dm.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` + `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to DM UI-facing strings without changing gameplay, economy, scoring, RNG, battle mechanics, DM mechanics, unread counters, focus behavior, panel auto-open behavior, or data models.
+- Acceptance:
+  - [x] DM UI strings use canonical terms for covered where-used rows: `💰`, `⭐`, `Не хватает 💰.`, `Недоступно.`, `баттл`, `Сдать`, and `Обучить аргументу`.
+  - [x] Forbidden variants from the terminology table are removed from DM runtime-facing strings covered by the where-used rows.
+  - [x] `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_DM_LAYER_V1` and returns `ok:true`, `failures:[]`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Previous Step 3 smoke helpers [1]-[6], Step 3 [7.1], and Step 3 [7.2] are available to the new smoke and can be run via `{runPrevious:true}`.
+  - [ ] iPhone Safari runtime smoke has run and recorded final PASS.
+- Notes: READY_FOR_RUNTIME_SMOKE. Scope excludes gameplay/economy/scoring/RNG/battle mechanics/DM mechanics/unread counters/focus behavior/panel auto-open behavior/data-model changes. Events/Crowd, Battles, Reports, Escape/Ignore, Rematch, Training, Respect, P2P, and generic toast surfaces were not reopened except where where-used rows are explicitly DM UI-facing.
+- Result: Local PASS only; no Runtime PASS claimed. Updated DM UI-facing terminology and added the DM layer smoke. PASS criteria: iPhone Safari runs `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` and returns `ok:true`, `failures:[]`, `checkedCount:58`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"dm_ui"`, and build marker `STEP3_TERMINOLOGY_DM_LAYER_V1`. FAIL criteria: any forbidden synonym remains, any required canonical term is missing, any previous Step 3 helper [1]-[6], [7.1], or [7.2] is missing/fails, DM auto-open/focus invariants regress, or Safari runtime returns `ok:false`.
+- Report:
+  - Status: REVIEW
+  - Facts: Static checks PASS; local VM smoke PASS with `ok:true`, `checkedCount:58`, `replacedCount:9`, `forbiddenRemaining:[]`, `layerScope:"dm_ui"`; browser automation WARN because Playwright Chromium is missing; iPhone Safari runtime smoke still required.
+  - Changed: `docs/ui/ui-dm.js` `AsyncScene/Web/ui/ui-dm.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` in iPhone Safari after cache refresh.
+  - Next: QA for required iPhone Safari runtime smoke.
+
+
+
 ### [T-20260601-008] AsyncScene Step 3 [7.2] Battles terminology UI layer
 - Status: REVIEW
 - Priority: P0

@@ -13,7 +13,7 @@ if (!Game.__DEV) Game.__DEV = {};
 Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
-  respect_no_points: "Нужно 1💰, сейчас не хватает.",
+  respect_no_points: "Не хватает 💰.",
   respect_pair_daily: "Уже было уважение сегодня этому персонажу.",
   respect_no_chain: "Цепочка A->B->A сегодня не работает.",
   respect_emitter_empty: "Лимит уважения на сегодня исчерпан.",
@@ -59,13 +59,13 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   if (!res) return null;
   if (res.ok) {
     showRespectToast("points", "Ты отдал 1💰");
-    showRespectToast("rep", "Цель получила +1 REP");
+    showRespectToast("rep", "Цель получила +1 ⭐");
     callDevToastProbe("Ты отдал 1💰");
-    callDevToastProbe("Цель получила +1 REP");
+    callDevToastProbe("Цель получила +1 ⭐");
     try {
       if (Game.__DEV && typeof Game.__DEV.__toastTapePush__ === "function") {
         Game.__DEV.__toastTapePush__({ text: "Ты отдал 1💰", ts: Date.now() });
-        Game.__DEV.__toastTapePush__({ text: "Цель получила +1 REP", ts: Date.now() });
+        Game.__DEV.__toastTapePush__({ text: "Цель получила +1 ⭐", ts: Date.now() });
       }
     } catch (_) {}
     return res;
@@ -827,7 +827,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const cdLast = cdMap[withId] || 0;
     const cdActive = cdLast && (Date.now() - cdLast) < cdMs;
 
-    const btnBattle = mkBtn("Забаттлить", () => {
+    const btnBattle = mkBtn("баттл", () => {
       if ((getS().me.points || 0) <= 0) {
         const msg = "Недоступно.";
         if (UI && typeof UI.showStatToast === "function") {
@@ -936,11 +936,11 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     };
 
     const reasonMessages = {
-      p2p_invalid_amount: "Введите положительное число пойнтов.",
-      p2p_insufficient_points: "У вас недостаточно пойнтов.",
-      p2p_self_transfer_forbidden: "Нельзя отправить пойнты самому себе.",
-      p2p_player_to_player_disabled: "Передача между игроками пока недоступна.",
-      p2p_disabled: "Передача пока отключена."
+      p2p_invalid_amount: "Введите положительное число 💰.",
+      p2p_insufficient_points: "Не хватает 💰.",
+      p2p_self_transfer_forbidden: "Нельзя отправить 💰 самому себе.",
+      p2p_player_to_player_disabled: "Недоступно.",
+      p2p_disabled: "Недоступно."
     };
     const appendP2PControls = () => {
       if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
@@ -963,7 +963,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         : false;
       return mkBtn(label, () => {
         if (!enabled) {
-          showP2PSystem("Передача отключена — ждите, пока мы включим её снова.");
+          showP2PSystem("Недоступно.");
           return;
         }
         const promptText = (mode === "give")

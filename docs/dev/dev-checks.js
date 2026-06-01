@@ -1247,6 +1247,253 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
 
+  const installStep3TerminologyDmLayerSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_TERMINOLOGY_DM_LAYER_V1";
+    const TABLE_MARKER = "STEP3_TERMINOLOGY_TABLE_V1";
+    const WHERE_USED_MARKER = "STEP3_TERMINOLOGY_WHERE_USED_V1";
+    const layerScope = "dm_ui";
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+      for (let i = 0; i < String(text || "").length; i += 1) {
+        const ch = text.charAt(i);
+        const next = text.charAt(i + 1);
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') inQuotes = false;
+          else cell += ch;
+        } else if (ch === '"') inQuotes = true;
+        else if (ch === ",") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      }
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      if (!rows.length) return { header: [], records: [] };
+      const header = rows[0].map(h => String(h || "").trim());
+      const records = rows.slice(1).filter(r => r.some(v => String(v || "").trim())).map(r => {
+        const obj = {};
+        header.forEach((h, idx) => { obj[h] = r[idx] == null ? "" : r[idx]; });
+        return obj;
+      });
+      return { header, records };
+    };
+    const defaultUrls = (fileName, kind = "terminology") => {
+      const urls = [`${kind}/${fileName}`];
+      try {
+        if (typeof location !== "undefined" && location && location.pathname) {
+          const base = location.pathname.replace(/[^/]*$/, "");
+          urls.push(`${base}${kind}/${fileName}`);
+        }
+      } catch (_) {}
+      if (kind === "terminology") urls.push(`/AsyncScene/terminology/${fileName}`, `docs/terminology/${fileName}`, `/docs/terminology/${fileName}`);
+      else urls.push(`/AsyncScene/${fileName}`, `docs/${fileName}`, `/docs/${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstText = async (urls) => {
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res && res.ok) return { text: await res.text(), url };
+        } catch (_) {}
+      }
+      return { text: null, url: null };
+    };
+    const splitPipe = (value) => String(value || "").split("|").map(part => part.trim()).filter(Boolean);
+    const canonicalRuntimeFiles = new Set(["docs/ui/ui-dm.js", "AsyncScene/Web/ui/ui-dm.js", "docs/index.html", "AsyncScene/Web/index.html"]);
+    const expectedCanonicalTerms = ["💰", "⭐", "Не хватает 💰.", "Недоступно.", "баттл", "Сдать", "Обучить аргументу"];
+    const knownReplacedTexts = [
+      "Нужно 1💰, сейчас не хватает.",
+      "Цель получила +1 REP",
+      "Забаттлить",
+      "Введите положительное число пойнтов.",
+      "У вас недостаточно пойнтов.",
+      "Нельзя отправить пойнты самому себе.",
+      "Передача между игроками пока недоступна.",
+      "Передача пока отключена.",
+      "Передача отключена — ждите, пока мы включим её снова."
+    ];
+    const allowedForbiddenSubstrings = ["не хватает"];
+    const extractStringLiterals = (source) => {
+      const out = [];
+      const text = String(source || "");
+      let i = 0;
+      while (i < text.length) {
+        const ch0 = text.charAt(i);
+        const ch1 = text.charAt(i + 1);
+        if (ch0 === "/" && ch1 === "/") {
+          i += 2;
+          while (i < text.length && text.charAt(i) !== "\n") i += 1;
+          continue;
+        }
+        if (ch0 === "/" && ch1 === "*") {
+          i += 2;
+          while (i + 1 < text.length && !(text.charAt(i) === "*" && text.charAt(i + 1) === "/")) i += 1;
+          i += 2;
+          continue;
+        }
+        const quote = ch0;
+        if (quote !== '"' && quote !== "'" && quote !== "`") { i += 1; continue; }
+        let value = "";
+        i += 1;
+        while (i < text.length) {
+          const ch = text.charAt(i);
+          if (ch === "\\") {
+            value += ch;
+            if (i + 1 < text.length) value += text.charAt(i + 1);
+            i += 2;
+            continue;
+          }
+          if (ch === quote) { i += 1; break; }
+          value += ch;
+          i += 1;
+        }
+        out.push(value);
+      }
+      return out;
+    };
+    const extractHtmlRuntimeText = (source) => String(source || "")
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .split(/\s+/)
+      .map(part => part.trim())
+      .filter(Boolean);
+    const synonymPattern = (synonym) => {
+      const escaped = String(synonym || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (synonym === "P") return new RegExp("(^|[^A-Za-zА-Яа-яЁё])P([^A-Za-zА-Яа-яЁё]|$)");
+      if (/^[A-Za-z]+$/.test(synonym)) return new RegExp(`(^|[^A-Za-zА-Яа-яЁё])${escaped}([^A-Za-zА-Яа-яЁё]|$)`, "i");
+      if (/^[А-Яа-яЁё]+$/.test(synonym)) return new RegExp(`(^|[^A-Za-zА-Яа-яЁё])${escaped}([^A-Za-zА-Яа-яЁё]|$)`);
+      return new RegExp(escaped);
+    };
+    devStore.smokeStep3TerminologyDmLayerOnce = async (opts = {}) => {
+      const result = {
+        ok: false,
+        failures: [],
+        checkedCount: 0,
+        replacedCount: 0,
+        forbiddenRemaining: [],
+        layerScope,
+        buildMarker: BUILD_MARKER,
+        tableMarker: TABLE_MARKER,
+        whereUsedMarker: WHERE_USED_MARKER,
+        loadedTableUrl: null,
+        loadedWhereUsedUrl: null,
+        loadedRuntimeUrls: [],
+        coveredWhereUsedRows: [],
+        previousSmokeHelpers: {},
+      };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const tableFetch = await fetchFirstText(Array.isArray(opts.tableUrls) && opts.tableUrls.length ? opts.tableUrls : defaultUrls("STEP3_TERMINOLOGY_TABLE_V1.csv"));
+      const whereFetch = await fetchFirstText(Array.isArray(opts.whereUsedUrls) && opts.whereUsedUrls.length ? opts.whereUsedUrls : defaultUrls("STEP3_TERMINOLOGY_WHERE_USED_V1.csv"));
+      result.loadedTableUrl = tableFetch.url;
+      result.loadedWhereUsedUrl = whereFetch.url;
+      if (!tableFetch.text) fail("terminology_table_missing");
+      if (!whereFetch.text) fail("where_used_missing");
+      const runtimeSpecs = [
+        { logical: "docs/ui/ui-dm.js", urls: Array.isArray(opts.uiDmUrls) && opts.uiDmUrls.length ? opts.uiDmUrls : defaultUrls("ui/ui-dm.js", "") },
+        { logical: "docs/index.html", urls: Array.isArray(opts.indexUrls) && opts.indexUrls.length ? opts.indexUrls : defaultUrls("index.html", "") },
+      ];
+      const runtime = [];
+      for (const spec of runtimeSpecs) {
+        const loaded = await fetchFirstText(spec.urls);
+        if (!loaded.text) fail("runtime_source_missing", { file: spec.logical, urls: spec.urls });
+        else {
+          result.loadedRuntimeUrls.push(loaded.url);
+          const strings = spec.logical.endsWith(".html") ? extractHtmlRuntimeText(loaded.text) : extractStringLiterals(loaded.text);
+          runtime.push({ logical: spec.logical, text: loaded.text, strings });
+        }
+      }
+      if (!tableFetch.text || !whereFetch.text || runtime.length !== runtimeSpecs.length) {
+        console.log("STEP3_TERMINOLOGY_DM_LAYER_SMOKE", "FAIL", JSON.stringify(result));
+        return result;
+      }
+      const table = parseCsv(tableFetch.text);
+      const whereUsed = parseCsv(whereFetch.text);
+      const layerRows = whereUsed.records.filter(row => {
+        const scope = String(row.ContextOrScreen || "");
+        const file = String(row.SourceFile || "");
+        return scope.includes(layerScope) && canonicalRuntimeFiles.has(file);
+      });
+      result.checkedCount = layerRows.length;
+      if (!layerRows.length) fail("layer_where_used_rows_missing");
+      result.coveredWhereUsedRows = layerRows.map(row => `${String(row.SourceFile || "")}:${String(row.SourceTermId || "")}:${String(row.ConceptId || "")}`).filter(Boolean);
+      const conceptsInLayer = new Set(layerRows.map(row => String(row.ConceptId || "").trim()).filter(Boolean));
+      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+      conceptsInLayer.forEach(conceptId => {
+        if (!tableRowsByConcept.has(conceptId)) fail("layer_concept_missing_from_table", conceptId);
+      });
+      const allRuntimeStrings = runtime.flatMap(item => item.strings.map(value => ({ file: item.logical, value }))).filter(item => /[А-Яа-яЁё💰⭐]/.test(item.value));
+      const allRuntimeText = allRuntimeStrings.map(item => item.value).join("\n");
+      expectedCanonicalTerms.forEach(term => {
+        if (!allRuntimeText.includes(term)) fail("canonical_term_missing_from_layer_runtime_strings", term);
+      });
+      const forbiddenChecks = [];
+      conceptsInLayer.forEach(conceptId => {
+        const tableRow = tableRowsByConcept.get(conceptId);
+        splitPipe(tableRow && tableRow.ForbiddenVariants).forEach(synonym => {
+          if (!synonym || allowedForbiddenSubstrings.includes(String(synonym).toLowerCase())) return;
+          forbiddenChecks.push({ conceptId, synonym, pattern: synonymPattern(synonym) });
+        });
+      });
+      allRuntimeStrings.forEach(item => {
+        forbiddenChecks.forEach(check => {
+          const visibleText = String(item.value || "").replace(/\$\{[^}]*\}/g, "");
+          if (check.pattern.test(visibleText)) {
+            result.forbiddenRemaining.push({ conceptId: check.conceptId, synonym: check.synonym, file: item.file, text: item.value });
+          }
+        });
+      });
+      const uniqueForbidden = [];
+      const seenForbidden = new Set();
+      result.forbiddenRemaining.forEach(row => {
+        const key = `${row.conceptId}|${row.synonym}|${row.file}|${row.text}`;
+        if (!seenForbidden.has(key)) { seenForbidden.add(key); uniqueForbidden.push(row); }
+      });
+      result.forbiddenRemaining = uniqueForbidden;
+      if (result.forbiddenRemaining.length) fail("forbidden_synonyms_remaining", result.forbiddenRemaining);
+      result.replacedCount = knownReplacedTexts.reduce((count, text) => count + (allRuntimeText.includes(text) ? 0 : 1), 0);
+      if (result.replacedCount < knownReplacedTexts.length) fail("known_replacements_not_all_observed", { expected: knownReplacedTexts.length, actual: result.replacedCount });
+      const rowText = layerRows.map(row => [row.CurrentTextOrVariant, row.ReplacementTarget, row.Notes].join(" ")).join("\n");
+      knownReplacedTexts.forEach(text => {
+        if (!rowText.includes(text)) fail("where_used_replacement_row_not_covered", text);
+      });
+      [
+        "smokeStep3TerminologyInventoryOnce",
+        "smokeStep3TerminologyCanonOnce",
+        "smokeStep3UiTaxonomyOnce",
+        "smokeStep3MillennialStyleGuideOnce",
+        "smokeStep3TerminologyTableOnce",
+        "smokeStep3TerminologyWhereUsedOnce",
+        "smokeStep3TerminologyEventsCrowdLayerOnce",
+        "smokeStep3TerminologyBattlesLayerOnce",
+      ].forEach(name => {
+        result.previousSmokeHelpers[name] = typeof devStore[name] === "function" ? "available" : "missing";
+        if (result.previousSmokeHelpers[name] !== "available") fail("previous_step3_smoke_helper_missing", name);
+      });
+      if (opts.runPrevious === true) {
+        result.previousSmokeResults = {};
+        for (const name of Object.keys(result.previousSmokeHelpers)) {
+          if (typeof devStore[name] === "function") {
+            try {
+              const prior = await devStore[name]();
+              result.previousSmokeResults[name] = prior && prior.ok === true ? "pass" : "fail";
+              if (!prior || prior.ok !== true) fail("previous_step3_smoke_helper_failed", name);
+            } catch (err) {
+              result.previousSmokeResults[name] = "error";
+              fail("previous_step3_smoke_helper_error", { name, message: err && err.message ? err.message : String(err) });
+            }
+          }
+        }
+      }
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_TERMINOLOGY_DM_LAYER_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
+
 
   const installStep3MillennialStyleGuideSmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
@@ -1377,6 +1624,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   installStep3TerminologyWhereUsedSmoke(G.__DEV);
   installStep3TerminologyEventsCrowdLayerSmoke(G.__DEV);
   installStep3TerminologyBattlesLayerSmoke(G.__DEV);
+  installStep3TerminologyDmLayerSmoke(G.__DEV);
   installStep3MillennialStyleGuideSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
@@ -1385,6 +1633,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   console.warn("STEP3_TERMINOLOGY_WHERE_USED_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyWhereUsedOnce);
   console.warn("STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce);
   console.warn("STEP3_TERMINOLOGY_BATTLES_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyBattlesLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_DM_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyDmLayerOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
@@ -1982,7 +2231,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const failed = [];
       if (!r1 || r1.ok !== true) failed.push("r1_not_ok");
       if (!r2 || r2.reason !== "respect_pair_daily") failed.push("r2_reason_mismatch");
-      if (toast1 !== "Ты отдал 1💰" || toast2 !== "Цель получила +1 REP") {
+      if (toast1 !== "Ты отдал 1💰" || toast2 !== "Цель получила +1 ⭐") {
         failed.push("toast_missing_or_mismatch");
       }
 
@@ -24410,6 +24659,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyWhereUsedSmoke(Game.__DEV);
   installStep3TerminologyEventsCrowdLayerSmoke(Game.__DEV);
   installStep3TerminologyBattlesLayerSmoke(Game.__DEV);
+  installStep3TerminologyDmLayerSmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
@@ -24418,6 +24668,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STEP3_TERMINOLOGY_WHERE_USED_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyWhereUsedOnce);
   console.warn("STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce);
   console.warn("STEP3_TERMINOLOGY_BATTLES_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyBattlesLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_DM_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyDmLayerOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   // Dev shortcut: Ctrl+Shift+T
