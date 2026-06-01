@@ -26263,6 +26263,94 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   // Auto-run disabled by default to avoid boot-time failures; manual run only.
 
+  Game.__DEV.smokeArgCanonMillennialContractOnce = function smokeArgCanonMillennialContractOnce() {
+    const D = Game.Data || {};
+    const result = {
+      ok: false,
+      canonIdCountBefore: 0,
+      canonIdCountAfter: 0,
+      missingIds: [],
+      duplicateIds: [],
+      logicChanged: true,
+      styleSwitchWorks: false,
+      fallbackWorks: false
+    };
+    const own = (obj, key) => !!(obj && Object.prototype.hasOwnProperty.call(obj, key));
+    const idsOf = () => (D && typeof D.listArgCanonTextIds === "function") ? D.listArgCanonTextIds() : [];
+    const signatureOf = () => {
+      const index = (D && D.ARG_CANON_INDEX) ? D.ARG_CANON_INDEX : {};
+      return Object.keys(index).sort().map((key) => {
+        const rec = index[key];
+        const items = (rec && Array.isArray(rec.items)) ? rec.items : [];
+        return [key].concat(items.map((it, idx) => {
+          if (!it) return `${idx}:`;
+          return `${idx}:${String(it.q || "")}=>${String(it.a || "")}`;
+        })).join("\u0001");
+      }).join("\u0002");
+    };
+    const previousStyle = D && typeof D.getArgCanonTextStyle === "function" ? D.getArgCanonTextStyle() : "classic";
+    let probeId = "";
+    let hadProbe = false;
+    let oldProbeValue;
+    try {
+      if (!D || typeof D !== "object") throw new Error("missing_data");
+      if (typeof D.seedArgCanonMillennialTextFallback === "function") D.seedArgCanonMillennialTextFallback();
+      const beforeIds = idsOf();
+      const beforeSig = signatureOf();
+      result.canonIdCountBefore = beforeIds.length;
+
+      const seen = Object.create(null);
+      beforeIds.forEach((id) => {
+        if (seen[id]) result.duplicateIds.push(id);
+        seen[id] = true;
+      });
+
+      const store = D.ARG_CANON_MILLENNIAL_TEXT_BY_ID || {};
+      result.missingIds = beforeIds.filter((id) => !own(store, id));
+
+      probeId = beforeIds[0] || "";
+      if (probeId && typeof D.setArgCanonTextStyle === "function" && typeof D.resolveArgCanonText === "function") {
+        hadProbe = own(store, probeId);
+        oldProbeValue = store[probeId];
+        D.setArgCanonTextStyle("classic");
+        const classicOk = D.resolveArgCanonText(probeId, "__classic_probe__") === "__classic_probe__";
+        store[probeId] = "__millennial_probe__";
+        D.setArgCanonTextStyle("millennial");
+        const millennialOk = D.resolveArgCanonText(probeId, "__classic_probe__") === "__millennial_probe__";
+        result.styleSwitchWorks = classicOk && millennialOk;
+        delete store[probeId];
+        result.fallbackWorks = D.resolveArgCanonText(probeId, "__classic_probe__") === "__classic_probe__";
+      }
+
+      const afterIds = idsOf();
+      const afterSig = signatureOf();
+      result.canonIdCountAfter = afterIds.length;
+      result.logicChanged = beforeSig !== afterSig;
+      result.ok = result.canonIdCountBefore === result.canonIdCountAfter
+        && result.missingIds.length === 0
+        && result.duplicateIds.length === 0
+        && result.logicChanged === false
+        && result.styleSwitchWorks === true
+        && result.fallbackWorks === true;
+    } catch (err) {
+      result.error = err && err.message ? String(err.message) : String(err);
+      result.canonIdCountAfter = result.canonIdCountAfter || result.canonIdCountBefore;
+      result.ok = false;
+    } finally {
+      try {
+        const store = D && D.ARG_CANON_MILLENNIAL_TEXT_BY_ID;
+        if (probeId && store) {
+          if (hadProbe) store[probeId] = oldProbeValue;
+          else delete store[probeId];
+        }
+        if (D && typeof D.setArgCanonTextStyle === "function") D.setArgCanonTextStyle(previousStyle);
+      } catch (_) {}
+    }
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_CONTRACT_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("STEP4_ARG_CANON_MILLENNIAL_CONTRACT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialContractOnce);
+
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
