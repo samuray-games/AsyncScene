@@ -458,11 +458,11 @@ window.Game = window.Game || {};
       renderDM();
     };
     const reasonMessages = {
-      p2p_invalid_amount: "Введите положительное число пойнтов.",
-      p2p_insufficient_points: "У вас недостаточно пойнтов.",
-      p2p_self_transfer_forbidden: "Нельзя отправить пойнты самому себе.",
-      p2p_player_to_player_disabled: "Передача между игроками пока недоступна.",
-      p2p_disabled: "Передача пока отключена."
+      p2p_invalid_amount: "Введите положительное число 💰.",
+      p2p_insufficient_points: "Не хватает 💰.",
+      p2p_self_transfer_forbidden: "Нельзя отправить 💰 самому себе.",
+      p2p_player_to_player_disabled: "Недоступно.",
+      p2p_disabled: "Недоступно."
     };
     const appendP2PControls = () => {
       if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
@@ -484,7 +484,7 @@ window.Game = window.Game || {};
         : false;
       return mkBtn(label, () => {
         if (!enabled) {
-          showP2PSystem("Передача отключена — ждите, пока мы включим её снова.");
+          showP2PSystem("Недоступно.");
           return;
         }
         const promptText = (mode === "give")

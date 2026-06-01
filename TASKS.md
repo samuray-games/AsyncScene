@@ -65,6 +65,31 @@
 
 ## Inbox
 
+### [T-20260601-015] AsyncScene Step 3 [7.9] P2P terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `AsyncScene/Web/ui-old.js` `AsyncScene/Web/ui/ui-core.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/dev/dev-checks.js` `docs/ui/ui-core.js` `docs/ui/ui-dm.js` `docs/data/style-lex.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to P2P UI/runtime-facing transfer strings, without changing gameplay, economy, P2P transfer logic, limits, eligibility, balances, logs, notifications, data models, or prior Step 3 layers.
+- Acceptance:
+  - [x] P2P-facing transfer labels, prompts, errors, unavailable states, system lines, and ECON-P2P style-lex rows use canonical `💰`, `Не хватает 💰.`, and `Недоступно.` where required.
+  - [x] Scoped old P2P variants such as `пойнты`, `пойнтов`, `У вас недостаточно пойнтов.`, `Передача между игроками пока недоступна.`, `Передача пока отключена.`, `Передача отключена — ждите, пока мы включим её снова.`, and `Передача пойнтов: пока недоступна.` are removed from covered P2P runtime-facing strings.
+  - [x] `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_P2P_LAYER_V1` and reports `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Smoke verifies P2P where-used coverage, canonical term presence, no new P2P synonym variants, and previous Step 3 helper availability for [1]-[6] and [7.1]-[7.8].
+  - [ ] iPhone Safari runtime smoke is still required before runtime PASS.
+- Notes: READY_FOR_RUNTIME_SMOKE only. Runtime PASS must not be claimed until iPhone Safari runs `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()` and returns `ok:true` with `forbiddenRemaining:[]`.
+- Result: Local PASS only; no Runtime PASS claimed. Local VM smoke returned `ok:true`, `failures:[]`, `checkedCount:33`, `replacedCount:8`, `forbiddenRemaining:[]`, `layerScope:"p2p"`, build marker `STEP3_TERMINOLOGY_P2P_LAYER_V1`, and all previous Step 3 helpers through Respect available. Browser automation WARN: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyP2PLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`. PASS criteria: iPhone Safari command returns `ok:true`, build marker `STEP3_TERMINOLOGY_P2P_LAYER_V1`, `forbiddenRemaining:[]`, expected canonical P2P terms present, previous helpers available, and no uncovered P2P where-used rows. FAIL criteria: any forbidden scoped P2P synonym remains, any required canonical P2P term is missing, any P2P where-used row is not covered, any previous Step 3 helper is missing, or Safari runtime returns `ok:false`.
+- Report:
+  - Status: REVIEW
+  - Facts: READY_FOR_RUNTIME_SMOKE; P2P UI terminology strings and the P2P terminology smoke are updated locally. No iPhone Safari runtime PASS claimed.
+  - Changed: `AsyncScene/Web/ui-old.js` `AsyncScene/Web/ui/ui-core.js` `AsyncScene/Web/dev/dev-checks.js` `docs/ui/ui-core.js` `docs/data/style-lex.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: run `node --check docs/dev/dev-checks.js`; run `node --check AsyncScene/Web/dev/dev-checks.js`; in iPhone Safari run `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()`.
+  - Next: QA for iPhone Safari runtime smoke.
+  - Next Prompt: Run AsyncScene Step 3 [7.9] runtime smoke on iPhone Safari with `Game.__DEV.smokeStep3TerminologyP2PLayerOnce()` and report honest PASS/FAIL with returned JSON.
+
+
 ### [T-20260601-013] AsyncScene Step 3 [7.7] Training terminology UI layer
 - Status: REVIEW
 - Priority: P0
