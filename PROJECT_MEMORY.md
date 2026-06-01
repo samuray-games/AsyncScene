@@ -4238,3 +4238,14 @@ Error: Download failure, code=1
   - `({ hasStep3: typeof Game.__DEV.smokeStep3TerminologyInventoryOnce, devKeys: Object.keys(Game.__DEV).filter(k => /Step3|Terminology/.test(k)) })`
   - `await Game.__DEV.smokeStep3TerminologyInventoryOnce()`
 - Evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS static check for both versioned HTML URLs and both installed-marker strings.
+
+
+## 2026-06-01 — Step 3 [2] terminology canon governance
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime smoke has not been executed in this coding pass.
+- Step 3 [1] inventory remains frozen source of truth: 3513 rows, no inventory regeneration and no redo of Step 3 [1].
+- Added canonical governance artifacts `STEP3_TERMINOLOGY_CANON.csv` in both `docs/terminology/` and `AsyncScene/Web/terminology/`, plus mirrored `STEP3_TERMINOLOGY_CANON_REPORT.md`.
+- Duplicate concepts found: points currency, reputation, insufficient funds, crowd decision, escape action, ignore action, report action, argument training, cooldown, price cap, battle action, and unavailable state. Each concept has exactly one canonical term and all alternative wording is listed as forbidden synonyms.
+- Added build marker `STEP3_TERMINOLOGY_CANON_V1` and dev helper `Game.__DEV.smokeStep3TerminologyCanonOnce()` in mirrored dev checks.
+- Governance-only scope guard: no gameplay changes, no UI string rewrites, and no mass replacements in code.
+- Static evidence: PASS `tools/validate-step3-terminology-canon.py docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv` returned `ok: True`, `conceptCount: 12`, `failures: []`, `mappedForbiddenSynonymCount: 53`.
+- Safari command for QA: `Game.__DEV.smokeStep3TerminologyCanonOnce()`.
