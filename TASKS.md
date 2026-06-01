@@ -65,27 +65,28 @@
 
 ## Inbox
 
-### [T-20260601-018] STEP4-[1] ARG CANON MILLENNIAL — boundaries & contract
+### [T-20260601-018] STEP4-[1] ARG CANON MILLENNIAL — boundaries, contract, runtime exposure fix
 - Status: REVIEW
 - Priority: P0
 - Assignee: Codex-ассистент
 - Next: QA
 - Area: Content|Infra|Runtime Smoke
-- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
-- Goal: Introduce minimal second text-layer infrastructure for ARG canon millennial copy without changing canon IDs, canon structure, types, tones, weights, matching logic, battle outcomes, or search/index generation logic.
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Keep the ARG canon millennial contract intact and make `Game.__DEV.smokeArgCanonMillennialContractOnce()` available on the iPhone Safari runtime path without changing ARG_CANON_ID, canon structure, types, tones, weights, matching logic, battle outcomes, economy, or argument texts.
 - Acceptance:
   - [x] Dedicated millennial text storage exists as `ARG_CANON_MILLENNIAL_TEXT_BY_ID`, keyed by ARG canon text IDs and seeded with existing classic text as temporary fallback content.
   - [x] Single style source-of-truth exists via `ARG_CANON_TEXT_STYLE` with `setArgCanonTextStyle()` / `getArgCanonTextStyle()`.
   - [x] Single resolver `resolveArgCanonText(canonId, classicText)` returns classic for `classic`, millennial when present for `millennial`, and classic fallback when millennial text is absent.
   - [x] Dev smoke `Game.__DEV.smokeArgCanonMillennialContractOnce()` returns the required contract keys and logs PASS/FAIL.
+  - [x] Runtime exposure fallback now installs `Game.__DEV.smokeArgCanonMillennialContractOnce()` from the loaded `data.js` path if `dev/dev-checks.js` did not expose it.
   - [ ] iPhone Safari runtime smoke is still required before runtime PASS.
-- Notes: READY_FOR_RUNTIME_SMOKE only. Checked `Console.txt` first: no existing STEP4 ARG_CANON millennial diagnostics were present; only unrelated historical `ECON_SOC_STEP4_SMOKE_V1_LOADED` appeared. No runtime PASS claimed.
-- Result: Local static checks PASS and local VM smoke PASS with `ok:true`, `canonIdCountBefore:692`, `canonIdCountAfter:692`, `missingIds:[]`, `duplicateIds:[]`, `logicChanged:false`, `styleSwitchWorks:true`, `fallbackWorks:true`. READY_FOR_RUNTIME_SMOKE; run `Game.__DEV.smokeArgCanonMillennialContractOnce()` on iPhone Safari after cache refresh.
+- Notes: READY_FOR_RUNTIME_SMOKE only. Checked `Console.txt` first: the repo copy did not contain the exact reported `Game.__DEV.smokeArgCanonMillennialContractOnce is not a function` line, and it also did not contain the STEP4 install marker; this is logged as the pre-fix runtime exposure FAIL condition from the user report. Source PASS: the helper existed in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`. Fix PASS: the helper is now wired through both deployed `data.js` copies as a load-path fallback, and both index files now cache-bust `data.js` for the Safari load path. Commit hash: recorded in the final one-line READY report.
+- Result: Local static checks PASS and local VM smoke PASS with `ok:true`, `canonIdCountBefore:692`, `canonIdCountAfter:692`, `missingIds:[]`, `duplicateIds:[]`, `logicChanged:false`, `styleSwitchWorks:true`, `fallbackWorks:true`. READY_FOR_RUNTIME_SMOKE; run `Game.__DEV.smokeArgCanonMillennialContractOnce()` on iPhone Safari after cache refresh. Runtime PASS is not claimed.
 - Report:
   - Status: REVIEW
-  - Facts: Added millennial text-layer storage, style selector, resolver, fallback seeding, and contract smoke only. Canon behavior remains classic by default; canon/index generation, types, tones, weights, matching logic, battle outcomes, and search/index generation logic were not changed.
-  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
-  - How to verify: Run `node --check AsyncScene/Web/data.js`; run `node --check docs/data.js`; run `node --check AsyncScene/Web/dev/dev-checks.js`; run `node --check docs/dev/dev-checks.js`; in iPhone Safari run `Game.__DEV.smokeArgCanonMillennialContractOnce()`.
+  - Facts: Added only helper exposure / namespace wiring in `data.js` and cache-busted the `data.js` script tag for the Safari-loaded path. Canon behavior remains classic by default; ARG_CANON_ID, canon/index generation, canon structure, types, tones, weights, matching logic, battle outcomes, economy, and argument texts were not changed.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `node --check AsyncScene/Web/data.js`; run `node --check docs/data.js`; in iPhone Safari run `Game.__DEV.smokeArgCanonMillennialContractOnce()`.
   - Next: QA for required iPhone Safari runtime smoke.
   - Next Prompt: Run STEP4-[1] ARG CANON MILLENNIAL runtime smoke on iPhone Safari with `Game.__DEV.smokeArgCanonMillennialContractOnce()` and report honest PASS/FAIL with returned JSON.
 
