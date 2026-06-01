@@ -4370,3 +4370,12 @@ Error: Download failure, code=1
 - Static evidence: PASS `node --check` for changed Web/docs JS files; PASS `python3 tools/validate-step3-terminology-table.py` for docs and Web artifacts; PASS `python3 tools/validate-step3-terminology-where-used.py`; PASS local static Rematch forbidden-synonym scan.
 - Browser automation warning: Playwright Chromium is missing, so local browser smoke failed at launch and is not runtime PASS.
 - Safari command for QA: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
+
+## 2026-06-01 — Step 3 [7.6] Rematch smoke scope follow-up
+- Status: READY_FOR_RUNTIME_SMOKE. Static scoped validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Audited the Safari smoke failure for `forbidden_synonyms_remaining` in Rematch. The `Points`/`P` matches came from broad non-user-visible source windows rather than audited Rematch runtime strings.
+- The Rematch smoke now scans only comment-free string literals on audited Rematch runtime-facing lines for the button, Rematch toasts, and NPC Rematch chat messages, preserving detection for true Rematch UI copy failures.
+- The true Rematch-facing `not_found` toast was changed from `Баттл не найден.` to canonical `Недоступно.`.
+- No gameplay, economy, rematch mechanics, battle invite behavior, NPC battle loops, or unrelated battle UI were changed.
+- Evidence: PASS `node --check docs/dev/dev-checks.js AsyncScene/Web/dev/dev-checks.js docs/ui/ui-battles.js AsyncScene/Web/ui/ui-battles.js docs/ui/ui-loops.js AsyncScene/Web/ui/ui-loops.js`; PASS local static Rematch scoped forbidden-synonym scan returned `ok:true`, `failures:[]`, `forbiddenRemaining:[]`; WARNING Playwright browser smoke could not run because Chromium is missing locally.
+- Safari command for QA: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
