@@ -126,8 +126,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       tie_end_winner: "Победил {name} - {aVotes}:{bVotes}.",
       tie_end_draw: "Поровну по голосам - {aVotes}:{bVotes}.",
       tie_chat_start: "Толпа решает. Вписывайся - кликни на имя в событиях.",
-      tie_chat_end_winner: "Толпа решила. Победил {name} - {aVotes}:{bVotes}.",
-      tie_chat_end_draw: "Толпа решила. Поровну - {aVotes}:{bVotes}.",
+      tie_chat_end_winner: "Толпа решает. Победил {name} - {aVotes}:{bVotes}.",
+      tie_chat_end_draw: "Толпа решает. Поровну - {aVotes}:{bVotes}.",
 
       events_title: "События ({count})",
       events_empty: "Ничего не происходит, сплошная болтовня.",
@@ -187,7 +187,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       battle_draw: "DRAW",
       battle_not_enough_points: "0 PTS",
 
-      escape_button_label: "СВАЛИТЬ -{X}",
+      escape_button_label: "Свалить -{X} 💰",
       teach_sent_dm: "TEACH {student} {arg} -{cost}",
       teach_sent_chat: "TEACH {teacher}->{student}",
       invite_open_hint: "ВВЕДИ НИК",
@@ -2430,7 +2430,7 @@ K YN A9: Нет.
 
     // Баттлы - экономика
     pointsLow: "Не прокает: мало 💰 на баттл.",
-    needEscapePointsInline: "Не прокает, чтобы свалить.",
+    needEscapePointsInline: "Не хватает 💰, чтобы Свалить.",
 
     // Анлоки аргументов (для себя и для остальных)
     unlockOrange: "Твои аргументы теперь сильные.",

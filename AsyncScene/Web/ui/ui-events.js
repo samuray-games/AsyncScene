@@ -324,7 +324,7 @@ window.Game = window.Game || {};
     // Task 1: Use attempt formulation for title if it's an escape event
     if (e && e.voteLabels && e.escapeMode) {
       const isOff = e.escapeMode === "off";
-      const action = isOff ? "послать" : "свалить от";
+      const action = isOff ? "Отвали" : "Свалить";
       safeTitle = `${aName} пытается ${action} ${bName}`;
     }
 
@@ -464,12 +464,12 @@ window.Game = window.Game || {};
       : ne.b.name;
     if (mode === "off") {
       return (winner === "a")
-        ? `${aName} послал ${bName}`
-        : `${aName} не послал ${bName}`;
+        ? `${aName}: Отвали ${bName}`
+        : `${aName}: Отвали не прошел ${bName}`;
     }
     return (winner === "a")
-      ? `${aName} свалил от ${bName}`
-      : `${aName} не свалил от ${bName}`;
+      ? `${aName}: Свалить ${bName}`
+      : `${aName}: Свалить не удалось ${bName}`;
   }
 
   function finalizeEventIfExpired(rawEvent, ne) {
@@ -777,8 +777,8 @@ window.Game = window.Game || {};
         hint.className = "pill";
         if (ne.voteLabels && ne.escapeMode) {
           hint.textContent = (ne.escapeMode === "off")
-            ? `Послать ${bName}?`
-            : `Дашь ${aName} смыться?`;
+            ? `Отвали ${bName}?`
+            : `Свалить ${aName}?`;
         } else {
           hint.textContent = t("tie_click_name_hint");
         }
@@ -976,7 +976,7 @@ window.Game = window.Game || {};
         const winnerSide = (e && e.crowd && e.crowd.winner) ? e.crowd.winner : computeCrowdWinner(e).winner;
 
         // Build compact final info block per spec:
-        // Line 1: "<A> послал/не послал <B>" (use escapeResultLine for escape events when available)
+        // Line 1: use escapeResultLine for escape or ignore events when available
         // Line 2: "Твой выбор: X" (only if player voted)
         // Line 3: "Итог: A:B"
         // Line 4: single summary line with deltas: "+{rep}⭐ {pointsSign}{points}💰"

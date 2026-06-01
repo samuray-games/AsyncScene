@@ -65,6 +65,29 @@
 
 ## Inbox
 
+### [T-20260601-011] AsyncScene Step 3 [7.5] Escape/Ignore terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `docs/data.js` `AsyncScene/Web/data.js` `docs/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-core.js` `docs/events.js` `AsyncScene/Web/events.js` `docs/ui/ui-events.js` `AsyncScene/Web/ui/ui-events.js` `AsyncScene/Web/ui-old.js` `docs/data/style-lex.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to Escape/Ignore runtime-facing UI strings without changing gameplay, economy, escape mechanics, ignore mechanics, crowd outcomes, rewards, penalties, timers, eligibility rules, or data models.
+- Acceptance:
+  - [x] Escape/Ignore runtime-facing UI strings use canonical terms `Свалить`, `Отвали`, `Толпа решает`, and `💰` for covered where-used rows.
+  - [x] Forbidden Escape/Ignore variants (`СВАЛИТЬ`, `свалить от`, `смыться`, `Отвалить`, `отвалил`, `Отвалил`, and matching crowd-decision variants in this layer) are removed from scoped runtime-facing strings.
+  - [x] `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_V1` and returns `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Previous Step 3 smoke helpers [1]-[6] and Step 3 [7.1]-[7.4] are checked for availability by the new smoke.
+- Notes: READY_FOR_RUNTIME_SMOKE only. Runtime PASS must not be claimed until iPhone Safari runs `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` and returns `ok:true` with `forbiddenRemaining:[]`.
+- Result: Implemented Escape/Ignore UI terminology layer and smoke. Local static checks PASS; Playwright runtime smoke could not run because Chromium is not installed in `/root/.cache/ms-playwright`.
+- Report (обязательный формат):
+  - Status: REVIEW
+  - Facts: READY_FOR_RUNTIME_SMOKE; no iPhone Safari runtime PASS claimed. PASS criteria: iPhone Safari command returns `ok:true`, build marker `STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_V1`, `forbiddenRemaining:[]`, expected canonical terms present, previous helpers available. FAIL criteria: any forbidden scoped synonym remains, any required canonical term is missing, where-used rows for Escape/Ignore are not covered, or a previous Step 3 helper is missing.
+  - Changed: `docs/data.js` `AsyncScene/Web/data.js` `docs/conflict/conflict-core.js` `AsyncScene/Web/conflict/conflict-core.js` `docs/events.js` `AsyncScene/Web/events.js` `docs/ui/ui-events.js` `AsyncScene/Web/ui/ui-events.js` `AsyncScene/Web/ui-old.js` `docs/data/style-lex.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js`
+  - How to verify: Run static syntax checks, then on iPhone Safari run `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()`.
+  - Next: QA to execute iPhone Safari runtime smoke.
+  - Next Prompt: Execute `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` on iPhone Safari and report honest PASS/FAIL with returned JSON.
+
 ### [T-20260601-010] AsyncScene Step 3 [7.4] Reports/Cop terminology UI layer
 - Status: REVIEW
 - Priority: P0
