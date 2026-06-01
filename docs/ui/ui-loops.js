@@ -853,7 +853,7 @@ window.Game = window.Game || {};
                   // Optional: add NPC chat line about rematch decision
                   try {
                     if (responder && responder.name && UI && typeof UI.pushChat === "function") {
-                      const line = accept ? "давай ещё раз" : "не, хватит";
+                      const line = accept ? "Реванш принят." : "Реванш отклонён.";
                       UI.pushChat({ name: responder.name, text: line, system: false });
                     }
                   } catch (_) {}
@@ -927,7 +927,7 @@ window.Game = window.Game || {};
                   // Optional: add NPC chat line about requesting rematch
                   try {
                     if (npc && npc.name && UI && typeof UI.pushChat === "function") {
-                      const lines = ["ещё раз?", "давай по новой", "не сдаюсь", "реванш"];
+                      const lines = ["Реванш?"];
                       const line = lines[Math.floor(Math.random() * lines.length)];
                       UI.pushChat({ name: npc.name, text: line, system: false });
                     }
