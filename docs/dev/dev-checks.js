@@ -1885,18 +1885,33 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ? new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9])${escaped}($|[^A-Za-zА-Яа-яЁё0-9])`, "i")
         : new RegExp(escaped, /[A-Za-zА-Яа-яЁё]/.test(synonym) ? "i" : "");
     };
-    const rematchRuntimeLineAllowlist = new Map([
-      ["docs/ui/ui-battles.js", new Set([964, 1072, 1076, 1080, 1084])],
-      ["docs/ui/ui-loops.js", new Set([856, 857, 930])]
+    const scopeMode = "rematch_where_used_only_v2";
+    const rematchRuntimeVisibleStrings = new Set([
+      "Реванш",
+      "Не хватает 💰.",
+      "Реванш уже запрошен.",
+      "Недоступно. Баттл не завершён.",
+      "Недоступно.",
+      "Реванш принят.",
+      "Реванш отклонён.",
+      "Реванш?"
     ]);
-    const isRematchRuntimeString = (item) => {
-      const text = String((item && item.value) || "");
-      const lines = rematchRuntimeLineAllowlist.get(item && item.file);
-      if (!lines || !lines.has(item.line)) return false;
-      return /Реванш|Не хватает 💰|Недоступно\.|Баттл|баттл/.test(text);
+    const normalizeSourceFile = (file) => {
+      const text = String(file || "").replace(/\\/g, "/");
+      if (text.endsWith("ui/ui-battles.js")) return "docs/ui/ui-battles.js";
+      if (text.endsWith("ui/ui-loops.js")) return "docs/ui/ui-loops.js";
+      return text;
     };
+    const lineFromNotes = (notes) => {
+      const match = String(notes || "").match(/(?:^|[;\s])line=(\d+)/);
+      return match ? Number(match[1]) : null;
+    };
+    const rowStringCandidates = (row) => [
+      row && row.CanonicalTermRU,
+      row && row.ReplacementTarget
+    ].map(value => String(value || "").trim()).filter(Boolean);
     devStore.smokeStep3TerminologyRematchLayerOnce = async (opts = {}) => {
-      const result = { ok: false, failures: [], checkedCount: 0, replacedCount: 0, forbiddenRemaining: [], layerScope, buildMarker: BUILD_MARKER, coveredWhereUsedRows: [], coveredTaxonomyRows: [], loadedRuntimeUrls: [], previousSmokeHelpers: {} };
+      const result = { ok: false, failures: [], checkedCount: 0, scannedRows: 0, replacedCount: 0, forbiddenRemaining: [], layerScope, scopeMode, buildMarker: BUILD_MARKER, coveredWhereUsedRows: [], coveredTaxonomyRows: [], loadedRuntimeUrls: [], previousSmokeHelpers: {} };
       const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
       const tableFetch = await fetchFirstText(defaultUrls("STEP3_TERMINOLOGY_TABLE_V1.csv"));
       const whereFetch = await fetchFirstText(defaultUrls("STEP3_TERMINOLOGY_WHERE_USED_V1.csv"));
@@ -1917,28 +1932,56 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const table = parseCsv(tableFetch.text);
       const whereUsed = parseCsv(whereFetch.text);
       const taxonomy = parseCsv(taxonomyFetch.text);
-      const layerRows = whereUsed.records.filter(row => whereUsedSourceTermIds.has(String(row.SourceTermId || "")) || (String(row.ContextOrScreen || "").includes(layerScope) && String(row.SourceFile || "").includes("ui-battles.js")));
-      const taxonomyRows = taxonomy.records.filter(row => taxonomySourceTermIds.has(String(row.termId || "")) || (String(row.screenOrFeature || "").includes(layerScope) && /ui-battles\.js|ui-loops\.js/.test(String(row.sourceFile || ""))));
+      const layerRows = whereUsed.records.filter(row => whereUsedSourceTermIds.has(String(row.SourceTermId || "")));
+      const taxonomyRows = taxonomy.records.filter(row => {
+        if (!taxonomySourceTermIds.has(String(row.termId || ""))) return false;
+        if (!/ui-battles\.js|ui-loops\.js/.test(String(row.sourceFile || ""))) return false;
+        const feature = String(row.screenOrFeature || "");
+        const text = String(row.currentText || "");
+        return feature.includes(layerScope) || text === "Реванш";
+      });
       result.checkedCount = layerRows.length + taxonomyRows.length;
+      result.scannedRows = result.checkedCount;
       result.coveredWhereUsedRows = layerRows.map(row => String(row.SourceTermId || "")).filter(Boolean);
       result.coveredTaxonomyRows = taxonomyRows.map(row => String(row.termId || "")).filter(Boolean);
-      if (layerRows.length < 3) fail("layer_where_used_rows_missing", { expectedAtLeast: 3, actual: layerRows.length });
+      if (layerRows.length < 6) fail("layer_where_used_rows_missing", { expectedAtLeast: 6, actual: layerRows.length });
       if (taxonomyRows.length < 10) fail("layer_taxonomy_rows_missing", { expectedAtLeast: 10, actual: taxonomyRows.length });
       const conceptsInLayer = new Set(layerRows.map(row => String(row.ConceptId || "").trim()).filter(Boolean));
       ["CONCEPT_POINTS_CURRENCY", "CONCEPT_INSUFFICIENT_FUNDS", "CONCEPT_BATTLE_ACTION"].forEach(conceptId => { if (!conceptsInLayer.has(conceptId)) fail("layer_concept_missing_from_where_used", conceptId); });
       const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
       conceptsInLayer.forEach(conceptId => { if (!tableRowsByConcept.has(conceptId)) fail("layer_concept_missing_from_table", conceptId); });
-      const runtimeStrings = runtime.flatMap(item => item.strings.map(entry => ({ file: item.logical, value: entry.value, line: entry.line }))).filter(item => isRematchRuntimeString(item));
-      const runtimeText = runtimeStrings.map(item => item.value).join("\n");
+      const runtimeLineKeys = new Set();
+      layerRows.concat(taxonomyRows).forEach(row => {
+        const file = normalizeSourceFile(row.SourceFile || row.sourceFile);
+        const line = lineFromNotes(row.Notes || row.notes);
+        if (file && line) runtimeLineKeys.add(`${file}:${line}`);
+      });
+      const runtimeStrings = [];
+      const addRuntimeString = (item) => {
+        if (!item || !item.value) return;
+        if (!rematchRuntimeVisibleStrings.has(String(item.value)) && !runtimeLineKeys.has(`${item.file}:${item.line}`)) return;
+        runtimeStrings.push(item);
+      };
+      runtime.forEach(source => source.strings.forEach(entry => addRuntimeString({ file: source.logical, value: entry.value, line: entry.line })));
+      layerRows.concat(taxonomyRows).forEach(row => rowStringCandidates(row).forEach(value => addRuntimeString({ file: normalizeSourceFile(row.SourceFile || row.sourceFile) || "terminology", value, line: lineFromNotes(row.Notes || row.notes) || 0 })));
+      const runtimeSeen = new Set();
+      const scopedRuntimeStrings = runtimeStrings.filter(item => {
+        const key = `${item.file}|${item.line}|${item.value}`;
+        if (runtimeSeen.has(key)) return false;
+        runtimeSeen.add(key);
+        return true;
+      });
+      const runtimeText = scopedRuntimeStrings.map(item => item.value).join("\n");
       expectedCanonicalTerms.forEach(term => { if (!runtimeText.includes(term)) fail("canonical_term_missing_from_layer_runtime_strings", term); });
       if (!/[Бб]аттл/.test(runtimeText)) fail("canonical_term_missing_from_layer_runtime_strings", "баттл");
+      rematchRuntimeVisibleStrings.forEach(term => { if (!runtimeText.includes(term)) fail("runtime_rematch_string_missing_from_scoped_scan", term); });
       const forbiddenChecks = [];
       conceptsInLayer.forEach(conceptId => {
         const row = tableRowsByConcept.get(conceptId);
         splitPipe(row && row.ForbiddenVariants).forEach(synonym => { if (synonym && synonym !== "не хватает") forbiddenChecks.push({ conceptId, synonym, pattern: synonymPattern(synonym) }); });
       });
       ["Пока нельзя: баттл ещё не завершён.", "баттл не найден.", "давай ещё раз", "ещё раз?", "давай по новой", "не сдаюсь", "не, хватит", "повтор", "по новой", "еще раз", "ещё раз"].forEach(synonym => forbiddenChecks.push({ conceptId: "NO_NEW_REMATCH_VARIANT", synonym, pattern: synonymPattern(synonym) }));
-      runtimeStrings.forEach(item => forbiddenChecks.forEach(check => {
+      scopedRuntimeStrings.forEach(item => forbiddenChecks.forEach(check => {
         const visibleText = String(item.value || "").replace(/\$\{[^}]*\}/g, "");
         if (check.pattern.test(visibleText)) result.forbiddenRemaining.push({ conceptId: check.conceptId, synonym: check.synonym, file: item.file, text: item.value });
       }));

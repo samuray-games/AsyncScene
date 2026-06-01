@@ -4379,3 +4379,10 @@ Error: Download failure, code=1
 - No gameplay, economy, rematch mechanics, battle invite behavior, NPC battle loops, or unrelated battle UI were changed.
 - Evidence: PASS `node --check docs/dev/dev-checks.js AsyncScene/Web/dev/dev-checks.js docs/ui/ui-battles.js AsyncScene/Web/ui/ui-battles.js docs/ui/ui-loops.js AsyncScene/Web/ui/ui-loops.js`; PASS local static Rematch scoped forbidden-synonym scan returned `ok:true`, `failures:[]`, `forbiddenRemaining:[]`; WARNING Playwright browser smoke could not run because Chromium is missing locally.
 - Safari command for QA: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
+
+## 2026-06-01 — Step 3 [7.6] Rematch smoke scope v2
+- Status: READY_FOR_RUNTIME_SMOKE. Static scoped validation PASS and local VM smoke PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Fixed both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` so `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()` reports `scopeMode:"rematch_where_used_only_v2"` and `scannedRows`.
+- The runtime smoke now scans only explicit Rematch where-used rows and exact runtime-facing Rematch strings, avoiding broad file windows, comments, generic battle invite/NPC loop code, and non-user-visible identifiers.
+- Evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS static scoped Rematch scan with `forbiddenRemaining:[]`; PASS local VM smoke for both copies with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`, and `scannedRows:16`.
+- Safari QA command: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
