@@ -133,8 +133,145 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
   };
+  const installStep3TerminologyCanonSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_TERMINOLOGY_CANON_V1";
+    const canonColumns = ["conceptId", "category", "canonicalTerm", "forbiddenSynonyms", "sourceTermIds", "screens", "notes"];
+    const inventoryColumns = ["TERM_ID", "category", "currentText", "screenOrFeature", "sourceFile", "sourceKeyOrFunction", "triggerCondition", "notes"];
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text.charAt(i);
+        const next = text.charAt(i + 1);
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') inQuotes = false;
+          else cell += ch;
+        } else if (ch === '"') inQuotes = true;
+        else if (ch === ",") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      }
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      if (!rows.length) return { header: [], records: [] };
+      const header = rows[0].map(h => String(h || "").trim());
+      const records = rows.slice(1).filter(r => r.some(v => String(v || "").trim())).map(r => {
+        const obj = {};
+        header.forEach((h, idx) => { obj[h] = r[idx] == null ? "" : r[idx]; });
+        return obj;
+      });
+      return { header, records };
+    };
+    const splitPipe = (value) => String(value || "").split("|").map(part => part.trim()).filter(Boolean);
+    const defaultUrls = (fileName) => {
+      const urls = [`terminology/${fileName}`];
+      try {
+        if (typeof location !== "undefined" && location && location.pathname) {
+          const base = location.pathname.replace(/[^/]*$/, "");
+          urls.push(`${base}terminology/${fileName}`);
+        }
+      } catch (_) {}
+      urls.push(`/AsyncScene/terminology/${fileName}`, `docs/terminology/${fileName}`, `/docs/terminology/${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstText = async (urls) => {
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res && res.ok) return { text: await res.text(), url };
+        } catch (_) {}
+      }
+      return { text: null, url: null };
+    };
+    devStore.smokeStep3TerminologyCanonOnce = async (opts = {}) => {
+      const result = {
+        ok: false,
+        failures: [],
+        inventoryRowCount: 0,
+        conceptCount: 0,
+        duplicateConceptIds: [],
+        emptyCanonicalConceptIds: [],
+        missingSourceTermIds: [],
+        synonymConflictCount: 0,
+        mappedForbiddenSynonymCount: 0,
+        buildMarker: BUILD_MARKER,
+      };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const inventoryUrls = Array.isArray(opts.inventoryUrls) && opts.inventoryUrls.length ? opts.inventoryUrls : defaultUrls("STEP3_TERMINOLOGY_INVENTORY.csv");
+      const canonUrls = Array.isArray(opts.canonUrls) && opts.canonUrls.length ? opts.canonUrls : defaultUrls("STEP3_TERMINOLOGY_CANON.csv");
+      const inventoryFetch = await fetchFirstText(inventoryUrls);
+      const canonFetch = await fetchFirstText(canonUrls);
+      if (!inventoryFetch.text) fail("inventory_file_missing", { urls: inventoryUrls });
+      if (!canonFetch.text) fail("canon_file_missing", { urls: canonUrls });
+      if (!inventoryFetch.text || !canonFetch.text) {
+        console.log("STEP3_TERMINOLOGY_CANON_SMOKE", "FAIL", JSON.stringify(result));
+        return result;
+      }
+      const inventory = parseCsv(inventoryFetch.text);
+      const canon = parseCsv(canonFetch.text);
+      result.inventoryRowCount = inventory.records.length;
+      result.conceptCount = canon.records.length;
+      inventoryColumns.forEach(col => { if (!inventory.header.includes(col)) fail("inventory_missing_required_column", col); });
+      canonColumns.forEach(col => { if (!canon.header.includes(col)) fail("canon_missing_required_column", col); });
+      const inventoryIds = new Set(inventory.records.map(row => String(row.TERM_ID || "").trim()).filter(Boolean));
+      const conceptCounts = new Map();
+      const conceptCanons = new Map();
+      const synonymToCanon = new Map();
+      const duplicateConcepts = new Set();
+      const emptyCanons = new Set();
+      canon.records.forEach((row, idx) => {
+        const rowNum = idx + 2;
+        const conceptId = String(row.conceptId || "").trim();
+        const canonicalTerm = String(row.canonicalTerm || "").trim();
+        if (!conceptId) { fail("empty_conceptId", { rowNum }); return; }
+        conceptCounts.set(conceptId, (conceptCounts.get(conceptId) || 0) + 1);
+        if (!canonicalTerm) { emptyCanons.add(conceptId); fail("empty_canonicalTerm", { conceptId, rowNum }); }
+        if (!conceptCanons.has(conceptId)) conceptCanons.set(conceptId, new Set());
+        if (canonicalTerm) conceptCanons.get(conceptId).add(canonicalTerm);
+        const synonyms = splitPipe(row.forbiddenSynonyms);
+        if (!synonyms.length) fail("empty_forbiddenSynonyms", { conceptId, rowNum });
+        synonyms.forEach(synonym => {
+          if (synonym === canonicalTerm) fail("forbidden_synonym_equals_canonical", { conceptId, synonym });
+          const key = synonym.toLocaleLowerCase();
+          const previous = synonymToCanon.get(key);
+          if (previous && previous !== canonicalTerm) {
+            result.synonymConflictCount += 1;
+            fail("forbidden_synonym_maps_to_multiple_canon_terms", { conceptId, synonym, previousCanonicalTerm: previous, canonicalTerm });
+          }
+          synonymToCanon.set(key, canonicalTerm);
+        });
+        const sourceTermIds = splitPipe(row.sourceTermIds);
+        if (sourceTermIds.length < 2) fail("duplicate_group_requires_multiple_sourceTermIds", { conceptId, count: sourceTermIds.length });
+        sourceTermIds.forEach(termId => {
+          if (!inventoryIds.has(termId)) {
+            result.missingSourceTermIds.push({ conceptId, termId });
+            fail("source_TERM_ID_missing_from_inventory", { conceptId, termId });
+          }
+        });
+        if (!String(row.screens || "").trim()) fail("empty_screens", { conceptId });
+        if (!String(row.notes || "").includes(BUILD_MARKER)) fail("missing_build_marker_in_notes", { conceptId });
+      });
+      conceptCounts.forEach((count, conceptId) => {
+        if (count > 1) { duplicateConcepts.add(conceptId); fail("duplicate_conceptId", { conceptId, count }); }
+      });
+      conceptCanons.forEach((terms, conceptId) => {
+        if (terms.size > 1) fail("concept_has_multiple_canonicalTerms", { conceptId, canonicalTerms: Array.from(terms).sort() });
+      });
+      result.duplicateConceptIds = Array.from(duplicateConcepts).sort();
+      result.emptyCanonicalConceptIds = Array.from(emptyCanons).sort();
+      result.mappedForbiddenSynonymCount = synonymToCanon.size;
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_TERMINOLOGY_CANON_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
   installStep3TerminologyInventorySmoke(G.__DEV);
+  installStep3TerminologyCanonSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
+  console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
@@ -23153,7 +23290,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
+  installStep3TerminologyCanonSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
+  console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
 
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
