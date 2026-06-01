@@ -4278,3 +4278,16 @@ Error: Download failure, code=1
 - Resolved drift surfaces: `$1там, где {PLACE}`, `Лимит уважения на сегодня исчерпан.`, `Принял. Сейчас разберёмся.`, `Сейчас не получилось. Попробуй позже.`, `вброс`, `обучаю`, `ошибка`, `ты должен`, and `урок`.
 - Only allowlisted drift: `Уйти за 1💰`, documented per row with `taxonomy-current-text-drift-allowed; reason=same_surface_text_is_both_escape_action_label_and_currency_cost_evidence` because the same surface text is both an escape action label and currency-cost evidence in the taxonomy source.
 - QA command remains: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
+
+
+## 2026-06-01 — Step 3 [5] unified terminology table V1
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Added unified source-of-truth terminology table `STEP3_TERMINOLOGY_TABLE_V1.csv` under both `docs/terminology/` and `AsyncScene/Web/terminology/`.
+- The table is governance-only and does not change gameplay, runtime behavior, or UI text in code.
+- Table coverage: 12 canon concepts appear exactly once; required columns are `Key`, `Category`, `CanonicalTermRU`, `ContextOrScreen`, `TriggerCondition`, `ForbiddenVariants`, and `Notes`; recommended columns `ConceptId`, `SourceTermIds`, `TaxonomyCategory`, and `StyleGuideRefs` are present.
+- `CanonicalTermRU`, `ForbiddenVariants`, and `SourceTermIds` are sourced from `STEP3_TERMINOLOGY_CANON.csv`; context and trigger metadata are derived from the frozen inventory and taxonomy artifacts.
+- Added generator and validator tooling: `tools/generate-step3-terminology-table.py` and `tools/validate-step3-terminology-table.py`.
+- Added mirrored dev smoke `Game.__DEV.smokeStep3TerminologyTableOnce()` with build marker `STEP3_TERMINOLOGY_TABLE_V1`; it checks required/recommended columns, exactly-once concept coverage, non-empty canonical/category/context/trigger fields, canon references, source term IDs, and forbidden synonym linkage.
+- Static evidence: PASS `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS same validator for `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
+- Browser smoke evidence: WARNING `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyTableOnce` was blocked by missing Playwright Chromium in the environment.
+- Safari command for QA: `Game.__DEV.smokeStep3TerminologyTableOnce()`.
