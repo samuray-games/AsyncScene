@@ -1882,6 +1882,74 @@ K YN A9: Нет.
     return Data.getArgCanonGroup(s, type);
   };
 
+  // STEP4 ARG CANON MILLENNIAL CONTRACT V1
+  // Canon remains classic by default; the millennial layer is a separate text store keyed by ARG_CANON_ID.
+  Data.ARG_CANON_TEXT_STYLE = "classic";
+  Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID = Object.create(null);
+
+  Data.normalizeArgCanonTextStyle = (style) => {
+    return String(style || "").toLowerCase() === "millennial" ? "millennial" : "classic";
+  };
+
+  Data.setArgCanonTextStyle = (style) => {
+    Data.ARG_CANON_TEXT_STYLE = Data.normalizeArgCanonTextStyle(style);
+    return Data.ARG_CANON_TEXT_STYLE;
+  };
+
+  Data.getArgCanonTextStyle = () => Data.normalizeArgCanonTextStyle(Data.ARG_CANON_TEXT_STYLE);
+
+  Data.argCanonTextId = (sub, type, qa, idx) => {
+    const s = String(sub || "").toUpperCase();
+    const t = String(type || "").toUpperCase();
+    const side = String(qa || "").toUpperCase() === "A" ? "A" : "Q";
+    const n = Math.max(1, (Number(idx) || 0) + 1);
+    return s && t ? `${s}|${t}|${side}${n}` : "";
+  };
+
+  Data.resolveArgCanonText = (canonId, classicText) => {
+    const classic = String(classicText || "");
+    if (Data.getArgCanonTextStyle() !== "millennial") return classic;
+    const id = String(canonId || "").trim();
+    const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID;
+    if (!id || !store || typeof store !== "object") return classic;
+    if (!Object.prototype.hasOwnProperty.call(store, id)) return classic;
+    const next = store[id];
+    return (typeof next === "string" && next.trim()) ? next : classic;
+  };
+
+  Data.listArgCanonTextIds = () => {
+    const out = [];
+    const index = Data.ARG_CANON_INDEX || {};
+    Object.keys(index).sort().forEach((key) => {
+      const rec = index[key];
+      if (!rec || !Array.isArray(rec.items)) return;
+      rec.items.forEach((it, idx) => {
+        if (!it) return;
+        if (it.q) out.push(Data.argCanonTextId(rec.sub, rec.type, "Q", idx));
+        if (it.a) out.push(Data.argCanonTextId(rec.sub, rec.type, "A", idx));
+      });
+    });
+    return out.filter(Boolean);
+  };
+
+  Data.seedArgCanonMillennialTextFallback = () => {
+    const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || (Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID = Object.create(null));
+    const index = Data.ARG_CANON_INDEX || {};
+    let count = 0;
+    Object.keys(index).forEach((key) => {
+      const rec = index[key];
+      if (!rec || !Array.isArray(rec.items)) return;
+      rec.items.forEach((it, idx) => {
+        if (!it) return;
+        const qId = Data.argCanonTextId(rec.sub, rec.type, "Q", idx);
+        const aId = Data.argCanonTextId(rec.sub, rec.type, "A", idx);
+        if (qId && it.q && !Object.prototype.hasOwnProperty.call(store, qId)) { store[qId] = String(it.q); count++; }
+        if (aId && it.a && !Object.prototype.hasOwnProperty.call(store, aId)) { store[aId] = String(it.a); count++; }
+      });
+    });
+    return count;
+  };
+
   Data.buildArgCanon();
 
   // Post-process canonical text and the built index to enforce place phrasing and YN "здесь" ban.
@@ -1926,6 +1994,8 @@ K YN A9: Нет.
       }
     } catch (_) {}
   })();
+
+  Data.seedArgCanonMillennialTextFallback();
 
   // Argument pools (fallback, neutral base)
   Data.ARG_POOLS = Data.ARG_BASE_O;

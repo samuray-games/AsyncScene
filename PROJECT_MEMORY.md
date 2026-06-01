@@ -87,6 +87,16 @@
 - FAIL criteria for runtime: any forbidden P2P synonym remains, any required canonical P2P term is missing, where-used rows for P2P are not covered, any previous Step 3 helper [1]-[6] or [7.1]-[7.8] is missing, or the smoke returns `ok:false`.
 - Scope guard: no gameplay, economy, P2P transfer logic, rate limits, eligibility rules, caps, balances, moneyLog, notifications, data models, Events/Crowd, Battles, generic DM UI, Reports, Escape/Ignore, Rematch, Training, or Respect behavior was changed.
 
+## 2026-06-01 — STEP4-[1] ARG CANON MILLENNIAL — boundaries & contract
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Console pre-check: `Console.txt` had no existing STEP4 ARG_CANON millennial diagnostics/errors; only unrelated historical `ECON_SOC_STEP4_SMOKE_V1_LOADED` appeared.
+- Implemented minimal millennial text-layer infrastructure only: `ARG_CANON_MILLENNIAL_TEXT_BY_ID`, `ARG_CANON_TEXT_STYLE`, `setArgCanonTextStyle()`, `getArgCanonTextStyle()`, `resolveArgCanonText(canonId, classicText)`, text-ID listing, and temporary fallback seeding from existing classic canon text.
+- Added dev smoke `Game.__DEV.smokeArgCanonMillennialContractOnce()` in both app and docs dev checks. Return contract: `ok`, `canonIdCountBefore`, `canonIdCountAfter`, `missingIds`, `duplicateIds`, `logicChanged`, `styleSwitchWorks`, `fallbackWorks`; it logs PASS/FAIL and does not claim runtime PASS.
+- Scope guard: ARG canon IDs, canon structure, types, tones, weights, matching logic, battle outcomes, and search/index generation logic were not changed. Default behavior remains classic.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke returned `ok:true`, `canonIdCountBefore:692`, `canonIdCountAfter:692`, `missingIds:[]`, `duplicateIds:[]`, `logicChanged:false`, `styleSwitchWorks:true`, `fallbackWorks:true`.
+- Required Safari command: `Game.__DEV.smokeArgCanonMillennialContractOnce()` must return `ok:true`, equal canon counts, empty missing/duplicate IDs, `logicChanged:false`, `styleSwitchWorks:true`, and `fallbackWorks:true` before runtime PASS can be claimed.
+
 ## Current Snapshot
 
 ### Проект
