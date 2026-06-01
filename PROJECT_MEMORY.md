@@ -3,6 +3,16 @@
 Этот файл — **общая “память проекта”**, доступная всем агентам/чатам (локально, Codespaces, Codex web).
 Цель: чтобы контекст **не зависел от конкретного чата** и не “терялся” при переключениях.
 
+## 2026-06-01 — Step 3 [9] Terminology completion gate
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Added final completion gate `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` with build marker `STEP3_TERMINOLOGY_COMPLETION_GATE_V1`. The gate runs Step 3 [1] inventory, [2] canon, [3] style guide, [4] taxonomy, [5] terminology table, [6] where-used map, all [7.1]-[7.10] layer smokes, and [8] regression pack, then verifies no failed layer smoke, no forbidden synonyms, no missing coverage, no duplicate canon concepts, no runtime-facing taxonomy/where-used concept outside the table, and no taxonomy drift outside the approved allowlist.
+- Closed Step 3 substeps for this final gate: [1] inventory, [2] canon, [3] style guide, [4] taxonomy, [5] terminology table, [6] where-used map, [7.1] Events/Crowd, [7.2] Battles, [7.3] DM, [7.4] Reports/Cop, [7.5] Escape/Ignore, [7.6] Rematch, [7.7] Training, [7.8] Respect, [7.9] P2P, [7.10] Global/Common, and [8] regression pack.
+- Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` with `ok:true`, `failedChecks:[]`, `regressionPackResult.ok:true`, and all `layerResults` ok; WARN `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyCompletionGateOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` and require `ok:true`, `failedChecks:[]`, `regressionPackResult.ok:true`, every `layerResults.*.ok:true`, no forbidden synonyms, no missing coverage, and build marker `STEP3_TERMINOLOGY_COMPLETION_GATE_V1`.
+- FAIL criteria for runtime: any screen/scenario shows runtime-facing text outside the terminology table where applicable, any alternative synonym remains, any required Step 3 smoke is missing/failing, any duplicate canon concept remains, any unapproved taxonomy drift remains, any layer smoke fails, or the completion gate returns `ok:false`.
+- Scope guard: no gameplay, economy, mechanics, data models, timers, rewards, caps, RNG, or UI behavior was changed. The only [7.2] adjustment was smoke metadata cleanup so canonical `Недоступно.` is not counted as an obsolete replacement.
+
 ## 2026-06-01 — Step 3 [7.10] Global/Common cooldown terminology fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
