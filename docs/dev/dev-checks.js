@@ -26568,6 +26568,32 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STEP4_ARG_CANON_MILLENNIAL_READABLE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialReadableOnce);
 
 
+  Game.__DEV.smokeArgCanonMillennialRegressionOnce = function smokeArgCanonMillennialRegressionOnce() {
+    const D = Game.Data || {};
+    let result;
+    try {
+      result = (D && typeof D.smokeArgCanonMillennialRegressionOnce === "function")
+        ? D.smokeArgCanonMillennialRegressionOnce()
+        : { ok: false, durationMs: 0, deterministic: true, requiresManualClicks: false, coverageOk: false, forbiddenOk: false, sampleRenderOk: false, noCrashOk: false, failedChecks: ["regression_helper_missing"] };
+    } catch (err) {
+      result = {
+        ok: false,
+        durationMs: 0,
+        deterministic: true,
+        requiresManualClicks: false,
+        coverageOk: false,
+        forbiddenOk: false,
+        sampleRenderOk: false,
+        noCrashOk: false,
+        failedChecks: [err && err.message ? String(err.message) : String(err)]
+      };
+    }
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_REGRESSION_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("STEP4_ARG_CANON_MILLENNIAL_REGRESSION_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialRegressionOnce);
+
+
   Game.__DEV.smokeArgCanonMillennialOnce = function smokeArgCanonMillennialOnce() {
     const D = Game.Data || {};
     let result;
