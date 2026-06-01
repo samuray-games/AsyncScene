@@ -1302,11 +1302,13 @@ window.Game = window.Game || {};
     const topBar = document.getElementById("topBar");
     const chat = document.getElementById("left");
     const handle = document.getElementById("chatResizeHandle");
+    const menu = getMenuBlockEl();
     if (!root || !topBar || !chat || !handle) return;
 
     const MIN_CHAT_HEIGHT = 220;
     const RESERVED_BELOW_CHAT = 150;
     const DEFAULT_CHAT_RATIO = 0.52;
+    const MOBILE_GAP = 10;
     let chatHeight = Number.parseFloat(root.style.getPropertyValue("--mobile-chat-height")) || 0;
     let dragging = false;
     let dragStartY = 0;
@@ -1318,19 +1320,27 @@ window.Game = window.Game || {};
     };
 
     const topbarHeight = () => Math.max(44, Math.ceil(topBar.getBoundingClientRect().height || topBar.offsetHeight || 58));
-    const maxChatHeight = () => Math.max(MIN_CHAT_HEIGHT, visualViewportHeight() - topbarHeight() - RESERVED_BELOW_CHAT);
+    const menuStackHeight = () => {
+      if (!menu || menu.classList.contains("hidden") || !(S.flags && S.flags.menuOpen)) return 0;
+      const h = Math.ceil(menu.getBoundingClientRect().height || menu.offsetHeight || 0);
+      return h > 0 ? h + MOBILE_GAP : 0;
+    };
+    const maxChatHeight = () => Math.max(MIN_CHAT_HEIGHT, visualViewportHeight() - topbarHeight() - menuStackHeight() - RESERVED_BELOW_CHAT);
     const clampChatHeight = (value) => Math.max(MIN_CHAT_HEIGHT, Math.min(maxChatHeight(), Math.round(value)));
 
     const sync = (requestedHeight) => {
       if (!isMobile()) {
         chat.classList.remove("is-resizing");
         root.style.removeProperty("--mobile-topbar-height");
+        root.style.removeProperty("--mobile-menu-stack-height");
         root.style.removeProperty("--mobile-chat-height");
         return;
       }
 
       const topHeight = topbarHeight();
+      const menuHeight = menuStackHeight();
       root.style.setProperty("--mobile-topbar-height", `${topHeight}px`);
+      root.style.setProperty("--mobile-menu-stack-height", `${menuHeight}px`);
       root.style.setProperty("--mobile-chat-min", `${MIN_CHAT_HEIGHT}px`);
       root.style.setProperty("--mobile-chat-max", `${maxChatHeight()}px`);
 
@@ -1384,6 +1394,8 @@ window.Game = window.Game || {};
 
     sync();
   }
+
+  UI.ensureMobilePinnedChatLayout = ensureMobilePinnedChatLayout;
 
   function ensureRightScrollBar(){
     const right = document.getElementById("right");
