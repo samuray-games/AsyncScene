@@ -65,6 +65,28 @@
 
 ## Inbox
 
+### [T-20260601-010] AsyncScene Step 3 [7.4] Reports/Cop terminology UI layer
+- Status: REVIEW
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: UI|Content|Docs|Runtime Smoke
+- Files: `docs/data.js` `AsyncScene/Web/data.js` `docs/npcs.js` `AsyncScene/Web/npcs.js` `docs/state.js` `AsyncScene/Web/state.js` `docs/index.html` `AsyncScene/Web/index.html` `docs/ui/ui-dm.js` `AsyncScene/Web/ui/ui-dm.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js`
+- Goal: Apply `STEP3_TERMINOLOGY_TABLE_V1` + `STEP3_TERMINOLOGY_WHERE_USED_V1` governance only to Reports/Cop UI-facing strings without changing gameplay, economy, report mechanics, cop cooldown logic, cop rewards, DM delivery behavior, NPC behavior, or data models.
+- Acceptance:
+  - [x] Reports/Cop runtime-facing UI strings use canonical report terminology for covered where-used rows, including `Сдать` and `💰`.
+  - [x] Forbidden report/currency variants covered by this layer are removed from visible report buttons, hints, success/fail messages, pending/cooldown labels, cop report DM/system lines, and report reward/penalty texts.
+  - [x] `Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce()` is installed with build marker `STEP3_TERMINOLOGY_REPORTS_COP_LAYER_V1` and returns `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`.
+  - [x] Previous Step 3 smoke helpers [1]-[6] and Step 3 [7.1]-[7.3] are available to the new smoke.
+- Notes: Previous steps were not reopened. Local runtime-style VM smoke is PASS, but iPhone Safari runtime PASS is not claimed.
+- Result: READY_FOR_RUNTIME_SMOKE. Local evidence: `node --check` PASS for touched JS smoke/UI files; local VM smoke PASS with `ok:true`, `checkedCount:28`, `replacedCount:6`, `forbiddenRemaining:[]`, `layerScope:"reports_cop_flow"`; Playwright browser smoke is environment-blocked because Chromium is not installed.
+- Report:
+  - Status: REVIEW / READY_FOR_RUNTIME_SMOKE
+  - Facts: Reports/Cop UI text normalization and smoke helper were implemented for the scoped layer only.
+  - Changed: `docs/data.js` `AsyncScene/Web/data.js` `docs/npcs.js` `AsyncScene/Web/npcs.js` `docs/state.js` `AsyncScene/Web/state.js` `docs/index.html` `AsyncScene/Web/index.html` `docs/ui/ui-dm.js` `AsyncScene/Web/ui/ui-dm.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `AsyncScene/Web/ui-old.js`
+  - How to verify: Run `Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce()` on iPhone Safari and require `ok:true`, `failures:[]`, `checkedCount:28`, `replacedCount:6`, `forbiddenRemaining:[]`, `layerScope:"reports_cop_flow"`, and build marker `STEP3_TERMINOLOGY_REPORTS_COP_LAYER_V1`.
+  - Next: QA should run iPhone Safari runtime smoke; do not claim runtime PASS until that device check is complete.
+
 ### [T-20260601-009] AsyncScene Step 3 [7.3] DM terminology UI layer
 - Status: REVIEW
 - Priority: P0
