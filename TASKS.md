@@ -65,6 +65,29 @@
 
 ## Inbox
 
+### [T-20260601-020] STEP4-[6] ARG CANON MILLENNIAL — Human readability QA smoke
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Content|QA
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js`
+- Goal: Add a deterministic human-readable sampling smoke for millennial ARG canon texts without changing ARG_CANON_ID, canon meaning, gameplay logic, types, tones, weights, matching, battles, economy, UI, or data generation.
+- Acceptance:
+  - [x] `Game.__DEV.smokeArgCanonMillennialReadableOnce()` is exposed on the Safari runtime path.
+  - [x] Smoke returns `{ ok, sampleCount, badRows, badStreakMax, forbiddenRemaining, failedChecks, samples }` with direct sample rows.
+  - [x] Deterministic 50-row sample includes ABOUT, WHO, WHERE, YN and both questions and answers.
+  - [x] Smoke detects forbidden words, textbook wording, teacher wording, meta/game wording, repetitive openings, and bad-sample streaks.
+- Notes: READY_FOR_RUNTIME_SMOKE only. No runtime PASS is claimed until iPhone Safari runs `Game.__DEV.smokeArgCanonMillennialReadableOnce()` and returns `ok:true`, `sampleCount` between 30 and 50, `badRows:[]`, `badStreakMax < 5`, `forbiddenRemaining:[]`, and `failedChecks:[]`. Commit hash: recorded in final one-line READY report.
+- Result: Local PASS only; no iPhone Safari Runtime PASS claimed. PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS local VM smoke `Game.__DEV.smokeArgCanonMillennialReadableOnce()` with `ok:true`, `sampleCount:50`, `badRows:[]`, `badStreakMax:0`, `forbiddenRemaining:[]`, `failedChecks:[]`.
+- Report:
+  - Status: READY_FOR_RUNTIME_SMOKE
+  - Facts: Added QA-only readability smoke and runtime/dev exposure wrappers. ARG_CANON_ID, canon meaning, matching, battle/economy/UI behavior, and data generation were not changed.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js`
+  - How to verify: Run `node --check AsyncScene/Web/data.js`; run `node --check docs/data.js`; run `node --check AsyncScene/Web/dev/dev-checks.js`; run `node --check docs/dev/dev-checks.js`; in iPhone Safari run `Game.__DEV.smokeArgCanonMillennialReadableOnce()`.
+  - Next: Дима — run the runtime smoke in iPhone Safari and report honest PASS/FAIL.
+
+
 ### [T-20260601-019] STEP4-[2] ARG CANON MILLENNIAL — StyleLex taboo dictionary
 - Status: READY_FOR_RUNTIME_SMOKE
 - Priority: P0
