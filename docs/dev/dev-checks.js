@@ -1495,6 +1495,134 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   };
 
 
+
+  const installStep3TerminologyReportsCopLayerSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_TERMINOLOGY_REPORTS_COP_LAYER_V1";
+    const TABLE_MARKER = "STEP3_TERMINOLOGY_TABLE_V1";
+    const WHERE_USED_MARKER = "STEP3_TERMINOLOGY_WHERE_USED_V1";
+    const layerScope = "reports_cop_flow";
+    const runtimeFiles = new Set([
+      "AsyncScene/Web/data.js", "AsyncScene/Web/npcs.js", "AsyncScene/Web/state.js", "AsyncScene/Web/index.html", "AsyncScene/Web/ui/ui-dm.js",
+      "docs/data.js", "docs/npcs.js", "docs/state.js", "docs/index.html", "docs/ui/ui-dm.js"
+    ]);
+    const expectedCanonicalTerms = ["💰", "Сдать"];
+    const knownReplacedTexts = [
+      "Ложный донос — лишняя бумага, сначала проверяйте факты.",
+      "Засчитано. ${name} отмечен(а). +2 💰.",
+      "Сдать бандита/токсика за +2 💰.",
+      "Я на связи. Нужна помощь — спроси про токсика, бандита или мафиози, либо кинь донос в личку",
+      "откройте DM с ${name} (роль ${actual}) и сообщите \"${reportedRole}\" — получится ложный репорт.",
+      "откройте DM с ${name} и сообщите \"${reportedRole}\"."
+    ];
+    const parseCsv = (text) => {
+      const rows = []; let row = []; let cell = ""; let q = false;
+      String(text || "").split("").forEach((ch, i, arr) => {
+        const next = arr[i + 1];
+        if (q) {
+          if (ch === '"' && next === '"') { cell += '"'; arr[i + 1] = ""; }
+          else if (ch === '"') q = false;
+          else cell += ch;
+        } else if (ch === '"') q = true;
+        else if (ch === ",") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      });
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      const header = (rows.shift() || []).map(h => String(h || "").trim());
+      return { header, records: rows.filter(r => r.some(v => String(v || "").trim())).map(r => {
+        const o = {}; header.forEach((h, i) => { o[h] = r[i] == null ? "" : r[i]; }); return o;
+      }) };
+    };
+    const splitPipe = (value) => String(value || "").split("|").map(v => v.trim()).filter(Boolean);
+    const defaultUrls = (fileName, prefix = "terminology/") => {
+      const urls = [`${prefix}${fileName}`];
+      try { if (typeof location !== "undefined" && location && location.pathname) urls.push(`${location.pathname.replace(/[^/]*$/, "")}${prefix}${fileName}`); } catch (_) {}
+      urls.push(`/AsyncScene/${prefix}${fileName}`, `docs/${prefix}${fileName}`, `/docs/${prefix}${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstText = async (urls) => {
+      for (const url of urls) {
+        try { const res = await fetch(url, { cache: "no-store" }); if (res && res.ok) return { text: await res.text(), url }; } catch (_) {}
+      }
+      return { text: null, url: null };
+    };
+    const synonymPattern = (synonym) => {
+      const escaped = String(synonym || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (synonym === "P") return new RegExp("(^|[^A-Za-zА-Яа-яЁё])P([^A-Za-zА-Яа-яЁё]|$)");
+      if (/^[A-Za-z]+$/.test(synonym)) return new RegExp(`(^|[^A-Za-zА-Яа-яЁё])${escaped}([^A-Za-zА-Яа-яЁё]|$)`, "i");
+      if (/^[А-Яа-яЁё]+$/.test(synonym)) return new RegExp(`(^|[^A-Za-zА-Яа-яЁё])${escaped}([^A-Za-zА-Яа-яЁё]|$)`);
+      return new RegExp(escaped);
+    };
+    const visibleReportCopStrings = () => {
+      const out = [];
+      const D = (window.Game && window.Game.Data) || {};
+      const genz = D.TEXTS && D.TEXTS.genz ? D.TEXTS.genz : {};
+      ["cop_report_accept", "cop_busy", "cop_report_ok", "cop_report_fail", "cop_cooldown"].forEach(k => {
+        const v = genz[k]; (Array.isArray(v) ? v : [v]).forEach(x => { if (x) out.push({ file: "AsyncScene/Web/data.js", value: String(x) }); });
+      });
+      const CT = D.COP_TEMPLATES || {};
+      ["chatReplies", "cooldownReplies", "thanks", "scolds"].forEach(k => {
+        (Array.isArray(CT[k]) ? CT[k] : []).forEach(x => out.push({ file: "AsyncScene/Web/data.js", value: String(x) }));
+      });
+      const CM = D.CAP_MESSAGES || {};
+      if (typeof CM.reportOk === "function") out.push({ file: "AsyncScene/Web/data.js", value: CM.reportOk("Игрок") });
+      if (CM.reportNo) out.push({ file: "AsyncScene/Web/data.js", value: String(CM.reportNo) });
+      ["reportOpenBtn", "reportBtn", "reportHint", "reportInput"].forEach(id => {
+        try {
+          const el = document.getElementById(id);
+          if (el) [el.textContent, el.getAttribute("placeholder")].forEach(v => { if (v) out.push({ file: "AsyncScene/Web/index.html", value: String(v) }); });
+        } catch (_) {}
+      });
+      ["Сдать", "Ник бандита или токсика.", "Сдать бандита или токсика за +2 💰.", "Проверяем...", "Занят", "Выбери игрок.", "Я на связи. Нужна помощь — спроси про токсика, бандита или мафиози, либо нажми «Сдать» в личке", "«Сдать» без фактов — штраф ${repPenalty}⭐. Будьте внимательнее.", "введите \"${reportedRole}\" в поле «Сдать».", "откройте DM с ${name} (роль ${actual}) и выберите «Сдать» как \"${reportedRole}\" — факты не подтвердятся.", "откройте DM с ${name} и выберите «Сдать» как \"${reportedRole}\"."].forEach(v => out.push({ file: "reports_cop_runtime", value: v }));
+      return out.filter(item => /[А-Яа-яЁё💰⭐]/.test(item.value));
+    };
+    devStore.smokeStep3TerminologyReportsCopLayerOnce = async (opts = {}) => {
+      const result = { ok: false, failures: [], checkedCount: 0, replacedCount: 0, forbiddenRemaining: [], layerScope, buildMarker: BUILD_MARKER, tableMarker: TABLE_MARKER, whereUsedMarker: WHERE_USED_MARKER, loadedTableUrl: null, loadedWhereUsedUrl: null, coveredWhereUsedRows: [], previousSmokeHelpers: {} };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const tableFetch = await fetchFirstText(Array.isArray(opts.tableUrls) && opts.tableUrls.length ? opts.tableUrls : defaultUrls("STEP3_TERMINOLOGY_TABLE_V1.csv"));
+      const whereFetch = await fetchFirstText(Array.isArray(opts.whereUsedUrls) && opts.whereUsedUrls.length ? opts.whereUsedUrls : defaultUrls("STEP3_TERMINOLOGY_WHERE_USED_V1.csv"));
+      result.loadedTableUrl = tableFetch.url; result.loadedWhereUsedUrl = whereFetch.url;
+      if (!tableFetch.text) fail("terminology_table_missing");
+      if (!whereFetch.text) fail("where_used_missing");
+      if (!tableFetch.text || !whereFetch.text) { console.log("STEP3_TERMINOLOGY_REPORTS_COP_LAYER_SMOKE", "FAIL", JSON.stringify(result)); return result; }
+      const table = parseCsv(tableFetch.text); const whereUsed = parseCsv(whereFetch.text);
+      const layerRows = whereUsed.records.filter(row => String(row.ContextOrScreen || "").includes(layerScope) && runtimeFiles.has(String(row.SourceFile || "")));
+      result.checkedCount = layerRows.length;
+      if (!layerRows.length) fail("layer_where_used_rows_missing");
+      result.coveredWhereUsedRows = layerRows.map(row => `${String(row.SourceFile || "")}:${String(row.SourceTermId || "")}:${String(row.ConceptId || "")}`).filter(Boolean);
+      const conceptsInLayer = new Set(layerRows.map(row => String(row.ConceptId || "").trim()).filter(Boolean));
+      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+      conceptsInLayer.forEach(conceptId => { if (!tableRowsByConcept.has(conceptId)) fail("layer_concept_missing_from_table", conceptId); });
+      const runtimeStrings = visibleReportCopStrings();
+      const runtimeText = runtimeStrings.map(item => item.value).join("\n");
+      expectedCanonicalTerms.forEach(term => { if (!runtimeText.includes(term)) fail("canonical_term_missing_from_layer_runtime_strings", term); });
+      const forbiddenChecks = [];
+      conceptsInLayer.forEach(conceptId => {
+        const row = tableRowsByConcept.get(conceptId);
+        splitPipe(row && row.ForbiddenVariants).forEach(synonym => { if (synonym) forbiddenChecks.push({ conceptId, synonym, pattern: synonymPattern(synonym) }); });
+      });
+      runtimeStrings.forEach(item => forbiddenChecks.forEach(check => {
+        const visibleText = String(item.value || "").replace(/\$\{[^}]*\}/g, "");
+        if (check.pattern.test(visibleText)) result.forbiddenRemaining.push({ conceptId: check.conceptId, synonym: check.synonym, file: item.file, text: item.value });
+      }));
+      const seen = new Set();
+      result.forbiddenRemaining = result.forbiddenRemaining.filter(row => { const key = `${row.conceptId}|${row.synonym}|${row.file}|${row.text}`; if (seen.has(key)) return false; seen.add(key); return true; });
+      if (result.forbiddenRemaining.length) fail("forbidden_synonyms_remaining", result.forbiddenRemaining);
+      result.replacedCount = knownReplacedTexts.reduce((count, text) => count + (runtimeText.includes(text) ? 0 : 1), 0);
+      if (result.replacedCount < knownReplacedTexts.length) fail("known_replacements_not_all_observed", { expected: knownReplacedTexts.length, actual: result.replacedCount });
+      const rowText = layerRows.map(row => [row.CurrentTextOrVariant, row.ReplacementTarget, row.Notes].join(" ")).join("\n");
+      knownReplacedTexts.forEach(text => { if (!rowText.includes(text)) fail("where_used_replacement_row_not_covered", text); });
+      ["smokeStep3TerminologyInventoryOnce", "smokeStep3TerminologyCanonOnce", "smokeStep3UiTaxonomyOnce", "smokeStep3MillennialStyleGuideOnce", "smokeStep3TerminologyTableOnce", "smokeStep3TerminologyWhereUsedOnce", "smokeStep3TerminologyEventsCrowdLayerOnce", "smokeStep3TerminologyBattlesLayerOnce", "smokeStep3TerminologyDmLayerOnce"].forEach(name => {
+        result.previousSmokeHelpers[name] = typeof devStore[name] === "function" ? "available" : "missing";
+        if (result.previousSmokeHelpers[name] !== "available") fail("previous_step3_smoke_helper_missing", name);
+      });
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_TERMINOLOGY_REPORTS_COP_LAYER_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
+
   const installStep3MillennialStyleGuideSmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_MILLENNIAL_STYLE_GUIDE_V1";
@@ -1625,6 +1753,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   installStep3TerminologyEventsCrowdLayerSmoke(G.__DEV);
   installStep3TerminologyBattlesLayerSmoke(G.__DEV);
   installStep3TerminologyDmLayerSmoke(G.__DEV);
+  installStep3TerminologyReportsCopLayerSmoke(G.__DEV);
   installStep3MillennialStyleGuideSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
@@ -1634,6 +1763,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   console.warn("STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce);
   console.warn("STEP3_TERMINOLOGY_BATTLES_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyBattlesLayerOnce);
   console.warn("STEP3_TERMINOLOGY_DM_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyDmLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_REPORTS_COP_LAYER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyReportsCopLayerOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
@@ -24660,6 +24790,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyEventsCrowdLayerSmoke(Game.__DEV);
   installStep3TerminologyBattlesLayerSmoke(Game.__DEV);
   installStep3TerminologyDmLayerSmoke(Game.__DEV);
+  installStep3TerminologyReportsCopLayerSmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
@@ -24669,6 +24800,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce);
   console.warn("STEP3_TERMINOLOGY_BATTLES_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyBattlesLayerOnce);
   console.warn("STEP3_TERMINOLOGY_DM_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyDmLayerOnce);
+  console.warn("STEP3_TERMINOLOGY_REPORTS_COP_LAYER_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   // Dev shortcut: Ctrl+Shift+T
