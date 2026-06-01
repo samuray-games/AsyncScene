@@ -513,7 +513,7 @@ window.Game = window.Game || {};
     }
 
     if ((S.me.points || 0) < count) {
-      uiCall("pushSystem", "Не хватает 💰, чтобы смыться от всех активных.");
+      uiCall("pushSystem", "Не хватает 💰 для действия: Свалить.");
       return;
     }
 
