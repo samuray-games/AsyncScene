@@ -1932,6 +1932,17 @@ K YN A9: Нет.
     return out.filter(Boolean);
   };
 
+  Data.pruneArgCanonMillennialTextToCanonIds = () => {
+    const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || (Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID = Object.create(null));
+    const valid = Object.create(null);
+    Data.listArgCanonTextIds().forEach((id) => { valid[id] = true; });
+    let removed = 0;
+    Object.keys(store).forEach((key) => {
+      if (!valid[key]) { delete store[key]; removed += 1; }
+    });
+    return removed;
+  };
+
   Data.seedArgCanonMillennialTextFallback = () => {
     const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || (Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID = Object.create(null));
     const index = Data.ARG_CANON_INDEX || {};
@@ -2054,6 +2065,71 @@ K YN A9: Нет.
       });
     });
     return count;
+  };
+
+  Data.smokeArgCanonMillennialCoverageOnce = () => {
+    const result = {
+      ok: false,
+      totalCanonIds: 0,
+      millennialCount: 0,
+      coveragePct: 0,
+      missingCoverage: [],
+      duplicateIds: [],
+      brokenKeys: [],
+      indexBuildOk: false,
+      failedChecks: []
+    };
+    try {
+      const index = Data.ARG_CANON_INDEX || null;
+      result.indexBuildOk = !!(index && typeof index === "object" && Object.keys(index).length > 0);
+      if (!result.indexBuildOk) result.failedChecks.push("arg_canon_index_missing");
+
+      const ids = (typeof Data.listArgCanonTextIds === "function") ? Data.listArgCanonTextIds() : [];
+      const seen = Object.create(null);
+      const canonical = Object.create(null);
+      ids.forEach((id) => {
+        const key = String(id || "").trim();
+        if (!key) { result.failedChecks.push("empty_canon_id"); return; }
+        if (seen[key]) result.duplicateIds.push(key);
+        seen[key] = true;
+        canonical[key] = true;
+      });
+      result.totalCanonIds = ids.length;
+
+      const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || {};
+      const own = (key) => Object.prototype.hasOwnProperty.call(store, key);
+      ids.forEach((id) => {
+        const text = own(id) ? store[id] : null;
+        if (typeof text === "string" && text.trim()) result.millennialCount += 1;
+        else result.missingCoverage.push(id);
+      });
+
+      Object.keys(store).forEach((key) => {
+        if (!canonical[key]) result.brokenKeys.push(key);
+        else if (typeof store[key] !== "string" || !store[key].trim()) {
+          result.brokenKeys.push(key);
+          result.failedChecks.push({ key, check: "empty_millennial_text" });
+        }
+      });
+
+      result.duplicateIds = Array.from(new Set(result.duplicateIds));
+      result.brokenKeys = Array.from(new Set(result.brokenKeys));
+      result.coveragePct = result.totalCanonIds > 0
+        ? Math.round((result.millennialCount / result.totalCanonIds) * 10000) / 100
+        : 0;
+      result.ok = result.indexBuildOk === true
+        && result.totalCanonIds > 0
+        && result.totalCanonIds === result.millennialCount
+        && result.coveragePct === 100
+        && result.missingCoverage.length === 0
+        && result.duplicateIds.length === 0
+        && result.brokenKeys.length === 0
+        && result.failedChecks.length === 0;
+    } catch (err) {
+      result.failedChecks.push(err && err.message ? String(err.message) : String(err));
+      result.ok = false;
+    }
+    return result;
   };
 
   Data.smokeArgCanonMillennialTemplatesOnce = () => {
@@ -2274,6 +2350,7 @@ K YN A9: Нет.
   })();
 
   Data.seedArgCanonMillennialTextFallback();
+  Data.pruneArgCanonMillennialTextToCanonIds();
 
   // Argument pools (fallback, neutral base)
   Data.ARG_POOLS = Data.ARG_BASE_O;
@@ -2985,6 +3062,28 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialTemplatesSmoke();
+
+  const installArgCanonMillennialCoverageSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    if (typeof root.__DEV.smokeArgCanonMillennialCoverageOnce === "function") return;
+    root.__DEV.smokeArgCanonMillennialCoverageOnce = function smokeArgCanonMillennialCoverageOnce() {
+      let result;
+      try {
+        result = (typeof Data.smokeArgCanonMillennialCoverageOnce === "function")
+          ? Data.smokeArgCanonMillennialCoverageOnce()
+          : { ok: false, totalCanonIds: 0, millennialCount: 0, coveragePct: 0, missingCoverage: [], duplicateIds: [], brokenKeys: [], indexBuildOk: false, failedChecks: ["coverage_helper_missing"] };
+      } catch (err) {
+        result = { ok: false, totalCanonIds: 0, millennialCount: 0, coveragePct: 0, missingCoverage: [], duplicateIds: [], brokenKeys: [], indexBuildOk: false, failedChecks: [err && err.message ? String(err.message) : String(err)] };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_COVERAGE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_COVERAGE_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialCoverageOnce);
+  };
+
+  installArgCanonMillennialCoverageSmoke();
 
   Game.Data = Data;
 })();

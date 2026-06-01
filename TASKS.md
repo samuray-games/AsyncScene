@@ -4724,3 +4724,12 @@ Error: Download failure, code=1
 - Evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke returned `ok:true`, `checkedTypes:["ABOUT","WHO","WHERE","YN"]`, `missingTypes:[]`, `repeatedTemplateProblems:[]`, `failedChecks:[]`, and `sampleCount:692`; PASS existing millennial StyleLex smoke remained `ok:true`.
 - Commit hash: recorded in the final one-line READY report.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()`.
+
+## 2026-06-01 - STEP4-[4] ARG CANON MILLENNIAL 100% coverage
+- Status: READY_FOR_RUNTIME_SMOKE only. Static validation PASS and local VM smoke PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Filled the millennial ARG canon text layer for every existing `ARG_CANON_ID` by keeping the generated Step4-[3] template variants as the complete keyed text store and pruning stale keys left behind by pre-sanitize seed data.
+- Added mirrored `Game.__DEV.smokeArgCanonMillennialCoverageOnce()` with contract fields `ok`, `totalCanonIds`, `millennialCount`, `coveragePct`, `missingCoverage`, `duplicateIds`, `brokenKeys`, `indexBuildOk`, and `failedChecks`.
+- Scope guard: no `ARG_CANON_ID` changes, no canon ids added or removed, no canon meaning changes, and no changes to types, tones y/o/r/k, weights, matching logic, battle logic, economy, or UI behavior. `Console.txt` was not used.
+- Evidence: PASS `node --check docs/data.js && node --check AsyncScene/Web/data.js && node --check docs/dev/dev-checks.js && node --check AsyncScene/Web/dev/dev-checks.js`; PASS local Node VM smoke for docs and Web returned coverage `ok:true`, `totalCanonIds:692`, `millennialCount:692`, `coveragePct:100`, `missingCoverage:[]`, `duplicateIds:[]`, `brokenKeys:[]`, `indexBuildOk:true`, `failedChecks:[]`; PASS previous `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()` and `Game.__DEV.smokeArgCanonMillennialTemplatesOnce()` remained `ok:true`.
+- Commit hash: recorded in the final one-line READY report.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`.
