@@ -16,7 +16,7 @@ const mapRespectReason = {
   respect_no_points: "Не хватает 💰.",
   respect_pair_daily: "Уже было уважение сегодня этому персонажу.",
   respect_no_chain: "Цепочка A->B->A сегодня не работает.",
-  respect_emitter_empty: "Лимит уважения на сегодня исчерпан.",
+  respect_emitter_empty: "Сегодня уважение исчерпано.",
 };
 
 const showRespectToast = (kind, text) => {
