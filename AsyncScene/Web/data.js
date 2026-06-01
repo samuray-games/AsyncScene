@@ -2480,6 +2480,74 @@ K YN A9: Нет.
   };
 
 
+  Data.smokeArgCanonMillennialRegressionOnce = () => {
+    const startedAt = Date.now();
+    const result = {
+      ok: false,
+      durationMs: 0,
+      deterministic: true,
+      requiresManualClicks: false,
+      coverageOk: false,
+      forbiddenOk: false,
+      sampleRenderOk: false,
+      noCrashOk: false,
+      failedChecks: []
+    };
+    const pushUnique = (value) => {
+      const key = typeof value === "string" ? value : JSON.stringify(value);
+      if (!result.failedChecks.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) result.failedChecks.push(value);
+    };
+    const runCheck = (name, fn) => {
+      try {
+        if (typeof fn !== "function") {
+          pushUnique(`${name}_missing`);
+          return null;
+        }
+        const out = fn();
+        if (!out || typeof out !== "object") {
+          pushUnique({ check: name, reason: "invalid_result" });
+          return null;
+        }
+        if (out.ok !== true) pushUnique({ check: name, reason: "not_ok" });
+        return out;
+      } catch (err) {
+        pushUnique({ check: name, error: err && err.message ? String(err.message) : String(err) });
+        return null;
+      }
+    };
+
+    try {
+      const coverage = runCheck("coverage", Data.smokeArgCanonMillennialCoverageOnce);
+      const forbidden = runCheck("forbidden_style", Data.lintArgCanonMillennialStyleLex);
+      const templates = runCheck("templates", Data.smokeArgCanonMillennialTemplatesOnce);
+      const sample = runCheck("readable_sample_render", Data.smokeArgCanonMillennialReadableOnce);
+      const aggregate = runCheck("no_crash_aggregate", Data.smokeArgCanonMillennialOnce);
+
+      result.coverageOk = !!(coverage && coverage.ok === true);
+      result.forbiddenOk = !!(forbidden && forbidden.ok === true);
+      result.sampleRenderOk = !!(sample && sample.ok === true);
+      result.noCrashOk = !!(aggregate && aggregate.ok === true);
+      if (!(templates && templates.ok === true)) pushUnique("templates_not_ok");
+      if (result.requiresManualClicks !== false) pushUnique("requires_manual_clicks");
+      if (result.deterministic !== true) pushUnique("deterministic_false");
+    } catch (err) {
+      pushUnique(err && err.message ? String(err.message) : String(err));
+    }
+
+    result.durationMs = Date.now() - startedAt;
+    if (result.durationMs > 60000) pushUnique({ check: "duration_over_60000", durationMs: result.durationMs });
+    result.ok = result.durationMs <= 60000
+      && result.deterministic === true
+      && result.requiresManualClicks === false
+      && result.coverageOk === true
+      && result.forbiddenOk === true
+      && result.sampleRenderOk === true
+      && result.noCrashOk === true
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+
   Data.smokeArgCanonMillennialOnce = () => {
     const result = {
       ok: false,
@@ -3524,6 +3592,29 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialReadableSmoke();
+
+
+  const installArgCanonMillennialRegressionSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    if (typeof root.__DEV.smokeArgCanonMillennialRegressionOnce === "function") return;
+    root.__DEV.smokeArgCanonMillennialRegressionOnce = function smokeArgCanonMillennialRegressionOnce() {
+      let result;
+      try {
+        result = (typeof Data.smokeArgCanonMillennialRegressionOnce === "function")
+          ? Data.smokeArgCanonMillennialRegressionOnce()
+          : { ok: false, durationMs: 0, deterministic: true, requiresManualClicks: false, coverageOk: false, forbiddenOk: false, sampleRenderOk: false, noCrashOk: false, failedChecks: ["regression_helper_missing"] };
+      } catch (err) {
+        result = { ok: false, durationMs: 0, deterministic: true, requiresManualClicks: false, coverageOk: false, forbiddenOk: false, sampleRenderOk: false, noCrashOk: false, failedChecks: [err && err.message ? String(err.message) : String(err)] };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_REGRESSION_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_REGRESSION_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialRegressionOnce);
+  };
+
+  installArgCanonMillennialRegressionSmoke();
 
 
   const installArgCanonMillennialAggregateSmoke = () => {
