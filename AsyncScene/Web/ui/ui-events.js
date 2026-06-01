@@ -833,7 +833,7 @@ window.Game = window.Game || {};
 
           // Disabled button hint: do not run economic checks / toasts
           if (!votingAllowed) {
-            try { showVoteBtnToast(btn, "Недоступно сейчас."); } catch (_) {}
+            try { showVoteBtnToast(btn, "Недоступно."); } catch (_) {}
             return;
           }
 
@@ -841,7 +841,7 @@ window.Game = window.Game || {};
             ? (Game.__S.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
-            const msg = "Не хватает пойнтов.";
+            const msg = "Не хватает 💰.";
             try { showVoteBtnToast(btn, msg); } catch (_) {}
             try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
             return;
@@ -885,14 +885,14 @@ window.Game = window.Game || {};
           }
 
           if (!ok) {
-            // Show "Не хватает пойнтов." when vote failed due to insufficient points
+            // Show "Не хватает 💰." when vote failed due to insufficient points
             try {
               if (Game && Game.__S && Array.isArray(Game.__S.events)) {
                 const freshEvent = Game.__S.events.find(x => x && x.id === eventId);
-                if (freshEvent && String(freshEvent.note || "") === "Не хватает пойнтов.") {
-                  setEventNote(e, "Не хватает пойнтов.");
-                  try { showVoteBtnToast(btn, "Не хватает пойнтов."); } catch (_) {}
-                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Не хватает пойнтов."); } catch(_) {}
+                if (freshEvent && String(freshEvent.note || "") === "Не хватает 💰.") {
+                  setEventNote(e, "Не хватает 💰.");
+                  try { showVoteBtnToast(btn, "Не хватает 💰."); } catch (_) {}
+                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Не хватает 💰."); } catch(_) {}
                 }
               }
             } catch (_) {}
@@ -936,7 +936,7 @@ window.Game = window.Game || {};
         const cap = Number.isFinite(crowd.cap) ? (crowd.cap | 0) : 0;
         const capLine = document.createElement("div");
         capLine.className = "noteLine";
-        capLine.textContent = cap > 0 ? `Голоса: ${raw.total}/${cap}` : `Голоса: ${raw.total}`;
+        capLine.textContent = cap > 0 ? `Толпа решает: ${raw.total}/${cap}` : `Толпа решает: ${raw.total}`;
         card.appendChild(capLine);
 
         const diagLine = document.createElement("div");
@@ -952,7 +952,7 @@ window.Game = window.Game || {};
         const timerState = getEventCrowdTimerState(crowd);
         const showTimer = timerState.countdownActive && Number.isFinite(timerState.countdownStartMs);
         timerLine.style.display = "block";
-        timerLine.textContent = showTimer ? `Таймер: ${timerState.seconds}с` : "Голосование идёт";
+        timerLine.textContent = showTimer ? `Таймер: ${timerState.seconds}с` : "Толпа решает";
         card.appendChild(timerLine);
 
         const D0 = Game.Data || {};
@@ -978,7 +978,7 @@ window.Game = window.Game || {};
         // Build compact final info block per spec:
         // Line 1: "<A> послал/не послал <B>" (use escapeResultLine for escape events when available)
         // Line 2: "Твой выбор: X" (only if player voted)
-        // Line 3: "Итог голосования: A:B"
+        // Line 3: "Итог: A:B"
         // Line 4: single summary line with deltas: "+{rep}⭐ {pointsSign}{points}💰"
         const info = document.createElement("div");
         info.className = "noteLine";
@@ -1045,7 +1045,7 @@ window.Game = window.Game || {};
 
           // Line 3: vote tally
           const rowTally = document.createElement("div");
-          rowTally.textContent = `Итог голосования: ${aVotes}:${bVotes}`;
+          rowTally.textContent = `Итог: ${aVotes}:${bVotes}`;
           info.appendChild(rowTally);
           try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
 
