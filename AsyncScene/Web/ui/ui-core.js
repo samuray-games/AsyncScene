@@ -842,8 +842,8 @@ window.Game = window.Game || {};
   function statAnchor(kind){
     const bal = $("balance");
     if (!bal) return null;
-    if (kind === "points") return bal.querySelector('span[title="Пойнты"]');
-    if (kind === "rep") return bal.querySelector('span[title="Репутация"]');
+    if (kind === "points") return bal.querySelector('span[title="💰"]');
+    if (kind === "rep") return bal.querySelector('span[title="⭐"]');
     if (kind === "wins") return bal.querySelector('span[title="Победы"]');
     return bal.querySelector('span[title="Влияние"]');
   }

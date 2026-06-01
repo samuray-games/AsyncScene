@@ -4605,3 +4605,12 @@ Error: Download failure, code=1
 - PASS criteria: iPhone Safari returns `ok:true`, build marker `STEP3_TERMINOLOGY_RESPECT_LAYER_V1`, `layerScope:"respect_econ08"`, `forbiddenRemaining:[]`, expected canonical terms present, Respect where-used rows covered, and previous Step 3 helpers available.
 - FAIL criteria: any scoped forbidden synonym remains, any required canonical term is missing, Respect where-used coverage is incomplete, a previous Step 3 helper is missing, or runtime PASS is claimed without iPhone Safari.
 - Safari command for QA: `Game.__DEV.smokeStep3TerminologyRespectLayerOnce()`.
+
+## 2026-06-01 - Step 3 [7.10] Global/common terminology layer
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Scope: global/common runtime-facing UI strings only: top-bar resource labels, shared unavailable lottery text, common insufficient-funds samples, shared style-lex social/resource terms, and shared stat-toast anchors.
+- Added `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()` with build marker `STEP3_TERMINOLOGY_GLOBAL_COMMON_LAYER_V1`, `layerScope:"global_common"`, where-used coverage, canonical-term checks, forbidden-synonym checks, replaced-count reporting, and previous-helper availability checks through Step 3 [7.9].
+- PASS criteria: iPhone Safari returns `ok:true`, build marker `STEP3_TERMINOLOGY_GLOBAL_COMMON_LAYER_V1`, `layerScope:"global_common"`, `forbiddenRemaining:[]`, canonical global/common terms present, where-used global/common rows covered, and prior Step 3 helpers [1]-[6] plus [7.1]-[7.9] available.
+- FAIL criteria: any global/common forbidden synonym remains, a canonical global/common term is missing, where-used global/common coverage is incomplete, any prior Step 3 helper is missing, or runtime PASS is claimed without iPhone Safari.
+- Evidence: PASS JS syntax checks for changed JS/HTML-adjacent files; PASS terminology table validator; PASS where-used validator; PASS local static global/common forbidden-synonym scan. WARNING local Playwright browser smoke could not launch because Chromium is not installed; no runtime PASS is claimed.
+- Safari QA command: `Game.__DEV.smokeStep3TerminologyGlobalCommonLayerOnce()`.

@@ -49,8 +49,8 @@ window.Game = window.Game || {};
     if (menuBtn) menuBtn.textContent = t("menu_title");
     const lotTop = document.getElementById("btnLotteryTop");
     if (lotTop) {
-      lotTop.title = "Лотерея отключена";
-      lotTop.textContent = "Лотерея отключена";
+      lotTop.title = "Недоступно.";
+      lotTop.textContent = "Недоступно.";
     }
     const legacyRes = document.getElementById("lotteryResult");
     if (legacyRes) legacyRes.remove();
@@ -385,7 +385,7 @@ window.Game = window.Game || {};
     const wrap = document.createElement("div");
     wrap.id = "lotteryControls";
     wrap.className = "lotteryRow";
-    wrap.textContent = "Лотерея отключена";
+    wrap.textContent = "Недоступно.";
     dock.appendChild(wrap);
   }
 
@@ -605,7 +605,7 @@ window.Game = window.Game || {};
 
   UI.lottery = () => {
     ensureLotteryControls();
-    showLotteryToast("Лотерея отключена");
+    showLotteryToast("Недоступно.");
     return;
 
     const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5, cooldownMs: 10 * 60 * 1000 };
