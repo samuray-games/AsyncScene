@@ -4326,3 +4326,15 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeStep3MillennialStyleGuideOnce()` in mirrored dev-checks; it fetches the artifact and validates required sections/rules, forbidden categories, CTA rules, error rules, hint rules, phrase length limits, and internal contradiction checks.
 - Evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS Node static artifact validation returned `STEP3_MILLENNIAL_STYLE_GUIDE_STATIC PASS`.
 - Safari command for QA after cache refresh: `Game.__DEV.smokeStep3MillennialStyleGuideOnce()`.
+
+## 2026-06-01 — AsyncScene Step 3 [4] strict UI taxonomy categories
+- Status: READY_FOR_RUNTIME_SMOKE; static validation PASS, iPhone Safari runtime PASS not claimed.
+- Scope: governance-only taxonomy artifact; no gameplay changes, no UI copy rewrites, and no mass replacements.
+- Added `STEP3_UI_TAXONOMY_V1.csv` in both `docs/terminology/` and `AsyncScene/Web/terminology/` with fields `termId`, `conceptId`, `currentText`, `originalCategory`, `taxonomyCategory`, `sourceFile`, `screenOrFeature`, and `notes`.
+- Strict taxonomy categories are exactly `Button`, `BlockTitle`, `Status`, `Hint`, `Error`, `ResourceName`, `ActionName`, `ReasonName`, and `CooldownLabel`.
+- Existing inventory categories are preserved as `originalCategory`; broader inventory categories collapse into strict taxonomy categories (`Toast`, `ResultCard`, `EmptyState`, `ChatLine`, `DMLine`, `SystemLine`, and `Other` map to `Status`; `EconomyReason` maps to `ReasonName`; `Cooldown` maps to `CooldownLabel`).
+- Existing canon Button concepts map to `ActionName` because canon action concepts are terminology names, while inventory Button rows remain concrete `Button` UI controls unless a canon concept owns the term.
+- Added generator and validator tools: `tools/generate-step3-ui-taxonomy.py` and `tools/validate-step3-ui-taxonomy.py`.
+- Added `Game.__DEV.smokeStep3UiTaxonomyOnce()` with build marker `STEP3_UI_TAXONOMY_V1` to both dev-checks copies.
+- Static evidence: PASS `tools/validate-step3-ui-taxonomy.py docs/terminology/STEP3_UI_TAXONOMY_V1.csv` returned `ok:true`, `rowCount:3513`, no duplicate term IDs, no invalid/empty taxonomy categories, no forbidden overlap violations, and no concept category drift. Current-text drift is detected and reported for non-forbidden overlaps only.
+- Safari command for QA: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.

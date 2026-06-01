@@ -268,6 +268,156 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
   };
+  const installStep3UiTaxonomySmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_MARKER = "STEP3_UI_TAXONOMY_V1";
+    const requiredColumns = ["termId", "conceptId", "currentText", "originalCategory", "taxonomyCategory", "sourceFile", "screenOrFeature", "notes"];
+    const allowedCategories = new Set(["Button", "BlockTitle", "Status", "Hint", "Error", "ResourceName", "ActionName", "ReasonName", "CooldownLabel"]);
+    const forbiddenOverlaps = [["Button", "Status"], ["Error", "Hint"], ["Status", "BlockTitle"]];
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text.charAt(i);
+        const next = text.charAt(i + 1);
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cell += '"'; i += 1; }
+          else if (ch === '"') inQuotes = false;
+          else cell += ch;
+        } else if (ch === '"') inQuotes = true;
+        else if (ch === ",") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      }
+      if (cell.length || row.length) { row.push(cell); rows.push(row); }
+      if (!rows.length) return { header: [], records: [] };
+      const header = rows[0].map(h => String(h || "").trim());
+      const records = rows.slice(1).filter(r => r.some(v => String(v || "").trim())).map(r => {
+        const obj = {};
+        header.forEach((h, idx) => { obj[h] = r[idx] == null ? "" : r[idx]; });
+        return obj;
+      });
+      return { header, records };
+    };
+    const defaultUrls = () => {
+      const fileName = "STEP3_UI_TAXONOMY_V1.csv";
+      const urls = [`terminology/${fileName}`];
+      try {
+        if (typeof location !== "undefined" && location && location.pathname) {
+          const base = location.pathname.replace(/[^/]*$/, "");
+          urls.push(`${base}terminology/${fileName}`);
+        }
+      } catch (_) {}
+      urls.push(`/AsyncScene/terminology/${fileName}`, `docs/terminology/${fileName}`, `/docs/terminology/${fileName}`);
+      return Array.from(new Set(urls));
+    };
+    const fetchFirstText = async (urls) => {
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res && res.ok) return { text: await res.text(), url };
+        } catch (_) {}
+      }
+      return { text: null, url: null };
+    };
+    const hasAllowedConceptReason = (notesList) => notesList.some(note => {
+      const lower = String(note || "").toLocaleLowerCase();
+      return lower.includes("taxonomy-multicategory-allowed") && lower.includes("reason=");
+    });
+    const hasForbiddenOverlap = (categories) => forbiddenOverlaps.some(pair => pair.every(category => categories.has(category)));
+    devStore.smokeStep3UiTaxonomyOnce = async (opts = {}) => {
+      const result = {
+        ok: false,
+        failures: [],
+        rowCount: 0,
+        duplicateTermIds: [],
+        invalidCategories: [],
+        emptyTaxonomyCategoryRows: [],
+        forbiddenOverlapViolations: [],
+        conceptCategoryDrift: [],
+        currentTextCategoryDrift: [],
+        loadedUrl: null,
+        buildMarker: BUILD_MARKER,
+      };
+      const fail = (code, detail) => result.failures.push(detail === undefined ? code : { code, detail });
+      const urls = Array.isArray(opts.urls) && opts.urls.length ? opts.urls : defaultUrls();
+      const fetched = await fetchFirstText(urls);
+      result.loadedUrl = fetched.url;
+      if (!fetched.text) {
+        fail("taxonomy_file_missing", { urls });
+        console.log("STEP3_UI_TAXONOMY_SMOKE", "FAIL", JSON.stringify(result));
+        return result;
+      }
+      const parsed = parseCsv(fetched.text);
+      result.rowCount = parsed.records.length;
+      requiredColumns.forEach(col => { if (!parsed.header.includes(col)) fail("missing_required_column", col); });
+      const seenTerms = new Set();
+      const duplicateTerms = new Set();
+      const conceptCategories = new Map();
+      const conceptNotes = new Map();
+      const textCategories = new Map();
+      parsed.records.forEach((row, idx) => {
+        const rowNum = idx + 2;
+        const termId = String(row.termId || "").trim();
+        const conceptId = String(row.conceptId || "").trim();
+        const currentText = String(row.currentText || "").trim();
+        const taxonomyCategory = String(row.taxonomyCategory || "").trim();
+        const notes = String(row.notes || "");
+        if (!termId) fail("empty_termId", { rowNum });
+        else if (seenTerms.has(termId)) { duplicateTerms.add(termId); fail("duplicate_termId", { rowNum, termId }); }
+        else seenTerms.add(termId);
+        if (!conceptId) fail("empty_conceptId", { rowNum, termId });
+        if (!taxonomyCategory) {
+          result.emptyTaxonomyCategoryRows.push({ rowNum, termId });
+          fail("empty_taxonomyCategory", { rowNum, termId });
+        } else if (!allowedCategories.has(taxonomyCategory)) {
+          const item = { rowNum, termId, taxonomyCategory };
+          result.invalidCategories.push(item);
+          fail("invalid_taxonomyCategory", item);
+        }
+        if (taxonomyCategory.includes("|") || taxonomyCategory.includes(",")) fail("multiple_taxonomy_categories_in_row", { rowNum, termId, taxonomyCategory });
+        if (!notes.includes(BUILD_MARKER)) fail("missing_build_marker_in_notes", { rowNum, termId });
+        if (conceptId && taxonomyCategory) {
+          if (!conceptCategories.has(conceptId)) conceptCategories.set(conceptId, new Set());
+          conceptCategories.get(conceptId).add(taxonomyCategory);
+          if (!conceptNotes.has(conceptId)) conceptNotes.set(conceptId, []);
+          conceptNotes.get(conceptId).push(notes);
+        }
+        if (currentText && taxonomyCategory) {
+          if (!textCategories.has(currentText)) textCategories.set(currentText, new Set());
+          textCategories.get(currentText).add(taxonomyCategory);
+        }
+      });
+      conceptCategories.forEach((categories, conceptId) => {
+        const sorted = Array.from(categories).sort();
+        if (categories.size > 1 && !hasAllowedConceptReason(conceptNotes.get(conceptId) || [])) {
+          const item = { conceptId, taxonomyCategories: sorted };
+          result.conceptCategoryDrift.push(item);
+          fail("concept_mapped_to_multiple_taxonomy_categories", item);
+        }
+        if (hasForbiddenOverlap(categories)) {
+          const item = { scope: "concept", conceptId, taxonomyCategories: sorted };
+          result.forbiddenOverlapViolations.push(item);
+          fail("forbidden_category_overlap", item);
+        }
+      });
+      textCategories.forEach((categories, currentText) => {
+        const sorted = Array.from(categories).sort();
+        if (categories.size > 1) result.currentTextCategoryDrift.push({ currentText, taxonomyCategories: sorted });
+        if (hasForbiddenOverlap(categories)) {
+          const item = { scope: "currentText", currentText, taxonomyCategories: sorted };
+          result.forbiddenOverlapViolations.push(item);
+          fail("forbidden_category_overlap", item);
+        }
+      });
+      result.duplicateTermIds = Array.from(duplicateTerms).sort();
+      result.ok = result.failures.length === 0;
+      console.log("STEP3_UI_TAXONOMY_SMOKE", result.ok ? "PASS" : "FAIL", JSON.stringify(result));
+      return result;
+    };
+  };
   const installStep3MillennialStyleGuideSmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_MILLENNIAL_STYLE_GUIDE_V1";
@@ -392,9 +542,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   };
   installStep3TerminologyInventorySmoke(G.__DEV);
   installStep3TerminologyCanonSmoke(G.__DEV);
+  installStep3UiTaxonomySmoke(G.__DEV);
   installStep3MillennialStyleGuideSmoke(G.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCanonOnce);
+  console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3UiTaxonomyOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
@@ -23415,9 +23567,11 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
+  installStep3UiTaxonomySmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
+  console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
 
   // Dev shortcut: Ctrl+Shift+T
