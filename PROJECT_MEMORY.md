@@ -45,6 +45,17 @@
 - Любая новая договорённость/ограничение/решение/статус фазы, которое ассистент считает “памятью”, фиксируется здесь.
 - Формат: добавляем запись в **Log** (внизу) и при необходимости обновляем **Current Snapshot**.
 
+
+## 2026-06-01 — Step 3 [7.7] Training terminology UI layer
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Implemented terminology governance from `STEP3_TERMINOLOGY_TABLE_V1` and `STEP3_TERMINOLOGY_WHERE_USED_V1` only for Training UI/runtime-facing training strings. Canonical strings now use `Обучить аргументу`, `💰`, and `кулдаун` in covered Training rows.
+- Added `Game.__DEV.smokeStep3TerminologyTrainingLayerOnce()` with build marker `STEP3_TERMINOLOGY_TRAINING_LAYER_V1`. The smoke validates Training where-used coverage, forbidden synonym removal, canonical term presence, no new Training synonym variants, `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and availability of previous Step 3 helpers [1]-[6] and [7.1]-[7.6].
+- Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/ui/ui-menu.js`; PASS `node --check docs/ui/ui-menu.js`; PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/ui-old.js`; PASS local VM smoke `Game.__DEV.smokeStep3TerminologyTrainingLayerOnce()` with `ok:true`, `failures:[]`, `checkedCount:19`, `replacedCount:11`, `forbiddenRemaining:[]`, `layerScope:"training_econ04"`; WARN `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyTrainingLayerOnce` could not launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`.
+- PASS criteria for runtime: on iPhone Safari, after cache refresh, run `Game.__DEV.smokeStep3TerminologyTrainingLayerOnce()` and require `ok:true`, `failures:[]`, `checkedCount:19`, `replacedCount:11`, `forbiddenRemaining:[]`, `layerScope:"training_econ04"`, and build marker `STEP3_TERMINOLOGY_TRAINING_LAYER_V1`.
+- FAIL criteria for runtime: any forbidden Training synonym remains, any required canonical Training term is missing, where-used rows for Training are not covered, any previous Step 3 helper [1]-[6] or [7.1]-[7.6] is missing, or the smoke returns `ok:false`.
+- Scope guard: no gameplay, economy, training cost, training availability, argument progression, caps, rewards, cooldown mechanics, data models, Events/Crowd, Battles, generic DM UI, Reports, Escape/Ignore, Rematch, Respect, or P2P behavior was changed.
+
 ## Current Snapshot
 
 ### Проект
