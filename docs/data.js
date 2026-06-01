@@ -1949,6 +1949,111 @@ K YN A9: Нет.
     });
     return count;
   };
+  Data.ARG_CANON_MILLENNIAL_STYLELEX = {
+    forbidden: [
+      { category: "game_words", id: "argument", terms: ["аргумент", "аргумента", "аргументу", "аргументом", "аргументе", "аргументы", "аргументов", "аргументам", "аргументами", "аргументах"] },
+      { category: "game_words", id: "mechanic", terms: ["механика", "механики", "механику", "механикой", "механике", "механик"] },
+      { category: "game_words", id: "level", terms: ["уровень", "уровня", "уровню", "уровнем", "уровне", "уровни", "уровней", "уровням", "уровнями", "уровнях"] },
+      { category: "game_words", id: "points", terms: ["очки", "очков", "очкам", "очками", "очках"] },
+      { category: "game_words", id: "resource", terms: ["ресурс", "ресурса", "ресурсу", "ресурсом", "ресурсе", "ресурсы", "ресурсов", "ресурсам", "ресурсами", "ресурсах"] },
+      { category: "game_words", id: "interface", terms: ["интерфейс", "интерфейса", "интерфейсу", "интерфейсом", "интерфейсе", "интерфейсы", "интерфейсов"] },
+      { category: "game_words", id: "button", terms: ["кнопка", "кнопки", "кнопку", "кнопкой", "кнопке", "кнопок", "кнопкам", "кнопками", "кнопках"] },
+      { category: "game_words", id: "system", terms: ["система", "системы", "систему", "системой", "системе", "систем", "системам", "системами", "системах"] },
+      { category: "bureaucratic_textbook", id: "officialese", terms: ["данный", "данная", "данное", "данные", "является", "являются", "осуществлять", "осуществляется", "осуществление", "посредством", "необходимо", "следует", "согласно", "таким образом", "представляет собой", "имеет место", "вышеуказанный", "нижеследующий", "соответствующий"] },
+      { category: "bureaucratic_textbook", id: "textbook_tone", terms: ["учебник", "учебника", "учебнику", "учебником", "учебнике", "учебниковый", "учебниковая", "учебниковое", "канцелярит"] },
+      { category: "meta_game", id: "meta_game", terms: ["meta-game", "metagame", "метагейм", "мета-игра", "метаигра", "геймплей", "баланс", "прокачка", "перки", "перк", "квест", "туториал", "рантайм", "runtime", "smoke", "ui"] }
+    ],
+    allowed: [
+      { id: "short", rule: "max_chars", maxChars: 70 },
+      { id: "alive", rule: "non_empty_human_line" },
+      { id: "conversational", rule: "allows_plain_speech_markers" },
+      { id: "no_textbook_tone", rule: "rejects_bureaucratic_textbook" }
+    ]
+  };
+
+  Data.buildArgCanonMillennialStyleLexRegex = (term) => {
+    const escaped = String(term || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (!escaped) return null;
+    return new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9_])${escaped}([^A-Za-zА-Яа-яЁё0-9_]|$)`, "iu");
+  };
+
+  Data.collectArgCanonMillennialStyleLexTexts = () => {
+    const out = [];
+    const index = Data.ARG_CANON_INDEX || {};
+    Object.keys(index).sort().forEach((key) => {
+      const rec = index[key];
+      if (!rec || !Array.isArray(rec.items)) return;
+      rec.items.forEach((it, idx) => {
+        if (!it) return;
+        const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || {};
+        const own = (id) => !!(id && Object.prototype.hasOwnProperty.call(store, id));
+        const qId = Data.argCanonTextId(rec.sub, rec.type, "Q", idx);
+        const aId = Data.argCanonTextId(rec.sub, rec.type, "A", idx);
+        if (it.q) out.push({ id: qId, text: own(qId) ? String(store[qId] || "") : String(it.q) });
+        if (it.a) out.push({ id: aId, text: own(aId) ? String(store[aId] || "") : String(it.a) });
+      });
+    });
+    return out;
+  };
+
+  Data.lintArgCanonMillennialStyleLex = () => {
+    const lex = Data.ARG_CANON_MILLENNIAL_STYLELEX || {};
+    const forbidden = Array.isArray(lex.forbidden) ? lex.forbidden : [];
+    const allowed = Array.isArray(lex.allowed) ? lex.allowed : [];
+    const texts = (typeof Data.collectArgCanonMillennialStyleLexTexts === "function") ? Data.collectArgCanonMillennialStyleLexTexts() : [];
+    const result = {
+      ok: false,
+      checkedCount: texts.length,
+      forbiddenRemaining: [],
+      failedChecks: [],
+      missingCoverage: []
+    };
+
+    const requiredForbiddenCategories = ["game_words", "bureaucratic_textbook", "meta_game"];
+    requiredForbiddenCategories.forEach((category) => {
+      if (!forbidden.some((item) => item && item.category === category && Array.isArray(item.terms) && item.terms.length > 0)) {
+        result.missingCoverage.push(category);
+      }
+    });
+
+    const requiredGameIds = ["argument", "mechanic", "level", "points", "resource", "interface", "button", "system"];
+    requiredGameIds.forEach((id) => {
+      if (!forbidden.some((item) => item && item.category === "game_words" && item.id === id && Array.isArray(item.terms) && item.terms.length > 0)) {
+        result.missingCoverage.push(`game_words:${id}`);
+      }
+    });
+
+    ["short", "alive", "conversational", "no_textbook_tone"].forEach((id) => {
+      if (!allowed.some((item) => item && item.id === id)) result.missingCoverage.push(`allowed:${id}`);
+    });
+
+    forbidden.forEach((group) => {
+      const terms = group && Array.isArray(group.terms) ? group.terms : [];
+      terms.forEach((term) => {
+        const rx = Data.buildArgCanonMillennialStyleLexRegex(term);
+        if (!rx) return;
+        texts.forEach((item) => {
+          if (rx.test(String(item.text || ""))) {
+            result.forbiddenRemaining.push({ id: item.id, category: group.category || "unknown", term: String(term), text: String(item.text || "") });
+          }
+        });
+      });
+    });
+
+    const shortRule = allowed.find((item) => item && item.id === "short");
+    const maxChars = shortRule && Number(shortRule.maxChars) ? Number(shortRule.maxChars) : 70;
+    texts.forEach((item) => {
+      const text = String(item.text || "").trim();
+      if (!text) result.failedChecks.push({ id: item.id, check: "alive", text: String(item.text || "") });
+      if (text.length > maxChars) result.failedChecks.push({ id: item.id, check: "short", maxChars, length: text.length, text });
+    });
+
+    result.ok = result.forbiddenRemaining.length === 0
+      && result.failedChecks.length === 0
+      && result.missingCoverage.length === 0;
+    return result;
+  };
+
 
   Data.buildArgCanon();
 
@@ -2656,6 +2761,34 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialContractSmoke();
+
+  const installArgCanonMillennialStyleLexSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    if (typeof root.__DEV.smokeArgCanonMillennialStyleLexOnce === "function") return;
+    root.__DEV.smokeArgCanonMillennialStyleLexOnce = function smokeArgCanonMillennialStyleLexOnce() {
+      let result;
+      try {
+        result = (typeof Data.lintArgCanonMillennialStyleLex === "function")
+          ? Data.lintArgCanonMillennialStyleLex()
+          : { ok: false, checkedCount: 0, forbiddenRemaining: [], failedChecks: ["lint_helper_missing"], missingCoverage: ["lint_helper"] };
+      } catch (err) {
+        result = {
+          ok: false,
+          checkedCount: 0,
+          forbiddenRemaining: [],
+          failedChecks: [err && err.message ? String(err.message) : String(err)],
+          missingCoverage: []
+        };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_STYLELEX_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_STYLELEX_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialStyleLexOnce);
+  };
+
+  installArgCanonMillennialStyleLexSmoke();
 
   Game.Data = Data;
 })();
