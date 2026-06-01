@@ -1408,8 +1408,9 @@ button:disabled{opacity:.55; cursor:not-allowed}
     --mobile-topbar-height:58px;
     --mobile-chat-height:52svh;
     --mobile-chat-min:220px;
-    --mobile-chat-max:calc(100svh - var(--mobile-topbar-height) - 150px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    --mobile-stack-offset:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-chat-height) + var(--mobile-gap));
+    --mobile-menu-stack-height:0px;
+    --mobile-chat-max:calc(100svh - var(--mobile-topbar-height) - var(--mobile-menu-stack-height) - 150px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    --mobile-stack-offset:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height) + var(--mobile-chat-height) + var(--mobile-gap));
   }
   html,body{
     width:100%;
@@ -1439,9 +1440,25 @@ button:disabled{opacity:.55; cursor:not-allowed}
     z-index:90;
     max-width:calc(100vw - (var(--mobile-edge) * 2) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   }
-  #left,.left{
+  #menuBlock.menu-open{
     position:fixed;
     top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap));
+    left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
+    right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
+    z-index:85;
+    width:auto;
+    max-width:calc(100vw - (var(--mobile-edge) * 2) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    max-height:36svh;
+    margin:0;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+  #menuBlock.menu-open .panelBody{
+    max-height:calc(36svh - 54px);
+  }
+  #left,.left{
+    position:fixed;
+    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:80;
@@ -1481,6 +1498,9 @@ button:disabled{opacity:.55; cursor:not-allowed}
     overflow:visible;
     padding-top:var(--mobile-stack-offset);
     display:block;
+  }
+  #right.menu-open #blocks{
+    padding-top:0;
   }
   #blocks{
     min-height:0;
