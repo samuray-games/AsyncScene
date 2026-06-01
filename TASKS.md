@@ -65,6 +65,23 @@
 
 ## Inbox
 
+### [T-20260601-019] STEP4-[2] ARG CANON MILLENNIAL — StyleLex taboo dictionary
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: QA
+- Area: Content|Dev Smoke|Runtime Smoke
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add a forbidden/allowed StyleLex lint layer for millennial ARG canon text without changing `ARG_CANON_ID`, argument text, logic, types, tones, weights, matching, battles, economy, or UI behavior.
+- Acceptance:
+  - [x] Forbidden dictionary covers game words (`аргумент`, `механика`, `уровень`, `очки`, `ресурс`, `интерфейс`, `кнопка`, `система`), bureaucratic/textbook tone, and meta-game wording.
+  - [x] Allowed style rules cover short, живо/alive, conversational, and no textbook tone.
+  - [x] Dev smoke `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()` returns `{ ok, checkedCount, forbiddenRemaining, failedChecks, missingCoverage }`.
+  - [x] Local VM smoke returns `ok:true`, `checkedCount:692`, `forbiddenRemaining:[]`, `failedChecks:[]`, and `missingCoverage:[]`.
+  - [ ] iPhone Safari runtime smoke is still required before runtime PASS.
+- Notes: READY_FOR_RUNTIME_SMOKE only. Did not use `Console.txt`. Commit hash: recorded in the final one-line READY report.
+- Result: Static JS syntax checks PASS and local VM stylelex smoke PASS. Runtime PASS is not claimed until Safari runs `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()`.
+
 ### [T-20260601-018] STEP4-[1] ARG CANON MILLENNIAL — boundaries, contract, runtime exposure fix
 - Status: REVIEW
 - Priority: P0

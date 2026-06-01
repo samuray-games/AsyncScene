@@ -4476,3 +4476,11 @@ Error: Download failure, code=1
 - Evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS local Node VM smoke returned `ok:true`, build marker `STEP3_TERMINOLOGY_REGRESSION_PACK_V1`, `scenarioCount:10`, `checkedCount:230`, no failures, no forbidden remaining, and no missing coverage. WARNING Playwright Chromium is missing locally, so browser automation could not run and no iPhone Safari PASS is claimed.
 - PASS criteria: iPhone Safari returns `ok:true`, exact build marker `STEP3_TERMINOLOGY_REGRESSION_PACK_V1`, 8-12 scenarios, `checkedCount > 0`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, all scenario results OK, and completion under the 2-3 minute device target. FAIL criteria: any scenario failure, forbidden synonym/new variant, missing coverage, missing table-governed concept/canonical string, or runtime PASS claimed without iPhone Safari.
 - Safari QA command: `Game.__DEV.smokeStep3TerminologyRegressionPackOnce()`.
+## 2026-06-01 - STEP4-[2] ARG CANON MILLENNIAL StyleLex taboo dictionary
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS and local VM smoke PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Added mirrored millennial ARG canon StyleLex data with forbidden game-word, bureaucratic/textbook, and meta-game dictionaries plus allowed short/alive/conversational/no-textbook rules.
+- Added mirrored `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()` exposure through both `data.js` runtime fallback and `dev/dev-checks.js`.
+- Scope guard: `ARG_CANON_ID`, argument texts, logic, types, tones, weights, matching, battles, economy, and UI behavior were not changed. `Console.txt` was not used.
+- Evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke returned `ok:true`, `checkedCount:692`, `forbiddenRemaining:[]`, `failedChecks:[]`, and `missingCoverage:[]`.
+- Commit hash: recorded in the final one-line READY report.
+- Safari QA command: `Game.__DEV.smokeArgCanonMillennialStyleLexOnce()`.
