@@ -4259,3 +4259,13 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeStep3MillennialStyleGuideOnce()` to both dev-checks copies. The smoke is static-only and validates required sections, required rules, forbidden categories, CTA/error/hint rules, positive phrase limits, and no internal contradictions between preferred/forbidden vocabulary or CTA verbs.
 - Static evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS Node static artifact validation printed `STEP3_MILLENNIAL_STYLE_GUIDE_STATIC PASS`.
 - Safari command for QA: `Game.__DEV.smokeStep3MillennialStyleGuideOnce()`.
+
+## 2026-06-01 — Step 3 [4] strict UI taxonomy categories
+- Status: READY_FOR_RUNTIME_SMOKE. Static validation PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Added governance artifact `STEP3_UI_TAXONOMY_V1.csv` under both `docs/terminology/` and `AsyncScene/Web/terminology/`.
+- The artifact assigns each of the 3513 existing inventory terms exactly one `taxonomyCategory` while preserving the source inventory category as `originalCategory`.
+- Required strict categories are `Button`, `BlockTitle`, `Status`, `Hint`, `Error`, `ResourceName`, `ActionName`, `ReasonName`, and `CooldownLabel`.
+- Mapping rule: concrete inventory buttons remain `Button`; canon action concepts map to `ActionName`; `EconomyReason` maps to `ReasonName`; `Cooldown` maps to `CooldownLabel`; broad display/message categories map to `Status`.
+- Added static generator/validator tooling and mirrored dev smoke `Game.__DEV.smokeStep3UiTaxonomyOnce()` with build marker `STEP3_UI_TAXONOMY_V1`.
+- Static evidence: PASS `tools/validate-step3-ui-taxonomy.py docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
+- Safari command for QA: `Game.__DEV.smokeStep3UiTaxonomyOnce()`.
