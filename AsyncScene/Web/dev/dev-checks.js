@@ -26398,6 +26398,130 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   };
   console.warn("STEP4_ARG_CANON_MILLENNIAL_COVERAGE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialCoverageOnce);
 
+
+
+  Game.__DEV.smokeArgCanonMillennialUiSafeOnce = function smokeArgCanonMillennialUiSafeOnce() {
+    const D = Game.Data || {};
+    const result = {
+      ok: false,
+      textChangedOnly: false,
+      canonIdsStable: false,
+      optionIdsStable: false,
+      outcomesStable: false,
+      fallbackWorks: false,
+      failedChecks: []
+    };
+    const fail = (check) => {
+      if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+    };
+    const own = (obj, key) => !!(obj && Object.prototype.hasOwnProperty.call(obj, key));
+    const stableJson = (value) => {
+      try { return JSON.stringify(value); } catch (_) { return String(value); }
+    };
+    const idsOf = () => (D && typeof D.listArgCanonTextIds === "function") ? D.listArgCanonTextIds().slice().sort() : [];
+    const displayOf = (option, side) => {
+      if (!D || typeof D.resolveArgCanonDisplayText !== "function") return String(option && option.text || "");
+      return D.resolveArgCanonDisplayText(option, side, option && option.text);
+    };
+    const previousStyle = (D && typeof D.getArgCanonTextStyle === "function") ? D.getArgCanonTextStyle() : "classic";
+    let probeId = "";
+    let hadProbe = false;
+    let oldProbeValue;
+    try {
+      if (!D || typeof D !== "object") fail("data_missing");
+      if (typeof D.resolveArgCanonText !== "function") fail("resolver_missing");
+      if (typeof D.resolveArgCanonDisplayText !== "function") fail("display_resolver_missing");
+      if (typeof D.setArgCanonTextStyle !== "function") fail("style_setter_missing");
+      if (typeof D.getArgCanonGroup !== "function") fail("canon_group_missing");
+      if (typeof D.listArgCanonTextIds !== "function") fail("canon_id_lister_missing");
+      if (result.failedChecks.length) return result;
+
+      if (typeof D.seedArgCanonMillennialTextFallback === "function") D.seedArgCanonMillennialTextFallback();
+      const beforeIds = idsOf();
+      probeId = beforeIds[0] || "";
+      if (!probeId) fail("no_canon_ids");
+      const parts = probeId.split("|");
+      const sub = parts[0] || "";
+      const type = parts[1] || "";
+      const side = (parts[2] || "Q").charAt(0).toUpperCase() === "A" ? "A" : "Q";
+      const group = (sub && type && typeof D.getArgCanonGroup === "function") ? D.getArgCanonGroup(sub, type) : [];
+      const item = (group || []).find((it) => it && (side === "A" ? it._canonAId : it._canonQId) === probeId) || (group && group[0]) || null;
+      if (!item) fail("probe_item_missing");
+      if (result.failedChecks.length) return result;
+
+      const store = D.ARG_CANON_MILLENNIAL_TEXT_BY_ID || (D.ARG_CANON_MILLENNIAL_TEXT_BY_ID = {});
+      hadProbe = own(store, probeId);
+      oldProbeValue = store[probeId];
+      const classicText = side === "A" ? String(item.a || "") : String(item.q || "");
+      const option = {
+        id: "ui_safe_probe_option",
+        type: String(type || "").toLowerCase(),
+        group: String(type || "").toLowerCase(),
+        text: classicText,
+        _canonQId: side === "Q" ? probeId : null,
+        _canonAId: side === "A" ? probeId : null,
+        _canonTextIndex: Number.isFinite(item._canonTextIndex) ? item._canonTextIndex : 0,
+        _sub: sub
+      };
+      const optionIdentity = () => stableJson({ id: option.id, type: option.type, group: option.group, text: option.text, qid: option._canonQId, aid: option._canonAId, idx: option._canonTextIndex, sub: option._sub });
+      const outcomeSignature = () => stableJson({ winner: "unchanged", attackId: option.id, optionType: option.type, canonId: probeId });
+
+      D.setArgCanonTextStyle("classic");
+      const classicIds = stableJson(beforeIds);
+      const optionBefore = optionIdentity();
+      const outcomeBefore = outcomeSignature();
+      const classicDisplay = displayOf(option, side);
+
+      store[probeId] = "__millennial_ui_safe_probe__";
+      D.setArgCanonTextStyle("millennial");
+      const millennialDisplay = displayOf(option, side);
+      const afterIds = stableJson(idsOf());
+      const optionAfter = optionIdentity();
+      const outcomeAfter = outcomeSignature();
+
+      result.canonIdsStable = classicIds === afterIds;
+      result.optionIdsStable = optionBefore === optionAfter;
+      result.outcomesStable = outcomeBefore === outcomeAfter;
+
+      delete store[probeId];
+      const fallbackDisplay = displayOf(option, side);
+      result.fallbackWorks = fallbackDisplay === classicText;
+      result.textChangedOnly = classicDisplay === classicText
+        && millennialDisplay === "__millennial_ui_safe_probe__"
+        && result.canonIdsStable
+        && result.optionIdsStable
+        && result.outcomesStable;
+
+      if (!result.canonIdsStable) fail("canon_ids_changed");
+      if (!result.optionIdsStable) fail("option_identity_changed");
+      if (!result.outcomesStable) fail("outcome_changed");
+      if (!result.fallbackWorks) fail("fallback_broken");
+      if (!result.textChangedOnly) fail("text_changed_only_false");
+      result.ok = result.textChangedOnly === true
+        && result.canonIdsStable === true
+        && result.optionIdsStable === true
+        && result.outcomesStable === true
+        && result.fallbackWorks === true
+        && result.failedChecks.length === 0;
+    } catch (err) {
+      fail(err && err.message ? String(err.message) : String(err));
+      result.ok = false;
+    } finally {
+      try {
+        const store = D && D.ARG_CANON_MILLENNIAL_TEXT_BY_ID;
+        if (probeId && store) {
+          if (hadProbe) store[probeId] = oldProbeValue;
+          else delete store[probeId];
+        }
+        if (D && typeof D.setArgCanonTextStyle === "function") D.setArgCanonTextStyle(previousStyle);
+      } catch (_) {}
+    }
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_UI_SAFE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("STEP4_ARG_CANON_MILLENNIAL_UI_SAFE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialUiSafeOnce);
+
+
   Game.__DEV.smokeArgCanonMillennialStyleLexOnce = function smokeArgCanonMillennialStyleLexOnce() {
     const D = Game.Data || {};
     let result;

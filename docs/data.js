@@ -1865,15 +1865,21 @@ K YN A9: Нет.
     const rec = Data.ARG_CANON_INDEX ? Data.ARG_CANON_INDEX[key] : null;
     if (!rec || !Array.isArray(rec.items)) return [];
     // Hard filter: if either side contains "здесь", exclude the whole pair.
-    return rec.items.filter(it => {
-      if (!it || !it.q || !it.a) return false;
+    const out = [];
+    rec.items.forEach((it, idx) => {
+      if (!it || !it.q || !it.a) return;
       try {
         const q = String(it.q).toLowerCase();
         const a = String(it.a).toLowerCase();
-        if (q.includes("здесь") || a.includes("здесь")) return false;
+        if (q.includes("здесь") || a.includes("здесь")) return;
       } catch (_) {}
-      return true;
+      out.push(Object.assign({}, it, {
+        _canonQId: Data.argCanonTextId(s, t, "Q", idx),
+        _canonAId: Data.argCanonTextId(s, t, "A", idx),
+        _canonTextIndex: idx
+      }));
     });
+    return out;
   };
 
   Data.getArgCanonByColorSubType = (color, sub, type) => {
@@ -1908,13 +1914,32 @@ K YN A9: Нет.
 
   Data.resolveArgCanonText = (canonId, classicText) => {
     const classic = String(classicText || "");
-    if (Data.getArgCanonTextStyle() !== "millennial") return classic;
-    const id = String(canonId || "").trim();
-    const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID;
-    if (!id || !store || typeof store !== "object") return classic;
-    if (!Object.prototype.hasOwnProperty.call(store, id)) return classic;
-    const next = store[id];
-    return (typeof next === "string" && next.trim()) ? next : classic;
+    switch (Data.getArgCanonTextStyle()) {
+      case "millennial": {
+        const id = String(canonId || "").trim();
+        const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID;
+        if (!id || !store || typeof store !== "object") return classic;
+        if (!Object.prototype.hasOwnProperty.call(store, id)) return classic;
+        const next = store[id];
+        return (typeof next === "string" && next.trim()) ? next : classic;
+      }
+      case "classic":
+      default:
+        return classic;
+    }
+  };
+
+  Data.resolveArgCanonDisplayText = (arg, side, classicText) => {
+    const a = arg || {};
+    const sideU = String(side || "").toUpperCase() === "A" ? "A" : "Q";
+    const classic = (classicText != null)
+      ? String(classicText || "")
+      : String((sideU === "A" ? (a._canonA || a.text) : (a._canonQ || a.text)) || "");
+    const directId = sideU === "A" ? a._canonAId : a._canonQId;
+    const computedId = (!directId && a._sub && (a.type || a.group) && Number.isFinite(a._canonTextIndex))
+      ? Data.argCanonTextId(a._sub, a.type || a.group, sideU, a._canonTextIndex)
+      : "";
+    return Data.resolveArgCanonText(directId || computedId, classic);
   };
 
   Data.listArgCanonTextIds = () => {
@@ -3271,6 +3296,138 @@ K YN A9: Нет.
   };
 
   installArgCanonMillennialContractSmoke();
+
+
+  Data.smokeArgCanonMillennialUiSafeOnce = () => {
+    const result = {
+      ok: false,
+      textChangedOnly: false,
+      canonIdsStable: false,
+      optionIdsStable: false,
+      outcomesStable: false,
+      fallbackWorks: false,
+      failedChecks: []
+    };
+    const fail = (check) => {
+      if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+    };
+    const own = (obj, key) => !!(obj && Object.prototype.hasOwnProperty.call(obj, key));
+    const stableJson = (value) => {
+      try { return JSON.stringify(value); } catch (_) { return String(value); }
+    };
+    const idsOf = () => (typeof Data.listArgCanonTextIds === "function") ? Data.listArgCanonTextIds().slice().sort() : [];
+    const displayOf = (option, side) => {
+      if (typeof Data.resolveArgCanonDisplayText !== "function") return String(option && option.text || "");
+      return Data.resolveArgCanonDisplayText(option, side, option && option.text);
+    };
+    const previousStyle = (typeof Data.getArgCanonTextStyle === "function") ? Data.getArgCanonTextStyle() : "classic";
+    let probeId = "";
+    let hadProbe = false;
+    let oldProbeValue;
+    try {
+      if (typeof Data.resolveArgCanonText !== "function") fail("resolver_missing");
+      if (typeof Data.resolveArgCanonDisplayText !== "function") fail("display_resolver_missing");
+      if (typeof Data.setArgCanonTextStyle !== "function") fail("style_setter_missing");
+      if (typeof Data.getArgCanonGroup !== "function") fail("canon_group_missing");
+      if (typeof Data.listArgCanonTextIds !== "function") fail("canon_id_lister_missing");
+      if (result.failedChecks.length) return result;
+      if (typeof Data.seedArgCanonMillennialTextFallback === "function") Data.seedArgCanonMillennialTextFallback();
+      const beforeIds = idsOf();
+      probeId = beforeIds[0] || "";
+      if (!probeId) fail("no_canon_ids");
+      const parts = probeId.split("|");
+      const sub = parts[0] || "";
+      const type = parts[1] || "";
+      const side = (parts[2] || "Q").charAt(0).toUpperCase() === "A" ? "A" : "Q";
+      const group = (sub && type) ? Data.getArgCanonGroup(sub, type) : [];
+      const item = (group || []).find((it) => it && (side === "A" ? it._canonAId : it._canonQId) === probeId) || (group && group[0]) || null;
+      if (!item) fail("probe_item_missing");
+      if (result.failedChecks.length) return result;
+      const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID || (Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID = Object.create(null));
+      hadProbe = own(store, probeId);
+      oldProbeValue = store[probeId];
+      const classicText = side === "A" ? String(item.a || "") : String(item.q || "");
+      const option = {
+        id: "ui_safe_probe_option",
+        type: String(type || "").toLowerCase(),
+        group: String(type || "").toLowerCase(),
+        text: classicText,
+        _canonQId: side === "Q" ? probeId : null,
+        _canonAId: side === "A" ? probeId : null,
+        _canonTextIndex: Number.isFinite(item._canonTextIndex) ? item._canonTextIndex : 0,
+        _sub: sub
+      };
+      const optionIdentity = () => stableJson({ id: option.id, type: option.type, group: option.group, text: option.text, qid: option._canonQId, aid: option._canonAId, idx: option._canonTextIndex, sub: option._sub });
+      const outcomeSignature = () => stableJson({ winner: "unchanged", attackId: option.id, optionType: option.type, canonId: probeId });
+      Data.setArgCanonTextStyle("classic");
+      const classicIds = stableJson(beforeIds);
+      const optionBefore = optionIdentity();
+      const outcomeBefore = outcomeSignature();
+      const classicDisplay = displayOf(option, side);
+      store[probeId] = "__millennial_ui_safe_probe__";
+      Data.setArgCanonTextStyle("millennial");
+      const millennialDisplay = displayOf(option, side);
+      const afterIds = stableJson(idsOf());
+      const optionAfter = optionIdentity();
+      const outcomeAfter = outcomeSignature();
+      result.canonIdsStable = classicIds === afterIds;
+      result.optionIdsStable = optionBefore === optionAfter;
+      result.outcomesStable = outcomeBefore === outcomeAfter;
+      delete store[probeId];
+      const fallbackDisplay = displayOf(option, side);
+      result.fallbackWorks = fallbackDisplay === classicText;
+      result.textChangedOnly = classicDisplay === classicText
+        && millennialDisplay === "__millennial_ui_safe_probe__"
+        && result.canonIdsStable
+        && result.optionIdsStable
+        && result.outcomesStable;
+      if (!result.canonIdsStable) fail("canon_ids_changed");
+      if (!result.optionIdsStable) fail("option_identity_changed");
+      if (!result.outcomesStable) fail("outcome_changed");
+      if (!result.fallbackWorks) fail("fallback_broken");
+      if (!result.textChangedOnly) fail("text_changed_only_false");
+      result.ok = result.textChangedOnly === true
+        && result.canonIdsStable === true
+        && result.optionIdsStable === true
+        && result.outcomesStable === true
+        && result.fallbackWorks === true
+        && result.failedChecks.length === 0;
+    } catch (err) {
+      fail(err && err.message ? String(err.message) : String(err));
+      result.ok = false;
+    } finally {
+      try {
+        const store = Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID;
+        if (probeId && store) {
+          if (hadProbe) store[probeId] = oldProbeValue;
+          else delete store[probeId];
+        }
+        if (typeof Data.setArgCanonTextStyle === "function") Data.setArgCanonTextStyle(previousStyle);
+      } catch (_) {}
+    }
+    return result;
+  };
+
+  const installArgCanonMillennialUiSafeSmoke = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV) root.__DEV = {};
+    root.__DEV.smokeArgCanonMillennialUiSafeOnce = function smokeArgCanonMillennialUiSafeOnce() {
+      let result;
+      try {
+        result = (typeof Data.smokeArgCanonMillennialUiSafeOnce === "function")
+          ? Data.smokeArgCanonMillennialUiSafeOnce()
+          : { ok: false, textChangedOnly: false, canonIdsStable: false, optionIdsStable: false, outcomesStable: false, fallbackWorks: false, failedChecks: ["ui_safe_helper_missing"] };
+      } catch (err) {
+        result = { ok: false, textChangedOnly: false, canonIdsStable: false, optionIdsStable: false, outcomesStable: false, fallbackWorks: false, failedChecks: [err && err.message ? String(err.message) : String(err)] };
+      }
+      console.warn("STEP4_ARG_CANON_MILLENNIAL_UI_SAFE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("STEP4_ARG_CANON_MILLENNIAL_UI_SAFE_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeArgCanonMillennialUiSafeOnce);
+  };
+
+  installArgCanonMillennialUiSafeSmoke();
 
   const installArgCanonMillennialStyleLexSmoke = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;

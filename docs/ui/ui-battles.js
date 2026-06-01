@@ -16,6 +16,18 @@
     ? Game.Data.t(key, vars)
     : String(key || "");
 
+  function argCanonUiText(arg, side) {
+    const p = arg || {};
+    const D = Game && Game.Data ? Game.Data : null;
+    const sideU = String(side || "").toUpperCase() === "A" ? "A" : "Q";
+    const classic = String(p.text || "");
+    const fallback = String(p.displayText || classic);
+    if (!D || typeof D.resolveArgCanonText !== "function") return fallback;
+    const id = sideU === "A" ? p._canonAId : p._canonQId;
+    if (!id) return fallback;
+    return D.resolveArgCanonText(id, classic);
+  }
+
   const isDevCrowdMode = (() => {
     if (typeof window === "undefined") return false;
     const devQuery = (typeof location !== "undefined" && location.search) ? location.search : "";
@@ -906,7 +918,7 @@
       aRow.className = "choiceRow";
       const a = document.createElement("div");
       a.className = clsForColor(battle.attack.color);
-      a.textContent = battle.attack.text;
+      a.textContent = argCanonUiText(battle.attack, "Q");
       if (!battle.attack.color) {
         a.className = clsForColor(null, true);
         a.style.color = "rgba(255,255,255,.92)";
@@ -924,7 +936,7 @@
       dRow.className = "choiceRow";
       const d = document.createElement("div");
       d.className = clsForColor(battle.defense.color);
-      d.textContent = battle.defense.text;
+      d.textContent = argCanonUiText(battle.defense, "A");
       if (!battle.defense.color) {
         d.className = clsForColor(null, true);
         d.style.color = "rgba(255,255,255,.92)";
@@ -2174,7 +2186,7 @@ UI.renderBattles = () => {
              aRow.className = "choiceRow";
              const a = document.createElement("div");
              a.className = clsForColor(b.attack.color);
-             a.textContent = b.attack.text;
+             a.textContent = argCanonUiText(b.attack, "Q");
              if (!b.attack.color) {
                a.className = clsForColor(null, true);
                a.style.color = "rgba(255,255,255,.92)";
@@ -2192,7 +2204,7 @@ UI.renderBattles = () => {
              dRow.className = "choiceRow";
              const d = document.createElement("div");
              d.className = clsForColor(b.defense.color);
-             d.textContent = b.defense.text;
+             d.textContent = argCanonUiText(b.defense, "A");
              if (!b.defense.color) {
                d.className = clsForColor(null, true);
                d.style.color = "rgba(255,255,255,.92)";
@@ -2419,7 +2431,7 @@ UI.renderBattles = () => {
 
           const chip = document.createElement("div");
           chip.className = clsForColor(null, true);
-          chip.textContent = `Вброс: ${String(b.attack.text || "")}`;
+          chip.textContent = `Вброс: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           chip.style.color = "rgba(255,255,255,.92)";
           // show toast above incoming (grey) attack when clicked
           chip.onclick = (e) => {
@@ -2526,7 +2538,7 @@ UI.renderBattles = () => {
             const chip = document.createElement("div");
             // Outgoing attack choices should be color-visible.
             chip.className = clsForColor(p && p.color ? p.color : null, false);
-            chip.textContent = String(p && p.text ? p.text : "");
+            chip.textContent = argCanonUiText(p, "Q");
 
             // UI type hints (Canon hover)
             try {
@@ -2707,7 +2719,7 @@ UI.renderBattles = () => {
 
             if (p && p._pad) {
               chip.className = clsForColor(null, true);
-              chip.textContent = p.text;
+              chip.textContent = argCanonUiText(p, "A");
               chip.style.opacity = "0.55";
               chip.style.cursor = "default";
               chip.style.color = "rgba(255,255,255,.92)";
@@ -2729,7 +2741,7 @@ UI.renderBattles = () => {
             }
 
             chip.className = clsForColor(p.color);
-            chip.textContent = p.text;
+            chip.textContent = argCanonUiText(p, "A");
 
             // Counter-arguments: hover hints disabled
             try { chip.removeAttribute("title"); } catch (_) {}
