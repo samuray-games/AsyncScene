@@ -564,7 +564,9 @@ window.Game = window.Game || {};
       right2.style.setProperty("--menu-height", `${Math.ceil(h2)}px`);
     }
 
-    // Menu is a block, not overlay. Let layout flow push content down.
+    if (UI.ensureMobilePinnedChatLayout) UI.ensureMobilePinnedChatLayout();
+
+    // Menu is a block on desktop. Mobile pins it between the stats bar and chat.
     el.scrollIntoView?.({ block: "nearest" });
 
     const inp = document.getElementById("lotteryBet");
@@ -586,6 +588,8 @@ window.Game = window.Game || {};
       right.style.removeProperty("--menu-height");
       right.classList.remove("menu-open");
     }
+
+    if (UI.ensureMobilePinnedChatLayout) UI.ensureMobilePinnedChatLayout();
   };
 
   UI.toggleMenu = () => {
