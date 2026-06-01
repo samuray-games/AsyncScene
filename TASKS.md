@@ -4536,3 +4536,12 @@ Error: Download failure, code=1
 - Browser automation warning: `ASYNCSCENE_SMOKE_URL=file:///workspace/AsyncScene/docs/index.html npm run smoke:asyncscene -- smokeStep3TerminologyRematchLayerOnce` still cannot launch because Playwright Chromium is missing at `/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell`; this is not an iPhone Safari PASS.
 - Required Safari command after deployment/cache refresh: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
 - Runtime PASS criteria remain: iPhone Safari returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, and `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`.
+
+## 2026-06-01 — Step 3 [7.6] Rematch smoke scope v2
+- Status: READY_FOR_RUNTIME_SMOKE. Static scoped validation PASS and local VM smoke PASS; iPhone Safari runtime PASS has not been executed or claimed.
+- Fixed both deployed dev-checks copies so `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()` uses `scopeMode:"rematch_where_used_only_v2"` and reports `scannedRows`.
+- The Rematch forbidden-synonym scan is now limited to explicit Rematch where-used rows plus exact runtime-facing Rematch strings; it does not scan broad source windows, comments, generic battle invite code, generic battle loop code, or non-user-visible identifiers.
+- Local evidence: PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS static scoped Rematch scan with `ok:true`, `scopeMode:"rematch_where_used_only_v2"`, `missing:[]`, and `forbiddenRemaining:[]`; PASS local VM smoke for both dev-checks copies with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`, and `scannedRows:16`.
+- Required Safari command after deployment/cache refresh: `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()`.
+- Runtime PASS criteria remain: iPhone Safari returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `buildMarker:"STEP3_TERMINOLOGY_REMATCH_LAYER_V1"`, and `scopeMode:"rematch_where_used_only_v2"`.
+- Scope guard: no gameplay, economy, rematch mechanics, battle state, cooldowns, eligibility rules, or data models were changed.
