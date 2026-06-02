@@ -3874,6 +3874,153 @@ K YN A9: Нет.
       console.warn("ONBOARDING_SPEC_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
+    root.__DEV.smokeOnboardingMinimalUiOnce = function smokeOnboardingMinimalUiOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        viewportChecks: [],
+        defaultViewportNoScroll: false,
+        ctaVisibleAndAligned: false,
+        noLayoutOverlap: false,
+        noExtraStartScreenBlocks: false,
+        startStillEntersGame: false,
+        rulesStillDoesNotBlockStart: false,
+        specSmoke: null
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const runtimeData = (root && root.Data) ? root.Data : Data;
+      const spec = runtimeData && runtimeData.START_SCREEN;
+      const allowedIds = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
+      const restore = [];
+      const saveStyle = (el, props) => {
+        if (!el) return;
+        const item = { el, values: {} };
+        props.forEach((prop) => { item.values[prop] = el.style[prop] || ""; });
+        restore.push(item);
+      };
+      const restoreStyles = () => {
+        restore.reverse().forEach((item) => {
+          Object.keys(item.values).forEach((prop) => { item.el.style[prop] = item.values[prop]; });
+        });
+      };
+      const rectOf = (el) => {
+        const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+        return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
+      };
+      const roundedRect = (r) => r ? { left: Math.round(r.left), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom), width: Math.round(r.width), height: Math.round(r.height) } : null;
+      const inside = (inner, outer) => !!(inner && outer && inner.left >= outer.left - 1 && inner.top >= outer.top - 1 && inner.right <= outer.right + 1 && inner.bottom <= outer.bottom + 1);
+      const overlaps = (a, b) => !!(a && b && a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1);
+      const visible = (el) => {
+        if (!el) return false;
+        const cs = (typeof getComputedStyle === "function") ? getComputedStyle(el) : null;
+        const r = rectOf(el);
+        return !el.hidden && (!cs || (cs.display !== "none" && cs.visibility !== "hidden" && cs.opacity !== "0")) && !!(r && r.width > 0 && r.height > 0);
+      };
+      try {
+        if (!spec || typeof spec.title !== "string" || !Array.isArray(spec.introLines) || !spec.actions) fail("missing_start_screen_source", null);
+        const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+        const card = (typeof document !== "undefined") ? document.getElementById("startCard") : null;
+        const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
+        const introEl = (typeof document !== "undefined") ? document.getElementById("startIntroLines") : null;
+        const btns = (typeof document !== "undefined") ? document.getElementById("startBtns") : null;
+        const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+        const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
+        if (!st || !card || !titleEl || !introEl || !btns || !startBtn || !rulesBtn) fail("required_dom_missing", null);
+        if (st) {
+          st.hidden = false;
+          st.classList.remove("hidden");
+          st.classList.add("active");
+          st.removeAttribute("aria-hidden");
+          saveStyle(st, ["position", "inset", "left", "top", "right", "bottom", "width", "height", "display", "visibility", "opacity", "pointerEvents", "zIndex"]);
+          saveStyle(card, ["maxHeight", "overflow"]);
+          st.style.position = "fixed";
+          st.style.display = "flex";
+          st.style.visibility = "visible";
+          st.style.opacity = "1";
+          st.style.pointerEvents = "auto";
+          st.style.zIndex = "2147483647";
+        }
+        const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
+        const actions = spec && spec.actions ? spec.actions : {};
+        if (spec && titleEl && (titleEl.textContent || "").trim() !== spec.title) fail("title_not_from_source", (titleEl.textContent || "").trim());
+        if (spec && JSON.stringify(renderedLines) !== JSON.stringify(spec.introLines)) fail("intro_not_from_source", renderedLines);
+        if (spec && startBtn && (startBtn.textContent || "").trim() !== actions.start) fail("start_action_not_from_source", (startBtn.textContent || "").trim());
+        if (spec && rulesBtn && (rulesBtn.textContent || "").trim() !== actions.rules) fail("rules_action_not_from_source", (rulesBtn.textContent || "").trim());
+        const extra = [];
+        if (st) {
+          Array.from(st.children).forEach((el) => { if (!allowedIds.has(el.id)) extra.push(el.id || el.tagName.toLowerCase()); });
+          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => extra.push(el.id || el.tagName.toLowerCase()));
+          Array.from(st.querySelectorAll("button")).forEach((button) => { if (!allowedIds.has(button.id)) extra.push(button.id || "button"); });
+        }
+        result.noExtraStartScreenBlocks = extra.length === 0;
+        if (extra.length) fail("extra_start_screen_blocks", extra);
+        const defaultDoc = (typeof document !== "undefined") ? document.documentElement : null;
+        result.defaultViewportNoScroll = !!(st && st.scrollWidth <= st.clientWidth + 1 && st.scrollHeight <= st.clientHeight + 1 && (!defaultDoc || defaultDoc.scrollWidth <= defaultDoc.clientWidth + 1));
+        if (!result.defaultViewportNoScroll) fail("default_viewport_scroll", st ? { scrollWidth: st.scrollWidth, clientWidth: st.clientWidth, scrollHeight: st.scrollHeight, clientHeight: st.clientHeight } : null);
+        const viewports = [
+          { name: "narrow", width: 320, height: 568 },
+          { name: "medium", width: 768, height: 720 },
+          { name: "wide", width: 1280, height: 800 }
+        ];
+        viewports.forEach((vp) => {
+          if (!st || !card || !titleEl || !introEl || !btns || !startBtn || !rulesBtn) return;
+          st.style.inset = "auto";
+          st.style.left = "0";
+          st.style.top = "0";
+          st.style.right = "auto";
+          st.style.bottom = "auto";
+          st.style.width = `${vp.width}px`;
+          st.style.height = `${vp.height}px`;
+          if (card) {
+            card.style.maxHeight = `calc(${vp.height}px - 40px)`;
+            card.style.overflow = "hidden";
+          }
+          const stRect = rectOf(st);
+          const cardRect = rectOf(card);
+          const titleRect = rectOf(titleEl);
+          const introRect = rectOf(introEl);
+          const btnsRect = rectOf(btns);
+          const startRect = rectOf(startBtn);
+          const rulesRect = rectOf(rulesBtn);
+          const ctaVisible = visible(startBtn) && visible(rulesBtn) && inside(startRect, cardRect) && inside(rulesRect, cardRect) && inside(startRect, stRect) && inside(rulesRect, stRect);
+          const ctaAligned = !!(startRect && rulesRect && Math.abs(startRect.top - rulesRect.top) <= 1 && Math.abs(startRect.height - rulesRect.height) <= 1);
+          const noScroll = !!(st && st.scrollWidth <= st.clientWidth + 1 && st.scrollHeight <= st.clientHeight + 1);
+          const noOverlap = !overlaps(titleRect, introRect) && !overlaps(introRect, btnsRect) && !overlaps(titleRect, btnsRect);
+          const check = { name: vp.name, width: vp.width, height: vp.height, noScroll, ctaVisible, ctaAligned, noOverlap, card: roundedRect(cardRect), start: roundedRect(startRect), rules: roundedRect(rulesRect) };
+          result.viewportChecks.push(check);
+          if (!noScroll) fail(`${vp.name}_viewport_scroll`, check);
+          if (!ctaVisible) fail(`${vp.name}_cta_not_visible`, check);
+          if (!ctaAligned) fail(`${vp.name}_cta_not_aligned`, check);
+          if (!noOverlap) fail(`${vp.name}_layout_overlap`, check);
+        });
+        result.ctaVisibleAndAligned = result.viewportChecks.length === 3 && result.viewportChecks.every((check) => check.ctaVisible && check.ctaAligned);
+        result.noLayoutOverlap = result.viewportChecks.length === 3 && result.viewportChecks.every((check) => check.noOverlap);
+      } catch (err) {
+        fail("minimal_ui_smoke_exception", err && err.message ? String(err.message) : String(err));
+      } finally {
+        try { restoreStyles(); } catch (_) {}
+      }
+      try {
+        if (typeof root.__DEV.smokeOnboardingSpecOnce === "function") {
+          result.specSmoke = root.__DEV.smokeOnboardingSpecOnce();
+          result.startStillEntersGame = !!(result.specSmoke && result.specSmoke.enteredGameAfterStart);
+          result.rulesStillDoesNotBlockStart = !!(result.specSmoke && result.specSmoke.rulesDoesNotBlockStart);
+          if (!result.startStillEntersGame) fail("start_does_not_enter_game", result.specSmoke);
+          if (!result.rulesStillDoesNotBlockStart) fail("rules_blocks_start", result.specSmoke);
+        } else {
+          fail("spec_smoke_missing", null);
+        }
+      } catch (err) {
+        fail("spec_smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_MINIMAL_UI_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
     console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V2", typeof root.__DEV.smokeOnboardingSpecOnce);
   };
 
