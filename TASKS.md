@@ -51,6 +51,28 @@
 
 
 
+### [T-20260602-065] Step 7 [1] Fresh Start Screen Visibility Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Make the existing start screen visible on clean/fresh state without changing onboarding content, gameplay, economy, or onboarding state.
+- Acceptance:
+  - [x] Fresh/clean state reasserts start-screen visibility after boot-only UI work.
+  - [x] Existing `Data.START_SCREEN` content and two actions are unchanged.
+  - [x] No `onboardingSeen` state, economy change, gameplay change, or UI redesign was added.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Added a fresh-state visibility guard in both runtime boot bundles and bumped the ui-boot cache keys so clean loads use it.
+  - Changed: `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingSpecOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [1] with `Game.__DEV.smokeOnboardingSpecOnce()`; do not claim PASS until Safari returns ok.
+
+
 
 ### [T-20260602-064] Step 7 [1] Runtime Smoke Export Fix
 - Status: DONE
