@@ -4898,3 +4898,11 @@ Error: Download failure, code=1
 - Fixed the Step 5.3 scaffold smoke blocker by replacing the forbidden teacher-tone wording in the mirrored bandit defeat template paths with direct adult NPC wording.
 - Scope guard preserved: template text cleanup only; no gameplay, UI, logic, smoke-rule, whitelist, or linter changes. `Console.txt` was not used.
 - Local VM check of `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` returned the target empty failure arrays; no Safari runtime PASS is claimed.
+
+## 2026-06-02 - Step 5.6 NPC speech locale plumbing
+- Status: READY_FOR_RUNTIME_SMOKE only; no Safari/runtime PASS is claimed.
+- Bound `Game.NPCSpeech` locale selection to context/user/session/global locale candidates, with `ru` as the only implemented speech locale and fallback for unknown/unsupported locales.
+- Added session-level locale caching so one session resolves a single speech locale and generated NPC speech proof rows expose locale metadata.
+- Added dev smoke `Game.__DEV.smokeNpcSpeechLocaleOnce()` with the required target arrays: `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` must all be empty for `ok:true`.
+- Scope guard preserved: minimal locale plumbing only; no gameplay, UI, economy, battle, crowd, report logic, or `Console.txt` usage changed.
+- Safari QA command: `Game.__DEV.smokeNpcSpeechLocaleOnce()`.

@@ -907,9 +907,14 @@ window.Game ||= {};
   NPCSpeech.ROLES = ["cop", "mafia", "bandit", "toxic", "neutral"];
   NPCSpeech.CHANNELS = ["dm", "event", "battle"];
   NPCSpeech.INTENSITIES = ["y", "o", "r", "k"];
-  NPCSpeech.TEMPLATES = buildNpcSpeechTemplates();
+  NPCSpeech.DEFAULT_LOCALE = "ru";
+  NPCSpeech.SUPPORTED_LOCALES = ["ru"];
+  NPCSpeech.FUTURE_LOCALES = ["en", "ja"];
+  NPCSpeech.TEMPLATES_BY_LOCALE = { ru: buildNpcSpeechTemplates() };
+  NPCSpeech.TEMPLATES = NPCSpeech.TEMPLATES_BY_LOCALE.ru;
   NPCSpeech._lastTickKey = null;
   NPCSpeech._usedByPool = Object.create(null);
+  NPCSpeech._localeBySession = Object.create(null);
 
   const normalizeNpcSpeechTag = (value, allowed, fallback) => {
     const v = String(value == null ? "" : value).trim().toLowerCase();
@@ -921,6 +926,62 @@ window.Game ||= {};
     PLACE: String(vars.PLACE || vars.place || "Площадь").replace(/\s+/g, " ").trim() || "Площадь",
     TOPIC: String(vars.TOPIC || vars.topic || "тема").replace(/\s+/g, " ").trim() || "тема"
   });
+
+  const normalizeNpcSpeechLocaleCode = (value) => {
+    const raw = String(value == null ? "" : value).trim().toLowerCase().replace(/_/g, "-");
+    const base = raw.split("-")[0];
+    return base || "";
+  };
+
+  const npcSpeechSessionKey = (ctx = {}) => {
+    const session = ctx && ctx.session && typeof ctx.session === "object" ? ctx.session : null;
+    const user = ctx && ctx.user && typeof ctx.user === "object" ? ctx.user : null;
+    const S = Game && (Game.__S || Game.State);
+    const candidates = [
+      ctx.sessionId,
+      session && (session.id || session.sessionId),
+      user && user.sessionId,
+      S && (S.sessionId || S.id),
+      Game && Game.Logger && Game.Logger.sessionId,
+      (typeof window !== "undefined" && window.sessionId)
+    ];
+    const found = candidates.find(v => v != null && String(v).trim());
+    return found != null ? String(found).trim() : "__npc_speech_session";
+  };
+
+  const readNpcSpeechLocaleCandidate = (ctx = {}) => {
+    const session = ctx && ctx.session && typeof ctx.session === "object" ? ctx.session : null;
+    const user = ctx && ctx.user && typeof ctx.user === "object" ? ctx.user : null;
+    const S = Game && (Game.__S || Game.State);
+    const candidates = [
+      ctx.locale,
+      ctx.lang,
+      ctx.language,
+      user && (user.locale || user.lang || user.language),
+      session && (session.locale || session.lang || session.language),
+      S && (S.locale || S.lang || S.language || (S.user && (S.user.locale || S.user.lang || S.user.language)) || (S.session && (S.session.locale || S.session.lang || S.session.language))),
+      Game && Game.User && (Game.User.locale || Game.User.lang || Game.User.language),
+      Game && Game.Session && (Game.Session.locale || Game.Session.lang || Game.Session.language),
+      typeof document !== "undefined" && document.documentElement && document.documentElement.lang,
+      typeof navigator !== "undefined" && (navigator.language || (Array.isArray(navigator.languages) && navigator.languages[0]))
+    ];
+    return candidates.find(v => v != null && String(v).trim()) || NPCSpeech.DEFAULT_LOCALE;
+  };
+
+  NPCSpeech.resolveLocale = function resolveLocale(ctx = {}) {
+    const sessionKey = npcSpeechSessionKey(ctx || {});
+    if (NPCSpeech._localeBySession[sessionKey]) return NPCSpeech._localeBySession[sessionKey];
+    const requested = normalizeNpcSpeechLocaleCode(readNpcSpeechLocaleCandidate(ctx || {}));
+    const locale = NPCSpeech.SUPPORTED_LOCALES.includes(requested) ? requested : NPCSpeech.DEFAULT_LOCALE;
+    const resolved = {
+      locale,
+      requested: requested || NPCSpeech.DEFAULT_LOCALE,
+      fallback: locale !== requested,
+      sessionKey
+    };
+    NPCSpeech._localeBySession[sessionKey] = resolved;
+    return resolved;
+  };
 
   const replaceNpcSpeechVars = (template, vars) => {
     const safe = normalizeNpcSpeechVars(vars);
@@ -948,13 +1009,16 @@ window.Game ||= {};
   };
 
   NPCSpeech.getPool = function getPool(ctx = {}) {
+    const localeInfo = NPCSpeech.resolveLocale(ctx || {});
+    const locale = localeInfo.locale || NPCSpeech.DEFAULT_LOCALE;
+    const templates = NPCSpeech.TEMPLATES_BY_LOCALE[locale] || NPCSpeech.TEMPLATES_BY_LOCALE[NPCSpeech.DEFAULT_LOCALE];
     const block = normalizeNpcSpeechTag(ctx.block || ctx.kind || ctx.pool, NPCSpeech.BLOCKS, "neutral");
     const role = normalizeNpcSpeechTag(ctx.role, NPCSpeech.ROLES, "neutral");
     const channel = normalizeNpcSpeechTag(ctx.channel, NPCSpeech.CHANNELS, "dm");
     const intensity = normalizeNpcSpeechTag(ctx.intensity, NPCSpeech.INTENSITIES, "y");
-    const pool = (((NPCSpeech.TEMPLATES[block] || {})[role] || {})[channel] || {})[intensity];
-    const safePool = Array.isArray(pool) && pool.length ? pool : NPCSpeech.TEMPLATES.neutral.neutral.dm.y;
-    return { block, role, channel, intensity, key: `${block}|${role}|${channel}|${intensity}`, templates: safePool };
+    const pool = (((templates[block] || {})[role] || {})[channel] || {})[intensity];
+    const safePool = Array.isArray(pool) && pool.length ? pool : templates.neutral.neutral.dm.y;
+    return { block, role, channel, intensity, locale, requestedLocale: localeInfo.requested, localeFallback: localeInfo.fallback === true, sessionKey: localeInfo.sessionKey, key: `${locale}|${block}|${role}|${channel}|${intensity}`, templates: safePool };
   };
 
   NPCSpeech.generateNpcLine = function generateNpcLine(ctx = {}) {
@@ -1022,7 +1086,7 @@ window.Game ||= {};
       PLACE: "Площадь",
       TOPIC: "спор"
     }, overrides.vars || {});
-    return Object.assign({
+    const ctx = Object.assign({
       block: overrides.block || "neutral",
       role: overrides.role || npcSpeechRole(npc),
       channel: overrides.channel || "dm",
@@ -1030,6 +1094,8 @@ window.Game ||= {};
       vars,
       tick: overrides.tick
     }, overrides || {}, { vars });
+    const localeInfo = NPCSpeech.resolveLocale(ctx);
+    return Object.assign(ctx, { locale: localeInfo.locale, requestedLocale: localeInfo.requested, localeFallback: localeInfo.fallback === true, localeSessionKey: localeInfo.sessionKey });
   };
 
   NPCSpeech.generateRuntimeNpcLine = function generateRuntimeNpcLine(ctx = {}, fallback = "") {
@@ -1055,9 +1121,14 @@ window.Game ||= {};
       result.failedChecks.push({ check: "npc_speech_runtime_fallback", source });
     }
     try {
+      const localeInfo = NPCSpeech.resolveLocale(ctx || {});
       const row = {
         time: Date.now(),
         source,
+        locale: localeInfo.locale,
+        requestedLocale: localeInfo.requested,
+        localeFallback: localeInfo.fallback === true,
+        localeSessionKey: localeInfo.sessionKey,
         generated: result.generated === true,
         fallbackUsed: result.fallbackUsed === true,
         line: result.line,
@@ -1198,11 +1269,87 @@ window.Game ||= {};
     return result;
   };
 
+  NPCSpeech.smokeLocaleOnce = function smokeLocaleOnce() {
+    const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, detail === undefined ? code : { code, detail }); addUnique(result.failedChecks, code); };
+    const badLine = (line) => !line || typeof line !== "string" || /undefined|null/i.test(line) || /\{[^}]*\}|[{}]/.test(line);
+    const looksRu = (line) => /[а-яё]/i.test(String(line || ""));
+    const hasForeignProbe = (line) => /[ぁ-ゟ゠-ヿ一-龯]|\b(hello|round|topic|place|player)\b/i.test(String(line || ""));
+    const oldLocaleBySession = NPCSpeech._localeBySession;
+    const samples = [];
+    try {
+      NPCSpeech._localeBySession = Object.create(null);
+      if (typeof NPCSpeech.clearRuntimeProofLog === "function") NPCSpeech.clearRuntimeProofLog();
+      if (typeof NPCSpeech.resetTickCache === "function") NPCSpeech.resetTickCache();
+      const npc = { id: "dev_npc_locale", name: "Дара", npc: true, type: "npc", role: "neutral", influence: 5, sex: "f" };
+      const make = (locale, sessionId, tick) => NPCSpeech.makeCtx(npc, { source: "locale_smoke", channel: "dm", block: "neutral", locale, sessionId, tick, vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" } });
+      const ruCtx = make("ru", "locale_smoke_ru", "locale_ru");
+      const ruLine = NPCSpeech.generateRuntimeNpcLine(ruCtx, "fallback ru");
+      samples.push({ probe: "forced_ru", line: ruLine, locale: ruCtx.locale, requestedLocale: ruCtx.requestedLocale });
+      if (ruCtx.locale !== "ru") fail("forced_ru_locale_not_ru", ruCtx);
+      if (badLine(ruLine)) fail("forced_ru_bad_line", ruLine);
+      if (!looksRu(ruLine) || hasForeignProbe(ruLine)) fail("forced_ru_not_ru_line", ruLine);
+
+      const unknownCtx = make("zz-ZZ", "locale_smoke_unknown", "locale_unknown");
+      const unknownLine = NPCSpeech.generateRuntimeNpcLine(unknownCtx, "fallback unknown");
+      samples.push({ probe: "unknown_fallback", line: unknownLine, locale: unknownCtx.locale, requestedLocale: unknownCtx.requestedLocale, localeFallback: unknownCtx.localeFallback });
+      if (unknownCtx.locale !== "ru" || unknownCtx.localeFallback !== true) fail("unknown_locale_not_ru_fallback", unknownCtx);
+      if (badLine(unknownLine)) fail("unknown_locale_bad_line", unknownLine);
+      if (!looksRu(unknownLine) || hasForeignProbe(unknownLine)) fail("unknown_locale_not_ru_line", unknownLine);
+
+      const userCtx = NPCSpeech.makeCtx(npc, { source: "locale_smoke", channel: "dm", block: "neutral", user: { locale: "ru", sessionId: "locale_smoke_user" }, tick: "locale_user", vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" } });
+      const sessionCtx = NPCSpeech.makeCtx(npc, { source: "locale_smoke", channel: "dm", block: "neutral", session: { locale: "ru", id: "locale_smoke_session" }, tick: "locale_session", vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" } });
+      const userLine = NPCSpeech.generateRuntimeNpcLine(userCtx, "fallback user");
+      const sessionLine = NPCSpeech.generateRuntimeNpcLine(sessionCtx, "fallback session");
+      samples.push({ probe: "user_locale", line: userLine, locale: userCtx.locale, requestedLocale: userCtx.requestedLocale });
+      samples.push({ probe: "session_locale", line: sessionLine, locale: sessionCtx.locale, requestedLocale: sessionCtx.requestedLocale });
+      if (userCtx.locale !== "ru" || badLine(userLine)) fail("user_locale_bad_line", { ctx: userCtx, line: userLine });
+      if (sessionCtx.locale !== "ru" || badLine(sessionLine)) fail("session_locale_bad_line", { ctx: sessionCtx, line: sessionLine });
+
+      const sessionLines = [];
+      const sessionId = "locale_smoke_consistent_session";
+      ["ru", "en", "ja", "xx"].forEach((locale, index) => {
+        const ctx = make(locale, sessionId, `locale_session_${index}`);
+        const line = NPCSpeech.generateRuntimeNpcLine(ctx, `fallback ${locale}`);
+        sessionLines.push({ locale, resolved: ctx.locale, requested: ctx.requestedLocale, line });
+        if (badLine(line)) fail("session_bad_line", { locale, line });
+        if (!looksRu(line) || hasForeignProbe(line)) fail("session_non_ru_line", { locale, line });
+      });
+      const resolvedLocales = Array.from(new Set(sessionLines.map(row => row.resolved)));
+      if (resolvedLocales.length !== 1 || resolvedLocales[0] !== "ru") fail("session_mixed_locale", sessionLines);
+      result.samples = samples.concat(sessionLines);
+      const proof = typeof NPCSpeech.getRuntimeProofLog === "function" ? NPCSpeech.getRuntimeProofLog() : [];
+      const localeRows = (proof || []).filter(row => row && String(row.source || "") === "locale_smoke");
+      if (!localeRows.length) addUnique(result.missingCoverage, "locale_smoke_proof");
+      const proofLocales = Array.from(new Set(localeRows.map(row => String(row.locale || ""))));
+      if (proofLocales.length !== 1 || proofLocales[0] !== "ru") fail("proof_mixed_locale", localeRows);
+      localeRows.forEach(row => { if (badLine(row.line)) fail("proof_bad_line", row); });
+      ["ru", "en", "ja"].forEach(locale => {
+        const known = NPCSpeech.SUPPORTED_LOCALES.includes(locale) || NPCSpeech.FUTURE_LOCALES.includes(locale);
+        if (!known) addUnique(result.missingCoverage, `locale_future_ready:${locale}`);
+      });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    } finally {
+      NPCSpeech._localeBySession = oldLocaleBySession;
+    }
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.NPCSpeech = NPCSpeech;
   Game.__DEV ||= {};
   Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeTemplateScaffoldOnce === "function"
       ? Game.NPCSpeech.smokeTemplateScaffoldOnce()
+      : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+  Game.__DEV.smokeNpcSpeechLocaleOnce = function smokeNpcSpeechLocaleOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeLocaleOnce === "function"
+      ? Game.NPCSpeech.smokeLocaleOnce()
       : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
