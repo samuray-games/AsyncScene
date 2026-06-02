@@ -1342,7 +1342,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             } else if (target.role === "toxic" || target.role === "bandit") {
               reply = (typeof N.generateAggroDMLine === "function") ? N.generateAggroDMLine(target) : "";
             } else if (typeof N.generateDmLine === "function") {
-              reply = N.generateDmLine(target);
+              reply = N.generateDmLine(target, { source: "dm", block: "neutral", channel: "dm" });
             }
           }
           if (reply) dmPushLine(curId, target.name, reply);

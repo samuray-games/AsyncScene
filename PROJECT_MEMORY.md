@@ -1,5 +1,14 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-02 — Step 5.4 NPC speech minimal runtime integration
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Integrated `Game.NPCSpeech.generateNpcLine(ctx)` through the runtime proof wrapper for real NPC speech paths: DM generation, battle replies, event text generation, and cop/report reaction lines. Old text remains the fallback only when the generator wrapper fails, and fallback rows are logged in `failedChecks`/`Game.__D.npcSpeechRuntimeFallbacks`.
+- Added `Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce()` with contract fields `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; the smoke verifies generator proof coverage, non-empty lines, no broken placeholders, duplicate prevention in one tick, and that DM tabs are not opened by the smoke.
+- Scope guard: no UI layout, economy, battle/crowd/report/escape/ignore mechanics, timers, or `Console.txt` changes were made.
+- Local evidence: PASS `node --check AsyncScene/Web/npcs.js && node --check docs/npcs.js && node --check AsyncScene/Web/state.js && node --check docs/state.js && node --check AsyncScene/Web/events.js && node --check docs/events.js && node --check AsyncScene/Web/ui/ui-loops.js && node --check docs/ui/ui-loops.js && node --check AsyncScene/Web/ui/ui-dm.js && node --check docs/ui/ui-dm.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke `Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce()` with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce()` must return `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]` before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 5.2 NPC speech style smoke cleanup
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
