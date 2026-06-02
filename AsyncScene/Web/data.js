@@ -3682,7 +3682,62 @@ K YN A9: Нет.
         result.failures.push({ code, detail: detail == null ? null : detail });
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
+      const isolateFreshOnboardingState = () => {
+        if (typeof document === "undefined") return;
+        try {
+          if (document.body) document.body.classList.remove("menu-open");
+          const right = document.getElementById("right");
+          if (right) {
+            right.classList.remove("menu-open");
+            right.style.removeProperty("--menu-height");
+          }
+          const menu = document.getElementById("menuBlock");
+          if (menu) {
+            menu.classList.remove("menu-open");
+            menu.classList.add("hidden");
+          }
+          const stateObjects = [root && root.__S, root && root.State].filter(Boolean);
+          stateObjects.forEach((state) => {
+            state.isStarted = false;
+            state.flags = state.flags || {};
+            state.flags.started = false;
+            state.flags.menuOpen = false;
+          });
+          const st = document.getElementById("startScreen");
+          if (st) {
+            st.hidden = false;
+            st.classList.remove("hidden");
+            st.classList.add("active");
+            st.removeAttribute("aria-hidden");
+            st.style.position = "fixed";
+            st.style.inset = "0";
+            st.style.display = "flex";
+            st.style.visibility = "visible";
+            st.style.opacity = "1";
+            st.style.pointerEvents = "auto";
+            st.style.zIndex = "2147483647";
+            const card = document.getElementById("startCard");
+            if (card) {
+              card.style.position = "relative";
+              card.style.pointerEvents = "auto";
+              card.style.zIndex = "1";
+            }
+            [document.getElementById("btnStart"), document.getElementById("btnRules")].forEach((button) => {
+              if (!button) return;
+              button.hidden = false;
+              button.style.display = button.style.display === "none" ? "" : button.style.display;
+              button.style.visibility = "visible";
+              button.style.opacity = "1";
+              button.style.pointerEvents = "auto";
+              button.style.position = "relative";
+              button.style.zIndex = "2";
+              if (!button.getAttribute("type")) button.setAttribute("type", "button");
+            });
+          }
+        } catch (_) {}
+      };
       try {
+        isolateFreshOnboardingState();
         const runtimeData = (root && root.Data) ? root.Data : Data;
         const spec = runtimeData && runtimeData.START_SCREEN;
         result.hasStartScreenSource = !!spec;
