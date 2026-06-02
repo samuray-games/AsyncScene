@@ -4624,3 +4624,11 @@ Error: Download failure, code=1
 - Cache-busted both HTML entrypoints to load the updated NPC runtime bundle.
 - Scope guard preserved: dev-only smoke coverage only, with no gameplay, UI, economy, or NPC wording changes. `Console.txt` was not used.
 - No Safari runtime PASS is claimed; required QA command is `Game.__DEV.smokeNpcSpeechRegressionPackOnce()`.
+## 2026-06-02 - Step 6 System messages contract
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added mirrored `Game.SystemCopy` as the Step 6 single source of truth for system copy groups: `errors`, `warnings`, `notifications`, and `systemEvents`.
+- Added `Game.System.say(kind, code, ctx)` with safe missing kind/code fallback and simple placeholder rendering.
+- Added dev-only `Game.__DEV.smokeSystemCopyContractOnce()` returning `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- The smoke verifies required group coverage, at least one code per group, non-empty helper output, controlled fallback behavior, absence of `undefined`/`null`/`[object Object]`, and banned morality/pressure/cutesy tone words.
+- Scope guard preserved: contract/framework only, no gameplay logic, economy, outcomes, battle logic, crowd logic, reports, timers, UI behavior, routing side effects, or `Console.txt` usage changed.
+- Required Safari command: `Game.__DEV.smokeSystemCopyContractOnce()`.
