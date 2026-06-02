@@ -66,7 +66,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.warnings", get: () => copTpl("warnings") },
       { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.thanks", get: () => copTpl("thanks") },
       { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.scolds", get: () => copTpl("scolds") },
-      { category: "reportReactions", source: "AsyncScene/Web/state.js:report flow hardcoded replies", get: () => ["Принял. Сейчас разберёмся.", "Цель не обнаружена. Проверю ещё раз.", "Этот контакт уже отмечен. Повтор не требуется.", "Уточните, кого сдаёте: токсик, бандит или мафиози.", "Информация подтвердилась. Контакт отмечен.", "Я понимаю, что вас это задело. Меры приняты."] },
+      { category: "reportReactions", source: "AsyncScene/Web/state.js:report flow hardcoded replies", get: () => ["Принял. Сейчас разберёмся.", "Цель не обнаружена. Проверю ещё раз.", "Этот контакт уже отмечен. Повтор не требуется.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Проверка сошлась. Контакт отмечен.", "Понимаю, тебя задело. Я вмешался."] },
       { category: "dm", source: "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", get: () => "Ты мне пишешь? Тогда поговорим лично." }
     ]);
     devStore.smokeNpcSpeechInventoryOnce = function smokeNpcSpeechInventoryOnce() {
@@ -99,7 +99,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ? devStore.smokeNpcSpeechInventoryOnce()
         : { ok: false, failures: [{ code: "inventory_smoke_missing" }], forbiddenRemaining: [], missingCoverage: cats.slice(), failedChecks: ["inventory_smoke_missing"], categories: {} };
       const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], categories: {}, violations: {} };
-      const directToneRe = /(^|[^а-яё])(ты|тебя|тебе|тобой|твой|твоя|твое|твоё|твои|вы|вас|вам|вами|ваш|ваша|ваше|ваши)([^а-яё]|$)/i;
+      const formalYouRe = /(^|[^а-яё])(вы|вас|вам|вами|ваш|ваша|ваше|ваши)([^а-яё]|$)/i;
       const teenSlang = ["вайб", "кринж", "хайп", "тик ?ток", "тикток", "лулз", "рофл", "имба", "краш", "чилл"];
       const memes = ["скибиди", "мем", "лол", "кек", "жиза", "ой все", "заш[её]л в чат"];
       const officialese = ["оформля", "подтвержден", "подтверждён", "информация подтвердилась", "приняты меры", "фиксирую", "нарушение", "обвинени", "участков", "дело"];
@@ -156,7 +156,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           if (/Console\.txt/i.test(text)) addForbidden("no_console_txt", category, source, text, "Console.txt");
           const maxWords = limitFor(category, source);
           if (textWordCount(text) > maxWords) { markRule("phrase_length_limits"); addViolation(category, "phrase_length_limits", Object.assign({ maxWords, words: textWordCount(text) }, entry)); }
-          if (directToneApplies(category, source, text) && !directToneRe.test(text)) { markRule("direct_you_tone"); addViolation(category, "direct_you_tone", entry); }
+          if (directToneApplies(category, source, text) && formalYouRe.test(text)) { markRule("direct_you_tone"); addViolation(category, "direct_you_tone", Object.assign({ tone: "formal_you" }, entry)); }
           teenSlang.forEach(p => { const re = new RegExp(`(^|[^а-яё])${p}([^а-яё]|$)`, "i"); const m = text.match(re); if (m) { markRule("no_teen_slang"); addForbidden("no_teen_slang", category, source, text, m[0].trim()); } });
           memes.forEach(p => { const re = new RegExp(`(^|[^а-яё])${p}([^а-яё]|$)`, "i"); const m = text.match(re); if (m) { markRule("no_memes"); addForbidden("no_memes", category, source, text, m[0].trim()); } });
           if (!isCopSource(source)) officialese.forEach(p => { const re = new RegExp(p, "i"); const m = text.match(re); if (m) { markRule("no_officialese"); addForbidden("no_officialese", category, source, text, m[0]); } });
@@ -1745,7 +1745,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           if (el) [el.textContent, el.getAttribute("placeholder")].forEach(v => { if (v) out.push({ file: "AsyncScene/Web/index.html", value: String(v) }); });
         } catch (_) {}
       });
-      ["Сдать", "Ник бандита или токсика.", "Сдать бандита или токсика за +2 💰.", "Проверяем...", "Занят", "Выбери игрок.", "Я на связи. Нужна помощь — спроси про токсика, бандита или мафиози, либо нажми «Сдать» в личке", "«Сдать» без фактов — штраф ${repPenalty}⭐. Будьте внимательнее.", "введите \"${reportedRole}\" в поле «Сдать».", "откройте DM с ${name} (роль ${actual}) и выберите «Сдать» как \"${reportedRole}\" — факты не подтвердятся.", "откройте DM с ${name} и выберите «Сдать» как \"${reportedRole}\"."].forEach(v => out.push({ file: "reports_cop_runtime", value: v }));
+      ["Сдать", "Ник бандита или токсика.", "Сдать бандита или токсика за +2 💰.", "Проверяем...", "Занят", "Выбери игрок.", "Я на связи. Нужна помощь — спроси про токсика, бандита или мафиози, либо нажми «Сдать» в личке", "«Сдать» без фактов — штраф ${repPenalty}⭐. Проверь факты в следующий раз.", "введите \"${reportedRole}\" в поле «Сдать».", "откройте DM с ${name} (роль ${actual}) и выберите «Сдать» как \"${reportedRole}\" — факты не подтвердятся.", "откройте DM с ${name} и выберите «Сдать» как \"${reportedRole}\"."].forEach(v => out.push({ file: "reports_cop_runtime", value: v }));
       return out.filter(item => /[А-Яа-яЁё💰⭐]/.test(item.value));
     };
     devStore.smokeStep3TerminologyReportsCopLayerOnce = async (opts = {}) => {

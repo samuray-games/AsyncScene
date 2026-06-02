@@ -1,5 +1,14 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-02 — Step 5.2 NPC speech style smoke cleanup
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Cleaned real NPC speech style violations in both `AsyncScene/Web` and `docs`: teen slang, meme phrasing, teacher tone, and formal `вы` wording in directed NPC speech were rewritten into shorter conversational lines.
+- Calibrated only the dev linter's `direct_you_tone` rule: normal short directed phrases are allowed without forced pronouns, but formal `вы/вас/вам/...` remains rejected for directed NPC speech where the style expects `ты`.
+- No gameplay, UI, economy, battle, crowd, report logic, or `Console.txt` changes were made.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/npcs.js && node --check docs/npcs.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke for both runtime and docs bundles with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechStyleRulesOnce()` must return `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]` before runtime PASS can be claimed.
+
 ## 2026-06-01 — Step 4 [8] ARG canon millennial regression pack
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.

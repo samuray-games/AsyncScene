@@ -4824,3 +4824,11 @@ Error: Download failure, code=1
 - The linter validates phrase length limits, direct second-person tone where applicable, teen slang, memes, officialese, teacher tone, third-person NPC self-talk, extra names except cops, broken placeholders, empty strings, and unclear source/category.
 - Required categories remain `dm`, `battle`, `events`, and `reportReactions`; any category the linter cannot prove is reported in `missingCoverage`.
 - Required Safari command: `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
+
+## 2026-06-02 - Step 5.2 NPC speech style smoke cleanup
+- Status: READY_FOR_RUNTIME_SMOKE only; no Safari runtime PASS is claimed.
+- Cleaned NPC speech strings flagged by the Step 5.2 style smoke for teen slang, meme phrasing, and teacher tone across both runtime and docs bundles, including NPC chat, crowd lines, and cop warning/report snippets.
+- Calibrated the dev-only `direct_you_tone` rule so it no longer requires every normal short directed phrase to contain a second-person pronoun, while still rejecting formal `вы/вас/вам/...` tone in directed NPC speech where the style guide expects `ты`.
+- Scope guard preserved: text/style cleanup plus dev linter calibration only; no gameplay, UI, economy, battle, crowd, report logic, or `Console.txt` changes were made.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/npcs.js && node --check docs/npcs.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke for both runtime and docs bundles returned `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Required Safari command remains `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
