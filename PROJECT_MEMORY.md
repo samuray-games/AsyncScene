@@ -1,5 +1,15 @@
 # AsyncScene — Project Memory (single shared context)
 
+
+## 2026-06-02 — Step 6 [2] System message inventory coverage
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Added `Game.__DEV.smokeSystemCopyInventoryOnce()` to expose dev-only inventory/coverage for current user-facing system message callsites across economy deltas, DM, battles, events, reports, rematch, escape, training, and respect.
+- The smoke returns `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage` rows shaped `{kind, code, countCallsites}`; it validates required area coverage, every row's `SystemCopy` kind/code, and positive callsite counts.
+- Direct current hardcoded user-facing strings outside dev-only are inventory-only and reported in `forbiddenRemaining`/`failedChecks`; no copy was rewritten and no gameplay, economy, outcomes, battle/crowd/report/timer behavior, UI routing, or side effects were changed.
+- `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeSystemCopyInventoryOnce()` must be run by the user in Safari before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 5.5 NPC speech millennial wording refinement
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.

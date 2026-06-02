@@ -49,6 +49,30 @@
 
 ```
 
+
+### [T-20260602-057] Step 6 [2] System message inventory coverage
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Core
+- Files: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html`
+- Goal: Inventory current user-facing system message callsites and expose dev-only coverage without rewriting copy or changing behavior.
+- Acceptance:
+  - [x] `Game.__DEV.smokeSystemCopyInventoryOnce()` returns `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and coverage rows shaped `{kind, code, countCallsites}`.
+  - [x] Required areas are represented: economy deltas, DM, battles, events, reports, rematch, escape, training, respect.
+  - [x] Represented callsites have `SystemCopy` kind/code mappings where possible and coverage rows have `countCallsites > 0`.
+  - [x] Direct user-facing hardcoded strings outside dev-only remain inventory-only and are reported by the smoke; no copy rewrite or gameplay/UI side effects were introduced.
+  - [x] `Console.txt` was not used.
+- Result: READY_FOR_RUNTIME_SMOKE only. Runtime PASS is not claimed until Safari runs `Game.__DEV.smokeSystemCopyInventoryOnce()` and the returned inventory status is reviewed.
+- Report:
+  - Status: DONE
+  - Facts: Added a dev-only system message callsite inventory with required area coverage, kind/code validation, coverage table generation, and hardcoded-string reporting.
+  - Changed: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Hard refresh Safari and run `Game.__DEV.smokeSystemCopyInventoryOnce()` in DevTools.
+  - Next: Дима to validate Safari runtime smoke and inspect the reported hardcoded callsites before any copy rewrite.
+  - Next Prompt: Run the Step 6 [2] system message inventory smoke in Safari; do not claim runtime PASS unless required area coverage and coverage row shape are correct, and report any `forbiddenRemaining` direct hardcoded strings exactly as returned.
+
 ### [T-20260602-056] Step 6 System messages contract
 - Status: DONE
 - Priority: P0
