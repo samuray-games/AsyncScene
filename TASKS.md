@@ -49,6 +49,28 @@
 
 ```
 
+
+### [T-20260602-054] Step 5.4 NPC speech minimal runtime integration
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: NPC
+- Files: `AsyncScene/Web/npcs.js` `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/ui/ui-loops.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/dev/dev-checks.js` `docs/npcs.js` `docs/state.js` `docs/events.js` `docs/ui/ui-loops.js` `docs/ui/ui-dm.js` `docs/dev/dev-checks.js`
+- Goal: Minimal runtime integration of `Game.NPCSpeech.generateNpcLine(ctx)` into safe real NPC speech call sites.
+- Acceptance:
+  - [x] DM, battle reply, event, and report reaction speech paths use the NPC speech generator through a runtime proof wrapper.
+  - [x] Existing mechanics/outcomes are preserved; fallback to old text is recorded only if the generator path fails.
+  - [x] `Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce()` returns the Step 5.2-style contract fields and checks generator proof coverage, line validity, placeholder safety, duplicate prevention, existing battle/crowd/report/escape/ignore coverage, and DM tab safety.
+  - [x] `Console.txt` was not used.
+- Result: READY_FOR_RUNTIME_SMOKE only. Local checks pass, but runtime PASS is not claimed until Safari runs `Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce()` and returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Report:
+  - Status: DONE
+  - Facts: Runtime generator proof logging was added and exercised in local VM smoke; no UI/economy/timing mechanics were intentionally changed.
+  - Changed: `AsyncScene/Web/npcs.js` `AsyncScene/Web/state.js` `AsyncScene/Web/events.js` `AsyncScene/Web/ui/ui-loops.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/dev/dev-checks.js` `docs/npcs.js` `docs/state.js` `docs/events.js` `docs/ui/ui-loops.js` `docs/ui/ui-dm.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce()` in Safari after a hard refresh and require the PASS contract.
+  - Next: Дима to validate Safari runtime smoke.
+
 ## Правила работы (коротко)
 - Общий контекст между чатами/агентами: `PROJECT_MEMORY.md` (обновлять при изменении правил/фаз/статусов).
 - Каждый участник команды дополняет свой раздел в `PROJECT_MEMORY.md` (см. “Team Sections”) фактами по своей зоне ответственности, чтобы синхронизироваться между устройствами/чатами.

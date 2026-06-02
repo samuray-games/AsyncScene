@@ -598,7 +598,7 @@ window.Game = window.Game || {};
               st.dm.villainQuestion = st.dm.villainQuestion || {};
               if (text) st.dm.villainQuestion[npc.id] = true;
             } else if (typeof Game.NPC.generateDmLine === "function") {
-              text = Game.NPC.generateDmLine(npc);
+              text = Game.NPC.generateDmLine(npc, { source: "dm", block: "neutral", channel: "dm" });
             }
           }
           if (text && Game.__A && typeof Game.__A.pushDm === "function") {
@@ -781,7 +781,7 @@ window.Game = window.Game || {};
       if (p && p.name) {
         try {
           if (Game.NPC && typeof Game.NPC.generateChatLine === "function") {
-            const line = Game.NPC.generateChatLine(p);
+            const line = Game.NPC.generateChatLine(p, { source: "battle_reply", block: "threats", channel: "battle" });
             if (line != null && String(line).trim().length > 0) {
               UI.pushChat({ name: p.name, text: String(line), system: false });
             }

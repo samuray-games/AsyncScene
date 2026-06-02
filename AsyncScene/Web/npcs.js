@@ -512,7 +512,7 @@ window.Game ||= {};
     return all.length ? Game.Data.pick(all) : null;
   };
 
-  NPC.generateChatLine = (npc) => {
+  NPC.generateChatLine = (npc, opts = {}) => {
     if (!Game.Data) return "";
 
     const n = npc || NPC.randomAny();
@@ -520,13 +520,19 @@ window.Game ||= {};
 
     // Cop MAY post messages to the public chat on its own (warnings and descriptions).
     if (n.role === "cop") {
-      const line = pickBySex(NPC.SAY.cop, n.sex);
+      const fallback = pickBySex(NPC.SAY.cop, n.sex);
+      const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
+        ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, { source: opts.source || "event", block: opts.block || "neutral", channel: opts.channel || "event", tick: opts.tick, vars: opts.vars || {} }), fallback)
+        : fallback;
       return normalizeCopLine(line);
     }
 
     // Mafioso is calm, polite, and uses ideal punctuation.
     if (n.role === "mafia") {
-      const line = pickBySex(NPC.SAY.mafia, n.sex);
+      const fallback = pickBySex(NPC.SAY.mafia, n.sex);
+      const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
+        ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, { source: opts.source || "event", block: opts.block || "neutral", channel: opts.channel || "event", tick: opts.tick, vars: opts.vars || {} }), fallback)
+        : fallback;
       return normalizeCopLine(line);
     }
 
@@ -550,18 +556,31 @@ window.Game ||= {};
       prefix = meNameMention() + ", ";
     }
 
-    const line = prefix + base;
+    const fallbackLine = prefix + base;
+    const generatedBase = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
+      ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
+          source: opts.source || "event",
+          block: opts.block || "neutral",
+          channel: opts.channel || "event",
+          tick: opts.tick,
+          vars: opts.vars || {}
+        }), base)
+      : base;
+    const line = prefix + generatedBase;
     return prefix ? normalizeLineKeepPunct(line) : normalizeLine(line);
   };
 
   // DM line without mentions (keeps NPC style, but avoids @names)
-  NPC.generateDmLine = (npc) => {
+  NPC.generateDmLine = (npc, opts = {}) => {
     if (!Game.Data) return "";
     const n = npc || NPC.randomAny();
     if (!n) return "";
 
     if (n.role === "cop" || n.role === "mafia") {
-      const line = pickBySex(NPC.SAY[n.role], n.sex);
+      const fallback = pickBySex(NPC.SAY[n.role], n.sex);
+      const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
+        ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, { source: opts.source || "dm", block: opts.block || "neutral", channel: "dm", tick: opts.tick, vars: opts.vars || {} }), fallback)
+        : fallback;
       return normalizeCopLine(line);
     }
 
@@ -571,7 +590,16 @@ window.Game ||= {};
     else if (Math.random() < 0.25) base = pickBySex(NPC.SAY.crowd, n.sex);
     else base = pickOne(Game.Data.NPC_CHAT_LINES);
 
-    return normalizeLine(base);
+    const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
+      ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
+          source: opts.source || "dm",
+          block: opts.block || "neutral",
+          channel: "dm",
+          tick: opts.tick,
+          vars: opts.vars || {}
+        }), base)
+      : base;
+    return normalizeLine(line);
   };
 
   // Villain DM flow: question -> challenge
@@ -955,6 +983,100 @@ window.Game ||= {};
     return cleanNpcSpeechLine(line);
   };
 
+
+  const npcSpeechRole = (npc) => {
+    const role = String((npc && (npc.role || npc.type)) || "").toLowerCase();
+    if (role === "cop" || role === "police") return "cop";
+    if (role === "mafia" || role === "mafioso") return "mafia";
+    if (role === "bandit") return "bandit";
+    if (role === "toxic") return "toxic";
+    return "neutral";
+  };
+
+  const npcSpeechIntensity = (npc) => {
+    const inf = Number(npc && npc.influence);
+    if (Number.isFinite(inf)) {
+      if (inf >= 12) return "k";
+      if (inf >= 8) return "r";
+      if (inf >= 4) return "o";
+    }
+    return "y";
+  };
+
+  NPCSpeech._proofLog = [];
+
+  NPCSpeech.getRuntimeProofLog = function getRuntimeProofLog() {
+    return NPCSpeech._proofLog.slice();
+  };
+
+  NPCSpeech.clearRuntimeProofLog = function clearRuntimeProofLog() {
+    NPCSpeech._proofLog = [];
+    try {
+      if (Game && Game.__D && Array.isArray(Game.__D.npcSpeechRuntimeProof)) Game.__D.npcSpeechRuntimeProof.length = 0;
+    } catch (_) {}
+  };
+
+  NPCSpeech.makeCtx = function makeCtx(npc, overrides = {}) {
+    const vars = Object.assign({
+      PLAYER: (Game.__S && Game.__S.me && Game.__S.me.name) ? Game.__S.me.name : "ты",
+      PLACE: "Площадь",
+      TOPIC: "спор"
+    }, overrides.vars || {});
+    return Object.assign({
+      block: overrides.block || "neutral",
+      role: overrides.role || npcSpeechRole(npc),
+      channel: overrides.channel || "dm",
+      intensity: overrides.intensity || npcSpeechIntensity(npc),
+      vars,
+      tick: overrides.tick
+    }, overrides || {}, { vars });
+  };
+
+  NPCSpeech.generateRuntimeNpcLine = function generateRuntimeNpcLine(ctx = {}, fallback = "") {
+    const source = String(ctx.source || ctx.callSite || "unknown");
+    const result = { ok: false, line: "", generated: false, fallbackUsed: false, source, failedChecks: [] };
+    try {
+      if (typeof NPCSpeech.generateNpcLine !== "function") throw new Error("generator_missing");
+      const line = cleanNpcSpeechLine(NPCSpeech.generateNpcLine(ctx || {}));
+      if (!line) result.failedChecks.push("empty_generated_line");
+      if (/undefined|null/i.test(line)) result.failedChecks.push("undefined_or_null_generated_line");
+      if (/\{[^}]*\}|[{}]/.test(line)) result.failedChecks.push("broken_placeholder_generated_line");
+      if (!result.failedChecks.length) {
+        result.ok = true;
+        result.generated = true;
+        result.line = line;
+      }
+    } catch (err) {
+      result.failedChecks.push(err && err.message ? String(err.message) : String(err));
+    }
+    if (!result.ok) {
+      result.fallbackUsed = true;
+      result.line = cleanNpcSpeechLine(fallback);
+      result.failedChecks.push({ check: "npc_speech_runtime_fallback", source });
+    }
+    try {
+      const row = {
+        time: Date.now(),
+        source,
+        generated: result.generated === true,
+        fallbackUsed: result.fallbackUsed === true,
+        line: result.line,
+        failedChecks: result.failedChecks.slice()
+      };
+      NPCSpeech._proofLog.push(row);
+      if (NPCSpeech._proofLog.length > 80) NPCSpeech._proofLog.shift();
+      Game.__D ||= {};
+      Game.__D.npcSpeechRuntimeProof ||= [];
+      Game.__D.npcSpeechRuntimeProof.push(row);
+      if (Game.__D.npcSpeechRuntimeProof.length > 80) Game.__D.npcSpeechRuntimeProof.shift();
+      if (result.fallbackUsed) {
+        Game.__D.npcSpeechRuntimeFallbacks ||= [];
+        Game.__D.npcSpeechRuntimeFallbacks.push(row);
+      }
+    } catch (_) {}
+    return result.line;
+  };
+
   NPCSpeech.smokeTemplateScaffoldOnce = function smokeTemplateScaffoldOnce() {
     const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
     const seen = { blocks: new Set(), roles: new Set(), channels: new Set(), intensities: new Set() };
@@ -1017,6 +1139,65 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeTemplateScaffoldOnce === "function"
       ? Game.NPCSpeech.smokeTemplateScaffoldOnce()
       : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+  Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce = function smokeNpcSpeechRuntimeIntegrationOnce() {
+    const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], coveredByIntegrationSmoke: ["battle", "crowd", "report", "escape", "ignore"], sources: [] };
+    const keyOf = (x) => JSON.stringify(x);
+    const addUnique = (arr, item) => { const key = keyOf(item); if (!arr.some(x => keyOf(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, detail === undefined ? code : { code, detail }); addUnique(result.failedChecks, code); };
+    const badLine = (line) => !line || typeof line !== "string" || /undefined|null/i.test(line) || /\{[^}]*\}|[{}]/.test(line);
+    const checkLine = (source, line) => { if (badLine(line)) fail("bad_line", { source, line }); };
+    const beforeDm = (() => { try { const dm = Game.__S && Game.__S.dm ? Game.__S.dm : {}; const ids = Array.isArray(dm.openIds) ? dm.openIds.filter(id => String(id) !== "security_owner") : []; const active = String(dm.activeId || "") === "security_owner" ? null : (dm.activeId || null); const withId = String(dm.withId || "") === "security_owner" ? null : (dm.withId || null); return JSON.stringify({ open: !!dm.open, activeId: active, withId, openIds: ids }); } catch (_) { return ""; } })();
+    try {
+      const speech = Game.NPCSpeech;
+      if (!speech || typeof speech.generateRuntimeNpcLine !== "function") fail("generator_runtime_helper_missing");
+      if (!Game.NPC || typeof Game.NPC.generateDmLine !== "function" || typeof Game.NPC.generateReactionToMe !== "function") fail("npc_callsite_helpers_missing");
+      if (result.failedChecks.length) return result;
+      if (typeof speech.clearRuntimeProofLog === "function") speech.clearRuntimeProofLog();
+      const npcA = { id: "dev_npc_speech_a", name: "Дара", npc: true, type: "npc", role: "neutral", influence: 5, sex: "f" };
+      const npcB = { id: "dev_npc_speech_b", name: "Мирон", npc: true, type: "npc", role: "mafia", influence: 8, sex: "m" };
+      const cop = { id: "dev_npc_speech_cop", name: "Коп", npc: true, type: "npc", role: "cop", influence: 6, sex: "m" };
+      checkLine("dm", Game.NPC.generateDmLine(npcA, { source: "dm", tick: "runtime_smoke" }));
+      checkLine("battle_reply", Game.NPC.generateReactionToMe(npcB, "Игрок"));
+      const reportLine = (Game.__DEV && typeof Game.__DEV.__probeNpcSpeechReportReactionLine === "function")
+        ? Game.__DEV.__probeNpcSpeechReportReactionLine(cop, "Принял. Сейчас разберёмся.")
+        : speech.generateRuntimeNpcLine(speech.makeCtx(cop, { source: "report_reaction", channel: "dm", tick: "runtime_smoke" }), "Принял. Сейчас разберёмся.");
+      checkLine("report_reaction", reportLine);
+      let eventLine = "";
+      const oldS = Game.__S;
+      try {
+        Game.__S = Object.assign({}, Game.__S || {});
+        Game.__S.players = Object.assign({}, (oldS && oldS.players) || {}, { [npcA.id]: npcA, [npcB.id]: npcB });
+        Game.__S.events = Array.isArray(oldS && oldS.events) ? oldS.events.slice() : [];
+        if (Game.Events && typeof Game.Events.makeNpcEvent === "function") {
+          const ev = Game.Events.makeNpcEvent(npcA.id, npcB.id);
+          eventLine = ev && ev.text ? String(ev.text) : "";
+        } else {
+          eventLine = speech.generateRuntimeNpcLine(speech.makeCtx(npcA, { source: "event", channel: "event", tick: "runtime_smoke" }), "Толпа решает.");
+        }
+      } finally { Game.__S = oldS; }
+      checkLine("event", eventLine);
+      if (typeof speech.resetTickCache === "function") speech.resetTickCache();
+      const dupCtx = speech.makeCtx(npcA, { source: "dm", channel: "dm", tick: "runtime_dup", vars: { TOPIC: "спор" } });
+      const a = speech.generateRuntimeNpcLine(dupCtx, "старый текст один");
+      const b = speech.generateRuntimeNpcLine(dupCtx, "старый текст два");
+      checkLine("duplicate_probe_a", a); checkLine("duplicate_probe_b", b);
+      const pool = typeof speech.getPool === "function" ? speech.getPool(dupCtx) : null;
+      if (pool && Array.isArray(pool.templates) && pool.templates.length > 1 && a === b) fail("duplicate_in_one_tick", { a, b, pool: pool.key });
+      const proof = typeof speech.getRuntimeProofLog === "function" ? speech.getRuntimeProofLog() : ((Game.__D && Game.__D.npcSpeechRuntimeProof) || []);
+      const generatedSources = new Set((proof || []).filter(row => row && row.generated === true && row.fallbackUsed !== true).map(row => String(row.source || "")));
+      ["dm", "battle_reply", "event", "report_reaction"].forEach(source => { if (!generatedSources.has(source)) addUnique(result.missingCoverage, source); });
+      result.sources = Array.from(generatedSources).sort();
+      const fallbackRows = (proof || []).filter(row => row && row.fallbackUsed === true);
+      if (fallbackRows.length) addUnique(result.failedChecks, { check: "npc_speech_runtime_fallback", rows: fallbackRows });
+      (proof || []).forEach(row => { if (row && badLine(String(row.line || ""))) fail("proof_bad_line", row); });
+    } catch (err) { fail("smoke_exception", err && err.message ? String(err.message) : String(err)); }
+    const afterDm = (() => { try { const dm = Game.__S && Game.__S.dm ? Game.__S.dm : {}; const ids = Array.isArray(dm.openIds) ? dm.openIds.filter(id => String(id) !== "security_owner") : []; const active = String(dm.activeId || "") === "security_owner" ? null : (dm.activeId || null); const withId = String(dm.withId || "") === "security_owner" ? null : (dm.withId || null); return JSON.stringify({ open: !!dm.open, activeId: active, withId, openIds: ids }); } catch (_) { return ""; } })();
+    if (beforeDm !== afterDm) fail("dm_tabs_changed", { beforeDm, afterDm });
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
   };
 
   Game.NPC = NPC;
@@ -1143,7 +1324,7 @@ window.Game ||= {};
       : "";
     const mention = me ? `@${me}` : "";
 
-    let text = NPC.generateChatLine(n);
+    let text = NPC.generateChatLine(n, { source: "battle_reply", block: "threats", channel: "battle" });
 
     // Ensure mention exists.
     if (mention) {
