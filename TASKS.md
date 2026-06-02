@@ -64,7 +64,7 @@
   - [x] Represented callsites have `SystemCopy` kind/code mappings where possible and coverage rows have `countCallsites > 0`.
   - [x] Direct user-facing hardcoded strings outside dev-only remain inventory-only and are reported by the smoke; no copy rewrite or gameplay/UI side effects were introduced.
   - [x] `Console.txt` was not used.
-- Result: READY_FOR_RUNTIME_SMOKE only. Runtime PASS is not claimed until Safari runs `Game.__DEV.smokeSystemCopyInventoryOnce()` and the returned inventory status is reviewed.
+- Result: READY_FOR_RUNTIME_SMOKE only. Runtime PASS is not claimed until Safari runs `Game.__DEV.smokeSystemCopyInventoryOnce()` and the returned inventory status is reviewed. Follow-up smoke gating fix: `ok` is now false whenever any of `failures`, `forbiddenRemaining`, `missingCoverage`, or `failedChecks` is non-empty; direct-string inventory reporting and coverage table output remain unchanged.
 - Report:
   - Status: DONE
   - Facts: Added a dev-only system message callsite inventory with required area coverage, kind/code validation, coverage table generation, and hardcoded-string reporting.
