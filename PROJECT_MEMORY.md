@@ -1,4 +1,11 @@
 
+## 2026-06-02 — Step 7 [1] Fresh Start Screen Visibility Fix
+- Added a fresh-state boot guard that reasserts the existing start screen as visible after minimal boot work in both runtime bundles.
+- Bumped the app and docs `ui/ui-boot.js` cache keys to load the visibility fix on clean/fresh state.
+- Did not change onboarding content, action count, economy, gameplay, `onboardingSeen`, or UI design.
+- Required Safari command remains `Game.__DEV.smokeOnboardingSpecOnce()`; runtime PASS is not claimed here.
+
+
 ### [T-20260602-062] Step 6 [9] Regression pack for System Messages
 - Status: DONE
 - Priority: P0
