@@ -51,6 +51,30 @@
 
 
 
+### [T-20260602-068] Step 7 [1] Start Screen Button Hang Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/data.js` `AsyncScene/Web/index.html` `docs/ui/ui-boot.js` `docs/data.js` `docs/index.html`
+- Goal: Fix only the start-screen button hang caused by recursive/delegated button routing and repeated visibility reassertion while preserving the fresh-state start screen and `Data.START_SCREEN` as the single source.
+- Acceptance:
+  - [x] Removed overlay-level delegated Start/Rules routing so button clicks cannot recurse or double-route through the start-screen overlay.
+  - [x] Removed the MutationObserver and delayed visibility reassertions that could be triggered by button-click overlay mutations.
+  - [x] Start remains a direct button click that enters the game; Rules is a direct safe no-op when no rules UI is implemented.
+  - [x] Fresh-state start screen remains visible; `Data.START_SCREEN` remains the source; action count remains exactly two; no `onboardingSeen` was added.
+  - [x] Smoke helper verifies fresh visibility, safe-duration Rules/Start clicks, Start entry, Rules not blocking Start, and pointer blockers.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Removed recursive overlay delegated handlers, reduced fresh-start visibility to one boot-time assertion, made Rules non-blocking/no-alert fallback, kept direct Start click, updated runtime smoke timing checks, and bumped app/docs cache keys.
+  - Changed: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/data.js` `AsyncScene/Web/index.html` `docs/ui/ui-boot.js` `docs/data.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingSpecOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [1] with `Game.__DEV.smokeOnboardingSpecOnce()`; verify fresh start screen, Rules safe click, Start entry, no recursive event loop, no frozen page, and no pointer blocker.
+
+
 ### [T-20260602-067] Step 7 [1] Start Screen Button Interactivity Regression
 - Status: DONE
 - Priority: P0
