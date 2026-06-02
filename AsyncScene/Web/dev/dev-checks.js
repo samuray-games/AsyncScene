@@ -26791,6 +26791,111 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
 
 
+  Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce = function smokeNpcSpeechRuntimeIntegrationOnce() {
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      coveredByIntegrationSmoke: ["battle", "crowd", "report", "escape", "ignore"],
+      sources: []
+    };
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const fail = (code, detail) => {
+      addUnique(result.failures, detail === undefined ? code : { code, detail });
+      addUnique(result.failedChecks, code);
+    };
+    const badLine = (line) => !line || typeof line !== "string" || /undefined|null/i.test(line) || /\{[^}]*\}|[{}]/.test(line);
+    const checkLine = (source, line) => {
+      if (badLine(line)) fail("bad_line", { source, line });
+    };
+    const beforeDm = (() => {
+      try {
+        const dm = Game.__S && Game.__S.dm ? Game.__S.dm : {};
+        const ids = Array.isArray(dm.openIds) ? dm.openIds.filter(id => String(id) !== "security_owner") : []; const active = String(dm.activeId || "") === "security_owner" ? null : (dm.activeId || null); const withId = String(dm.withId || "") === "security_owner" ? null : (dm.withId || null); return JSON.stringify({ open: !!dm.open, activeId: active, withId, openIds: ids });
+      } catch (_) { return ""; }
+    })();
+    try {
+      const speech = Game.NPCSpeech;
+      if (!speech || typeof speech.generateRuntimeNpcLine !== "function") fail("generator_runtime_helper_missing");
+      if (!Game.NPC || typeof Game.NPC.generateDmLine !== "function" || typeof Game.NPC.generateReactionToMe !== "function") fail("npc_callsite_helpers_missing");
+      if (result.failedChecks.length) return result;
+
+      if (typeof speech.clearRuntimeProofLog === "function") speech.clearRuntimeProofLog();
+      const npcA = { id: "dev_npc_speech_a", name: "Дара", npc: true, type: "npc", role: "neutral", influence: 5, sex: "f" };
+      const npcB = { id: "dev_npc_speech_b", name: "Мирон", npc: true, type: "npc", role: "mafia", influence: 8, sex: "m" };
+      const cop = { id: "dev_npc_speech_cop", name: "Коп", npc: true, type: "npc", role: "cop", influence: 6, sex: "m" };
+
+      const dmLine = Game.NPC.generateDmLine(npcA, { source: "dm", tick: "runtime_smoke" });
+      checkLine("dm", dmLine);
+      const battleLine = Game.NPC.generateReactionToMe(npcB, "Игрок");
+      checkLine("battle_reply", battleLine);
+      const reportLine = (Game.__DEV && typeof Game.__DEV.__probeNpcSpeechReportReactionLine === "function")
+        ? Game.__DEV.__probeNpcSpeechReportReactionLine(cop, "Принял. Сейчас разберёмся.")
+        : speech.generateRuntimeNpcLine(speech.makeCtx(cop, { source: "report_reaction", channel: "dm", tick: "runtime_smoke" }), "Принял. Сейчас разберёмся.");
+      checkLine("report_reaction", reportLine);
+
+      let eventLine = "";
+      const oldS = Game.__S;
+      try {
+        Game.__S = Object.assign({}, Game.__S || {});
+        Game.__S.players = Object.assign({}, (oldS && oldS.players) || {}, { [npcA.id]: npcA, [npcB.id]: npcB });
+        Game.__S.events = Array.isArray(oldS && oldS.events) ? oldS.events.slice() : [];
+        if (Game.Events && typeof Game.Events.makeNpcEvent === "function") {
+          const ev = Game.Events.makeNpcEvent(npcA.id, npcB.id);
+          eventLine = ev && ev.text ? String(ev.text) : "";
+        } else {
+          eventLine = speech.generateRuntimeNpcLine(speech.makeCtx(npcA, { source: "event", channel: "event", tick: "runtime_smoke" }), "Толпа решает.");
+        }
+      } finally {
+        Game.__S = oldS;
+      }
+      checkLine("event", eventLine);
+
+      if (typeof speech.resetTickCache === "function") speech.resetTickCache();
+      const dupCtx = speech.makeCtx(npcA, { source: "dm", channel: "dm", tick: "runtime_dup", vars: { TOPIC: "спор" } });
+      const a = speech.generateRuntimeNpcLine(dupCtx, "старый текст один");
+      const b = speech.generateRuntimeNpcLine(dupCtx, "старый текст два");
+      checkLine("duplicate_probe_a", a);
+      checkLine("duplicate_probe_b", b);
+      const pool = typeof speech.getPool === "function" ? speech.getPool(dupCtx) : null;
+      if (pool && Array.isArray(pool.templates) && pool.templates.length > 1 && a === b) fail("duplicate_in_one_tick", { a, b, pool: pool.key });
+
+      const proof = typeof speech.getRuntimeProofLog === "function" ? speech.getRuntimeProofLog() : ((Game.__D && Game.__D.npcSpeechRuntimeProof) || []);
+      const generatedSources = new Set((proof || []).filter(row => row && row.generated === true && row.fallbackUsed !== true).map(row => String(row.source || "")));
+      ["dm", "battle_reply", "event", "report_reaction"].forEach(source => {
+        if (!generatedSources.has(source)) addUnique(result.missingCoverage, source);
+      });
+      result.sources = Array.from(generatedSources).sort();
+      const fallbackRows = (proof || []).filter(row => row && row.fallbackUsed === true);
+      if (fallbackRows.length) {
+        addUnique(result.failedChecks, { check: "npc_speech_runtime_fallback", rows: fallbackRows });
+      }
+      (proof || []).forEach(row => {
+        if (row && badLine(String(row.line || ""))) fail("proof_bad_line", row);
+      });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    const afterDm = (() => {
+      try {
+        const dm = Game.__S && Game.__S.dm ? Game.__S.dm : {};
+        const ids = Array.isArray(dm.openIds) ? dm.openIds.filter(id => String(id) !== "security_owner") : []; const active = String(dm.activeId || "") === "security_owner" ? null : (dm.activeId || null); const withId = String(dm.withId || "") === "security_owner" ? null : (dm.withId || null); return JSON.stringify({ open: !!dm.open, activeId: active, withId, openIds: ids });
+      } catch (_) { return ""; }
+    })();
+    if (beforeDm !== afterDm) fail("dm_tabs_changed", { beforeDm, afterDm });
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    console.warn("NPC_SPEECH_RUNTIME_INTEGRATION_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("NPC_SPEECH_RUNTIME_INTEGRATION_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce);
+
+
 
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
