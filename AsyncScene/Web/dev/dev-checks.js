@@ -27280,6 +27280,81 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
 
 
+
+
+  function installOnboardingSpecSmoke(devStore) {
+    if (!devStore || typeof devStore.smokeOnboardingSpecOnce === "function") return;
+    devStore.smokeOnboardingSpecOnce = function smokeOnboardingSpecOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        introLineCount: 0,
+        actionCount: 0,
+        usesSingleSource: false,
+        startScreenVisible: false,
+        extraTextBlocks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      try {
+        const D = Game && Game.Data;
+        const spec = D && D.START_SCREEN;
+        result.usesSingleSource = !!(spec && typeof spec.title === "string" && Array.isArray(spec.introLines) && spec.actions);
+        if (!result.usesSingleSource) fail("missing_start_screen_source", null);
+        const lines = spec && Array.isArray(spec.introLines) ? spec.introLines : [];
+        result.introLineCount = lines.length;
+        if (lines.length < 2 || lines.length > 3) fail("intro_line_count", lines.length);
+        const actions = spec && spec.actions ? spec.actions : {};
+        const actionKeys = Object.keys(actions).filter((key) => typeof actions[key] === "string" && actions[key].trim());
+        result.actionCount = actionKeys.length;
+        if (!actionKeys.includes("start") || !actionKeys.includes("rules") || actionKeys.length !== 2) fail("actions_shape", actionKeys);
+        const forbidden = [/мем/i, /кринж/i, /лол/i, /погнали/i, /давай/i, /ты сможешь/i, /жми/i];
+        [spec && spec.title].concat(lines, [actions.start, actions.rules]).forEach((text) => {
+          const value = String(text || "");
+          if (!value.trim()) fail("empty_text", value);
+          forbidden.forEach((re) => { if (re.test(value)) fail("forbidden_tone", value); });
+        });
+        const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+        if (!st) {
+          fail("start_screen_missing", null);
+        } else {
+          const cs = (typeof getComputedStyle === "function") ? getComputedStyle(st) : null;
+          result.startScreenVisible = !st.hidden && !st.classList.contains("hidden") && (!cs || (cs.display !== "none" && cs.visibility !== "hidden"));
+          if (!result.startScreenVisible) fail("start_screen_not_visible", null);
+          const titleEl = document.getElementById("startTitle");
+          const introEl = document.getElementById("startIntroLines");
+          const startBtn = document.getElementById("btnStart");
+          const rulesBtn = document.getElementById("btnRules");
+          if (!titleEl || !introEl || !startBtn || !rulesBtn) fail("required_dom_missing", null);
+          const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
+          if (spec && titleEl && (titleEl.textContent || "").trim() !== spec.title) fail("title_not_from_source", (titleEl.textContent || "").trim());
+          if (spec && JSON.stringify(renderedLines) !== JSON.stringify(lines)) fail("intro_not_from_source", renderedLines);
+          if (spec && startBtn && (startBtn.textContent || "").trim() !== actions.start) fail("start_action_not_from_source", (startBtn.textContent || "").trim());
+          if (spec && rulesBtn && (rulesBtn.textContent || "").trim() !== actions.rules) fail("rules_action_not_from_source", (rulesBtn.textContent || "").trim());
+          const allowed = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
+          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+            result.extraTextBlocks.push(el.id || el.tagName.toLowerCase());
+          });
+          Array.from(st.querySelectorAll("button")).forEach((button) => {
+            if (!allowed.has(button.id)) result.extraTextBlocks.push(button.id || "button");
+          });
+          if (result.extraTextBlocks.length) fail("extra_text_blocks", result.extraTextBlocks.slice());
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_SPEC_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("ONBOARDING_SPEC_SMOKE_INSTALLED_V1", typeof devStore.smokeOnboardingSpecOnce);
+  }
+
+
+  installOnboardingSpecSmoke(Game.__DEV);
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
   installStep3UiTaxonomySmoke(Game.__DEV);
@@ -27298,6 +27373,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyRegressionPackSmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   installStep3TerminologyCompletionGateSmoke(Game.__DEV);
+  console.warn("ONBOARDING_SPEC_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeOnboardingSpecOnce);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);

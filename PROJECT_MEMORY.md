@@ -20,6 +20,16 @@
 
 # AsyncScene — Project Memory (single shared context)
 
+
+## 2026-06-02 — Step 7 [1] Start Screen Spec
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Added `Data.START_SCREEN` with the required `title`, `introLines`, and `actions.start`/`actions.rules` structure in both runtime bundles.
+- Wired the existing start screen and injected fallback markup to render content only from `Data.START_SCREEN`; the visible start screen contains the title, three short intro lines, and the two required actions.
+- No `onboardingSeen` state, economy changes, gameplay changes, or UI redesign were added.
+- Added `Game.__DEV.smokeOnboardingSpecOnce()` for Safari validation of source shape, visible start screen, two actions, intro line count, and absence of extra start-screen text blocks.
+- Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 6 [5] Minimal Text Templates
 
 - Status: READY_FOR_RUNTIME_SMOKE.
