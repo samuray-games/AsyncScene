@@ -1,5 +1,10 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-02 — Step 6 [3] System Language Profile
+
+- Status: READY_FOR_RUNTIME_SMOKE.
+- Added the SystemCopy-only language profile linter and Safari smoke command `Game.__DEV.smokeSystemLanguageProfileOnce()`.
+- Result: READY_FOR_RUNTIME_SMOKE only.
 
 ## 2026-06-02 — Step 6 [2] SystemCopy routing for reported inventory strings
 
