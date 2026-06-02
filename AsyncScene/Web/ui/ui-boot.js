@@ -168,6 +168,17 @@ window.Game = window.Game || {};
     st.style.pointerEvents = "auto";
   }
 
+  function shouldShowFreshStartScreen(UI) {
+    const G = window.Game || {};
+    const S = (UI && UI.S) || G.State || G.__S || null;
+    const flags = (S && S.flags) || (G.State && G.State.flags) || {};
+    return !(S && S.isStarted === true) && flags.started !== true;
+  }
+
+  function ensureFreshStartScreenVisible(UI) {
+    if (shouldShowFreshStartScreen(UI)) ensureStartScreenVisible(UI);
+  }
+
   function applyStartScreenContent(UI) {
     const $ = UI.$;
     markUiBootVersion();
@@ -749,6 +760,11 @@ window.Game = window.Game || {};
 
     // Render minimal UI only
     UI.renderAllMinimal && UI.renderAllMinimal();
+
+    // Fresh/clean state must leave the existing start screen visible even if
+    // earlier boot work or stale DOM attributes hid it before content binding.
+    ensureFreshStartScreenVisible(UI);
+    setTimeout(() => ensureFreshStartScreenVisible(UI), 0);
 
     try {
       UI.S.flags = UI.S.flags || {};
