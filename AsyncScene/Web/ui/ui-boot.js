@@ -513,7 +513,7 @@ window.Game = window.Game || {};
 
           if (!S.dm.aggro[key]) {
             S.dm.aggro[key] = true;
-            UI.dmPushLine(withId, target.name, target.role === "bandit" ? "ты че, самый смелый? ща разберемся" : "слыш, не умничай, выходи на баттл");
+            UI.dmPushLine(withId, target.name, target.role === "bandit" ? "ты смелый? сейчас проверим" : "слыш, выходи на спор");
             if (Game.Conflict && Game.Conflict.incoming) Game.Conflict.incoming(withId, { pinned: true });
           } else {
             if (Math.random() < 0.65 && Game.NPC && Game.NPC.generateChatLine) UI.dmPushLine(withId, target.name, Game.NPC.generateChatLine(target));
