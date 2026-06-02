@@ -4850,3 +4850,9 @@ Error: Download failure, code=1
 - Added dev-only smoke `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` returning `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks }` and covering every block/role/channel/intensity, variable replacement, and duplicate prevention.
 - Scope guard: no gameplay integration, no UI changes, no economy/battle/crowd/report logic changes, and `Console.txt` was not used.
 - Safari QA command: `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()`.
+
+## 2026-06-02 - Step 5.3 NPC speech template Safari cleanup
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari must run `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` before runtime PASS is claimed.
+- Fixed the Step 5.3 scaffold smoke blocker by replacing the forbidden teacher-tone wording in the mirrored bandit defeat template paths with direct adult NPC wording.
+- Scope guard preserved: template text cleanup only; no gameplay, UI, logic, smoke-rule, whitelist, or linter changes. `Console.txt` was not used.
+- Local VM check of `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` returned the target empty failure arrays; no Safari runtime PASS is claimed.
