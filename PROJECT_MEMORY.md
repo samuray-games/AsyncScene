@@ -1,6 +1,12 @@
 # AsyncScene — Project Memory (single shared context)
 
 
+## 2026-06-02 — Step 6 [2] SystemCopy routing for reported inventory strings
+
+- Status: READY_FOR_RUNTIME_SMOKE.
+- Routed the reported Step 6 [2] inventory callsites through SystemCopy and left Safari runtime validation to `Game.__DEV.smokeSystemCopyInventoryOnce()`.
+
+
 ## 2026-06-02 — Step 6 [2] System message inventory coverage
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.

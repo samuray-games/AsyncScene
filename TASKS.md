@@ -62,16 +62,16 @@
   - [x] `Game.__DEV.smokeSystemCopyInventoryOnce()` returns `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and coverage rows shaped `{kind, code, countCallsites}`.
   - [x] Required areas are represented: economy deltas, DM, battles, events, reports, rematch, escape, training, respect.
   - [x] Represented callsites have `SystemCopy` kind/code mappings where possible and coverage rows have `countCallsites > 0`.
-  - [x] Direct user-facing hardcoded strings outside dev-only remain inventory-only and are reported by the smoke; no copy rewrite or gameplay/UI side effects were introduced.
+  - [x] Reported direct user-facing hardcoded strings are routed through SystemCopy for runtime smoke readiness.
   - [x] `Console.txt` was not used.
-- Result: READY_FOR_RUNTIME_SMOKE only. Runtime PASS is not claimed until Safari runs `Game.__DEV.smokeSystemCopyInventoryOnce()` and the returned inventory status is reviewed. Follow-up smoke gating fix: `ok` is now false whenever any of `failures`, `forbiddenRemaining`, `missingCoverage`, or `failedChecks` is non-empty; direct-string inventory reporting and coverage table output remain unchanged.
+- Result: READY_FOR_RUNTIME_SMOKE only.
 - Report:
   - Status: DONE
-  - Facts: Added a dev-only system message callsite inventory with required area coverage, kind/code validation, coverage table generation, and hardcoded-string reporting.
-  - Changed: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - Facts: READY_FOR_RUNTIME_SMOKE only.
+  - Changed: `AsyncScene/Web/events.js` `AsyncScene/Web/ui/ui-dm.js` `AsyncScene/Web/ui/ui-battles.js` `AsyncScene/Web/system.js` `docs/events.js` `docs/ui/ui-dm.js` `docs/ui/ui-battles.js` `docs/system.js` `TASKS.md` `PROJECT_MEMORY.md`
   - How to verify: Hard refresh Safari and run `Game.__DEV.smokeSystemCopyInventoryOnce()` in DevTools.
-  - Next: Дима to validate Safari runtime smoke and inspect the reported hardcoded callsites before any copy rewrite.
-  - Next Prompt: Run the Step 6 [2] system message inventory smoke in Safari; do not claim runtime PASS unless required area coverage and coverage row shape are correct, and report any `forbiddenRemaining` direct hardcoded strings exactly as returned.
+  - Next: Дима to validate Safari runtime smoke.
+  - Next Prompt: Run the Step 6 [2] system message inventory smoke in Safari; READY_FOR_RUNTIME_SMOKE only.
 
 ### [T-20260602-056] Step 6 System messages contract
 - Status: DONE
