@@ -1334,7 +1334,7 @@ button:disabled{opacity:.55; cursor:not-allowed}
   justify-content:center;
   background:rgba(0,0,0,.62);
   backdrop-filter: blur(10px);
-  z-index:9999;
+  z-index:2147483647;
   pointer-events:auto;
 }
 #startCard{
