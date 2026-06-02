@@ -4550,3 +4550,11 @@ Error: Download failure, code=1
 - The smoke return object now includes a small `presenceProof` marker in addition to the required `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `categories` fields.
 - Mirrored `NPC.SPEECH_INVENTORY_SOURCES` into the docs bundle and cache-busted the affected scripts in both HTML entrypoints.
 - No runtime PASS is claimed; Safari must run `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
+
+## 2026-06-02 - Step 5.2 NPC speech style rules linter
+- Added `NPC_STYLE_GUIDE.md` as the repo-level NPC speech validation guide for dev-only style checks.
+- Added mirrored dev-only `Game.__DEV.smokeNpcSpeechStyleRulesOnce()` in the app and docs dev-check bundles, reusing the existing NPC speech inventory sources instead of introducing gameplay/UI text changes.
+- Return contract is `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, categories, violations }`; violations are grouped by category and rule, and `ok` is true only when all failure arrays are empty.
+- Coverage categories are fixed to `dm`, `battle`, `events`, and `reportReactions`; unresolved category proof is surfaced through `missingCoverage`.
+- Scope guard: validation only, no NPC string rewrites, no UI changes, no gameplay changes, and `Console.txt` was not used.
+- Runtime QA command: `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
