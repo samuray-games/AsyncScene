@@ -80,7 +80,14 @@ window.Game = window.Game || {};
   function getStartName(UI) {
     const $ = UI && UI.$;
     const input = ($ && $("nameInput")) || document.getElementById("nameInput");
-    return input ? String(input.value || "").trim() : "";
+    const typed = input ? String(input.value || "").trim() : "";
+    if (typed) return typed;
+    const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    if (D && Array.isArray(D.RANDOM_NAMES) && D.RANDOM_NAMES.length) {
+      if (typeof D.pick === "function") return String(D.pick(D.RANDOM_NAMES) || "Игрок").trim() || "Игрок";
+      return String(D.RANDOM_NAMES[0] || "Игрок").trim() || "Игрок";
+    }
+    return "Игрок";
   }
 
   // Boot must run only when:
@@ -122,20 +129,12 @@ window.Game = window.Game || {};
       st.id = "startScreen";
       st.className = "overlay active";
       st.innerHTML = `
-        <div class="card login">
-          <div class="cardHeader">
-            <div class="h2">AsyncScene</div>
-            <div class="small muted">Чат - главный экран</div>
-          </div>
-          <div class="formRow">
-            <label class="label" for="nameInput">Твой ник</label>
-            <input id="nameInput" class="input" placeholder="Твой ник" data-enter-target="btnStart" />
-            <div id="startManifestShort" class="pill"></div>
-            <div class="row mt12">
-              <button id="btnRandom" class="btn">Случайный ник</button>
-              <button id="btnStart" class="btn primary">Начать</button>
-            </div>
-            <div id="startHint" class="small mt12">Клик по баблу откроет личку.</div>
+        <div id="startCard">
+          <h1 id="startTitle"></h1>
+          <div id="startIntroLines"></div>
+          <div id="startBtns">
+            <button id="btnStart" class="btn primary"></button>
+            <button id="btnRules" class="btn"></button>
           </div>
         </div>
       `;
@@ -158,16 +157,34 @@ window.Game = window.Game || {};
     st.style.pointerEvents = "auto";
   }
 
-  function applyStartManifest(UI) {
+  function applyStartScreenContent(UI) {
     const $ = UI.$;
     markUiBootVersion();
-    const el = $("startManifestShort") || document.getElementById("startManifestShort");
-    if (!el) return;
     const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
-    const text = (D && D.TEXTS && D.TEXTS.manifest && D.TEXTS.manifest.short)
-      ? String(D.TEXTS.manifest.short)
-      : "";
-    el.textContent = text;
+    const spec = (D && D.START_SCREEN) ? D.START_SCREEN : null;
+    const title = spec && typeof spec.title === "string" ? spec.title : "";
+    const introLines = spec && Array.isArray(spec.introLines) ? spec.introLines.slice(0, 3) : [];
+    const actions = spec && spec.actions ? spec.actions : {};
+
+    const titleEl = $("startTitle") || document.getElementById("startTitle");
+    if (titleEl) titleEl.textContent = title;
+
+    const linesEl = $("startIntroLines") || document.getElementById("startIntroLines");
+    if (linesEl) {
+      linesEl.textContent = "";
+      introLines.forEach((line) => {
+        const div = document.createElement("div");
+        div.className = "startIntroLine";
+        div.textContent = String(line || "");
+        linesEl.appendChild(div);
+      });
+    }
+
+    const startBtn = $("btnStart") || document.getElementById("btnStart");
+    if (startBtn) startBtn.textContent = typeof actions.start === "string" ? actions.start : "";
+
+    const rulesBtn = $("btnRules") || document.getElementById("btnRules");
+    if (rulesBtn) rulesBtn.textContent = typeof actions.rules === "string" ? actions.rules : "";
   }
 
   function ensureStartScreenHidden(UI) {
@@ -343,7 +360,7 @@ window.Game = window.Game || {};
       }
     }
 
-    const btnRandom = $("btnRandom");
+    const btnRules = $("btnRules");
 
     const btnSend = $("btnSend");
     const chatInput = $("chatInput");
@@ -435,14 +452,16 @@ window.Game = window.Game || {};
 
     // Menu: bindings are delegated in ui-menu.js to survive re-renders.
 
-    // Random nick
-    if (btnRandom)
-      btnRandom.onclick = () => {
-        const ni = $("nameInput");
-        if (!ni) return;
-        if (window.Game && Game.Data && Game.Data.RANDOM_NAMES && Game.Data.pick) ni.value = Game.Data.pick(Game.Data.RANDOM_NAMES);
-        else ni.value = `Игрок${Math.floor(Math.random() * 999)}`;
+    if (btnRules) {
+      btnRules.onclick = (e) => {
+        try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
+        const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+        const text = (D && D.TEXTS && D.TEXTS.manifest && D.TEXTS.manifest.full)
+          ? String(D.TEXTS.manifest.full)
+          : "";
+        if (text && typeof window.alert === "function") window.alert(text);
       };
+    }
 
     // Start. Bind every mobile-relevant event so iPhone Safari can be diagnosed internally.
     if (btnStart) {
@@ -704,7 +723,7 @@ window.Game = window.Game || {};
     bindLocations(UI);
 
     ensureStartScreenVisible(UI);
-    applyStartManifest(UI);
+    applyStartScreenContent(UI);
 
     // Build players once so name lists exist (mentions, DM roster), but do NOT start loops yet
     if (!UI.S.players || Object.keys(UI.S.players).length === 0) {

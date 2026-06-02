@@ -9,6 +9,19 @@ window.Game = window.Game || {};
     "Tori","Haru","Sen","Dara","Memelord","Sigma","Boss","Zzz","Kappa","Fox"
   ];
 
+  Data.START_SCREEN = Object.freeze({
+    title: "AsyncScene",
+    introLines: Object.freeze([
+      "Ты в общем чате.",
+      "Споры идут через аргументы.",
+      "Ресурсы открывают действия."
+    ]),
+    actions: Object.freeze({
+      start: "Начать",
+      rules: "Правила"
+    })
+  });
+
   // === PROGRESSION (single source of truth) ===
   Data.PROGRESSION_V2 = true;
   const PROG_V2 = Data.PROGRESSION_V2 === true;

@@ -50,6 +50,28 @@
 ```
 
 
+
+### [T-20260602-063] Step 7 [1] Start Screen Spec
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Content
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js`
+- Goal: Centralize start-screen title, intro lines, and two action labels without changing gameplay, economy, or onboarding state.
+- Acceptance:
+  - [x] Start-screen content is declared once in `Data.START_SCREEN` per runtime bundle.
+  - [x] Start-screen markup is wired from that source and has title, 2-3 intro lines, and exactly two actions.
+  - [x] No `onboardingSeen` state was added.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Added `Data.START_SCREEN`, wired start-screen rendering to it, removed hardcoded start-screen copy/actions from HTML and fallback markup, and added `Game.__DEV.smokeOnboardingSpecOnce()`.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingSpecOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [1] with `Game.__DEV.smokeOnboardingSpecOnce()`; do not claim PASS until Safari returns ok.
+
 ### [T-20260602-062] Step 6 [9] Regression pack for System Messages
 - Status: DONE
 - Priority: P0
