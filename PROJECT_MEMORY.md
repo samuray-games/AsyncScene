@@ -1,5 +1,15 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-02 — Step 5.5 NPC speech millennial wording refinement
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Refined NPC speech fallback pools and Step 5 template wording for millennial audience while keeping the existing template structure: same blocks, roles, channels, intensities, and two templates per pool.
+- Role voice targets: cop is calm/practical without system threats or lectures; mafia is controlled/confident with indirect pressure; bandit is direct and rough with short adult phrases; toxic is sharp/provocative without meme language; neutral stays observational and non-judgmental.
+- Added `Game.__DEV.smokeNpcSpeechMillennialWordingOnce()` with contract fields `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; the smoke samples 25 generated lines across roles, blocks, and channels and checks teen slang, memes, officialese, teacher tone, third-person self-reference, broken renders, and role voice separation.
+- Scope guard: text/dev-smoke only. No gameplay, UI, economy, battle/crowd/report logic, template structure, timers, state, or `Console.txt` changes were made.
+- Local evidence: PASS `node --check AsyncScene/Web/npcs.js && node --check docs/npcs.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke `Game.__DEV.smokeNpcSpeechMillennialWordingOnce()` with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`, and `sampleCount:25`.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechMillennialWordingOnce()` must return `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]` before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 5.4 NPC speech minimal runtime integration
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
