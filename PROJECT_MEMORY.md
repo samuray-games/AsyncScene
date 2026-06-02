@@ -4574,3 +4574,10 @@ Error: Download failure, code=1
 - Preserved the smoke rules and did not add whitelists or weaken banned-phrase checks.
 - Local VM invocation of `Game.__DEV.smokeNpcSpeechStyleRulesOnce()` returned the target empty failure arrays; browser automation could not launch because Playwright Chromium is missing locally.
 - No Safari runtime PASS is claimed; required command remains `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
+
+## 2026-06-02 - Step 5.3 Dev-only NPC speech template scaffold
+- Added mirrored dev-only NPC speech template scaffolding through `Game.NPCSpeech` in the app and docs runtime bundles.
+- Template dictionary covers five blocks: `greetings`, `threats`, `victory`, `defeat`, and `neutral`; context dimensions are `role`, `channel`, `intensity`, and vars `{PLAYER}`, `{PLACE}`, `{TOPIC}`.
+- `Game.NPCSpeech.generateNpcLine(ctx)` always returns a non-empty string, replaces/cleans placeholders, and avoids duplicate lines in the same tick for the same context pool while alternatives exist.
+- Added runtime smoke `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` with target empty arrays for `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Scope guard preserved: scaffold only; no gameplay integration, UI, economy, battle, crowd, or report logic changes. No runtime PASS is claimed until Safari runs the smoke command.
