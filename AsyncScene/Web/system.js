@@ -975,12 +975,8 @@ window.Game = window.Game || {};
     }
 
     try {
-      if (Game.__A && typeof Game.__A.pushDm === "function") {
-        Game.__A.pushDm("smoke_silent_dm", "Система", say("systemEvents", "dmReaction", { name: "A", target: "B" }), { isSystem: true, silentIncoming: true, playerId: "smoke_silent_dm" });
-      } else if (UI && typeof UI.pushIncomingSystem === "function") {
-        UI.pushIncomingSystem("dm", "systemEvents", "dmReaction", { name: "A", target: "B" }, { silentIncoming: true });
-      } else fail("silent_dm_helper_missing");
       if (UI && typeof UI.pushIncomingSystem === "function") {
+        UI.pushIncomingSystem("dm", "systemEvents", "dmReaction", { name: "A", target: "B" }, { silentIncoming: true });
         UI.pushIncomingSystem("battles", "systemEvents", "battleChallenge", { attackerName: "A", attackerInf: 1 }, { silentIncoming: true });
         UI.pushIncomingSystem("events", "systemEvents", "crowdStart", {}, { silentIncoming: true });
       } else fail("incoming_system_helper_missing");
