@@ -1,3 +1,23 @@
+
+### [T-20260602-062] Step 6 [9] Regression pack for System Messages
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Core
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: READY_FOR_RUNTIME_SMOKE only.
+- Acceptance:
+  - [x] READY_FOR_RUNTIME_SMOKE only.
+- Result: READY_FOR_RUNTIME_SMOKE only.
+- Report:
+  - Status: DONE
+  - Facts: READY_FOR_RUNTIME_SMOKE only.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: READY_FOR_RUNTIME_SMOKE only.
+  - Next: Дима.
+  - Next Prompt: READY_FOR_RUNTIME_SMOKE only.
+
 # AsyncScene — Project Memory (single shared context)
 
 ## 2026-06-02 — Step 6 [5] Minimal Text Templates

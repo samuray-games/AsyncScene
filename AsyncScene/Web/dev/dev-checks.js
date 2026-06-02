@@ -3383,6 +3383,273 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
   };
+  Game.__DEV.smokeSystemMessagesRegressionOnce = function smokeSystemMessagesRegressionOnce() {
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      cases: [],
+      duplicateMessages: [],
+      autoPanelOpens: [],
+      moralToneMatches: [],
+      unstableOutputs: []
+    };
+    const requiredCoverage = [
+      "E_RULES respect self-block",
+      "W_RATE_LIMIT respect daily limit",
+      "N_REFUNDED majority refund",
+      "N_COST vote cost",
+      "N_COST rematch cost",
+      "N_COST escape cost",
+      "S_MODE_SWITCH mode/panel switch",
+      "DM incoming silent",
+      "battle outcome card plus delta toast",
+      "report truthful compensation",
+      "report false penalty"
+    ];
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const fail = (code, detail) => {
+      addUnique(result.failures, detail === undefined ? code : { code, detail });
+      addUnique(result.failedChecks, code);
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const forbiddenProfiles = [
+      { rule: "no_console_txt", re: /Console\.txt/i },
+      { rule: "no_moralizing", re: /(морал|стыд|совесть|виноват|исправься|правильн(?:ый|о|ая|ые)|неправильн|лучший выбор|плохой человек)/i },
+      { rule: "no_pressure", re: /(ты должен|ты обяз|обязан|срочно|немедленно|давай быстрее|последний шанс|иначе|прид[её]тся)/i },
+      { rule: "no_cutesy", re: /(котик|зайчик|солнышк|лапк|няш|миленьк|обнимаш|пупс|❤️|💕|✨)/i },
+      { rule: "no_teacher_tone", re: /(делаем вывод|надо понимать|следует|необходимо|главное\s*[—-]|урок|запомни)/i },
+      { rule: "no_unrendered", re: /(undefined|null|\{\s*[A-Za-z0-9_]+\s*\})/i }
+    ];
+    const classifyText = (caseId, text) => {
+      const line = normalize(text);
+      if (!line) {
+        addUnique(result.forbiddenRemaining, { caseId, rule: "empty_text", text: line });
+        addUnique(result.moralToneMatches, { caseId, rule: "empty_text", text: line });
+        return;
+      }
+      forbiddenProfiles.forEach(profile => {
+        const match = line.match(profile.re);
+        if (match) {
+          const row = { caseId, rule: profile.rule, text: line, match: match[0] };
+          addUnique(result.forbiddenRemaining, row);
+          if (profile.rule !== "no_console_txt" && profile.rule !== "no_unrendered") addUnique(result.moralToneMatches, row);
+        }
+      });
+    };
+    const snapshotState = () => {
+      const S = Game.__S || {};
+      const dm = S.dm || {};
+      const active = (typeof document !== "undefined" && document.activeElement) ? (document.activeElement.id || document.activeElement.tagName || "") : "";
+      const scroll = (typeof window !== "undefined") ? { x: window.scrollX || 0, y: window.scrollY || 0 } : { x: 0, y: 0 };
+      return {
+        dmOpen: !!dm.open,
+        activeId: dm.activeId || null,
+        withId: dm.withId || null,
+        openIds: Array.isArray(dm.openIds) ? dm.openIds.slice().map(String).sort() : [],
+        activeElement: active,
+        scroll
+      };
+    };
+    const stableCase = (row) => ({
+      id: row.id,
+      coverage: (row.coverage || []).slice().sort(),
+      texts: (row.texts || []).map(normalize),
+      silent: !!row.silent,
+      toastCount: row.toastCount | 0,
+      chatCount: row.chatCount | 0,
+      dmCount: row.dmCount | 0,
+      autoPanelCount: row.autoPanelCount | 0
+    });
+    const runScenarioPack = () => {
+      const system = Game.System || {};
+      if (typeof system.say !== "function") throw new Error("Game.System.say missing");
+      if (typeof system.deliver !== "function") throw new Error("Game.System.deliver missing");
+      const UI = Game.UI = Game.UI || {};
+      const originalAExists = !!Game.__A;
+      const original = {
+        showStatToast: UI.showStatToast,
+        pushSystem: UI.pushSystem,
+        pushIncomingSystem: UI.pushIncomingSystem,
+        pushChat: UI.pushChat,
+        isPanelCollapsed: UI.isPanelCollapsed,
+        bumpCollapsedCounter: UI.bumpCollapsedCounter,
+        getCollapsedCounter: UI.getCollapsedCounter,
+        pulsePanelHeader: UI.pulsePanelHeader,
+        requestRenderAll: UI.requestRenderAll,
+        pushDm: Game.__A && Game.__A.pushDm,
+        scrollTo: (typeof window !== "undefined") ? window.scrollTo : undefined,
+        focus: (typeof HTMLElement !== "undefined" && HTMLElement.prototype) ? HTMLElement.prototype.focus : undefined
+      };
+      const events = { toasts: [], chats: [], dms: [], panelOpens: [], focus: [], scrolls: [], collapsedBumps: [] };
+      const restore = () => {
+        UI.showStatToast = original.showStatToast;
+        UI.pushSystem = original.pushSystem;
+        UI.pushIncomingSystem = original.pushIncomingSystem;
+        UI.pushChat = original.pushChat;
+        UI.isPanelCollapsed = original.isPanelCollapsed;
+        UI.bumpCollapsedCounter = original.bumpCollapsedCounter;
+        UI.getCollapsedCounter = original.getCollapsedCounter;
+        UI.pulsePanelHeader = original.pulsePanelHeader;
+        UI.requestRenderAll = original.requestRenderAll;
+        if (originalAExists) {
+          if (original.pushDm === undefined) { try { delete Game.__A.pushDm; } catch (_) { Game.__A.pushDm = undefined; } }
+          else Game.__A.pushDm = original.pushDm;
+        } else {
+          try { delete Game.__A; } catch (_) { Game.__A = undefined; }
+        }
+        if (typeof window !== "undefined" && original.scrollTo !== undefined) window.scrollTo = original.scrollTo;
+        if (typeof HTMLElement !== "undefined" && HTMLElement.prototype && original.focus !== undefined) HTMLElement.prototype.focus = original.focus;
+      };
+      try {
+        UI.showStatToast = (kind, text) => { events.toasts.push({ kind, text: normalize(text) }); };
+        UI.pushSystem = (text, opts) => { events.chats.push({ system: true, text: normalize(text), opts: opts || {} }); };
+        UI.pushChat = (msg) => { events.chats.push({ system: !!(msg && (msg.system || msg.isSystem)), text: normalize(msg && msg.text), msg: msg || {} }); };
+        UI.requestRenderAll = () => {};
+        UI.isPanelCollapsed = (key) => String(key || "").toLowerCase() === "dm";
+        UI.bumpCollapsedCounter = (key) => { events.collapsedBumps.push(String(key || "")); };
+        UI.getCollapsedCounter = () => events.collapsedBumps.length || 1;
+        UI.pulsePanelHeader = () => {};
+        UI.pushIncomingSystem = original.pushIncomingSystem;
+        if (!Game.__A) Game.__A = {};
+        Game.__A.pushDm = (targetId, name, text, opts) => { events.dms.push({ targetId, name, text: normalize(text), opts: opts || {} }); events.panelOpens.push({ surface: "dm", targetId }); };
+        if (typeof window !== "undefined") window.scrollTo = (...args) => { events.scrolls.push(args); };
+        if (typeof HTMLElement !== "undefined" && HTMLElement.prototype) HTMLElement.prototype.focus = function () { events.focus.push(this && (this.id || this.tagName || "element")); };
+        const before = snapshotState();
+        const makeCase = (id, coverage, fn) => {
+          const beforeCounts = { toasts: events.toasts.length, chats: events.chats.length, dms: events.dms.length, panelOpens: events.panelOpens.length };
+          const data = fn() || {};
+          const texts = [];
+          (data.texts || []).map(normalize).filter(Boolean).forEach(text => { if (!texts.includes(text)) texts.push(text); });
+          texts.forEach(text => classifyText(id, text));
+          const row = {
+            id,
+            coverage,
+            texts,
+            silent: !!data.silent,
+            toastCount: events.toasts.length - beforeCounts.toasts,
+            chatCount: events.chats.length - beforeCounts.chats,
+            dmCount: events.dms.length - beforeCounts.dms,
+            autoPanelCount: events.panelOpens.length - beforeCounts.panelOpens,
+            details: data.details || null
+          };
+          if (row.autoPanelCount > 0) addUnique(result.autoPanelOpens, { caseId: id, count: row.autoPanelCount, rows: events.panelOpens.slice(beforeCounts.panelOpens) });
+          return row;
+        };
+        const cases = [];
+        cases.push(makeCase("respect_self_block_e_rules", ["E_RULES respect self-block"], () => {
+          const text = system.say("errors", "blockedWithHint", { what: "уважение себе", hint: "Выбери другого персонажа." });
+          const policy = system.deliver("errors", "blockedWithHint", { what: "уважение себе", hint: "Выбери другого персонажа." });
+          return { texts: [text, policy && policy.text], details: { taxonomy: "E_RULES" } };
+        }));
+        cases.push(makeCase("respect_daily_limit_w_rate_limit", ["W_RATE_LIMIT respect daily limit"], () => {
+          const text = system.say("warnings", "respectPairDaily");
+          const policy = system.deliver("warnings", "respectPairDaily");
+          return { texts: [text, policy && policy.text], details: { taxonomy: "W_RATE_LIMIT" } };
+        }));
+        cases.push(makeCase("majority_refund_n_refunded", ["N_REFUNDED majority refund"], () => {
+          const policy = system.deliver("notifications", "pointsDeltaRefundMajority");
+          return { texts: [system.say("notifications", "pointsDeltaRefundMajority"), policy && policy.text], details: { taxonomy: "N_REFUNDED" } };
+        }));
+        cases.push(makeCase("vote_rematch_escape_cost_n_cost", ["N_COST vote cost", "N_COST rematch cost", "N_COST escape cost"], () => {
+          const vote = system.deliver("notifications", "pointsDeltaVoteCost", { voteCost: 1 });
+          const rematch = system.deliver("notifications", "rematchCost", { rematchCost: 1 });
+          const escape = system.deliver("notifications", "escapeVoteCost", { escapeCost: 1 });
+          return { texts: [vote && vote.text, rematch && rematch.text, escape && escape.text], details: { taxonomy: "N_COST" } };
+        }));
+        cases.push(makeCase("mode_panel_switch_s_mode_switch", ["S_MODE_SWITCH mode/panel switch"], () => {
+          const text = system.say("systemEvents", "route", { what: "Панель", value: "личка" });
+          const policy = system.deliver("systemEvents", "route", { what: "Панель", value: "личка", playerVisible: true });
+          return { texts: [text, policy && policy.text], details: { taxonomy: "S_MODE_SWITCH" } };
+        }));
+        cases.push(makeCase("dm_incoming_silent", ["DM incoming silent"], () => {
+          const policy = system.deliver("systemEvents", "dmReaction", { name: "Анна", target: "Борис", panel: "dm" }, { silentIncoming: true });
+          return { texts: [policy && policy.text], silent: true, details: { collapsedBumps: events.collapsedBumps.length } };
+        }));
+        cases.push(makeCase("battle_outcome_card_delta_toast", ["battle outcome card plus delta toast"], () => {
+          const outcome = system.deliver("systemEvents", "battleWin", { winner: "Анна", loser: "Борис", playerVisible: true });
+          const delta = system.deliver("notifications", "repDeltaPlusOne");
+          return { texts: [outcome && outcome.text, delta && delta.text], details: { outcomeSurface: "chat", deltaSurface: "toast" } };
+        }));
+        cases.push(makeCase("report_truthful_compensation", ["report truthful compensation"], () => {
+          const policy = system.deliver("notifications", "reportTrueReward", { name: "Борис" });
+          return { texts: [policy && policy.text], details: { taxonomy: "N_OK" } };
+        }));
+        cases.push(makeCase("report_false_penalty", ["report false penalty"], () => {
+          const policy = system.deliver("errors", "reportFalsePenalty");
+          return { texts: [policy && policy.text], details: { taxonomy: "E_RULES" } };
+        }));
+        const after = snapshotState();
+        const silent = cases.find(row => row.id === "dm_incoming_silent");
+        if (!silent || silent.autoPanelCount !== 0 || silent.dmCount !== 0) addUnique(result.autoPanelOpens, { caseId: "dm_incoming_silent", reason: "silent_incoming_opened_panel_or_dm", silent });
+        if (events.focus.length) addUnique(result.autoPanelOpens, { caseId: "dm_incoming_silent", reason: "focus_called", rows: events.focus.slice() });
+        if (events.scrolls.length) addUnique(result.autoPanelOpens, { caseId: "dm_incoming_silent", reason: "scroll_called", rows: events.scrolls.slice() });
+        if (JSON.stringify(before) !== JSON.stringify(after)) addUnique(result.autoPanelOpens, { caseId: "dm_incoming_silent", reason: "state_focus_scroll_changed", before, after });
+        const economyTexts = [];
+        cases.forEach(row => {
+          const economyCase = /refund|cost|compensation|penalty|delta_toast/.test(row.id);
+          if (economyCase) row.texts.forEach(text => economyTexts.push({ caseId: row.id, text }));
+        });
+        const seenEconomy = new Map();
+        economyTexts.forEach(row => {
+          if (!row.text) return;
+          if (seenEconomy.has(row.text)) addUnique(result.duplicateMessages, { text: row.text, firstCaseId: seenEconomy.get(row.text), duplicateCaseId: row.caseId });
+          else seenEconomy.set(row.text, row.caseId);
+        });
+        const nonEconomySeen = new Map();
+        cases.forEach(row => row.texts.forEach(text => {
+          if (!text) return;
+          const key = `${row.id}|${text}`;
+          if (nonEconomySeen.has(key)) addUnique(result.duplicateMessages, { text, caseId: row.id, reason: "same_case_duplicate" });
+          else nonEconomySeen.set(key, true);
+        }));
+        cases.forEach(row => {
+          if (row.id === "respect_self_block_e_rules" && (row.toastCount !== 1 || row.chatCount !== 0)) fail("respect_self_block_routing", row);
+          if (row.id === "respect_daily_limit_w_rate_limit" && (row.toastCount !== 1 || row.chatCount !== 0)) fail("respect_daily_limit_routing", row);
+          if (row.id === "majority_refund_n_refunded" && (row.toastCount !== 1 || row.chatCount !== 0)) fail("majority_refund_routing", row);
+          if (row.id === "vote_rematch_escape_cost_n_cost" && (row.toastCount !== 3 || row.chatCount !== 0)) fail("cost_routing", row);
+          if (row.id === "mode_panel_switch_s_mode_switch" && (row.toastCount !== 0 || row.chatCount !== 1)) fail("mode_switch_routing", row);
+          if (row.id === "dm_incoming_silent" && (!row.silent || row.toastCount !== 0 || row.chatCount !== 0 || row.dmCount !== 0 || row.autoPanelCount !== 0)) fail("dm_silent_routing", row);
+          if (row.id === "battle_outcome_card_delta_toast" && (row.toastCount !== 1 || row.chatCount !== 1)) fail("battle_outcome_delta_routing", row);
+          if (row.id === "report_truthful_compensation" && (row.toastCount !== 1 || row.chatCount !== 0)) fail("report_true_routing", row);
+          if (row.id === "report_false_penalty" && (row.toastCount !== 1 || row.chatCount !== 0)) fail("report_false_routing", row);
+        });
+        return stableCase ? cases.map(stableCase) : cases;
+      } finally {
+        restore();
+      }
+    };
+    try {
+      const first = runScenarioPack();
+      const second = runScenarioPack();
+      result.cases = first;
+      const firstStable = JSON.stringify(first);
+      const secondStable = JSON.stringify(second);
+      if (firstStable !== secondStable) addUnique(result.unstableOutputs, { first, second });
+      const covered = new Set();
+      result.cases.forEach(row => (row.coverage || []).forEach(tag => covered.add(tag)));
+      requiredCoverage.forEach(tag => { if (!covered.has(tag)) addUnique(result.missingCoverage, tag); });
+      if (result.cases.length < 8 || result.cases.length > 12) fail("case_count_out_of_range", result.cases.length);
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (result.duplicateMessages.length) addUnique(result.failedChecks, "duplicate_messages");
+    if (result.autoPanelOpens.length) addUnique(result.failedChecks, "auto_panel_opens");
+    if (result.moralToneMatches.length) addUnique(result.failedChecks, "moral_tone_matches");
+    if (result.unstableOutputs.length) addUnique(result.failedChecks, "unstable_outputs");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.duplicateMessages.length === 0 && result.autoPanelOpens.length === 0 && result.moralToneMatches.length === 0 && result.unstableOutputs.length === 0;
+    return result;
+  };
+  console.warn("SYSTEM_MESSAGES_REGRESSION_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeSystemMessagesRegressionOnce);
+
+
   installStep3TerminologyInventorySmoke(G.__DEV);
   installStep3TerminologyCanonSmoke(G.__DEV);
   installStep3UiTaxonomySmoke(G.__DEV);
@@ -27006,6 +27273,10 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     return result;
   };
   console.warn("NPC_SPEECH_MILLENNIAL_WORDING_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeNpcSpeechMillennialWordingOnce);
+
+
+
+
 
 
 
