@@ -20,8 +20,8 @@ window.Game = window.Game || {};
 })();
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V10";
-  const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V10";
+  const UIBOOT_VERSION = "UIBOOT_V11";
+  const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V11";
   const BOOT_DIAG_MAX = 16;
   const bootDiagLines = [];
   window.__uiBootDiagLines = bootDiagLines;
@@ -194,18 +194,10 @@ window.Game = window.Game || {};
   }
 
   function keepFreshStartScreenVisible(UI) {
+    // One boot-time assertion only. Do not install mutation observers or delayed
+    // reassertions here: button clicks intentionally mutate the overlay state,
+    // and reasserting from those mutations can create a visibility loop.
     ensureFreshStartScreenVisible(UI);
-    const st = ensureStartScreenExists(UI);
-    if (!st || st.__asyncSceneFreshStartVisibilityWatch) return;
-    st.__asyncSceneFreshStartVisibilityWatch = true;
-
-    const recheck = () => ensureFreshStartScreenVisible(UI);
-    if (typeof MutationObserver === "function") {
-      const observer = new MutationObserver(recheck);
-      observer.observe(st, { attributes: true, attributeFilter: ["class", "hidden", "style", "aria-hidden"] });
-    }
-    setTimeout(recheck, 0);
-    setTimeout(recheck, 50);
   }
 
   function applyStartScreenContent(UI) {
@@ -503,32 +495,19 @@ window.Game = window.Game || {};
 
     // Menu: bindings are delegated in ui-menu.js to survive re-renders.
 
-    let lastRulesAt = 0;
     const runRules = (source, e) => {
       markBootDiag(source);
-      const now = Date.now();
-      if (now - lastRulesAt < 450) return;
-      lastRulesAt = now;
       try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
-      const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
-      const text = (D && D.TEXTS && D.TEXTS.manifest && D.TEXTS.manifest.full)
-        ? String(D.TEXTS.manifest.full)
-        : "";
-      if (text && typeof window.alert === "function") window.alert(text);
+      // No blocking alert fallback here. If a dedicated rules UI is absent, the
+      // action is intentionally a safe no-op so it cannot freeze the start flow.
     };
 
     if (btnRules) {
       btnRules.onclick = (e) => runRules("rules_click", e);
-      btnRules.addEventListener("touchend", (e) => runRules("rules_touchend", e), { passive: false });
-      btnRules.addEventListener("pointerup", (e) => runRules("rules_pointerup", e), false);
     }
 
-    let lastStartAt = 0;
     const runStart = (source, e) => {
       markBootDiag(source);
-      const now = Date.now();
-      if (now - lastStartAt < 450) return;
-      lastStartAt = now;
       try {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
       } catch (_) {}
@@ -539,52 +518,11 @@ window.Game = window.Game || {};
       }
     };
 
-    const resolveStartScreenAction = (e) => {
-      const closestAction = (node) => {
-        if (!node || !node.closest) return null;
-        const button = node.closest("#btnStart, #btnRules");
-        return button ? button.id : null;
-      };
-      const direct = closestAction(e && e.target);
-      if (direct) return direct;
-      let x = null;
-      let y = null;
-      const touch = e && e.changedTouches && e.changedTouches[0];
-      if (touch && Number.isFinite(touch.clientX) && Number.isFinite(touch.clientY)) {
-        x = touch.clientX;
-        y = touch.clientY;
-      } else if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
-        x = e.clientX;
-        y = e.clientY;
-      }
-      if (x == null || y == null || typeof document.elementFromPoint !== "function") return null;
-      return closestAction(document.elementFromPoint(x, y));
-    };
-
-    const bindStartScreenDelegate = () => {
-      const st = $("startScreen") || document.getElementById("startScreen");
-      if (!st || st.__asyncSceneStartActionDelegate) return;
-      st.__asyncSceneStartActionDelegate = true;
-      const route = (source, e) => {
-        const action = resolveStartScreenAction(e);
-        if (!action) return;
-        try { if (e && typeof e.stopPropagation === "function") e.stopPropagation(); } catch (_) {}
-        if (action === "btnStart") runStart(`delegated_${source}`, e);
-        else if (action === "btnRules") runRules(`delegated_${source}`, e);
-      };
-      st.addEventListener("click", (e) => route("click", e), true);
-      st.addEventListener("touchend", (e) => route("touchend", e), { capture: true, passive: false });
-      st.addEventListener("pointerup", (e) => route("pointerup", e), true);
-    };
-    bindStartScreenDelegate();
-
-    // Start. Bind every mobile-relevant event so iPhone Safari can be diagnosed internally.
+    // Bind only direct button handlers. Overlay-level delegated fallbacks caused
+    // recursive/double-routed click paths on the start screen.
     if (btnStart) {
       markBootDiag("START_HANDLER_FOUND");
       btnStart.onclick = (e) => runStart("click", e);
-      btnStart.addEventListener("touchstart", (e) => { markBootDiag("touchstart"); }, { passive: true });
-      btnStart.addEventListener("touchend", (e) => runStart("touchend", e), { passive: false });
-      btnStart.addEventListener("pointerup", (e) => runStart("pointerup", e), false);
     } else {
       markBootDiag("START_HANDLER_MISSING");
     }
