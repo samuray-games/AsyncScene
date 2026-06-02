@@ -4906,3 +4906,13 @@ Error: Download failure, code=1
 - Added dev smoke `Game.__DEV.smokeNpcSpeechLocaleOnce()` with the required target arrays: `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` must all be empty for `ok:true`.
 - Scope guard preserved: minimal locale plumbing only; no gameplay, UI, economy, battle, crowd, report logic, or `Console.txt` usage changed.
 - Safari QA command: `Game.__DEV.smokeNpcSpeechLocaleOnce()`.
+
+## 2026-06-02 - Step 5.7 NPC speech regression pack
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only `Game.__DEV.smokeNpcSpeechRegressionPackOnce()` as the fast Step 5 NPC speech regression pack.
+- Return contract: `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, checks, sampleCount, samples }`, where `checks` records PASS/FAIL per subcheck and every failed subcheck is mirrored in `failedChecks`.
+- The pack covers greetings, threats, victory, defeat, and neutral blocks across cop, mafia, bandit, toxic, and neutral roles.
+- Internal checks cover inventory coverage, style rules, template scaffold, runtime integration, millennial wording, locale routing, placeholder replacement, no empty/undefined lines, no forbidden terms, role separation, channel coverage, and intensity coverage.
+- Cache-busted both HTML entrypoints to load the updated NPC runtime bundle.
+- Scope guard preserved: dev-only validation pack; no gameplay, UI, economy, or NPC wording changes. `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechRegressionPackOnce()`.
