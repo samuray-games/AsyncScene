@@ -49,6 +49,28 @@
 
 ```
 
+### [T-20260602-056] Step 6 System messages contract
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Core
+- Files: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html`
+- Goal: Define the Step 6 system messages contract/framework without changing gameplay or UI behavior.
+- Acceptance:
+  - [x] A single source of truth `Game.SystemCopy` covers `errors`, `warnings`, `notifications`, and `systemEvents` with at least one code per group.
+  - [x] `Game.System.say(kind, code, ctx)` returns a non-empty string, renders simple placeholders, and falls back safely for missing kind/code.
+  - [x] `Game.__DEV.smokeSystemCopyContractOnce()` verifies required coverage, fallback safety, bad generated tokens, and banned morality/pressure/cutesy tone words.
+  - [x] `Console.txt` was not used and no gameplay, economy, battle, crowd, report, timer, UI behavior, outcome, or routing side-effect logic was changed.
+- Result: READY_FOR_RUNTIME_SMOKE only. Local contract checks pass, but runtime PASS is not claimed until Safari runs `Game.__DEV.smokeSystemCopyContractOnce()` and returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Report:
+  - Status: DONE
+  - Facts: Added the minimal system copy dictionary/helper contract and mounted it in both runtime entrypoints; added the dev-only smoke for the contract fields requested.
+  - Changed: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Hard refresh Safari and run `Game.__DEV.smokeSystemCopyContractOnce()` in DevTools.
+  - Next: Дима to validate Safari runtime smoke.
+  - Next Prompt: Run the Step 6 system messages runtime smoke in Safari; report PASS only if the returned contract has ok true and all failure arrays empty.
+
 ### [T-20260602-055] Step 5.5 NPC speech millennial wording refinement
 - Status: DONE
 - Priority: P0
