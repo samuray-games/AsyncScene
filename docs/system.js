@@ -73,6 +73,112 @@ window.Game = window.Game || {};
     }),
   });
 
+  const SYSTEM_COPY_CODE_TAXONOMY = Object.freeze({
+    errors: Object.freeze({
+      E_NET: Object.freeze({ meaning: "network failure or unreachable external transport" }),
+      E_STATE: Object.freeze({ meaning: "invalid or missing local state for the requested action" }),
+      E_RULES: Object.freeze({ meaning: "action blocked by game rules" }),
+      E_COOLDOWN: Object.freeze({ meaning: "action blocked until a cooldown expires" }),
+      E_NOT_FOUND: Object.freeze({ meaning: "requested entity was not found" }),
+      E_UNAVAILABLE: Object.freeze({ meaning: "requested surface or action is unavailable" }),
+      E_MESSAGE_MISSING: Object.freeze({ meaning: "system message fallback for unavailable copy" }),
+      E_POINTS_INSUFFICIENT: Object.freeze({ meaning: "generic points balance is insufficient" }),
+      E_BATTLE_POINTS_LOW: Object.freeze({ meaning: "battle start failed because points are too low" }),
+      E_PLAYER_REQUIRED: Object.freeze({ meaning: "player selection is required" }),
+      E_REPORT_FALSE_PENALTY: Object.freeze({ meaning: "false report failed and applied the configured penalty" }),
+    }),
+    warnings: Object.freeze({
+      W_RATE_LIMIT: Object.freeze({ meaning: "action frequency is limited for now" }),
+      W_PARTIAL: Object.freeze({ meaning: "operation completed only partially" }),
+      W_NO_EFFECT: Object.freeze({ meaning: "operation is valid but changes nothing" }),
+      W_INPUT_CHECK: Object.freeze({ meaning: "input needs correction before retry" }),
+      W_ALREADY_ACCEPTED: Object.freeze({ meaning: "the current decision was already accepted" }),
+      W_RESPECT_DAILY_PAIR: Object.freeze({ meaning: "respect for this pair was already sent today" }),
+      W_RESPECT_NO_CHAIN: Object.freeze({ meaning: "reciprocal respect chain is unavailable today" }),
+      W_RESPECT_EMITTER_EMPTY: Object.freeze({ meaning: "respect emitter has no available respect today" }),
+      W_ESCAPE_POINTS_REQUIRED: Object.freeze({ meaning: "escape action requires more points" }),
+    }),
+    notifications: Object.freeze({
+      N_OK: Object.freeze({ meaning: "operation accepted successfully" }),
+      N_SAVED: Object.freeze({ meaning: "data was saved" }),
+      N_UPDATED: Object.freeze({ meaning: "data was updated" }),
+      N_SENT: Object.freeze({ meaning: "message or action was sent" }),
+      N_REFUNDED: Object.freeze({ meaning: "points or resources were refunded" }),
+      N_POINTS_DELTA_PLUS_ONE: Object.freeze({ meaning: "points increased by one" }),
+      N_REP_DELTA_PLUS_ONE: Object.freeze({ meaning: "reputation increased by one" }),
+      N_POINTS_DELTA_VOTE_COST: Object.freeze({ meaning: "vote cost points were deducted" }),
+      N_RESPECT_PAID: Object.freeze({ meaning: "respect action deducted one point" }),
+      N_RESPECT_TARGET_REP: Object.freeze({ meaning: "respect target gained one reputation" }),
+      N_REPORT_PENDING: Object.freeze({ meaning: "report review is pending" }),
+      N_REPORT_TRUE_REWARD: Object.freeze({ meaning: "true report accepted and reward granted" }),
+      N_TRAINING_SENT: Object.freeze({ meaning: "argument training was sent" }),
+      N_REMATCH_REQUESTED: Object.freeze({ meaning: "rematch request became available" }),
+      N_ESCAPE_PAID: Object.freeze({ meaning: "escape action payment was accepted" }),
+    }),
+    systemEvents: Object.freeze({
+      S_DAY_ROLLOVER: Object.freeze({ meaning: "game day rolled over" }),
+      S_MODE_SWITCH: Object.freeze({ meaning: "game mode switched" }),
+      S_PROFILE_LOADED: Object.freeze({ meaning: "player profile loaded" }),
+      S_READY: Object.freeze({ meaning: "system is ready" }),
+      S_DM_REACTION: Object.freeze({ meaning: "DM reaction exchange was posted" }),
+      S_DM_INVITE: Object.freeze({ meaning: "DM invite was posted" }),
+      S_PLAYER_JOINED: Object.freeze({ meaning: "player joined the square event" }),
+      S_LOCATION_MOVED: Object.freeze({ meaning: "location transition completed" }),
+      S_BATTLE_CHALLENGE: Object.freeze({ meaning: "battle challenge was posted" }),
+      S_NPC_BATTLE_START: Object.freeze({ meaning: "NPC battle started" }),
+      S_BATTLE_WIN: Object.freeze({ meaning: "battle ended with a winner" }),
+      S_BATTLE_DRAW: Object.freeze({ meaning: "battle ended in a draw" }),
+      S_CROWD_START: Object.freeze({ meaning: "crowd voting started" }),
+      S_CROWD_RESOLVED: Object.freeze({ meaning: "crowd voting resolved with a winner" }),
+      S_UNLOCK_ORANGE: Object.freeze({ meaning: "orange arguments unlocked" }),
+      S_UNLOCK_RED: Object.freeze({ meaning: "red arguments unlocked" }),
+      S_UNLOCK_BLACK: Object.freeze({ meaning: "black arguments unlocked" }),
+    }),
+  });
+
+  const SYSTEM_COPY_TAXONOMY_AUDIT = Object.freeze({
+    "errors.missingMessage": "E_MESSAGE_MISSING",
+    "errors.insufficientPoints": "E_POINTS_INSUFFICIENT",
+    "errors.pointsLowBattle": "E_BATTLE_POINTS_LOW",
+    "errors.unavailable": "E_UNAVAILABLE",
+    "errors.notFound": "E_NOT_FOUND",
+    "errors.choosePlayer": "E_PLAYER_REQUIRED",
+    "errors.reportFalsePenalty": "E_REPORT_FALSE_PENALTY",
+    "warnings.checkInput": "W_INPUT_CHECK",
+    "warnings.cooldownShort": "E_COOLDOWN",
+    "warnings.alreadyVoted": "W_ALREADY_ACCEPTED",
+    "warnings.respectPairDaily": "W_RESPECT_DAILY_PAIR",
+    "warnings.respectNoChain": "W_RESPECT_NO_CHAIN",
+    "warnings.respectEmitterEmpty": "W_RESPECT_EMITTER_EMPTY",
+    "warnings.escapeNeedsPoints": "W_ESCAPE_POINTS_REQUIRED",
+    "notifications.saved": "N_SAVED",
+    "notifications.pointsDeltaPlusOne": "N_POINTS_DELTA_PLUS_ONE",
+    "notifications.repDeltaPlusOne": "N_REP_DELTA_PLUS_ONE",
+    "notifications.pointsDeltaVoteCost": "N_POINTS_DELTA_VOTE_COST",
+    "notifications.respectPaid": "N_RESPECT_PAID",
+    "notifications.respectTargetRep": "N_RESPECT_TARGET_REP",
+    "notifications.voteAccepted": "N_OK",
+    "notifications.reportPending": "N_REPORT_PENDING",
+    "notifications.reportTrueReward": "N_REPORT_TRUE_REWARD",
+    "notifications.trainingSent": "N_TRAINING_SENT",
+    "notifications.rematchRequested": "N_REMATCH_REQUESTED",
+    "notifications.escapePaid": "N_ESCAPE_PAID",
+    "systemEvents.ready": "S_READY",
+    "systemEvents.dmReaction": "S_DM_REACTION",
+    "systemEvents.dmInvite": "S_DM_INVITE",
+    "systemEvents.joined": "S_PLAYER_JOINED",
+    "systemEvents.moved": "S_LOCATION_MOVED",
+    "systemEvents.battleChallenge": "S_BATTLE_CHALLENGE",
+    "systemEvents.npcBattleStart": "S_NPC_BATTLE_START",
+    "systemEvents.battleWin": "S_BATTLE_WIN",
+    "systemEvents.battleDraw": "S_BATTLE_DRAW",
+    "systemEvents.crowdStart": "S_CROWD_START",
+    "systemEvents.crowdResolved": "S_CROWD_RESOLVED",
+    "systemEvents.unlockOrange": "S_UNLOCK_ORANGE",
+    "systemEvents.unlockRed": "S_UNLOCK_RED",
+    "systemEvents.unlockBlack": "S_UNLOCK_BLACK",
+  });
+
   const FALLBACK_MESSAGE = SystemCopy.errors.missingMessage;
 
   const SYSTEM_LANGUAGE_PROFILE = Object.freeze({
@@ -154,6 +260,40 @@ window.Game = window.Game || {};
       if (review.length) manualReview.push({ group: entry.group, code: entry.code, text: entry.text, review });
     });
     return { entries, forbiddenRemaining, detectedCategories: detectedCategories.sort(), manualReview };
+  }
+
+
+  function taxonomyEntries(taxonomy){
+    const source = taxonomy && typeof taxonomy === "object" ? taxonomy : SYSTEM_COPY_CODE_TAXONOMY;
+    const rows = [];
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      const bucket = source[group];
+      if (!bucket || typeof bucket !== "object") return;
+      Object.keys(bucket).sort().forEach((canonicalCode) => {
+        const meta = bucket[canonicalCode] && typeof bucket[canonicalCode] === "object" ? bucket[canonicalCode] : {};
+        rows.push({ group, canonicalCode, meaning: String(meta.meaning || "") });
+      });
+    });
+    return rows;
+  }
+
+  function canonicalCodeExists(canonicalCode){
+    const key = String(canonicalCode || "").trim();
+    return taxonomyEntries(SYSTEM_COPY_CODE_TAXONOMY).some((entry) => entry.canonicalCode === key);
+  }
+
+  function systemCopyTaxonomyRows(copy, audit){
+    const sourceAudit = audit && typeof audit === "object" ? audit : SYSTEM_COPY_TAXONOMY_AUDIT;
+    return systemCopyEntries(copy).map((entry) => {
+      const key = `${entry.group}.${entry.code}`;
+      return {
+        group: entry.group,
+        code: entry.code,
+        key,
+        canonicalCode: String(sourceAudit[key] || ""),
+        text: entry.text,
+      };
+    });
   }
 
   function normalizeKind(kind){
@@ -249,7 +389,11 @@ window.Game = window.Game || {};
     requiredGroups: REQUIRED_SYSTEM_COPY_GROUPS,
     requiredInventoryAreas: SYSTEM_COPY_REQUIRED_AREAS,
     copyInventory: SYSTEM_COPY_INVENTORY,
+    codeTaxonomy: SYSTEM_COPY_CODE_TAXONOMY,
+    taxonomyAudit: SYSTEM_COPY_TAXONOMY_AUDIT,
     coverageRowsFromInventory,
+    taxonomyEntries,
+    systemCopyTaxonomyRows,
     normalizeKind,
     languageProfile: SYSTEM_LANGUAGE_PROFILE,
     lintSystemLanguageLine,
@@ -322,6 +466,126 @@ window.Game = window.Game || {};
     if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "direct_hardcoded_strings_reported");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  Game.__DEV.smokeSystemCodeTaxonomyOnce = function smokeSystemCodeTaxonomyOnce(){
+    const requiredCanonicalCodes = Object.freeze([
+      "E_NET", "E_STATE", "E_RULES", "E_COOLDOWN", "E_NOT_FOUND", "E_UNAVAILABLE",
+      "W_RATE_LIMIT", "W_PARTIAL", "W_NO_EFFECT",
+      "N_OK", "N_SAVED", "N_UPDATED", "N_SENT", "N_REFUNDED",
+      "S_DAY_ROLLOVER", "S_MODE_SWITCH", "S_PROFILE_LOADED",
+    ]);
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      duplicateCodes: [],
+      unmappedCodes: [],
+      totalCodes: 0,
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const taxonomy = taxonomyEntries(SYSTEM_COPY_CODE_TAXONOMY);
+    const taxonomyCodes = new Set(taxonomy.map((entry) => entry.canonicalCode));
+    const auditRows = systemCopyTaxonomyRows(Game.SystemCopy || SystemCopy, SYSTEM_COPY_TAXONOMY_AUDIT);
+    const auditKeys = new Set(auditRows.map((row) => row.key));
+    const auditValues = Object.keys(SYSTEM_COPY_TAXONOMY_AUDIT).map((key) => ({ key, canonicalCode: SYSTEM_COPY_TAXONOMY_AUDIT[key] }));
+    const identityUse = Object.create(null);
+    const normalizedTextUse = Object.create(null);
+    const meaningUse = Object.create(null);
+
+    result.totalCodes = auditRows.length;
+
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      if (!SYSTEM_COPY_CODE_TAXONOMY[group] || typeof SYSTEM_COPY_CODE_TAXONOMY[group] !== "object") {
+        addUnique(result.missingCoverage, group);
+        fail("taxonomy_group_missing", group);
+      }
+    });
+
+    requiredCanonicalCodes.forEach((canonicalCode) => {
+      if (!taxonomyCodes.has(canonicalCode)) {
+        addUnique(result.missingCoverage, canonicalCode);
+        fail("required_canonical_code_missing", canonicalCode);
+      }
+    });
+
+    taxonomy.forEach((entry) => {
+      const meaningKey = entry.meaning.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      if (!entry.meaning.trim()) fail("taxonomy_meaning_missing", entry.canonicalCode);
+      if (meaningKey) {
+        if (!meaningUse[meaningKey]) meaningUse[meaningKey] = [];
+        meaningUse[meaningKey].push(entry.canonicalCode);
+      }
+    });
+
+    Object.keys(meaningUse).sort().forEach((meaningKey) => {
+      if (meaningUse[meaningKey].length > 1) {
+        const duplicate = { kind: "meaning", meaning: meaningKey, canonicalCodes: meaningUse[meaningKey] };
+        addUnique(result.duplicateCodes, duplicate);
+        fail("duplicate_taxonomy_meaning", duplicate);
+      }
+    });
+
+    auditRows.forEach((row) => {
+      if (!row.canonicalCode) {
+        addUnique(result.unmappedCodes, row.key);
+        fail("system_copy_code_unmapped", row.key);
+        return;
+      }
+      if (!taxonomyCodes.has(row.canonicalCode)) {
+        addUnique(result.unmappedCodes, { key: row.key, canonicalCode: row.canonicalCode });
+        fail("system_copy_canonical_code_unknown", { key: row.key, canonicalCode: row.canonicalCode });
+        return;
+      }
+      if (!identityUse[row.canonicalCode]) identityUse[row.canonicalCode] = [];
+      identityUse[row.canonicalCode].push(row.key);
+      const textKey = row.text.toLowerCase().replace(/\{[A-Za-z0-9_]+\}/g, "{}").replace(/\s+/g, " ").trim();
+      if (textKey) {
+        if (!normalizedTextUse[textKey]) normalizedTextUse[textKey] = [];
+        normalizedTextUse[textKey].push({ key: row.key, canonicalCode: row.canonicalCode });
+      }
+    });
+
+    auditValues.forEach((row) => {
+      if (!auditKeys.has(row.key)) {
+        addUnique(result.unmappedCodes, { key: row.key, canonicalCode: row.canonicalCode, reason: "audit_entry_without_system_copy" });
+        fail("taxonomy_audit_entry_without_system_copy", row);
+      }
+    });
+
+    Object.keys(identityUse).sort().forEach((canonicalCode) => {
+      if (identityUse[canonicalCode].length > 1) {
+        const duplicate = { kind: "canonicalIdentity", canonicalCode, keys: identityUse[canonicalCode] };
+        addUnique(result.duplicateCodes, duplicate);
+        fail("duplicate_canonical_identity", duplicate);
+      }
+    });
+
+    Object.keys(normalizedTextUse).sort().forEach((textKey) => {
+      const rows = normalizedTextUse[textKey];
+      const canonicalCodes = Array.from(new Set(rows.map((row) => row.canonicalCode)));
+      if (rows.length > 1 || canonicalCodes.length > 1) {
+        const duplicate = { kind: "messageText", text: textKey, rows };
+        addUnique(result.duplicateCodes, duplicate);
+        fail("duplicate_message_text", duplicate);
+      }
+    });
+
+    if (result.unmappedCodes.length) addUnique(result.failedChecks, "unmapped_codes");
+    if (result.duplicateCodes.length) addUnique(result.failedChecks, "duplicate_codes");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.duplicateCodes.length === 0 && result.unmappedCodes.length === 0;
     return result;
   };
 
