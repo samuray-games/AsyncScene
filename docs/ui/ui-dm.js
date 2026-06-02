@@ -10,13 +10,14 @@
 window.Game = window.Game || {};
 console.warn("UI_DM_V1_LOADED", { ts: Date.now() });
 if (!Game.__DEV) Game.__DEV = {};
+const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
 Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
   respect_no_points: "Не хватает 💰.",
-  respect_pair_daily: "Уже было уважение сегодня этому персонажу.",
-  respect_no_chain: "Цепочка A->B->A сегодня не работает.",
-  respect_emitter_empty: "Сегодня уважение исчерпано.",
+  respect_pair_daily: systemSay("warnings", "respectPairDaily"),
+  respect_no_chain: systemSay("warnings", "respectNoChain"),
+  respect_emitter_empty: systemSay("warnings", "respectEmitterEmpty"),
 };
 
 const showRespectToast = (kind, text) => {
@@ -58,14 +59,16 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   const res = Game.StateAPI.giveRespect(meId, targetId, timestamp);
   if (!res) return null;
   if (res.ok) {
-    showRespectToast("points", "Ты отдал 1💰");
-    showRespectToast("rep", "Цель получила +1 ⭐");
-    callDevToastProbe("Ты отдал 1💰");
-    callDevToastProbe("Цель получила +1 ⭐");
+    const respectPaidText = systemSay("notifications", "respectPaid");
+    const respectTargetRepText = systemSay("notifications", "respectTargetRep");
+    showRespectToast("points", respectPaidText);
+    showRespectToast("rep", respectTargetRepText);
+    callDevToastProbe(respectPaidText);
+    callDevToastProbe(respectTargetRepText);
     try {
       if (Game.__DEV && typeof Game.__DEV.__toastTapePush__ === "function") {
-        Game.__DEV.__toastTapePush__({ text: "Ты отдал 1💰", ts: Date.now() });
-        Game.__DEV.__toastTapePush__({ text: "Цель получила +1 ⭐", ts: Date.now() });
+        Game.__DEV.__toastTapePush__({ text: respectPaidText, ts: Date.now() });
+        Game.__DEV.__toastTapePush__({ text: respectTargetRepText, ts: Date.now() });
       }
     } catch (_) {}
     return res;
@@ -912,7 +915,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const btnLike = mkBtn("Лайк", () => {
       dmPushLine(withId, getS().me.name, "❤️");
       dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["каеф","ну норм","хех","ладно"]) : "каеф"));
-      UI.pushSystem(`${getS().me.name} перекинулся(ась) реакцией с ${target.name}.`);
+      UI.pushSystem(systemSay("systemEvents", "dmReaction", { name: getS().me.name, target: target.name }));
       requestAll();
     });
 
@@ -925,8 +928,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       p2p_invalid_amount: "Введите положительное число 💰.",
       p2p_insufficient_points: "Не хватает 💰.",
       p2p_self_transfer_forbidden: "Нельзя отправить 💰 самому себе.",
-      p2p_player_to_player_disabled: "Недоступно.",
-      p2p_disabled: "Недоступно."
+      p2p_player_to_player_disabled: systemSay("errors", "unavailable"),
+      p2p_disabled: systemSay("errors", "unavailable")
     };
     const appendP2PControls = () => {
       if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
@@ -949,7 +952,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         : false;
       return mkBtn(label, () => {
         if (!enabled) {
-          showP2PSystem("Недоступно.");
+          showP2PSystem(systemSay("errors", "unavailable"));
           return;
         }
         const promptText = (mode === "give")
@@ -1139,7 +1142,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         const cleanName = p2 && p2.name ? String(p2.name) : q;
 
         dmPushLine(withId, "Система", `Ты позвал(а) ${cleanName} в личку.`);
-        UI.pushSystem(`${getS().me.name} позвал(а) ${cleanName} в личку к ${target.name}.`);
+        UI.pushSystem(systemSay("systemEvents", "dmInvite", { name: getS().me.name, guest: cleanName, target: target.name }));
 
         getS().dm.inviteOpen = false;
         closeInviteList();
@@ -1615,7 +1618,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               if (!res || !res.pendingId) return;
               const copName = (target && target.name) ? target.name : "Коп";
               try {
-                if (copId) Game.__A.pushDm(copId, copName, "Проверяем...", { isSystem: true, playerId: copId });
+                if (copId) Game.__A.pushDm(copId, copName, systemSay("notifications", "reportPending"), { isSystem: true, playerId: copId });
               } catch (_) {}
               const now = Date.now();
               const resolveAt = Number(res.resolveAtMs) || (now + 800);

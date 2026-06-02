@@ -9,6 +9,7 @@ window.Game ||= {};
   const Game = window.Game;
   const U = Game.Util;
   const D = Game.Data;
+  const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
   const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
   const pickOne = (arr) => {
     if (!Array.isArray(arr) || arr.length === 0) return null;
@@ -156,7 +157,7 @@ window.Game ||= {};
     if (me && me.id && me.id === voterId) {
       try {
         if (Game.UI && typeof Game.UI.pushSystem === "function") {
-          Game.UI.pushSystem(`+1⭐`);
+          Game.UI.pushSystem(systemSay("notifications", "repDeltaPlusOne"));
         }
       } catch (_) {}
     }
@@ -305,7 +306,7 @@ window.Game ||= {};
       } catch (_) {}
       try {
         if (Game.UI && typeof Game.UI.pushSystem === "function") {
-          Game.UI.pushSystem(`+1💰`);
+          Game.UI.pushSystem(systemSay("notifications", "pointsDeltaPlusOne"));
         }
       } catch (_) {}
     }
@@ -1419,7 +1420,7 @@ window.Game ||= {};
     // Toast on click: reflect price (REP participation is applied on resolve)
     try {
       if (Game.UI && typeof Game.UI.pushSystem === "function") {
-        Game.UI.pushSystem(`-${voteCost}💰`);
+        Game.UI.pushSystem(systemSay("notifications", "pointsDeltaVoteCost", { voteCost }));
       }
       if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
         Game.UI.requestRenderAll();
