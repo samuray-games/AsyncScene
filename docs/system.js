@@ -1445,4 +1445,98 @@ window.Game = window.Game || {};
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
+
+  Game.__DEV.smokeSystemMessagesFinalOnce = function smokeSystemMessagesFinalOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      directStringsRemaining: [],
+      systemCopyOk: false,
+      regressionOk: false,
+      economyDeltaPairsOk: false,
+      summary: {
+        step: "Step 6 [10] System Messages final readiness gate",
+        status: "PENDING",
+        composedChecks: [],
+        passedChecks: [],
+        failedChecks: [],
+        requiredCoverage: ["contract", "inventory", "languageProfile", "taxonomy", "textTemplates", "routing", "economyTextPairs", "ruLocale", "regressionPack"],
+        directStringsOk: false,
+        systemCopyCatalogOk: false,
+      },
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const addAll = (list, values) => {
+      if (!Array.isArray(values)) return;
+      values.forEach((value) => addUnique(list, value));
+    };
+    const checks = Object.freeze([
+      { id: "contract", fn: "smokeSystemCopyContractOnce", role: "systemCopy" },
+      { id: "inventory", fn: "smokeSystemCopyInventoryOnce", role: "systemCopy" },
+      { id: "languageProfile", fn: "smokeSystemLanguageProfileOnce", role: "systemCopy" },
+      { id: "taxonomy", fn: "smokeSystemCodeTaxonomyOnce", role: "systemCopy" },
+      { id: "textTemplates", fn: "smokeSystemTextTemplatesOnce", role: "systemCopy" },
+      { id: "routing", fn: "smokeSystemRoutingOnce", role: "routing" },
+      { id: "economyTextPairs", fn: "smokeSystemEconomyTextPairsOnce", role: "economy" },
+      { id: "ruLocale", fn: "smokeSystemLocaleRuOnce", role: "systemCopy" },
+      { id: "regressionPack", fn: "smokeSystemMessagesRegressionOnce", role: "regression" },
+    ]);
+    const checkResults = Object.create(null);
+    checks.forEach((check) => {
+      result.summary.composedChecks.push(check.id);
+      const runner = Game.__DEV && Game.__DEV[check.fn];
+      let output = null;
+      if (typeof runner !== "function") {
+        output = { ok: false, failures: [`${check.fn} missing`], forbiddenRemaining: [], missingCoverage: [check.id], failedChecks: ["missing_smoke"] };
+      } else {
+        try {
+          output = runner();
+        } catch (error) {
+          output = { ok: false, failures: [{ check: "smoke_exception", detail: String(error && error.message ? error.message : error) }], forbiddenRemaining: [], missingCoverage: [], failedChecks: ["smoke_exception"] };
+        }
+      }
+      checkResults[check.id] = output;
+      if (output && output.ok === true) result.summary.passedChecks.push(check.id);
+      else {
+        result.summary.failedChecks.push(check.id);
+        addUnique(result.failedChecks, check.id);
+        addUnique(result.failures, { check: check.id, result: output });
+      }
+      addAll(result.forbiddenRemaining, output && output.forbiddenRemaining);
+      addAll(result.missingCoverage, output && output.missingCoverage);
+      addAll(result.failedChecks, output && output.failedChecks);
+      if (check.id === "inventory") addAll(result.directStringsRemaining, output && output.forbiddenRemaining);
+      if (check.id === "regressionPack") {
+        const directStringHits = (output && Array.isArray(output.forbiddenRemaining) ? output.forbiddenRemaining : []).filter((row) => row && (row.rule === "no_console_txt" || /direct|hardcoded|Console\.txt/i.test(JSON.stringify(row))));
+        addAll(result.directStringsRemaining, directStringHits);
+      }
+    });
+
+    const requiredCoverage = result.summary.requiredCoverage;
+    requiredCoverage.forEach((id) => {
+      if (!Object.prototype.hasOwnProperty.call(checkResults, id)) addUnique(result.missingCoverage, id);
+    });
+    const catalogHasCodes = !!(Game.SystemCopy && REQUIRED_SYSTEM_COPY_GROUPS.every((group) => Game.SystemCopy[group] && Object.keys(Game.SystemCopy[group]).length));
+    const systemCopyChecks = ["contract", "inventory", "languageProfile", "taxonomy", "textTemplates", "ruLocale"];
+    result.summary.systemCopyCatalogOk = catalogHasCodes && systemCopyChecks.every((id) => checkResults[id] && checkResults[id].ok === true);
+    result.summary.directStringsOk = result.directStringsRemaining.length === 0;
+    result.systemCopyOk = result.summary.systemCopyCatalogOk;
+    result.regressionOk = !!(checkResults.regressionPack && checkResults.regressionPack.ok === true);
+    result.economyDeltaPairsOk = !!(checkResults.economyTextPairs && checkResults.economyTextPairs.ok === true);
+    if (!catalogHasCodes) addUnique(result.failedChecks, "system_copy_catalog_missing_codes");
+    if (!result.summary.directStringsOk) addUnique(result.failedChecks, "direct_strings_remaining");
+    if (!result.regressionOk) addUnique(result.failedChecks, "regression_pack_failed");
+    if (!result.economyDeltaPairsOk) addUnique(result.failedChecks, "economy_delta_pairs_failed");
+    if (!result.systemCopyOk) addUnique(result.failedChecks, "system_copy_failed");
+    result.summary.status = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.directStringsRemaining.length === 0 && result.systemCopyOk === true && result.regressionOk === true && result.economyDeltaPairsOk === true ? "READY_FOR_RUNTIME_SMOKE" : "BLOCKED";
+    result.ok = result.summary.status === "READY_FOR_RUNTIME_SMOKE";
+    return result;
+  };
+
 })();

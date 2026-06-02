@@ -4721,3 +4721,7 @@ Error: Download failure, code=1
 ## 2026-06-02 - Step 6 [8] runtime smoke helper missing
 - Status: READY_FOR_RUNTIME_SMOKE only.
 - Result: READY_FOR_RUNTIME_SMOKE only.
+
+## 2026-06-02 - Step 6 [10] Final System Messages aggregate smoke
+- Status: READY_FOR_RUNTIME_SMOKE only.
+- Required Safari command: `Game.__DEV.smokeSystemMessagesFinalOnce()`.
