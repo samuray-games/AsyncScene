@@ -3657,7 +3657,6 @@ K YN A9: Нет.
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
-    if (typeof root.__DEV.smokeOnboardingSpecOnce === "function") return;
     root.__DEV.smokeOnboardingSpecOnce = function smokeOnboardingSpecOnce() {
       const result = {
         ok: false,
@@ -3675,6 +3674,8 @@ K YN A9: Нет.
         rulesDoesNotBlockStart: false,
         enteredGameAfterStart: false,
         pointerBlockers: [],
+        clickDurationsMs: {},
+        safeTimeoutMs: 1000,
         extraTextBlocks: []
       };
       const fail = (code, detail) => {
@@ -3770,17 +3771,24 @@ K YN A9: Нет.
             const oldAlert = (typeof window !== "undefined") ? window.alert : null;
             try {
               if (typeof window !== "undefined") window.alert = () => { alertCount += 1; };
+              const now = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
               if (rulesBtn && typeof rulesBtn.click === "function") {
+                const rulesStart = now();
                 rulesBtn.click();
+                result.clickDurationsMs.rules = Math.round(now() - rulesStart);
                 result.rulesButtonClickable = true;
+                if (result.clickDurationsMs.rules > result.safeTimeoutMs) fail("rules_click_timeout", result.clickDurationsMs.rules);
               } else {
                 fail("rules_button_not_clickable", null);
               }
               const afterRulesStarted = !!((root && root.__S && root.__S.isStarted) || (root && root.State && root.State.isStarted));
               result.rulesDoesNotBlockStart = !afterRulesStarted && result.startScreenVisible;
               if (!result.rulesDoesNotBlockStart) fail("rules_blocks_start", { beforeStarted, afterRulesStarted, alertCount });
+              const startClickStart = now();
               startBtn.click();
+              result.clickDurationsMs.start = Math.round(now() - startClickStart);
               result.startButtonClickable = true;
+              if (result.clickDurationsMs.start > result.safeTimeoutMs) fail("start_click_timeout", result.clickDurationsMs.start);
               const afterStartStarted = !!((root && root.__S && root.__S.isStarted) || (root && root.State && root.State.isStarted));
               const gameScreen = document.getElementById("screenGame");
               const startHiddenAfterClick = st.hidden || st.classList.contains("hidden") || ((typeof getComputedStyle === "function") && getComputedStyle(st).display === "none");
@@ -3811,7 +3819,7 @@ K YN A9: Нет.
       console.warn("ONBOARDING_SPEC_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
-    console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeOnboardingSpecOnce);
+    console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V2", typeof root.__DEV.smokeOnboardingSpecOnce);
   };
 
   installOnboardingSpecSmokeViaData();

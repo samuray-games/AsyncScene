@@ -1,3 +1,13 @@
+## 2026-06-02 — Step 7 [1] start-screen button hang fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
+- Fixed only the start-screen button hang path: removed overlay-level delegated Start/Rules handlers that could double-route/loop, removed the MutationObserver and delayed visibility reassertions that could re-fire from button-click overlay mutations, and left fresh-state visibility as a single boot-time assertion.
+- Start now uses only the direct button click handler to enter the game. Rules now uses only the direct button click handler and safely no-ops when no dedicated rules UI exists, avoiding a blocking alert fallback.
+- Kept `Data.START_SCREEN` as the single source for title, intro, and exactly two actions (`start`, `rules`). No `onboardingSeen`, gameplay, economy, or UI redesign was added.
+- Updated `Game.__DEV.smokeOnboardingSpecOnce()` so Safari smoke checks fresh visibility, safe-duration Rules/Start clicks, Rules not blocking Start, Start entry, and pointer blockers.
+- Local evidence: PASS `node --check AsyncScene/Web/ui/ui-boot.js`; PASS `node --check docs/ui/ui-boot.js`; PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; WARN `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8765/ node scripts/run-asyncscene-smoke.mjs smokeOnboardingSpecOnce` could not launch because Playwright Chromium is missing.
+- Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 
 ## 2026-06-02 — Step 7 [1] start-screen button interactivity regression
 
