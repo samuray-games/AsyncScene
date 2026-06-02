@@ -1349,7 +1349,7 @@ window.Game = window.Game || {};
         const key = withId;
         if (!S.dm.aggro[key]) {
           S.dm.aggro[key] = true;
-          dmPushLine(withId, target.name, target.role === "bandit" ? "ты че, самый смелый? ща разберемся" : "слыш, не умничай, выходи на баттл");
+          dmPushLine(withId, target.name, target.role === "bandit" ? "ты смелый? сейчас проверим" : "слыш, выходи на спор");
           const incomingRes = Game.Conflict.incoming(withId, { pinned:true });
           const bid = incomingRes && incomingRes.battleId ? incomingRes.battleId : null;
           if (bid) {

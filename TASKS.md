@@ -4832,3 +4832,12 @@ Error: Download failure, code=1
 - Scope guard preserved: text/style cleanup plus dev linter calibration only; no gameplay, UI, economy, battle, crowd, report logic, or `Console.txt` changes were made.
 - Local evidence: PASS `node --check AsyncScene/Web/data.js && node --check docs/data.js && node --check AsyncScene/Web/npcs.js && node --check docs/npcs.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/dev/dev-checks.js`; PASS local Node VM smoke for both runtime and docs bundles returned `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
 - Required Safari command remains `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
+
+## 2026-06-02 - Step 5.2 Safari runtime NPC style cleanup follow-up
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Cause found: the previous cleanup missed the GitHub Pages/runtime UI boot copies, so Safari could still load the old DM challenge string from the `docs` bundle even though other NPC speech sources had been cleaned.
+- Replaced the remaining `не умничай` DM challenge copy in every mirrored runtime UI boot path with adult, simple, direct wording.
+- Scope guard: text cleanup only; no gameplay, UI structure, logic, smoke rules, whitelists, or `Console.txt` usage changed.
+- Local VM evidence for `Game.__DEV.smokeNpcSpeechStyleRulesOnce()` returned `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Browser smoke warning: Playwright Chromium is not installed in this environment, so browser/Safari runtime PASS must still be run separately.
+- Safari QA command: `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
