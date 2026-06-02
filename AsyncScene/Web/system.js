@@ -22,7 +22,10 @@ window.Game = window.Game || {};
     system_events: "systemEvents",
   });
 
-  const SystemCopy = Object.freeze({
+  const SYSTEM_DEFAULT_LOCALE = "ru";
+  const SYSTEM_SUPPORTED_LOCALES = Object.freeze(["ru"]);
+
+  const SYSTEM_COPY_RU = Object.freeze({
     errors: Object.freeze({
       missingMessage: "Сообщение недоступно.",
       insufficientPoints: "Не хватает 💰.",
@@ -37,7 +40,7 @@ window.Game = window.Game || {};
       cooldownShort: "Подожди немного.",
       alreadyVoted: "Уже принято.",
       respectPairDaily: "Уважение сегодня уже отправлено этому персонажу.",
-      respectNoChain: "Цепочка A->B->A сегодня недоступна.",
+      respectNoChain: "Цепочка туда-обратно сегодня недоступна.",
       respectEmitterEmpty: "Уважение сегодня недоступно.",
       escapeNeedsPoints: "Не хватает 💰, чтобы Свалить.",
     }),
@@ -78,7 +81,12 @@ window.Game = window.Game || {};
     }),
   });
 
-  const SYSTEM_TEXT_TEMPLATES = Object.freeze({
+  const SYSTEM_COPY_LOCALES = Object.freeze({
+    ru: SYSTEM_COPY_RU,
+  });
+  const SystemCopy = SYSTEM_COPY_RU;
+
+  const SYSTEM_TEXT_TEMPLATES_RU = Object.freeze({
     errors: Object.freeze({
       blockedWithHint: "Не получилось: {what}. {hint}",
       unavailableWithHint: "Недоступно: {what}. {hint}",
@@ -100,6 +108,11 @@ window.Game = window.Game || {};
       pair: "{what}: {a} → {b}",
     }),
   });
+
+  const SYSTEM_TEXT_TEMPLATE_LOCALES = Object.freeze({
+    ru: SYSTEM_TEXT_TEMPLATES_RU,
+  });
+  const SYSTEM_TEXT_TEMPLATES = SYSTEM_TEXT_TEMPLATES_RU;
 
   const SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS = Object.freeze({
     what: "действие",
@@ -240,6 +253,10 @@ window.Game = window.Game || {};
   const SYSTEM_LANGUAGE_PROFILE = Object.freeze({
     name: "System Language Profile",
     scope: "SystemCopy",
+    locale: SYSTEM_DEFAULT_LOCALE,
+    activeLocale: SYSTEM_DEFAULT_LOCALE,
+    defaultLocale: SYSTEM_DEFAULT_LOCALE,
+    fallbackLocale: SYSTEM_DEFAULT_LOCALE,
     style: "short-neutral-fact-consequence-next-step",
     sampleMin: 30,
     sampleMax: 50,
@@ -259,6 +276,41 @@ window.Game = window.Game || {};
       }),
     }),
   });
+
+
+  function normalizeSystemLocale(locale){
+    const raw = String(locale || "").trim().toLowerCase().replace(/_/g, "-");
+    const base = raw.split("-")[0];
+    if (SYSTEM_SUPPORTED_LOCALES.includes(raw)) return raw;
+    if (SYSTEM_SUPPORTED_LOCALES.includes(base)) return base;
+    return SYSTEM_DEFAULT_LOCALE;
+  }
+
+  function activeSystemLocale(ctx){
+    const candidates = [
+      ctx && ctx.locale,
+      ctx && ctx.userLocale,
+      Game && Game.userLocale,
+      Game && Game.locale,
+      Game && Game.Settings && Game.Settings.locale,
+      Game && Game.Profile && Game.Profile.locale,
+      typeof navigator !== "undefined" && navigator.language,
+    ];
+    for (let i = 0; i < candidates.length; i += 1) {
+      if (candidates[i]) return normalizeSystemLocale(candidates[i]);
+    }
+    return SYSTEM_DEFAULT_LOCALE;
+  }
+
+  function systemCopyForLocale(locale){
+    const key = normalizeSystemLocale(locale);
+    return SYSTEM_COPY_LOCALES[key] || SYSTEM_COPY_LOCALES[SYSTEM_DEFAULT_LOCALE];
+  }
+
+  function systemTemplatesForLocale(locale){
+    const key = normalizeSystemLocale(locale);
+    return SYSTEM_TEXT_TEMPLATE_LOCALES[key] || SYSTEM_TEXT_TEMPLATE_LOCALES[SYSTEM_DEFAULT_LOCALE];
+  }
 
   function systemCopyEntries(copy){
     const source = copy && typeof copy === "object" ? copy : SystemCopy;
@@ -388,19 +440,24 @@ window.Game = window.Game || {};
     }));
   }
 
-  function resolveSystemTemplate(group, code){
+  function resolveSystemTemplate(group, code, ctx){
     const key = String(code || "").trim();
-    const bucket = group && SystemCopy[group] && typeof SystemCopy[group] === "object" ? SystemCopy[group] : null;
+    const locale = activeSystemLocale(ctx);
+    const copy = systemCopyForLocale(locale);
+    const bucket = group && copy && copy[group] && typeof copy[group] === "object" ? copy[group] : null;
     if (bucket && Object.prototype.hasOwnProperty.call(bucket, key)) return bucket[key];
-    const family = group && SYSTEM_TEXT_TEMPLATES[group] && typeof SYSTEM_TEXT_TEMPLATES[group] === "object" ? SYSTEM_TEXT_TEMPLATES[group] : null;
+    const templates = systemTemplatesForLocale(locale);
+    const family = group && templates && templates[group] && typeof templates[group] === "object" ? templates[group] : null;
     if (family && Object.prototype.hasOwnProperty.call(family, key)) return family[key];
-    return FALLBACK_MESSAGE;
+    const fallbackCopy = systemCopyForLocale(SYSTEM_DEFAULT_LOCALE);
+    return (fallbackCopy && fallbackCopy.errors && fallbackCopy.errors.missingMessage) || FALLBACK_MESSAGE;
   }
 
   function say(kind, code, ctx){
     const group = normalizeKind(kind);
-    const template = resolveSystemTemplate(group, code);
-    const rendered = renderTemplate(template, ctx);
+    const safeCtx = (ctx && typeof ctx === "object") ? ctx : {};
+    const template = resolveSystemTemplate(group, code, safeCtx);
+    const rendered = renderTemplate(template, safeCtx);
     return rendered || FALLBACK_MESSAGE;
   }
 
@@ -578,6 +635,11 @@ window.Game = window.Game || {};
   Game.SystemCopy = SystemCopy;
   Game.System = Object.freeze({
     say,
+    defaultLocale: SYSTEM_DEFAULT_LOCALE,
+    supportedLocales: SYSTEM_SUPPORTED_LOCALES,
+    activeLocale: activeSystemLocale,
+    normalizeLocale: normalizeSystemLocale,
+    copyLocales: SYSTEM_COPY_LOCALES,
     requiredGroups: REQUIRED_SYSTEM_COPY_GROUPS,
     requiredInventoryAreas: SYSTEM_COPY_REQUIRED_AREAS,
     copyInventory: SYSTEM_COPY_INVENTORY,
@@ -926,6 +988,154 @@ window.Game = window.Game || {};
     if (!result.quickReviewSample.length) fail("quick_review_sample_generated", "empty quick review sample");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
+  Game.__DEV.smokeSystemLocaleRuOnce = function smokeSystemLocaleRuOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      sampleCount: 0,
+      localeUsed: activeSystemLocale({ locale: SYSTEM_DEFAULT_LOCALE }),
+      nonRuMessages: [],
+      foreignTermsDetected: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const ruCtx = Object.freeze({
+      locale: "ru",
+      userLocale: "ru",
+      what: "действие",
+      hint: "Можно позже.",
+      option: "Выбери другой вариант.",
+      value: "значение",
+      a: "Анна",
+      b: "Борис",
+      name: "цель",
+      target: "цель",
+      guest: "гость",
+      location: "площадь",
+      voteCost: 1,
+      rematchCost: 1,
+      escapeCost: 1,
+      teacher: "учитель",
+      student: "ученик",
+      attackerName: "соперник",
+      attackerInf: 2,
+      winner: "победитель",
+      loser: "соперник",
+      aVotes: 2,
+      bVotes: 1,
+    });
+    const foreignTermPatterns = Object.freeze([
+      { term: "cooldown", regex: /(^|[^a-z])cool\s*down(?=$|[^a-z])|(^|[^a-z])cooldown(?=$|[^a-z])/i },
+      { term: "rate limit", regex: /(^|[^a-z])rate\s+limit(?=$|[^a-z])/i },
+      { term: "saved", regex: /(^|[^a-z])saved(?=$|[^a-z])/i },
+      { term: "updated", regex: /(^|[^a-z])updated(?=$|[^a-z])/i },
+      { term: "loading", regex: /(^|[^a-z])loading(?=$|[^a-z])/i },
+      { term: "error", regex: /(^|[^a-z])error(?=$|[^a-z])/i },
+      { term: "warning", regex: /(^|[^a-z])warning(?=$|[^a-z])/i },
+      { term: "notification", regex: /(^|[^a-z])notification(?=$|[^a-z])/i },
+      { term: "system", regex: /(^|[^a-z])system(?=$|[^a-z])/i },
+      { term: "pending", regex: /(^|[^a-z])pending(?=$|[^a-z])/i },
+      { term: "unavailable", regex: /(^|[^a-z])unavailable(?=$|[^a-z])/i },
+      { term: "ready", regex: /(^|[^a-z])ready(?=$|[^a-z])/i },
+    ]);
+    const hasCyrillic = (text) => /[А-Яа-яЁё]/.test(String(text || ""));
+    const latinWords = (text) => String(text || "").match(/[A-Za-z][A-Za-z-]*/g) || [];
+    const isRuSystemText = (text) => {
+      const source = String(text || "").trim();
+      if (!source) return false;
+      if (latinWords(source).length) return false;
+      return hasCyrillic(source) || /^[\s\d+\-:.,;()\[\]{}→/💰⭐🏆⚡—]+$/.test(source);
+    };
+    const inspectText = (sample) => {
+      const text = String(sample && sample.text || "");
+      if (!isRuSystemText(text)) {
+        addUnique(result.nonRuMessages, Object.assign({}, sample, { latinWords: latinWords(text) }));
+        fail("non_ru_message", sample);
+      }
+      foreignTermPatterns.forEach((row) => {
+        row.regex.lastIndex = 0;
+        if (row.regex.test(text)) {
+          const hit = Object.assign({}, sample, { term: row.term });
+          addUnique(result.foreignTermsDetected, hit);
+          fail("foreign_term_detected", hit);
+        }
+      });
+      const forbidden = lintSystemLanguageLine(text);
+      if (forbidden.length) {
+        const hit = Object.assign({}, sample, { matches: forbidden });
+        addUnique(result.forbiddenRemaining, hit);
+        fail("forbidden_patterns_detected", hit);
+      }
+    };
+
+    if (result.localeUsed !== "ru") fail("active_locale_ru", result.localeUsed);
+    if (normalizeSystemLocale("en-US") !== "ru" || normalizeSystemLocale("unknown") !== "ru") fail("unknown_locale_falls_back_ru");
+    if (!SYSTEM_COPY_LOCALES.ru || SYSTEM_COPY_LOCALES.ru !== SystemCopy) fail("ru_copy_profile_active");
+    if (!SYSTEM_TEXT_TEMPLATE_LOCALES.ru || SYSTEM_TEXT_TEMPLATE_LOCALES.ru !== SYSTEM_TEXT_TEMPLATES) fail("ru_template_profile_active");
+    if (!SYSTEM_LANGUAGE_PROFILE || SYSTEM_LANGUAGE_PROFILE.activeLocale !== "ru" || SYSTEM_LANGUAGE_PROFILE.fallbackLocale !== "ru") fail("language_profile_ru", SYSTEM_LANGUAGE_PROFILE);
+
+    const ruEntries = systemCopyEntries(systemCopyForLocale("ru"));
+    const activeEntries = systemCopyEntries(systemCopyForLocale(activeSystemLocale({ locale: "ru" })));
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      const bucket = systemCopyForLocale("ru")[group];
+      if (!bucket || typeof bucket !== "object" || !Object.keys(bucket).length) {
+        addUnique(result.missingCoverage, group);
+        fail("ru_group_missing", group);
+      }
+    });
+    if (ruEntries.length !== activeEntries.length) fail("active_ru_entry_count", { ru: ruEntries.length, active: activeEntries.length });
+
+    ruEntries.forEach((entry) => {
+      if (!String(entry.text || "").trim()) {
+        addUnique(result.missingCoverage, `${entry.group}.${entry.code}`);
+        fail("ru_entry_empty", entry);
+      }
+      const text = say(entry.group, entry.code, ruCtx);
+      inspectText({ source: "SystemCopy", kind: entry.group, code: entry.code, text });
+      const fallbackText = say(entry.group, entry.code, Object.assign({}, ruCtx, { locale: "zz-ZZ", userLocale: "zz-ZZ" }));
+      if (fallbackText !== text) fail("unknown_locale_entry_fallback_mismatch", { kind: entry.group, code: entry.code, text, fallbackText });
+    });
+
+    const templateSamples = Object.freeze([
+      { kind: "errors", code: "blockedWithHint", ctx: { what: "нет доступа", hint: "Можно позже." } },
+      { kind: "errors", code: "unavailableWithHint", ctx: { what: "раздел", hint: "Открой профиль." } },
+      { kind: "errors", code: "needsValue", ctx: { what: "выбор", hint: "Проверь ввод." } },
+      { kind: "warnings", code: "actionOption", ctx: { what: "Проверь ввод", option: "Можно ещё раз." } },
+      { kind: "warnings", code: "waitOption", ctx: { what: "Подожди немного" } },
+      { kind: "warnings", code: "noEffectOption", ctx: { what: "Уже принято", option: "Можно позже." } },
+      { kind: "notifications", code: "fact", ctx: { what: "Сохранено." } },
+      { kind: "notifications", code: "savedValue", ctx: { what: "Баланс", value: "три" } },
+      { kind: "notifications", code: "delta", ctx: { what: "Баланс", value: "+1💰" } },
+      { kind: "systemEvents", code: "value", ctx: { what: "Переход", value: "площадь" } },
+      { kind: "systemEvents", code: "route", ctx: { what: "Событие", value: "началось" } },
+      { kind: "systemEvents", code: "pair", ctx: { what: "Баттл", a: "Анна", b: "Борис" } },
+    ]);
+    templateSamples.forEach((sample) => {
+      const text = say(sample.kind, sample.code, Object.assign({}, ruCtx, sample.ctx, { locale: "ru" }));
+      inspectText({ source: "SystemTemplateSample", kind: sample.kind, code: sample.code, text });
+      const fallbackText = say(sample.kind, sample.code, Object.assign({}, ruCtx, sample.ctx, { locale: "en-US", userLocale: "en-US" }));
+      if (fallbackText !== text) fail("unknown_locale_template_fallback_mismatch", { kind: sample.kind, code: sample.code, text, fallbackText });
+    });
+
+    result.sampleCount = ruEntries.length + templateSamples.length;
+    if (result.sampleCount < ruEntries.length) fail("sample_count_covers_registered_entries", { sampleCount: result.sampleCount, entryCount: ruEntries.length });
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    if (result.nonRuMessages.length) addUnique(result.failedChecks, "non_ru_messages");
+    if (result.foreignTermsDetected.length) addUnique(result.failedChecks, "foreign_terms_detected");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.nonRuMessages.length === 0 && result.foreignTermsDetected.length === 0 && result.localeUsed === "ru";
     return result;
   };
 

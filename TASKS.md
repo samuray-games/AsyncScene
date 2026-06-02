@@ -5046,3 +5046,11 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeSystemEconomyTextPairsOnce()` returning `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `checkedReasons`, `textWithoutTransaction`, `transactionWithoutText`, and `semanticMismatches`.
 - Scope guard preserved: copy contract and dev smoke only; no economy amounts, balances, transfer logic, outcomes, battle/crowd/report/rematch/escape/respect/training logic, timers, UI routing, counters, focus, panels, auto-scroll, or `Console.txt` usage changed.
 - Required Safari command: `Game.__DEV.smokeSystemEconomyTextPairsOnce()`.
+
+## 2026-06-02 - Step 6 [8] User Locale Localization (RU current)
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added locale-aware SystemCopy/system-message resolution with `ru` as the active/default/fallback profile language, including unknown-locale fallback to `ru`.
+- Cache-busted the web entrypoint for the updated system runtime bundle.
+- Added `Game.__DEV.smokeSystemLocaleRuOnce()` returning `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `sampleCount`, `localeUsed`, `nonRuMessages`, and `foreignTermsDetected`.
+- Scope guard preserved: no gameplay, economy, battle, crowd, reports, timers, routing, counters, focus behavior, panel behavior, notification meanings, or taxonomy changes. `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeSystemLocaleRuOnce()`.
