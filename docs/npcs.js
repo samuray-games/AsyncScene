@@ -797,6 +797,228 @@ window.Game ||= {};
     return normalizeCopLine("Я на связи. Нужна помощь — спроси про токсика, бандита или мафиози, либо нажми «Сдать» в личке");
   };
 
+  // Dev-only NPC speech template scaffold (Step 5.3).
+  // No gameplay code reads this object yet; it is exposed for runtime smoke coverage only.
+  const buildNpcSpeechTemplates = () => {
+    const blocks = ["greetings", "threats", "victory", "defeat", "neutral"];
+    const roles = ["cop", "mafia", "bandit", "toxic", "neutral"];
+    const channels = ["dm", "event", "battle"];
+    const intensities = ["y", "o", "r", "k"];
+    const roleLines = {
+      greetings: {
+        cop: ["вижу тебя на {PLACE}, держим спокойно", "привет, порядок рядом, без лишнего шума"],
+        mafia: ["добрый вечер, {PLAYER}, говорим спокойно", "рад видеть, обсудим {TOPIC} без суеты"],
+        bandit: ["{PLAYER}, стой ровно, разговор короткий", "вижу тебя у {PLACE}, не дергайся"],
+        toxic: ["{PLAYER}, ну что, покажешь позицию", "подошел к {TOPIC}, теперь говори прямо"],
+        neutral: ["привет, {PLAYER}, что по {TOPIC}", "вижу движ у {PLACE}, я рядом"]
+      },
+      threats: {
+        cop: ["не дави на людей, я рядом", "сбавь темп, иначе разговор закроем"],
+        mafia: ["не путай спокойствие со слабостью", "сделай шаг назад, это разумнее"],
+        bandit: ["{PLAYER}, кошелек береги и отвечай", "не тяни, у меня терпение короткое"],
+        toxic: ["сейчас проверим, что ты стоишь", "говори по делу, не прячься"],
+        neutral: ["не разгоняй конфликт, тут и так шумно", "осторожнее, тема уже на грани"]
+      },
+      victory: {
+        cop: ["чисто сработано, конфликт закрыт", "порядок восстановлен, двигаемся дальше"],
+        mafia: ["итог понятен, лишних слов не нужно", "победа любит тишину и точность"],
+        bandit: ["ну вот, {PLAYER}, так и надо", "забрал свое, разговор окончен"],
+        toxic: ["видишь, кто тут тянет раунд", "нормально разложил, без сантиментов"],
+        neutral: ["затащили спокойно, без цирка", "раунд закрыт, площадь выдохнула"]
+      },
+      defeat: {
+        cop: ["ошибка принята, делаем вывод", "проигрыш не повод ломать порядок"],
+        mafia: ["бывает, главное не суетиться", "поражение учит дороже победы"],
+        bandit: ["не вывез, значит платишь вниманием", "слабый ход, {PLAYER}, запомни"],
+        toxic: ["не вывез тему, бывает", "ну что, уверенность просела"],
+        neutral: ["не пошло, но еще дышим", "проиграли раунд, не всю жизнь"]
+      },
+      neutral: {
+        cop: ["держим дистанцию и не лезем", "если что, пиши по делу"],
+        mafia: ["спокойный разговор всегда дешевле шума", "лучше выбрать точные слова"],
+        bandit: ["я просто смотрю, пока без движений", "тишина тоже может давить"],
+        toxic: ["мне интересно, чем ты ответишь", "пока слушаю, но недолго"],
+        neutral: ["площадь шумит, тема живая", "смотрим на {TOPIC} без спешки"]
+      }
+    };
+    const channelLead = {
+      dm: ["личка:", "между нами:"],
+      event: ["событие у {PLACE}:", "площадь слышит:"],
+      battle: ["баттл про {TOPIC}:", "раунд на столе:"]
+    };
+    const intensityTail = {
+      y: ["мягко и по делу", "без лишнего жара"],
+      o: ["чуть жестче, но ровно", "темп выше, слова точнее"],
+      r: ["жестко, но без грязи", "давим смыслом, не криком"],
+      k: ["холодно и коротко", "крайний тон, без истерики"]
+    };
+    const out = {};
+    blocks.forEach(block => {
+      out[block] = {};
+      roles.forEach(role => {
+        out[block][role] = {};
+        channels.forEach(channel => {
+          out[block][role][channel] = {};
+          intensities.forEach(intensity => {
+            const base = roleLines[block][role];
+            const lead = channelLead[channel];
+            const tail = intensityTail[intensity];
+            out[block][role][channel][intensity] = [
+              `${lead[0]} ${base[0]}, ${tail[0]}`,
+              `${lead[1]} ${base[1]}, ${tail[1]}`
+            ];
+          });
+        });
+      });
+    });
+    return out;
+  };
+
+  const NPCSpeech = {};
+  NPCSpeech.BLOCKS = ["greetings", "threats", "victory", "defeat", "neutral"];
+  NPCSpeech.ROLES = ["cop", "mafia", "bandit", "toxic", "neutral"];
+  NPCSpeech.CHANNELS = ["dm", "event", "battle"];
+  NPCSpeech.INTENSITIES = ["y", "o", "r", "k"];
+  NPCSpeech.TEMPLATES = buildNpcSpeechTemplates();
+  NPCSpeech._lastTickKey = null;
+  NPCSpeech._usedByPool = Object.create(null);
+
+  const normalizeNpcSpeechTag = (value, allowed, fallback) => {
+    const v = String(value == null ? "" : value).trim().toLowerCase();
+    return allowed.includes(v) ? v : fallback;
+  };
+
+  const normalizeNpcSpeechVars = (vars = {}) => ({
+    PLAYER: String(vars.PLAYER || vars.player || vars.name || "ты").replace(/\s+/g, " ").trim() || "ты",
+    PLACE: String(vars.PLACE || vars.place || "Площадь").replace(/\s+/g, " ").trim() || "Площадь",
+    TOPIC: String(vars.TOPIC || vars.topic || "тема").replace(/\s+/g, " ").trim() || "тема"
+  });
+
+  const replaceNpcSpeechVars = (template, vars) => {
+    const safe = normalizeNpcSpeechVars(vars);
+    return String(template == null ? "" : template).replace(/\{(PLAYER|PLACE|TOPIC)\}/g, (_, key) => safe[key]);
+  };
+
+  const cleanNpcSpeechLine = (line) => {
+    let text = String(line == null ? "" : line).replace(/\s+/g, " ").trim();
+    text = text.replace(/[.]+$/g, "").replace(/[,;:]+$/g, "").trim();
+    if (!text) text = "площадь ждет нормальный ответ";
+    if (/\{[^}]*\}/.test(text) || /\}/.test(text) || /\{/.test(text)) text = text.replace(/\{[^}]*\}|[{}]/g, "").replace(/\s+/g, " ").trim() || "площадь ждет нормальный ответ";
+    return text;
+  };
+
+  const npcSpeechTickKey = (ctx) => {
+    if (ctx && (ctx.tick != null || ctx.tickId != null)) return String(ctx.tick != null ? ctx.tick : ctx.tickId);
+    const S = Game && (Game.__S || Game.State);
+    if (S && (S.tick != null || S.tickId != null || S.currentTick != null)) return String(S.tick != null ? S.tick : (S.tickId != null ? S.tickId : S.currentTick));
+    return "__static_tick";
+  };
+
+  NPCSpeech.resetTickCache = function resetTickCache() {
+    NPCSpeech._lastTickKey = null;
+    NPCSpeech._usedByPool = Object.create(null);
+  };
+
+  NPCSpeech.getPool = function getPool(ctx = {}) {
+    const block = normalizeNpcSpeechTag(ctx.block || ctx.kind || ctx.pool, NPCSpeech.BLOCKS, "neutral");
+    const role = normalizeNpcSpeechTag(ctx.role, NPCSpeech.ROLES, "neutral");
+    const channel = normalizeNpcSpeechTag(ctx.channel, NPCSpeech.CHANNELS, "dm");
+    const intensity = normalizeNpcSpeechTag(ctx.intensity, NPCSpeech.INTENSITIES, "y");
+    const pool = (((NPCSpeech.TEMPLATES[block] || {})[role] || {})[channel] || {})[intensity];
+    const safePool = Array.isArray(pool) && pool.length ? pool : NPCSpeech.TEMPLATES.neutral.neutral.dm.y;
+    return { block, role, channel, intensity, key: `${block}|${role}|${channel}|${intensity}`, templates: safePool };
+  };
+
+  NPCSpeech.generateNpcLine = function generateNpcLine(ctx = {}) {
+    let line = "";
+    try {
+      const pool = NPCSpeech.getPool(ctx || {});
+      const tickKey = npcSpeechTickKey(ctx || {});
+      if (NPCSpeech._lastTickKey !== tickKey) {
+        NPCSpeech._lastTickKey = tickKey;
+        NPCSpeech._usedByPool = Object.create(null);
+      }
+      const rendered = pool.templates.map(t => cleanNpcSpeechLine(replaceNpcSpeechVars(t, ctx && ctx.vars))).filter(Boolean);
+      const alternatives = rendered.length ? rendered : ["площадь ждет нормальный ответ"];
+      const used = NPCSpeech._usedByPool[pool.key] || new Set();
+      let candidates = alternatives.filter(t => !used.has(t));
+      if (!candidates.length) candidates = alternatives.slice();
+      line = pickOne(candidates) || candidates[0] || alternatives[0];
+      if (alternatives.length > 1) {
+        const nextUsed = candidates.length === alternatives.length && used.size >= alternatives.length ? new Set() : used;
+        nextUsed.add(line);
+        NPCSpeech._usedByPool[pool.key] = nextUsed;
+      }
+    } catch (_) {
+      line = "площадь ждет нормальный ответ";
+    }
+    return cleanNpcSpeechLine(line);
+  };
+
+  NPCSpeech.smokeTemplateScaffoldOnce = function smokeTemplateScaffoldOnce() {
+    const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
+    const seen = { blocks: new Set(), roles: new Set(), channels: new Set(), intensities: new Set() };
+    const addUnique = (arr, item) => { if (!arr.some(x => JSON.stringify(x) === JSON.stringify(item))) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, detail === undefined ? code : { code, detail }); addUnique(result.failedChecks, code); };
+    const forbidden = [
+      { rule: "no_console_txt", re: /Console\.txt/i },
+      { rule: "no_teen_slang", re: /(^|[^а-яё])(вайб|кринж|хайп|тик ?ток|тикток|лулз|рофл|имба|краш|чилл)([^а-яё]|$)/i },
+      { rule: "no_memes", re: /(^|[^а-яё])(скибиди|мем|лол|кек|жиза|ой все|заш[её]л в чат)([^а-яё]|$)/i },
+      { rule: "no_teacher_tone", re: /(включите мозг|будь внимател|будьте внимател|запомни|объясняю|урок|не умничай)/i },
+      { rule: "no_broken_placeholders", re: /\{[^}]*\}|[{}]/ }
+    ];
+    try {
+      NPCSpeech.resetTickCache();
+      NPCSpeech.BLOCKS.forEach(block => {
+        NPCSpeech.ROLES.forEach(role => {
+          NPCSpeech.CHANNELS.forEach(channel => {
+            NPCSpeech.INTENSITIES.forEach(intensity => {
+              const vars = { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" };
+              const ctx = { block, role, channel, intensity, vars, tick: "coverage" };
+              const pool = NPCSpeech.getPool(ctx);
+              if (!Array.isArray(pool.templates) || !pool.templates.length) fail("pool_missing", { block, role, channel, intensity });
+              seen.blocks.add(block); seen.roles.add(role); seen.channels.add(channel); seen.intensities.add(intensity);
+              const line = NPCSpeech.generateNpcLine(ctx);
+              if (typeof line !== "string") fail("not_string", { block, role, channel, intensity, line });
+              if (!line) fail("empty_string", { block, role, channel, intensity });
+              if (/undefined|null/i.test(line)) fail("undefined_or_null_text", { block, role, channel, intensity, line });
+              forbidden.forEach(check => { const m = line.match(check.re); if (m) addUnique(result.forbiddenRemaining, { rule: check.rule, block, role, channel, intensity, match: m[0], line }); });
+            });
+          });
+        });
+      });
+      NPCSpeech.BLOCKS.forEach(block => { if (!seen.blocks.has(block)) addUnique(result.missingCoverage, `block:${block}`); });
+      NPCSpeech.ROLES.forEach(role => { if (!seen.roles.has(role)) addUnique(result.missingCoverage, `role:${role}`); });
+      NPCSpeech.CHANNELS.forEach(channel => { if (!seen.channels.has(channel)) addUnique(result.missingCoverage, `channel:${channel}`); });
+      NPCSpeech.INTENSITIES.forEach(intensity => { if (!seen.intensities.has(intensity)) addUnique(result.missingCoverage, `intensity:${intensity}`); });
+      const replacedProbe = cleanNpcSpeechLine(replaceNpcSpeechVars("{PLAYER} идет в {PLACE} за {TOPIC}", { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" }));
+      if (replacedProbe !== "Аня идет в Двор за спор") fail("variable_replacement_broken", replacedProbe);
+      NPCSpeech.resetTickCache();
+      const dupCtx = { block: "neutral", role: "neutral", channel: "dm", intensity: "y", vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" }, tick: "dup" };
+      const dupPool = NPCSpeech.getPool(dupCtx);
+      const a = NPCSpeech.generateNpcLine(dupCtx);
+      const b = NPCSpeech.generateNpcLine(dupCtx);
+      if (dupPool.templates.length > 1 && a === b) fail("duplicate_in_one_tick", { a, b, pool: dupPool.key });
+      [a, b].forEach((line, index) => {
+        if (typeof line !== "string" || !line || /\{[^}]*\}|[{}]/.test(line) || /undefined|null/i.test(line)) fail("duplicate_probe_bad_line", { index, line });
+      });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
+  Game.NPCSpeech = NPCSpeech;
+  Game.__DEV ||= {};
+  Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeTemplateScaffoldOnce === "function"
+      ? Game.NPCSpeech.smokeTemplateScaffoldOnce()
+      : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
   Game.NPC = NPC;
 
   // Backward-compat: some modules expect this older API name.
