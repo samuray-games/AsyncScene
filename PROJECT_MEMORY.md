@@ -1,5 +1,10 @@
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-02 — Step 6 [5] Minimal Text Templates
+
+- Status: READY_FOR_RUNTIME_SMOKE.
+- Result: READY_FOR_RUNTIME_SMOKE only.
+
 ## 2026-06-02 — Step 6 [4] Message Taxonomy (codes)
 
 - Status: READY_FOR_RUNTIME_SMOKE.
