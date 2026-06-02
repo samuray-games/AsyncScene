@@ -51,6 +51,29 @@
 
 
 
+### [T-20260602-070] Step 7 [2] Minimal Start-Screen UI
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/style.css` `AsyncScene/Web/data.js` `AsyncScene/Web/index.html` `docs/style.css` `docs/data.js` `docs/index.html`
+- Goal: Implement a minimal visual layout for the existing start screen without changing onboarding logic, gameplay, or economy.
+- Acceptance:
+  - [x] Start screen is one clean card/panel with even spacing, title, 2-3 intro lines, and exactly two CTA buttons from `Data.START_SCREEN`.
+  - [x] Secondary visual clutter is absent from the start screen.
+  - [x] Step 7 [1] Start/Rules behavior remains covered by the smoke path.
+  - [x] No `onboardingSeen`, gameplay, onboarding logic, or economy changes.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Simplified start-screen CSS to one centered card with title, intro lines, and two aligned CTAs; added `Game.__DEV.smokeOnboardingMinimalUiOnce()` to check narrow/medium/wide layout, no start-overlay scroll, CTA visibility/alignment, overlap, no extra blocks, and the Step 7 [1] behavior smoke.
+  - Changed: `AsyncScene/Web/style.css` `AsyncScene/Web/data.js` `AsyncScene/Web/index.html` `docs/style.css` `docs/data.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingMinimalUiOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [2] with `Game.__DEV.smokeOnboardingMinimalUiOnce()`; verify minimal card layout across narrow/medium/wide, no default viewport scroll, aligned visible CTAs, Start entry, Rules non-blocking, and no extra start-screen blocks.
+
+
 ### [T-20260602-069] Step 7 [1] Fresh-State Visibility and Menu-Open Interference Fix
 - Status: DONE
 - Priority: P0
