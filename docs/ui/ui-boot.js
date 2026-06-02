@@ -157,6 +157,9 @@ window.Game = window.Game || {};
     st.style.opacity = "1";
     st.removeAttribute("aria-hidden");
     st.style.pointerEvents = "auto";
+    st.style.position = "fixed";
+    st.style.inset = "0";
+    st.style.zIndex = "2147483647";
     const card = st.querySelector("#startCard");
     if (card) {
       card.style.pointerEvents = "auto";
@@ -178,8 +181,34 @@ window.Game = window.Game || {};
     return !(S && S.isStarted === true) && flags.started !== true;
   }
 
+  function clearStartScreenInterference(UI) {
+    try { if (document.body) document.body.classList.remove("menu-open"); } catch (_) {}
+    try {
+      const S = (UI && UI.S) || (window.Game && (window.Game.__S || window.Game.State));
+      if (S) {
+        S.flags = S.flags || {};
+        S.flags.menuOpen = false;
+      }
+    } catch (_) {}
+    try {
+      const right = document.getElementById("right");
+      if (right) {
+        right.classList.remove("menu-open");
+        right.style.removeProperty("--menu-height");
+      }
+      const menu = document.getElementById("menuBlock");
+      if (menu) {
+        menu.classList.remove("menu-open");
+        menu.classList.add("hidden");
+      }
+    } catch (_) {}
+  }
+
   function ensureFreshStartScreenVisible(UI) {
-    if (shouldShowFreshStartScreen(UI)) ensureStartScreenVisible(UI);
+    if (shouldShowFreshStartScreen(UI)) {
+      clearStartScreenInterference(UI);
+      ensureStartScreenVisible(UI);
+    }
   }
 
   function keepFreshStartScreenVisible(UI) {
@@ -487,6 +516,7 @@ window.Game = window.Game || {};
     const runRules = (source, e) => {
       markBootDiag(source);
       try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
+      try { if (e && typeof e.stopPropagation === "function") e.stopPropagation(); } catch (_) {}
       // No blocking alert fallback here. If a dedicated rules UI is absent, the
       // action is intentionally a safe no-op so it cannot freeze the start flow.
     };
