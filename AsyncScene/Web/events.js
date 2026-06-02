@@ -1003,6 +1003,22 @@ window.Game ||= {};
     return { cardLine, chatLine };
   }
 
+
+  function npcSpeechEventLine(actor, fallback, opts = {}) {
+    try {
+      const speech = Game && Game.NPCSpeech;
+      if (!speech || typeof speech.generateRuntimeNpcLine !== "function" || typeof speech.makeCtx !== "function") return fallback;
+      return speech.generateRuntimeNpcLine(speech.makeCtx(actor || null, {
+        source: "event",
+        block: opts.block || "neutral",
+        channel: "event",
+        vars: opts.vars || {}
+      }), fallback);
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   function capEvents(max = 12){
     ensureState();
     while (Game.__S.events.length > max) Game.__S.events.pop();
@@ -1065,7 +1081,7 @@ window.Game ||= {};
     const aInf = Number(a.influence || 0);
     const bInf = Number(b.influence || 0);
 
-    const line = `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}].`;
+    const line = npcSpeechEventLine(a, `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}].`, { vars: { PLAYER: bName, TOPIC: "спор" } });
 
     return {
       id,
@@ -1156,9 +1172,9 @@ window.Game ||= {};
     const title = isStrong
       ? `${a.name} хочет: Отвали ${b.name}`
       : `${a.name} хочет: Свалить ${b.name}`;
-    const line = isStrong
+    const line = npcSpeechEventLine(a, isStrong
       ? `Толпа решает: ${a.name} хочет Отвали ${b.name}.`
-      : `Толпа решает: ${a.name} хочет Свалить ${b.name}.`;
+      : `Толпа решает: ${a.name} хочет Свалить ${b.name}.`, { vars: { PLAYER: b.name || "ты", TOPIC: "уход" } });
 
     return {
       id,
@@ -2074,7 +2090,7 @@ window.Game ||= {};
     battle.crowd.voters ||= {};
 
     // Canonical, UI-friendly shape (keep backward-compatible fields too)
-    const line = `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}].`;
+    const line = npcSpeechEventLine(a, `Толпа решает: ${aName} [${aInf}] и ${bName} [${bInf}].`, { vars: { PLAYER: bName, TOPIC: "спор" } });
 
     const e = {
       id,

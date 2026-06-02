@@ -2556,6 +2556,31 @@ window.Game = window.Game || {};
   if (typeof Game.Core.handleNpcAutoReplyCore !== "function") {
     Game.Core.handleNpcAutoReplyCore = handleNpcAutoReplyCore;
   }
+  function npcSpeechRuntimeLine(source, cop, text, opts = {}) {
+    const fallback = String(text || "");
+    try {
+      const speech = Game && Game.NPCSpeech;
+      if (!speech || typeof speech.generateRuntimeNpcLine !== "function" || typeof speech.makeCtx !== "function") return fallback;
+      return speech.generateRuntimeNpcLine(speech.makeCtx(cop || null, {
+        source,
+        block: opts.block || "neutral",
+        channel: opts.channel || "dm",
+        intensity: opts.intensity,
+        tick: opts.tick,
+        vars: opts.vars || {}
+      }), fallback);
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  try {
+    Game.__DEV ||= {};
+    Game.__DEV.__probeNpcSpeechReportReactionLine = function __probeNpcSpeechReportReactionLine(cop, text) {
+      return npcSpeechRuntimeLine("report_reaction", cop || null, text || "Принял. Сейчас разберёмся.", { channel: "dm" });
+    };
+  } catch (_) {}
+
   function copLine(text){
     const N = Game.NPC || null;
     if (N && typeof N.normalizeCopLine === "function") return N.normalizeCopLine(text);
@@ -2616,7 +2641,8 @@ window.Game = window.Game || {};
     const raw = pickCopTemplate(tpl[listName], "");
     const msg = fillCopTemplate(raw, cop, vars);
     if (!msg) return false;
-    pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: copId });
+    const speechMsg = npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars });
+    pushChat(String(cop.name || "Коп"), copLine(speechMsg), { isSystem: false, playerId: copId });
     return true;
   }
 
@@ -2629,7 +2655,8 @@ window.Game = window.Game || {};
     const raw = pickCopTemplate(tpl[listName], "");
     const msg = fillCopTemplate(raw, cop, vars);
     if (!msg) return false;
-    pushDm(copId, String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: copId });
+    const speechMsg = npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "dm", vars });
+    pushDm(copId, String(cop.name || "Коп"), copLine(speechMsg), { isSystem: false, playerId: copId });
     return true;
   }
 
@@ -3201,14 +3228,14 @@ window.Game = window.Game || {};
       const arr = (State.dm && State.dm.logs && State.dm.logs[key]) ? State.dm.logs[key] : [];
       if (arr && arr.length === 0 && tpl && tpl.intros) {
         const intro = fill(pick(tpl.intros));
-        if (intro && cop && cop.id) pushDm(cop.id, copName0, copLine(intro), { isSystem: false, playerId: cop.id });
+        if (intro && cop && cop.id) pushDm(cop.id, copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, intro, { channel: "dm", vars })), { isSystem: false, playerId: cop.id });
       }
     } catch (_) {}
 
     const msg = (isKey && tpl && listName && tpl[listName])
       ? fill(pick(tpl[listName]))
       : fill(String(text || ""));
-    if (cop && cop.id) pushDm(cop.id, copName0, copLine(msg), { isSystem: false, playerId: cop.id });
+    if (cop && cop.id) pushDm(cop.id, copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "dm", vars })), { isSystem: false, playerId: cop.id });
   }
 
   function copChatFrom(copId, text, vars = {}){
@@ -3242,7 +3269,7 @@ window.Game = window.Game || {};
     const msg = (isKey && tpl && listName && tpl[listName])
       ? fill(pick(tpl[listName]))
       : fill(String(text || ""));
-    pushChat(copName0, copLine(msg), { isSystem: false, playerId: (cop && cop.id) ? cop.id : (copId || "npc_cop_v") });
+    pushChat(copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars })), { isSystem: false, playerId: (cop && cop.id) ? cop.id : (copId || "npc_cop_v") });
   }
 
   // Backward-compat wrappers (legacy callsites rely on assignedCopId).
@@ -3689,7 +3716,7 @@ window.Game = window.Game || {};
 
     try {
       const penaltyMsg = `«Сдать» без фактов — штраф ${repPenalty}⭐. Проверь факты в следующий раз.`;
-      pushDm(copId, copName, copLine(penaltyMsg), { isSystem: false, playerId: copId });
+      pushDm(copId, copName, copLine(npcSpeechRuntimeLine("report_reaction", cop, penaltyMsg, { channel: "dm" })), { isSystem: false, playerId: copId });
     } catch (_) {}
     try { copDmTo(copId, "cop_fail"); } catch (_) {}
     markReported(targetId, false, roleKey, copId);
@@ -3763,7 +3790,7 @@ window.Game = window.Game || {};
       const repMsg = (repSum > 0) ? `+${repSum}⭐` : "";
       const ptsMsg = (ptsSum > 0) ? ` +${ptsSum}💰` : "";
       const bonusMsg = repMsg || ptsMsg ? `Благодарим за сдачу, получено ${repMsg}${ptsMsg}`.trim() : "Благодарим за сдачу, получено.";
-      pushDm(copId, copName, copLine(bonusMsg), { isSystem: false, playerId: copId });
+      pushDm(copId, copName, copLine(npcSpeechRuntimeLine("report_reaction", cop, bonusMsg, { channel: "dm" })), { isSystem: false, playerId: copId });
     } catch (_) {}
 
     let compensationTotal = 0;
@@ -4001,7 +4028,7 @@ window.Game = window.Game || {};
     // Assign this cop for this interaction (used by legacy helpers)
     State.assignedCopId = cop.id;
     // Immediately notify player that this cop accepted the report (DM in THIS cop thread)
-    try { pushDm(cop.id, cop.name, copLine("Принял. Сейчас разберёмся."), { isSystem: false, playerId: cop.id }); } catch (_) {}
+    try { pushDm(cop.id, cop.name, copLine(npcSpeechRuntimeLine("report_reaction", cop, "Принял. Сейчас разберёмся.", { channel: "dm" })), { isSystem: false, playerId: cop.id }); } catch (_) {}
 
     if (!target) target = findNpcByRole(roleKey);
     if (!target || !target.id) {
