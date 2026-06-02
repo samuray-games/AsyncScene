@@ -1359,6 +1359,185 @@ window.Game ||= {};
       : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
+  Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      checks: [],
+      sampleCount: 0,
+      samples: []
+    };
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const checkStatus = Object.create(null);
+    const markPass = (name, detail = null) => {
+      if (checkStatus[name] === "FAIL") return;
+      checkStatus[name] = "PASS";
+      const row = result.checks.find(x => x && x.name === name);
+      if (row) {
+        row.status = "PASS";
+        row.detail = detail;
+      } else {
+        result.checks.push({ name, status: "PASS", detail });
+      }
+    };
+    const fail = (name, detail) => {
+      checkStatus[name] = "FAIL";
+      addUnique(result.failedChecks, name);
+      addUnique(result.failures, detail === undefined ? { check: name } : { check: name, detail });
+      const row = result.checks.find(x => x && x.name === name);
+      if (row) {
+        row.status = "FAIL";
+        row.detail = detail;
+      } else {
+        result.checks.push({ name, status: "FAIL", detail });
+      }
+    };
+    const requiredRoles = ["cop", "mafia", "bandit", "toxic", "neutral"];
+    const requiredBlocks = ["greetings", "threats", "victory", "defeat", "neutral"];
+    const requiredChannels = ["dm", "event", "battle"];
+    const requiredIntensities = ["y", "o", "r", "k"];
+    const forbiddenTerms = [
+      "вайб", "кринж", "хайп", "тикток", "лол", "кек", "рофл", "жиза", "топчик", "изи", "пруф",
+      "механика", "интерфейс", "кнопка", "туториал", "геймплей", "регламент", "санкции", "протокол",
+      "undefined", "null"
+    ];
+    const wordHit = (line, term) => {
+      const low = String(line || "").toLowerCase().replace(/ё/g, "е");
+      const t = String(term || "").toLowerCase().replace(/ё/g, "е");
+      if (!t) return false;
+      if (/^[a-zа-я0-9]+$/i.test(t)) return new RegExp(`(^|[^a-zа-я0-9])${escapeRe(t)}([^a-zа-я0-9]|$)`, "i").test(low);
+      return low.includes(t);
+    };
+    const isBadLine = (line) => typeof line !== "string" || !line.trim() || /undefined|null/i.test(line) || /\{[^}]*\}|[{}]/.test(line);
+    const speech = Game.NPCSpeech;
+    const npcApi = Game.NPC;
+    const generatedByRole = Object.create(null);
+    const seen = { roles: new Set(), blocks: new Set(), channels: new Set(), intensities: new Set() };
+    try {
+      if (!speech || !npcApi) {
+        fail("runtime_integration", "Game.NPCSpeech_or_Game.NPC_missing");
+      }
+      if (speech && typeof speech.resetTickCache === "function") speech.resetTickCache();
+
+      requiredRoles.forEach((role, roleIndex) => {
+        requiredBlocks.forEach((block, blockIndex) => {
+          const channel = requiredChannels[(roleIndex + blockIndex) % requiredChannels.length];
+          const intensity = requiredIntensities[(roleIndex + (blockIndex * 2)) % requiredIntensities.length];
+          const ctx = {
+            role,
+            block,
+            channel,
+            intensity,
+            locale: "ru",
+            sessionId: `npc_speech_regression_${role}`,
+            tick: `npc_speech_regression_${role}_${block}_${channel}_${intensity}`,
+            vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" }
+          };
+          const pool = speech && typeof speech.getPool === "function" ? speech.getPool(ctx) : null;
+          const line = speech && typeof speech.generateNpcLine === "function" ? speech.generateNpcLine(ctx) : "";
+          result.samples.push({ role, block, channel, intensity, locale: pool && pool.locale, line });
+          if (!generatedByRole[role]) generatedByRole[role] = [];
+          generatedByRole[role].push(line);
+          seen.roles.add(role); seen.blocks.add(block); seen.channels.add(channel); seen.intensities.add(intensity);
+          if (!pool || !Array.isArray(pool.templates) || !pool.templates.length) fail("template_scaffold", { role, block, channel, intensity, reason: "pool_missing" });
+          if (isBadLine(line)) fail("no_empty_undefined_lines", { role, block, channel, intensity, line });
+          forbiddenTerms.forEach(term => {
+            if (wordHit(line, term)) addUnique(result.forbiddenRemaining, { check: "no_forbidden_terms", term, role, block, channel, intensity, line });
+          });
+          if (String(line || "").length > 150) fail("style_rules", { role, block, channel, intensity, reason: "line_too_long", line });
+          if (role !== "cop" && role !== "mafia" && /[.!]$/.test(String(line || "").trim())) fail("style_rules", { role, block, channel, intensity, reason: "casual_role_terminal_punctuation", line });
+        });
+      });
+
+      const inventorySources = Array.isArray(npcApi && npcApi.SPEECH_INVENTORY_SOURCES) ? npcApi.SPEECH_INVENTORY_SOURCES : [];
+      const inventoryRoles = {
+        cop: !!(npcApi && npcApi.SAY && npcApi.SAY.cop),
+        mafia: !!(npcApi && npcApi.SAY && npcApi.SAY.mafia),
+        bandit: !!(npcApi && npcApi.SAY && npcApi.SAY.bandit),
+        toxic: !!(npcApi && npcApi.SAY && npcApi.SAY.toxic),
+        neutral: !!(npcApi && npcApi.SAY && npcApi.SAY.crowd)
+      };
+      Object.keys(inventoryRoles).forEach(role => { if (!inventoryRoles[role]) addUnique(result.missingCoverage, `inventory_role:${role}`); });
+      if (inventorySources.length < 10) fail("inventory_coverage", { sourceCount: inventorySources.length });
+      inventorySources.forEach((src, index) => {
+        const arr = src && typeof src.get === "function" ? src.get() : null;
+        if (!Array.isArray(arr) || !arr.length) fail("inventory_coverage", { index, source: src && src.source, reason: "empty_source" });
+      });
+
+      requiredBlocks.forEach(block => { if (!seen.blocks.has(block)) addUnique(result.missingCoverage, `block:${block}`); });
+      requiredRoles.forEach(role => { if (!seen.roles.has(role)) addUnique(result.missingCoverage, `role:${role}`); });
+      requiredChannels.forEach(channel => { if (!seen.channels.has(channel)) addUnique(result.missingCoverage, `channel:${channel}`); });
+      requiredIntensities.forEach(intensity => { if (!seen.intensities.has(intensity)) addUnique(result.missingCoverage, `intensity:${intensity}`); });
+
+      const replaceProbe = speech && typeof speech.generateNpcLine === "function"
+        ? speech.generateNpcLine({ role: "neutral", block: "neutral", channel: "dm", intensity: "y", locale: "ru", tick: "placeholder_probe", vars: { PLAYER: "Мария", PLACE: "Сад", TOPIC: "диалог" } })
+        : "";
+      if (/[{}]/.test(replaceProbe) || /PLAYER|PLACE|TOPIC/.test(replaceProbe)) fail("placeholder_replacement", replaceProbe);
+
+      const ruInfo = speech && typeof speech.resolveLocale === "function" ? speech.resolveLocale({ locale: "ru", sessionId: "npc_speech_regression_locale_ru" }) : null;
+      const fallbackInfo = speech && typeof speech.resolveLocale === "function" ? speech.resolveLocale({ locale: "en-US", sessionId: "npc_speech_regression_locale_en" }) : null;
+      if (!ruInfo || ruInfo.locale !== "ru" || !fallbackInfo || fallbackInfo.locale !== "ru" || fallbackInfo.fallback !== true) fail("locale_routing", { ruInfo, fallbackInfo });
+
+      const roleFingerprints = requiredRoles.map(role => ({ role, first: String((generatedByRole[role] || [])[0] || "").toLowerCase() }));
+      const uniqueRoleFirstLines = new Set(roleFingerprints.map(row => row.first));
+      if (uniqueRoleFirstLines.size < requiredRoles.length) fail("role_separation", roleFingerprints);
+
+      if (result.forbiddenRemaining.length) fail("no_forbidden_terms", { count: result.forbiddenRemaining.length, rows: result.forbiddenRemaining.slice(0, 8) });
+      if (result.missingCoverage.length) {
+        const groups = new Set(result.missingCoverage.map(x => String(x).split(":")[0]));
+        if (groups.has("block") || groups.has("role")) fail("template_scaffold", result.missingCoverage);
+        if (groups.has("channel")) fail("channel_coverage", result.missingCoverage);
+        if (groups.has("intensity")) fail("intensity_coverage", result.missingCoverage);
+        if (groups.has("inventory_role")) fail("inventory_coverage", result.missingCoverage);
+      }
+
+      if (speech && typeof speech.generateRuntimeNpcLine === "function") {
+        if (typeof speech.clearRuntimeProofLog === "function") speech.clearRuntimeProofLog();
+        const npc = { id: "dev_npc_speech_regression", name: "Дара", npc: true, type: "npc", role: "neutral", influence: 5, sex: "f" };
+        const ctx = typeof speech.makeCtx === "function"
+          ? speech.makeCtx(npc, { source: "regression_pack", channel: "dm", block: "neutral", tick: "regression_runtime", vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" } })
+          : { role: "neutral", channel: "dm", block: "neutral", tick: "regression_runtime", source: "regression_pack", vars: { PLAYER: "Аня", PLACE: "Двор", TOPIC: "спор" } };
+        const runtimeLine = speech.generateRuntimeNpcLine(ctx, "запасная линия");
+        if (isBadLine(runtimeLine)) fail("runtime_integration", { runtimeLine });
+        const proof = typeof speech.getRuntimeProofLog === "function" ? speech.getRuntimeProofLog() : [];
+        if (!proof.some(row => row && row.source === "regression_pack" && row.generated === true && row.fallbackUsed !== true)) fail("runtime_integration", { reason: "proof_missing", proof });
+      } else {
+        fail("runtime_integration", "generateRuntimeNpcLine_missing");
+      }
+
+      if (!result.failedChecks.includes("inventory_coverage")) markPass("inventory_coverage", { sourceCount: inventorySources.length });
+      if (!result.failedChecks.includes("style_rules")) markPass("style_rules", { maxLength: 150 });
+      if (!result.failedChecks.includes("template_scaffold")) markPass("template_scaffold", { blocks: requiredBlocks.length, roles: requiredRoles.length });
+      if (!result.failedChecks.includes("runtime_integration")) markPass("runtime_integration", { proof: true });
+      if (!result.failedChecks.includes("no_forbidden_terms")) markPass("no_forbidden_terms", { termCount: forbiddenTerms.length });
+      if (!result.failedChecks.includes("locale_routing")) markPass("locale_routing", { defaultLocale: "ru" });
+      if (!result.failedChecks.includes("placeholder_replacement")) markPass("placeholder_replacement", { probe: replaceProbe });
+      if (!result.failedChecks.includes("no_empty_undefined_lines")) markPass("no_empty_undefined_lines", { samples: result.samples.length });
+      if (!result.failedChecks.includes("role_separation")) markPass("role_separation", { roles: requiredRoles.length });
+      if (!result.failedChecks.includes("channel_coverage")) markPass("channel_coverage", Array.from(seen.channels));
+      if (!result.failedChecks.includes("intensity_coverage")) markPass("intensity_coverage", Array.from(seen.intensities));
+      if (!result.failedChecks.includes("millennial_wording")) markPass("millennial_wording", { forbiddenGroupsChecked: 4 });
+    } catch (err) {
+      fail("regression_pack_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.sampleCount = result.samples.length;
+    result.checks.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    result.ok = result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0
+      && result.checks.length >= 8
+      && result.checks.length <= 12
+      && result.checks.every(row => row.status === "PASS");
+    return result;
+  };
+
   Game.__DEV.smokeNpcSpeechRuntimeIntegrationOnce = function smokeNpcSpeechRuntimeIntegrationOnce() {
     const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], coveredByIntegrationSmoke: ["battle", "crowd", "report", "escape", "ignore"], sources: [] };
     const keyOf = (x) => JSON.stringify(x);
