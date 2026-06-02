@@ -1,3 +1,13 @@
+## 2026-06-02 — Step 7 [1] fresh-state visibility and menu-open interference fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
+- Fixed only the fresh-state/menu-open path: boot-time fresh start visibility now clears `body.menu-open`, right/menu block menu-open classes, and stale menu height before asserting the existing start overlay.
+- Hardened the existing start overlay above `DIV#app.layout` with fixed positioning, full inset, max z-index, pointer events, and visible Start/Rules buttons.
+- Updated `Game.__DEV.smokeOnboardingSpecOnce()` to isolate a fresh onboarding state before checks by clearing menu-open state, resetting started flags for the smoke, and re-showing the existing start screen/buttons before pointer and click checks.
+- Rules remains a safe non-blocking no-op before the later Start click. No onboarding content, action count, economy, gameplay, `onboardingSeen`, or UI redesign was changed.
+- Local evidence: PASS `node --check AsyncScene/Web/ui/ui-boot.js`; PASS `node --check docs/ui/ui-boot.js`; PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; WARN `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8765/ node scripts/run-asyncscene-smoke.mjs smokeOnboardingSpecOnce` could not launch because Playwright Chromium is missing.
+- Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 7 [1] start-screen button hang fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.

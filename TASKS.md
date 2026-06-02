@@ -51,6 +51,29 @@
 
 
 
+### [T-20260602-069] Step 7 [1] Fresh-State Visibility and Menu-Open Interference Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/data.js` `AsyncScene/Web/style.css` `AsyncScene/Web/index.html` `docs/ui/ui-boot.js` `docs/data.js` `docs/style.css` `docs/index.html`
+- Goal: Fix only fresh-state start-screen visibility and BODY/menu overlay interference before the onboarding smoke checks buttons.
+- Acceptance:
+  - [x] Fresh-state start screen is re-shown with fixed overlay positioning, top z-index, pointer events, and non-hidden Start/Rules buttons.
+  - [x] Menu-open/body/right/menu block state is cleared before fresh visibility is asserted and before onboarding smoke checks button pointers.
+  - [x] Rules remains a non-blocking no-op and does not start the game before the later Start click.
+  - [x] No onboarding content, action count, economy, gameplay, `onboardingSeen`, or UI redesign changes.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Added fresh onboarding smoke isolation for `body.menu-open`, right/menu block classes, started flags, and start overlay/button visibility; hardened boot-time fresh overlay positioning above app layout; bumped app/docs cache keys.
+  - Changed: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/data.js` `AsyncScene/Web/style.css` `AsyncScene/Web/index.html` `docs/ui/ui-boot.js` `docs/data.js` `docs/style.css` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingSpecOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [1] fresh-state/menu-open fix with `Game.__DEV.smokeOnboardingSpecOnce()`; verify fresh visibility, non-zero Start/Rules rects, no `DIV#app.layout` blocker, Rules does not start/block, and Start enters game.
+
+
 ### [T-20260602-068] Step 7 [1] Start Screen Button Hang Fix
 - Status: DONE
 - Priority: P0
