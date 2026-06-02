@@ -4615,3 +4615,12 @@ Error: Download failure, code=1
 - Locale resolution is cached per session key so generated NPC lines in one session cannot mix languages; proof log rows include resolved/requested locale metadata.
 - Added `Game.__DEV.smokeNpcSpeechLocaleOnce()` to verify forced `ru`, unknown fallback to `ru`, session consistency, non-empty lines, and placeholder integrity.
 - Mirrored runtime paths updated: `AsyncScene/Web/npcs.js` and `docs/npcs.js`. Scope guard preserved: no gameplay/UI/economy/battle/crowd/report logic changes and no `Console.txt` usage.
+
+## 2026-06-02 - Step 5.7 NPC speech regression pack
+- Added mirrored dev-only `Game.__DEV.smokeNpcSpeechRegressionPackOnce()` in `AsyncScene/Web/npcs.js` and `docs/npcs.js`.
+- The regression pack aggregates 12 fast internal checks: inventory coverage, style rules, template scaffold, runtime integration, millennial wording, locale routing, placeholder replacement, no empty/undefined lines, no forbidden terms, role separation, channel coverage, and intensity coverage.
+- The pack returns `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, checks, sampleCount, samples }`; subcheck status is explicit in `checks`, and failed subchecks are mirrored in `failedChecks`.
+- Coverage samples are generated across greetings/threats/victory/defeat/neutral blocks, cop/mafia/bandit/toxic/neutral roles, dm/event/battle channels, and y/o/r/k intensities.
+- Cache-busted both HTML entrypoints to load the updated NPC runtime bundle.
+- Scope guard preserved: dev-only smoke coverage only, with no gameplay, UI, economy, or NPC wording changes. `Console.txt` was not used.
+- No Safari runtime PASS is claimed; required QA command is `Game.__DEV.smokeNpcSpeechRegressionPackOnce()`.
