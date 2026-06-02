@@ -51,6 +51,29 @@
 
 
 
+### [T-20260602-067] Step 7 [1] Start Screen Button Interactivity Regression
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/style.css` `AsyncScene/Web/data.js` `docs/ui/ui-boot.js` `docs/style.css` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Restore only the broken start-screen entry/click path while keeping the fresh-state start screen visible and `Data.START_SCREEN` as the single source for the two actions.
+- Acceptance:
+  - [x] Start button has a restored direct and delegated click/touch/pointer path that enters the game.
+  - [x] Rules button has a restored click/touch/pointer path and does not block Start.
+  - [x] Fresh-state start screen remains visible and pointer-enabled.
+  - [x] `Data.START_SCREEN` remains the source for title, intro, and exactly two actions; no `onboardingSeen` was added.
+  - [x] Smoke helper now verifies fresh visibility, Start click entry, Rules clickability, and button-center pointer blockers.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Added pointer-safe start-card/button styling, direct mobile bindings for Rules, delegated start-screen routing for Start/Rules, and expanded `Game.__DEV.smokeOnboardingSpecOnce()` to exercise the click path and pointer-blocker checks.
+  - Changed: `AsyncScene/Web/ui/ui-boot.js` `AsyncScene/Web/style.css` `AsyncScene/Web/data.js` `docs/ui/ui-boot.js` `docs/style.css` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingSpecOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [1] with `Game.__DEV.smokeOnboardingSpecOnce()`; verify Start enters game, Rules is clickable and does not block Start, and no pointer blocker is reported.
+
 ### [T-20260602-066] Step 7 [1] Runtime Start Screen Visibility Path
 - Status: DONE
 - Priority: P0

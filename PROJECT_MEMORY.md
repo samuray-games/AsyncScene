@@ -1,4 +1,14 @@
 
+## 2026-06-02 — Step 7 [1] start-screen button interactivity regression
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; iPhone Safari runtime PASS is not claimed.
+- Fixed only the start-screen entry/click path after the visible fresh-state overlay regressed into non-reactive buttons: `#startCard`, `#btnStart`, and `#btnRules` are explicitly pointer-enabled above the overlay, Start keeps its direct click/touch/pointer path, Rules now has equivalent click/touch/pointer handling, and `#startScreen` delegates Start/Rules events as a fallback if direct handlers are missed.
+- Kept `Data.START_SCREEN` as the single source for title, intro, and actions; the action set remains exactly `start` and `rules`. No `onboardingSeen`, gameplay, economy, or UI redesign was added.
+- Expanded `Game.__DEV.smokeOnboardingSpecOnce()` so the runtime smoke checks fresh start-screen visibility, source-rendered content, exactly two actions, Rules clickability without starting/blocking the game, Start click entry, and button-center pointer blockers via `elementFromPoint`/`elementsFromPoint`.
+- Local evidence: PASS `node --check AsyncScene/Web/ui/ui-boot.js`; PASS `node --check docs/ui/ui-boot.js`; PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; WARN `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8765/ node scripts/run-asyncscene-smoke.mjs smokeOnboardingSpecOnce` could not launch because Playwright Chromium is missing; WARN `npx playwright install chromium` was blocked by a 403 from the Playwright CDN.
+- Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()` must return `ok:true` with fresh visibility true, Start clickable/entered game true, Rules clickable/no Start block true, and no pointer blockers before runtime PASS can be claimed.
+
+
 ## 2026-06-02 — Step 7 [1] Fresh Start Screen Visibility Fix
 - Added a fresh-state boot guard that reasserts the existing start screen as visible after minimal boot work in both runtime bundles.
 - Bumped the app and docs `ui/ui-boot.js` cache keys to load the visibility fix on clean/fresh state.

@@ -1335,8 +1335,12 @@ button:disabled{opacity:.55; cursor:not-allowed}
   background:rgba(0,0,0,.62);
   backdrop-filter: blur(10px);
   z-index:9999;
+  pointer-events:auto;
 }
 #startCard{
+  position:relative;
+  z-index:1;
+  pointer-events:auto;
   width:min(420px, calc(100vw - 28px));
   border:1px solid var(--line);
   border-radius:28px;
@@ -1350,6 +1354,9 @@ button:disabled{opacity:.55; cursor:not-allowed}
   color:var(--text);
 }
 #startCard .btn{
+  position:relative;
+  z-index:2;
+  pointer-events:auto;
   background:var(--surface);
   color:var(--text);
 }

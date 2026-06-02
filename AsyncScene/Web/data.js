@@ -3670,6 +3670,11 @@ K YN A9: Нет.
         usesSingleSource: false,
         startScreenVisible: false,
         freshStateShowsStartScreen: false,
+        startButtonClickable: false,
+        rulesButtonClickable: false,
+        rulesDoesNotBlockStart: false,
+        enteredGameAfterStart: false,
+        pointerBlockers: [],
         extraTextBlocks: []
       };
       const fail = (code, detail) => {
@@ -3727,6 +3732,69 @@ K YN A9: Нет.
               rules: renderedRules
             });
           }
+          const isVisibleNode = (el) => {
+            if (!el) return false;
+            const style = (typeof getComputedStyle === "function") ? getComputedStyle(el) : null;
+            return !el.hidden && (!style || (style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0"));
+          };
+          const describeNode = (node) => node ? `${node.tagName || "?"}${node.id ? `#${node.id}` : ""}${node.className ? `.${String(node.className).trim().split(/\s+/).filter(Boolean).join(".")}` : ""}` : "null";
+          const pointCheck = (button, name) => {
+            if (!button || !button.getBoundingClientRect || typeof document.elementFromPoint !== "function") return;
+            const rect = button.getBoundingClientRect();
+            const x = rect.left + (rect.width / 2);
+            const y = rect.top + (rect.height / 2);
+            const top = document.elementFromPoint(x, y);
+            const stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : (top ? [top] : []);
+            const cs = (typeof getComputedStyle === "function") ? getComputedStyle(button) : null;
+            const blocked = !isVisibleNode(button)
+              || (cs && cs.pointerEvents === "none")
+              || !(top === button || (top && button.contains(top)));
+            if (blocked) {
+              const detail = {
+                button: name,
+                top: describeNode(top),
+                stack: stack.slice(0, 6).map(describeNode),
+                pointerEvents: cs ? cs.pointerEvents : null,
+                rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) }
+              };
+              result.pointerBlockers.push(detail);
+              fail("start_button_pointer_blocked", detail);
+            }
+          };
+          pointCheck(startBtn, "start");
+          pointCheck(rulesBtn, "rules");
+
+          if (startBtn && typeof startBtn.click === "function") {
+            const beforeStarted = !!((root && root.__S && root.__S.isStarted) || (root && root.State && root.State.isStarted));
+            let alertCount = 0;
+            const oldAlert = (typeof window !== "undefined") ? window.alert : null;
+            try {
+              if (typeof window !== "undefined") window.alert = () => { alertCount += 1; };
+              if (rulesBtn && typeof rulesBtn.click === "function") {
+                rulesBtn.click();
+                result.rulesButtonClickable = true;
+              } else {
+                fail("rules_button_not_clickable", null);
+              }
+              const afterRulesStarted = !!((root && root.__S && root.__S.isStarted) || (root && root.State && root.State.isStarted));
+              result.rulesDoesNotBlockStart = !afterRulesStarted && result.startScreenVisible;
+              if (!result.rulesDoesNotBlockStart) fail("rules_blocks_start", { beforeStarted, afterRulesStarted, alertCount });
+              startBtn.click();
+              result.startButtonClickable = true;
+              const afterStartStarted = !!((root && root.__S && root.__S.isStarted) || (root && root.State && root.State.isStarted));
+              const gameScreen = document.getElementById("screenGame");
+              const startHiddenAfterClick = st.hidden || st.classList.contains("hidden") || ((typeof getComputedStyle === "function") && getComputedStyle(st).display === "none");
+              result.enteredGameAfterStart = afterStartStarted || startHiddenAfterClick || !!(gameScreen && gameScreen.hidden === false);
+              if (!result.enteredGameAfterStart) fail("start_click_did_not_enter_game", { afterStartStarted, startHiddenAfterClick });
+            } catch (clickErr) {
+              fail("start_click_exception", clickErr && clickErr.message ? String(clickErr.message) : String(clickErr));
+            } finally {
+              try { if (typeof window !== "undefined") window.alert = oldAlert; } catch (_) {}
+            }
+          } else {
+            fail("start_button_not_clickable", null);
+          }
+
           const allowed = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
           Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
             result.extraTextBlocks.push(el.id || el.tagName.toLowerCase());
