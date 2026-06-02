@@ -4581,3 +4581,10 @@ Error: Download failure, code=1
 - `Game.NPCSpeech.generateNpcLine(ctx)` always returns a non-empty string, replaces/cleans placeholders, and avoids duplicate lines in the same tick for the same context pool while alternatives exist.
 - Added runtime smoke `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` with target empty arrays for `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 - Scope guard preserved: scaffold only; no gameplay integration, UI, economy, battle, crowd, or report logic changes. No runtime PASS is claimed until Safari runs the smoke command.
+
+## 2026-06-02 - Step 5.3 NPC speech template Safari cleanup
+- Status: READY_FOR_RUNTIME_SMOKE only; required Safari command remains `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()`.
+- Replaced the remaining forbidden teacher-tone token in the mirrored bandit defeat scaffold templates with direct adult wording.
+- Mirrored runtime paths updated: `AsyncScene/Web/npcs.js` and `docs/npcs.js`.
+- Scope guard preserved: template text cleanup only; no gameplay, UI, logic, linter weakening, whitelist additions, or `Console.txt` usage.
+- Local VM smoke for `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` produced `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; Safari PASS is not claimed here.
