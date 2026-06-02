@@ -15,6 +15,7 @@
   const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
     ? Game.Data.t(key, vars)
     : String(key || "");
+  const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
 
   function argCanonUiText(arg, side) {
     const p = arg || {};
@@ -2608,7 +2609,7 @@ UI.renderBattles = () => {
 
           const leaveBtn = document.createElement("button");
           leaveBtn.className = "btn small";
-          leaveBtn.textContent = "Свалить за 1💰";
+          leaveBtn.textContent = systemSay("notifications", "escapePaid");
           leaveBtn.title = "−1⭐, при успехе +1⭐";
           leaveBtn.onclick = (e) => {
             stop(e);
