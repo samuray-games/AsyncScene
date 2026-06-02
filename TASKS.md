@@ -5029,3 +5029,7 @@ Error: Download failure, code=1
 - Cache-busted both HTML entrypoints to load the updated NPC runtime bundle.
 - Scope guard preserved: dev-only validation pack; no gameplay, UI, economy, or NPC wording changes. `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeNpcSpeechRegressionPackOnce()`.
+
+## 2026-06-02 - Step 6 [6] Routing and Priorities
+- Status: READY_FOR_RUNTIME_SMOKE only.
+- Required Safari command: `Game.__DEV.smokeSystemRoutingOnce()`.

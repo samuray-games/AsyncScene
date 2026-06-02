@@ -4671,3 +4671,7 @@ Error: Download failure, code=1
 - Preserved the existing coverage table and direct hardcoded string reporting unchanged; no copy rewrite or hardcoded string removal was performed.
 - Scope guard preserved: no gameplay, economy, battle, crowd, report, timer, routing, or UI behavior changed, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeSystemCopyInventoryOnce()`.
+
+## 2026-06-02 - Step 6 [6] Routing and Priorities
+- Status: READY_FOR_RUNTIME_SMOKE only.
+- Required Safari command: `Game.__DEV.smokeSystemRoutingOnce()`.
