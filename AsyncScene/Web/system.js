@@ -387,6 +387,96 @@ window.Game = window.Game || {};
     return rendered || FALLBACK_MESSAGE;
   }
 
+  const SYSTEM_DELIVERY_POLICY = Object.freeze({
+    errors: Object.freeze({ toast: true, devLog: true, chat: false, silent: false }),
+    warnings: Object.freeze({ toast: true, devLog: true, chat: false, silent: false }),
+    notifications: Object.freeze({ toast: true, devLog: false, chat: false, silent: false }),
+    systemEvents: Object.freeze({ toast: false, devLog: true, chat: false, silent: true }),
+  });
+
+  const ECONOMY_NOTIFICATION_CODES = Object.freeze([
+    "pointsDeltaPlusOne", "repDeltaPlusOne", "pointsDeltaVoteCost", "respectPaid",
+    "respectTargetRep", "reportTrueReward", "escapePaid"
+  ]);
+
+  function isEconomyNotification(group, code, text){
+    if (group !== "notifications") return false;
+    const key = String(code || "").trim();
+    if (ECONOMY_NOTIFICATION_CODES.includes(key)) return true;
+    return /[💰⭐🏆⚡]/.test(String(text || ""));
+  }
+
+  function statKindForText(text){
+    const msg = String(text || "");
+    if (msg.includes("💰")) return "points";
+    if (msg.includes("⭐")) return "rep";
+    if (msg.includes("🏆")) return "wins";
+    if (msg.includes("⚡")) return "influence";
+    return "points";
+  }
+
+  function deliveryPolicy(kind, code, ctx){
+    const group = normalizeKind(kind) || "systemEvents";
+    const text = say(group, code, ctx);
+    const base = SYSTEM_DELIVERY_POLICY[group] || SYSTEM_DELIVERY_POLICY.systemEvents;
+    const playerVisible = !!(ctx && (ctx.playerVisible === true || ctx.visible === true));
+    const economy = isEconomyNotification(group, code, text);
+    const policy = {
+      kind: group,
+      code: String(code || "").trim(),
+      text,
+      toast: !!base.toast,
+      chat: !!base.chat,
+      devLog: !!base.devLog,
+      silent: !!base.silent,
+      panel: ctx && ctx.panel ? String(ctx.panel) : null,
+      statKind: statKindForText(text),
+      economy,
+      playerVisible,
+    };
+    if (group === "systemEvents" && playerVisible) {
+      policy.silent = false;
+      policy.chat = true;
+      policy.toast = !!(ctx && ctx.toast === true);
+    }
+    if ((group === "errors" || group === "warnings") && ctx && ctx.devLog === false) {
+      policy.devLog = false;
+    }
+    if (economy) {
+      policy.toast = true;
+      policy.chat = false;
+      policy.silent = false;
+      policy.economySync = "moneyLog/delta";
+    }
+    return policy;
+  }
+
+  function route(kind, code, ctx){
+    return deliveryPolicy(kind, code, ctx);
+  }
+
+  function deliver(kind, code, ctx, opts){
+    const policy = deliveryPolicy(kind, code, ctx);
+    const options = (opts && typeof opts === "object") ? opts : {};
+    const UI = Game && Game.UI ? Game.UI : null;
+    if (policy.devLog && Game.__DEV && Array.isArray(Game.__DEV.systemLog)) {
+      try { Game.__DEV.systemLog.push({ kind: policy.kind, code: policy.code, text: policy.text, ts: Date.now() }); } catch (_) {}
+    }
+    if (options.silentIncoming && policy.panel && UI && typeof UI.pushIncomingSystem === "function") {
+      UI.pushIncomingSystem(policy.panel, policy.kind, policy.code, ctx, Object.assign({}, options, { text: policy.text, policy }));
+      return policy;
+    }
+    if (policy.toast && UI && typeof UI.showStatToast === "function") {
+      UI.showStatToast(policy.statKind, policy.text);
+      return policy;
+    }
+    if (policy.chat && UI && typeof UI.pushSystem === "function") {
+      UI.pushSystem(policy.text, Object.assign({}, options, { routed: true, policy }));
+      return policy;
+    }
+    return policy;
+  }
+
 
   const SYSTEM_COPY_REQUIRED_AREAS = Object.freeze([
     "economyDeltas", "dm", "battles", "events", "reports", "rematch", "escape", "training", "respect"
@@ -453,6 +543,11 @@ window.Game = window.Game || {};
     taxonomyAudit: SYSTEM_COPY_TAXONOMY_AUDIT,
     textTemplates: SYSTEM_TEXT_TEMPLATES,
     renderTemplate,
+    deliveryPolicy,
+    route,
+    deliver,
+    deliveryPolicies: SYSTEM_DELIVERY_POLICY,
+    economyNotificationCodes: ECONOMY_NOTIFICATION_CODES,
     coverageRowsFromInventory,
     taxonomyEntries,
     systemCopyTaxonomyRows,
@@ -791,6 +886,136 @@ window.Game = window.Game || {};
     return result;
   };
 
+
+  Game.__DEV.smokeSystemRoutingOnce = function smokeSystemRoutingOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      routingCoverage: [],
+      focusChanged: false,
+      panelOpened: false,
+      autoScrolled: false,
+      counterAdvanced: false,
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const UI = Game && Game.UI ? Game.UI : null;
+    const S = (Game && (Game.__S || (UI && UI.S))) ? (Game.__S || UI.S) : null;
+    const beforeActive = (typeof document !== "undefined") ? document.activeElement : null;
+    const beforeScrollX = (typeof window !== "undefined" && Number.isFinite(window.scrollX)) ? window.scrollX : 0;
+    const beforeScrollY = (typeof window !== "undefined" && Number.isFinite(window.scrollY)) ? window.scrollY : 0;
+    const beforeSizes = {};
+    const beforeCounters = {};
+    const beforeDmOpen = !!(S && S.dm && S.dm.open);
+    const beforeDmActive = S && S.dm ? (S.dm.activeId || null) : null;
+    const beforeToastCount = Game.__DEV.__toastCallCount__ || 0;
+    const beforeToastLog = Game.__D && Array.isArray(Game.__D.toastLog) ? Game.__D.toastLog.length : 0;
+    const beforeTape = Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__.length : 0;
+    const panels = ["dm", "battles", "events"];
+
+    try {
+      panels.forEach((panel) => {
+        beforeSizes[panel] = UI && typeof UI.getPanelSize === "function" ? UI.getPanelSize(panel) : "";
+        beforeCounters[panel] = UI && typeof UI.getCollapsedCounter === "function" ? UI.getCollapsedCounter(panel) : 0;
+        if (UI && typeof UI.setPanelSize === "function") UI.setPanelSize(panel, "collapsed");
+      });
+    } catch (error) {
+      fail("collapse_panels_for_smoke", String(error && error.message ? error.message : error));
+    }
+
+    const baselineActive = (typeof document !== "undefined") ? document.activeElement : beforeActive;
+    const baselineScrollX = (typeof window !== "undefined" && Number.isFinite(window.scrollX)) ? window.scrollX : beforeScrollX;
+    const baselineScrollY = (typeof window !== "undefined" && Number.isFinite(window.scrollY)) ? window.scrollY : beforeScrollY;
+    const baselineDmOpen = !!(S && S.dm && S.dm.open);
+    const baselineDmActive = S && S.dm ? (S.dm.activeId || null) : beforeDmActive;
+
+    const routed = [
+      route("errors", "unavailable", { panel: "dm" }),
+      route("warnings", "alreadyVoted", { panel: "events" }),
+      route("notifications", "saved", { panel: "dm" }),
+      route("systemEvents", "ready", { panel: "events" }),
+    ];
+    result.routingCoverage = Array.from(new Set(routed.map((row) => row.kind))).sort();
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      if (!result.routingCoverage.includes(group)) addUnique(result.missingCoverage, group);
+    });
+    const byKind = Object.create(null);
+    routed.forEach((row) => { byKind[row.kind] = row; });
+    if (!byKind.errors || byKind.errors.toast !== true) fail("errors_route_to_toast", byKind.errors || null);
+    if (!byKind.warnings || byKind.warnings.toast !== true) fail("warnings_route_to_toast", byKind.warnings || null);
+    if (!byKind.systemEvents || byKind.systemEvents.silent !== true || byKind.systemEvents.toast === true || byKind.systemEvents.chat === true) fail("system_events_default_silent_log_only", byKind.systemEvents || null);
+
+    let econToastCalls = 0;
+    const originalShowToast = UI && UI.showStatToast;
+    try {
+      if (UI && typeof UI.showStatToast === "function") {
+        UI.showStatToast = function(kind, text){
+          econToastCalls += /[💰⭐]/.test(String(text || "")) ? 1 : 0;
+          return originalShowToast.apply(this, arguments);
+        };
+      }
+      deliver("notifications", "pointsDeltaPlusOne", { panel: "events" });
+    } catch (error) {
+      fail("economy_route_delivery_no_crash", String(error && error.message ? error.message : error));
+    } finally {
+      if (UI && originalShowToast) UI.showStatToast = originalShowToast;
+    }
+    if (econToastCalls !== 1) {
+      addUnique(result.forbiddenRemaining, "duplicate_economy_notification_delivery");
+      fail("economy_notification_exactly_one_toast", { econToastCalls });
+    }
+
+    try {
+      if (Game.__A && typeof Game.__A.pushDm === "function") {
+        Game.__A.pushDm("smoke_silent_dm", "Система", say("systemEvents", "dmReaction", { name: "A", target: "B" }), { isSystem: true, silentIncoming: true, playerId: "smoke_silent_dm" });
+      } else if (UI && typeof UI.pushIncomingSystem === "function") {
+        UI.pushIncomingSystem("dm", "systemEvents", "dmReaction", { name: "A", target: "B" }, { silentIncoming: true });
+      } else fail("silent_dm_helper_missing");
+      if (UI && typeof UI.pushIncomingSystem === "function") {
+        UI.pushIncomingSystem("battles", "systemEvents", "battleChallenge", { attackerName: "A", attackerInf: 1 }, { silentIncoming: true });
+        UI.pushIncomingSystem("events", "systemEvents", "crowdStart", {}, { silentIncoming: true });
+      } else fail("incoming_system_helper_missing");
+    } catch (error) {
+      fail("silent_incoming_no_crash", String(error && error.message ? error.message : error));
+    }
+
+    const afterCounters = {};
+    panels.forEach((panel) => {
+      afterCounters[panel] = UI && typeof UI.getCollapsedCounter === "function" ? UI.getCollapsedCounter(panel) : beforeCounters[panel];
+    });
+    result.counterAdvanced = panels.every((panel) => (afterCounters[panel] || 0) > (beforeCounters[panel] || 0));
+    if (!result.counterAdvanced) fail("collapsed_counters_advanced", { beforeCounters, afterCounters });
+
+    result.focusChanged = !!(baselineActive && typeof document !== "undefined" && document.activeElement !== baselineActive);
+    const afterScrollX = (typeof window !== "undefined" && Number.isFinite(window.scrollX)) ? window.scrollX : baselineScrollX;
+    const afterScrollY = (typeof window !== "undefined" && Number.isFinite(window.scrollY)) ? window.scrollY : baselineScrollY;
+    result.autoScrolled = (afterScrollX !== baselineScrollX) || (afterScrollY !== baselineScrollY);
+    const afterSizes = {};
+    panels.forEach((panel) => { afterSizes[panel] = UI && typeof UI.getPanelSize === "function" ? UI.getPanelSize(panel) : ""; });
+    result.panelOpened = panels.some((panel) => afterSizes[panel] !== "collapsed") || (!!(S && S.dm && S.dm.open) && !baselineDmOpen);
+    if (S && S.dm && baselineDmActive !== (S.dm.activeId || null)) fail("active_dm_changed", { before: baselineDmActive, after: S.dm.activeId || null });
+    if (result.focusChanged) fail("focus_changed");
+    if (result.autoScrolled) fail("auto_scrolled");
+    if (result.panelOpened) fail("panel_opened", { beforeSizes, afterSizes, beforeDmOpen: baselineDmOpen, afterDmOpen: !!(S && S.dm && S.dm.open) });
+
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    const afterToastCount = Game.__DEV.__toastCallCount__ || beforeToastCount;
+    const afterToastLog = Game.__D && Array.isArray(Game.__D.toastLog) ? Game.__D.toastLog.length : beforeToastLog;
+    const afterTape = Array.isArray(Game.__DEV.__toastTape__) ? Game.__DEV.__toastTape__.length : beforeTape;
+    result.toastDelta = { callCount: afterToastCount - beforeToastCount, toastLog: afterToastLog - beforeToastLog, tape: afterTape - beforeTape };
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.panelOpened === false && result.autoScrolled === false && result.focusChanged === false && result.counterAdvanced === true;
+    return result;
+  };
 
   Game.__DEV.smokeSystemCopyContractOnce = function smokeSystemCopyContractOnce(){
     const requiredGroups = Array.from(REQUIRED_SYSTEM_COPY_GROUPS);

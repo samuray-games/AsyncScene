@@ -809,6 +809,10 @@ window.Game = window.Game || {};
 
   UI.pushSystem = (text, opts={}) => {
     const msg = String(text || "");
+    const routed = !!(opts && opts.routed);
+    if (!routed && opts && opts.kind && opts.code && Game.System && typeof Game.System.deliver === "function") {
+      return Game.System.deliver(opts.kind, opts.code, opts.ctx || {}, opts);
+    }
     // Route stat-related system messages to top toasts.
     if (msg.includes("💰")) {
       if (UI.showStatToast) { UI.showStatToast("points", msg); return; }
@@ -823,6 +827,41 @@ window.Game = window.Game || {};
       if (UI.showStatToast) { UI.showStatToast("wins", msg); return; }
     }
     pushChat({ name:"Система", text: msg, system:true, action:opts.action||null, battleId:opts.battleId||null });
+  };
+
+  UI.pushIncomingSystem = (panel, kind, code, ctx, opts={}) => {
+    const key = String(panel || "").toLowerCase();
+    const system = Game.System || null;
+    const text = String((opts && opts.text) || (system && typeof system.say === "function" ? system.say(kind, code, ctx || {}) : "") || "");
+    const collapsed = (typeof UI.isPanelCollapsed === "function") ? UI.isPanelCollapsed(key) : false;
+    if (collapsed) {
+      try { if (typeof UI.bumpCollapsedCounter === "function") UI.bumpCollapsedCounter(key); } catch (_) {}
+      try {
+        const headerId = key === "dm" ? "dmBlockHeader" : (key === "battles" ? "battlesHeader" : (key === "events" ? "eventsHeader" : ""));
+        const header = headerId ? document.getElementById(headerId) : null;
+        const count = (typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter(key) : 1;
+        if (header) {
+          header.classList.add("panelHeader--hot");
+          if (typeof UI.pulsePanelHeader === "function") UI.pulsePanelHeader(key, header, count, 0);
+        }
+      } catch (_) {}
+      try {
+        if (Game.__DEV && Array.isArray(Game.__DEV.systemLog)) {
+          Game.__DEV.systemLog.push({ kind: system && system.normalizeKind ? system.normalizeKind(kind) : kind, code, text, panel: key, silentIncoming: true, ts: Date.now() });
+        }
+      } catch (_) {}
+      return { ok: true, silent: true, panel: key, text };
+    }
+    if (key === "dm" && Game.__A && typeof Game.__A.pushDm === "function") {
+      Game.__A.pushDm((opts && opts.targetId) || "system", "Система", text, { isSystem: true, playerId: (opts && opts.targetId) || "system" });
+      return { ok: true, silent: false, panel: key, text };
+    }
+    if (system && typeof system.deliver === "function") {
+      system.deliver(kind, code, ctx || {}, Object.assign({}, opts, { routed: true }));
+      return { ok: true, silent: false, panel: key, text };
+    }
+    UI.pushSystem(text, { routed: true });
+    return { ok: true, silent: false, panel: key, text };
   };
 
   UI.pushCop = (text) => {
@@ -940,6 +979,14 @@ window.Game = window.Game || {};
     if (isDeltaToast(kind, text)) {
       return;
     }
+    let displayText = String(text == null ? "" : text);
+    try {
+      const helper = Game && Game.Text && typeof Game.Text.normalizeText === "function" ? Game.Text.normalizeText : null;
+      if (helper) {
+        const normalized = helper(displayText, { surface: "toast", kind, source: "Game.UI.showStatToast" });
+        if (normalized && typeof normalized.text === "string") displayText = normalized.text;
+      }
+    } catch (_) {}
     const anchor = statAnchor(kind);
     if (!anchor) return;
     const id = `statToast_${kind}`;
@@ -951,7 +998,7 @@ window.Game = window.Game || {};
       toast.onclick = () => { toast.style.display = "none"; };
       document.body.appendChild(toast);
     }
-    toast.textContent = text;
+    toast.textContent = displayText;
     const r = anchor.getBoundingClientRect();
     const left = Math.round(r.left + (r.width / 2));
     const top = Math.round(r.bottom + 8);
@@ -963,7 +1010,7 @@ window.Game = window.Game || {};
     try {
       if (typeof Game !== "undefined" && Game && Game.__DEV && typeof Game.__DEV === "object") {
         const tape = Game.__DEV.__toastTape__ || [];
-        tape.push({ kind, text: String(text || ""), ts: Date.now() });
+        tape.push({ kind, text: displayText, rawText: String(text || ""), ts: Date.now() });
         if (tape.length > 40) tape.shift();
         Game.__DEV.__toastTape__ = tape;
         Game.__DEV.__toastTapePush__ = Game.__DEV.__toastTapePush__ || ((entry) => {
