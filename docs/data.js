@@ -3652,5 +3652,101 @@ K YN A9: Нет.
 
   installArgCanonMillennialAggregateSmoke();
 
+
+  const installOnboardingSpecSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (typeof root.__DEV.smokeOnboardingSpecOnce === "function") return;
+    root.__DEV.smokeOnboardingSpecOnce = function smokeOnboardingSpecOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        hasStartScreenSource: false,
+        hasTitle: false,
+        introLineCount: 0,
+        actionCount: 0,
+        usesSingleSource: false,
+        startScreenVisible: false,
+        freshStateShowsStartScreen: false,
+        extraTextBlocks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      try {
+        const runtimeData = (root && root.Data) ? root.Data : Data;
+        const spec = runtimeData && runtimeData.START_SCREEN;
+        result.hasStartScreenSource = !!spec;
+        if (!result.hasStartScreenSource) fail("missing_start_screen_source", null);
+        result.hasTitle = !!(spec && typeof spec.title === "string" && spec.title.trim());
+        if (!result.hasTitle) fail("missing_title", spec && spec.title);
+        const lines = spec && Array.isArray(spec.introLines) ? spec.introLines : [];
+        result.introLineCount = lines.length;
+        if (lines.length < 2 || lines.length > 3) fail("intro_line_count", lines.length);
+        lines.forEach((line, index) => {
+          if (typeof line !== "string" || !line.trim()) fail("intro_line_empty", { index, line });
+        });
+        const actions = spec && spec.actions ? spec.actions : {};
+        const actionKeys = Object.keys(actions).filter((key) => typeof actions[key] === "string" && actions[key].trim());
+        result.actionCount = Object.keys(actions).length;
+        if (!actionKeys.includes("start")) fail("missing_start_action", Object.keys(actions));
+        if (!actionKeys.includes("rules")) fail("missing_rules_action", Object.keys(actions));
+        if (Object.keys(actions).length > 2) fail("too_many_actions", Object.keys(actions));
+        if (actionKeys.length !== Object.keys(actions).length) fail("empty_action_text", actions);
+        const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+        if (!st) {
+          fail("start_screen_missing", null);
+        } else {
+          const cs = (typeof getComputedStyle === "function") ? getComputedStyle(st) : null;
+          result.startScreenVisible = !st.hidden && !st.classList.contains("hidden") && (!cs || (cs.display !== "none" && cs.visibility !== "hidden"));
+          result.freshStateShowsStartScreen = result.startScreenVisible;
+          if (!result.freshStateShowsStartScreen) fail("fresh_state_start_screen_not_visible", null);
+          const titleEl = document.getElementById("startTitle");
+          const introEl = document.getElementById("startIntroLines");
+          const startBtn = document.getElementById("btnStart");
+          const rulesBtn = document.getElementById("btnRules");
+          if (!titleEl || !introEl || !startBtn || !rulesBtn) fail("required_dom_missing", null);
+          const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
+          const renderedTitle = titleEl ? (titleEl.textContent || "").trim() : "";
+          const renderedStart = startBtn ? (startBtn.textContent || "").trim() : "";
+          const renderedRules = rulesBtn ? (rulesBtn.textContent || "").trim() : "";
+          const fromSource = !!(spec
+            && renderedTitle === spec.title
+            && JSON.stringify(renderedLines) === JSON.stringify(lines)
+            && renderedStart === actions.start
+            && renderedRules === actions.rules);
+          result.usesSingleSource = fromSource;
+          if (!fromSource) {
+            fail("start_screen_not_from_source", {
+              title: renderedTitle,
+              introLines: renderedLines,
+              start: renderedStart,
+              rules: renderedRules
+            });
+          }
+          const allowed = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
+          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+            result.extraTextBlocks.push(el.id || el.tagName.toLowerCase());
+          });
+          Array.from(st.querySelectorAll("button")).forEach((button) => {
+            if (!allowed.has(button.id)) result.extraTextBlocks.push(button.id || "button");
+          });
+          if (result.extraTextBlocks.length) fail("extra_text_blocks", result.extraTextBlocks.slice());
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_SPEC_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeOnboardingSpecOnce);
+  };
+
+  installOnboardingSpecSmokeViaData();
+
   Game.Data = Data;
 })();
