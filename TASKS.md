@@ -49,6 +49,30 @@
 
 ```
 
+### [T-20260602-059] Step 6 [4] Message Taxonomy (codes)
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Core
+- Files: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html`
+- Goal: Formalize canonical SystemCopy message code taxonomy and audit every existing message code without changing gameplay, economy, battle, crowd, reports, timers, routing, UI behavior, counters, DM behavior, or message meanings.
+- Acceptance:
+  - [x] Canonical taxonomy groups codes under errors, warnings, notifications, and systemEvents.
+  - [x] Required canonical identities include `E_NET`, `E_STATE`, `E_RULES`, `E_COOLDOWN`, `E_NOT_FOUND`, `E_UNAVAILABLE`, `W_RATE_LIMIT`, `W_PARTIAL`, `W_NO_EFFECT`, `N_OK`, `N_SAVED`, `N_UPDATED`, `N_SENT`, `N_REFUNDED`, `S_DAY_ROLLOVER`, `S_MODE_SWITCH`, and `S_PROFILE_LOADED`.
+  - [x] Every existing `SystemCopy` entry maps to exactly one canonical identity.
+  - [x] `Game.__DEV.smokeSystemCodeTaxonomyOnce()` returns `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `duplicateCodes`, `unmappedCodes`, and `totalCodes`.
+  - [x] `Console.txt` was not used.
+- Result: READY_FOR_RUNTIME_SMOKE only.
+- Report:
+  - Status: DONE
+  - Facts: READY_FOR_RUNTIME_SMOKE only.
+  - Changed: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Hard refresh Safari and run `Game.__DEV.smokeSystemCodeTaxonomyOnce()` in DevTools.
+  - Next: Дима to validate Safari runtime smoke.
+  - Next Prompt: Run the Step 6 [4] Message Taxonomy smoke in Safari; READY_FOR_RUNTIME_SMOKE only.
+
+
 ### [T-20260602-058] Step 6 [3] System Language Profile
 - Status: DONE
 - Priority: P0
