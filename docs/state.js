@@ -3348,27 +3348,34 @@ window.Game = window.Game || {};
     }
 
     // DM tabs: incoming/outgoing line opens (or focuses) the corresponding DM thread.
-    // This is the canonical place where logs[targetId] is mutated.
+    // Silent incoming system lines for collapsed panels only update counters/header.
     try {
       State.dm.openIds = Array.isArray(State.dm.openIds) ? State.dm.openIds : [];
       if (!("activeId" in State.dm)) State.dm.activeId = null;
       State.dm.unread = State.dm.unread || {};
       const id = String(targetId || "");
-      if (id && !State.dm.openIds.includes(id)) State.dm.openIds.push(id);
-      if (id && !State.dm.activeId) {
+      const collapsed = !!(Game && Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("dm"));
+      const silentIncoming = !!(opts && opts.silentIncoming && opts.isSystem && collapsed);
+      if (id && !silentIncoming && !State.dm.openIds.includes(id)) State.dm.openIds.push(id);
+      if (id && !silentIncoming && !State.dm.activeId) {
         State.dm.activeId = id;
         State.dm.withId = id; // compat alias
       }
       const activeId = String(State.dm.activeId || "");
       if (id) {
-        if (activeId === id) {
+        if (!silentIncoming && activeId === id) {
           State.dm.unread[id] = 0;
         } else {
           State.dm.unread[id] = (Number(State.dm.unread[id]) || 0) + 1;
         }
         try {
-          if (Game && Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("dm")) {
+          if (collapsed) {
             if (typeof Game.UI.bumpCollapsedCounter === "function") Game.UI.bumpCollapsedCounter("dm");
+            const header = (typeof document !== "undefined") ? document.getElementById("dmBlockHeader") : null;
+            if (header) {
+              header.classList.add("panelHeader--hot");
+              if (typeof Game.UI.pulsePanelHeader === "function") Game.UI.pulsePanelHeader("dm", header, Game.UI.getCollapsedCounter ? Game.UI.getCollapsedCounter("dm") : 1, 0);
+            }
           }
         } catch (_) {}
       }
