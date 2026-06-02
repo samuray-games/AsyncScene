@@ -4642,3 +4642,10 @@ Error: Download failure, code=1
 - The smoke verifies required group coverage, at least one code per group, non-empty helper output, controlled fallback behavior, absence of `undefined`/`null`/`[object Object]`, and banned morality/pressure/cutesy tone words.
 - Scope guard preserved: contract/framework only, no gameplay logic, economy, outcomes, battle logic, crowd logic, reports, timers, UI behavior, routing side effects, or `Console.txt` usage changed.
 - Required Safari command: `Game.__DEV.smokeSystemCopyContractOnce()`.
+
+## 2026-06-02 - Step 6 [2] System message inventory smoke gating fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed `Game.__DEV.smokeSystemCopyInventoryOnce()` gating so `ok:false` is returned whenever `failures`, `forbiddenRemaining`, `missingCoverage`, or `failedChecks` has any entries.
+- Preserved the existing coverage table and direct hardcoded string reporting unchanged; no copy rewrite or hardcoded string removal was performed.
+- Scope guard preserved: no gameplay, economy, battle, crowd, report, timer, routing, or UI behavior changed, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeSystemCopyInventoryOnce()`.

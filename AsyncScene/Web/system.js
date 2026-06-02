@@ -236,7 +236,7 @@ window.Game = window.Game || {};
 
     if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "direct_hardcoded_strings_reported");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
-    result.ok = result.failures.length === 0 && result.missingCoverage.length === 0 && result.coverage.length > 0;
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
 
