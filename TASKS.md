@@ -5093,3 +5093,7 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeSystemLocaleRuOnce()` returning `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `sampleCount`, `localeUsed`, `nonRuMessages`, and `foreignTermsDetected`.
 - Scope guard preserved: no gameplay, economy, battle, crowd, reports, timers, routing, counters, focus behavior, panel behavior, notification meanings, or taxonomy changes. `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeSystemLocaleRuOnce()`.
+
+## 2026-06-02 - Step 6 [10] Final System Messages aggregate smoke
+- Status: READY_FOR_RUNTIME_SMOKE only.
+- Required Safari command: `Game.__DEV.smokeSystemMessagesFinalOnce()`.
