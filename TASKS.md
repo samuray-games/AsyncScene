@@ -4815,3 +4815,12 @@ Error: Download failure, code=1
 - Mirrored the NPC speech inventory source metadata into `docs/npcs.js` and cache-busted the dev-checks/NPC scripts in both HTML entrypoints.
 - Scope guard preserved: dev-only export fix, no gameplay changes, no text rewrites, no UI changes, and no `Console.txt` changes.
 - Required Safari command: `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
+
+## 2026-06-02 - Step 5.2 NPC speech style rules linter
+- Status: READY_FOR_RUNTIME_SMOKE only; no Safari runtime PASS is claimed.
+- Added dev-only `Game.__DEV.smokeNpcSpeechStyleRulesOnce()` built on `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
+- Contract: `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, categories, violations }`; `ok:true` is allowed only when `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are all empty.
+- Validation-only scope: no gameplay changes, no UI changes, no NPC text rewrites, and no `Console.txt` usage.
+- The linter validates phrase length limits, direct second-person tone where applicable, teen slang, memes, officialese, teacher tone, third-person NPC self-talk, extra names except cops, broken placeholders, empty strings, and unclear source/category.
+- Required categories remain `dm`, `battle`, `events`, and `reportReactions`; any category the linter cannot prove is reported in `missingCoverage`.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.

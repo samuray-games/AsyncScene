@@ -93,6 +93,98 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
       return result;
     };
+
+    devStore.smokeNpcSpeechStyleRulesOnce = function smokeNpcSpeechStyleRulesOnce() {
+      const inventory = (typeof devStore.smokeNpcSpeechInventoryOnce === "function")
+        ? devStore.smokeNpcSpeechInventoryOnce()
+        : { ok: false, failures: [{ code: "inventory_smoke_missing" }], forbiddenRemaining: [], missingCoverage: cats.slice(), failedChecks: ["inventory_smoke_missing"], categories: {} };
+      const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], categories: {}, violations: {} };
+      const directToneRe = /(^|[^а-яё])(ты|тебя|тебе|тобой|твой|твоя|твое|твоё|твои|вы|вас|вам|вами|ваш|ваша|ваше|ваши)([^а-яё]|$)/i;
+      const teenSlang = ["вайб", "кринж", "хайп", "тик ?ток", "тикток", "лулз", "рофл", "имба", "краш", "чилл"];
+      const memes = ["скибиди", "мем", "лол", "кек", "жиза", "ой все", "заш[её]л в чат"];
+      const officialese = ["оформля", "подтвержден", "подтверждён", "информация подтвердилась", "приняты меры", "фиксирую", "нарушение", "обвинени", "участков", "дело"];
+      const teacherTone = ["включите мозг", "будь внимател", "будьте внимател", "запомни", "объясняю", "урок", "не умничай"];
+      const allowedPlaceholders = new Set(["sec", "count", "name", "aVotes", "bVotes", "cop.fullName", "amount", "target", "reason", "NAME", "PLAYER", "NPC"]);
+      const npcNames = (Game.NPC && Array.isArray(Game.NPC.PLAYERS) ? Game.NPC.PLAYERS : []).map(p => String(p && p.name || "").trim()).filter(Boolean);
+      const escapeWord = (v) => String(v || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const textWordCount = (t) => String(t || "").replace(/\{[^}]+\}/g, " ").split(/\s+/).filter(Boolean).length;
+      const isCopSource = (src) => /cop|report|участков|поли/i.test(String(src || ""));
+      const limitFor = (category, source) => isCopSource(source) || category === "reportReactions" ? 24 : (category === "events" ? 22 : 18);
+      const directToneApplies = (category, source, text) => {
+        if (category === "events") return false;
+        if (/NPC_CHAT_LINES|crowd\.[mf]|ARGUMENTS\.|villainQuestions/i.test(String(source || ""))) return false;
+        if (/против|вызывает|разошлись|победил|проигрывает/i.test(String(text || ""))) return false;
+        return true;
+      };
+      const addUnique = (arr, value) => { if (!arr.some(x => JSON.stringify(x) === JSON.stringify(value))) arr.push(value); };
+      const addViolation = (category, rule, entry) => {
+        if (!result.violations[category]) result.violations[category] = {};
+        if (!result.violations[category][rule]) result.violations[category][rule] = [];
+        result.violations[category][rule].push(entry);
+      };
+      const addForbidden = (rule, category, source, text, match) => {
+        addUnique(result.forbiddenRemaining, { rule, category, source, match, text });
+        addViolation(category, rule, { source, match, text });
+      };
+      cats.forEach(c => result.categories[c] = { count: 0, checked: 0, rules: {}, sources: [] });
+      (inventory.failures || []).forEach(f => addUnique(result.failures, f));
+      (inventory.forbiddenRemaining || []).forEach(f => addUnique(result.forbiddenRemaining, f));
+      (inventory.missingCoverage || []).forEach(m => addUnique(result.missingCoverage, m));
+      const coveredCategories = new Set();
+      sources().forEach((src, index) => {
+        const category = src && src.category;
+        const source = src && src.source;
+        if (!catSet.has(category)) { addUnique(result.failures, { code: "unknown_category", source: source || null, category: category || null, index }); return; }
+        if (!source || typeof source !== "string") { addUnique(result.failures, { code: "unknown_source", source: source || null, category, index }); return; }
+        let value;
+        try { value = typeof src.get === "function" ? src.get() : src.value; } catch (err) { addUnique(result.failures, { code: "source_read_failed", source, category, message: err && err.message ? String(err.message) : String(err) }); return; }
+        const rawTexts = flatten(value, []);
+        if (!rawTexts.length) { addUnique(result.missingCoverage, source); return; }
+        coveredCategories.add(category);
+        const bucket = result.categories[category];
+        bucket.sources.push(source);
+        rawTexts.forEach((raw, textIndex) => {
+          const text = norm(raw);
+          bucket.count += 1;
+          if (!text) {
+            addViolation(category, "no_empty_strings", { source, index: textIndex, text });
+            return;
+          }
+          bucket.checked += 1;
+          const entry = { source, index: textIndex, text };
+          const markRule = (rule) => { bucket.rules[rule] = (bucket.rules[rule] || 0) + 1; };
+          if (/Console\.txt/i.test(text)) addForbidden("no_console_txt", category, source, text, "Console.txt");
+          const maxWords = limitFor(category, source);
+          if (textWordCount(text) > maxWords) { markRule("phrase_length_limits"); addViolation(category, "phrase_length_limits", Object.assign({ maxWords, words: textWordCount(text) }, entry)); }
+          if (directToneApplies(category, source, text) && !directToneRe.test(text)) { markRule("direct_you_tone"); addViolation(category, "direct_you_tone", entry); }
+          teenSlang.forEach(p => { const re = new RegExp(`(^|[^а-яё])${p}([^а-яё]|$)`, "i"); const m = text.match(re); if (m) { markRule("no_teen_slang"); addForbidden("no_teen_slang", category, source, text, m[0].trim()); } });
+          memes.forEach(p => { const re = new RegExp(`(^|[^а-яё])${p}([^а-яё]|$)`, "i"); const m = text.match(re); if (m) { markRule("no_memes"); addForbidden("no_memes", category, source, text, m[0].trim()); } });
+          if (!isCopSource(source)) officialese.forEach(p => { const re = new RegExp(p, "i"); const m = text.match(re); if (m) { markRule("no_officialese"); addForbidden("no_officialese", category, source, text, m[0]); } });
+          teacherTone.forEach(p => { const re = new RegExp(p, "i"); const m = text.match(re); if (m) { markRule("no_teacher_tone"); addForbidden("no_teacher_tone", category, source, text, m[0]); } });
+          if (/(^|[^а-яё])(он|она)\s+(сейчас|тут|здесь|говорит|думает|молчит|смотрит)([^а-яё]|$)/i.test(text)) { markRule("no_npc_self_talk_third_person"); addViolation(category, "no_npc_self_talk_third_person", entry); }
+          if (!isCopSource(source)) npcNames.forEach(name => { const re = new RegExp(`(^|[^а-яё@])${escapeWord(name)}([^а-яё]|$)`, "i"); const m = text.match(re); if (m) { markRule("no_extra_names_except_cops"); addViolation(category, "no_extra_names_except_cops", Object.assign({ name }, entry)); } });
+          const open = (text.match(/\{/g) || []).length;
+          const close = (text.match(/\}/g) || []).length;
+          if (open !== close || /\$\{[^}]*\}/.test(text) || /\{\s*\}/.test(text)) { markRule("no_broken_placeholders"); addViolation(category, "no_broken_placeholders", entry); }
+          const placeholders = text.match(/\{[^}]+\}/g) || [];
+          placeholders.forEach(ph => {
+            const key = ph.slice(1, -1).trim();
+            if (!allowedPlaceholders.has(key)) { markRule("no_broken_placeholders"); addViolation(category, "no_broken_placeholders", Object.assign({ placeholder: ph }, entry)); }
+          });
+        });
+      });
+      cats.forEach(c => {
+        if (!coveredCategories.has(c) || !result.categories[c] || result.categories[c].checked <= 0) addUnique(result.missingCoverage, c);
+      });
+      Object.keys(result.violations).forEach(category => {
+        Object.keys(result.violations[category]).forEach(rule => addUnique(result.failedChecks, `${category}:${rule}`));
+      });
+      if (result.failures.length) addUnique(result.failedChecks, "failures_present");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+      result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
   };
   installNpcSpeechInventorySmokeEarly(G.__DEV);
   console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeNpcSpeechInventoryOnce);
