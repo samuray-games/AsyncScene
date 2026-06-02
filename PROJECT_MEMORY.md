@@ -4544,3 +4544,9 @@ Error: Download failure, code=1
 - `npcs.js` now exposes read-only `NPC.SPEECH_INVENTORY_SOURCES` so private villain DM source arrays can be covered without changing gameplay use sites.
 - Scope guard preserved: no economy, battle, crowd, report, UI, or text rewrite behavior changed, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
+
+## 2026-06-02 - Step 5.1 Safari export fix for NPC speech inventory smoke
+- Fixed the Safari runtime availability issue by exporting `Game.__DEV.smokeNpcSpeechInventoryOnce()` from both dev-check bundles used by the app and GitHub Pages paths.
+- The smoke return object now includes a small `presenceProof` marker in addition to the required `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `categories` fields.
+- Mirrored `NPC.SPEECH_INVENTORY_SOURCES` into the docs bundle and cache-busted the affected scripts in both HTML entrypoints.
+- No runtime PASS is claimed; Safari must run `Game.__DEV.smokeNpcSpeechInventoryOnce()`.

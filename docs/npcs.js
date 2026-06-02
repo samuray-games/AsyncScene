@@ -599,6 +599,23 @@ window.Game ||= {};
     return normalizeLine(line);
   };
 
+  // Dev-only visibility metadata. These are read-only source pointers for smoke inventories;
+  // gameplay still reads the original arrays/functions above.
+  NPC.SPEECH_INVENTORY_SOURCES = [
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.toxic.m", get: () => NPC.SAY.toxic.m },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.toxic.f", get: () => NPC.SAY.toxic.f },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.bandit.m", get: () => NPC.SAY.bandit.m },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.bandit.f", get: () => NPC.SAY.bandit.f },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.cop.m", get: () => NPC.SAY.cop.m },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.cop.f", get: () => NPC.SAY.cop.f },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.mafia.m", get: () => NPC.SAY.mafia.m },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.mafia.f", get: () => NPC.SAY.mafia.f },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.crowd.m", get: () => NPC.SAY.crowd.m },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:NPC.SAY.crowd.f", get: () => NPC.SAY.crowd.f },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:villainQuestions", get: () => villainQuestions },
+    { category: "dm", source: "AsyncScene/Web/npcs.js:villainChallenges", get: () => villainChallenges },
+  ];
+
   // Crowd voting helper for draws.
   // We keep the rules explicit and centralized:
   // - Only specific roles are allowed to vote (cop/mafia are excluded by default).
