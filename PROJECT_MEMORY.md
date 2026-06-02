@@ -4607,3 +4607,11 @@ Error: Download failure, code=1
 - Mirrored runtime paths updated: `AsyncScene/Web/npcs.js` and `docs/npcs.js`.
 - Scope guard preserved: template text cleanup only; no gameplay, UI, logic, linter weakening, whitelist additions, or `Console.txt` usage.
 - Local VM smoke for `Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce()` produced `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; Safari PASS is not claimed here.
+
+## 2026-06-02 - Step 5.6 NPC speech locale plumbing
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- NPC speech generation now resolves locale from `ctx`, `ctx.user`, `ctx.session`, runtime state/session/user holders, and browser language hints when present.
+- `ru` is the current implemented locale; unknown and unsupported locale codes fall back to `ru`. `en` and `ja` are registered as future-ready locale codes without adding non-RU speech templates.
+- Locale resolution is cached per session key so generated NPC lines in one session cannot mix languages; proof log rows include resolved/requested locale metadata.
+- Added `Game.__DEV.smokeNpcSpeechLocaleOnce()` to verify forced `ru`, unknown fallback to `ru`, session consistency, non-empty lines, and placeholder integrity.
+- Mirrored runtime paths updated: `AsyncScene/Web/npcs.js` and `docs/npcs.js`. Scope guard preserved: no gameplay/UI/economy/battle/crowd/report logic changes and no `Console.txt` usage.
