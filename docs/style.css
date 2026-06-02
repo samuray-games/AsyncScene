@@ -1332,7 +1332,9 @@ button:disabled{opacity:.55; cursor:not-allowed}
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(0,0,0,.62);
+  padding:20px;
+  overflow:hidden;
+  background:rgba(0,0,0,.58);
   backdrop-filter: blur(10px);
   z-index:2147483647;
   pointer-events:auto;
@@ -1341,22 +1343,51 @@ button:disabled{opacity:.55; cursor:not-allowed}
   position:relative;
   z-index:1;
   pointer-events:auto;
-  width:min(420px, calc(100vw - 28px));
+  width:min(430px, 100%);
+  max-height:calc(100vh - 40px);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
   border:1px solid var(--line);
-  border-radius:28px;
+  border-radius:26px;
   background:linear-gradient(180deg, var(--panel), var(--panel2));
   box-shadow: var(--shadow);
-  padding:18px;
+  padding:24px;
   text-align:center;
+  overflow:hidden;
 }
-#startCard .input{
-  background:var(--surface);
-  color:var(--text);
+#startCard h1{
+  margin:0;
+  font-size:clamp(24px, 7vw, 34px);
+  line-height:1.05;
+  font-weight:900;
+  letter-spacing:.01em;
+}
+#startIntroLines{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.35;
+}
+.startIntroLine{
+  margin:0;
+}
+#startBtns{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:10px;
+  width:100%;
+  margin-top:2px;
 }
 #startCard .btn{
   position:relative;
   z-index:2;
   pointer-events:auto;
+  min-width:0;
+  min-height:44px;
+  justify-content:center;
   background:var(--surface);
   color:var(--text);
 }
@@ -1368,35 +1399,22 @@ button:disabled{opacity:.55; cursor:not-allowed}
 
 @media (prefers-color-scheme: light){
   #startScreen{
-    background:rgba(12,18,32,.25);
+    background:rgba(12,18,32,.24);
   }
 }
-#startCard h1{
-  margin:6px 0 14px 0;
-  font-size:22px;
-  font-weight:900;
-}
-#startManifestShort{
-  white-space:normal;
-  max-width:100%;
-  text-align:left;
-  line-height:1.35;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-#startBtns{
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-#startHint{
-  margin-top:10px;
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.35;
+@media (max-width: 380px){
+  #startScreen{
+    padding:14px;
+  }
+  #startCard{
+    max-height:calc(100vh - 28px);
+    gap:14px;
+    padding:20px;
+    border-radius:22px;
+  }
+  #startIntroLines{
+    font-size:14px;
+  }
 }
 @media (max-width: 860px){
   .mention-list{

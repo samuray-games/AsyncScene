@@ -1,3 +1,12 @@
+## 2026-06-02 — Step 7 [2] minimal start-screen UI
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
+- Implemented only the minimal start-screen visual layout: one centered card/panel with even spacing, the `Data.START_SCREEN` title, 2-3 intro lines, and exactly the Start/Rules CTA buttons.
+- Removed start-screen secondary visual clutter from the active layout; no `onboardingSeen`, onboarding logic, gameplay, or economy changes were made.
+- Added `Game.__DEV.smokeOnboardingMinimalUiOnce()` to verify narrow/medium/wide layout simulation, no start-overlay scroll, visible/aligned CTAs, no layout overlap, no extra start-screen blocks, and the Step 7 [1] Start/Rules behavior smoke.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/ui/ui-boot.js`; PASS `node --check docs/ui/ui-boot.js`; WARN `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8765/ node scripts/run-asyncscene-smoke.mjs smokeOnboardingMinimalUiOnce` could not launch because Playwright Chromium is missing.
+- Required Safari command: `Game.__DEV.smokeOnboardingMinimalUiOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 7 [1] fresh-state visibility and menu-open interference fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
