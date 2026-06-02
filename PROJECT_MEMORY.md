@@ -4752,3 +4752,11 @@ Error: Download failure, code=1
 ## 2026-06-02 - Step 6 [10] Final System Messages aggregate smoke
 - Status: READY_FOR_RUNTIME_SMOKE only.
 - Required Safari command: `Game.__DEV.smokeSystemMessagesFinalOnce()`.
+
+## 2026-06-02 - Step 7 [1] runtime start-screen visibility path
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the runtime DOM/style visibility path for the existing fresh-state `#startScreen`: visible state now explicitly removes `.hidden`, clears the hidden/aria-hidden state, applies `.active`, sets `display:flex`, `visibility:visible`, `opacity:1`, and keeps pointer events enabled.
+- Added a fresh-state visibility watcher in the boot bundle so stale runtime mutations to `class`, `hidden`, `style`, or `aria-hidden` are corrected before `Game.__DEV.smokeOnboardingSpecOnce()` inspects the DOM.
+- Bumped mirrored `ui/ui-boot.js` cache keys from `v=12` to `v=13` for both app and docs runtime paths.
+- Scope guard preserved: `Data.START_SCREEN` content unchanged, exactly two actions unchanged, no `onboardingSeen`, no gameplay/economy changes, no UI redesign, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()`.
