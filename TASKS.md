@@ -4799,3 +4799,11 @@ Error: Download failure, code=1
 - Browser automation warning: local Playwright Chromium is missing, so browser automation could not run and no Safari runtime PASS is claimed.
 - Commit hash: recorded in the final one-line READY report.
 - Safari QA command: `Game.__DEV.smokeArgCanonMillennialUiSafeOnce()`.
+
+## 2026-06-02 - Step 5.1 NPC speech inventory collector
+- Status: READY_FOR_RUNTIME_SMOKE only; no Safari runtime PASS is claimed.
+- Added dev-only `Game.__DEV.smokeNpcSpeechInventoryOnce()` for visibility into NPC speech strings used by `dm`, `battle`, `events`, and `reportReactions`.
+- Contract: `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, categories }`, with each category returning `count` and up to 3 `samples`.
+- Scope guard: no gameplay, economy, battle, crowd, report, or UI behavior changed; `Console.txt` was not used.
+- Local checks: JS syntax checks passed, and a local Node VM invocation confirmed the helper is installed and returns populated category counts. This is not a Safari runtime PASS.
+- Safari QA command: `Game.__DEV.smokeNpcSpeechInventoryOnce()`.

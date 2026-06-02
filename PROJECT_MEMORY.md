@@ -4537,3 +4537,10 @@ Error: Download failure, code=1
 - Local evidence: PASS syntax checks for mirrored data/dev/conflict/UI bundles; PASS local VM smoke for `Game.__DEV.smokeArgCanonMillennialUiSafeOnce()`, `Game.__DEV.smokeArgCanonMillennialOnce()`, and `Game.__DEV.smokeArgCanonMillennialCoverageOnce()`.
 - Playwright browser smoke could not run locally because Chromium is not installed in the environment; this is a warning only and not a Safari PASS.
 - Commit hash: recorded in the final one-line READY report.
+
+## 2026-06-02 - Step 5.1 NPC speech inventory collector
+- Added dev-only NPC speech inventory visibility through `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
+- The helper inventories real speech sources across `dm`, `battle`, `events`, and `reportReactions`, reporting `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and category `count`/`samples` with a max of 3 samples.
+- `npcs.js` now exposes read-only `NPC.SPEECH_INVENTORY_SOURCES` so private villain DM source arrays can be covered without changing gameplay use sites.
+- Scope guard preserved: no economy, battle, crowd, report, UI, or text rewrite behavior changed, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
