@@ -49,6 +49,29 @@
 
 ```
 
+### [T-20260602-058] Step 6 [3] System Language Profile
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Core
+- Files: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html`
+- Goal: Define and enforce short neutral SystemCopy-only language profile checks without changing gameplay, economy, battles, crowd, reports, timers, routing, UI behavior, counters, DM behavior, or message meanings.
+- Acceptance:
+  - [x] `Game.System.languageProfile` defines short neutral fact-consequence-next-step SystemCopy-only style rules.
+  - [x] `Game.System.lintSystemCopy()` applies regex-based forbidden category checks for evaluative, pressure, and cutesy wording.
+  - [x] `Game.__DEV.smokeSystemLanguageProfileOnce()` returns `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `sampleCount`, `detectedCategories`, and a quick-review sample.
+  - [x] Sample count is constrained to 30-50 SystemCopy rows and any forbidden match makes the smoke fail.
+  - [x] `Console.txt` was not used.
+- Result: READY_FOR_RUNTIME_SMOKE only.
+- Report:
+  - Status: DONE
+  - Facts: READY_FOR_RUNTIME_SMOKE only.
+  - Changed: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Hard refresh Safari and run `Game.__DEV.smokeSystemLanguageProfileOnce()` in DevTools.
+  - Next: Дима to validate Safari runtime smoke.
+  - Next Prompt: Run the Step 6 [3] System Language Profile smoke in Safari; READY_FOR_RUNTIME_SMOKE only.
+
 
 ### [T-20260602-057] Step 6 [2] System message inventory coverage
 - Status: DONE

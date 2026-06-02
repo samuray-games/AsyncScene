@@ -24,56 +24,137 @@ window.Game = window.Game || {};
 
   const SystemCopy = Object.freeze({
     errors: Object.freeze({
-      missingMessage: "Message unavailable.",
+      missingMessage: "Сообщение недоступно.",
       insufficientPoints: "Не хватает 💰.",
-      pointsLowBattle: "Не прокает: мало 💰 на баттл.",
+      pointsLowBattle: "Не получилось: мало 💰 на баттл.",
       unavailable: "Недоступно.",
-      notFound: "Такого нет.",
+      notFound: "Не найдено.",
       choosePlayer: "Выбери игрока.",
-      reportFalsePenalty: "Фейл. Штраф: -5 💰.",
+      reportFalsePenalty: "Не получилось. Штраф: -5 💰.",
     }),
     warnings: Object.freeze({
-      checkInput: "Check the input and try again.",
+      checkInput: "Проверь ввод и попробуй ещё раз.",
       cooldownShort: "Подожди немного.",
-      alreadyVoted: "Ты уже вписался.",
-      respectPairDaily: "Уже было уважение сегодня этому персонажу.",
-      respectNoChain: "Цепочка A->B->A сегодня не работает.",
-      respectEmitterEmpty: "Сегодня уважение исчерпано.",
+      alreadyVoted: "Уже принято.",
+      respectPairDaily: "Уважение сегодня уже отправлено этому персонажу.",
+      respectNoChain: "Цепочка A->B->A сегодня недоступна.",
+      respectEmitterEmpty: "Уважение сегодня недоступно.",
       escapeNeedsPoints: "Не хватает 💰, чтобы Свалить.",
     }),
     notifications: Object.freeze({
-      saved: "Saved.",
+      saved: "Сохранено.",
       pointsDeltaPlusOne: "+1💰",
       repDeltaPlusOne: "+1⭐",
       pointsDeltaVoteCost: "-{voteCost}💰",
-      respectPaid: "Ты отдал 1💰",
-      respectTargetRep: "Цель получила +1 ⭐",
-      voteAccepted: "Принято. Ты вписался.",
-      reportPending: "Проверяем...",
-      reportTrueReward: "Засчитано. Сдать {name}: +2 💰.",
-      trainingSent: "Обучить аргументу: {teacher} → {student}.",
-      rematchRequested: "Реванш: {name} снова зовёт в баттл.",
-      escapePaid: "Свалить за 1💰",
+      respectPaid: "Списано 1💰.",
+      respectTargetRep: "Цель получила +1⭐.",
+      voteAccepted: "Принято. Голос учтён.",
+      reportPending: "Проверка идёт.",
+      reportTrueReward: "Засчитано. Сдать {name}: +2💰.",
+      trainingSent: "Обучение аргументу: {teacher} → {student}.",
+      rematchRequested: "Реванш доступен: {name} снова зовёт в баттл.",
+      escapePaid: "Свалить за 1💰.",
     }),
     systemEvents: Object.freeze({
-      ready: "System ready.",
-      dmReaction: "{name} перекинулся(ась) реакцией с {target}.",
+      ready: "Система готова.",
+      dmReaction: "{name} обменялся(ась) реакцией с {target}.",
       dmInvite: "{name} позвал(а) {guest} в личку к {target}.",
-      joined: "{name} залетел(а) на площадь. Ща будет.",
-      moved: "Ты переместился(ась): {location}.",
-      battleChallenge: "{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Жми сюда — баттл наверх.",
-      npcBattleStart: "Площадь ловит движ: {a} вызывает {b}.",
-      battleWin: "Затащил {winner}. {loser} проигрывает.",
-      battleDraw: "Поровну, без перевеса. {a} и {b} разошлись.",
-      crowdStart: "Толпа решает.",
-      crowdResolved: "Толпа решает. Победил {name} - {aVotes}:{bVotes}.",
-      unlockOrange: "Твои аргументы теперь сильные.",
-      unlockRed: "Твои аргументы теперь мощные.",
-      unlockBlack: "Твои аргументы теперь абсолютные.",
+      joined: "{name} на площади. Событие началось.",
+      moved: "Переход выполнен: {location}.",
+      battleChallenge: "{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.",
+      npcBattleStart: "Баттл начался: {a} вызывает {b}.",
+      battleWin: "Победил(а) {winner}. {loser} проиграл(а).",
+      battleDraw: "Ничья. {a} и {b} разошлись.",
+      crowdStart: "Голосование толпы началось.",
+      crowdResolved: "Голосование толпы завершено. Победил(а) {name}: {aVotes}:{bVotes}.",
+      unlockOrange: "Оранжевые аргументы доступны.",
+      unlockRed: "Красные аргументы доступны.",
+      unlockBlack: "Чёрные аргументы доступны.",
     }),
   });
 
   const FALLBACK_MESSAGE = SystemCopy.errors.missingMessage;
+
+  const SYSTEM_LANGUAGE_PROFILE = Object.freeze({
+    name: "System Language Profile",
+    scope: "SystemCopy",
+    style: "short-neutral-fact-consequence-next-step",
+    sampleMin: 30,
+    sampleMax: 50,
+    allowedExamples: Object.freeze(["не получилось", "недоступно", "нужно", "можно позже", "попробуй ещё раз"]),
+    forbidden: Object.freeze({
+      evaluative: /(^|[^А-Яа-яЁёA-Za-z0-9_])(плохо|неправильно|стыдно|фейл|позор|зашквар|тупо|глупо)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      pressure: /(^|[^А-Яа-яЁёA-Za-z0-9_])(ты\s+обязан|срочно|немедленно|прямо\s+сейчас)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      cutesy: /(^|[^А-Яа-яЁёA-Za-z0-9_])(солнышко|ой|пожалуйста-пожалуйста|лапочка|котик)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+    }),
+    manualReview: Object.freeze({
+      longLine: 72,
+      manySentences: 2,
+      patterns: Object.freeze({
+        slang: /(^|[^А-Яа-яЁёA-Za-z0-9_])(прокает|движ|ща|залетел|затащил|вписался|рофл|лол)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+        loudPunctuation: /!|…|\.\.\./,
+        directPressureReview: /(^|[^А-Яа-яЁёA-Za-z0-9_])(жми|быстрее|давай)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      }),
+    }),
+  });
+
+  function systemCopyEntries(copy){
+    const source = copy && typeof copy === "object" ? copy : SystemCopy;
+    const rows = [];
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      const bucket = source[group];
+      if (!bucket || typeof bucket !== "object") return;
+      Object.keys(bucket).sort().forEach((code) => {
+        rows.push({ group, code, text: String(bucket[code] || "") });
+      });
+    });
+    return rows;
+  }
+
+  function lintSystemLanguageLine(text){
+    const source = String(text || "");
+    const matches = [];
+    Object.keys(SYSTEM_LANGUAGE_PROFILE.forbidden).forEach((category) => {
+      const regex = SYSTEM_LANGUAGE_PROFILE.forbidden[category];
+      regex.lastIndex = 0;
+      const match = source.match(regex);
+      if (match) matches.push({ category, match: match[2] || match[1] || match[0] });
+    });
+    return matches;
+  }
+
+  function reviewSystemLanguageLine(text){
+    const source = String(text || "");
+    const review = [];
+    const sentenceCount = (source.match(/[.!?。]+/g) || []).length;
+    if (source.length > SYSTEM_LANGUAGE_PROFILE.manualReview.longLine) review.push("longLine");
+    if (sentenceCount > SYSTEM_LANGUAGE_PROFILE.manualReview.manySentences) review.push("manySentences");
+    Object.keys(SYSTEM_LANGUAGE_PROFILE.manualReview.patterns).forEach((name) => {
+      const regex = SYSTEM_LANGUAGE_PROFILE.manualReview.patterns[name];
+      regex.lastIndex = 0;
+      if (regex.test(source)) review.push(name);
+    });
+    if (!source.trim()) review.push("emptyLine");
+    return review;
+  }
+
+  function lintSystemCopy(copy){
+    const entries = systemCopyEntries(copy);
+    const forbiddenRemaining = [];
+    const detectedCategories = [];
+    const manualReview = [];
+    const addCategory = (category) => {
+      if (!detectedCategories.includes(category)) detectedCategories.push(category);
+    };
+    entries.forEach((entry) => {
+      const matches = lintSystemLanguageLine(entry.text);
+      matches.forEach((item) => addCategory(item.category));
+      if (matches.length) forbiddenRemaining.push({ group: entry.group, code: entry.code, text: entry.text, matches });
+      const review = reviewSystemLanguageLine(entry.text);
+      if (review.length) manualReview.push({ group: entry.group, code: entry.code, text: entry.text, review });
+    });
+    return { entries, forbiddenRemaining, detectedCategories: detectedCategories.sort(), manualReview };
+  }
 
   function normalizeKind(kind){
     const key = String(kind || "").trim();
@@ -170,6 +251,10 @@ window.Game = window.Game || {};
     copyInventory: SYSTEM_COPY_INVENTORY,
     coverageRowsFromInventory,
     normalizeKind,
+    languageProfile: SYSTEM_LANGUAGE_PROFILE,
+    lintSystemLanguageLine,
+    reviewSystemLanguageLine,
+    lintSystemCopy,
   });
 
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
@@ -240,6 +325,58 @@ window.Game = window.Game || {};
     return result;
   };
 
+  Game.__DEV.smokeSystemLanguageProfileOnce = function smokeSystemLanguageProfileOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      sampleCount: 0,
+      detectedCategories: [],
+      quickReviewSample: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const lint = lintSystemCopy(Game.SystemCopy || SystemCopy);
+    const entries = lint.entries.slice(0, SYSTEM_LANGUAGE_PROFILE.sampleMax);
+    const sampledGroups = new Set(entries.map((entry) => entry.group));
+    result.sampleCount = entries.length;
+    result.forbiddenRemaining = lint.forbiddenRemaining;
+    result.detectedCategories = lint.detectedCategories;
+
+    if (result.sampleCount < SYSTEM_LANGUAGE_PROFILE.sampleMin || result.sampleCount > SYSTEM_LANGUAGE_PROFILE.sampleMax) {
+      fail("sample_count_between_30_and_50", result.sampleCount);
+    }
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      if (!sampledGroups.has(group)) {
+        addUnique(result.missingCoverage, group);
+        fail("required_group_missing_from_sample", group);
+      }
+    });
+    if (result.forbiddenRemaining.length) fail("forbidden_patterns_detected", result.forbiddenRemaining);
+    if (!SYSTEM_LANGUAGE_PROFILE || SYSTEM_LANGUAGE_PROFILE.scope !== "SystemCopy") fail("profile_scope_system_copy", SYSTEM_LANGUAGE_PROFILE && SYSTEM_LANGUAGE_PROFILE.scope);
+    if (!SYSTEM_LANGUAGE_PROFILE.style || SYSTEM_LANGUAGE_PROFILE.style.indexOf("short-neutral") === -1) fail("profile_style_contract_missing", SYSTEM_LANGUAGE_PROFILE && SYSTEM_LANGUAGE_PROFILE.style);
+
+    const reviewRows = lint.manualReview.length ? lint.manualReview : entries.slice(0, 5).map((entry) => ({
+      group: entry.group,
+      code: entry.code,
+      text: entry.text,
+      review: ["quickReview"],
+    }));
+    result.quickReviewSample = reviewRows.slice(0, 10);
+    if (!result.quickReviewSample.length) fail("quick_review_sample_generated", "empty quick review sample");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.__DEV.smokeSystemCopyContractOnce = function smokeSystemCopyContractOnce(){
     const requiredGroups = Array.from(REQUIRED_SYSTEM_COPY_GROUPS);
     const bannedToneWords = Object.freeze([
@@ -272,6 +409,12 @@ window.Game = window.Game || {};
     }
     if (!Game.System || typeof Game.System.say !== "function") {
       fail("system_say_exists", "Game.System.say is missing");
+    }
+
+    const profileLint = lintSystemCopy(Game.SystemCopy || SystemCopy);
+    if (profileLint.forbiddenRemaining.length) {
+      profileLint.forbiddenRemaining.forEach((item) => result.forbiddenRemaining.push(item));
+      addUnique(result.failedChecks, "system_language_profile_forbidden_patterns");
     }
 
     requiredGroups.forEach((group) => {
