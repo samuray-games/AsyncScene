@@ -4697,3 +4697,7 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeSystemLocaleRuOnce()` with the required empty-array RU localization contract: `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `nonRuMessages`, and `foreignTermsDetected` must all be empty for `ok:true`.
 - Scope guard preserved: no gameplay, economy, battle, crowd, reports, timers, routing, counters, focus behavior, panel behavior, notification meanings, taxonomy, or `Console.txt` usage changed.
 - Required Safari command: `Game.__DEV.smokeSystemLocaleRuOnce()`.
+
+## 2026-06-02 - Step 6 [8] runtime smoke helper missing
+- Status: READY_FOR_RUNTIME_SMOKE only.
+- Result: READY_FOR_RUNTIME_SMOKE only.
