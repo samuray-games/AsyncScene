@@ -20,8 +20,8 @@ window.Game = window.Game || {};
 })();
 
 (() => {
-  const UIBOOT_VERSION = "UIBOOT_V9";
-  const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V9";
+  const UIBOOT_VERSION = "UIBOOT_V10";
+  const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V10";
   const BOOT_DIAG_MAX = 16;
   const bootDiagLines = [];
   window.__uiBootDiagLines = bootDiagLines;
@@ -168,6 +168,18 @@ window.Game = window.Game || {};
     st.style.opacity = "1";
     st.removeAttribute("aria-hidden");
     st.style.pointerEvents = "auto";
+    const card = st.querySelector("#startCard");
+    if (card) {
+      card.style.pointerEvents = "auto";
+      card.style.position = card.style.position || "relative";
+      card.style.zIndex = card.style.zIndex || "1";
+    }
+    st.querySelectorAll("#btnStart, #btnRules").forEach((button) => {
+      button.style.pointerEvents = "auto";
+      button.style.position = button.style.position || "relative";
+      button.style.zIndex = button.style.zIndex || "2";
+      if (!button.getAttribute("type")) button.setAttribute("type", "button");
+    });
   }
 
   function shouldShowFreshStartScreen(UI) {
@@ -491,35 +503,84 @@ window.Game = window.Game || {};
 
     // Menu: bindings are delegated in ui-menu.js to survive re-renders.
 
+    let lastRulesAt = 0;
+    const runRules = (source, e) => {
+      markBootDiag(source);
+      const now = Date.now();
+      if (now - lastRulesAt < 450) return;
+      lastRulesAt = now;
+      try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
+      const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+      const text = (D && D.TEXTS && D.TEXTS.manifest && D.TEXTS.manifest.full)
+        ? String(D.TEXTS.manifest.full)
+        : "";
+      if (text && typeof window.alert === "function") window.alert(text);
+    };
+
     if (btnRules) {
-      btnRules.onclick = (e) => {
-        try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
-        const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
-        const text = (D && D.TEXTS && D.TEXTS.manifest && D.TEXTS.manifest.full)
-          ? String(D.TEXTS.manifest.full)
-          : "";
-        if (text && typeof window.alert === "function") window.alert(text);
-      };
+      btnRules.onclick = (e) => runRules("rules_click", e);
+      btnRules.addEventListener("touchend", (e) => runRules("rules_touchend", e), { passive: false });
+      btnRules.addEventListener("pointerup", (e) => runRules("rules_pointerup", e), false);
     }
+
+    let lastStartAt = 0;
+    const runStart = (source, e) => {
+      markBootDiag(source);
+      const now = Date.now();
+      if (now - lastStartAt < 450) return;
+      lastStartAt = now;
+      try {
+        if (e && typeof e.preventDefault === "function") e.preventDefault();
+      } catch (_) {}
+      try {
+        startGame(UI);
+      } catch (err) {
+        markBootDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
+      }
+    };
+
+    const resolveStartScreenAction = (e) => {
+      const closestAction = (node) => {
+        if (!node || !node.closest) return null;
+        const button = node.closest("#btnStart, #btnRules");
+        return button ? button.id : null;
+      };
+      const direct = closestAction(e && e.target);
+      if (direct) return direct;
+      let x = null;
+      let y = null;
+      const touch = e && e.changedTouches && e.changedTouches[0];
+      if (touch && Number.isFinite(touch.clientX) && Number.isFinite(touch.clientY)) {
+        x = touch.clientX;
+        y = touch.clientY;
+      } else if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+        x = e.clientX;
+        y = e.clientY;
+      }
+      if (x == null || y == null || typeof document.elementFromPoint !== "function") return null;
+      return closestAction(document.elementFromPoint(x, y));
+    };
+
+    const bindStartScreenDelegate = () => {
+      const st = $("startScreen") || document.getElementById("startScreen");
+      if (!st || st.__asyncSceneStartActionDelegate) return;
+      st.__asyncSceneStartActionDelegate = true;
+      const route = (source, e) => {
+        const action = resolveStartScreenAction(e);
+        if (!action) return;
+        try { if (e && typeof e.stopPropagation === "function") e.stopPropagation(); } catch (_) {}
+        if (action === "btnStart") runStart(`delegated_${source}`, e);
+        else if (action === "btnRules") runRules(`delegated_${source}`, e);
+      };
+      st.addEventListener("click", (e) => route("click", e), true);
+      st.addEventListener("touchend", (e) => route("touchend", e), { capture: true, passive: false });
+      st.addEventListener("pointerup", (e) => route("pointerup", e), true);
+    };
+    bindStartScreenDelegate();
 
     // Start. Bind every mobile-relevant event so iPhone Safari can be diagnosed internally.
     if (btnStart) {
       markBootDiag("START_HANDLER_FOUND");
-      let lastStartAt = 0;
-      const runStart = (source, e) => {
-        markBootDiag(source);
-        const now = Date.now();
-        if (now - lastStartAt < 450) return;
-        lastStartAt = now;
-        try {
-          if (e && typeof e.preventDefault === "function") e.preventDefault();
-        } catch (_) {}
-        try {
-          startGame(UI);
-        } catch (err) {
-          markBootDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
-        }
-      };
       btnStart.onclick = (e) => runStart("click", e);
       btnStart.addEventListener("touchstart", (e) => { markBootDiag("touchstart"); }, { passive: true });
       btnStart.addEventListener("touchend", (e) => runStart("touchend", e), { passive: false });
