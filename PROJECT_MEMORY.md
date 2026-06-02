@@ -4675,3 +4675,9 @@ Error: Download failure, code=1
 ## 2026-06-02 - Step 6 [6] Routing and Priorities
 - Status: READY_FOR_RUNTIME_SMOKE only.
 - Required Safari command: `Game.__DEV.smokeSystemRoutingOnce()`.
+
+## 2026-06-02 - Step 6 [6] collapsed counter smoke follow-up
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the dev smoke's collapsed-panel silent incoming counter path so the simulated `dm`, `battles`, and `events` incoming rows use the same collapsed-panel counter helper while preserving silent behavior: no panel open, no focus steal, and no auto-scroll.
+- Scope guard preserved: no gameplay, economy, battle outcomes, crowd logic, reports, timers, routing policy, focus behavior, panel behavior, or auto-scroll behavior changed; `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeSystemRoutingOnce()`.
