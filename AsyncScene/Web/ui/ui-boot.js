@@ -163,7 +163,9 @@ window.Game = window.Game || {};
     st.classList.remove("hidden");
     st.hidden = false;
     st.classList.add("active");
-    st.style.display = "";
+    st.style.display = "flex";
+    st.style.visibility = "visible";
+    st.style.opacity = "1";
     st.removeAttribute("aria-hidden");
     st.style.pointerEvents = "auto";
   }
@@ -177,6 +179,21 @@ window.Game = window.Game || {};
 
   function ensureFreshStartScreenVisible(UI) {
     if (shouldShowFreshStartScreen(UI)) ensureStartScreenVisible(UI);
+  }
+
+  function keepFreshStartScreenVisible(UI) {
+    ensureFreshStartScreenVisible(UI);
+    const st = ensureStartScreenExists(UI);
+    if (!st || st.__asyncSceneFreshStartVisibilityWatch) return;
+    st.__asyncSceneFreshStartVisibilityWatch = true;
+
+    const recheck = () => ensureFreshStartScreenVisible(UI);
+    if (typeof MutationObserver === "function") {
+      const observer = new MutationObserver(recheck);
+      observer.observe(st, { attributes: true, attributeFilter: ["class", "hidden", "style", "aria-hidden"] });
+    }
+    setTimeout(recheck, 0);
+    setTimeout(recheck, 50);
   }
 
   function applyStartScreenContent(UI) {
@@ -763,8 +780,7 @@ window.Game = window.Game || {};
 
     // Fresh/clean state must leave the existing start screen visible even if
     // earlier boot work or stale DOM attributes hid it before content binding.
-    ensureFreshStartScreenVisible(UI);
-    setTimeout(() => ensureFreshStartScreenVisible(UI), 0);
+    keepFreshStartScreenVisible(UI);
 
     try {
       UI.S.flags = UI.S.flags || {};
