@@ -3705,7 +3705,7 @@ window.Game = window.Game || {};
     });
 
     try {
-      const penaltyMsg = `«Сдать» без фактов — штраф ${repPenalty}⭐. Будьте внимательнее.`;
+      const penaltyMsg = `«Сдать» без фактов — штраф ${repPenalty}⭐. Проверь факты в следующий раз.`;
       pushDm(copId, copName, copLine(penaltyMsg), { isSystem: false, playerId: copId });
     } catch (_) {}
     try { copDmTo(copId, "cop_fail"); } catch (_) {}
@@ -3787,7 +3787,7 @@ window.Game = window.Game || {};
     try {
       const victimized = checkIfVictimized(targetId);
       if (victimized) {
-        copDmTo(copId, "Я понимаю, что вас это задело. Меры приняты.");
+        copDmTo(copId, "Понимаю, тебя задело. Я вмешался.");
         const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
         const returnAmount = victimized.stolenAmount || 0;
         if (returnAmount > 0 && Econ && typeof Econ.transferPoints === "function") {
@@ -3864,7 +3864,7 @@ window.Game = window.Game || {};
           } catch (_) {}
         }
       } else {
-        copDmTo(copId, "Информация подтвердилась. Контакт отмечен.");
+        copDmTo(copId, "Проверка сошлась. Контакт отмечен.");
       }
     } catch (_) {}
 
@@ -4002,7 +4002,7 @@ window.Game = window.Game || {};
 
     // If no roleKey AND no target found by name -> unknown role request
     if (!roleKey && !target) {
-      if (cop && cop.id) copDmTo(cop.id, "Уточните, кого сдаёте: токсик, бандит или мафиози.");
+      if (cop && cop.id) copDmTo(cop.id, "Напиши, кого сдаёшь: токсик, бандит или мафиози.");
       return { ok: false, reason: "unknown_role" };
     }
 
