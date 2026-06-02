@@ -4681,3 +4681,10 @@ Error: Download failure, code=1
 - Fixed only the dev smoke's collapsed-panel silent incoming counter path so the simulated `dm`, `battles`, and `events` incoming rows use the same collapsed-panel counter helper while preserving silent behavior: no panel open, no focus steal, and no auto-scroll.
 - Scope guard preserved: no gameplay, economy, battle outcomes, crowd logic, reports, timers, routing policy, focus behavior, panel behavior, or auto-scroll behavior changed; `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeSystemRoutingOnce()`.
+
+## 2026-06-02 - Step 6 [7] Economy deltas paired with system texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Mirrored `Game.System.economyTextReasonContract` now binds tracked economy system copy lines to moneyLog reasons/aliases for crowd vote cost/refunds/remainders, rematch cost, escape vote cost, respect cost/rep, and report compensation/penalty.
+- Added mirrored dev smoke `Game.__DEV.smokeSystemEconomyTextPairsOnce()` with the required empty-array PASS contract for `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `textWithoutTransaction`, `transactionWithoutText`, and `semanticMismatches`.
+- Scope guard preserved: no economy amount/balance/transfer/outcome/UI behavior changes and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeSystemEconomyTextPairsOnce()`.

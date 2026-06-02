@@ -54,6 +54,11 @@ window.Game = window.Game || {};
       trainingSent: "Обучение аргументу: {teacher} → {student}.",
       rematchRequested: "Реванш доступен: {name} снова зовёт в баттл.",
       escapePaid: "Свалить за 1💰.",
+      pointsDeltaRefund: "+1💰 возвращено.",
+      pointsDeltaRefundMajority: "+1💰 возврат большинству.",
+      pointsDeltaRemainderWin: "+1💰 остаток победителю.",
+      rematchCost: "Реванш: -{rematchCost}💰.",
+      escapeVoteCost: "Свалить: -{escapeCost}💰.",
     }),
     systemEvents: Object.freeze({
       ready: "Система готова.",
@@ -108,6 +113,8 @@ window.Game = window.Game || {};
     guest: "гость",
     location: "локация",
     voteCost: "0",
+    rematchCost: "1",
+    escapeCost: "1",
     teacher: "учитель",
     student: "ученик",
   });
@@ -153,6 +160,11 @@ window.Game = window.Game || {};
       N_TRAINING_SENT: Object.freeze({ meaning: "argument training was sent" }),
       N_REMATCH_REQUESTED: Object.freeze({ meaning: "rematch request became available" }),
       N_ESCAPE_PAID: Object.freeze({ meaning: "escape action payment was accepted" }),
+      N_POINTS_DELTA_REFUND: Object.freeze({ meaning: "one point was refunded" }),
+      N_POINTS_DELTA_REFUND_MAJORITY: Object.freeze({ meaning: "one point was refunded to the majority voter" }),
+      N_POINTS_DELTA_REMAINDER_WIN: Object.freeze({ meaning: "one remaining crowd point was awarded to the winner" }),
+      N_REMATCH_COST: Object.freeze({ meaning: "rematch request cost points were deducted" }),
+      N_ESCAPE_VOTE_COST: Object.freeze({ meaning: "escape vote cost points were deducted" }),
     }),
     systemEvents: Object.freeze({
       S_DAY_ROLLOVER: Object.freeze({ meaning: "game day rolled over" }),
@@ -202,6 +214,11 @@ window.Game = window.Game || {};
     "notifications.trainingSent": "N_TRAINING_SENT",
     "notifications.rematchRequested": "N_REMATCH_REQUESTED",
     "notifications.escapePaid": "N_ESCAPE_PAID",
+    "notifications.pointsDeltaRefund": "N_POINTS_DELTA_REFUND",
+    "notifications.pointsDeltaRefundMajority": "N_POINTS_DELTA_REFUND_MAJORITY",
+    "notifications.pointsDeltaRemainderWin": "N_POINTS_DELTA_REMAINDER_WIN",
+    "notifications.rematchCost": "N_REMATCH_COST",
+    "notifications.escapeVoteCost": "N_ESCAPE_VOTE_COST",
     "systemEvents.ready": "S_READY",
     "systemEvents.dmReaction": "S_DM_REACTION",
     "systemEvents.dmInvite": "S_DM_INVITE",
@@ -396,7 +413,27 @@ window.Game = window.Game || {};
 
   const ECONOMY_NOTIFICATION_CODES = Object.freeze([
     "pointsDeltaPlusOne", "repDeltaPlusOne", "pointsDeltaVoteCost", "respectPaid",
-    "respectTargetRep", "reportTrueReward", "escapePaid"
+    "respectTargetRep", "reportTrueReward", "escapePaid", "pointsDeltaRefund",
+    "pointsDeltaRefundMajority", "pointsDeltaRemainderWin", "rematchCost", "escapeVoteCost"
+  ]);
+
+
+  const SYSTEM_ECONOMY_TEXT_REASON_CONTRACT = Object.freeze([
+    Object.freeze({ reason: "crowd_vote_refund", aliases: Object.freeze(["points_delta_plus_one"]), kind: "notifications", code: "pointsDeltaPlusOne", currency: "points", direction: "credit", textProof: "+", reasonProof: "generic plus-one points delta text has refund transaction coverage" }),
+    Object.freeze({ reason: "rep_crowd_vote_participation", aliases: Object.freeze(["rep_delta_plus_one"]), kind: "notifications", code: "repDeltaPlusOne", currency: "rep", direction: "credit", textProof: "+", reasonProof: "generic plus-one rep delta text has reputation transaction coverage" }),
+    Object.freeze({ reason: "crowd_vote_cost", aliases: Object.freeze(["vote_cost"]), kind: "notifications", code: "pointsDeltaVoteCost", currency: "points", direction: "debit", textProof: "-", reasonProof: "crowd vote cost transfer" }),
+    Object.freeze({ reason: "crowd_vote_refund", aliases: Object.freeze(["refund"]), kind: "notifications", code: "pointsDeltaRefund", currency: "points", direction: "credit", textProof: "+", reasonProof: "crowd vote refund transfer" }),
+    Object.freeze({ reason: "crowd_vote_refund_majority", aliases: Object.freeze(["refund_majority"]), kind: "notifications", code: "pointsDeltaRefundMajority", currency: "points", direction: "credit", textProof: "+", reasonProof: "majority vote refund transfer" }),
+    Object.freeze({ reason: "crowd_vote_remainder_win", aliases: Object.freeze(["remainder"]), kind: "notifications", code: "pointsDeltaRemainderWin", currency: "points", direction: "credit", textProof: "+", reasonProof: "crowd remainder winner transfer" }),
+    Object.freeze({ reason: "crowd_vote_remainder_split_a", aliases: Object.freeze(["remainder_split_a"]), kind: "notifications", code: "pointsDeltaRemainderWin", currency: "points", direction: "credit", textProof: "+", reasonProof: "crowd remainder split transfer" }),
+    Object.freeze({ reason: "crowd_vote_remainder_split_b", aliases: Object.freeze(["remainder_split_b"]), kind: "notifications", code: "pointsDeltaRemainderWin", currency: "points", direction: "credit", textProof: "+", reasonProof: "crowd remainder split transfer" }),
+    Object.freeze({ reason: "rematch_request_cost", aliases: Object.freeze(["rematch_cost"]), kind: "notifications", code: "rematchCost", currency: "points", direction: "debit", textProof: "-", reasonProof: "rematch request cost transfer" }),
+    Object.freeze({ reason: "escape_vote_cost", aliases: Object.freeze(["escape_vote_cost"]), kind: "notifications", code: "escapeVoteCost", currency: "points", direction: "debit", textProof: "-", reasonProof: "escape vote cost transfer" }),
+    Object.freeze({ reason: "escape_vote_cost", aliases: Object.freeze(["escape_paid_text"]), kind: "notifications", code: "escapePaid", currency: "points", direction: "debit", textProof: "за 1💰", reasonProof: "existing escape paid text is covered by escape vote cost transfer" }),
+    Object.freeze({ reason: "points_respect_cost", aliases: Object.freeze(["respect_cost"]), kind: "notifications", code: "respectPaid", currency: "points", direction: "debit", textProof: "Списано", reasonProof: "respect points cost transfer" }),
+    Object.freeze({ reason: "rep_respect_given", aliases: Object.freeze(["rep_respect_given"]), kind: "notifications", code: "respectTargetRep", currency: "rep", direction: "credit", textProof: "+", reasonProof: "respect target reputation transfer" }),
+    Object.freeze({ reason: "report_true_compensation", aliases: Object.freeze(["report_true_reward"]), kind: "notifications", code: "reportTrueReward", currency: "points", direction: "credit", textProof: "+", reasonProof: "true report compensation transfer" }),
+    Object.freeze({ reason: "report_false_penalty", aliases: Object.freeze(["report_false_cost"]), kind: "errors", code: "reportFalsePenalty", currency: "points", direction: "debit", textProof: "-", reasonProof: "false report penalty transfer" })
   ]);
 
   function isEconomyNotification(group, code, text){
@@ -486,6 +523,9 @@ window.Game = window.Game || {};
     { area: "economyDeltas", kind: "notifications", code: "pointsDeltaPlusOne", file: "AsyncScene/Web/events.js", surface: "system", callsite: "Game.UI.pushSystem(Game.System.say(\"notifications\", \"pointsDeltaPlusOne\"))", directHardcoded: false },
     { area: "economyDeltas", kind: "notifications", code: "repDeltaPlusOne", file: "AsyncScene/Web/events.js", surface: "system", callsite: "Game.UI.pushSystem(Game.System.say(\"notifications\", \"repDeltaPlusOne\"))", directHardcoded: false },
     { area: "economyDeltas", kind: "notifications", code: "pointsDeltaVoteCost", file: "AsyncScene/Web/events.js", surface: "system", callsite: "Game.UI.pushSystem(Game.System.say(\"notifications\", \"pointsDeltaVoteCost\", { voteCost }))", directHardcoded: false },
+    { area: "economyDeltas", kind: "notifications", code: "pointsDeltaRefund", file: "AsyncScene/Web/system.js", surface: "contract", callsite: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT crowd_vote_refund", directHardcoded: false },
+    { area: "economyDeltas", kind: "notifications", code: "pointsDeltaRefundMajority", file: "AsyncScene/Web/system.js", surface: "contract", callsite: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT crowd_vote_refund_majority", directHardcoded: false },
+    { area: "economyDeltas", kind: "notifications", code: "pointsDeltaRemainderWin", file: "AsyncScene/Web/system.js", surface: "contract", callsite: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT crowd_vote_remainder_*", directHardcoded: false },
     { area: "economyDeltas", kind: "notifications", code: "pointsDeltaPlusOne", file: "AsyncScene/Web/ui/ui-core.js", surface: "toast", callsite: "UI.showStatToast('points', msg)", directHardcoded: false },
 
     { area: "dm", kind: "systemEvents", code: "dmReaction", file: "AsyncScene/Web/ui/ui-dm.js", surface: "system", callsite: "UI.pushSystem(Game.System.say(\"systemEvents\", \"dmReaction\", ctx))", directHardcoded: false },
@@ -507,7 +547,9 @@ window.Game = window.Game || {};
     { area: "reports", kind: "errors", code: "reportFalsePenalty", file: "AsyncScene/Web/data.js", surface: "system", callsite: "Data.SYS.reportNo", directHardcoded: false },
 
     { area: "rematch", kind: "notifications", code: "rematchRequested", file: "AsyncScene/Web/ui/ui-battles.js", surface: "toast", callsite: "rematch/retry battle action toasts", directHardcoded: false },
+    { area: "rematch", kind: "notifications", code: "rematchCost", file: "AsyncScene/Web/conflict/conflict-core.js", surface: "contract", callsite: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT rematch_request_cost", directHardcoded: false },
     { area: "escape", kind: "notifications", code: "escapePaid", file: "AsyncScene/Web/ui/ui-battles.js", surface: "toast", callsite: "escape action label via Game.System.say(\"notifications\", \"escapePaid\")", directHardcoded: false },
+    { area: "escape", kind: "notifications", code: "escapeVoteCost", file: "AsyncScene/Web/conflict/conflict-core.js", surface: "contract", callsite: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT escape_vote_cost", directHardcoded: false },
     { area: "escape", kind: "warnings", code: "escapeNeedsPoints", file: "AsyncScene/Web/data.js", surface: "toast", callsite: "Data.SYS.needEscapePointsInline", directHardcoded: false },
     { area: "training", kind: "notifications", code: "trainingSent", file: "AsyncScene/Web/ui/ui-dm.js", surface: "system", callsite: "UI.pushSystem(t('teach_sent_chat', ...))", directHardcoded: false },
 
@@ -556,6 +598,7 @@ window.Game = window.Game || {};
     lintSystemLanguageLine,
     reviewSystemLanguageLine,
     lintSystemCopy,
+    economyTextReasonContract: SYSTEM_ECONOMY_TEXT_REASON_CONTRACT,
   });
 
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
@@ -743,6 +786,94 @@ window.Game = window.Game || {};
     if (result.duplicateCodes.length) addUnique(result.failedChecks, "duplicate_codes");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.duplicateCodes.length === 0 && result.unmappedCodes.length === 0;
+    return result;
+  };
+
+  Game.__DEV.smokeSystemEconomyTextPairsOnce = function smokeSystemEconomyTextPairsOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      checkedReasons: [],
+      textWithoutTransaction: [],
+      transactionWithoutText: [],
+      semanticMismatches: []
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail, bucket) => {
+      addUnique(result.failedChecks, check);
+      const payload = detail === undefined ? check : { check, detail };
+      addUnique(result.failures, payload);
+      if (bucket && result[bucket]) addUnique(result[bucket], detail === undefined ? check : detail);
+    };
+    const requiredAliases = ["vote_cost", "refund_majority", "remainder", "rematch_cost", "escape_vote_cost", "rep_respect_given"];
+    const contract = Array.from(SYSTEM_ECONOMY_TEXT_REASON_CONTRACT);
+    const textKeys = Object.create(null);
+    ECONOMY_NOTIFICATION_CODES.forEach((code) => {
+      const text = say("notifications", code, { voteCost: 1, rematchCost: 1, escapeCost: 1, name: "цель" });
+      textKeys[`notifications.${code}`] = { kind: "notifications", code, text, reason: null };
+    });
+    const transactionKeys = Object.create(null);
+    const aliasKeys = Object.create(null);
+    const signed = (text) => ({ plus: /\+|получ|возврат|зачисл|цель получила/i.test(String(text || "")), minus: /-|списано|штраф|стоим|свалить за/i.test(String(text || "")) });
+    const hasCurrency = (text, currency) => {
+      const source = String(text || "");
+      if (currency === "points") return source.includes("💰");
+      if (currency === "rep") return source.includes("⭐");
+      return true;
+    };
+
+    contract.forEach((row, index) => {
+      const kind = normalizeKind(row && row.kind);
+      const code = String(row && row.code || "").trim();
+      const reason = String(row && row.reason || "").trim();
+      const aliases = Array.isArray(row && row.aliases) ? row.aliases.map((x) => String(x || "").trim()).filter(Boolean) : [];
+      const currency = String(row && row.currency || "").trim();
+      const direction = String(row && row.direction || "").trim();
+      const text = kind && code ? say(kind, code, { voteCost: 1, rematchCost: 1, escapeCost: 1, name: "цель" }) : "";
+      const proof = { kind, code, text, reason, aliases, currency, direction };
+      if (!kind || !code || !reason) fail("contract_row_identity_missing", Object.assign({ index }, proof), "missingCoverage");
+      if (!kind || !SystemCopy[kind] || !Object.prototype.hasOwnProperty.call(SystemCopy[kind], code)) {
+        fail("system_copy_line_missing", Object.assign({ index }, proof), "transactionWithoutText");
+      }
+      if (!text || text === FALLBACK_MESSAGE) fail("system_copy_text_missing", Object.assign({ index }, proof), "transactionWithoutText");
+      if (!currency || !hasCurrency(text, currency)) fail("currency_mismatch", proof, "semanticMismatches");
+      const sign = signed(text);
+      if (direction === "credit" && !sign.plus) fail("credit_text_missing_plus_semantics", proof, "semanticMismatches");
+      if (direction === "debit" && !sign.minus) fail("debit_text_missing_minus_semantics", proof, "semanticMismatches");
+      if (reason) {
+        transactionKeys[reason] = true;
+        result.checkedReasons.push(Object.assign({}, proof, { reasonProof: row.reasonProof || reason }));
+      }
+      aliases.forEach((alias) => {
+        aliasKeys[alias] = true;
+        transactionKeys[alias] = true;
+        result.checkedReasons.push(Object.assign({}, proof, { reason: alias, actualReason: reason, reasonProof: row.reasonProof || reason }));
+      });
+      if (kind && code) textKeys[`${kind}.${code}`] = { kind, code, text, reason };
+    });
+
+    requiredAliases.forEach((alias) => {
+      if (!aliasKeys[alias] && !transactionKeys[alias]) fail("required_reason_alias_missing", alias, "missingCoverage");
+    });
+    Object.keys(transactionKeys).sort().forEach((reason) => {
+      const covered = result.checkedReasons.some((row) => row && String(row.reason || "") === reason);
+      if (!covered) fail("transaction_without_text", reason, "transactionWithoutText");
+    });
+    Object.keys(textKeys).sort().forEach((key) => {
+      const covered = result.checkedReasons.some((row) => row && `${row.kind}.${row.code}` === key);
+      if (!covered) fail("text_without_transaction", textKeys[key], "textWithoutTransaction");
+    });
+    if (!result.checkedReasons.length) fail("checked_reasons_empty", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT", "missingCoverage");
+    result.checkedReasons.forEach((row) => {
+      if (!row.kind || !row.code || !row.text || !row.reason) fail("checked_reason_proof_incomplete", row, "missingCoverage");
+    });
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.textWithoutTransaction.length === 0 && result.transactionWithoutText.length === 0 && result.semanticMismatches.length === 0;
     return result;
   };
 
