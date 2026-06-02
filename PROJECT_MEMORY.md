@@ -4567,3 +4567,10 @@ Error: Download failure, code=1
 - Coverage categories are fixed to `dm`, `battle`, `events`, and `reportReactions`; unresolved category proof is surfaced through `missingCoverage`.
 - Scope guard: validation only, no NPC string rewrites, no UI changes, no gameplay changes, and `Console.txt` was not used.
 - Runtime QA command: `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
+
+## 2026-06-02 - Step 5.2 Safari runtime NPC style cleanup follow-up
+- The Safari/runtime failure after the earlier Step 5.2 commit was due to stale mirrored UI boot strings in the GitHub Pages/runtime path, not the NPC inventory arrays themselves.
+- Cleaned the remaining DM challenge line in `AsyncScene/Web/ui-old.js`, `AsyncScene/Web/ui/ui-boot.js`, and `docs/ui/ui-boot.js` from `не умничай` wording to direct adult wording.
+- Preserved the smoke rules and did not add whitelists or weaken banned-phrase checks.
+- Local VM invocation of `Game.__DEV.smokeNpcSpeechStyleRulesOnce()` returned the target empty failure arrays; browser automation could not launch because Playwright Chromium is missing locally.
+- No Safari runtime PASS is claimed; required command remains `Game.__DEV.smokeNpcSpeechStyleRulesOnce()`.
