@@ -51,6 +51,28 @@
 
 
 
+
+### [T-20260602-064] Step 7 [1] Runtime Smoke Export Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Content
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Restore Safari runtime availability for `Game.__DEV.smokeOnboardingSpecOnce()` without changing gameplay, onboarding state, or UI design.
+- Acceptance:
+  - [x] `Game.__DEV.smokeOnboardingSpecOnce()` is exported from the data bundle when the dev-check bundle is absent or stale.
+  - [x] The smoke validates `Data.START_SCREEN`, title, 2-3 intro lines, start/rules actions, no more than two actions, centralized rendered content, and visible fresh start screen.
+  - [x] No `onboardingSeen` state, gameplay change, content redesign, or UI redesign was added.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Added a data-bundle fallback export for `Game.__DEV.smokeOnboardingSpecOnce()` and bumped data script cache keys for the app and docs runtime paths.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingSpecOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [1] with `Game.__DEV.smokeOnboardingSpecOnce()`; do not claim PASS until Safari returns ok.
+
 ### [T-20260602-063] Step 7 [1] Start Screen Spec
 - Status: DONE
 - Priority: P0

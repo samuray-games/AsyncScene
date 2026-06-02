@@ -21,6 +21,16 @@
 # AsyncScene — Project Memory (single shared context)
 
 
+## 2026-06-02 — Step 7 [1] Runtime Smoke Export Fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Fixed the smoke availability path by adding a data-bundle fallback export for `Game.__DEV.smokeOnboardingSpecOnce()` in both runtime bundles.
+- The fallback smoke validates `Data.START_SCREEN`, title, 2-3 intro lines, `actions.start`, `actions.rules`, no more than two actions, centralized rendered content, and visible fresh start screen.
+- Bumped the data script cache key in both runtime HTML entrypoints so Safari fetches the bundle containing the fallback export.
+- No `onboardingSeen` state, gameplay change, onboarding content redesign, or UI redesign was added.
+- Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()`.
+
+
 ## 2026-06-02 — Step 7 [1] Start Screen Spec
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
