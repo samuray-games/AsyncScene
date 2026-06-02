@@ -49,6 +49,26 @@
 
 ```
 
+### [T-20260602-055] Step 5.5 NPC speech millennial wording refinement
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: NPC
+- Files: `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js` `docs/npcs.js` `docs/dev/dev-checks.js`
+- Goal: Refine NPC speech template wording for millennial audience while preserving structure and behavior.
+- Acceptance:
+  - [x] Text-only NPC role wording was refined for cop, mafia, bandit, toxic, and neutral voices.
+  - [x] No gameplay, UI, economy, battle/crowd/report logic, or template structure changes were made.
+  - [x] `Game.__DEV.smokeNpcSpeechMillennialWordingOnce()` samples 25 lines across roles, blocks, and channels and checks forbidden slang/memes/officialese/teacher tone/self-reference plus role voice separation.
+  - [x] `Console.txt` was not used.
+- Result: READY_FOR_RUNTIME_SMOKE only. Local checks pass, but runtime PASS is not claimed until Safari runs `Game.__DEV.smokeNpcSpeechMillennialWordingOnce()` and returns `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Report:
+  - Status: DONE
+  - Facts: NPC speech fallback lines and Step 5 template text were rewritten with short adult phrasing; dev wording smoke was added in both runtime and docs bundles.
+  - Changed: `AsyncScene/Web/npcs.js` `AsyncScene/Web/dev/dev-checks.js` `docs/npcs.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run `Game.__DEV.smokeNpcSpeechMillennialWordingOnce()` in Safari after a hard refresh and require the PASS contract.
+  - Next: Дима to validate Safari runtime smoke.
 
 ### [T-20260602-054] Step 5.4 NPC speech minimal runtime integration
 - Status: DONE

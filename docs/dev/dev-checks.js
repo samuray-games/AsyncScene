@@ -26897,6 +26897,118 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
 
 
+  Game.__DEV.smokeNpcSpeechMillennialWordingOnce = function smokeNpcSpeechMillennialWordingOnce() {
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      sampleCount: 0,
+      samples: []
+    };
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const fail = (code, detail) => {
+      addUnique(result.failures, detail === undefined ? code : { code, detail });
+      addUnique(result.failedChecks, code);
+    };
+    const forbidden = {
+      teenSlang: ["че", "чё", "щас", "го", "изи", "кринж", "зашквар", "рофл", "лол", "краш", "вайб", "топчик", "хайп", "агр", "жиза", "пруф"],
+      memes: ["мем", "баттл", "вброс", "тащи", "цирк", "я в шоке", "гореть", "жарко"],
+      officialese: ["фиксирую", "нарушение", "прошу", "благодарю", "сохраните", "система", "регламент", "протокол", "санкции", "порядок восстановлен"],
+      teacherTone: ["делаем вывод", "главное", "лучшее решение", "правильный выбор", "ты должен", "необходимо", "следует", "надо понимать"],
+      thirdPersonSelf: ["коп на связи", "мафия предупреждает", "бандит сказал", "токсик сказал", "нейтрал считает"]
+    };
+    const roleHints = {
+      cop: ["дистанц", "спокой", "безопас", "пиши", "конфликт", "поряд"],
+      mafia: ["тих", "шум", "точн", "разум", "след", "свидетел", "дорог"],
+      bandit: ["стой", "деньги", "плати", "корот", "движ", "теря", "забрал"],
+      toxic: ["слаб", "докажи", "стоит", "пряч", "уверенность", "жестко", "ответ"],
+      neutral: ["площад", "смотр", "тема", "раунд", "разговор", "заметно"]
+    };
+    const roles = ["cop", "mafia", "bandit", "toxic", "neutral"];
+    const blocks = ["greetings", "threats", "victory", "defeat", "neutral"];
+    const channels = ["dm", "event", "battle"];
+    const seenRoles = Object.create(null);
+    const seenBlocks = Object.create(null);
+    const seenChannels = Object.create(null);
+    const roleFailures = Object.create(null);
+    const allForbiddenRows = [];
+    const normalize = (line) => String(line || "").toLowerCase().replace(/ё/g, "е");
+    const hasForbidden = (line) => {
+      const low = normalize(line);
+      const rows = [];
+      Object.keys(forbidden).forEach(group => {
+        forbidden[group].forEach(term => {
+          const t = normalize(term);
+          const re = /^[a-zа-я0-9]+$/i.test(t) ? new RegExp(`(^|[^a-zа-я0-9])${t}([^a-zа-я0-9]|$)`, "i") : null;
+          if ((re && re.test(low)) || (!re && low.includes(t))) rows.push({ group, term, line });
+        });
+      });
+      return rows;
+    };
+    try {
+      const speech = Game.NPCSpeech;
+      if (!speech || typeof speech.generateNpcLine !== "function" || typeof speech.getPool !== "function") fail("npc_speech_missing");
+      if (result.failedChecks.length) return result;
+      if (typeof speech.resetTickCache === "function") speech.resetTickCache();
+      roles.forEach((role, roleIndex) => {
+        blocks.forEach((block, blockIndex) => {
+          const channel = channels[(roleIndex + blockIndex) % channels.length];
+          const intensity = ["y", "o", "r", "k"][(roleIndex + blockIndex) % 4];
+          const ctx = {
+            role,
+            block,
+            channel,
+            intensity,
+            tick: `millennial_wording_${role}_${block}_${channel}`,
+            vars: { PLAYER: "Игрок", PLACE: "Площадь", TOPIC: "спор" }
+          };
+          const pool = speech.getPool(ctx);
+          const line = speech.generateNpcLine(ctx);
+          result.samples.push({ role, block, channel, intensity, line, pool: pool && pool.key });
+          seenRoles[role] = true;
+          seenBlocks[block] = true;
+          seenChannels[channel] = true;
+          hasForbidden(line).forEach(row => allForbiddenRows.push(Object.assign({ role, block, channel }, row)));
+          const low = normalize(line);
+          const hints = roleHints[role] || [];
+          if (!hints.some(h => low.includes(normalize(h)))) {
+            if (!roleFailures[role]) roleFailures[role] = [];
+            roleFailures[role].push({ block, channel, line });
+          }
+          if (line.length > 140) fail("line_too_long", { role, block, channel, line });
+          if (/[{}]/.test(line) || /undefined|null/i.test(line)) fail("bad_render", { role, block, channel, line });
+        });
+      });
+      result.sampleCount = result.samples.length;
+      if (result.sampleCount < 20 || result.sampleCount > 30) fail("sample_count_out_of_range", result.sampleCount);
+      roles.forEach(role => { if (!seenRoles[role]) addUnique(result.missingCoverage, `role:${role}`); });
+      blocks.forEach(block => { if (!seenBlocks[block]) addUnique(result.missingCoverage, `block:${block}`); });
+      channels.forEach(channel => { if (!seenChannels[channel]) addUnique(result.missingCoverage, `channel:${channel}`); });
+      if (allForbiddenRows.length) {
+        result.forbiddenRemaining = allForbiddenRows;
+        addUnique(result.failedChecks, "forbidden_remaining");
+      }
+      Object.keys(roleFailures).forEach(role => {
+        const rows = roleFailures[role] || [];
+        if (rows.length >= blocks.length) fail("role_voice_separation", { role, rows });
+      });
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    console.warn("NPC_SPEECH_MILLENNIAL_WORDING_SMOKE", result.ok ? "PASS" : "FAIL", result);
+    return result;
+  };
+  console.warn("NPC_SPEECH_MILLENNIAL_WORDING_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeNpcSpeechMillennialWordingOnce);
+
+
+
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
   installStep3UiTaxonomySmoke(Game.__DEV);
