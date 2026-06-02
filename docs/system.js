@@ -73,6 +73,45 @@ window.Game = window.Game || {};
     }),
   });
 
+  const SYSTEM_TEXT_TEMPLATES = Object.freeze({
+    errors: Object.freeze({
+      blockedWithHint: "Не получилось: {what}. {hint}",
+      unavailableWithHint: "Недоступно: {what}. {hint}",
+      needsValue: "Нужно: {what}. {hint}",
+    }),
+    warnings: Object.freeze({
+      actionOption: "{what}. {option}",
+      waitOption: "{what}. Можно позже.",
+      noEffectOption: "{what}. {option}",
+    }),
+    notifications: Object.freeze({
+      fact: "{what}",
+      savedValue: "{what}: {value}",
+      delta: "{what} {value}",
+    }),
+    systemEvents: Object.freeze({
+      value: "{what}: {value}",
+      route: "{what}: {value}",
+      pair: "{what}: {a} → {b}",
+    }),
+  });
+
+  const SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS = Object.freeze({
+    what: "действие",
+    hint: "Можно попробовать позже.",
+    option: "Можно выбрать другой вариант.",
+    value: "—",
+    a: "участник",
+    b: "участник",
+    name: "участник",
+    target: "цель",
+    guest: "гость",
+    location: "локация",
+    voteCost: "0",
+    teacher: "учитель",
+    student: "ученик",
+  });
+
   const SYSTEM_COPY_CODE_TAXONOMY = Object.freeze({
     errors: Object.freeze({
       E_NET: Object.freeze({ meaning: "network failure or unreachable external transport" }),
@@ -304,25 +343,46 @@ window.Game = window.Game || {};
   function safeValue(value){
     if (value === undefined || value === null) return "";
     if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return String(value);
-    try {
-      const json = JSON.stringify(value);
-      return json && json !== "{}" ? json : "";
-    } catch (_) {
-      return "";
+    if (Array.isArray(value)) return value.map((item) => safeValue(item)).filter(Boolean).join(", ");
+    if (typeof value === "object") {
+      const preferred = ["text", "label", "name", "title", "value"].map((key) => safeValue(value[key])).find(Boolean);
+      return preferred || "";
     }
+    return "";
+  }
+
+  function compactRenderedTemplate(text){
+    return String(text || "")
+      .replace(/\s+/g, " ")
+      .replace(/\s+([.,:;!?])/g, "$1")
+      .replace(/([.!?])\.+/g, "$1")
+      .replace(/([:;])\s*([.,;])/g, "$1")
+      .replace(/\(\s+/g, "(")
+      .replace(/\s+\)/g, ")")
+      .trim();
   }
 
   function renderTemplate(template, ctx){
     const source = String(template || "");
     const data = (ctx && typeof ctx === "object") ? ctx : {};
-    return source.replace(/\{([A-Za-z0-9_]+)\}/g, (_, key) => safeValue(data[key])).replace(/\s+/g, " ").trim();
+    return compactRenderedTemplate(source.replace(/\{([A-Za-z0-9_]+)\}/g, (_, key) => {
+      const rendered = safeValue(data[key]);
+      return rendered || SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS[key] || "—";
+    }));
+  }
+
+  function resolveSystemTemplate(group, code){
+    const key = String(code || "").trim();
+    const bucket = group && SystemCopy[group] && typeof SystemCopy[group] === "object" ? SystemCopy[group] : null;
+    if (bucket && Object.prototype.hasOwnProperty.call(bucket, key)) return bucket[key];
+    const family = group && SYSTEM_TEXT_TEMPLATES[group] && typeof SYSTEM_TEXT_TEMPLATES[group] === "object" ? SYSTEM_TEXT_TEMPLATES[group] : null;
+    if (family && Object.prototype.hasOwnProperty.call(family, key)) return family[key];
+    return FALLBACK_MESSAGE;
   }
 
   function say(kind, code, ctx){
     const group = normalizeKind(kind);
-    const bucket = group && SystemCopy[group] && typeof SystemCopy[group] === "object" ? SystemCopy[group] : null;
-    const key = String(code || "").trim();
-    const template = bucket && Object.prototype.hasOwnProperty.call(bucket, key) ? bucket[key] : FALLBACK_MESSAGE;
+    const template = resolveSystemTemplate(group, code);
     const rendered = renderTemplate(template, ctx);
     return rendered || FALLBACK_MESSAGE;
   }
@@ -391,6 +451,8 @@ window.Game = window.Game || {};
     copyInventory: SYSTEM_COPY_INVENTORY,
     codeTaxonomy: SYSTEM_COPY_CODE_TAXONOMY,
     taxonomyAudit: SYSTEM_COPY_TAXONOMY_AUDIT,
+    textTemplates: SYSTEM_TEXT_TEMPLATES,
+    renderTemplate,
     coverageRowsFromInventory,
     taxonomyEntries,
     systemCopyTaxonomyRows,
@@ -640,6 +702,95 @@ window.Game = window.Game || {};
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
+
+  Game.__DEV.smokeSystemTextTemplatesOnce = function smokeSystemTextTemplatesOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      sampleCount: 0,
+      renderedSamples: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const readableChecks = Object.freeze({
+      emptyBraces: /\{\s*\}/,
+      unresolvedPlaceholders: /\{[A-Za-z0-9_]+\}/,
+      undefinedToken: /undefined/i,
+      nullToken: /null/i,
+      objectObjectToken: /\[object Object\]/,
+      doubleSpaces: / {2,}/,
+      brokenPunctuation: /(^|[\s([{])[:;,.!?]|[:;]\s*[,.!?]|[.!?]{2,}|,\s*[.!?]|\s+[.,:;!?]/,
+    });
+    const samples = Object.freeze([
+      { kind: "errors", code: "blockedWithHint", ctx: { what: "нет доступа", hint: "Открой профиль." } },
+      { kind: "errors", code: "blockedWithHint", ctx: { what: "мало 💰", hint: undefined } },
+      { kind: "errors", code: "needsValue", ctx: { what: null, hint: "Проверь выбор." } },
+      { kind: "warnings", code: "actionOption", ctx: { what: "Проверь ввод", option: "Можно попробовать ещё раз." } },
+      { kind: "warnings", code: "waitOption", ctx: { what: "Кулдаун активен" } },
+      { kind: "warnings", code: "noEffectOption", ctx: { what: "Уже принято", option: { next: "можно выбрать другого" } } },
+      { kind: "notifications", code: "fact", ctx: { what: "Сохранено." } },
+      { kind: "notifications", code: "savedValue", ctx: { what: "Баланс", value: 3 } },
+      { kind: "notifications", code: "delta", ctx: { what: "+1💰", value: true } },
+      { kind: "systemEvents", code: "value", ctx: { what: "Переход выполнен", value: "Площадь" } },
+      { kind: "systemEvents", code: "pair", ctx: { what: "Баттл начался", a: "Аня", b: "Боря" } },
+      { kind: "systemEvents", code: "route", ctx: { what: "Событие", value: ["старт"] } },
+    ]);
+    const coveredKinds = new Set();
+
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      const family = SYSTEM_TEXT_TEMPLATES[group];
+      if (!family || typeof family !== "object" || Object.keys(family).length < 2) {
+        addUnique(result.missingCoverage, group);
+        fail("template_family_minimum_missing", group);
+      }
+    });
+
+    samples.forEach((sample, index) => {
+      const kind = normalizeKind(sample.kind);
+      if (kind) coveredKinds.add(kind);
+      let text = "";
+      try {
+        text = say(sample.kind, sample.code, sample.ctx);
+      } catch (error) {
+        fail("template_render_no_crash", { index, sample, error: String(error && error.message ? error.message : error) });
+      }
+      result.renderedSamples.push({ kind: sample.kind, code: sample.code, text });
+      if (typeof text !== "string" || !text.trim()) fail("rendered_text_non_empty", { index, sample, text });
+      Object.keys(readableChecks).forEach((name) => {
+        const regex = readableChecks[name];
+        regex.lastIndex = 0;
+        if (regex.test(String(text || ""))) fail(name, { index, kind: sample.kind, code: sample.code, text });
+      });
+      const forbidden = lintSystemLanguageLine(text);
+      if (forbidden.length) {
+        result.forbiddenRemaining.push({ index, kind: sample.kind, code: sample.code, text, matches: forbidden });
+        fail("forbidden_patterns_detected", { index, text, forbidden });
+      }
+    });
+
+    result.sampleCount = samples.length;
+    if (result.sampleCount < 10) fail("sample_count_minimum_10", result.sampleCount);
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      if (!coveredKinds.has(group)) {
+        addUnique(result.missingCoverage, group);
+        fail("required_kind_missing_from_samples", group);
+      }
+    });
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.sampleCount >= 10;
+    return result;
+  };
+
 
   Game.__DEV.smokeSystemCopyContractOnce = function smokeSystemCopyContractOnce(){
     const requiredGroups = Array.from(REQUIRED_SYSTEM_COPY_GROUPS);
