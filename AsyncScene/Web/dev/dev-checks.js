@@ -70,7 +70,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       { category: "dm", source: "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", get: () => "Ты мне пишешь? Тогда поговорим лично." }
     ]);
     devStore.smokeNpcSpeechInventoryOnce = function smokeNpcSpeechInventoryOnce() {
-      const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], categories: {} };
+      const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], categories: {}, presenceProof: "smokeNpcSpeechInventoryOnce:exported" };
       cats.forEach(c => result.categories[c] = { count: 0, samples: [], _seen: new Set() });
       const covered = new Set();
       sources().forEach((src, index) => {

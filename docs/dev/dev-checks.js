@@ -16,6 +16,86 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.__DEV && typeof G.__DEV.smokeStyleLexPack === "function" && typeof G.Dev.smokeStyleLexPack !== "function") {
     G.Dev.smokeStyleLexPack = G.__DEV.smokeStyleLexPack;
   }
+  const installNpcSpeechInventorySmokeEarly = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const cats = ["dm", "battle", "events", "reportReactions"];
+    const catSet = new Set(cats);
+    const norm = (v) => String(v == null ? "" : v).replace(/\s+/g, " ").trim();
+    const flatten = (value, out = []) => {
+      if (value == null) return out;
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") { out.push(String(value)); return out; }
+      if (Array.isArray(value)) { value.forEach(x => flatten(x, out)); return out; }
+      if (typeof value === "object") {
+        ["text", "q", "a", "title", "style", "risk", "advice"].forEach(k => { if (typeof value[k] === "string") out.push(value[k]); });
+        Object.keys(value).forEach(k => { if (["text", "q", "a", "title", "style", "risk", "advice"].includes(k)) return; const x = value[k]; if (typeof x === "string" || Array.isArray(x) || (x && typeof x === "object")) flatten(x, out); });
+      }
+      return out;
+    };
+    const dataGenz = (key) => Game.Data && Game.Data.TEXTS && Game.Data.TEXTS.genz ? Game.Data.TEXTS.genz[key] : null;
+    const copTpl = (key) => Game.Data && Game.Data.COP_TEMPLATES ? Game.Data.COP_TEMPLATES[key] : null;
+    const sys = (key, args, fallback) => {
+      const v = Game.Data && Game.Data.SYS && Game.Data.SYS[key];
+      try { if (typeof v === "function") return v.apply(null, args || []); } catch (_) {}
+      return typeof v === "string" ? v : fallback;
+    };
+    const required = [
+      "AsyncScene/Web/npcs.js:NPC.SAY.toxic.m", "AsyncScene/Web/npcs.js:NPC.SAY.bandit.m", "AsyncScene/Web/npcs.js:villainQuestions",
+      "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text",
+      "AsyncScene/Web/events.js:makeNpcDrawEvent.line", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", "AsyncScene/Web/data.js:Data.SYS.npcBattleEndWin",
+      "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_accept", "AsyncScene/Web/npcs.js:NPC.COP.topics", "AsyncScene/Web/state.js:report flow hardcoded replies"
+    ];
+    const sources = () => (Game.NPC && Array.isArray(Game.NPC.SPEECH_INVENTORY_SOURCES) ? Game.NPC.SPEECH_INVENTORY_SOURCES : []).concat([
+      { category: "dm", source: "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", get: () => Game.Data && Game.Data.NPC_CHAT_LINES },
+      { category: "dm", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.intros", get: () => copTpl("intros") },
+      { category: "dm", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.chatReplies", get: () => copTpl("chatReplies") },
+      { category: "dm", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.cooldownReplies", get: () => copTpl("cooldownReplies") },
+      { category: "battle", source: "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", get: () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.attack },
+      { category: "battle", source: "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text", get: () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.defense },
+      { category: "battle", source: "AsyncScene/Web/data.js:Data.SYS.challengedLine", get: () => sys("challengedLine", ["NPC", 10], "NPC [10] вызвал(а) тебя на баттл. Жми сюда — баттл наверх.") },
+      { category: "events", source: "AsyncScene/Web/events.js:makeNpcDrawEvent.line", get: () => "Толпа решает: NPC A [1] и NPC B [2]." },
+      { category: "events", source: "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", get: () => "Толпа решает: NPC A хочет Отвали NPC B." },
+      { category: "events", source: "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", get: () => "Толпа решает: NPC A хочет Свалить NPC B." },
+      { category: "events", source: "AsyncScene/Web/data.js:Data.SYS.npcBattleStart", get: () => sys("npcBattleStart", ["NPC A", "NPC B"], "Площадь ловит движ: NPC A вызывает NPC B.") },
+      { category: "events", source: "AsyncScene/Web/data.js:Data.SYS.npcBattleEndWin", get: () => sys("npcBattleEndWin", ["NPC A", "NPC B"], "Затащил NPC A. NPC B проигрывает.") },
+      { category: "events", source: "AsyncScene/Web/data.js:Data.SYS.npcBattleEndDraw", get: () => sys("npcBattleEndDraw", ["NPC A", "NPC B"], "Поровну, без перевеса. NPC A и NPC B разошлись.") },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_accept", get: () => dataGenz("cop_report_accept") },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_ok", get: () => dataGenz("cop_report_ok") },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_fail", get: () => dataGenz("cop_report_fail") },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_busy", get: () => dataGenz("cop_busy") },
+      { category: "reportReactions", source: "AsyncScene/Web/npcs.js:NPC.COP.topics", get: () => Game.NPC && Game.NPC.COP && Game.NPC.COP.topics },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.warnings", get: () => copTpl("warnings") },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.thanks", get: () => copTpl("thanks") },
+      { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.scolds", get: () => copTpl("scolds") },
+      { category: "reportReactions", source: "AsyncScene/Web/state.js:report flow hardcoded replies", get: () => ["Принял. Сейчас разберёмся.", "Цель не обнаружена. Проверю ещё раз.", "Этот контакт уже отмечен. Повтор не требуется.", "Уточните, кого сдаёте: токсик, бандит или мафиози.", "Информация подтвердилась. Контакт отмечен.", "Я понимаю, что вас это задело. Меры приняты."] },
+      { category: "dm", source: "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", get: () => "Ты мне пишешь? Тогда поговорим лично." }
+    ]);
+    devStore.smokeNpcSpeechInventoryOnce = function smokeNpcSpeechInventoryOnce() {
+      const result = { ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], categories: {}, presenceProof: "smokeNpcSpeechInventoryOnce:exported" };
+      cats.forEach(c => result.categories[c] = { count: 0, samples: [], _seen: new Set() });
+      const covered = new Set();
+      sources().forEach((src, index) => {
+        const category = src && src.category;
+        const source = src && src.source;
+        if (!catSet.has(category)) { result.failures.push({ code: "unknown_category", source: source || null, category: category || null, index }); return; }
+        if (!source || typeof source !== "string") { result.failures.push({ code: "unknown_source", source: source || null, category, index }); return; }
+        let value;
+        try { value = typeof src.get === "function" ? src.get() : src.value; } catch (err) { result.failures.push({ code: "source_read_failed", source, category, message: err && err.message ? String(err.message) : String(err) }); return; }
+        const texts = flatten(value, []).map(norm).filter(Boolean);
+        if (!texts.length) { result.missingCoverage.push(source); return; }
+        covered.add(source);
+        texts.forEach(t => { if (/Console\.txt/i.test(t)) result.forbiddenRemaining.push({ source, text: t }); const b = result.categories[category]; if (!b._seen.has(t)) { b._seen.add(t); b.count += 1; if (b.samples.length < 3) b.samples.push(t); } });
+      });
+      required.forEach(source => { if (!covered.has(source) && !result.missingCoverage.includes(source)) result.missingCoverage.push(source); });
+      cats.forEach(c => { if (result.categories[c].count <= 0) result.failedChecks.push(`${c}_empty`); delete result.categories[c]._seen; });
+      if (result.failures.length) result.failedChecks.push("failures_present");
+      if (result.forbiddenRemaining.length) result.failedChecks.push("forbidden_remaining");
+      if (result.missingCoverage.length) result.failedChecks.push("missing_coverage");
+      result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
+  };
+  installNpcSpeechInventorySmokeEarly(G.__DEV);
+  console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeNpcSpeechInventoryOnce);
   const installStep3TerminologyInventorySmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1";
@@ -26616,6 +26696,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     return result;
   };
   console.warn("STEP4_ARG_CANON_MILLENNIAL_AGGREGATE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeArgCanonMillennialOnce);
+
+
 
 
   installStep3TerminologyInventorySmoke(Game.__DEV);

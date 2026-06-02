@@ -4807,3 +4807,11 @@ Error: Download failure, code=1
 - Scope guard: no gameplay, economy, battle, crowd, report, or UI behavior changed; `Console.txt` was not used.
 - Local checks: JS syntax checks passed, and a local Node VM invocation confirmed the helper is installed and returns populated category counts. This is not a Safari runtime PASS.
 - Safari QA command: `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
+
+## 2026-06-02 - Step 5.1 Safari export fix for NPC speech inventory smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; no Safari runtime PASS is claimed.
+- Mirrored `Game.__DEV.smokeNpcSpeechInventoryOnce()` into both runtime bundles used by the repo/GitHub Pages paths (`AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`) so the helper is exported on `Game.__DEV` after page load.
+- Added a tiny `presenceProof` field to the returned smoke object while preserving the required fields: `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `categories`.
+- Mirrored the NPC speech inventory source metadata into `docs/npcs.js` and cache-busted the dev-checks/NPC scripts in both HTML entrypoints.
+- Scope guard preserved: dev-only export fix, no gameplay changes, no text rewrites, no UI changes, and no `Console.txt` changes.
+- Required Safari command: `Game.__DEV.smokeNpcSpeechInventoryOnce()`.
