@@ -49,6 +49,25 @@
 
 ```
 
+### [T-20260602-061] Step 6 [8] Runtime smoke helper missing
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Core
+- Files: `AsyncScene/Web/system.js` `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html`
+- Goal: READY_FOR_RUNTIME_SMOKE only.
+- Acceptance:
+  - [x] READY_FOR_RUNTIME_SMOKE only.
+- Result: READY_FOR_RUNTIME_SMOKE only.
+- Report:
+  - Status: DONE
+  - Facts: READY_FOR_RUNTIME_SMOKE only.
+  - Changed: `AsyncScene/Web/index.html` `docs/system.js` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: READY_FOR_RUNTIME_SMOKE only.
+  - Next: Дима.
+  - Next Prompt: READY_FOR_RUNTIME_SMOKE only.
+
 ### [T-20260602-060] Step 6 [5] Minimal Text Templates
 - Status: DONE
 - Priority: P0
