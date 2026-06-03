@@ -1,3 +1,13 @@
+## 2026-06-03 — Step 7 [5] economy honesty source contract fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Fixed the onboarding source contract only: `Data.START_SCREEN.introLines` is back to exactly three choice/risk/result lines, and the economy/action honesty copy now lives in separate `Data.START_SCREEN.economyHonestyLine`.
+- Start-screen rendering now fills a dedicated `#startEconomyHonestyLine` from `Data.START_SCREEN.economyHonestyLine`; intro DOM remains sourced only from `Data.START_SCREEN.introLines`, and button/title sourcing remains unchanged.
+- Updated Step 7 smokes to expect three instruction lines plus one separate economy honesty line and to compare rendered intro/economy text against their own source fields without duplicate/manual text.
+- No economy logic, gameplay, or `onboardingSeen` behavior was changed.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/ui/ui-boot.js`; PASS `node --check docs/ui/ui-boot.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingEconomyHonestyOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 7 [5] economy/action honesty line
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
