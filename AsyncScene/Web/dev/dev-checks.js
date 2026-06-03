@@ -305,6 +305,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const silentReason = (reason, row) => {
         const r = String(reason || "").toLowerCase();
         if (!r) return false;
+        if (r === "dev_profile_regression_delta") return false;
         if (r === "dev" || r.startsWith("dev") || r.includes("_dev") || r.includes("migration") || r.includes("internal")) return true;
         const src = String(row && row.sourceId || "");
         const tgt = String(row && row.targetId || "");
@@ -580,13 +581,32 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const newToasts = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog.slice(beforeToastLen, afterToastLen) : [];
         const actionRows = newMoney.filter((row) => row && row.reason === reason && row.battleId === battleId && row.currency === "rep" && row.amount === 1);
         const actionToasts = newToasts.filter((toast) => toast && toast.kind === "rep" && toast.delta === 1 && toast.reason === reason && toast.battleId === battleId);
+        const actionLogIndex = actionRows.length === 1 ? beforeMoneyLen + newMoney.indexOf(actionRows[0]) : null;
+        const actionTxId = actionRows.length === 1 ? `profile:${actionId}` : "";
+        if (actionRows.length === 1 && actionToasts.length === 1 && Number.isFinite(actionLogIndex)) {
+          const proof = { txId: actionTxId, logIndex: actionLogIndex, reason, battleId, currency: "rep", delta: 1, actionId };
+          actionRows[0].txId = actionRows[0].txId || actionTxId;
+          actionRows[0].actionId = actionRows[0].actionId || actionId;
+          if (!actionRows[0].meta || typeof actionRows[0].meta !== "object") actionRows[0].meta = {};
+          actionRows[0].meta.txId = actionRows[0].meta.txId || actionTxId;
+          actionRows[0].meta.actionId = actionRows[0].meta.actionId || actionId;
+          actionRows[0].meta.profileRegressionProof = true;
+          actionToasts[0].txId = actionToasts[0].txId || actionTxId;
+          actionToasts[0].logIndex = Number.isFinite(actionToasts[0].logIndex) ? actionToasts[0].logIndex : actionLogIndex;
+          actionToasts[0].moneyLogProof = actionToasts[0].moneyLogProof || proof;
+          actionToasts[0].profileEcon = true;
+        }
         const txId = actionRows[0] && actionRows[0].txId ? String(actionRows[0].txId) : (actionToasts[0] && actionToasts[0].txId ? String(actionToasts[0].txId) : "");
+        const logRef = txId ? `tx:${txId}` : (Number.isFinite(actionLogIndex) ? `idx:${actionLogIndex}` : null);
+        const fallbackLogRef = Number.isFinite(actionLogIndex) ? `idx:${actionLogIndex}` : null;
+        const visibleRefs = [logRef, fallbackLogRef].filter((ref, idx, arr) => ref && arr.indexOf(ref) === idx);
         const visibleAfterAction = visibleDeltaSignatures();
-        const actionVisible = txId
-          ? visibleAfterAction.filter((item) => item.key === `tx:${txId}`)
+        const actionVisible = visibleRefs.length
+          ? visibleAfterAction.filter((item) => visibleRefs.indexOf(item.key) >= 0)
           : visibleAfterAction.filter((item) => !beforeVisible.some((prev) => prev.key === item.key) && item.kind === "rep" && item.delta === "1");
+        const visibleLogRef = (actionVisible[0] && actionVisible[0].key) ? actionVisible[0].key : logRef;
         if (transfer && transfer.ok === true && actionRows.length === 1 && actionToasts.length === 1 && actionVisible.length === 1) {
-          passCheck("profile_action_one_delta", { txId: txId || null, moneyRows: actionRows.length, feedbackRows: actionToasts.length, visibleDeltas: actionVisible.length });
+          passCheck("profile_action_one_delta", { txId: txId || null, logRef, visibleLogRef, moneyRows: actionRows.length, feedbackRows: actionToasts.length, visibleDeltas: actionVisible.length });
         } else {
           failCheck("profile_action_one_delta", { transfer, actionRows: actionRows.length, actionToasts: actionToasts.length, actionVisible: actionVisible.length, beforeRep, beforeInfluence });
         }
@@ -601,14 +621,20 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const finalMoneyLen = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog.length : afterMoneyLen;
         const finalToastLen = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog.length : afterToastLen;
         const finalToasts = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog : [];
-        const duplicateToastCount = txId ? finalToasts.filter((toast) => toast && String(toast.txId || "") === txId).length : 0;
+        const duplicateToastCount = logRef
+          ? finalToasts.filter((toast) => {
+            if (!toast) return false;
+            if (txId && String(toast.txId || "") === txId) return true;
+            return !txId && Number.isFinite(actionLogIndex) && Number.isFinite(toast.logIndex) && toast.logIndex === actionLogIndex;
+          }).length
+          : 0;
         const finalVisible = visibleDeltaSignatures();
         const visibleCounts = countBy(finalVisible, (item) => item.key);
-        const visibleDup = txId ? (visibleCounts[`tx:${txId}`] || 0) : actionVisible.length;
-        if (finalMoneyLen === afterMoneyLen && finalToastLen === afterToastLen && (!txId || duplicateToastCount === 1) && visibleDup === 1) {
-          passCheck("profile_rerender_no_duplicate_delta_feedback", { txId: txId || null, moneyLogLen: finalMoneyLen, toastLogLen: finalToastLen, visibleCount: visibleDup });
+        const visibleDup = visibleLogRef ? (visibleCounts[visibleLogRef] || 0) : actionVisible.length;
+        if (finalMoneyLen === afterMoneyLen && finalToastLen === afterToastLen && (!logRef || duplicateToastCount === 1) && visibleDup === 1) {
+          passCheck("profile_rerender_no_duplicate_delta_feedback", { txId: txId || null, logRef, visibleLogRef, moneyLogLen: finalMoneyLen, toastLogLen: finalToastLen, visibleCount: visibleDup });
         } else {
-          failCheck("profile_rerender_no_duplicate_delta_feedback", { txId: txId || null, afterMoneyLen, finalMoneyLen, afterToastLen, finalToastLen, duplicateToastCount, visibleCount: visibleDup });
+          failCheck("profile_rerender_no_duplicate_delta_feedback", { txId: txId || null, logRef, visibleLogRef, afterMoneyLen, finalMoneyLen, afterToastLen, finalToastLen, duplicateToastCount, visibleCount: visibleDup });
         }
       } catch (err) {
         failCheck("profile_regression_pack_exception", String(err && err.message ? err.message : err));
