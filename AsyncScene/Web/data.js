@@ -3671,6 +3671,7 @@ K YN A9: Нет.
     root.__DEV.smokeOnboardingSpecOnce = function smokeOnboardingSpecOnce() {
       const result = {
         ok: false,
+        specSmokeVersion: "step7_spec_pointer_v2",
         failures: [],
         failedChecks: [],
         hasStartScreenSource: false,
@@ -3822,18 +3823,25 @@ K YN A9: Нет.
             const stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : (top ? [top] : []);
             const cs = (typeof getComputedStyle === "function") ? getComputedStyle(button) : null;
             const topIsButton = top === button || (top && button.contains(top));
-            const inconclusiveEmptyHitTest = hasValidRect && centerInViewport && !top && stack.length === 0;
-            const blocked = !isVisibleNode(button)
-              || (cs && cs.pointerEvents === "none")
+            const visibleButton = isVisibleNode(button);
+            const pointerEnabled = !cs || cs.pointerEvents !== "none";
+            const stackList = Array.from(stack || []).filter(Boolean);
+            const emptyNullHitTest = !top && stackList.length === 0;
+            const safariNullHitTestAllowed = emptyNullHitTest && hasValidRect && centerInViewport && visibleButton && pointerEnabled;
+            const blocked = !visibleButton
+              || !pointerEnabled
               || !hasValidRect
               || !centerInViewport
-              || (!inconclusiveEmptyHitTest && !topIsButton);
+              || (!safariNullHitTestAllowed && !topIsButton);
             if (blocked) {
               const detail = {
                 button: name,
-                top: describeNode(top),
-                stack: stack.slice(0, 6).map(describeNode),
+                top: top ? describeNode(top) : null,
+                stack: stackList.slice(0, 6).map(describeNode),
                 pointerEvents: cs ? cs.pointerEvents : null,
+                visible: visibleButton,
+                hasValidRect,
+                centerInViewport,
                 rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) }
               };
               result.pointerBlockers.push(detail);

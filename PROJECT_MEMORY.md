@@ -4837,3 +4837,10 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeOnboardingSeenOnce()` covering fresh state, Start persistence, repeat Continue mode, reset preservation, no stuck/loop state, Start/Continue entry, and Step 7 [1]-[3] smoke delegation.
 - Cache-busted the mirrored HTML entrypoints for state/data/ui boot bundles. Scope guard preserved: no gameplay/economy changes beyond avoiding first-start reset in resume mode, no UI redesign beyond the required reset control, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()`.
+
+## 2026-06-03 - Step 7 [4] deployed spec pointer blocker v2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the deployed data-bundle `Game.__DEV.smokeOnboardingSpecOnce()` pointer-blocker path by adding `specSmokeVersion:"step7_spec_pointer_v2"`, normalizing the hit-test stack, and allowing the Safari `top:null` plus empty-stack case only when the button has a valid in-viewport rect, is visible, and pointer events are enabled.
+- Real pointer blocker failures are preserved for invalid rects, offscreen centers, `pointer-events:none`, hidden buttons, and non-button top elements.
+- Bumped mirrored app/docs `data.js` cache keys so Safari can prove the v2 smoke loaded; onboardingSeen logic, gameplay, economy, UI, content, and `Console.txt` were not changed.
+- Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()`.
