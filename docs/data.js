@@ -3811,12 +3811,23 @@ K YN A9: Нет.
             const rect = button.getBoundingClientRect();
             const x = rect.left + (rect.width / 2);
             const y = rect.top + (rect.height / 2);
+            const viewportWidth = (typeof window !== "undefined" && Number.isFinite(window.innerWidth)) ? window.innerWidth : null;
+            const viewportHeight = (typeof window !== "undefined" && Number.isFinite(window.innerHeight)) ? window.innerHeight : null;
+            const hasValidRect = Number.isFinite(rect.left) && Number.isFinite(rect.top)
+              && Number.isFinite(rect.width) && Number.isFinite(rect.height)
+              && rect.width > 0 && rect.height > 0;
+            const centerInViewport = viewportWidth == null || viewportHeight == null
+              || (x >= 0 && y >= 0 && x <= viewportWidth && y <= viewportHeight);
             const top = document.elementFromPoint(x, y);
             const stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : (top ? [top] : []);
             const cs = (typeof getComputedStyle === "function") ? getComputedStyle(button) : null;
+            const topIsButton = top === button || (top && button.contains(top));
+            const inconclusiveEmptyHitTest = hasValidRect && centerInViewport && !top && stack.length === 0;
             const blocked = !isVisibleNode(button)
               || (cs && cs.pointerEvents === "none")
-              || !(top === button || (top && button.contains(top)));
+              || !hasValidRect
+              || !centerInViewport
+              || (!inconclusiveEmptyHitTest && !topIsButton);
             if (blocked) {
               const detail = {
                 button: name,
