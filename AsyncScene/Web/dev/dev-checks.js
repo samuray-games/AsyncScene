@@ -449,6 +449,195 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const smokeProfileRegressionPackOnce = () => {
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (id, detail) => {
+        addUnique(result.failedChecks, id);
+        addUnique(result.failures, detail === undefined ? id : { check: id, detail });
+      };
+      const passCheck = (id, detail) => {
+        result.checks.push({ id, ok: true, detail: detail || null });
+      };
+      const failCheck = (id, detail) => {
+        result.checks.push({ id, ok: false, detail: detail || null });
+        fail(id, detail);
+      };
+      const mergeSmoke = (id, smoke) => {
+        if (!smoke || typeof smoke !== "object") {
+          failCheck(id, "smoke_return_missing");
+          addUnique(result.missingCoverage, id);
+          return false;
+        }
+        ["failures", "forbiddenRemaining", "missingCoverage", "failedChecks"].forEach((key) => {
+          if (Array.isArray(smoke[key])) {
+            smoke[key].forEach((item) => addUnique(result[key], { smoke: id, item }));
+          }
+        });
+        const ok = smoke.ok === true
+          && (!Array.isArray(smoke.failures) || smoke.failures.length === 0)
+          && (!Array.isArray(smoke.forbiddenRemaining) || smoke.forbiddenRemaining.length === 0)
+          && (!Array.isArray(smoke.missingCoverage) || smoke.missingCoverage.length === 0)
+          && (!Array.isArray(smoke.failedChecks) || smoke.failedChecks.length === 0);
+        if (ok) passCheck(id, { ok: true });
+        else failCheck(id, smoke);
+        return ok;
+      };
+      const callSmoke = (id, fn) => {
+        if (typeof fn !== "function") {
+          addUnique(result.missingCoverage, id);
+          failCheck(id, "smoke_missing");
+          return false;
+        }
+        try {
+          return mergeSmoke(id, fn());
+        } catch (err) {
+          failCheck(id, `exception:${err && err.message ? String(err.message) : String(err)}`);
+          return false;
+        }
+      };
+      const visibleDeltaSignatures = () => {
+        if (typeof document === "undefined" || !document.querySelectorAll) return [];
+        return Array.from(document.querySelectorAll(".statToast--delta")).filter((el) => {
+          try {
+            const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+            return el && el.style.display !== "none" && (!style || (style.display !== "none" && style.visibility !== "hidden"));
+          } catch (_) { return true; }
+        }).map((el) => {
+          const ds = el && el.dataset ? el.dataset : {};
+          const key = ds.txId ? `tx:${ds.txId}` : (ds.logIndex ? `idx:${ds.logIndex}` : `dom:${el.id || normalizeProfileText(el.textContent || "")}`);
+          return { key, kind: String(ds.deltaKind || ""), delta: String(ds.delta || ""), text: normalizeProfileText(el.textContent || "") };
+        });
+      };
+      const countBy = (items, pick) => {
+        const map = Object.create(null);
+        items.forEach((item) => {
+          const key = pick(item);
+          if (!key) return;
+          map[key] = (map[key] || 0) + 1;
+        });
+        return map;
+      };
+      try {
+        const S = (Game && (Game.__S || Game.State)) ? (Game.__S || Game.State) : null;
+        const topBar = (typeof document !== "undefined") ? document.getElementById("topBar") : null;
+        const balance = (typeof document !== "undefined") ? document.getElementById("balance") : null;
+        const me = S && S.me && typeof S.me === "object" ? S.me : null;
+        if (S && me && topBar && balance) {
+          passCheck("profile_state_available", {
+            isStarted: S.isStarted === true,
+            name: String(me.name || ""),
+            points: Number.isFinite(me.points) ? (me.points | 0) : null,
+            rep: Number.isFinite(S.rep) ? (S.rep | 0) : null
+          });
+        } else {
+          failCheck("profile_state_available", {
+            hasState: !!S,
+            hasMe: !!me,
+            hasTopBar: !!topBar,
+            hasBalance: !!balance
+          });
+        }
+
+        callSmoke("profile_self_check", devStore.smokeProfileSelfCheckOnce);
+        callSmoke("profile_not_service", Game && Game.__DEV ? Game.__DEV.smokeProfileNotServiceOnce : null);
+        callSmoke("profile_adult_tone", devStore.smokeProfileAdultToneOnce);
+        callSmoke("profile_modern_ui", devStore.smokeProfileModernUiOnce);
+        callSmoke("profile_economy_honesty", devStore.smokeProfileEconomyHonestyOnce);
+
+        const actionId = `profile_regression_pack_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        const battleId = actionId;
+        const reason = "dev_profile_regression_delta";
+        const dbg = (Game && Game.__D && typeof Game.__D === "object") ? Game.__D : null;
+        if (dbg && !Array.isArray(dbg.moneyLog)) dbg.moneyLog = [];
+        if (dbg && !Array.isArray(dbg.toastLog)) dbg.toastLog = [];
+        const beforeMoneyLen = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog.length : 0;
+        const beforeToastLen = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog.length : 0;
+        const beforeVisible = visibleDeltaSignatures();
+        const beforeRep = S && Number.isFinite(S.rep) ? (S.rep | 0) : null;
+        const beforeInfluence = me && Number.isFinite(me.influence) ? (me.influence | 0) : null;
+        if (S && me) {
+          try { S.rep = 0; } catch (_) {}
+          try { me.influence = 0; S.influence = 0; } catch (_) {}
+          try {
+            if (!S.players || typeof S.players !== "object") S.players = {};
+            S.players.me = me;
+          } catch (_) {}
+        }
+        const transfer = Game && Game.__A && typeof Game.__A.transferRep === "function"
+          ? Game.__A.transferRep("crowd_pool", "me", 1, reason, battleId, { actionId, context: "profile_regression_pack" })
+          : null;
+        const afterMoneyLen = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog.length : beforeMoneyLen;
+        const afterToastLen = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog.length : beforeToastLen;
+        const newMoney = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog.slice(beforeMoneyLen, afterMoneyLen) : [];
+        const newToasts = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog.slice(beforeToastLen, afterToastLen) : [];
+        const actionRows = newMoney.filter((row) => row && row.reason === reason && row.battleId === battleId && row.currency === "rep" && row.amount === 1);
+        const actionToasts = newToasts.filter((toast) => toast && toast.kind === "rep" && toast.delta === 1 && toast.reason === reason && toast.battleId === battleId);
+        const txId = actionRows[0] && actionRows[0].txId ? String(actionRows[0].txId) : (actionToasts[0] && actionToasts[0].txId ? String(actionToasts[0].txId) : "");
+        const visibleAfterAction = visibleDeltaSignatures();
+        const actionVisible = txId
+          ? visibleAfterAction.filter((item) => item.key === `tx:${txId}`)
+          : visibleAfterAction.filter((item) => !beforeVisible.some((prev) => prev.key === item.key) && item.kind === "rep" && item.delta === "1");
+        if (transfer && transfer.ok === true && actionRows.length === 1 && actionToasts.length === 1 && actionVisible.length === 1) {
+          passCheck("profile_action_one_delta", { txId: txId || null, moneyRows: actionRows.length, feedbackRows: actionToasts.length, visibleDeltas: actionVisible.length });
+        } else {
+          failCheck("profile_action_one_delta", { transfer, actionRows: actionRows.length, actionToasts: actionToasts.length, actionVisible: actionVisible.length, beforeRep, beforeInfluence });
+        }
+
+        if (Game && Game.UI && typeof Game.UI.renderAll === "function") {
+          try { Game.UI.renderAll(); } catch (err) { fail("profile_rerender_no_duplicate_delta_feedback", `renderAll_1:${err && err.message ? String(err.message) : String(err)}`); }
+          try { Game.UI.renderAll(); } catch (err) { fail("profile_rerender_no_duplicate_delta_feedback", `renderAll_2:${err && err.message ? String(err.message) : String(err)}`); }
+        } else {
+          addUnique(result.missingCoverage, "profile_rerender_no_duplicate_delta_feedback");
+          fail("profile_rerender_no_duplicate_delta_feedback", "renderAll_missing");
+        }
+        const finalMoneyLen = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog.length : afterMoneyLen;
+        const finalToastLen = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog.length : afterToastLen;
+        const finalToasts = dbg && Array.isArray(dbg.toastLog) ? dbg.toastLog : [];
+        const duplicateToastCount = txId ? finalToasts.filter((toast) => toast && String(toast.txId || "") === txId).length : 0;
+        const finalVisible = visibleDeltaSignatures();
+        const visibleCounts = countBy(finalVisible, (item) => item.key);
+        const visibleDup = txId ? (visibleCounts[`tx:${txId}`] || 0) : actionVisible.length;
+        if (finalMoneyLen === afterMoneyLen && finalToastLen === afterToastLen && (!txId || duplicateToastCount === 1) && visibleDup === 1) {
+          passCheck("profile_rerender_no_duplicate_delta_feedback", { txId: txId || null, moneyLogLen: finalMoneyLen, toastLogLen: finalToastLen, visibleCount: visibleDup });
+        } else {
+          failCheck("profile_rerender_no_duplicate_delta_feedback", { txId: txId || null, afterMoneyLen, finalMoneyLen, afterToastLen, finalToastLen, duplicateToastCount, visibleCount: visibleDup });
+        }
+      } catch (err) {
+        failCheck("profile_regression_pack_exception", String(err && err.message ? err.message : err));
+      }
+      const required = [
+        "profile_state_available",
+        "profile_self_check",
+        "profile_not_service",
+        "profile_adult_tone",
+        "profile_modern_ui",
+        "profile_economy_honesty",
+        "profile_action_one_delta",
+        "profile_rerender_no_duplicate_delta_feedback"
+      ];
+      const covered = new Set(result.checks.map((check) => check && check.id).filter(Boolean));
+      required.forEach((id) => {
+        if (!covered.has(id)) addUnique(result.missingCoverage, id);
+      });
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missingCoverage");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.checks.length >= 6
+        && result.checks.length <= 8
+        && result.checks.every((check) => check && check.ok === true);
+      return result;
+    };
+
     const smokeProfileSelfCheckOnce = () => {
       const failures = [];
       const failedChecks = [];
@@ -480,11 +669,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
     Game.Dev.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
+    Game.Dev.smokeProfileRegressionPackOnce = smokeProfileRegressionPackOnce;
     devStore.profileSelfCheck = profileSelfCheck;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     devStore.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
     devStore.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
+    devStore.smokeProfileRegressionPackOnce = smokeProfileRegressionPackOnce;
   }
 
   installProfileSelfCheck(Game.__DEV);
