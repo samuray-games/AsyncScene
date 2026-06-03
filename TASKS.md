@@ -50,6 +50,30 @@
 
 ```
 
+### [T-20260603-080] Step 8D Profile No Forum 2007 UI Audit
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Content|Infra
+- Files: `AsyncScene/Web/index.html` `docs/index.html` `AsyncScene/Web/style.css` `docs/style.css` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js`
+- Goal: Add the profile no-forum-2007 runtime audit and make only minimal profile UI fixes so the profile area reads as a modern status surface, not an old table/forum page.
+- Acceptance:
+  - [x] `Game.__DEV.smokeProfileModernUiOnce()` exists in both runtime bundles.
+  - [x] Smoke returns exactly `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] Smoke fails on empty placeholder counters, grey placeholder content, disabled-looking content buttons, legacy table markers, or profile CTA labels longer than two words.
+  - [x] Profile stat separators were replaced with compact stat chips; no economy or gameplay logic changed.
+  - [x] No `Console.txt` usage was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeProfileModernUiOnce()`.
+- Result: Added mirrored profile modern-UI smoke, modernized the profile stat row markup/styles, and cache-busted the dev-checks script tag.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The smoke audits `#topBar` for empty `()`/`[]` counters, placeholder-looking content, disabled-looking content buttons, legacy table markers including pipes/bracketed counters/table tags, required coverage, and 1–2 word CTA labels.
+  - Changed: `AsyncScene/Web/index.html` `docs/index.html` `AsyncScene/Web/style.css` `docs/style.css` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeProfileModernUiOnce()`
+  - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeProfileModernUiOnce()` in Safari and verify `ok === true`, with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 ### [T-20260603-079] Step 8C Profile Tone & Length Audit
 - Status: DONE
 - Priority: P0
