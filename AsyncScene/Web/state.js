@@ -31,6 +31,53 @@ window.Game = window.Game || {};
     } catch (_) {}
   }
 
+  const ONBOARDING_SEEN_STORAGE_KEY = "AsyncScene_onboarding_seen_v1";
+
+  function getStorage(){
+    try {
+      return (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function readPersistedOnboardingSeen(){
+    const storage = getStorage();
+    if (!storage) return false;
+    try {
+      return storage.getItem(ONBOARDING_SEEN_STORAGE_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function writePersistedOnboardingSeen(value){
+    const storage = getStorage();
+    if (!storage) return false;
+    try {
+      if (value) storage.setItem(ONBOARDING_SEEN_STORAGE_KEY, "1");
+      else storage.setItem(ONBOARDING_SEEN_STORAGE_KEY, "0");
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function ensureProgressOnboardingSeen(){
+    if (!State.progress || typeof State.progress !== "object") State.progress = {};
+    if (typeof State.progress.onboardingSeen !== "boolean") {
+      State.progress.onboardingSeen = readPersistedOnboardingSeen();
+    }
+    return State.progress.onboardingSeen === true;
+  }
+
+  function setOnboardingSeen(value){
+    ensureProgress();
+    State.progress.onboardingSeen = value === true;
+    writePersistedOnboardingSeen(State.progress.onboardingSeen);
+    return State.progress.onboardingSeen;
+  }
+
   // Avoid capturing Util/Data too early: other scripts may load after state.js.
   // Always resolve dependencies at call-time and provide safe fallbacks.
   const getUtil = () => Game.Util || {};
@@ -90,11 +137,12 @@ window.Game = window.Game || {};
 
   function ensureProgress(){
     if (!State.progress || typeof State.progress !== "object") {
-      State.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
+      State.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0, onboardingSeen: readPersistedOnboardingSeen() };
     }
     if (!Number.isFinite(State.progress.weeklyInfluenceGained)) State.progress.weeklyInfluenceGained = 0;
     if (!Number.isFinite(State.progress.weekStartAt)) State.progress.weekStartAt = 0;
     if (!Number.isFinite(State.progress.lastDailyBonusAt)) State.progress.lastDailyBonusAt = 0;
+    if (typeof State.progress.onboardingSeen !== "boolean") State.progress.onboardingSeen = readPersistedOnboardingSeen();
   }
 
   function dayKeyFromNowTs(nowTs){
@@ -2024,6 +2072,13 @@ window.Game = window.Game || {};
       lastChatRewardAt: 0,
     },
 
+    progress: {
+      weeklyInfluenceGained: 0,
+      weekStartAt: 0,
+      lastDailyBonusAt: 0,
+      onboardingSeen: readPersistedOnboardingSeen(),
+    },
+
     training: buildTrainingStateFrom({}),
     dayIndex: 0,
 
@@ -2277,6 +2332,7 @@ window.Game = window.Game || {};
       weeklyInfluenceGained: 0,
       weekStartAt: 0,
       lastDailyBonusAt: 0,
+      onboardingSeen: readPersistedOnboardingSeen(),
     };
     State._seededNPCs = false;
     guardPointsObject(State.me, "State.me.points");
@@ -4559,6 +4615,10 @@ window.Game = window.Game || {};
     getAllMentionCandidates,
     getMentionNames,
     findPlayerIdByName,
+
+    getOnboardingSeen: () => ensureProgressOnboardingSeen(),
+    setOnboardingSeen: (value) => setOnboardingSeen(value),
+    resetOnboardingSeen: () => setOnboardingSeen(false),
 
     getNpcState: () => State.npc,
     setNpcCooldowns: ({ chatMs, actionMs }) => {
