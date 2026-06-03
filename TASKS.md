@@ -49,6 +49,30 @@
 
 ```
 
+### [T-20260603-076] Step 7 [5] Economy/action honesty line
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Economy|Content
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Add one honest start-screen economy/action line that says action costs/results are shown immediately without promising victory or changing economy/gameplay.
+- Acceptance:
+  - [x] `Data.START_SCREEN.introLines` has exactly one added short economy/action honesty line.
+  - [x] The added line states immediate visibility of action price/result, without victory promises, morality, pressure, slang, or memes.
+  - [x] Minimal start UI, `onboardingSeen`, gameplay, and economy logic remain unchanged.
+  - [x] `Game.__DEV.smokeOnboardingEconomyHonestyOnce()` verifies exactly one economy honesty line, no victory promise, immediate paid/stat delta, moneyLog match, and existing Step 7 smokes.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeOnboardingEconomyHonestyOnce()`.
+- Result: Added `Цена и итог действия видны сразу.` to the start-screen data and added the economy honesty runtime smoke in both mirrored data bundles, then bumped the data script cache keys.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Start-screen copy now includes one economy/action honesty line; smokes now allow the four-line start copy while preserving the first three choice/risk/result checks; the new smoke checks first paid/stat action delta against moneyLog synchronously and runs existing Step 7 smokes.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/data.js`; `node --check docs/data.js`; Safari console `Game.__DEV.smokeOnboardingEconomyHonestyOnce()`
+  - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeOnboardingEconomyHonestyOnce()` in Safari and verify exactly one economy honesty line, no victory promise, immediate first paid/stat delta, moneyLog match, and no Step 7 smoke regressions.
+
+
 ### [T-20260603-075] Step 7 [4] Spec Smoke Viewport-Center False Failure Fix
 - Status: DONE
 - Priority: P0
