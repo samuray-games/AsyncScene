@@ -50,6 +50,30 @@
 
 ```
 
+### [T-20260603-081] Step 8E Profile Economy Honesty Audit
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Economy|Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/state.js` `docs/state.js` `AsyncScene/Web/ui/ui-core.js` `docs/ui/ui-core.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Add profile economy honesty validation so profile points/REP deltas have matching moneyLog proof and exactly one immediate profile delta feedback surface.
+- Acceptance:
+  - [x] `Game.__DEV.smokeProfileEconomyHonestyOnce()` exists in both runtime bundles.
+  - [x] Smoke returns exactly `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] Smoke fails on profile points/REP moneyLog rows without profile feedback proof, feedback without moneyLog proof, duplicate feedback per proof, or unsupported profile economy promises.
+  - [x] Points/REP stat delta feedback carries moneyLog proof metadata when a matching transaction exists and creates one visible delta element per feedback call.
+  - [x] No gameplay or balance changes were introduced, and `Console.txt` was not used.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeProfileEconomyHonestyOnce()`.
+- Result: Added mirrored profile economy honesty smoke, profile delta proof metadata, one-feedback-per-delta rendering, and cache-busted changed scripts.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The smoke audits profile roots, profile points/REP moneyLog↔feedback pairing, duplicate profile delta feedback, visible delta proof metadata, and unsupported profile economy promise text.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/state.js` `docs/state.js` `AsyncScene/Web/ui/ui-core.js` `docs/ui/ui-core.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; `node --check AsyncScene/Web/state.js`; `node --check docs/state.js`; `node --check AsyncScene/Web/ui/ui-core.js`; `node --check docs/ui/ui-core.js`; Safari console `Game.__DEV.smokeProfileEconomyHonestyOnce()`
+  - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeProfileEconomyHonestyOnce()` in Safari and verify `ok === true`, with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 ### [T-20260603-080] Step 8D Profile No Forum 2007 UI Audit
 - Status: DONE
 - Priority: P0

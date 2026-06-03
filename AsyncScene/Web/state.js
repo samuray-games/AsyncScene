@@ -1943,19 +1943,75 @@ window.Game = window.Game || {};
     }
   })();
 
+  function signedProfileDeltaFromMoneyRow(row, wantedKind){
+    if (!row || typeof row !== "object") return 0;
+    const currency = String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points";
+    if (currency !== String(wantedKind || "")) return 0;
+    const amountSource = row.amount !== undefined ? row.amount : row.delta;
+    const amount = Number(amountSource);
+    if (!Number.isFinite(amount) || amount === 0) return 0;
+    const src = String(row.sourceId || "");
+    const tgt = String(row.targetId || "");
+    const meId = (State && State.me && State.me.id) ? String(State.me.id) : "me";
+    const sourceIsMe = src === "me" || src === meId;
+    const targetIsMe = tgt === "me" || tgt === meId;
+    if (targetIsMe && !sourceIsMe) return amount | 0;
+    if (sourceIsMe && !targetIsMe) return -(amount | 0);
+    return 0;
+  }
+
+  function findProfileMoneyLogProof(kind, delta, meta){
+    if (kind !== "points" && kind !== "rep") return null;
+    if (!Game.__D || typeof Game.__D !== "object" || !Array.isArray(Game.__D.moneyLog)) return null;
+    const diff = delta | 0;
+    if (!diff) return null;
+    const reason = meta && meta.reason ? String(meta.reason) : "";
+    const battleId = meta && meta.battleId != null ? String(meta.battleId) : "";
+    const actionId = meta && meta.actionId != null ? String(meta.actionId) : "";
+    const log = Game.__D.moneyLog;
+    for (let i = log.length - 1; i >= 0; i--) {
+      const row = log[i];
+      if (!row || typeof row !== "object") continue;
+      if (signedProfileDeltaFromMoneyRow(row, kind) !== diff) continue;
+      const rowReason = String(row.reason || (row.meta && row.meta.reason) || "");
+      if (reason && rowReason && rowReason !== reason) continue;
+      const rowBattleId = row.battleId != null ? String(row.battleId) : ((row.meta && row.meta.battleId != null) ? String(row.meta.battleId) : "");
+      if (battleId && rowBattleId && rowBattleId !== battleId) continue;
+      const rowActionId = row.actionId != null ? String(row.actionId) : ((row.meta && row.meta.actionId != null) ? String(row.meta.actionId) : "");
+      if (actionId && rowActionId && rowActionId !== actionId) continue;
+      return {
+        txId: row.txId ? String(row.txId) : null,
+        logIndex: i,
+        reason: rowReason || reason || null,
+        battleId: rowBattleId || battleId || null,
+        currency: kind,
+        delta: diff
+      };
+    }
+    return null;
+  }
+
   function emitStatDelta(kind, delta, meta){
     if (!kind || !Number.isFinite(Number(delta || 0))) return;
+    const statKind = String(kind);
     const diff = (delta | 0);
     if (!diff) return;
+    const profileKind = (statKind === "points" || statKind === "rep") ? statKind : null;
+    const moneyLogProof = profileKind ? findProfileMoneyLogProof(profileKind, diff, meta || null) : null;
+    const enrichedMeta = Object.assign({}, (meta && typeof meta === "object") ? meta : {}, moneyLogProof ? { __moneyLogRef: moneyLogProof } : {});
     try {
       if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
       if (!Array.isArray(Game.__D.toastLog)) Game.__D.toastLog = [];
       Game.__D.toastLog.push({
         time: Date.now(),
-        kind: String(kind),
+        kind: statKind,
         delta: diff,
         reason: meta && meta.reason ? String(meta.reason) : null,
         battleId: (meta && meta.battleId != null) ? meta.battleId : null,
+        profileEcon: !!profileKind,
+        moneyLogProof: moneyLogProof || null,
+        txId: moneyLogProof && moneyLogProof.txId ? moneyLogProof.txId : null,
+        logIndex: moneyLogProof && Number.isFinite(moneyLogProof.logIndex) ? moneyLogProof.logIndex : null
       });
       if (Game.__D.toastLog.length > 300) {
         Game.__D.toastLog.splice(0, Game.__D.toastLog.length - 300);
@@ -1963,7 +2019,7 @@ window.Game = window.Game || {};
     } catch (_) {}
     try {
       if (Game && Game.UI && typeof Game.UI.emitStatDelta === "function") {
-        Game.UI.emitStatDelta(kind, diff, meta || null);
+        Game.UI.emitStatDelta(statKind, diff, enrichedMeta);
       }
     } catch (_) {}
   }
