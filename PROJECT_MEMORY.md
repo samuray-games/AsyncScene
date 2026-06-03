@@ -1,3 +1,12 @@
+## 2026-06-03 — Step 8F Profile Regression Pack Economy Honesty Fix
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Fixed only the Step 8F profile regression pack/economy honesty correlation path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The dev profile regression REP delta now gets deterministic proof metadata on its matching moneyLog row and feedback row (`profile:<actionId>` txId plus log index), while visible delta verification can still correlate the already-rendered DOM by log index.
+- `profile_economy_honesty` no longer silences the specific `dev_profile_regression_delta` proof row, so feedback-to-moneyLog and moneyLog-to-feedback stay strict for the dev regression delta instead of ignoring one side of the pair.
+- No gameplay, balance, UI redesign, unrelated refactor, or `Console.txt` usage.
+- Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`.
+- Required Safari command: `Game.__DEV.smokeProfileRegressionPackOnce()` must return `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 8E Profile Economy Honesty Audit
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
 - Added mirrored runtime smoke `Game.__DEV.smokeProfileEconomyHonestyOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
