@@ -4588,5 +4588,89 @@ K YN A9: Нет.
 
   installOnboardingSeenSmokeViaData();
 
+  const installOnboardingRegressionPackSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    root.__DEV.smokeOnboardingRegressionPackOnce = function smokeOnboardingRegressionPackOnce() {
+      const startedAt = (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
+      const result = {
+        ok: false,
+        failedChecks: [],
+        failures: [],
+        summary: {
+          smokeCount: 0,
+          passedCount: 0,
+          failedCount: 0,
+          missingCount: 0,
+          requiresManualInteraction: false,
+          timeoutMs: 120000
+        },
+        subSmokes: {},
+        totalMs: 0
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const now = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
+      const subSmokeList = [
+        { key: "specFresh", fn: "smokeOnboardingSpecOnce" },
+        { key: "minimalUiLayout", fn: "smokeOnboardingMinimalUiOnce" },
+        { key: "howItWorks", fn: "smokeOnboardingHowItWorksOnce" },
+        { key: "onboardingSeen", fn: "smokeOnboardingSeenOnce" },
+        { key: "economyHonesty", fn: "smokeOnboardingEconomyHonestyOnce" },
+        { key: "millennialTone", fn: "smokeOnboardingMillennialToneOnce" }
+      ];
+      try {
+        subSmokeList.forEach((entry) => {
+          const fn = root.__DEV && root.__DEV[entry.fn];
+          result.summary.smokeCount += 1;
+          if (typeof fn !== "function") {
+            result.summary.missingCount += 1;
+            result.subSmokes[entry.key] = { ok: false, failedChecks: ["sub_smoke_missing"], failures: [{ code: "sub_smoke_missing", detail: entry.fn }] };
+            fail(`${entry.key}:sub_smoke_missing`, entry.fn);
+            return;
+          }
+          const subStartedAt = now();
+          try {
+            const subResult = fn();
+            const subMs = Math.round(now() - subStartedAt);
+            result.subSmokes[entry.key] = subResult && typeof subResult === "object"
+              ? Object.assign({ totalMs: subMs }, subResult)
+              : { ok: false, totalMs: subMs, failedChecks: ["sub_smoke_invalid_result"], failures: [{ code: "sub_smoke_invalid_result", detail: subResult }] };
+          } catch (err) {
+            result.subSmokes[entry.key] = { ok: false, totalMs: Math.round(now() - subStartedAt), failedChecks: ["sub_smoke_exception"], failures: [{ code: "sub_smoke_exception", detail: err && err.message ? String(err.message) : String(err) }] };
+          }
+          const sub = result.subSmokes[entry.key];
+          if (sub && sub.ok === true) {
+            result.summary.passedCount += 1;
+          } else {
+            result.summary.failedCount += 1;
+            fail(`${entry.key}:not_ok`, sub);
+          }
+          const subFailedChecks = sub && Array.isArray(sub.failedChecks) ? sub.failedChecks : [];
+          subFailedChecks.forEach((code) => fail(`${entry.key}:${code}`, sub));
+          const subFailures = sub && Array.isArray(sub.failures) ? sub.failures : [];
+          subFailures.forEach((failure) => {
+            const code = failure && failure.code ? String(failure.code) : "sub_failure";
+            fail(`${entry.key}:${code}`, failure);
+          });
+        });
+      } catch (err) {
+        fail("onboarding_regression_pack_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.totalMs = Math.round(now() - startedAt);
+      if (result.totalMs > result.summary.timeoutMs) fail("onboarding_regression_pack_timeout", result.totalMs);
+      result.summary.failedCount = subSmokeList.length - result.summary.passedCount - result.summary.missingCount;
+      result.ok = result.failedChecks.length === 0 && result.summary.passedCount === subSmokeList.length && result.summary.missingCount === 0 && result.totalMs <= result.summary.timeoutMs;
+      console.warn("ONBOARDING_REGRESSION_PACK_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("ONBOARDING_REGRESSION_PACK_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeOnboardingRegressionPackOnce);
+  };
+
+  installOnboardingRegressionPackSmokeViaData();
+
   Game.Data = Data;
 })();
