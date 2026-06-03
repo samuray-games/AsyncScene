@@ -45,7 +45,7 @@ window.Game = window.Game || {};
       escapeNeedsPoints: "Не хватает 💰, чтобы Свалить.",
     }),
     notifications: Object.freeze({
-      saved: "Сохранено.",
+      saved: "Готово.",
       pointsDeltaPlusOne: "+1💰",
       repDeltaPlusOne: "+1⭐",
       pointsDeltaVoteCost: "-{voteCost}💰",
@@ -1115,7 +1115,7 @@ window.Game = window.Game || {};
       { kind: "warnings", code: "actionOption", ctx: { what: "Проверь ввод", option: "Можно ещё раз." } },
       { kind: "warnings", code: "waitOption", ctx: { what: "Подожди немного" } },
       { kind: "warnings", code: "noEffectOption", ctx: { what: "Уже принято", option: "Можно позже." } },
-      { kind: "notifications", code: "fact", ctx: { what: "Сохранено." } },
+      { kind: "notifications", code: "fact", ctx: { what: "Готово." } },
       { kind: "notifications", code: "savedValue", ctx: { what: "Баланс", value: "три" } },
       { kind: "notifications", code: "delta", ctx: { what: "Баланс", value: "+1💰" } },
       { kind: "systemEvents", code: "value", ctx: { what: "Переход", value: "площадь" } },
@@ -1173,7 +1173,7 @@ window.Game = window.Game || {};
       { kind: "warnings", code: "actionOption", ctx: { what: "Проверь ввод", option: "Можно попробовать ещё раз." } },
       { kind: "warnings", code: "waitOption", ctx: { what: "Кулдаун активен" } },
       { kind: "warnings", code: "noEffectOption", ctx: { what: "Уже принято", option: { next: "можно выбрать другого" } } },
-      { kind: "notifications", code: "fact", ctx: { what: "Сохранено." } },
+      { kind: "notifications", code: "fact", ctx: { what: "Готово." } },
       { kind: "notifications", code: "savedValue", ctx: { what: "Баланс", value: 3 } },
       { kind: "notifications", code: "delta", ctx: { what: "+1💰", value: true } },
       { kind: "systemEvents", code: "value", ctx: { what: "Переход выполнен", value: "Площадь" } },
@@ -1442,6 +1442,89 @@ window.Game = window.Game || {};
 
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
     if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  Game.__DEV.smokeProfileNotServiceOnce = function smokeProfileNotServiceOnce(){
+    const result = {
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const serviceTerms = Object.freeze([
+      "status", "account", "settings", "parameters", "configuration", "saved", "successful",
+      "статус", "аккаунт", "настройки", "параметры", "конфигурация", "сохранено", "успешно"
+    ]);
+    const escapeRegex = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const hasBoundary = (source, start, end) => {
+      const before = start > 0 ? source.charAt(start - 1) : "";
+      const after = end < source.length ? source.charAt(end) : "";
+      return !/[A-Za-zА-Яа-яЁё0-9_]/.test(before) && !/[A-Za-zА-Яа-яЁё0-9_]/.test(after);
+    };
+    const findServiceTerms = (text) => {
+      const source = String(text || "");
+      const hits = [];
+      serviceTerms.forEach((term) => {
+        const regex = new RegExp(escapeRegex(term), "ig");
+        let match;
+        while ((match = regex.exec(source))) {
+          if (hasBoundary(source, match.index, match.index + match[0].length)) {
+            hits.push({ term, match: match[0] });
+            break;
+          }
+        }
+      });
+      return hits;
+    };
+    const collectStringLeaves = (sourceName, value, path, rows, seen) => {
+      if (value == null) return;
+      if (typeof value === "string") {
+        rows.push({ source: sourceName, path, text: value });
+        return;
+      }
+      if (typeof value !== "object") return;
+      if (seen.has(value)) return;
+      seen.add(value);
+      if (Array.isArray(value)) {
+        value.forEach((item, index) => collectStringLeaves(sourceName, item, `${path}[${index}]`, rows, seen));
+        return;
+      }
+      Object.keys(value).sort().forEach((key) => collectStringLeaves(sourceName, value[key], path ? `${path}.${key}` : key, rows, seen));
+    };
+    const sourceMap = Object.freeze({
+      SystemCopy: Game.SystemCopy || SystemCopy,
+      SystemTextTemplates: Game.SystemTextTemplates || SYSTEM_TEXT_TEMPLATES,
+      SystemFallbacks: SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS,
+      SystemLanguageProfile: SYSTEM_LANGUAGE_PROFILE,
+    });
+    const requiredSources = Object.keys(sourceMap);
+    const rows = [];
+    requiredSources.forEach((sourceName) => {
+      const before = rows.length;
+      collectStringLeaves(sourceName, sourceMap[sourceName], "", rows, new Set());
+      if (rows.length === before) {
+        addUnique(result.missingCoverage, sourceName);
+        fail("profile_copy_source_missing", sourceName);
+      }
+    });
+    rows.forEach((row) => {
+      const matches = findServiceTerms(row.text);
+      if (matches.length) addUnique(result.forbiddenRemaining, { source: row.source, path: row.path, text: row.text, matches });
+    });
+    if (result.forbiddenRemaining.length) fail("profile_service_markers_remaining", result.forbiddenRemaining);
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
