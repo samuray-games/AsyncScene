@@ -1,3 +1,11 @@
+## 2026-06-03 — Step 7 [6] millennial wording polish only
+
+- Polished only the onboarding/start-screen copy in both runtime bundles while preserving the existing source structure: title, exactly three how-it-works intro lines, one `economyHonestyLine`, and two CTA labels.
+- Added `Data.START_SCREEN_TEXT_MAX_LENGTH = 36` and `Game.__DEV.smokeOnboardingMillennialToneOnce()` to validate every start-screen text field for length, forbidden wording, officialese, pressure language, moralizing language, baby-talk, and existing Step 7 smoke health.
+- No gameplay, economy, layout redesign, or `onboardingSeen` behavior was changed.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`; PASS `node --check AsyncScene/Web/ui/ui-boot.js`; PASS `node --check docs/ui/ui-boot.js`; WARN `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8765/ node scripts/run-asyncscene-smoke.mjs smokeOnboardingMillennialToneOnce` could not launch because Playwright Chromium is missing.
+- Required Safari command: `Game.__DEV.smokeOnboardingMillennialToneOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 7 [5] economy honesty source contract fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
