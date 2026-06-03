@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <title>AsyncScene</title>
   <base href="/AsyncScene/" />
-  <link rel="stylesheet" href="style.css?v=step7-minimal-start-ui-v1" />
+  <link rel="stylesheet" href="style.css?v=step8d-profile-no-forum-2007-v1" />
 </head>
 <body>
   <div id="app" class="layout">
@@ -30,7 +30,12 @@
 
     <div id="right" class="right">
       <div id="topBar" class="topbar">
-        <div id="balance"><span title="Влияние">⚡</span> <span id="meInfluence">0</span> | <span title="⭐">⭐</span> <span id="meRep">0</span>/<span id="meRepNeed">12</span> <span id="weeklyCapNote"></span> | <span class="pointsWrap"><span class="pointsRow"><span title="💰">💰</span> <span id="mePoints" class="pointsValue">0</span><span id="mePointsOverflow" class="pointsOverflow"></span></span><span id="pointsCapNote" class="pointsNote"></span></span> | <span title="Победы">🏆</span> <span id="meWins">0</span></div>
+        <div id="balance" aria-label="Профиль">
+          <span class="statChip" data-profile-stat="influence"><span class="statIcon" title="Влияние">⚡</span><span id="meInfluence" class="statValue">0</span></span>
+          <span class="statChip" data-profile-stat="rep"><span class="statIcon" title="⭐">⭐</span><span id="meRep" class="statValue">0</span><span class="statHint">до</span><span id="meRepNeed" class="statValue">12</span><span id="weeklyCapNote"></span></span>
+          <span class="statChip pointsWrap" data-profile-stat="points"><span class="pointsRow"><span class="statIcon" title="💰">💰</span><span id="mePoints" class="pointsValue statValue">0</span><span id="mePointsOverflow" class="pointsOverflow"></span></span><span id="pointsCapNote" class="pointsNote"></span></span>
+          <span class="statChip" data-profile-stat="wins"><span class="statIcon" title="Победы">🏆</span><span id="meWins" class="statValue">0</span></span>
+        </div>
         <div id="weeklyCapLine" class="capLine"></div>
         <button id="btnMenu" class="btn">Меню</button>
       </div>
@@ -116,7 +121,7 @@
     </div>
   </div>
 
-  <script defer src="dev/dev-checks.js?v=step8c-profile-adult-tone-v1"></script>
+  <script defer src="dev/dev-checks.js?v=step8d-profile-no-forum-2007-v1"></script>
   <script defer src="util.js?v=2"></script>
   <script defer src="system.js?v=step8b-profile-not-service-v1"></script>
   <script defer src="state.js?v=step7-onboarding-seen-v1"></script>

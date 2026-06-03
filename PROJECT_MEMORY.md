@@ -1,3 +1,12 @@
+## 2026-06-03 — Step 8D Profile No Forum 2007 UI Audit
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Added mirrored runtime smoke `Game.__DEV.smokeProfileModernUiOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Smoke returns exactly `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks }` and requires every array to be empty for `ok:true`.
+- Audit coverage: profile root coverage, empty `()`/`[]` counters, grey placeholder content, disabled-looking content buttons, legacy table markers, and 1–2 word profile CTA labels.
+- Updated the profile stat row from pipe-separated legacy text to compact stat chips in both runtime bundles; no economy or gameplay logic changed.
+- Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`.
+- Required Safari command: `Game.__DEV.smokeProfileModernUiOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 8C Profile Tone & Length Audit
 - Implemented mirrored runtime smoke `Game.__DEV.smokeProfileAdultToneOnce()` in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`.
 - Smoke returns exactly `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks }` and treats PASS as all arrays empty.
