@@ -5566,3 +5566,11 @@ Error: Download failure, code=1
 - Cache-busted the mirrored system bundle script tags so Safari loads the new smoke.
 - Scope guard preserved: profile/system strings, dev smoke, and cache-bust strings only; no UI layout, economy, gameplay, refactor, or `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeProfileNotServiceOnce()`.
+
+## 2026-06-03 - Step 8F Profile Regression Mini Pack
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added mirrored dev-only `Game.__DEV.smokeProfileRegressionPackOnce()` as the fast Step 8 profile regression mini-pack.
+- Pack covers profile state availability, `profileSelfCheck`, `profileNotService`, `profileAdultTone`, `profileModernUi`, `profileEconomyHonesty`, one profile REP action producing exactly one delta, and rerender/refresh not duplicating the same delta or feedback.
+- Return contract is `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, checks }`; `ok:true` requires all arrays empty and every included check passing.
+- Scope guard preserved: dev smoke only, no UI changes, no economy changes, no gameplay changes, no unrelated refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeProfileRegressionPackOnce()`.
