@@ -4890,3 +4890,11 @@ Error: Download failure, code=1
 - Real pointer blocker failures are preserved for invalid rects, offscreen centers, `pointer-events:none`, hidden buttons, and non-button top elements.
 - Bumped mirrored app/docs `data.js` cache keys so Safari can prove the v2 smoke loaded; onboardingSeen logic, gameplay, economy, UI, content, and `Console.txt` were not changed.
 - Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()`.
+
+## 2026-06-03 - Step 8A Profile Self Check
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added mirrored dev-only profile self-check helpers on `Game.Dev.profileSelfCheck()` and `Game.__DEV.profileSelfCheck()` returning `{ ok, checks, failures }` with exactly `serviceLike`, `suitableFor35yo`, and `forum2007Feeling` checks.
+- Each check always carries `id`, boolean `result`, non-empty `explain`, and `triggers: []`; helper validation keeps `ok:true` tied to all three checks being calculated and explained without undefined values.
+- Added `Game.__DEV.smokeProfileSelfCheckOnce()` returning `{ ok, failures, failedChecks }` for runtime validation of object shape, exact check count, no undefined values, and explains.
+- Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Required Safari command: `Game.__DEV.smokeProfileSelfCheckOnce()`.
