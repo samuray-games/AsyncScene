@@ -9,17 +9,18 @@ window.Game = window.Game || {};
     "Tori","Haru","Sen","Dara","Memelord","Sigma","Boss","Zzz","Kappa","Fox"
   ];
 
+  Data.START_SCREEN_TEXT_MAX_LENGTH = 36;
   Data.START_SCREEN = Object.freeze({
     title: "AsyncScene",
     introLines: Object.freeze([
       "Ты выбираешь оппонента.",
-      "Спор стоит ресурс.",
-      "Победа приносит репутацию."
+      "Ставка — ресурс.",
+      "Итог идет в репутацию."
     ]),
-    economyHonestyLine: "Цена и итог действия видны сразу.",
+    economyHonestyLine: "Цена и итог видны сразу.",
     actions: Object.freeze({
       start: "Старт",
-      rules: "Правила"
+      rules: "Суть"
     })
   });
 
@@ -4331,6 +4332,95 @@ K YN A9: Нет.
       }
       result.ok = result.failedChecks.length === 0;
       console.warn("ONBOARDING_ECONOMY_HONESTY_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    root.__DEV.smokeOnboardingMillennialToneOnce = function smokeOnboardingMillennialToneOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        maxLineLength: Data.START_SCREEN_TEXT_MAX_LENGTH,
+        fields: [],
+        forbiddenWording: [],
+        officialese: [],
+        pressureLanguage: [],
+        moralizingLanguage: [],
+        babyTalk: [],
+        allLinesWithinLimit: false,
+        step7Smokes: {}
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const addHit = (bucket, field, text, label) => {
+        bucket.push({ field, label, text });
+      };
+      try {
+        const runtimeData = (root && root.Data) ? root.Data : Data;
+        const spec = runtimeData && runtimeData.START_SCREEN;
+        const max = Number.isFinite(runtimeData && runtimeData.START_SCREEN_TEXT_MAX_LENGTH) ? runtimeData.START_SCREEN_TEXT_MAX_LENGTH : Data.START_SCREEN_TEXT_MAX_LENGTH;
+        result.maxLineLength = max;
+        if (!Number.isFinite(max) || max <= 0) fail("line_limit_constant_invalid", max);
+        if (!spec || typeof spec.title !== "string" || !Array.isArray(spec.introLines) || typeof spec.economyHonestyLine !== "string" || !spec.actions) fail("missing_start_screen_source", null);
+        const actions = spec && spec.actions ? spec.actions : {};
+        const fields = [
+          { name: "title", text: spec && typeof spec.title === "string" ? spec.title : "" },
+          { name: "introLines[0]", text: spec && spec.introLines ? spec.introLines[0] : "" },
+          { name: "introLines[1]", text: spec && spec.introLines ? spec.introLines[1] : "" },
+          { name: "introLines[2]", text: spec && spec.introLines ? spec.introLines[2] : "" },
+          { name: "economyHonestyLine", text: spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine : "" },
+          { name: "actions.start", text: typeof actions.start === "string" ? actions.start : "" },
+          { name: "actions.rules", text: typeof actions.rules === "string" ? actions.rules : "" }
+        ];
+        result.fields = fields.map((field) => ({ name: field.name, text: String(field.text || "").trim(), length: String(field.text || "").trim().length }));
+        if (spec && (!Array.isArray(spec.introLines) || spec.introLines.length !== 3)) fail("intro_line_count_not_three", spec && spec.introLines ? spec.introLines.length : null);
+        if (Object.keys(actions).length !== 2 || typeof actions.start !== "string" || typeof actions.rules !== "string") fail("cta_count_not_two", Object.keys(actions));
+        fields.forEach((field) => {
+          const text = String(field.text || "").trim();
+          if (!text) fail("start_screen_line_empty", field.name);
+          if (Number.isFinite(max) && text.length > max) fail("start_screen_line_over_limit", { field: field.name, length: text.length, max, text });
+        });
+        result.allLinesWithinLimit = result.fields.every((field) => field.length > 0 && Number.isFinite(max) && field.length <= max);
+
+        const checks = [
+          { bucket: result.forbiddenWording, label: "forbidden_wording", pattern: /туториал|обучение|подсказка|инструкция|справка|помощь|документация|гайд|лол|кек|мем|кринж|хайп|рофл|имба|изи|вайб|движ|жми|нажми|кликни|прочитай|следуй|изучи|запомни/i },
+          { bucket: result.officialese, label: "officialese", pattern: /официальн|регламент|политик|процедур|документ|документац|сертифиц|верифиц|соответств|предпис|протокол|согласно|инструкц|руководств/i },
+          { bucket: result.pressureLanguage, label: "pressure", pattern: /надо|нужно|обязан|обязана|обязаны|должен|должна|должны|срочно|быстро|успей|тороп|жми|давай|вперед|сейчас/i },
+          { bucket: result.moralizingLanguage, label: "moralizing", pattern: /правильно|неправильно|хорошо|плохо|стыд|вина|виноват|честн|нечестн|справедлив|заслуж/i },
+          { bucket: result.babyTalk, label: "baby_talk", pattern: /малыш|детка|зай|котик|лапк|солнышк|умничк|молодец|няш|сюсю/i }
+        ];
+        fields.forEach((field) => {
+          const text = String(field.text || "").trim();
+          checks.forEach((check) => {
+            if (check.pattern.test(text)) addHit(check.bucket, field.name, text, check.label);
+          });
+        });
+        if (result.forbiddenWording.length) fail("forbidden_wording_present", result.forbiddenWording.slice());
+        if (result.officialese.length) fail("officialese_present", result.officialese.slice());
+        if (result.pressureLanguage.length) fail("pressure_language_present", result.pressureLanguage.slice());
+        if (result.moralizingLanguage.length) fail("moralizing_language_present", result.moralizingLanguage.slice());
+        if (result.babyTalk.length) fail("baby_talk_present", result.babyTalk.slice());
+        if (!result.allLinesWithinLimit) fail("start_screen_line_limit_failed", result.fields);
+
+        try { if (typeof root.__DEV.smokeOnboardingSpecOnce === "function") result.step7Smokes.spec = root.__DEV.smokeOnboardingSpecOnce(); }
+        catch (err) { result.step7Smokes.spec = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingMinimalUiOnce === "function") result.step7Smokes.minimalUi = root.__DEV.smokeOnboardingMinimalUiOnce(); }
+        catch (err) { result.step7Smokes.minimalUi = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingHowItWorksOnce === "function") result.step7Smokes.howItWorks = root.__DEV.smokeOnboardingHowItWorksOnce(); }
+        catch (err) { result.step7Smokes.howItWorks = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingSeenOnce === "function") result.step7Smokes.seen = root.__DEV.smokeOnboardingSeenOnce(); }
+        catch (err) { result.step7Smokes.seen = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingEconomyHonestyOnce === "function") result.step7Smokes.economyHonesty = root.__DEV.smokeOnboardingEconomyHonestyOnce(); }
+        catch (err) { result.step7Smokes.economyHonesty = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        ["spec", "minimalUi", "howItWorks", "seen", "economyHonesty"].forEach((key) => {
+          if (result.step7Smokes[key] && result.step7Smokes[key].ok !== true) fail(`step7_${key}_smoke_failed`, result.step7Smokes[key]);
+        });
+      } catch (err) {
+        fail("onboarding_millennial_tone_smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_MILLENNIAL_TONE_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
     console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V2", typeof root.__DEV.smokeOnboardingSpecOnce);
