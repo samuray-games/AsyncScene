@@ -924,33 +924,34 @@ window.Game = window.Game || {};
     delete activeDeltaToasts[kind];
   }
 
-  function showDeltaToastInstant(kind, delta){
+  function showDeltaToastInstant(kind, delta, opts){
     const d = (delta | 0);
-    if (!kind || !d) return;
+    if (!kind || !d) return null;
     const anchor = statAnchor(kind);
-    if (!anchor) return;
+    if (!anchor) return null;
 
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
     const icon = icons[kind] || "";
-    const prev = activeDeltaToasts[kind];
-    const value = (prev && typeof prev.value === "number") ? (prev.value | 0) : 0;
-    const nextValue = value + d;
-    const sign = nextValue > 0 ? "+" : "";
-    const text = `${icon} ${sign}${nextValue}`;
+    const sign = d > 0 ? "+" : "";
+    const text = `${icon} ${sign}${d}`;
 
     const r = anchor.getBoundingClientRect();
     const left = Math.round(r.left + (r.width / 2));
     const top = Math.round(r.bottom + 8);
 
-    let toast = prev ? prev.el : null;
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = `statToast_delta_${kind}`;
-      toast.className = "statToast statToast--delta";
-      toast.dataset.deltaKind = kind;
-      toast.onclick = () => dismissDeltaToast(kind);
-      document.body.appendChild(toast);
-    }
+    UI.__deltaToastSeq = (Number.isFinite(UI.__deltaToastSeq) ? (UI.__deltaToastSeq | 0) : 0) + 1;
+    const toast = document.createElement("div");
+    toast.id = `statToast_delta_${kind}_${Date.now()}_${UI.__deltaToastSeq}`;
+    toast.className = "statToast statToast--delta";
+    toast.dataset.deltaKind = kind;
+    toast.dataset.delta = String(d);
+    if (opts && opts.reason) toast.dataset.reason = String(opts.reason);
+    if (opts && opts.battleId != null) toast.dataset.battleId = String(opts.battleId);
+    const proof = opts && opts.__moneyLogRef ? opts.__moneyLogRef : null;
+    if (proof && proof.txId) toast.dataset.txId = String(proof.txId);
+    if (proof && Number.isFinite(proof.logIndex)) toast.dataset.logIndex = String(proof.logIndex);
+    toast.onclick = () => { try { toast.remove(); } catch (_) { toast.style.display = "none"; } };
+    document.body.appendChild(toast);
 
     toast.textContent = text;
     toast.style.left = `${left}px`;
@@ -959,7 +960,23 @@ window.Game = window.Game || {};
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
 
-    activeDeltaToasts[kind] = { el: toast, value: nextValue };
+    activeDeltaToasts[`${kind}:${toast.id}`] = { el: toast, value: d };
+    try {
+      const tape = Game && Game.__DEV ? (Game.__DEV.__toastTape__ || []) : [];
+      tape.push({
+        kind,
+        text,
+        delta: d,
+        source: "profile_delta",
+        reason: opts && opts.reason ? String(opts.reason) : null,
+        txId: proof && proof.txId ? String(proof.txId) : null,
+        logIndex: proof && Number.isFinite(proof.logIndex) ? proof.logIndex : null,
+        ts: Date.now()
+      });
+      if (tape.length > 40) tape.splice(0, tape.length - 40);
+      Game.__DEV.__toastTape__ = tape;
+    } catch (_) {}
+    return toast;
   }
 
   const pushToastToTape = (text) => {
@@ -1026,7 +1043,7 @@ window.Game = window.Game || {};
   UI.emitStatDelta = (kind, delta, opts) => {
     if (!kind || !Number.isFinite(Number(delta || 0)) || (delta | 0) === 0) return;
     // Must be immediate: same tick as the stat mutation, without batching/aggregation.
-    showDeltaToastInstant(kind, (delta | 0));
+    showDeltaToastInstant(kind, (delta | 0), opts || null);
   };
 
   // De-dup stat toasts by text (hide previous identical ones).

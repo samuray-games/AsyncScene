@@ -259,6 +259,196 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeProfileEconomyHonestyOnce = () => {
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const requiredChecks = [
+        "profile_roots",
+        "moneylog_to_feedback",
+        "feedback_to_moneylog",
+        "duplicate_feedback",
+        "profile_text_supported"
+      ];
+      const covered = new Set();
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value);
+      const parseAmount = (value) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? (n | 0) : 0;
+      };
+      const signedDeltaFromRow = (row) => {
+        if (!row || typeof row !== "object") return 0;
+        const currency = String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points";
+        const amount = parseAmount(row.amount !== undefined ? row.amount : row.delta);
+        if (!amount) return 0;
+        const src = String(row.sourceId || "");
+        const tgt = String(row.targetId || "");
+        const meId = (Game && Game.__S && Game.__S.me && Game.__S.me.id) ? String(Game.__S.me.id) : "me";
+        const sourceIsMe = src === "me" || src === meId;
+        const targetIsMe = tgt === "me" || tgt === meId;
+        if (targetIsMe && !sourceIsMe) return amount;
+        if (sourceIsMe && !targetIsMe) return -amount;
+        return 0;
+      };
+      const rowCurrency = (row) => String(row && (row.currency || row.kind) || "points").toLowerCase() === "rep" ? "rep" : "points";
+      const rowReason = (row) => String(row && (row.reason || (row.meta && row.meta.reason)) || "");
+      const rowBattleId = (row) => String(row && (row.battleId || (row.meta && row.meta.battleId)) || "");
+      const silentReason = (reason, row) => {
+        const r = String(reason || "").toLowerCase();
+        if (!r) return false;
+        if (r === "dev" || r.startsWith("dev") || r.includes("_dev") || r.includes("migration") || r.includes("internal")) return true;
+        const src = String(row && row.sourceId || "");
+        const tgt = String(row && row.targetId || "");
+        const involvesMe = src === "me" || tgt === "me";
+        return !involvesMe && /^(world_tax_|world_stipend_|npc_account_|npc_activity_tax|crowd_cap_debug)/.test(r);
+      };
+      const moneyKey = (row, index) => {
+        if (row && row.txId) return `tx:${String(row.txId)}`;
+        return `idx:${index}`;
+      };
+      const feedbackKey = (toast) => {
+        const proof = toast && toast.moneyLogProof ? toast.moneyLogProof : null;
+        if (toast && toast.txId) return `tx:${String(toast.txId)}`;
+        if (proof && proof.txId) return `tx:${String(proof.txId)}`;
+        if (toast && Number.isFinite(toast.logIndex)) return `idx:${toast.logIndex}`;
+        if (proof && Number.isFinite(proof.logIndex)) return `idx:${proof.logIndex}`;
+        return "";
+      };
+      try {
+        covered.add("profile_roots");
+        const balance = typeof document !== "undefined" ? document.getElementById("balance") : null;
+        const topBar = typeof document !== "undefined" ? document.getElementById("topBar") : null;
+        if (!balance || !topBar) fail("profile_roots", { balance: !!balance, topBar: !!topBar });
+        const requiredStats = ["points", "rep"];
+        requiredStats.forEach((stat) => {
+          const node = typeof document !== "undefined" ? document.querySelector(`[data-profile-stat='${stat}']`) : null;
+          if (!node) fail("profile_roots", `missing_profile_stat:${stat}`);
+        });
+
+        const dbg = (Game && Game.__D && typeof Game.__D === "object") ? Game.__D : {};
+        const moneyLog = Array.isArray(dbg.moneyLog) ? dbg.moneyLog : [];
+        const toastLog = Array.isArray(dbg.toastLog) ? dbg.toastLog : [];
+        const relevantMoney = [];
+        moneyLog.forEach((row, index) => {
+          const currency = rowCurrency(row);
+          if (currency !== "points" && currency !== "rep") return;
+          const delta = signedDeltaFromRow(row);
+          if (!delta) return;
+          const reason = rowReason(row);
+          if (silentReason(reason, row)) return;
+          relevantMoney.push({ row, index, key: moneyKey(row, index), currency, delta, reason, battleId: rowBattleId(row) });
+        });
+
+        const relevantFeedback = [];
+        toastLog.forEach((toast, index) => {
+          if (!toast || typeof toast !== "object") return;
+          const payload = toast.payload && typeof toast.payload === "object" ? toast.payload : null;
+          const kind = String(toast.kind || "").toLowerCase();
+          const currency = kind === "rep" ? "rep" : (kind === "points" ? "points" : "");
+          if (!currency) return;
+          const delta = parseAmount(toast.delta !== undefined ? toast.delta : 0);
+          if (!delta) return;
+          const profileEcon = toast.profileEcon === true || !!toast.moneyLogProof || !!toast.txId || Number.isFinite(toast.logIndex);
+          if (!profileEcon) return;
+          relevantFeedback.push({ toast, index, key: feedbackKey(toast), currency, delta, reason: String(toast.reason || (payload && payload.reason) || ""), battleId: String(toast.battleId || (payload && payload.battleId) || "") });
+        });
+
+        covered.add("moneylog_to_feedback");
+        relevantMoney.forEach((entry) => {
+          const matches = relevantFeedback.filter((fb) => {
+            if (entry.key && fb.key && entry.key === fb.key) return true;
+            return fb.currency === entry.currency
+              && fb.delta === entry.delta
+              && (!entry.reason || !fb.reason || entry.reason === fb.reason)
+              && (!entry.battleId || !fb.battleId || entry.battleId === fb.battleId);
+          });
+          if (matches.length < 1) fail("moneylog_to_feedback", { key: entry.key, currency: entry.currency, delta: entry.delta, reason: entry.reason, battleId: entry.battleId });
+        });
+
+        covered.add("feedback_to_moneylog");
+        relevantFeedback.forEach((fb) => {
+          const matches = relevantMoney.filter((entry) => {
+            if (entry.key && fb.key && entry.key === fb.key) return true;
+            return fb.currency === entry.currency
+              && fb.delta === entry.delta
+              && (!entry.reason || !fb.reason || entry.reason === fb.reason)
+              && (!entry.battleId || !fb.battleId || entry.battleId === fb.battleId);
+          });
+          if (matches.length < 1) fail("feedback_to_moneylog", { key: fb.key, currency: fb.currency, delta: fb.delta, reason: fb.reason, battleId: fb.battleId });
+        });
+
+        covered.add("duplicate_feedback");
+        const countByKey = Object.create(null);
+        relevantFeedback.forEach((fb) => {
+          const key = fb.key || `fallback:${fb.currency}:${fb.delta}:${fb.reason}:${fb.battleId}`;
+          countByKey[key] = (countByKey[key] || 0) + 1;
+        });
+        Object.keys(countByKey).forEach((key) => {
+          if (countByKey[key] > 1) fail("duplicate_feedback", { key, count: countByKey[key] });
+        });
+        if (typeof document !== "undefined" && document.querySelectorAll) {
+          const visibleDeltaToasts = Array.from(document.querySelectorAll(".statToast--delta")).filter((el) => {
+            try {
+              const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+              return el && el.style.display !== "none" && (!style || style.display !== "none" && style.visibility !== "hidden");
+            } catch (_) { return true; }
+          }).filter((el) => {
+            const kind = el && el.dataset ? String(el.dataset.deltaKind || "") : "";
+            return kind === "points" || kind === "rep";
+          });
+          const visibleByProof = Object.create(null);
+          visibleDeltaToasts.forEach((el) => {
+            const key = el.dataset && el.dataset.txId ? `tx:${el.dataset.txId}` : (el.dataset && el.dataset.logIndex ? `idx:${el.dataset.logIndex}` : "");
+            if (!key) {
+              addUnique(result.forbiddenRemaining, { check: "feedback_to_moneylog", reason: "visible_delta_without_proof", text: normalize(el.textContent || "") });
+              fail("feedback_to_moneylog", "visible_delta_without_proof");
+              return;
+            }
+            visibleByProof[key] = (visibleByProof[key] || 0) + 1;
+          });
+          Object.keys(visibleByProof).forEach((key) => {
+            if (visibleByProof[key] > 1) fail("duplicate_feedback", { visibleKey: key, count: visibleByProof[key] });
+          });
+        }
+
+        covered.add("profile_text_supported");
+        const profileText = normalize([topBar, balance].filter(Boolean).map((node) => node.textContent || "").join(" "));
+        const unsupportedPatterns = [
+          { rule: "guaranteed_reward", re: /(гарант|точно\s+получ|получишь|дадут|начислят|награда|бонус)/i },
+          { rule: "victory_promise", re: /(побед[аиуы]|выиграешь|авто\s*вин|станешь\s+топ)/i },
+          { rule: "unsupported_conversion", re: /(кажд[а-я]+\s+\d+\s*💰\s*(?:=|->|→)\s*\+?\d+\s*⭐)/i }
+        ];
+        unsupportedPatterns.forEach((item) => {
+          const match = profileText.match(item.re);
+          if (match) {
+            const row = { check: "profile_text_supported", rule: item.rule, match: match[0], text: profileText };
+            addUnique(result.forbiddenRemaining, row);
+            fail("profile_text_supported", row);
+          }
+        });
+      } catch (err) {
+        fail("exception", String(err && err.message ? err.message : err));
+      }
+      requiredChecks.forEach((check) => {
+        if (!covered.has(check)) addUnique(result.missingCoverage, check);
+      });
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missingCoverage");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
     const smokeProfileSelfCheckOnce = () => {
       const failures = [];
       const failedChecks = [];
@@ -289,10 +479,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
+    Game.Dev.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
     devStore.profileSelfCheck = profileSelfCheck;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     devStore.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
+    devStore.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
   }
 
   installProfileSelfCheck(Game.__DEV);
