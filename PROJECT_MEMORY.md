@@ -1,3 +1,12 @@
+## 2026-06-03 — Step 7 [7] final onboarding regression pack
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Added `Game.__DEV.smokeOnboardingRegressionPackOnce()` in both runtime bundles to aggregate the Step 7 onboarding/start-screen sub-smokes: spec/fresh, minimal UI/layout, how-it-works, onboardingSeen first/repeat/reset, economy honesty, and millennial tone.
+- The pack returns one report object with `ok`, `failedChecks`, `failures`, `summary`, `subSmokes`, and `totalMs`; it records missing/failed sub-smokes, keeps manual interaction marked false, and fails if the aggregate runtime exceeds 120000ms.
+- No gameplay, economy, onboarding behavior, UI layout, copy/content, or Console.txt usage was changed.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingRegressionPackOnce()` must return `ok:true` with all sub-smokes `ok:true`, empty `failedChecks`/`failures`, and `totalMs <= 120000` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 7 [6] millennial wording polish only
 
 - Polished only the onboarding/start-screen copy in both runtime bundles while preserving the existing source structure: title, exactly three how-it-works intro lines, one `economyHonestyLine`, and two CTA labels.
