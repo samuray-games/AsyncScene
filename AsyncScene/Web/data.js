@@ -14,7 +14,8 @@ window.Game = window.Game || {};
     introLines: Object.freeze([
       "Ты выбираешь оппонента.",
       "Спор стоит ресурс.",
-      "Победа приносит репутацию."
+      "Победа приносит репутацию.",
+      "Цена и итог действия видны сразу."
     ]),
     actions: Object.freeze({
       start: "Старт",
@@ -3774,7 +3775,7 @@ K YN A9: Нет.
         if (!result.hasTitle) fail("missing_title", spec && spec.title);
         const lines = spec && Array.isArray(spec.introLines) ? spec.introLines : [];
         result.introLineCount = lines.length;
-        if (lines.length < 2 || lines.length > 3) fail("intro_line_count", lines.length);
+        if (lines.length < 2 || lines.length > 4) fail("intro_line_count", lines.length);
         lines.forEach((line, index) => {
           if (typeof line !== "string" || !line.trim()) fail("intro_line_empty", { index, line });
         });
@@ -4123,17 +4124,23 @@ K YN A9: Нет.
       const spec = runtimeData && runtimeData.START_SCREEN;
       const lines = spec && Array.isArray(spec.introLines) ? spec.introLines.map((line) => String(line || "").trim()).filter(Boolean) : [];
       result.lines = lines.slice();
-      result.instructionLineCount = lines.length;
-      if (lines.length !== 3) fail("instruction_line_count_not_three", lines.length);
+      const instructionLines = lines.slice(0, 3);
+      result.instructionLineCount = instructionLines.length;
+      result.economyHonestyLineCount = lines.slice(3).length;
+      result.economyHonestyLine = lines[3] || null;
+      if (lines.length !== 4) fail("start_line_count_not_four", lines.length);
+      if (instructionLines.length !== 3) fail("instruction_line_count_not_three", instructionLines.length);
       lines.forEach((line, index) => {
         const sentencePieces = line.split(/[.!?…]+/).map((piece) => piece.trim()).filter(Boolean);
         if (!line) fail("instruction_line_empty", index);
         if (sentencePieces.length !== 1 || !/[.!?…]$/.test(line)) fail("instruction_line_not_one_short_sentence", { index, line });
         if (line.length > 48) fail("instruction_line_too_long", { index, length: line.length, line });
       });
-      result.coverage.choice = !!(lines[0] && /ты\s+выбираешь|выбор|выбира/i.test(lines[0]));
-      result.coverage.risk = !!(lines[1] && /риск|стоит|трата|теряешь|ресурс/i.test(lines[1]));
-      result.coverage.result = !!(lines[2] && /победа|итог|результат|приносит|получаешь|репутаци/i.test(lines[2]));
+      result.coverage.choice = !!(instructionLines[0] && /ты\s+выбираешь|выбор|выбира/i.test(instructionLines[0]));
+      result.coverage.risk = !!(instructionLines[1] && /риск|стоит|трата|теряешь|ресурс/i.test(instructionLines[1]));
+      result.coverage.result = !!(instructionLines[2] && /победа|итог|результат|приносит|получаешь|репутаци/i.test(instructionLines[2]));
+      result.economyHonestyCoverage = !!(lines[3] && /цена|стоим|итог|результат|дельт|сразу|видн/i.test(lines[3]));
+      if (!result.economyHonestyCoverage) fail("economy_honesty_line_missing", lines[3] || null);
       result.choiceRiskResultCoverage = result.coverage.choice && result.coverage.risk && result.coverage.result;
       if (!result.choiceRiskResultCoverage) fail("choice_risk_result_coverage_missing", result.coverage);
       if (!lines.some((line) => /(^|\s)ты($|\s|[.!?…])/i.test(line))) fail("user_not_addressed_as_ty", lines);
@@ -4205,6 +4212,108 @@ K YN A9: Нет.
       }
       result.ok = result.failedChecks.length === 0;
       console.warn("ONBOARDING_HOW_IT_WORKS_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    root.__DEV.smokeOnboardingEconomyHonestyOnce = function smokeOnboardingEconomyHonestyOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        startScreenLineCount: 0,
+        economyHonestyLineCount: 0,
+        economyHonestyLine: null,
+        lineDoesNotPromiseVictory: false,
+        firstPaidStatActionImmediateDelta: false,
+        immediateDeltaMatchesMoneyLog: false,
+        action: null,
+        moneyLogRow: null,
+        immediateToast: null,
+        step7Smokes: {}
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const effectiveMeDelta = (row) => {
+        if (!row) return 0;
+        const amountSource = row.amount !== undefined ? row.amount : row.delta;
+        const amount = Number(amountSource);
+        if (!Number.isFinite(amount)) return 0;
+        let delta = 0;
+        if (String(row.targetId || "") === "me") delta += amount;
+        if (String(row.sourceId || "") === "me") delta -= amount;
+        if (!delta && row.delta !== undefined) {
+          const fallback = Number(row.delta);
+          if (Number.isFinite(fallback)) delta = fallback;
+        }
+        return delta | 0;
+      };
+      forceFirstLaunchOnboardingForLegacySmokes();
+      try {
+        const runtimeData = (root && root.Data) ? root.Data : Data;
+        const spec = runtimeData && runtimeData.START_SCREEN;
+        const lines = spec && Array.isArray(spec.introLines) ? spec.introLines.map((line) => String(line || "").trim()).filter(Boolean) : [];
+        result.startScreenLineCount = lines.length;
+        const economyLines = lines.filter((line) => /цена|стоим|итог|результат|дельт|сразу|видн/i.test(line));
+        result.economyHonestyLineCount = economyLines.length;
+        result.economyHonestyLine = economyLines[0] || null;
+        if (lines.length !== 4) fail("start_screen_line_count_not_four", lines.length);
+        if (economyLines.length !== 1) fail("economy_honesty_line_count_not_one", economyLines);
+        result.lineDoesNotPromiseVictory = !!(result.economyHonestyLine && !/побед|выигра|победишь|гарант|точно/i.test(result.economyHonestyLine));
+        if (!result.lineDoesNotPromiseVictory) fail("economy_honesty_promises_victory", result.economyHonestyLine);
+        const introEl = (typeof document !== "undefined") ? document.getElementById("startIntroLines") : null;
+        const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
+        if (introEl && JSON.stringify(renderedLines) !== JSON.stringify(lines)) fail("rendered_lines_not_from_source", renderedLines);
+
+        const S = root && (root.__S || root.State);
+        const Econ = root && (root.ConflictEconomy || root._ConflictEconomy);
+        const dbg = root && root.__D;
+        if (!S || !S.me || !Econ || typeof Econ.transferPoints !== "function" || !dbg) fail("economy_runtime_missing", { hasState: !!S, hasMe: !!(S && S.me), hasTransfer: !!(Econ && typeof Econ.transferPoints === "function"), hasDebug: !!dbg });
+        else {
+          if (!S.players || typeof S.players !== "object") S.players = {};
+          if (!S.players.me) S.players.me = S.me;
+          if (!Number.isFinite(S.me.points) || S.me.points < 1) fail("insufficient_points_for_first_action_smoke", S.me.points);
+          else {
+            const beforeMe = S.me.points | 0;
+            const beforePlayerMe = S.players.me && Number.isFinite(S.players.me.points) ? (S.players.me.points | 0) : beforeMe;
+            const beforeMoneyLen = Array.isArray(dbg.moneyLog) ? dbg.moneyLog.length : 0;
+            const beforeToastLen = Array.isArray(dbg.toastLog) ? dbg.toastLog.length : 0;
+            const battleId = `dev_onboarding_economy_honesty_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+            const tx = Econ.transferPoints("me", "sink", 1, "battle_entry", { battleId, smoke: "onboarding_economy_honesty" });
+            const moneyRows = Array.isArray(dbg.moneyLog) ? dbg.moneyLog.slice(beforeMoneyLen) : [];
+            const toastRows = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice(beforeToastLen) : [];
+            const moneyRow = moneyRows.find((row) => row && String(row.battleId || "") === String(battleId) && String(row.reason || "") === "battle_entry") || moneyRows[0] || null;
+            const expectedDelta = effectiveMeDelta(moneyRow);
+            const immediateToast = toastRows.find((toast) => toast && String(toast.kind || "") === "points" && (toast.delta | 0) === expectedDelta && String(toast.reason || "") === "battle_entry") || null;
+            result.action = { reason: "battle_entry", battleId, transferOk: !!(tx && tx.ok === true), expectedDelta };
+            result.moneyLogRow = moneyRow ? { reason: moneyRow.reason, currency: moneyRow.currency || moneyRow.kind || "points", amount: moneyRow.amount, sourceId: moneyRow.sourceId, targetId: moneyRow.targetId, battleId: moneyRow.battleId } : null;
+            result.immediateToast = immediateToast ? { kind: immediateToast.kind, delta: immediateToast.delta, reason: immediateToast.reason, battleId: immediateToast.battleId } : null;
+            result.firstPaidStatActionImmediateDelta = !!(tx && tx.ok === true && moneyRow && immediateToast);
+            result.immediateDeltaMatchesMoneyLog = !!(moneyRow && immediateToast && expectedDelta !== 0 && (immediateToast.delta | 0) === expectedDelta);
+            if (!result.firstPaidStatActionImmediateDelta) fail("first_paid_stat_action_delta_not_immediate", { tx, moneyRows, toastRows });
+            if (!result.immediateDeltaMatchesMoneyLog) fail("immediate_delta_mismatch_moneylog", { moneyRow: result.moneyLogRow, immediateToast: result.immediateToast, expectedDelta });
+            try {
+              S.me.points = beforeMe;
+              if (S.players && S.players.me) S.players.me.points = beforePlayerMe;
+            } catch (_) {}
+          }
+        }
+        try { if (typeof root.__DEV.smokeOnboardingSpecOnce === "function") result.step7Smokes.spec = root.__DEV.smokeOnboardingSpecOnce(); }
+        catch (err) { result.step7Smokes.spec = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingMinimalUiOnce === "function") result.step7Smokes.minimalUi = root.__DEV.smokeOnboardingMinimalUiOnce(); }
+        catch (err) { result.step7Smokes.minimalUi = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingHowItWorksOnce === "function") result.step7Smokes.howItWorks = root.__DEV.smokeOnboardingHowItWorksOnce(); }
+        catch (err) { result.step7Smokes.howItWorks = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingSeenOnce === "function") result.step7Smokes.seen = root.__DEV.smokeOnboardingSeenOnce(); }
+        catch (err) { result.step7Smokes.seen = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        ["spec", "minimalUi", "howItWorks", "seen"].forEach((key) => {
+          if (result.step7Smokes[key] && result.step7Smokes[key].ok !== true) fail(`step7_${key}_smoke_failed`, result.step7Smokes[key]);
+        });
+      } catch (err) {
+        fail("onboarding_economy_honesty_smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_ECONOMY_HONESTY_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
     console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V2", typeof root.__DEV.smokeOnboardingSpecOnce);

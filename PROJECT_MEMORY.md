@@ -1,3 +1,12 @@
+## 2026-06-03 — Step 7 [5] economy/action honesty line
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Added exactly one short economy/action honesty line to `Data.START_SCREEN.introLines` in both runtime bundles and bumped the mirrored data script cache keys: `Цена и итог действия видны сразу.`
+- Updated onboarding smokes so the first three start lines remain the choice/risk/result set, the fourth line is the single economy honesty line, and `Game.__DEV.smokeOnboardingEconomyHonestyOnce()` verifies one such line, no victory promise, immediate first paid/stat delta, moneyLog delta match, and existing Step 7 smoke health.
+- No economy logic, gameplay, minimal start UI structure, or `onboardingSeen` behavior was changed.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingEconomyHonestyOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 7 [4] nested spec smoke viewport-center fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
