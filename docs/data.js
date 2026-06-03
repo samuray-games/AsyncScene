@@ -17,7 +17,7 @@ window.Game = window.Game || {};
       "Победа приносит репутацию."
     ]),
     actions: Object.freeze({
-      start: "Начать",
+      start: "Старт",
       rules: "Правила"
     })
   });
@@ -3657,6 +3657,17 @@ K YN A9: Нет.
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    const forceFirstLaunchOnboardingForLegacySmokes = () => {
+      try {
+        if (root.__A && typeof root.__A.setOnboardingSeen === "function") root.__A.setOnboardingSeen(false);
+        const stateObjects = [root && root.__S, root && root.State].filter(Boolean);
+        stateObjects.forEach((state) => {
+          state.progress = state.progress || {};
+          state.progress.onboardingSeen = false;
+        });
+        if (root.__DEV && typeof root.__DEV.refreshOnboardingStartScreenOnce === "function") root.__DEV.refreshOnboardingStartScreenOnce();
+      } catch (_) {}
+    };
     root.__DEV.smokeOnboardingSpecOnce = function smokeOnboardingSpecOnce() {
       const result = {
         ok: false,
@@ -3683,6 +3694,7 @@ K YN A9: Нет.
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
       const isolateFreshOnboardingState = () => {
+        forceFirstLaunchOnboardingForLegacySmokes();
         if (typeof document === "undefined") return;
         try {
           if (document.body) document.body.classList.remove("menu-open");
@@ -3859,11 +3871,13 @@ K YN A9: Нет.
           }
 
           const allowed = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
+          const resetAllowed = (el) => el && el.id === "btnResetOnboarding" && (el.hidden || el.classList.contains("hidden") || el.style.display === "none");
           Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+            if (resetAllowed(el)) return;
             result.extraTextBlocks.push(el.id || el.tagName.toLowerCase());
           });
           Array.from(st.querySelectorAll("button")).forEach((button) => {
-            if (!allowed.has(button.id)) result.extraTextBlocks.push(button.id || "button");
+            if (!allowed.has(button.id) && !resetAllowed(button)) result.extraTextBlocks.push(button.id || "button");
           });
           if (result.extraTextBlocks.length) fail("extra_text_blocks", result.extraTextBlocks.slice());
         }
@@ -3892,9 +3906,11 @@ K YN A9: Нет.
         result.failures.push({ code, detail: detail == null ? null : detail });
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
+      forceFirstLaunchOnboardingForLegacySmokes();
       const runtimeData = (root && root.Data) ? root.Data : Data;
       const spec = runtimeData && runtimeData.START_SCREEN;
       const allowedIds = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
+      const resetAllowedInMinimalSmoke = (el) => el && el.id === "btnResetOnboarding" && (el.hidden || el.classList.contains("hidden") || el.style.display === "none");
       const restore = [];
       const saveStyle = (el, props) => {
         if (!el) return;
@@ -3953,8 +3969,11 @@ K YN A9: Нет.
         const extra = [];
         if (st) {
           Array.from(st.children).forEach((el) => { if (!allowedIds.has(el.id)) extra.push(el.id || el.tagName.toLowerCase()); });
-          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => extra.push(el.id || el.tagName.toLowerCase()));
-          Array.from(st.querySelectorAll("button")).forEach((button) => { if (!allowedIds.has(button.id)) extra.push(button.id || "button"); });
+          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+            if (el.id === "btnResetOnboarding" && el.hidden) return;
+            extra.push(el.id || el.tagName.toLowerCase());
+          });
+          Array.from(st.querySelectorAll("button")).forEach((button) => { if (!allowedIds.has(button.id) && !resetAllowedInMinimalSmoke(button)) extra.push(button.id || "button"); });
         }
         result.noExtraStartScreenBlocks = extra.length === 0;
         if (extra.length) fail("extra_start_screen_blocks", extra);
@@ -4041,6 +4060,7 @@ K YN A9: Нет.
         result.failures.push({ code, detail: detail == null ? null : detail });
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
+      forceFirstLaunchOnboardingForLegacySmokes();
       const runtimeData = (root && root.Data) ? root.Data : Data;
       const spec = runtimeData && runtimeData.START_SCREEN;
       const lines = spec && Array.isArray(spec.introLines) ? spec.introLines.map((line) => String(line || "").trim()).filter(Boolean) : [];
@@ -4102,7 +4122,10 @@ K YN A9: Нет.
         result.startStillPrimary = !!(startRect && rulesRect && startRect.width >= rulesRect.width && startRect.left <= rulesRect.left + 1 && startBtn && startBtn.classList && startBtn.classList.contains("primary"));
         if (!result.startStillPrimary) fail("start_not_primary_action", { start: startRect ? { left: startRect.left, width: startRect.width } : null, rules: rulesRect ? { left: rulesRect.left, width: rulesRect.width } : null });
         const childIds = st ? Array.from(st.children).map((el) => el.id || el.tagName.toLowerCase()) : [];
-        result.startScreenRemainsMinimal = !!(st && introEl && btns && childIds.length === 1 && st.querySelectorAll("#startCard, #startTitle, #startIntroLines, #startBtns, #btnStart, #btnRules").length === 6 && !st.querySelector("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom"));
+        const resetBtn = st ? st.querySelector("#btnResetOnboarding") : null;
+        const resetAllowed = !resetBtn || resetBtn.hidden === true || resetBtn.classList.contains("hidden") || resetBtn.style.display === "none";
+        const forbiddenExtra = st ? Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).find((el) => !(el.id === "btnResetOnboarding" && resetAllowed)) : null;
+        result.startScreenRemainsMinimal = !!(st && introEl && btns && childIds.length === 1 && st.querySelectorAll("#startCard, #startTitle, #startIntroLines, #startBtns, #btnStart, #btnRules").length === 6 && resetAllowed && !forbiddenExtra);
         if (!result.startScreenRemainsMinimal) fail("start_screen_not_minimal", childIds);
         if (btnsRect && startRect) {
           const startBeforeOrInBtns = startRect.top >= btnsRect.top - 1 && startRect.bottom <= btnsRect.bottom + 1;
@@ -4130,6 +4153,180 @@ K YN A9: Нет.
   };
 
   installOnboardingSpecSmokeViaData();
+
+  const installOnboardingSeenSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    root.__DEV.smokeOnboardingSeenOnce = function smokeOnboardingSeenOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        firstLaunchPrimaryText: "",
+        repeatLaunchPrimaryText: "",
+        freshStateShowsFirstLaunchOnboarding: false,
+        startSetsOnboardingSeen: false,
+        repeatLaunchShowsContinue: false,
+        resetSetsOnboardingSeenFalse: false,
+        resetPreservesProgressResources: false,
+        resetShowsFirstLaunchAgain: false,
+        noLoopNoStuckState: false,
+        startButtonEntersGame: false,
+        continueButtonEntersGame: false,
+        step7Smokes: {}
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const S = (root && (root.__S || root.State)) || null;
+      const A = (root && root.__A) || null;
+      const btnStart = () => (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+      const btnReset = () => (typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null;
+      const startScreen = () => (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+      const visible = (el) => {
+        if (!el || el.hidden) return false;
+        const cs = (typeof getComputedStyle === "function") ? getComputedStyle(el) : null;
+        return !cs || (cs.display !== "none" && cs.visibility !== "hidden" && cs.opacity !== "0" && cs.pointerEvents !== "none");
+      };
+      const text = (el) => (el && el.textContent ? String(el.textContent).trim() : "");
+      const setSeen = (value) => {
+        if (A && typeof A.setOnboardingSeen === "function") return A.setOnboardingSeen(value) === true;
+        if (S) {
+          S.progress = S.progress || {};
+          S.progress.onboardingSeen = value === true;
+        }
+        try { window.localStorage && window.localStorage.setItem("AsyncScene_onboarding_seen_v1", value ? "1" : "0"); } catch (_) {}
+        return value === true;
+      };
+      const getSeen = () => {
+        if (A && typeof A.getOnboardingSeen === "function") return A.getOnboardingSeen() === true;
+        return !!(S && S.progress && S.progress.onboardingSeen === true);
+      };
+      const idle = () => {
+        if (!S) return;
+        S.isStarted = false;
+        S.flags = S.flags || {};
+        S.flags.started = false;
+      };
+      const refresh = () => {
+        if (root.__DEV && typeof root.__DEV.refreshOnboardingStartScreenOnce === "function") return root.__DEV.refreshOnboardingStartScreenOnce();
+        const st = startScreen();
+        if (st) {
+          st.hidden = false;
+          st.classList.remove("hidden");
+          st.classList.add("active");
+          st.style.display = "flex";
+          st.style.visibility = "visible";
+          st.style.opacity = "1";
+          st.style.pointerEvents = "auto";
+        }
+        const b = btnStart();
+        if (b) b.textContent = getSeen() ? "Продолжить" : "Старт";
+        const r = btnReset();
+        if (r) {
+          r.textContent = "Сбросить онбординг";
+          r.hidden = !getSeen();
+          r.classList.toggle("hidden", !getSeen());
+          r.style.display = getSeen() ? "" : "none";
+        }
+        return { ok: true };
+      };
+      const clickStart = () => {
+        const b = btnStart();
+        if (!b || typeof b.click !== "function") return false;
+        b.click();
+        return true;
+      };
+      try {
+        if (!S || !A) fail("state_api_missing", { hasState: !!S, hasApi: !!A });
+        if (!root.Data || root.Data.START_SCREEN !== Data.START_SCREEN) fail("start_screen_source_not_data", null);
+
+        setSeen(false);
+        idle();
+        refresh();
+        result.firstLaunchPrimaryText = text(btnStart());
+        result.freshStateShowsFirstLaunchOnboarding = visible(startScreen()) && result.firstLaunchPrimaryText === "Старт" && getSeen() === false;
+        if (!result.freshStateShowsFirstLaunchOnboarding) fail("fresh_state_not_first_launch", { text: result.firstLaunchPrimaryText, seen: getSeen(), visible: visible(startScreen()) });
+
+        result.startButtonEntersGame = clickStart() && !!(S && (S.isStarted === true || (S.flags && S.flags.started === true)));
+        if (!result.startButtonEntersGame) fail("start_button_did_not_enter_game", null);
+        result.startSetsOnboardingSeen = getSeen() === true;
+        if (!result.startSetsOnboardingSeen) fail("start_did_not_persist_seen", S && S.progress);
+
+        idle();
+        refresh();
+        result.repeatLaunchPrimaryText = text(btnStart());
+        result.repeatLaunchShowsContinue = visible(startScreen()) && result.repeatLaunchPrimaryText === "Продолжить" && visible(btnReset());
+        if (!result.repeatLaunchShowsContinue) fail("repeat_launch_not_resume_mode", { text: result.repeatLaunchPrimaryText, resetVisible: visible(btnReset()), seen: getSeen() });
+        const beforeContinuePoints = S && S.me ? S.me.points : null;
+        const beforeContinueWins = S && S.me ? S.me.wins : null;
+        result.continueButtonEntersGame = clickStart() && !!(S && (S.isStarted === true || (S.flags && S.flags.started === true))) && !visible(startScreen());
+        if (!result.continueButtonEntersGame) fail("continue_button_did_not_enter_game", null);
+        if (S && S.me && (S.me.points !== beforeContinuePoints || S.me.wins !== beforeContinueWins)) fail("continue_wiped_progress", { beforeContinuePoints, afterPoints: S.me.points, beforeContinueWins, afterWins: S.me.wins });
+
+        idle();
+        setSeen(true);
+        if (S) {
+          S.progress = S.progress || {};
+          S.progress.weeklyInfluenceGained = 7;
+          S.progress.weekStartAt = 12345;
+          S.progress.lastDailyBonusAt = 67890;
+          S.me = S.me || { id: "me" };
+          S.me.points = 23;
+          S.me.wins = 5;
+          S.influence = 2;
+        }
+        refresh();
+        const beforeReset = S ? {
+          points: S.me && S.me.points,
+          wins: S.me && S.me.wins,
+          influence: S.influence,
+          weeklyInfluenceGained: S.progress && S.progress.weeklyInfluenceGained,
+          weekStartAt: S.progress && S.progress.weekStartAt,
+          lastDailyBonusAt: S.progress && S.progress.lastDailyBonusAt
+        } : null;
+        const reset = btnReset();
+        if (!reset || typeof reset.click !== "function") fail("reset_action_missing", null);
+        else reset.click();
+        result.resetSetsOnboardingSeenFalse = getSeen() === false;
+        if (!result.resetSetsOnboardingSeenFalse) fail("reset_did_not_clear_seen", S && S.progress);
+        const afterReset = S ? {
+          points: S.me && S.me.points,
+          wins: S.me && S.me.wins,
+          influence: S.influence,
+          weeklyInfluenceGained: S.progress && S.progress.weeklyInfluenceGained,
+          weekStartAt: S.progress && S.progress.weekStartAt,
+          lastDailyBonusAt: S.progress && S.progress.lastDailyBonusAt
+        } : null;
+        result.resetPreservesProgressResources = JSON.stringify(beforeReset) === JSON.stringify(afterReset);
+        if (!result.resetPreservesProgressResources) fail("reset_wiped_progress_or_resources", { beforeReset, afterReset });
+        result.resetShowsFirstLaunchAgain = visible(startScreen()) && text(btnStart()) === "Старт";
+        if (!result.resetShowsFirstLaunchAgain) fail("reset_did_not_show_first_launch", { text: text(btnStart()), visible: visible(startScreen()) });
+        result.noLoopNoStuckState = result.startButtonEntersGame && result.continueButtonEntersGame && result.resetShowsFirstLaunchAgain;
+        if (!result.noLoopNoStuckState) fail("loop_or_stuck_state", null);
+
+        try { if (typeof root.__DEV.smokeOnboardingSpecOnce === "function") result.step7Smokes.spec = root.__DEV.smokeOnboardingSpecOnce(); }
+        catch (err) { result.step7Smokes.spec = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingMinimalUiOnce === "function") result.step7Smokes.minimalUi = root.__DEV.smokeOnboardingMinimalUiOnce(); }
+        catch (err) { result.step7Smokes.minimalUi = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        try { if (typeof root.__DEV.smokeOnboardingHowItWorksOnce === "function") result.step7Smokes.howItWorks = root.__DEV.smokeOnboardingHowItWorksOnce(); }
+        catch (err) { result.step7Smokes.howItWorks = { ok: false, error: err && err.message ? String(err.message) : String(err) }; }
+        ["spec", "minimalUi", "howItWorks"].forEach((key) => {
+          if (result.step7Smokes[key] && result.step7Smokes[key].ok !== true) fail(`step7_${key}_smoke_failed`, result.step7Smokes[key]);
+        });
+      } catch (err) {
+        fail("onboarding_seen_smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_SEEN_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("ONBOARDING_SEEN_SMOKE_EXPOSED_VIA_DATA_V1", typeof root.__DEV.smokeOnboardingSeenOnce);
+  };
+
+  installOnboardingSeenSmokeViaData();
 
   Game.Data = Data;
 })();

@@ -8,17 +8,6 @@
 // ui-boot.js
 window.Game = window.Game || {};
 
-(function () {
-  const head = document.head || document.documentElement;
-  if (head && !window.__CONSOLE_TAPE_SCRIPT_LOADED__) {
-    window.__CONSOLE_TAPE_SCRIPT_LOADED__ = true;
-    const tapeScript = document.createElement("script");
-    tapeScript.src = "dev/console-tape.js";
-    tapeScript.async = false;
-    head.insertBefore(tapeScript, head.firstChild);
-  }
-})();
-
 (() => {
   const UIBOOT_VERSION = "UIBOOT_V11";
   const UIBOOT_MODE_FIX_MARKER = "STATE_MODE_FIX_V11";
@@ -147,9 +136,20 @@ window.Game = window.Game || {};
             <button id="btnStart" class="btn primary"></button>
             <button id="btnRules" class="btn"></button>
           </div>
+          <button id="btnResetOnboarding" class="btn" type="button"></button>
         </div>
       `;
       document.body.appendChild(st);
+    }
+
+    if (!st.querySelector("#btnResetOnboarding")) {
+      const reset = document.createElement("button");
+      reset.id = "btnResetOnboarding";
+      reset.className = "btn hidden";
+      reset.type = "button";
+      reset.hidden = true;
+      const card = st.querySelector("#startCard") || st.firstElementChild || st;
+      card.appendChild(reset);
     }
 
     return st;
@@ -177,12 +177,36 @@ window.Game = window.Game || {};
       card.style.position = card.style.position || "relative";
       card.style.zIndex = card.style.zIndex || "1";
     }
-    st.querySelectorAll("#btnStart, #btnRules").forEach((button) => {
+    st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding").forEach((button) => {
       button.style.pointerEvents = "auto";
       button.style.position = button.style.position || "relative";
       button.style.zIndex = button.style.zIndex || "2";
       if (!button.getAttribute("type")) button.setAttribute("type", "button");
     });
+  }
+
+  function getOnboardingSeen(UI) {
+    const G = window.Game || {};
+    if (G.__A && typeof G.__A.getOnboardingSeen === "function") return G.__A.getOnboardingSeen() === true;
+    const S = (UI && UI.S) || G.State || G.__S || null;
+    return !!(S && S.progress && S.progress.onboardingSeen === true);
+  }
+
+  function setOnboardingSeen(UI, value) {
+    const G = window.Game || {};
+    if (G.__A && typeof G.__A.setOnboardingSeen === "function") return G.__A.setOnboardingSeen(value) === true;
+    const S = (UI && UI.S) || G.State || G.__S || null;
+    if (S) {
+      S.progress = S.progress || {};
+      S.progress.onboardingSeen = value === true;
+    }
+    return value === true;
+  }
+
+  function resetOnboardingSeen(UI) {
+    const G = window.Game || {};
+    if (G.__A && typeof G.__A.resetOnboardingSeen === "function") return G.__A.resetOnboardingSeen() === true;
+    return setOnboardingSeen(UI, false);
   }
 
   function shouldShowFreshStartScreen(UI) {
@@ -252,11 +276,27 @@ window.Game = window.Game || {};
       });
     }
 
+    const resumeMode = getOnboardingSeen(UI);
     const startBtn = $("btnStart") || document.getElementById("btnStart");
-    if (startBtn) startBtn.textContent = typeof actions.start === "string" ? actions.start : "";
+    if (startBtn) startBtn.textContent = resumeMode ? "Продолжить" : (typeof actions.start === "string" ? actions.start : "Старт");
 
     const rulesBtn = $("btnRules") || document.getElementById("btnRules");
     if (rulesBtn) rulesBtn.textContent = typeof actions.rules === "string" ? actions.rules : "";
+
+    const resetBtn = $("btnResetOnboarding") || document.getElementById("btnResetOnboarding");
+    if (resetBtn) {
+      resetBtn.textContent = "Сбросить онбординг";
+      resetBtn.hidden = !resumeMode;
+      resetBtn.classList.toggle("hidden", !resumeMode);
+      resetBtn.style.display = resumeMode ? "block" : "none";
+      resetBtn.style.margin = "10px auto 0";
+      resetBtn.style.padding = "0";
+      resetBtn.style.border = "0";
+      resetBtn.style.background = "transparent";
+      resetBtn.style.fontSize = "12px";
+      resetBtn.style.textDecoration = "underline";
+      resetBtn.style.opacity = "0.78";
+    }
   }
 
   function ensureStartScreenHidden(UI) {
@@ -433,6 +473,7 @@ window.Game = window.Game || {};
     }
 
     const btnRules = $("btnRules");
+    const btnResetOnboarding = $("btnResetOnboarding") || document.getElementById("btnResetOnboarding");
 
     const btnSend = $("btnSend");
     const chatInput = $("chatInput");
@@ -534,6 +575,22 @@ window.Game = window.Game || {};
 
     if (btnRules) {
       btnRules.onclick = (e) => runRules("rules_click", e);
+    }
+
+    if (btnResetOnboarding) {
+      btnResetOnboarding.onclick = (e) => {
+        markBootDiag("reset_onboarding_click");
+        try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
+        try { if (e && typeof e.stopPropagation === "function") e.stopPropagation(); } catch (_) {}
+        resetOnboardingSeen(UI);
+        if (UI.S) {
+          UI.S.isStarted = false;
+          UI.S.flags = UI.S.flags || {};
+          UI.S.flags.started = false;
+        }
+        applyStartScreenContent(UI);
+        ensureStartScreenVisible(UI);
+      };
     }
 
     const runStart = (source, e) => {
@@ -653,6 +710,31 @@ window.Game = window.Game || {};
         markBootDiag("START_NEEDS_NAME");
         return;
       }
+      const resumeMode = getOnboardingSeen(UI);
+
+      if (resumeMode && !(S.flags.started || S.isStarted === true)) {
+        markBootDiag("START_RESUME_MODE");
+        S.flags.started = true;
+        S.isStarted = true;
+        if (G.State) {
+          G.State.isStarted = true;
+          if (G.State.flags) G.State.flags.started = true;
+        }
+        if (!S.me) S.me = { id: "me" };
+        if (!S.me.name) S.me.name = name;
+        ensureStartScreenHidden(UI);
+        startHidden = true;
+        if (!S.players || Object.keys(S.players).length === 0) {
+          if (G.__A && typeof G.__A.seedPlayers === "function") G.__A.seedPlayers();
+          else if (G.NPC && typeof G.NPC.seedPlayers === "function") G.NPC.seedPlayers(S);
+        }
+        UI.buildPlayers && UI.buildPlayers();
+        if (UI.applyMobilePanelDefaults) UI.applyMobilePanelDefaults();
+        if (UI.startLoops) UI.startLoops();
+        UI.renderAll && UI.renderAll();
+        ensureStartScreenHidden(UI);
+        return;
+      }
 
       if (S.flags.started || S.isStarted === true) {
         S.flags.started = true;
@@ -669,6 +751,7 @@ window.Game = window.Game || {};
       }
 
       markBootDiag("START_STEP_2");
+      setOnboardingSeen(UI, true);
       S.flags.started = true;
       S.isStarted = true;
       if (G.State) {
@@ -701,7 +784,7 @@ window.Game = window.Game || {};
         S.me.oneShots = [];
         S.rep = 0;
         S.influence = 0;
-        S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0 };
+        S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0, onboardingSeen: true };
       };
       if (typeof G._withPointsWrite === "function") {
         G._withPointsWrite(resetPlayerState);
@@ -786,12 +869,28 @@ window.Game = window.Game || {};
     }
   }
 
+  function installOnboardingDevHooks(UI) {
+    const G = window.Game || {};
+    if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = {};
+    G.__DEV.refreshOnboardingStartScreenOnce = function refreshOnboardingStartScreenOnce() {
+      applyStartScreenContent(UI);
+      ensureStartScreenVisible(UI);
+      return {
+        ok: true,
+        onboardingSeen: getOnboardingSeen(UI),
+        primaryText: ((document.getElementById("btnStart") || {}).textContent || "").trim(),
+        resetVisible: !!(document.getElementById("btnResetOnboarding") && !document.getElementById("btnResetOnboarding").hidden),
+      };
+    };
+  }
+
   function boot(UI) {
     const G = window.Game || {};
     bindLocations(UI);
 
     ensureStartScreenVisible(UI);
     applyStartScreenContent(UI);
+    installOnboardingDevHooks(UI);
 
     // Build players once so name lists exist (mentions, DM roster), but do NOT start loops yet
     if (!UI.S.players || Object.keys(UI.S.players).length === 0) {

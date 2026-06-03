@@ -5303,3 +5303,11 @@ Error: Download failure, code=1
 ## 2026-06-02 - Step 6 [10] Final System Messages aggregate smoke
 - Status: READY_FOR_RUNTIME_SMOKE only.
 - Required Safari command: `Game.__DEV.smokeSystemMessagesFinalOnce()`.
+
+## 2026-06-03 - Step 7 [4] First launch vs repeat launch only
+- Status: READY_FOR_RUNTIME_SMOKE only; no runtime PASS is claimed.
+- Added `State.progress.onboardingSeen` with local persistence for first-launch vs repeat-launch onboarding mode.
+- First launch now shows the Data.START_SCREEN-backed minimal start screen with primary text `Старт`; after Start, onboardingSeen is persisted as true.
+- Repeat launch shows the same minimal start screen in resume mode with primary text `Продолжить` and a small `Сбросить онбординг` action.
+- Reset onboarding clears only onboardingSeen, keeps progress/resources intact, and returns the start screen to first-launch mode.
+- Added dev smoke `Game.__DEV.smokeOnboardingSeenOnce()`; required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()`.
