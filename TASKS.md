@@ -49,6 +49,30 @@
 
 ```
 
+### [T-20260603-078] Step 7 [7] Final onboarding regression pack
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Infra
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Add one final no-manual regression smoke for all Step 7 onboarding/start-screen work without gameplay, economy, UI, or content changes.
+- Acceptance:
+  - [x] `Game.__DEV.smokeOnboardingRegressionPackOnce()` exists in both runtime bundles.
+  - [x] The pack runs and aggregates spec/start fresh, minimal UI/layout, how-it-works, onboardingSeen first/repeat/reset, economy honesty, and millennial tone smokes.
+  - [x] The pack returns one object with `ok`, `failedChecks`, `failures`, `summary`, `subSmokes`, and `totalMs`.
+  - [x] The pack fails on missing/failed sub-smokes, non-empty aggregate failures/checks, or total runtime above 120000ms.
+  - [x] No manual steps, Console.txt usage, gameplay changes, economy changes, or UI/content changes were added.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeOnboardingRegressionPackOnce()`.
+- Result: Added the aggregate onboarding regression pack smoke and documented local syntax evidence.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The regression pack calls all six Step 7 onboarding/start-screen sub-smokes, aggregates failed checks/failures into one object, tracks summary counts and total runtime, and enforces the 120000ms timeout ceiling.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/data.js`; `node --check docs/data.js`; Safari console `Game.__DEV.smokeOnboardingRegressionPackOnce()`
+  - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeOnboardingRegressionPackOnce()` in Safari and verify `ok:true`, every `subSmokes.*.ok === true`, empty `failedChecks`, empty `failures`, and `totalMs <= 120000`.
+
 ### [T-20260603-077] Step 7 [6] Millennial wording polish only
 - Status: DONE
 - Priority: P0
