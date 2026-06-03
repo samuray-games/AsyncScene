@@ -14,9 +14,9 @@ window.Game = window.Game || {};
     introLines: Object.freeze([
       "Ты выбираешь оппонента.",
       "Спор стоит ресурс.",
-      "Победа приносит репутацию.",
-      "Цена и итог действия видны сразу."
+      "Победа приносит репутацию."
     ]),
+    economyHonestyLine: "Цена и итог действия видны сразу.",
     actions: Object.freeze({
       start: "Старт",
       rules: "Правила"
@@ -3774,8 +3774,12 @@ K YN A9: Нет.
         result.hasTitle = !!(spec && typeof spec.title === "string" && spec.title.trim());
         if (!result.hasTitle) fail("missing_title", spec && spec.title);
         const lines = spec && Array.isArray(spec.introLines) ? spec.introLines : [];
+        const economyHonestyLine = spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine.trim() : "";
         result.introLineCount = lines.length;
-        if (lines.length < 2 || lines.length > 4) fail("intro_line_count", lines.length);
+        result.economyHonestyLineCount = economyHonestyLine ? 1 : 0;
+        result.economyHonestyLine = economyHonestyLine || null;
+        if (lines.length !== 3) fail("intro_line_count", lines.length);
+        if (!economyHonestyLine) fail("economy_honesty_line_missing", null);
         lines.forEach((line, index) => {
           if (typeof line !== "string" || !line.trim()) fail("intro_line_empty", { index, line });
         });
@@ -3801,11 +3805,14 @@ K YN A9: Нет.
           if (!titleEl || !introEl || !startBtn || !rulesBtn) fail("required_dom_missing", null);
           const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
           const renderedTitle = titleEl ? (titleEl.textContent || "").trim() : "";
+          const economyEl = document.getElementById("startEconomyHonestyLine");
+          const renderedEconomyHonesty = economyEl ? (economyEl.textContent || "").trim() : "";
           const renderedStart = startBtn ? (startBtn.textContent || "").trim() : "";
           const renderedRules = rulesBtn ? (rulesBtn.textContent || "").trim() : "";
           const fromSource = !!(spec
             && renderedTitle === spec.title
             && JSON.stringify(renderedLines) === JSON.stringify(lines)
+            && renderedEconomyHonesty === economyHonestyLine
             && renderedStart === actions.start
             && renderedRules === actions.rules);
           result.usesSingleSource = fromSource;
@@ -3813,6 +3820,7 @@ K YN A9: Нет.
             fail("start_screen_not_from_source", {
               title: renderedTitle,
               introLines: renderedLines,
+              economyHonestyLine: renderedEconomyHonesty,
               start: renderedStart,
               rules: renderedRules
             });
@@ -3968,7 +3976,7 @@ K YN A9: Нет.
       forceFirstLaunchOnboardingForLegacySmokes();
       const runtimeData = (root && root.Data) ? root.Data : Data;
       const spec = runtimeData && runtimeData.START_SCREEN;
-      const allowedIds = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
+      const allowedIds = new Set(["startCard", "startTitle", "startIntroLines", "startEconomyHonestyLine", "startBtns", "btnStart", "btnRules"]);
       const resetAllowedInMinimalSmoke = (el) => el && el.id === "btnResetOnboarding" && (el.hidden || el.classList.contains("hidden") || el.style.display === "none");
       const restore = [];
       const saveStyle = (el, props) => {
@@ -3996,15 +4004,16 @@ K YN A9: Нет.
         return !el.hidden && (!cs || (cs.display !== "none" && cs.visibility !== "hidden" && cs.opacity !== "0")) && !!(r && r.width > 0 && r.height > 0);
       };
       try {
-        if (!spec || typeof spec.title !== "string" || !Array.isArray(spec.introLines) || !spec.actions) fail("missing_start_screen_source", null);
+        if (!spec || typeof spec.title !== "string" || !Array.isArray(spec.introLines) || typeof spec.economyHonestyLine !== "string" || !spec.actions) fail("missing_start_screen_source", null);
         const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
         const card = (typeof document !== "undefined") ? document.getElementById("startCard") : null;
         const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
         const introEl = (typeof document !== "undefined") ? document.getElementById("startIntroLines") : null;
         const btns = (typeof document !== "undefined") ? document.getElementById("startBtns") : null;
+        const economyEl = (typeof document !== "undefined") ? document.getElementById("startEconomyHonestyLine") : null;
         const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
         const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
-        if (!st || !card || !titleEl || !introEl || !btns || !startBtn || !rulesBtn) fail("required_dom_missing", null);
+        if (!st || !card || !titleEl || !introEl || !economyEl || !btns || !startBtn || !rulesBtn) fail("required_dom_missing", null);
         if (st) {
           st.hidden = false;
           st.classList.remove("hidden");
@@ -4023,6 +4032,7 @@ K YN A9: Нет.
         const actions = spec && spec.actions ? spec.actions : {};
         if (spec && titleEl && (titleEl.textContent || "").trim() !== spec.title) fail("title_not_from_source", (titleEl.textContent || "").trim());
         if (spec && JSON.stringify(renderedLines) !== JSON.stringify(spec.introLines)) fail("intro_not_from_source", renderedLines);
+        if (spec && economyEl && (economyEl.textContent || "").trim() !== spec.economyHonestyLine) fail("economy_honesty_not_from_source", (economyEl.textContent || "").trim());
         if (spec && startBtn && (startBtn.textContent || "").trim() !== actions.start) fail("start_action_not_from_source", (startBtn.textContent || "").trim());
         if (spec && rulesBtn && (rulesBtn.textContent || "").trim() !== actions.rules) fail("rules_action_not_from_source", (rulesBtn.textContent || "").trim());
         const extra = [];
@@ -4123,12 +4133,13 @@ K YN A9: Нет.
       const runtimeData = (root && root.Data) ? root.Data : Data;
       const spec = runtimeData && runtimeData.START_SCREEN;
       const lines = spec && Array.isArray(spec.introLines) ? spec.introLines.map((line) => String(line || "").trim()).filter(Boolean) : [];
+      const economyHonestyLine = spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine.trim() : "";
       result.lines = lines.slice();
       const instructionLines = lines.slice(0, 3);
       result.instructionLineCount = instructionLines.length;
-      result.economyHonestyLineCount = lines.slice(3).length;
-      result.economyHonestyLine = lines[3] || null;
-      if (lines.length !== 4) fail("start_line_count_not_four", lines.length);
+      result.economyHonestyLineCount = economyHonestyLine ? 1 : 0;
+      result.economyHonestyLine = economyHonestyLine || null;
+      if (lines.length !== 3) fail("start_line_count_not_three", lines.length);
       if (instructionLines.length !== 3) fail("instruction_line_count_not_three", instructionLines.length);
       lines.forEach((line, index) => {
         const sentencePieces = line.split(/[.!?…]+/).map((piece) => piece.trim()).filter(Boolean);
@@ -4139,8 +4150,8 @@ K YN A9: Нет.
       result.coverage.choice = !!(instructionLines[0] && /ты\s+выбираешь|выбор|выбира/i.test(instructionLines[0]));
       result.coverage.risk = !!(instructionLines[1] && /риск|стоит|трата|теряешь|ресурс/i.test(instructionLines[1]));
       result.coverage.result = !!(instructionLines[2] && /победа|итог|результат|приносит|получаешь|репутаци/i.test(instructionLines[2]));
-      result.economyHonestyCoverage = !!(lines[3] && /цена|стоим|итог|результат|дельт|сразу|видн/i.test(lines[3]));
-      if (!result.economyHonestyCoverage) fail("economy_honesty_line_missing", lines[3] || null);
+      result.economyHonestyCoverage = !!(economyHonestyLine && /цена|стоим|итог|результат|дельт|сразу|видн/i.test(economyHonestyLine));
+      if (!result.economyHonestyCoverage) fail("economy_honesty_line_missing", economyHonestyLine || null);
       result.choiceRiskResultCoverage = result.coverage.choice && result.coverage.risk && result.coverage.result;
       if (!result.choiceRiskResultCoverage) fail("choice_risk_result_coverage_missing", result.coverage);
       if (!lines.some((line) => /(^|\s)ты($|\s|[.!?…])/i.test(line))) fail("user_not_addressed_as_ty", lines);
@@ -4150,7 +4161,7 @@ K YN A9: Нет.
         { label: "slang_or_meme", pattern: /лол|кек|мем|кринж|хайп|рофл|имба|изи/i },
         { label: "pressure_or_moralizing", pattern: /надо|нужно|обязан|должен|правильно|неправильно|хорошо|плохо|стыд|вина/i }
       ];
-      lines.forEach((line, index) => {
+      lines.concat(economyHonestyLine ? [economyHonestyLine] : []).forEach((line, index) => {
         forbiddenPatterns.forEach((entry) => {
           if (entry.pattern.test(line)) result.forbiddenWording.push({ index, label: entry.label, line });
         });
@@ -4160,6 +4171,7 @@ K YN A9: Нет.
         const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
         const introEl = (typeof document !== "undefined") ? document.getElementById("startIntroLines") : null;
         const btns = (typeof document !== "undefined") ? document.getElementById("startBtns") : null;
+        const economyEl = (typeof document !== "undefined") ? document.getElementById("startEconomyHonestyLine") : null;
         const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
         const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
         if (st) {
@@ -4174,6 +4186,7 @@ K YN A9: Нет.
         }
         const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
         if (JSON.stringify(renderedLines) !== JSON.stringify(lines)) fail("instruction_lines_not_from_source", renderedLines);
+        if (economyEl && (economyEl.textContent || "").trim() !== economyHonestyLine) fail("economy_honesty_not_from_source", (economyEl.textContent || "").trim());
         const startRect = startBtn && startBtn.getBoundingClientRect ? startBtn.getBoundingClientRect() : null;
         const rulesRect = rulesBtn && rulesBtn.getBoundingClientRect ? rulesBtn.getBoundingClientRect() : null;
         const btnsRect = btns && btns.getBoundingClientRect ? btns.getBoundingClientRect() : null;
@@ -4190,7 +4203,7 @@ K YN A9: Нет.
         const resetBtn = st ? st.querySelector("#btnResetOnboarding") : null;
         const resetAllowed = !resetBtn || resetBtn.hidden === true || resetBtn.classList.contains("hidden") || resetBtn.style.display === "none";
         const forbiddenExtra = st ? Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).find((el) => !(el.id === "btnResetOnboarding" && resetAllowed)) : null;
-        result.startScreenRemainsMinimal = !!(st && introEl && btns && childIds.length === 1 && st.querySelectorAll("#startCard, #startTitle, #startIntroLines, #startBtns, #btnStart, #btnRules").length === 6 && resetAllowed && !forbiddenExtra);
+        result.startScreenRemainsMinimal = !!(st && introEl && economyEl && btns && childIds.length === 1 && st.querySelectorAll("#startCard, #startTitle, #startIntroLines, #startEconomyHonestyLine, #startBtns, #btnStart, #btnRules").length === 7 && resetAllowed && !forbiddenExtra);
         if (!result.startScreenRemainsMinimal) fail("start_screen_not_minimal", childIds);
         if (btnsRect && startRect) {
           const startBeforeOrInBtns = startRect.top >= btnsRect.top - 1 && startRect.bottom <= btnsRect.bottom + 1;
@@ -4220,6 +4233,7 @@ K YN A9: Нет.
         failures: [],
         failedChecks: [],
         startScreenLineCount: 0,
+        instructionLineCount: 0,
         economyHonestyLineCount: 0,
         economyHonestyLine: null,
         lineDoesNotPromiseVictory: false,
@@ -4253,17 +4267,20 @@ K YN A9: Нет.
         const runtimeData = (root && root.Data) ? root.Data : Data;
         const spec = runtimeData && runtimeData.START_SCREEN;
         const lines = spec && Array.isArray(spec.introLines) ? spec.introLines.map((line) => String(line || "").trim()).filter(Boolean) : [];
-        result.startScreenLineCount = lines.length;
-        const economyLines = lines.filter((line) => /цена|стоим|итог|результат|дельт|сразу|видн/i.test(line));
-        result.economyHonestyLineCount = economyLines.length;
-        result.economyHonestyLine = economyLines[0] || null;
-        if (lines.length !== 4) fail("start_screen_line_count_not_four", lines.length);
-        if (economyLines.length !== 1) fail("economy_honesty_line_count_not_one", economyLines);
+        const economyHonestyLine = spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine.trim() : "";
+        result.instructionLineCount = lines.length;
+        result.economyHonestyLineCount = economyHonestyLine ? 1 : 0;
+        result.startScreenLineCount = lines.length + result.economyHonestyLineCount;
+        result.economyHonestyLine = economyHonestyLine || null;
+        if (lines.length !== 3) fail("instruction_line_count_not_three", lines.length);
+        if (!economyHonestyLine) fail("economy_honesty_line_count_not_one", economyHonestyLine);
         result.lineDoesNotPromiseVictory = !!(result.economyHonestyLine && !/побед|выигра|победишь|гарант|точно/i.test(result.economyHonestyLine));
         if (!result.lineDoesNotPromiseVictory) fail("economy_honesty_promises_victory", result.economyHonestyLine);
         const introEl = (typeof document !== "undefined") ? document.getElementById("startIntroLines") : null;
+        const economyEl = (typeof document !== "undefined") ? document.getElementById("startEconomyHonestyLine") : null;
         const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
         if (introEl && JSON.stringify(renderedLines) !== JSON.stringify(lines)) fail("rendered_lines_not_from_source", renderedLines);
+        if (economyEl && (economyEl.textContent || "").trim() !== economyHonestyLine) fail("economy_honesty_not_from_source", (economyEl.textContent || "").trim());
 
         const S = root && (root.__S || root.State);
         const Econ = root && (root.ConflictEconomy || root._ConflictEconomy);

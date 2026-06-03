@@ -132,6 +132,7 @@ window.Game = window.Game || {};
         <div id="startCard">
           <h1 id="startTitle"></h1>
           <div id="startIntroLines"></div>
+          <div id="startEconomyHonestyLine"></div>
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
             <button id="btnRules" class="btn"></button>
@@ -274,6 +275,16 @@ window.Game = window.Game || {};
         div.textContent = String(line || "");
         linesEl.appendChild(div);
       });
+    }
+
+    let economyEl = $("startEconomyHonestyLine") || document.getElementById("startEconomyHonestyLine");
+    if (!economyEl && linesEl && linesEl.parentNode) {
+      economyEl = document.createElement("div");
+      economyEl.id = "startEconomyHonestyLine";
+      linesEl.parentNode.insertBefore(economyEl, linesEl.nextSibling);
+    }
+    if (economyEl) {
+      economyEl.textContent = spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine : "";
     }
 
     const resumeMode = getOnboardingSeen(UI);
