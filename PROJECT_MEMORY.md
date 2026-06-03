@@ -4898,3 +4898,12 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeProfileSelfCheckOnce()` returning `{ ok, failures, failedChecks }` for runtime validation of object shape, exact check count, no undefined values, and explains.
 - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
 - Required Safari command: `Game.__DEV.smokeProfileSelfCheckOnce()`.
+
+## 2026-06-03 - Step 8B Profile Not Service Copy Audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Profile/system copy audit removed the service-like saved wording from mirrored system copy and profile-regression contexts by changing the user-facing saved confirmation text to `Готово.`.
+- Added mirrored runtime smoke `Game.__DEV.smokeProfileNotServiceOnce()` returning exactly `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks }`; PASS requires all arrays empty and no forbidden service markers in covered profile/system copy sources.
+- Covered sources: SystemCopy, system text templates, system fallback strings, and the system language profile string leaves.
+- Cache-busted the mirrored system bundle script tags so Safari loads the new smoke.
+- Scope guard: no UI layout changes, no economy changes, no gameplay changes, no refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeProfileNotServiceOnce()`.
