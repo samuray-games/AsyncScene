@@ -1,3 +1,13 @@
+## 2026-06-03 — Step 8E Profile Economy Honesty Audit
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Added mirrored runtime smoke `Game.__DEV.smokeProfileEconomyHonestyOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Smoke returns exactly `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks }` and requires every array to be empty for `ok:true`.
+- Validation coverage: profile roots, points/REP moneyLog-to-feedback pairing, feedback-to-moneyLog proof, duplicate feedback detection, visible profile delta proof metadata, and unsupported profile economy promise text.
+- Points/REP `emitStatDelta` now attaches matching moneyLog proof metadata when available, and profile delta UI renders one visible delta element per feedback call instead of aggregating multiple transactions into one visible badge.
+- Cache-busted changed runtime scripts in both app bundles; no gameplay, balance, or unrelated refactor was introduced, and `Console.txt` was not used.
+- Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/state.js`; PASS `node --check docs/state.js`; PASS `node --check AsyncScene/Web/ui/ui-core.js`; PASS `node --check docs/ui/ui-core.js`.
+- Required Safari command: `Game.__DEV.smokeProfileEconomyHonestyOnce()` must return `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 8D Profile No Forum 2007 UI Audit
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
 - Added mirrored runtime smoke `Game.__DEV.smokeProfileModernUiOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
