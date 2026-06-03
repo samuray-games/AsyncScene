@@ -49,6 +49,31 @@
 
 ```
 
+### [T-20260603-077] Step 7 [6] Millennial wording polish only
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Content
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Polish only onboarding/start-screen wording to concise confident-peer phrasing while preserving the existing start-screen source structure and behavior.
+- Acceptance:
+  - [x] Start-screen source still has one title, exactly three how-it-works lines, one `economyHonestyLine`, and exactly two CTA buttons.
+  - [x] Copy is short, neutral, partner-toned, and avoids officialese, pressure, moralizing, slang, memes, baby-talk, and teacher/tutorial wording.
+  - [x] `Data.START_SCREEN_TEXT_MAX_LENGTH` defines the smoke line-length limit.
+  - [x] `Game.__DEV.smokeOnboardingMillennialToneOnce()` validates every start-screen text field against the limit and tone-forbidden wording buckets.
+  - [x] Existing Step 7 smokes are still called from the new smoke; no gameplay, economy, layout redesign, or `onboardingSeen` logic changed.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeOnboardingMillennialToneOnce()`.
+- Result: Polished the start-screen intro/economy copy and added a millennial-tone smoke for line length, forbidden wording categories, and existing Step 7 smoke health.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Start-screen structure remains title + 3 intro lines + economy honesty line + Start/Суть CTAs; smoke validates title, all intro lines, economy honesty line, and both CTA labels against `Data.START_SCREEN_TEXT_MAX_LENGTH` plus forbidden wording, officialese, pressure, moralizing, and baby-talk checks.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/data.js`; `node --check docs/data.js`; Safari console `Game.__DEV.smokeOnboardingMillennialToneOnce()`
+  - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeOnboardingMillennialToneOnce()` in Safari and verify no forbidden wording, no officialese, no pressure, no moralizing, no baby-talk, all start-screen text fields within the smoke limit, and no Step 7 smoke regressions.
+
+
 ### [T-20260603-076] Step 7 [5] Economy/action honesty line
 - Status: DONE
 - Priority: P0
