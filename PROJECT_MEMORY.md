@@ -1,3 +1,12 @@
+## 2026-06-03 — Step 7 [4] onboarding-seen smoke resource-preservation fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
+- Fixed only `Game.__DEV.smokeOnboardingSeenOnce()` in both runtime bundles so the reset preservation check no longer directly writes `State.me.points` or other protected economy balances.
+- Added a local `progressResourceSnapshot()` inside the smoke and compare existing points/wins/influence/rep/progress fields before vs after reset onboarding.
+- Reset onboarding still clears only `onboardingSeen` in the smoke path and must preserve progress/resources; no economy bypass, gameplay change, onboarding UI change, or Console.txt usage was added.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 7 [3] start-screen how-it-works microcopy
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
