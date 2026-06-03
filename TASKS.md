@@ -51,6 +51,28 @@
 
 
 
+### [T-20260603-073] Step 7 [4] Spec Smoke Pointer-Blocker False Negative Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Fix only `Game.__DEV.smokeOnboardingSpecOnce()` pointer-blocker detection so Safari empty hit-test results do not falsely fail when button geometry is valid.
+- Acceptance:
+  - [x] `top:null` with an empty hit-test stack is treated as inconclusive, not blocked, when the button rect is valid and its center is in the viewport.
+  - [x] Hidden buttons, `pointer-events:none`, invalid/off-viewport geometry, and real top-element blockers still fail `start_button_pointer_blocked`.
+  - [x] No onboardingSeen, gameplay, economy, UI, content, or Console.txt changes.
+- Notes: Safari runtime PASS is not claimed here; required command remains `Game.__DEV.smokeOnboardingSeenOnce()`.
+- Result: Added a guarded inconclusive-empty-hit-test branch to the spec smoke pointer check in both runtime bundles.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: `smokeOnboardingSpecOnce()` now distinguishes empty/null Safari hit-test data from real blockers while preserving blocker failures for hidden, disabled-pointer, invalid-rect, off-viewport, and overlaid buttons.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/data.js`; `node --check docs/data.js`; Safari console `Game.__DEV.smokeOnboardingSeenOnce()`
+  - Next: Дима should run the Safari runtime smoke because local syntax checks cannot claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeOnboardingSeenOnce()` in Safari and report exact result object.
+
 ### [T-20260603-072] Step 7 [4] Onboarding Smoke Resource Preservation Fix
 - Status: DONE
 - Priority: P0
