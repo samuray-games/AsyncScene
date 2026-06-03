@@ -1,3 +1,12 @@
+## 2026-06-03 — Step 7 [3] start-screen how-it-works microcopy
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
+- Updated only `Data.START_SCREEN.introLines` in both runtime bundles to exactly three short sentences: choice, risk, and result. The copy addresses the user as “ты” and avoids slang, memes, moralizing, tutorial wording, and documentation/help-center tone.
+- Added `Game.__DEV.smokeOnboardingHowItWorksOnce()` to verify exactly three instruction lines, choice/risk/result coverage, forbidden wording absence, Start still immediately pressable and primary, the start screen still minimal, and no Step 7 [2] layout regression via `smokeOnboardingMinimalUiOnce()`.
+- No gameplay, economy, `onboardingSeen`, onboarding flow logic, or screen redesign was changed.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingHowItWorksOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-02 — Step 7 [2] minimal start-screen UI
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
