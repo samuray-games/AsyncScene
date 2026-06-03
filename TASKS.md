@@ -50,6 +50,30 @@
 
 ```
 
+### [T-20260603-082] Step 8F Profile Regression Pack Economy Honesty Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Economy|Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js`
+- Goal: Fix only the Step 8F regression pack issue where the dev profile REP delta feedback could fail `profile_economy_honesty` correlation.
+- Acceptance:
+  - [x] `profileEconomyHonesty` keeps strict moneyLog↔feedback correlation for the dev profile regression delta.
+  - [x] The regression pack adds deterministic proof metadata for its single dev REP delta row and feedback row.
+  - [x] Rerender/refresh duplicate checks still require exactly one feedback row and one visible delta for the action.
+  - [x] Smoke return shapes keep `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] No gameplay changes, balance changes, UI redesign, unrelated refactors, or `Console.txt` usage.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeProfileRegressionPackOnce()`.
+- Result: Mirrored dev-checks fix adds `profile:<actionId>` txId/log-index proof to the regression pack action row/toast and lets economy honesty audit the specific `dev_profile_regression_delta` row instead of treating it as silent dev noise.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The profile regression pack now correlates its exact one dev REP moneyLog row, feedback row, and visible delta via deterministic tx/log-index references while preserving duplicate-feedback checks.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeProfileEconomyHonestyOnce()`; Safari console `Game.__DEV.smokeProfileRegressionPackOnce()`
+  - Next: Дима should run the Safari runtime smokes because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeProfileRegressionPackOnce()` in Safari and verify `ok === true`, with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 ### [T-20260603-081] Step 8E Profile Economy Honesty Audit
 - Status: DONE
 - Priority: P0
