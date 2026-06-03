@@ -28,6 +28,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       if (Array.isArray(value)) return value.some((item) => hasUndefinedDeep(item, memo));
       return Object.keys(value).some((key) => typeof value[key] === "undefined" || hasUndefinedDeep(value[key], memo));
     };
+    const PROFILE_ADULT_TONE_LIMITS = Object.freeze({ maxChars: 90, maxSentences: 2 });
+    const PROFILE_ADULT_TONE_BLOCKS = Object.freeze([
+      Object.freeze({
+        id: "serviceLike",
+        text: "Ты возвращаешься в понятный сервис: чат, личка, события, сохранённый прогресс."
+      }),
+      Object.freeze({
+        id: "suitableFor35yo",
+        text: "Ты видишь правила и фидбек сразу; тон взрослый, прямой, без опеки."
+      }),
+      Object.freeze({
+        id: "forum2007Feeling",
+        text: "Ты читаешь короткие форумные блоки: ник, репутация, действия по делу."
+      })
+    ]);
     const makeCheck = (id, result, explain) => ({
       id: String(id),
       result: result === true,
@@ -35,23 +50,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       triggers: []
     });
     const profileSelfCheck = () => {
-      const checks = [
-        makeCheck(
-          "serviceLike",
-          true,
-          "AsyncScene behaves like a small service surface: persistent state, repeat entry, social feed/DM/event flows, and dev/runtime contracts are present."
-        ),
-        makeCheck(
-          "suitableFor35yo",
-          true,
-          "The current profile targets an adult player with direct wording, visible rules, explicit system feedback, and no teen-only onboarding assumptions."
-        ),
-        makeCheck(
-          "forum2007Feeling",
-          true,
-          "The runtime still leans on old-forum signals: nicknames, public crowd rows, direct messages, reputation-like points, reports, and compact text-first panels."
-        )
-      ];
+      const checks = PROFILE_ADULT_TONE_BLOCKS.map((block) => makeCheck(block.id, true, block.text));
       const failures = [];
       if (checks.length !== 3) failures.push("checks_length_not_3");
       const expected = ["serviceLike", "suitableFor35yo", "forum2007Feeling"];
@@ -75,6 +74,79 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ok: failures.length === 0 && allCalculated,
         checks,
         failures
+      };
+    };
+    const normalizeProfileText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const addUniqueProfileAudit = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const smokeProfileAdultToneOnce = () => {
+      const failures = [];
+      const forbiddenRemaining = [];
+      const missingCoverage = [];
+      const failedChecks = [];
+      const requiredChecks = [
+        "length_limit",
+        "direct_tone",
+        "no_baby_talk",
+        "no_teaching_tone",
+        "no_moralizing"
+      ];
+      const coveredChecks = new Set();
+      const forbiddenProfiles = [
+        { check: "no_baby_talk", rule: "baby_talk", re: /(котик|зайчик|солнышк|лапк|няш|миленьк|обнимаш|пупс|детк|малыш|сюсю|❤️|💕|✨)/i },
+        { check: "no_teaching_tone", rule: "teaching_tone", re: /(научи|обуч|урок|запомни|делаем вывод|надо понимать|следует|необходимо|главное\s*[—-]|подсказк|совет|настав)/i },
+        { check: "no_moralizing", rule: "moralizing", re: /(морал|стыд|совесть|виноват|исправься|правильн(?:ый|о|ая|ые)|неправильн|лучший выбор|плохой человек|хороший человек|заслужил)/i }
+      ];
+      const fail = (check, detail) => {
+        addUniqueProfileAudit(failures, detail === undefined ? check : { check, detail });
+        addUniqueProfileAudit(failedChecks, check);
+      };
+      const blocks = Array.isArray(PROFILE_ADULT_TONE_BLOCKS) ? PROFILE_ADULT_TONE_BLOCKS : [];
+      if (!blocks.length) {
+        fail("missing_profile_blocks", "PROFILE_ADULT_TONE_BLOCKS");
+      }
+      const blockIds = new Set();
+      blocks.forEach((block, index) => {
+        const id = block && block.id ? String(block.id) : `block_${index}`;
+        const text = normalizeProfileText(block && block.text);
+        blockIds.add(id);
+        coveredChecks.add("length_limit");
+        if (!text || text.length > PROFILE_ADULT_TONE_LIMITS.maxChars) {
+          fail("length_limit", { id, length: text.length, max: PROFILE_ADULT_TONE_LIMITS.maxChars, text });
+        }
+        const sentenceCount = (text.match(/[.!?…]+|[。！？]+/g) || []).length || (text ? 1 : 0);
+        if (sentenceCount > PROFILE_ADULT_TONE_LIMITS.maxSentences) {
+          fail("length_limit", { id, sentenceCount, maxSentences: PROFILE_ADULT_TONE_LIMITS.maxSentences, text });
+        }
+        coveredChecks.add("direct_tone");
+        if (!/(^|[^А-Яа-яЁёA-Za-z])(ты|тебя|тебе|тобой|твой|твоя|тво[её]|твои|видишь|читаешь|возвращаешься)(?=$|[^А-Яа-яЁёA-Za-z])/i.test(text)) {
+          fail("direct_tone", { id, text });
+        }
+        forbiddenProfiles.forEach((profile) => {
+          coveredChecks.add(profile.check);
+          const match = text.match(profile.re);
+          if (match) {
+            const row = { id, check: profile.check, rule: profile.rule, match: match[0], text };
+            addUniqueProfileAudit(forbiddenRemaining, row);
+            fail(profile.check, row);
+          }
+        });
+      });
+      ["serviceLike", "suitableFor35yo", "forum2007Feeling"].forEach((id) => {
+        if (!blockIds.has(id)) addUniqueProfileAudit(missingCoverage, id);
+      });
+      requiredChecks.forEach((check) => {
+        if (!coveredChecks.has(check)) addUniqueProfileAudit(missingCoverage, check);
+      });
+      if (missingCoverage.length) addUniqueProfileAudit(failedChecks, "missingCoverage");
+      return {
+        ok: failures.length === 0 && forbiddenRemaining.length === 0 && missingCoverage.length === 0 && failedChecks.length === 0,
+        failures,
+        forbiddenRemaining,
+        missingCoverage,
+        failedChecks
       };
     };
     const smokeProfileSelfCheckOnce = () => {
@@ -105,8 +177,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
     };
     Game.Dev.profileSelfCheck = profileSelfCheck;
+    Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     devStore.profileSelfCheck = profileSelfCheck;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
+    devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
   }
 
   installProfileSelfCheck(Game.__DEV);
