@@ -51,6 +51,29 @@
 
 
 
+### [T-20260603-071] Step 7 [3] Start-Screen How It Works Microcopy
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Add a three-line “choice / risk / result” micro-instruction block to the existing minimal start screen while keeping Start primary.
+- Acceptance:
+  - [x] `Data.START_SCREEN` remains the source of onboarding content.
+  - [x] Start-screen instruction copy is exactly three short sentences addressed with “ты” and covers choice, risk, and result.
+  - [x] No slang, memes, morality, tutorial tone, documentation/help-center tone, gameplay change, economy change, `onboardingSeen`, or screen redesign.
+  - [x] Smoke path exposes `Game.__DEV.smokeOnboardingHowItWorksOnce()` and verifies the Step 7 [2] minimal layout remains intact.
+- Result: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Report:
+  - Status: DONE
+  - Facts: Replaced the three `Data.START_SCREEN.introLines` with concise choice/risk/result copy and added `Game.__DEV.smokeOnboardingHowItWorksOnce()` to verify exact line count, coverage, forbidden wording, immediate Start availability, primary Start action, minimal screen structure, and Step 7 [2] layout smoke coverage.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Run syntax checks, then run `Game.__DEV.smokeOnboardingHowItWorksOnce()` in Safari.
+  - Next: Дима.
+  - Next Prompt: Runtime-smoke Step 7 [3] with `Game.__DEV.smokeOnboardingHowItWorksOnce()`; verify exactly three choice/risk/result lines, no forbidden wording, immediate Start press, Start primary action, and no Step 7 [2] minimal-layout regression.
+
+
 ### [T-20260602-070] Step 7 [2] Minimal Start-Screen UI
 - Status: DONE
 - Priority: P0

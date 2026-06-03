@@ -12,9 +12,9 @@ window.Game = window.Game || {};
   Data.START_SCREEN = Object.freeze({
     title: "AsyncScene",
     introLines: Object.freeze([
-      "Ты в общем чате.",
-      "Споры идут через аргументы.",
-      "Ресурсы открывают действия."
+      "Ты выбираешь оппонента.",
+      "Спор стоит ресурс.",
+      "Победа приносит репутацию."
     ]),
     actions: Object.freeze({
       start: "Начать",
@@ -4019,6 +4019,111 @@ K YN A9: Нет.
       }
       result.ok = result.failedChecks.length === 0;
       console.warn("ONBOARDING_MINIMAL_UI_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    root.__DEV.smokeOnboardingHowItWorksOnce = function smokeOnboardingHowItWorksOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        failedChecks: [],
+        instructionLineCount: 0,
+        lines: [],
+        choiceRiskResultCoverage: false,
+        coverage: { choice: false, risk: false, result: false },
+        forbiddenWording: [],
+        startStillPrimary: false,
+        userCanImmediatelyPressStart: false,
+        startScreenRemainsMinimal: false,
+        noLayoutRegressionsFromMinimalUi: false,
+        minimalUiSmoke: null
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const runtimeData = (root && root.Data) ? root.Data : Data;
+      const spec = runtimeData && runtimeData.START_SCREEN;
+      const lines = spec && Array.isArray(spec.introLines) ? spec.introLines.map((line) => String(line || "").trim()).filter(Boolean) : [];
+      result.lines = lines.slice();
+      result.instructionLineCount = lines.length;
+      if (lines.length !== 3) fail("instruction_line_count_not_three", lines.length);
+      lines.forEach((line, index) => {
+        const sentencePieces = line.split(/[.!?…]+/).map((piece) => piece.trim()).filter(Boolean);
+        if (!line) fail("instruction_line_empty", index);
+        if (sentencePieces.length !== 1 || !/[.!?…]$/.test(line)) fail("instruction_line_not_one_short_sentence", { index, line });
+        if (line.length > 48) fail("instruction_line_too_long", { index, length: line.length, line });
+      });
+      result.coverage.choice = !!(lines[0] && /ты\s+выбираешь|выбор|выбира/i.test(lines[0]));
+      result.coverage.risk = !!(lines[1] && /риск|стоит|трата|теряешь|ресурс/i.test(lines[1]));
+      result.coverage.result = !!(lines[2] && /победа|итог|результат|приносит|получаешь|репутаци/i.test(lines[2]));
+      result.choiceRiskResultCoverage = result.coverage.choice && result.coverage.risk && result.coverage.result;
+      if (!result.choiceRiskResultCoverage) fail("choice_risk_result_coverage_missing", result.coverage);
+      if (!lines.some((line) => /(^|\s)ты($|\s|[.!?…])/i.test(line))) fail("user_not_addressed_as_ty", lines);
+      const forbiddenPatterns = [
+        { label: "tutorial_tone", pattern: /туториал|обучение|подсказка|инструкция|справка|помощь|документация|гайд/i },
+        { label: "imperative_help", pattern: /нажми|кликни|прочитай|следуй|изучи|запомни/i },
+        { label: "slang_or_meme", pattern: /лол|кек|мем|кринж|хайп|рофл|имба|изи/i },
+        { label: "pressure_or_moralizing", pattern: /надо|нужно|обязан|должен|правильно|неправильно|хорошо|плохо|стыд|вина/i }
+      ];
+      lines.forEach((line, index) => {
+        forbiddenPatterns.forEach((entry) => {
+          if (entry.pattern.test(line)) result.forbiddenWording.push({ index, label: entry.label, line });
+        });
+      });
+      if (result.forbiddenWording.length) fail("forbidden_wording_present", result.forbiddenWording.slice());
+      try {
+        const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+        const introEl = (typeof document !== "undefined") ? document.getElementById("startIntroLines") : null;
+        const btns = (typeof document !== "undefined") ? document.getElementById("startBtns") : null;
+        const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+        const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
+        if (st) {
+          st.hidden = false;
+          st.classList.remove("hidden");
+          st.classList.add("active");
+          st.removeAttribute("aria-hidden");
+          st.style.display = "flex";
+          st.style.visibility = "visible";
+          st.style.opacity = "1";
+          st.style.pointerEvents = "auto";
+        }
+        const renderedLines = introEl ? Array.from(introEl.children).map((el) => (el.textContent || "").trim()).filter(Boolean) : [];
+        if (JSON.stringify(renderedLines) !== JSON.stringify(lines)) fail("instruction_lines_not_from_source", renderedLines);
+        const startRect = startBtn && startBtn.getBoundingClientRect ? startBtn.getBoundingClientRect() : null;
+        const rulesRect = rulesBtn && rulesBtn.getBoundingClientRect ? rulesBtn.getBoundingClientRect() : null;
+        const btnsRect = btns && btns.getBoundingClientRect ? btns.getBoundingClientRect() : null;
+        const visibleButton = (button, rect) => {
+          if (!button || !rect || rect.width <= 0 || rect.height <= 0) return false;
+          const cs = (typeof getComputedStyle === "function") ? getComputedStyle(button) : null;
+          return !button.hidden && (!cs || (cs.display !== "none" && cs.visibility !== "hidden" && cs.pointerEvents !== "none"));
+        };
+        result.userCanImmediatelyPressStart = visibleButton(startBtn, startRect);
+        if (!result.userCanImmediatelyPressStart) fail("start_not_immediately_pressable", startRect ? { width: startRect.width, height: startRect.height } : null);
+        result.startStillPrimary = !!(startRect && rulesRect && startRect.width >= rulesRect.width && startRect.left <= rulesRect.left + 1 && startBtn && startBtn.classList && startBtn.classList.contains("primary"));
+        if (!result.startStillPrimary) fail("start_not_primary_action", { start: startRect ? { left: startRect.left, width: startRect.width } : null, rules: rulesRect ? { left: rulesRect.left, width: rulesRect.width } : null });
+        const childIds = st ? Array.from(st.children).map((el) => el.id || el.tagName.toLowerCase()) : [];
+        result.startScreenRemainsMinimal = !!(st && introEl && btns && childIds.length === 1 && st.querySelectorAll("#startCard, #startTitle, #startIntroLines, #startBtns, #btnStart, #btnRules").length === 6 && !st.querySelector("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom"));
+        if (!result.startScreenRemainsMinimal) fail("start_screen_not_minimal", childIds);
+        if (btnsRect && startRect) {
+          const startBeforeOrInBtns = startRect.top >= btnsRect.top - 1 && startRect.bottom <= btnsRect.bottom + 1;
+          if (!startBeforeOrInBtns) fail("start_layout_outside_cta_row", { startTop: startRect.top, btnsTop: btnsRect.top });
+        }
+      } catch (err) {
+        fail("how_it_works_dom_exception", err && err.message ? String(err.message) : String(err));
+      }
+      try {
+        if (typeof root.__DEV.smokeOnboardingMinimalUiOnce === "function") {
+          result.minimalUiSmoke = root.__DEV.smokeOnboardingMinimalUiOnce();
+          result.noLayoutRegressionsFromMinimalUi = !!(result.minimalUiSmoke && result.minimalUiSmoke.ok && result.minimalUiSmoke.ctaVisibleAndAligned && result.minimalUiSmoke.noLayoutOverlap && result.minimalUiSmoke.noExtraStartScreenBlocks && result.minimalUiSmoke.startStillEntersGame);
+          if (!result.noLayoutRegressionsFromMinimalUi) fail("minimal_ui_regression", result.minimalUiSmoke);
+        } else {
+          fail("minimal_ui_smoke_missing", null);
+        }
+      } catch (err) {
+        fail("minimal_ui_smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failedChecks.length === 0;
+      console.warn("ONBOARDING_HOW_IT_WORKS_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
     console.warn("ONBOARDING_SPEC_SMOKE_EXPOSED_VIA_DATA_V2", typeof root.__DEV.smokeOnboardingSpecOnce);
