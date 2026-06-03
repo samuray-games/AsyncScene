@@ -49,6 +49,30 @@
 
 ```
 
+### [T-20260603-075] Step 7 [4] Spec Smoke Viewport-Center False Failure Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Fix only the nested spec smoke viewport-center false failure while preserving real pointer-blocker failures.
+- Acceptance:
+  - [x] `specSmokeVersion:"step7_spec_pointer_v3"` is included in the spec smoke result.
+  - [x] The smoke resets document/body scroll before pointer checks and retries the hit-test after `scrollIntoView()` when the button center is initially outside the viewport.
+  - [x] A Safari null/empty hit-test is not failed when the button has a valid rect, is visible, has pointer events enabled, and matching click evidence proves it is safe/non-blocking.
+  - [x] Invalid rects, hidden buttons, `pointer-events:none`, offscreen buttons without matching click success, and real top-element blockers still fail `start_button_pointer_blocked`.
+  - [x] No onboardingSeen, gameplay, economy, UI, content, or Console.txt changes.
+- Notes: Safari runtime PASS is not claimed here; required command remains `Game.__DEV.smokeOnboardingSeenOnce()`.
+- Result: Hardened the mirrored data-bundle spec smoke viewport-center/null-hit handling without changing onboarding state logic.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The spec smoke now reports `specSmokeVersion:"step7_spec_pointer_v3"`, resets scroll state before checking, re-centers off-viewport buttons before hit-testing, defers pointer-blocker reporting until click evidence is available, and clears only the null/empty Safari hit-test false failure when the button is otherwise valid and click-safe.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/data.js`; `node --check docs/data.js`; Safari console `Game.__DEV.smokeOnboardingSeenOnce()`
+  - Next: Дима should run the Safari runtime smoke because local syntax checks cannot claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeOnboardingSeenOnce()` in Safari and confirm the nested spec smoke includes `specSmokeVersion:"step7_spec_pointer_v3"` with no `start_button_pointer_blocked` false failure for a visible/clickable null-hit Rules button.
+
 
 ### [T-20260603-074] Step 7 [4] Deployed Spec Smoke Pointer v2
 - Status: DONE

@@ -3671,7 +3671,7 @@ K YN A9: Нет.
     root.__DEV.smokeOnboardingSpecOnce = function smokeOnboardingSpecOnce() {
       const result = {
         ok: false,
-        specSmokeVersion: "step7_spec_pointer_v2",
+        specSmokeVersion: "step7_spec_pointer_v3",
         failures: [],
         failedChecks: [],
         hasStartScreenSource: false,
@@ -3716,6 +3716,21 @@ K YN A9: Нет.
             state.flags.started = false;
             state.flags.menuOpen = false;
           });
+          try {
+            if (typeof window !== "undefined" && typeof window.scrollTo === "function") window.scrollTo(0, 0);
+            if (document.scrollingElement) {
+              document.scrollingElement.scrollTop = 0;
+              document.scrollingElement.scrollLeft = 0;
+            }
+            if (document.documentElement) {
+              document.documentElement.scrollTop = 0;
+              document.documentElement.scrollLeft = 0;
+            }
+            if (document.body) {
+              document.body.scrollTop = 0;
+              document.body.scrollLeft = 0;
+            }
+          } catch (_) {}
           const st = document.getElementById("startScreen");
           if (st) {
             st.hidden = false;
@@ -3807,6 +3822,7 @@ K YN A9: Нет.
             return !el.hidden && (!style || (style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0"));
           };
           const describeNode = (node) => node ? `${node.tagName || "?"}${node.id ? `#${node.id}` : ""}${node.className ? `.${String(node.className).trim().split(/\s+/).filter(Boolean).join(".")}` : ""}` : "null";
+          const pendingPointerChecks = [];
           const pointCheck = (button, name) => {
             if (!button || !button.getBoundingClientRect || typeof document.elementFromPoint !== "function") return;
             const rect = button.getBoundingClientRect();
@@ -3819,19 +3835,33 @@ K YN A9: Нет.
               && rect.width > 0 && rect.height > 0;
             const centerInViewport = viewportWidth == null || viewportHeight == null
               || (x >= 0 && y >= 0 && x <= viewportWidth && y <= viewportHeight);
-            const top = document.elementFromPoint(x, y);
-            const stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : (top ? [top] : []);
+            try {
+              if (!centerInViewport && typeof button.scrollIntoView === "function") {
+                button.scrollIntoView({ block: "center", inline: "center" });
+              }
+            } catch (_) {}
+            const nextRect = button.getBoundingClientRect();
+            const hitRect = (!centerInViewport && Number.isFinite(nextRect.left) && Number.isFinite(nextRect.top)
+              && Number.isFinite(nextRect.width) && Number.isFinite(nextRect.height)
+              && nextRect.width > 0 && nextRect.height > 0) ? nextRect : rect;
+            const hitX = hitRect.left + (hitRect.width / 2);
+            const hitY = hitRect.top + (hitRect.height / 2);
+            const hitCenterInViewport = viewportWidth == null || viewportHeight == null
+              || (hitX >= 0 && hitY >= 0 && hitX <= viewportWidth && hitY <= viewportHeight);
+            const top = document.elementFromPoint(hitX, hitY);
+            const stack = document.elementsFromPoint ? document.elementsFromPoint(hitX, hitY) : (top ? [top] : []);
             const cs = (typeof getComputedStyle === "function") ? getComputedStyle(button) : null;
             const topIsButton = top === button || (top && button.contains(top));
             const visibleButton = isVisibleNode(button);
             const pointerEnabled = !cs || cs.pointerEvents !== "none";
             const stackList = Array.from(stack || []).filter(Boolean);
             const emptyNullHitTest = !top && stackList.length === 0;
-            const safariNullHitTestAllowed = emptyNullHitTest && hasValidRect && centerInViewport && visibleButton && pointerEnabled;
+            const safariNullHitTestAllowed = emptyNullHitTest && hasValidRect && hitCenterInViewport && visibleButton && pointerEnabled;
+            const clickEvidenceCanClearNullHit = emptyNullHitTest && hasValidRect && visibleButton && pointerEnabled;
             const blocked = !visibleButton
               || !pointerEnabled
               || !hasValidRect
-              || !centerInViewport
+              || !hitCenterInViewport
               || (!safariNullHitTestAllowed && !topIsButton);
             if (blocked) {
               const detail = {
@@ -3841,11 +3871,11 @@ K YN A9: Нет.
                 pointerEvents: cs ? cs.pointerEvents : null,
                 visible: visibleButton,
                 hasValidRect,
-                centerInViewport,
-                rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) }
+                centerInViewport: hitCenterInViewport,
+                originalCenterInViewport: centerInViewport,
+                rect: { left: Math.round(hitRect.left), top: Math.round(hitRect.top), width: Math.round(hitRect.width), height: Math.round(hitRect.height) }
               };
-              result.pointerBlockers.push(detail);
-              fail("start_button_pointer_blocked", detail);
+              pendingPointerChecks.push({ name, detail, clickEvidenceCanClearNullHit });
             }
           };
           pointCheck(startBtn, "start");
@@ -3888,6 +3918,15 @@ K YN A9: Нет.
           } else {
             fail("start_button_not_clickable", null);
           }
+
+          pendingPointerChecks.forEach((check) => {
+            const clickSafe = check.name === "rules"
+              ? (result.rulesButtonClickable && result.rulesDoesNotBlockStart)
+              : (result.startButtonClickable && result.enteredGameAfterStart);
+            if (check.clickEvidenceCanClearNullHit && clickSafe) return;
+            result.pointerBlockers.push(check.detail);
+            fail("start_button_pointer_blocked", check.detail);
+          });
 
           const allowed = new Set(["startCard", "startTitle", "startIntroLines", "startBtns", "btnStart", "btnRules"]);
           const resetAllowed = (el) => el && el.id === "btnResetOnboarding" && (el.hidden || el.classList.contains("hidden") || el.style.display === "none");
