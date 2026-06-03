@@ -1,3 +1,13 @@
+## 2026-06-03 — Step 7 [4] nested spec smoke viewport-center fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
+- Fixed only `Game.__DEV.smokeOnboardingSpecOnce()` in both runtime bundles for the nested `Game.__DEV.smokeOnboardingSeenOnce()` spec smoke false failure.
+- Updated the spec marker to `specSmokeVersion:"step7_spec_pointer_v3"`, reset document/body scroll state before pointer checks, and retry off-viewport hit-tests after `scrollIntoView()`.
+- Deferred pointer-blocker failures until click evidence is available so a valid, visible, pointer-enabled Safari `top:null` / empty-stack button is not failed when Rules is clickable/non-blocking or Start enters the game.
+- Real blockers are still preserved for invalid rects, hidden buttons, `pointer-events:none`, offscreen buttons without matching click success, and non-button top elements. No onboardingSeen logic, gameplay, economy, UI, content, or Console.txt change was made.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 ## 2026-06-03 — Step 7 [4] onboarding-seen smoke resource-preservation fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local PASS only; Safari runtime PASS is not claimed.
