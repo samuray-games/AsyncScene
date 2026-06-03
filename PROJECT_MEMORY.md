@@ -84,6 +84,16 @@
 
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-03 — Step 7 [4] Spec Smoke Pointer-Blocker False Failure Fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Fixed only `Game.__DEV.smokeOnboardingSpecOnce()` pointer-blocker detection in both runtime bundles.
+- The spec smoke no longer treats Safari `elementFromPoint()` `null` plus an empty `elementsFromPoint()` stack as a pointer blocker when button geometry is valid and the button center is inside the viewport.
+- Real pointer-blocker failures are preserved for hidden buttons, `pointer-events:none`, invalid or off-viewport geometry, and actual top elements that are not the tested button.
+- No `onboardingSeen`, gameplay, economy, UI, or onboarding content changes were made. Console.txt was not used.
+- Local evidence: PASS `node --check AsyncScene/Web/data.js`; PASS `node --check docs/data.js`.
+- Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()` must return `ok:true` before runtime PASS can be claimed.
+
 
 ## 2026-06-02 — Step 7 [1] Runtime Smoke Export Fix
 
