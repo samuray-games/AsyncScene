@@ -26,6 +26,7 @@
 Скопируй блок, заполни поля, вставь в **Inbox**:
 
 ```md
+
 ### [T-YYYYMMDD-XXX] <Короткое название>
 - Status: TODO
 - Priority: P0|P1|P2
@@ -48,6 +49,31 @@
   - Next Prompt: <краткий текст/ссылка для следующего исполнителя; формат свободный, без обязательных кодблоков>
 
 ```
+
+### [T-20260603-079] Step 8C Profile Tone & Length Audit
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Content|Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Add runtime validation for profile-facing adult tone and short-form block length without UI, economy, gameplay, or refactor changes.
+- Acceptance:
+  - [x] `Game.__DEV.smokeProfileAdultToneOnce()` exists in both runtime bundles.
+  - [x] Smoke returns exactly `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] Validation covers `length_limit`, `direct_tone`, `no_baby_talk`, `no_teaching_tone`, and `no_moralizing`.
+  - [x] Profile-facing blocks are short, direct `ты` style, adult-toned, and avoid cutesy, teaching, and moralizing wording.
+  - [x] No UI, economy, gameplay, refactor, or `Console.txt` usage was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeProfileAdultToneOnce()`.
+- Result: Added mirrored profile adult-tone smoke, tightened profile self-check block copy, and cache-busted the dev-checks script tag.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The smoke audits the three profile blocks for short length, direct `ты` tone, forbidden baby-talk, teaching tone, and moralizing, and fails unless every required result array is empty.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeProfileAdultToneOnce()`
+  - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeProfileAdultToneOnce()` in Safari and verify `ok === true`, with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 
 ### [T-20260603-078] Step 7 [7] Final onboarding regression pack
 - Status: DONE

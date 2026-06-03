@@ -1,3 +1,13 @@
+## 2026-06-03 — Step 8C Profile Tone & Length Audit
+- Implemented mirrored runtime smoke `Game.__DEV.smokeProfileAdultToneOnce()` in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`.
+- Smoke returns exactly `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks }` and treats PASS as all arrays empty.
+- Validation coverage: `length_limit`, `direct_tone`, `no_baby_talk`, `no_teaching_tone`, and `no_moralizing`.
+- Profile self-check blocks now use short direct `ты` wording for adult profile tone: service surface, adult direct feedback, and compact forum blocks.
+- Cache-busted both dev-checks script tags to `step8c-profile-adult-tone-v1` so Safari can load the new smoke.
+- Scope guard: no UI layout changes, no economy changes, no gameplay changes, no refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeProfileAdultToneOnce()`; Safari runtime PASS is not claimed by this implementation note.
+
+
 ## 2026-06-03 — Step 7 [7] final onboarding regression pack
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
