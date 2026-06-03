@@ -4239,6 +4239,16 @@ K YN A9: Нет.
         b.click();
         return true;
       };
+      const progressResourceSnapshot = () => S ? {
+        points: S.me && S.me.points,
+        wins: S.me && S.me.wins,
+        meInfluence: S.me && S.me.influence,
+        stateInfluence: S.influence,
+        rep: S.rep,
+        weeklyInfluenceGained: S.progress && S.progress.weeklyInfluenceGained,
+        weekStartAt: S.progress && S.progress.weekStartAt,
+        lastDailyBonusAt: S.progress && S.progress.lastDailyBonusAt
+      } : null;
       try {
         if (!S || !A) fail("state_api_missing", { hasState: !!S, hasApi: !!A });
         if (!root.Data || root.Data.START_SCREEN !== Data.START_SCREEN) fail("start_screen_source_not_data", null);
@@ -4268,38 +4278,14 @@ K YN A9: Нет.
 
         idle();
         setSeen(true);
-        if (S) {
-          S.progress = S.progress || {};
-          S.progress.weeklyInfluenceGained = 7;
-          S.progress.weekStartAt = 12345;
-          S.progress.lastDailyBonusAt = 67890;
-          S.me = S.me || { id: "me" };
-          S.me.points = 23;
-          S.me.wins = 5;
-          S.influence = 2;
-        }
         refresh();
-        const beforeReset = S ? {
-          points: S.me && S.me.points,
-          wins: S.me && S.me.wins,
-          influence: S.influence,
-          weeklyInfluenceGained: S.progress && S.progress.weeklyInfluenceGained,
-          weekStartAt: S.progress && S.progress.weekStartAt,
-          lastDailyBonusAt: S.progress && S.progress.lastDailyBonusAt
-        } : null;
+        const beforeReset = progressResourceSnapshot();
         const reset = btnReset();
         if (!reset || typeof reset.click !== "function") fail("reset_action_missing", null);
         else reset.click();
         result.resetSetsOnboardingSeenFalse = getSeen() === false;
         if (!result.resetSetsOnboardingSeenFalse) fail("reset_did_not_clear_seen", S && S.progress);
-        const afterReset = S ? {
-          points: S.me && S.me.points,
-          wins: S.me && S.me.wins,
-          influence: S.influence,
-          weeklyInfluenceGained: S.progress && S.progress.weeklyInfluenceGained,
-          weekStartAt: S.progress && S.progress.weekStartAt,
-          lastDailyBonusAt: S.progress && S.progress.lastDailyBonusAt
-        } : null;
+        const afterReset = progressResourceSnapshot();
         result.resetPreservesProgressResources = JSON.stringify(beforeReset) === JSON.stringify(afterReset);
         if (!result.resetPreservesProgressResources) fail("reset_wiped_progress_or_resources", { beforeReset, afterReset });
         result.resetShowsFirstLaunchAgain = visible(startScreen()) && text(btnStart()) === "Старт";
