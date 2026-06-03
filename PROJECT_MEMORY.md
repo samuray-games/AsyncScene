@@ -4808,3 +4808,13 @@ Error: Download failure, code=1
 - Bumped mirrored `ui/ui-boot.js` cache keys from `v=12` to `v=13` for both app and docs runtime paths.
 - Scope guard preserved: `Data.START_SCREEN` content unchanged, exactly two actions unchanged, no `onboardingSeen`, no gameplay/economy changes, no UI redesign, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeOnboardingSpecOnce()`.
+
+## 2026-06-03 - Step 7 [4] First launch vs repeat launch only
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Implemented persisted `State.progress.onboardingSeen` in the mirrored state bundles, with StateAPI getters/setters/reset helpers and a localStorage backing key dedicated only to onboarding state.
+- Updated the minimal start-screen boot path to use `Data.START_SCREEN` copy, show `Старт` on first launch, persist onboardingSeen on first Start, show `Продолжить` in repeat/resume mode, and expose a small `Сбросить онбординг` action only in resume mode.
+- Reset onboarding now clears only onboardingSeen and refreshes the first-launch start screen without resetting points, wins, influence, or progress counters.
+- Continue/resume enters the game without running the first-start gameplay/resource reset path, preserving existing gameplay/economy behavior outside onboarding mode selection.
+- Added `Game.__DEV.smokeOnboardingSeenOnce()` covering fresh state, Start persistence, repeat Continue mode, reset preservation, no stuck/loop state, Start/Continue entry, and Step 7 [1]-[3] smoke delegation.
+- Cache-busted the mirrored HTML entrypoints for state/data/ui boot bundles. Scope guard preserved: no gameplay/economy changes beyond avoiding first-start reset in resume mode, no UI redesign beyond the required reset control, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()`.
