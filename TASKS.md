@@ -51,6 +51,28 @@
 
 
 
+### [T-20260603-072] Step 7 [4] Onboarding Smoke Resource Preservation Fix
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI
+- Files: `AsyncScene/Web/data.js` `docs/data.js`
+- Goal: Fix only `Game.__DEV.smokeOnboardingSeenOnce()` so its resource-preservation check does not directly mutate protected economy balances.
+- Acceptance:
+  - [x] Smoke no longer writes `State.me.points` or protected economy balances directly.
+  - [x] Reset-onboarding preservation is checked via before/after snapshots of existing progress/resources.
+  - [x] No economy bypass, gameplay change, onboarding UI change, or Console.txt usage.
+- Notes: Safari runtime PASS is not claimed here; required command remains `Game.__DEV.smokeOnboardingSeenOnce()`.
+- Result: Replaced synthetic progress/resource mutation setup with `progressResourceSnapshot()` comparisons in both runtime bundles.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: `smokeOnboardingSeenOnce()` now snapshots existing points/wins/influence/rep/progress fields before reset and compares after reset without seeding `S.me.points`.
+  - Changed: `AsyncScene/Web/data.js` `docs/data.js` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/data.js`; `node --check docs/data.js`; Safari console `Game.__DEV.smokeOnboardingSeenOnce()`
+  - Next: Дима should run the Safari runtime smoke because local syntax checks cannot claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeOnboardingSeenOnce()` in Safari and report exact result object.
+
 ### [T-20260603-071] Step 7 [3] Start-Screen How It Works Microcopy
 - Status: DONE
 - Priority: P0
