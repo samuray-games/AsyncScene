@@ -149,6 +149,116 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         failedChecks
       };
     };
+    const smokeProfileModernUiOnce = () => {
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const coveredChecks = new Set();
+      const requiredChecks = [
+        "profile_root",
+        "empty_counters",
+        "grey_placeholders",
+        "disabled_content_buttons",
+        "legacy_table_markers",
+        "short_cta_labels"
+      ];
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+([,.;:!?])/g, "$1");
+      const wordCount = (label) => {
+        const cleaned = normalize(label).replace(/[.,;:!?()[\]{}]+/g, " ").trim();
+        if (!cleaned) return 0;
+        return cleaned.split(/\s+/).filter(Boolean).length;
+      };
+      if (typeof document === "undefined") {
+        fail("profile_root", "document_missing");
+      }
+      const roots = typeof document !== "undefined"
+        ? [document.getElementById("topBar")].filter(Boolean)
+        : [];
+      coveredChecks.add("profile_root");
+      if (!roots.length) fail("profile_root", "#topBar");
+      const profileText = normalize(roots.map((root) => root.textContent || "").join(" "));
+      coveredChecks.add("empty_counters");
+      const emptyCounterRe = /(\(\s*(?:0)?\s*\)|\[\s*(?:0)?\s*\])/g;
+      let counterMatch;
+      while ((counterMatch = emptyCounterRe.exec(profileText))) {
+        addUnique(result.forbiddenRemaining, { check: "empty_counters", match: counterMatch[0], text: profileText });
+      }
+      if (result.forbiddenRemaining.some((item) => item && item.check === "empty_counters")) fail("empty_counters", "empty_counter_marker_remaining");
+
+      coveredChecks.add("grey_placeholders");
+      roots.forEach((root) => {
+        root.querySelectorAll(".placeholder,.skeleton,.loading,[data-placeholder='true'],[aria-placeholder]").forEach((el) => {
+          const text = normalize(el.textContent || "");
+          addUnique(result.forbiddenRemaining, { check: "grey_placeholders", selector: el.id ? `#${el.id}` : el.className || el.tagName, text });
+        });
+        root.querySelectorAll("*").forEach((el) => {
+          const text = normalize(el.textContent || "");
+          if (!text) return;
+          let style = null;
+          try { style = window.getComputedStyle ? window.getComputedStyle(el) : null; } catch (_) { style = null; }
+          const bg = style ? String(style.backgroundColor || "") : "";
+          const color = style ? String(style.color || "") : "";
+          const looksGrey = /rgba?\(\s*(?:12[0-9]|1[3-8][0-9]|19[0-2])\s*,\s*(?:12[0-9]|1[3-8][0-9]|19[0-2])\s*,\s*(?:12[0-9]|1[3-8][0-9]|19[0-2])/i.test(bg)
+            && /rgba?\(\s*(?:12[0-9]|1[3-8][0-9]|19[0-2])\s*,\s*(?:12[0-9]|1[3-8][0-9]|19[0-2])\s*,\s*(?:12[0-9]|1[3-8][0-9]|19[0-2])/i.test(color);
+          if (looksGrey && /(placeholder|skeleton|loading|недоступно|скоро|пусто)/i.test(text)) {
+            addUnique(result.forbiddenRemaining, { check: "grey_placeholders", text });
+          }
+        });
+      });
+      if (result.forbiddenRemaining.some((item) => item && item.check === "grey_placeholders")) fail("grey_placeholders", "grey_placeholder_content_remaining");
+
+      coveredChecks.add("disabled_content_buttons");
+      roots.forEach((root) => {
+        root.querySelectorAll("button,[role='button']").forEach((button) => {
+          const label = normalize(button.textContent || button.getAttribute("aria-label") || "");
+          const disabledLike = button.disabled === true
+            || button.getAttribute("aria-disabled") === "true"
+            || /(?:^|\s)(?:is-disabled|disabled)(?:\s|$)/.test(button.className || "");
+          if (disabledLike && label) addUnique(result.forbiddenRemaining, { check: "disabled_content_buttons", label });
+        });
+      });
+      if (result.forbiddenRemaining.some((item) => item && item.check === "disabled_content_buttons")) fail("disabled_content_buttons", "disabled_button_content_remaining");
+
+      coveredChecks.add("legacy_table_markers");
+      roots.forEach((root) => {
+        if (/[|]/.test(root.textContent || "")) addUnique(result.forbiddenRemaining, { check: "legacy_table_markers", marker: "pipe", text: normalize(root.textContent || "") });
+        if (/\[[^\]]*\d+[^\]]*\]/.test(root.textContent || "")) addUnique(result.forbiddenRemaining, { check: "legacy_table_markers", marker: "bracketed_counter", text: normalize(root.textContent || "") });
+        root.querySelectorAll("table,tr,td,th").forEach((el) => addUnique(result.forbiddenRemaining, { check: "legacy_table_markers", marker: el.tagName.toLowerCase() }));
+      });
+      if (result.forbiddenRemaining.some((item) => item && item.check === "legacy_table_markers")) fail("legacy_table_markers", "legacy_table_marker_remaining");
+
+      coveredChecks.add("short_cta_labels");
+      const ctas = [];
+      roots.forEach((root) => root.querySelectorAll("button,[role='button']").forEach((button) => ctas.push(button)));
+      if (!ctas.length) fail("short_cta_labels", "profile_cta_missing");
+      ctas.forEach((button) => {
+        const label = normalize(button.textContent || button.getAttribute("aria-label") || "");
+        const count = wordCount(label);
+        if (!label || count > 2) {
+          addUnique(result.forbiddenRemaining, { check: "short_cta_labels", label, words: count });
+          fail("short_cta_labels", { label, words: count, max: 2 });
+        }
+      });
+
+      requiredChecks.forEach((check) => {
+        if (!coveredChecks.has(check)) addUnique(result.missingCoverage, check);
+      });
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missingCoverage");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeProfileSelfCheckOnce = () => {
       const failures = [];
       const failedChecks = [];
@@ -178,9 +288,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
+    Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
     devStore.profileSelfCheck = profileSelfCheck;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
+    devStore.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
   }
 
   installProfileSelfCheck(Game.__DEV);
