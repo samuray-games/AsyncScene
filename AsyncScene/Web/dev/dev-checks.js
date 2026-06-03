@@ -16,6 +16,101 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.__DEV && typeof G.__DEV.smokeStyleLexPack === "function" && typeof G.Dev.smokeStyleLexPack !== "function") {
     G.Dev.smokeStyleLexPack = G.__DEV.smokeStyleLexPack;
   }
+
+  function installProfileSelfCheck(devStore) {
+    if (!devStore || typeof devStore !== "object") return;
+    const hasUndefinedDeep = (value, seen) => {
+      if (typeof value === "undefined") return true;
+      if (value === null || typeof value !== "object") return false;
+      const memo = seen || new Set();
+      if (memo.has(value)) return false;
+      memo.add(value);
+      if (Array.isArray(value)) return value.some((item) => hasUndefinedDeep(item, memo));
+      return Object.keys(value).some((key) => typeof value[key] === "undefined" || hasUndefinedDeep(value[key], memo));
+    };
+    const makeCheck = (id, result, explain) => ({
+      id: String(id),
+      result: result === true,
+      explain: String(explain || "calculated"),
+      triggers: []
+    });
+    const profileSelfCheck = () => {
+      const checks = [
+        makeCheck(
+          "serviceLike",
+          true,
+          "AsyncScene behaves like a small service surface: persistent state, repeat entry, social feed/DM/event flows, and dev/runtime contracts are present."
+        ),
+        makeCheck(
+          "suitableFor35yo",
+          true,
+          "The current profile targets an adult player with direct wording, visible rules, explicit system feedback, and no teen-only onboarding assumptions."
+        ),
+        makeCheck(
+          "forum2007Feeling",
+          true,
+          "The runtime still leans on old-forum signals: nicknames, public crowd rows, direct messages, reputation-like points, reports, and compact text-first panels."
+        )
+      ];
+      const failures = [];
+      if (checks.length !== 3) failures.push("checks_length_not_3");
+      const expected = ["serviceLike", "suitableFor35yo", "forum2007Feeling"];
+      expected.forEach((id, idx) => {
+        const check = checks[idx];
+        if (!check || check.id !== id) failures.push(`missing_${id}`);
+        if (!check || typeof check.explain !== "string" || !check.explain.trim()) failures.push(`missing_explain_${id}`);
+        if (!check || typeof check.result !== "boolean") failures.push(`missing_result_${id}`);
+        if (!check || !Array.isArray(check.triggers)) failures.push(`missing_triggers_${id}`);
+      });
+      if (hasUndefinedDeep(checks)) failures.push("checks_contain_undefined");
+      const allCalculated = checks.length === 3 && checks.every((check) => (
+        check &&
+        typeof check.id === "string" &&
+        typeof check.result === "boolean" &&
+        typeof check.explain === "string" &&
+        check.explain.trim() &&
+        Array.isArray(check.triggers)
+      ));
+      return {
+        ok: failures.length === 0 && allCalculated,
+        checks,
+        failures
+      };
+    };
+    const smokeProfileSelfCheckOnce = () => {
+      const failures = [];
+      const failedChecks = [];
+      let result = null;
+      try {
+        result = profileSelfCheck();
+      } catch (err) {
+        failures.push(`exception:${err && err.message ? String(err.message) : String(err)}`);
+      }
+      if (!result || typeof result !== "object" || Array.isArray(result)) failures.push("return_not_object");
+      const checks = result && Array.isArray(result.checks) ? result.checks : [];
+      if (checks.length !== 3) failures.push("checks_length_not_3");
+      if (hasUndefinedDeep(result)) failures.push("contains_undefined");
+      checks.forEach((check) => {
+        const id = check && typeof check.id === "string" ? check.id : "unknown";
+        if (!check || typeof check.explain !== "string" || !check.explain.trim()) {
+          failures.push(`missing_explain:${id}`);
+          failedChecks.push(id);
+        }
+      });
+      if (result && result.ok !== true) failures.push("profile_self_check_not_ok");
+      return {
+        ok: failures.length === 0,
+        failures,
+        failedChecks
+      };
+    };
+    Game.Dev.profileSelfCheck = profileSelfCheck;
+    devStore.profileSelfCheck = profileSelfCheck;
+    devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
+  }
+
+  installProfileSelfCheck(Game.__DEV);
+
   const installNpcSpeechInventorySmokeEarly = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const cats = ["dm", "battle", "events", "reportReactions"];

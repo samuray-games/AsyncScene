@@ -5477,3 +5477,10 @@ Error: Download failure, code=1
 - Repeat launch shows the same minimal start screen in resume mode with primary text `Продолжить` and a small `Сбросить онбординг` action.
 - Reset onboarding clears only onboardingSeen, keeps progress/resources intact, and returns the start screen to first-launch mode.
 - Added dev smoke `Game.__DEV.smokeOnboardingSeenOnce()`; required Safari command: `Game.__DEV.smokeOnboardingSeenOnce()`.
+
+## 2026-06-03 - Step 8A Profile Self Check
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Implemented only the dev profile helper surfaces `Game.Dev.profileSelfCheck()` and `Game.__DEV.profileSelfCheck()` with exactly three structured checks: `serviceLike`, `suitableFor35yo`, and `forum2007Feeling`.
+- Added runtime smoke `Game.__DEV.smokeProfileSelfCheckOnce()` to validate the return object, `checks.length === 3`, no undefined values, and non-empty `explain` on every check.
+- Scope guard preserved: no UI changes, no economy changes, and no refactors outside the helper; app/docs entrypoints only cache-bust the dev-checks bundle for runtime verification.
+- Required Safari command: `Game.__DEV.smokeProfileSelfCheckOnce()`.
