@@ -1416,6 +1416,125 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerShortenRuleOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        buildTag,
+        commit
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "" };
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try { add(new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ");
+      try {
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        if (!zoomRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
+        const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
+        const ruleMatch = zoomRaw.match(/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (!ruleMatch) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+          fail("rule_exists", "missing_UI_PROFILE_ZOOMER_SHORTEN_RULE");
+        } else {
+          const ruleText = normalize(ruleMatch[1] || "");
+          const lowerRule = ruleText.toLowerCase();
+          const checks = [
+            { id: "shorten_30_40", ok: /30\s*-\s*40\s*%/.test(ruleText) && /shorten phrases/i.test(ruleText), label: "30-40% shortening" },
+            { id: "remove_filler_intro", ok: /remove\s+intro\/filler\s+words/i.test(ruleText) || (/remove/i.test(ruleText) && /intro/i.test(ruleText) && /filler/i.test(ruleText)), label: "remove filler/intro words" },
+            { id: "reduce_abstractions", ok: /reduce\s+abstractions/i.test(ruleText), label: "reduce abstractions" },
+            { id: "abstract_to_actions_verbs", ok: /replace\s+abstract\s+wording\s+with\s+action\s+verbs/i.test(ruleText) || (/abstract/i.test(ruleText) && /action\s+verbs/i.test(ruleText)), label: "replace abstractions with actions/verbs" },
+            { id: "keep_original_meaning", ok: /keep\s+original\s+meaning/i.test(ruleText), label: "keep original meaning" },
+            { id: "millennial_base", ok: /UI_PROFILE_MILLENNIAL/.test(ruleText) && /(base|source)/i.test(ruleText), label: "millennial base/profile" },
+            { id: "no_fake_youth_voice", ok: /no(?:t)?\s+add\s+teen\s+slang/i.test(ruleText) && /memes/i.test(lowerRule) && /fake\s+youth\s+voice/i.test(lowerRule) && /irony/i.test(lowerRule), label: "no teen slang, memes, fake youth voice, or irony" },
+            { id: "no_zoomer_diff_contradiction", ok: /do\s+not\s+contradict\s+`?UI_PROFILE_ZOOMER_DIFF`?/i.test(ruleText), label: "do not contradict UI_PROFILE_ZOOMER_DIFF" }
+          ];
+          checks.forEach((check) => {
+            if (!check.ok) {
+              addUnique(result.missingCoverage, check.label);
+              fail(check.id, check.label);
+            }
+          });
+          const contradictionPatterns = [
+            { id: "not_millennial_base", re: /do\s+not\s+use\s+(?:the\s+)?millennial/i },
+            { id: "replace_meaning", re: /change\s+(?:the\s+)?meaning/i },
+            { id: "must_add_slang", re: /(?:must|should|required\s+to)\s+add\s+teen\s+slang/i },
+            { id: "must_add_memes", re: /(?:must|should|required\s+to)\s+add\s+memes/i },
+            { id: "must_add_irony", re: /(?:must|should|required\s+to)\s+add\s+irony/i }
+          ];
+          contradictionPatterns.forEach((pattern) => {
+            if (pattern.re.test(ruleText)) {
+              addUnique(result.forbiddenRemaining, pattern.id);
+              fail("no_contradiction", pattern.id);
+            }
+          });
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const validateZoomerDiffProfileOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -1634,6 +1753,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     Game.Dev.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     Game.Dev.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
+    Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -1645,6 +1765,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     devStore.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     devStore.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
+    devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
