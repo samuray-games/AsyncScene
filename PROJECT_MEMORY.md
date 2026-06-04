@@ -192,6 +192,7 @@
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
 - Added a millennial -> zoomer comparison table to `UI_PROFILE_ZOOMER_DIFF.md` at the repo root and to the runtime-reachable copy under `docs/`, while keeping the file delta-only and narrow.
+- Updated the comparison rows so each required category now shows explicit `Millennial:` and `Zoomer:` labeled values.
 - Added mirrored `Game.__DEV.smokeZoomerDiffTableOnce()` to both runtime bundles. The smoke fetches the doc through `/__dev__/docs/UI_PROFILE_ZOOMER_DIFF.md`, checks that it stays delta-only, contains the required faster/simpler/shorter/fewer explanations/more direct wording deltas, and verifies every required table category has both millennial and zoomer content.
 - No UI changes, logic changes, or `Console.txt` usage were introduced.
 
