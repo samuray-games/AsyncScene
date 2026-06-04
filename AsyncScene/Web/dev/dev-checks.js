@@ -1026,9 +1026,267 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerForbiddenRulesOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        tablePath: null,
+        profilePath: null,
+        millennialPath: null,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const requiredChecks = [
+        "doc_exists",
+        "millennial_source",
+        "delta_only",
+        "required_deltas",
+        "surface_refs",
+        "forbidden_section",
+        "forbidden_rules",
+        "comparison_table",
+        "comparison_rows",
+        "no_duplication",
+        "no_copy_rewrites"
+      ];
+      const coveredChecks = new Set();
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            return { ok: true, text: xhr.responseText || "" };
+          }
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try {
+            add(new URL(fileName, baseUri).href);
+          } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ");
+      const forbiddenSections = [
+        "Для кого этот профиль",
+        "Как система разговаривает",
+        "Правила языка",
+        "Отношение к риску и ошибкам",
+        "Табу",
+        "Контрольный чек",
+        "Финальное подтверждение профиля"
+      ];
+      try {
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        const millennialRes = fetchTextFromCandidates("UI_PROFILE_MILLENNIAL.md");
+        result.tablePath = zoomRes.path || null;
+        result.profilePath = result.tablePath;
+        result.millennialPath = millennialRes.path || null;
+        coveredChecks.add("doc_exists");
+        if (!zoomRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
+        coveredChecks.add("millennial_source");
+        if (!millennialRes.ok) fail("millennial_source", { path: "UI_PROFILE_MILLENNIAL.md", reason: millennialRes.reason || "unavailable" });
+        const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
+        const millennialRaw = millennialRes.ok ? String(millennialRes.text || "") : "";
+        const zoomText = normalize(zoomRaw);
+        const millennialText = normalize(millennialRaw);
+        const zoomLines = zoomRaw ? zoomRaw.split(/\r?\n/).map((line) => normalize(line)).filter(Boolean) : [];
+        const millennialLines = millennialRaw ? millennialRaw.split(/\r?\n/).map((line) => normalize(line)).filter(Boolean) : [];
+        const lowerZoom = zoomText.toLowerCase();
+        if (zoomRes.ok && !zoomText.trim()) fail("doc_exists", "empty_doc");
+        if (!/ui_profile_zoomer_diff/i.test(zoomText)) fail("doc_exists", "missing_title");
+
+        coveredChecks.add("delta_only");
+        if (!/(delta-only|только delta|только дельта)/i.test(zoomText)) {
+          fail("delta_only", "missing_delta_only_marker");
+        }
+        if (zoomLines.length > 40) {
+          fail("delta_only", { lineCount: zoomLines.length, max: 40 });
+        }
+        if (zoomText.length >= Math.max(200, Math.floor(millennialText.length * 0.5))) {
+          fail("delta_only", { zoomChars: zoomText.length, millennialChars: millennialText.length });
+        }
+
+        coveredChecks.add("required_deltas");
+        const requiredDeltas = [
+          "faster",
+          "simpler",
+          "shorter",
+          "fewer explanations",
+          "more direct wording"
+        ];
+        requiredDeltas.forEach((phrase) => {
+          if (!lowerZoom.includes(phrase)) fail("required_deltas", { missing: phrase });
+        });
+
+        coveredChecks.add("surface_refs");
+        if (!/current ui surfaces/i.test(zoomText)) fail("surface_refs", "missing_current_ui_surfaces");
+        if (!/new features/i.test(zoomText)) fail("surface_refs", "missing_new_features");
+        const surfaceHits = ["start screen", "top bar", "dm", "battles", "events", "economy", "reports", "onboarding", "settings"].filter((term) => lowerZoom.includes(term));
+        if (surfaceHits.length < 4) fail("surface_refs", { hits: surfaceHits });
+
+        coveredChecks.add("forbidden_section");
+        const forbiddenMatch = zoomRaw.match(/## Forbidden(?: section)?([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (!forbiddenMatch) {
+          fail("forbidden_section", "missing_forbidden_section");
+        } else {
+          const forbiddenLines = String(forbiddenMatch[1] || "").split(/\r?\n/).map((line) => normalize(line)).filter(Boolean);
+          const requiredForbiddenRules = [
+            'no long explanations',
+            'no "давай разберём"',
+            'no unnecessary reasons/excuses',
+            'no teen slang',
+            'no meme wording',
+            'no artificial "youth" voice',
+            'no teacher/mentor tone',
+            'no showing off intelligence'
+          ];
+          const missingForbiddenRules = [];
+          requiredForbiddenRules.forEach((rule) => {
+            if (!lowerZoom.includes(rule.toLowerCase())) missingForbiddenRules.push(rule);
+          });
+          if (missingForbiddenRules.length) {
+            fail("forbidden_rules", { missingForbiddenRules });
+          }
+          if (forbiddenLines.length < requiredForbiddenRules.length) {
+            fail("forbidden_rules", { forbiddenLines });
+          }
+        }
+
+        coveredChecks.add("comparison_table");
+        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (!tableMatch) {
+          fail("comparison_table", "missing_comparison_table_section");
+        } else {
+          const tableLines = String(tableMatch[1] || "").split(/\r?\n/).map((line) => normalize(line)).filter((line) => line.startsWith("|"));
+          if (!tableLines.length) {
+            fail("comparison_table", "missing_table_rows");
+          }
+          coveredChecks.add("comparison_rows");
+          const requiredCategories = [
+            "phrase length",
+            "explanations",
+            "CTA",
+            "errors",
+            "toasts",
+            "DM",
+            "battles",
+            "economy",
+            "onboarding/training"
+          ];
+          const missingRows = [];
+          const incompleteRows = [];
+          requiredCategories.forEach((category) => {
+            const rowLine = tableLines.find((line) => {
+              const lower = line.toLowerCase();
+              const categoryLower = category.toLowerCase();
+              return lower.includes(`| ${categoryLower} |`) || lower.startsWith(`| ${categoryLower} |`) || lower.includes(`| ${categoryLower} `);
+            }) || null;
+            if (!rowLine) {
+              missingRows.push(category);
+              return;
+            }
+            const rowLower = rowLine.toLowerCase();
+            if (!rowLower.includes("millennial") || !rowLower.includes("zoomer")) {
+              incompleteRows.push({ category, rowLine });
+            }
+          });
+          if (missingRows.length || incompleteRows.length) {
+            fail("comparison_rows", { missingRows, incompleteRows });
+          }
+        }
+
+        coveredChecks.add("no_duplication");
+        forbiddenSections.forEach((section) => {
+          if (zoomText.includes(section)) {
+            addUnique(result.forbiddenRemaining, { check: "no_duplication", section });
+            fail("no_duplication", { section });
+          }
+        });
+        const sharedLines = zoomLines.filter((line) => millennialLines.includes(line));
+        if (sharedLines.length > 6) {
+          addUnique(result.forbiddenRemaining, { check: "no_duplication", sharedLines });
+          fail("no_duplication", { sharedCount: sharedLines.length, sharedLines });
+        }
+        if (zoomLines.join("\n") === millennialLines.join("\n")) {
+          addUnique(result.forbiddenRemaining, { check: "no_duplication", reason: "identical_to_millennial" });
+          fail("no_duplication", "identical_to_millennial");
+        }
+
+        coveredChecks.add("no_copy_rewrites");
+        [
+          "No UI changes.",
+          "No logic changes.",
+          "No copy rewrites outside this document."
+        ].forEach((snippet) => {
+          if (!zoomText.includes(snippet)) fail("no_copy_rewrites", { missing: snippet });
+        });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      requiredChecks.forEach((check) => {
+        if (!coveredChecks.has(check)) addUnique(result.missingCoverage, check);
+      });
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missingCoverage");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = smokeZoomerDiffTableOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
+    Game.Dev.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
@@ -1037,6 +1295,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeProfileDefinitionOfDoneOnce = smokeProfileDefinitionOfDoneOnce;
     devStore.profileSelfCheck = profileSelfCheck;
     devStore.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
+    devStore.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;

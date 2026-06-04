@@ -893,6 +893,91 @@ window.Game = window.Game || {};
         resetVisible: !!(document.getElementById("btnResetOnboarding") && !document.getElementById("btnResetOnboarding").hidden),
       };
     };
+    if (typeof G.__DEV.smokeZoomerForbiddenRulesOnce !== "function") {
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            return { ok: true, text: xhr.responseText || "" };
+          }
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+      const fetchDoc = (fileName) => {
+        const candidates = [
+          `/__dev__/docs/${fileName}`,
+          `/docs/${fileName}`,
+          `/AsyncScene/${fileName}`,
+          `/${fileName}`,
+        ];
+        let last = { ok: false, reason: "unavailable", path: null };
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          const annotated = { ...res, path };
+          if (res.ok) return annotated;
+          last = annotated;
+        }
+        return last;
+      };
+      G.__DEV.smokeZoomerForbiddenRulesOnce = function smokeZoomerForbiddenRulesOnce() {
+        const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null;
+        const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null;
+        const result = {
+          ok: false,
+          buildTag,
+          commit,
+          tablePath: null,
+          profilePath: null,
+          millennialPath: null,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: []
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const zoomRes = fetchDoc("UI_PROFILE_ZOOMER_DIFF.md");
+          const millennialRes = fetchDoc("UI_PROFILE_MILLENNIAL.md");
+          result.tablePath = zoomRes.path || null;
+          result.profilePath = result.tablePath;
+          result.millennialPath = millennialRes.path || null;
+          const zoomText = String((zoomRes && zoomRes.text) || "");
+          if (!zoomRes.ok) fail("doc_exists", zoomRes.reason || "unavailable");
+          if (!millennialRes.ok) fail("millennial_source", millennialRes.reason || "unavailable");
+          if (!/## Forbidden section/i.test(zoomText)) fail("forbidden_section", "missing_forbidden_section");
+          [
+            'no long explanations',
+            'no "давай разберём"',
+            'no unnecessary reasons/excuses',
+            'no teen slang',
+            'no meme wording',
+            'no artificial "youth" voice',
+            'no teacher/mentor tone',
+            'no showing off intelligence'
+          ].forEach((rule) => {
+            if (!new RegExp(rule.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(zoomText)) {
+              fail("forbidden_rules", { missing: rule });
+            }
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerForbiddenRulesOnce = G.__DEV.smokeZoomerForbiddenRulesOnce;
+    }
   }
 
   function boot(UI) {

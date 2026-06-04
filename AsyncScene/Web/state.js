@@ -7,6 +7,9 @@ window.Game = window.Game || {};
   const SECURITY_POLICY_BUILD_MARKER = "build_2026_03_09_flowaudit_v6";
   const SECURITY_POLICY_STATEJS_VERSION_TAG = "state.js?v=6";
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
+  if (Game.Dev && typeof Game.Dev === "object" && typeof Game.Dev.smokeZoomerForbiddenRulesOnce === "function" && typeof Game.__DEV.smokeZoomerForbiddenRulesOnce !== "function") {
+    Game.__DEV.smokeZoomerForbiddenRulesOnce = Game.Dev.smokeZoomerForbiddenRulesOnce;
+  }
   if (!Number.isFinite(Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__))) Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = 0;
   Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = (Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__) | 0) + 1;
   try {
