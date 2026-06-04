@@ -1,5 +1,22 @@
 # Task Board (single source of truth)
 
+## 2026-06-04 — Zoomer new feature surfaces rules smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Add delta-only zoomer application rules for new feature surfaces and expose `Game.__DEV.smokeZoomerNewFeatureSurfacesOnce()`.
+- Acceptance:
+  - [x] Required surfaces are listed: SystemCopy, NPC speech, economy honesty, report/sanctions, respect, locale.
+  - [x] Each surface explicitly uses existing millennial meaning plus zoomer delta.
+  - [x] Smoke returns `ok:true` only when `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty.
+  - [x] No gameplay, UI behavior, live game text rewrite, refactor, new profile, or `Console.txt` usage was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerNewFeatureSurfacesOnce()`.
+- Result: READY_FOR_RUNTIME_SMOKE; awaiting user Safari smoke.
+
 ## 2026-06-05 — Zoomer forbidden rules smoke
 
 - Status: READY_FOR_RUNTIME_SMOKE
