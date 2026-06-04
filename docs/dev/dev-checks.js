@@ -11,6 +11,24 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
+  const RUNTIME_BUILD_TAG = "build_2026_06_04_a";
+  const RUNTIME_COMMIT = "005a208";
+  if (typeof window !== "undefined") {
+    window.__BUILD_TAG__ = RUNTIME_BUILD_TAG;
+    window.__COMMIT__ = RUNTIME_COMMIT;
+  }
+  G.__buildTag = RUNTIME_BUILD_TAG;
+  G.__commit = RUNTIME_COMMIT;
+  G.__DEV.buildTag = RUNTIME_BUILD_TAG;
+  G.__DEV.commit = RUNTIME_COMMIT;
+  if (!G.__D) G.__D = {};
+  G.__D.buildTag = RUNTIME_BUILD_TAG;
+  G.__D.commit = RUNTIME_COMMIT;
+  console.warn("DEV_CHECKS_BUILD_MARKER_V1", {
+    buildTag: RUNTIME_BUILD_TAG,
+    commit: RUNTIME_COMMIT,
+    url: (document.currentScript && document.currentScript.src) || null
+  });
   console.warn("DEV_OBJ_INIT_V1", { ts: Date.now(), keys: Object.keys(G.__DEV || {}) });
   if (!G.Dev) G.Dev = {};
   if (G.__DEV && typeof G.__DEV.smokeStyleLexPack === "function" && typeof G.Dev.smokeStyleLexPack !== "function") {
@@ -782,8 +800,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
     };
     const smokeZoomerDiffProfileOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
       const result = {
         ok: false,
+        buildTag,
+        commit,
+        profilePath: null,
+        millennialPath: null,
         failures: [],
         forbiddenRemaining: [],
         missingCoverage: [],
@@ -817,6 +841,48 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           return { ok: false, reason: "xhr_exception" };
         }
       };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try {
+            add(new URL(fileName, baseUri).href);
+          } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
       const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ");
       const forbiddenSections = [
         "Для кого этот профиль",
@@ -828,8 +894,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         "Финальное подтверждение профиля"
       ];
       try {
-        const zoomRes = fetchTextSync("/__dev__/docs/UI_PROFILE_ZOOMER_DIFF.md");
-        const millennialRes = fetchTextSync("/__dev__/docs/UI_PROFILE_MILLENNIAL.md");
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        const millennialRes = fetchTextFromCandidates("UI_PROFILE_MILLENNIAL.md");
+        result.profilePath = zoomRes.path || null;
+        result.millennialPath = millennialRes.path || null;
         coveredChecks.add("doc_exists");
         if (!zoomRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
         coveredChecks.add("millennial_source");

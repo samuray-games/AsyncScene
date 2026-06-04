@@ -56,7 +56,14 @@
     })();
   </script>
   <script>
-    console.warn("DEV_INDEX_HTML_PROOF_V1", "build_2026_02_09b", location.href, Date.now());
+    window.__BUILD_TAG__ = "build_2026_06_04_a";
+    window.__COMMIT__ = "005a208";
+    console.warn("DEV_INDEX_HTML_BUILD_MARKER_V1", {
+      buildTag: window.__BUILD_TAG__,
+      commit: window.__COMMIT__,
+      href: location.href
+    });
+    console.warn("DEV_INDEX_HTML_PROOF_V1", window.__BUILD_TAG__, window.__COMMIT__, location.href, Date.now());
     console.warn("DEV_SW_DISABLED", true);
   </script>
 </head>
@@ -171,7 +178,7 @@
     </div>
   </div>
 
-  <script defer src="dev/dev-checks.js?v=step8h-zoomer-diff-v1"></script>
+  <script defer src="dev/dev-checks.js?v=step8h-zoomer-diff-v2"></script>
   <script defer src="util.js?v=2"></script>
   <script defer src="system.js?v=step8b-profile-not-service-v1"></script>
   <script defer src="state.js?v=step8e-profile-economy-honesty-v1"></script>
