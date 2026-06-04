@@ -1,3 +1,12 @@
+## 2026-06-04 — Step 8H Zoomer smoke build marker + path resolution fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Added runtime build markers in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`: `buildTag=build_2026_06_04_a`, `commit=005a208`.
+- `Game.__DEV.smokeZoomerDiffProfileOnce()` now returns `buildTag`, `commit`, `profilePath`, and `millennialPath` in addition to the existing smoke contract.
+- The smoke now resolves the profile docs from the GitHub Pages root first and only falls back to the local `/__dev__/docs/` route if needed, so the 404 path is no longer the primary fetch.
+- `AsyncScene/Web/index.html` and `docs/index.html` now expose the current build marker immediately on load and bump the dev-checks cache key.
+- No gameplay, UI, or unrelated copy changes were introduced.
+
 ## 2026-06-03 — Step 8F Profile Regression Pack Economy Honesty Fix
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
 - Fixed only the Step 8F profile regression pack/economy honesty correlation path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.

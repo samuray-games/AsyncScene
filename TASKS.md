@@ -66,6 +66,7 @@
   - [x] No UI changes, logic changes, or `Console.txt` usage.
 - Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerDiffProfileOnce()`. The docs copies under `docs/` are what make the runtime path reachable.
 - Result: Added the delta-only document, the dev smoke, and reachable docs copies for the runtime path.
+- Update: Smoke output now includes `buildTag`, `commit`, `profilePath`, and `millennialPath`, and the doc fetch resolves from the GitHub Pages root before falling back to the local dev-doc path.
 - Report (обязательный формат):
   - Status: DONE
   - Facts: The new doc is intentionally short and delta-only, and the smoke checks existence, delta-only markers, required wording deltas, surface/new-feature references, and full-profile duplication guards.
