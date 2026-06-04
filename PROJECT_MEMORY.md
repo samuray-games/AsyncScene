@@ -182,7 +182,7 @@
 ## 2026-06-04 — UI_PROFILE_ZOOMER_DIFF delta-only companion doc
 
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
-- Added `UI_PROFILE_ZOOMER_DIFF.md` at the repo root as a short delta-only companion to `UI_PROFILE_MILLENNIAL.md`.
+- Added `UI_PROFILE_ZOOMER_DIFF.md` at the repo root as a short delta-only companion to `UI_PROFILE_MILLENNIAL.md`, and added runtime-reachable copies under `docs/` so Safari can fetch them through `/__dev__/docs/`.
 - Added mirrored `Game.__DEV.smokeZoomerDiffProfileOnce()` to both runtime bundles. The smoke fetches the doc through `/__dev__/docs/UI_PROFILE_ZOOMER_DIFF.md`, checks that it stays delta-only, contains the required faster/simpler/shorter/fewer explanations/more direct wording deltas, references current UI surfaces and new features only as references, and does not duplicate the full millennial profile.
 - No UI changes, logic changes, or `Console.txt` usage were introduced.
 

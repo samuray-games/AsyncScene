@@ -51,7 +51,7 @@
 ```
 
 ### [T-20260604-084] UI Profile Zoomer delta-only doc
-- Status: DONE
+- Status: READY_FOR_RUNTIME_SMOKE
 - Priority: P1
 - Assignee: Codex-ассистент
 - Next: Дима
@@ -64,12 +64,12 @@
   - [x] `Game.__DEV.smokeZoomerDiffProfileOnce()` exists in both runtime bundles.
   - [x] Smoke returns `ok:true` only when the doc exists, is delta-only, does not duplicate the full millennial profile, required deltas are present, and `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty arrays.
   - [x] No UI changes, logic changes, or `Console.txt` usage.
-- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerDiffProfileOnce()`.
-- Result: Added the delta-only document, the dev smoke, and a cache-bust for the dev-checks bundle.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerDiffProfileOnce()`. The docs copies under `docs/` are what make the runtime path reachable.
+- Result: Added the delta-only document, the dev smoke, and reachable docs copies for the runtime path.
 - Report (обязательный формат):
   - Status: DONE
   - Facts: The new doc is intentionally short and delta-only, and the smoke checks existence, delta-only markers, required wording deltas, surface/new-feature references, and full-profile duplication guards.
-  - Changed: `UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - Changed: `UI_PROFILE_ZOOMER_DIFF.md` `UI_PROFILE_MILLENNIAL.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_MILLENNIAL.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
   - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeZoomerDiffProfileOnce()`
   - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
   - Next Prompt: Run `Game.__DEV.smokeZoomerDiffProfileOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
