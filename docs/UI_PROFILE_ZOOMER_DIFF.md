@@ -14,15 +14,15 @@
 
 | category | millennial | zoomer |
 | --- | --- | --- |
-| phrase length | a bit longer, with more context | shorter and trimmed down |
-| explanations | more explanation up front | fewer explanations, only what is needed |
-| CTA | softer CTA wording | sharper, more direct CTA wording |
-| errors | fuller error context | shorter error text that still keeps the cause |
-| toasts | longer toast copy | compact toast copy |
-| DM | a bit more context in DM prompts | direct DM prompts, less padding |
-| battles | clearer setup text with more framing | shorter battle framing, faster to read |
-| economy | more explanation around price and result | compact economy wording with an immediate signal |
-| onboarding/training | more guided onboarding text | shorter training and onboarding prompts, less hand-holding |
+| phrase length | Millennial: a bit longer, with more context | Zoomer: shorter and trimmed down |
+| explanations | Millennial: more explanation up front | Zoomer: fewer explanations, only what is needed |
+| CTA | Millennial: softer CTA wording | Zoomer: sharper, more direct CTA wording |
+| errors | Millennial: fuller error context | Zoomer: shorter error text that still keeps the cause |
+| toasts | Millennial: longer toast copy | Zoomer: compact toast copy |
+| DM | Millennial: a bit more context in DM prompts | Zoomer: direct DM prompts, less padding |
+| battles | Millennial: clearer setup text with more framing | Zoomer: shorter battle framing, faster to read |
+| economy | Millennial: more explanation around price and result | Zoomer: compact economy wording with an immediate signal |
+| onboarding/training | Millennial: more guided onboarding text | Zoomer: shorter training and onboarding prompts, less hand-holding |
 
 ## Что именно меняется
 
