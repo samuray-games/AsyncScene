@@ -57,23 +57,23 @@
 - Next: Дима
 - Area: Docs|Infra
 - Files: `UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
-- Goal: Add a delta-only zoomer profile companion doc and a smoke that proves it stays narrow, references current UI surfaces/new features only as references, and does not rewrite the millennial profile.
+- Goal: Add a delta-only zoomer comparison table companion doc and a smoke that proves every required category stays covered with millennial/zoomer columns, while still keeping the doc narrow and non-rewrite.
 - Acceptance:
   - [x] `UI_PROFILE_ZOOMER_DIFF.md` exists and defines only differences from millennial.
-  - [x] It lists millennial -> zoomer differences and references current UI surfaces and new features only as references.
-  - [x] `Game.__DEV.smokeZoomerDiffProfileOnce()` exists in both runtime bundles.
-  - [x] Smoke returns `ok:true` only when the doc exists, is delta-only, does not duplicate the full millennial profile, required deltas are present, and `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty arrays.
+  - [x] It lists millennial -> zoomer differences and includes the required comparison table rows for phrase length, explanations, CTA, errors, toasts, DM, battles, economy, and onboarding/training.
+  - [x] `Game.__DEV.smokeZoomerDiffTableOnce()` exists in both runtime bundles.
+  - [x] Smoke returns `ok:true` only when the doc exists, is delta-only, does not duplicate the full millennial profile, required deltas are present, the comparison table rows each contain both millennial and zoomer, and `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty arrays.
   - [x] No UI changes, logic changes, or `Console.txt` usage.
-- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerDiffProfileOnce()`. The docs copies under `docs/` are what make the runtime path reachable.
-- Result: Added the delta-only document, the dev smoke, and reachable docs copies for the runtime path.
-- Update: Smoke output now includes `buildTag`, `commit`, `profilePath`, and `millennialPath`, and the doc fetch resolves from the GitHub Pages root before falling back to the local dev-doc path.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerDiffTableOnce()`. The docs copies under `docs/` are what make the runtime path reachable.
+- Result: Added the delta-only document, the table-specific dev smoke, and reachable docs copies for the runtime path.
+- Update: Smoke output now includes `buildTag`, `commit`, `tablePath`, `profilePath`, and `millennialPath`, and the doc fetch resolves from the GitHub Pages root before falling back to the local dev-doc path.
 - Report (обязательный формат):
   - Status: DONE
-  - Facts: The new doc is intentionally short and delta-only, and the smoke checks existence, delta-only markers, required wording deltas, surface/new-feature references, and full-profile duplication guards.
-  - Changed: `UI_PROFILE_ZOOMER_DIFF.md` `UI_PROFILE_MILLENNIAL.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_MILLENNIAL.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
-  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeZoomerDiffProfileOnce()`
+  - Facts: The new doc is intentionally short and delta-only, and the smoke checks existence, delta-only markers, required wording deltas, the comparison table coverage, and full-profile duplication guards.
+  - Changed: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeZoomerDiffTableOnce()`
   - Next: Дима should run the Safari runtime smoke because this change intentionally does not claim browser PASS.
-  - Next Prompt: Run `Game.__DEV.smokeZoomerDiffProfileOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - Next Prompt: Run `Game.__DEV.smokeZoomerDiffTableOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 
 ### [T-20260604-083] Step 8G Profile Definition Of Done Gate
 - Status: DONE

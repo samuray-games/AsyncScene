@@ -10,6 +10,20 @@
 - fewer explanations
 - more direct wording
 
+## Millennial -> zoomer comparison table
+
+| category | millennial | zoomer |
+| --- | --- | --- |
+| phrase length | a bit longer, with more context | shorter and trimmed down |
+| explanations | more explanation up front | fewer explanations, only what is needed |
+| CTA | softer CTA wording | sharper, more direct CTA wording |
+| errors | fuller error context | shorter error text that still keeps the cause |
+| toasts | longer toast copy | compact toast copy |
+| DM | a bit more context in DM prompts | direct DM prompts, less padding |
+| battles | clearer setup text with more framing | shorter battle framing, faster to read |
+| economy | more explanation around price and result | compact economy wording with an immediate signal |
+| onboarding/training | more guided onboarding text | shorter training and onboarding prompts, less hand-holding |
+
 ## Что именно меняется
 
 - Больше скорости, меньше контекста.
