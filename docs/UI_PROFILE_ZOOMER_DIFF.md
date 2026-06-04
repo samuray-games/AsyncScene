@@ -29,6 +29,12 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 - respect: use existing millennial meaning + zoomer delta.
 - locale: use existing millennial meaning + zoomer delta.
 
+## UI_PROFILE_ZOOMER_SHORTEN_RULE
+
+- From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by about 30-40%, keep original meaning, and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
+- Remove intro/filler words; reduce abstractions.
+- Replace abstract wording with action verbs; do not add teen slang, memes, fake youth voice, or irony.
+
 ## Forbidden section
 
 - forbidden_rules: all bullets below are required
