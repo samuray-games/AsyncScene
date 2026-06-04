@@ -1,3 +1,13 @@
+## 2026-06-04 — Runtime build identity smoke
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Added `Game.__DEV.smokeBuildIdentityOnce()` in both runtime dev-check bundles.
+- The smoke fetches the deployed `dev/dev-checks.js` source, parses `buildTag` from that runtime source, and generates `commit` as a deterministic runtime-source hash instead of trusting a prior report value.
+- `hasZoomerShortenRule` requires both the runtime smoke marker and the deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` section; `sourceFiles` lists the fetched files contributing that proof.
+- Bumped the build tag to `build_2026_06_04_c` and cache-busted the dev-checks script in both HTML entrypoints.
+- No gameplay, economy, UI behavior, broad refactor, or `Console.txt` usage.
+- Local syntax checks PASS. Local Playwright smoke is WARNING-only because the Chromium browser executable is not installed in this environment.
+- Required Safari command: `Game.__DEV.smokeBuildIdentityOnce()`.
+
 ## 2026-06-04 — AsyncScene Step 2.1 Zoomer phrase shortening rule
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 - Added only the dev-profile documentation rule `UI_PROFILE_ZOOMER_SHORTEN_RULE` to `UI_PROFILE_ZOOMER_DIFF.md` and mirrored it to `docs/UI_PROFILE_ZOOMER_DIFF.md`.
