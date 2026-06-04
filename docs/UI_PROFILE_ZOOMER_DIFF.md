@@ -35,6 +35,25 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 - Remove intro/filler words; reduce abstractions.
 - Replace abstract wording with action verbs; do not add teen slang, memes, fake youth voice, or irony.
 
+## UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE
+
+Dedicated transformation table only: millennial-style long construction -> shorter direct zoomer form. Same meaning, 30-40% shorter, fewer filler words, fewer abstractions, more verbs. No slang, no memes, no fake youth voice.
+
+| before | after |
+| --- | --- |
+| ты рискуешь потерять темп, если откладываешь ответ | Ответь сейчас — сохранишь темп |
+| возможно, лучше проверить условия перед ходом | Проверь условия перед ходом |
+| может быть, тебе стоит сменить ход | Смени ход, если нужно |
+| стоит внимательно посмотреть на цену действия | Проверь цену действия сразу |
+| рекомендуется сохранить результат перед выходом | Сохрани результат перед выходом |
+| у вас есть возможность открыть спор сразу | Можешь открыть спор сразу |
+| недостаточное количество репутации для заявки | Не хватает репутации для заявки |
+| в данный момент действие является недоступным | Сейчас действие пока закрыто |
+| необходимо подтвердить выбор перед продолжением | Подтверди выбор, затем продолжай |
+| следует дождаться ответа собеседника | Жди ответа собеседника |
+| данная ошибка означает отсутствие связи | Нет связи, поэтому ошибка |
+| у тебя имеется возможность забрать награду | Можешь забрать награду сейчас |
+
 ## Forbidden section
 
 - forbidden_rules: all bullets below are required
