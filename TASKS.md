@@ -15,7 +15,7 @@
   - [x] Local smoke passes on `http://127.0.0.1:8091/AsyncScene/index.html`.
   - [x] No gameplay, UI behavior, or `Console.txt` usage was introduced.
 - Notes: Safari runtime PASS is not claimed here; the required command is `Game.__DEV.smokeZoomerForbiddenRulesOnce()`.
-- Update: The smoke runner now bridges the legacy dev surface into `Game.__DEV` for this helper during local verification so the check exercises the exact `Game.__DEV` command path.
+- Update: Added an explicit `forbidden_rules` marker in `UI_PROFILE_ZOOMER_DIFF.md` and counted it as covered only when the forbidden section contains that marker and all required rules.
 - Result: Local smoke PASS with `ok:true`, empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; runtime PASS still awaits user Safari smoke.
 - Report (обязательный формат):
   - Status: DONE

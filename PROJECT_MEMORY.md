@@ -2,6 +2,7 @@
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 - Added a `Forbidden section` to `UI_PROFILE_ZOOMER_DIFF.md` and mirrored it to `docs/UI_PROFILE_ZOOMER_DIFF.md` with the required rules:
+  - `forbidden_rules: all bullets below are required`
   - no long explanations
   - no "давай разберём"
   - no unnecessary reasons/excuses
@@ -10,7 +11,7 @@
   - no artificial "youth" voice
   - no teacher/mentor tone
   - no showing off intelligence
-- Registered `Game.__DEV.smokeZoomerForbiddenRulesOnce()` and kept the contract focused on the forbidden section/rules plus the standard smoke arrays: `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Registered `Game.__DEV.smokeZoomerForbiddenRulesOnce()` and kept the contract focused on the forbidden section/rules plus the standard smoke arrays: `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`. The smoke now requires the explicit `forbidden_rules` marker so coverage is counted correctly.
 - Local smoke PASS on `http://127.0.0.1:8091/AsyncScene/index.html` via `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8091/AsyncScene/index.html node scripts/run-asyncscene-smoke.mjs smokeZoomerForbiddenRulesOnce`.
 - No gameplay changes, no UI behavior changes, and no `Console.txt` usage.
 - Safari runtime PASS is still not claimed; the user must run the smoke in Safari before we call it final.

@@ -22,6 +22,7 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 
 ## Forbidden section
 
+- forbidden_rules: all bullets below are required
 - no long explanations
 - no "давай разберём"
 - no unnecessary reasons/excuses
