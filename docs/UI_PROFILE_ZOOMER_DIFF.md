@@ -18,7 +18,16 @@ faster / simpler / shorter / fewer explanations / more direct wording
 | economy | Millennial: more explanation | Zoomer: immediate signal |
 | onboarding/training | Millennial: more guidance | Zoomer: less hand-holding |
 
-Current UI surfaces: start screen, top bar, DM, battles, events, economy, reports, onboarding, settings. New features: name only.
+Current UI surfaces: start screen, top bar, DM, battles, events, economy, reports, onboarding, settings. New features: rules below.
+
+## New feature application rules
+
+- SystemCopy: use existing millennial meaning + zoomer delta.
+- NPC speech: use existing millennial meaning + zoomer delta.
+- economy honesty: use existing millennial meaning + zoomer delta.
+- report/sanctions: use existing millennial meaning + zoomer delta.
+- respect: use existing millennial meaning + zoomer delta.
+- locale: use existing millennial meaning + zoomer delta.
 
 ## Forbidden section
 
