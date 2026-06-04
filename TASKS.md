@@ -1,5 +1,23 @@
 # Task Board (single source of truth)
 
+## 2026-06-04 — Runtime build identity smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add `Game.__DEV.smokeBuildIdentityOnce()` so Safari can verify deployed build identity from runtime source instead of trusting a report.
+- Acceptance:
+  - [x] Smoke returns exactly one object with `ok`, `buildTag`, `commit`, `hasZoomerShortenRule`, and `sourceFiles`.
+  - [x] `buildTag` is parsed from the fetched deployed `dev/dev-checks.js` runtime source.
+  - [x] `commit` is generated as a deterministic source hash from fetched deployed runtime source plus the deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` section.
+  - [x] `hasZoomerShortenRule` requires the runtime smoke marker and the deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` documentation section.
+  - [x] `sourceFiles` lists the fetched runtime files contributing the rule.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeBuildIdentityOnce()`. Local Playwright smoke could not launch because the Chromium browser binary is not installed in this environment.
+- Result: READY_FOR_RUNTIME_SMOKE; awaiting user iPhone Safari smoke.
+
 ## 2026-06-04 — AsyncScene Step 2.1 Zoomer phrase shortening rule
 
 - Status: READY_FOR_RUNTIME_SMOKE

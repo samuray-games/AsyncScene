@@ -11,8 +11,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_04_b";
+  const RUNTIME_BUILD_TAG = "build_2026_06_04_c";
   const RUNTIME_COMMIT = "005a208";
+  const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
+    ? document.currentScript.src
+    : "dev/dev-checks.js";
   if (typeof window !== "undefined") {
     window.__BUILD_TAG__ = RUNTIME_BUILD_TAG;
     window.__COMMIT__ = RUNTIME_COMMIT;
@@ -1416,6 +1419,125 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeBuildIdentityOnce = () => {
+      const sourceFiles = [];
+      const fetched = {};
+      const addSourceFile = (value) => {
+        if (!value || sourceFiles.indexOf(value) !== -1) return;
+        sourceFiles.push(value);
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const addCandidate = (list, seen, value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        list.push(value);
+      };
+      const runtimeSourceCandidates = () => {
+        const candidates = [];
+        const seen = new Set();
+        addCandidate(candidates, seen, RUNTIME_DEV_CHECKS_SOURCE_URL);
+        if (typeof document !== "undefined") {
+          Array.from(document.scripts || []).forEach((script) => {
+            if (script && script.src && /(?:^|\/)dev\/dev-checks\.js(?:\?|$)/.test(script.src)) {
+              addCandidate(candidates, seen, script.src);
+            }
+          });
+          if (document.baseURI) {
+            try { addCandidate(candidates, seen, new URL("dev/dev-checks.js", document.baseURI).href); } catch (_) {}
+          }
+        }
+        if (typeof location !== "undefined" && location.origin) {
+          addCandidate(candidates, seen, `${location.origin}/AsyncScene/dev/dev-checks.js`);
+          addCandidate(candidates, seen, `${location.origin}/dev/dev-checks.js`);
+        }
+        addCandidate(candidates, seen, "dev/dev-checks.js");
+        addCandidate(candidates, seen, "/AsyncScene/dev/dev-checks.js");
+        addCandidate(candidates, seen, "/dev/dev-checks.js");
+        return candidates;
+      };
+      const docCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          bases.push(`${location.origin}/AsyncScene/`);
+          bases.push(`${location.origin}/`);
+          bases.push(`${location.origin}/docs/`);
+          bases.push(`${location.origin}/__dev__/docs/`);
+        }
+        bases.forEach((baseUri) => {
+          try { addCandidate(candidates, seen, new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          addCandidate(candidates, seen, `${location.origin}/AsyncScene/${fileName}`);
+          addCandidate(candidates, seen, `${location.origin}/docs/${fileName}`);
+          addCandidate(candidates, seen, `${location.origin}/__dev__/docs/${fileName}`);
+          addCandidate(candidates, seen, `${location.origin}/${fileName}`);
+        }
+        addCandidate(candidates, seen, `/AsyncScene/${fileName}`);
+        addCandidate(candidates, seen, `/docs/${fileName}`);
+        addCandidate(candidates, seen, `/__dev__/docs/${fileName}`);
+        addCandidate(candidates, seen, `/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (candidates) => {
+        let last = null;
+        for (const candidate of candidates) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, text: "", path: null, reason: "unavailable" };
+      };
+      const sourceHash = (parts) => {
+        let hash = 2166136261;
+        String(parts.join("\n---runtime-source---\n")).split("").forEach((ch) => {
+          hash ^= ch.charCodeAt(0);
+          hash = Math.imul(hash, 16777619) >>> 0;
+        });
+        return (`0000000${hash.toString(16)}`).slice(-7);
+      };
+      const parseBuildTag = (text) => {
+        const match = String(text || "").match(/RUNTIME_BUILD_TAG\s*=\s*["']([^"']+)["']/);
+        return match ? match[1] : null;
+      };
+      const runtimeRes = fetchFirst(runtimeSourceCandidates());
+      const zoomRes = fetchFirst(docCandidates("UI_PROFILE_ZOOMER_DIFF.md"));
+      if (runtimeRes.ok) {
+        fetched.runtime = String(runtimeRes.text || "");
+        addSourceFile(runtimeRes.path || "dev/dev-checks.js");
+      }
+      if (zoomRes.ok) {
+        fetched.zoomerDiff = String(zoomRes.text || "");
+        addSourceFile(zoomRes.path || "UI_PROFILE_ZOOMER_DIFF.md");
+      }
+      const runtimeText = fetched.runtime || "";
+      const zoomerText = fetched.zoomerDiff || "";
+      const ruleMatch = zoomerText.match(/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE([\s\S]*?)(?:\n## |\n# |$)/i);
+      const hasRuntimeSmoke = /smokeZoomerShortenRuleOnce/.test(runtimeText) && /UI_PROFILE_ZOOMER_SHORTEN_RULE/.test(runtimeText);
+      const hasRuleSection = !!(ruleMatch && /30\s*-\s*40\s*%/.test(ruleMatch[1] || "") && /keep\s+original\s+meaning/i.test(ruleMatch[1] || ""));
+      const hasZoomerShortenRule = hasRuntimeSmoke && hasRuleSection;
+      const buildTag = parseBuildTag(runtimeText);
+      const commit = (runtimeText && zoomerText) ? sourceHash([runtimeText, ruleMatch ? ruleMatch[0] : zoomerText]) : null;
+      return {
+        ok: !!(buildTag && commit && hasZoomerShortenRule && sourceFiles.length >= 2),
+        buildTag,
+        commit,
+        hasZoomerShortenRule,
+        sourceFiles
+      };
+    };
     const smokeZoomerShortenRuleOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -1753,6 +1875,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     Game.Dev.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     Game.Dev.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
+    Game.Dev.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -1765,6 +1888,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     devStore.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     devStore.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
+    devStore.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
