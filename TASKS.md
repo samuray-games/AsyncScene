@@ -1,5 +1,23 @@
 # Task Board (single source of truth)
 
+## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add a dedicated zoomer transformation table only and expose `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Acceptance:
+  - [x] Dedicated transformation table exists with 12 before -> after pairs.
+  - [x] Required patterns are covered: `ты рискуешь`, `возможно`, `может быть`, `стоит`, `рекомендуется`, `у вас есть возможность`, `недостаточное количество`, and similar long constructions.
+  - [x] Pairs keep the same meaning, shorten by 30-40%, remove filler/abstract constructions, use more direct verbs, and avoid slang/memes/fake youth voice.
+  - [x] Smoke returns `ok`, `pairCount`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] No gameplay, economy, UI rewrite, refactor, or live copy rewrite was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Result: READY_FOR_RUNTIME_SMOKE; awaiting user Safari smoke.
+
 ## 2026-06-04 — Runtime build identity smoke
 
 - Status: READY_FOR_RUNTIME_SMOKE

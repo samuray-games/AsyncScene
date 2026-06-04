@@ -1,3 +1,12 @@
+## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Added only a dedicated `UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE` section to `UI_PROFILE_ZOOMER_DIFF.md` and mirrored it to `docs/UI_PROFILE_ZOOMER_DIFF.md`.
+- Table has 12 before -> after pairs covering `ты рискуешь`, `возможно`, `может быть`, `стоит`, `рекомендуется`, `у вас есть возможность`, `недостаточное количество`, plus similar long constructions such as `в данный момент`, `необходимо`, `следует`, `данная`, and `имеется возможность`.
+- Registered `Game.__DEV.smokeZoomerTransformationTableOnce()` in both dev-check bundles. It returns exactly `ok`, `pairCount`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`, and requires all arrays empty plus `pairCount >= 10` for `ok:true`.
+- No gameplay changes, no economy changes, no UI rewrite, no refactor, and no live copy rewrite.
+- Local syntax checks PASS.
+- Required Safari command: `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-04 — Runtime build identity smoke
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 - Added `Game.__DEV.smokeBuildIdentityOnce()` in both runtime dev-check bundles.
