@@ -20,4 +20,15 @@ faster / simpler / shorter / fewer explanations / more direct wording
 
 Current UI surfaces: start screen, top bar, DM, battles, events, economy, reports, onboarding, settings. New features: name only.
 
+## Forbidden section
+
+- no long explanations
+- no "давай разберём"
+- no unnecessary reasons/excuses
+- no teen slang
+- no meme wording
+- no artificial "youth" voice
+- no teacher/mentor tone
+- no showing off intelligence
+
 No UI changes. No logic changes. No copy rewrites outside this document.

@@ -232,16 +232,47 @@ async function run() {
       return;
     }
 
+    try {
+      await page.waitForFunction((name) => {
+        const dev = window.Game?.__DEV || null;
+        const legacy = window.Game?.Dev || null;
+        return !!((dev && typeof dev[name] === "function") || (legacy && typeof legacy[name] === "function"));
+      }, smokeName, { timeout: WAIT_DEV_TIMEOUT_MS });
+    } catch (err) {
+      const screenshotPath = await captureScreenshot(page, "wait_smoke");
+      await finalize(
+        {
+          ok: false,
+          reason: "smoke_registration_missing",
+          phase: "wait_smoke",
+          smokeName,
+          pageTitle,
+          pageUrl,
+          consoleMessages,
+          pageErrors,
+          error: toErrorObject(err),
+          screenshotPath,
+        },
+        1
+      );
+      return;
+    }
+
     let devMeta;
     try {
       devMeta = await page.evaluate((name) => {
         const dev = window.Game?.__DEV || null;
         const legacy = window.Game?.Dev || null;
+        let bridged = false;
+        if (dev && legacy && !dev[name] && typeof legacy[name] === "function") {
+          dev[name] = legacy[name];
+          bridged = true;
+        }
         const devKeys = dev ? Object.keys(dev) : [];
         const devLegacyKeys = legacy ? Object.keys(legacy) : [];
         const hasDevFn = dev && typeof dev[name] === "function";
         const hasLegacyFn = legacy && typeof legacy[name] === "function";
-        return { devKeys, devLegacyKeys, hasDevFn, hasLegacyFn };
+        return { devKeys, devLegacyKeys, hasDevFn, hasLegacyFn, bridged };
       }, smokeName);
     } catch (err) {
       const screenshotPath = await captureScreenshot(page, "invoke_smoke");

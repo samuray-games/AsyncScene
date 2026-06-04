@@ -1,5 +1,30 @@
 # Task Board (single source of truth)
 
+## 2026-06-05 — Zoomer forbidden rules smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/state.js` `docs/state.js` `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `scripts/run-asyncscene-smoke.mjs`
+- Goal: Add the forbidden section to the zoomer diff doc and expose `Game.__DEV.smokeZoomerForbiddenRulesOnce()` so the runtime smoke can verify the section and required rules without changing gameplay or UI behavior.
+- Acceptance:
+  - [x] `UI_PROFILE_ZOOMER_DIFF.md` has a `Forbidden section` with all required rules.
+  - [x] `Game.__DEV.smokeZoomerForbiddenRulesOnce()` exists in the live runtime and returns `ok:true` only when the forbidden section exists, all required rules exist, and `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty.
+  - [x] Local smoke passes on `http://127.0.0.1:8091/AsyncScene/index.html`.
+  - [x] No gameplay, UI behavior, or `Console.txt` usage was introduced.
+- Notes: Safari runtime PASS is not claimed here; the required command is `Game.__DEV.smokeZoomerForbiddenRulesOnce()`.
+- Update: The smoke runner now bridges the legacy dev surface into `Game.__DEV` for this helper during local verification so the check exercises the exact `Game.__DEV` command path.
+- Result: Local smoke PASS with `ok:true`, empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; runtime PASS still awaits user Safari smoke.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Added the forbidden section to the zoomer diff doc and registered a runtime smoke that verifies the section and required rules. The helper is now exposed on `Game.__DEV` during local boot and verified locally.
+  - Changed: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/state.js` `docs/state.js` `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `scripts/run-asyncscene-smoke.mjs` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8091/AsyncScene/index.html node scripts/run-asyncscene-smoke.mjs smokeZoomerForbiddenRulesOnce`
+  - Next: Дима should run the Safari runtime smoke before any runtime PASS is claimed.
+  - Next Prompt: Run `Game.__DEV.smokeZoomerForbiddenRulesOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 Этот файл — общий “очередник” задач для команды AsyncScene. Любой участник может:
 - добавить задачу в **Inbox**
 - взять задачу в работу, поставив себя в `Assignee` и статус `DOING`
