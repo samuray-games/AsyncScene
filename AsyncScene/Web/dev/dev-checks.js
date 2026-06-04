@@ -1180,6 +1180,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           fail("forbidden_section", "missing_forbidden_section");
         } else {
           const forbiddenLines = String(forbiddenMatch[1] || "").split(/\r?\n/).map((line) => normalize(line)).filter(Boolean);
+          if (!forbiddenLines.some((line) => /forbidden_rules/i.test(line))) {
+            fail("forbidden_rules", { missing: "forbidden_rules marker" });
+          } else {
+            coveredChecks.add("forbidden_rules");
+          }
           const requiredForbiddenRules = [
             'no long explanations',
             'no "давай разберём"',
