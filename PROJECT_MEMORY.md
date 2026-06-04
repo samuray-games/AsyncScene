@@ -179,6 +179,13 @@
 
 # AsyncScene — Project Memory (single shared context)
 
+## 2026-06-04 — UI_PROFILE_ZOOMER_DIFF delta-only companion doc
+
+- Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
+- Added `UI_PROFILE_ZOOMER_DIFF.md` at the repo root as a short delta-only companion to `UI_PROFILE_MILLENNIAL.md`.
+- Added mirrored `Game.__DEV.smokeZoomerDiffProfileOnce()` to both runtime bundles. The smoke fetches the doc through `/__dev__/docs/UI_PROFILE_ZOOMER_DIFF.md`, checks that it stays delta-only, contains the required faster/simpler/shorter/fewer explanations/more direct wording deltas, references current UI surfaces and new features only as references, and does not duplicate the full millennial profile.
+- No UI changes, logic changes, or `Console.txt` usage were introduced.
+
 ## 2026-06-03 — Step 7 [4] Spec Smoke Pointer-Blocker False Failure Fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
