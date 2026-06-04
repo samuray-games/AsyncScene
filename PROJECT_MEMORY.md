@@ -1,7 +1,8 @@
 ## 2026-06-04 — Step 8H Zoomer smoke build marker + path resolution fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
-- Added runtime build markers in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`: `buildTag=build_2026_06_04_a`, `commit=005a208`.
+- Added runtime build markers in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`: `buildTag=build_2026_06_04_b`, `commit=005a208`.
+- Update: `UI_PROFILE_ZOOMER_DIFF.md` is being trimmed further for the `delta_only` check; runtime status remains `READY_FOR_RUNTIME_SMOKE`.
 - `Game.__DEV.smokeZoomerDiffProfileOnce()` now returns `buildTag`, `commit`, `profilePath`, and `millennialPath` in addition to the existing smoke contract.
 - The smoke now resolves the profile docs from the GitHub Pages root first and only falls back to the local `/__dev__/docs/` route if needed, so the 404 path is no longer the primary fetch.
 - `AsyncScene/Web/index.html` and `docs/index.html` now expose the current build marker immediately on load and bump the dev-checks cache key.
