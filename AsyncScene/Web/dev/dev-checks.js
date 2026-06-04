@@ -1657,6 +1657,150 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerTransformationTableOnce = () => {
+      const result = {
+        ok: false,
+        pairCount: 0,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "" };
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try { add(new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
+      const splitTableRow = (line) => String(line || "").trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => normalize(cell));
+      const countLongMarkers = (text) => {
+        const lower = String(text || "").toLowerCase();
+        return [
+          /ты\s+рискуешь/i,
+          /возможно/i,
+          /может\s+быть/i,
+          /(^|[^А-Яа-яЁё])стоит([^А-Яа-яЁё]|$)/i,
+          /рекомендуется/i,
+          /у\s+вас\s+есть\s+возможность/i,
+          /недостаточное\s+количество/i,
+          /в\s+данный\s+момент/i,
+          /является/i,
+          /необходимо/i,
+          /следует/i,
+          /данн(?:ая|ый|ое|ые)/i,
+          /име(?:ется|ешь)\s+возможность/i
+        ].reduce((sum, re) => sum + (re.test(lower) ? 1 : 0), 0);
+      };
+      const directVerbRe = /^(ответь|проверь|смени|сохрани|можешь|не\s+хватает|сейчас|подтверди|жди|нет\s+связи|забери)/i;
+      try {
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        if (!zoomRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
+        const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
+        const tableMatch = zoomRaw.match(/##\s*UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (!tableMatch) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE");
+          fail("transformation_table_exists", "missing_UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE");
+        } else {
+          const rows = String(tableMatch[1] || "").split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => /^\|/.test(line) && !/^\|\s*-+/.test(line));
+          const pairs = rows.map(splitTableRow)
+            .filter((cells) => cells.length >= 2 && !/^before$/i.test(cells[0]) && !/^after$/i.test(cells[1]))
+            .map((cells) => ({ before: cells[0], after: cells[1] }));
+          result.pairCount = pairs.length;
+          if (pairs.length < 10 || pairs.length > 15) fail("pair_count_10_15", { pairCount: pairs.length });
+          const coverageRules = [
+            { id: "ты рискуешь", re: /ты\s+рискуешь/i },
+            { id: "возможно", re: /возможно/i },
+            { id: "может быть", re: /может\s+быть/i },
+            { id: "стоит", re: /(^|[^А-Яа-яЁё])стоит([^А-Яа-яЁё]|$)/i },
+            { id: "рекомендуется", re: /рекомендуется/i },
+            { id: "у вас есть возможность", re: /у\s+вас\s+есть\s+возможность/i },
+            { id: "недостаточное количество", re: /недостаточное\s+количество/i },
+            { id: "similar_long_constructions", re: /(в\s+данный\s+момент|необходимо|следует|данн(?:ая|ый|ое|ые)|име(?:ется|ешь)\s+возможность|является)/i }
+          ];
+          coverageRules.forEach((rule) => {
+            if (!pairs.some((pair) => rule.re.test(pair.before))) addUnique(result.missingCoverage, rule.id);
+          });
+          pairs.forEach((pair, idx) => {
+            if (!pair.before || !pair.after) fail("pair_cells_non_empty", { idx, pair });
+            const beforeLen = pair.before.length;
+            const afterLen = pair.after.length;
+            const shorterRatio = beforeLen > 0 ? (beforeLen - afterLen) / beforeLen : 0;
+            if (!(shorterRatio >= 0.30 && shorterRatio <= 0.40)) {
+              fail("shorter_30_40", { idx, before: pair.before, after: pair.after, shorterRatio: Number(shorterRatio.toFixed(3)) });
+            }
+            const remainingMarkers = countLongMarkers(pair.after);
+            if (remainingMarkers > 0) addUnique(result.forbiddenRemaining, { idx, after: pair.after });
+            if (countLongMarkers(pair.after) >= countLongMarkers(pair.before)) fail("fewer_filler_words", { idx, before: pair.before, after: pair.after });
+            if (!directVerbRe.test(pair.after)) fail("more_verbs_direct_form", { idx, after: pair.after });
+            if (/(сленг|мем|кринж|рофл|вайб|имба|лол|ха[ -]?ха|ирони)/i.test(pair.after)) {
+              addUnique(result.forbiddenRemaining, { idx, after: pair.after, rule: "no_slang_memes_fake_youth_voice" });
+            }
+          });
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "coverage_complete");
+      result.ok = result.pairCount >= 10
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const validateZoomerDiffProfileOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -1877,6 +2021,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
     Game.Dev.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
+    Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -1890,6 +2035,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
     devStore.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
+    devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
