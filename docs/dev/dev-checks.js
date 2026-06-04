@@ -664,6 +664,96 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const smokeProfileDefinitionOfDoneOnce = () => {
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checks: []
+      };
+      const requiredSmokes = Object.freeze([
+        { id: "profileSelfCheck", fn: () => devStore.smokeProfileSelfCheckOnce },
+        { id: "profileNotService", fn: () => Game && Game.__DEV ? Game.__DEV.smokeProfileNotServiceOnce : null },
+        { id: "profileAdultTone", fn: () => devStore.smokeProfileAdultToneOnce },
+        { id: "profileModernUi", fn: () => devStore.smokeProfileModernUiOnce },
+        { id: "profileEconomyHonesty", fn: () => devStore.smokeProfileEconomyHonestyOnce },
+        { id: "profileRegressionPack", fn: () => devStore.smokeProfileRegressionPackOnce }
+      ]);
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values, smokeId) => {
+        if (!Array.isArray(values)) return;
+        values.forEach((value) => addUnique(list, smokeId ? { smoke: smokeId, item: value } : value));
+      };
+      const smokePassed = (output) => output && output.ok === true
+        && (!Array.isArray(output.failures) || output.failures.length === 0)
+        && (!Array.isArray(output.forbiddenRemaining) || output.forbiddenRemaining.length === 0)
+        && (!Array.isArray(output.missingCoverage) || output.missingCoverage.length === 0)
+        && (!Array.isArray(output.failedChecks) || output.failedChecks.length === 0);
+      const recordFailure = (id, detail) => {
+        addUnique(result.failedChecks, id);
+        addUnique(result.failures, detail === undefined ? id : { check: id, detail });
+      };
+
+      requiredSmokes.forEach((smoke) => {
+        let output = null;
+        let runner = null;
+        try {
+          runner = smoke.fn();
+        } catch (err) {
+          runner = null;
+          output = { ok: false, failures: [`lookup_exception:${err && err.message ? String(err.message) : String(err)}`], forbiddenRemaining: [], missingCoverage: [smoke.id], failedChecks: ["smoke_lookup_exception"] };
+        }
+        if (!output) {
+          if (typeof runner !== "function") {
+            output = { ok: false, failures: ["smoke_missing"], forbiddenRemaining: [], missingCoverage: [smoke.id], failedChecks: ["smoke_missing"] };
+          } else {
+            try {
+              output = runner();
+            } catch (err) {
+              output = { ok: false, failures: [`exception:${err && err.message ? String(err.message) : String(err)}`], forbiddenRemaining: [], missingCoverage: [], failedChecks: ["smoke_exception"] };
+            }
+          }
+        }
+        const ok = smokePassed(output);
+        result.checks.push({ id: smoke.id, ok, result: output || null });
+        if (!ok) recordFailure(smoke.id, output || "smoke_return_missing");
+        addAll(result.failures, output && output.failures, smoke.id);
+        addAll(result.forbiddenRemaining, output && output.forbiddenRemaining, smoke.id);
+        addAll(result.missingCoverage, output && output.missingCoverage, smoke.id);
+        addAll(result.failedChecks, output && output.failedChecks, smoke.id);
+      });
+
+      try {
+        const selfCheck = typeof devStore.profileSelfCheck === "function" ? devStore.profileSelfCheck() : null;
+        const selfChecks = selfCheck && Array.isArray(selfCheck.checks) ? selfCheck.checks : [];
+        const expectedIds = ["serviceLike", "suitableFor35yo", "forum2007Feeling"];
+        const controlQuestionsResolved = selfCheck && selfCheck.ok === true
+          && selfChecks.length === 3
+          && expectedIds.every((id) => selfChecks.some((check) => check && check.id === id && check.result === true && typeof check.explain === "string" && check.explain.trim() && Array.isArray(check.triggers)));
+        if (!controlQuestionsResolved) {
+          addUnique(result.missingCoverage, "profile_control_questions");
+          recordFailure("profileControlQuestions", selfCheck || "profile_self_check_missing");
+        }
+      } catch (err) {
+        addUnique(result.missingCoverage, "profile_control_questions");
+        recordFailure("profileControlQuestions", `exception:${err && err.message ? String(err.message) : String(err)}`);
+      }
+
+      const passedIds = new Set(result.checks.filter((check) => check && check.ok === true).map((check) => check.id));
+      requiredSmokes.forEach((smoke) => {
+        if (!passedIds.has(smoke.id)) addUnique(result.missingCoverage, smoke.id);
+      });
+      const allIncludedSmokesPass = result.checks.length === requiredSmokes.length && result.checks.every((check) => check && check.ok === true);
+      result.ok = allIncludedSmokesPass
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
     const smokeProfileSelfCheckOnce = () => {
       const failures = [];
       const failedChecks = [];
@@ -696,12 +786,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
     Game.Dev.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
     Game.Dev.smokeProfileRegressionPackOnce = smokeProfileRegressionPackOnce;
+    Game.Dev.smokeProfileDefinitionOfDoneOnce = smokeProfileDefinitionOfDoneOnce;
     devStore.profileSelfCheck = profileSelfCheck;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     devStore.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
     devStore.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
     devStore.smokeProfileRegressionPackOnce = smokeProfileRegressionPackOnce;
+    devStore.smokeProfileDefinitionOfDoneOnce = smokeProfileDefinitionOfDoneOnce;
   }
 
   installProfileSelfCheck(Game.__DEV);

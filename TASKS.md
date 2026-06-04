@@ -50,6 +50,30 @@
 
 ```
 
+### [T-20260604-083] Step 8G Profile Definition Of Done Gate
+- Status: DONE
+- Priority: P0
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Economy|Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Add only the final Step 8 Definition Of Done runtime-smoke gate for the profile work.
+- Acceptance:
+  - [x] `Game.__DEV.smokeProfileDefinitionOfDoneOnce()` exists in both runtime bundles.
+  - [x] Gate composes the existing profile self-check, not-service, adult-tone, modern-UI, economy-honesty, and regression-pack smokes.
+  - [x] Gate fails if any included smoke fails, any control question is unresolved, any economy invariant smoke fails, or any returned `failures`, `forbiddenRemaining`, `missingCoverage`, or `failedChecks` remain.
+  - [x] Gate returns `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `checks`.
+  - [x] No gameplay, economy, UI behavior, refactor, or `Console.txt` usage.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeProfileDefinitionOfDoneOnce()`.
+- Result: Added the final Step 8 DoD gate and bumped the dev-checks cache key so Safari can fetch the runtime-smoke export.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: The DoD gate now evaluates all required Step 8 profile smokes and only returns `ok:true` when every included smoke passes with empty failure/coverage/forbidden/failed-check arrays.
+  - Changed: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: `node --check AsyncScene/Web/dev/dev-checks.js`; `node --check docs/dev/dev-checks.js`; Safari console `Game.__DEV.smokeProfileDefinitionOfDoneOnce()`
+  - Next: Дима should run the Safari runtime DoD smoke because this change intentionally does not claim browser PASS.
+  - Next Prompt: Run `Game.__DEV.smokeProfileDefinitionOfDoneOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 ### [T-20260603-082] Step 8F Profile Regression Pack Economy Honesty Fix
 - Status: DONE
 - Priority: P0

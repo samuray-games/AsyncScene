@@ -7,6 +7,17 @@
 - Local evidence: PASS `node --check AsyncScene/Web/dev/dev-checks.js`; PASS `node --check docs/dev/dev-checks.js`.
 - Required Safari command: `Game.__DEV.smokeProfileRegressionPackOnce()` must return `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` before runtime PASS can be claimed.
 
+
+## 2026-06-04 — Step 8G Profile Definition Of Done Gate
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed. Commit hash: recorded in final one-line READY report.
+- Added `Game.__DEV.smokeProfileDefinitionOfDoneOnce()` in both runtime bundles.
+- The DoD gate composes the existing `profileSelfCheck`, `profileNotService`, `profileAdultTone`, `profileModernUi`, `profileEconomyHonesty`, and `profileRegressionPack` smokes and fails if any included smoke fails.
+- The gate also validates the three profile control questions from the self-check and requires empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays before `ok:true`.
+- Bumped only the dev-checks script cache key in both HTML entrypoints so Safari can load the final gate export.
+- No UI behavior, economy behavior, gameplay behavior, refactor, or `Console.txt` usage was added.
+- Required Safari command: `Game.__DEV.smokeProfileDefinitionOfDoneOnce()`.
+
 ## 2026-06-03 — Step 8E Profile Economy Honesty Audit
 - Status: READY_FOR_RUNTIME_SMOKE. Local syntax checks only; Safari runtime PASS is not claimed.
 - Added mirrored runtime smoke `Game.__DEV.smokeProfileEconomyHonestyOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
