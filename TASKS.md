@@ -66,6 +66,7 @@
   - [x] No UI changes, logic changes, or `Console.txt` usage.
 - Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerDiffTableOnce()`. The docs copies under `docs/` are what make the runtime path reachable.
 - Update: Comparison rows now spell out `Millennial:` and `Zoomer:` labels per category so the runtime table parser sees explicit labeled values.
+- Update: This pass trims `UI_PROFILE_ZOOMER_DIFF.md` down to the minimum delta-only wording for `delta_only`; status stays `READY_FOR_RUNTIME_SMOKE`.
 - Result: Added the delta-only document, the table-specific dev smoke, and reachable docs copies for the runtime path.
 - Update: Smoke output now includes `buildTag`, `commit`, `tablePath`, `profilePath`, and `millennialPath`, and the doc fetch resolves from the GitHub Pages root before falling back to the local dev-doc path.
 - Report (обязательный формат):
