@@ -1,3 +1,11 @@
+## 2026-06-04 — Zoomer new feature surfaces rules smoke
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Extended only `UI_PROFILE_ZOOMER_DIFF.md` content with a short new feature application rules section, mirrored to the runtime docs copy.
+- Required surfaces covered: SystemCopy, NPC speech, economy honesty, report/sanctions, respect, locale. Each says to use existing millennial meaning plus zoomer delta.
+- Added `Game.__DEV.smokeZoomerNewFeatureSurfacesOnce()` in both dev-check bundles; it passes only with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- No gameplay, UI behavior, live game text rewrite, refactor, new profile, or `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerNewFeatureSurfacesOnce()`.
+
 # 2026-06-05 — Zoomer forbidden rules smoke
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
