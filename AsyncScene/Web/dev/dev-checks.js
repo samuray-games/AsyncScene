@@ -11,7 +11,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_04_a";
+  const RUNTIME_BUILD_TAG = "build_2026_06_04_b";
   const RUNTIME_COMMIT = "005a208";
   if (typeof window !== "undefined") {
     window.__BUILD_TAG__ = RUNTIME_BUILD_TAG;
@@ -799,13 +799,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         failedChecks
       };
     };
-    const smokeZoomerDiffProfileOnce = () => {
+    const smokeZoomerDiffTableOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
       const result = {
         ok: false,
         buildTag,
         commit,
+        tablePath: null,
         profilePath: null,
         millennialPath: null,
         failures: [],
@@ -820,7 +821,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         "required_deltas",
         "surface_refs",
         "no_duplication",
-        "no_copy_rewrites"
+        "no_copy_rewrites",
+        "comparison_table",
+        "comparison_rows"
       ];
       const coveredChecks = new Set();
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
@@ -896,7 +899,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       try {
         const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
         const millennialRes = fetchTextFromCandidates("UI_PROFILE_MILLENNIAL.md");
-        result.profilePath = zoomRes.path || null;
+        result.tablePath = zoomRes.path || null;
+        result.profilePath = result.tablePath;
         result.millennialPath = millennialRes.path || null;
         coveredChecks.add("doc_exists");
         if (!zoomRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
@@ -916,8 +920,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (!/(delta-only|только delta|только дельта)/i.test(zoomText)) {
           fail("delta_only", "missing_delta_only_marker");
         }
-        if (zoomLines.length > 24) {
-          fail("delta_only", { lineCount: zoomLines.length, max: 24 });
+        if (zoomLines.length > 40) {
+          fail("delta_only", { lineCount: zoomLines.length, max: 40 });
         }
         if (zoomText.length >= Math.max(200, Math.floor(millennialText.length * 0.5))) {
           fail("delta_only", { zoomChars: zoomText.length, millennialChars: millennialText.length });
@@ -940,6 +944,49 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (!/new features/i.test(zoomText)) fail("surface_refs", "missing_new_features");
         const surfaceHits = ["start screen", "top bar", "dm", "battles", "events", "economy", "reports", "onboarding", "settings"].filter((term) => lowerZoom.includes(term));
         if (surfaceHits.length < 4) fail("surface_refs", { hits: surfaceHits });
+
+        coveredChecks.add("comparison_table");
+        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (!tableMatch) {
+          fail("comparison_table", "missing_comparison_table_section");
+        } else {
+          const tableLines = String(tableMatch[1] || "").split(/\r?\n/).map((line) => normalize(line)).filter((line) => line.startsWith("|"));
+          if (!tableLines.length) {
+            fail("comparison_table", "missing_table_rows");
+          }
+          coveredChecks.add("comparison_rows");
+          const requiredCategories = [
+            "phrase length",
+            "explanations",
+            "CTA",
+            "errors",
+            "toasts",
+            "DM",
+            "battles",
+            "economy",
+            "onboarding/training"
+          ];
+          const missingRows = [];
+          const incompleteRows = [];
+          requiredCategories.forEach((category) => {
+            const rowLine = tableLines.find((line) => {
+              const lower = line.toLowerCase();
+              const categoryLower = category.toLowerCase();
+              return lower.includes(`| ${categoryLower} |`) || lower.startsWith(`| ${categoryLower} |`) || lower.includes(`| ${categoryLower} `);
+            }) || null;
+            if (!rowLine) {
+              missingRows.push(category);
+              return;
+            }
+            const rowLower = rowLine.toLowerCase();
+            if (!rowLower.includes("millennial") || !rowLower.includes("zoomer")) {
+              incompleteRows.push({ category, rowLine });
+            }
+          });
+          if (missingRows.length || incompleteRows.length) {
+            fail("comparison_rows", { missingRows, incompleteRows });
+          }
+        }
 
         coveredChecks.add("no_duplication");
         forbiddenSections.forEach((section) => {
@@ -979,7 +1026,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerDiffProfileOnce = smokeZoomerDiffTableOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
+    Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
@@ -987,6 +1036,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeProfileRegressionPackOnce = smokeProfileRegressionPackOnce;
     Game.Dev.smokeProfileDefinitionOfDoneOnce = smokeProfileDefinitionOfDoneOnce;
     devStore.profileSelfCheck = profileSelfCheck;
+    devStore.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
