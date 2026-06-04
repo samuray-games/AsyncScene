@@ -1416,12 +1416,226 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
-    const smokeZoomerDiffProfileOnce = smokeZoomerDiffTableOnce;
+    const validateZoomerDiffProfileOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        profilePath: null,
+        missingSections: [],
+        duplicatedMillennialBlocks: [],
+        forbiddenRemaining: [],
+        surfacesCovered: false,
+        failedChecks: [],
+        failures: [],
+        missingCoverage: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            return { ok: true, text: xhr.responseText || "" };
+          }
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try {
+            add(new URL(fileName, baseUri).href);
+          } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ");
+      const addMissingSection = (section) => addUnique(result.missingSections, section);
+      try {
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        result.profilePath = zoomRes.path || null;
+        if (!zoomRes.ok) {
+          fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
+        }
+        const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
+        const zoomText = normalize(zoomRaw);
+        const lowerZoom = zoomText.toLowerCase();
+        if (zoomRes.ok && !zoomText.trim()) fail("doc_load", "empty_doc");
+        if (zoomRes.ok && !/ui_profile_zoomer_diff/i.test(zoomText)) fail("doc_load", "missing_title");
+
+        const requiredSectionSpecs = [
+          { id: "required_delta_section", re: /(delta-only|только delta|только дельта)/i },
+          { id: "millennial_to_zoomer_table", re: /## Millennial -> zoomer comparison table/i },
+          { id: "forbidden_rules_section", re: /## Forbidden(?: section)?/i },
+          { id: "new_feature_surfaces_section", re: /## New feature application rules/i }
+        ];
+        requiredSectionSpecs.forEach((spec) => {
+          if (!spec.re.test(zoomRaw)) {
+            addMissingSection(spec.id);
+            fail(spec.id, "missing_section");
+          }
+        });
+
+        [
+          "faster",
+          "simpler",
+          "shorter",
+          "fewer explanations",
+          "more direct wording"
+        ].forEach((phrase) => {
+          if (!lowerZoom.includes(phrase)) fail("required_delta_section", { missing: phrase });
+        });
+
+        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (tableMatch) {
+          const tableLines = String(tableMatch[1] || "").split(/\r?\n/).map((line) => normalize(line)).filter((line) => line.startsWith("|"));
+          const requiredCategories = ["phrase length", "explanations", "CTA", "errors", "toasts", "DM", "battles", "economy", "onboarding/training"];
+          const missingRows = [];
+          const incompleteRows = [];
+          requiredCategories.forEach((category) => {
+            const categoryLower = category.toLowerCase();
+            const rowLine = tableLines.find((line) => line.toLowerCase().includes(`| ${categoryLower} `)) || null;
+            if (!rowLine) {
+              missingRows.push(category);
+              return;
+            }
+            const rowLower = rowLine.toLowerCase();
+            if (!rowLower.includes("millennial") || !rowLower.includes("zoomer")) {
+              incompleteRows.push({ category, rowLine });
+            }
+          });
+          if (missingRows.length || incompleteRows.length) fail("millennial_to_zoomer_table", { missingRows, incompleteRows });
+        }
+
+        const forbiddenMatch = zoomRaw.match(/## Forbidden(?: section)?([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (forbiddenMatch) {
+          const requiredForbiddenRules = [
+            'no long explanations',
+            'no "давай разберём"',
+            'no unnecessary reasons/excuses',
+            'no teen slang',
+            'no meme wording',
+            'no artificial "youth" voice',
+            'no teacher/mentor tone',
+            'no showing off intelligence'
+          ];
+          const missingForbiddenRules = requiredForbiddenRules.filter((rule) => !lowerZoom.includes(rule.toLowerCase()));
+          if (!/forbidden_rules/i.test(forbiddenMatch[1] || "")) missingForbiddenRules.push("forbidden_rules marker");
+          if (missingForbiddenRules.length) fail("forbidden_rules_section", { missingForbiddenRules });
+        }
+
+        const forbiddenMillennialHeaders = [
+          "Для кого этот профиль",
+          "Как система разговаривает",
+          "Правила языка",
+          "Отношение к риску и ошибкам",
+          "Табу",
+          "Контрольный чек",
+          "Финальное подтверждение профиля"
+        ];
+        forbiddenMillennialHeaders.forEach((section) => {
+          if (zoomText.includes(section)) {
+            addUnique(result.duplicatedMillennialBlocks, section);
+            addUnique(result.forbiddenRemaining, { check: "duplicatedMillennialBlocks", section });
+            fail("no_duplicated_millennial_blocks", { section });
+          }
+        });
+
+        const forbiddenPatterns = [
+          { id: "logic_rewrite_claim", re: /logic\s+(?:changes?|rewrite|rewrites?)/i, allow: /No logic changes\./i },
+          { id: "ui_rewrite_claim", re: /ui\s+(?:changes?|rewrite|rewrites?)/i, allow: /No UI changes\./i },
+          { id: "canon_rewrite_claim", re: /canon\s+(?:changes?|rewrite|rewrites?)/i },
+          { id: "copy_rewrite_claim", re: /copy\s+rewrites?\s+outside/i, allow: /No copy rewrites outside this document\./i }
+        ];
+        forbiddenPatterns.forEach((pattern) => {
+          if (pattern.re.test(zoomText) && !(pattern.allow && pattern.allow.test(zoomText))) {
+            addUnique(result.forbiddenRemaining, pattern.id);
+            fail("no_logic_ui_canon_rewrite_claims", pattern.id);
+          }
+        });
+
+        const surfaceMatch = zoomRaw.match(/## New feature application rules([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (surfaceMatch) {
+          const requiredSurfaces = ["SystemCopy", "NPC speech", "economy honesty", "report/sanctions", "respect", "locale"];
+          const sectionLines = String(surfaceMatch[1] || "").split(/\r?\n/).map((line) => normalize(line)).filter(Boolean);
+          const lowerLines = sectionLines.map((line) => line.toLowerCase());
+          const missingSurfaces = [];
+          requiredSurfaces.forEach((surface) => {
+            const line = lowerLines.find((candidate) => candidate.includes(surface.toLowerCase()));
+            if (!line || !line.includes("existing millennial meaning") || !line.includes("zoomer delta")) {
+              missingSurfaces.push(surface);
+            }
+          });
+          if (missingSurfaces.length) {
+            missingSurfaces.forEach((surface) => addUnique(result.missingCoverage, surface));
+            fail("new_feature_surfaces_section", { missingSurfaces });
+          }
+          result.surfacesCovered = missingSurfaces.length === 0;
+        } else {
+          result.surfacesCovered = false;
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.missingSections.length === 0
+        && result.duplicatedMillennialBlocks.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.surfacesCovered === true
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.missingCoverage.length === 0;
+      return result;
+    };
+    const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
     Game.Dev.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     Game.Dev.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
+    Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     Game.Dev.smokeProfileModernUiOnce = smokeProfileModernUiOnce;
     Game.Dev.smokeProfileEconomyHonestyOnce = smokeProfileEconomyHonestyOnce;
@@ -1432,6 +1646,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerForbiddenRulesOnce = smokeZoomerForbiddenRulesOnce;
     devStore.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
+    devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
     devStore.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
     devStore.smokeProfileModernUiOnce = smokeProfileModernUiOnce;

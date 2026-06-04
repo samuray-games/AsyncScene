@@ -5691,3 +5691,10 @@ Error: Download failure, code=1
 - Return contract is `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, checks }`; `ok:true` requires all arrays empty and every included check passing.
 - Scope guard preserved: dev smoke only, no UI changes, no economy changes, no gameplay changes, no unrelated refactors, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeProfileRegressionPackOnce()`.
+
+## 2026-06-04 - Final zoomer diff profile validator
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only final validator `Game.__DEV.validateZoomerDiffProfileOnce()` for the existing `UI_PROFILE_ZOOMER_DIFF.md` document loaded from its runtime profile path.
+- Required PASS shape includes `ok:true`, empty `missingSections`, empty `duplicatedMillennialBlocks`, empty `forbiddenRemaining`, and `surfacesCovered:true`, plus build/profile diagnostics and failure arrays for Safari smoke review.
+- Scope guard preserved: validator/docs status only; no gameplay, UI behavior, live game text, canon, or profile creation changes. `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.validateZoomerDiffProfileOnce()`.
