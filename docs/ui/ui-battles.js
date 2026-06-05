@@ -2015,7 +2015,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = "Толпа решает. Ты смотришь.";
+          voteHint.textContent = "Выбери сторону.";
           escapeWrap.appendChild(voteHint);
 
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
@@ -2242,7 +2242,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = isMyDraw ? "Толпа решает. Ты смотришь." : "Толпа решает.";
+          voteHint.textContent = isMyDraw ? "Выбери сторону." : "Смотри исход.";
           drawWrap.appendChild(voteHint);
 
           const timerLine = document.createElement("div");

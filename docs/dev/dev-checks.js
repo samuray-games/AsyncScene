@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ae";
-  const RUNTIME_COMMIT = "a3090e1";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_af";
+  const RUNTIME_COMMIT = "b15f581";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -3495,11 +3495,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ["status", "Можно передать", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.ready", "training status"],
         ["hint", "Пиши по теме.", "AsyncScene/Web/index.html", "index", "chatInput.placeholder", "#chatInput"],
         ["hint", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
-        ["hint", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
-        ["hint", "Влияние", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=influence] .statIcon"],
-        ["hint", "Победы", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=wins] .statIcon"],
+        ["status", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
+        ["status", "Влияние", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=influence] .statIcon"],
+        ["status", "Победы", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=wins] .statIcon"],
         ["hint", "Вызовов нет.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "emptyChallenges.hint", "challenges empty"],
-        ["hint", "Толпа решает. Ты смотришь.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "voteHint.textContent", "battle vote hint"],
+        ["hint", "Выбери сторону.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "voteHint.textContent", "battle vote hint"],
         ["hint", "Ответь ...", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "answerFallback.hint", "canon answer hint fallback"]
       ].forEach(([category, text, file, module, key, path]) => addZoomerTermsInventoryEntry(entries, category, text, { file, module, key, path }));
 
@@ -3561,6 +3561,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           const id = String(el.id || "").toLowerCase();
           const cls = String(el.className || "").toLowerCase();
           if (tag === "button") return "button";
+          if (id === "balance" || el.matches("[data-profile-stat] .statIcon, [data-profile-stat].statIcon")) return "status";
           if (attrName === "placeholder" || attrName === "title" || attrName === "aria-label") return "hint";
           if (id.includes("error") || cls.includes("error") || cls.includes("danger")) return "error";
           if (id.includes("hint") || cls.includes("hint") || cls.includes("sub")) return "hint";

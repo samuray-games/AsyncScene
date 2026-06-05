@@ -5323,3 +5323,9 @@ Error: Download failure, code=1
 ## 2026-06-05 — Step 4 [6] hints only
 - Updated only the hint texts in the mirrored data and system bundles so the Step 4 inventory reads as direct next actions, including the start-screen hint lines, crowd/event hints, the invite hint, the type prompts, and the fallback hint text.
 - Added `Game.__DEV.smokeZoomerHintTermsOnce()` in both served dev-check bundles with identity fields and action-led hint coverage checks. Runtime PASS is not claimed; Safari must still confirm the new hint smoke for this commit.
+## 2026-06-05 — Step 4 [6] hint wording/classification only
+- Safari/runtime FAIL for `Game.__DEV.smokeZoomerHintTermsOnce()` was narrowed to `failedChecks:["action_oriented_hint_copy"]` with `hintEntriesCount:23`: one real hint stayed explanatory (`Толпа решает. Ты смотришь.`) and three non-action profile/stat labels (`Профиль`, `Влияние`, `Победы`) were being counted as hints because the served collector classified those `title`/`aria-label` surfaces as hint copy.
+- Changed only hint wording/classification in the served app/docs bundles: both battle vote hint surfaces now use `Выбери сторону.` for the interactive crowd-vote state, the static Step 4 inventory rows for `Профиль` / `Влияние` / `Победы` are classified as `status`, and the runtime DOM classifier now treats `#balance` plus `[data-profile-stat] .statIcon` title/aria-label surfaces as `status` instead of `hint`.
+- Served identity was refreshed to `build_2026_06_05_af` / `b15f581`, and `commit` in the runtime markers now equals the current short git hash.
+- Scope held: no button text changes, no status/error logic changes, no gameplay changes, no hint behavior changes, and no `Console.txt` usage.
+- Status: READY_FOR_RUNTIME_SMOKE only. Safari runtime PASS is not claimed.
