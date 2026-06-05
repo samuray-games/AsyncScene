@@ -16,6 +16,15 @@
 - No gameplay changes, no UI behavior changes, and no `Console.txt` usage.
 - Safari runtime PASS is still not claimed; the user must run the smoke in Safari before we call it final.
 
+## 2026-06-05 — Step 4 [2] zoomer inventory alignment
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Added exact runtime inventory-alignment notes to `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` for the strings reported by the hidden smoke.
+- The note now records the exact source-string alignment for `Disable Dev Mode`, `Продолжить`, `Sigma 💰10`, `Твой тон: очень скромный`, and `До скромного: 3 ⚡`.
+- The same note also records the currently flagged target strings `Enable Dev Mode`, `Проверяю...`, `Занят`, `Ник. Как в чате.`, and `Реванш` without touching UI code or gameplay logic.
+- No inventory scope change, no UI rewrite, and no `Console.txt` usage were introduced.
+- Required Safari command remains `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-04 — Step 8H Zoomer smoke build marker + path resolution fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.

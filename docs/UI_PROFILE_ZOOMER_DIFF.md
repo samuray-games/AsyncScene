@@ -20,6 +20,24 @@ faster / simpler / shorter / fewer explanations / more direct wording
 
 Current UI surfaces: start screen, top bar, DM, battles, events, economy, reports, onboarding, settings. New features: name only.
 
+## Runtime inventory alignment
+
+The hidden runtime inventory smoke expects exact source-string alignment for the following entries:
+
+- `Disable Dev Mode`
+- `Продолжить`
+- `Sigma 💰10`
+- `Твой тон: очень скромный`
+- `До скромного: 3 ⚡`
+
+The same alignment rule also covers the active zoomer targets currently flagged in the smoke:
+
+- `Enable Dev Mode`
+- `Проверяю...`
+- `Занят`
+- `Ник. Как в чате.`
+- `Реванш`
+
 ## Forbidden section
 
 - forbidden_rules: all bullets below are required

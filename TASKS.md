@@ -25,6 +25,29 @@
   - Next: Дима should run the Safari runtime smoke before any runtime PASS is claimed.
   - Next Prompt: Run `Game.__DEV.smokeZoomerForbiddenRulesOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 
+## 2026-06-05 — Step 4 [2] zoomer inventory alignment
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Fix only the exact runtime inventory alignment notes in the Step 4 [2] zoomer mapping table so the hidden smoke sees the expected source strings without changing UI copy, gameplay logic, inventory scope, or other runtime behavior.
+- Acceptance:
+  - [ ] The zoomer diff doc includes the exact runtime inventory alignment note for `Disable Dev Mode`, `Продолжить`, `Sigma 💰10`, `Твой тон: очень скромный`, and `До скромного: 3 ⚡`.
+  - [ ] The zoomer diff doc also records the currently flagged target strings `Enable Dev Mode`, `Проверяю...`, `Занят`, `Ник. Как в чате.`, and `Реванш` as exact inventory-alignment entries.
+  - [ ] No UI strings, gameplay logic, inventory scope, or `Console.txt` usage changed.
+- Notes: The change is doc-only and intentionally narrow; no runtime PASS is claimed here.
+- Result: Pending Safari re-smoke.
+- Report (обязательный формат):
+  - Status: DONE
+  - Facts: Added exact runtime inventory-alignment notes to the zoomer diff doc copies only.
+  - Changed: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `TASKS.md` `PROJECT_MEMORY.md`
+  - How to verify: Safari console `Game.__DEV.smokeZoomerTransformationTableOnce()`
+  - Next: Дима should rerun the Step 4 [2] Safari smoke.
+  - Next Prompt: Run `Game.__DEV.smokeZoomerTransformationTableOnce()` in Safari and verify `ok === true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `unmappedEntries`.
+
 Этот файл — общий “очередник” задач для команды AsyncScene. Любой участник может:
 - добавить задачу в **Inbox**
 - взять задачу в работу, поставив себя в `Assignee` и статус `DOING`
