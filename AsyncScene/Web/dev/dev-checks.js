@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_1_arg_inventory_shape_a";
-  const RUNTIME_COMMIT = "step5_1_arg_inventory_shape";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_1_arg_inventory_compact_b";
+  const RUNTIME_COMMIT = "step5_1_arg_inventory_compact";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4168,24 +4168,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return entries;
     };
 
-    const smokeZoomerArgumentInventoryOnce = () => {
+    const smokeZoomerArgumentInventoryOnce = (options) => {
+      const debug = !!(options && options.debug === true);
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = `step5_1_argument_inventory_shape_v2_20260605a_${buildTag}_commit_${commit}`;
+      const smokeVersion = `step5_1_argument_inventory_compact_v3_20260605b_${buildTag}_commit_${commit}`;
+      const expectedSmokeVersion = `step5_1_argument_inventory_compact_v3_20260605b_${buildTag}_commit_${commit}`;
       const requiredTypes = ["about", "who", "where", "yn"];
+      const sampleLimit = 6;
       const result = {
         ok: false,
         buildTag,
         commit,
         smokeVersion,
-        smokeName: "smokeZoomerArgumentInventoryOnce",
         inventoryCount: 0,
-        byType: {
-          about: { count: 0, ids: [] },
-          who: { count: 0, ids: [] },
-          where: { count: 0, ids: [] },
-          yn: { count: 0, ids: [] }
-        },
+        byTypeCounts: { about: 0, who: 0, where: 0, yn: 0 },
         duplicateIds: [],
         emptyEntries: [],
         unresolvedPlaceholders: [],
@@ -4195,15 +4192,22 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         missingCoverage: [],
         failedChecks: []
       };
+      const debugPayload = {
+        byTypeIds: { about: [], who: [], where: [], yn: [] },
+        inventory: []
+      };
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const pushSample = (list, value) => {
+        if (list.length < sampleLimit) addUnique(list, value);
+      };
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
-        addUnique(result.failures, detail === undefined ? check : { check, detail });
+        pushSample(result.failures, detail === undefined ? check : { check, detail });
       };
       const placeholderRe = /\{[A-ZА-ЯЁ][A-ZА-ЯЁ0-9_]*\}/u;
       try {
         const inventory = collectZoomerArgumentInventoryEntries();
-        result.inventory = inventory;
+        if (debug) debugPayload.inventory = inventory;
         result.inventoryCount = inventory.length;
         const seen = Object.create(null);
         inventory.forEach((entry, index) => {
@@ -4211,23 +4215,23 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           const id = entry && entry.id ? String(entry.id) : `missing_id_${index}`;
           const text = entry && entry.text != null ? String(entry.text) : "";
           if (type) {
-            result.byType[type].count += 1;
-            if (result.byType[type].ids.length < 80) result.byType[type].ids.push(id);
+            result.byTypeCounts[type] += 1;
+            if (debug) debugPayload.byTypeIds[type].push(id);
           }
           if (!entry || !entry.id || !text.trim()) {
-            addUnique(result.emptyEntries, { id, type: type || null, side: entry && entry.side || null, source: entry && entry.source || null });
+            pushSample(result.emptyEntries, { id, type: type || null, side: entry && entry.side || null, source: entry && entry.source || null });
           }
           if (placeholderRe.test(text)) {
-            addUnique(result.unresolvedPlaceholders, { id, type: type || null, side: entry && entry.side || null, text });
+            pushSample(result.unresolvedPlaceholders, { id, type: type || null, side: entry && entry.side || null });
           }
           if (!seen[id]) seen[id] = [];
           seen[id].push({ type: type || null, side: entry && entry.side || null, source: entry && entry.source || null });
         });
         Object.keys(seen).forEach((id) => {
-          if (seen[id].length > 1) addUnique(result.duplicateIds, { id, entries: seen[id] });
+          if (seen[id].length > 1) pushSample(result.duplicateIds, { id, count: seen[id].length, entries: seen[id].slice(0, sampleLimit) });
         });
         requiredTypes.forEach((type) => {
-          if (!result.byType[type] || result.byType[type].count <= 0) addUnique(result.missingTypes, type);
+          if (result.byTypeCounts[type] <= 0) addUnique(result.missingTypes, type);
         });
         if (result.inventoryCount <= 0) fail("inventory_not_empty", result.inventoryCount);
         if (result.missingTypes.length) {
@@ -4238,11 +4242,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (result.emptyEntries.length) fail("empty_entries_empty", result.emptyEntries.slice());
         if (result.unresolvedPlaceholders.length) fail("unresolved_placeholders_empty", result.unresolvedPlaceholders.slice());
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step5_1_argument_inventory_shape_v2_20260605a_${buildTag}_commit_${commit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        if (smokeVersion !== expectedSmokeVersion) fail("smoke_version_unique_for_commit", smokeVersion);
       } catch (err) {
-        fail("exception", err && (err.stack || err.message) ? (err.stack || err.message) : String(err));
+        fail("exception", err && err.message ? String(err.message) : String(err));
       }
-      result.ok = requiredTypes.every((type) => result.byType[type] && result.byType[type].count > 0)
+      result.ok = requiredTypes.every((type) => result.byTypeCounts[type] > 0)
         && result.duplicateIds.length === 0
         && result.emptyEntries.length === 0
         && result.unresolvedPlaceholders.length === 0
@@ -4251,6 +4255,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
         && result.failedChecks.length === 0;
+      if (debug) {
+        result.debug = true;
+        result.inventory = debugPayload.inventory;
+        result.byTypeIds = debugPayload.byTypeIds;
+      }
       try { console.warn("STEP5_1_ARGUMENT_INVENTORY_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
     };
