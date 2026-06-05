@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_q";
-  const RUNTIME_COMMIT = "416e9cd";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_r";
+  const RUNTIME_COMMIT = "d0a71e7";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1685,6 +1685,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
       const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
+      const isDynamicNameMoney10Value = (value) => /^[^\s].*\s💰10$/u.test(normalize(value));
+      const pairMatchesInventoryTarget = (pair, target) => {
+        const zoomer = normalize(pair && pair.zoomer);
+        const id = normalize(pair && pair.id);
+        if (zoomer === target) return true;
+        if (id === "STEP4_2_127" && zoomer === "{NAME} 💰10" && isDynamicNameMoney10Value(target)) return true;
+        return false;
+      };
       const table = Array.isArray(ZOOMER_TERMINOLOGY_MAPPING_TABLE) ? ZOOMER_TERMINOLOGY_MAPPING_TABLE : [];
       try {
         const millennialSeen = new Map();
@@ -1722,14 +1730,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           }
         });
         inventoryTargets.forEach((target) => {
-          if (!zoomerSeen.has(target)) {
+          const hasMatch = zoomerSeen.has(target) || table.some((pair) => pairMatchesInventoryTarget(pair, target));
+          if (!hasMatch) {
             addUnique(result.missingCoverage, target);
             addUnique(result.unmappedEntries, target);
           }
         });
         table.forEach((pair, idx) => {
           const zoomer = normalize(pair && pair.zoomer);
-          if (zoomer && !inventoryTargets.includes(zoomer)) {
+          const hasInventoryMatch = zoomer && inventoryTargets.some((target) => pairMatchesInventoryTarget(pair, target));
+          if (zoomer && !hasInventoryMatch) {
             fail("zoomer_target_must_match_inventory", { idx, id: pair && pair.id, zoomer });
           }
         });
@@ -3074,7 +3084,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_124", "millennial": "Полная UI-формулировка 124: Стандартный размер", "zoomer": "Стандартный размер"}),
       Object.freeze({"id": "STEP4_2_125", "millennial": "Полная UI-формулировка 125: Вызвать", "zoomer": "Вызвать"}),
       Object.freeze({"id": "STEP4_2_126", "millennial": "Полная UI-формулировка 126: Продолжить", "zoomer": "Продолжить"}),
-      Object.freeze({"id": "STEP4_2_127", "millennial": "Полная UI-формулировка 127: Sigma 💰10", "zoomer": "Sigma 💰10"}),
+      Object.freeze({"id": "STEP4_2_127", "millennial": "Полная UI-формулировка 127: Sigma 💰10", "zoomer": "{NAME} 💰10"}),
       Object.freeze({"id": "STEP4_2_128", "millennial": "Полная UI-формулировка 128: Твой тон: очень скромный", "zoomer": "Твой тон: очень скромный"}),
       Object.freeze({"id": "STEP4_2_129", "millennial": "Полная UI-формулировка 129: До скромного: 3 ⚡", "zoomer": "До скромного: 3 ⚡"}),
     ]);
