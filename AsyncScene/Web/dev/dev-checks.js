@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_4_arg_wrapper_coverage";
-  const RUNTIME_COMMIT = "step5_4_arg_wrapper_coverage";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_5_arg_semantic_linter";
+  const RUNTIME_COMMIT = "step5_5_arg_semantic_linter";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4742,6 +4742,200 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const smokeZoomerArgumentSemanticLinterOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step5_5_argument_wrapper_semantic_linter_v1_20260605a_${buildTag}_commit_${commit}`;
+      const expectedCheckedCount = 964;
+      const requiredTypes = ["ABOUT", "WHO", "WHERE", "YN"];
+      const requiredSides = ["Q", "A"];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        checkedCount: 0,
+        canonIdMismatch: [],
+        typeMismatch: [],
+        sideMismatch: [],
+        placeholderMismatch: [],
+        keyEntityMismatch: [],
+        polarityMismatch: [],
+        sideDrift: [],
+        addedClaims: [],
+        removedClaims: [],
+        semanticDrift: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        failures: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const forbiddenWrapperTerms = [
+        "лол", "кек", "мем", "мемно", "краш", "кринж", "вайб", "рофл", "чилл", "флекс", "имба", "топчик", "жиза", "изи", "сигма", "легенда", "эпично", "разнос", "бомба", "огонь"
+      ];
+      const makeTermRx = (term) => new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9_])${String(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^A-Za-zА-Яа-яЁё0-9_]|$)`, "iu");
+      const extractKeyPlaceholders = (text) => {
+        const matches = normalizePilotText(text).match(/\{(?:NAME|PLACE)\}/g) || [];
+        return matches.slice().sort();
+      };
+      const detectYnPolarity = (text) => {
+        const normalized = normalizePilotText(text).replace(/^[.…\s-]+/u, "");
+        const hasYes = /(^|[^A-Za-zА-Яа-яЁё0-9_])Да([^A-Za-zА-Яа-яЁё0-9_]|$)/iu.test(normalized);
+        const hasNo = /(^|[^A-Za-zА-Яа-яЁё0-9_])Нет([^A-Za-zА-Яа-яЁё0-9_]|$)/iu.test(normalized);
+        if (hasYes && hasNo) return "BOTH";
+        if (hasYes) return "YES";
+        if (hasNo) return "NO";
+        return "";
+      };
+      const isQuestionLike = (text) => /\?/u.test(normalizePilotText(text));
+      const semanticKey = (text) => wrapperMeaningKey(text)
+        .toLocaleLowerCase("ru-RU")
+        .replace(/[«»"“”]/gu, "")
+        .replace(/[.!?;:]+/gu, ".")
+        .replace(/\s+/g, " ")
+        .trim();
+      const extractClaimTokens = (text) => semanticKey(text)
+        .replace(/[.,]+/gu, " ")
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+      const countTokens = (tokens) => tokens.reduce((acc, token) => {
+        acc[token] = (acc[token] || 0) + 1;
+        return acc;
+      }, Object.create(null));
+      const tokenDelta = (fromTokens, toTokens) => {
+        const from = countTokens(fromTokens);
+        const to = countTokens(toTokens);
+        const added = [];
+        const removed = [];
+        Object.keys(to).forEach((token) => {
+          const diff = to[token] - (from[token] || 0);
+          for (let i = 0; i < diff; i += 1) added.push(token);
+        });
+        Object.keys(from).forEach((token) => {
+          const diff = from[token] - (to[token] || 0);
+          for (let i = 0; i < diff; i += 1) removed.push(token);
+        });
+        return { added, removed };
+      };
+      try {
+        const coverage = exposeZoomerArgumentWrapperCoverage();
+        if (!coverage || coverage.appliedToGameplay !== false || coverage.replacesRuntimeArgumentOutput !== false || coverage.canonicalRewriteEnabled !== false || coverage.gameplayChangeEnabled !== false || coverage.uiChangeEnabled !== false || coverage.battleDefenseLogicChangeEnabled !== false) {
+          fail("dev_only_not_runtime_applied", {
+            appliedToGameplay: coverage && coverage.appliedToGameplay,
+            replacesRuntimeArgumentOutput: coverage && coverage.replacesRuntimeArgumentOutput,
+            canonicalRewriteEnabled: coverage && coverage.canonicalRewriteEnabled,
+            gameplayChangeEnabled: coverage && coverage.gameplayChangeEnabled,
+            uiChangeEnabled: coverage && coverage.uiChangeEnabled,
+            battleDefenseLogicChangeEnabled: coverage && coverage.battleDefenseLogicChangeEnabled
+          });
+        }
+        const inventory = collectZoomerArgumentInventoryEntries();
+        const wrappers = buildZoomerArgumentWrapperEntries();
+        result.checkedCount = wrappers.length;
+        const inventoryById = Object.create(null);
+        inventory.forEach((entry) => {
+          const id = String(entry && entry.id || "");
+          if (id) inventoryById[id] = entry;
+        });
+        const seen = Object.create(null);
+        wrappers.forEach((wrapper, index) => {
+          const canonId = String(wrapper && wrapper.canonId || "");
+          const type = String(wrapper && wrapper.type || "").toUpperCase();
+          const side = String(wrapper && wrapper.side || "").toUpperCase();
+          const originalText = normalizePilotText(wrapper && wrapper.originalText);
+          const wrapperText = normalizePilotText(wrapper && wrapper.wrapperText);
+          if (!canonId) addUnique(result.canonIdMismatch, { index, canonId, check: "missing_canon_id" });
+          if (!requiredTypes.includes(type)) addUnique(result.typeMismatch, { canonId, expected: requiredTypes, actual: type });
+          if (!requiredSides.includes(side)) addUnique(result.sideMismatch, { canonId, expected: requiredSides, actual: side });
+          if (!seen[canonId]) seen[canonId] = 0;
+          seen[canonId] += 1;
+          const inventoryEntry = inventoryById[canonId];
+          if (!inventoryEntry) {
+            addUnique(result.missingCoverage, { check: "wrapper_id_in_inventory", canonId });
+            return;
+          }
+          const invType = String(inventoryEntry.type || "").toUpperCase();
+          const invSide = String(inventoryEntry.side || "").toUpperCase();
+          const canonText = normalizePilotText(inventoryEntry.rawText || inventoryEntry.text);
+          if (String(inventoryEntry.id || "") !== canonId) addUnique(result.canonIdMismatch, { canonId, expected: String(inventoryEntry.id || ""), actual: canonId });
+          if (invType !== type) addUnique(result.typeMismatch, { canonId, expected: invType, actual: type });
+          if (invSide !== side) addUnique(result.sideMismatch, { canonId, expected: invSide, actual: side });
+          if (canonText !== originalText) addUnique(result.canonIdMismatch, { canonId, check: "canon_original_text_mismatch" });
+          const canonPlaceholders = extractKeyPlaceholders(canonText);
+          const originalPlaceholders = extractKeyPlaceholders(originalText);
+          const wrapperPlaceholders = extractKeyPlaceholders(wrapperText);
+          if (JSON.stringify(canonPlaceholders) !== JSON.stringify(originalPlaceholders) || JSON.stringify(canonPlaceholders) !== JSON.stringify(wrapperPlaceholders)) {
+            addUnique(result.placeholderMismatch, { canonId, canonPlaceholders, originalPlaceholders, wrapperPlaceholders });
+          }
+          const canonEntities = canonPlaceholders.concat(detectYnPolarity(canonText) ? [`POLARITY:${detectYnPolarity(canonText)}`] : []);
+          const wrapperEntities = wrapperPlaceholders.concat(detectYnPolarity(wrapperText) ? [`POLARITY:${detectYnPolarity(wrapperText)}`] : []);
+          if (JSON.stringify(canonEntities.slice().sort()) !== JSON.stringify(wrapperEntities.slice().sort())) addUnique(result.keyEntityMismatch, { canonId, canonEntities, wrapperEntities });
+          if (type === "YN" && detectYnPolarity(canonText) !== detectYnPolarity(wrapperText)) addUnique(result.polarityMismatch, { canonId, expected: detectYnPolarity(canonText), actual: detectYnPolarity(wrapperText) });
+          if (invSide !== side || (side === "Q" && isQuestionLike(canonText) !== isQuestionLike(wrapperText))) addUnique(result.sideDrift, { canonId, expected: { side: invSide, questionLike: isQuestionLike(canonText) }, actual: { side, questionLike: isQuestionLike(wrapperText) } });
+          const canonKey = semanticKey(canonText);
+          const wrapperKey = semanticKey(wrapperText);
+          if (canonKey !== wrapperKey) addUnique(result.semanticDrift, { canonId, type, check: "meaning_key_mismatch", canonKey, wrapperKey });
+          const delta = tokenDelta(extractClaimTokens(canonText), extractClaimTokens(wrapperText));
+          if (delta.added.length) addUnique(result.addedClaims, { canonId, added: delta.added });
+          if (delta.removed.length) addUnique(result.removedClaims, { canonId, removed: delta.removed });
+          forbiddenWrapperTerms.forEach((term) => {
+            if (makeTermRx(term).test(wrapperText)) addUnique(result.forbiddenRemaining, { canonId, term, wrapperText });
+          });
+        });
+        Object.keys(inventoryById).forEach((id) => {
+          if (!seen[id]) addUnique(result.missingCoverage, id);
+        });
+        Object.keys(seen).forEach((id) => {
+          if (seen[id] > 1) addUnique(result.canonIdMismatch, { canonId: id, check: "duplicate_wrapper_canon_id", count: seen[id] });
+        });
+        if (result.checkedCount !== expectedCheckedCount) fail("checked_count_964", result.checkedCount);
+        if (inventory.length !== expectedCheckedCount) fail("inventory_count_964", inventory.length);
+        [
+          ["canon_id_mismatch_empty", result.canonIdMismatch],
+          ["type_mismatch_empty", result.typeMismatch],
+          ["side_mismatch_empty", result.sideMismatch],
+          ["placeholder_mismatch_empty", result.placeholderMismatch],
+          ["key_entity_mismatch_empty", result.keyEntityMismatch],
+          ["polarity_mismatch_empty", result.polarityMismatch],
+          ["side_drift_empty", result.sideDrift],
+          ["added_claims_empty", result.addedClaims],
+          ["removed_claims_empty", result.removedClaims],
+          ["semantic_drift_empty", result.semanticDrift],
+          ["forbidden_remaining_empty", result.forbiddenRemaining],
+          ["missing_coverage_empty", result.missingCoverage]
+        ].forEach(([check, list]) => {
+          if (Array.isArray(list) && list.length) fail(check, list.slice(0, 12));
+        });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step5_5_argument_wrapper_semantic_linter_v1_20260605a_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step5_5") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.checkedCount === expectedCheckedCount
+        && result.canonIdMismatch.length === 0
+        && result.typeMismatch.length === 0
+        && result.sideMismatch.length === 0
+        && result.placeholderMismatch.length === 0
+        && result.keyEntityMismatch.length === 0
+        && result.polarityMismatch.length === 0
+        && result.sideDrift.length === 0
+        && result.addedClaims.length === 0
+        && result.removedClaims.length === 0
+        && result.semanticDrift.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0;
+      try { console.warn("STEP5_5_ARGUMENT_WRAPPER_SEMANTIC_LINTER_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
+
     const smokeZoomerTermsReadyOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -4928,6 +5122,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
     Game.Dev.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
+    Game.Dev.smokeZoomerArgumentSemanticLinterOnce = smokeZoomerArgumentSemanticLinterOnce;
     Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
@@ -4963,6 +5158,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
     devStore.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
+    devStore.smokeZoomerArgumentSemanticLinterOnce = smokeZoomerArgumentSemanticLinterOnce;
     devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
