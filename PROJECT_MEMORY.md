@@ -1,3 +1,12 @@
+## 2026-06-05 — Step 5.6 simplicity linter for zoomer argument wrappers
+- Added dev-only `Game.__DEV.smokeZoomerArgumentSimplicityLinterOnce()` / `Game.Dev.smokeZoomerArgumentSimplicityLinterOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke checks only the existing Step 5.4 dev wrapper set from `buildZoomerArgumentWrapperEntries()` and requires `checkedCount: 964`.
+- Returned fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `simplicityViolations`, `readabilityFailures`, `excessiveLength`, `complexPhrasing`, `smartToneIndicators`, `fillerConstructions`, `warnings`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `failures`.
+- The linter covers excessive length, multiple nested clauses, unnecessary introductory phrases, bureaucratic wording, academic wording, over-explaining, trying-to-sound-smart indicators, difficult one-pass readability, repeated filler constructions, and readability regression versus the wrapper rules. Borderline cases may appear only in `warnings`.
+- Served identity/cache-bust refreshed to `build_2026_06_05_step5_6_arg_simplicity_linter` / `step5_6_arg_simplicity_linter` / `step5-6-argument-simplicity-linter` so the unique Step 5.6 `smokeVersion` is visible in Safari runtime output.
+- Scope held: no new wrapper texts, no canon argument text changes, no wrapper text changes, no live gameplay wrapper application, no UI behavior change, and no battle/defense logic change.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed; run `Game.__DEV.smokeZoomerArgumentSimplicityLinterOnce()`.
+
 ## 2026-06-05 — Step 5.5 semantic linter for zoomer argument wrappers
 - Added dev-only `Game.__DEV.smokeZoomerArgumentSemanticLinterOnce()` / `Game.Dev.smokeZoomerArgumentSemanticLinterOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - The smoke checks only the existing Step 5.4 dev wrapper set from `buildZoomerArgumentWrapperEntries()` and requires `checkedCount: 964`.
