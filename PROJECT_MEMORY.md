@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 5.2 zoomer argument wrapper rules only
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed.
+- Added dedicated runtime-accessible rule contract `Game.ZoomerArgumentWrapperRules` / `Game.__DEV.zoomerArgumentWrapperRules` in both served dev-check bundles.
+- Added `Game.__DEV.smokeZoomerArgumentWrapperRulesOnce()` / `Game.Dev.smokeZoomerArgumentWrapperRulesOnce()` to verify the rule object exists, all required rules are present, and no failures/missing rules remain.
+- The contract is rules-only: no wrapper generation, no canon rewrite, no gameplay change, no UI change, and no inventory change.
+- Required Safari command: `Game.__DEV.smokeZoomerArgumentWrapperRulesOnce()`.
+
 ## 2026-06-05 — Step 5.1 argument inventory compact smoke output
 - Changed only the Step 5.1 argument-inventory smoke output shape in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Default `Game.__DEV.smokeZoomerArgumentInventoryOnce()` now returns compact top-level PASS fields only: `ok`, `buildTag`, `commit`, `smokeVersion`, `inventoryCount`, `byTypeCounts`, `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; it does not include full inventory or long id lists.
