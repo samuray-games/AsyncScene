@@ -1,4 +1,266 @@
+- Step 4 [2] Safari runtime mapping load fix: mirrored the latest 129-entry Step 4 [2] transformation table into the Safari-served `docs/dev/dev-checks.js`, bumped both runtime entrypoints to `build_2026_06_05_o` / `zoomer_mapping_runtime_step4_2`, cache-busted the dev-checks script tag, and added `inventoryCount` / `expectedInventoryCount: 129` to the smoke result and ok gate. Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`; runtime PASS is not claimed here.
+- Step 4 [2] mapping coverage follow-up: added mapping-table entries for the 26 currently unmapped inventory strings (dev labels, symbols/resource icons, DM/report labels, and status/tone labels) and bumped the runtime smoke identity to `build_2026_06_05_n` / `zoomer_mapping_coverage_step4_2`. Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`; runtime PASS is not claimed here.
+## 2026-06-05 — AsyncScene Step 4.2 Millennial -> zoomer canonical mapping table
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Build only the canonical millennial -> zoomer UI terminology mapping table from Step 4.1 inventory results. No runtime UI text rewrites, gameplay changes, logic changes, category expansion, or terminology application.
+- Added `UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE` with 103 unique millennial entries and exactly one zoomer replacement per entry, covering the unique Step 4.1 inventory targets.
+- Updated Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Smoke requires all inventory targets to be mapped and returns `ok`, `pairCount`, `buildTag`, `commit`, commit-unique `smokeVersion`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `duplicateMillennialKeys`, `duplicateZoomerMappings`, `unmappedEntries`, and `ambiguousMappings`.
+- New runtime build identity: `build_2026_06_05_m` / `zoomer_mapping_table_step4_2`; smokeVersion `step4_2_zoomer_transformation_table_v1_build_2026_06_05_m_commit_zoomer_mapping_table_step4_2`.
+- Required Safari command: `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
+## 2026-06-05 — AsyncScene Step 4.1 Zoomer UI terminology inventory runtime smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add a dev-only runtime inventory smoke for current zoomer interface terminology only; no UI text rewrites, gameplay logic changes, Console.txt usage, or Step 4.2 mapping work.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerTermsInventoryOnce()`.
+- Smoke collects UI strings for buttons, statuses, errors, and hints with per-string source info where available, reports category counts, coverage percentage, uncategorized/source-missing counts, and explicit `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays.
+- New runtime build identity: `build_2026_06_05_l` / `zoomer_terms_inventory_step4_1`; smokeVersion `step4_1_zoomer_terms_inventory_v1_build_2026_06_05_l_commit_zoomer_terms_inventory_step4_1`.
+- Required Safari command: `Game.__DEV.smokeZoomerTermsInventoryOnce()`.
+
+## 2026-06-05 — AsyncScene Step 3.7 Lexical Correction finalization
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Step 3 lexical correction is marked completed for local readiness only; no runtime PASS is claimed.
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Final validation/documentation readiness smoke only. No gameplay changes, UI rewrites, NPC rewrites, lexicon-rule additions, side refactors, or `Console.txt` usage.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerLexicalCorrectionReadyOnce()`.
+- Smoke verifies Step 3.1 lexical frame PASS dependency, Step 3.2 allowed lexicon PASS dependency, Step 3.3 stop-word list PASS dependency, Step 3.4 system texts PASS dependency, Step 3.5 NPC speech PASS dependency, Step 3.6 lexical smoke pack PASS dependency, allowed lexicon existence, stop-word list existence, combined lexical smoke pack existence, empty failure arrays, and identity fields `buildTag`, `commit`, and commit-unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_k` / `zoomer_lexical_correction_final_step3_7`; smokeVersion `step3_7_lexical_correction_ready_v1_build_2026_06_05_k_commit_zoomer_lexical_correction_final_step3_7`.
+- Required Safari command: `Game.__DEV.smokeZoomerLexicalCorrectionReadyOnce()`.
+
+## 2026-06-05 — AsyncScene Step 3.6 Combined lexical smoke pack
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add validation-only combined lexical smoke pack without rewriting UI copy, NPC speech, or gameplay logic.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerLexicalPackOnce()`.
+- Smoke verifies the allowed lexicon exists, stop-word list exists, forbidden samples are caught, meme-like wording is rejected, Step 3.4 system texts remain valid, Step 3.5 NPC speech remains valid, UI/NPC texts are not longer than the previous accepted zoomer versions, and new feature text surfaces use the same lexicon and stop-word rules.
+- Return contract includes explicit `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays plus `buildTag`, `commit`, and commit-unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_j` / `zoomer_lexical_smoke_pack_step3_6`; smokeVersion `step3_6_combined_lexical_smoke_pack_v1_build_2026_06_05_j_commit_zoomer_lexical_smoke_pack_step3_6`.
+- Required Safari command: `Game.__DEV.smokeZoomerLexicalPackOnce()`.
+
+## 2026-06-05 — AsyncScene Step 3.5 Zoomer NPC speech lexical profile
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: NPC|Profile|Infra
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/npcs.js` `docs/npcs.js` `AsyncScene/Web/system.js` `docs/system.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Implement Step 3.5 only: apply the zoomer lexical profile to NPC speech without changing system texts or battle/argument matching logic.
+- NPC speech now uses shorter, simpler, more direct lines across base NPC chat lines, role SAY pools, villain DM flow, and NPCSpeech runtime template pools.
+- Guardrails preserved: no memes, no parasite slang, no irony-for-irony, no teacher tone, no teen-bot voice, no system text rewrite, no battle/argument logic changes, no side refactors, and no `Console.txt` usage.
+- Dev-only Safari smoke added: `Game.__DEV.smokeZoomerNpcSpeechOnce()`.
+- Smoke verifies NPC speech inventory exists, relevant NPC speech surfaces are covered, canon meaning mappings are preserved, forbidden stop-words are absent, teacher tone is absent, teen-bot profile issues are absent, Step 3.4 system texts remain valid, and `buildTag`, `commit`, and commit-unique `smokeVersion` are returned.
+- New runtime build identity: `build_2026_06_05_i` / `zoomer_npc_speech_step3_5`; smokeVersion `step3_5_zoomer_npc_speech_v1_build_2026_06_05_i_commit_zoomer_npc_speech_step3_5`.
+- Required Safari command: `Game.__DEV.smokeZoomerNpcSpeechOnce()`.
+
+## 2026-06-05 — AsyncScene Step 3.3 Zoomer stop-word inventory
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Profile|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add Step 3.3 stop-word / forbidden lexicon inventory for the zoomer UI profile as profile and validation work only.
+- Runtime-visible profile source now declares marker/key `UI_PROFILE_ZOOMER_STOP_WORDS`, required blocked words `кринж`, `вайб`, `имба`, `рофл`, `изи`, `лол`, and forbidden categories `memes`, `parasite slang`, and `irony-for-irony`.
+- Dev-only smoke `Game.__DEV.smokeZoomerStopWordsOnce()` verifies the stop-word list exists, required blocked words are present, forbidden categories are declared, sample forbidden strings are caught, Step 3.2 allowed lexicon remains valid, and identity fields `buildTag`, `commit`, and unique `smokeVersion` are returned.
+- New runtime build identity: `build_2026_06_05_g` / `zoomer_stop_words_step3_3`; smokeVersion `step3_3_zoomer_stop_words_v1_build_2026_06_05_g_commit_zoomer_stop_words_step3_3`.
+- Scope guard preserved: no gameplay logic changes, no UI copy rewrite, no side refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerStopWordsOnce()`.
+
+## 2026-06-05 — AsyncScene Step 3.2 Zoomer allowed lexicon runtime-source fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Profile|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Fix Step 3.2 only so Safari reads the allowed lexicon marker and examples from the runtime-visible `UI_PROFILE_ZOOMER_DIFF.md` profile source.
+- Runtime-visible profile source now declares marker/key `UI_PROFILE_ZOOMER_ALLOWED_LEXICON`, required examples `можно`, `жми`, `выбери`, `риск есть`, `ход сработал`, `не хватило`, and coverage `ui`, `toasts`, `errors`, `hints`, `npcSpeech`.
+- Dev-only smoke `Game.__DEV.smokeZoomerAllowedLexiconOnce()` now uses cache-busted document candidates and returns identity fields `buildTag`, `commit`, and unique `smokeVersion` for this commit.
+- New runtime build identity: `build_2026_06_05_f` / `zoomer_allowed_lexicon_step3_2_runtime_source_fix`; smokeVersion `step3_2_zoomer_allowed_lexicon_v2_build_2026_06_05_f_commit_zoomer_allowed_lexicon_step3_2_runtime_source_fix`.
+- Scope guard preserved: no gameplay logic changes, no UI copy rewrite, no unrelated files, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerAllowedLexiconOnce()`.
+
+## 2026-06-05 — AsyncScene Step 3.1 Zoomer lexical frame lock
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Profile|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Lock the lexical frame for the zoomer UI profile as a documentation/profile contract only.
+- Rule: conversational but not meme-like; language stays conversational, short, and direct, but not zoomer slang.
+- Forbidden categories: memes, parasite slang, and irony-for-irony. Meme-like wording, parasite slang, and irony for its own sake are explicitly forbidden.
+- Compatibility: the lexical frame extends the previous zoomer shortening rules without contradiction: keep 30-40% shortening, fewer filler words, fewer abstractions, and more verbs; do not add slang, memes, fake youth voice, or irony.
+- Scope guard: no gameplay logic changes, no UI rewrite, no existing UI copy rewrite yet, no side refactors, and no `Console.txt` usage.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerLexicalFrameOnce()`.
+- Runtime smoke contract verifies the lexical frame exists, says “conversational but not meme-like”, includes forbidden categories `memes`, `parasite slang`, and `irony-for-irony`, has no contradiction with previous zoomer shortening rules, and returns `buildTag`, `commit`, and commit-unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_d` / `zoomer_lexical_frame_step3_1`; smokeVersion `step3_1_zoomer_lexical_frame_v1_build_2026_06_05_d`.
+- Required Safari command: `Game.__DEV.smokeZoomerLexicalFrameOnce()`.
+
+## 2026-06-05 — AsyncScene Step 2.6 docs smoke deployed-path fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/zoomer-shortening-docs-manifest.json` `docs/dev/zoomer-shortening-docs-manifest.json` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Fix `Game.__DEV.smokeZoomerShorteningDocsOnce()` documentation source paths only, so the deployed GitHub Pages smoke no longer fetches unavailable runtime-root `TASKS.md` or `PROJECT_MEMORY.md` paths.
+- Implementation: the smoke now verifies Step 2.1-Step 2.5 PASS coverage through the published `dev/zoomer-shortening-docs-manifest.json` generated from `TASKS.md`, `PROJECT_MEMORY.md`, and the zoomer profile docs, plus the deployed `UI_PROFILE_ZOOMER_DIFF.md` rule section.
+- Acceptance remains honest: it still requires Step 2.1 PASS, Step 2.2 PASS, Step 2.3 PASS, Step 2.4 PASS, Step 2.5 PASS, Step 2 overall PASS, `UI_PROFILE_ZOOMER_SHORTEN_RULE`, all smoke names, `build_2026_06_04_c`, `build_2026_06_05_a`, `build_2026_06_05_b`, and runtime-confirmed PASS criteria.
+- Return contract: `{ ok, buildTag, commit, completedSteps, docsPresent, sourceFiles, failures, forbiddenRemaining, missingCoverage, failedChecks }`.
+- New runtime build identity: `build_2026_06_05_c` / `zoomer_shortening_docs_paths`, different from `build_2026_06_05_b`.
+- No gameplay changes, economy changes, UI changes, copy rewrites, or refactors.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsOnce()`.
+
+## 2026-06-05 — AsyncScene Step 2 overall documentation finalization
+
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `TASKS.md` `PROJECT_MEMORY.md` `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Finalize documentation for the completed zoomer shortening stage without gameplay, economy, UI, smoke-logic scope beyond the documentation smoke, or refactor changes.
+- Completed steps:
+  - Step 2.1 PASS — `Game.__DEV.smokeZoomerShortenRuleOnce()` documented with runtime-confirmed PASS evidence.
+  - Step 2.2 PASS — `Game.__DEV.smokeZoomerTransformationTableOnce()` documented with runtime-confirmed PASS evidence.
+  - Step 2.3 PASS — `Game.__DEV.smokeDevMenuMinimalOnce()` documented with runtime-confirmed PASS evidence.
+  - Step 2.4 PASS — `Game.__DEV.smokeZoomerNewFeatureCopyOnce()` documented with runtime-confirmed PASS evidence.
+  - Step 2.5 PASS — `Game.__DEV.smokeZoomerShorteningQualityOnce()` documented with runtime-confirmed PASS evidence.
+  - Step 2 overall PASS — zoomer shortening documentation, table, new-feature coverage, quality checks, and final documentation smoke are complete.
+- Acceptance:
+  - [x] `UI_PROFILE_ZOOMER_SHORTEN_RULE` exists and references 30-40% shortening.
+  - [x] `UI_PROFILE_ZOOMER_SHORTEN_RULE` requires fewer filler words, fewer abstractions, and more verbs.
+  - [x] `UI_PROFILE_ZOOMER_SHORTEN_RULE` keeps `UI_PROFILE_MILLENNIAL` as the source profile and states no contradiction with `UI_PROFILE_ZOOMER_DIFF`.
+  - [x] Completed smokes are documented: `Game.__DEV.smokeZoomerShortenRuleOnce()`, `Game.__DEV.smokeZoomerTransformationTableOnce()`, `Game.__DEV.smokeDevMenuMinimalOnce()`, `Game.__DEV.smokeZoomerNewFeatureCopyOnce()`, and `Game.__DEV.smokeZoomerShorteningQualityOnce()`.
+  - [x] Documentation smoke `Game.__DEV.smokeZoomerShorteningDocsOnce()` returns `{ ok, buildTag, commit, completedSteps, docsPresent, failures, forbiddenRemaining, missingCoverage, failedChecks }`.
+  - [x] PASS result criteria are documented as `ok:true`, `docsPresent:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Build tags: `build_2026_06_04_c`, `build_2026_06_05_a`, and current docs finalization tag `build_2026_06_05_b`.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsOnce()`.
+- Result: READY_FOR_RUNTIME_SMOKE for the new documentation smoke only; prior Step 2.1-Step 2.5 entries are marked PASS from recorded runtime-confirmed PASS evidence.
+
+## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
+
+- Status: PASS. Runtime-confirmed PASS evidence is recorded in `PROJECT_MEMORY.md`.
+- Added dev-only `Game.__DEV.smokeZoomerShorteningQualityOnce()` in both runtime dev-check bundles.
+- Smoke mechanically validates the existing zoomer shortening profile: phrase length reduction, filler/intro detection, abstraction detection, action-verb preference, transformation table presence, UI shortening rule presence, and new-feature coverage.
+- Return contract: `{ ok, buildTag, commit, checkedRules, checkedSamples, lengthIssues, fillerIssues, abstractionIssues, verbIssues, failures, forbiddenRemaining, missingCoverage, failedChecks }`.
+- Bumped runtime build identity and dev-checks cache keys to `build_2026_06_05_a` so Safari can verify deployment changed from `build_2026_06_04_c`.
+- No gameplay changes, economy changes, copy rewrites, UI behavior changes, or refactors.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningQualityOnce()`.
+- Runtime-confirmed PASS shape: `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+
+## 2026-06-05 - AsyncScene Step 2.4 Zoomer new feature copy coverage
+
+- Status: PASS. Runtime-confirmed PASS evidence is recorded in `PROJECT_MEMORY.md`.
+- Applied only `UI_PROFILE_ZOOMER_SHORTEN_RULE` copy shortening to selected new feature UI/NPC/SystemCopy texts while preserving action meaning, placeholders, and economy values.
+- Covered areas: economy, actions, NPC speech, SystemCopy, and action honesty.
+- Added dev-only `Game.__DEV.smokeZoomerNewFeatureCopyOnce()` returning `{ ok, checkedCount, coveredAreas, failures, forbiddenRemaining, missingCoverage, failedChecks }`; local VM smoke returns `ok:true` with all arrays empty.
+- No gameplay, economy, UI refactor, broad logic, or `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerNewFeatureCopyOnce()`.
+- Runtime-confirmed PASS shape: `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+
 # Task Board (single source of truth)
+
+## 2026-06-05 — AsyncScene Step 2.3 Dev menu minimal surface
+
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Infra
+- Files: `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Simplify the visible developer menu surface without deleting underlying dev helpers or commands.
+- Acceptance:
+  - [x] Visible dev-menu actions are limited to `Console Panel` and `Enable Dev Mode` / `Disable Dev Mode`.
+  - [x] Previous logger/evidence/dump dev-menu buttons are no longer rendered in the visible menu UI.
+  - [x] `Game.__DEV.smokeDevMenuMinimalOnce()` returns `ok`, `visibleButtons`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] No gameplay changes, economy changes, underlying command deletion, or broad dev-menu refactor was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeDevMenuMinimalOnce()`.
+- Result: PASS from recorded runtime-confirmed PASS evidence with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+
+## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
+
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add a dedicated zoomer transformation table only and expose `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Acceptance:
+  - [x] Dedicated transformation table exists with 12 before -> after pairs.
+  - [x] Required patterns are covered: `ты рискуешь`, `возможно`, `может быть`, `стоит`, `рекомендуется`, `у вас есть возможность`, `недостаточное количество`, and similar long constructions.
+  - [x] Pairs keep the same meaning, shorten by 30-40%, remove filler/abstract constructions, use more direct verbs, and avoid slang/memes/fake youth voice.
+  - [x] Smoke returns `ok`, `pairCount`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] No gameplay, economy, UI rewrite, refactor, or live copy rewrite was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Result: PASS from recorded runtime-confirmed PASS evidence with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+
+## 2026-06-04 — Runtime build identity smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add `Game.__DEV.smokeBuildIdentityOnce()` so Safari can verify deployed build identity from runtime source instead of trusting a report.
+- Acceptance:
+  - [x] Smoke returns exactly one object with `ok`, `buildTag`, `commit`, `hasZoomerShortenRule`, and `sourceFiles`.
+  - [x] `buildTag` is parsed from the fetched deployed `dev/dev-checks.js` runtime source.
+  - [x] `commit` is generated as a deterministic source hash from fetched deployed runtime source plus the deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` section.
+  - [x] `hasZoomerShortenRule` requires the runtime smoke marker and the deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` documentation section.
+  - [x] `sourceFiles` lists the fetched runtime files contributing the rule.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeBuildIdentityOnce()`. Local Playwright smoke could not launch because the Chromium browser binary is not installed in this environment.
+- Result: PASS from recorded runtime-confirmed PASS evidence with `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+
+## 2026-06-04 — AsyncScene Step 2.1 Zoomer phrase shortening rule
+
+- Status: PASS
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add the dev-profile-only `UI_PROFILE_ZOOMER_SHORTEN_RULE` and expose `Game.__DEV.smokeZoomerShortenRuleOnce()`.
+- Acceptance:
+  - [x] Rule says to shorten phrases by about 30-40%.
+  - [x] Rule says to remove intro/filler words, reduce abstractions, and replace abstract wording with action verbs.
+  - [x] Rule keeps original meaning, keeps `UI_PROFILE_MILLENNIAL` as source/base, and does not contradict `UI_PROFILE_ZOOMER_DIFF`.
+  - [x] Rule forbids teen slang, memes, fake youth voice, and irony.
+  - [x] Smoke returns one JS object with `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `buildTag`, and `commit`.
+  - [x] No gameplay, economy, UI rewrite, broad refactor, or `Console.txt` usage was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerShortenRuleOnce()`. Local Playwright smoke could not launch because the Chromium browser binary is not installed in this environment.
+- Result: READY_FOR_RUNTIME_SMOKE; awaiting user iPhone Safari smoke.
+
+## 2026-06-04 — Zoomer new feature surfaces rules smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html`
+- Goal: Add delta-only zoomer application rules for new feature surfaces and expose `Game.__DEV.smokeZoomerNewFeatureSurfacesOnce()`.
+- Acceptance:
+  - [x] Required surfaces are listed: SystemCopy, NPC speech, economy honesty, report/sanctions, respect, locale.
+  - [x] Each surface explicitly uses existing millennial meaning plus zoomer delta.
+  - [x] Smoke returns `ok:true` only when `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty.
+  - [x] No gameplay, UI behavior, live game text rewrite, refactor, new profile, or `Console.txt` usage was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerNewFeatureSurfacesOnce()`.
+- Result: READY_FOR_RUNTIME_SMOKE; awaiting user Safari smoke.
 
 ## 2026-06-05 — Zoomer forbidden rules smoke
 
@@ -5697,3 +5959,35 @@ Error: Download failure, code=1
 - Return contract is `{ ok, failures, forbiddenRemaining, missingCoverage, failedChecks, checks }`; `ok:true` requires all arrays empty and every included check passing.
 - Scope guard preserved: dev smoke only, no UI changes, no economy changes, no gameplay changes, no unrelated refactors, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeProfileRegressionPackOnce()`.
+
+## 2026-06-04 - Final zoomer diff profile validator
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only final validator `Game.__DEV.validateZoomerDiffProfileOnce()` for the existing `UI_PROFILE_ZOOMER_DIFF.md` document loaded from its runtime profile path.
+- Required PASS shape includes `ok:true`, empty `missingSections`, empty `duplicatedMillennialBlocks`, empty `forbiddenRemaining`, and `surfacesCovered:true`, plus build/profile diagnostics and failure arrays for Safari smoke review.
+- Scope guard preserved: validator/docs status only; no gameplay, UI behavior, live game text, canon, or profile creation changes. `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.validateZoomerDiffProfileOnce()`.
+
+## 2026-06-05 - AsyncScene Step 2.3 Zoomer UI text shortening
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Applied `UI_PROFILE_ZOOMER_SHORTEN_RULE` to selected existing UI-facing copy across buttons, toasts, hints, errors, and system strings while keeping meanings and economy values unchanged.
+- Added dev-only smoke `Game.__DEV.smokeZoomerUiTextShorteningOnce()` returning `{ ok, checkedCount, shortenedCount, failures, forbiddenRemaining, missingCoverage, failedChecks }` with explicit before/after meaning allowlist coverage.
+- Scope guard: UI copy plus dev-only smoke/cache bust only; no gameplay changes, no economy changes, no refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeZoomerUiTextShorteningOnce()`.
+
+## 2026-06-05 - Step 3.2 Zoomer allowed lexical dictionary
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Expanded only the zoomer profile dictionary with an allowed simple-vocabulary inventory for future copy work.
+- Approved examples include `можно`, `жми`, `выбери`, `риск есть`, `ход сработал`, and `не хватило`.
+- Covered surfaces are limited to ui, toasts, errors, hints, and npcSpeech; the task does not rewrite current UI copy.
+- Added mirrored dev-only smoke `Game.__DEV.smokeZoomerAllowedLexiconOnce()` verifying dictionary existence, required examples, required surface coverage, no forbidden-category words in approved examples/rules, and identity fields `buildTag`, `commit`, and unique `smokeVersion`.
+- Scope guard preserved: dictionary/profile and smoke only; no gameplay logic, no UI text rewrites, no side refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeZoomerAllowedLexiconOnce()`.
+
+## 2026-06-05 - Step 3.4 Zoomer system texts lexical pass
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Applied the approved Step 3.1 lexical frame, Step 3.2 allowed lexicon direction, and Step 3.3 stop-word rules to system-text surfaces only: errors, hints, toasts, and button labels.
+- Shortened and simplified selected runtime/system UI copy in the mirrored Web and docs bundles, including click hints, invite/report hints, respect/training labels, start/reset labels, battle hints, and SystemCopy warning/notification/error templates.
+- Added `Game.__DEV.smokeZoomerSystemTextsOnce()` in both runtime system bundles. The smoke verifies that the system text inventory exists, errors/hints/toasts/buttons are covered, forbidden stop-words are absent, texts stay short/direct, teacher tone and excessive explanation are absent, and `buildTag`, `commit`, and commit-unique `smokeVersion` are returned.
+- New runtime build identity: `build_2026_06_05_h` / `zoomer_system_texts_step3_4`; smokeVersion `step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4`.
+- Scope guard preserved: no gameplay logic changes, no economy changes, no NPC speech changes, no side refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerSystemTextsOnce()`.

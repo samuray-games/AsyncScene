@@ -152,7 +152,7 @@ window.Game ||= {};
         "выглядит хрупко, продолжай",
         "сейчас станет ясно, кто держит удар",
         "раунд открыт, говори точнее",
-        "не мажь, отвечай по делу",
+        "не уходи, отвечай",
         "покажи аргумент, если он есть"
       ],
       f: [
@@ -174,9 +174,9 @@ window.Game ||= {};
         "посмотрим, сколько держишь",
         "не тяни",
         "шаг назад и слушай",
-        "Свалить будет дешевле",
+        "уйти будет дешевле",
         "решился или нет",
-        "лезешь в ответ — теряешь больше"
+        "ответишь — потеряешь больше"
       ],
       f: [
         "я тебя заметила",
@@ -211,20 +211,20 @@ window.Game ||= {};
       m: [
         "Добрый вечер. Говорим спокойно",
         "Лишний шум редко помогает",
-        "Подумай, какой след оставит этот ход",
+        "смотри, что оставит ход",
         "Не спеши. Спешка здесь дорогая",
         "Сомневаешься — лучше отойди",
-        "Я ценю точность. И тишину",
-        "Можно договориться без лишних свидетелей"
+        "ценю точность и тишину",
+        "договоримся без лишних глаз"
       ],
       f: [
         "Добрый вечер. Говорим спокойно",
         "Лишний шум редко помогает",
-        "Подумай, какой след оставит этот ход",
+        "смотри, что оставит ход",
         "Не спеши. Спешка здесь дорогая",
         "Сомневаешься — лучше отойди",
-        "Я ценю точность. И тишину",
-        "Можно договориться без лишних свидетелей"
+        "ценю точность и тишину",
+        "договоримся без лишних глаз"
       ]
     },
     crowd: {
@@ -236,11 +236,11 @@ window.Game ||= {};
         "шумно на площади, но я остаюсь"
       ],
       f: [
-        "интересно, чем это закончится",
+        "интересно, чем закончится",
         "напряжение растет",
         "посмотрим, что будет",
-        "я внимательно читаю",
-        "атмосфера напряженная"
+        "я читаю внимательно",
+        "на площади напряженно"
       ]
     }
   };
@@ -606,15 +606,15 @@ window.Game ||= {};
   const villainQuestions = [
     "ты здесь? отвечай",
     "это про тебя? отвечай",
-    "кто тут держит слово?",
-    "уверен(а), что это твоя тема?",
-    "впишешься или пройдешь мимо?"
+    "кто держит слово?",
+    "это твоя тема?",
+    "войдешь в спор или мимо?"
   ];
   const villainChallenges = [
-    "разберем это в раунде",
-    "вызывай на спор, если готов(а)",
-    "раунд покажет, что у тебя есть",
-    "готов(а) к спору или отходишь?"
+    "идем в раунд",
+    "вызывай, если готов",
+    "раунд все покажет",
+    "готов к спору?"
   ];
 
   NPC.generateVillainQuestion = (npc) => {
@@ -768,19 +768,19 @@ window.Game ||= {};
         title: "Токсик",
         style: "Пишет грубо, цепляется, провоцирует на быстрый ответ. Часто обращается на 'ты' и давит на эмоции.",
         risk: "Если ответить слишком быстро, он может нанести урон по 💰.",
-        advice: "Лучше не отвечать на провокации и не торопиться. Если сомневаетесь, выбирайте безопасный вариант или уходите."
+        advice: "Не отвечайте на провокации. Сомневаетесь — выбирайте безопасный вариант или уходите."
       },
       bandit: {
         title: "Бандит",
         style: "Говорит ультиматумами и угрозами. Давит на '💰' и заставляет действовать.",
         risk: "Если ты проиграешь ему, он может обнулить твои 💰.",
-        advice: "Лучшее решение - Свалить или не ввязываться. Если вступили в бой, главное - не проиграть."
+        advice: "Лучше Свалить или не ввязываться. В бою главное — не проиграть."
       },
       mafia: {
         title: "Мафиози",
         style: "Вежливый тон, но холодная логика. Говорит спокойно и давит без крика.",
         risk: "Опасен тем, что после контакта ты теряешь ⚡.",
-        advice: "Не вступайте в спор. Если он рядом, лучший выбор - Свалить."
+        advice: "Не спорьте. Он рядом — выбирайте Свалить."
       }
     },
     report: {
@@ -822,7 +822,7 @@ window.Game ||= {};
     }
 
     // Default neutral advice
-    return normalizeCopLine("Я на связи. Нужна помощь — спроси про токсика, бандита или мафиози, либо нажми «Сдать» в личке");
+    return normalizeCopLine("Я на связи. Спроси про токсика, бандита или мафиози либо нажми «Сдать» в личке");
   };
 
   // Dev-only NPC speech template scaffold (Step 5.3).
@@ -834,51 +834,45 @@ window.Game ||= {};
     const intensities = ["y", "o", "r", "k"];
     const roleLines = {
       greetings: {
-        cop: ["вижу тебя на {PLACE}, держим дистанцию", "привет, спокойно смотрим на ситуацию"],
-        mafia: ["добрый вечер, {PLAYER}, говорим тихо", "обсудим {TOPIC} без лишних ушей"],
-        bandit: ["{PLAYER}, стой ровно, разговор короткий", "вижу тебя у {PLACE}, без движений"],
-        toxic: ["{PLAYER}, покажи позицию", "подошел к {TOPIC}, говори прямо"],
-        neutral: ["привет, {PLAYER}, тема открыта", "вижу разговор у {PLACE}, я рядом"]
+        cop: ["вижу тебя у {PLACE}", "привет, держим дистанцию"],
+        mafia: ["добрый вечер, {PLAYER}", "обсудим {TOPIC} тихо"],
+        bandit: ["{PLAYER}, стой ровно", "у {PLACE}, без движений"],
+        toxic: ["{PLAYER}, покажи позицию", "говори про {TOPIC}"],
+        neutral: ["привет, {PLAYER}", "я рядом у {PLACE}"]
       },
       threats: {
-        cop: ["не дави на людей, отойди", "сбавь темп, так безопаснее"],
-        mafia: ["спокойствие не значит слабость", "шаг назад будет разумнее"],
-        bandit: ["{PLAYER}, деньги ближе и отвечай", "не тяни, терпение короткое"],
-        toxic: ["сейчас видно, чего ты стоишь", "говори по делу, не прячься"],
-        neutral: ["конфликт растет, это заметно", "тема уже на грани"]
+        cop: ["не дави, отойди", "сбавь темп"],
+        mafia: ["спокойствие не слабость", "шаг назад разумнее"],
+        bandit: ["{PLAYER}, деньги ближе", "не тяни"],
+        toxic: ["покажи, чего стоишь", "говори по делу"],
+        neutral: ["конфликт растет", "тема на грани"]
       },
       victory: {
-        cop: ["конфликт закрыт, идем дальше", "шум стих, идем дальше"],
-        mafia: ["итог понятен, слов не нужно", "тишина закрепит результат"],
-        bandit: ["вот так, {PLAYER}", "забрал свое, разговор окончен"],
-        toxic: ["теперь видно, кто держит раунд", "разложил жестко и точно"],
-        neutral: ["раунд закрыт спокойно", "площадь выдохнула"]
+        cop: ["конфликт закрыт", "шум стих"],
+        mafia: ["итог понятен", "тишина закрепит итог"],
+        bandit: ["забрал свое", "разговор окончен"],
+        toxic: ["раунд за мной", "сказал жестко и точно"],
+        neutral: ["раунд закрыт", "площадь выдохнула"]
       },
       defeat: {
-        cop: ["вижу ошибку, идем дальше", "проигрыш не ломает маршрут"],
-        mafia: ["бывает, не суетись", "поражение тоже учит"],
-        bandit: ["не вывез, плати вниманием", "слабый ход, {PLAYER}"],
-        toxic: ["тема оказалась тяжелее", "уверенность просела"],
-        neutral: ["не пошло, бывает", "проигран раунд, не вся игра"]
+        cop: ["вижу ошибку", "идем дальше"],
+        mafia: ["бывает", "не суетись"],
+        bandit: ["не вывез", "слабый ход, {PLAYER}"],
+        toxic: ["тема тяжелее", "уверенность просела"],
+        neutral: ["не пошло", "раунд проигран"]
       },
       neutral: {
-        cop: ["держим дистанцию", "если что, пиши по делу"],
-        mafia: ["тихий разговор дешевле шума", "лучше выбрать точные слова"],
-        bandit: ["смотрю, пока без движений", "тишина тоже давит"],
-        toxic: ["интересно, чем ответишь", "слушаю, но недолго"],
-        neutral: ["площадь шумит, тема живая", "смотрим на {TOPIC} без спешки"]
+        cop: ["держим дистанцию", "пиши по делу"],
+        mafia: ["тише — дешевле", "выбирай точные слова"],
+        bandit: ["смотрю без движений", "тишина давит"],
+        toxic: ["чем ответишь?", "слушаю недолго"],
+        neutral: ["площадь шумит", "смотрим на {TOPIC}"]
       }
     };
     const channelLead = {
       dm: ["личка:", "между нами:"],
       event: ["у {PLACE}:", "на площади:"],
-      battle: ["раунд про {TOPIC}:", "спор на столе:"]
-    };
-    const intensityTail = {
-      y: ["ровно и по делу", "без лишнего жара"],
-      o: ["жестче, но ровно", "темп выше, слова точнее"],
-      r: ["жестко, но без грязи", "давим смыслом, не криком"],
-      k: ["холодно и коротко", "крайний тон, без истерики"]
+      battle: ["раунд:", "спор:"]
     };
     const out = {};
     blocks.forEach(block => {
@@ -890,10 +884,9 @@ window.Game ||= {};
           intensities.forEach(intensity => {
             const base = roleLines[block][role];
             const lead = channelLead[channel];
-            const tail = intensityTail[intensity];
             out[block][role][channel][intensity] = [
-              `${lead[0]} ${base[0]}, ${tail[0]}`,
-              `${lead[1]} ${base[1]}, ${tail[1]}`
+              `${lead[0]} ${base[0]}`,
+              `${lead[1]} ${base[1]}`
             ];
           });
         });
@@ -1339,6 +1332,146 @@ window.Game ||= {};
     return result;
   };
 
+
+
+  NPCSpeech.smokeZoomerNpcSpeechOnce = function smokeZoomerNpcSpeechOnce() {
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step3_5_zoomer_npc_speech_v1_${buildTag}_commit_${commit}`;
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      inventoryExists: false,
+      covered: { npcSay: 0, npcChatLines: 0, villainFlow: 0, templatePools: 0, runtimeChat: 0, runtimeDm: 0, step34SystemTexts: 0 },
+      checkedCount: 0,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      teacherTone: [],
+      profileIssues: [],
+      canonMeaning: []
+    };
+    const addUnique = (list, value) => {
+      const key = JSON.stringify(value);
+      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const addText = (rows, group, source, text) => {
+      const value = normalize(text);
+      if (!value) return;
+      rows.push({ group, source, text: value });
+    };
+    const walkTemplates = (rows, root, path) => {
+      if (Array.isArray(root)) {
+        root.forEach((line, index) => addText(rows, "templatePools", `${path}.${index}`, line));
+        return;
+      }
+      if (!root || typeof root !== "object") return;
+      Object.keys(root).forEach((key) => walkTemplates(rows, root[key], `${path}.${key}`));
+    };
+    const boundary = "(^|[^А-Яа-яЁёA-Za-z0-9_])";
+    const endBoundary = "(?=$|[^А-Яа-яЁёA-Za-z0-9_])";
+    const forbiddenWords = [
+      "кринж", "вайб", "имба", "рофл", "изи", "лол", "кек", "хайп", "мем", "мемный", "движ", "угар", "чил", "жиза", "топчик", "краш", "пруф", "щас", "чё", "че"
+    ];
+    const teacherToneRe = /давай\s+разбер|обуч|урок|настав|запомни|прочитай|следуй|изучи|правильно|неправильно|молодец|умничк|учитель|ученик|будь внимател|как тебе не стыдно/i;
+    const teenBotRe = /скибиди|заш[её]л в чат|ой\s+вс[её]|иронично|ну\s+типа|как\s+бы|по\s+факту\s+лол|без\s+негатива|в натуре|жесть\s+какая/i;
+    const canonRows = [
+      { source: "Data.NPC_CHAT_LINES.0", before: "ну че кто первый вбросит", after: "кто начнет первым", meaning: "crowd still asks who starts the exchange" },
+      { source: "Data.NPC_CHAT_LINES.6", before: "мне скучно, дайте движ", after: "мне скучно, нужен ход", meaning: "crowd still wants action in the scene" },
+      { source: "Data.NPC_CHAT_LINES.8", before: "сегодня пахнет баттлами", after: "сейчас будет спор", meaning: "crowd still expects a conflict" },
+      { source: "Data.NPC_CHAT_LINES.12", before: "баттл это просто разговор с адреналином", after: "спор стал резче", meaning: "line still frames the conflict as a sharper argument" },
+      { source: "NPC.SAY.bandit.m.9", before: "Свалить будет дешевле", after: "уйти будет дешевле", meaning: "bandit still says leaving costs less" },
+      { source: "NPC.SAY.mafia.m.2", before: "Подумай, какой след оставит этот ход", after: "смотри, что оставит ход", meaning: "mafia still warns about consequences of the move" },
+      { source: "villainChallenges.0", before: "разберем это в раунде", after: "идем в раунд", meaning: "villain still pushes the player toward a round" },
+      { source: "NPCSpeech.TEMPLATES.threats.toxic", before: "сейчас видно, чего ты стоишь", after: "покажи, чего стоишь", meaning: "toxic threat still pressures the player to prove strength" }
+    ];
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => {
+      if (value == null) return undefined;
+      if (/^\d+$/.test(key)) return value[Number(key)];
+      return value[key];
+    }, root);
+    try {
+      const rows = [];
+      (NPC.SPEECH_INVENTORY_SOURCES || []).forEach((entry) => {
+        const list = entry && typeof entry.get === "function" ? entry.get() : [];
+        if (Array.isArray(list)) list.forEach((line, index) => addText(rows, entry.source.indexOf("villain") >= 0 ? "villainFlow" : "npcSay", `${entry.source}.${index}`, line));
+      });
+      const chatLines = Game.Data && Array.isArray(Game.Data.NPC_CHAT_LINES) ? Game.Data.NPC_CHAT_LINES : [];
+      chatLines.forEach((line, index) => addText(rows, "npcChatLines", `Data.NPC_CHAT_LINES.${index}`, line));
+      walkTemplates(rows, NPCSpeech.TEMPLATES_BY_LOCALE && NPCSpeech.TEMPLATES_BY_LOCALE.ru, "NPCSpeech.TEMPLATES_BY_LOCALE.ru");
+      [
+        { group: "runtimeChat", source: "NPC.generateChatLine.toxic", npc: NPC.PLAYERS.find((p) => p.role === "toxic"), fn: () => NPC.generateChatLine(NPC.PLAYERS.find((p) => p.role === "toxic"), { source: "step3_5_smoke", block: "threats", channel: "event", tick: "step3_5_chat" }) },
+        { group: "runtimeDm", source: "NPC.generateDmLine.bandit", npc: NPC.PLAYERS.find((p) => p.role === "bandit"), fn: () => NPC.generateDmLine(NPC.PLAYERS.find((p) => p.role === "bandit"), { source: "step3_5_smoke", block: "threats", tick: "step3_5_dm" }) }
+      ].forEach((probe) => addText(rows, probe.group, probe.source, probe.fn()));
+
+      result.inventoryExists = rows.length > 0;
+      rows.forEach((row) => {
+        result.covered[row.group] = (result.covered[row.group] || 0) + 1;
+        result.checkedCount += 1;
+        const text = row.text;
+        const lower = text.toLocaleLowerCase("ru-RU");
+        const words = text.split(/\s+/).filter(Boolean);
+        forbiddenWords.forEach((word) => {
+          const re = new RegExp(`${boundary}${word}${endBoundary}`, "i");
+          if (re.test(lower)) addUnique(result.forbiddenRemaining, { source: row.source, word, text });
+        });
+        if (teacherToneRe.test(text)) addUnique(result.teacherTone, { source: row.source, text });
+        if (teenBotRe.test(text)) addUnique(result.profileIssues, { source: row.source, issue: "teen_bot_voice", text });
+        if (words.length > 8 || text.length > 78 || (text.match(/[.!?。]+/g) || []).length > 2 || /потому что|рекомендуется|необходимо|следует|информация|подробно|механика/i.test(text)) {
+          addUnique(result.profileIssues, { source: row.source, issue: "short_simple_direct", words: words.length, length: text.length, text });
+        }
+      });
+      canonRows.forEach((row) => {
+        let current;
+        if (row.source.indexOf("Data.") === 0) current = getPath({ Data: Game.Data || {} }, row.source);
+        else if (row.source.indexOf("NPC.SAY.") === 0) current = getPath({ NPC }, row.source);
+        else if (row.source === "villainChallenges.0") current = villainChallenges[0];
+        else if (row.source === "NPCSpeech.TEMPLATES.threats.toxic") current = NPCSpeech.TEMPLATES.threats.toxic.dm.y[0];
+        const ok = normalize(current).indexOf(row.after) >= 0 && row.meaning.length >= 24;
+        result.canonMeaning.push(Object.assign({}, row, { current: normalize(current), ok }));
+        if (!ok) fail("canon_meaning_preserved", { source: row.source, expected: row.after, actual: normalize(current), meaning: row.meaning });
+      });
+      ["npcSay", "npcChatLines", "villainFlow", "templatePools", "runtimeChat", "runtimeDm"].forEach((group) => {
+        if (!result.covered[group]) addUnique(result.missingCoverage, group);
+      });
+      const step34 = Game.__DEV && typeof Game.__DEV.smokeZoomerSystemTextsOnce === "function" ? Game.__DEV.smokeZoomerSystemTextsOnce() : null;
+      if (step34 && step34.ok === true) result.covered.step34SystemTexts = 1;
+      else fail("step3_4_system_texts_remain_valid", step34 || "missing_smokeZoomerSystemTextsOnce");
+      if (!result.inventoryExists) fail("npc_speech_inventory_exists");
+      if (result.missingCoverage.length) fail("relevant_npc_speech_surfaces_covered", result.missingCoverage.slice());
+      if (result.forbiddenRemaining.length) fail("no_forbidden_stop_words", result.forbiddenRemaining.slice());
+      if (result.teacherTone.length) fail("no_teacher_tone", result.teacherTone.slice());
+      if (result.profileIssues.length) fail("no_teen_bot_profile_issues", result.profileIssues.slice());
+      if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      if (smokeVersion !== `step3_5_zoomer_npc_speech_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_5") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        fail("smoke_version_unique_for_commit", smokeVersion);
+      }
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.inventoryExists === true
+      && result.checkedCount > 0
+      && result.missingCoverage.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.teacherTone.length === 0
+      && result.profileIssues.length === 0
+      && result.failures.length === 0
+      && result.failedChecks.length === 0
+      && !!result.buildTag
+      && !!result.commit
+      && !!result.smokeVersion
+      && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+      && result.covered.step34SystemTexts === 1;
+    return result;
+  };
   Game.NPCSpeech = NPCSpeech;
   Game.__DEV ||= {};
   Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
@@ -1350,6 +1483,12 @@ window.Game ||= {};
   Game.__DEV.smokeNpcSpeechLocaleOnce = function smokeNpcSpeechLocaleOnce() {
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeLocaleOnce === "function"
       ? Game.NPCSpeech.smokeLocaleOnce()
+      : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+  Game.__DEV.smokeZoomerNpcSpeechOnce = function smokeZoomerNpcSpeechOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcSpeechOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcSpeechOnce()
       : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
