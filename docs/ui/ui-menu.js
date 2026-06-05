@@ -76,7 +76,7 @@ window.Game = window.Game || {};
       btn = document.createElement("button");
       btn.id = btnId;
       btn.className = "btn small";
-      btn.textContent = "Цель игры";
+      btn.textContent = "Цель";
       btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -97,7 +97,7 @@ window.Game = window.Game || {};
       const header = document.createElement("div");
       header.className = "panelHeader";
       const title = document.createElement("div");
-      title.textContent = "Цель игры";
+      title.textContent = "Цель";
       const close = document.createElement("button");
       close.className = "btn closeX";
       close.type = "button";
@@ -338,13 +338,13 @@ window.Game = window.Game || {};
     const statusText = document.createElement("div");
     statusText.id = "trainingStatusText";
     statusText.className = "trainingStatus";
-    statusText.textContent = "Загрузка обучения аргументу...";
+    statusText.textContent = "Аргумент грузится.";
 
     const btn = document.createElement("button");
     btn.id = "trainingActionBtn";
     btn.type = "button";
     btn.className = "btn small";
-    btn.textContent = "Обучить аргументу";
+    btn.textContent = "Передать аргумент";
 
     const resultText = document.createElement("div");
     resultText.id = "trainingResultText";
@@ -378,14 +378,14 @@ window.Game = window.Game || {};
       if (!status) return "";
       if (status.whyBlocked === blockedReasonCooldown) return `кулдаун: день ${status.cooldownUntilDay}`;
       if (status.whyBlocked === "insufficient_points") return "Не хватает 💰.";
-      return "Обучение доступно";
+      return "Передача доступна";
     }
 
     function updateTrainingStatus() {
       const api = Game.TrainingAPI || null;
       if (!api || typeof api.status !== "function") {
         trainingControls.latestStatus = null;
-        trainingControls.statusEl.textContent = "Обучение недоступно.";
+        trainingControls.statusEl.textContent = "Передача недоступна.";
         trainingControls.resultEl.textContent = "";
         trainingControls.button.disabled = true;
         return;
@@ -393,13 +393,13 @@ window.Game = window.Game || {};
       const status = api.status({ argKey: TRAINING_UI_ARG_KEY });
       trainingControls.latestStatus = status;
       if (!status || !status.ok) {
-        trainingControls.statusEl.textContent = "Статус обучения недоступен.";
+        trainingControls.statusEl.textContent = "Статус недоступен.";
         trainingControls.button.disabled = true;
         trainingControls.resultEl.textContent = "";
         return;
       }
       const price = Number.isFinite(status.price) ? (status.price | 0) : 0;
-      trainingControls.button.textContent = `Обучить аргументу (${price} 💰)`;
+      trainingControls.button.textContent = `Передать аргумент (${price} 💰)`;
       trainingControls.button.disabled = !status.canTrain;
       trainingControls.statusEl.textContent = `Цена ${price} 💰 • ${status.canTrain ? "доступно" : formatCooldownText(status)}`;
       const xp = status.progress && Number.isFinite(status.progress.xp) ? (status.progress.xp | 0) : 0;
