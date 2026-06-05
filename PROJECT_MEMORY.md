@@ -1,3 +1,11 @@
+## 2026-06-05 — Dev menu minimal surface
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Simplified the visible dev-menu controls to only `Console Panel` plus the `Enable Dev Mode` / `Disable Dev Mode` toggle in both runtime and docs UI bundles.
+- Registered `Game.__DEV.smokeDevMenuMinimalOnce()` in both dev-check bundles. It returns `ok`, `visibleButtons`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`, and requires exactly two visible dev-menu actions with all arrays empty for `ok:true`.
+- Underlying dev helpers and commands remain available; only the visible menu surface changed. No gameplay, economy, or smoke logic changes beyond the validation smoke.
+- Local syntax checks PASS. Local Playwright smoke is WARNING-only because the Chromium browser executable is not installed in this environment.
+- Required Safari command: `Game.__DEV.smokeDevMenuMinimalOnce()`.
+
 ## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 - Added only a dedicated `UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE` section to `UI_PROFILE_ZOOMER_DIFF.md` and mirrored it to `docs/UI_PROFILE_ZOOMER_DIFF.md`.
