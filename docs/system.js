@@ -698,7 +698,7 @@ window.Game = window.Game || {};
     const covered = Object.freeze([
       { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Выбери имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
       { category: 'buttons', source: 'Data.TEXTS.genz.events_close_extra', before: 'Закрыть лишнее', after: 'Свернуть', meaning: 'button still closes/collapses extra event UI' },
-      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить {X}💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос учтён.', meaning: 'vote result still confirms the vote was accepted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_already', before: 'Ты уже вписался.', after: 'Уже учтён.', meaning: 'vote result still says the vote was already counted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не учтён.', meaning: 'vote result still says the vote was not accepted' },
@@ -1951,7 +1951,7 @@ window.Game = window.Game || {};
       { source: "Data.START_SCREEN.actions.start", label: "Старт" },
       { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
       { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
-      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить {X} 💰" },
+      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить {X}💰" },
       { source: "UI.chat.send", label: "Заслать" },
       { source: "UI.report.submit", label: "Сдать" },
       { source: "UI.dm.battle", label: "баттл" },

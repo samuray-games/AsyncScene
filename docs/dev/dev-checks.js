@@ -1694,7 +1694,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const id = normalize(pair && pair.id);
         if (zoomer === target) return true;
         if (id === "STEP4_2_127" && zoomer === "{NAME} 💰10" && isDynamicNameMoney10Value(target)) return true;
-        if (id === "STEP4_2_026" && zoomer === "Свалить {X} 💰" && isDynamicEscapeCostValue(target)) return true;
+        if (id === "STEP4_2_026" && zoomer === "Свалить {X}💰" && isDynamicEscapeCostValue(target)) return true;
         if (/^STEP4_2_DYNAMIC_VOTE_\d+$/u.test(id) && /^\{DYNAMIC_VOTE_LABEL_\d+\}$/u.test(zoomer) && isDynamicVoteCounterValue(target)) return true;
         if (/^STEP4_2_DYNAMIC_DELTA_\d+$/u.test(id) && /^\{DYNAMIC_DELTA_LABEL_\d+\}$/u.test(zoomer) && isDynamicDeltaTitleValue(target)) return true;
         return false;
@@ -3003,7 +3003,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_023", "millennial": "Полная UI-формулировка 023: Поражение", "zoomer": "Поражение"}),
       Object.freeze({"id": "STEP4_2_024", "millennial": "Полная UI-формулировка 024: Толпа решает", "zoomer": "Толпа решает"}),
       Object.freeze({"id": "STEP4_2_025", "millennial": "Полная UI-формулировка 025: Не хватает 💰.", "zoomer": "Не хватает 💰."}),
-      Object.freeze({"id": "STEP4_2_026", "millennial": "Полная UI-формулировка 026: Свалить {X} 💰", "zoomer": "Свалить {X} 💰"}),
+      Object.freeze({"id": "STEP4_2_026", "millennial": "Полная UI-формулировка 026: Свалить {X}💰", "zoomer": "Свалить {X}💰"}),
       Object.freeze({"id": "STEP4_2_027", "millennial": "Полная UI-формулировка 027: Для {student}: {arg}. Цена {cost} 💰.", "zoomer": "Для {student}: {arg}. Цена {cost} 💰."}),
       Object.freeze({"id": "STEP4_2_028", "millennial": "Полная UI-формулировка 028: Аргумент: {teacher} → {student}.", "zoomer": "Аргумент: {teacher} → {student}."}),
       Object.freeze({"id": "STEP4_2_029", "millennial": "Полная UI-формулировка 029: Введи точный ник.", "zoomer": "Введи точный ник."}),
