@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_n";
-  const RUNTIME_COMMIT = "zoomer_mapping_coverage_step4_2";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_o";
+  const RUNTIME_COMMIT = "zoomer_mapping_runtime_step4_2";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1668,6 +1668,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeVersion,
         smokeName: "smokeZoomerTransformationTableOnce",
         pairCount: 0,
+        inventoryCount: 0,
+        expectedInventoryCount: 129,
         failures: [],
         forbiddenRemaining: [],
         missingCoverage: [],
@@ -1690,6 +1692,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const inventoryEntries = collectZoomerTermsInventoryEntries().filter((entry) => entry && normalize(entry.text));
         const inventoryTargets = Array.from(new Set(inventoryEntries.map((entry) => normalize(entry.text))));
         result.pairCount = table.length;
+        result.inventoryCount = inventoryTargets.length;
         table.forEach((pair, idx) => {
           const id = normalize(pair && pair.id);
           const millennial = normalize(pair && pair.millennial);
@@ -1731,6 +1734,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           }
         });
         if (table.length !== inventoryTargets.length) fail("pair_count_matches_inventory", { pairCount: table.length, inventoryCount: inventoryTargets.length });
+        if (inventoryTargets.length !== result.expectedInventoryCount) fail("inventory_count_matches_expected_129", { inventoryCount: inventoryTargets.length, expectedInventoryCount: result.expectedInventoryCount });
         if (result.duplicateMillennialKeys.length) fail("no_duplicate_millennial_keys", result.duplicateMillennialKeys.slice());
         if (result.duplicateZoomerMappings.length) fail("no_duplicate_zoomer_mappings", result.duplicateZoomerMappings.slice());
         if (result.unmappedEntries.length) fail("no_unmapped_entries", result.unmappedEntries.slice());
@@ -1751,6 +1755,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.duplicateZoomerMappings.length === 0
         && result.unmappedEntries.length === 0
         && result.ambiguousMappings.length === 0
+        && result.pairCount === result.inventoryCount
+        && result.inventoryCount === result.expectedInventoryCount
         && !!result.buildTag
         && !!result.commit
         && !!result.smokeVersion;
