@@ -156,7 +156,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   battle_draw: "Толпа решает",
       battle_not_enough_points: "Не хватает 💰.",
 
-      escape_button_label: "Свалить: {X} 💰",
+      escape_button_label: "Свалить: {X}",
       teach_sent_dm: "Для {student}: {arg}. Цена {cost} 💰.",
       teach_sent_chat: "Аргумент: {teacher} → {student}.",
       invite_open_hint: "Введи точный ник.",
