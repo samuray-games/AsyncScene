@@ -29,18 +29,18 @@ window.Game = window.Game || {};
     errors: Object.freeze({
       missingMessage: "Сообщение недоступно.",
       insufficientPoints: "Не хватает 💰.",
-      pointsLowBattle: "Не получилось: мало 💰 на баттл.",
+      pointsLowBattle: "Мало 💰 на баттл.",
       unavailable: "Недоступно.",
       notFound: "Не найдено.",
       choosePlayer: "Выбери игрока.",
       reportFalsePenalty: "Не получилось. Штраф: -5 💰.",
     }),
     warnings: Object.freeze({
-      checkInput: "Проверь ввод и попробуй ещё раз.",
+      checkInput: "Проверь ввод и повтори.",
       cooldownShort: "Подожди немного.",
       alreadyVoted: "Уже принято.",
-      respectPairDaily: "Уважение сегодня уже отправлено этому персонажу.",
-      respectNoChain: "Цепочка туда-обратно сегодня недоступна.",
+      respectPairDaily: "Уважение ему уже отправлено.",
+      respectNoChain: "Цепочка сегодня закрыта.",
       respectEmitterEmpty: "Уважение сегодня недоступно.",
       escapeNeedsPoints: "Не хватает 💰, чтобы Свалить.",
     }),
@@ -50,14 +50,14 @@ window.Game = window.Game || {};
       repDeltaPlusOne: "+1⭐",
       pointsDeltaVoteCost: "-{voteCost}💰",
       respectPaid: "Списано 1💰.",
-      respectTargetRep: "Цель получила +1⭐.",
-      voteAccepted: "Принято. Голос учтён.",
+      respectTargetRep: "Цели +1⭐.",
+      voteAccepted: "Голос учтён.",
       reportPending: "Проверка идёт.",
       reportTrueReward: "Засчитано. Сдать {name}: +2💰.",
-      trainingSent: "Обучение аргументу: {teacher} → {student}.",
-      rematchRequested: "Реванш доступен: {name} снова зовёт в баттл.",
+      trainingSent: "Аргумент: {teacher} → {student}.",
+      rematchRequested: "{name} зовёт на реванш.",
       escapePaid: "Свалить за 1💰.",
-      pointsDeltaRefund: "+1💰 возвращено.",
+      pointsDeltaRefund: "+1💰 возврат.",
       pointsDeltaRefundMajority: "+1💰 возврат большинству.",
       pointsDeltaRemainderWin: "+1💰 остаток победителю.",
       rematchCost: "Реванш: -{rematchCost}💰.",
@@ -67,14 +67,14 @@ window.Game = window.Game || {};
       ready: "Система готова.",
       dmReaction: "{name} обменялся(ась) реакцией с {target}.",
       dmInvite: "{name} позвал(а) {guest} в личку к {target}.",
-      joined: "{name} на площади. Событие началось.",
-      moved: "Переход выполнен: {location}.",
-      battleChallenge: "{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.",
-      npcBattleStart: "Баттл начался: {a} вызывает {b}.",
+      joined: "{name} на площади. Старт.",
+      moved: "Переход: {location}.",
+      battleChallenge: "{attackerName} [{attackerInf}] вызвал(а) тебя. Открой баттл.",
+      npcBattleStart: "Баттл: {a} вызывает {b}.",
       battleWin: "Победил(а) {winner}. {loser} проиграл(а).",
       battleDraw: "Ничья. {a} и {b} разошлись.",
-      crowdStart: "Голосование толпы началось.",
-      crowdResolved: "Голосование толпы завершено. Победил(а) {name}: {aVotes}:{bVotes}.",
+      crowdStart: "Толпа голосует.",
+      crowdResolved: "Толпа выбрала {name}: {aVotes}:{bVotes}.",
       unlockOrange: "Оранжевые аргументы доступны.",
       unlockRed: "Красные аргументы доступны.",
       unlockBlack: "Чёрные аргументы доступны.",
@@ -116,8 +116,8 @@ window.Game = window.Game || {};
 
   const SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS = Object.freeze({
     what: "действие",
-    hint: "Можно попробовать позже.",
-    option: "Можно выбрать другой вариант.",
+    hint: "Попробуй позже.",
+    option: "Выбери другой вариант.",
     value: "—",
     a: "участник",
     b: "участник",
@@ -664,6 +664,99 @@ window.Game = window.Game || {};
   });
 
   if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
+
+
+  Game.__DEV.smokeZoomerUiTextShorteningOnce = function smokeZoomerUiTextShorteningOnce(){
+    const result = {
+      ok: false,
+      checkedCount: 0,
+      shortenedCount: 0,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => (value && Object.prototype.hasOwnProperty.call(value, key) ? value[key] : undefined), root);
+    const domText = (id) => {
+      if (typeof document === "undefined" || !document.getElementById) return undefined;
+      const node = document.getElementById(id);
+      return node ? String(node.textContent || "") : undefined;
+    };
+    const currentText = (source) => {
+      if (String(source).indexOf("dom#") === 0) return domText(String(source).slice(4));
+      if (String(source).indexOf("SystemTemplateFallbacks.") === 0) return getPath({ SystemTemplateFallbacks: SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS }, source);
+      return getPath(Game, source);
+    };
+    const covered = Object.freeze([
+      { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Кликни имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.events_close_extra', before: 'Закрыть лишнее', after: 'Свернуть', meaning: 'button still closes/collapses extra event UI' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить: {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
+      { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос принят.', meaning: 'vote result still confirms the vote was accepted' },
+      { category: 'toasts', source: 'Data.TEXTS.genz.vote_already', before: 'Ты уже вписался.', after: 'Уже учтён.', meaning: 'vote result still says the vote was already counted' },
+      { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не принят.', meaning: 'vote result still says the vote was not accepted' },
+      { category: 'toasts', source: 'Data.TEXTS.genz.events_done', before: 'Зафиксили', after: 'Готово', meaning: 'event toast/status still confirms completion' },
+      { category: 'toasts', source: 'SystemCopy.notifications.respectTargetRep', before: 'Цель получила +1⭐.', after: 'Цели +1⭐.', meaning: 'respect toast still says the target gained one reputation' },
+      { category: 'toasts', source: 'SystemCopy.notifications.voteAccepted', before: 'Принято. Голос учтён.', after: 'Голос учтён.', meaning: 'vote acceptance toast still confirms counted vote' },
+      { category: 'toasts', source: 'SystemCopy.notifications.trainingSent', before: 'Обучение аргументу: {teacher} → {student}.', after: 'Аргумент: {teacher} → {student}.', meaning: 'training toast still records the same teacher to student argument action' },
+      { category: 'toasts', source: 'SystemCopy.notifications.rematchRequested', before: 'Реванш доступен: {name} снова зовёт в баттл.', after: '{name} зовёт на реванш.', meaning: 'rematch toast still says the same player requests a rematch' },
+      { category: 'toasts', source: 'SystemCopy.notifications.pointsDeltaRefund', before: '+1💰 возвращено.', after: '+1💰 возврат.', meaning: 'refund toast keeps the same +1 points value' },
+      { category: 'hints', source: 'Data.TEXTS.genz.tie_click_name_hint', before: 'Кликни на имя, за кого хочешь вписаться.', after: 'Кликни имя для выбора.', meaning: 'hint still tells the player to click a name to choose a side' },
+      { category: 'hints', source: 'Data.TEXTS.genz.tie_chat_start', before: 'Толпа решает. Вписывайся - кликни на имя в событиях.', after: 'Толпа решает. Кликни имя в событиях.', meaning: 'chat hint still points the player to click a name in events' },
+      { category: 'hints', source: 'Data.TEXTS.genz.events_empty', before: 'Ничего не происходит, сплошная болтовня.', after: 'Пока без событий.', meaning: 'empty events hint still says there are no current events' },
+      { category: 'hints', source: 'Data.TEXTS.genz.invite_open_hint', before: 'Введи ник игрока. Без ошибок, иначе не сработает.', after: 'Введи точный ник игрока.', meaning: 'hint still requires an exact player nickname' },
+      { category: 'hints', source: 'dom#reportHint', before: 'Сдать бандита или токсика за +2 💰.', after: 'Сдай бандита/токсика: +2 💰.', meaning: 'report hint keeps the same valid targets and unchanged +2 points reward' },
+      { category: 'hints', source: 'SystemTemplateFallbacks.hint', before: 'Можно попробовать позже.', after: 'Попробуй позже.', meaning: 'fallback hint still tells the player to retry later' },
+      { category: 'hints', source: 'SystemTemplateFallbacks.option', before: 'Можно выбрать другой вариант.', after: 'Выбери другой вариант.', meaning: 'fallback option still tells the player to choose another option' },
+      { category: 'errors', source: 'Data.TEXTS.genz.invite_invalid', before: 'Такого игрока нет.', after: 'Игрок не найден.', meaning: 'invite error still says the player was not found' },
+      { category: 'errors', source: 'SystemCopy.errors.pointsLowBattle', before: 'Не получилось: мало 💰 на баттл.', after: 'Мало 💰 на баттл.', meaning: 'battle error still says points are insufficient' },
+      { category: 'errors', source: 'SystemCopy.warnings.checkInput', before: 'Проверь ввод и попробуй ещё раз.', after: 'Проверь ввод и повтори.', meaning: 'input warning still asks to check input and retry' },
+      { category: 'errors', source: 'SystemCopy.warnings.respectPairDaily', before: 'Уважение сегодня уже отправлено этому персонажу.', after: 'Уважение ему уже отправлено.', meaning: 'respect warning still says this target already got respect today' },
+      { category: 'errors', source: 'SystemCopy.warnings.respectNoChain', before: 'Цепочка туда-обратно сегодня недоступна.', after: 'Цепочка сегодня закрыта.', meaning: 'respect warning still says the reciprocal chain is unavailable today' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.joined', before: '{name} на площади. Событие началось.', after: '{name} на площади. Старт.', meaning: 'system event still says the named player joined and the event started' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.moved', before: 'Переход выполнен: {location}.', after: 'Переход: {location}.', meaning: 'system event still reports the same location transition' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.battleChallenge', before: '{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.', after: '{attackerName} [{attackerInf}] вызвал(а) тебя. Открой баттл.', meaning: 'system event still names the challenger and tells the player to open battle' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.npcBattleStart', before: 'Баттл начался: {a} вызывает {b}.', after: 'Баттл: {a} вызывает {b}.', meaning: 'system event still says the same NPC battle started' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.crowdStart', before: 'Голосование толпы началось.', after: 'Толпа голосует.', meaning: 'system event still says crowd voting started' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.crowdResolved', before: 'Голосование толпы завершено. Победил(а) {name}: {aVotes}:{bVotes}.', after: 'Толпа выбрала {name}: {aVotes}:{bVotes}.', meaning: 'system event still reports crowd vote winner and unchanged vote counts' }
+    ]);
+    const requiredCategories = ["buttons", "toasts", "hints", "errors", "systemStrings"];
+    const seenCategories = new Set();
+    covered.forEach((row) => {
+      seenCategories.add(row.category);
+      const current = currentText(row.source);
+      result.checkedCount += 1;
+      if (current !== row.after) fail("mapping_current_text_mismatch", { source: row.source, expected: row.after, actual: current });
+      if (!row.meaning || row.meaning.length < 16) fail("meaning_allowlist_missing", { source: row.source });
+      if (String(row.after).length < String(row.before).length) result.shortenedCount += 1;
+      else fail("text_not_shortened", { source: row.source, before: row.before, after: row.after });
+      const placeholdersBefore = String(row.before).match(/\{[^}]+\}/g) || [];
+      const placeholdersAfter = String(row.after).match(/\{[^}]+\}/g) || [];
+      placeholdersBefore.forEach((token) => {
+        if (!placeholdersAfter.includes(token)) fail("placeholder_lost", { source: row.source, token });
+      });
+      const economyBefore = String(row.before).match(/[+-]?\d+\s*💰|\{[A-Za-z]+Cost\}|\{X\}/g) || [];
+      const economyAfter = String(row.after).match(/[+-]?\d+\s*💰|\{[A-Za-z]+Cost\}|\{X\}/g) || [];
+      economyBefore.forEach((token) => {
+        if (!economyAfter.includes(token)) fail("economy_value_changed", { source: row.source, token });
+      });
+      if (current === row.before || String(current || "").includes(row.before)) addUnique(result.forbiddenRemaining, { source: row.source, text: row.before });
+    });
+    requiredCategories.forEach((category) => {
+      if (!seenCategories.has(category)) addUnique(result.missingCoverage, category);
+    });
+    if (result.checkedCount <= 0) fail("checked_count_zero");
+    if (result.shortenedCount <= 0) fail("shortened_count_zero");
+    result.ok = result.checkedCount > 0 && result.shortenedCount > 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
 
   Game.__DEV.smokeSystemCopyInventoryOnce = function smokeSystemCopyInventoryOnce(){
     const result = {
