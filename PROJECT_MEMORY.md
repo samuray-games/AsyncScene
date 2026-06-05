@@ -1,3 +1,12 @@
+## 2026-06-05 — Step 5.8 Authenticity Check for Zoomer Argument Wrappers
+- Added dev-only `Game.__DEV.smokeZoomerArgumentAuthenticityOnce()` / `Game.Dev.smokeZoomerArgumentAuthenticityOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke checks only the existing Step 5.4 dev wrapper set from `buildZoomerArgumentWrapperEntries()` and requires `checkedCount: 964`.
+- Returned fields include `ok`, `buildTag`, `commit`, unique `smokeVersion`, `checkedCount`, `forcedSlang`, `memeLanguage`, `cringePhrasing`, `exaggeratedCoolness`, `roleplayTone`, `artificialYouthTone`, `generationStereotypes`, `unnaturalDialogue`, `eyeRollFailures`, `warnings`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `failures`.
+- The authenticity linter covers forced youth slang, meme language, internet catchphrases, cringe phrasing, exaggerated coolness, roleplay behavior, artificial youth tone, obvious generation stereotyping, unnatural dialogue, and eye-roll test failures. Warnings are allowed and non-blocking.
+- Served identity/cache-bust refreshed to `build_2026_06_05_step5_8_arg_authenticity_check` / `step5_8_arg_authenticity_check` / `step5-8-argument-authenticity-check` so the unique Step 5.8 `smokeVersion` is visible in Safari runtime output.
+- Scope held: no new wrapper texts, no canon argument text changes, no wrapper text changes, no gameplay change, no UI change, and no battle/defense logic change.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed; run `Game.__DEV.smokeZoomerArgumentAuthenticityOnce()`.
+
 ## 2026-06-05 — Step 5.7 Final Runtime Smoke Pack for Zoomer Argument Wrappers
 - Added dev-only aggregate `Game.__DEV.smokeZoomerArgumentWrappersOnce()` / `Game.Dev.smokeZoomerArgumentWrappersOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - The aggregate calls only the existing Step 5 smokes: inventory, wrapper rules, wrapper pilot, wrapper coverage, semantic linter, and simplicity linter.
