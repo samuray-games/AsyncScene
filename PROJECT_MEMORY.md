@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 4 [2] Safari runtime mapping load fix
+- Mirrored the latest 129-entry Step 4 [2] mapping table into the Safari-served docs runtime so `docs/dev/dev-checks.js` no longer serves the previous `build_2026_06_05_m` / `zoomer_mapping_table_step4_2` identity or the 103-entry table.
+- Bumped both app/docs runtime identities to `build_2026_06_05_o` / `zoomer_mapping_runtime_step4_2`; the smokeVersion is `step4_2_zoomer_transformation_table_v1_build_2026_06_05_o_commit_zoomer_mapping_runtime_step4_2`.
+- Cache-busted both dev-checks script tags with `step4-2-zoomer-mapping-runtime-o` so Safari fetches the updated smoke bundle.
+- Hardened `Game.__DEV.smokeZoomerTransformationTableOnce()` to return `inventoryCount` and `expectedInventoryCount: 129`, and to require `pairCount === inventoryCount === 129` for `ok:true`.
+- Guardrails: no UI string rewrites, gameplay logic changes, refactor, or Console.txt usage. Runtime PASS is not claimed here; required Safari command remains `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-05 — Step 4 [2] mapping coverage follow-up
 - Added mapping-table entries for every currently reported unmapped zoomer inventory string: dev UI labels, symbols/resource icons, report hints, DM labels, battle/menu controls, and status/tone strings.
 - Kept the change mapping-table-only for runtime copy: no runtime UI string rewrites, gameplay logic changes, or inventory logic changes.

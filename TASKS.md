@@ -1,3 +1,4 @@
+- Step 4 [2] Safari runtime mapping load fix: mirrored the latest 129-entry Step 4 [2] transformation table into the Safari-served `docs/dev/dev-checks.js`, bumped both runtime entrypoints to `build_2026_06_05_o` / `zoomer_mapping_runtime_step4_2`, cache-busted the dev-checks script tag, and added `inventoryCount` / `expectedInventoryCount: 129` to the smoke result and ok gate. Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`; runtime PASS is not claimed here.
 - Step 4 [2] mapping coverage follow-up: added mapping-table entries for the 26 currently unmapped inventory strings (dev labels, symbols/resource icons, DM/report labels, and status/tone labels) and bumped the runtime smoke identity to `build_2026_06_05_n` / `zoomer_mapping_coverage_step4_2`. Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`; runtime PASS is not claimed here.
 ## 2026-06-05 — AsyncScene Step 4.2 Millennial -> zoomer canonical mapping table
 
