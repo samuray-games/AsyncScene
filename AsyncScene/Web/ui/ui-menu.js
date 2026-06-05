@@ -378,14 +378,14 @@ window.Game = window.Game || {};
       if (!status) return "";
       if (status.whyBlocked === blockedReasonCooldown) return `кулдаун: день ${status.cooldownUntilDay}`;
       if (status.whyBlocked === "insufficient_points") return "Не хватает 💰.";
-      return "Передача доступна";
+      return "Можно передать";
     }
 
     function updateTrainingStatus() {
       const api = Game.TrainingAPI || null;
       if (!api || typeof api.status !== "function") {
         trainingControls.latestStatus = null;
-        trainingControls.statusEl.textContent = "Передача недоступна.";
+        trainingControls.statusEl.textContent = "Передача недоступна";
         trainingControls.resultEl.textContent = "";
         trainingControls.button.disabled = true;
         return;
@@ -393,7 +393,7 @@ window.Game = window.Game || {};
       const status = api.status({ argKey: TRAINING_UI_ARG_KEY });
       trainingControls.latestStatus = status;
       if (!status || !status.ok) {
-        trainingControls.statusEl.textContent = "Статус недоступен.";
+        trainingControls.statusEl.textContent = "Статус передачи недоступен";
         trainingControls.button.disabled = true;
         trainingControls.resultEl.textContent = "";
         return;
@@ -401,7 +401,7 @@ window.Game = window.Game || {};
       const price = Number.isFinite(status.price) ? (status.price | 0) : 0;
       trainingControls.button.textContent = `Передать (${price} 💰)`;
       trainingControls.button.disabled = !status.canTrain;
-      trainingControls.statusEl.textContent = `Цена ${price} 💰 • ${status.canTrain ? "доступно" : formatCooldownText(status)}`;
+      trainingControls.statusEl.textContent = `Цена ${price} 💰 • ${status.canTrain ? "Можно передать" : formatCooldownText(status)}`;
       const xp = status.progress && Number.isFinite(status.progress.xp) ? (status.progress.xp | 0) : 0;
       const level = status.progress && Number.isFinite(status.progress.level) ? (status.progress.level | 0) : 0;
       trainingControls.resultEl.textContent = `XP ${xp}, уровень ${level}`;

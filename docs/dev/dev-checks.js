@@ -11,7 +11,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_u";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_v";
   const RUNTIME_COMMIT = "98599ea";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
@@ -1792,6 +1792,70 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && !!result.smokeVersion;
       return result;
     };
+    const smokeZoomerStatusTermsOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_4_zoomer_status_terms_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerStatusTermsOnce",
+        statusEntries: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      try {
+        const inventory = collectZoomerTermsInventoryEntries().filter((entry) => {
+          if (!entry) return false;
+          return String(entry.file || "") === "AsyncScene/Web/ui/ui-menu.js"
+            && /^trainingControls\.status\./.test(String(entry.path || ""));
+        });
+        result.statusEntries = inventory.map((entry) => normalize(entry.text)).filter(Boolean);
+        const expected = ["Передача недоступна", "Статус передачи недоступен", "Можно передать"];
+        expected.forEach((term) => {
+          if (!result.statusEntries.includes(term)) {
+            addUnique(result.missingCoverage, term);
+            fail("status_term_missing", term);
+          }
+        });
+        const forbidden = [
+          { term: "Готово к тренировке", reason: "abstract_ready_state" },
+          { term: "доступно", reason: "abstract_access_wording" },
+          { term: "Статус недоступен", reason: "ambiguous_status_wording" }
+        ];
+        forbidden.forEach((item) => {
+          if (result.statusEntries.includes(item.term)) {
+            addUnique(result.forbiddenRemaining, item.term);
+            fail("forbidden_status_term", item.reason);
+          }
+        });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_4_zoomer_status_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_4") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.statusEntries.length > 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
     const smokeZoomerShorteningQualityOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -3071,11 +3135,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_091", "millennial": "Полная UI-формулировка 091: События", "zoomer": "События"}),
       Object.freeze({"id": "STEP4_2_092", "millennial": "Полная UI-формулировка 092: Выбери контраргумент", "zoomer": "Выбери контраргумент"}),
       Object.freeze({"id": "STEP4_2_093", "millennial": "Полная UI-формулировка 093: Выбери аргумент", "zoomer": "Выбери аргумент"}),
-      Object.freeze({"id": "STEP4_2_094", "millennial": "Полная UI-формулировка 094: Передача недоступна.", "zoomer": "Передача недоступна."}),
-      Object.freeze({"id": "STEP4_2_095", "millennial": "Полная UI-формулировка 095: Статус недоступен.", "zoomer": "Статус недоступен."}),
-      Object.freeze({"id": "STEP4_2_096", "millennial": "Полная UI-формулировка 096: Пиши по теме.", "zoomer": "Пиши по теме."}),
-      Object.freeze({"id": "STEP4_2_097", "millennial": "Полная UI-формулировка 097: Изменить высоту чата", "zoomer": "Изменить высоту чата"}),
-      Object.freeze({"id": "STEP4_2_098", "millennial": "Полная UI-формулировка 098: Профиль", "zoomer": "Профиль"}),
+      Object.freeze({"id": "STEP4_2_094", "millennial": "Полная UI-формулировка 094: Передача недоступна", "zoomer": "Передача недоступна"}),
+      Object.freeze({"id": "STEP4_2_095", "millennial": "Полная UI-формулировка 095: Статус передачи недоступен", "zoomer": "Статус передачи недоступен"}),
+      Object.freeze({"id": "STEP4_2_096", "millennial": "Полная UI-формулировка 096: Можно передать", "zoomer": "Можно передать"}),
+      Object.freeze({"id": "STEP4_2_097", "millennial": "Полная UI-формулировка 097: Пиши по теме.", "zoomer": "Пиши по теме."}),
+      Object.freeze({"id": "STEP4_2_098", "millennial": "Полная UI-формулировка 098: Изменить высоту чата", "zoomer": "Изменить высоту чата"}),
+      Object.freeze({"id": "STEP4_2_099", "millennial": "Полная UI-формулировка 099: Профиль", "zoomer": "Профиль"}),
       Object.freeze({"id": "STEP4_2_099", "millennial": "Полная UI-формулировка 099: Влияние", "zoomer": "Влияние"}),
       Object.freeze({"id": "STEP4_2_100", "millennial": "Полная UI-формулировка 100: Победы", "zoomer": "Победы"}),
       Object.freeze({"id": "STEP4_2_101", "millennial": "Полная UI-формулировка 101: Вызовов нет.", "zoomer": "Вызовов нет."}),
@@ -3203,8 +3268,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ["status", "Выбери аргумент", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "pickAttack.line", "battle pick status"],
         ["status", "Толпа решает", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "timerLine.textContent", "battle timer"],
         ["error", "Недоступно.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "unavailable.textContent", "lottery/menu unavailable"],
-        ["error", "Передача недоступна.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.disabled", "training status"],
-        ["error", "Статус недоступен.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.unavailable", "training status"],
+        ["status", "Передача недоступна", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.disabled", "training status"],
+        ["status", "Статус передачи недоступен", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.unavailable", "training status"],
+        ["status", "Можно передать", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.ready", "training status"],
         ["hint", "Пиши по теме.", "AsyncScene/Web/index.html", "index", "chatInput.placeholder", "#chatInput"],
         ["hint", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
         ["hint", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
@@ -3549,6 +3615,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
+    Game.Dev.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     Game.Dev.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
@@ -3571,6 +3638,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
+    devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
@@ -5762,7 +5830,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       { logical: "docs/ui/ui-menu.js", path: "ui/ui-menu.js" }
     ];
     const expectedCanonicalTerms = ["Обучить аргументу", "💰", "кулдаун"];
-    const knownReplacedTexts = ["Ты обучил(а) {student} аргументу {arg}. Цена: {cost} 💰.", "{teacher} обучил(а) {student} аргументу.", "Не хватает 💰 на обучение.", "Загрузка тренировки...", "Тренировка аргумента", "Тренировка аргумента (${price} 💰)", "Кулдаун до дня ${status.cooldownUntilDay} (ещё ${status.remainingDays || 0} дн.)", "Готово к тренировке", "Тренинг недоступен.", "Статус тренинга недоступен.", "кулдаун до дня ${snap.cooldownUntilDay}"];
+    const knownReplacedTexts = ["Ты обучил(а) {student} аргументу {arg}. Цена: {cost} 💰.", "{teacher} обучил(а) {student} аргументу.", "Не хватает 💰 на обучение.", "Загрузка тренировки...", "Тренировка аргумента", "Тренировка аргумента (${price} 💰)", "Кулдаун до дня ${status.cooldownUntilDay} (ещё ${status.remainingDays || 0} дн.)", "Передача недоступна", "Статус передачи недоступен", "Можно передать", "кулдаун до дня ${snap.cooldownUntilDay}"];
     const parseCsv = (text) => {
       const rows = []; let row = []; let cell = ""; let inQuotes = false;
       for (let i = 0; i < String(text || "").length; i += 1) {
