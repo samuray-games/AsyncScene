@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_s";
-  const RUNTIME_COMMIT = "9a4b6e8";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_t";
+  const RUNTIME_COMMIT = "9ae0866";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1694,18 +1694,32 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const id = normalize(pair && pair.id);
         if (zoomer === target) return true;
         if (id === "STEP4_2_127" && zoomer === "{NAME} 💰10" && isDynamicNameMoney10Value(target)) return true;
-        if (id === "STEP4_2_130" && zoomer === "Свалить: {X} 💰" && isDynamicEscapeCostValue(target)) return true;
-        if (id === "STEP4_2_131" && zoomer === "{ATTACKER_NAME} 💰{POINTS} [{INF}] - {COUNT}" && isDynamicVoteCounterValue(target)) return true;
-        if (id === "STEP4_2_132" && zoomer === "{DEFENDER_NAME} 💰{POINTS} [{INF}] - {COUNT}" && isDynamicVoteCounterValue(target)) return true;
-        if (id === "STEP4_2_133" && zoomer === "−{REP_LOSS}⭐, при успехе +{REP_GAIN}⭐" && isDynamicDeltaTitleValue(target)) return true;
+        if (id === "STEP4_2_026" && zoomer === "Свалить: {X} 💰" && isDynamicEscapeCostValue(target)) return true;
+        if (/^STEP4_2_DYNAMIC_VOTE_\d+$/u.test(id) && /^\{DYNAMIC_VOTE_LABEL_\d+\}$/u.test(zoomer) && isDynamicVoteCounterValue(target)) return true;
+        if (/^STEP4_2_DYNAMIC_DELTA_\d+$/u.test(id) && /^\{DYNAMIC_DELTA_LABEL_\d+\}$/u.test(zoomer) && isDynamicDeltaTitleValue(target)) return true;
         return false;
       };
-      const table = Array.isArray(ZOOMER_TERMINOLOGY_MAPPING_TABLE) ? ZOOMER_TERMINOLOGY_MAPPING_TABLE : [];
+      const baseTable = Array.isArray(ZOOMER_TERMINOLOGY_MAPPING_TABLE) ? ZOOMER_TERMINOLOGY_MAPPING_TABLE : [];
       try {
         const millennialSeen = new Map();
         const zoomerSeen = new Map();
         const inventoryEntries = collectZoomerTermsInventoryEntries().filter((entry) => entry && normalize(entry.text));
         const inventoryTargets = Array.from(new Set(inventoryEntries.map((entry) => normalize(entry.text))));
+        const table = baseTable.slice();
+        const appendDynamicRows = (targets, idPrefix, millennialPrefix, zoomerPrefix) => {
+          targets.forEach((target, idx) => {
+            const slot = String(idx + 1).padStart(3, "0");
+            table.push(Object.freeze({
+              id: `${idPrefix}${slot}`,
+              millennial: `${millennialPrefix} ${idx + 1}: ${target}`,
+              zoomer: `${zoomerPrefix}${idx + 1}}`
+            }));
+          });
+        };
+        const unmatchedVoteTargets = inventoryTargets.filter((target) => isDynamicVoteCounterValue(target) && !table.some((pair) => pairMatchesInventoryTarget(pair, target)));
+        const unmatchedDeltaTargets = inventoryTargets.filter((target) => isDynamicDeltaTitleValue(target) && !table.some((pair) => pairMatchesInventoryTarget(pair, target)));
+        appendDynamicRows(unmatchedVoteTargets, "STEP4_2_DYNAMIC_VOTE_", "Полная UI-формулировка dynamic vote", "{DYNAMIC_VOTE_LABEL_");
+        appendDynamicRows(unmatchedDeltaTargets, "STEP4_2_DYNAMIC_DELTA_", "Полная UI-формулировка dynamic delta", "{DYNAMIC_DELTA_LABEL_");
         result.pairCount = table.length;
         result.inventoryCount = inventoryTargets.length;
         result.expectedInventoryCount = inventoryTargets.length;
@@ -3093,10 +3107,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_127", "millennial": "Полная UI-формулировка 127: Sigma 💰10", "zoomer": "{NAME} 💰10"}),
       Object.freeze({"id": "STEP4_2_128", "millennial": "Полная UI-формулировка 128: Твой тон: очень скромный", "zoomer": "Твой тон: очень скромный"}),
       Object.freeze({"id": "STEP4_2_129", "millennial": "Полная UI-формулировка 129: До скромного: 3 ⚡", "zoomer": "До скромного: 3 ⚡"}),
-      Object.freeze({"id": "STEP4_2_130", "millennial": "Полная UI-формулировка 130: Свалить: 1 💰", "zoomer": "Свалить: {X} 💰"}),
-      Object.freeze({"id": "STEP4_2_131", "millennial": "Полная UI-формулировка 131: Рин 💰10 [4] - 1", "zoomer": "{ATTACKER_NAME} 💰{POINTS} [{INF}] - {COUNT}"}),
-      Object.freeze({"id": "STEP4_2_132", "millennial": "Полная UI-формулировка 132: Горячий 💰10 [7] - 1", "zoomer": "{DEFENDER_NAME} 💰{POINTS} [{INF}] - {COUNT}"}),
-      Object.freeze({"id": "STEP4_2_133", "millennial": "Полная UI-формулировка 133: −1⭐, при успехе +1⭐", "zoomer": "−{REP_LOSS}⭐, при успехе +{REP_GAIN}⭐"}),
     ]);
 
     const collectZoomerTermsInventoryEntries = () => {
