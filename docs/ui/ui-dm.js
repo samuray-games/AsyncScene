@@ -1575,7 +1575,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           const renderSubmitButton = () => {
             const uiState = getReportUiState();
             if (uiState.status === "pending") {
-              submitBtn.textContent = "Проверяем...";
+              submitBtn.textContent = "Проверка...";
               submitBtn.disabled = true;
             } else if (uiState.status === "cooldown") {
               submitBtn.textContent = "Занят";
