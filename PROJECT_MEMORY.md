@@ -1,7 +1,7 @@
 ## 2026-06-05 — Step 4 [7] new feature terminology smoke self-contained fix
 - `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` was still failing in Safari because the previous smoke fix kept a helper dependency chain alive and still referenced `resolveDocCandidates(...)`, which was not guaranteed to exist in that runtime scope.
 - Fixed only the Step 4 [7] smoke in both served dev-check bundles by making its document lookup self-contained: the function now builds its own candidate URL list and performs a synchronous `XMLHttpRequest` fetch loop locally, without referencing `fetchTextFromCandidates`, `collectTextFileCandidates`, `resolveDocCandidates`, or any other external doc helper.
-- Refreshed the served runtime identity markers in `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_al` / `ad41fff`, matching the current short git hash.
+- Refreshed the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_am` / `30e0bca`, matching the current short git hash.
 - Scope held: no terminology changes, no UI text changes, no gameplay changes, no economy changes, and no `Console.txt` usage.
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 
