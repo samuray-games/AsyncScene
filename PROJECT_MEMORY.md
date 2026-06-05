@@ -3,7 +3,7 @@
 - Kept scope tight: buttons, errors, hints, gameplay logic, status behavior, and `Console.txt` usage were not changed.
 - Added `Game.__DEV.smokeZoomerStatusTermsOnce()` to both dev-check bundles and scoped it to the Step 4 inventory source entries `trainingControls.status.disabled`, `trainingControls.status.unavailable`, and `trainingControls.status.ready`.
 - Updated the Step 4 inventory/mapping references in the dev-check bundles so the served runtime inventory and terminology table no longer carry the old abstract status wording.
-- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-v` and bumped both runtime build tags to `build_2026_06_05_v`.
+- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-w`, bumped both runtime build tags to `build_2026_06_05_w`, and aligned both served `__COMMIT__`/`RUNTIME_COMMIT` markers to `cb519db`.
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 
 ## 2026-06-05 — Step 4 [3] button-term runtime sync
