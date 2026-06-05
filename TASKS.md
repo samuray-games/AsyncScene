@@ -5859,3 +5859,12 @@ Error: Download failure, code=1
 - Added dev-only smoke `Game.__DEV.smokeZoomerUiTextShorteningOnce()` returning `{ ok, checkedCount, shortenedCount, failures, forbiddenRemaining, missingCoverage, failedChecks }` with explicit before/after meaning allowlist coverage.
 - Scope guard: UI copy plus dev-only smoke/cache bust only; no gameplay changes, no economy changes, no refactors, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeZoomerUiTextShorteningOnce()`.
+
+## 2026-06-05 - Step 3.2 Zoomer allowed lexical dictionary
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Expanded only the zoomer profile dictionary with an allowed simple-vocabulary inventory for future copy work.
+- Approved examples include `можно`, `жми`, `выбери`, `риск есть`, `ход сработал`, and `не хватило`.
+- Covered surfaces are limited to ui, toasts, errors, hints, and npcSpeech; the task does not rewrite current UI copy.
+- Added mirrored dev-only smoke `Game.__DEV.smokeZoomerAllowedLexiconOnce()` verifying dictionary existence, required examples, required surface coverage, no forbidden-category words in approved examples/rules, and identity fields `buildTag`, `commit`, and unique `smokeVersion`.
+- Scope guard preserved: dictionary/profile and smoke only; no gameplay logic, no UI text rewrites, no side refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeZoomerAllowedLexiconOnce()`.
