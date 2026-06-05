@@ -1,3 +1,13 @@
+## 2026-06-05 — AsyncScene Step 4.1 Zoomer UI terminology inventory runtime smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add a dev-only runtime inventory smoke for current zoomer interface terminology only; no UI text rewrites, gameplay logic changes, Console.txt usage, or Step 4.2 mapping work.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerTermsInventoryOnce()`.
+- Smoke collects UI strings for buttons, statuses, errors, and hints with per-string source info where available, reports category counts, coverage percentage, uncategorized/source-missing counts, and explicit `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays.
+- New runtime build identity: `build_2026_06_05_l` / `zoomer_terms_inventory_step4_1`; smokeVersion `step4_1_zoomer_terms_inventory_v1_build_2026_06_05_l_commit_zoomer_terms_inventory_step4_1`.
+- Required Safari command: `Game.__DEV.smokeZoomerTermsInventoryOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 3.7 Lexical Correction finalization
 
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.

@@ -1,3 +1,12 @@
+## 2026-06-05 — AsyncScene Step 4.1 Zoomer UI terminology inventory
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Changed: Added dev-only `Game.__DEV.smokeZoomerTermsInventoryOnce()` / `Game.Dev.smokeZoomerTermsInventoryOnce()` to inventory current UI button/status/error/hint strings with category counts, source metadata, coverage percentage, identity fields, and zero-tolerance checks for uncategorized/source-missing entries.
+- Changed: Updated runtime identity to `build_2026_06_05_l` / `zoomer_terms_inventory_step4_1` with unique smokeVersion `step4_1_zoomer_terms_inventory_v1_build_2026_06_05_l_commit_zoomer_terms_inventory_step4_1`.
+- Guardrails: No UI text rewrites, gameplay logic changes, Console.txt usage, or Step 4.2 mapping work.
+- Smoke command: `Game.__DEV.smokeZoomerTermsInventoryOnce()`.
+- Commit: `zoomer_terms_inventory_step4_1` runtime identity; git commit hash is returned with the completed change.
+
 ## 2026-06-05 — AsyncScene Step 3.7 Lexical Correction finalization
 
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS belongs only to the user's iPhone Safari smoke.
