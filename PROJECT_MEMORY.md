@@ -1,3 +1,13 @@
+## 2026-06-05 — AsyncScene Step 3.7 Lexical Correction finalization
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS belongs only to the user's iPhone Safari smoke.
+- Step 3 lexical correction local readiness is completed for validation/documentation scope only.
+- Added final readiness smoke `Game.__DEV.smokeZoomerLexicalCorrectionReadyOnce()` in the runtime and docs dev-check bundles.
+- The smoke is dependency-only: it requires PASS results for Step 3.1 lexical frame, Step 3.2 allowed lexicon, Step 3.3 stop-word list, Step 3.4 system texts, Step 3.5 NPC speech, and Step 3.6 lexical smoke pack; it also verifies allowed lexicon existence, stop-word list existence, combined lexical smoke pack existence, no failures, and returned `buildTag`, `commit`, and commit-unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_k` / `zoomer_lexical_correction_final_step3_7`; smokeVersion `step3_7_lexical_correction_ready_v1_build_2026_06_05_k_commit_zoomer_lexical_correction_final_step3_7`.
+- Scope guard preserved: no gameplay changes, no UI rewrites, no NPC rewrites, no new lexicon rules, no side refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerLexicalCorrectionReadyOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 3.6 Combined lexical smoke pack
 
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.

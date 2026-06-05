@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_j";
-  const RUNTIME_COMMIT = "zoomer_lexical_smoke_pack_step3_6";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_k";
+  const RUNTIME_COMMIT = "zoomer_lexical_correction_final_step3_7";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2263,7 +2263,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = "step3_2_zoomer_allowed_lexicon_v2_build_2026_06_05_f_commit_zoomer_allowed_lexicon_step3_2_runtime_source_fix";
+      const smokeVersion = `step3_2_zoomer_allowed_lexicon_v2_${buildTag}_commit_${commit}`;
       const requiredExamples = ["можно", "жми", "выбери", "риск есть", "ход сработал", "не хватило"];
       const requiredSurfaces = ["ui", "toasts", "errors", "hints", "npcSpeech"];
       const forbiddenCategoryWords = ["кринж", "лол", "рофл", "имба", "жиза", "хайп", "вайб", "угар", "чил", "meme", "memes", "slang", "irony"];
@@ -2381,7 +2381,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (result.missingCoverage.length) fail("surface_coverage", result.missingCoverage.slice());
         if (result.forbiddenCategoryWordsAdded.length) fail("no_forbidden_category_words_added", result.forbiddenCategoryWordsAdded.slice());
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== "step3_2_zoomer_allowed_lexicon_v2_build_2026_06_05_f_commit_zoomer_allowed_lexicon_step3_2_runtime_source_fix" || smokeVersion.indexOf("step3_2") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (smokeVersion !== `step3_2_zoomer_allowed_lexicon_v2_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_2") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique", "smokeVersion_not_unique_for_commit");
         }
       } catch (err) {
@@ -2440,6 +2440,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         sourceFiles: [],
         failures: [],
         forbiddenRemaining: [],
+        missingCoverage: [],
         failedChecks: []
       };
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
@@ -2832,7 +2833,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         addAll(result.failedChecks, featureSmoke && featureSmoke.failedChecks);
         if (!Array.isArray(result.failures) || !Array.isArray(result.forbiddenRemaining) || !Array.isArray(result.missingCoverage) || !Array.isArray(result.failedChecks)) fail("explicit_array_contract", "arrays_missing");
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step3_6_combined_lexical_smoke_pack_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_6") === -1 || smokeVersion.indexOf(String(commit || "")) === -1 || String(commit || "").indexOf("step3_6") === -1) {
+        if (smokeVersion !== `step3_6_combined_lexical_smoke_pack_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_6") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique_for_commit", smokeVersion);
         }
       } catch (err) {
@@ -2852,6 +2853,106 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.npcSpeechValid === true
         && result.uiNpcNotLongerThanAccepted === true
         && result.newFeatureTextSurfacesValid === true
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
+    const smokeZoomerLexicalCorrectionReadyOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step3_7_lexical_correction_ready_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerLexicalCorrectionReadyOnce",
+        dependencies: {
+          step3_1_lexicalFrame: false,
+          step3_2_allowedLexicon: false,
+          step3_3_stopWords: false,
+          step3_4_systemTexts: false,
+          step3_5_npcSpeech: false,
+          step3_6_lexicalSmokePack: false
+        },
+        allowedLexiconExists: false,
+        stopWordListExists: false,
+        combinedLexicalSmokePackExists: false,
+        dependencyResults: {},
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const dependencySpecs = [
+        ["step3_1_lexicalFrame", "smokeZoomerLexicalFrameOnce"],
+        ["step3_2_allowedLexicon", "smokeZoomerAllowedLexiconOnce"],
+        ["step3_3_stopWords", "smokeZoomerStopWordsOnce"],
+        ["step3_4_systemTexts", "smokeZoomerSystemTextsOnce"],
+        ["step3_5_npcSpeech", "smokeZoomerNpcSpeechOnce"],
+        ["step3_6_lexicalSmokePack", "smokeZoomerLexicalPackOnce"]
+      ];
+      try {
+        dependencySpecs.forEach(([key, fnName]) => {
+          const fn = G.__DEV && G.__DEV[fnName];
+          if (typeof fn !== "function") {
+            fail(`${key}_pass_dependency_present`, `missing_${fnName}`);
+            return;
+          }
+          const dep = fn();
+          result.dependencyResults[key] = {
+            ok: !!(dep && dep.ok === true),
+            buildTag: dep && dep.buildTag,
+            commit: dep && dep.commit,
+            smokeVersion: dep && dep.smokeVersion,
+            failures: dep && Array.isArray(dep.failures) ? dep.failures.length : null,
+            forbiddenRemaining: dep && Array.isArray(dep.forbiddenRemaining) ? dep.forbiddenRemaining.length : null,
+            missingCoverage: dep && Array.isArray(dep.missingCoverage) ? dep.missingCoverage.length : null,
+            failedChecks: dep && Array.isArray(dep.failedChecks) ? dep.failedChecks.length : null
+          };
+          const depClean = !!(dep && dep.ok === true
+            && Array.isArray(dep.failures) && dep.failures.length === 0
+            && Array.isArray(dep.forbiddenRemaining) && dep.forbiddenRemaining.length === 0
+            && Array.isArray(dep.missingCoverage) && dep.missingCoverage.length === 0
+            && Array.isArray(dep.failedChecks) && dep.failedChecks.length === 0
+            && dep.buildTag && dep.commit && dep.smokeVersion);
+          result.dependencies[key] = depClean;
+          if (!depClean) fail(`${key}_pass_dependency_present`, result.dependencyResults[key]);
+          addAll(result.forbiddenRemaining, dep && dep.forbiddenRemaining);
+          addAll(result.missingCoverage, dep && dep.missingCoverage);
+          addAll(result.failedChecks, dep && dep.failedChecks);
+          if (key === "step3_2_allowedLexicon" && dep && dep.allowedLexiconExists === true) result.allowedLexiconExists = true;
+          if (key === "step3_3_stopWords" && dep && dep.stopWordListExists === true) result.stopWordListExists = true;
+          if (key === "step3_6_lexicalSmokePack" && dep && dep.ok === true) result.combinedLexicalSmokePackExists = true;
+        });
+        if (!result.allowedLexiconExists) fail("allowed_lexicon_exists", "missing_allowed_lexicon_dependency_evidence");
+        if (!result.stopWordListExists) fail("stop_word_list_exists", "missing_stop_word_dependency_evidence");
+        if (!result.combinedLexicalSmokePackExists) fail("combined_lexical_smoke_pack_exists", "missing_or_failing_smokeZoomerLexicalPackOnce");
+        if (!Array.isArray(result.failures) || !Array.isArray(result.forbiddenRemaining) || !Array.isArray(result.missingCoverage) || !Array.isArray(result.failedChecks)) fail("explicit_array_contract", "arrays_missing");
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step3_7_lexical_correction_ready_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_7") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = Object.keys(result.dependencies).every((key) => result.dependencies[key] === true)
+        && result.allowedLexiconExists === true
+        && result.stopWordListExists === true
+        && result.combinedLexicalSmokePackExists === true
         && !!result.buildTag
         && !!result.commit
         && !!result.smokeVersion
@@ -3091,6 +3192,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
+    Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -3111,6 +3213,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
+    devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
