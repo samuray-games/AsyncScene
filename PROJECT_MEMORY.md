@@ -5320,3 +5320,6 @@ Error: Download failure, code=1
 - Refreshed served identity markers to `build_2026_06_05_ac` / `a58c803` so `Game.__DEV.smokeZoomerErrorTermsOnce()` has a commit-unique `smokeVersion` for this change.
 - Runtime PASS is not claimed; Safari must rerun `Game.__DEV.smokeZoomerErrorTermsOnce()`.
 - Added `Game.__DEV.smokeZoomerErrorTermsOnce()` to both served dev-check bundles so Safari can run the error-term smoke directly. The smoke returns `buildTag`, `commit`, `smokeVersion`, short/direct error-copy diagnostics, and leaves buttons, statuses, hints, gameplay, and error behavior unchanged.
+## 2026-06-05 — Step 4 [6] hints only
+- Updated only the hint texts in the mirrored data and system bundles so the Step 4 inventory reads as direct next actions, including the start-screen hint lines, crowd/event hints, the invite hint, the type prompts, and the fallback hint text.
+- Added `Game.__DEV.smokeZoomerHintTermsOnce()` in both served dev-check bundles with identity fields and action-led hint coverage checks. Runtime PASS is not claimed; Safari must still confirm the new hint smoke for this commit.
