@@ -1,3 +1,17 @@
+## 2026-06-05 — AsyncScene Step 2.6 Zoomer shortening documentation finalization
+
+- Documentation finalization only: no gameplay changes, economy changes, UI changes, smoke logic beyond the documentation smoke, or refactors.
+- Recorded runtime-confirmed PASS results for the completed zoomer shortening stage:
+  - Step 2.1 PASS — `Game.__DEV.smokeZoomerShortenRuleOnce()`; build tags include `build_2026_06_04_c`; acceptance passed for `UI_PROFILE_ZOOMER_SHORTEN_RULE`, 30-40% shortening, fewer filler words, fewer abstractions, more verbs, `UI_PROFILE_MILLENNIAL` as source profile, no contradictions, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+  - Step 2.2 PASS — `Game.__DEV.smokeZoomerTransformationTableOnce()`; build tags include `build_2026_06_04_c`; acceptance passed for the dedicated transformation table, at least 10 before/after pairs, 30-40% shortening, fewer filler words, fewer abstractions, more verbs, no slang/memes/fake youth voice, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+  - Step 2.3 PASS — `Game.__DEV.smokeDevMenuMinimalOnce()`; acceptance passed for visible dev-menu buttons limited to `Console Panel` plus the dev-mode toggle, no underlying helper deletion, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+  - Step 2.4 PASS — `Game.__DEV.smokeZoomerNewFeatureCopyOnce()`; build tag `build_2026_06_05_a`; acceptance passed for economy, actions, NPC speech, SystemCopy, action honesty, placeholder/economy preservation, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+  - Step 2.5 PASS — `Game.__DEV.smokeZoomerShorteningQualityOnce()`; build tag `build_2026_06_05_a`; acceptance passed for phrase length reduction, filler/intro detection, abstraction detection, action-verb preference, transformation table presence, UI shortening rule presence, new-feature coverage, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+- Current documentation finalization build identity is `build_2026_06_05_b` / `zoomer_shortening_docs_final`.
+- Verified `UI_PROFILE_ZOOMER_SHORTEN_RULE` documentation exists in both root and docs copies; it references shortening 30-40%, fewer filler words, fewer abstractions, more verbs, `UI_PROFILE_MILLENNIAL` as source profile, and no contradiction with `UI_PROFILE_ZOOMER_DIFF`.
+- Added documentation smoke `Game.__DEV.smokeZoomerShorteningDocsOnce()` in both dev-check bundles. It returns `{ ok, buildTag, commit, completedSteps, docsPresent, failures, forbiddenRemaining, missingCoverage, failedChecks }` and is intended to pass only when completedSteps contains 2.1-2.5, docsPresent is true, and `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]` remain empty.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
