@@ -1,9 +1,8 @@
-## 2026-06-05 — Step 4 [4] status terminology only
-- Changed only status texts in the training status surface: `Передача недоступна. -> Передача недоступна`, `Статус недоступен. -> Статус передачи недоступен`, and ready-state `доступно -> Можно передать`.
-- Kept scope tight: buttons, errors, hints, gameplay logic, status behavior, and `Console.txt` usage were not changed.
-- Added `Game.__DEV.smokeZoomerStatusTermsOnce()` to both dev-check bundles and scoped it to the Step 4 inventory source entries `trainingControls.status.disabled`, `trainingControls.status.unavailable`, and `trainingControls.status.ready`.
-- Updated the Step 4 inventory/mapping references in the dev-check bundles so the served runtime inventory and terminology table no longer carry the old abstract status wording.
-- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-w`, bumped both runtime build tags to `build_2026_06_05_w`, and aligned both served `__COMMIT__`/`RUNTIME_COMMIT` markers to `cb519db`.
+## 2026-06-05 — Step 4 [4] status inventory collector fix
+- Changed the real `Game.__DEV.smokeZoomerStatusTermsOnce()` inventory filter in both served dev-check bundles to read `entry.source.file` and `entry.source.path` from `collectZoomerTermsInventoryEntries()`, with fallback to legacy flat fields if they ever exist.
+- Root cause: the smoke filtered on `entry.file` / `entry.path`, but inventory entries are built by `makeZoomerTermsInventoryEntry()` with source metadata nested under `entry.source.*`, so Safari could report `missingCoverage` for `Передача недоступна`, `Статус передачи недоступен`, and `Можно передать` while returning `statusEntries: []`.
+- Scope held: buttons, errors, hints, gameplay logic, transfer mechanics, and the training status behavior were not changed; only the actual status inventory mapping/collection path used by the smoke was fixed.
+- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-x` and bumped both runtime build tags to `build_2026_06_05_x` with served `__COMMIT__`/`RUNTIME_COMMIT` markers `1b64743`.
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 
 ## 2026-06-05 — Step 4 [3] button-term runtime sync
