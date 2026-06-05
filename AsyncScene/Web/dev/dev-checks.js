@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_m";
-  const RUNTIME_COMMIT = "zoomer_mapping_table_step4_2";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_n";
+  const RUNTIME_COMMIT = "zoomer_mapping_coverage_step4_2";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -3045,6 +3045,32 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_101", "millennial": "Полная UI-формулировка 101: Вызовов нет.", "zoomer": "Вызовов нет."}),
       Object.freeze({"id": "STEP4_2_102", "millennial": "Полная UI-формулировка 102: Толпа решает. Ты смотришь.", "zoomer": "Толпа решает. Ты смотришь."}),
       Object.freeze({"id": "STEP4_2_103", "millennial": "Полная UI-формулировка 103: Ответь ...", "zoomer": "Ответь ..."}),
+      Object.freeze({"id": "STEP4_2_104", "millennial": "Полная UI-формулировка 104: Сдать", "zoomer": "Сдать"}),
+      Object.freeze({"id": "STEP4_2_105", "millennial": "Полная UI-формулировка 105: Пиши в личку.", "zoomer": "Пиши в личку."}),
+      Object.freeze({"id": "STEP4_2_106", "millennial": "Полная UI-формулировка 106: Ник бандита или токсика.", "zoomer": "Ник бандита или токсика."}),
+      Object.freeze({"id": "STEP4_2_107", "millennial": "Полная UI-формулировка 107: Сдай бандита/токсика: +2 💰.", "zoomer": "Сдай бандита/токсика: +2 💰."}),
+      Object.freeze({"id": "STEP4_2_108", "millennial": "Полная UI-формулировка 108: Личка", "zoomer": "Личка"}),
+      Object.freeze({"id": "STEP4_2_109", "millennial": "Полная UI-формулировка 109: ⭐", "zoomer": "⭐"}),
+      Object.freeze({"id": "STEP4_2_110", "millennial": "Полная UI-формулировка 110: 💰", "zoomer": "💰"}),
+      Object.freeze({"id": "STEP4_2_111", "millennial": "Полная UI-формулировка 111: ×", "zoomer": "×"}),
+      Object.freeze({"id": "STEP4_2_112", "millennial": "Полная UI-формулировка 112: Run", "zoomer": "Run"}),
+      Object.freeze({"id": "STEP4_2_113", "millennial": "Полная UI-формулировка 113: Run+Copy", "zoomer": "Run+Copy"}),
+      Object.freeze({"id": "STEP4_2_114", "millennial": "Полная UI-формулировка 114: Run+Dump", "zoomer": "Run+Dump"}),
+      Object.freeze({"id": "STEP4_2_115", "millennial": "Полная UI-формулировка 115: Dump", "zoomer": "Dump"}),
+      Object.freeze({"id": "STEP4_2_116", "millennial": "Полная UI-формулировка 116: Clear Tape", "zoomer": "Clear Tape"}),
+      Object.freeze({"id": "STEP4_2_117", "millennial": "Полная UI-формулировка 117: Type JS expression...", "zoomer": "Type JS expression..."}),
+      Object.freeze({"id": "STEP4_2_118", "millennial": "Полная UI-формулировка 118: Enable Dev Mode", "zoomer": "Enable Dev Mode"}),
+      Object.freeze({"id": "STEP4_2_119", "millennial": "Полная UI-формулировка 119: Local convenience gate for device-only dev tools", "zoomer": "Local convenience gate for device-only dev tools"}),
+      Object.freeze({"id": "STEP4_2_120", "millennial": "Полная UI-формулировка 120: Console Panel", "zoomer": "Console Panel"}),
+      Object.freeze({"id": "STEP4_2_121", "millennial": "Полная UI-формулировка 121: Open expanded console panel", "zoomer": "Open expanded console panel"}),
+      Object.freeze({"id": "STEP4_2_122", "millennial": "Полная UI-формулировка 122: □", "zoomer": "□"}),
+      Object.freeze({"id": "STEP4_2_123", "millennial": "Полная UI-формулировка 123: ⧉", "zoomer": "⧉"}),
+      Object.freeze({"id": "STEP4_2_124", "millennial": "Полная UI-формулировка 124: Стандартный размер", "zoomer": "Стандартный размер"}),
+      Object.freeze({"id": "STEP4_2_125", "millennial": "Полная UI-формулировка 125: Вызвать", "zoomer": "Вызвать"}),
+      Object.freeze({"id": "STEP4_2_126", "millennial": "Полная UI-формулировка 126: Проверяю...", "zoomer": "Проверяю..."}),
+      Object.freeze({"id": "STEP4_2_127", "millennial": "Полная UI-формулировка 127: Занят", "zoomer": "Занят"}),
+      Object.freeze({"id": "STEP4_2_128", "millennial": "Полная UI-формулировка 128: Ник. Как в чате.", "zoomer": "Ник. Как в чате."}),
+      Object.freeze({"id": "STEP4_2_129", "millennial": "Полная UI-формулировка 129: Реванш", "zoomer": "Реванш"}),
     ]);
 
     const collectZoomerTermsInventoryEntries = () => {
