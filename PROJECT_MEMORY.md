@@ -5425,3 +5425,9 @@ Error: Download failure, code=1
 - Required top-level fields remain explicit: `ok`, `buildTag`, `commit`, `smokeVersion`, `inventoryCount`, `byType`, `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 - `ok:true` now requires all failure arrays to be empty, including `forbiddenRemaining` and `missingCoverage`, and independently requires all four argument types (`about`, `who`, `where`, `yn`) to have coverage.
 - Scope held: no argument text, canon, zoomer wrapper, gameplay, UI behavior, or inventory logic changes. Runtime PASS is not claimed; rerun `Game.__DEV.smokeZoomerArgumentInventoryOnce()` in Safari.
+
+## 2026-06-05 — Step 5.4 full zoomer argument wrapper coverage
+- Added dev-only full wrapper coverage for the Step 5.1 argument inventory in both served dev-check bundles.
+- New smoke: `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()` returns `ok`, `buildTag`, `commit`, unique `smokeVersion`, `inventoryCount`, `wrapperCount`, `coveragePercent`, `byTypeCounts`, `missingCoverage`, `duplicateIds`, `emptyWrappers`, `placeholderMismatch`, `semanticDrift`, `forbiddenRemaining`, `failedChecks`, and `failures`.
+- The smoke builds wrapper entries from inventory ids without applying them to live gameplay, checks 100% coverage, duplicate wrapper ids, empty wrappers, placeholder preservation, strict rule-based semantic drift, and forbidden zoomer/meme slang.
+- Scope held: no canon argument text changes, no runtime argument replacement, no UI behavior changes, no battle/defense logic changes, and no gameplay changes. Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()`.
