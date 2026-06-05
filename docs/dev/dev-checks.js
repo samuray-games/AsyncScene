@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ab";
-  const RUNTIME_COMMIT = "f7ea6f7";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ac";
+  const RUNTIME_COMMIT = "a58c803";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1882,7 +1882,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         expected.forEach((term) => {
           if (!result.statusEntries.some((entry) => entry === term || entry.indexOf(term) !== -1)) {
             addUnique(result.missingCoverage, term);
-            fail("status_term_missing", term);
+            fail("status_term_missing", `Add a direct status line for: ${term}`);
           }
         });
         const forbidden = [
@@ -1893,7 +1893,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         forbidden.forEach((item) => {
           if (result.statusEntries.some((entry) => entry === item.term || entry.indexOf(item.term) !== -1)) {
             addUnique(result.forbiddenRemaining, item.term);
-            fail("forbidden_status_term", item.reason);
+            fail("forbidden_status_term", `Use a clearer status than "${item.term}"`);
           }
         });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
