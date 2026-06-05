@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_8_arg_authenticity_check";
-  const RUNTIME_COMMIT = "step5_8_arg_authenticity_check";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step6_1_npc_speech_inventory";
+  const RUNTIME_COMMIT = "step6_1_npc_speech_inventory";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5825,6 +5825,154 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
   };
   installNpcSpeechInventorySmokeEarly(G.__DEV);
+
+
+  const installZoomerNpcSpeechInventorySmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_TAG = "build_2026_06_05_step6_1_npc_speech_inventory";
+    const COMMIT = "step6_1_npc_speech_inventory";
+    const SMOKE_VERSION = "step6_1_npc_speech_inventory_smoke_v20260605_001";
+    const CATEGORIES = ["dm", "battle", "event", "report", "cop", "mafia", "bandit", "toxic", "neutral", "unknown"];
+    const CATEGORY_SET = new Set(CATEGORIES);
+    const norm = (v) => String(v == null ? "" : v).replace(/\s+/g, " ").trim();
+    const stablePart = (v) => String(v == null ? "" : v).replace(/[^a-z0-9а-яё_.:-]+/gi, "_").replace(/^_+|_+$/g, "").slice(0, 96) || "entry";
+    const roleCategory = (role, fallback) => {
+      const r = String(role || "").toLowerCase();
+      if (r === "cop" || r === "police") return "cop";
+      if (r === "mafia" || r === "mafioso") return "mafia";
+      if (r === "bandit") return "bandit";
+      if (r === "toxic") return "toxic";
+      if (r === "crowd" || r === "neutral") return "neutral";
+      return fallback || "unknown";
+    };
+    const dataGenz = (key) => Game.Data && Game.Data.TEXTS && Game.Data.TEXTS.genz ? Game.Data.TEXTS.genz[key] : null;
+    const copTpl = (key) => Game.Data && Game.Data.COP_TEMPLATES ? Game.Data.COP_TEMPLATES[key] : null;
+    const sys = (key, args, fallback) => {
+      const v = Game.Data && Game.Data.SYS && Game.Data.SYS[key];
+      try { if (typeof v === "function") return v.apply(null, args || []); } catch (_) {}
+      return typeof v === "string" ? v : fallback;
+    };
+    const makeSource = (category, sourcePath, getter, meta) => Object.assign({ category, sourcePath, get: getter }, meta || {});
+    const sources = () => {
+      const list = [];
+      const say = Game.NPC && Game.NPC.SAY ? Game.NPC.SAY : {};
+      ["toxic", "bandit", "cop", "mafia", "crowd"].forEach(role => {
+        ["m", "f"].forEach(sex => {
+          list.push(makeSource(roleCategory(role), `AsyncScene/Web/npcs.js:NPC.SAY.${role}.${sex}`, () => say && say[role] && say[role][sex], { role, channel: "dm", idPrefix: `npc_say_${role}_${sex}` }));
+        });
+      });
+      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainQuestions", () => ["ты здесь? отвечай", "это про тебя? отвечай", "кто держит слово?", "это твоя тема?", "войдешь в спор или мимо?"], { role: "toxic", channel: "dm", idPrefix: "villain_questions" }));
+      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "вызывай, если готов", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
+      list.push(makeSource("neutral", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", () => Game.Data && Game.Data.NPC_CHAT_LINES, { role: "neutral", channel: "event", idPrefix: "npc_chat_lines" }));
+      ["intros", "warnings", "toxicDescriptions", "banditDescriptions", "chatReplies", "cooldownReplies", "thanks", "scolds"].forEach(key => {
+        list.push(makeSource(key === "toxicDescriptions" ? "toxic" : key === "banditDescriptions" ? "bandit" : "cop", `AsyncScene/Web/data.js:Data.COP_TEMPLATES.${key}`, () => copTpl(key), { role: "cop", channel: key === "chatReplies" ? "event" : "dm", idPrefix: `cop_templates_${key}` }));
+      });
+      list.push(makeSource("battle", "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.attack, { role: "unknown", channel: "battle", idPrefix: "arguments_attack" }));
+      list.push(makeSource("battle", "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text", () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.defense, { role: "unknown", channel: "battle", idPrefix: "arguments_defense" }));
+      [
+        ["battle", "challengedLine", ["NPC", 10], "NPC [10] вызвал(а) тебя на баттл. Жми сюда — баттл наверх."],
+        ["battle", "banditRobbed", [], "Бандит вынес тебя в ноль. Все видели.", "bandit"],
+        ["battle", "toxicRobbed", [], "Токсик вынес тебя в ноль. Все видели.", "toxic"],
+        ["battle", "toxicStealLine", [5], "Токсик снял у тебя 5 💰. Все видели.", "toxic"],
+        ["event", "npcBattleStart", ["NPC A", "NPC B"], "Площадь ловит движ: NPC A вызывает NPC B."],
+        ["event", "npcBattleEndWin", ["NPC A", "NPC B"], "Затащил NPC A. NPC B проигрывает."],
+        ["event", "npcBattleEndDraw", ["NPC A", "NPC B"], "Поровну, без перевеса. NPC A и NPC B разошлись."]
+      ].forEach(row => list.push(makeSource(row[0], `AsyncScene/Web/data.js:Data.SYS.${row[1]}`, () => sys(row[1], row[2], row[3]), { role: row[4] || "unknown", channel: row[0] === "event" ? "event" : "battle", idPrefix: `sys_${row[1]}` })));
+      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcDrawEvent.line", () => "Толпа решает: NPC A [1] и NPC B [2].", { role: "neutral", channel: "event", idPrefix: "event_npc_draw" }));
+      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", () => "Толпа решает: NPC A хочет Отвали NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_strong" }));
+      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", () => "Толпа решает: NPC A хочет Свалить NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_weak" }));
+      ["cop_report_accept", "cop_busy", "cop_report_ok", "cop_report_fail", "cop_cooldown"].forEach(key => list.push(makeSource("report", `AsyncScene/Web/data.js:Data.TEXTS.genz.${key}`, () => dataGenz(key), { role: "cop", channel: "dm", idPrefix: `texts_genz_${key}` })));
+      list.push(makeSource("report", "AsyncScene/Web/npcs.js:NPC.COP.topics", () => Game.NPC && Game.NPC.COP && Game.NPC.COP.topics, { role: "cop", channel: "dm", idPrefix: "npc_cop_topics" }));
+      list.push(makeSource("report", "AsyncScene/Web/state.js:report flow hardcoded replies", () => ["Принял. Сейчас разберёмся.", "Цель не обнаружена. Проверю ещё раз.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Этот контакт уже отмечен. Повтор не требуется.", "Проверка сошлась. Контакт отмечен.", "Понимаю, тебя задело. Я вмешался.", "Проверка сошлась. Контакт отмечен.", "Цель не обнаружена. Проверю ещё раз.", "«Сдать» без фактов — штраф 1⭐. Проверь факты в следующий раз.", "NPC отправился за решётку на 5 минут."], { role: "cop", channel: "dm", idPrefix: "state_report_replies" }));
+      list.push(makeSource("dm", "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", () => "Ты мне пишешь? Тогда поговорим лично.", { role: "mafia", channel: "dm", idPrefix: "ui_dm_mafia_trap" }));
+      list.push(makeSource("bandit", "AsyncScene/Web/state.js:sendRevengeDM.bandit", () => "долг вернем, не забудь", { role: "bandit", channel: "dm", idPrefix: "state_revenge_bandit" }));
+      list.push(makeSource("toxic", "AsyncScene/Web/state.js:sendRevengeDM.default", () => "ты за это ответишь", { role: "toxic", channel: "dm", idPrefix: "state_revenge_toxic" }));
+      const speech = Game.NPCSpeech;
+      list.push(makeSource("unknown", "AsyncScene/Web/npcs.js:Game.NPCSpeech.TEMPLATES_BY_LOCALE", () => speech && speech.TEMPLATES_BY_LOCALE, { role: "unknown", channel: "unknown", idPrefix: "npc_speech_templates" }));
+      return list;
+    };
+    const collect = (value, src, path, out) => {
+      if (value == null) return out;
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        const sourcePath = `${src.sourcePath}${path || ""}`;
+        const roleMatch = sourcePath.match(/\.(cop|mafia|bandit|toxic|neutral|crowd)\b/i);
+        const channelMatch = sourcePath.match(/\.(dm|event|battle)\b/i);
+        const role = src.role && src.role !== "unknown" ? src.role : (roleMatch ? (roleMatch[1] === "crowd" ? "neutral" : roleMatch[1].toLowerCase()) : src.role || "unknown");
+        const channel = src.channel && src.channel !== "unknown" ? src.channel : (channelMatch ? channelMatch[1].toLowerCase() : src.channel || "unknown");
+        const category = src.category || "unknown";
+        const text = norm(value);
+        const index = out.length;
+        const baseId = src.idPrefix || stablePart(src.sourcePath);
+        out.push({ id: `${baseId}_${stablePart(path || index)}`, sourcePath, category, role, channel, text });
+        return out;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item, i) => collect(item && typeof item === "object" && typeof item.text === "string" ? item.text : item, src, `${path || ""}[${item && item.id ? stablePart(item.id) : i}]`, out));
+        return out;
+      }
+      if (typeof value === "object") {
+        ["text", "q", "a", "title", "style", "risk", "advice", "line"].forEach(k => { if (typeof value[k] === "string") collect(value[k], src, `${path || ""}.${k}`, out); });
+        Object.keys(value).forEach(k => {
+          if (["text", "q", "a", "title", "style", "risk", "advice", "line"].includes(k)) return;
+          const x = value[k];
+          if (typeof x === "string" || Array.isArray(x) || (x && typeof x === "object")) collect(x, src, `${path || ""}.${stablePart(k)}`, out);
+        });
+      }
+      return out;
+    };
+    devStore.smokeZoomerNpcSpeechInventoryOnce = function smokeZoomerNpcSpeechInventoryOnce() {
+      const result = { ok: false, buildTag: BUILD_TAG, commit: COMMIT, smokeVersion: SMOKE_VERSION, inventoryCount: 0, sourcesCovered: [], missingSources: [], uncategorizedEntries: [], duplicateIds: [], emptyEntries: [], failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], inventory: [] };
+      const requiredSources = [
+        "AsyncScene/Web/npcs.js:NPC.SAY.toxic.m", "AsyncScene/Web/npcs.js:NPC.SAY.toxic.f", "AsyncScene/Web/npcs.js:NPC.SAY.bandit.m", "AsyncScene/Web/npcs.js:NPC.SAY.bandit.f", "AsyncScene/Web/npcs.js:NPC.SAY.cop.m", "AsyncScene/Web/npcs.js:NPC.SAY.cop.f", "AsyncScene/Web/npcs.js:NPC.SAY.mafia.m", "AsyncScene/Web/npcs.js:NPC.SAY.mafia.f", "AsyncScene/Web/npcs.js:NPC.SAY.crowd.m", "AsyncScene/Web/npcs.js:NPC.SAY.crowd.f", "AsyncScene/Web/npcs.js:villainQuestions", "AsyncScene/Web/npcs.js:villainChallenges", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text", "AsyncScene/Web/data.js:Data.SYS.challengedLine", "AsyncScene/Web/data.js:Data.SYS.npcBattleStart", "AsyncScene/Web/data.js:Data.SYS.npcBattleEndWin", "AsyncScene/Web/data.js:Data.SYS.npcBattleEndDraw", "AsyncScene/Web/events.js:makeNpcDrawEvent.line", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_accept", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_busy", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_ok", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_fail", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.intros", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.warnings", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.toxicDescriptions", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.banditDescriptions", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.chatReplies", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.cooldownReplies", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.thanks", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.scolds", "AsyncScene/Web/npcs.js:NPC.COP.topics", "AsyncScene/Web/state.js:report flow hardcoded replies", "AsyncScene/Web/state.js:sendRevengeDM.bandit", "AsyncScene/Web/state.js:sendRevengeDM.default", "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", "AsyncScene/Web/npcs.js:Game.NPCSpeech.TEMPLATES_BY_LOCALE"
+      ];
+      const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item); };
+      try {
+        const srcs = sources();
+        const covered = new Set();
+        srcs.forEach((src, sourceIndex) => {
+          if (!src || !src.sourcePath) { addUnique(result.failures, { code: "source_metadata_missing", sourceIndex }); return; }
+          let value;
+          try { value = typeof src.get === "function" ? src.get() : src.value; } catch (err) { addUnique(result.failures, { code: "source_read_failed", sourcePath: src.sourcePath, message: err && err.message ? String(err.message) : String(err) }); return; }
+          const before = result.inventory.length;
+          collect(value, src, "", result.inventory);
+          if (result.inventory.length > before) { covered.add(src.sourcePath); addUnique(result.sourcesCovered, src.sourcePath); }
+          else addUnique(result.missingSources, src.sourcePath);
+        });
+        requiredSources.forEach(sourcePath => { if (!covered.has(sourcePath)) addUnique(result.missingCoverage, sourcePath); });
+        CATEGORIES.forEach(category => { if (!result.inventory.some(e => e && e.category === category)) addUnique(result.missingCoverage, `category:${category}`); });
+        const ids = new Map();
+        result.inventory.forEach((entry, index) => {
+          if (!entry || !entry.id || !entry.sourcePath) addUnique(result.failures, { code: "entry_metadata_missing", index, entry });
+          if (!entry || !CATEGORY_SET.has(entry.category)) addUnique(result.uncategorizedEntries, entry || { index });
+          if (!entry || !norm(entry.text)) addUnique(result.emptyEntries, entry || { index });
+          if (entry && /Console\.txt/i.test(entry.text)) addUnique(result.forbiddenRemaining, { rule: "no_console_txt", id: entry.id, sourcePath: entry.sourcePath, text: entry.text });
+          if (entry && /undefined|null/i.test(entry.text)) addUnique(result.forbiddenRemaining, { rule: "no_undefined_null_text", id: entry.id, sourcePath: entry.sourcePath, text: entry.text });
+          if (entry && /\$\{[^}]*\}|\{\s*\}/.test(entry.text)) addUnique(result.forbiddenRemaining, { rule: "no_broken_placeholders", id: entry.id, sourcePath: entry.sourcePath, text: entry.text });
+          if (entry && entry.id) {
+            if (!ids.has(entry.id)) ids.set(entry.id, []);
+            ids.get(entry.id).push({ sourcePath: entry.sourcePath, text: entry.text });
+          }
+        });
+        ids.forEach((rows, id) => { if (rows.length > 1) addUnique(result.duplicateIds, { id, entries: rows }); });
+      } catch (err) {
+        addUnique(result.failures, { code: "smoke_exception", message: err && err.message ? String(err.message) : String(err) });
+      }
+      result.inventoryCount = result.inventory.length;
+      if (result.inventoryCount <= 0) addUnique(result.failedChecks, "inventory_empty");
+      if (result.missingSources.length) addUnique(result.failedChecks, "missing_sources");
+      if (result.uncategorizedEntries.length) addUnique(result.failedChecks, "uncategorized_entries");
+      if (result.duplicateIds.length) addUnique(result.failedChecks, "duplicate_ids");
+      if (result.emptyEntries.length) addUnique(result.failedChecks, "empty_entries");
+      if (result.failures.length) addUnique(result.failedChecks, "failures_present");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+      result.ok = result.failedChecks.length === 0;
+      return result;
+    };
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechInventoryOnce = devStore.smokeZoomerNpcSpeechInventoryOnce;
+  };
+  installZoomerNpcSpeechInventorySmoke(G.__DEV);
+
   console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeNpcSpeechInventoryOnce);
   const installStep3TerminologyInventorySmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
