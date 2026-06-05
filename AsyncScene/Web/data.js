@@ -13,11 +13,11 @@ window.Game = window.Game || {};
   Data.START_SCREEN = Object.freeze({
     title: "AsyncScene",
     introLines: Object.freeze([
-      "Ты выбираешь оппонента.",
-      "Ставка — ресурс.",
-      "Итог — в репутацию."
+      "Выбери оппонента.",
+      "Сделай ставку.",
+      "Проверь итог."
     ]),
-    economyHonestyLine: "Цена и итог видны сразу.",
+    economyHonestyLine: "Смотри цену и итог.",
     actions: Object.freeze({
       start: "Старт",
       rules: "Суть"
@@ -140,12 +140,12 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       tie_timer: "Осталось: {sec}s",
       tie_end_winner: "Победил {name} - {aVotes}:{bVotes}.",
       tie_end_draw: "Поровну по голосам - {aVotes}:{bVotes}.",
-      tie_chat_start: "Толпа решает. Выбери имя в событиях.",
+      tie_chat_start: "Выбери имя в событиях.",
       tie_chat_end_winner: "Толпа решает. Победил {name} - {aVotes}:{bVotes}.",
       tie_chat_end_draw: "Толпа решает. Поровну - {aVotes}:{bVotes}.",
 
       events_title: "События ({count})",
-      events_empty: "Пока без событий.",
+      events_empty: "Открой события.",
       events_close_extra: "Свернуть",
       events_clear_all: "Очистить",
       events_done: "Готово",
@@ -171,10 +171,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       cop_cooldown: ["Дайте время, я занят делом."],
 
       // UI type hints (Canon)
-      hint_type_who: "Ответь кто",
-      hint_type_where: "Ответь где",
-      hint_type_about: "Ответь о ком или о чём",
-      hint_type_yn: "Ответь да или нет",
+      hint_type_who: "Ответь: кто?",
+      hint_type_where: "Ответь: где?",
+      hint_type_about: "Ответь: о ком?",
+      hint_type_yn: "Ответь: да или нет?",
     },
     alpha: {
       tie_start: "ТОЛПА",

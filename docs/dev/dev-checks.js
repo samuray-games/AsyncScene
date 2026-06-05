@@ -11,7 +11,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ad";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ae";
   const RUNTIME_COMMIT = "a3090e1";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
@@ -1992,6 +1992,80 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && !!result.smokeVersion;
       return result;
     };
+    const smokeZoomerHintTermsOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_6_zoomer_hint_terms_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerHintTermsOnce",
+        hintEntries: [],
+        hintEntriesCount: 0,
+        sampledHintSources: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      try {
+        const inventoryEntries = collectZoomerTermsInventoryEntries();
+        const hintEntries = inventoryEntries.filter((entry) => entry && String(entry.category || "") === "hint" && normalize(entry.text));
+        result.hintEntries = Array.from(new Set(hintEntries.map((entry) => normalize(entry.text)))).sort();
+        result.hintEntriesCount = result.hintEntries.length;
+        result.sampledHintSources = hintEntries.slice(0, 20).map((entry) => {
+          const source = entry.source || {};
+          return {
+            category: entry.category || null,
+            text: normalize(entry.text),
+            file: source.file || entry.file || null,
+            module: source.module || entry.module || null,
+            key: source.key || entry.key || null,
+            path: source.path || entry.path || null
+          };
+        });
+        const actionStart = /^(?:выбери|введи|открой|сделай|проверь|ответь|сдай|нажми|кликни|смотри)\b/i;
+        const explanatoryPatterns = [
+          /(?:можно|иначе|пока|сплошная|видны|сразу|сработает|болтовня|без ошибок|толпа решает)/i,
+          /(?:\bне\s+происходит\b|\bвсё\b.*\bвидно\b)/i
+        ];
+        result.hintEntries.forEach((text) => {
+          if (!actionStart.test(text)) {
+            addUnique(result.forbiddenRemaining, { pattern: "not_action_leading", text });
+          }
+          explanatoryPatterns.forEach((pattern, index) => {
+            if (pattern.test(text)) {
+              addUnique(result.forbiddenRemaining, { pattern: `explanatory_${index + 1}`, text });
+            }
+          });
+        });
+        if (result.forbiddenRemaining.length) fail("action_oriented_hint_copy", result.forbiddenRemaining.slice());
+        if (result.hintEntriesCount < 8) fail("hint_terms_inventory_size", result.hintEntriesCount);
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_6_zoomer_hint_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_6") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.hintEntriesCount >= 8
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
     const smokeZoomerShorteningQualityOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -3816,6 +3890,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     Game.Dev.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
+    Game.Dev.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
     Game.Dev.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
@@ -3840,6 +3915,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
+    devStore.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
     devStore.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
