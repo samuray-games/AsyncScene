@@ -45,6 +45,33 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 - This lexical frame extends `UI_PROFILE_ZOOMER_SHORTEN_RULE`: it keeps the 30-40% shortening target, fewer filler words, fewer abstractions, and more verbs.
 - No contradiction with previous zoomer shortening rules: shortening stays direct and action-focused; it does not add slang, memes, fake youth voice, or irony.
 
+## UI_PROFILE_ZOOMER_ALLOWED_LEXICON
+
+Dictionary/profile inventory only. These examples approve simple vocabulary for future zoomer-profile copy; they do not rewrite current UI text, NPC lines, or gameplay logic.
+
+Allowed surfaces only: ui, toasts, errors, hints, npcSpeech.
+
+Rules:
+
+- Use simple everyday Russian words, short clauses, direct verbs, and concrete outcomes.
+- Prefer action-first forms: `жми`, `выбери`, `проверь`, `подтверди`, `жди`.
+- Prefer compact permission/possibility forms: `можно`, `можешь`, `доступно`, `открыто`.
+- Prefer short risk/result forms: `риск есть`, `ход сработал`, `не хватило`, `нет связи`, `цена видна`.
+- Keep the meaning literal and cause-first; this section approves only listed simple vocabulary.
+- This inventory applies only to UI labels, toasts, error messages, hints, and NPC speech.
+
+Allowed vocabulary inventory:
+
+| surface | approved examples | rule |
+| --- | --- | --- |
+| ui | можно; жми; выбери | short labels and direct action verbs only |
+| toasts | ход сработал; готово; принято | compact result/status messages only |
+| errors | не хватило; нет связи; уже занято | short cause-first errors only |
+| hints | риск есть; проверь цену; жми, когда готов | brief actionable hints only |
+| npcSpeech | можно; выбери ход; риск есть | short direct NPC lines only |
+
+All exclusions from `UI_PROFILE_ZOOMER_LEXICAL_FRAME` still apply; this inventory adds no excluded examples.
+
 ## UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE
 
 Dedicated transformation table only: millennial-style long construction -> shorter direct zoomer form. Same meaning, 30-40% shorter, fewer filler words, fewer abstractions, more verbs. No slang, no memes, no fake youth voice.

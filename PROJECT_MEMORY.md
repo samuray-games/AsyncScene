@@ -5121,3 +5121,11 @@ Error: Download failure, code=1
 - Added mirrored dev-only `Game.__DEV.smokeZoomerUiTextShorteningOnce()` with explicit mapping/meaning checks and required return fields: `{ ok, checkedCount, shortenedCount, failures, forbiddenRemaining, missingCoverage, failedChecks }`.
 - Cache-busted mirrored system/data bundle URLs so Safari can load the updated copy/smoke. No gameplay/economy logic was changed, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeZoomerUiTextShorteningOnce()`.
+
+## 2026-06-05 - Step 3.2 Zoomer allowed lexical dictionary
+- READY_FOR_RUNTIME_SMOKE only; Safari must run `Game.__DEV.smokeZoomerAllowedLexiconOnce()` before runtime PASS is claimed.
+- The zoomer profile now has a dictionary-only `UI_PROFILE_ZOOMER_ALLOWED_LEXICON` inventory for future approved simple vocabulary.
+- Required approved examples are `можно`, `жми`, `выбери`, `риск есть`, `ход сработал`, and `не хватило`.
+- Allowed surfaces are exactly ui, toasts, errors, hints, and npcSpeech. Do not apply this step to live UI copy yet.
+- Smoke identity for this step uses commit tag `zoomer_allowed_lexicon_step3_2`, build tag `build_2026_06_05_e`, and a unique Step 3.2 smokeVersion.
+- Scope guard: no gameplay logic changes, no UI text rewrites, no side refactors, and `Console.txt` was not used.
