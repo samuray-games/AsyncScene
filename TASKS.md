@@ -5898,3 +5898,12 @@ Error: Download failure, code=1
 - Added mirrored dev-only smoke `Game.__DEV.smokeZoomerAllowedLexiconOnce()` verifying dictionary existence, required examples, required surface coverage, no forbidden-category words in approved examples/rules, and identity fields `buildTag`, `commit`, and unique `smokeVersion`.
 - Scope guard preserved: dictionary/profile and smoke only; no gameplay logic, no UI text rewrites, no side refactors, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeZoomerAllowedLexiconOnce()`.
+
+## 2026-06-05 - Step 3.4 Zoomer system texts lexical pass
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Applied the approved Step 3.1 lexical frame, Step 3.2 allowed lexicon direction, and Step 3.3 stop-word rules to system-text surfaces only: errors, hints, toasts, and button labels.
+- Shortened and simplified selected runtime/system UI copy in the mirrored Web and docs bundles, including click hints, invite/report hints, respect/training labels, start/reset labels, battle hints, and SystemCopy warning/notification/error templates.
+- Added `Game.__DEV.smokeZoomerSystemTextsOnce()` in both runtime system bundles. The smoke verifies that the system text inventory exists, errors/hints/toasts/buttons are covered, forbidden stop-words are absent, texts stay short/direct, teacher tone and excessive explanation are absent, and `buildTag`, `commit`, and commit-unique `smokeVersion` are returned.
+- New runtime build identity: `build_2026_06_05_h` / `zoomer_system_texts_step3_4`; smokeVersion `step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4`.
+- Scope guard preserved: no gameplay logic changes, no economy changes, no NPC speech changes, no side refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerSystemTextsOnce()`.

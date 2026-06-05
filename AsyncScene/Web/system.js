@@ -36,12 +36,12 @@ window.Game = window.Game || {};
       reportFalsePenalty: "Штраф: -5 💰.",
     }),
     warnings: Object.freeze({
-      checkInput: "Проверь ввод и повтори.",
+      checkInput: "Проверь ввод.",
       cooldownShort: "Подожди немного.",
       alreadyVoted: "Уже принято.",
-      respectPairDaily: "Уважение ему уже отправлено.",
-      respectNoChain: "Цепочка сегодня закрыта.",
-      respectEmitterEmpty: "Уважение сегодня недоступно.",
+      respectPairDaily: "Уважение уже отправлено.",
+      respectNoChain: "Цепочка закрыта.",
+      respectEmitterEmpty: "Уважение недоступно.",
       escapeNeedsPoints: "Не хватает 💰 на Свалить.",
     }),
     notifications: Object.freeze({
@@ -52,7 +52,7 @@ window.Game = window.Game || {};
       respectPaid: "Списано 1💰.",
       respectTargetRep: "Цели +1⭐.",
       voteAccepted: "Голос учтён.",
-      reportPending: "Проверка идёт.",
+      reportPending: "Проверяю.",
       reportTrueReward: "Сдать {name}: +2💰.",
       trainingSent: "Аргумент: {teacher} → {student}.",
       rematchRequested: "{name} зовёт на реванш.",
@@ -64,10 +64,10 @@ window.Game = window.Game || {};
       escapeVoteCost: "Свалить: -{escapeCost}💰.",
     }),
     systemEvents: Object.freeze({
-      ready: "Система готова.",
+      ready: "Готово.",
       dmReaction: "{name} обменялся(ась) реакцией с {target}.",
       dmInvite: "{name} позвал(а) {guest} в личку к {target}.",
-      joined: "{name} на площади. Старт.",
+      joined: "{name} на площади.",
       moved: "Переход: {location}.",
       battleChallenge: "{attackerName} [{attackerInf}] вызвал(а) тебя. Открой баттл.",
       npcBattleStart: "Баттл: {a} вызывает {b}.",
@@ -75,9 +75,9 @@ window.Game = window.Game || {};
       battleDraw: "Ничья. {a} и {b} разошлись.",
       crowdStart: "Толпа голосует.",
       crowdResolved: "Толпа выбрала {name}: {aVotes}:{bVotes}.",
-      unlockOrange: "Оранжевые аргументы доступны.",
-      unlockRed: "Красные аргументы доступны.",
-      unlockBlack: "Чёрные аргументы доступны.",
+      unlockOrange: "Оранжевые аргументы открыты.",
+      unlockRed: "Красные аргументы открыты.",
+      unlockBlack: "Чёрные аргументы открыты.",
     }),
   });
 
@@ -90,7 +90,7 @@ window.Game = window.Game || {};
     errors: Object.freeze({
       blockedWithHint: "Не получилось: {what}. {hint}",
       unavailableWithHint: "Недоступно: {what}. {hint}",
-      needsValue: "Нужно: {what}. {hint}",
+      needsValue: "Проверь: {what}. {hint}",
     }),
     warnings: Object.freeze({
       actionOption: "{what}. {option}",
@@ -128,8 +128,8 @@ window.Game = window.Game || {};
     voteCost: "0",
     rematchCost: "1",
     escapeCost: "1",
-    teacher: "учитель",
-    student: "ученик",
+    teacher: "отправитель",
+    student: "получатель",
   });
 
   const SYSTEM_COPY_CODE_TAXONOMY = Object.freeze({
@@ -260,7 +260,7 @@ window.Game = window.Game || {};
     style: "short-neutral-fact-consequence-next-step",
     sampleMin: 30,
     sampleMax: 50,
-    allowedExamples: Object.freeze(["не получилось", "недоступно", "нужно", "можно позже", "попробуй ещё раз"]),
+    allowedExamples: Object.freeze(["не получилось", "недоступно", "проверь", "можно позже", "попробуй ещё раз"]),
     forbidden: Object.freeze({
       evaluative: /(^|[^А-Яа-яЁёA-Za-z0-9_])(плохо|неправильно|стыдно|фейл|позор|зашквар|тупо|глупо)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
       pressure: /(^|[^А-Яа-яЁёA-Za-z0-9_])(ты\s+обязан|срочно|немедленно|прямо\s+сейчас)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
@@ -696,31 +696,31 @@ window.Game = window.Game || {};
       return getPath(Game, source);
     };
     const covered = Object.freeze([
-      { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Кликни имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Выбери имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
       { category: 'buttons', source: 'Data.TEXTS.genz.events_close_extra', before: 'Закрыть лишнее', after: 'Свернуть', meaning: 'button still closes/collapses extra event UI' },
       { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить: {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
-      { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос принят.', meaning: 'vote result still confirms the vote was accepted' },
+      { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос учтён.', meaning: 'vote result still confirms the vote was accepted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_already', before: 'Ты уже вписался.', after: 'Уже учтён.', meaning: 'vote result still says the vote was already counted' },
-      { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не принят.', meaning: 'vote result still says the vote was not accepted' },
+      { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не учтён.', meaning: 'vote result still says the vote was not accepted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.events_done', before: 'Зафиксили', after: 'Готово', meaning: 'event toast/status still confirms completion' },
       { category: 'toasts', source: 'SystemCopy.notifications.respectTargetRep', before: 'Цель получила +1⭐.', after: 'Цели +1⭐.', meaning: 'respect toast still says the target gained one reputation' },
       { category: 'toasts', source: 'SystemCopy.notifications.voteAccepted', before: 'Принято. Голос учтён.', after: 'Голос учтён.', meaning: 'vote acceptance toast still confirms counted vote' },
       { category: 'toasts', source: 'SystemCopy.notifications.trainingSent', before: 'Обучение аргументу: {teacher} → {student}.', after: 'Аргумент: {teacher} → {student}.', meaning: 'training toast still records the same teacher to student argument action' },
       { category: 'toasts', source: 'SystemCopy.notifications.rematchRequested', before: 'Реванш доступен: {name} снова зовёт в баттл.', after: '{name} зовёт на реванш.', meaning: 'rematch toast still says the same player requests a rematch' },
       { category: 'toasts', source: 'SystemCopy.notifications.pointsDeltaRefund', before: '+1💰 возвращено.', after: '+1💰 возврат.', meaning: 'refund toast keeps the same +1 points value' },
-      { category: 'hints', source: 'Data.TEXTS.genz.tie_click_name_hint', before: 'Кликни на имя, за кого хочешь вписаться.', after: 'Кликни имя для выбора.', meaning: 'hint still tells the player to click a name to choose a side' },
-      { category: 'hints', source: 'Data.TEXTS.genz.tie_chat_start', before: 'Толпа решает. Вписывайся - кликни на имя в событиях.', after: 'Толпа решает. Кликни имя в событиях.', meaning: 'chat hint still points the player to click a name in events' },
+      { category: 'hints', source: 'Data.TEXTS.genz.tie_click_name_hint', before: 'Кликни на имя, за кого хочешь вписаться.', after: 'Выбери имя.', meaning: 'hint still tells the player to click a name to choose a side' },
+      { category: 'hints', source: 'Data.TEXTS.genz.tie_chat_start', before: 'Толпа решает. Вписывайся - кликни на имя в событиях.', after: 'Толпа решает. Выбери имя в событиях.', meaning: 'chat hint still points the player to click a name in events' },
       { category: 'hints', source: 'Data.TEXTS.genz.events_empty', before: 'Ничего не происходит, сплошная болтовня.', after: 'Пока без событий.', meaning: 'empty events hint still says there are no current events' },
-      { category: 'hints', source: 'Data.TEXTS.genz.invite_open_hint', before: 'Введи ник игрока. Без ошибок, иначе не сработает.', after: 'Введи точный ник игрока.', meaning: 'hint still requires an exact player nickname' },
+      { category: 'hints', source: 'Data.TEXTS.genz.invite_open_hint', before: 'Введи ник игрока. Без ошибок, иначе не сработает.', after: 'Введи точный ник.', meaning: 'hint still requires an exact player nickname' },
       { category: 'hints', source: 'dom#reportHint', before: 'Сдать бандита или токсика за +2 💰.', after: 'Сдай бандита/токсика: +2 💰.', meaning: 'report hint keeps the same valid targets and unchanged +2 points reward' },
       { category: 'hints', source: 'SystemTemplateFallbacks.hint', before: 'Можно попробовать позже.', after: 'Попробуй позже.', meaning: 'fallback hint still tells the player to retry later' },
       { category: 'hints', source: 'SystemTemplateFallbacks.option', before: 'Можно выбрать другой вариант.', after: 'Выбери другой вариант.', meaning: 'fallback option still tells the player to choose another option' },
       { category: 'errors', source: 'Data.TEXTS.genz.invite_invalid', before: 'Такого игрока нет.', after: 'Игрок не найден.', meaning: 'invite error still says the player was not found' },
       { category: 'errors', source: 'SystemCopy.errors.pointsLowBattle', before: 'Не получилось: мало 💰 на баттл.', after: 'Мало 💰 на баттл.', meaning: 'battle error still says points are insufficient' },
-      { category: 'errors', source: 'SystemCopy.warnings.checkInput', before: 'Проверь ввод и попробуй ещё раз.', after: 'Проверь ввод и повтори.', meaning: 'input warning still asks to check input and retry' },
-      { category: 'errors', source: 'SystemCopy.warnings.respectPairDaily', before: 'Уважение сегодня уже отправлено этому персонажу.', after: 'Уважение ему уже отправлено.', meaning: 'respect warning still says this target already got respect today' },
-      { category: 'errors', source: 'SystemCopy.warnings.respectNoChain', before: 'Цепочка туда-обратно сегодня недоступна.', after: 'Цепочка сегодня закрыта.', meaning: 'respect warning still says the reciprocal chain is unavailable today' },
-      { category: 'systemStrings', source: 'SystemCopy.systemEvents.joined', before: '{name} на площади. Событие началось.', after: '{name} на площади. Старт.', meaning: 'system event still says the named player joined and the event started' },
+      { category: 'errors', source: 'SystemCopy.warnings.checkInput', before: 'Проверь ввод и попробуй ещё раз.', after: 'Проверь ввод.', meaning: 'input warning still asks to check input and retry' },
+      { category: 'errors', source: 'SystemCopy.warnings.respectPairDaily', before: 'Уважение сегодня уже отправлено этому персонажу.', after: 'Уважение уже отправлено.', meaning: 'respect warning still says this target already got respect today' },
+      { category: 'errors', source: 'SystemCopy.warnings.respectNoChain', before: 'Цепочка туда-обратно сегодня недоступна.', after: 'Цепочка закрыта.', meaning: 'respect warning still says the reciprocal chain is unavailable today' },
+      { category: 'systemStrings', source: 'SystemCopy.systemEvents.joined', before: '{name} на площади. Событие началось.', after: '{name} на площади.', meaning: 'system event still says the named player joined and the event started' },
       { category: 'systemStrings', source: 'SystemCopy.systemEvents.moved', before: 'Переход выполнен: {location}.', after: 'Переход: {location}.', meaning: 'system event still reports the same location transition' },
       { category: 'systemStrings', source: 'SystemCopy.systemEvents.battleChallenge', before: '{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.', after: '{attackerName} [{attackerInf}] вызвал(а) тебя. Открой баттл.', meaning: 'system event still names the challenger and tells the player to open battle' },
       { category: 'systemStrings', source: 'SystemCopy.systemEvents.npcBattleStart', before: 'Баттл начался: {a} вызывает {b}.', after: 'Баттл: {a} вызывает {b}.', meaning: 'system event still says the same NPC battle started' },
@@ -1120,8 +1120,8 @@ window.Game = window.Game || {};
       voteCost: 1,
       rematchCost: 1,
       escapeCost: 1,
-      teacher: "учитель",
-      student: "ученик",
+      teacher: "отправитель",
+      student: "получатель",
       attackerName: "соперник",
       attackerInf: 2,
       winner: "победитель",
@@ -1786,6 +1786,140 @@ window.Game = window.Game || {};
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
       && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  Game.__DEV.smokeZoomerSystemTextsOnce = function smokeZoomerSystemTextsOnce(){
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = "step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4";
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      inventoryExists: false,
+      covered: { errors: 0, hints: 0, toasts: 0, buttons: 0 },
+      checkedCount: 0,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      profileIssues: [],
+      teacherTone: [],
+      excessiveExplanation: []
+    };
+    const addUnique = (list, value) => {
+      const key = JSON.stringify(value);
+      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const addText = (rows, group, source, text) => {
+      const value = normalize(text);
+      if (!value) return;
+      rows.push({ group, source, text: value });
+    };
+    const addBucket = (rows, group, prefix, bucket) => {
+      if (!bucket || typeof bucket !== "object") return;
+      Object.keys(bucket).forEach((key) => addText(rows, group, `${prefix}.${key}`, bucket[key]));
+    };
+    try {
+      const rows = [];
+      const copy = Game.SystemCopy || SystemCopy || {};
+      const templates = Game.SystemTextTemplates || SYSTEM_TEXT_TEMPLATES || {};
+      addBucket(rows, "errors", "SystemCopy.errors", copy.errors);
+      addBucket(rows, "errors", "SystemTextTemplates.errors", templates.errors);
+      addBucket(rows, "toasts", "SystemCopy.warnings", copy.warnings);
+      addBucket(rows, "toasts", "SystemCopy.notifications", copy.notifications);
+      const D = Game.Data || {};
+      const genz = (D.TEXTS && D.TEXTS.genz) || {};
+      [
+        ["hints", "Data.START_SCREEN.intro.0", D.START_SCREEN && D.START_SCREEN.introLines && D.START_SCREEN.introLines[0]],
+        ["hints", "Data.START_SCREEN.intro.1", D.START_SCREEN && D.START_SCREEN.introLines && D.START_SCREEN.introLines[1]],
+        ["hints", "Data.START_SCREEN.intro.2", D.START_SCREEN && D.START_SCREEN.introLines && D.START_SCREEN.introLines[2]],
+        ["hints", "Data.START_SCREEN.economyHonestyLine", D.START_SCREEN && D.START_SCREEN.economyHonestyLine],
+        ["hints", "Data.TEXTS.genz.tie_call_to_action", genz.tie_call_to_action],
+        ["hints", "Data.TEXTS.genz.tie_click_name_hint", genz.tie_click_name_hint],
+        ["hints", "Data.TEXTS.genz.invite_open_hint", genz.invite_open_hint],
+        ["hints", "Data.TEXTS.genz.hint_type_who", genz.hint_type_who],
+        ["hints", "Data.TEXTS.genz.hint_type_where", genz.hint_type_where],
+        ["hints", "Data.TEXTS.genz.hint_type_about", genz.hint_type_about],
+        ["hints", "Data.TEXTS.genz.hint_type_yn", genz.hint_type_yn],
+        ["errors", "Data.TEXTS.genz.battle_not_enough_points", genz.battle_not_enough_points],
+        ["errors", "Data.TEXTS.genz.vote_fail", genz.vote_fail],
+        ["errors", "Data.TEXTS.genz.invite_invalid", genz.invite_invalid],
+        ["toasts", "Data.TEXTS.genz.vote_ok", genz.vote_ok],
+        ["toasts", "Data.TEXTS.genz.vote_already", genz.vote_already],
+        ["buttons", "Data.START_SCREEN.actions.start", D.START_SCREEN && D.START_SCREEN.actions && D.START_SCREEN.actions.start],
+        ["buttons", "Data.START_SCREEN.actions.rules", D.START_SCREEN && D.START_SCREEN.actions && D.START_SCREEN.actions.rules],
+        ["buttons", "Data.TEXTS.genz.escape_button_label", genz.escape_button_label],
+        ["buttons", "Data.TEXTS.genz.events_close_extra", genz.events_close_extra],
+        ["buttons", "Data.TEXTS.genz.events_clear_all", genz.events_clear_all],
+        ["buttons", "Data.TEXTS.genz.events_done", genz.events_done],
+        ["buttons", "UI.chat.send", "Заслать"],
+        ["buttons", "UI.report.submit", "Сдать"],
+        ["buttons", "UI.dm.battle", "баттл"],
+        ["buttons", "UI.dm.respect", "Уважение"],
+        ["buttons", "UI.dm.teach", "Передать аргумент"],
+        ["buttons", "UI.dm.invite", "Позвать"],
+        ["buttons", "UI.battles.rematch", "Реванш"],
+        ["buttons", "UI.close", "Закрыть"]
+      ].forEach((entry) => addText(rows, entry[0], entry[1], entry[2]));
+
+      result.inventoryExists = rows.length > 0;
+      rows.forEach((row) => {
+        result.covered[row.group] = (result.covered[row.group] || 0) + 1;
+        result.checkedCount += 1;
+        const text = row.text;
+        const lower = text.toLowerCase();
+        const wordCount = text.split(/\s+/).filter(Boolean).length;
+        const sentenceCount = (text.match(/[.!?。]+/g) || []).length;
+        const forbidden = ["кринж", "вайб", "имба", "рофл", "изи", "лол", "кек", "хайп", "мем", "мемный", "движ", "угар", "чил"];
+        forbidden.forEach((word) => {
+          const re = new RegExp(`(^|[^А-Яа-яЁёA-Za-z0-9_])${word}(?=$|[^А-Яа-яЁёA-Za-z0-9_])`, "i");
+          if (re.test(lower)) addUnique(result.forbiddenRemaining, { source: row.source, text, word });
+        });
+        if (/давай\s+разбер|обуч|урок|настав|запомни|прочитай|следуй|изучи|правильно|неправильно|молодец|умничк|учитель|ученик/i.test(text)) {
+          addUnique(result.teacherTone, { source: row.source, text });
+        }
+        if (wordCount > (row.group === "buttons" ? 3 : 8) || text.length > (row.group === "buttons" ? 28 : 72) || sentenceCount > 2 || /потому что|если.+то|подробн|информац|объясн|рекомендуется|необходимо|следует/i.test(text)) {
+          addUnique(result.excessiveExplanation, { source: row.source, text, wordCount, length: text.length });
+        }
+      });
+      ["errors", "hints", "toasts", "buttons"].forEach((group) => {
+        if (!result.covered[group]) addUnique(result.missingCoverage, group);
+      });
+      if (!result.inventoryExists) fail("system_text_inventory_exists");
+      if (result.missingCoverage.length) fail("errors_hints_toasts_buttons_covered", result.missingCoverage.slice());
+      if (result.forbiddenRemaining.length) fail("no_forbidden_stop_words", result.forbiddenRemaining.slice());
+      if (result.excessiveExplanation.length) fail("short_direct_profile", result.excessiveExplanation.slice());
+      if (result.teacherTone.length) fail("no_teacher_tone", result.teacherTone.slice());
+      if (result.profileIssues.length) fail("direct_conversational_profile", result.profileIssues.slice());
+      if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      if (smokeVersion.indexOf("step3_4") === -1 || smokeVersion.indexOf(String(commit || "")) === -1 || smokeVersion !== `step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_${commit}`) {
+        fail("smoke_version_unique_for_commit", smokeVersion);
+      }
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.inventoryExists === true
+      && result.checkedCount > 0
+      && result.missingCoverage.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.excessiveExplanation.length === 0
+      && result.teacherTone.length === 0
+      && result.profileIssues.length === 0
+      && !!result.buildTag
+      && !!result.commit
+      && !!result.smokeVersion
+      && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+      && result.failures.length === 0
       && result.failedChecks.length === 0;
     return result;
   };
