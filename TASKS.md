@@ -1,3 +1,14 @@
+## 2026-06-05 — AsyncScene Step 3.6 Combined lexical smoke pack
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add validation-only combined lexical smoke pack without rewriting UI copy, NPC speech, or gameplay logic.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerLexicalPackOnce()`.
+- Smoke verifies the allowed lexicon exists, stop-word list exists, forbidden samples are caught, meme-like wording is rejected, Step 3.4 system texts remain valid, Step 3.5 NPC speech remains valid, UI/NPC texts are not longer than the previous accepted zoomer versions, and new feature text surfaces use the same lexicon and stop-word rules.
+- Return contract includes explicit `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays plus `buildTag`, `commit`, and commit-unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_j` / `zoomer_lexical_smoke_pack_step3_6`; smokeVersion `step3_6_combined_lexical_smoke_pack_v1_build_2026_06_05_j_commit_zoomer_lexical_smoke_pack_step3_6`.
+- Required Safari command: `Game.__DEV.smokeZoomerLexicalPackOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 3.5 Zoomer NPC speech lexical profile
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
