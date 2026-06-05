@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_6_arg_simplicity_linter";
-  const RUNTIME_COMMIT = "step5_6_arg_simplicity_linter";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_7_arg_wrappers_smoke_pack";
+  const RUNTIME_COMMIT = "step5_7_arg_wrappers_smoke_pack";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5095,6 +5095,139 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const smokeZoomerArgumentWrappersOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step5_7_argument_wrappers_smoke_pack_v1_20260605a_${buildTag}_commit_${commit}`;
+      const expectedInventoryCount = 964;
+      const expectedWrapperCount = 964;
+      const expectedCoveragePercent = 100;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        substeps: {
+          inventory: { ok: false },
+          rules: { ok: false },
+          pilot: { ok: false },
+          coverage: { ok: false },
+          semantic: { ok: false },
+          simplicity: { ok: false }
+        },
+        inventoryOk: false,
+        rulesOk: false,
+        pilotOk: false,
+        coverageOk: false,
+        semanticOk: false,
+        simplicityOk: false,
+        inventoryCount: 0,
+        wrapperCount: 0,
+        coveragePercent: 0,
+        checkedCount: 0,
+        failedChecks: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        semanticDrift: [],
+        simplicityViolations: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values) => {
+        if (!Array.isArray(values)) return;
+        values.forEach((value) => addUnique(list, value));
+      };
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const compactSubstep = (step) => ({
+        ok: !!(step && step.ok === true),
+        smokeVersion: step && step.smokeVersion || null,
+        failedChecks: Array.isArray(step && step.failedChecks) ? step.failedChecks.slice() : [],
+        failures: Array.isArray(step && step.failures) ? step.failures.slice() : []
+      });
+      const absorbStepLists = (step) => {
+        if (!step || typeof step !== "object") return;
+        addAll(result.failedChecks, step.failedChecks);
+        addAll(result.failures, step.failures);
+        addAll(result.forbiddenRemaining, step.forbiddenRemaining);
+        addAll(result.missingCoverage, step.missingCoverage);
+      };
+      try {
+        const inventory = smokeZoomerArgumentInventoryOnce();
+        const rules = smokeZoomerArgumentWrapperRulesOnce();
+        const pilot = smokeZoomerArgumentWrapperPilotOnce();
+        const coverage = smokeZoomerArgumentWrapperCoverageOnce();
+        const semantic = smokeZoomerArgumentSemanticLinterOnce();
+        const simplicity = smokeZoomerArgumentSimplicityLinterOnce();
+        result.substeps.inventory = compactSubstep(inventory);
+        result.substeps.rules = compactSubstep(rules);
+        result.substeps.pilot = compactSubstep(pilot);
+        result.substeps.coverage = compactSubstep(coverage);
+        result.substeps.semantic = compactSubstep(semantic);
+        result.substeps.simplicity = compactSubstep(simplicity);
+        result.inventoryOk = inventory && inventory.ok === true;
+        result.rulesOk = rules && rules.ok === true;
+        result.pilotOk = pilot && pilot.ok === true;
+        result.coverageOk = coverage && coverage.ok === true;
+        result.semanticOk = semantic && semantic.ok === true;
+        result.simplicityOk = simplicity && simplicity.ok === true;
+        result.inventoryCount = Number(inventory && inventory.inventoryCount) || 0;
+        result.wrapperCount = Number(coverage && coverage.wrapperCount) || 0;
+        result.coveragePercent = Number(coverage && coverage.coveragePercent) || 0;
+        result.checkedCount = Number(semantic && semantic.checkedCount) || Number(simplicity && simplicity.checkedCount) || 0;
+        [inventory, rules, pilot, coverage, semantic, simplicity].forEach(absorbStepLists);
+        addAll(result.forbiddenRemaining, pilot && pilot.forbiddenRemaining);
+        addAll(result.missingCoverage, pilot && pilot.missingCoverage);
+        addAll(result.semanticDrift, pilot && pilot.semanticDrift);
+        addAll(result.semanticDrift, coverage && coverage.semanticDrift);
+        addAll(result.semanticDrift, semantic && semantic.semanticDrift);
+        addAll(result.simplicityViolations, simplicity && simplicity.simplicityViolations);
+        if (result.inventoryCount !== expectedInventoryCount) fail("inventory_count_964", result.inventoryCount);
+        if (result.wrapperCount !== expectedWrapperCount) fail("wrapper_count_964", result.wrapperCount);
+        if (result.coveragePercent !== expectedCoveragePercent) fail("coverage_percent_100", result.coveragePercent);
+        if (result.checkedCount !== expectedInventoryCount) fail("checked_count_964", result.checkedCount);
+        [
+          ["inventory_substep_ok", result.inventoryOk],
+          ["rules_substep_ok", result.rulesOk],
+          ["pilot_substep_ok", result.pilotOk],
+          ["coverage_substep_ok", result.coverageOk],
+          ["semantic_substep_ok", result.semanticOk],
+          ["simplicity_substep_ok", result.simplicityOk]
+        ].forEach(([check, ok]) => {
+          if (ok !== true) fail(check, result.substeps[String(check).replace("_substep_ok", "")]);
+        });
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining_empty", result.forbiddenRemaining.slice(0, 12));
+        if (result.missingCoverage.length) fail("missing_coverage_empty", result.missingCoverage.slice(0, 12));
+        if (result.semanticDrift.length) fail("semantic_drift_empty", result.semanticDrift.slice(0, 12));
+        if (result.simplicityViolations.length) fail("simplicity_violations_empty", result.simplicityViolations.slice(0, 12));
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step5_7_argument_wrappers_smoke_pack_v1_20260605a_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step5_7") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.inventoryOk === true
+        && result.rulesOk === true
+        && result.pilotOk === true
+        && result.coverageOk === true
+        && result.semanticOk === true
+        && result.simplicityOk === true
+        && result.inventoryCount === expectedInventoryCount
+        && result.wrapperCount === expectedWrapperCount
+        && result.coveragePercent === expectedCoveragePercent
+        && result.checkedCount === expectedInventoryCount
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.semanticDrift.length === 0
+        && result.simplicityViolations.length === 0;
+      try { console.warn("STEP5_7_ARGUMENT_WRAPPERS_SMOKE_PACK", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
+
+
     const smokeZoomerTermsReadyOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -5283,6 +5416,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
     Game.Dev.smokeZoomerArgumentSemanticLinterOnce = smokeZoomerArgumentSemanticLinterOnce;
     Game.Dev.smokeZoomerArgumentSimplicityLinterOnce = smokeZoomerArgumentSimplicityLinterOnce;
+    Game.Dev.smokeZoomerArgumentWrappersOnce = smokeZoomerArgumentWrappersOnce;
     Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
@@ -5320,6 +5454,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
     devStore.smokeZoomerArgumentSemanticLinterOnce = smokeZoomerArgumentSemanticLinterOnce;
     devStore.smokeZoomerArgumentSimplicityLinterOnce = smokeZoomerArgumentSimplicityLinterOnce;
+    devStore.smokeZoomerArgumentWrappersOnce = smokeZoomerArgumentWrappersOnce;
     devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
