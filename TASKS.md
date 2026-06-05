@@ -5753,3 +5753,10 @@ Error: Download failure, code=1
 - Required PASS shape includes `ok:true`, empty `missingSections`, empty `duplicatedMillennialBlocks`, empty `forbiddenRemaining`, and `surfacesCovered:true`, plus build/profile diagnostics and failure arrays for Safari smoke review.
 - Scope guard preserved: validator/docs status only; no gameplay, UI behavior, live game text, canon, or profile creation changes. `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.validateZoomerDiffProfileOnce()`.
+
+## 2026-06-05 - AsyncScene Step 2.3 Zoomer UI text shortening
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Applied `UI_PROFILE_ZOOMER_SHORTEN_RULE` to selected existing UI-facing copy across buttons, toasts, hints, errors, and system strings while keeping meanings and economy values unchanged.
+- Added dev-only smoke `Game.__DEV.smokeZoomerUiTextShorteningOnce()` returning `{ ok, checkedCount, shortenedCount, failures, forbiddenRemaining, missingCoverage, failedChecks }` with explicit before/after meaning allowlist coverage.
+- Scope guard: UI copy plus dev-only smoke/cache bust only; no gameplay changes, no economy changes, no refactors, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeZoomerUiTextShorteningOnce()`.
