@@ -1,3 +1,9 @@
+## 2026-06-05 — Step 4 [2] dynamic player-name inventory fix
+- Updated only the Step 4 [2] runtime mapping smoke/table handling in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so `STEP4_2_127` no longer depends on a literal generated player name.
+- Replaced the literal zoomer target with the placeholder `{NAME} 💰10` and taught `Game.__DEV.smokeZoomerTransformationTableOnce()` to accept any live `"{NAME} 💰10"` inventory entry as a valid match for that one row.
+- Guardrails held: no UI text rewrites, no gameplay or inventory collection changes, no unrelated mapping changes, and pair-count coverage stays `129 == 129`.
+- Updated the smoke identity markers in both served dev-check bundles to `build_2026_06_05_r` / `d0a71e7`; Safari runtime PASS is not claimed here and must still be confirmed by rerunning `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-05 — Step 4 [2] runtime table alignment follow-up
 - Updated the actual runtime mapping table in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, not just the docs note, so `Game.__DEV.smokeZoomerTransformationTableOnce()` no longer points at the stale zoomer targets `Enable Dev Mode`, `Проверяю...`, `Занят`, `Ник. Как в чате.`, and `Реванш`.
 - Reassigned those five runtime table rows to the exact live inventory strings `Disable Dev Mode`, `Продолжить`, `Sigma 💰10`, `Твой тон: очень скромный`, and `До скромного: 3 ⚡` without changing gameplay, UI text, or inventory scope.
