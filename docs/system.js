@@ -1794,7 +1794,7 @@ window.Game = window.Game || {};
   Game.__DEV.smokeZoomerSystemTextsOnce = function smokeZoomerSystemTextsOnce(){
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
-    const smokeVersion = "step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4";
+    const smokeVersion = `step3_4_zoomer_system_texts_v2_${buildTag}_commit_${commit}`;
     const result = {
       ok: false,
       buildTag,
@@ -1902,7 +1902,7 @@ window.Game = window.Game || {};
       if (result.teacherTone.length) fail("no_teacher_tone", result.teacherTone.slice());
       if (result.profileIssues.length) fail("direct_conversational_profile", result.profileIssues.slice());
       if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-      if (smokeVersion.indexOf("step3_4") === -1 || smokeVersion.indexOf(String(commit || "")) === -1 || smokeVersion !== `step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_${commit}`) {
+      if (smokeVersion.indexOf("step3_4") === -1 || smokeVersion.indexOf(String(commit || "")) === -1 || smokeVersion !== `step3_4_zoomer_system_texts_v2_${buildTag}_commit_${commit}`) {
         fail("smoke_version_unique_for_commit", smokeVersion);
       }
     } catch (err) {
