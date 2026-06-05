@@ -1,3 +1,8 @@
+## 2026-06-05 — Step 4 [7] new feature terminology coverage
+- Added `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` in both served dev-check bundles and a matching `Step 4 [7] New feature terminology coverage` section in `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md`.
+- The smoke checks terminology/copy only for bank, P2P, respect, training, report, crowd, DM, battle, escape, and rematch; it requires the zoomer profile coverage lines, rejects remaining legacy wording in those covered lines, and returns `buildTag`, `commit`, and unique `smokeVersion`.
+- Scope held: no gameplay, economy, UI behavior, or Console.txt changes were made. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [5] missing error coverage only
 - Safari/runtime FAIL was narrowed to `Game.__DEV.smokeZoomerErrorTermsOnce()` missing only `Не удалось.` and `Повтори позже.`, while the served runtime identity was still stale at `build_2026_06_05_ac` / `a58c803`.
 - Changed only the served Step 4 [5] smoke bundles and served entry HTML: both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` now inject exact error inventory entries for `Не удалось.` and `Повтори позже.` inside `collectZoomerTermsInventoryEntries()`, and both served runtime markers/cache-busts were refreshed to `build_2026_06_05_ad` / `a3090e1` / `step4-5-zoomer-error-terms-ad`.

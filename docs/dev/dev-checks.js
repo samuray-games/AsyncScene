@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ah";
-  const RUNTIME_COMMIT = "b6c8c30";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ai";
+  const RUNTIME_COMMIT = "c675c00";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1417,6 +1417,89 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
         && result.failedChecks.length === 0;
+      return result;
+    };
+    const smokeZoomerNewFeaturesTermsOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_7_zoomer_new_features_terms_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        sourceFiles: [],
+        missingCoverage: [],
+        failedChecks: [],
+        failures: [],
+        forbiddenRemaining: []
+      };
+      const requiredFeatures = [
+        "bank",
+        "P2P",
+        "respect",
+        "training",
+        "report",
+        "crowd",
+        "DM",
+        "battle",
+        "escape",
+        "rematch"
+      ];
+      const legacyTerms = ["миллениал", "legacy", "older wording", "old wording"];
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      try {
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        if (!zoomRes.ok) fail("zoomer_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
+        const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
+        if (zoomRes.ok) addUnique(result.sourceFiles, zoomRes.path);
+        const featureMatch = zoomRaw.match(/##\s*Step 4 \[7\]\s*New feature terminology coverage([\s\S]*?)(?:\n## |\n# |$)/i);
+        if (!featureMatch) {
+          addUnique(result.missingCoverage, "Step 4 [7] New feature terminology coverage");
+          fail("new_feature_terminology_section_exists", "missing_step_4_7_section");
+        }
+        const featureText = String(featureMatch ? featureMatch[1] : "");
+        const featureLines = featureText.split(/\r?\n/).map((line) => normalize(line)).filter(Boolean);
+        requiredFeatures.forEach((feature) => {
+          const line = featureLines.find((candidate) => new RegExp(`^[-*]\\s*${feature.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*:`, "i").test(candidate.trim()));
+          if (!line) {
+            addUnique(result.missingCoverage, `feature:${feature}`);
+            return;
+          }
+          if (!/zoomer terminology profile/i.test(line) || !/existing millennial meaning/i.test(line) || !/zoomer delta/i.test(line)) {
+            addUnique(result.missingCoverage, `featureCoverage:${feature}`);
+          }
+          if (legacyTerms.some((term) => line.toLowerCase().includes(term.toLowerCase()))) {
+            addUnique(result.forbiddenRemaining, { check: "legacy_wording_remaining", feature, line });
+          }
+        });
+        const featureSmoke = G.__DEV && typeof G.__DEV.smokeZoomerNewFeatureCopyOnce === "function" ? G.__DEV.smokeZoomerNewFeatureCopyOnce() : null;
+        result.newFeatureTextSurfacesValid = !!(featureSmoke && featureSmoke.ok === true);
+        if (!result.newFeatureTextSurfacesValid) fail("new_feature_text_surfaces_use_same_allowed_lexicon_and_stop_words", featureSmoke || "missing_smokeZoomerNewFeatureCopyOnce");
+        addAll(result.forbiddenRemaining, featureSmoke && featureSmoke.forbiddenRemaining);
+        addAll(result.missingCoverage, featureSmoke && featureSmoke.missingCoverage);
+        addAll(result.failedChecks, featureSmoke && featureSmoke.failedChecks);
+        if (!Array.isArray(result.failures) || !Array.isArray(result.forbiddenRemaining) || !Array.isArray(result.missingCoverage) || !Array.isArray(result.failedChecks)) fail("explicit_array_contract", "arrays_missing");
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_7_zoomer_new_features_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_7") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+      if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
+      result.ok = result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
       return result;
     };
     const smokeBuildIdentityOnce = () => {
@@ -3925,6 +4008,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
+    G.__DEV.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -3950,6 +4035,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
