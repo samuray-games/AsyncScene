@@ -5336,3 +5336,9 @@ Error: Download failure, code=1
 - Served identity was refreshed to `build_2026_06_05_ag` / `97d3b62`.
 - Scope held: no UI text changes, no buttons/status/errors/gameplay changes, no hint behavior changes, and no `Console.txt` usage.
 - Status: READY_FOR_RUNTIME_SMOKE only. Safari runtime PASS is not claimed.
+## 2026-06-05 — Step 4 [6] hint validator only
+- Safari/runtime FAIL was narrowed to the imperative-start detector itself. The regex used JavaScript `\b`, which is ASCII-oriented and did not reliably recognize Cyrillic imperative starts in `Game.__DEV.smokeZoomerHintTermsOnce()`, so valid hints like `Введи точный ник.`, `Ответь: где?`, and `Выбери имя - выбери сторону.` were still reported as `not_action_leading`.
+- Changed only the `action_oriented_hint_copy` validator logic in both served dev-check bundles to use a delimiter-aware post-verb check instead of `\b`, preserving the same verb allowlist and the existing non-player/dev placeholder filtering.
+- No UI text, buttons, statuses, errors, gameplay logic, or hint behavior changed.
+- Served identity was refreshed to `build_2026_06_05_ah` / `b6c8c30`.
+- Status: READY_FOR_RUNTIME_SMOKE only. Safari runtime PASS is not claimed.
