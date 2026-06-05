@@ -5272,3 +5272,8 @@ Error: Download failure, code=1
 - Allowed surfaces are exactly ui, toasts, errors, hints, and npcSpeech. Do not apply this step to live UI copy yet.
 - Smoke identity for this step uses commit tag `zoomer_allowed_lexicon_step3_2`, build tag `build_2026_06_05_e`, and a unique Step 3.2 smokeVersion.
 - Scope guard: no gameplay logic changes, no UI text rewrites, no side refactors, and `Console.txt` was not used.
+- ## 2026-06-05 — Step 4 [3] button terminology shortening
+- Shortened only the long button label `Передать аргумент` to `Передать` in the Step 4 inventory/mapping table, preserving the underlying action meaning while keeping the work button-only.
+- Added `Game.__DEV.smokeZoomerButtonTermsOnce()` in both runtime bundles. The smoke checks button coverage, build/commit/smokeVersion identity fields, one-to-two-word button labels where possible, and duplicate-label ambiguity, with `ok:true` requiring empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- New runtime build identity: `build_2026_06_05_u` / `step4_3_zoomer_button_terms_v1_build_2026_06_05_u_commit_<commit>`.
+- Guardrails: no status changes, no error changes, no hint changes, no gameplay logic changes, no button behavior changes, and no `Console.txt` usage.

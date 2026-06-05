@@ -11,7 +11,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_t";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_u";
   const RUNTIME_COMMIT = "9ae0866";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
@@ -2713,7 +2713,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           ["UI.report.submit", "Сдать", 28],
           ["UI.dm.battle", "баттл", 28],
           ["UI.dm.respect", "Уважение", 28],
-          ["UI.dm.teach", "Передать аргумент", 28],
+          ["UI.dm.teach", "Передать", 28],
           ["UI.dm.invite", "Позвать", 28],
           ["UI.battles.rematch", "Реванш", 28],
           ["UI.close", "Закрыть", 28]
@@ -3063,7 +3063,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_083", "millennial": "Полная UI-формулировка 083: баттл", "zoomer": "баттл"}),
       Object.freeze({"id": "STEP4_2_084", "millennial": "Полная UI-формулировка 084: Почему?", "zoomer": "Почему?"}),
       Object.freeze({"id": "STEP4_2_085", "millennial": "Полная UI-формулировка 085: Цель", "zoomer": "Цель"}),
-      Object.freeze({"id": "STEP4_2_086", "millennial": "Полная UI-формулировка 086: Передать аргумент", "zoomer": "Передать аргумент"}),
+      Object.freeze({"id": "STEP4_2_086", "millennial": "Полная UI-формулировка 086: Передать аргумент", "zoomer": "Передать"}),
       Object.freeze({"id": "STEP4_2_087", "millennial": "Полная UI-формулировка 087: Локация: Площадь", "zoomer": "Локация: Площадь"}),
       Object.freeze({"id": "STEP4_2_088", "millennial": "Полная UI-формулировка 088: Площадь", "zoomer": "Площадь"}),
       Object.freeze({"id": "STEP4_2_089", "millennial": "Полная UI-формулировка 089: Аргумент грузится.", "zoomer": "Аргумент грузится."}),
@@ -3193,7 +3193,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ["button", "баттл", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "battleBtn.textContent", "battle action"],
         ["button", "Почему?", "AsyncScene/Web/ui/ui-core.js", "ui-core", "explain.textContent", "explain button"],
         ["button", "Цель", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "goal buttons", "menu goal"],
-        ["button", "Передать аргумент", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.button", "training transfer button"],
+        ["button", "Передать", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.button", "training transfer button"],
         ["status", "Локация: Площадь", "AsyncScene/Web/index.html", "index", "locPill", "#locPill"],
         ["status", "Площадь", "AsyncScene/Web/index.html", "index", "meBar", "#meBar"],
         ["status", "Аргумент грузится.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.loading", "training status"],
