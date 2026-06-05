@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ao";
-  const RUNTIME_COMMIT = "8cdd109";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_0de8688";
+  const RUNTIME_COMMIT = "0de8688";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4031,6 +4031,80 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && !!result.smokeVersion;
       return result;
     };
+    const smokeZoomerTermsOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_aggregate_zoomer_terms_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerTermsOnce",
+        summary: {
+          requiredCoverage: ["inventory", "mappingTable", "buttons", "statuses", "errors", "hints", "newFeatures"],
+          passedChecks: [],
+          failedChecks: [],
+          status: "BLOCKED"
+        },
+        inventory: null,
+        mappingTable: null,
+        buttons: null,
+        statuses: null,
+        errors: null,
+        hints: null,
+        newFeatures: null,
+        violations: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const collect = (name, runner) => {
+        const output = typeof runner === "function" ? runner() : null;
+        result[name] = output;
+        if (output && output.ok === true) addUnique(result.summary.passedChecks, name);
+        else {
+          addUnique(result.summary.failedChecks, name);
+          addUnique(result.failedChecks, name);
+          addUnique(result.failures, { check: name, result: output });
+        }
+        addAll(result.violations, output && output.violations);
+        addAll(result.forbiddenRemaining, output && output.forbiddenRemaining);
+        addAll(result.missingCoverage, output && output.missingCoverage);
+        addAll(result.failedChecks, output && output.failedChecks);
+      };
+      try {
+        collect("inventory", G.__DEV && G.__DEV.smokeZoomerTermsInventoryOnce);
+        collect("mappingTable", G.__DEV && G.__DEV.smokeZoomerTransformationTableOnce);
+        collect("buttons", G.__DEV && G.__DEV.smokeZoomerButtonTermsOnce);
+        collect("statuses", G.__DEV && G.__DEV.smokeZoomerStatusTermsOnce);
+        collect("errors", G.__DEV && G.__DEV.smokeZoomerErrorTermsOnce);
+        collect("hints", G.__DEV && G.__DEV.smokeZoomerHintTermsOnce);
+        collect("newFeatures", G.__DEV && G.__DEV.smokeZoomerNewFeaturesTermsOnce);
+        ["inventory", "mappingTable", "buttons", "statuses", "errors", "hints", "newFeatures"].forEach((id) => {
+          if (!Object.prototype.hasOwnProperty.call(result, id) || !result[id]) addUnique(result.missingCoverage, id);
+        });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_aggregate_zoomer_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+        ["inventory", "mappingTable", "buttons", "statuses", "errors", "hints", "newFeatures"].forEach((key) => {
+          const output = result[key];
+          if (!output || output.ok !== true) fail(`step4_${key}_failed`, output);
+        });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.summary.status = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 ? "READY_FOR_RUNTIME_SMOKE" : "BLOCKED";
+      result.ok = result.summary.status === "READY_FOR_RUNTIME_SMOKE" && result.violations.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -4050,7 +4124,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
+    G.__DEV.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     G.__DEV.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -4077,6 +4153,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
