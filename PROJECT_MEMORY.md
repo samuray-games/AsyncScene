@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 4 [2] dynamic inventory growth fix
+- Runtime inventory rose from `129` to `133` because the collector includes four additional live runtime surfaces: the battle escape button text `Свалить: 1 💰`, the battle escape title `−1⭐, при успехе +1⭐`, and two vote-counter labels rendered as `Имя 💰очки [влияние] - голоса`.
+- Updated only the Step 4 [2] runtime mapping smoke/table handling in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so runtime inventory remains authoritative and those four entries are covered without changing UI text, gameplay logic, or inventory collection.
+- Generalized dynamic matching for `STEP4_2_127` player money labels, dynamic escape-cost labels, dynamic vote-counter labels, and the dynamic reputation delta title; names, points, influence, and counters no longer require hardcoded runtime mappings.
+- Removed the fixed `expectedInventoryCount=129` assumption from the smoke and now validate against the actual runtime inventory collected during execution; `pairCount === inventoryCount` remains required for `ok:true`.
+- Updated the smoke identity markers in both served dev-check bundles to `build_2026_06_05_s` / `9a4b6e8`; Safari runtime PASS is not claimed here and must still be confirmed by rerunning `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-05 — Step 4 [2] dynamic player-name inventory fix
 - Updated only the Step 4 [2] runtime mapping smoke/table handling in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so `STEP4_2_127` no longer depends on a literal generated player name.
 - Replaced the literal zoomer target with the placeholder `{NAME} 💰10` and taught `Game.__DEV.smokeZoomerTransformationTableOnce()` to accept any live `"{NAME} 💰10"` inventory entry as a valid match for that one row.
