@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_aa";
-  const RUNTIME_COMMIT = "864d4ab";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ab";
+  const RUNTIME_COMMIT = "f7ea6f7";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1897,7 +1897,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           }
         });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step4_4_zoomer_status_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_4") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (smokeVersion !== `step4_4_zoomer_status_terms_v2_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_4") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique_for_commit", smokeVersion);
         }
       } catch (err) {
