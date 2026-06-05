@@ -1,3 +1,11 @@
+## 2026-06-05 — Step 4 [8] mapping-table refresh for current inventory only
+- Updated only the Step 4 [2] runtime mapping table/validation in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so the aggregate terminology smoke matches the current 132-entry runtime inventory rather than the stale earlier wording set.
+- Replaced the stale mapping rows for `Цена и итог видны сразу.`, `Толпа решает. Выбери имя в событиях.`, `Пока без событий.`, `Ответь кто`, `Ответь где`, `Ответь о ком или о чём`, `Ответь да или нет`, and `Толпа решает. Ты смотришь.` with the current runtime strings `Смотри цену и итог.`, `Выбери имя в событиях.`, `Открой события.`, `Ответь: кто?`, `Ответь: где?`, `Ответь: о ком?`, `Ответь: да или нет?`, and `Выбери сторону.`.
+- Added the missing current-inventory mappings `Не удалось.` and `Повтори позже.`, and widened the dynamic escape matcher to accept the current runtime `Свалить` form with or without a colon before the numeric cost.
+- Refreshed the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_49dea4d` / `49dea4d`, matching the current short git hash.
+- Scope held: no UI text changes, no terminology rewrites outside the Step 4 [2] mapping table, no gameplay changes, no economy changes, and no `Console.txt` usage.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [8] aggregate smoke dependency fix only
 - `Game.__DEV.smokeZoomerTermsOnce()` was still failing in Safari with `Can't find variable: addAll` because the aggregate runner still merged child smoke arrays through a bare helper that was not defined in its own local scope.
 - Fixed only the Step 4 [8] aggregate smoke in both served dev-check bundles by defining a self-contained local `addAllLocal` helper inside `smokeZoomerTermsOnce()` and routing the aggregate `violations`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` merges through it. No child smoke behavior, terminology rules, UI text, gameplay, or economy logic was changed.
