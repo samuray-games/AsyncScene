@@ -899,7 +899,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     }
 
     const canTeach = !isCop && !isMafia;
-    const btnTeach = mkBtn("Передать аргумент", () => {
+    const btnTeach = mkBtn("Передать", () => {
       getS().dm.teachOpen = !getS().dm.teachOpen;
       UI.renderDM();
     });

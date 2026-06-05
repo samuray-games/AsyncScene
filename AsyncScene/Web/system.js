@@ -1866,7 +1866,7 @@ window.Game = window.Game || {};
         ["buttons", "UI.report.submit", "Сдать"],
         ["buttons", "UI.dm.battle", "баттл"],
         ["buttons", "UI.dm.respect", "Уважение"],
-        ["buttons", "UI.dm.teach", "Передать аргумент"],
+        ["buttons", "UI.dm.teach", "Передать"],
         ["buttons", "UI.dm.invite", "Позвать"],
         ["buttons", "UI.battles.rematch", "Реванш"],
         ["buttons", "UI.close", "Закрыть"]
@@ -1921,6 +1921,70 @@ window.Game = window.Game || {};
       && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
       && result.failures.length === 0
       && result.failedChecks.length === 0;
+    return result;
+  };
+
+  Game.__DEV.smokeZoomerButtonTermsOnce = function smokeZoomerButtonTermsOnce() {
+    const result = {
+      ok: false,
+      buildTag: null,
+      commit: null,
+      smokeVersion: null,
+      buttonEntries: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}`;
+    const entries = Object.freeze([
+      { source: "Data.START_SCREEN.actions.start", label: "Старт" },
+      { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
+      { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
+      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
+      { source: "UI.chat.send", label: "Заслать" },
+      { source: "UI.report.submit", label: "Сдать" },
+      { source: "UI.dm.battle", label: "баттл" },
+      { source: "UI.dm.respect", label: "Уважение" },
+      { source: "UI.dm.teach", label: "Передать" },
+      { source: "UI.dm.invite", label: "Позвать" },
+      { source: "UI.battles.rematch", label: "Реванш" },
+      { source: "UI.close", label: "Закрыть" }
+    ]);
+    const seenLabels = new Set();
+    try {
+      if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      if (smokeVersion !== `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        fail("smoke_version_unique_for_commit", smokeVersion);
+      }
+      entries.forEach((entry) => {
+        result.buttonEntries.push(entry);
+        const label = String(entry.label || "").trim();
+        if (!label) fail("empty_button_label", entry);
+        const wordCount = label.split(/\s+/).filter(Boolean).length;
+        if (wordCount > 2) addUnique(result.forbiddenRemaining, { source: entry.source, label, wordCount });
+        if (seenLabels.has(label)) addUnique(result.forbiddenRemaining, { source: entry.source, label, reason: "duplicate_label" });
+        seenLabels.add(label);
+      });
+      if (result.forbiddenRemaining.length) fail("button_label_length_or_ambiguity", result.forbiddenRemaining.slice());
+      if (result.buttonEntries.length === 0) fail("missing_button_entries");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.buildTag = buildTag;
+    result.commit = commit;
+    result.smokeVersion = smokeVersion;
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && !!result.buildTag && !!result.commit && !!result.smokeVersion;
     return result;
   };
 

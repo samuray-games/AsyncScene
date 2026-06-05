@@ -5994,3 +5994,4 @@ Error: Download failure, code=1
 - New runtime build identity: `build_2026_06_05_h` / `zoomer_system_texts_step3_4`; smokeVersion `step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4`.
 - Scope guard preserved: no gameplay logic changes, no economy changes, no NPC speech changes, no side refactors, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZoomerSystemTextsOnce()`.
+- Step 4 [3] button terminology shortening only: shortened the single long button label `Передать аргумент` to `Передать` in the Step 4 inventory/mapping table, added `Game.__DEV.smokeZoomerButtonTermsOnce()` as a button-only smoke for coverage, label-length, and ambiguity checks, and refreshed the runtime identity to `build_2026_06_05_u` / `step4_3_zoomer_button_terms_v1_build_2026_06_05_u_commit_<commit>`. Runtime PASS is not claimed here; Safari must rerun `Game.__DEV.smokeZoomerButtonTermsOnce()`.

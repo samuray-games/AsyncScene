@@ -344,7 +344,7 @@ window.Game = window.Game || {};
     btn.id = "trainingActionBtn";
     btn.type = "button";
     btn.className = "btn small";
-    btn.textContent = "Передать аргумент";
+    btn.textContent = "Передать";
 
     const resultText = document.createElement("div");
     resultText.id = "trainingResultText";
@@ -399,7 +399,7 @@ window.Game = window.Game || {};
         return;
       }
       const price = Number.isFinite(status.price) ? (status.price | 0) : 0;
-      trainingControls.button.textContent = `Передать аргумент (${price} 💰)`;
+      trainingControls.button.textContent = `Передать (${price} 💰)`;
       trainingControls.button.disabled = !status.canTrain;
       trainingControls.statusEl.textContent = `Цена ${price} 💰 • ${status.canTrain ? "доступно" : formatCooldownText(status)}`;
       const xp = status.progress && Number.isFinite(status.progress.xp) ? (status.progress.xp | 0) : 0;
