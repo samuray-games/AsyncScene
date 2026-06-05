@@ -1448,6 +1448,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ];
       const legacyTerms = ["миллениал", "legacy", "older wording", "old wording"];
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fetchTextFromCandidates = (fileName) => {
+        const candidates = collectTextFileCandidates(fileName);
+        return fetchFirst(candidates);
+      };
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
