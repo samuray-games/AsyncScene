@@ -698,7 +698,7 @@ window.Game = window.Game || {};
     const covered = Object.freeze([
       { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Выбери имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
       { category: 'buttons', source: 'Data.TEXTS.genz.events_close_extra', before: 'Закрыть лишнее', after: 'Свернуть', meaning: 'button still closes/collapses extra event UI' },
-      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить: {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос учтён.', meaning: 'vote result still confirms the vote was accepted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_already', before: 'Ты уже вписался.', after: 'Уже учтён.', meaning: 'vote result still says the vote was already counted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не учтён.', meaning: 'vote result still says the vote was not accepted' },
@@ -1946,12 +1946,12 @@ window.Game = window.Game || {};
     };
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
-    const smokeVersion = `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}`;
+    const smokeVersion = `step4_3_zoomer_button_terms_v2_${buildTag}_commit_${commit}`;
     const entries = Object.freeze([
       { source: "Data.START_SCREEN.actions.start", label: "Старт" },
       { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
       { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
-      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
+      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить {X} 💰" },
       { source: "UI.chat.send", label: "Заслать" },
       { source: "UI.report.submit", label: "Сдать" },
       { source: "UI.dm.battle", label: "баттл" },
@@ -1964,7 +1964,7 @@ window.Game = window.Game || {};
     const seenLabels = new Set();
     try {
       if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-      if (smokeVersion !== `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+      if (smokeVersion !== `step4_3_zoomer_button_terms_v2_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
         fail("smoke_version_unique_for_commit", smokeVersion);
       }
       entries.forEach((entry) => {

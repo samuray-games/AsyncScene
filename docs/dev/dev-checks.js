@@ -12,7 +12,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
   const RUNTIME_BUILD_TAG = "build_2026_06_05_u";
-  const RUNTIME_COMMIT = "9ae0866";
+  const RUNTIME_COMMIT = "98599ea";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1686,7 +1686,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
       const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
       const isDynamicNameMoney10Value = (value) => /^[^\s].*\s💰10$/u.test(normalize(value));
-      const isDynamicEscapeCostValue = (value) => /^Свалить:\s*\d+\s*💰$/u.test(normalize(value));
+      const isDynamicEscapeCostValue = (value) => /^Свалить\s*\d+\s*💰$/u.test(normalize(value));
       const isDynamicVoteCounterValue = (value) => /^[^\s].*\s💰\d+\s\[\d+\]\s-\s\d+$/u.test(normalize(value));
       const isDynamicDeltaTitleValue = (value) => /^−\d+⭐,\s*при успехе\s*\+\d+⭐$/u.test(normalize(value));
       const pairMatchesInventoryTarget = (pair, target) => {
@@ -1694,7 +1694,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const id = normalize(pair && pair.id);
         if (zoomer === target) return true;
         if (id === "STEP4_2_127" && zoomer === "{NAME} 💰10" && isDynamicNameMoney10Value(target)) return true;
-        if (id === "STEP4_2_026" && zoomer === "Свалить: {X} 💰" && isDynamicEscapeCostValue(target)) return true;
+        if (id === "STEP4_2_026" && zoomer === "Свалить {X} 💰" && isDynamicEscapeCostValue(target)) return true;
         if (/^STEP4_2_DYNAMIC_VOTE_\d+$/u.test(id) && /^\{DYNAMIC_VOTE_LABEL_\d+\}$/u.test(zoomer) && isDynamicVoteCounterValue(target)) return true;
         if (/^STEP4_2_DYNAMIC_DELTA_\d+$/u.test(id) && /^\{DYNAMIC_DELTA_LABEL_\d+\}$/u.test(zoomer) && isDynamicDeltaTitleValue(target)) return true;
         return false;
@@ -3003,7 +3003,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       Object.freeze({"id": "STEP4_2_023", "millennial": "Полная UI-формулировка 023: Поражение", "zoomer": "Поражение"}),
       Object.freeze({"id": "STEP4_2_024", "millennial": "Полная UI-формулировка 024: Толпа решает", "zoomer": "Толпа решает"}),
       Object.freeze({"id": "STEP4_2_025", "millennial": "Полная UI-формулировка 025: Не хватает 💰.", "zoomer": "Не хватает 💰."}),
-      Object.freeze({"id": "STEP4_2_026", "millennial": "Полная UI-формулировка 026: Свалить: {X} 💰", "zoomer": "Свалить: {X} 💰"}),
+      Object.freeze({"id": "STEP4_2_026", "millennial": "Полная UI-формулировка 026: Свалить {X} 💰", "zoomer": "Свалить {X} 💰"}),
       Object.freeze({"id": "STEP4_2_027", "millennial": "Полная UI-формулировка 027: Для {student}: {arg}. Цена {cost} 💰.", "zoomer": "Для {student}: {arg}. Цена {cost} 💰."}),
       Object.freeze({"id": "STEP4_2_028", "millennial": "Полная UI-формулировка 028: Аргумент: {teacher} → {student}.", "zoomer": "Аргумент: {teacher} → {student}."}),
       Object.freeze({"id": "STEP4_2_029", "millennial": "Полная UI-формулировка 029: Введи точный ник.", "zoomer": "Введи точный ник."}),

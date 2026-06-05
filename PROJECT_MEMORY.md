@@ -1,3 +1,9 @@
+## 2026-06-05 — Step 4 [3] button-term runtime sync
+- Updated the authored zoomer button label and the served dev-check bundle so `Game.__DEV.smokeZoomerButtonTermsOnce()` now treats `Data.TEXTS.genz.escape_button_label` as `Свалить {X} 💰` rather than the stale `Свалить: {X} 💰`.
+- Refreshed the served runtime identity markers in `docs/index.html` and `docs/dev/dev-checks.js` to `build_2026_06_05_u` / `98599ea` so Safari can load the current identity path before rerunning the smoke.
+- Scope guard preserved: no gameplay logic changes, no other button text changes, and no `Console.txt` usage.
+- Safari runtime PASS is not claimed here; rerun `Game.__DEV.smokeZoomerButtonTermsOnce()` after reload.
+
 ## 2026-06-05 — Step 4 [2] conditional dynamic row fix
 - Reverted the static `STEP4_2_130..133` rows from the base Step 4 [2] mapping table because they inflated `pairCount` above the actual Safari runtime inventory whenever those dynamic entries were not present.
 - Kept the 129-row base mapping table, reused `STEP4_2_026` to cover the live numeric escape-button form `Свалить: 1 💰`, and moved the dynamic vote-counter and reputation-delta title coverage into conditional runtime-generated rows that appear only when the collector actually finds unmatched entries of those forms.
