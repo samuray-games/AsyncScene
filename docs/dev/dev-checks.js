@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_0de8688";
-  const RUNTIME_COMMIT = "0de8688";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_b8a1bc2";
+  const RUNTIME_COMMIT = "b8a1bc2";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4061,6 +4061,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         failedChecks: []
       };
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAllLocal = (list, values) => {
+        if (!Array.isArray(values)) return;
+        values.forEach((value) => addUnique(list, value));
+      };
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
@@ -4074,10 +4078,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           addUnique(result.failedChecks, name);
           addUnique(result.failures, { check: name, result: output });
         }
-        addAll(result.violations, output && output.violations);
-        addAll(result.forbiddenRemaining, output && output.forbiddenRemaining);
-        addAll(result.missingCoverage, output && output.missingCoverage);
-        addAll(result.failedChecks, output && output.failedChecks);
+        addAllLocal(result.violations, output && output.violations);
+        addAllLocal(result.forbiddenRemaining, output && output.forbiddenRemaining);
+        addAllLocal(result.missingCoverage, output && output.missingCoverage);
+        addAllLocal(result.failedChecks, output && output.failedChecks);
       };
       try {
         collect("inventory", G.__DEV && G.__DEV.smokeZoomerTermsInventoryOnce);

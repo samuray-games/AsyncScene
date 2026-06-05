@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 4 [8] aggregate smoke dependency fix only
+- `Game.__DEV.smokeZoomerTermsOnce()` was still failing in Safari with `Can't find variable: addAll` because the aggregate runner still merged child smoke arrays through a bare helper that was not defined in its own local scope.
+- Fixed only the Step 4 [8] aggregate smoke in both served dev-check bundles by defining a self-contained local `addAllLocal` helper inside `smokeZoomerTermsOnce()` and routing the aggregate `violations`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` merges through it. No child smoke behavior, terminology rules, UI text, gameplay, or economy logic was changed.
+- Refreshed the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_b8a1bc2` / `b8a1bc2`, matching the current short git hash.
+- Scope held: no terminology changes, no UI text changes, no gameplay changes, no economy changes, and no `Console.txt` usage.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [8] aggregate runtime smoke pack only
 - Added `Game.__DEV.smokeZoomerTermsOnce()` in both served dev-check bundles as a dev-only aggregate runner for the Step 4 terminology smoke family.
 - The aggregate composes inventory, millennial -> zoomer mapping table, buttons, statuses, errors, hints, and new features, unions their diagnostics, and only returns `ok:true` when every included check passes with empty `violations`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays.
