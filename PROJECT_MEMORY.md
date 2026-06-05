@@ -1,3 +1,11 @@
+## 2026-06-05 — Step 4 [4] status terminology only
+- Changed only status texts in the training status surface: `Передача недоступна. -> Передача недоступна`, `Статус недоступен. -> Статус передачи недоступен`, and ready-state `доступно -> Можно передать`.
+- Kept scope tight: buttons, errors, hints, gameplay logic, status behavior, and `Console.txt` usage were not changed.
+- Added `Game.__DEV.smokeZoomerStatusTermsOnce()` to both dev-check bundles and scoped it to the Step 4 inventory source entries `trainingControls.status.disabled`, `trainingControls.status.unavailable`, and `trainingControls.status.ready`.
+- Updated the Step 4 inventory/mapping references in the dev-check bundles so the served runtime inventory and terminology table no longer carry the old abstract status wording.
+- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-v` and bumped both runtime build tags to `build_2026_06_05_v`.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [3] button-term runtime sync
 - Updated the authored zoomer button label and the served dev-check bundle so `Game.__DEV.smokeZoomerButtonTermsOnce()` now treats `Data.TEXTS.genz.escape_button_label` as `Свалить {X} 💰` rather than the stale `Свалить: {X} 💰`.
 - Refreshed the served runtime identity markers in `docs/index.html` and `docs/dev/dev-checks.js` to `build_2026_06_05_u` / `98599ea` so Safari can load the current identity path before rerunning the smoke.
