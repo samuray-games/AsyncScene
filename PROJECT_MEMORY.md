@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 4 [7] addAll dependency fix only
+- `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` was still failing in Safari with `Can't find variable: addAll` because the smoke still used an out-of-scope merge helper after the earlier normalize fix.
+- Fixed only the Step 4 [7] smoke in both served dev-check bundles by defining a self-contained local `addAllLocal` helper inside the smoke and routing the three nested-array merges through it. No external helper dependency was introduced and no terminology or behavior checks were changed.
+- Refreshed the served runtime identity markers in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` to `build_2026_06_05_ao` / `8cdd109`, matching the current short git hash at edit time.
+- Scope held: no terminology changes, no UI text changes, no gameplay changes, no economy changes, and no `Console.txt` usage.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [7] normalize dependency fix only
 - `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` was still failing in Safari with `Can't find variable: normalize` because the smoke called `normalize(...)` without defining it in its own local scope.
 - Fixed only the Step 4 [7] smoke in both served dev-check bundles by defining a self-contained local `normalize` helper inside the smoke. No external helper dependency was introduced and no terminology or behavior checks were changed.
