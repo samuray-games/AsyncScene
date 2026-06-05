@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_y";
-  const RUNTIME_COMMIT = "43216fb";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_z";
+  const RUNTIME_COMMIT = "e2f743e";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1802,8 +1802,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         commit,
         smokeVersion,
         smokeName: "smokeZoomerStatusTermsOnce",
+        collectorExecuted: false,
+        inventoryEntriesCount: 0,
+        statusCandidateCount: 0,
         statusEntries: [],
         statusEntriesCount: 0,
+        sampledCandidates: [],
         sampledStatusSources: [],
         failures: [],
         forbiddenRemaining: [],
@@ -1830,10 +1834,27 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           if ((file === "AsyncScene/Web/ui/ui-menu.js" || file === "docs/ui/ui-menu.js") && /^trainingControls\.status\./.test(path)) return true;
           if (file === "runtime/dom" && path === "#trainingStatusText") return true;
           if (module === "Game.UI.trainingControls" && path === "#trainingStatusText") return true;
+          if (module === "document" && path === "#trainingStatusText") return true;
           if (/^statusEl\./.test(key)) return true;
           return false;
         };
-        const inventory = collectZoomerTermsInventoryEntries().filter(isTrainingStatusEntry);
+        result.collectorExecuted = true;
+        const inventoryEntries = collectZoomerTermsInventoryEntries();
+        const statusCandidates = inventoryEntries.filter((entry) => entry && String(entry.category || "") === "status");
+        const inventory = inventoryEntries.filter(isTrainingStatusEntry);
+        result.inventoryEntriesCount = inventoryEntries.length;
+        result.statusCandidateCount = statusCandidates.length;
+        result.sampledCandidates = statusCandidates.slice(0, 8).map((entry) => {
+          const source = entry.source || {};
+          return {
+            category: entry.category || null,
+            text: normalize(entry.text),
+            file: source.file || entry.file || null,
+            module: source.module || entry.module || null,
+            key: source.key || entry.key || null,
+            path: source.path || entry.path || null
+          };
+        });
         result.sampledStatusSources = inventory.slice(0, 8).map((entry) => {
           const source = entry.source || {};
           return {
@@ -1847,6 +1868,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         });
         result.statusEntries = Array.from(new Set(inventory.map((entry) => normalize(entry.text)).filter(Boolean)));
         result.statusEntriesCount = result.statusEntries.length;
+        if (result.inventoryEntriesCount <= 0) fail("inventory_entries_collected", result.inventoryEntriesCount);
+        if (result.statusCandidateCount <= 0) fail("status_candidates_collected", result.statusCandidateCount);
+        if (result.sampledCandidates.length <= 0) fail("status_candidates_sampled", result.sampledCandidates.length);
+        if (result.sampledStatusSources.length <= 0) fail("status_sources_sampled", result.sampledStatusSources.length);
         expected.forEach((term) => {
           if (!result.statusEntries.some((entry) => entry === term || entry.indexOf(term) !== -1)) {
             addUnique(result.missingCoverage, term);
@@ -3329,6 +3354,32 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
             });
           }
         });
+      }
+      if (typeof document !== "undefined") {
+        const runtimeTrainingStatusEl = document.getElementById("trainingStatusText");
+        const runtimeTrainingStatusDomText = normalizeProfileText(runtimeTrainingStatusEl && runtimeTrainingStatusEl.textContent);
+        if (runtimeTrainingStatusDomText) {
+          addZoomerTermsInventoryEntry(entries, "status", runtimeTrainingStatusDomText, {
+            file: "runtime/dom",
+            module: "document",
+            key: "textContent",
+            path: "#trainingStatusText"
+          });
+          [
+            "Передача недоступна",
+            "Статус передачи недоступен",
+            "Можно передать"
+          ].forEach((term) => {
+            if (runtimeTrainingStatusDomText.indexOf(term) !== -1) {
+              addZoomerTermsInventoryEntry(entries, "status", term, {
+                file: "runtime/dom",
+                module: "document",
+                key: "textContent.term",
+                path: "#trainingStatusText"
+              });
+            }
+          });
+        }
       }
 
       if (typeof document !== "undefined") {
