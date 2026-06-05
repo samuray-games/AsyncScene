@@ -1,3 +1,21 @@
+## 2026-06-05 — AsyncScene Step 3.1 Zoomer lexical frame lock
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Profile|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Lock the lexical frame for the zoomer UI profile as a documentation/profile contract only.
+- Rule: conversational but not meme-like; language stays conversational, short, and direct, but not zoomer slang.
+- Forbidden categories: memes, parasite slang, and irony-for-irony. Meme-like wording, parasite slang, and irony for its own sake are explicitly forbidden.
+- Compatibility: the lexical frame extends the previous zoomer shortening rules without contradiction: keep 30-40% shortening, fewer filler words, fewer abstractions, and more verbs; do not add slang, memes, fake youth voice, or irony.
+- Scope guard: no gameplay logic changes, no UI rewrite, no existing UI copy rewrite yet, no side refactors, and no `Console.txt` usage.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerLexicalFrameOnce()`.
+- Runtime smoke contract verifies the lexical frame exists, says “conversational but not meme-like”, includes forbidden categories `memes`, `parasite slang`, and `irony-for-irony`, has no contradiction with previous zoomer shortening rules, and returns `buildTag`, `commit`, and commit-unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_d` / `zoomer_lexical_frame_step3_1`; smokeVersion `step3_1_zoomer_lexical_frame_v1_build_2026_06_05_d`.
+- Required Safari command: `Game.__DEV.smokeZoomerLexicalFrameOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 2.6 docs smoke deployed-path fix
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.

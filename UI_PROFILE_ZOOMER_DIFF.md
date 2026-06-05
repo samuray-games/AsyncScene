@@ -36,6 +36,15 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 - Use fewer abstractions: reduce abstract nouns and name the concrete action.
 - Use more verbs: replace abstract wording with action verbs; do not add teen slang, memes, fake youth voice, or irony.
 
+## UI_PROFILE_ZOOMER_LEXICAL_FRAME
+
+- Rule: conversational but not meme-like. Use short, direct language for the zoomer UI profile.
+- Keep the tone conversational, short, and direct, but not zoomer slang.
+- Explicitly forbidden categories: memes, parasite slang, irony-for-irony.
+- Do not use meme-like wording, parasite slang, or irony for its own sake.
+- This lexical frame extends `UI_PROFILE_ZOOMER_SHORTEN_RULE`: it keeps the 30-40% shortening target, fewer filler words, fewer abstractions, and more verbs.
+- No contradiction with previous zoomer shortening rules: shortening stays direct and action-focused; it does not add slang, memes, fake youth voice, or irony.
+
 ## UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE
 
 Dedicated transformation table only: millennial-style long construction -> shorter direct zoomer form. Same meaning, 30-40% shorter, fewer filler words, fewer abstractions, more verbs. No slang, no memes, no fake youth voice.
