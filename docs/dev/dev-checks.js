@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ai";
-  const RUNTIME_COMMIT = "c675c00";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ak";
+  const RUNTIME_COMMIT = "d7fb793";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1449,7 +1449,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const legacyTerms = ["миллениал", "legacy", "older wording", "old wording"];
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
       const fetchTextFromCandidates = (fileName) => {
-        const candidates = collectTextFileCandidates(fileName);
+        const candidates = resolveDocCandidates(fileName);
         return fetchFirst(candidates);
       };
       const fail = (check, detail) => {

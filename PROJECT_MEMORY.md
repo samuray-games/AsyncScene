@@ -1,8 +1,15 @@
+## 2026-06-05 — Step 4 [7] new feature terminology smoke wiring fix
+- `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` was still throwing `Can't find variable: collectTextFileCandidates` because that helper was not defined in the smoke scope.
+- Fixed only the smoke wiring in both served dev-check bundles by switching the lookup to the already-defined local doc helpers `resolveDocCandidates(...)` and `fetchFirst(...)`.
+- Refreshed the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_ak` / `d7fb793`.
+- Scope held: no terminology changes, no UI text changes, no gameplay changes, no economy changes, and no `Console.txt` usage.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [7] new feature terminology coverage
 - Added `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` in both served dev-check bundles and a matching `Step 4 [7] New feature terminology coverage` section in `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md`.
 - The smoke checks terminology/copy only for bank, P2P, respect, training, report, crowd, DM, battle, escape, and rematch; it requires the zoomer profile coverage lines, rejects remaining legacy wording in those covered lines, and returns `buildTag`, `commit`, and unique `smokeVersion`.
 - Scope held: no gameplay, economy, UI behavior, or Console.txt changes were made. Safari runtime PASS is not claimed.
-- Runtime wiring fix: `fetchTextFromCandidates` is now defined inside `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` in both served dev-check bundles so Safari no longer throws a missing-variable exception.
+- Runtime wiring fix: `fetchTextFromCandidates` now uses the local doc helpers already defined in the smoke scope so Safari no longer throws a missing-variable exception.
 
 ## 2026-06-05 — Step 4 [5] missing error coverage only
 - Safari/runtime FAIL was narrowed to `Game.__DEV.smokeZoomerErrorTermsOnce()` missing only `Не удалось.` and `Повтори позже.`, while the served runtime identity was still stale at `build_2026_06_05_ac` / `a58c803`.
