@@ -1897,7 +1897,7 @@ UI.renderBattles = () => {
    if (!Array.isArray(S.battles) || S.battles.length === 0) {
      const hint = document.createElement("div");
      hint.className = "hint";
-     hint.textContent = "Никто не вызывает. Тишина.";
+     hint.textContent = "Вызовов нет.";
      body.appendChild(hint);
      try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
      return;
@@ -1983,14 +1983,14 @@ UI.renderBattles = () => {
       const shouldRenderResolvedCard = uiThinksResolved && !isEscape && !isDraw;
 
       if (!uiThinksResolved) {
-       if (b.status === "pickDefense") line.textContent = "Бери контраргумент";
-       else if (b.status === "pickAttack") line.textContent = "Бери аргумент";
+       if (b.status === "pickDefense") line.textContent = "Выбери контраргумент";
+       else if (b.status === "pickAttack") line.textContent = "Выбери аргумент";
        else if (isEscapeVote(b)) {
          const mode = (b.escapeVote && b.escapeVote.mode) ? b.escapeVote.mode : "smyt";
          line.textContent = (mode === "off") ? "Отвали?" : "Свалить?";
        }
        else if (isDrawBattle(b)) line.textContent = t("battle_draw");
-       else line.textContent = "Бери аргумент";
+       else line.textContent = "Выбери аргумент";
       } else {
         line.textContent = _normalizeResultText(b);
       }
@@ -2024,7 +2024,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = "Толпа решает. Ты только смотришь.";
+          voteHint.textContent = "Толпа решает. Ты смотришь.";
           escapeWrap.appendChild(voteHint);
 
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
@@ -2251,7 +2251,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = isMyDraw ? "Толпа решает. Ты только смотришь." : "Толпа решает.";
+          voteHint.textContent = isMyDraw ? "Толпа решает. Ты смотришь." : "Толпа решает.";
           drawWrap.appendChild(voteHint);
 
           const timerLine = document.createElement("div");
