@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ag";
-  const RUNTIME_COMMIT = "97d3b62";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ah";
+  const RUNTIME_COMMIT = "b6c8c30";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2046,13 +2046,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
             path: source.path || entry.path || null
           };
         });
-        const actionStart = /^(?:выбери|введи|открой|сделай|проверь|ответь|сдай|нажми|кликни|смотри|пиши)\b/i;
+        const actionVerbs = ["выбери", "введи", "открой", "сделай", "проверь", "ответь", "сдай", "нажми", "кликни", "смотри", "пиши"];
+        const hasActionStart = (text) => {
+          const normalizedText = String(text || "").toLowerCase();
+          return actionVerbs.some((verb) => {
+            if (!normalizedText.startsWith(verb)) return false;
+            const nextChar = normalizedText.charAt(verb.length);
+            return !nextChar || /\s|[:,.!?-]/.test(nextChar);
+          });
+        };
         const explanatoryPatterns = [
           /(?:можно|иначе|пока|сплошная|видны|сразу|сработает|болтовня|без ошибок)/i,
           /(?:\bне\s+происходит\b|\bвсё\b.*\bвидно\b)/i
         ];
         result.hintEntries.forEach((text) => {
-          if (!actionStart.test(text)) {
+          if (!hasActionStart(text)) {
             addUnique(result.forbiddenRemaining, { pattern: "not_action_leading", text });
           }
           explanatoryPatterns.forEach((pattern, index) => {
