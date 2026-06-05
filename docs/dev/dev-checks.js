@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ac";
-  const RUNTIME_COMMIT = "a58c803";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ad";
+  const RUNTIME_COMMIT = "a3090e1";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -3372,6 +3372,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       addSystemGroup("warnings", "error");
       addSystemGroup("notifications", "status");
       addSystemGroup("systemEvents", "status");
+      addZoomerTermsInventoryEntry(entries, "error", "Не удалось.", {
+        file: "AsyncScene/Web/dev/dev-checks.js",
+        module: "Step4_5.errorCoverage",
+        key: "operationFailed",
+        path: "Step4_5.errorCoverage.operationFailed"
+      });
+      addZoomerTermsInventoryEntry(entries, "error", "Повтори позже.", {
+        file: "AsyncScene/Web/dev/dev-checks.js",
+        module: "Step4_5.errorCoverage",
+        key: "retryLater",
+        path: "Step4_5.errorCoverage.retryLater"
+      });
 
       const templateFallbacks = (G.System && G.System.templateFallbacks) || null;
       if (templateFallbacks) {

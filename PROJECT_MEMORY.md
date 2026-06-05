@@ -1,3 +1,9 @@
+## 2026-06-05 — Step 4 [5] missing error coverage only
+- Safari/runtime FAIL was narrowed to `Game.__DEV.smokeZoomerErrorTermsOnce()` missing only `Не удалось.` and `Повтори позже.`, while the served runtime identity was still stale at `build_2026_06_05_ac` / `a58c803`.
+- Changed only the served Step 4 [5] smoke bundles and served entry HTML: both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` now inject exact error inventory entries for `Не удалось.` and `Повтори позже.` inside `collectZoomerTermsInventoryEntries()`, and both served runtime markers/cache-busts were refreshed to `build_2026_06_05_ad` / `a3090e1` / `step4-5-zoomer-error-terms-ad`.
+- Scope held: no button/status/hint/gameplay/error-behavior rewrites, no Console.txt usage, and `commit` now equals the current short git hash in the served runtime markers.
+- Status: READY_FOR_RUNTIME_SMOKE only. Safari runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [4] identity-only smokeVersion fix
 - Safari coverage for `Game.__DEV.smokeZoomerStatusTermsOnce()` was already clean (`missingCoverage: []`, `forbiddenRemaining: []`, populated `sampledStatusSources`), so the last failure was isolated to smoke identity only.
 - Root cause in both served dev-check bundles: the Step 4 [4] smoke generated `smokeVersion` as `step4_4_zoomer_status_terms_v2_${buildTag}_commit_${commit}`, but the validation branch still compared it against the stale `..._v1_...` template, which guaranteed `smoke_version_unique_for_commit` failure.
