@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 5.1 argument inventory compact smoke output
+- Changed only the Step 5.1 argument-inventory smoke output shape in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Default `Game.__DEV.smokeZoomerArgumentInventoryOnce()` now returns compact top-level PASS fields only: `ok`, `buildTag`, `commit`, `smokeVersion`, `inventoryCount`, `byTypeCounts`, `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; it does not include full inventory or long id lists.
+- Added optional full-detail mode through `Game.__DEV.smokeZoomerArgumentInventoryOnce({debug:true})`, which appends full `inventory` and `byTypeIds` diagnostics.
+- `ok:true` remains inventory-only and requires ABOUT / WHO / WHERE / YN counts plus empty required failure arrays.
+- Scope held: no argument text, canon, zoomer wrappers, gameplay, UI behavior, or inventory collection logic changes. Runtime PASS is not claimed; rerun `Game.__DEV.smokeZoomerArgumentInventoryOnce()` in Safari.
+
 ## 2026-06-05 — Step 5.1 argument inventory runtime collector only
 - Added `Game.__DEV.smokeZoomerArgumentInventoryOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` as a dedicated inventory smoke for ABOUT / WHO / WHERE / YN.
 - The collector reads currently reachable canon groups through `Data.getArgCanonGroup(...)` and runtime `Data.ARGUMENTS` attack/defense rows, fills placeholders for inventory validation only, groups by type, and detects missing types, duplicate ids, empty entries, and unresolved placeholders.
