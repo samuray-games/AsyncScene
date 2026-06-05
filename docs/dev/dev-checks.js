@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_x";
-  const RUNTIME_COMMIT = "1b64743";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_y";
+  const RUNTIME_COMMIT = "43216fb";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1803,6 +1803,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeVersion,
         smokeName: "smokeZoomerStatusTermsOnce",
         statusEntries: [],
+        statusEntriesCount: 0,
+        sampledStatusSources: [],
         failures: [],
         forbiddenRemaining: [],
         missingCoverage: [],
@@ -1815,18 +1817,38 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       };
       const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
       try {
-        const inventory = collectZoomerTermsInventoryEntries().filter((entry) => {
+        const expected = ["Передача недоступна", "Статус передачи недоступен", "Можно передать"];
+        const isTrainingStatusEntry = (entry) => {
           if (!entry) return false;
           const source = entry.source || {};
+          const category = String(entry.category || "");
           const file = String(source.file || entry.file || "");
+          const module = String(source.module || entry.module || "");
+          const key = String(source.key || entry.key || "");
           const path = String(source.path || entry.path || "");
-          return file === "AsyncScene/Web/ui/ui-menu.js"
-            && /^trainingControls\.status\./.test(path);
+          if (category !== "status") return false;
+          if ((file === "AsyncScene/Web/ui/ui-menu.js" || file === "docs/ui/ui-menu.js") && /^trainingControls\.status\./.test(path)) return true;
+          if (file === "runtime/dom" && path === "#trainingStatusText") return true;
+          if (module === "Game.UI.trainingControls" && path === "#trainingStatusText") return true;
+          if (/^statusEl\./.test(key)) return true;
+          return false;
+        };
+        const inventory = collectZoomerTermsInventoryEntries().filter(isTrainingStatusEntry);
+        result.sampledStatusSources = inventory.slice(0, 8).map((entry) => {
+          const source = entry.source || {};
+          return {
+            category: entry.category || null,
+            text: normalize(entry.text),
+            file: source.file || entry.file || null,
+            module: source.module || entry.module || null,
+            key: source.key || entry.key || null,
+            path: source.path || entry.path || null
+          };
         });
-        result.statusEntries = inventory.map((entry) => normalize(entry.text)).filter(Boolean);
-        const expected = ["Передача недоступна", "Статус передачи недоступен", "Можно передать"];
+        result.statusEntries = Array.from(new Set(inventory.map((entry) => normalize(entry.text)).filter(Boolean)));
+        result.statusEntriesCount = result.statusEntries.length;
         expected.forEach((term) => {
-          if (!result.statusEntries.includes(term)) {
+          if (!result.statusEntries.some((entry) => entry === term || entry.indexOf(term) !== -1)) {
             addUnique(result.missingCoverage, term);
             fail("status_term_missing", term);
           }
@@ -1837,7 +1859,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           { term: "Статус недоступен", reason: "ambiguous_status_wording" }
         ];
         forbidden.forEach((item) => {
-          if (result.statusEntries.includes(item.term)) {
+          if (result.statusEntries.some((entry) => entry === item.term || entry.indexOf(item.term) !== -1)) {
             addUnique(result.forbiddenRemaining, item.term);
             fail("forbidden_status_term", item.reason);
           }
@@ -3283,6 +3305,31 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ["hint", "Толпа решает. Ты смотришь.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "voteHint.textContent", "battle vote hint"],
         ["hint", "Ответь ...", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "answerFallback.hint", "canon answer hint fallback"]
       ].forEach(([category, text, file, module, key, path]) => addZoomerTermsInventoryEntry(entries, category, text, { file, module, key, path }));
+
+      const trainingControls = G.UI && G.UI.trainingControls;
+      const runtimeTrainingStatusText = normalizeProfileText(trainingControls && trainingControls.statusEl && trainingControls.statusEl.textContent);
+      if (runtimeTrainingStatusText) {
+        addZoomerTermsInventoryEntry(entries, "status", runtimeTrainingStatusText, {
+          file: "runtime/dom",
+          module: "Game.UI.trainingControls",
+          key: "statusEl.textContent",
+          path: "#trainingStatusText"
+        });
+        [
+          ["Передача недоступна", "statusEl.disabled"],
+          ["Статус передачи недоступен", "statusEl.unavailable"],
+          ["Можно передать", "statusEl.ready"]
+        ].forEach(([term, key]) => {
+          if (runtimeTrainingStatusText.indexOf(term) !== -1) {
+            addZoomerTermsInventoryEntry(entries, "status", term, {
+              file: "runtime/dom",
+              module: "Game.UI.trainingControls",
+              key,
+              path: "#trainingStatusText"
+            });
+          }
+        });
+      }
 
       if (typeof document !== "undefined") {
         const categoryForElement = (el, attrName) => {
