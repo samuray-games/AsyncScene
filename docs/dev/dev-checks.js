@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_ak";
-  const RUNTIME_COMMIT = "d7fb793";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_al";
+  const RUNTIME_COMMIT = "ad41fff";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1448,16 +1448,49 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ];
       const legacyTerms = ["миллениал", "legacy", "older wording", "old wording"];
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
-      const fetchTextFromCandidates = (fileName) => {
-        const candidates = resolveDocCandidates(fileName);
-        return fetchFirst(candidates);
+      const fetchStep47DocText = (fileName) => {
+        const candidates = [];
+        const seen = Object.create(null);
+        const addCandidate = (value) => {
+          if (!value) return;
+          const key = String(value);
+          if (seen[key]) return;
+          seen[key] = true;
+          candidates.push(key);
+        };
+        const normalizedName = String(fileName || "").replace(/^\/+/, "");
+        const cacheKey = encodeURIComponent(smokeVersion);
+        const origin = (typeof location !== "undefined" && location.origin) ? location.origin : "";
+        const pathname = (typeof location !== "undefined" && location.pathname) ? location.pathname : "/";
+        const appBase = pathname.indexOf("/AsyncScene/") === 0 ? "/AsyncScene/" : "/";
+        const rootBase = appBase === "/AsyncScene/" ? `${origin}/AsyncScene/` : `${origin}/`;
+        addCandidate(`${rootBase}${normalizedName}?v=${cacheKey}`);
+        addCandidate(`${rootBase}docs/${normalizedName}?v=${cacheKey}`);
+        if (typeof location !== "undefined" && location.href) {
+          addCandidate(new URL(normalizedName, location.href).toString());
+        }
+        if (origin) {
+          addCandidate(`${origin}/${normalizedName}?v=${cacheKey}`);
+        }
+        for (let i = 0; i < candidates.length; i += 1) {
+          const url = candidates[i];
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, false);
+            xhr.send(null);
+            if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
+              return { ok: true, path: url, text: xhr.responseText };
+            }
+          } catch (err) {}
+        }
+        return { ok: false, path: normalizedName, reason: "unavailable" };
       };
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
       try {
-        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        const zoomRes = fetchStep47DocText("UI_PROFILE_ZOOMER_DIFF.md");
         if (!zoomRes.ok) fail("zoomer_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
         const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
         if (zoomRes.ok) addUnique(result.sourceFiles, zoomRes.path);
