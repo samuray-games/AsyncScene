@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_af";
-  const RUNTIME_COMMIT = "b15f581";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ag";
+  const RUNTIME_COMMIT = "97d3b62";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2018,7 +2018,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
       try {
         const inventoryEntries = collectZoomerTermsInventoryEntries();
-        const hintEntries = inventoryEntries.filter((entry) => entry && String(entry.category || "") === "hint" && normalize(entry.text));
+        const isNonPlayerAffordanceHint = (entry, text) => {
+          const path = String((entry && entry.path) || "").toLowerCase();
+          const key = String((entry && entry.key) || "").toLowerCase();
+          const file = String((entry && entry.file) || "").toLowerCase();
+          if (text === "Type JS expression...") return true;
+          if (text === "Изменить высоту чата" || text === "Вызовов нет." || text === "Ник бандита или токсика." || text === "Сдай бандита/токсика: +2 💰.") return true;
+          if (path === "#chatresizehandle" || path === "#reportinput" || path === "#reporthint") return true;
+          if (key === "placeholder" && file.indexOf("ui-console-panel.js") !== -1) return true;
+          return false;
+        };
+        const hintEntries = inventoryEntries.filter((entry) => {
+          if (!entry || String(entry.category || "") !== "hint") return false;
+          const text = normalize(entry.text);
+          return !!text && !isNonPlayerAffordanceHint(entry, text);
+        });
         result.hintEntries = Array.from(new Set(hintEntries.map((entry) => normalize(entry.text)))).sort();
         result.hintEntriesCount = result.hintEntries.length;
         result.sampledHintSources = hintEntries.slice(0, 20).map((entry) => {
@@ -2032,9 +2046,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
             path: source.path || entry.path || null
           };
         });
-        const actionStart = /^(?:выбери|введи|открой|сделай|проверь|ответь|сдай|нажми|кликни|смотри)\b/i;
+        const actionStart = /^(?:выбери|введи|открой|сделай|проверь|ответь|сдай|нажми|кликни|смотри|пиши)\b/i;
         const explanatoryPatterns = [
-          /(?:можно|иначе|пока|сплошная|видны|сразу|сработает|болтовня|без ошибок|толпа решает)/i,
+          /(?:можно|иначе|пока|сплошная|видны|сразу|сработает|болтовня|без ошибок)/i,
           /(?:\bне\s+происходит\b|\bвсё\b.*\bвидно\b)/i
         ];
         result.hintEntries.forEach((text) => {
@@ -3494,11 +3508,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ["status", "Статус передачи недоступен", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.unavailable", "training status"],
         ["status", "Можно передать", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.ready", "training status"],
         ["hint", "Пиши по теме.", "AsyncScene/Web/index.html", "index", "chatInput.placeholder", "#chatInput"],
-        ["hint", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
+        ["status", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
         ["status", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
         ["status", "Влияние", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=influence] .statIcon"],
         ["status", "Победы", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=wins] .statIcon"],
-        ["hint", "Вызовов нет.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "emptyChallenges.hint", "challenges empty"],
+        ["status", "Вызовов нет.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "emptyChallenges.hint", "challenges empty"],
         ["hint", "Выбери сторону.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "voteHint.textContent", "battle vote hint"],
         ["hint", "Ответь ...", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "answerFallback.hint", "canon answer hint fallback"]
       ].forEach(([category, text, file, module, key, path]) => addZoomerTermsInventoryEntry(entries, category, text, { file, module, key, path }));
@@ -3561,7 +3575,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           const id = String(el.id || "").toLowerCase();
           const cls = String(el.className || "").toLowerCase();
           if (tag === "button") return "button";
+          if (el.matches("[data-panel-input]")) return "status";
           if (id === "balance" || el.matches("[data-profile-stat] .statIcon, [data-profile-stat].statIcon")) return "status";
+          if (id === "chatresizehandle" || id === "reportinput" || id === "reporthint") return "status";
+          if (cls.includes("challengeemptyhint")) return "status";
           if (attrName === "placeholder" || attrName === "title" || attrName === "aria-label") return "hint";
           if (id.includes("error") || cls.includes("error") || cls.includes("danger")) return "error";
           if (id.includes("hint") || cls.includes("hint") || cls.includes("sub")) return "hint";

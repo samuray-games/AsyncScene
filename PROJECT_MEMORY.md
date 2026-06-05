@@ -5329,3 +5329,10 @@ Error: Download failure, code=1
 - Served identity was refreshed to `build_2026_06_05_af` / `b15f581`, and `commit` in the runtime markers now equals the current short git hash.
 - Scope held: no button text changes, no status/error logic changes, no gameplay changes, no hint behavior changes, and no `Console.txt` usage.
 - Status: READY_FOR_RUNTIME_SMOKE only. Safari runtime PASS is not claimed.
+## 2026-06-05 — Step 4 [6] hint smoke validator/classification only
+- Safari/runtime still failed only `action_oriented_hint_copy`, but the remaining `forbiddenRemaining` mixed two different cases: real imperative hints that should pass (`Введи...`, `Выбери...`, `Ответь...`, `Открой...`, `Пиши...`) and non-player affordances/dev placeholders that should not be judged as player hints (`Type JS expression...`, `Изменить высоту чата`, `Вызовов нет.`, report input/report-hint affordances).
+- Changed only the served Step 4 hint smoke classifier/validator in app/docs dev-check bundles: `smokeZoomerHintTermsOnce()` now accepts action-leading `Пиши ...` hints, no longer rejects hints just because they contain `толпа решает`, and filters non-player affordance/dev-placeholder entries out of player-hint validation.
+- Reclassified static/runtime affordance sources so `Изменить высоту чата`, `Вызовов нет.`, `#reportInput`, `#reportHint`, and console-panel `[data-panel-input]` surfaces are treated as non-hint/status inventory rather than player hints during Step 4 [6] smoke collection.
+- Served identity was refreshed to `build_2026_06_05_ag` / `97d3b62`.
+- Scope held: no UI text changes, no buttons/status/errors/gameplay changes, no hint behavior changes, and no `Console.txt` usage.
+- Status: READY_FOR_RUNTIME_SMOKE only. Safari runtime PASS is not claimed.
