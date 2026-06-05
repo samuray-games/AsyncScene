@@ -6028,3 +6028,10 @@ Error: Download failure, code=1
 - Tightened only `Game.__DEV.smokeZoomerArgumentInventoryOnce()` result gating so the required PASS fields stay at top level and `ok:true` requires empty `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`, plus all four argument types present.
 - Refreshed the Step 5.1 smoke identity/cache-bust to a commit-unique shape marker without changing argument text, canon, zoomer wrappers, gameplay, UI behavior, or inventory logic.
 - Required Safari command: `Game.__DEV.smokeZoomerArgumentInventoryOnce()`.
+
+## 2026-06-05 - Step 5.4 full zoomer argument wrapper coverage
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only full-inventory zoomer argument wrapper coverage via `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()`.
+- The wrapper coverage smoke reports `ok`, identity fields, inventory/wrapper counts, coverage percentage, by-type counts, and failure buckets for missing coverage, duplicate ids, empty wrappers, placeholder mismatch, semantic drift, forbidden terms, failed checks, and failures.
+- Scope guard preserved: canon argument text is unchanged; wrappers are not applied to live gameplay; UI behavior, battle behavior, and defense logic are unchanged.
+- Required Safari command: `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()`.

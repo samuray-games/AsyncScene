@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_3_arg_wrapper_pilot";
-  const RUNTIME_COMMIT = "step5_3_arg_wrapper_pilot";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_4_arg_wrapper_coverage";
+  const RUNTIME_COMMIT = "step5_4_arg_wrapper_coverage";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4555,6 +4555,193 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const ZOOMER_ARGUMENT_WRAPPER_COVERAGE = Object.freeze({
+      id: "zoomer_argument_wrapper_coverage_v1",
+      scope: "full_inventory_coverage_not_runtime_output",
+      wrapperGenerationEnabled: false,
+      appliedToGameplay: false,
+      replacesRuntimeArgumentOutput: false,
+      canonicalRewriteEnabled: false,
+      gameplayChangeEnabled: false,
+      uiChangeEnabled: false,
+      battleDefenseLogicChangeEnabled: false,
+      rulesContractId: ZOOMER_ARGUMENT_WRAPPER_RULES.id
+    });
+
+    const exposeZoomerArgumentWrapperCoverage = () => {
+      G.ZoomerArgumentWrapperCoverage = ZOOMER_ARGUMENT_WRAPPER_COVERAGE;
+      G.__DEV.zoomerArgumentWrapperCoverage = ZOOMER_ARGUMENT_WRAPPER_COVERAGE;
+      G.__DEV.ZOOMER_ARGUMENT_WRAPPER_COVERAGE = ZOOMER_ARGUMENT_WRAPPER_COVERAGE;
+      if (Game.Dev) Game.Dev.zoomerArgumentWrapperCoverage = ZOOMER_ARGUMENT_WRAPPER_COVERAGE;
+      return ZOOMER_ARGUMENT_WRAPPER_COVERAGE;
+    };
+    exposeZoomerArgumentWrapperCoverage();
+
+    const buildZoomerArgumentWrapperText = (originalText) => {
+      let text = normalizePilotText(originalText)
+        .replace(/^Эм[.…\s-]*/iu, "")
+        .replace(/^(?:Извините|Простите),?\s*/iu, "")
+        .replace(/^Можно спросить,\s*/iu, "")
+        .replace(/^Подскажите,\s*/iu, "")
+        .replace(/^Ну[.…\s-]*/iu, "")
+        .replace(/^Да[.…\s-]+/iu, "Да. ")
+        .replace(/^Нет[.…\s-]+/iu, "Нет. ")
+        .replace(/…/gu, ".")
+        .replace(/\s+/g, " ")
+        .trim();
+      text = text.replace(/\s+([,.;:!?])/g, "$1").trim();
+      return text || normalizePilotText(originalText);
+    };
+
+    const buildZoomerArgumentWrapperEntries = () => collectZoomerArgumentInventoryEntries().map((entry) => {
+      const type = String(entry && entry.type || "").toUpperCase();
+      const side = String(entry && entry.side || "").toUpperCase();
+      const originalText = normalizePilotText(entry && (entry.rawText || entry.text));
+      return Object.freeze({
+        canonId: String(entry && entry.id || ""),
+        type,
+        side,
+        originalText,
+        wrapperText: buildZoomerArgumentWrapperText(originalText)
+      });
+    });
+
+    const wrapperMeaningKey = (value) => normalizePilotText(value)
+      .replace(/^Эм[.…\s-]*/iu, "")
+      .replace(/^(?:Извините|Простите),?\s*/iu, "")
+      .replace(/^Можно спросить,\s*/iu, "")
+      .replace(/^Подскажите,\s*/iu, "")
+      .replace(/^Ну[.…\s-]*/iu, "")
+      .replace(/^Да[.…\s-]+/iu, "Да. ")
+      .replace(/^Нет[.…\s-]+/iu, "Нет. ")
+      .replace(/…/gu, ".")
+      .replace(/\s+([,.;:!?])/g, "$1")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const smokeZoomerArgumentWrapperCoverageOnce = (options) => {
+      const debug = !!(options && options.debug === true);
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step5_4_argument_wrapper_coverage_v1_20260605a_${buildTag}_commit_${commit}`;
+      const requiredTypes = ["ABOUT", "WHO", "WHERE", "YN"];
+      const requiredSides = ["Q", "A"];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        inventoryCount: 0,
+        wrapperCount: 0,
+        coveragePercent: 0,
+        byTypeCounts: { ABOUT: 0, WHO: 0, WHERE: 0, YN: 0 },
+        missingCoverage: [],
+        duplicateIds: [],
+        emptyWrappers: [],
+        placeholderMismatch: [],
+        semanticDrift: [],
+        forbiddenRemaining: [],
+        failedChecks: [],
+        failures: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const forbiddenWrapperTerms = [
+        "лол", "кек", "мем", "мемно", "краш", "кринж", "вайб", "рофл", "чилл", "флекс", "имба", "топчик", "жиза", "изи", "сигма", "легенда", "эпично", "разнос", "бомба", "огонь"
+      ];
+      const makeTermRx = (term) => new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9_])${String(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^A-Za-zА-Яа-яЁё0-9_]|$)`, "iu");
+      try {
+        const coverage = exposeZoomerArgumentWrapperCoverage();
+        if (!coverage || coverage.appliedToGameplay !== false || coverage.replacesRuntimeArgumentOutput !== false || coverage.canonicalRewriteEnabled !== false || coverage.gameplayChangeEnabled !== false || coverage.uiChangeEnabled !== false || coverage.battleDefenseLogicChangeEnabled !== false) {
+          fail("coverage_not_runtime_applied", {
+            appliedToGameplay: coverage && coverage.appliedToGameplay,
+            replacesRuntimeArgumentOutput: coverage && coverage.replacesRuntimeArgumentOutput,
+            canonicalRewriteEnabled: coverage && coverage.canonicalRewriteEnabled,
+            gameplayChangeEnabled: coverage && coverage.gameplayChangeEnabled,
+            uiChangeEnabled: coverage && coverage.uiChangeEnabled,
+            battleDefenseLogicChangeEnabled: coverage && coverage.battleDefenseLogicChangeEnabled
+          });
+        }
+        const inventory = collectZoomerArgumentInventoryEntries();
+        const wrappers = buildZoomerArgumentWrapperEntries();
+        result.inventoryCount = inventory.length;
+        result.wrapperCount = wrappers.length;
+        result.coveragePercent = result.inventoryCount > 0 ? Math.round((result.wrapperCount / result.inventoryCount) * 10000) / 100 : 0;
+        const inventoryById = Object.create(null);
+        inventory.forEach((entry) => {
+          const id = String(entry && entry.id || "");
+          if (id) inventoryById[id] = entry;
+        });
+        const seen = Object.create(null);
+        wrappers.forEach((wrapper, index) => {
+          const canonId = String(wrapper && wrapper.canonId || "");
+          const type = String(wrapper && wrapper.type || "").toUpperCase();
+          const side = String(wrapper && wrapper.side || "").toUpperCase();
+          const originalText = normalizePilotText(wrapper && wrapper.originalText);
+          const wrapperText = normalizePilotText(wrapper && wrapper.wrapperText);
+          if (requiredTypes.includes(type)) result.byTypeCounts[type] += 1;
+          if (!canonId || !requiredTypes.includes(type) || !requiredSides.includes(side) || !originalText) addUnique(result.missingCoverage, { check: "wrapper_required_fields", index, canonId, type, side });
+          if (!wrapperText) addUnique(result.emptyWrappers, { canonId, type, side });
+          if (!seen[canonId]) seen[canonId] = [];
+          seen[canonId].push({ type, side });
+          const inventoryEntry = inventoryById[canonId];
+          if (!inventoryEntry) {
+            addUnique(result.missingCoverage, { check: "wrapper_id_in_inventory", canonId });
+          } else {
+            const invType = String(inventoryEntry.type || "").toUpperCase();
+            const invSide = String(inventoryEntry.side || "").toUpperCase();
+            const invText = normalizePilotText(inventoryEntry.rawText || inventoryEntry.text);
+            if (invType !== type || invSide !== side) addUnique(result.semanticDrift, { canonId, check: "type_or_side_changed", expected: { type: invType, side: invSide }, actual: { type, side } });
+            if (invText !== originalText) addUnique(result.semanticDrift, { canonId, check: "original_text_changed" });
+          }
+          const originalPlaceholders = extractPilotPlaceholders(originalText);
+          const wrapperPlaceholders = extractPilotPlaceholders(wrapperText);
+          if (JSON.stringify(originalPlaceholders) !== JSON.stringify(wrapperPlaceholders)) addUnique(result.placeholderMismatch, { canonId, originalPlaceholders, wrapperPlaceholders });
+          const expectedWrapper = buildZoomerArgumentWrapperText(originalText);
+          if (wrapperText !== expectedWrapper || wrapperMeaningKey(originalText) !== wrapperMeaningKey(wrapperText)) addUnique(result.semanticDrift, { canonId, check: "strict_meaning_key_mismatch", expectedWrapper, wrapperText });
+          forbiddenWrapperTerms.forEach((term) => {
+            if (makeTermRx(term).test(wrapperText)) addUnique(result.forbiddenRemaining, { canonId, term, wrapperText });
+          });
+        });
+        Object.keys(inventoryById).forEach((id) => {
+          if (!seen[id]) addUnique(result.missingCoverage, id);
+        });
+        Object.keys(seen).forEach((id) => {
+          if (seen[id].length > 1) addUnique(result.duplicateIds, { id, count: seen[id].length, entries: seen[id].slice(0, 6) });
+        });
+        requiredTypes.forEach((type) => {
+          if (result.byTypeCounts[type] <= 0) addUnique(result.missingCoverage, `type:${type}`);
+        });
+        if (result.wrapperCount !== result.inventoryCount) fail("wrapper_count_equals_inventory_count", { inventoryCount: result.inventoryCount, wrapperCount: result.wrapperCount });
+        if (result.coveragePercent !== 100) fail("coverage_percent_100", result.coveragePercent);
+        if (result.missingCoverage.length) fail("missing_coverage_empty", result.missingCoverage.slice(0, 12));
+        if (result.duplicateIds.length) fail("duplicate_ids_empty", result.duplicateIds.slice(0, 12));
+        if (result.emptyWrappers.length) fail("empty_wrappers_empty", result.emptyWrappers.slice(0, 12));
+        if (result.placeholderMismatch.length) fail("placeholder_mismatch_empty", result.placeholderMismatch.slice(0, 12));
+        if (result.semanticDrift.length) fail("semantic_drift_empty", result.semanticDrift.slice(0, 12));
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining_empty", result.forbiddenRemaining.slice(0, 12));
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (debug) result.wrappers = wrappers;
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.wrapperCount === result.inventoryCount
+        && result.coveragePercent === 100
+        && result.missingCoverage.length === 0
+        && result.duplicateIds.length === 0
+        && result.emptyWrappers.length === 0
+        && result.placeholderMismatch.length === 0
+        && result.semanticDrift.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0;
+      try { console.warn("STEP5_4_ARGUMENT_WRAPPER_COVERAGE_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
+
     const smokeZoomerTermsReadyOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -4740,6 +4927,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
+    Game.Dev.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
     Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
@@ -4774,6 +4962,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
+    devStore.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
     devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
