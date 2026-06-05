@@ -5296,3 +5296,9 @@ Error: Download failure, code=1
 - Shortened only `Data.TEXTS.genz.escape_button_label` from `Свалить: {X} 💰` to `Свалить: {X}` so the escape button satisfies the Step 4 [3] <= 2 word rule while preserving the escape action meaning.
 - No other button, escape logic, pricing, economy, behavior, telemetry, inventory, or smoke rule was changed.
 - Runtime smoke remains `Game.__DEV.smokeZoomerButtonTermsOnce()`; its identity fields must be revalidated in Safari for this commit via `buildTag`, `commit`, and `smokeVersion`.
+## 2026-06-05 — Step 4 [4] final statusEntries filter fix
+- Safari proof narrowed the bug: the collector already ran and found `66` status candidates, so the failure moved to the last reducer step where `statusEntries` and `sampledStatusSources` were still built from an over-strict training-status subset.
+- Changed `Game.__DEV.smokeZoomerStatusTermsOnce()` in both served dev-check bundles so the final selection now consumes collected `statusCandidates` that either match the training-status source markers or contain one of the required transfer strings `Передача недоступна`, `Статус передачи недоступен`, or `Можно передать`.
+- Diagnostics stayed in place: `collectorExecuted`, `inventoryEntriesCount`, `statusCandidateCount`, `statusEntriesCount`, `sampledCandidates`, and `sampledStatusSources` are still returned, and new reducer-local failures make it explicit if the training-status narrowing step ever empties out again.
+- Scope held: no button changes, no error/hint/UI copy rewrites, no gameplay or transfer-mechanics changes, and no `Console.txt` usage.
+- Refreshed served identity/cache-bust to `build_2026_06_05_aa` / `864d4ab` / `step4-4-zoomer-status-terms-aa`. Runtime PASS is not claimed.
