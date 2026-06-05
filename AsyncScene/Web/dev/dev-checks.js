@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_w";
-  const RUNTIME_COMMIT = "cb519db";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_x";
+  const RUNTIME_COMMIT = "1b64743";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1817,8 +1817,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       try {
         const inventory = collectZoomerTermsInventoryEntries().filter((entry) => {
           if (!entry) return false;
-          return String(entry.file || "") === "AsyncScene/Web/ui/ui-menu.js"
-            && /^trainingControls\.status\./.test(String(entry.path || ""));
+          const source = entry.source || {};
+          const file = String(source.file || entry.file || "");
+          const path = String(source.path || entry.path || "");
+          return file === "AsyncScene/Web/ui/ui-menu.js"
+            && /^trainingControls\.status\./.test(path);
         });
         result.statusEntries = inventory.map((entry) => normalize(entry.text)).filter(Boolean);
         const expected = ["Передача недоступна", "Статус передачи недоступен", "Можно передать"];
