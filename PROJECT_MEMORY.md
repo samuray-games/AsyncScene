@@ -5308,3 +5308,8 @@ Error: Download failure, code=1
 - Diagnostics stayed in place: `collectorExecuted`, `inventoryEntriesCount`, `statusCandidateCount`, `statusEntriesCount`, `sampledCandidates`, and `sampledStatusSources` are still returned, and new reducer-local failures make it explicit if the training-status narrowing step ever empties out again.
 - Scope held: no button changes, no error/hint/UI copy rewrites, no gameplay or transfer-mechanics changes, and no `Console.txt` usage.
 - Refreshed served identity/cache-bust to `build_2026_06_05_aa` / `864d4ab` / `step4-4-zoomer-status-terms-aa`. Runtime PASS is not claimed.
+## 2026-06-05 — Step 4 [5] error terminology only
+- Tightened only the Step 4 [4] status-smoke error copy in both served dev-check bundles and both runtime shells so the failures now read as short, direct, one-line guidance.
+- Changed the status-smoke failure wording from bureaucratic labels to actionable text, while preserving the smoke checks, buttons, statuses, hints, gameplay logic, and error behavior.
+- Refreshed served identity markers to `build_2026_06_05_ac` / `a58c803` so `Game.__DEV.smokeZoomerErrorTermsOnce()` has a commit-unique `smokeVersion` for this change.
+- Runtime PASS is not claimed; Safari must rerun `Game.__DEV.smokeZoomerErrorTermsOnce()`.
