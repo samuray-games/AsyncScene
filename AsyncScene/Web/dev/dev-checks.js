@@ -29308,6 +29308,77 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
 
 
+  function installDevMenuMinimalSmoke(devStore) {
+    if (!devStore || typeof devStore.smokeDevMenuMinimalOnce === "function") return;
+    devStore.smokeDevMenuMinimalOnce = function smokeDevMenuMinimalOnce() {
+      const result = {
+        ok: false,
+        visibleButtons: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const addMissing = (code) => {
+        if (!result.missingCoverage.includes(code)) result.missingCoverage.push(code);
+      };
+      const isVisible = (el) => {
+        if (!el || !el.isConnected) return false;
+        const style = typeof window !== "undefined" && window.getComputedStyle ? window.getComputedStyle(el) : null;
+        if (style && (style.display === "none" || style.visibility === "hidden" || style.opacity === "0")) return false;
+        const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : null;
+        return !rect || rect.width > 0 || rect.height > 0;
+      };
+      try {
+        const UI = Game && Game.UI ? Game.UI : null;
+        if (!UI || typeof UI.showMenu !== "function") fail("ui_show_menu_missing", null);
+        else UI.showMenu();
+
+        const doc = typeof document !== "undefined" ? document : null;
+        if (!doc) fail("document_missing", null);
+        const containers = doc ? [doc.getElementById("devModeControls"), doc.getElementById("loggerControls")].filter(Boolean) : [];
+        containers.forEach((container) => {
+          Array.from(container.querySelectorAll("button")).forEach((button) => {
+            if (isVisible(button)) result.visibleButtons.push((button.textContent || "").trim());
+          });
+        });
+
+        const forbiddenLabels = [
+          "Ping logger",
+          "Force flush",
+          "Econ NPC allowlist evidence pack",
+          "Print last allowlist pack",
+          "Dump console to Console.txt",
+          "Unlock Dev Mode"
+        ];
+        result.forbiddenRemaining = result.visibleButtons.filter((label) => forbiddenLabels.includes(label));
+        if (result.forbiddenRemaining.length) fail("forbidden_buttons_visible", result.forbiddenRemaining.slice());
+
+        const hasConsole = result.visibleButtons.includes("Console Panel");
+        const hasDevToggle = result.visibleButtons.includes("Enable Dev Mode") || result.visibleButtons.includes("Disable Dev Mode");
+        if (!hasConsole) addMissing("Console Panel");
+        if (!hasDevToggle) addMissing("Enable Dev Mode OR Disable Dev Mode");
+        if (result.missingCoverage.length) fail("missing_required_buttons", result.missingCoverage.slice());
+        if (result.visibleButtons.length !== 2) fail("visible_button_count_not_2", result.visibleButtons.slice());
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.visibleButtons.length === 2
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      console.warn("DEV_MENU_MINIMAL_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    console.warn("DEV_MENU_MINIMAL_SMOKE_INSTALLED_V1", typeof devStore.smokeDevMenuMinimalOnce);
+  }
+
+
 
 
 
@@ -29386,6 +29457,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   }
 
 
+  installDevMenuMinimalSmoke(Game.__DEV);
   installOnboardingSpecSmoke(Game.__DEV);
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
@@ -29405,6 +29477,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyRegressionPackSmoke(Game.__DEV);
   installStep3MillennialStyleGuideSmoke(Game.__DEV);
   installStep3TerminologyCompletionGateSmoke(Game.__DEV);
+  console.warn("DEV_MENU_MINIMAL_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeDevMenuMinimalOnce);
   console.warn("ONBOARDING_SPEC_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeOnboardingSpecOnce);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);

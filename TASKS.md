@@ -1,5 +1,22 @@
 # Task Board (single source of truth)
 
+## 2026-06-05 — Dev menu minimal surface
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: UI|Infra
+- Files: `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Simplify the visible developer menu surface without deleting underlying dev helpers or commands.
+- Acceptance:
+  - [x] Visible dev-menu actions are limited to `Console Panel` and `Enable Dev Mode` / `Disable Dev Mode`.
+  - [x] Previous logger/evidence/dump dev-menu buttons are no longer rendered in the visible menu UI.
+  - [x] `Game.__DEV.smokeDevMenuMinimalOnce()` returns `ok`, `visibleButtons`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+  - [x] No gameplay changes, economy changes, underlying command deletion, or broad dev-menu refactor was introduced.
+- Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeDevMenuMinimalOnce()`.
+- Result: READY_FOR_RUNTIME_SMOKE; awaiting user Safari smoke.
+
 ## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
 
 - Status: READY_FOR_RUNTIME_SMOKE

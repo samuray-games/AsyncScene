@@ -168,7 +168,7 @@ window.Game = window.Game || {};
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn small";
-    btn.textContent = isDevModeActive() ? "Disable Dev Mode" : "Unlock Dev Mode";
+    btn.textContent = isDevModeActive() ? "Disable Dev Mode" : "Enable Dev Mode";
     btn.title = "Local convenience gate for device-only dev tools";
     btn.onclick = (e) => {
       e.preventDefault();
@@ -199,11 +199,6 @@ window.Game = window.Game || {};
   }
 
   function ensureLoggerControls() {
-    const stale = document.getElementById("loggerControls");
-    if (!isDevModeActive()) {
-      if (stale) stale.remove();
-      return;
-    }
     const block = getMenuBlock();
     if (!block) return;
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
@@ -221,115 +216,19 @@ window.Game = window.Game || {};
     }
     wrap.innerHTML = "";
 
-    const status = document.createElement("span");
-    status.id = "loggerStatusIndicator";
-    status.className = "pill";
-    status.textContent = "Logger: unknown";
-    wrap.appendChild(status);
-
-    const makeButton = (label, title, onClick) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn small";
-      btn.textContent = label;
-      btn.title = title;
-      btn.onclick = onClick;
-      wrap.appendChild(btn);
-      return btn;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn small";
+    btn.textContent = "Console Panel";
+    btn.title = "Open expanded console panel";
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof window.toggleConsolePanel === "function") {
+        window.toggleConsolePanel();
+      }
     };
-
-    const logger = (Game && Game.Logger) ? Game.Logger : null;
-    const notify = (msg) => {
-      if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg);
-      else if (UI && typeof UI.pushSystem === "function") UI.pushSystem(msg);
-    };
-
-    makeButton("Ping logger", "Check logger availability", async () => {
-      if (!logger) {
-        notify("Logger not running.");
-        return;
-      }
-      const ok = await logger.ping();
-      notify(ok ? "Logger reachable." : "Logger unreachable.");
-    });
-
-    makeButton("Force flush", "Send pending log batch", () => {
-      if (!logger) {
-        notify("Logger not running.");
-        return;
-      }
-      logger.forceFlush();
-      notify("Logger flush triggered.");
-    });
-
-    makeButton("Econ NPC allowlist evidence pack", "Run allowlist evidence pack (dev-only)", () => {
-      const G = window.Game || null;
-      const fn =
-        (G && G.__DEV && typeof G.__DEV.runEconNpcAllowlistEvidencePackOnce === "function" && G.__DEV.runEconNpcAllowlistEvidencePackOnce) ||
-        (G && G.Dev && typeof G.Dev.runEconNpcAllowlistEvidencePackOnce === "function" && G.Dev.runEconNpcAllowlistEvidencePackOnce) ||
-        (G && G.__DEV && typeof G.__DEV.runAllowlistEvidencePackOnce === "function" && G.__DEV.runAllowlistEvidencePackOnce) ||
-        (G && G.Dev && typeof G.Dev.runAllowlistEvidencePackOnce === "function" && G.Dev.runAllowlistEvidencePackOnce);
-      if (!fn) {
-        console.error("ECON_NPC_ALLOWLIST_PACK_V1_MISSING_FN");
-        if (G && G.__DEV && typeof G.__DEV.diagEconNpcAllowlistPackOnce === "function") {
-          G.__DEV.diagEconNpcAllowlistPackOnce();
-        }
-        notify("Allowlist pack helper missing.");
-        return;
-      }
-      fn();
-      if (G && G.__DEV && G.__DEV.lastEconNpcAllowlistEvidencePack) {
-        console.log("ECON_NPC_ALLOWLIST_PACK_V1_LAST", G.__DEV.lastEconNpcAllowlistEvidencePack);
-      }
-      console.warn("AFTER CLICK: search console for WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN");
-      notify("Allowlist pack logged to console.");
-    });
-    makeButton("Print last allowlist pack", "Re-print stored allowlist evidence pack", () => {
-      const G = window.Game || null;
-      const pack = G && G.__DEV && G.__DEV.lastEconNpcAllowlistEvidencePack ? G.__DEV.lastEconNpcAllowlistEvidencePack : null;
-      if (!pack) {
-        console.warn("ECON_NPC_ALLOWLIST_PACK_V1_NO_LAST");
-        notify("No stored allowlist pack yet.");
-        return;
-      }
-      console.log("WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_BEGIN");
-      pack.results.forEach(obj => console.log(JSON.stringify(obj || null)));
-      console.log("WORLD_ECON_NPC_ALLOWLIST_EVIDENCE_END");
-      notify("Replayed last allowlist pack.");
-    });
-
-    makeButton("Dump console to Console.txt", "Copy full console tape to Console.txt (dev-only)", async () => {
-      const dumpFn = (typeof window !== "undefined" && typeof window.__DUMP_ALL__ === "function") ? window.__DUMP_ALL__ : null;
-      if (!dumpFn) {
-        console.error("CONSOLE_DUMP_NO_TAPE");
-        notify("Console tape missing.");
-        return;
-      }
-      const result = await dumpFn();
-      if (result && result.ok) {
-        notify("Console.txt updated.");
-      } else {
-        notify("Console.txt write failed.");
-      }
-    });
-    if (isDevModeActive()) {
-      makeButton("Console Panel", "Open expanded console panel (dev only)", () => {
-        if (typeof window.toggleConsolePanel === "function") {
-          window.toggleConsolePanel();
-        }
-      });
-    }
-
-    const updateStatus = (value) => {
-      if (!status) return;
-      const label = value === "connected" ? "connected" : value === "disconnected" ? "disconnected" : "unknown";
-      status.textContent = `Logger: ${label}`;
-    };
-    if (logger && typeof logger.onStatusChange === "function") {
-      logger.onStatusChange(updateStatus);
-    } else {
-      updateStatus("disabled");
-    }
+    wrap.appendChild(btn);
   }
   function ensureMenuHeaderHasCloseX() {
     const block = getMenuBlock();
