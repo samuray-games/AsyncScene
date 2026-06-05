@@ -1,3 +1,11 @@
+## 2026-06-05 — Step 5.5 semantic linter for zoomer argument wrappers
+- Added dev-only `Game.__DEV.smokeZoomerArgumentSemanticLinterOnce()` / `Game.Dev.smokeZoomerArgumentSemanticLinterOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke checks only the existing Step 5.4 dev wrapper set from `buildZoomerArgumentWrapperEntries()` and requires `checkedCount: 964`.
+- Returned PASS fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `canonIdMismatch`, `typeMismatch`, `sideMismatch`, `placeholderMismatch`, `keyEntityMismatch`, `polarityMismatch`, `sideDrift`, `addedClaims`, `removedClaims`, `semanticDrift`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `failures`.
+- Served identity/cache-bust refreshed to `build_2026_06_05_step5_5_arg_semantic_linter` / `step5_5_arg_semantic_linter` / `step5-5-argument-semantic-linter` so the unique Step 5.5 `smokeVersion` is visible in Safari runtime output.
+- Scope held: no new wrapper texts, no canon argument text changes, no live gameplay wrapper application, no UI behavior change, and no battle/defense logic change.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed; run `Game.__DEV.smokeZoomerArgumentSemanticLinterOnce()`.
+
 ## 2026-06-05 — Step 5.3 zoomer argument wrapper pilot set only
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed.
 - Added dev-only `Game.ZoomerArgumentWrapperPilot` / `Game.__DEV.zoomerArgumentWrapperPilot` with a 24-entry pilot set from existing canon argument ids across ABOUT, WHO, WHERE, and YN.
