@@ -1,8 +1,9 @@
-## 2026-06-05 — Step 4 [4] status inventory collector fix
-- Changed the real `Game.__DEV.smokeZoomerStatusTermsOnce()` inventory filter in both served dev-check bundles to read `entry.source.file` and `entry.source.path` from `collectZoomerTermsInventoryEntries()`, with fallback to legacy flat fields if they ever exist.
-- Root cause: the smoke filtered on `entry.file` / `entry.path`, but inventory entries are built by `makeZoomerTermsInventoryEntry()` with source metadata nested under `entry.source.*`, so Safari could report `missingCoverage` for `Передача недоступна`, `Статус передачи недоступен`, and `Можно передать` while returning `statusEntries: []`.
-- Scope held: buttons, errors, hints, gameplay logic, transfer mechanics, and the training status behavior were not changed; only the actual status inventory mapping/collection path used by the smoke was fixed.
-- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-x` and bumped both runtime build tags to `build_2026_06_05_x` with served `__COMMIT__`/`RUNTIME_COMMIT` markers `1b64743`.
+## 2026-06-05 — Step 4 [4] status inventory runtime-source fix
+- Root cause proved against the actual runtime source used by `Game.__DEV.smokeZoomerStatusTermsOnce()`: Safari can expose training-status inventory rows from `runtime/dom` / `Game.UI.trainingControls` at `#trainingStatusText`, while the smoke previously accepted only authored `ui-menu.js` status rows. The three strings still exist in `AsyncScene/Web/ui/ui-menu.js` and `docs/ui/ui-menu.js`, but `Можно передать` may appear only inside the rendered row `Цена {price} 💰 • Можно передать`.
+- Changed `collectZoomerTermsInventoryEntries()` in both served dev-check bundles to add the live `statusEl.textContent` row as a `status` inventory entry and to emit exact runtime status terms `Передача недоступна`, `Статус передачи недоступен`, and `Можно передать` when the rendered row contains them.
+- Changed `Game.__DEV.smokeZoomerStatusTermsOnce()` in both served dev-check bundles to classify status rows from either authored `trainingControls.status.*` sources or the live `runtime/dom` training-status source, to treat embedded terms as valid coverage, and to emit runtime diagnostics `statusEntriesCount` and `sampledStatusSources`.
+- Scope held: buttons, errors, hints, gameplay logic, transfer mechanics, and the training status behavior were not changed.
+- Refreshed the served docs/app dev-checks cache-bust to `step4-4-zoomer-status-terms-y` and bumped both runtime build tags to `build_2026_06_05_y` with served `__COMMIT__`/`RUNTIME_COMMIT` markers `43216fb`.
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 
 ## 2026-06-05 — Step 4 [3] button-term runtime sync
