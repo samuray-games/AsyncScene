@@ -1,3 +1,11 @@
+## 2026-06-05 — Step 5.3 zoomer argument wrapper pilot set only
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed.
+- Added dev-only `Game.ZoomerArgumentWrapperPilot` / `Game.__DEV.zoomerArgumentWrapperPilot` with a 24-entry pilot set from existing canon argument ids across ABOUT, WHO, WHERE, and YN.
+- Pilot samples include Q and A sides, preserve each canon id, store `originalText` and `wrapperText` side by side, preserve `{NAME}` / `{PLACE}` placeholders, and keep wrappers shorter/direct without slang, memes, exaggeration, or runtime application.
+- Added `Game.__DEV.smokeZoomerArgumentWrapperPilotOnce()` / `Game.Dev.smokeZoomerArgumentWrapperPilotOnce()` in both served dev-check bundles. The smoke returns `ok`, `buildTag`, `commit`, `smokeVersion`, `sampleCount`, `byTypeCounts`, `bySideCounts`, `missingTypes`, `missingSides`, `semanticDrift`, `placeholderMismatch`, `lengthViolations`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `failures`.
+- Scope held: no canon argument text changes, no live gameplay wrapper application, no runtime argument output replacement, no UI behavior change, and no battle/defense logic change.
+- Required Safari command: `Game.__DEV.smokeZoomerArgumentWrapperPilotOnce()`.
+
 ## 2026-06-05 — Step 5.2 zoomer argument wrapper rules only
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed.
 - Added dedicated runtime-accessible rule contract `Game.ZoomerArgumentWrapperRules` / `Game.__DEV.zoomerArgumentWrapperRules` in both served dev-check bundles.

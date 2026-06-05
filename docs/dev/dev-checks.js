@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_2_arg_wrapper_rules";
-  const RUNTIME_COMMIT = "step5_2_arg_wrapper_rules";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_3_arg_wrapper_pilot";
+  const RUNTIME_COMMIT = "step5_3_arg_wrapper_pilot";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4186,6 +4186,187 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const ZOOMER_ARGUMENT_WRAPPER_PILOT = Object.freeze({
+      id: "zoomer_argument_wrapper_pilot_v1",
+      scope: "pilot_set_only_not_runtime_output",
+      wrapperGenerationEnabled: false,
+      appliedToGameplay: false,
+      replacesRuntimeArgumentOutput: false,
+      canonicalRewriteEnabled: false,
+      gameplayChangeEnabled: false,
+      uiChangeEnabled: false,
+      battleDefenseLogicChangeEnabled: false,
+      rulesContractId: ZOOMER_ARGUMENT_WRAPPER_RULES.id,
+      samples: Object.freeze([
+        Object.freeze({ canonId: "Y1|ABOUT|Q1", type: "ABOUT", side: "Q", originalText: "Извините, про кого сейчас говорят?", wrapperText: "Про кого сейчас говорят?" }),
+        Object.freeze({ canonId: "Y1|ABOUT|Q2", type: "ABOUT", side: "Q", originalText: "Простите, о ком сейчас все говорят?", wrapperText: "О ком сейчас все говорят?" }),
+        Object.freeze({ canonId: "Y2|ABOUT|Q4", type: "ABOUT", side: "Q", originalText: "Можно спросить, чьё имя сейчас на слуху?", wrapperText: "Чьё имя сейчас на слуху?" }),
+        Object.freeze({ canonId: "Y1|ABOUT|A1", type: "ABOUT", side: "A", originalText: "Кажется, про {NAME}…", wrapperText: "Похоже, про {NAME}." }),
+        Object.freeze({ canonId: "Y1|ABOUT|A5", type: "ABOUT", side: "A", originalText: "Ну… вроде про {NAME}.", wrapperText: "Вроде про {NAME}." }),
+        Object.freeze({ canonId: "Y1|ABOUT|A7", type: "ABOUT", side: "A", originalText: "Я могу ошибаться, но про {NAME}.", wrapperText: "Могу ошибаться: про {NAME}." }),
+        Object.freeze({ canonId: "Y1|WHO|Q1", type: "WHO", side: "Q", originalText: "Эм… простите, кто это?", wrapperText: "Кто это?" }),
+        Object.freeze({ canonId: "Y1|WHO|Q6", type: "WHO", side: "Q", originalText: "Извините, кто был вовлечён?", wrapperText: "Кто был вовлечён?" }),
+        Object.freeze({ canonId: "Y2|WHO|Q9", type: "WHO", side: "Q", originalText: "Можно спросить, кто знал об этом?", wrapperText: "Кто знал об этом?" }),
+        Object.freeze({ canonId: "Y1|WHO|A1", type: "WHO", side: "A", originalText: "{NAME}… кажется.", wrapperText: "Похоже, {NAME}." }),
+        Object.freeze({ canonId: "Y1|WHO|A5", type: "WHO", side: "A", originalText: "Если не ошибаюсь, {NAME}.", wrapperText: "Возможно, {NAME}." }),
+        Object.freeze({ canonId: "Y2|WHO|A9", type: "WHO", side: "A", originalText: "Если не ошибаюсь, {NAME}.", wrapperText: "Возможно, {NAME}." }),
+        Object.freeze({ canonId: "Y1|WHERE|Q1", type: "WHERE", side: "Q", originalText: "Эм… простите, где мы сейчас?", wrapperText: "Где мы сейчас?" }),
+        Object.freeze({ canonId: "Y1|WHERE|Q2", type: "WHERE", side: "Q", originalText: "Извините, где это произошло?", wrapperText: "Где это произошло?" }),
+        Object.freeze({ canonId: "Y2|WHERE|Q4", type: "WHERE", side: "Q", originalText: "Можно спросить, где назначена встреча?", wrapperText: "Где назначена встреча?" }),
+        Object.freeze({ canonId: "Y1|WHERE|A1", type: "WHERE", side: "A", originalText: "Кажется, там, где {PLACE}.", wrapperText: "Похоже, там, где {PLACE}." }),
+        Object.freeze({ canonId: "Y1|WHERE|A2", type: "WHERE", side: "A", originalText: "Наверное, тут.", wrapperText: "Скорее тут." }),
+        Object.freeze({ canonId: "Y1|WHERE|A7", type: "WHERE", side: "A", originalText: "Если не ошибаюсь, там, где {PLACE}.", wrapperText: "Возможно, там, где {PLACE}." }),
+        Object.freeze({ canonId: "Y1|YN|Q1", type: "YN", side: "Q", originalText: "Эм… простите, вы уверены?", wrapperText: "Вы уверены?" }),
+        Object.freeze({ canonId: "Y1|YN|Q2", type: "YN", side: "Q", originalText: "Извините, это правда?", wrapperText: "Это правда?" }),
+        Object.freeze({ canonId: "Y1|YN|Q5", type: "YN", side: "Q", originalText: "Извините, лучше промолчать?", wrapperText: "Лучше промолчать?" }),
+        Object.freeze({ canonId: "Y1|YN|A1", type: "YN", side: "A", originalText: "Наверное, да.", wrapperText: "Скорее да." }),
+        Object.freeze({ canonId: "Y1|YN|A5", type: "YN", side: "A", originalText: "Ну… вряд ли.", wrapperText: "Вряд ли." }),
+        Object.freeze({ canonId: "Y1|YN|A6", type: "YN", side: "A", originalText: "Ну… да, наверное.", wrapperText: "Скорее да." })
+      ])
+    });
+    const exposeZoomerArgumentWrapperPilot = () => {
+      G.ZoomerArgumentWrapperPilot = ZOOMER_ARGUMENT_WRAPPER_PILOT;
+      G.__DEV.zoomerArgumentWrapperPilot = ZOOMER_ARGUMENT_WRAPPER_PILOT;
+      G.__DEV.ZOOMER_ARGUMENT_WRAPPER_PILOT = ZOOMER_ARGUMENT_WRAPPER_PILOT;
+      if (Game.Dev) Game.Dev.zoomerArgumentWrapperPilot = ZOOMER_ARGUMENT_WRAPPER_PILOT;
+      return ZOOMER_ARGUMENT_WRAPPER_PILOT;
+    };
+    exposeZoomerArgumentWrapperPilot();
+
+    const normalizePilotText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const extractPilotPlaceholders = (value) => {
+      const matches = normalizePilotText(value).match(/\{[A-ZА-ЯЁ][A-ZА-ЯЁ0-9_]*\}/gu);
+      return matches ? matches.slice().sort() : [];
+    };
+    const smokeZoomerArgumentWrapperPilotOnce = (options) => {
+      const debug = !!(options && options.debug === true);
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step5_3_argument_wrapper_pilot_v1_20260605a_${buildTag}_commit_${commit}`;
+      const requiredTypes = ["ABOUT", "WHO", "WHERE", "YN"];
+      const requiredSides = ["Q", "A"];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        sampleCount: 0,
+        byTypeCounts: { ABOUT: 0, WHO: 0, WHERE: 0, YN: 0 },
+        bySideCounts: { Q: 0, A: 0 },
+        missingTypes: [],
+        missingSides: [],
+        semanticDrift: [],
+        placeholderMismatch: [],
+        lengthViolations: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        failures: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const forbiddenWrapperTerms = [
+        "лол", "кек", "мем", "мемно", "краш", "кринж", "вайб", "рофл", "чилл", "флекс", "имба", "топчик", "жиза", "изи", "сигма", "легенда", "эпично", "разнос", "бомба", "огонь"
+      ];
+      const makeTermRx = (term) => new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9_])${String(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^A-Za-zА-Яа-яЁё0-9_]|$)`, "iu");
+      try {
+        const pilot = exposeZoomerArgumentWrapperPilot();
+        const samples = Array.isArray(pilot && pilot.samples) ? pilot.samples : [];
+        result.sampleCount = samples.length;
+        if (result.sampleCount < 20 || result.sampleCount > 40) fail("sample_count_between_20_and_40", result.sampleCount);
+        if (!pilot || pilot.appliedToGameplay !== false || pilot.replacesRuntimeArgumentOutput !== false || pilot.canonicalRewriteEnabled !== false || pilot.gameplayChangeEnabled !== false || pilot.uiChangeEnabled !== false || pilot.battleDefenseLogicChangeEnabled !== false) {
+          fail("pilot_not_runtime_applied", {
+            appliedToGameplay: pilot && pilot.appliedToGameplay,
+            replacesRuntimeArgumentOutput: pilot && pilot.replacesRuntimeArgumentOutput,
+            canonicalRewriteEnabled: pilot && pilot.canonicalRewriteEnabled,
+            gameplayChangeEnabled: pilot && pilot.gameplayChangeEnabled,
+            uiChangeEnabled: pilot && pilot.uiChangeEnabled,
+            battleDefenseLogicChangeEnabled: pilot && pilot.battleDefenseLogicChangeEnabled
+          });
+        }
+        const inventory = collectZoomerArgumentInventoryEntries();
+        const inventoryById = Object.create(null);
+        inventory.forEach((entry) => {
+          if (entry && entry.id && !inventoryById[String(entry.id)]) inventoryById[String(entry.id)] = entry;
+        });
+        const seen = Object.create(null);
+        samples.forEach((sample, index) => {
+          const canonId = sample && sample.canonId ? String(sample.canonId) : `missing_${index}`;
+          const type = sample && sample.type ? String(sample.type).toUpperCase() : "";
+          const side = sample && sample.side ? String(sample.side).toUpperCase() : "";
+          const originalText = normalizePilotText(sample && sample.originalText);
+          const wrapperText = normalizePilotText(sample && sample.wrapperText);
+          if (requiredTypes.includes(type)) result.byTypeCounts[type] += 1;
+          if (requiredSides.includes(side)) result.bySideCounts[side] += 1;
+          if (!canonId || !originalText || !wrapperText || !requiredTypes.includes(type) || !requiredSides.includes(side)) {
+            addUnique(result.missingCoverage, { check: "sample_required_fields", canonId, type, side });
+          }
+          const key = `${canonId}|${type}|${side}`;
+          if (seen[key]) addUnique(result.missingCoverage, { check: "duplicate_pilot_sample", key });
+          seen[key] = true;
+          const originalPlaceholders = extractPilotPlaceholders(originalText);
+          const wrapperPlaceholders = extractPilotPlaceholders(wrapperText);
+          if (JSON.stringify(originalPlaceholders) !== JSON.stringify(wrapperPlaceholders)) {
+            addUnique(result.placeholderMismatch, { canonId, originalPlaceholders, wrapperPlaceholders });
+          }
+          if (wrapperText.length >= originalText.length) {
+            addUnique(result.lengthViolations, { canonId, originalLength: originalText.length, wrapperLength: wrapperText.length });
+          }
+          forbiddenWrapperTerms.forEach((term) => {
+            if (makeTermRx(term).test(wrapperText)) addUnique(result.forbiddenRemaining, { canonId, term, wrapperText });
+          });
+          const inventoryEntry = inventoryById[canonId];
+          if (!inventoryEntry) {
+            addUnique(result.missingCoverage, { check: "canon_id_in_inventory", canonId });
+          } else {
+            const invType = String(inventoryEntry.type || "").toUpperCase();
+            const invSide = String(inventoryEntry.side || "").toUpperCase();
+            const invText = normalizePilotText(inventoryEntry.rawText || inventoryEntry.text);
+            if (invType !== type || invSide !== side) addUnique(result.missingCoverage, { check: "type_side_match_inventory", canonId, expected: { type, side }, actual: { type: invType, side: invSide } });
+            if (invText !== originalText) addUnique(result.missingCoverage, { check: "original_text_matches_inventory", canonId, expected: invText, actual: originalText });
+          }
+          if (sample && sample.semanticDrift === true) addUnique(result.semanticDrift, canonId);
+        });
+        requiredTypes.forEach((type) => {
+          if (result.byTypeCounts[type] <= 0) {
+            addUnique(result.missingTypes, type);
+            addUnique(result.missingCoverage, `type:${type}`);
+          }
+        });
+        requiredSides.forEach((side) => {
+          if (result.bySideCounts[side] <= 0) {
+            addUnique(result.missingSides, side);
+            addUnique(result.missingCoverage, `side:${side}`);
+          }
+        });
+        if (result.semanticDrift.length) fail("semantic_drift_empty", result.semanticDrift.slice());
+        if (result.placeholderMismatch.length) fail("placeholder_mismatch_empty", result.placeholderMismatch.slice());
+        if (result.lengthViolations.length) fail("length_violations_empty", result.lengthViolations.slice());
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining_empty", result.forbiddenRemaining.slice());
+        if (result.missingCoverage.length) fail("missing_coverage_empty", result.missingCoverage.slice());
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.sampleCount >= 20
+        && result.sampleCount <= 40
+        && result.missingTypes.length === 0
+        && result.missingSides.length === 0
+        && result.semanticDrift.length === 0
+        && result.placeholderMismatch.length === 0
+        && result.lengthViolations.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0;
+      if (debug) result.samples = (ZOOMER_ARGUMENT_WRAPPER_PILOT.samples || []).slice();
+      try { console.warn("STEP5_3_ARGUMENT_WRAPPER_PILOT_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
+
     const collectZoomerArgumentInventoryEntries = () => {
       const D = G && G.Data ? G.Data : null;
       const entries = [];
@@ -4558,6 +4739,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
+    Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
     Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
@@ -4591,6 +4773,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
+    devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
     devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
