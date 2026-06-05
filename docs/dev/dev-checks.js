@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_7_arg_wrappers_smoke_pack";
-  const RUNTIME_COMMIT = "step5_7_arg_wrappers_smoke_pack";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_8_arg_authenticity_check";
+  const RUNTIME_COMMIT = "step5_8_arg_authenticity_check";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5095,6 +5095,183 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
 
+    const smokeZoomerArgumentAuthenticityOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step5_8_argument_wrapper_authenticity_v1_20260605a_${buildTag}_commit_${commit}`;
+      const expectedCheckedCount = 964;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        checkedCount: 0,
+        forcedSlang: [],
+        memeLanguage: [],
+        cringePhrasing: [],
+        exaggeratedCoolness: [],
+        roleplayTone: [],
+        artificialYouthTone: [],
+        generationStereotypes: [],
+        unnaturalDialogue: [],
+        eyeRollFailures: [],
+        warnings: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        failures: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalizeAuthenticityText = (value) => normalizePilotText(value).replace(/ё/giu, "е");
+      const makeTermRx = (term) => new RegExp(`(^|[^A-Za-zА-Яа-яЁё0-9_])${String(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^A-Za-zА-Яа-яЁё0-9_]|$)`, "iu");
+      const scanTerms = (bucket, check, canonId, text, terms) => {
+        terms.forEach((term) => {
+          if (makeTermRx(term).test(text)) addUnique(bucket, { canonId, check, match: term, text });
+        });
+      };
+      const scanPatterns = (bucket, check, canonId, text, patterns) => {
+        patterns.forEach((pattern) => {
+          const match = text.match(pattern.re);
+          if (match) addUnique(bucket, { canonId, check, match: match[0], text });
+        });
+      };
+      const authenticityChecks = [
+        "forced_slang",
+        "meme_language",
+        "cringe_phrasing",
+        "exaggerated_coolness",
+        "roleplay_tone",
+        "artificial_youth_tone",
+        "generation_stereotypes",
+        "unnatural_dialogue",
+        "eye_roll_test"
+      ];
+      const coveredChecks = new Set(authenticityChecks);
+      const forcedSlangTerms = ["лол", "кек", "рофл", "чилл", "флекс", "вайб", "имба", "топчик", "жиза", "изи", "сигма", "краш", "слей", "кринж"];
+      const memeLanguageTerms = ["мем", "мемно", "скибиди", "база", "бумер", "рофл", "press f", "go brrr", "sus", "npc"];
+      const exaggeratedCoolnessTerms = ["легенда", "эпично", "разнос", "бомба", "огонь", "ультра", "мега", "суперсила"];
+      const generationTerms = ["зумер", "зумерский", "зумерская", "бумер", "миллениал", "миллениальский", "поколение z", "gen z"];
+      const cringePatterns = [
+        { re: /(?:ну\s+типа\s+ваще|прям\s+капец\s+как|тот\s+самый\s+момент)/iu },
+        { re: /(?:не\s+я\s+такой[,\s]+жизнь\s+такая|я\s+не\s+плачу[,\s]+это)/iu },
+        { re: /(?:кто\s+понял[,\s]+тот\s+понял)/iu }
+      ];
+      const roleplayPatterns = [
+        { re: /^\s*\*[^*]{1,80}\*\s*$/u },
+        { re: /(?:\*\s*(?:вздыхает|улыбается|смеется|плачет|смотрит|уходит)\s*\*)/iu },
+        { re: /(?:делаю\s+вид|врываюсь\s+в\s+чат|ухожу\s+в\s+закат|снимаю\s+очки)/iu }
+      ];
+      const artificialYouthPatterns = [
+        { re: /(?:говорю\s+как\s+молодежь|на\s+молодежном|по\s+зумерски|для\s+зумеров)/iu },
+        { re: /(?:типичный\s+зумер|молодые\s+так\s+говорят|дети\s+интернета)/iu },
+        { re: /(?:без\s+кринжа[,\s]+но|если\s+что[,\s]+это\s+вайб)/iu }
+      ];
+      const unnaturalPatterns = [
+        { re: /[😂🤣😭💀✨🔥]{1,}/u },
+        { re: /(?:#{1,}\w+|@everyone|@here)/iu },
+        { re: /(?:!{2,}|\?{3,}|[!?]{4,})/u },
+        { re: /(?:ха){4,}/iu },
+        { re: /[A-ZА-ЯЁ]{8,}/u }
+      ];
+      const eyeRollPatterns = [
+        { re: /(?:это\s+(?:вайб|база|кринж|рофл)|на\s+чилле|без\s+негатива[,\s]+но)/iu },
+        { re: /(?:лови\s+факт|держи\s+вайб|разнос\s+пошел|сейчас\s+будет\s+база)/iu },
+        { re: /(?:как\s+говорит\s+молодежь|молодежно\s+сказано)/iu }
+      ];
+      try {
+        const coverage = exposeZoomerArgumentWrapperCoverage();
+        if (!coverage || coverage.appliedToGameplay !== false || coverage.replacesRuntimeArgumentOutput !== false || coverage.canonicalRewriteEnabled !== false || coverage.gameplayChangeEnabled !== false || coverage.uiChangeEnabled !== false || coverage.battleDefenseLogicChangeEnabled !== false) {
+          fail("dev_only_not_runtime_applied", {
+            appliedToGameplay: coverage && coverage.appliedToGameplay,
+            replacesRuntimeArgumentOutput: coverage && coverage.replacesRuntimeArgumentOutput,
+            canonicalRewriteEnabled: coverage && coverage.canonicalRewriteEnabled,
+            gameplayChangeEnabled: coverage && coverage.gameplayChangeEnabled,
+            uiChangeEnabled: coverage && coverage.uiChangeEnabled,
+            battleDefenseLogicChangeEnabled: coverage && coverage.battleDefenseLogicChangeEnabled
+          });
+        }
+        const inventory = collectZoomerArgumentInventoryEntries();
+        const wrappers = buildZoomerArgumentWrapperEntries();
+        result.checkedCount = wrappers.length;
+        const inventoryById = Object.create(null);
+        inventory.forEach((entry) => {
+          const id = String(entry && entry.id || "");
+          if (id) inventoryById[id] = entry;
+        });
+        const seen = Object.create(null);
+        wrappers.forEach((wrapper, index) => {
+          const canonId = String(wrapper && wrapper.canonId || "");
+          const wrapperText = normalizeAuthenticityText(wrapper && wrapper.wrapperText);
+          if (!canonId) addUnique(result.missingCoverage, { check: "missing_canon_id", index });
+          if (canonId) seen[canonId] = (seen[canonId] || 0) + 1;
+          if (canonId && !inventoryById[canonId]) addUnique(result.missingCoverage, { check: "wrapper_id_in_inventory", canonId });
+          if (!wrapperText) addUnique(result.missingCoverage, { check: "empty_wrapper_text", canonId, index });
+          scanTerms(result.forcedSlang, "forced_youth_slang", canonId, wrapperText, forcedSlangTerms);
+          scanTerms(result.memeLanguage, "meme_language", canonId, wrapperText, memeLanguageTerms);
+          scanPatterns(result.cringePhrasing, "cringe_phrasing", canonId, wrapperText, cringePatterns);
+          scanTerms(result.exaggeratedCoolness, "exaggerated_coolness", canonId, wrapperText, exaggeratedCoolnessTerms);
+          scanPatterns(result.roleplayTone, "roleplay_behavior", canonId, wrapperText, roleplayPatterns);
+          scanPatterns(result.artificialYouthTone, "artificial_youth_tone", canonId, wrapperText, artificialYouthPatterns);
+          scanTerms(result.generationStereotypes, "generation_stereotype", canonId, wrapperText, generationTerms);
+          scanPatterns(result.unnaturalDialogue, "unnatural_dialogue", canonId, wrapperText, unnaturalPatterns);
+          scanPatterns(result.eyeRollFailures, "eye_roll_test_failure", canonId, wrapperText, eyeRollPatterns);
+        });
+        Object.keys(inventoryById).forEach((id) => {
+          if (!seen[id]) addUnique(result.missingCoverage, id);
+        });
+        Object.keys(seen).forEach((id) => {
+          if (seen[id] > 1) addUnique(result.missingCoverage, { check: "duplicate_wrapper_canon_id", canonId: id, count: seen[id] });
+        });
+        authenticityChecks.forEach((check) => {
+          if (!coveredChecks.has(check)) addUnique(result.missingCoverage, { check: "authenticity_check_not_covered", rule: check });
+        });
+        [
+          ["forced_slang_empty", result.forcedSlang],
+          ["meme_language_empty", result.memeLanguage],
+          ["cringe_phrasing_empty", result.cringePhrasing],
+          ["exaggerated_coolness_empty", result.exaggeratedCoolness],
+          ["roleplay_tone_empty", result.roleplayTone],
+          ["artificial_youth_tone_empty", result.artificialYouthTone],
+          ["generation_stereotypes_empty", result.generationStereotypes],
+          ["unnatural_dialogue_empty", result.unnaturalDialogue],
+          ["eye_roll_failures_empty", result.eyeRollFailures]
+        ].forEach(([check, list]) => {
+          if (Array.isArray(list) && list.length) {
+            fail(check, list.slice(0, 12));
+            list.forEach((item) => addUnique(result.forbiddenRemaining, item));
+          }
+        });
+        if (result.checkedCount !== expectedCheckedCount) fail("checked_count_964", result.checkedCount);
+        if (inventory.length !== expectedCheckedCount) fail("inventory_count_964", inventory.length);
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining_empty", result.forbiddenRemaining.slice(0, 12));
+        if (result.missingCoverage.length) fail("missing_coverage_empty", result.missingCoverage.slice(0, 12));
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step5_8_argument_wrapper_authenticity_v1_20260605a_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step5_8") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.checkedCount === expectedCheckedCount
+        && result.forcedSlang.length === 0
+        && result.memeLanguage.length === 0
+        && result.cringePhrasing.length === 0
+        && result.exaggeratedCoolness.length === 0
+        && result.roleplayTone.length === 0
+        && result.artificialYouthTone.length === 0
+        && result.generationStereotypes.length === 0
+        && result.unnaturalDialogue.length === 0
+        && result.eyeRollFailures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0;
+      try { console.warn("STEP5_8_ARGUMENT_WRAPPER_AUTHENTICITY_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
+
     const smokeZoomerArgumentWrappersOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -5416,6 +5593,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
     Game.Dev.smokeZoomerArgumentSemanticLinterOnce = smokeZoomerArgumentSemanticLinterOnce;
     Game.Dev.smokeZoomerArgumentSimplicityLinterOnce = smokeZoomerArgumentSimplicityLinterOnce;
+    Game.Dev.smokeZoomerArgumentAuthenticityOnce = smokeZoomerArgumentAuthenticityOnce;
     Game.Dev.smokeZoomerArgumentWrappersOnce = smokeZoomerArgumentWrappersOnce;
     Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
@@ -5454,6 +5632,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerArgumentWrapperCoverageOnce = smokeZoomerArgumentWrapperCoverageOnce;
     devStore.smokeZoomerArgumentSemanticLinterOnce = smokeZoomerArgumentSemanticLinterOnce;
     devStore.smokeZoomerArgumentSimplicityLinterOnce = smokeZoomerArgumentSimplicityLinterOnce;
+    devStore.smokeZoomerArgumentAuthenticityOnce = smokeZoomerArgumentAuthenticityOnce;
     devStore.smokeZoomerArgumentWrappersOnce = smokeZoomerArgumentWrappersOnce;
     devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
@@ -5469,6 +5648,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   }
 
   installProfileSelfCheck(Game.__DEV);
+  if (typeof setTimeout === "function") {
+    setTimeout(() => {
+      try { installProfileSelfCheck(Game.__DEV); } catch (_) {}
+    }, 0);
+  }
 
   const installNpcSpeechInventorySmokeEarly = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
