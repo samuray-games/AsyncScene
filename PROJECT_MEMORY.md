@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 5.1 argument inventory runtime collector only
+- Added `Game.__DEV.smokeZoomerArgumentInventoryOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` as a dedicated inventory smoke for ABOUT / WHO / WHERE / YN.
+- The collector reads currently reachable canon groups through `Data.getArgCanonGroup(...)` and runtime `Data.ARGUMENTS` attack/defense rows, fills placeholders for inventory validation only, groups by type, and detects missing types, duplicate ids, empty entries, and unresolved placeholders.
+- Smoke output includes `ok`, `buildTag`, `commit`, `smokeVersion`, `inventoryCount`, `byType`, `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Scope held: no argument text changes, no canon rewrites, no zoomer wrappers, no gameplay changes, no UI behavior changes, and no economy changes.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed; run `Game.__DEV.smokeZoomerArgumentInventoryOnce()`.
+
 ## 2026-06-05 — Step 4 [9] final terminology readiness gate
 - Added `UI_PROFILE_ZOOMER_TERMS` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` as the single Step 4 terminology source-of-truth contract for runtime inventory, mapping, buttons, statuses, errors, hints, and new-feature validation.
 - Added `Game.__DEV.smokeZoomerTermsReadyOnce()` as the Step 4 final readiness smoke and kept `Game.__DEV.smokeZoomerTermsOnce()` as a compatibility alias delegating to the new final gate.
