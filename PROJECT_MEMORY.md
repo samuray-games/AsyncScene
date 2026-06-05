@@ -1,7 +1,7 @@
 ## 2026-06-05 — Step 4 [2] runtime table alignment follow-up
 - Updated the actual runtime mapping table in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, not just the docs note, so `Game.__DEV.smokeZoomerTransformationTableOnce()` no longer points at the stale zoomer targets `Enable Dev Mode`, `Проверяю...`, `Занят`, `Ник. Как в чате.`, and `Реванш`.
 - Reassigned those five runtime table rows to the exact live inventory strings `Disable Dev Mode`, `Продолжить`, `Sigma 💰10`, `Твой тон: очень скромный`, and `До скромного: 3 ⚡` without changing gameplay, UI text, or inventory scope.
-- Updated the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js`; Safari runtime PASS is still not claimed here and must be confirmed by rerunning `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Updated the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_q` / `416e9cd`; Safari runtime PASS is still not claimed here and must be confirmed by rerunning `Game.__DEV.smokeZoomerTransformationTableOnce()`.
 
 ## 2026-06-05 — Step 4 [2] Safari runtime mapping load fix
 - Mirrored the latest 129-entry Step 4 [2] mapping table into the Safari-served docs runtime so `docs/dev/dev-checks.js` no longer serves the previous `build_2026_06_05_m` / `zoomer_mapping_table_step4_2` identity or the 103-entry table.
