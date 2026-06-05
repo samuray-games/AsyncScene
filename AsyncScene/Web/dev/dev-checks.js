@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_an";
-  const RUNTIME_COMMIT = "cc85e22";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_ao";
+  const RUNTIME_COMMIT = "8cdd109";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -3935,6 +3935,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ];
       const legacyTerms = ["миллениал", "legacy", "older wording", "old wording"];
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAllLocal = (list, values) => {
+        if (!Array.isArray(list) || !Array.isArray(values)) return;
+        values.forEach((value) => addUnique(list, value));
+      };
       const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
       const fetchStep47DocText = (fileName) => {
         const candidates = [];
@@ -4005,9 +4009,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const featureSmoke = G.__DEV && typeof G.__DEV.smokeZoomerNewFeatureCopyOnce === "function" ? G.__DEV.smokeZoomerNewFeatureCopyOnce() : null;
         result.newFeatureTextSurfacesValid = !!(featureSmoke && featureSmoke.ok === true);
         if (!result.newFeatureTextSurfacesValid) fail("new_feature_text_surfaces_use_same_allowed_lexicon_and_stop_words", featureSmoke || "missing_smokeZoomerNewFeatureCopyOnce");
-        addAll(result.forbiddenRemaining, featureSmoke && featureSmoke.forbiddenRemaining);
-        addAll(result.missingCoverage, featureSmoke && featureSmoke.missingCoverage);
-        addAll(result.failedChecks, featureSmoke && featureSmoke.failedChecks);
+        addAllLocal(result.forbiddenRemaining, featureSmoke && featureSmoke.forbiddenRemaining);
+        addAllLocal(result.missingCoverage, featureSmoke && featureSmoke.missingCoverage);
+        addAllLocal(result.failedChecks, featureSmoke && featureSmoke.failedChecks);
         if (!Array.isArray(result.failures) || !Array.isArray(result.forbiddenRemaining) || !Array.isArray(result.missingCoverage) || !Array.isArray(result.failedChecks)) fail("explicit_array_contract", "arrays_missing");
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
         if (smokeVersion !== `step4_7_zoomer_new_features_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_7") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
