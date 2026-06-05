@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 4 [9] final terminology readiness gate
+- Added `UI_PROFILE_ZOOMER_TERMS` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` as the single Step 4 terminology source-of-truth contract for runtime inventory, mapping, buttons, statuses, errors, hints, and new-feature validation.
+- Added `Game.__DEV.smokeZoomerTermsReadyOnce()` as the Step 4 final readiness smoke and kept `Game.__DEV.smokeZoomerTermsOnce()` as a compatibility alias delegating to the new final gate.
+- The final gate verifies `sourceOfTruthExists:true`, `inventoryLinked:true`, `mappingLinked:true`, `buttonsLinked:true`, `statusesLinked:true`, `errorsLinked:true`, `hintsLinked:true`, `newFeaturesLinked:true`, and returns `step4_1` through `step4_8` as explicit per-step readiness objects with commit-unique identity fields.
+- Served identity refreshed to `build_2026_06_05_fda7d3b` / `fda7d3b`; both served entrypoints now cache-bust `dev/dev-checks.js` with `step4-9-zoomer-terms-ready-fda7d3b`.
+- Scope held: no terminology rewrites, no UI text changes, no gameplay changes, no economy changes, no new content, and no `Console.txt` usage. Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeZoomerTermsReadyOnce()`.
+
 ## 2026-06-05 — Step 4 [8] mapping-table refresh for current inventory only
 - Updated only the Step 4 [2] runtime mapping table/validation in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so the aggregate terminology smoke matches the current 132-entry runtime inventory rather than the stale earlier wording set.
 - Replaced the stale mapping rows for `Цена и итог видны сразу.`, `Толпа решает. Выбери имя в событиях.`, `Пока без событий.`, `Ответь кто`, `Ответь где`, `Ответь о ком или о чём`, `Ответь да или нет`, and `Толпа решает. Ты смотришь.` with the current runtime strings `Смотри цену и итог.`, `Выбери имя в событиях.`, `Открой события.`, `Ответь: кто?`, `Ответь: где?`, `Ответь: о ком?`, `Ответь: да или нет?`, and `Выбери сторону.`.
