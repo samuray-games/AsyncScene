@@ -1,3 +1,19 @@
+## 2026-06-05 — AsyncScene Step 2.6 docs smoke deployed-path fix
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Infra
+- Files: `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/zoomer-shortening-docs-manifest.json` `docs/dev/zoomer-shortening-docs-manifest.json` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Fix `Game.__DEV.smokeZoomerShorteningDocsOnce()` documentation source paths only, so the deployed GitHub Pages smoke no longer fetches unavailable runtime-root `TASKS.md` or `PROJECT_MEMORY.md` paths.
+- Implementation: the smoke now verifies Step 2.1-Step 2.5 PASS coverage through the published `dev/zoomer-shortening-docs-manifest.json` generated from `TASKS.md`, `PROJECT_MEMORY.md`, and the zoomer profile docs, plus the deployed `UI_PROFILE_ZOOMER_DIFF.md` rule section.
+- Acceptance remains honest: it still requires Step 2.1 PASS, Step 2.2 PASS, Step 2.3 PASS, Step 2.4 PASS, Step 2.5 PASS, Step 2 overall PASS, `UI_PROFILE_ZOOMER_SHORTEN_RULE`, all smoke names, `build_2026_06_04_c`, `build_2026_06_05_a`, `build_2026_06_05_b`, and runtime-confirmed PASS criteria.
+- Return contract: `{ ok, buildTag, commit, completedSteps, docsPresent, sourceFiles, failures, forbiddenRemaining, missingCoverage, failedChecks }`.
+- New runtime build identity: `build_2026_06_05_c` / `zoomer_shortening_docs_paths`, different from `build_2026_06_05_b`.
+- No gameplay changes, economy changes, UI changes, copy rewrites, or refactors.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 2 overall documentation finalization
 
 - Status: PASS
