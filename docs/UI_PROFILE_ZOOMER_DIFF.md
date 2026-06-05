@@ -75,6 +75,31 @@ Allowed vocabulary inventory:
 
 All exclusions from `UI_PROFILE_ZOOMER_LEXICAL_FRAME` still apply; this inventory adds no excluded examples.
 
+## UI_PROFILE_ZOOMER_STOP_WORDS
+
+Stop-word / forbidden lexicon inventory only. This runtime-visible profile marker blocks meme-like wording, parasite slang, and irony-for-irony for future zoomer-profile validation; it does not rewrite current UI text, NPC lines, or gameplay logic.
+
+Runtime smoke marker/key: `UI_PROFILE_ZOOMER_STOP_WORDS`.
+Runtime forbidden categories: memes, parasite slang, irony-for-irony.
+
+Rules:
+
+- Forbid meme-like wording, reaction memes, and performative jokes used instead of clear UI meaning.
+- Forbid parasite slang that adds style noise without changing the user action or system state.
+- Forbid irony-for-irony: jokes, sarcasm, and self-aware phrasing used only to sound ironic.
+- Keep Step 3.2 allowed lexicon valid: simple direct words like `можно`, `жми`, `выбери`, `риск есть`, `ход сработал`, and `не хватило` remain allowed when used literally.
+- This inventory is validation/profile source only; do not rewrite existing UI copy yet.
+
+Forbidden stop-word inventory:
+
+| category | blocked words | rule |
+| --- | --- | --- |
+| memes | кринж; рофл; лол | no meme-like reaction wording |
+| parasite slang | вайб; имба; изи | no slang filler or fake youth voice |
+| irony-for-irony | кринж; рофл; лол | no ironic wording used only for tone |
+
+Sample strings that validation must catch: `это кринж`, `лови вайб`, `просто имба`, `чистый рофл`, `изи ход`, `лол готово`.
+
 ## UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE
 
 Dedicated transformation table only: millennial-style long construction -> shorter direct zoomer form. Same meaning, 30-40% shorter, fewer filler words, fewer abstractions, more verbs. No slang, no memes, no fake youth voice.
