@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_1_arg_inventory_compact_b";
-  const RUNTIME_COMMIT = "step5_1_arg_inventory_compact";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_2_arg_wrapper_rules";
+  const RUNTIME_COMMIT = "step5_2_arg_wrapper_rules";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4076,6 +4076,116 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     });
 
 
+    const ZOOMER_ARGUMENT_WRAPPER_REQUIRED_RULES = Object.freeze([
+      "shorter_wording",
+      "direct_wording",
+      "one_pass_readability",
+      "no_semantic_drift",
+      "no_slang_requirement",
+      "no_meme_requirement",
+      "no_roleplay_exaggeration",
+      "no_added_information",
+      "no_removed_information",
+      "preserve_argument_intent",
+      "preserve_argument_type",
+      "preserve_canon_outcome"
+    ]);
+    const ZOOMER_ARGUMENT_WRAPPER_RULES = Object.freeze({
+      id: "zoomer_argument_wrapper_rules_v1",
+      scope: "argument_wrapping_rules_only",
+      wrapperGenerationEnabled: false,
+      canonicalRewriteEnabled: false,
+      gameplayChangeEnabled: false,
+      uiChangeEnabled: false,
+      inventoryChangeEnabled: false,
+      allowedArgumentTypes: Object.freeze(["ABOUT", "WHO", "WHERE", "YN"]),
+      rules: Object.freeze({
+        shorter_wording: Object.freeze({ required: true, text: "Prefer shorter wording when an argument can remain complete and clear." }),
+        direct_wording: Object.freeze({ required: true, text: "Use direct wording without changing the argument meaning or force." }),
+        one_pass_readability: Object.freeze({ required: true, text: "A wrapped argument must be readable in one pass." }),
+        no_semantic_drift: Object.freeze({ required: true, text: "Do not drift from the source argument semantics." }),
+        no_slang_requirement: Object.freeze({ required: true, text: "Slang is not required for a valid wrapper." }),
+        no_meme_requirement: Object.freeze({ required: true, text: "Memes are not required for a valid wrapper." }),
+        no_roleplay_exaggeration: Object.freeze({ required: true, text: "Do not add roleplay exaggeration." }),
+        no_added_information: Object.freeze({ required: true, text: "Do not add information that is absent from the source argument." }),
+        no_removed_information: Object.freeze({ required: true, text: "Do not remove information that is present in the source argument." }),
+        preserve_argument_intent: Object.freeze({ required: true, text: "Preserve the source argument intent." }),
+        preserve_argument_type: Object.freeze({ required: true, text: "Preserve the source argument type: ABOUT, WHO, WHERE, or YN." }),
+        preserve_canon_outcome: Object.freeze({ required: true, text: "Preserve the existing canon outcome." })
+      })
+    });
+    const exposeZoomerArgumentWrapperRules = () => {
+      G.ZoomerArgumentWrapperRules = ZOOMER_ARGUMENT_WRAPPER_RULES;
+      G.__DEV.zoomerArgumentWrapperRules = ZOOMER_ARGUMENT_WRAPPER_RULES;
+      G.__DEV.ZOOMER_ARGUMENT_WRAPPER_RULES = ZOOMER_ARGUMENT_WRAPPER_RULES;
+      if (Game.Dev) Game.Dev.zoomerArgumentWrapperRules = ZOOMER_ARGUMENT_WRAPPER_RULES;
+      return ZOOMER_ARGUMENT_WRAPPER_RULES;
+    };
+    exposeZoomerArgumentWrapperRules();
+    const smokeZoomerArgumentWrapperRulesOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step5_2_argument_wrapper_rules_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        rulesPresent: false,
+        requiredRules: ZOOMER_ARGUMENT_WRAPPER_REQUIRED_RULES.slice(),
+        missingRules: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      try {
+        const rulesObject = exposeZoomerArgumentWrapperRules();
+        result.rulesPresent = !!(rulesObject && typeof rulesObject === "object" && rulesObject.rules && typeof rulesObject.rules === "object");
+        if (!result.rulesPresent) fail("rules_object_exists", "Game.ZoomerArgumentWrapperRules.rules");
+        const rules = result.rulesPresent ? rulesObject.rules : {};
+        result.requiredRules.forEach((ruleId) => {
+          const rule = rules[ruleId];
+          const present = !!(rule && rule.required === true && typeof rule.text === "string" && rule.text.trim());
+          if (!present) {
+            addUnique(result.missingRules, ruleId);
+            fail("required_rule_present", ruleId);
+          }
+        });
+        [
+          ["wrapperGenerationEnabled", false],
+          ["canonicalRewriteEnabled", false],
+          ["gameplayChangeEnabled", false],
+          ["uiChangeEnabled", false],
+          ["inventoryChangeEnabled", false]
+        ].forEach(([key, expected]) => {
+          if (!rulesObject || rulesObject[key] !== expected) fail("rules_only_contract", { key, expected, actual: rulesObject && rulesObject[key] });
+        });
+        const typeSet = new Set(Array.isArray(rulesObject && rulesObject.allowedArgumentTypes) ? rulesObject.allowedArgumentTypes : []);
+        ["ABOUT", "WHO", "WHERE", "YN"].forEach((type) => {
+          if (!typeSet.has(type)) {
+            addUnique(result.missingCoverage, type);
+            fail("argument_type_coverage", type);
+          }
+        });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.rulesPresent === true
+        && result.missingRules.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
     const collectZoomerArgumentInventoryEntries = () => {
       const D = G && G.Data ? G.Data : null;
       const entries = [];
@@ -4447,6 +4557,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
+    Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
@@ -4479,6 +4590,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
+    devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
