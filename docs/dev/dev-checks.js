@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step6_1_npc_speech_inventory";
-  const RUNTIME_COMMIT = "step6_1_npc_speech_inventory";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step6_2_npc_speech_rules";
+  const RUNTIME_COMMIT = "step6_2_npc_speech_rules";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5980,6 +5980,169 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   installZoomerNpcSpeechInventorySmoke(G.__DEV);
 
   console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeZoomerNpcSpeechInventoryOnce);
+
+
+  const NPC_SPEECH_PROFILE_ZOOMER = Object.freeze({
+    id: "NPC_SPEECH_PROFILE_ZOOMER",
+    locale: "ru",
+    scope: "npc_speech_rules_only",
+    baseline: "millennial_style_phrasing",
+    targetLengthDelta: Object.freeze({ minPercentShorter: 20, maxPercentShorter: 40 }),
+    lineShape: "one_idea_per_line",
+    explanationBudget: "fewer_explanations",
+    evaluationBudget: "fewer_evaluations",
+    informationShape: "more_facts_and_actions",
+    tone: "direct_role_preserving_no_mentoring_no_teacher_tone",
+    slangPolicy: "no_meme_language_no_forced_youth_slang",
+    registerPolicy: "no_officialese_except_required_role_facts",
+    rolePersonalityPolicy: "preserve_role_personality_without_gray_zones",
+    grayZonePolicy: "if_unclear_choose_short_fact_or_action_and_keep_role_intent"
+  });
+
+  const NPC_SPEECH_RULES_ZOOMER = Object.freeze({
+    requiredDimensions: Object.freeze([
+      "length_20_40_percent_shorter",
+      "one_idea_per_line",
+      "fewer_explanations",
+      "fewer_evaluations",
+      "more_facts_and_actions",
+      "no_mentoring",
+      "no_teacher_tone",
+      "no_meme_language",
+      "no_forced_youth_slang",
+      "no_officialese",
+      "role_personality_preserved",
+      "no_unresolved_gray_zones"
+    ]),
+    rules: Object.freeze({
+      length_20_40_percent_shorter: Object.freeze({ check: "Compare to millennial-style phrasing and keep the zoomer NPC line 20-40% shorter without deleting the playable fact or action." }),
+      one_idea_per_line: Object.freeze({ check: "Each NPC line carries one playable idea only: one fact, one intent, or one action." }),
+      fewer_explanations: Object.freeze({ check: "Prefer the visible fact or next action; remove background explanations unless required for the role action to parse." }),
+      fewer_evaluations: Object.freeze({ check: "Avoid judging the player, NPC, or outcome when the same state can be stated as a fact." }),
+      more_facts_and_actions: Object.freeze({ check: "Use concrete state, risk, target, timer, cost, challenge, report, arrest, escape, or next action." }),
+      no_mentoring: Object.freeze({ check: "NPCs do not coach, guide, advise, reassure, or improve the player." }),
+      no_teacher_tone: Object.freeze({ check: "No lesson framing, moral, explanation ladder, homework wording, or corrective classroom voice." }),
+      no_meme_language: Object.freeze({ check: "No meme tags, ironic internet catchphrases, reaction bait, or joke slang." }),
+      no_forced_youth_slang: Object.freeze({ check: "Do not add youth slang to sound young; plain short Russian is the default." }),
+      no_officialese: Object.freeze({ check: "Avoid bureaucratic register; cop speech may keep role facts but still stays short and direct." }),
+      role_personality_preserved: Object.freeze({ check: "Keep the role intent: toxic presses, bandit threatens or takes, cop verifies/enforces, mafia traps, neutral/crowd reports events." }),
+      no_unresolved_gray_zones: Object.freeze({ check: "When rules conflict, choose the shorter factual/action line that preserves role intent and avoids all forbidden patterns." })
+    }),
+    coverageByRole: Object.freeze({
+      toxic: Object.freeze(["length_20_40_percent_shorter", "one_idea_per_line", "more_facts_and_actions", "no_mentoring", "no_teacher_tone", "role_personality_preserved", "no_unresolved_gray_zones"]),
+      bandit: Object.freeze(["length_20_40_percent_shorter", "one_idea_per_line", "fewer_explanations", "more_facts_and_actions", "no_mentoring", "role_personality_preserved", "no_unresolved_gray_zones"]),
+      cop: Object.freeze(["length_20_40_percent_shorter", "one_idea_per_line", "fewer_evaluations", "more_facts_and_actions", "no_teacher_tone", "no_officialese", "role_personality_preserved", "no_unresolved_gray_zones"]),
+      mafia: Object.freeze(["length_20_40_percent_shorter", "one_idea_per_line", "fewer_explanations", "more_facts_and_actions", "no_mentoring", "role_personality_preserved", "no_unresolved_gray_zones"]),
+      neutral: Object.freeze(["length_20_40_percent_shorter", "one_idea_per_line", "fewer_evaluations", "more_facts_and_actions", "no_meme_language", "no_forced_youth_slang", "role_personality_preserved", "no_unresolved_gray_zones"]),
+      crowd: Object.freeze(["length_20_40_percent_shorter", "one_idea_per_line", "fewer_explanations", "more_facts_and_actions", "no_meme_language", "no_forced_youth_slang", "role_personality_preserved", "no_unresolved_gray_zones"])
+    }),
+    grayZoneResolution: Object.freeze([
+      "short_fact_over_explanation",
+      "action_over_evaluation",
+      "role_intent_over_generic_help",
+      "plain_register_over_slang",
+      "direct_cop_fact_over_officialese"
+    ])
+  });
+
+  const NPC_SPEECH_FORBIDDEN_PATTERNS = Object.freeze({
+    mentoring: Object.freeze(["совет", "подскажу", "тебе стоит", "попробуй", "научись", "запомни"]),
+    teacherTone: Object.freeze(["урок", "вывод", "разберём тему", "правильный ответ", "важно понимать", "объясняю"]),
+    memeLanguage: Object.freeze(["кринж", "рофл", "имба", "вайб", "чилл", "краш", "база", "сигма"]),
+    forcedYouthSlang: Object.freeze(["жиза", "топчик", "изи", "хайп", "флекс", "зумерский"]),
+    officialese: Object.freeze(["в соответствии", "на основании", "уведомляем", "осуществляется", "надлежит", "регламент"]),
+    evaluativePadding: Object.freeze(["это хорошо", "это плохо", "правильно", "неправильно", "молодец", "стыдно"]),
+    explanationPadding: Object.freeze(["потому что", "дело в том", "как ты понимаешь", "следовательно", "таким образом"]),
+    multiIdeaGlue: Object.freeze(["во-первых", "во-вторых", "с одной стороны", "с другой стороны", "кроме того"]),
+    unresolvedGrayZoneMarkers: Object.freeze(["на усмотрение", "по ситуации", "можно оставить", "серый участок", "не решено"])
+  });
+
+  const installZoomerNpcSpeechRulesSmoke = (devStore) => {
+    if (!devStore || typeof devStore !== "object") return;
+    const BUILD_TAG = "build_2026_06_05_step6_2_npc_speech_rules";
+    const COMMIT = "step6_2_npc_speech_rules";
+    const SMOKE_VERSION = "step6_2_npc_speech_rules_smoke_v20260605_001";
+    const REQUIRED_DIMENSIONS = NPC_SPEECH_RULES_ZOOMER.requiredDimensions.slice();
+    const MAJOR_ROLES = ["toxic", "bandit", "cop", "mafia", "neutral", "crowd"];
+    const REQUIRED_FORBIDDEN = ["mentoring", "teacherTone", "memeLanguage", "forcedYouthSlang", "officialese", "evaluativePadding", "explanationPadding", "multiIdeaGlue", "unresolvedGrayZoneMarkers"];
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item); };
+    const smokeZoomerNpcSpeechRulesOnce = function smokeZoomerNpcSpeechRulesOnce() {
+      const result = {
+        ok: false,
+        buildTag: BUILD_TAG,
+        commit: COMMIT,
+        smokeVersion: SMOKE_VERSION,
+        rulesPresent: false,
+        requiredDimensionsCovered: false,
+        coverageByRole: {},
+        forbiddenPatternsPresent: false,
+        grayZones: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const profile = NPC_SPEECH_PROFILE_ZOOMER;
+      const rules = NPC_SPEECH_RULES_ZOOMER;
+      const forbidden = NPC_SPEECH_FORBIDDEN_PATTERNS;
+      if (!profile || profile.id !== "NPC_SPEECH_PROFILE_ZOOMER") addUnique(result.failures, "profile_missing");
+      if (!rules || !rules.rules || !rules.requiredDimensions || !rules.coverageByRole) addUnique(result.failures, "rules_missing");
+      if (!forbidden || typeof forbidden !== "object") addUnique(result.failures, "forbidden_patterns_missing");
+      result.rulesPresent = result.failures.indexOf("rules_missing") === -1 && REQUIRED_DIMENSIONS.every(id => rules.rules && rules.rules[id] && rules.rules[id].check);
+      REQUIRED_DIMENSIONS.forEach(id => {
+        if (!rules.rules || !rules.rules[id] || !rules.rules[id].check) addUnique(result.missingCoverage, `dimension:${id}`);
+      });
+      result.requiredDimensionsCovered = REQUIRED_DIMENSIONS.every(id => result.missingCoverage.indexOf(`dimension:${id}`) === -1);
+      MAJOR_ROLES.forEach(role => {
+        const covered = Array.isArray(rules.coverageByRole && rules.coverageByRole[role]) ? rules.coverageByRole[role].slice() : [];
+        const missing = REQUIRED_DIMENSIONS.filter(id => covered.indexOf(id) === -1 && ["length_20_40_percent_shorter", "one_idea_per_line", "more_facts_and_actions", "role_personality_preserved", "no_unresolved_gray_zones"].indexOf(id) !== -1);
+        result.coverageByRole[role] = { covered, missing };
+        if (!covered.length) addUnique(result.missingCoverage, `role:${role}`);
+        missing.forEach(id => addUnique(result.missingCoverage, `role:${role}:${id}`));
+      });
+      REQUIRED_FORBIDDEN.forEach(key => {
+        if (!Array.isArray(forbidden && forbidden[key]) || !forbidden[key].length) addUnique(result.forbiddenRemaining, `forbidden:${key}`);
+      });
+      result.forbiddenPatternsPresent = result.forbiddenRemaining.length === 0;
+      if (!Array.isArray(rules.grayZoneResolution) || rules.grayZoneResolution.length < 5) addUnique(result.grayZones, "gray_zone_resolution_incomplete");
+      if (!profile.grayZonePolicy || /unspecified|tbd|unresolved/i.test(profile.grayZonePolicy)) addUnique(result.grayZones, "profile_gray_zone_policy_unresolved");
+      if (!result.rulesPresent) addUnique(result.failedChecks, "rules_present");
+      if (!result.requiredDimensionsCovered) addUnique(result.failedChecks, "required_dimensions_covered");
+      if (!MAJOR_ROLES.every(role => result.coverageByRole[role] && result.coverageByRole[role].covered.length && result.coverageByRole[role].missing.length === 0)) addUnique(result.failedChecks, "major_roles_covered");
+      if (!result.forbiddenPatternsPresent) addUnique(result.failedChecks, "forbidden_patterns_present");
+      if (result.grayZones.length) addUnique(result.failedChecks, "gray_zones_empty");
+      if (result.failures.length) addUnique(result.failedChecks, "failures_empty");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining_empty");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage_empty");
+      result.ok = result.rulesPresent === true
+        && result.requiredDimensionsCovered === true
+        && MAJOR_ROLES.every(role => result.coverageByRole[role] && result.coverageByRole[role].covered.length && result.coverageByRole[role].missing.length === 0)
+        && result.forbiddenPatternsPresent === true
+        && result.grayZones.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    Game.NPC_SPEECH_PROFILE_ZOOMER = NPC_SPEECH_PROFILE_ZOOMER;
+    Game.NPC_SPEECH_RULES_ZOOMER = NPC_SPEECH_RULES_ZOOMER;
+    Game.NPC_SPEECH_FORBIDDEN_PATTERNS = NPC_SPEECH_FORBIDDEN_PATTERNS;
+    devStore.NPC_SPEECH_PROFILE_ZOOMER = NPC_SPEECH_PROFILE_ZOOMER;
+    devStore.NPC_SPEECH_RULES_ZOOMER = NPC_SPEECH_RULES_ZOOMER;
+    devStore.NPC_SPEECH_FORBIDDEN_PATTERNS = NPC_SPEECH_FORBIDDEN_PATTERNS;
+    devStore.smokeZoomerNpcSpeechRulesOnce = smokeZoomerNpcSpeechRulesOnce;
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechRulesOnce = smokeZoomerNpcSpeechRulesOnce;
+    if (typeof window !== "undefined") {
+      window.NPC_SPEECH_PROFILE_ZOOMER = NPC_SPEECH_PROFILE_ZOOMER;
+      window.NPC_SPEECH_RULES_ZOOMER = NPC_SPEECH_RULES_ZOOMER;
+      window.NPC_SPEECH_FORBIDDEN_PATTERNS = NPC_SPEECH_FORBIDDEN_PATTERNS;
+    }
+    return smokeZoomerNpcSpeechRulesOnce;
+  };
+  installZoomerNpcSpeechRulesSmoke(G.__DEV);
+
+  console.warn("NPC_SPEECH_RULES_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeZoomerNpcSpeechRulesOnce);
   const installStep3TerminologyInventorySmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1";
