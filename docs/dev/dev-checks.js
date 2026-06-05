@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_f";
-  const RUNTIME_COMMIT = "zoomer_allowed_lexicon_step3_2_runtime_source_fix";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_g";
+  const RUNTIME_COMMIT = "zoomer_stop_words_step3_3";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2405,6 +2405,180 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
 
 
+    const smokeZoomerStopWordsOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = "step3_3_zoomer_stop_words_v1_build_2026_06_05_g_commit_zoomer_stop_words_step3_3";
+      const requiredBlockedWords = ["кринж", "вайб", "имба", "рофл", "изи", "лол"];
+      const requiredCategories = ["memes", "parasite slang", "irony-for-irony"];
+      const requiredAllowedExamples = ["можно", "жми", "выбери", "риск есть", "ход сработал", "не хватило"];
+      const forbiddenSamples = [
+        "это кринж",
+        "лови вайб",
+        "просто имба",
+        "чистый рофл",
+        "изи ход",
+        "лол готово"
+      ];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        stopWordListExists: false,
+        requiredBlockedWordsPresent: [],
+        requiredBlockedWordsMissing: [],
+        forbiddenCategories: [],
+        missingForbiddenCategories: [],
+        forbiddenSamplesCaught: [],
+        forbiddenSamplesMissed: [],
+        allowedLexiconExists: false,
+        allowedLexiconValid: false,
+        allowedExamplesPresent: [],
+        allowedExamplesMissing: [],
+        allowedExamplesRejected: [],
+        sourceFiles: [],
+        failures: [],
+        forbiddenRemaining: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const docCacheKey = encodeURIComponent(smokeVersion);
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const addDoc = (value) => {
+          if (!value) return;
+          const sep = String(value).includes("?") ? "&" : "?";
+          add(`${value}${sep}v=${docCacheKey}`);
+          add(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try { addDoc(new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          addDoc(`${location.origin}/AsyncScene/${fileName}`);
+          addDoc(`${location.origin}/__dev__/docs/${fileName}`);
+          addDoc(`${location.origin}/docs/${fileName}`);
+          addDoc(`${location.origin}/${fileName}`);
+        }
+        addDoc(`/AsyncScene/${fileName}`);
+        addDoc(`/__dev__/docs/${fileName}`);
+        addDoc(`/docs/${fileName}`);
+        addDoc(`/${fileName}`);
+        addDoc(fileName);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          if (res.ok) return res;
+          lastResult = res;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
+      const containsStopWord = (value, blockedWords) => {
+        const lower = normalize(value).toLowerCase();
+        return blockedWords.some((word) => lower.includes(String(word).toLowerCase()));
+      };
+      try {
+        const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        if (!zoomRes.ok) fail("zoomer_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
+        const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
+        if (zoomRes.ok) addUnique(result.sourceFiles, zoomRes.path);
+        const stopMatch = zoomRaw.match(/##\s*UI_PROFILE_ZOOMER_STOP_WORDS([\s\S]*?)(?:\n## |\n# |$)/i);
+        const allowedMatch = zoomRaw.match(/##\s*UI_PROFILE_ZOOMER_ALLOWED_LEXICON([\s\S]*?)(?:\n## |\n# |$)/i);
+        const stopText = normalize(stopMatch ? stopMatch[1] : "");
+        const stopLower = stopText.toLowerCase();
+        const allowedText = normalize(allowedMatch ? allowedMatch[1] : "");
+        const allowedLower = allowedText.toLowerCase();
+        result.stopWordListExists = !!stopMatch && /UI_PROFILE_ZOOMER_STOP_WORDS/i.test(zoomRaw);
+        result.allowedLexiconExists = !!allowedMatch;
+        requiredBlockedWords.forEach((word) => {
+          if (stopLower.includes(word.toLowerCase())) addUnique(result.requiredBlockedWordsPresent, word);
+          else addUnique(result.requiredBlockedWordsMissing, word);
+        });
+        requiredCategories.forEach((category) => {
+          if (stopLower.includes(category.toLowerCase())) addUnique(result.forbiddenCategories, category);
+          else addUnique(result.missingForbiddenCategories, category);
+        });
+        const activeBlockedWords = requiredBlockedWords.filter((word) => result.requiredBlockedWordsPresent.includes(word));
+        forbiddenSamples.forEach((sample) => {
+          if (containsStopWord(sample, activeBlockedWords)) addUnique(result.forbiddenSamplesCaught, sample);
+          else addUnique(result.forbiddenSamplesMissed, sample);
+        });
+        requiredAllowedExamples.forEach((example) => {
+          if (allowedLower.includes(example.toLowerCase())) addUnique(result.allowedExamplesPresent, example);
+          else addUnique(result.allowedExamplesMissing, example);
+          if (containsStopWord(example, requiredBlockedWords)) addUnique(result.allowedExamplesRejected, example);
+        });
+        result.allowedLexiconValid = result.allowedLexiconExists === true
+          && result.allowedExamplesMissing.length === 0
+          && result.allowedExamplesRejected.length === 0;
+        if (!result.stopWordListExists) fail("stop_word_list_exists", "missing_UI_PROFILE_ZOOMER_STOP_WORDS");
+        if (result.requiredBlockedWordsMissing.length) fail("required_blocked_words_present", result.requiredBlockedWordsMissing.slice());
+        if (result.missingForbiddenCategories.length) fail("forbidden_categories_present", result.missingForbiddenCategories.slice());
+        if (result.forbiddenSamplesMissed.length) fail("forbidden_samples_caught", result.forbiddenSamplesMissed.slice());
+        if (!result.allowedLexiconValid) fail("allowed_lexicon_remains_valid", {
+          missing: result.allowedExamplesMissing.slice(),
+          rejected: result.allowedExamplesRejected.slice()
+        });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== "step3_3_zoomer_stop_words_v1_build_2026_06_05_g_commit_zoomer_stop_words_step3_3" || smokeVersion.indexOf("step3_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique", "smokeVersion_not_unique_for_commit");
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.stopWordListExists === true
+        && result.requiredBlockedWordsMissing.length === 0
+        && requiredBlockedWords.every((word) => result.requiredBlockedWordsPresent.includes(word))
+        && result.missingForbiddenCategories.length === 0
+        && requiredCategories.every((category) => result.forbiddenCategories.includes(category))
+        && result.forbiddenSamplesMissed.length === 0
+        && forbiddenSamples.every((sample) => result.forbiddenSamplesCaught.includes(sample))
+        && result.allowedLexiconValid === true
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+        && result.sourceFiles.length >= 1
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
+
     const validateZoomerDiffProfileOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -2630,6 +2804,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -2648,6 +2823,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;

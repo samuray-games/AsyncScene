@@ -1,3 +1,18 @@
+## 2026-06-05 — AsyncScene Step 3.3 Zoomer stop-word inventory
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: Docs|Profile|Infra
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Add Step 3.3 stop-word / forbidden lexicon inventory for the zoomer UI profile as profile and validation work only.
+- Runtime-visible profile source now declares marker/key `UI_PROFILE_ZOOMER_STOP_WORDS`, required blocked words `кринж`, `вайб`, `имба`, `рофл`, `изи`, `лол`, and forbidden categories `memes`, `parasite slang`, and `irony-for-irony`.
+- Dev-only smoke `Game.__DEV.smokeZoomerStopWordsOnce()` verifies the stop-word list exists, required blocked words are present, forbidden categories are declared, sample forbidden strings are caught, Step 3.2 allowed lexicon remains valid, and identity fields `buildTag`, `commit`, and unique `smokeVersion` are returned.
+- New runtime build identity: `build_2026_06_05_g` / `zoomer_stop_words_step3_3`; smokeVersion `step3_3_zoomer_stop_words_v1_build_2026_06_05_g_commit_zoomer_stop_words_step3_3`.
+- Scope guard preserved: no gameplay logic changes, no UI copy rewrite, no side refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerStopWordsOnce()`.
+
 ## 2026-06-05 — Step 3.2 Zoomer allowed lexicon runtime-source fix
 
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
