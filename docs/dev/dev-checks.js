@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_b";
-  const RUNTIME_COMMIT = "zoomer_shortening_docs_final";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_c";
+  const RUNTIME_COMMIT = "zoomer_shortening_docs_paths";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1987,6 +1987,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         commit,
         completedSteps: [],
         docsPresent: false,
+        sourceFiles: [],
         failures: [],
         forbiddenRemaining: [],
         missingCoverage: [],
@@ -2018,24 +2019,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         };
         const baseUris = [];
         if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
-        if (typeof location !== "undefined" && location.origin) {
-          baseUris.push(`${location.origin}/AsyncScene/`);
-          baseUris.push(`${location.origin}/`);
-          baseUris.push(`${location.origin}/__dev__/docs/`);
-        }
+        if (typeof location !== "undefined" && location.origin) baseUris.push(`${location.origin}/AsyncScene/`);
         baseUris.forEach((baseUri) => {
           try { add(new URL(fileName, baseUri).href); } catch (_) {}
         });
-        if (typeof location !== "undefined" && location.origin) {
-          add(`${location.origin}/AsyncScene/${fileName}`);
-          add(`${location.origin}/__dev__/docs/${fileName}`);
-          add(`${location.origin}/docs/${fileName}`);
-          add(`${location.origin}/${fileName}`);
-        }
+        if (typeof location !== "undefined" && location.origin) add(`${location.origin}/AsyncScene/${fileName}`);
         add(`/AsyncScene/${fileName}`);
-        add(`/__dev__/docs/${fileName}`);
-        add(`/docs/${fileName}`);
-        add(`/${fileName}`);
+        add(fileName);
         return candidates;
       };
       const fetchTextFromCandidates = (fileName) => {
@@ -2048,50 +2038,59 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         return lastResult || { ok: false, reason: "unavailable", path: null };
       };
       const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
-      const includesAll = (text, values) => values.every((value) => text.includes(value));
+      const compact = (value) => String(value || "").toLowerCase().replace(/\s+/g, "");
+      const textPoolIncludes = (pool, value) => compact(pool).includes(compact(value));
+      const manifestHas = (manifest, value) => textPoolIncludes(JSON.stringify(manifest || {}), value);
       try {
-        const tasksRes = fetchTextFromCandidates("TASKS.md");
-        const memoryRes = fetchTextFromCandidates("PROJECT_MEMORY.md");
+        const manifestRes = fetchTextFromCandidates("dev/zoomer-shortening-docs-manifest.json");
         const zoomRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
-        if (!tasksRes.ok) fail("tasks_doc_exists", { path: "TASKS.md", reason: tasksRes.reason || "unavailable" });
-        if (!memoryRes.ok) fail("memory_doc_exists", { path: "PROJECT_MEMORY.md", reason: memoryRes.reason || "unavailable" });
+        if (!manifestRes.ok) fail("docs_manifest_exists", { path: "dev/zoomer-shortening-docs-manifest.json", reason: manifestRes.reason || "unavailable" });
         if (!zoomRes.ok) fail("zoomer_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomRes.reason || "unavailable" });
-        const tasksText = tasksRes.ok ? String(tasksRes.text || "") : "";
-        const memoryText = memoryRes.ok ? String(memoryRes.text || "") : "";
+        let manifest = null;
+        if (manifestRes.ok) {
+          addUnique(result.sourceFiles, manifestRes.path);
+          try {
+            manifest = JSON.parse(String(manifestRes.text || "{}"));
+          } catch (err) {
+            fail("docs_manifest_json", err && err.message ? String(err.message) : "invalid_json");
+          }
+        }
         const zoomRaw = zoomRes.ok ? String(zoomRes.text || "") : "";
-        const tasksLower = tasksText.toLowerCase();
-        const memoryLower = memoryText.toLowerCase();
-        const combinedLower = `${tasksLower}\n${memoryLower}`;
+        if (zoomRes.ok) addUnique(result.sourceFiles, zoomRes.path);
+        ["TASKS.md", "PROJECT_MEMORY.md"].forEach((sourceName) => {
+          if (!manifestHas(manifest, sourceName)) addUnique(result.missingCoverage, `${sourceName} manifest source`);
+        });
         ["2.1", "2.2", "2.3", "2.4", "2.5"].forEach((step) => {
-          const re = new RegExp(`step\\s+${step.replace(".", "\\.")}[\\s\\S]{0,240}?pass`, "i");
-          if (re.test(tasksText) || re.test(memoryText)) addUnique(result.completedSteps, step);
+          const ok = Array.isArray(manifest && manifest.completedSteps)
+            && manifest.completedSteps.some((entry) => String(entry && (entry.step || entry.id || entry)).trim() === step && /pass/i.test(String(entry && (entry.status || entry.result || "PASS"))));
+          if (ok) addUnique(result.completedSteps, step);
           else addUnique(result.missingCoverage, `Step ${step} PASS`);
         });
-        if (!/step\s+2\s+overall[\s\S]{0,240}?pass/i.test(tasksText) && !/step\s+2\s+overall[\s\S]{0,240}?pass/i.test(memoryText)) {
-          addUnique(result.missingCoverage, "Step 2 overall PASS");
-        }
-        const completedSmokes = [
+        if (!manifestHas(manifest, "Step 2 overall PASS")) addUnique(result.missingCoverage, "Step 2 overall PASS");
+        const documentedSmokes = [
           "Game.__DEV.smokeZoomerShortenRuleOnce()",
           "Game.__DEV.smokeZoomerTransformationTableOnce()",
           "Game.__DEV.smokeDevMenuMinimalOnce()",
           "Game.__DEV.smokeZoomerNewFeatureCopyOnce()",
-          "Game.__DEV.smokeZoomerShorteningQualityOnce()"
+          "Game.__DEV.smokeZoomerShorteningQualityOnce()",
+          "Game.__DEV.smokeZoomerShorteningDocsOnce()"
         ];
-        completedSmokes.forEach((name) => {
-          if (!combinedLower.includes(name.toLowerCase())) addUnique(result.missingCoverage, name);
+        documentedSmokes.forEach((name) => {
+          if (!manifestHas(manifest, name)) addUnique(result.missingCoverage, name);
         });
         ["build_2026_06_04_c", "build_2026_06_05_a", "build_2026_06_05_b"].forEach((tag) => {
-          if (!combinedLower.includes(tag.toLowerCase())) addUnique(result.missingCoverage, tag);
+          if (!manifestHas(manifest, tag)) addUnique(result.missingCoverage, tag);
         });
         [
           "ok:true",
+          "docsPresent:true",
           "failures:[]",
-          "forbiddenremaining:[]",
-          "missingcoverage:[]",
-          "failedchecks:[]",
-          "runtime-confirmed pass"
+          "forbiddenRemaining:[]",
+          "missingCoverage:[]",
+          "failedChecks:[]",
+          "runtime-confirmed PASS"
         ].forEach((needle) => {
-          if (!combinedLower.replace(/\s+/g, "").includes(needle.replace(/\s+/g, ""))) addUnique(result.missingCoverage, needle);
+          if (!manifestHas(manifest, needle)) addUnique(result.missingCoverage, needle);
         });
         const ruleMatch = zoomRaw.match(/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE([\s\S]*?)(?:\n## |\n# |$)/i);
         if (!ruleMatch) {
@@ -2115,10 +2114,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
             addUnique(result.forbiddenRemaining, "shorten_rule_contradiction");
           }
         }
-        if (!includesAll(combinedLower, ["shorten phrases", "30-40%", "filler", "abstraction", "action verb", "ui_profile_millennial"])) {
+        if (!["shorten phrases", "30-40%", "filler", "abstraction", "action verb", "UI_PROFILE_MILLENNIAL"].every((needle) => manifestHas(manifest, needle))) {
           addUnique(result.missingCoverage, "shortening acceptance criteria");
         }
-        result.docsPresent = !!(tasksRes.ok && memoryRes.ok && zoomRes.ok && ruleMatch);
+        result.docsPresent = !!(manifestRes.ok && manifest && zoomRes.ok && ruleMatch);
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
@@ -2130,12 +2129,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.completedSteps.includes("2.4")
         && result.completedSteps.includes("2.5")
         && result.docsPresent === true
+        && result.sourceFiles.length >= 2
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
         && result.failedChecks.length === 0;
       return result;
     };
+
 
     const validateZoomerDiffProfileOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
