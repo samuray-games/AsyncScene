@@ -1,3 +1,13 @@
+## 2026-06-05 — Step 3.2 Zoomer allowed lexicon runtime-source fix
+
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Added an explicit runtime smoke marker/key declaration inside the runtime-visible `UI_PROFILE_ZOOMER_DIFF.md` allowed lexicon section and mirrored it to the docs copy.
+- The allowed lexicon section contains required examples `можно`, `жми`, `выбери`, `риск есть`, `ход сработал`, and `не хватило`, and declares coverage for `ui`, `toasts`, `errors`, `hints`, and `npcSpeech`.
+- Updated only the dev-only allowed-lexicon smoke source resolution to request cache-busted profile documents before plain paths, preventing Safari from reading a stale profile source.
+- Bumped runtime identity to `build_2026_06_05_f` / `zoomer_allowed_lexicon_step3_2_runtime_source_fix` and unique smokeVersion `step3_2_zoomer_allowed_lexicon_v2_build_2026_06_05_f_commit_zoomer_allowed_lexicon_step3_2_runtime_source_fix`.
+- No gameplay logic, UI copy rewrite, unrelated files, or `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerAllowedLexiconOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 3.1 Zoomer lexical frame lock
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
