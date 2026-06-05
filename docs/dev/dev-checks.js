@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_k";
-  const RUNTIME_COMMIT = "zoomer_lexical_correction_final_step3_7";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_l";
+  const RUNTIME_COMMIT = "zoomer_terms_inventory_step4_1";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2965,6 +2965,246 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
 
 
+    const makeZoomerTermsInventoryEntry = (category, text, source) => ({
+      category,
+      text: String(text == null ? "" : text),
+      source: Object.freeze({
+        file: source && source.file ? String(source.file) : "runtime/dom",
+        module: source && source.module ? String(source.module) : "runtime",
+        key: source && source.key ? String(source.key) : null,
+        path: source && source.path ? String(source.path) : null
+      })
+    });
+
+    const addZoomerTermsInventoryEntry = (list, category, text, source) => {
+      const normalized = normalizeProfileText(text);
+      if (!normalized) return;
+      const entry = makeZoomerTermsInventoryEntry(category, normalized, source || {});
+      const key = `${entry.category}|${entry.text}|${entry.source.file}|${entry.source.module}|${entry.source.key || ""}|${entry.source.path || ""}`;
+      if (!list.some((item) => item && `${item.category}|${item.text}|${item.source.file}|${item.source.module}|${item.source.key || ""}|${item.source.path || ""}` === key)) {
+        list.push(entry);
+      }
+    };
+
+    const collectZoomerTermsInventoryEntries = () => {
+      const entries = [];
+      const data = G.Data || {};
+      const start = data.START_SCREEN || {};
+      const startActions = start.actions || {};
+      addZoomerTermsInventoryEntry(entries, "button", startActions.start, { file: "AsyncScene/Web/data.js", module: "Data.START_SCREEN.actions", key: "start", path: "Data.START_SCREEN.actions.start" });
+      addZoomerTermsInventoryEntry(entries, "button", startActions.rules, { file: "AsyncScene/Web/data.js", module: "Data.START_SCREEN.actions", key: "rules", path: "Data.START_SCREEN.actions.rules" });
+      addZoomerTermsInventoryEntry(entries, "status", start.economyHonestyLine, { file: "AsyncScene/Web/data.js", module: "Data.START_SCREEN", key: "economyHonestyLine", path: "Data.START_SCREEN.economyHonestyLine" });
+
+      const texts = data.TEXTS && data.TEXTS.genz ? data.TEXTS.genz : {};
+      const dataCategories = {
+        tie_start: "status",
+        tie_call_to_action: "hint",
+        tie_click_name_hint: "hint",
+        vote_ok: "status",
+        vote_already: "status",
+        vote_fail: "error",
+        tie_timer: "status",
+        tie_end_winner: "status",
+        tie_end_draw: "status",
+        tie_chat_start: "hint",
+        tie_chat_end_winner: "status",
+        tie_chat_end_draw: "status",
+        events_title: "status",
+        events_empty: "hint",
+        events_close_extra: "button",
+        events_clear_all: "button",
+        events_done: "status",
+        events_left: "status",
+        battle_win: "status",
+        battle_lose: "status",
+        battle_draw: "status",
+        battle_not_enough_points: "error",
+        escape_button_label: "button",
+        teach_sent_dm: "status",
+        teach_sent_chat: "status",
+        invite_open_hint: "hint",
+        invite_invalid: "error",
+        menu_title: "button",
+        hint_type_who: "hint",
+        hint_type_where: "hint",
+        hint_type_about: "hint",
+        hint_type_yn: "hint"
+      };
+      Object.keys(dataCategories).forEach((key) => {
+        addZoomerTermsInventoryEntry(entries, dataCategories[key], texts[key], { file: "AsyncScene/Web/data.js", module: "Data.TEXTS.genz", key, path: `Data.TEXTS.genz.${key}` });
+      });
+
+      const systemCopy = (G.System && G.System.copy) || (G.SystemCopy) || null;
+      const addSystemGroup = (group, category) => {
+        const values = systemCopy && systemCopy[group] ? systemCopy[group] : {};
+        Object.keys(values).forEach((key) => addZoomerTermsInventoryEntry(entries, category, values[key], {
+          file: "AsyncScene/Web/system.js",
+          module: `SystemCopy.${group}`,
+          key,
+          path: `SystemCopy.${group}.${key}`
+        }));
+      };
+      addSystemGroup("errors", "error");
+      addSystemGroup("warnings", "error");
+      addSystemGroup("notifications", "status");
+      addSystemGroup("systemEvents", "status");
+
+      const templateFallbacks = (G.System && G.System.templateFallbacks) || null;
+      if (templateFallbacks) {
+        ["hint", "option"].forEach((key) => addZoomerTermsInventoryEntry(entries, "hint", templateFallbacks[key], {
+          file: "AsyncScene/Web/system.js",
+          module: "SystemTemplateFallbacks",
+          key,
+          path: `SystemTemplateFallbacks.${key}`
+        }));
+      }
+
+      [
+        ["button", "Сбросить старт", "AsyncScene/Web/ui/ui-boot.js", "ui-boot", "btnResetOnboarding.textContent", "#btnResetOnboarding"],
+        ["button", "Скрыть", "AsyncScene/Web/ui/ui-boot.js", "ui-boot", "arrow.textContent.collapsed", "chatHeader .righty"],
+        ["button", "Развернуть", "AsyncScene/Web/ui/ui-boot.js", "ui-boot", "arrow.textContent.expanded", "chatHeader .righty"],
+        ["button", "Заслать", "AsyncScene/Web/index.html", "index", "btnSend", "#btnSend"],
+        ["button", "Меню", "AsyncScene/Web/index.html", "index", "btnMenu", "#btnMenu"],
+        ["button", "Закрыть", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "closeBtn.textContent", "battle close buttons"],
+        ["button", "Отвали", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "off.textContent", "battle escape action"],
+        ["button", "баттл", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "battleBtn.textContent", "battle action"],
+        ["button", "Почему?", "AsyncScene/Web/ui/ui-core.js", "ui-core", "explain.textContent", "explain button"],
+        ["button", "Цель", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "goal buttons", "menu goal"],
+        ["button", "Передать аргумент", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.button", "training transfer button"],
+        ["status", "Локация: Площадь", "AsyncScene/Web/index.html", "index", "locPill", "#locPill"],
+        ["status", "Площадь", "AsyncScene/Web/index.html", "index", "meBar", "#meBar"],
+        ["status", "Аргумент грузится.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.loading", "training status"],
+        ["status", "xp: 0, уровень: 0", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.result.initial", "training result"],
+        ["status", "События", "AsyncScene/Web/ui/ui-events.js", "ui-events", "titleTextEl.textContent", "events title"],
+        ["status", "Выбери контраргумент", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "pickDefense.line", "battle pick status"],
+        ["status", "Выбери аргумент", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "pickAttack.line", "battle pick status"],
+        ["status", "Толпа решает", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "timerLine.textContent", "battle timer"],
+        ["error", "Недоступно.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "unavailable.textContent", "lottery/menu unavailable"],
+        ["error", "Передача недоступна.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.disabled", "training status"],
+        ["error", "Статус недоступен.", "AsyncScene/Web/ui/ui-menu.js", "ui-menu", "trainingControls.status.unavailable", "training status"],
+        ["hint", "Пиши по теме.", "AsyncScene/Web/index.html", "index", "chatInput.placeholder", "#chatInput"],
+        ["hint", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
+        ["hint", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
+        ["hint", "Влияние", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=influence] .statIcon"],
+        ["hint", "Победы", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=wins] .statIcon"],
+        ["hint", "Вызовов нет.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "emptyChallenges.hint", "challenges empty"],
+        ["hint", "Толпа решает. Ты смотришь.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "voteHint.textContent", "battle vote hint"],
+        ["hint", "Ответь ...", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "answerFallback.hint", "canon answer hint fallback"]
+      ].forEach(([category, text, file, module, key, path]) => addZoomerTermsInventoryEntry(entries, category, text, { file, module, key, path }));
+
+      if (typeof document !== "undefined") {
+        const categoryForElement = (el, attrName) => {
+          if (!el) return "hint";
+          const tag = String(el.tagName || "").toLowerCase();
+          const id = String(el.id || "").toLowerCase();
+          const cls = String(el.className || "").toLowerCase();
+          if (tag === "button") return "button";
+          if (attrName === "placeholder" || attrName === "title" || attrName === "aria-label") return "hint";
+          if (id.includes("error") || cls.includes("error") || cls.includes("danger")) return "error";
+          if (id.includes("hint") || cls.includes("hint") || cls.includes("sub")) return "hint";
+          return "status";
+        };
+        const domPathFor = (el) => {
+          if (!el) return "document";
+          if (el.id) return `#${el.id}`;
+          const tag = String(el.tagName || "node").toLowerCase();
+          const cls = String(el.className || "").trim().replace(/\s+/g, ".");
+          return cls ? `${tag}.${cls}` : tag;
+        };
+        const addDomValue = (el, attrName, value) => addZoomerTermsInventoryEntry(entries, categoryForElement(el, attrName), value, {
+          file: "runtime/dom",
+          module: "document",
+          key: attrName || "textContent",
+          path: domPathFor(el)
+        });
+        Array.prototype.slice.call(document.querySelectorAll("button")).forEach((el) => addDomValue(el, "textContent", el.textContent));
+        Array.prototype.slice.call(document.querySelectorAll("input[placeholder], textarea[placeholder]")).forEach((el) => addDomValue(el, "placeholder", el.getAttribute("placeholder")));
+        Array.prototype.slice.call(document.querySelectorAll("[title], [aria-label]")).forEach((el) => {
+          if (el.getAttribute("title")) addDomValue(el, "title", el.getAttribute("title"));
+          if (el.getAttribute("aria-label")) addDomValue(el, "aria-label", el.getAttribute("aria-label"));
+        });
+        Array.prototype.slice.call(document.querySelectorAll(".hint, .pill, .sub, .capLine, #locPill, #meBar, #weeklyCapLine, #pointsCapNote, #dmTitle, #battleStatus, #eventsTitle")).forEach((el) => addDomValue(el, "textContent", el.textContent));
+      }
+      return entries;
+    };
+
+    const smokeZoomerTermsInventoryOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_1_zoomer_terms_inventory_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerTermsInventoryOnce",
+        categories: ["button", "status", "error", "hint"],
+        categoryCounts: { button: 0, status: 0, error: 0, hint: 0 },
+        coveragePercent: 0,
+        totalStrings: 0,
+        categorizedStrings: 0,
+        uncategorizedStrings: [],
+        uncategorizedCount: 0,
+        stringsWithoutSource: [],
+        stringsWithoutSourceCount: 0,
+        inventory: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      try {
+        const allowedCategories = new Set(result.categories);
+        result.inventory = collectZoomerTermsInventoryEntries().filter((entry) => entry && normalizeProfileText(entry.text));
+        result.totalStrings = result.inventory.length;
+        result.inventory.forEach((entry) => {
+          if (allowedCategories.has(entry.category)) {
+            result.categoryCounts[entry.category] += 1;
+            result.categorizedStrings += 1;
+          } else {
+            result.uncategorizedStrings.push(entry);
+          }
+          if (!entry.source || !entry.source.file || !entry.source.module || (!entry.source.key && !entry.source.path)) {
+            result.stringsWithoutSource.push(entry);
+          }
+        });
+        result.uncategorizedCount = result.uncategorizedStrings.length;
+        result.stringsWithoutSourceCount = result.stringsWithoutSource.length;
+        const sourcedStrings = result.totalStrings - result.stringsWithoutSourceCount;
+        result.coveragePercent = result.totalStrings > 0 ? Math.round((Math.min(result.categorizedStrings, sourcedStrings) / result.totalStrings) * 100) : 0;
+        result.categories.forEach((category) => {
+          if (result.categoryCounts[category] <= 0) addUnique(result.missingCoverage, category);
+        });
+        if (result.totalStrings < 40) addUnique(result.missingCoverage, "minimum_inventory_size_40");
+        if (result.coveragePercent < 90) fail("coverage_percent_at_least_90", result.coveragePercent);
+        if (result.uncategorizedCount !== 0) fail("uncategorized_strings_count_zero", result.uncategorizedStrings.slice());
+        if (result.stringsWithoutSourceCount !== 0) fail("strings_without_source_count_zero", result.stringsWithoutSource.slice());
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_1_zoomer_terms_inventory_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_1") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.coveragePercent >= 90
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.uncategorizedCount === 0
+        && result.stringsWithoutSourceCount === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
+
+
     const validateZoomerDiffProfileOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -3193,6 +3433,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
+    Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -3214,6 +3455,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
+    devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     devStore.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     devStore.smokeProfileSelfCheckOnce = smokeProfileSelfCheckOnce;
