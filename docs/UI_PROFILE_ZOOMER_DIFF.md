@@ -32,8 +32,9 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 ## UI_PROFILE_ZOOMER_SHORTEN_RULE
 
 - From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by about 30-40%, keep original meaning, and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
-- Remove intro/filler words; reduce abstractions.
-- Replace abstract wording with action verbs; do not add teen slang, memes, fake youth voice, or irony.
+- Use fewer filler words: remove intro/filler words and skip throat-clearing.
+- Use fewer abstractions: reduce abstract nouns and name the concrete action.
+- Use more verbs: replace abstract wording with action verbs; do not add teen slang, memes, fake youth voice, or irony.
 
 ## UI_PROFILE_ZOOMER_TRANSFORMATION_TABLE
 
