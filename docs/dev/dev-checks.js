@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_e";
-  const RUNTIME_COMMIT = "zoomer_allowed_lexicon_step3_2";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_f";
+  const RUNTIME_COMMIT = "zoomer_allowed_lexicon_step3_2_runtime_source_fix";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2263,7 +2263,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = "step3_2_zoomer_allowed_lexicon_v1_build_2026_06_05_e_commit_zoomer_allowed_lexicon_step3_2";
+      const smokeVersion = "step3_2_zoomer_allowed_lexicon_v2_build_2026_06_05_f_commit_zoomer_allowed_lexicon_step3_2_runtime_source_fix";
       const requiredExamples = ["можно", "жми", "выбери", "риск есть", "ход сработал", "не хватило"];
       const requiredSurfaces = ["ui", "toasts", "errors", "hints", "npcSpeech"];
       const forbiddenCategoryWords = ["кринж", "лол", "рофл", "имба", "жиза", "хайп", "вайб", "угар", "чил", "meme", "memes", "slang", "irony"];
@@ -2302,10 +2302,17 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const resolveDocCandidates = (fileName) => {
         const candidates = [];
         const seen = new Set();
+        const docCacheKey = encodeURIComponent(smokeVersion);
         const add = (value) => {
           if (!value || seen.has(value)) return;
           seen.add(value);
           candidates.push(value);
+        };
+        const addDoc = (value) => {
+          if (!value) return;
+          const sep = String(value).includes("?") ? "&" : "?";
+          add(`${value}${sep}v=${docCacheKey}`);
+          add(value);
         };
         const baseUris = [];
         if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
@@ -2315,19 +2322,19 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           baseUris.push(`${location.origin}/__dev__/docs/`);
         }
         baseUris.forEach((baseUri) => {
-          try { add(new URL(fileName, baseUri).href); } catch (_) {}
+          try { addDoc(new URL(fileName, baseUri).href); } catch (_) {}
         });
         if (typeof location !== "undefined" && location.origin) {
-          add(`${location.origin}/AsyncScene/${fileName}`);
-          add(`${location.origin}/__dev__/docs/${fileName}`);
-          add(`${location.origin}/docs/${fileName}`);
-          add(`${location.origin}/${fileName}`);
+          addDoc(`${location.origin}/AsyncScene/${fileName}`);
+          addDoc(`${location.origin}/__dev__/docs/${fileName}`);
+          addDoc(`${location.origin}/docs/${fileName}`);
+          addDoc(`${location.origin}/${fileName}`);
         }
-        add(`/AsyncScene/${fileName}`);
-        add(`/__dev__/docs/${fileName}`);
-        add(`/docs/${fileName}`);
-        add(`/${fileName}`);
-        add(fileName);
+        addDoc(`/AsyncScene/${fileName}`);
+        addDoc(`/__dev__/docs/${fileName}`);
+        addDoc(`/docs/${fileName}`);
+        addDoc(`/${fileName}`);
+        addDoc(fileName);
         return candidates;
       };
       const fetchTextFromCandidates = (fileName) => {
@@ -2374,7 +2381,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (result.missingCoverage.length) fail("surface_coverage", result.missingCoverage.slice());
         if (result.forbiddenCategoryWordsAdded.length) fail("no_forbidden_category_words_added", result.forbiddenCategoryWordsAdded.slice());
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== "step3_2_zoomer_allowed_lexicon_v1_build_2026_06_05_e_commit_zoomer_allowed_lexicon_step3_2" || smokeVersion.indexOf("step3_2") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (smokeVersion !== "step3_2_zoomer_allowed_lexicon_v2_build_2026_06_05_f_commit_zoomer_allowed_lexicon_step3_2_runtime_source_fix" || smokeVersion.indexOf("step3_2") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique", "smokeVersion_not_unique_for_commit");
         }
       } catch (err) {

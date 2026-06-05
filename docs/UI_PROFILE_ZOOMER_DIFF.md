@@ -49,6 +49,9 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 
 Dictionary/profile inventory only. These examples approve simple vocabulary for future zoomer-profile copy; they do not rewrite current UI text, NPC lines, or gameplay logic.
 
+Runtime smoke marker/key: `UI_PROFILE_ZOOMER_ALLOWED_LEXICON`.
+Runtime coverage declaration: ui, toasts, errors, hints, npcSpeech.
+
 Allowed surfaces only: ui, toasts, errors, hints, npcSpeech.
 
 Rules:
