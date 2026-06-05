@@ -5920,7 +5920,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       return out;
     };
-    devStore.smokeZoomerNpcSpeechInventoryOnce = function smokeZoomerNpcSpeechInventoryOnce() {
+    const runZoomerNpcSpeechInventorySmoke = () => {
       const result = { ok: false, buildTag: BUILD_TAG, commit: COMMIT, smokeVersion: SMOKE_VERSION, inventoryCount: 0, sourcesCovered: [], missingSources: [], uncategorizedEntries: [], duplicateIds: [], emptyEntries: [], failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], inventory: [] };
       const requiredSources = [
         "AsyncScene/Web/npcs.js:NPC.SAY.toxic.m", "AsyncScene/Web/npcs.js:NPC.SAY.toxic.f", "AsyncScene/Web/npcs.js:NPC.SAY.bandit.m", "AsyncScene/Web/npcs.js:NPC.SAY.bandit.f", "AsyncScene/Web/npcs.js:NPC.SAY.cop.m", "AsyncScene/Web/npcs.js:NPC.SAY.cop.f", "AsyncScene/Web/npcs.js:NPC.SAY.mafia.m", "AsyncScene/Web/npcs.js:NPC.SAY.mafia.f", "AsyncScene/Web/npcs.js:NPC.SAY.crowd.m", "AsyncScene/Web/npcs.js:NPC.SAY.crowd.f", "AsyncScene/Web/npcs.js:villainQuestions", "AsyncScene/Web/npcs.js:villainChallenges", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text", "AsyncScene/Web/data.js:Data.SYS.challengedLine", "AsyncScene/Web/data.js:Data.SYS.npcBattleStart", "AsyncScene/Web/data.js:Data.SYS.npcBattleEndWin", "AsyncScene/Web/data.js:Data.SYS.npcBattleEndDraw", "AsyncScene/Web/events.js:makeNpcDrawEvent.line", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_accept", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_busy", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_ok", "AsyncScene/Web/data.js:Data.TEXTS.genz.cop_report_fail", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.intros", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.warnings", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.toxicDescriptions", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.banditDescriptions", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.chatReplies", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.cooldownReplies", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.thanks", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.scolds", "AsyncScene/Web/npcs.js:NPC.COP.topics", "AsyncScene/Web/state.js:report flow hardcoded replies", "AsyncScene/Web/state.js:sendRevengeDM.bandit", "AsyncScene/Web/state.js:sendRevengeDM.default", "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", "AsyncScene/Web/npcs.js:Game.NPCSpeech.TEMPLATES_BY_LOCALE"
@@ -5969,11 +5969,17 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       result.ok = result.failedChecks.length === 0;
       return result;
     };
-    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechInventoryOnce = devStore.smokeZoomerNpcSpeechInventoryOnce;
+    const smokeZoomerNpcSpeechInventoryOnce = function smokeZoomerNpcSpeechInventoryOnce() {
+      return runZoomerNpcSpeechInventorySmoke();
+    };
+    devStore.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
+    return smokeZoomerNpcSpeechInventoryOnce;
   };
   installZoomerNpcSpeechInventorySmoke(G.__DEV);
 
-  console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeNpcSpeechInventoryOnce);
+  console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeZoomerNpcSpeechInventoryOnce);
   const installStep3TerminologyInventorySmoke = (devStore) => {
     if (!devStore || typeof devStore !== "object") return;
     const BUILD_MARKER = "STEP3_TERMINOLOGY_INVENTORY_SMOKE_V1";
