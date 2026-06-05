@@ -1,3 +1,8 @@
+## 2026-06-05 — Step 4 [2] mapping coverage follow-up
+- Added mapping-table entries for every currently reported unmapped zoomer inventory string: dev UI labels, symbols/resource icons, report hints, DM labels, battle/menu controls, and status/tone strings.
+- Kept the change mapping-table-only for runtime copy: no runtime UI string rewrites, gameplay logic changes, or inventory logic changes.
+- Bumped the smoke identity to `build_2026_06_05_n` / `zoomer_mapping_coverage_step4_2`; required Safari command remains `Game.__DEV.smokeZoomerTransformationTableOnce()`. Runtime PASS is not claimed here.
+
 ## 2026-06-05 — AsyncScene Step 4.2 Millennial -> zoomer canonical mapping table
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
