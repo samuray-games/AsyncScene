@@ -1,3 +1,9 @@
+## 2026-06-05 — Step 4 [8] aggregate runtime smoke pack only
+- Added `Game.__DEV.smokeZoomerTermsOnce()` in both served dev-check bundles as a dev-only aggregate runner for the Step 4 terminology smoke family.
+- The aggregate composes inventory, millennial -> zoomer mapping table, buttons, statuses, errors, hints, and new features, unions their diagnostics, and only returns `ok:true` when every included check passes with empty `violations`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays.
+- Runtime identity refreshed to `build_2026_06_05_0de8688` / `0de8688`, with aggregate `smokeVersion` `step4_aggregate_zoomer_terms_v1_build_2026_06_05_0de8688_commit_0de8688`.
+- Scope held: no UI text changes, no terminology changes, no gameplay changes, no economy changes, and no `Console.txt` usage. Runtime PASS is not claimed; Safari must rerun `Game.__DEV.smokeZoomerTermsOnce()`.
+
 ## 2026-06-05 — Step 4 [7] addAll dependency fix only
 - `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` was still failing in Safari with `Can't find variable: addAll` because the smoke still used an out-of-scope merge helper after the earlier normalize fix.
 - Fixed only the Step 4 [7] smoke in both served dev-check bundles by defining a self-contained local `addAllLocal` helper inside the smoke and routing the three nested-array merges through it. No external helper dependency was introduced and no terminology or behavior checks were changed.
