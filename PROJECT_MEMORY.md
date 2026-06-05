@@ -1,3 +1,14 @@
+## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Registered `Game.__DEV.smokeZoomerShorteningQualityOnce()` in `AsyncScene/Web/dev/dev-checks.js` and mirrored it to `docs/dev/dev-checks.js`.
+- The smoke validates the already-documented zoomer shortening profile mechanically: phrase length reduction rule, filler/intro word detection, abstraction detection, action-verb preference, transformation table presence, UI shortening rule presence, and new-feature coverage presence.
+- The smoke returns `ok`, `buildTag`, `commit`, `checkedRules`, `checkedSamples`, `lengthIssues`, `fillerIssues`, `abstractionIssues`, `verbIssues`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`, requiring nonzero counts and empty issue arrays for `ok:true`.
+- Runtime build identity and dev-checks cache keys are now `build_2026_06_05_a`, distinct from `build_2026_06_04_c`, and the tag is written into the runtime object for immediate Safari verification.
+- No gameplay, economy, copy rewrite, UI behavior, or refactor changes.
+- Local syntax checks PASS.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningQualityOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 2.4 Zoomer new feature copy coverage
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
