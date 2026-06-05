@@ -1,3 +1,10 @@
+## 2026-06-05 — Step 4 [2] conditional dynamic row fix
+- Reverted the static `STEP4_2_130..133` rows from the base Step 4 [2] mapping table because they inflated `pairCount` above the actual Safari runtime inventory whenever those dynamic entries were not present.
+- Kept the 129-row base mapping table, reused `STEP4_2_026` to cover the live numeric escape-button form `Свалить: 1 💰`, and moved the dynamic vote-counter and reputation-delta title coverage into conditional runtime-generated rows that appear only when the collector actually finds unmatched entries of those forms.
+- Dynamic pattern matching remains in place for player money labels, numeric escape-cost labels, vote counters, and the delta title, but extra rows are now synthesized only when needed so `pairCount` tracks the runtime inventory instead of staying inflated.
+- This also removes the duplicate zoomer mapping introduced by the fixed `Свалить: {X} 💰` row while preserving runtime-authoritative coverage behavior.
+- Updated the smoke identity markers in both served dev-check bundles to `build_2026_06_05_t` / `9ae0866`; Safari runtime PASS is not claimed here and must still be confirmed by rerunning `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-05 — Step 4 [2] dynamic inventory growth fix
 - Runtime inventory rose from `129` to `133` because the collector includes four additional live runtime surfaces: the battle escape button text `Свалить: 1 💰`, the battle escape title `−1⭐, при успехе +1⭐`, and two vote-counter labels rendered as `Имя 💰очки [влияние] - голоса`.
 - Updated only the Step 4 [2] runtime mapping smoke/table handling in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so runtime inventory remains authoritative and those four entries are covered without changing UI text, gameplay logic, or inventory collection.
