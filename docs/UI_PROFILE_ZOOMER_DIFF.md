@@ -29,6 +29,21 @@ Current UI surfaces: start screen, top bar, DM, battles, events, economy, report
 - respect: use existing millennial meaning + zoomer delta.
 - locale: use existing millennial meaning + zoomer delta.
 
+## Step 4 [7] New feature terminology coverage
+
+Each listed feature is covered by the zoomer terminology profile and keeps the same millennial meaning with a zoomer delta. No legacy wording remains in the covered feature lines.
+
+- bank: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- P2P: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- respect: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- training: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- report: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- crowd: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- DM: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- battle: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- escape: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+- rematch: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
+
 ## UI_PROFILE_ZOOMER_SHORTEN_RULE
 
 - From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by about 30-40%, keep original meaning, and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
