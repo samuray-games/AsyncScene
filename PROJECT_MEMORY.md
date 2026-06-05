@@ -1,3 +1,11 @@
+## 2026-06-05 — Step 5.7 Final Runtime Smoke Pack for Zoomer Argument Wrappers
+- Added dev-only aggregate `Game.__DEV.smokeZoomerArgumentWrappersOnce()` / `Game.Dev.smokeZoomerArgumentWrappersOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The aggregate calls only the existing Step 5 smokes: inventory, wrapper rules, wrapper pilot, wrapper coverage, semantic linter, and simplicity linter.
+- Returned top-level readiness fields include `ok`, `buildTag`, `commit`, unique `smokeVersion`, `substeps`, substep ok booleans, `inventoryCount`, `wrapperCount`, `coveragePercent`, `checkedCount`, `failedChecks`, `failures`, `forbiddenRemaining`, `missingCoverage`, `semanticDrift`, and `simplicityViolations`.
+- Served identity/cache-bust refreshed to `build_2026_06_05_step5_7_arg_wrappers_smoke_pack` / `step5_7_arg_wrappers_smoke_pack` / `step5-7-argument-wrappers-smoke-pack` so the unique Step 5.7 `smokeVersion` is visible in Safari runtime output.
+- Scope held: no new wrapper texts, no canon argument text changes, no wrapper text changes, no live gameplay wrapper application, no UI behavior changes, and no battle/defense logic changes.
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed; run `Game.__DEV.smokeZoomerArgumentWrappersOnce()`.
+
 ## 2026-06-05 — Step 5.6 simplicity linter for zoomer argument wrappers
 - Added dev-only `Game.__DEV.smokeZoomerArgumentSimplicityLinterOnce()` / `Game.Dev.smokeZoomerArgumentSimplicityLinterOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - The smoke checks only the existing Step 5.4 dev wrapper set from `buildZoomerArgumentWrapperEntries()` and requires `checkedCount: 964`.
