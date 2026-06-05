@@ -296,7 +296,7 @@ window.Game = window.Game || {};
 
     const resetBtn = $("btnResetOnboarding") || document.getElementById("btnResetOnboarding");
     if (resetBtn) {
-      resetBtn.textContent = "Сбросить онбординг";
+      resetBtn.textContent = "Сбросить старт";
       resetBtn.hidden = !resumeMode;
       resetBtn.classList.toggle("hidden", !resumeMode);
       resetBtn.style.display = resumeMode ? "block" : "none";
