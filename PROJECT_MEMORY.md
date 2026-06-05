@@ -1,3 +1,9 @@
+## 2026-06-05 — Step 4 [4] identity-only smokeVersion fix
+- Safari coverage for `Game.__DEV.smokeZoomerStatusTermsOnce()` was already clean (`missingCoverage: []`, `forbiddenRemaining: []`, populated `sampledStatusSources`), so the last failure was isolated to smoke identity only.
+- Root cause in both served dev-check bundles: the Step 4 [4] smoke generated `smokeVersion` as `step4_4_zoomer_status_terms_v2_${buildTag}_commit_${commit}`, but the validation branch still compared it against the stale `..._v1_...` template, which guaranteed `smoke_version_unique_for_commit` failure.
+- Changed only identity wiring in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`: refreshed served markers to `build_2026_06_05_ab` / `f7ea6f7` and aligned the Step 4 [4] validator with the existing `v2` smokeVersion template.
+- Scope held: no status inventory logic, UI text, gameplay, transfer behavior, buttons, errors, hints, or collector paths were changed. Runtime PASS is not claimed.
+
 ## 2026-06-05 — Step 4 [4] collector execution proof fix
 - Runtime proof changed the diagnosis: `statusEntriesCount = 0` with empty `sampledStatusSources` means the status collector path itself was not being reached in Safari, not just that the terms were mismatched.
 - Root cause in the served smoke bundle: `collectZoomerTermsInventoryEntries()` tried `Game.UI.trainingControls.statusEl.textContent`, but the fallback generic DOM scan never included `#trainingStatusText`, so Safari could miss the runtime status row whenever that object path was unavailable even though the DOM node existed.
