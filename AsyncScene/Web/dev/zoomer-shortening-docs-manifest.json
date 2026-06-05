@@ -1,0 +1,55 @@
+{
+  "manifestId": "zoomer_shortening_docs_manifest_v1",
+  "buildTag": "build_2026_06_05_c",
+  "status": "READY_FOR_RUNTIME_SMOKE",
+  "generatedFrom": [
+    "TASKS.md",
+    "PROJECT_MEMORY.md",
+    "UI_PROFILE_ZOOMER_DIFF.md",
+    "docs/UI_PROFILE_ZOOMER_DIFF.md"
+  ],
+  "publishedSources": [
+    "dev/zoomer-shortening-docs-manifest.json",
+    "UI_PROFILE_ZOOMER_DIFF.md"
+  ],
+  "completedSteps": [
+    { "step": "2.1", "status": "PASS", "smoke": "Game.__DEV.smokeZoomerShortenRuleOnce()", "evidence": "runtime-confirmed PASS" },
+    { "step": "2.2", "status": "PASS", "smoke": "Game.__DEV.smokeZoomerTransformationTableOnce()", "evidence": "runtime-confirmed PASS" },
+    { "step": "2.3", "status": "PASS", "smoke": "Game.__DEV.smokeDevMenuMinimalOnce()", "evidence": "runtime-confirmed PASS" },
+    { "step": "2.4", "status": "PASS", "smoke": "Game.__DEV.smokeZoomerNewFeatureCopyOnce()", "evidence": "runtime-confirmed PASS" },
+    { "step": "2.5", "status": "PASS", "smoke": "Game.__DEV.smokeZoomerShorteningQualityOnce()", "evidence": "runtime-confirmed PASS" }
+  ],
+  "overall": "Step 2 overall PASS",
+  "documentedSmokes": [
+    "Game.__DEV.smokeZoomerShortenRuleOnce()",
+    "Game.__DEV.smokeZoomerTransformationTableOnce()",
+    "Game.__DEV.smokeDevMenuMinimalOnce()",
+    "Game.__DEV.smokeZoomerNewFeatureCopyOnce()",
+    "Game.__DEV.smokeZoomerShorteningQualityOnce()",
+    "Game.__DEV.smokeZoomerShorteningDocsOnce()"
+  ],
+  "documentedBuildTags": [
+    "build_2026_06_04_c",
+    "build_2026_06_05_a",
+    "build_2026_06_05_b",
+    "build_2026_06_05_c"
+  ],
+  "shorteningAcceptanceCriteria": [
+    "UI_PROFILE_ZOOMER_SHORTEN_RULE exists",
+    "shorten phrases by 30-40%",
+    "fewer filler words",
+    "fewer abstractions",
+    "more action verbs",
+    "UI_PROFILE_MILLENNIAL base/source profile",
+    "do not contradict UI_PROFILE_ZOOMER_DIFF"
+  ],
+  "runtimeConfirmedPassCriteria": [
+    "runtime-confirmed PASS",
+    "ok:true",
+    "docsPresent:true",
+    "failures:[]",
+    "forbiddenRemaining:[]",
+    "missingCoverage:[]",
+    "failedChecks:[]"
+  ]
+}
