@@ -1,3 +1,19 @@
+## 2026-06-05 — AsyncScene Step 3.4 Zoomer system texts lexical pass
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: SystemCopy|UI Copy|Infra
+- Files: `AsyncScene/Web/system.js` `docs/system.js` `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/ui/ui-dm.js` `docs/ui/ui-dm.js` `AsyncScene/Web/ui/ui-menu.js` `docs/ui/ui-menu.js` `AsyncScene/Web/ui/ui-battles.js` `docs/ui/ui-battles.js` `AsyncScene/Web/ui/ui-boot.js` `docs/ui/ui-boot.js` `AsyncScene/Web/index.html` `docs/index.html` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Apply the approved zoomer lexical profile to system texts only: errors, hints, toasts, and button labels.
+- Runtime/system wording is now shorter and more direct on the scoped surfaces; stop-word, meme, parasite slang, irony-for-irony, teacher-tone, and excessive-explanation patterns are excluded from the Step 3.4 inventory.
+- Added Safari runtime smoke command: `Game.__DEV.smokeZoomerSystemTextsOnce()`.
+- Smoke contract verifies inventory existence, errors/hints/toasts/buttons coverage, forbidden stop-word absence, short/direct profile, no teacher tone or excessive explanation, and identity fields `buildTag`, `commit`, and unique `smokeVersion`.
+- New runtime build identity: `build_2026_06_05_h` / `zoomer_system_texts_step3_4`; smokeVersion `step3_4_zoomer_system_texts_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4`.
+- Scope guard preserved: no gameplay logic changes, no economy changes, no NPC speech changes, no side refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerSystemTextsOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 3.3 Zoomer stop-word inventory
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.

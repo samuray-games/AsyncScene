@@ -15,7 +15,7 @@ window.Game = window.Game || {};
     introLines: Object.freeze([
       "Ты выбираешь оппонента.",
       "Ставка — ресурс.",
-      "Итог идет в репутацию."
+      "Итог — в репутацию."
     ]),
     economyHonestyLine: "Цена и итог видны сразу.",
     actions: Object.freeze({
@@ -132,15 +132,15 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.TEXTS = {
     genz: {
       tie_start: "Толпа решает.",
-      tie_call_to_action: "Кликни имя — выбери сторону.",
-      tie_click_name_hint: "Кликни имя для выбора.",
-      vote_ok: "Голос принят.",
+      tie_call_to_action: "Выбери имя — выбери сторону.",
+      tie_click_name_hint: "Выбери имя.",
+      vote_ok: "Голос учтён.",
       vote_already: "Уже учтён.",
-      vote_fail: "Голос не принят.",
+      vote_fail: "Голос не учтён.",
       tie_timer: "Осталось: {sec}s",
       tie_end_winner: "Победил {name} - {aVotes}:{bVotes}.",
       tie_end_draw: "Поровну по голосам - {aVotes}:{bVotes}.",
-      tie_chat_start: "Толпа решает. Кликни имя в событиях.",
+      tie_chat_start: "Толпа решает. Выбери имя в событиях.",
       tie_chat_end_winner: "Толпа решает. Победил {name} - {aVotes}:{bVotes}.",
       tie_chat_end_draw: "Толпа решает. Поровну - {aVotes}:{bVotes}.",
 
@@ -159,7 +159,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       escape_button_label: "Свалить: {X} 💰",
       teach_sent_dm: "Для {student}: {arg}. Цена {cost} 💰.",
       teach_sent_chat: "Аргумент: {teacher} → {student}.",
-      invite_open_hint: "Введи точный ник игрока.",
+      invite_open_hint: "Введи точный ник.",
       invite_invalid: "Игрок не найден.",
       menu_title: "Меню",
 
@@ -173,7 +173,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       // UI type hints (Canon)
       hint_type_who: "Ответь кто",
       hint_type_where: "Ответь где",
-      hint_type_about: "Ответь про кого / про что",
+      hint_type_about: "Ответь о ком или о чём",
       hint_type_yn: "Ответь да или нет",
     },
     alpha: {
@@ -212,7 +212,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     manifest: {
       short: "Набирай ⚡, собирай ресурсы и влияй на исход событий. Цель - стать фигурой, с которой считаются.",
       full:
-        "Цель игры - не победить всех, а стать значимой фигурой в социальном поле.\n" +
+        "Цель - не победить всех, а стать значимой фигурой в социальном поле.\n" +
         "Игрок стремится к тому, чтобы его решения влияли на исход событий,\n" +
         "его имя вызывало реакцию,\n" +
         "а мир адаптировался к его присутствию.\n\n" +
@@ -4500,7 +4500,7 @@ K YN A9: Нет.
         if (b) b.textContent = getSeen() ? "Продолжить" : "Старт";
         const r = btnReset();
         if (r) {
-          r.textContent = "Сбросить онбординг";
+          r.textContent = "Сбросить старт";
           r.hidden = !getSeen();
           r.classList.toggle("hidden", !getSeen());
           r.style.display = getSeen() ? "" : "none";

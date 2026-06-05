@@ -365,7 +365,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const title = document.createElement("div");
     title.className = "pill";
-    title.textContent = "Выбери аргумент. У получателя он будет одноразовый. Это платно.";
+    title.textContent = "Выбери аргумент. Он одноразовый. Цена видна.";
     panel.appendChild(title);
 
     const grid = document.createElement("div");
@@ -496,7 +496,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     if (all.length === 0) {
       const empty = document.createElement("div");
       empty.className = "pill";
-      empty.textContent = "Пока без мувов.";
+      empty.textContent = "Пока пусто.";
       panel.appendChild(empty);
     }
   }
@@ -851,7 +851,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             UI.renderDM();
             return;
           }
-          dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай человеку передохнуть." : "Не залетело.");
+          dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай паузу." : "Не залетело.");
           UI.renderDM();
           return;
         }
@@ -885,7 +885,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           UI.renderDM();
           return;
         }
-        dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай человеку передохнуть." : "Не залетело.");
+        dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай паузу." : "Не залетело.");
         UI.renderDM();
         return;
       }
@@ -900,7 +900,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const respectButton = document.createElement("button");
       respectButton.type = "button";
       respectButton.className = "btn respect-action";
-      respectButton.textContent = "Выразить уважение";
+      respectButton.textContent = "Уважение";
       respectButton.onclick = (ev) => {
         stop(ev);
         __uiRespectClick__(withId);
@@ -909,11 +909,11 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     }
     if (cdActive) {
       btnBattle.disabled = true;
-      btnBattle.title = "Дай человеку передохнуть.";
+      btnBattle.title = "Дай паузу.";
     }
 
     const canTeach = !isCop && !isMafia;
-    const btnTeach = mkBtn("Обучить аргументу", () => {
+    const btnTeach = mkBtn("Передать аргумент", () => {
       getS().dm.teachOpen = !getS().dm.teachOpen;
       UI.renderDM();
     });
@@ -1366,7 +1366,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       UI._copReport = UI._copReport || { open:false, q:"", sel:0, list:[], dropdownOpen:false };
 
       if (extra) extra.classList.remove("hidden");
-      if (hint) hint.textContent = "Сообщить о токсике, бандите или мафиози.";
+      if (hint) hint.textContent = "Сдай токсика, бандита или мафиози.";
 
       if (extra) {
         extra.innerHTML = "";
@@ -1589,7 +1589,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           const renderSubmitButton = () => {
             const uiState = getReportUiState();
             if (uiState.status === "pending") {
-              submitBtn.textContent = "Проверка...";
+              submitBtn.textContent = "Проверяю...";
               submitBtn.disabled = true;
             } else if (uiState.status === "cooldown") {
               submitBtn.textContent = "Занят";
