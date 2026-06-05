@@ -378,14 +378,14 @@ window.Game = window.Game || {};
       if (!status) return "";
       if (status.whyBlocked === blockedReasonCooldown) return `кулдаун: день ${status.cooldownUntilDay}`;
       if (status.whyBlocked === "insufficient_points") return "Не хватает 💰.";
-      return "Обучить аргументу доступно";
+      return "Обучение доступно";
     }
 
     function updateTrainingStatus() {
       const api = Game.TrainingAPI || null;
       if (!api || typeof api.status !== "function") {
         trainingControls.latestStatus = null;
-        trainingControls.statusEl.textContent = "Обучить аргументу недоступно.";
+        trainingControls.statusEl.textContent = "Обучение недоступно.";
         trainingControls.resultEl.textContent = "";
         trainingControls.button.disabled = true;
         return;
@@ -393,7 +393,7 @@ window.Game = window.Game || {};
       const status = api.status({ argKey: TRAINING_UI_ARG_KEY });
       trainingControls.latestStatus = status;
       if (!status || !status.ok) {
-        trainingControls.statusEl.textContent = "Статус обучения аргументу недоступен.";
+        trainingControls.statusEl.textContent = "Статус обучения недоступен.";
         trainingControls.button.disabled = true;
         trainingControls.resultEl.textContent = "";
         return;

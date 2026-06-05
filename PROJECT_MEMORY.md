@@ -1,3 +1,12 @@
+## 2026-06-05 — AsyncScene Step 2.4 Zoomer new feature copy coverage
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Shortened only copy on new feature surfaces using `UI_PROFILE_ZOOMER_SHORTEN_RULE`; economy values/placeholders and action honesty are unchanged.
+- Covered areas: economy, actions, NPC speech, SystemCopy, action honesty.
+- Registered `Game.__DEV.smokeZoomerNewFeatureCopyOnce()` in the runtime docs/app copy; local VM smoke returns `ok:true`, `checkedCount:12`, all required areas, and empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- No gameplay changes, no economy changes, no UI refactor, no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerNewFeatureCopyOnce()`.
+
 ## 2026-06-05 — Dev menu minimal surface
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
 - Simplified the visible dev-menu controls to only `Console Panel` plus the `Enable Dev Mode` / `Disable Dev Mode` toggle in both runtime and docs UI bundles.

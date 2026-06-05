@@ -33,7 +33,7 @@ window.Game = window.Game || {};
       unavailable: "Недоступно.",
       notFound: "Не найдено.",
       choosePlayer: "Выбери игрока.",
-      reportFalsePenalty: "Не получилось. Штраф: -5 💰.",
+      reportFalsePenalty: "Штраф: -5 💰.",
     }),
     warnings: Object.freeze({
       checkInput: "Проверь ввод и повтори.",
@@ -42,7 +42,7 @@ window.Game = window.Game || {};
       respectPairDaily: "Уважение ему уже отправлено.",
       respectNoChain: "Цепочка сегодня закрыта.",
       respectEmitterEmpty: "Уважение сегодня недоступно.",
-      escapeNeedsPoints: "Не хватает 💰, чтобы Свалить.",
+      escapeNeedsPoints: "Не хватает 💰 на Свалить.",
     }),
     notifications: Object.freeze({
       saved: "Готово.",
@@ -53,7 +53,7 @@ window.Game = window.Game || {};
       respectTargetRep: "Цели +1⭐.",
       voteAccepted: "Голос учтён.",
       reportPending: "Проверка идёт.",
-      reportTrueReward: "Засчитано. Сдать {name}: +2💰.",
+      reportTrueReward: "Сдать {name}: +2💰.",
       trainingSent: "Аргумент: {teacher} → {student}.",
       rematchRequested: "{name} зовёт на реванш.",
       escapePaid: "Свалить за 1💰.",
@@ -1712,6 +1712,81 @@ window.Game = window.Game || {};
     if (!result.systemCopyOk) addUnique(result.failedChecks, "system_copy_failed");
     result.summary.status = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.directStringsRemaining.length === 0 && result.systemCopyOk === true && result.regressionOk === true && result.economyDeltaPairsOk === true ? "READY_FOR_RUNTIME_SMOKE" : "BLOCKED";
     result.ok = result.summary.status === "READY_FOR_RUNTIME_SMOKE";
+    return result;
+  };
+
+
+  Game.__DEV.smokeZoomerNewFeatureCopyOnce = function smokeZoomerNewFeatureCopyOnce(){
+    const result = {
+      ok: false,
+      checkedCount: 0,
+      coveredAreas: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => (value && Object.prototype.hasOwnProperty.call(value, key) ? value[key] : undefined), root);
+    const currentText = (source) => {
+      const normalized = String(source || "");
+      if (normalized.indexOf("NPC.COP.") === 0) return getPath({ NPC: Game.NPC || {} }, normalized);
+      return getPath(Game, normalized);
+    };
+    const covered = Object.freeze([
+      { area: "economy", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "truthful report reward still names the same Sdat action, same target placeholder, and unchanged +2 money value" },
+      { area: "economy", source: "SystemCopy.errors.reportFalsePenalty", before: "Не получилось. Штраф: -5 💰.", after: "Штраф: -5 💰.", meaning: "false report penalty still shows the unchanged -5 money penalty" },
+      { area: "economy", source: "Data.TEXTS.genz.teach_sent_dm", before: "Аргумент для {student}: {arg}. Цена {cost} 💰.", after: "Для {student}: {arg}. Цена {cost} 💰.", meaning: "teaching DM still names the same student, argument, and unchanged cost placeholder" },
+      { area: "actions", source: "SystemCopy.warnings.escapeNeedsPoints", before: "Не хватает 💰, чтобы Свалить.", after: "Не хватает 💰 на Свалить.", meaning: "escape warning still says the paid Svalit action lacks money" },
+      { area: "actions", source: "Data.TEXTS.genz.cop_report_accept.0", before: "Я тебя понял. Проверяю информацию.", after: "Понял. Проверяю.", meaning: "cop report acceptance still confirms the report is being checked" },
+      { area: "npcSpeech", source: "Data.TEXTS.genz.cop_report_ok.0", before: "Проверка сошлась. Я вмешался.", after: "Проверка сошлась. Вмешался.", meaning: "cop speech still says verification matched and the cop intervened" },
+      { area: "npcSpeech", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Дайте время, я занят делом.", meaning: "cop cooldown speech still says the cop needs time because another case is active" },
+      { area: "npcSpeech", source: "NPC.COP.topics.bandit.advice", before: "Лучшее решение - Свалить или не ввязываться. Если вступили в бой, главное - не проиграть.", after: "Лучше Свалить или не ввязываться. В бою главное — не проиграть.", meaning: "bandit advice still recommends Svalit or avoiding the fight and preserving battle honesty" },
+      { area: "systemCopy", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "SystemCopy report reward remains routed through SystemCopy with unchanged placeholder and money" },
+      { area: "systemCopy", source: "SystemCopy.errors.reportFalsePenalty", before: "Не получилось. Штраф: -5 💰.", after: "Штраф: -5 💰.", meaning: "SystemCopy false report penalty remains explicit and unchanged" },
+      { area: "actionHonesty", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "action honesty keeps Sdat as the visible action and does not imply a different outcome" },
+      { area: "actionHonesty", source: "SystemCopy.warnings.escapeNeedsPoints", before: "Не хватает 💰, чтобы Свалить.", after: "Не хватает 💰 на Свалить.", meaning: "action honesty keeps Svalit as the blocked paid action instead of hiding the action" },
+    ]);
+    const requiredAreas = ["economy", "actions", "npcSpeech", "systemCopy", "actionHonesty"];
+    covered.forEach((row) => {
+      addUnique(result.coveredAreas, row.area);
+      result.checkedCount += 1;
+      const current = currentText(row.source);
+      if (current !== row.after) fail("mapping_current_text_mismatch", { source: row.source, expected: row.after, actual: current });
+      if (!row.meaning || row.meaning.length < 24) fail("meaning_allowlist_missing", { source: row.source });
+      if (!(String(row.after).length < String(row.before).length)) fail("text_not_shortened", { source: row.source, before: row.before, after: row.after });
+      const placeholdersBefore = String(row.before).match(/\{[^}]+\}/g) || [];
+      const placeholdersAfter = String(row.after).match(/\{[^}]+\}/g) || [];
+      placeholdersBefore.forEach((token) => {
+        if (!placeholdersAfter.includes(token)) fail("placeholder_lost", { source: row.source, token });
+      });
+      const economyBefore = String(row.before).match(/[+-]?\d+\s*💰|\{[A-Za-z]+Cost\}|\{cost\}|\{X\}/g) || [];
+      const economyAfter = String(row.after).match(/[+-]?\d+\s*💰|\{[A-Za-z]+Cost\}|\{cost\}|\{X\}/g) || [];
+      economyBefore.forEach((token) => {
+        if (!economyAfter.includes(token)) fail("economy_value_changed", { source: row.source, token });
+      });
+      if (current === row.before || String(current || "").includes(row.before)) addUnique(result.forbiddenRemaining, { source: row.source, text: row.before });
+      if (/вписывайся|хайп|кринж|рофл|лол|мем|мемн|давай разбер|юный|молод[её]жн/i.test(String(row.after))) {
+        addUnique(result.forbiddenRemaining, { source: row.source, text: row.after });
+        fail("forbidden_voice", { source: row.source, text: row.after });
+      }
+    });
+    requiredAreas.forEach((area) => {
+      if (!result.coveredAreas.includes(area)) addUnique(result.missingCoverage, area);
+    });
+    if (result.checkedCount <= 0) fail("checked_count_zero");
+    result.ok = result.checkedCount > 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
     return result;
   };
 
