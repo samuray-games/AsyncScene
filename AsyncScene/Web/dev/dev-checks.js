@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_1_arg_inventory";
-  const RUNTIME_COMMIT = "step5_1_arg_inventory";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_step5_1_arg_inventory_shape_a";
+  const RUNTIME_COMMIT = "step5_1_arg_inventory_shape";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -4171,7 +4171,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const smokeZoomerArgumentInventoryOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = `step5_1_argument_inventory_v1_20260605_runtime_collector_${buildTag}_commit_${commit}`;
+      const smokeVersion = `step5_1_argument_inventory_shape_v2_20260605a_${buildTag}_commit_${commit}`;
       const requiredTypes = ["about", "who", "where", "yn"];
       const result = {
         ok: false,
@@ -4238,15 +4238,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (result.emptyEntries.length) fail("empty_entries_empty", result.emptyEntries.slice());
         if (result.unresolvedPlaceholders.length) fail("unresolved_placeholders_empty", result.unresolvedPlaceholders.slice());
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step5_1_argument_inventory_v1_20260605_runtime_collector_${buildTag}_commit_${commit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        if (smokeVersion !== `step5_1_argument_inventory_shape_v2_20260605a_${buildTag}_commit_${commit}`) fail("smoke_version_unique_for_commit", smokeVersion);
       } catch (err) {
         fail("exception", err && (err.stack || err.message) ? (err.stack || err.message) : String(err));
       }
-      result.ok = result.missingTypes.length === 0
+      result.ok = requiredTypes.every((type) => result.byType[type] && result.byType[type].count > 0)
         && result.duplicateIds.length === 0
         && result.emptyEntries.length === 0
         && result.unresolvedPlaceholders.length === 0
+        && result.missingTypes.length === 0
         && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
         && result.failedChecks.length === 0;
       try { console.warn("STEP5_1_ARGUMENT_INVENTORY_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
