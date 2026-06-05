@@ -1,3 +1,14 @@
+## 2026-06-05 — AsyncScene Step 4.2 Millennial -> zoomer canonical mapping table
+
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
+- Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Build only the canonical millennial -> zoomer UI terminology mapping table from Step 4.1 inventory results. No runtime UI text rewrites, gameplay changes, logic changes, category expansion, or terminology application.
+- Added `UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE` with 103 unique millennial entries and exactly one zoomer replacement per entry, covering the unique Step 4.1 inventory targets.
+- Updated Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+- Smoke requires all inventory targets to be mapped and returns `ok`, `pairCount`, `buildTag`, `commit`, commit-unique `smokeVersion`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `duplicateMillennialKeys`, `duplicateZoomerMappings`, `unmappedEntries`, and `ambiguousMappings`.
+- New runtime build identity: `build_2026_06_05_m` / `zoomer_mapping_table_step4_2`; smokeVersion `step4_2_zoomer_transformation_table_v1_build_2026_06_05_m_commit_zoomer_mapping_table_step4_2`.
+- Required Safari command: `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 4.1 Zoomer UI terminology inventory runtime smoke
 
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS must be confirmed only from the user's iPhone Safari smoke.
