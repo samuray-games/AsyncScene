@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_49dea4d";
-  const RUNTIME_COMMIT = "49dea4d";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_fda7d3b";
+  const RUNTIME_COMMIT = "fda7d3b";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -3273,6 +3273,24 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
     };
 
+    const UI_PROFILE_ZOOMER_TERMS = Object.freeze({
+      id: "UI_PROFILE_ZOOMER_TERMS",
+      step: "step4_9",
+      surfaces: Object.freeze([
+        "inventory",
+        "mapping",
+        "buttons",
+        "statuses",
+        "errors",
+        "hints",
+        "newFeatures"
+      ]),
+      sourceFiles: Object.freeze([
+        "AsyncScene/Web/dev/dev-checks.js",
+        "docs/dev/dev-checks.js"
+      ])
+    });
+
     const ZOOMER_TERMINOLOGY_MAPPING_TABLE = Object.freeze([
       Object.freeze({"id": "STEP4_2_001", "millennial": "Полная UI-формулировка 001: Старт", "zoomer": "Старт"}),
       Object.freeze({"id": "STEP4_2_002", "millennial": "Полная UI-формулировка 002: Суть", "zoomer": "Суть"}),
@@ -4033,22 +4051,63 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && !!result.smokeVersion;
       return result;
     };
-    const smokeZoomerTermsOnce = () => {
+    const isStep4TermsReadyOutput = (output) => !!(output
+      && output.ok === true
+      && Array.isArray(output.failures) && output.failures.length === 0
+      && Array.isArray(output.forbiddenRemaining) && output.forbiddenRemaining.length === 0
+      && Array.isArray(output.missingCoverage) && output.missingCoverage.length === 0
+      && Array.isArray(output.failedChecks) && output.failedChecks.length === 0
+      && output.buildTag
+      && output.commit
+      && output.smokeVersion);
+
+    const makeStep4TermsReadyStep = (id, output, linked, sourceOfTruth) => ({
+      id,
+      ok: !!(linked && isStep4TermsReadyOutput(output)),
+      linked: !!linked,
+      sourceOfTruth: sourceOfTruth || null,
+      buildTag: output && output.buildTag ? output.buildTag : null,
+      commit: output && output.commit ? output.commit : null,
+      smokeVersion: output && output.smokeVersion ? output.smokeVersion : null,
+      failedChecks: output && Array.isArray(output.failedChecks) ? output.failedChecks.slice() : [],
+      failures: output && Array.isArray(output.failures) ? output.failures.slice() : [],
+      forbiddenRemaining: output && Array.isArray(output.forbiddenRemaining) ? output.forbiddenRemaining.slice() : [],
+      missingCoverage: output && Array.isArray(output.missingCoverage) ? output.missingCoverage.slice() : []
+    });
+
+    const smokeZoomerTermsReadyOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = `step4_aggregate_zoomer_terms_v1_${buildTag}_commit_${commit}`;
+      const smokeVersion = `step4_9_zoomer_terms_ready_v1_${buildTag}_commit_${commit}`;
       const result = {
         ok: false,
         buildTag,
         commit,
         smokeVersion,
-        smokeName: "smokeZoomerTermsOnce",
+        smokeName: "smokeZoomerTermsReadyOnce",
+        sourceOfTruth: null,
+        sourceOfTruthExists: false,
+        inventoryLinked: false,
+        mappingLinked: false,
+        buttonsLinked: false,
+        statusesLinked: false,
+        errorsLinked: false,
+        hintsLinked: false,
+        newFeaturesLinked: false,
         summary: {
           requiredCoverage: ["inventory", "mappingTable", "buttons", "statuses", "errors", "hints", "newFeatures"],
           passedChecks: [],
           failedChecks: [],
           status: "BLOCKED"
         },
+        step4_1: null,
+        step4_2: null,
+        step4_3: null,
+        step4_4: null,
+        step4_5: null,
+        step4_6: null,
+        step4_7: null,
+        step4_8: null,
         inventory: null,
         mappingTable: null,
         buttons: null,
@@ -4086,6 +4145,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         addAllLocal(result.failedChecks, output && output.failedChecks);
       };
       try {
+        result.sourceOfTruth = UI_PROFILE_ZOOMER_TERMS && UI_PROFILE_ZOOMER_TERMS.id ? UI_PROFILE_ZOOMER_TERMS.id : null;
+        result.sourceOfTruthExists = result.sourceOfTruth === "UI_PROFILE_ZOOMER_TERMS";
         collect("inventory", G.__DEV && G.__DEV.smokeZoomerTermsInventoryOnce);
         collect("mappingTable", G.__DEV && G.__DEV.smokeZoomerTransformationTableOnce);
         collect("buttons", G.__DEV && G.__DEV.smokeZoomerButtonTermsOnce);
@@ -4093,24 +4154,90 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         collect("errors", G.__DEV && G.__DEV.smokeZoomerErrorTermsOnce);
         collect("hints", G.__DEV && G.__DEV.smokeZoomerHintTermsOnce);
         collect("newFeatures", G.__DEV && G.__DEV.smokeZoomerNewFeaturesTermsOnce);
+        result.inventoryLinked = result.sourceOfTruthExists && !!result.inventory;
+        result.mappingLinked = result.sourceOfTruthExists && !!result.mappingTable;
+        result.buttonsLinked = result.sourceOfTruthExists && !!result.buttons;
+        result.statusesLinked = result.sourceOfTruthExists && !!result.statuses;
+        result.errorsLinked = result.sourceOfTruthExists && !!result.errors;
+        result.hintsLinked = result.sourceOfTruthExists && !!result.hints;
+        result.newFeaturesLinked = result.sourceOfTruthExists && !!result.newFeatures;
+        result.step4_1 = makeStep4TermsReadyStep("step4_1", result.inventory, result.inventoryLinked, result.sourceOfTruth);
+        result.step4_2 = makeStep4TermsReadyStep("step4_2", result.mappingTable, result.mappingLinked, result.sourceOfTruth);
+        result.step4_3 = makeStep4TermsReadyStep("step4_3", result.buttons, result.buttonsLinked, result.sourceOfTruth);
+        result.step4_4 = makeStep4TermsReadyStep("step4_4", result.statuses, result.statusesLinked, result.sourceOfTruth);
+        result.step4_5 = makeStep4TermsReadyStep("step4_5", result.errors, result.errorsLinked, result.sourceOfTruth);
+        result.step4_6 = makeStep4TermsReadyStep("step4_6", result.hints, result.hintsLinked, result.sourceOfTruth);
+        result.step4_7 = makeStep4TermsReadyStep("step4_7", result.newFeatures, result.newFeaturesLinked, result.sourceOfTruth);
+        result.step4_8 = {
+          id: "step4_8",
+          ok: !!(result.sourceOfTruthExists
+            && result.inventoryLinked
+            && result.mappingLinked
+            && result.buttonsLinked
+            && result.statusesLinked
+            && result.errorsLinked
+            && result.hintsLinked
+            && result.newFeaturesLinked),
+          linked: result.sourceOfTruthExists,
+          sourceOfTruth: result.sourceOfTruth,
+          buildTag,
+          commit,
+          smokeVersion: `step4_8_zoomer_terms_contract_linkage_v1_${buildTag}_commit_${commit}`,
+          failedChecks: [],
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: []
+        };
         ["inventory", "mappingTable", "buttons", "statuses", "errors", "hints", "newFeatures"].forEach((id) => {
           if (!Object.prototype.hasOwnProperty.call(result, id) || !result[id]) addUnique(result.missingCoverage, id);
         });
+        if (!result.sourceOfTruthExists) fail("source_of_truth_exists", result.sourceOfTruth);
+        [
+          ["inventory_linked", result.inventoryLinked],
+          ["mapping_linked", result.mappingLinked],
+          ["buttons_linked", result.buttonsLinked],
+          ["statuses_linked", result.statusesLinked],
+          ["errors_linked", result.errorsLinked],
+          ["hints_linked", result.hintsLinked],
+          ["new_features_linked", result.newFeaturesLinked]
+        ].forEach(([check, ok]) => {
+          if (!ok) fail(check, "missing_source_of_truth_linkage");
+        });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step4_aggregate_zoomer_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (smokeVersion !== `step4_9_zoomer_terms_ready_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_9") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique_for_commit", smokeVersion);
         }
-        ["inventory", "mappingTable", "buttons", "statuses", "errors", "hints", "newFeatures"].forEach((key) => {
-          const output = result[key];
-          if (!output || output.ok !== true) fail(`step4_${key}_failed`, output);
+        [result.step4_1, result.step4_2, result.step4_3, result.step4_4, result.step4_5, result.step4_6, result.step4_7, result.step4_8].forEach((step) => {
+          if (!step || step.ok !== true) fail(`${step && step.id ? step.id : "step4_unknown"}_failed`, step);
         });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
       result.summary.status = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 ? "READY_FOR_RUNTIME_SMOKE" : "BLOCKED";
-      result.ok = result.summary.status === "READY_FOR_RUNTIME_SMOKE" && result.violations.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      result.ok = result.summary.status === "READY_FOR_RUNTIME_SMOKE"
+        && result.sourceOfTruthExists === true
+        && result.inventoryLinked === true
+        && result.mappingLinked === true
+        && result.buttonsLinked === true
+        && result.statusesLinked === true
+        && result.errorsLinked === true
+        && result.hintsLinked === true
+        && result.newFeaturesLinked === true
+        && result.step4_1 && result.step4_1.ok === true
+        && result.step4_2 && result.step4_2.ok === true
+        && result.step4_3 && result.step4_3.ok === true
+        && result.step4_4 && result.step4_4.ok === true
+        && result.step4_5 && result.step4_5.ok === true
+        && result.step4_6 && result.step4_6.ok === true
+        && result.step4_7 && result.step4_7.ok === true
+        && result.step4_8 && result.step4_8.ok === true
+        && result.violations.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerTermsOnce = () => smokeZoomerTermsReadyOnce();
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -4130,8 +4257,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    Game.Dev.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     Game.Dev.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     Game.Dev.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
+    G.__DEV.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     G.__DEV.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     G.__DEV.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
@@ -4159,6 +4288,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    devStore.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     devStore.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     devStore.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     devStore.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
