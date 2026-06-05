@@ -1913,6 +1913,85 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && !!result.smokeVersion;
       return result;
     };
+    const smokeZoomerErrorTermsOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_5_zoomer_error_terms_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerErrorTermsOnce",
+        errorEntries: [],
+        errorEntriesCount: 0,
+        sampledErrorSources: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      try {
+        const inventoryEntries = collectZoomerTermsInventoryEntries();
+        const errorEntries = inventoryEntries.filter((entry) => entry && String(entry.category || "") === "error" && normalize(entry.text));
+        result.errorEntries = Array.from(new Set(errorEntries.map((entry) => normalize(entry.text)))).sort();
+        result.errorEntriesCount = result.errorEntries.length;
+        result.sampledErrorSources = errorEntries.slice(0, 12).map((entry) => {
+          const source = entry.source || {};
+          return {
+            category: entry.category || null,
+            text: normalize(entry.text),
+            file: source.file || entry.file || null,
+            module: source.module || entry.module || null,
+            key: source.key || entry.key || null,
+            path: source.path || entry.path || null
+          };
+        });
+        const required = ["Недоступно.", "Не удалось.", "Повтори позже."];
+        required.forEach((term) => {
+          if (!result.errorEntries.some((text) => text === term || text.indexOf(term) !== -1)) {
+            addUnique(result.missingCoverage, term);
+          }
+        });
+        const bannedPatterns = [
+          { id: "bureaucratic_wording", re: /(?:регламент|протокол|нарушение|официально|служебн|прошу|система)/i },
+          { id: "too_long", re: /^.{81,}$/u },
+          { id: "multi_line", re: /\n/ },
+          { id: "contains_placeholder_noise", re: /(?:undefined|null|\{\w+\})/i },
+          { id: "colon_heavy", re: /:\s*$/ }
+        ];
+        result.errorEntries.forEach((text) => {
+          bannedPatterns.forEach((pattern) => {
+            if (pattern.re.test(text)) {
+              addUnique(result.forbiddenRemaining, { pattern: pattern.id, text });
+            }
+          });
+        });
+        if (result.forbiddenRemaining.length) fail("short_direct_error_copy", result.forbiddenRemaining.slice());
+        if (result.errorEntriesCount < 3) fail("error_terms_inventory_size", result.errorEntriesCount);
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_5_zoomer_error_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_5") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.errorEntriesCount >= 3
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
     const smokeZoomerShorteningQualityOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -3724,6 +3803,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
+    Game.Dev.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
     Game.Dev.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
@@ -3747,6 +3827,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
+    devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
     devStore.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;

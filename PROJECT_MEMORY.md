@@ -5313,3 +5313,4 @@ Error: Download failure, code=1
 - Changed the status-smoke failure wording from bureaucratic labels to actionable text, while preserving the smoke checks, buttons, statuses, hints, gameplay logic, and error behavior.
 - Refreshed served identity markers to `build_2026_06_05_ac` / `a58c803` so `Game.__DEV.smokeZoomerErrorTermsOnce()` has a commit-unique `smokeVersion` for this change.
 - Runtime PASS is not claimed; Safari must rerun `Game.__DEV.smokeZoomerErrorTermsOnce()`.
+- Added `Game.__DEV.smokeZoomerErrorTermsOnce()` to both served dev-check bundles so Safari can run the error-term smoke directly. The smoke returns `buildTag`, `commit`, `smokeVersion`, short/direct error-copy diagnostics, and leaves buttons, statuses, hints, gameplay, and error behavior unchanged.
