@@ -1,3 +1,19 @@
+## 2026-06-05 — AsyncScene Step 3.5 Zoomer NPC speech lexical profile
+
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Priority: P1
+- Assignee: Codex-ассистент
+- Next: Дима
+- Area: NPC|Profile|Infra
+- Files: `AsyncScene/Web/data.js` `docs/data.js` `AsyncScene/Web/npcs.js` `docs/npcs.js` `AsyncScene/Web/system.js` `docs/system.js` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `AsyncScene/Web/index.html` `docs/index.html` `TASKS.md` `PROJECT_MEMORY.md`
+- Goal: Implement Step 3.5 only: apply the zoomer lexical profile to NPC speech without changing system texts or battle/argument matching logic.
+- NPC speech now uses shorter, simpler, more direct lines across base NPC chat lines, role SAY pools, villain DM flow, and NPCSpeech runtime template pools.
+- Guardrails preserved: no memes, no parasite slang, no irony-for-irony, no teacher tone, no teen-bot voice, no system text rewrite, no battle/argument logic changes, no side refactors, and no `Console.txt` usage.
+- Dev-only Safari smoke added: `Game.__DEV.smokeZoomerNpcSpeechOnce()`.
+- Smoke verifies NPC speech inventory exists, relevant NPC speech surfaces are covered, canon meaning mappings are preserved, forbidden stop-words are absent, teacher tone is absent, teen-bot profile issues are absent, Step 3.4 system texts remain valid, and `buildTag`, `commit`, and commit-unique `smokeVersion` are returned.
+- New runtime build identity: `build_2026_06_05_i` / `zoomer_npc_speech_step3_5`; smokeVersion `step3_5_zoomer_npc_speech_v1_build_2026_06_05_i_commit_zoomer_npc_speech_step3_5`.
+- Required Safari command: `Game.__DEV.smokeZoomerNpcSpeechOnce()`.
+
 ## 2026-06-05 — AsyncScene Step 3.4 Zoomer system texts lexical pass
 
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.

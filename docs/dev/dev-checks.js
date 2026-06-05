@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_h";
-  const RUNTIME_COMMIT = "zoomer_system_texts_step3_4";
+  const RUNTIME_BUILD_TAG = "build_2026_06_05_i";
+  const RUNTIME_COMMIT = "zoomer_npc_speech_step3_5";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2408,7 +2408,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const smokeZoomerStopWordsOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = "step3_3_zoomer_stop_words_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4";
+      const smokeVersion = "step3_3_zoomer_stop_words_v1_build_2026_06_05_i_commit_zoomer_npc_speech_step3_5";
       const requiredBlockedWords = ["кринж", "вайб", "имба", "рофл", "изи", "лол"];
       const requiredCategories = ["memes", "parasite slang", "irony-for-irony"];
       const requiredAllowedExamples = ["можно", "жми", "выбери", "риск есть", "ход сработал", "не хватило"];
@@ -2553,7 +2553,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           rejected: result.allowedExamplesRejected.slice()
         });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== "step3_3_zoomer_stop_words_v1_build_2026_06_05_h_commit_zoomer_system_texts_step3_4" || smokeVersion.indexOf("step3_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (smokeVersion !== "step3_3_zoomer_stop_words_v1_build_2026_06_05_i_commit_zoomer_npc_speech_step3_5" || smokeVersion.indexOf("step3_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique", "smokeVersion_not_unique_for_commit");
         }
       } catch (err) {
