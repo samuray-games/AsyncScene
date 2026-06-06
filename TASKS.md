@@ -1,3 +1,11 @@
+## 2026-06-06 — Step 7.5 system tone audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only audit smoke `Game.__DEV.smokeSystemToneOnce()` in app and docs system bundles.
+- The smoke audits routed `SystemCopy` / `Game.System.say` messages plus active system surfaces for dry, clear, factual tone without rewriting copy, gameplay logic, or UI behavior.
+- Returned fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `toneViolations`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Build identity: `build_2026_06_06_step7_5_system_tone_audit` / `step7_5_system_tone_audit` / `step7_5_system_tone_audit_smoke_v20260606_001`.
+- Required Safari command: `Game.__DEV.smokeSystemToneOnce()`.
+
 ## 2026-06-06 — Step 7.4 SystemCopy bypass fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Routed the runtime-reported P2P backlog, P2P validation, P2P transfer success, and start screen copy through `SystemCopy` / `Game.System.say` in app and docs bundles.

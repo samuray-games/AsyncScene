@@ -2386,4 +2386,212 @@ window.Game = window.Game || {};
     return result;
   };
 
+
+  const SYSTEM_TONE_AUDIT_BUILD_TAG = "build_2026_06_06_step7_5_system_tone_audit";
+  const SYSTEM_TONE_AUDIT_COMMIT = "step7_5_system_tone_audit";
+  const SYSTEM_TONE_AUDIT_SMOKE_VERSION = "step7_5_system_tone_audit_smoke_v20260606_001";
+  const SYSTEM_TONE_AUDIT_REQUIRED_SURFACES = Object.freeze([
+    "SystemCopy.errors",
+    "SystemCopy.warnings",
+    "SystemCopy.notifications",
+    "SystemCopy.systemEvents",
+    "SYSTEM_TEXT_TEMPLATES.errors",
+    "SYSTEM_TEXT_TEMPLATES.warnings",
+    "SYSTEM_TEXT_TEMPLATES.notifications",
+    "SYSTEM_TEXT_TEMPLATES.systemEvents",
+    "SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS",
+    "SYSTEM_COPY_INVENTORY routed paths",
+    "SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS routed paths",
+    "Data.START_SCREEN",
+    "Data.SYS",
+    "Data.TEXTS.genz active system lines",
+    "UI.pushSystem active surfaces",
+    "UI.showStatToast active surfaces",
+    "DM isSystem active surfaces",
+    "events systemSay active surfaces",
+    "conflict battle result active surfaces"
+  ]);
+  const SYSTEM_TONE_AUDIT_FORBIDDEN_RULES = Object.freeze([
+    Object.freeze({ id: "because", pattern: /\bbecause\b/i, category: "justification" }),
+    Object.freeze({ id: "please", pattern: /\bplease\b/i, category: "politeness" }),
+    Object.freeze({ id: "you_should", pattern: /\byou\s+should\b/i, category: "mentoring" }),
+    Object.freeze({ id: "try_again_later", pattern: /\btry\s+again\s+later\b/i, category: "cooldown_without_timer", cooldownTimerRequired: true }),
+    Object.freeze({ id: "try_later", pattern: /\btry\s+later\b/i, category: "cooldown_without_timer", cooldownTimerRequired: true }),
+    Object.freeze({ id: "ru_please", pattern: /пожалуйста/i, category: "politeness" }),
+    Object.freeze({ id: "ru_because_potomu", pattern: /потому\s+что/i, category: "justification" }),
+    Object.freeze({ id: "ru_because_tak_kak", pattern: /так\s+как/i, category: "justification" }),
+    Object.freeze({ id: "ru_should_sleduet", pattern: /следует/i, category: "mentoring" }),
+    Object.freeze({ id: "ru_should_dolzhen", pattern: /\b(?:ты|вы)\s+долж(?:ен|на|ны)\b/i, category: "mentoring" }),
+    Object.freeze({ id: "ru_try_later", pattern: /попроб(?:уй|уйте)\s+позже/i, category: "cooldown_without_timer", cooldownTimerRequired: true }),
+    Object.freeze({ id: "ru_later_option", pattern: /можно\s+позже/i, category: "cooldown_without_timer", cooldownTimerRequired: true }),
+    Object.freeze({ id: "ru_wait", pattern: /подожд(?:и|ите)/i, category: "cooldown_without_timer", cooldownTimerRequired: true }),
+    Object.freeze({ id: "ru_check", pattern: /проверь/i, category: "teacher_like" }),
+    Object.freeze({ id: "ru_choose", pattern: /выбери/i, category: "teacher_like" }),
+    Object.freeze({ id: "ru_make", pattern: /сделай/i, category: "teacher_like" }),
+    Object.freeze({ id: "ru_watch", pattern: /смотри/i, category: "teacher_like" }),
+    Object.freeze({ id: "ru_enter", pattern: /введи/i, category: "teacher_like" })
+  ]);
+
+  function systemToneAuditHasCooldownTimer(text){
+    const value = String(text || "");
+    return /\b\d+\s*(?:s|sec|secs|second|seconds|m|min|mins|minute|minutes|h|hour|hours)\b/i.test(value)
+      || /\b\d+\s*(?:сек|секунд|секунды|мин|минут|минуты|час|часа|часов)\b/i.test(value)
+      || /\{(?:seconds|minutes|hours|cooldown|cooldownSeconds|cooldownMinutes|remaining|remainingSeconds|remainingMinutes|timer|time)\}/i.test(value);
+  }
+
+  function systemToneAuditLintLine(text){
+    const value = String(text == null ? "" : text).trim();
+    const hits = [];
+    if (!value) return hits;
+    SYSTEM_TONE_AUDIT_FORBIDDEN_RULES.forEach((rule) => {
+      if (!rule || !rule.pattern || !rule.pattern.test(value)) return;
+      if (rule.cooldownTimerRequired === true && systemToneAuditHasCooldownTimer(value)) return;
+      hits.push({ rule: rule.id, category: rule.category });
+    });
+    return hits;
+  }
+
+  function systemToneAuditRenderFunction(fn){
+    if (typeof fn !== "function") return [];
+    const contexts = Object.freeze([
+      ["Имя", 1, "Цель", 1],
+      ["A", 1, "B", 0],
+      ["Оппонент", 2, "итог", 1]
+    ]);
+    const rendered = [];
+    contexts.forEach((args) => {
+      try {
+        const value = fn.apply(null, args);
+        if (typeof value === "string" && value.trim()) rendered.push(value);
+      } catch (_) {}
+    });
+    return rendered;
+  }
+
+  function systemToneAuditAddEntry(entries, seen, source, text, meta){
+    const normalized = String(text == null ? "" : text).trim();
+    if (!normalized) return;
+    const key = `${source}\u0000${normalized}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    entries.push(Object.assign({ source, text: normalized }, meta || {}));
+  }
+
+  function systemToneAuditCollectEntries(){
+    const entries = [];
+    const seen = new Set();
+    Object.keys(SystemCopy || {}).forEach((kind) => {
+      const group = SystemCopy[kind] || {};
+      Object.keys(group).forEach((code) => {
+        systemToneAuditAddEntry(entries, seen, `SystemCopy.${kind}.${code}`, group[code], { surface: `SystemCopy.${kind}`, kind, code });
+      });
+    });
+    Object.keys(SYSTEM_TEXT_TEMPLATES || {}).forEach((kind) => {
+      const group = SYSTEM_TEXT_TEMPLATES[kind] || {};
+      Object.keys(group).forEach((code) => {
+        systemToneAuditAddEntry(entries, seen, `SYSTEM_TEXT_TEMPLATES.${kind}.${code}`, group[code], { surface: `SYSTEM_TEXT_TEMPLATES.${kind}`, kind, code });
+      });
+    });
+    Object.keys(SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS || {}).forEach((code) => {
+      systemToneAuditAddEntry(entries, seen, `SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS.${code}`, SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS[code], { surface: "SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS", code });
+    });
+    Array.from(SYSTEM_COPY_INVENTORY || []).forEach((row, index) => {
+      const kind = normalizeKind(row && row.kind);
+      const code = String(row && row.code || "").trim();
+      if (!kind || !code || !Game.System || typeof Game.System.say !== "function") return;
+      systemToneAuditAddEntry(entries, seen, `SYSTEM_COPY_INVENTORY.${index}.${kind}.${code}`, Game.System.say(kind, code, { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1 }), { surface: "SYSTEM_COPY_INVENTORY routed paths", kind, code, file: row && row.file, callsite: row && row.callsite });
+    });
+    Array.from(typeof SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS !== "undefined" ? SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS : []).forEach((row, index) => {
+      const kind = normalizeKind(row && row.kind);
+      const code = String(row && row.code || "").trim();
+      if (!kind || !code || !Game.System || typeof Game.System.say !== "function") return;
+      systemToneAuditAddEntry(entries, seen, `SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS.${index}.${kind}.${code}`, Game.System.say(kind, code, { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1 }), { surface: "SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS routed paths", kind, code, file: row && row.file, path: row && row.path });
+    });
+    const data = Game && Game.Data ? Game.Data : null;
+    if (data && data.START_SCREEN) {
+      systemToneAuditAddEntry(entries, seen, "Data.START_SCREEN.title", data.START_SCREEN.title, { surface: "Data.START_SCREEN" });
+      (Array.isArray(data.START_SCREEN.introLines) ? data.START_SCREEN.introLines : []).forEach((line, index) => systemToneAuditAddEntry(entries, seen, `Data.START_SCREEN.introLines.${index}`, line, { surface: "Data.START_SCREEN" }));
+      systemToneAuditAddEntry(entries, seen, "Data.START_SCREEN.economyHonestyLine", data.START_SCREEN.economyHonestyLine, { surface: "Data.START_SCREEN" });
+      Object.keys(data.START_SCREEN.actions || {}).forEach((key) => systemToneAuditAddEntry(entries, seen, `Data.START_SCREEN.actions.${key}`, data.START_SCREEN.actions[key], { surface: "Data.START_SCREEN" }));
+    }
+    if (data && data.SYS) {
+      Object.keys(data.SYS).forEach((key) => {
+        const value = data.SYS[key];
+        if (typeof value === "string") systemToneAuditAddEntry(entries, seen, `Data.SYS.${key}`, value, { surface: "Data.SYS" });
+        systemToneAuditRenderFunction(value).forEach((line, index) => systemToneAuditAddEntry(entries, seen, `Data.SYS.${key}.${index}`, line, { surface: "Data.SYS" }));
+      });
+    }
+    const genz = data && data.TEXTS && data.TEXTS.genz ? data.TEXTS.genz : null;
+    if (genz) {
+      Object.keys(genz).filter((key) => /^(tie_|vote_|events_|escape_|report_|respect_)/.test(key)).forEach((key) => {
+        systemToneAuditAddEntry(entries, seen, `Data.TEXTS.genz.${key}`, genz[key], { surface: "Data.TEXTS.genz active system lines" });
+      });
+    }
+    return entries;
+  }
+
+  Game.__DEV.smokeSystemToneOnce = function smokeSystemToneOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_TONE_AUDIT_BUILD_TAG,
+      commit: SYSTEM_TONE_AUDIT_COMMIT,
+      smokeVersion: SYSTEM_TONE_AUDIT_SMOKE_VERSION,
+      checkedCount: 0,
+      toneViolations: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const entries = systemToneAuditCollectEntries();
+    const coveredSurfaces = new Set(entries.map((entry) => String(entry && entry.surface || "").trim()).filter(Boolean));
+    entries.forEach((entry) => {
+      const haystack = `${entry && entry.file || ""} ${entry && entry.callsite || ""} ${entry && entry.path || ""} ${entry && entry.source || ""}`;
+      if (/UI\.pushSystem/.test(haystack)) coveredSurfaces.add("UI.pushSystem active surfaces");
+      if (/showStatToast|UI\.showStatToast/.test(haystack)) coveredSurfaces.add("UI.showStatToast active surfaces");
+      if (/isSystem|pushDm/.test(haystack)) coveredSurfaces.add("DM isSystem active surfaces");
+      if (/events\.js|systemSay/.test(haystack)) coveredSurfaces.add("events systemSay active surfaces");
+      if (/conflict-core\.js|battleResult/.test(haystack)) coveredSurfaces.add("conflict battle result active surfaces");
+    });
+    result.checkedCount = entries.length;
+    entries.forEach((entry) => {
+      systemToneAuditLintLine(entry && entry.text).forEach((hit) => {
+        const violation = {
+          source: entry.source,
+          surface: entry.surface || null,
+          kind: entry.kind || null,
+          code: entry.code || null,
+          rule: hit.rule,
+          category: hit.category,
+          text: entry.text
+        };
+        addUnique(result.toneViolations, violation);
+        addUnique(result.forbiddenRemaining, violation);
+      });
+    });
+    SYSTEM_TONE_AUDIT_REQUIRED_SURFACES.forEach((surface) => {
+      if (!coveredSurfaces.has(surface)) addUnique(result.missingCoverage, surface);
+    });
+    if (!(result.checkedCount > 0)) fail("checked_count_empty", { checkedCount: result.checkedCount });
+    if (result.toneViolations.length) addUnique(result.failedChecks, "tone_violations_remaining");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== SYSTEM_TONE_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step7_5") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
+    result.ok = result.toneViolations.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
 })();
