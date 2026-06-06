@@ -2263,4 +2263,105 @@ window.Game = window.Game || {};
     return result;
   };
 
+
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_BUILD_TAG = "build_2026_06_06_step7_4_new_features_systemcopy_audit";
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_COMMIT = "step7_4_new_features_systemcopy_audit";
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_SMOKE_VERSION = "step7_4_new_features_systemcopy_audit_smoke_v20260606_001";
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_FEATURES = Object.freeze([
+    "bank", "P2P", "respect", "report", "crowd", "battle", "training", "DM", "start screen"
+  ]);
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS = Object.freeze([
+    Object.freeze({ feature: "bank", kind: "notifications", code: "pointsDeltaPlusOne", file: "AsyncScene/Web/ui/ui-core.js", path: "UI.showStatToast('points', msg) via stat delta/system economy copy", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "bank", kind: "notifications", code: "pointsDeltaRefund", file: "AsyncScene/Web/system.js", path: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT crowd_vote_refund", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "errors", code: "unavailable", file: "AsyncScene/Web/ui/ui-dm.js", path: "createP2PTransferCTA disabled path uses systemSay('errors','unavailable')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "errors", code: "unavailable", file: "AsyncScene/Web/ui/ui-core.js", path: "P2P backlog title/explain uses short unavailable copy", routed: false, oldStyle: false, bypass: true, detail: "P2P backlog strings are constants, not SystemCopy/System.say." }),
+    Object.freeze({ feature: "P2P", kind: "errors", code: "insufficientPoints", file: "AsyncScene/Web/ui/ui-dm.js", path: "reasonMessages.p2p_invalid_amount / p2p_self_transfer_forbidden / transfer success lines", routed: false, oldStyle: true, bypass: true, detail: "P2P transfer validation and success DM system lines are hardcoded." }),
+    Object.freeze({ feature: "respect", kind: "notifications", code: "respectPaid", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.showStatToast('points', Game.System.say('notifications','respectPaid'))", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "respect", kind: "notifications", code: "respectTargetRep", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.showStatToast('rep', Game.System.say('notifications','respectTargetRep'))", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "respect", kind: "warnings", code: "respectPairDaily", file: "AsyncScene/Web/ui/ui-dm.js", path: "mapRespectReason.respect_pair_daily via Game.System.say('warnings','respectPairDaily')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "report", kind: "notifications", code: "reportPending", file: "AsyncScene/Web/ui/ui-dm.js", path: "Game.__A.pushDm(copId, copName, Game.System.say('notifications','reportPending'), { isSystem: true })", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "report", kind: "notifications", code: "reportOk", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportOk(name) via systemSay('notifications','reportOk')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "report", kind: "errors", code: "reportNo", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportNo via systemSay('errors','reportNo')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "crowd", kind: "systemEvents", code: "crowdStart", file: "AsyncScene/Web/data.js", path: "Data.TEXTS.tie_chat_start / Data.SYS.tie coverage through SystemCopy crowdStart", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "crowd", kind: "systemEvents", code: "crowdResolved", file: "AsyncScene/Web/data.js", path: "Data.TEXTS.tie_chat_end_winner / tieAlert coverage through SystemCopy crowdResolved", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "crowd", kind: "notifications", code: "voteAccepted", file: "AsyncScene/Web/ui/ui-events.js", path: "showVoteBtnToast(btn, Game.System.say('notifications','voteAccepted'))", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "battle", kind: "systemEvents", code: "battleChallenge", file: "AsyncScene/Web/data.js", path: "Data.SYS.challengedLine coverage through SystemCopy battleChallenge", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "battle", kind: "systemEvents", code: "battleWin", file: "AsyncScene/Web/events.js", path: "npcBattleEndWin / pushSystem battle result coverage", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "battle", kind: "systemEvents", code: "battleResult", file: "AsyncScene/Web/conflict/conflict-core.js", path: "announceBattleResult uses systemSay('systemEvents','battleResult')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "training", kind: "notifications", code: "trainingSent", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.pushSystem(Game.System.say('notifications','trainingSent', { teacher, student }))", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "DM", kind: "systemEvents", code: "dmReaction", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.pushSystem(Game.System.say('systemEvents','dmReaction', ctx))", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "DM", kind: "systemEvents", code: "dmInvite", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.pushSystem(Game.System.say('systemEvents','dmInvite', ctx))", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "DM", kind: "errors", code: "unavailable", file: "AsyncScene/Web/ui/ui-dm.js", path: "DM unavailable paths use systemSay('errors','unavailable')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "ready", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN title/intro/actions are active copy constants, not SystemCopy/System.say", routed: false, oldStyle: false, bypass: true, detail: "Start screen source is Data.START_SCREEN and currently bypasses SystemCopy/System.say." })
+  ]);
+
+  Game.__DEV.smokeSystemNewFeaturesCopyOnce = function smokeSystemNewFeaturesCopyOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_NEW_FEATURES_COPY_AUDIT_BUILD_TAG,
+      commit: SYSTEM_NEW_FEATURES_COPY_AUDIT_COMMIT,
+      smokeVersion: SYSTEM_NEW_FEATURES_COPY_AUDIT_SMOKE_VERSION,
+      checkedFeatures: [],
+      missingFeatureCoverage: [],
+      oldStyleFeatureMessages: [],
+      bypassPaths: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const represented = new Set();
+    Array.from(SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS).forEach((row, index) => {
+      const feature = String(row && row.feature || "").trim();
+      const kind = normalizeKind(row && row.kind);
+      const code = String(row && row.code || "").trim();
+      if (feature) represented.add(feature);
+      if (!row || !feature || !row.file || !row.path) fail("audit_row_incomplete", { index, row });
+      if (row && row.routed === true) {
+        if (!kind || !code) fail("routed_row_kind_code_missing", { index, row });
+        if (kind && code && (!SystemCopy[kind] || !Object.prototype.hasOwnProperty.call(SystemCopy[kind], code))) {
+          addUnique(result.missingCoverage, { feature, kind, code, file: row.file, path: row.path });
+          fail("routed_systemcopy_entry_missing", { feature, kind, code, file: row.file, path: row.path });
+        } else if (kind && code && Game.System && typeof Game.System.say === "function") {
+          try {
+            const rendered = Game.System.say(kind, code, { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1 });
+            if (typeof rendered !== "string" || !rendered.trim()) fail("routed_system_say_empty", { feature, kind, code, rendered });
+          } catch (error) {
+            fail("routed_system_say_exception", { feature, kind, code, error: String(error && error.message ? error.message : error) });
+          }
+        }
+      }
+      if (row && row.oldStyle === true) addUnique(result.oldStyleFeatureMessages, { feature, file: row.file, path: row.path, detail: row.detail || "old-style feature message" });
+      if (row && (row.bypass === true || row.routed !== true)) addUnique(result.bypassPaths, { feature, file: row.file, path: row.path, detail: row.detail || "not routed through SystemCopy/System.say" });
+    });
+    SYSTEM_NEW_FEATURES_COPY_AUDIT_FEATURES.forEach((feature) => {
+      addUnique(result.checkedFeatures, feature);
+      if (!represented.has(feature)) {
+        addUnique(result.missingFeatureCoverage, feature);
+        fail("feature_coverage_missing", feature);
+      }
+    });
+    if (result.oldStyleFeatureMessages.length) addUnique(result.failedChecks, "old_style_feature_messages_remaining");
+    if (result.bypassPaths.length) addUnique(result.failedChecks, "feature_bypass_paths_remaining");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== SYSTEM_NEW_FEATURES_COPY_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step7_4") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
+    result.ok = result.missingFeatureCoverage.length === 0
+      && result.oldStyleFeatureMessages.length === 0
+      && result.bypassPaths.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
 })();
