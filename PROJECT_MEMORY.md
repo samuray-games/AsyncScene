@@ -1,3 +1,9 @@
+## 2026-06-06 — Step 7.2 z-phrase runtime violations
+- READY_FOR_RUNTIME_SMOKE only.
+- Shortened runtime system copy for `dmReaction`, `dmInvite`, and `crowdResolved`.
+- Refreshed served identity/cache-bust markers to `build_2026_06_06_step7_2_z_phrase_rule_fix_runtime_violations` / `step7_2_z_phrase_rule_fix_runtime_violations` / `step7_2_z_phrase_rule_fix_runtime_violations_smoke_v20260606_002`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeSystemPhraseRuleOnce()`.
+
 
 ## 2026-06-06 — Step 7.2 z-phrase rule
 - Status: READY_FOR_RUNTIME_SMOKE only. Runtime PASS is not claimed.
