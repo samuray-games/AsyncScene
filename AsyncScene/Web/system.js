@@ -35,6 +35,9 @@ window.Game = window.Game || {};
       choosePlayer: "Выбери игрока.",
       reportFalsePenalty: "Штраф: -5 💰.",
       reportNo: "Коп: донос пустой, -5💰.",
+      p2pInvalidAmount: "Введи сумму.",
+      p2pSelfTransferForbidden: "Себе нельзя.",
+      p2pTransferFailed: "Передача не прошла.",
     }),
     warnings: Object.freeze({
       checkInput: "Проверь ввод.",
@@ -67,6 +70,8 @@ window.Game = window.Game || {};
       pointsDeltaRemainderWin: "+1💰 остаток победителю.",
       rematchCost: "Реванш: -{rematchCost}💰.",
       escapeVoteCost: "Свалить: -{escapeCost}💰.",
+      p2pTransferSent: "{target}: +{amount}💰.",
+      p2pTransferReceived: "{target}: +{amount}💰 тебе.",
     }),
     systemEvents: Object.freeze({
       ready: "Готово.",
@@ -106,6 +111,14 @@ window.Game = window.Game || {};
       npcArrestBandit: "Бандит: {target} за решёткой.",
       npcArrestToxic: "Токсик: {target} закрыт.",
       npcArrestCrowd: "Толпа: {target} закрыт.",
+      p2pBacklogReason: "P2P: анти-абуз.",
+      startTitle: "AsyncScene",
+      startIntroPick: "Выбери оппонента.",
+      startIntroStake: "Сделай ставку.",
+      startIntroResult: "Проверь итог.",
+      startEconomyHonesty: "Смотри цену и итог.",
+      startActionStart: "Старт",
+      startActionRules: "Суть",
     }),
   });
 
@@ -2264,9 +2277,9 @@ window.Game = window.Game || {};
   };
 
 
-  const SYSTEM_NEW_FEATURES_COPY_AUDIT_BUILD_TAG = "build_2026_06_06_step7_4_new_features_systemcopy_audit";
-  const SYSTEM_NEW_FEATURES_COPY_AUDIT_COMMIT = "step7_4_new_features_systemcopy_audit";
-  const SYSTEM_NEW_FEATURES_COPY_AUDIT_SMOKE_VERSION = "step7_4_new_features_systemcopy_audit_smoke_v20260606_001";
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_BUILD_TAG = "build_2026_06_06_step7_4_systemcopy_bypass_fix";
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_COMMIT = "step7_4_systemcopy_bypass_fix";
+  const SYSTEM_NEW_FEATURES_COPY_AUDIT_SMOKE_VERSION = "step7_4_systemcopy_bypass_fix_smoke_v20260606_002";
   const SYSTEM_NEW_FEATURES_COPY_AUDIT_FEATURES = Object.freeze([
     "bank", "P2P", "respect", "report", "crowd", "battle", "training", "DM", "start screen"
   ]);
@@ -2274,8 +2287,12 @@ window.Game = window.Game || {};
     Object.freeze({ feature: "bank", kind: "notifications", code: "pointsDeltaPlusOne", file: "AsyncScene/Web/ui/ui-core.js", path: "UI.showStatToast('points', msg) via stat delta/system economy copy", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "bank", kind: "notifications", code: "pointsDeltaRefund", file: "AsyncScene/Web/system.js", path: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT crowd_vote_refund", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "P2P", kind: "errors", code: "unavailable", file: "AsyncScene/Web/ui/ui-dm.js", path: "createP2PTransferCTA disabled path uses systemSay('errors','unavailable')", routed: true, oldStyle: false, bypass: false }),
-    Object.freeze({ feature: "P2P", kind: "errors", code: "unavailable", file: "AsyncScene/Web/ui/ui-core.js", path: "P2P backlog title/explain uses short unavailable copy", routed: false, oldStyle: false, bypass: true, detail: "P2P backlog strings are constants, not SystemCopy/System.say." }),
-    Object.freeze({ feature: "P2P", kind: "errors", code: "insufficientPoints", file: "AsyncScene/Web/ui/ui-dm.js", path: "reasonMessages.p2p_invalid_amount / p2p_self_transfer_forbidden / transfer success lines", routed: false, oldStyle: true, bypass: true, detail: "P2P transfer validation and success DM system lines are hardcoded." }),
+    Object.freeze({ feature: "P2P", kind: "systemEvents", code: "p2pBacklogReason", file: "AsyncScene/Web/ui/ui-core.js", path: "P2P backlog title/explain use systemSay-backed copy", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "errors", code: "p2pInvalidAmount", file: "AsyncScene/Web/ui/ui-dm.js", path: "reasonMessages.p2p_invalid_amount via systemSay('errors','p2pInvalidAmount')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "errors", code: "p2pSelfTransferForbidden", file: "AsyncScene/Web/ui/ui-dm.js", path: "reasonMessages.p2p_self_transfer_forbidden via systemSay('errors','p2pSelfTransferForbidden')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "errors", code: "insufficientPoints", file: "AsyncScene/Web/ui/ui-dm.js", path: "reasonMessages.p2p_insufficient_points via systemSay('errors','insufficientPoints')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "notifications", code: "p2pTransferSent", file: "AsyncScene/Web/ui/ui-dm.js", path: "P2P give success via systemSay('notifications','p2pTransferSent')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "P2P", kind: "notifications", code: "p2pTransferReceived", file: "AsyncScene/Web/ui/ui-dm.js", path: "P2P ask success via systemSay('notifications','p2pTransferReceived')", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "respect", kind: "notifications", code: "respectPaid", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.showStatToast('points', Game.System.say('notifications','respectPaid'))", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "respect", kind: "notifications", code: "respectTargetRep", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.showStatToast('rep', Game.System.say('notifications','respectTargetRep'))", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "respect", kind: "warnings", code: "respectPairDaily", file: "AsyncScene/Web/ui/ui-dm.js", path: "mapRespectReason.respect_pair_daily via Game.System.say('warnings','respectPairDaily')", routed: true, oldStyle: false, bypass: false }),
@@ -2292,7 +2309,12 @@ window.Game = window.Game || {};
     Object.freeze({ feature: "DM", kind: "systemEvents", code: "dmReaction", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.pushSystem(Game.System.say('systemEvents','dmReaction', ctx))", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "DM", kind: "systemEvents", code: "dmInvite", file: "AsyncScene/Web/ui/ui-dm.js", path: "UI.pushSystem(Game.System.say('systemEvents','dmInvite', ctx))", routed: true, oldStyle: false, bypass: false }),
     Object.freeze({ feature: "DM", kind: "errors", code: "unavailable", file: "AsyncScene/Web/ui/ui-dm.js", path: "DM unavailable paths use systemSay('errors','unavailable')", routed: true, oldStyle: false, bypass: false }),
-    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "ready", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN title/intro/actions are active copy constants, not SystemCopy/System.say", routed: false, oldStyle: false, bypass: true, detail: "Start screen source is Data.START_SCREEN and currently bypasses SystemCopy/System.say." })
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "startTitle", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN.title via systemSay('systemEvents','startTitle')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "startIntroPick", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN.introLines[0] via systemSay('systemEvents','startIntroPick')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "startIntroStake", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN.introLines[1] via systemSay('systemEvents','startIntroStake')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "startIntroResult", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN.introLines[2] via systemSay('systemEvents','startIntroResult')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "startActionStart", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN.actions.start via systemSay('systemEvents','startActionStart')", routed: true, oldStyle: false, bypass: false }),
+    Object.freeze({ feature: "start screen", kind: "systemEvents", code: "startActionRules", file: "AsyncScene/Web/data.js", path: "Data.START_SCREEN.actions.rules via systemSay('systemEvents','startActionRules')", routed: true, oldStyle: false, bypass: false })
   ]);
 
   Game.__DEV.smokeSystemNewFeaturesCopyOnce = function smokeSystemNewFeaturesCopyOnce(){

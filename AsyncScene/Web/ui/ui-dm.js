@@ -939,9 +939,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     };
 
     const reasonMessages = {
-      p2p_invalid_amount: "Введите положительное число 💰.",
-      p2p_insufficient_points: "Не хватает 💰.",
-      p2p_self_transfer_forbidden: "Нельзя отправить 💰 самому себе.",
+      p2p_invalid_amount: systemSay("errors", "p2pInvalidAmount"),
+      p2p_insufficient_points: systemSay("errors", "insufficientPoints"),
+      p2p_self_transfer_forbidden: systemSay("errors", "p2pSelfTransferForbidden"),
       p2p_player_to_player_disabled: systemSay("errors", "unavailable"),
       p2p_disabled: systemSay("errors", "unavailable")
     };
@@ -986,13 +986,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           : null;
         if (res && res.ok) {
           showP2PSystem((mode === "give")
-            ? `Вы отправили ${amount} 💰 ${target.name || ""}.`
-            : `${target.name || ""} отправил(а) вам ${amount} 💰.`);
+            ? systemSay("notifications", "p2pTransferSent", { target: target.name || "", amount })
+            : systemSay("notifications", "p2pTransferReceived", { target: target.name || "", amount }));
           requestAll();
           return;
         }
         const reason = res && res.reason ? String(res.reason) : "unknown";
-        showP2PSystem(reasonMessages[reason] || `Передача не выполнена (${reason}).`);
+        showP2PSystem(reasonMessages[reason] || systemSay("errors", "p2pTransferFailed"));
       });
     };
 

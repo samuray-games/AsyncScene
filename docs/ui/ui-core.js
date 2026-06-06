@@ -11,6 +11,7 @@ window.Game = window.Game || {};
 
 (() => {
   const Game = window.Game;
+  const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx || {}) : "";
   const $ = (id) => document.getElementById(id);
 
   const UI = {};
@@ -261,9 +262,7 @@ window.Game = window.Game || {};
     Game.Data.RULES.p2pPlayerToPlayerEnabled = !!value;
     return Game.Data.RULES.p2pPlayerToPlayerEnabled;
   };
-  const P2P_BACKLOG_TITLE = "Недоступно.";
-  const P2P_BACKLOG_REASON = "Причина: анти-абуз и баланс.";
-  const P2P_BACKLOG_EXPLAIN = "Недоступно.";
+  const p2pCopy = (kind, code) => systemSay(kind, code) || systemSay("errors", "unavailable");
   Game.Rules.isP2PBacklogActive = function() {
     const transfersEnabled = Game.Rules.isP2PTransfersEnabled();
     const playerToPlayerEnabled = Game.Rules.isP2PPlayerToPlayerEnabled();
@@ -274,10 +273,10 @@ window.Game = window.Game || {};
     wrapper.className = "p2pBacklogBlock";
     const title = document.createElement("div");
     title.className = "p2pBacklogBlock__title";
-    title.textContent = P2P_BACKLOG_TITLE;
+    title.textContent = p2pCopy("errors", "unavailable");
     const reason = document.createElement("div");
     reason.className = "p2pBacklogBlock__reason";
-    reason.textContent = P2P_BACKLOG_REASON;
+    reason.textContent = p2pCopy("systemEvents", "p2pBacklogReason");
     const explain = document.createElement("button");
     explain.type = "button";
     explain.className = "p2pBacklogBlock__link";
@@ -290,7 +289,7 @@ window.Game = window.Game || {};
     explain.style.color = "inherit";
     explain.setAttribute("aria-role", "button");
     explain.addEventListener("click", () => {
-      if (typeof onExplain === "function") onExplain(P2P_BACKLOG_EXPLAIN);
+      if (typeof onExplain === "function") onExplain(p2pCopy("errors", "unavailable"));
     });
     wrapper.appendChild(title);
     wrapper.appendChild(reason);
