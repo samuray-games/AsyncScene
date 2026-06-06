@@ -5492,3 +5492,10 @@ Error: Download failure, code=1
 - Build identity: `build_2026_06_06_step6_6_npc_dm_profile` / `step6_6_npc_dm_profile`; smoke version prefix `step6_6_npc_dm_profile_smoke_v20260606_001`.
 - Scope held: DM speech templates/profile and smoke only; no UI, gameplay, economy, or unrelated refactor changes. `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeZoomerNpcDmProfileOnce()`.
+
+## 2026-06-06 — Step 6.9 Final Z_NPC_TEMPLATE_SET
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Canonical Zoomer NPC speech artifacts now live together as `NPC_SPEECH_PROFILE_ZOOMER`, `NPC_ROLE_RULES_ZOOMER`, `NPC_STOP_PHRASES`, and `NPC_TEMPLATE_SET_Z`.
+- Runtime NPC template selection reads `Game.NPCSpeech.TEMPLATES_BY_LOCALE` from `NPC_TEMPLATE_SET_Z.templatesByLocale`, preserving role identity while keeping lines short, direct, alive, non-meme, non-teen-slang, non-mentoring, and non-teacher-toned.
+- New runtime smoke: `Game.__DEV.smokeZoomerNpcTemplateSetOnce()` returns the Step 6.9 fields and keeps PASS gated on empty `teenSlangHits`, `memeHits`, `mentoringHits`, `teacherToneHits`, `roleIdentityLoss`, `identicalPhraseClusters`, `futureTemplateBypassPaths`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Scope held: NPC speech artifacts and validation/smoke only; no UI, gameplay, economy, unrelated refactor, or `Console.txt` usage.

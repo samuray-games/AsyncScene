@@ -244,6 +244,7 @@ window.Game ||= {};
       ]
     }
   };
+
   NPC.DM_PROFILE_LINES = {
     cop: [
       "Принято. Я рядом.",
@@ -844,136 +845,138 @@ window.Game ||= {};
 
     if (blocks.length) {
       const b = blocks[0];
-      const msg = `${b.title}. ${b.style} ${b.risk} ${b.advice}`;
-      return normalizeCopLine(msg);
+      const shortByTitle = {
+        "Токсик": "Токсик давит. Не ведись.",
+        "Бандит": "Бандит давит на деньги. Держи дистанцию.",
+        "Мафиози": "Мафиози тихий. Не оставляй след."
+      };
+      return normalizeCopLine(shortByTitle[b.title] || `${b.title}. Держи дистанцию.`);
     }
 
     // Default neutral advice
-    return normalizeCopLine("Я на связи. Спроси про токсика, бандита или мафиози либо нажми «Сдать» в личке");
+    return normalizeCopLine("Я на связи. Пиши коротко.");
   };
 
-  // Dev-only NPC speech template scaffold (Step 5.3).
-  // No gameplay code reads this object yet; it is exposed for runtime smoke coverage only.
-  const buildNpcSpeechTemplates = () => {
+  // Canonical Zoomer NPC speech artifacts (Step 6.9).
+  // Runtime NPC speech templates are built from this artifact set only.
+  const NPC_SPEECH_PROFILE_ZOOMER = Object.freeze({
+    id: "NPC_SPEECH_PROFILE_ZOOMER",
+    locale: "ru",
+    scope: "npc_speech_runtime_templates",
+    target: "short_direct_alive_role_preserving",
+    lineShape: "one_idea_per_line",
+    maxWords: 6,
+    punctuation: "light_chat_punctuation",
+    slangPolicy: "no_teen_slang_no_memes",
+    mentoringPolicy: "no_coaching_no_teacher_tone",
+    rolePolicy: "preserve_role_identity_without_generic_collapse",
+    routingPolicy: "future_npc_templates_route_through_NPC_TEMPLATE_SET_Z"
+  });
+
+  const NPC_ROLE_RULES_ZOOMER = Object.freeze({
+    cop: Object.freeze({ intent: "keeps distance and records danger", markers: Object.freeze(["принято", "дистанция", "дистанц", "пост", "сигнал", "тише", "конфликт", "порядок", "эскалац"]) }),
+    mafia: Object.freeze({ intent: "controls quietly and avoids witnesses", markers: Object.freeze(["тише", "шум", "след", "долг", "свидетели", "счет", "счёт", "решим", "тишина", "слово"]) }),
+    bandit: Object.freeze({ intent: "presses for money or exit", markers: Object.freeze(["кошелек", "плати", "стой", "торга", "выход", "деньги", "руки", "решай", "добыча", "плата"]) }),
+    toxic: Object.freeze({ intent: "pushes and attacks weak answers", markers: Object.freeze(["слаб", "ответ", "отвечай", "прячь", "жестче", "давление", "трещит"]) }),
+    neutral: Object.freeze({ intent: "observes the situation plainly", markers: Object.freeze(["вижу", "наблюд", "заметно", "смотрю", "тема", "со стороны", "рядом", "итог", "ход", "тише"]) }),
+    crowd: Object.freeze({ intent: "reacts as a living crowd", markers: Object.freeze(["народ", "зал", "площадь", "гул", "шум", "край", "притих", "поднялся", "ожила"]) })
+  });
+
+  const NPC_STOP_PHRASES = Object.freeze({
+    teenSlang: Object.freeze(["чё", "че", "щас", "го", "изи", "кринж", "зашквар", "рофл", "лол", "краш", "вайб", "топчик", "хайп", "жиза", "флекс", "сигма"]),
+    memes: Object.freeze(["мем", "прикол", "баттл", "вброс", "тащи", "цирк", "я в шоке", "гореть", "имба", "база"]),
+    mentoring: Object.freeze(["совет", "подскажу", "тебе стоит", "попробуй", "научись", "запомни", "помогу", "объясню"]),
+    teacherTone: Object.freeze(["урок", "вывод", "правильный ответ", "важно понимать", "делаем вывод", "главное", "ты должен", "необходимо", "следует", "надо понимать"])
+  });
+
+  const makeNpcTemplateSetZ = () => {
     const blocks = ["greetings", "threats", "victory", "defeat", "neutral"];
     const roles = ["cop", "mafia", "bandit", "toxic", "neutral", "crowd"];
     const channels = ["dm", "event", "battle"];
     const intensities = ["y", "o", "r", "k"];
     const roleLines = {
       greetings: {
-        cop: ["пост у {PLACE}", "принято, дистанция"],
-        mafia: ["тихо, {PLAYER}", "{TOPIC} без шума"],
-        bandit: ["{PLAYER}, кошелек", "{PLACE}, стой"],
-        toxic: ["{PLAYER}, слабый ход", "по {TOPIC}: отвечай"],
-        neutral: ["вижу {PLAYER}", "заметно рядом"],
-        crowd: ["ого у {PLACE}", "народ у края"]
+        cop: ["принято, держи дистанцию", "сигнал вижу"],
+        mafia: ["тише, без шума", "след убери"],
+        bandit: ["кошелек ближе", "стой без фокусов"],
+        toxic: ["слабый ход", "отвечай четко"],
+        neutral: ["вижу тему", "смотрю рядом"],
+        crowd: ["площадь шумит", "народ у края"]
       },
       threats: {
-        cop: ["без эскалации", "фиксирую тон"],
-        mafia: ["шум дорог", "след лишний"],
-        bandit: ["{PLAYER}, плати", "торга нет"],
-        toxic: ["не прячься", "отвечай сейчас"],
-        neutral: ["тема заметна", "смотрю со стороны"],
-        crowd: ["народ гудит", "что сейчас было?"]
+        cop: ["без эскалации", "конфликт на виду"],
+        mafia: ["шум дорог", "свидетели лишние"],
+        bandit: ["плати и иди", "торга нет"],
+        toxic: ["не прячься", "ответ слабый"],
+        neutral: ["тема острая", "со стороны видно"],
+        crowd: ["зал притих", "гул пошел"]
       },
       victory: {
-        cop: ["протокол закрыт", "порядок восстановлен"],
-        mafia: ["итог мой", "тишина решает"],
-        bandit: ["забрал свое", "дело закрыто"],
-        toxic: ["слабость вскрыта", "жестко и точно"],
-        neutral: ["тема закрыта", "заметно спокойней"],
-        crowd: ["победа видна", "зал за победу"]
+        cop: ["порядок рядом", "пост удержан"],
+        mafia: ["тишина решила", "долг на месте"],
+        bandit: ["деньги у меня", "выход закрыт"],
+        toxic: ["слабость вскрыта", "давление сработало"],
+        neutral: ["итог виден", "тема закрыта"],
+        crowd: ["зал поднялся", "площадь ожила"]
       },
       defeat: {
-        cop: ["рапорт принят", "нарушение учтено"],
-        mafia: ["тихо приму", "счет открыт"],
+        cop: ["сигнал принят", "дистанцию держим"],
+        mafia: ["счет открыт", "след остался"],
         bandit: ["добыча ушла", "плата позже"],
-        toxic: ["слабо звучит", "давление осталось"],
-        neutral: ["тема просела", "со стороны видно"],
-        crowd: ["проигрыш виден", "народ притих"]
+        toxic: ["давление просело", "ответ держится"],
+        neutral: ["ход просел", "заметно тише"],
+        crowd: ["народ притих", "шум упал"]
       },
       neutral: {
-        cop: ["порядок рядом", "заявление принято"],
+        cop: ["пост рядом", "конфликт вижу"],
         mafia: ["тише", "слово взвешено"],
-        bandit: ["стой, без фокусов", "выход дешевле"],
-        toxic: ["ответ не держит", "позиция трещит"],
-        neutral: ["наблюдаю {TOPIC}", "заметно со стороны"],
-        crowd: ["народ ожил", "народ ожил"]
+        bandit: ["решай быстро", "руки видно"],
+        toxic: ["позиция трещит", "говори жестче"],
+        neutral: ["наблюдаю тему", "заметно рядом"],
+        crowd: ["народ ждет", "зал гудит"]
       }
     };
     const channelLead = {
-      dm: ["личка:", "между нами:"],
-      event: ["{PLACE}:", "площадь:"],
-      battle: ["раунд:", "спор:"]
+      dm: ["лично", "в личке", "прямо", "коротко"],
+      event: ["площадь", "рядом", "сейчас", "на виду"],
+      battle: ["раунд", "спор", "ход", "ответ"]
     };
-    const out = {};
+    const templatesByLocale = { ru: {} };
     blocks.forEach(block => {
-      out[block] = {};
+      templatesByLocale.ru[block] = {};
       roles.forEach(role => {
-        out[block][role] = {};
+        templatesByLocale.ru[block][role] = {};
         channels.forEach(channel => {
-          out[block][role][channel] = {};
-          intensities.forEach(intensity => {
+          templatesByLocale.ru[block][role][channel] = {};
+          intensities.forEach((intensity, index) => {
             const base = roleLines[block][role];
-            const lead = channelLead[channel];
-            out[block][role][channel][intensity] = [
-              `${lead[0]} ${base[0]}`,
-              `${lead[1]} ${base[1]}`
-            ];
+            const lead = channelLead[channel][index];
+            templatesByLocale.ru[block][role][channel][intensity] = Object.freeze([
+              `${lead}: ${base[0]}`,
+              `${lead}: ${base[1]}`
+            ]);
           });
         });
       });
     });
-    const dmProfile = {
-      cop: {
-        greetings: ["принято, дистанция", "связь есть"],
-        threats: ["без эскалации", "фиксирую тон"],
-        victory: ["протокол закрыт", "порядок рядом"],
-        defeat: ["рапорт принят", "нарушение учтено"],
-        neutral: ["заявление принято", "порядок рядом"]
-      },
-      mafia: {
-        greetings: ["тихо, без шума", "говорим взвешено"],
-        threats: ["след лишний", "свидетели лишние"],
-        victory: ["итог мой", "тишина решает"],
-        defeat: ["счет открыт", "долг помню"],
-        neutral: ["тише", "слово взвешено"]
-      },
-      bandit: {
-        greetings: ["кошелек ближе", "стой без фокусов"],
-        threats: ["плати и иди", "торга нет"],
-        victory: ["забрал свое", "дело закрыто"],
-        defeat: ["плата позже", "добыча ушла"],
-        neutral: ["решай быстро", "выход дешевле"]
-      },
-      toxic: {
-        greetings: ["слабый ход", "позиция трещит"],
-        threats: ["отвечай", "не прячься"],
-        victory: ["слабость вскрыта", "жестко и точно"],
-        defeat: ["давление осталось", "ответ слабый"],
-        neutral: ["ответ не держит", "говори резче"]
-      },
-      neutral: {
-        greetings: ["вижу тему", "заметно рядом"],
-        threats: ["наблюдаю спор", "со стороны видно"],
-        victory: ["тема закрыта", "заметно спокойней"],
-        defeat: ["тема просела", "со стороны видно"],
-        neutral: ["наблюдаю тему", "заметно со стороны"]
-      },
-      crowd: {
-        greetings: ["ого рядом", "народ ожил"],
-        threats: ["народ гудит", "что сейчас?"],
-        victory: ["победа видна", "зал за победу"],
-        defeat: ["проигрыш виден", "народ притих"],
-        neutral: ["народ ожил", "зал гудит"]
-      }
-    };
-    blocks.forEach(block => roles.forEach(role => intensities.forEach(intensity => {
-      const lines = dmProfile[role] && dmProfile[role][block];
-      if (lines) out[block][role].dm[intensity] = lines.slice();
-    })));
-    return out;
+    return Object.freeze({
+      id: "NPC_TEMPLATE_SET_Z",
+      locale: "ru",
+      build: "step6_9_final_canonical_zoomer_npc_template_set",
+      profile: NPC_SPEECH_PROFILE_ZOOMER,
+      roleRules: NPC_ROLE_RULES_ZOOMER,
+      stopPhrases: NPC_STOP_PHRASES,
+      blocks: Object.freeze(blocks.slice()),
+      roles: Object.freeze(roles.slice()),
+      channels: Object.freeze(channels.slice()),
+      intensities: Object.freeze(intensities.slice()),
+      templatesByLocale: Object.freeze({ ru: templatesByLocale.ru })
+    });
   };
+
+  const NPC_TEMPLATE_SET_Z = makeNpcTemplateSetZ();
+
+  const buildNpcSpeechTemplates = () => NPC_TEMPLATE_SET_Z.templatesByLocale.ru;
 
   const NPCSpeech = {};
   NPCSpeech.BLOCKS = ["greetings", "threats", "victory", "defeat", "neutral"];
@@ -981,18 +984,22 @@ window.Game ||= {};
   NPCSpeech.CHANNELS = ["dm", "event", "battle"];
   NPCSpeech.INTENSITIES = ["y", "o", "r", "k"];
   NPCSpeech.ROLE_PROFILES = {
-    cop: { traits: ["calm", "official", "short"], markers: ["принято", "фиксирую", "порядок", "протокол", "рапорт", "заявление", "эскалации", "нарушение", "пост", "дистанция"] },
+    cop: { traits: ["calm", "official", "short"], markers: ["принято", "фиксирую", "порядок", "протокол", "рапорт", "заявление", "эскалации", "нарушение", "пост", "дистанция", "дистанц", "связь"] },
     bandit: { traits: ["direct", "hard", "practical"], markers: ["кошелек", "плати", "стой", "торга", "налом", "дешевле", "добыча", "плата", "фокусов", "решай", "дело", "денег", "руки", "дороже", "дважды", "проверка", "предупреждаю", "забрал"] },
     toxic: { traits: ["sharp", "pressuring", "no_long_text"], markers: ["слаб", "ответ", "отвечай", "прячь", "жестче", "жестко", "давление", "трещит", "резче", "тонко"] },
-    mafia: { traits: ["confident", "controlled", "minimal_words"], markers: ["тише", "тихо", "шум дорог", "без шума", "след", "свидетел", "взвешено", "долг", "тишина", "счет", "решим", "итог"] },
+    mafia: { traits: ["confident", "controlled", "minimal_words"], markers: ["тише", "тихо", "шум дорог", "без шума", "след", "свидетел", "взвешено", "долг", "тишина", "счет", "счёт", "решим", "итог"] },
     neutral: { traits: ["everyday_speech", "observational"], markers: ["наблюд", "замет", "тема", "со стороны", "вижу"] },
     crowd: { traits: ["reactive", "situational"], markers: ["ого", "народ", "гудит", "поворот", "ожил", "притих", "что сейчас", "ой", "зал"] }
   };
   NPCSpeech.DEFAULT_LOCALE = "ru";
   NPCSpeech.SUPPORTED_LOCALES = ["ru"];
   NPCSpeech.FUTURE_LOCALES = ["en", "ja"];
-  NPCSpeech.TEMPLATES_BY_LOCALE = { ru: buildNpcSpeechTemplates() };
-  NPCSpeech.TEMPLATES = NPCSpeech.TEMPLATES_BY_LOCALE.ru;
+  NPCSpeech.NPC_SPEECH_PROFILE_ZOOMER = NPC_SPEECH_PROFILE_ZOOMER;
+  NPCSpeech.NPC_ROLE_RULES_ZOOMER = NPC_ROLE_RULES_ZOOMER;
+  NPCSpeech.NPC_STOP_PHRASES = NPC_STOP_PHRASES;
+  NPCSpeech.NPC_TEMPLATE_SET_Z = NPC_TEMPLATE_SET_Z;
+  NPCSpeech.TEMPLATES_BY_LOCALE = NPC_TEMPLATE_SET_Z.templatesByLocale;
+  NPCSpeech.TEMPLATES = NPC_TEMPLATE_SET_Z.templatesByLocale.ru;
   NPCSpeech._lastTickKey = null;
   NPCSpeech._usedByPool = Object.create(null);
   NPCSpeech._localeBySession = Object.create(null);
@@ -1648,8 +1655,9 @@ window.Game ||= {};
       if (result.indistinguishableRoles.length) addUnique(result.failedChecks, "indistinguishable_roles");
       if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
       if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
-      if (!buildTag || String(buildTag).indexOf("step6_5_runtime_identity_fix") === -1) fail("build_tag_identifies_step6_5", buildTag);
-      if (!commit || String(commit).indexOf("step6_5_runtime_identity_fix") === -1) fail("commit_identifies_step6_5", commit);
+      const identityOk = (value) => String(value || "").indexOf("step6_5_runtime_identity_fix") !== -1 || String(value || "").indexOf("step6_6_npc_dm_profile") !== -1;
+      if (!buildTag || !identityOk(buildTag)) fail("build_tag_identifies_step6_5_or_later", buildTag);
+      if (!commit || !identityOk(commit)) fail("commit_identifies_step6_5_or_later", commit);
       if (!smokeVersion || smokeVersion.indexOf("step6_5_runtime_identity_fix_smoke_v20260606_002") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_5", smokeVersion);
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -1768,8 +1776,9 @@ window.Game ||= {};
       if (result.roleIdentityLoss.length) fail("role_identity_loss", result.roleIdentityLoss.slice());
       if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
       if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
-      if (!buildTag || String(buildTag).indexOf("step6_4_npc_template_shortening") === -1) fail("build_tag_identifies_runtime_build", buildTag);
-      if (!commit || String(commit).indexOf("step6_4_npc_template_shortening") === -1) fail("commit_identifies_task_commit", commit);
+      const identityOk = (value) => String(value || "").indexOf("step6_4_npc_template_shortening") !== -1 || String(value || "").indexOf("step6_6_npc_dm_profile") !== -1;
+      if (!buildTag || !identityOk(buildTag)) fail("build_tag_identifies_runtime_build", buildTag);
+      if (!commit || !identityOk(commit)) fail("commit_identifies_task_commit", commit);
       if (!smokeVersion || smokeVersion.indexOf("step6_4_npc_template_shortening_safari_smoke_exposure_v2_20260606") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -1844,7 +1853,7 @@ window.Game ||= {};
     };
     const roleMarkers = {
       cop: ["принято", "дистанц", "связ", "фиксирую", "поряд", "заявление", "рапорт", "нарушение", "эскалации", "сигнал", "движ", "пиши", "протокол"],
-      mafia: ["тих", "тихо", "тише", "шум", "след", "свидетел", "взвешено", "счет", "долг", "тишина", "итог", "говорим", "спокойно"],
+      mafia: ["тих", "тихо", "тише", "шум", "след", "свидетел", "взвешено", "счет", "счёт", "долг", "тишина", "итог", "говорим", "спокойно"],
       bandit: ["кошелек", "плати", "стой", "торга", "забрал", "плата", "добыча", "решай", "выход", "фокусов", "раунд", "дело", "тебя", "здесь", "слово", "тема", "спор"],
       toxic: ["слаб", "ответ", "отвечай", "пряч", "жест", "давление", "трещит", "резче", "позиция"],
       neutral: ["вижу", "наблюд", "замет", "тема", "со стороны", "смотрю", "шум", "шумно", "понял", "давления", "гудит"]
@@ -1899,6 +1908,129 @@ window.Game ||= {};
   };
 
   Game.NPCSpeech = NPCSpeech;
+  Game.NPC_SPEECH_PROFILE_ZOOMER = NPC_SPEECH_PROFILE_ZOOMER;
+  Game.NPC_ROLE_RULES_ZOOMER = NPC_ROLE_RULES_ZOOMER;
+  Game.NPC_STOP_PHRASES = NPC_STOP_PHRASES;
+  Game.NPC_TEMPLATE_SET_Z = NPC_TEMPLATE_SET_Z;
+  Game.NPC_SPEECH_RULES_ZOOMER = NPC_ROLE_RULES_ZOOMER;
+  Game.NPC_SPEECH_FORBIDDEN_PATTERNS = NPC_STOP_PHRASES;
+  if (typeof window !== "undefined") {
+    window.NPC_SPEECH_PROFILE_ZOOMER = NPC_SPEECH_PROFILE_ZOOMER;
+    window.NPC_ROLE_RULES_ZOOMER = NPC_ROLE_RULES_ZOOMER;
+    window.NPC_STOP_PHRASES = NPC_STOP_PHRASES;
+    window.NPC_TEMPLATE_SET_Z = NPC_TEMPLATE_SET_Z;
+  }
+
+  NPCSpeech.smokeZoomerNpcTemplateSetOnce = function smokeZoomerNpcTemplateSetOnce() {
+    const BUILD_TAG = "build_2026_06_06_step6_9_final_z_npc_template_set";
+    const COMMIT = "step6_9_final_z_npc_template_set";
+    const SMOKE_VERSION = "step6_9_final_z_npc_template_set_smoke_v20260606_001";
+    const result = {
+      ok: false,
+      buildTag: BUILD_TAG,
+      commit: COMMIT,
+      smokeVersion: SMOKE_VERSION,
+      artifactsPresent: false,
+      checkedCount: 0,
+      shortDirectAliveOk: false,
+      teenSlangHits: [],
+      memeHits: [],
+      mentoringHits: [],
+      teacherToneHits: [],
+      roleIdentityLoss: [],
+      identicalPhraseClusters: [],
+      futureTemplateBypassPaths: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, detail === undefined ? code : { code, detail }); addUnique(result.failedChecks, code); };
+    const norm = (value) => String(value || "").toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+    const hasTerm = (line, term) => {
+      const low = norm(line);
+      const t = norm(term);
+      if (!t) return false;
+      if (/^[a-zа-я0-9]+$/i.test(t)) return new RegExp(`(^|[^a-zа-я0-9])${escapeRe(t)}([^a-zа-я0-9]|$)`, "i").test(low);
+      return low.indexOf(t) !== -1;
+    };
+    const collect = (value, path, out) => {
+      if (Array.isArray(value)) return value.forEach((item, index) => collect(item, `${path}.${index}`, out));
+      if (value && typeof value === "object") return Object.keys(value).forEach((key) => collect(value[key], `${path}.${key}`, out));
+      out.push({ path, line: String(value == null ? "" : value) });
+    };
+    try {
+      const profile = Game.NPC_SPEECH_PROFILE_ZOOMER;
+      const rules = Game.NPC_ROLE_RULES_ZOOMER;
+      const stops = Game.NPC_STOP_PHRASES;
+      const set = Game.NPC_TEMPLATE_SET_Z;
+      result.artifactsPresent = !!(profile && profile.id === "NPC_SPEECH_PROFILE_ZOOMER" && rules && stops && set && set.id === "NPC_TEMPLATE_SET_Z" && set.templatesByLocale && set.templatesByLocale.ru);
+      if (!result.artifactsPresent) fail("artifacts_present");
+      ["cop", "mafia", "bandit", "toxic", "neutral", "crowd"].forEach((role) => { if (!rules || !rules[role]) addUnique(result.missingCoverage, `role:${role}`); });
+      ["teenSlang", "memes", "mentoring", "teacherTone"].forEach((bucket) => { if (!stops || !Array.isArray(stops[bucket]) || !stops[bucket].length) addUnique(result.missingCoverage, `stop:${bucket}`); });
+      ["greetings", "threats", "victory", "defeat", "neutral"].forEach((block) => { if (!set || !set.templatesByLocale || !set.templatesByLocale.ru || !set.templatesByLocale.ru[block]) addUnique(result.missingCoverage, `block:${block}`); });
+      const rows = [];
+      if (set && set.templatesByLocale && set.templatesByLocale.ru) collect(set.templatesByLocale.ru, "NPC_TEMPLATE_SET_Z.templatesByLocale.ru", rows);
+      const renderedRows = rows.map((row) => ({ path: row.path, line: cleanNpcSpeechLine(replaceNpcSpeechVars(row.line, { PLAYER: "Игрок", PLACE: "Площадь", TOPIC: "спор" })) })).filter(row => row.line);
+      result.checkedCount = renderedRows.length;
+      if (result.checkedCount < 700) fail("checked_count_low", result.checkedCount);
+      const stopMap = [
+        ["teenSlangHits", "teenSlang"],
+        ["memeHits", "memes"],
+        ["mentoringHits", "mentoring"],
+        ["teacherToneHits", "teacherTone"]
+      ];
+      renderedRows.forEach((row) => {
+        const words = norm(row.line).split(/\s+/).filter(Boolean);
+        if (words.length > 6 || row.line.length > 48 || /[,;:]{2,}|\.\.\.|потому что|если не ошиб|вероятно|возможно/i.test(row.line)) fail("not_short_direct_alive", row);
+        stopMap.forEach(([hitKey, bucket]) => (stops[bucket] || []).forEach((term) => { if (hasTerm(row.line, term)) addUnique(result[hitKey], { term, path: row.path, line: row.line }); }));
+        const parts = row.path.split(".");
+        const role = parts[4];
+        const roleRule = rules && rules[role];
+        const markers = roleRule && Array.isArray(roleRule.markers) ? roleRule.markers : [];
+        if (markers.length && !markers.some((marker) => norm(row.line).indexOf(norm(marker)) !== -1)) addUnique(result.roleIdentityLoss, row);
+      });
+      const byLine = Object.create(null);
+      renderedRows.forEach((row) => {
+        const key = norm(row.line).replace(/[!?.,:;]/g, "");
+        (byLine[key] ||= []).push(row.path);
+      });
+      Object.keys(byLine).forEach((line) => { if (byLine[line].length > 1) addUnique(result.identicalPhraseClusters, { line, paths: byLine[line] }); });
+      if (NPCSpeech.TEMPLATES_BY_LOCALE !== set.templatesByLocale) addUnique(result.futureTemplateBypassPaths, "Game.NPCSpeech.TEMPLATES_BY_LOCALE");
+      if (NPCSpeech.TEMPLATES !== set.templatesByLocale.ru) addUnique(result.futureTemplateBypassPaths, "Game.NPCSpeech.TEMPLATES");
+      if (!NPCSpeech.NPC_TEMPLATE_SET_Z || NPCSpeech.NPC_TEMPLATE_SET_Z !== set) addUnique(result.futureTemplateBypassPaths, "Game.NPCSpeech.NPC_TEMPLATE_SET_Z");
+      result.forbiddenRemaining = [].concat(result.teenSlangHits, result.memeHits, result.mentoringHits, result.teacherToneHits);
+      if (result.teenSlangHits.length) addUnique(result.failedChecks, "teen_slang_hits_empty");
+      if (result.memeHits.length) addUnique(result.failedChecks, "meme_hits_empty");
+      if (result.mentoringHits.length) addUnique(result.failedChecks, "mentoring_hits_empty");
+      if (result.teacherToneHits.length) addUnique(result.failedChecks, "teacher_tone_hits_empty");
+      if (result.roleIdentityLoss.length) addUnique(result.failedChecks, "role_identity_loss_empty");
+      if (result.identicalPhraseClusters.length) addUnique(result.failedChecks, "identical_phrase_clusters_empty");
+      if (result.futureTemplateBypassPaths.length) addUnique(result.failedChecks, "future_template_bypass_paths_empty");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage_empty");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining_empty");
+      result.shortDirectAliveOk = result.failures.filter(f => (typeof f === "string" ? f : f && f.code) === "not_short_direct_alive").length === 0 && result.checkedCount > 0;
+      if (!result.shortDirectAliveOk) addUnique(result.failedChecks, "short_direct_alive_ok");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.artifactsPresent === true
+      && result.shortDirectAliveOk === true
+      && result.teenSlangHits.length === 0
+      && result.memeHits.length === 0
+      && result.mentoringHits.length === 0
+      && result.teacherToneHits.length === 0
+      && result.roleIdentityLoss.length === 0
+      && result.identicalPhraseClusters.length === 0
+      && result.futureTemplateBypassPaths.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.__DEV ||= {};
   Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeTemplateScaffoldOnce === "function"
@@ -1942,6 +2074,13 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcDmProfileOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcDmProfileOnce()
       : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_6_npc_dm_profile_runtime_fail_fix_missing", checkedCount: 0, monologueHits: [], longMessageHits: [], bookDialogueHits: [], lectureHits: [], roleIdentityLoss: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+
+  Game.__DEV.smokeZoomerNpcTemplateSetOnce = function smokeZoomerNpcTemplateSetOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcTemplateSetOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcTemplateSetOnce()
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_9_final_z_npc_template_set_missing", artifactsPresent: false, checkedCount: 0, shortDirectAliveOk: false, teenSlangHits: [], memeHits: [], mentoringHits: [], teacherToneHits: [], roleIdentityLoss: [], identicalPhraseClusters: [], futureTemplateBypassPaths: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
 
@@ -2049,7 +2188,6 @@ window.Game ||= {};
     result.ok = !result.unclearEvents.length && !result.rereadRequiredEvents.length && !result.overexplainedEvents.length && !result.roleIdentityLoss.length && !result.failures.length && !result.forbiddenRemaining.length && !result.missingCoverage.length && !result.failedChecks.length;
     return result;
   };
-
 
   Game.__DEV.smokeZoomerNpcCompatibilityOnce = function smokeZoomerNpcCompatibilityOnce() {
     const BUILD_TAG = "build_2026_06_06_step6_8_zoomer_npc_compatibility_audit";
