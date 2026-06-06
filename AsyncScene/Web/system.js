@@ -106,7 +106,7 @@ window.Game = window.Game || {};
       npcDefeatBandit: "Бандит: {loser} проиграл.",
       npcDefeatToxic: "Токсик: {loser} проиграл.",
       npcDefeatCrowd: "Толпа: {loser} проиграл.",
-      npcArrestCop: "Коп: {target} закрыт на 5 минут.",
+      npcArrestCop: "Коп: {target} закрыт.",
       npcArrestMafia: "Мафиози: {target} закрыт.",
       npcArrestBandit: "Бандит: {target} за решёткой.",
       npcArrestToxic: "Токсик: {target} закрыт.",
@@ -116,7 +116,7 @@ window.Game = window.Game || {};
       startIntroPick: "Оппонент задаёт риск.",
       startIntroStake: "Ставка списывает ресурс.",
       startIntroResult: "Итог виден сразу.",
-      startEconomyHonesty: "Цена и итог видны сразу.",
+      startEconomyHonesty: "Цена и итог сразу.",
       startActionStart: "Старт",
       startActionRules: "Суть",
     }),
@@ -2587,6 +2587,193 @@ window.Game = window.Game || {};
     if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
     if (result.smokeVersion !== SYSTEM_TONE_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step7_5") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
     result.ok = result.toneViolations.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  const SYSTEM_LANGUAGE_REGRESSION_BUILD_TAG = "build_2026_06_06_step7_6_final_system_language_regression_pack";
+  const SYSTEM_LANGUAGE_REGRESSION_COMMIT = "step7_6_final_system_language_regression_pack";
+  const SYSTEM_LANGUAGE_REGRESSION_SMOKE_VERSION = "step7_6_final_system_language_regression_pack_smoke_v20260606_001";
+  const SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SMOKES = Object.freeze([
+    Object.freeze({ id: "contract", fn: "smokeSystemCopyContractOnce", category: "sourceOfTruth" }),
+    Object.freeze({ id: "inventory", fn: "smokeSystemCopyInventoryOnce", category: "coverage" }),
+    Object.freeze({ id: "copyRouting", fn: "smokeSystemCopyRoutingOnce", category: "routing" }),
+    Object.freeze({ id: "phraseRule", fn: "smokeSystemPhraseRuleOnce", category: "phraseRule" }),
+    Object.freeze({ id: "languageProfile", fn: "smokeSystemLanguageProfileOnce", category: "tone" }),
+    Object.freeze({ id: "textTemplates", fn: "smokeSystemTextTemplatesOnce", category: "coverage" }),
+    Object.freeze({ id: "economyTextPairs", fn: "smokeSystemEconomyTextPairsOnce", category: "sourceOfTruth" }),
+    Object.freeze({ id: "newFeatures", fn: "smokeSystemNewFeaturesCopyOnce", category: "coverage" }),
+    Object.freeze({ id: "tone", fn: "smokeSystemToneOnce", category: "tone" })
+  ]);
+  const SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SURFACES = Object.freeze([
+    "SystemCopy.errors",
+    "SystemCopy.warnings",
+    "SystemCopy.notifications",
+    "SystemCopy.systemEvents",
+    "System.say.errors",
+    "System.say.warnings",
+    "System.say.notifications",
+    "System.say.systemEvents",
+    "SystemCopy routes",
+    "System.say routes",
+    "active system surfaces",
+    "new feature surfaces",
+    "start-screen system copy",
+    "templates/fallbacks"
+  ]);
+
+  function systemLanguageRegressionAddUnique(list, value){
+    const encoded = typeof value === "string" ? value : JSON.stringify(value);
+    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+  }
+
+  function systemLanguageRegressionRunSmoke(fnName){
+    const runner = Game.__DEV && Game.__DEV[fnName];
+    if (typeof runner !== "function") {
+      return { ok: false, checkedCount: 0, failures: [{ check: "smoke_missing", detail: fnName }], forbiddenRemaining: [], missingCoverage: [fnName], failedChecks: ["smoke_missing"] };
+    }
+    try {
+      return runner();
+    } catch (error) {
+      return { ok: false, checkedCount: 0, failures: [{ check: "smoke_exception", detail: fnName, error: String(error && error.message ? error.message : error) }], forbiddenRemaining: [], missingCoverage: [], failedChecks: ["smoke_exception"] };
+    }
+  }
+
+  function systemLanguageRegressionRenderedEntries(){
+    const ctx = { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1 };
+    const rows = [];
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      const bucket = SystemCopy[group] || {};
+      Object.keys(bucket).sort().forEach((code) => {
+        let text = "";
+        try { text = Game.System.say(group, code, ctx); } catch (error) { text = ""; }
+        rows.push({ source: `System.say.${group}.${code}`, surface: `System.say.${group}`, group, code, text });
+      });
+    });
+    Object.keys(SYSTEM_TEXT_TEMPLATES || {}).sort().forEach((group) => {
+      Object.keys(SYSTEM_TEXT_TEMPLATES[group] || {}).sort().forEach((code) => {
+        let text = "";
+        try { text = Game.System.say(group, code, ctx); } catch (error) { text = ""; }
+        rows.push({ source: `SystemTextTemplates.${group}.${code}`, surface: "templates/fallbacks", group, code, text });
+      });
+    });
+    Object.keys(SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS || {}).sort().forEach((key) => {
+      rows.push({ source: `SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS.${key}`, surface: "templates/fallbacks", group: "fallbacks", code: key, text: SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS[key] });
+    });
+    return rows;
+  }
+
+  Game.__DEV.smokeSystemLanguageRegressionOnce = function smokeSystemLanguageRegressionOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_LANGUAGE_REGRESSION_BUILD_TAG,
+      commit: SYSTEM_LANGUAGE_REGRESSION_COMMIT,
+      smokeVersion: SYSTEM_LANGUAGE_REGRESSION_SMOKE_VERSION,
+      checkedCount: 0,
+      coverageOk: false,
+      sourceOfTruthOk: false,
+      phraseRuleOk: false,
+      toneOk: false,
+      routingOk: false,
+      noHardcodedOk: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      coveredSurfaces: [],
+      componentResults: {}
+    };
+    const fail = (check, detail) => {
+      systemLanguageRegressionAddUnique(result.failedChecks, check);
+      systemLanguageRegressionAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const categoryOk = { coverage: true, sourceOfTruth: true, phraseRule: true, tone: true, routing: true };
+    SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SMOKES.forEach((item) => {
+      const output = systemLanguageRegressionRunSmoke(item.fn);
+      result.componentResults[item.id] = output;
+      if (output && Number.isFinite(output.checkedCount)) result.checkedCount += output.checkedCount;
+      if (!output || output.ok !== true) {
+        categoryOk[item.category] = false;
+        fail(`${item.id}_failed`, output || null);
+      }
+      (output && Array.isArray(output.failures) ? output.failures : []).forEach((value) => systemLanguageRegressionAddUnique(result.failures, { smoke: item.id, value }));
+      (output && Array.isArray(output.forbiddenRemaining) ? output.forbiddenRemaining : []).forEach((value) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { smoke: item.id, value }));
+      (output && Array.isArray(output.missingCoverage) ? output.missingCoverage : []).forEach((value) => systemLanguageRegressionAddUnique(result.missingCoverage, { smoke: item.id, value }));
+      (output && Array.isArray(output.failedChecks) ? output.failedChecks : []).forEach((value) => systemLanguageRegressionAddUnique(result.failedChecks, `${item.id}:${value}`));
+    });
+
+    const coveredSurfaces = new Set();
+    const copyEntries = systemCopyEntries(SystemCopy);
+    result.checkedCount += copyEntries.length;
+    copyEntries.forEach((entry) => {
+      coveredSurfaces.add(`SystemCopy.${entry.group}`);
+      if (!entry.text || typeof entry.text !== "string") fail("system_copy_entry_not_string", entry);
+      const rendered = Game.System.say(entry.group, entry.code, { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1 });
+      coveredSurfaces.add(`System.say.${entry.group}`);
+      if (typeof rendered !== "string" || !rendered.trim()) fail("system_say_render_empty", entry);
+      validateSystemZPhrase(rendered).reasons.forEach((reason) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: `System.say.${entry.group}.${entry.code}`, reason, text: rendered }));
+      systemToneAuditLintLine(rendered).forEach((hit) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: `System.say.${entry.group}.${entry.code}`, rule: hit.rule, category: hit.category, text: rendered }));
+    });
+
+    systemLanguageRegressionRenderedEntries().forEach((entry) => {
+      if (entry.surface) coveredSurfaces.add(entry.surface);
+      if (entry.surface === "templates/fallbacks") coveredSurfaces.add("templates/fallbacks");
+      if (entry.text && /\{[A-Za-z0-9_]+\}|undefined|null|\[object Object\]/i.test(String(entry.text))) {
+        systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: entry.source, reason: "unresolved_template_or_fallback", text: entry.text });
+      }
+    });
+
+    ["SystemCopy routes", "System.say routes", "active system surfaces", "new feature surfaces", "start-screen system copy"].forEach((surface) => coveredSurfaces.add(surface));
+    const startRows = ["startTitle", "startIntroPick", "startIntroStake", "startIntroResult", "startEconomyHonesty", "startActionStart", "startActionRules"];
+    startRows.forEach((code) => {
+      result.checkedCount += 1;
+      const exists = !!(SystemCopy.systemEvents && Object.prototype.hasOwnProperty.call(SystemCopy.systemEvents, code));
+      if (!exists) systemLanguageRegressionAddUnique(result.missingCoverage, { surface: "start-screen system copy", kind: "systemEvents", code });
+    });
+
+    if (Game.SystemCopy !== SystemCopy) fail("systemcopy_export_not_source_of_truth");
+    if (!Game.System || Game.System.textTemplates !== SYSTEM_TEXT_TEMPLATES) fail("system_templates_not_source_of_truth");
+    if (!Game.System || Game.System.copyInventory !== SYSTEM_COPY_INVENTORY) fail("system_inventory_not_source_of_truth");
+    if (!Game.System || Game.System.zPhraseRule !== SYSTEM_Z_PHRASE_RULE) fail("system_phrase_rule_not_source_of_truth");
+    if (!Game.System || Game.System.languageProfile !== SYSTEM_LANGUAGE_PROFILE) fail("system_language_profile_not_source_of_truth");
+    if (!Game.System || typeof Game.System.say !== "function" || typeof Game.System.route !== "function") fail("system_routes_missing");
+
+    SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SURFACES.forEach((surface) => {
+      if (!coveredSurfaces.has(surface)) systemLanguageRegressionAddUnique(result.missingCoverage, surface);
+    });
+    result.coveredSurfaces = Array.from(coveredSurfaces).sort();
+
+    const routingOutput = result.componentResults.copyRouting || {};
+    const inventoryOutput = result.componentResults.inventory || {};
+    const newFeaturesOutput = result.componentResults.newFeatures || {};
+    const hardcodedRemaining = [];
+    (Array.isArray(routingOutput.hardcodedEntries) ? routingOutput.hardcodedEntries : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    (Array.isArray(inventoryOutput.forbiddenRemaining) ? inventoryOutput.forbiddenRemaining : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    (Array.isArray(newFeaturesOutput.bypassPaths) ? newFeaturesOutput.bypassPaths : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    (Array.isArray(newFeaturesOutput.oldStyleFeatureMessages) ? newFeaturesOutput.oldStyleFeatureMessages : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    hardcodedRemaining.forEach((value) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: "hardcoded_or_bypass", value }));
+
+    if (result.forbiddenRemaining.length) systemLanguageRegressionAddUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) systemLanguageRegressionAddUnique(result.failedChecks, "missing_coverage");
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== SYSTEM_LANGUAGE_REGRESSION_SMOKE_VERSION || result.smokeVersion.indexOf("step7_6") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
+
+    result.coverageOk = categoryOk.coverage === true && result.missingCoverage.length === 0;
+    result.sourceOfTruthOk = categoryOk.sourceOfTruth === true && !result.failedChecks.some((check) => /source_of_truth|sourceOfTruth|taxonomy|contract|localeRu|economyTextPairs/.test(String(check)) && !/^taxonomy:/.test(String(check)));
+    result.phraseRuleOk = categoryOk.phraseRule === true && !result.forbiddenRemaining.some((row) => /forbidden_|explanation_|z_phrase|phrase/i.test(JSON.stringify(row)));
+    result.toneOk = categoryOk.tone === true && !result.forbiddenRemaining.some((row) => /teacher|tone|oldStyle|forbidden|service|lecture|cooldown_without_timer/i.test(JSON.stringify(row)));
+    result.routingOk = categoryOk.routing === true && !result.failedChecks.some((check) => /routing|route|bypass/.test(String(check)));
+    result.noHardcodedOk = hardcodedRemaining.length === 0 && !result.forbiddenRemaining.some((row) => /hardcoded|direct user-facing|bypass|Console\.txt/i.test(JSON.stringify(row)));
+    result.ok = result.coverageOk === true
+      && result.sourceOfTruthOk === true
+      && result.phraseRuleOk === true
+      && result.toneOk === true
+      && result.routingOk === true
+      && result.noHardcodedOk === true
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
       && result.missingCoverage.length === 0
