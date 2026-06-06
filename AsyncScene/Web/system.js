@@ -815,6 +815,54 @@ window.Game = window.Game || {};
     return result;
   };
 
+
+  const SYSTEM_COPY_ROUTING_AUDIT_BUILD_TAG = "build_2026_06_06_step7_3_systemcopy_routing_audit";
+  const SYSTEM_COPY_ROUTING_AUDIT_COMMIT = "step7_3_systemcopy_routing_audit";
+  const SYSTEM_COPY_ROUTING_AUDIT_SMOKE_VERSION = "step7_3_systemcopy_routing_audit_smoke_v20260606_001";
+  const SYSTEM_COPY_ROUTING_TARGET_GROUPS = Object.freeze(["points", "rep", "cooldown", "lock", "success", "fail"]);
+  const SYSTEM_COPY_ROUTING_AUDIT_ROWS = Object.freeze([
+    Object.freeze({ id: "points.delta.plus_one", group: "points", kind: "notifications", code: "pointsDeltaPlusOne", file: "AsyncScene/Web/events.js", path: "Game.System.say('notifications','pointsDeltaPlusOne')", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "points.delta.vote_cost", group: "points", kind: "notifications", code: "pointsDeltaVoteCost", file: "AsyncScene/Web/events.js", path: "Game.System.say('notifications','pointsDeltaVoteCost',{ voteCost })", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "points.delta.refund", group: "points", kind: "notifications", code: "pointsDeltaRefund", file: "AsyncScene/Web/system.js", path: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefund", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "points.delta.refund_majority", group: "points", kind: "notifications", code: "pointsDeltaRefundMajority", file: "AsyncScene/Web/system.js", path: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefundMajority", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.delta.remainder_win", group: "points", kind: "notifications", code: "pointsDeltaRemainderWin", file: "AsyncScene/Web/system.js", path: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRemainderWin", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.respect_paid", group: "points", kind: "notifications", code: "respectPaid", file: "AsyncScene/Web/ui/ui-dm.js", path: "Game.System.say('notifications','respectPaid')", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.escape_paid", group: "points", kind: "notifications", code: "escapePaid", file: "AsyncScene/Web/ui/ui-battles.js", path: "Game.System.say('notifications','escapePaid')", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.hardcoded.report_compensation_bundle", group: "points", kind: "notifications", code: "", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+1⭐ +1💰`) in report compensation", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "points.hardcoded.report_return_amount", group: "points", kind: "notifications", code: "", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+${returnAmount}💰`) in report compensation", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "points.hardcoded.toxic_steal_fallback", group: "points", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-core.js", path: "fallback `Токсик снял у тебя ${actual || cost} 💰. Все видели.`", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "points.hardcoded.data_sys_villain", group: "points", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.banditRobbed/toxicRobbed/toxicStealLine", routed: false, hardcoded: true, recent: true }),
+
+    Object.freeze({ id: "rep.delta.plus_one", group: "rep", kind: "notifications", code: "repDeltaPlusOne", file: "AsyncScene/Web/events.js", path: "Game.System.say('notifications','repDeltaPlusOne')", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "rep.respect_target", group: "rep", kind: "notifications", code: "respectTargetRep", file: "AsyncScene/Web/ui/ui-dm.js", path: "Game.System.say('notifications','respectTargetRep')", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "rep.hardcoded.report_compensation_bundle", group: "rep", kind: "notifications", code: "", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+1⭐ +1💰`) in report compensation", routed: false, hardcoded: true, recent: true }),
+
+    Object.freeze({ id: "cooldown.warning.short", group: "cooldown", kind: "warnings", code: "cooldownShort", file: "AsyncScene/Web/system.js", path: "SystemCopy.warnings.cooldownShort", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "cooldown.hardcoded.cop_reply", group: "cooldown", kind: "warnings", code: "", file: "AsyncScene/Web/data.js", path: "Data.TEXTS.genz.cop_cooldown[]", routed: false, hardcoded: true, recent: true }),
+
+    Object.freeze({ id: "lock.unlock_orange", group: "lock", kind: "systemEvents", code: "unlockOrange", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "SystemCopy.systemEvents.unlockOrange via Data.SYS/sysText", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "lock.unlock_red", group: "lock", kind: "systemEvents", code: "unlockRed", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "SystemCopy.systemEvents.unlockRed via Data.SYS/sysText", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "lock.unlock_black", group: "lock", kind: "systemEvents", code: "unlockBlack", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "SystemCopy.systemEvents.unlockBlack via Data.SYS/sysText", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "lock.hardcoded.unlock_fallbacks", group: "lock", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "sysText fallback unlock strings in maybeUnlocks", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "lock.hardcoded.data_sys_unlocks", group: "lock", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.unlockOrange/unlockRed/unlockBlack/*Other/absolutePath", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "lock.hardcoded.npc_event_arrest", group: "lock", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.arrest[].text", routed: false, hardcoded: true, recent: true }),
+
+    Object.freeze({ id: "success.saved", group: "success", kind: "notifications", code: "saved", file: "AsyncScene/Web/system.js", path: "SystemCopy.notifications.saved", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "success.vote_accepted", group: "success", kind: "notifications", code: "voteAccepted", file: "AsyncScene/Web/ui/ui-events.js", path: "Game.System.say('notifications','voteAccepted')", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "success.report_reward", group: "success", kind: "notifications", code: "reportTrueReward", file: "AsyncScene/Web/data.js", path: "SystemCopy.notifications.reportTrueReward via Data.SYS.reportOk audit", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "success.hardcoded.data_sys_report_ok", group: "success", kind: "notifications", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportOk(name)", routed: false, hardcoded: true, recent: false }),
+    Object.freeze({ id: "success.hardcoded.npc_event_victory", group: "success", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.victory[].text", routed: false, hardcoded: true, recent: true }),
+
+    Object.freeze({ id: "fail.insufficient_points", group: "fail", kind: "errors", code: "insufficientPoints", file: "AsyncScene/Web/system.js", path: "SystemCopy.errors.insufficientPoints", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "fail.battle_points_low", group: "fail", kind: "errors", code: "pointsLowBattle", file: "AsyncScene/Web/data.js", path: "SystemCopy.errors.pointsLowBattle via Data.SYS.pointsLow audit", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "fail.report_false_penalty", group: "fail", kind: "errors", code: "reportFalsePenalty", file: "AsyncScene/Web/data.js", path: "SystemCopy.errors.reportFalsePenalty via Data.SYS.reportNo audit", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "fail.hardcoded.data_sys_points_low", group: "fail", kind: "errors", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.pointsLow", routed: false, hardcoded: true, recent: false }),
+    Object.freeze({ id: "fail.hardcoded.data_sys_report_no", group: "fail", kind: "errors", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportNo", routed: false, hardcoded: true, recent: false }),
+    Object.freeze({ id: "fail.hardcoded.battle_result_announce", group: "fail", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-core.js", path: "pushSystem(`Баттл с ${oppName}: ${text}.`)", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "fail.hardcoded.mafia_shame", group: "fail", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-core.js", path: "pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`)", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "fail.hardcoded.npc_event_defeat", group: "fail", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.defeat[].text", routed: false, hardcoded: true, recent: true })
+  ]);
+
   Game.__DEV.smokeSystemCopyInventoryOnce = function smokeSystemCopyInventoryOnce(){
     const result = {
       ok: false,
@@ -878,6 +926,77 @@ window.Game = window.Game || {};
     if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "direct_hardcoded_strings_reported");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
     result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+
+  Game.__DEV.smokeSystemCopyRoutingOnce = function smokeSystemCopyRoutingOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_COPY_ROUTING_AUDIT_BUILD_TAG,
+      commit: SYSTEM_COPY_ROUTING_AUDIT_COMMIT,
+      smokeVersion: SYSTEM_COPY_ROUTING_AUDIT_SMOKE_VERSION,
+      checkedCount: 0,
+      routedCount: 0,
+      hardcodedCount: 0,
+      hardcodedEntries: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const representedGroups = new Set();
+    Array.from(SYSTEM_COPY_ROUTING_AUDIT_ROWS).forEach((row, index) => {
+      const group = String(row && row.group || "").trim();
+      const kind = normalizeKind(row && row.kind);
+      const code = String(row && row.code || "").trim();
+      result.checkedCount += 1;
+      if (group) representedGroups.add(group);
+      if (!row || !row.id || !group || !row.file || !row.path) fail("audit_row_incomplete", { index, row });
+      if (row && row.routed === true) {
+        result.routedCount += 1;
+        if (!kind || !code) fail("routed_row_kind_code_missing", { index, row });
+        if (kind && code && (!SystemCopy[kind] || !Object.prototype.hasOwnProperty.call(SystemCopy[kind], code))) {
+          fail("routed_systemcopy_entry_missing", { id: row.id, group, kind, code, file: row.file, path: row.path });
+        }
+        if (kind && code && Game.System && typeof Game.System.say === "function") {
+          try {
+            const rendered = Game.System.say(kind, code, { name: "Имя", target: "Цель", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B" });
+            if (typeof rendered !== "string" || !rendered.trim()) fail("routed_system_say_empty", { id: row.id, kind, code, rendered });
+          } catch (error) {
+            fail("routed_system_say_exception", { id: row.id, kind, code, error: String(error && error.message ? error.message : error) });
+          }
+        }
+      }
+      if (row && row.hardcoded === true) {
+        const entry = { id: row.id, group, kind: kind || String(row.kind || ""), file: row.file, path: row.path, recent: row.recent === true };
+        result.hardcodedEntries.push(entry);
+        addUnique(result.forbiddenRemaining, entry);
+      }
+    });
+    SYSTEM_COPY_ROUTING_TARGET_GROUPS.forEach((group) => {
+      if (!representedGroups.has(group)) {
+        addUnique(result.missingCoverage, group);
+        fail("target_group_missing", group);
+      }
+    });
+    if (result.checkedCount !== SYSTEM_COPY_ROUTING_AUDIT_ROWS.length) fail("checked_count_mismatch", { checkedCount: result.checkedCount, expected: SYSTEM_COPY_ROUTING_AUDIT_ROWS.length });
+    result.hardcodedCount = result.hardcodedEntries.length;
+    if (result.hardcodedCount > 0) addUnique(result.failedChecks, "hardcoded_system_message_paths_remaining");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== SYSTEM_COPY_ROUTING_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step7_3") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
+    result.ok = result.hardcodedCount === 0 && result.hardcodedEntries.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
 
