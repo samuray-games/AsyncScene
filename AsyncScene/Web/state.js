@@ -4055,7 +4055,7 @@ window.Game = window.Game || {};
         if (State.reports && State.reports.history) delete State.reports.history[targetId];
       } catch (_) {}
       try {
-        copChatFrom(copId, `${target.name} отправился за решётку на 5 минут.`);
+        copChatFrom(copId, `Коп: ${target.name} закрыт на 5 минут.`);
       } catch (_) {}
       sendRevengeDM(roleKey, targetId);
     }

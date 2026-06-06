@@ -3240,8 +3240,8 @@ K YN A9: Нет.
     lotteryWin: (n) => `Лотерея: +${n}. Залетело.`,
 
     // Донос копу
-    reportOk: (name) => `Засчитано. Сдать ${name}: +2 💰.`,
-    reportNo: "Фейл. Штраф: -5 💰.",
+    reportOk: (name) => `Коп: ${name} сдан, +2💰.`,
+    reportNo: "Коп: донос пустой, -5💰.",
 
     // Обучение аргументу
     teachGiven: (toName, argument, cost) => `Ты научил(а) ${toName} за ${cost}: "${argument}". Одноразовый.`,
@@ -3253,21 +3253,60 @@ K YN A9: Нет.
       "Толпа решает. Ща голосование.",
       "Толпа решает.",
     ],
-    tieAlertLine: (aName, aInf, bName, bInf) => `Толпа решает: ${aName} [${aInf}] против ${bName} [${bInf}]. Жми сюда — баттл наверх.`,
+    tieAlertLine: (aName, aInf, bName, bInf) => `Толпа: ${aName} [${aInf}] против ${bName} [${bInf}].`,
 
     // NPC-NPC события (геншин-стиль)
-    npcBattleStart: (a, b) => `Площадь ловит движ: ${a} вызывает ${b}.`,
-    npcBattleEndWin: (winner, loser) => `Затащил ${winner}. ${loser} проигрывает.`,
-    npcBattleEndDraw: (a, b) => `Поровну, без перевеса. ${a} и ${b} разошлись.`,
+    npcBattleStart: (a, b) => `${a} вызывает ${b}.`,
+    npcBattleEndWin: (winner, loser) => `${winner} победил. ${loser} проиграл.`,
+    npcBattleEndDraw: (a, b) => `${a} и ${b}: ничья.`,
 
     // Вызовы
-    challengedLine: (attackerName, attackerInf) => `${attackerName} [${attackerInf}] вызвал(а) тебя на баттл. Жми сюда — баттл наверх.`,
+    challengedLine: (attackerName, attackerInf) => `${attackerName} [${attackerInf}] бросил вызов.`,
 
     // Особые персонажи
-    banditRobbed: "Бандит вынес тебя в ноль. Все видели.",
-    toxicRobbed: "Токсик вынес тебя в ноль. Все видели.",
-    toxicStealLine: (cost) => `Токсик снял у тебя ${cost} 💰. Все видели.`,
+    banditRobbed: "Бандит забрал 💰.",
+    toxicRobbed: "Токсик забрал 💰.",
+    toxicStealLine: (cost) => `Токсик забрал ${cost}💰.`,
   };
+
+  Data.NPC_EVENT_TEMPLATES = Object.freeze({
+    victory: Object.freeze([
+      { role: "cop", text: "Коп: победа за {winner}." },
+      { role: "mafia", text: "Мафиози: итог за {winner}." },
+      { role: "bandit", text: "Бандит: {winner} забрал раунд." },
+      { role: "toxic", text: "Токсик: {winner} победил." },
+      { role: "crowd", text: "Толпа: {winner} победил." }
+    ]),
+    defeat: Object.freeze([
+      { role: "cop", text: "Коп: {loser} проиграл." },
+      { role: "mafia", text: "Мафиози: {loser} должен." },
+      { role: "bandit", text: "Бандит: {loser} проиграл, добыча ушла." },
+      { role: "toxic", text: "Токсик: {loser} слабее." },
+      { role: "crowd", text: "Толпа: {loser} проиграл." }
+    ]),
+    arrest: Object.freeze([
+      { role: "cop", text: "Коп: {target} закрыт на 5 минут." },
+      { role: "mafia", text: "Мафиози: {target} исчез с площади." },
+      { role: "bandit", text: "Бандит: {target} за решёткой." },
+      { role: "toxic", text: "Токсик: {target} сел." },
+      { role: "crowd", text: "Толпа: {target} закрыт." }
+    ]),
+    rumor: Object.freeze([
+      { role: "cop", text: "Коп: слух про {target}." },
+      { role: "mafia", text: "Мафиози: имя {target} на слуху." },
+      { role: "bandit", text: "Бандит: про {target} говорят." },
+      { role: "toxic", text: "Токсик: {target} в теме." },
+      { role: "crowd", text: "Толпа: про {target} шумят." }
+    ]),
+    accusationInjection: Object.freeze([
+      { role: "cop", text: "Коп: обвинение принято." },
+      { role: "mafia", text: "Мафиози: вброс услышан." },
+      { role: "bandit", text: "Бандит: вызов принят." },
+      { role: "toxic", text: "Токсик: вброс пошёл." },
+      { role: "crowd", text: "Толпа: обвинение в чате." }
+    ])
+  });
+
 
   Data.pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 

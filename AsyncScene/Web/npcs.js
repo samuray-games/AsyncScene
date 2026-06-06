@@ -887,7 +887,7 @@ window.Game ||= {};
         bandit: ["забрал свое", "дело закрыто"],
         toxic: ["слабость вскрыта", "жестко и точно"],
         neutral: ["тема закрыта", "заметно спокойней"],
-        crowd: ["вот это поворот", "зал гудит"]
+        crowd: ["победа видна", "зал за победу"]
       },
       defeat: {
         cop: ["рапорт принят", "нарушение учтено"],
@@ -895,7 +895,7 @@ window.Game ||= {};
         bandit: ["добыча ушла", "плата позже"],
         toxic: ["слабо звучит", "давление осталось"],
         neutral: ["тема просела", "со стороны видно"],
-        crowd: ["ой", "народ притих"]
+        crowd: ["проигрыш виден", "народ притих"]
       },
       neutral: {
         cop: ["порядок рядом", "заявление принято"],
@@ -969,8 +969,8 @@ window.Game ||= {};
       crowd: {
         greetings: ["ого рядом", "народ ожил"],
         threats: ["народ гудит", "что сейчас?"],
-        victory: ["вот поворот", "зал гудит"],
-        defeat: ["ой", "народ притих"],
+        victory: ["победа видна", "зал за победу"],
+        defeat: ["проигрыш виден", "народ притих"],
         neutral: ["народ ожил", "зал гудит"]
       }
     };
@@ -1950,6 +1950,112 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcDmProfileOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcDmProfileOnce()
       : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_6_npc_dm_profile_runtime_fail_fix_missing", checkedCount: 0, monologueHits: [], longMessageHits: [], bookDialogueHits: [], lectureHits: [], roleIdentityLoss: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+
+  Game.__DEV.smokeZoomerNpcSystemEventsOnce = function smokeZoomerNpcSystemEventsOnce() {
+    const BUILD_TAG = "build_2026_06_06_step6_7_npc_system_events";
+    const COMMIT = "step6_7_npc_system_events";
+    const SMOKE_VERSION = "step6_7_npc_system_events_smoke_v20260606_001";
+    const result = {
+      ok: false,
+      buildTag: BUILD_TAG,
+      commit: COMMIT,
+      smokeVersion: SMOKE_VERSION,
+      checkedCount: 0,
+      unclearEvents: [],
+      rereadRequiredEvents: [],
+      overexplainedEvents: [],
+      roleIdentityLoss: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? { check } : { check, detail });
+    };
+    const render = (value, vars = {}) => {
+      try {
+        const raw = (typeof value === "function") ? value(vars.winner || "Аки", vars.loser || "Рин", vars.extra || 3) : value;
+        return String(raw == null ? "" : raw)
+          .replace(/\{winner\}/g, vars.winner || "Аки")
+          .replace(/\{loser\}/g, vars.loser || "Рин")
+          .replace(/\{target\}/g, vars.target || "Шкет")
+          .replace(/\{name\}/g, vars.name || "Аки")
+          .replace(/\{a\}/g, vars.a || "Аки")
+          .replace(/\{b\}/g, vars.b || "Рин")
+          .replace(/\{aVotes\}/g, "3")
+          .replace(/\{bVotes\}/g, "2")
+          .replace(/\{attackerName\}/g, vars.winner || "Аки")
+          .replace(/\{attackerInf\}/g, "7")
+          .replace(/\s+/g, " ")
+          .trim();
+      } catch (err) {
+        fail("render_error", { value: String(value), message: err && err.message });
+        return "";
+      }
+    };
+    const D = Game.Data || {};
+    const sys = D.SYS || {};
+    const catalog = (Game.SystemCopy && Game.SystemCopy.systemEvents) || {};
+    const eventTemplates = D.NPC_EVENT_TEMPLATES || {};
+    const rows = [];
+    const add = (category, role, source, text) => rows.push({ category, role, source, text: render(text, { winner: "Аки", loser: "Рин", target: "Шкет", name: "Аки", a: "Аки", b: "Рин" }) });
+    add("victory", "crowd", "Data.SYS.npcBattleEndWin", sys.npcBattleEndWin);
+    add("defeat", "crowd", "Data.SYS.npcBattleEndDraw", sys.npcBattleEndDraw);
+    add("accusationInjection", "neutral", "Data.SYS.challengedLine", sys.challengedLine);
+    add("accusationInjection", "neutral", "SystemCopy.systemEvents.battleChallenge", catalog.battleChallenge);
+    add("victory", "crowd", "SystemCopy.systemEvents.battleWin", catalog.battleWin);
+    add("defeat", "crowd", "SystemCopy.systemEvents.battleDraw", catalog.battleDraw);
+    add("victory", "crowd", "SystemCopy.systemEvents.crowdResolved", catalog.crowdResolved);
+    add("arrest", "cop", "state.report.true.arrest", "Коп: {target} закрыт на 5 минут.");
+    Object.keys(eventTemplates).forEach(category => {
+      const arr = eventTemplates[category];
+      if (Array.isArray(arr)) arr.forEach((item, index) => add(category, item && item.role || "crowd", `Data.NPC_EVENT_TEMPLATES.${category}.${index}`, item && item.text));
+    });
+    const requiredCategories = ["victory", "defeat", "arrest", "rumor", "accusationInjection"];
+    const requiredRoles = ["cop", "mafia", "bandit", "toxic", "crowd"];
+    const seenCategories = new Set(rows.map(r => r.category));
+    const seenRoles = new Set(rows.map(r => r.role));
+    requiredCategories.forEach(category => { if (!seenCategories.has(category)) addUnique(result.missingCoverage, `event:${category}`); });
+    requiredRoles.forEach(role => { if (!seenRoles.has(role)) addUnique(result.missingCoverage, `role:${role}`); });
+    const roleMarkers = {
+      cop: ["коп", "принято", "закрыт"],
+      mafia: ["мафиози", "тихо", "должен", "итог"],
+      bandit: ["бандит", "добыча", "вызов", "забрал"],
+      toxic: ["токсик", "слаб", "вброс", "просел"],
+      crowd: ["толпа", "побед", "проиг", "ничья", "решает", "за "]
+    };
+    const factMarkers = {
+      victory: ["побед", "итог", "забрал", "за "],
+      defeat: ["проиг", "слаб", "должен", "ничья"],
+      arrest: ["закрыт", "решет", "сел", "исчез"],
+      rumor: ["слух", "говор", "шум", "теме"],
+      accusationInjection: ["обвин", "вброс", "вызов"]
+    };
+    const forbidden = ["все видели", "жми сюда", "открой", "механик", "интерфейс", "кноп", "потому что", "следует", "нужно понимать", "мораль", "урок", "на самом деле", "если не ошиб", "кажется", "возможно", "похоже", "вроде", "может быть", "вероятно"];
+    rows.forEach(row => {
+      result.checkedCount += 1;
+      const text = String(row.text || "").trim();
+      const low = text.toLowerCase().replace(/ё/g, "е");
+      if (!text || /undefined|null|\{[^}]*\}|[{}]/i.test(text)) addUnique(result.unclearEvents, row);
+      const facts = factMarkers[row.category] || [];
+      if (!facts.some(marker => low.includes(marker))) addUnique(result.unclearEvents, row);
+      if (text.length > 64 || text.split(/[.!?]+/).filter(Boolean).length > 2) addUnique(result.overexplainedEvents, row);
+      if (/[!?]{2,}|\.\.\.|—.*—/.test(text)) addUnique(result.rereadRequiredEvents, row);
+      forbidden.forEach(term => { if (low.includes(term)) addUnique(result.forbiddenRemaining, { source: row.source, term, text }); });
+      if (row.role && roleMarkers[row.role] && !roleMarkers[row.role].some(marker => low.includes(marker))) addUnique(result.roleIdentityLoss, row);
+    });
+    if (!rows.length) fail("no_event_rows");
+    if (result.checkedCount < 20) fail("checked_count_low", result.checkedCount);
+    result.ok = !result.unclearEvents.length && !result.rereadRequiredEvents.length && !result.overexplainedEvents.length && !result.roleIdentityLoss.length && !result.failures.length && !result.forbiddenRemaining.length && !result.missingCoverage.length && !result.failedChecks.length;
+    return result;
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
