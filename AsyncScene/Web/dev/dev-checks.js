@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_06_step7_3_systemcopy_routing_fix";
-  const RUNTIME_COMMIT = "step7_3_systemcopy_routing_fix";
+  const RUNTIME_BUILD_TAG = "build_2026_06_06_step7_5_tone_runtime_fix";
+  const RUNTIME_COMMIT = "step7_5_tone_runtime_fix";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";

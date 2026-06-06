@@ -1,9 +1,9 @@
-## 2026-06-06 — Step 7.5 system tone audit
+## 2026-06-06 — Step 7.5 tone runtime fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Added dev-only `Game.__DEV.smokeSystemToneOnce()` to audit SystemCopy/System.say tone across routed copy, templates, fallback placeholders, inventory rows, new-feature routing rows, and active Data/UI/DM/event/conflict system surfaces.
-- The audit is report-only: no system messages were rewritten, no gameplay logic changed, no UI behavior changed, no broad refactor was done, and `Console.txt` was not used.
-- Smoke result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `toneViolations`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
-- Build identity: `build_2026_06_06_step7_5_system_tone_audit` / `step7_5_system_tone_audit` / `step7_5_system_tone_audit_smoke_v20260606_001`. Required Safari command: `Game.__DEV.smokeSystemToneOnce()`.
+- Fixed only the runtime-reported Step 7.5 tone surfaces in app and docs mirrors: SystemCopy errors/warnings/start lines, template fallback copy, start-screen sourced lines, and active Gen Z crowd hints.
+- Copy is short, dry, and factual; teacher-like commands were removed, and cooldown text no longer says later without a timer. Gameplay logic and broad structure were unchanged.
+- Refreshed build identity to `build_2026_06_06_step7_5_tone_runtime_fix` / `step7_5_tone_runtime_fix` / `step7_5_tone_runtime_fix_smoke_v20260606_001`.
+- Required Safari command: `Game.__DEV.smokeSystemToneOnce()`.
 
 ## 2026-06-06 — Step 7.4 SystemCopy bypass fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
