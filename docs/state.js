@@ -3998,7 +3998,7 @@ window.Game = window.Game || {};
 
         try {
           if (Game.UI && typeof Game.UI.pushSystem === "function") {
-            Game.UI.pushSystem(`+1⭐ +1💰`);
+            Game.UI.pushSystem((Game.System && typeof Game.System.say === "function") ? Game.System.say("notifications", "reportCompensationBundle") : "Готово.");
           }
           if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
             Game.UI.requestRenderAll();
@@ -4008,7 +4008,7 @@ window.Game = window.Game || {};
         if (returnAmount > 0) {
           try {
             if (Game.UI && typeof Game.UI.pushSystem === "function") {
-              Game.UI.pushSystem(`+${returnAmount}💰`);
+              Game.UI.pushSystem((Game.System && typeof Game.System.say === "function") ? Game.System.say("notifications", "reportReturnAmount", { returnAmount }) : "Готово.");
             }
           } catch (_) {}
         }
