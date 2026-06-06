@@ -1804,6 +1804,12 @@
 
   function sysText(key, fallback) {
     try {
+      const codeByKey = { unlockOrange: "unlockOrange", unlockRed: "unlockRed", unlockBlack: "unlockBlack" };
+      const code = codeByKey[key] || key;
+      if (Game.System && typeof Game.System.say === "function") {
+        const line = Game.System.say("systemEvents", code);
+        if (line && line !== "Сообщение недоступно.") return line;
+      }
       const SYS = Game.Data && Game.Data.SYS ? Game.Data.SYS : null;
       if (SYS && typeof SYS[key] === "string") return SYS[key];
     } catch (_) {}
@@ -1839,19 +1845,19 @@
     // Strong (orange)
     if (!me.unlockOrange && inf >= prog.unlockInfluence.strong) {
       me.unlockOrange = true;
-      pushSystem(sysText("unlockOrange", "Твои аргументы стали сильными."));
+      pushSystem(sysText("unlockOrange", "Оранжевые аргументы открыты."));
     }
 
     // Powerful (red)
     if (!me.unlockRed && inf >= prog.unlockInfluence.power) {
       me.unlockRed = true;
-      pushSystem(sysText("unlockRed", "Твои аргументы стали мощными."));
+      pushSystem(sysText("unlockRed", "Красные аргументы открыты."));
     }
 
     // Absolute (black)
     if (!me.unlockBlack && inf >= prog.unlockInfluence.absolute) {
       me.unlockBlack = true;
-      pushSystem(sysText("unlockBlack", "Твои аргументы стали абсолютными."));
+      pushSystem(sysText("unlockBlack", "Чёрные аргументы открыты."));
     }
   }
 

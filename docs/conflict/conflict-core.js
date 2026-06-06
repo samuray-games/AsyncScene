@@ -888,6 +888,10 @@
     return p ? String(p.name || p.title || id) : String(id || "");
   }
 
+  function systemSay(kind, code, ctx){
+    return (Game && Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx || {}) : "";
+  }
+
   function pushSystem(line){
     try {
       if (Game.__A && typeof Game.__A.pushChat === "function") {
@@ -930,7 +934,7 @@
       const oppName = getName(b.opponentId) || "Оппонент";
       const text = battleResultText(b);
       if (!text) return;
-      pushSystem(`Баттл с ${oppName}: ${text}.`);
+      pushSystem(systemSay("systemEvents", "battleResult", { oppName, text }) || `Баттл с ${oppName}: ${text}.`);
       b.chatResultAnnounced = true;
     } catch (_) {}
   }
@@ -998,7 +1002,7 @@
         
         const line = (Game.Data && Game.Data.SYS && typeof Game.Data.SYS.toxicStealLine === "function")
           ? Game.Data.SYS.toxicStealLine(actual || cost)
-          : `Токсик снял у тебя ${actual || cost} 💰. Все видели.`;
+          : (systemSay("systemEvents", "toxicStealLine", { cost: actual || cost }) || `Токсик забрал ${actual || cost}💰.`);
         if (actual > 0) pushSystem(line);
       }
 
@@ -1054,7 +1058,7 @@
         
         const line = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
           ? Game.Data.SYS.banditRobbed
-          : `Бандит забрал у тебя ${amountActual} 💰. Все видели.`;
+          : (systemSay("systemEvents", "banditRobbed") || "Бандит забрал 💰.");
         if (amountActual > 0) pushSystem(line);
       }
 
@@ -2406,11 +2410,11 @@
         if (role === "bandit") {
           b.resultLine = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
             ? Game.Data.SYS.banditRobbed
-            : "Бандит вынес тебя в ноль. Все видели.";
+            : (systemSay("systemEvents", "banditRobbed") || "Бандит забрал 💰.");
         } else {
           b.resultLine = (Game.Data && Game.Data.SYS && typeof Game.Data.SYS.toxicStealLine === "function")
             ? Game.Data.SYS.toxicStealLine(5)
-            : "Токсик снял у тебя 5 💰. Все видели.";
+            : (systemSay("systemEvents", "toxicStealLine", { cost: 5 }) || "Токсик забрал 5💰.");
         }
         if (robberyAllowed) {
           applyVillainPenalty(b, "crowd");
@@ -3773,7 +3777,7 @@
             b.resultLine = "Поражение";
             if (outcome === "lose" && !b.mafiaShameAnnounced) {
               const meName = (Game.__S && Game.__S.me && Game.__S.me.name) ? Game.__S.me.name : "Игрок";
-              pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`);
+              pushSystem(systemSay("systemEvents", "mafiaShame", { meName }) || `${meName} бросил вызов мафиози. ⚡ обнулено.`);
               b.mafiaShameAnnounced = true;
             }
           } else {

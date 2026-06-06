@@ -34,10 +34,12 @@ window.Game = window.Game || {};
       notFound: "Не найдено.",
       choosePlayer: "Выбери игрока.",
       reportFalsePenalty: "Штраф: -5 💰.",
+      reportNo: "Коп: донос пустой, -5💰.",
     }),
     warnings: Object.freeze({
       checkInput: "Проверь ввод.",
       cooldownShort: "Подожди немного.",
+      copCooldown: "Проверка займет время.",
       alreadyVoted: "Уже принято.",
       respectPairDaily: "Уважение уже отправлено.",
       respectNoChain: "Цепочка закрыта.",
@@ -54,6 +56,9 @@ window.Game = window.Game || {};
       voteAccepted: "Голос учтён.",
       reportPending: "Проверяю.",
       reportTrueReward: "Сдать {name}: +2💰.",
+      reportOk: "Коп: {name} сдан, +2💰.",
+      reportCompensationBundle: "+1⭐ +1💰",
+      reportReturnAmount: "+{returnAmount}💰",
       trainingSent: "Аргумент: {teacher} → {student}.",
       rematchRequested: "{name} зовёт на реванш.",
       escapePaid: "Свалить за 1💰.",
@@ -72,12 +77,35 @@ window.Game = window.Game || {};
       battleChallenge: "{attackerName} [{attackerInf}] бросил вызов.",
       npcBattleStart: "{a} вызывает {b}.",
       battleWin: "{winner} победил. {loser} проиграл.",
+      battleResult: "Баттл с {oppName}: {text}.",
+      mafiaShame: "{meName} бросил вызов мафиози. ⚡ обнулено.",
+      toxicStealLine: "Токсик забрал {cost}💰.",
+      toxicRobbed: "Токсик забрал 💰.",
+      banditRobbed: "Бандит забрал 💰.",
       battleDraw: "{a} и {b}: ничья.",
       crowdStart: "Толпа решает.",
       crowdResolved: "Толпа: {name} {aVotes}:{bVotes}.",
       unlockOrange: "Оранжевые аргументы открыты.",
       unlockRed: "Красные аргументы открыты.",
       unlockBlack: "Чёрные аргументы открыты.",
+      unlockOrangeOther: "Аргументы {name} теперь сильные.",
+      unlockRedOther: "Аргументы {name} теперь мощные.",
+      unlockBlackOther: "Аргументы {name} теперь абсолютные.",
+      npcVictoryCop: "Коп: победа за {winner}.",
+      npcVictoryMafia: "Мафиози: итог за {winner}.",
+      npcVictoryBandit: "Бандит: {winner} забрал раунд.",
+      npcVictoryToxic: "Токсик: {winner} победил.",
+      npcVictoryCrowd: "Толпа: {winner} победил.",
+      npcDefeatCop: "Коп: {loser} проиграл.",
+      npcDefeatMafia: "Мафиози: {loser} проиграл.",
+      npcDefeatBandit: "Бандит: {loser} проиграл.",
+      npcDefeatToxic: "Токсик: {loser} проиграл.",
+      npcDefeatCrowd: "Толпа: {loser} проиграл.",
+      npcArrestCop: "Коп: {target} закрыт на 5 минут.",
+      npcArrestMafia: "Мафиози: {target} закрыт.",
+      npcArrestBandit: "Бандит: {target} за решёткой.",
+      npcArrestToxic: "Токсик: {target} закрыт.",
+      npcArrestCrowd: "Толпа: {target} закрыт.",
     }),
   });
 
@@ -916,9 +944,9 @@ window.Game = window.Game || {};
   };
 
 
-  const SYSTEM_COPY_ROUTING_AUDIT_BUILD_TAG = "build_2026_06_06_step7_3_systemcopy_routing_audit";
-  const SYSTEM_COPY_ROUTING_AUDIT_COMMIT = "step7_3_systemcopy_routing_audit";
-  const SYSTEM_COPY_ROUTING_AUDIT_SMOKE_VERSION = "step7_3_systemcopy_routing_audit_smoke_v20260606_001";
+  const SYSTEM_COPY_ROUTING_AUDIT_BUILD_TAG = "build_2026_06_06_step7_3_systemcopy_routing_fix";
+  const SYSTEM_COPY_ROUTING_AUDIT_COMMIT = "step7_3_systemcopy_routing_fix";
+  const SYSTEM_COPY_ROUTING_AUDIT_SMOKE_VERSION = "step7_3_systemcopy_routing_fix_smoke_v20260606_002";
   const SYSTEM_COPY_ROUTING_TARGET_GROUPS = Object.freeze(["points", "rep", "cooldown", "lock", "success", "fail"]);
   const SYSTEM_COPY_ROUTING_AUDIT_ROWS = Object.freeze([
     Object.freeze({ id: "points.delta.plus_one", group: "points", kind: "notifications", code: "pointsDeltaPlusOne", file: "AsyncScene/Web/events.js", path: "Game.System.say('notifications','pointsDeltaPlusOne')", routed: true, hardcoded: false, recent: false }),
@@ -928,39 +956,39 @@ window.Game = window.Game || {};
     Object.freeze({ id: "points.delta.remainder_win", group: "points", kind: "notifications", code: "pointsDeltaRemainderWin", file: "AsyncScene/Web/system.js", path: "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRemainderWin", routed: true, hardcoded: false, recent: true }),
     Object.freeze({ id: "points.respect_paid", group: "points", kind: "notifications", code: "respectPaid", file: "AsyncScene/Web/ui/ui-dm.js", path: "Game.System.say('notifications','respectPaid')", routed: true, hardcoded: false, recent: true }),
     Object.freeze({ id: "points.escape_paid", group: "points", kind: "notifications", code: "escapePaid", file: "AsyncScene/Web/ui/ui-battles.js", path: "Game.System.say('notifications','escapePaid')", routed: true, hardcoded: false, recent: true }),
-    Object.freeze({ id: "points.hardcoded.report_compensation_bundle", group: "points", kind: "notifications", code: "", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+1⭐ +1💰`) in report compensation", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "points.hardcoded.report_return_amount", group: "points", kind: "notifications", code: "", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+${returnAmount}💰`) in report compensation", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "points.hardcoded.toxic_steal_fallback", group: "points", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-core.js", path: "fallback `Токсик снял у тебя ${actual || cost} 💰. Все видели.`", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "points.hardcoded.data_sys_villain", group: "points", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.banditRobbed/toxicRobbed/toxicStealLine", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "points.hardcoded.report_compensation_bundle", group: "points", kind: "notifications", code: "reportCompensationBundle", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+1⭐ +1💰`) in report compensation", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.hardcoded.report_return_amount", group: "points", kind: "notifications", code: "reportReturnAmount", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+${returnAmount}💰`) in report compensation", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.hardcoded.toxic_steal_fallback", group: "points", kind: "systemEvents", code: "toxicStealLine", file: "AsyncScene/Web/conflict/conflict-core.js", path: "fallback `Токсик снял у тебя ${actual || cost} 💰. Все видели.`", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "points.hardcoded.data_sys_villain", group: "points", kind: "systemEvents", code: "banditRobbed", file: "AsyncScene/Web/data.js", path: "Data.SYS.banditRobbed/toxicRobbed/toxicStealLine", routed: true, hardcoded: false, recent: true }),
 
     Object.freeze({ id: "rep.delta.plus_one", group: "rep", kind: "notifications", code: "repDeltaPlusOne", file: "AsyncScene/Web/events.js", path: "Game.System.say('notifications','repDeltaPlusOne')", routed: true, hardcoded: false, recent: false }),
     Object.freeze({ id: "rep.respect_target", group: "rep", kind: "notifications", code: "respectTargetRep", file: "AsyncScene/Web/ui/ui-dm.js", path: "Game.System.say('notifications','respectTargetRep')", routed: true, hardcoded: false, recent: true }),
-    Object.freeze({ id: "rep.hardcoded.report_compensation_bundle", group: "rep", kind: "notifications", code: "", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+1⭐ +1💰`) in report compensation", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "rep.hardcoded.report_compensation_bundle", group: "rep", kind: "notifications", code: "reportCompensationBundle", file: "AsyncScene/Web/state.js", path: "Game.UI.pushSystem(`+1⭐ +1💰`) in report compensation", routed: true, hardcoded: false, recent: true }),
 
     Object.freeze({ id: "cooldown.warning.short", group: "cooldown", kind: "warnings", code: "cooldownShort", file: "AsyncScene/Web/system.js", path: "SystemCopy.warnings.cooldownShort", routed: true, hardcoded: false, recent: false }),
-    Object.freeze({ id: "cooldown.hardcoded.cop_reply", group: "cooldown", kind: "warnings", code: "", file: "AsyncScene/Web/data.js", path: "Data.TEXTS.genz.cop_cooldown[]", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "cooldown.hardcoded.cop_reply", group: "cooldown", kind: "warnings", code: "copCooldown", file: "AsyncScene/Web/data.js", path: "Data.TEXTS.genz.cop_cooldown[]", routed: true, hardcoded: false, recent: true }),
 
     Object.freeze({ id: "lock.unlock_orange", group: "lock", kind: "systemEvents", code: "unlockOrange", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "SystemCopy.systemEvents.unlockOrange via Data.SYS/sysText", routed: true, hardcoded: false, recent: true }),
     Object.freeze({ id: "lock.unlock_red", group: "lock", kind: "systemEvents", code: "unlockRed", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "SystemCopy.systemEvents.unlockRed via Data.SYS/sysText", routed: true, hardcoded: false, recent: true }),
     Object.freeze({ id: "lock.unlock_black", group: "lock", kind: "systemEvents", code: "unlockBlack", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "SystemCopy.systemEvents.unlockBlack via Data.SYS/sysText", routed: true, hardcoded: false, recent: true }),
-    Object.freeze({ id: "lock.hardcoded.unlock_fallbacks", group: "lock", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "sysText fallback unlock strings in maybeUnlocks", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "lock.hardcoded.data_sys_unlocks", group: "lock", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.unlockOrange/unlockRed/unlockBlack/*Other/absolutePath", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "lock.hardcoded.npc_event_arrest", group: "lock", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.arrest[].text", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "lock.hardcoded.unlock_fallbacks", group: "lock", kind: "systemEvents", code: "unlockOrange", file: "AsyncScene/Web/conflict/conflict-economy.js", path: "sysText fallback unlock strings in maybeUnlocks", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "lock.hardcoded.data_sys_unlocks", group: "lock", kind: "systemEvents", code: "unlockOrangeOther", file: "AsyncScene/Web/data.js", path: "Data.SYS.unlockOrange/unlockRed/unlockBlack/*Other/absolutePath", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "lock.hardcoded.npc_event_arrest", group: "lock", kind: "systemEvents", code: "npcArrestCop", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.arrest[].text", routed: true, hardcoded: false, recent: true }),
 
     Object.freeze({ id: "success.saved", group: "success", kind: "notifications", code: "saved", file: "AsyncScene/Web/system.js", path: "SystemCopy.notifications.saved", routed: true, hardcoded: false, recent: false }),
     Object.freeze({ id: "success.vote_accepted", group: "success", kind: "notifications", code: "voteAccepted", file: "AsyncScene/Web/ui/ui-events.js", path: "Game.System.say('notifications','voteAccepted')", routed: true, hardcoded: false, recent: false }),
     Object.freeze({ id: "success.report_reward", group: "success", kind: "notifications", code: "reportTrueReward", file: "AsyncScene/Web/data.js", path: "SystemCopy.notifications.reportTrueReward via Data.SYS.reportOk audit", routed: true, hardcoded: false, recent: false }),
-    Object.freeze({ id: "success.hardcoded.data_sys_report_ok", group: "success", kind: "notifications", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportOk(name)", routed: false, hardcoded: true, recent: false }),
-    Object.freeze({ id: "success.hardcoded.npc_event_victory", group: "success", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.victory[].text", routed: false, hardcoded: true, recent: true }),
+    Object.freeze({ id: "success.hardcoded.data_sys_report_ok", group: "success", kind: "notifications", code: "reportOk", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportOk(name)", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "success.hardcoded.npc_event_victory", group: "success", kind: "systemEvents", code: "npcVictoryCop", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.victory[].text", routed: true, hardcoded: false, recent: true }),
 
     Object.freeze({ id: "fail.insufficient_points", group: "fail", kind: "errors", code: "insufficientPoints", file: "AsyncScene/Web/system.js", path: "SystemCopy.errors.insufficientPoints", routed: true, hardcoded: false, recent: false }),
     Object.freeze({ id: "fail.battle_points_low", group: "fail", kind: "errors", code: "pointsLowBattle", file: "AsyncScene/Web/data.js", path: "SystemCopy.errors.pointsLowBattle via Data.SYS.pointsLow audit", routed: true, hardcoded: false, recent: false }),
     Object.freeze({ id: "fail.report_false_penalty", group: "fail", kind: "errors", code: "reportFalsePenalty", file: "AsyncScene/Web/data.js", path: "SystemCopy.errors.reportFalsePenalty via Data.SYS.reportNo audit", routed: true, hardcoded: false, recent: false }),
-    Object.freeze({ id: "fail.hardcoded.data_sys_points_low", group: "fail", kind: "errors", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.pointsLow", routed: false, hardcoded: true, recent: false }),
-    Object.freeze({ id: "fail.hardcoded.data_sys_report_no", group: "fail", kind: "errors", code: "", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportNo", routed: false, hardcoded: true, recent: false }),
-    Object.freeze({ id: "fail.hardcoded.battle_result_announce", group: "fail", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-core.js", path: "pushSystem(`Баттл с ${oppName}: ${text}.`)", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "fail.hardcoded.mafia_shame", group: "fail", kind: "systemEvents", code: "", file: "AsyncScene/Web/conflict/conflict-core.js", path: "pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`)", routed: false, hardcoded: true, recent: true }),
-    Object.freeze({ id: "fail.hardcoded.npc_event_defeat", group: "fail", kind: "systemEvents", code: "", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.defeat[].text", routed: false, hardcoded: true, recent: true })
+    Object.freeze({ id: "fail.hardcoded.data_sys_points_low", group: "fail", kind: "errors", code: "pointsLowBattle", file: "AsyncScene/Web/data.js", path: "Data.SYS.pointsLow", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "fail.hardcoded.data_sys_report_no", group: "fail", kind: "errors", code: "reportNo", file: "AsyncScene/Web/data.js", path: "Data.SYS.reportNo", routed: true, hardcoded: false, recent: false }),
+    Object.freeze({ id: "fail.hardcoded.battle_result_announce", group: "fail", kind: "systemEvents", code: "battleResult", file: "AsyncScene/Web/conflict/conflict-core.js", path: "pushSystem(`Баттл с ${oppName}: ${text}.`)", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "fail.hardcoded.mafia_shame", group: "fail", kind: "systemEvents", code: "mafiaShame", file: "AsyncScene/Web/conflict/conflict-core.js", path: "pushSystem(`${meName} бросил вызов мафиози и остался униженным в ноль.`)", routed: true, hardcoded: false, recent: true }),
+    Object.freeze({ id: "fail.hardcoded.npc_event_defeat", group: "fail", kind: "systemEvents", code: "npcDefeatCop", file: "AsyncScene/Web/data.js", path: "Data.NPC_EVENT_TEMPLATES.defeat[].text", routed: true, hardcoded: false, recent: true })
   ]);
 
   Game.__DEV.smokeSystemCopyInventoryOnce = function smokeSystemCopyInventoryOnce(){
