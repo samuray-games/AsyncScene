@@ -617,6 +617,61 @@ window.Game = window.Game || {};
     { area: "respect", kind: "warnings", code: "respectEmitterEmpty", file: "AsyncScene/Web/ui/ui-dm.js", surface: "toast", callsite: "mapRespectReason.respect_emitter_empty via Game.System.say(\"warnings\", \"respectEmitterEmpty\")", directHardcoded: false }
   ]);
 
+  const SYSTEM_Z_PHRASE_RULE = Object.freeze({
+    id: "z-system-phrase-rule",
+    buildTag: "build_2026_06_06_step7_2_z_phrase_rule",
+    commit: "step7_2_z_phrase_rule",
+    smokeVersion: "step7_2_z_phrase_rule_smoke_v20260606_001",
+    preferredWordsMin: 2,
+    preferredWordsMax: 4,
+    maxWords: 4,
+    forbiddenPatterns: Object.freeze([
+      Object.freeze({ id: "you_currently", pattern: "у тебя сейчас" }),
+      Object.freeze({ id: "please", pattern: "пожалуйста" }),
+      Object.freeze({ id: "because", pattern: "потому что" }),
+      Object.freeze({ id: "because", pattern: "так как" }),
+      Object.freeze({ id: "required_for_action", pattern: "для этого действия" }),
+      Object.freeze({ id: "try_again_later", pattern: "попробуй позже" }),
+      Object.freeze({ id: "try_again_later", pattern: "можно позже" }),
+      Object.freeze({ id: "try_again_later", pattern: "повтори позже" }),
+      Object.freeze({ id: "teaching_tone", pattern: "нужно" }),
+      Object.freeze({ id: "teaching_tone", pattern: "следует" }),
+      Object.freeze({ id: "teaching_tone", pattern: "обрати внимание" })
+    ]),
+    explanationPatterns: Object.freeze([
+      Object.freeze({ id: "purpose_clause", pattern: "для того" }),
+      Object.freeze({ id: "purpose_clause", pattern: "чтобы" }),
+      Object.freeze({ id: "current_state_explained", pattern: "сейчас" }),
+      Object.freeze({ id: "option_explained", pattern: "можно" })
+    ])
+  });
+
+  function normalizeZPhraseText(text){
+    return String(text == null ? "" : text).replace(/\s+/g, " ").trim();
+  }
+
+  function zPhraseWordTokens(text){
+    const normalized = normalizeZPhraseText(text).replace(/\{[^}]+\}/g, " placeholder ");
+    return normalized.match(/[A-Za-zА-Яа-яЁё0-9]+(?:[-‑][A-Za-zА-Яа-яЁё0-9]+)*/g) || [];
+  }
+
+  function validateSystemZPhrase(text){
+    const normalized = normalizeZPhraseText(text);
+    const lowered = normalized.toLowerCase();
+    const reasons = [];
+    const wordCount = zPhraseWordTokens(normalized).length;
+    if (!normalized) reasons.push("empty_phrase");
+    if (wordCount > SYSTEM_Z_PHRASE_RULE.maxWords) reasons.push("over_4_words");
+    SYSTEM_Z_PHRASE_RULE.forbiddenPatterns.forEach((rule) => {
+      if (lowered.indexOf(rule.pattern) !== -1) reasons.push(`forbidden_${rule.id}`);
+    });
+    SYSTEM_Z_PHRASE_RULE.explanationPatterns.forEach((rule) => {
+      if (lowered.indexOf(rule.pattern) !== -1) reasons.push(`explanation_${rule.id}`);
+    });
+    if (/[:;].+\s+.+/.test(normalized) && wordCount > SYSTEM_Z_PHRASE_RULE.preferredWordsMax) reasons.push("explaining_punctuation");
+    return { ok: reasons.length === 0, text: normalized, wordCount, reasons };
+  }
+
 
 
   const SYSTEM_MESSAGE_AUDIT_BUILD_TAG = "build_2026_06_06_step7_1_system_messages_audit";
@@ -753,6 +808,8 @@ window.Game = window.Game || {};
     deliveryPolicies: SYSTEM_DELIVERY_POLICY,
     economyNotificationCodes: ECONOMY_NOTIFICATION_CODES,
     coverageRowsFromInventory,
+    zPhraseRule: SYSTEM_Z_PHRASE_RULE,
+    validateSystemZPhrase,
     taxonomyEntries,
     systemCopyTaxonomyRows,
     normalizeKind,
@@ -947,6 +1004,77 @@ window.Game = window.Game || {};
       fail("build_identification_mismatch", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
     }
     result.ok = result.hiddenStrings.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  Game.__DEV.smokeSystemPhraseRuleOnce = function smokeSystemPhraseRuleOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_Z_PHRASE_RULE.buildTag,
+      commit: SYSTEM_Z_PHRASE_RULE.commit,
+      smokeVersion: SYSTEM_Z_PHRASE_RULE.smokeVersion,
+      checkedCount: 0,
+      violations: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const encoded = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      result.failures.push(detail === undefined ? check : { check, detail });
+    };
+    const requiredAreas = Array.from(SYSTEM_COPY_REQUIRED_AREAS);
+    const representedAreas = new Set();
+    Array.from(SYSTEM_COPY_INVENTORY).forEach((row, index) => {
+      const area = String(row && row.area || "").trim();
+      const kind = normalizeKind(row && row.kind);
+      const code = String(row && row.code || "").trim();
+      if (area) representedAreas.add(area);
+      if (!area || !kind || !code) {
+        fail("inventory_row_incomplete", { index, row });
+        return;
+      }
+      const bucket = SystemCopy[kind];
+      if (!bucket || !Object.prototype.hasOwnProperty.call(bucket, code)) {
+        addUnique(result.missingCoverage, { area, kind, code, file: row.file, callsite: row.callsite });
+        fail("inventory_copy_missing", { index, area, kind, code });
+        return;
+      }
+      result.checkedCount += 1;
+      const text = bucket[code];
+      const review = validateSystemZPhrase(text);
+      if (!review.ok) {
+        const violation = {
+          area,
+          kind,
+          code,
+          file: row.file,
+          surface: row.surface,
+          callsite: row.callsite,
+          text: review.text,
+          wordCount: review.wordCount,
+          reasons: review.reasons
+        };
+        addUnique(result.violations, violation);
+        if (review.reasons.some((reason) => String(reason).indexOf("forbidden_") === 0)) {
+          addUnique(result.forbiddenRemaining, violation);
+        }
+      }
+    });
+    requiredAreas.forEach((area) => {
+      if (!representedAreas.has(area)) addUnique(result.missingCoverage, area);
+    });
+    if (!result.checkedCount) fail("checked_count_zero");
+    if (result.violations.length) addUnique(result.failedChecks, "z_phrase_rule_violations");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_phrasing_remaining");
+    if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    result.ok = result.checkedCount > 0 && result.violations.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
 
