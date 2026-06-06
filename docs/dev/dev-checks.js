@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_3_npc_no_mentoring";
-  const RUNTIME_COMMIT = "step6_3_npc_no_mentoring";
+  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_4_npc_template_shortening_runtime_fail_fix";
+  const RUNTIME_COMMIT = "step6_4_npc_template_shortening_runtime_fail_fix";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5976,9 +5976,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
     if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
 
-    const NO_MENTORING_BUILD_TAG = "build_2026_06_06_step6_3_npc_no_mentoring";
-    const NO_MENTORING_COMMIT = "step6_3_npc_no_mentoring";
-    const NO_MENTORING_SMOKE_VERSION = "step6_3_npc_no_mentoring_smoke_v20260606_001";
+    const NO_MENTORING_BUILD_TAG = "build_2026_06_06_step6_4_npc_template_shortening_runtime_fail_fix";
+    const NO_MENTORING_COMMIT = "step6_4_npc_template_shortening_runtime_fail_fix";
+    const NO_MENTORING_SMOKE_VERSION = "step6_4_npc_template_shortening_runtime_fail_fix_smoke_v20260606_001";
     const noMentoringRules = Object.freeze({
       mentoringHits: Object.freeze([
         { label: "direct_advice", pattern: /(совет|подскажу|попробуй|стоит|лучше|рекоменд|проверь|проверяй|проверяйте|убедись|убедитесь)/i },
