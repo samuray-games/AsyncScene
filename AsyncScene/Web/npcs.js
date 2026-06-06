@@ -640,7 +640,7 @@ window.Game ||= {};
   ];
   const villainChallenges = [
     "идем в раунд",
-    "готов? раунд",
+    "готов к раунду",
     "раунд покажет",
     "споришь?"
   ];
@@ -1722,7 +1722,7 @@ window.Game ||= {};
       { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.6", before: "мне скучно, нужен ход", after: "скучно, нужен ход", must: ["скучно", "ход"] },
       { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.24", before: "я тут из-за шума", after: "тут из-за шума", must: ["тут", "шума"] },
       { scope: "dm", role: "bandit", source: "villainQuestions.1", before: "это про тебя? отвечай", after: "про тебя? отвечай", must: ["про тебя", "отвечай"] },
-      { scope: "battle", role: "bandit", source: "villainChallenges.1", before: "готовность видна — раунд рядом", after: "готовность видна — раунд", must: ["готовность", "раунд"] },
+      { scope: "battle", role: "bandit", source: "villainChallenges.1", before: "готовность видна — раунд рядом", after: "готов к раунду", must: ["готов", "раунд"] },
       { scope: "dm", role: "toxic", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.greetings.toxic.dm.y.0", before: "личка: {PLAYER}, покажи позицию", after: "личка: {PLAYER}, позицию", must: ["личка", "позицию"] },
       { scope: "event", role: "neutral", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.threats.neutral.event.y.0", before: "у {PLACE}: конфликт растет", after: "{PLACE}: конфликт выше", must: ["{place}", "конфликт"] },
       { scope: "battle", role: "toxic", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.victory.toxic.battle.y.1", before: "спор: сказал жестко и точно", after: "спор: жестко и точно", must: ["спор", "жестко", "точно"] }
@@ -1799,7 +1799,7 @@ window.Game ||= {};
   NPCSpeech.smokeZoomerNpcDmProfileOnce = function smokeZoomerNpcDmProfileOnce() {
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
-    const smokeVersion = `step6_6_safari_smoke_exposure_fix_v20260606_001_${buildTag}_commit_${commit}`;
+    const smokeVersion = `step6_6_npc_dm_profile_runtime_fail_fix_smoke_v20260606_001_${buildTag}_commit_${commit}`;
     const roles = ["cop", "mafia", "bandit", "toxic", "neutral"];
     const result = {
       ok: false,
@@ -1882,7 +1882,7 @@ window.Game ||= {};
       });
       if (!buildTag || String(buildTag).indexOf("step6_6_npc_dm_profile") === -1) fail("build_tag_identifies_step6_6", buildTag);
       if (!commit || String(commit).indexOf("step6_6_npc_dm_profile") === -1) fail("commit_identifies_step6_6", commit);
-      if (!smokeVersion || smokeVersion.indexOf("step6_6_safari_smoke_exposure_fix_v20260606_001") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_6", smokeVersion);
+      if (!smokeVersion || smokeVersion.indexOf("step6_6_npc_dm_profile_runtime_fail_fix_smoke_v20260606_001") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_6", smokeVersion);
       if (result.monologueHits.length) addUnique(result.failedChecks, "monologue_hits");
       if (result.longMessageHits.length) addUnique(result.failedChecks, "long_message_hits");
       if (result.bookDialogueHits.length) addUnique(result.failedChecks, "book_dialogue_hits");
@@ -1949,7 +1949,7 @@ window.Game ||= {};
   Game.__DEV.smokeZoomerNpcDmProfileOnce = function smokeZoomerNpcDmProfileOnce() {
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcDmProfileOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcDmProfileOnce()
-      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_6_safari_smoke_exposure_fix_missing", checkedCount: 0, monologueHits: [], longMessageHits: [], bookDialogueHits: [], lectureHits: [], roleIdentityLoss: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_6_npc_dm_profile_runtime_fail_fix_missing", checkedCount: 0, monologueHits: [], longMessageHits: [], bookDialogueHits: [], lectureHits: [], roleIdentityLoss: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {

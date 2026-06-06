@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_6_npc_dm_profile";
-  const RUNTIME_COMMIT = "step6_6_npc_dm_profile";
+  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_6_npc_dm_profile_runtime_fail_fix";
+  const RUNTIME_COMMIT = "step6_6_npc_dm_profile_runtime_fail_fix";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5862,7 +5862,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         });
       });
       list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainQuestions", () => ["ты здесь? отвечай", "это про тебя? отвечай", "кто держит слово?", "это твоя тема?", "войдешь в спор или мимо?"], { role: "toxic", channel: "dm", idPrefix: "villain_questions" }));
-      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "готовность видна — раунд рядом", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
+      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "готов к раунду", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
       list.push(makeSource("neutral", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", () => Game.Data && Game.Data.NPC_CHAT_LINES, { role: "neutral", channel: "event", idPrefix: "npc_chat_lines" }));
       ["intros", "warnings", "toxicDescriptions", "banditDescriptions", "chatReplies", "cooldownReplies", "thanks", "scolds"].forEach(key => {
         list.push(makeSource(key === "toxicDescriptions" ? "toxic" : key === "banditDescriptions" ? "bandit" : "cop", `AsyncScene/Web/data.js:Data.COP_TEMPLATES.${key}`, () => copTpl(key), { role: "cop", channel: key === "chatReplies" ? "event" : "dm", idPrefix: `cop_templates_${key}` }));
