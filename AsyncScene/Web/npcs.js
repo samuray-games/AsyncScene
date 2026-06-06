@@ -144,103 +144,103 @@ window.Game ||= {};
   NPC.SAY = {
     toxic: {
       m: [
-        "уверен в позиции",
-        "слабое место видно",
-        "говори прямо",
-        "не тяни, отвечай",
-        "толпа слышит, докажи",
-        "выглядит хрупко, продолжай",
-        "ясно, кто держит удар",
-        "раунд открыт, говори точнее",
-        "не уходи, отвечай",
-        "покажи аргумент"
+        "слабый ход",
+        "отвечай сейчас",
+        "не прячься",
+        "жестче, без ухода",
+        "давление рядом",
+        "тонко, почти",
+        "слабость видна",
+        "говори резче",
+        "ответ не держит",
+        "позиция трещит"
       ],
       f: [
-        "понимаешь, куда зашел",
-        "без шума, по сути",
-        "слушаю, терпение короткое",
-        "не тяни, прямо",
-        "не прячь слабый ход"
+        "слабый ход",
+        "отвечай сейчас",
+        "не прячься",
+        "жестче, без ухода",
+        "позиция трещит"
       ]
     },
     bandit: {
       m: [
-        "вижу тебя",
-        "деньги на стол",
-        "стой ровно",
-        "без героизма",
-        "долго не торгуюсь",
-        "отвечай или плати",
-        "посмотрим, держишься",
-        "не тяни",
-        "шаг назад, слушай",
-        "уйти будет дешевле",
-        "решился?",
-        "ответишь — потеряешь"
+        "кошелек ближе",
+        "плати и уходи",
+        "стой, без фокусов",
+        "дело простое",
+        "торга нет",
+        "налом проще",
+        "ход дешевле молча",
+        "время стоит денег",
+        "шаг назад, руки видно",
+        "выход дешевле",
+        "решай быстро",
+        "сопротивление дороже"
       ],
       f: [
-        "заметила тебя",
-        "без резких движений",
-        "не мешай",
-        "отвечай или уходи",
-        "не усложняй",
+        "кошелек ближе",
+        "плати и уходи",
+        "стой, без фокусов",
+        "дело простое",
+        "торга нет",
         "дважды не говорю",
         "проверка дорогая",
-        "решим сейчас",
+        "решай быстро",
         "предупреждаю раз",
-        "время вышло"
+        "время стоит денег"
       ]
     },
     cop: {
       m: [
-        "На связи. Дистанция",
-        "Вижу конфликт. Темп высок",
-        "Провокация без ответа",
-        "Агрессия рядом, дистанция",
-        "Токсик или бандит — пиши"
+        "Принято. Дистанция",
+        "Фиксирую конфликт",
+        "Порядок рядом",
+        "Без эскалации",
+        "Заявление принято"
       ],
       f: [
-        "На связи. Дистанция",
-        "Вижу конфликт. Темп высок",
-        "Провокация без ответа",
-        "Агрессия рядом, дистанция",
-        "Токсик или бандит — пиши"
+        "Принято. Дистанция",
+        "Фиксирую конфликт",
+        "Порядок рядом",
+        "Без эскалации",
+        "Заявление принято"
       ]
     },
     mafia: {
       m: [
-        "Добрый вечер. Спокойно",
-        "Шум дорогой",
-        "ход оставит след",
-        "Спешка дорогая",
-        "Сомнение видно, выход есть",
-        "ценю точность",
-        "договоримся без глаз"
+        "Тише",
+        "Шум дорог",
+        "След лишний",
+        "Решим спокойно",
+        "Без свидетелей",
+        "Слово взвешено",
+        "Долг помнит"
       ],
       f: [
-        "Добрый вечер. Спокойно",
-        "Шум дорогой",
-        "ход оставит след",
-        "Спешка дорогая",
-        "Сомнение видно, выход есть",
-        "ценю точность",
-        "договоримся без глаз"
+        "Тише",
+        "Шум дорог",
+        "След лишний",
+        "Решим спокойно",
+        "Без свидетелей",
+        "Слово взвешено",
+        "Долг помнит"
       ]
     },
     crowd: {
       m: [
-        "кто начнет первым",
-        "напряжение растет",
-        "смотрим доводы",
-        "неожиданно, читаю",
-        "площадь шумит, остаюсь"
+        "ого",
+        "что сейчас было?",
+        "площадь гудит",
+        "народ ожил",
+        "зал гудит"
       ],
       f: [
-        "интересно, чем кончится",
-        "напряжение растет",
-        "смотрим, что будет",
-        "читаю внимательно",
-        "площадь напряжена"
+        "ого",
+        "что сейчас было?",
+        "площадь гудит",
+        "народ ожил",
+        "зал гудит"
       ]
     }
   };
@@ -829,44 +829,49 @@ window.Game ||= {};
   // No gameplay code reads this object yet; it is exposed for runtime smoke coverage only.
   const buildNpcSpeechTemplates = () => {
     const blocks = ["greetings", "threats", "victory", "defeat", "neutral"];
-    const roles = ["cop", "mafia", "bandit", "toxic", "neutral"];
+    const roles = ["cop", "mafia", "bandit", "toxic", "neutral", "crowd"];
     const channels = ["dm", "event", "battle"];
     const intensities = ["y", "o", "r", "k"];
     const roleLines = {
       greetings: {
-        cop: ["вижу у {PLACE}", "привет, дистанция"],
-        mafia: ["вечер, {PLAYER}", "{TOPIC} обсудим тихо"],
-        bandit: ["{PLAYER}, стой ровно", "{PLACE}, без движений"],
-        toxic: ["{PLAYER}, позицию", "про {TOPIC}"],
-        neutral: ["привет, {PLAYER}", "рядом у {PLACE}"]
+        cop: ["пост у {PLACE}", "принято, дистанция"],
+        mafia: ["тихо, {PLAYER}", "{TOPIC} без шума"],
+        bandit: ["{PLAYER}, кошелек", "{PLACE}, стой"],
+        toxic: ["{PLAYER}, слабый ход", "по {TOPIC}: отвечай"],
+        neutral: ["вижу {PLAYER}", "заметно рядом"],
+        crowd: ["ого у {PLACE}", "народ у края"]
       },
       threats: {
-        cop: ["не дави", "сбавь темп"],
-        mafia: ["спокойствие — не слабость", "шаг назад"],
-        bandit: ["{PLAYER}, деньги", "не тяни"],
-        toxic: ["покажи, чего стоишь", "говори по делу"],
-        neutral: ["конфликт выше", "тема грань"]
+        cop: ["без эскалации", "фиксирую тон"],
+        mafia: ["шум дорог", "след лишний"],
+        bandit: ["{PLAYER}, плати", "торга нет"],
+        toxic: ["не прячься", "отвечай сейчас"],
+        neutral: ["тема заметна", "смотрю со стороны"],
+        crowd: ["народ гудит", "что сейчас было?"]
       },
       victory: {
-        cop: ["конфликт закрыт", "шум стих"],
-        mafia: ["итог понятен", "тишина закрепит"],
-        bandit: ["забрал свое", "разговор окончен"],
-        toxic: ["раунд за мной", "жестко и точно"],
-        neutral: ["раунд закрыт", "площадь выдох"]
+        cop: ["протокол закрыт", "порядок восстановлен"],
+        mafia: ["итог мой", "тишина решает"],
+        bandit: ["забрал свое", "дело закрыто"],
+        toxic: ["слабость вскрыта", "жестко и точно"],
+        neutral: ["тема закрыта", "заметно спокойней"],
+        crowd: ["вот это поворот", "зал гудит"]
       },
       defeat: {
-        cop: ["вижу ошибку", "идем дальше"],
-        mafia: ["бывает", "не суетись"],
-        bandit: ["не вывез", "слабый ход"],
-        toxic: ["тема тяжелее", "уверенность ниже"],
-        neutral: ["не пошло", "раунд проигран"]
+        cop: ["рапорт принят", "нарушение учтено"],
+        mafia: ["тихо приму", "счет открыт"],
+        bandit: ["добыча ушла", "плата позже"],
+        toxic: ["слабо звучит", "давление осталось"],
+        neutral: ["тема просела", "со стороны видно"],
+        crowd: ["ой", "народ притих"]
       },
       neutral: {
-        cop: ["держим дистанцию", "пиши дело"],
-        mafia: ["тише — дешевле", "точность дешевле"],
-        bandit: ["смотрю, без движений", "тишина давит"],
-        toxic: ["чем ответишь?", "слушаю мало"],
-        neutral: ["площадь шумит", "смотрим {TOPIC}"]
+        cop: ["порядок рядом", "заявление принято"],
+        mafia: ["тише", "слово взвешено"],
+        bandit: ["стой, без фокусов", "выход дешевле"],
+        toxic: ["ответ не держит", "позиция трещит"],
+        neutral: ["наблюдаю {TOPIC}", "заметно со стороны"],
+        crowd: ["народ ожил", "народ ожил"]
       }
     };
     const channelLead = {
@@ -897,9 +902,17 @@ window.Game ||= {};
 
   const NPCSpeech = {};
   NPCSpeech.BLOCKS = ["greetings", "threats", "victory", "defeat", "neutral"];
-  NPCSpeech.ROLES = ["cop", "mafia", "bandit", "toxic", "neutral"];
+  NPCSpeech.ROLES = ["cop", "mafia", "bandit", "toxic", "neutral", "crowd"];
   NPCSpeech.CHANNELS = ["dm", "event", "battle"];
   NPCSpeech.INTENSITIES = ["y", "o", "r", "k"];
+  NPCSpeech.ROLE_PROFILES = {
+    cop: { traits: ["calm", "official", "short"], markers: ["принято", "фиксирую", "порядок", "протокол", "рапорт", "заявление", "эскалации", "нарушение", "пост", "дистанция"] },
+    bandit: { traits: ["direct", "hard", "practical"], markers: ["кошелек", "плати", "стой", "торга", "налом", "дешевле", "добыча", "плата", "фокусов", "решай", "дело", "денег", "руки", "дороже", "дважды", "проверка", "предупреждаю", "забрал"] },
+    toxic: { traits: ["sharp", "pressuring", "no_long_text"], markers: ["слаб", "ответ", "отвечай", "прячь", "жестче", "жестко", "давление", "трещит", "резче", "тонко"] },
+    mafia: { traits: ["confident", "controlled", "minimal_words"], markers: ["тише", "тихо", "шум дорог", "без шума", "след", "свидетел", "взвешено", "долг", "тишина", "счет", "решим", "итог"] },
+    neutral: { traits: ["everyday_speech", "observational"], markers: ["наблюд", "замет", "тема", "со стороны", "вижу"] },
+    crowd: { traits: ["reactive", "situational"], markers: ["ого", "народ", "гудит", "поворот", "ожил", "притих", "что сейчас", "ой", "зал"] }
+  };
   NPCSpeech.DEFAULT_LOCALE = "ru";
   NPCSpeech.SUPPORTED_LOCALES = ["ru"];
   NPCSpeech.FUTURE_LOCALES = ["en", "ja"];
@@ -1047,6 +1060,8 @@ window.Game ||= {};
     if (role === "mafia" || role === "mafioso") return "mafia";
     if (role === "bandit") return "bandit";
     if (role === "toxic") return "toxic";
+    if (role === "crowd") return "crowd";
+    if (role === "neutral") return "neutral";
     return "neutral";
   };
 
@@ -1473,6 +1488,107 @@ window.Game ||= {};
     return result;
   };
 
+
+  NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce = function smokeZoomerNpcRoleDifferentiationOnce() {
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step6_5_npc_role_differentiation_smoke_v20260606_001_${buildTag}_commit_${commit}`;
+    const checkedRoles = ["cop", "bandit", "toxic", "mafia", "neutral", "crowd"];
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      checkedRoles: checkedRoles.slice(),
+      roleProfilesPresent: false,
+      roleOverlapHits: [],
+      indistinguishableRoles: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => {
+      const key = JSON.stringify(value);
+      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? { check } : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/ё/g, "е").replace(/\s+/g, " ").trim().toLocaleLowerCase("ru-RU");
+    const markerHit = (text, marker) => {
+      const hay = normalize(text);
+      const needle = normalize(marker);
+      if (!needle) return false;
+      if (/^[а-яеa-z0-9]+$/i.test(needle) && needle.length <= 3) return new RegExp(`(^|[^а-яеa-z0-9])${needle}(?=$|[^а-яеa-z0-9])`, "i").test(hay);
+      return hay.indexOf(needle) !== -1;
+    };
+    const listLines = (role) => {
+      const lines = [];
+      const say = NPC && NPC.SAY && NPC.SAY[role];
+      if (say) ["m", "f"].forEach((sex) => (Array.isArray(say[sex]) ? say[sex] : []).forEach((line) => lines.push({ source: `NPC.SAY.${role}.${sex}`, line })));
+      const templates = NPCSpeech.TEMPLATES_BY_LOCALE && NPCSpeech.TEMPLATES_BY_LOCALE.ru;
+      (NPCSpeech.BLOCKS || []).forEach((block) => (NPCSpeech.CHANNELS || []).forEach((channel) => (NPCSpeech.INTENSITIES || []).forEach((intensity) => {
+        const pool = templates && templates[block] && templates[block][role] && templates[block][role][channel] && templates[block][role][channel][intensity];
+        (Array.isArray(pool) ? pool : []).forEach((line) => lines.push({ source: `NPCSpeech.ru.${block}.${role}.${channel}.${intensity}`, line }));
+      })));
+      return lines;
+    };
+    try {
+      const profiles = NPCSpeech.ROLE_PROFILES || {};
+      result.roleProfilesPresent = checkedRoles.every((role) => profiles[role] && Array.isArray(profiles[role].traits) && profiles[role].traits.length >= 2 && Array.isArray(profiles[role].markers) && profiles[role].markers.length >= 4);
+      if (!result.roleProfilesPresent) fail("role_profiles_present", profiles);
+      const profileSignatures = Object.create(null);
+      checkedRoles.forEach((role) => {
+        const profile = profiles[role] || {};
+        const markers = Array.isArray(profile.markers) ? profile.markers : [];
+        const traits = Array.isArray(profile.traits) ? profile.traits : [];
+        profileSignatures[role] = markers.map(normalize).sort().join("|");
+        if (!traits.length) addUnique(result.missingCoverage, `profile_traits:${role}`);
+        if (!markers.length) addUnique(result.missingCoverage, `profile_markers:${role}`);
+        const lines = listLines(role);
+        if (!lines.length) addUnique(result.missingCoverage, `speech:${role}`);
+        lines.forEach((row) => {
+          const text = normalize(row.line);
+          if (!text) fail("empty_speech_line", { role, source: row.source });
+          if (role === "toxic" && text.length > 48) fail("toxic_line_too_long", { role, source: row.source, line: row.line });
+          if ((role === "cop" || role === "mafia") && text.length > 56) fail("minimal_role_line_too_long", { role, source: row.source, line: row.line });
+          if (!markers.some((marker) => markerHit(text, marker))) addUnique(result.indistinguishableRoles, { role, source: row.source, line: row.line, reason: "missing_role_marker" });
+          checkedRoles.filter((other) => other !== role).forEach((other) => {
+            const otherMarkers = profiles[other] && Array.isArray(profiles[other].markers) ? profiles[other].markers : [];
+            otherMarkers.forEach((marker) => {
+              if (markerHit(text, marker)) addUnique(result.roleOverlapHits, { role, other, marker, source: row.source, line: row.line });
+            });
+          });
+          ["докажи", "урок", "запомни", "ты должен", "следует", "необходимо", "правильный выбор", "лучшее решение", "Console.txt"].forEach((term) => {
+            if (markerHit(text, term)) addUnique(result.forbiddenRemaining, { role, source: row.source, term, line: row.line });
+          });
+        });
+      });
+      checkedRoles.forEach((a, idx) => checkedRoles.slice(idx + 1).forEach((b) => {
+        if (profileSignatures[a] && profileSignatures[a] === profileSignatures[b]) addUnique(result.indistinguishableRoles, { roles: [a, b], reason: "same_profile_signature" });
+      }));
+      if (result.roleOverlapHits.length) addUnique(result.failedChecks, "role_overlap_hits");
+      if (result.indistinguishableRoles.length) addUnique(result.failedChecks, "indistinguishable_roles");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+      if (!buildTag || String(buildTag).indexOf("step6_5_npc_role_differentiation") === -1) fail("build_tag_identifies_step6_5", buildTag);
+      if (!commit || String(commit).indexOf("step6_5_npc_role_differentiation") === -1) fail("commit_identifies_step6_5", commit);
+      if (!smokeVersion || smokeVersion.indexOf("step6_5_npc_role_differentiation_smoke_v20260606_001") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_5", smokeVersion);
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.roleProfilesPresent === true
+      && result.roleOverlapHits.length === 0
+      && result.indistinguishableRoles.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   NPCSpeech.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
@@ -1626,6 +1742,13 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcShorteningOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcShorteningOnce()
       : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_4_npc_template_shortening_safari_smoke_exposure_missing", checkedCount: 0, averageReductionPercent: 0, semanticDrift: [], informationLoss: [], roleIdentityLoss: [], shorteningCoverage: {}, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+
+  Game.__DEV.smokeZoomerNpcRoleDifferentiationOnce = function smokeZoomerNpcRoleDifferentiationOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce()
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_5_npc_role_differentiation_missing", checkedRoles: [], roleProfilesPresent: false, roleOverlapHits: [], indistinguishableRoles: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
