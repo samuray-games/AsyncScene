@@ -1,3 +1,10 @@
+## 2026-06-06 — Step 7.6 final system language regression pack
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only `Game.__DEV.smokeSystemLanguageRegressionOnce()` as the final Step 7 system-language regression smoke for SystemCopy, System.say, active surfaces, new feature surfaces, start-screen copy, templates, fallbacks, source-of-truth, phrase, tone, routing, and hardcoded/bypass checks.
+- Refreshed served build identity to `build_2026_06_06_step7_6_final_system_language_regression_pack` / `step7_6_final_system_language_regression_pack` / `step7_6_final_system_language_regression_pack_smoke_v20260606_001`.
+- Kept scope audit-only except for the two shortest copy adjustments required so the all-system-message phrase checks can execute cleanly; no gameplay, UI, broad refactor, or `Console.txt` changes.
+- Required Safari command: `Game.__DEV.smokeSystemLanguageRegressionOnce()`.
+
 ## 2026-06-06 — Step 7.5 tone runtime fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed only the runtime-reported Step 7.5 tone surfaces in app and docs mirrors: SystemCopy errors/warnings/start lines, template fallback copy, start-screen sourced lines, and active Gen Z crowd hints.
