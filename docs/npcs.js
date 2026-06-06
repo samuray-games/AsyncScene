@@ -1472,6 +1472,129 @@ window.Game ||= {};
       && result.covered.step34SystemTexts === 1;
     return result;
   };
+  NPCSpeech.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step6_4_npc_template_shortening_safari_smoke_exposure_v2_20260606_${buildTag}_commit_${commit}`;
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      checkedCount: 0,
+      averageReductionPercent: 0,
+      semanticDrift: [],
+      informationLoss: [],
+      roleIdentityLoss: [],
+      shorteningCoverage: { battle: 0, dm: 0, event: 0, report: 0, crowd: 0 },
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => {
+      const key = JSON.stringify(value);
+      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? { check } : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim().toLocaleLowerCase("ru-RU");
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => {
+      if (value == null) return undefined;
+      if (/^\d+$/.test(key)) return value[Number(key)];
+      return value[key];
+    }, root);
+    const rows = [
+      { scope: "dm", role: "toxic", source: "NPC.SAY.toxic.m.0", before: "ты уверен в этой позиции", after: "уверен в позиции", must: ["уверен", "позиции"] },
+      { scope: "battle", role: "toxic", source: "NPC.SAY.toxic.m.3", before: "не тяни, ответ нужен сейчас", after: "не тяни, отвечай", must: ["не тяни", "отвечай"] },
+      { scope: "event", role: "toxic", source: "NPC.SAY.toxic.m.4", before: "толпа услышала, теперь докажи", after: "толпа слышит, докажи", must: ["толпа", "докажи"] },
+      { scope: "dm", role: "bandit", source: "NPC.SAY.bandit.m.8", before: "шаг назад и слушай", after: "шаг назад, слушай", must: ["шаг назад", "слушай"] },
+      { scope: "battle", role: "bandit", source: "NPC.SAY.bandit.m.11", before: "ответишь — потеряешь больше", after: "ответишь — потеряешь", must: ["ответишь", "потеряешь"] },
+      { scope: "dm", role: "cop", source: "NPC.SAY.cop.m.0", before: "Я на связи. Держим дистанцию", after: "На связи. Дистанция", must: ["связи", "дистанция"] },
+      { scope: "report", role: "cop", source: "Game.Data.COP_TEMPLATES.toxicDescriptions.0", before: "Токсик — хамоватая тень, прячется за оскорблениями и агрессией.", after: "Токсик прячется за оскорблениями.", must: ["токсик", "оскорбления"] },
+      { scope: "report", role: "cop", source: "Game.Data.COP_TEMPLATES.banditDescriptions.0", before: "Бандит — драчун с холодными глазами, ищет наживу.", after: "Бандит ищет наживу.", must: ["бандит", "наживу"] },
+      { scope: "report", role: "cop", source: "Game.Data.COP_TEMPLATES.scolds.4", before: "Деталей не хватило, «Сдать» вызвало переполох.", after: "Деталей мало, «Сдать» шумит.", must: ["детал", "сдать"] },
+      { scope: "event", role: "mafia", source: "NPC.SAY.mafia.m.0", before: "Добрый вечер. Говорим спокойно", after: "Добрый вечер. Спокойно", must: ["вечер", "спокойно"] },
+      { scope: "dm", role: "mafia", source: "NPC.SAY.mafia.m.6", before: "договоримся без лишних глаз", after: "договоримся без глаз", must: ["договоримся", "глаз"] },
+      { scope: "crowd", role: "crowd", source: "NPC.SAY.crowd.m.4", before: "шумно на площади, но я остаюсь", after: "площадь шумит, остаюсь", must: ["площад", "остаюсь"] },
+      { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.1", before: "я смотрю со стороны", after: "смотрю со стороны", must: ["смотрю", "стороны"] },
+      { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.6", before: "мне скучно, нужен ход", after: "скучно, нужен ход", must: ["скучно", "ход"] },
+      { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.24", before: "я тут из-за шума", after: "тут из-за шума", must: ["тут", "шума"] },
+      { scope: "dm", role: "bandit", source: "villainQuestions.1", before: "это про тебя? отвечай", after: "про тебя? отвечай", must: ["про тебя", "отвечай"] },
+      { scope: "battle", role: "bandit", source: "villainChallenges.1", before: "готовность видна — раунд рядом", after: "готовность видна — раунд", must: ["готовность", "раунд"] },
+      { scope: "dm", role: "toxic", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.greetings.toxic.dm.y.0", before: "личка: {PLAYER}, покажи позицию", after: "личка: {PLAYER}, позицию", must: ["личка", "позицию"] },
+      { scope: "event", role: "neutral", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.threats.neutral.event.y.0", before: "у {PLACE}: конфликт растет", after: "{PLACE}: конфликт выше", must: ["{place}", "конфликт"] },
+      { scope: "battle", role: "toxic", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.victory.toxic.battle.y.1", before: "спор: сказал жестко и точно", after: "спор: жестко и точно", must: ["спор", "жестко", "точно"] }
+    ];
+    const roleHints = {
+      cop: ["связ", "дистанц", "токсик", "бандит", "сдать", "детал"],
+      mafia: ["вечер", "спокой", "договор", "глаз"],
+      bandit: ["шаг", "слуш", "ответ", "потер", "раунд", "готов", "про тебя"],
+      toxic: ["уверен", "позици", "отвеч", "докажи", "жестко"],
+      neutral: ["конфликт", "площад", "тема"],
+      crowd: ["площад", "смотр", "скучно", "шум"]
+    };
+    const forbidden = ["просто", "как бы", "ну типа", "давайте", "лишних", "теперь", "уже", "сейчас станет", "если он есть", "можем реагировать на каждый", "ради хайпа", "треш-стрим"];
+    try {
+      const root = { NPC, Game, villainQuestions, villainChallenges, NPCSpeech };
+      let beforeChars = 0;
+      let afterChars = 0;
+      rows.forEach((row) => {
+        result.checkedCount += 1;
+        result.shorteningCoverage[row.scope] = (result.shorteningCoverage[row.scope] || 0) + 1;
+        const currentRaw = getPath(root, row.source);
+        const current = normalize(currentRaw);
+        const expected = normalize(row.after);
+        beforeChars += String(row.before || "").length;
+        afterChars += String(currentRaw || "").length;
+        if (current !== expected) addUnique(result.semanticDrift, { source: row.source, expected: row.after, actual: String(currentRaw || "") });
+        (row.must || []).forEach((token) => {
+          if (current.indexOf(normalize(token)) === -1) addUnique(result.informationLoss, { source: row.source, missing: token, text: String(currentRaw || "") });
+        });
+        const hints = roleHints[row.role] || [];
+        if (hints.length && !hints.some((hint) => current.indexOf(normalize(hint)) !== -1)) {
+          addUnique(result.roleIdentityLoss, { source: row.source, role: row.role, text: String(currentRaw || "") });
+        }
+        forbidden.forEach((term) => {
+          const needle = normalize(term);
+          const wordOnly = /^[а-яёa-z0-9]+$/i.test(needle);
+          const hit = wordOnly
+            ? new RegExp(`(^|[^а-яёa-z0-9])${needle}(?=$|[^а-яёa-z0-9])`, "i").test(current)
+            : current.indexOf(needle) !== -1;
+          if (hit) addUnique(result.forbiddenRemaining, { source: row.source, term, text: String(currentRaw || "") });
+        });
+      });
+      result.averageReductionPercent = beforeChars > 0 ? Math.round(((beforeChars - afterChars) / beforeChars) * 1000) / 10 : 0;
+      ["battle", "dm", "event", "report", "crowd"].forEach((scope) => {
+        if (!result.shorteningCoverage[scope]) addUnique(result.missingCoverage, scope);
+      });
+      if (result.averageReductionPercent < 20 || result.averageReductionPercent > 40) fail("average_reduction_percent_out_of_range", result.averageReductionPercent);
+      if (result.semanticDrift.length) fail("semantic_drift", result.semanticDrift.slice());
+      if (result.informationLoss.length) fail("information_loss", result.informationLoss.slice());
+      if (result.roleIdentityLoss.length) fail("role_identity_loss", result.roleIdentityLoss.slice());
+      if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
+      if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+      if (!buildTag || String(buildTag).indexOf("step6_4_npc_template_shortening") === -1) fail("build_tag_identifies_runtime_build", buildTag);
+      if (!commit || String(commit).indexOf("step6_4_npc_template_shortening") === -1) fail("commit_identifies_task_commit", commit);
+      if (!smokeVersion || smokeVersion.indexOf("step6_4_npc_template_shortening_safari_smoke_exposure_v2_20260606") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.checkedCount > 0
+      && result.averageReductionPercent >= 20
+      && result.averageReductionPercent <= 40
+      && result.semanticDrift.length === 0
+      && result.informationLoss.length === 0
+      && result.roleIdentityLoss.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.NPCSpeech = NPCSpeech;
   Game.__DEV ||= {};
   Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
@@ -1496,6 +1619,12 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeMillennialWordingOnce === "function"
       ? Game.NPCSpeech.smokeMillennialWordingOnce()
       : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+  Game.__DEV.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcShorteningOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcShorteningOnce()
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_4_npc_template_shortening_safari_smoke_exposure_missing", checkedCount: 0, averageReductionPercent: 0, semanticDrift: [], informationLoss: [], roleIdentityLoss: [], shorteningCoverage: {}, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {

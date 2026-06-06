@@ -1476,7 +1476,7 @@ window.Game ||= {};
   NPCSpeech.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
-    const smokeVersion = `step6_4_npc_template_shortening_v1_20260606_${buildTag}_commit_${commit}`;
+    const smokeVersion = `step6_4_npc_template_shortening_safari_smoke_exposure_v2_20260606_${buildTag}_commit_${commit}`;
     const result = {
       ok: false,
       buildTag,
@@ -1579,7 +1579,7 @@ window.Game ||= {};
       if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
       if (!buildTag || String(buildTag).indexOf("step6_4_npc_template_shortening") === -1) fail("build_tag_identifies_runtime_build", buildTag);
       if (!commit || String(commit).indexOf("step6_4_npc_template_shortening") === -1) fail("commit_identifies_task_commit", commit);
-      if (!smokeVersion || smokeVersion.indexOf("step6_4_npc_template_shortening_v1_20260606") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
+      if (!smokeVersion || smokeVersion.indexOf("step6_4_npc_template_shortening_safari_smoke_exposure_v2_20260606") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
     }
@@ -1625,7 +1625,7 @@ window.Game ||= {};
   Game.__DEV.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcShorteningOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcShorteningOnce()
-      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_4_npc_template_shortening_missing", checkedCount: 0, averageReductionPercent: 0, semanticDrift: [], informationLoss: [], roleIdentityLoss: [], shorteningCoverage: {}, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_4_npc_template_shortening_safari_smoke_exposure_missing", checkedCount: 0, averageReductionPercent: 0, semanticDrift: [], informationLoss: [], roleIdentityLoss: [], shorteningCoverage: {}, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
