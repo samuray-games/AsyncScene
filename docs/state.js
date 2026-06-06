@@ -2709,7 +2709,7 @@ window.Game = window.Game || {};
   try {
     Game.__DEV ||= {};
     Game.__DEV.__probeNpcSpeechReportReactionLine = function __probeNpcSpeechReportReactionLine(cop, text) {
-      return npcSpeechRuntimeLine("report_reaction", cop || null, text || "Принял. Сейчас разберёмся.", { channel: "dm" });
+      return npcSpeechRuntimeLine("report_reaction", cop || null, text || "Принял. Проверка началась.", { channel: "dm" });
     };
   } catch (_) {}
 
@@ -3152,16 +3152,16 @@ window.Game = window.Game || {};
       ? Math.min(1, Math.max(0, rawAcceptChance))
       : DEFAULT_ACCEPT_CHANCE;
     const REFUSAL_LINES = [
-      "Ты сначала очки набери.",
+      "Ноль очков — ноль боя.",
       "С нулем в кармане бой неинтересен.",
-      "Не сейчас. Прокачайся и приходи.",
+      "Не сейчас. Нужны очки.",
       "Бой? С такими ресурсами?",
       "Я не благотворительность.",
       "Сейчас не хочу.",
-      "Вернись, когда будет что ставить.",
+      "Будут очки — будет ставка.",
       "Пустой кошелек - пустой разговор.",
       "Ты серьезно?",
-      "Попробуй позже.",
+      "Позже.",
     ];
 
     const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs, { devSmoke: !!payload.devSmoke });
@@ -3854,7 +3854,7 @@ window.Game = window.Game || {};
     });
 
     try {
-      const penaltyMsg = `«Сдать» без фактов — штраф ${repPenalty}⭐. Проверь факты в следующий раз.`;
+      const penaltyMsg = `«Сдать» без фактов — штраф ${repPenalty}⭐. Запись в отчете.`;
       pushDm(copId, copName, copLine(npcSpeechRuntimeLine("report_reaction", cop, penaltyMsg, { channel: "dm" })), { isSystem: false, playerId: copId });
     } catch (_) {}
     try { copDmTo(copId, "cop_fail"); } catch (_) {}
@@ -3936,7 +3936,7 @@ window.Game = window.Game || {};
     try {
       const victimized = checkIfVictimized(targetId);
       if (victimized) {
-        copDmTo(copId, "Понимаю, тебя задело. Я вмешался.");
+        copDmTo(copId, "Сообщение принято. Я вмешался.");
         const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
         const returnAmount = victimized.stolenAmount || 0;
         if (returnAmount > 0 && Econ && typeof Econ.transferPoints === "function") {
@@ -4167,7 +4167,7 @@ window.Game = window.Game || {};
     // Assign this cop for this interaction (used by legacy helpers)
     State.assignedCopId = cop.id;
     // Immediately notify player that this cop accepted the report (DM in THIS cop thread)
-    try { pushDm(cop.id, cop.name, copLine(npcSpeechRuntimeLine("report_reaction", cop, "Принял. Сейчас разберёмся.", { channel: "dm" })), { isSystem: false, playerId: cop.id }); } catch (_) {}
+    try { pushDm(cop.id, cop.name, copLine(npcSpeechRuntimeLine("report_reaction", cop, "Принял. Проверка началась.", { channel: "dm" })), { isSystem: false, playerId: cop.id }); } catch (_) {}
 
     if (!target) target = findNpcByRole(roleKey);
     if (!target || !target.id) {

@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_05_step6_2_npc_speech_rules";
-  const RUNTIME_COMMIT = "step6_2_npc_speech_rules";
+  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_3_npc_no_mentoring";
+  const RUNTIME_COMMIT = "step6_3_npc_no_mentoring";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -5704,7 +5704,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.warnings", get: () => copTpl("warnings") },
       { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.thanks", get: () => copTpl("thanks") },
       { category: "reportReactions", source: "AsyncScene/Web/data.js:Data.COP_TEMPLATES.scolds", get: () => copTpl("scolds") },
-      { category: "reportReactions", source: "AsyncScene/Web/state.js:report flow hardcoded replies", get: () => ["Принял. Сейчас разберёмся.", "Цель не обнаружена. Проверю ещё раз.", "Этот контакт уже отмечен. Повтор не требуется.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Проверка сошлась. Контакт отмечен.", "Понимаю, тебя задело. Я вмешался."] },
+      { category: "reportReactions", source: "AsyncScene/Web/state.js:report flow hardcoded replies", get: () => ["Принял. Проверка началась.", "Цель не обнаружена. Проверю ещё раз.", "Этот контакт уже отмечен. Повтор не требуется.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Проверка сошлась. Контакт отмечен.", "Понимаю, тебя задело. Я вмешался."] },
       { category: "dm", source: "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", get: () => "Ты мне пишешь? Тогда поговорим лично." }
     ]);
     devStore.smokeNpcSpeechInventoryOnce = function smokeNpcSpeechInventoryOnce() {
@@ -5862,7 +5862,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         });
       });
       list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainQuestions", () => ["ты здесь? отвечай", "это про тебя? отвечай", "кто держит слово?", "это твоя тема?", "войдешь в спор или мимо?"], { role: "toxic", channel: "dm", idPrefix: "villain_questions" }));
-      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "вызывай, если готов", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
+      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "готовность видна — раунд рядом", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
       list.push(makeSource("neutral", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", () => Game.Data && Game.Data.NPC_CHAT_LINES, { role: "neutral", channel: "event", idPrefix: "npc_chat_lines" }));
       ["intros", "warnings", "toxicDescriptions", "banditDescriptions", "chatReplies", "cooldownReplies", "thanks", "scolds"].forEach(key => {
         list.push(makeSource(key === "toxicDescriptions" ? "toxic" : key === "banditDescriptions" ? "bandit" : "cop", `AsyncScene/Web/data.js:Data.COP_TEMPLATES.${key}`, () => copTpl(key), { role: "cop", channel: key === "chatReplies" ? "event" : "dm", idPrefix: `cop_templates_${key}` }));
@@ -5883,7 +5883,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", () => "Толпа решает: NPC A хочет Свалить NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_weak" }));
       ["cop_report_accept", "cop_busy", "cop_report_ok", "cop_report_fail", "cop_cooldown"].forEach(key => list.push(makeSource("report", `AsyncScene/Web/data.js:Data.TEXTS.genz.${key}`, () => dataGenz(key), { role: "cop", channel: "dm", idPrefix: `texts_genz_${key}` })));
       list.push(makeSource("report", "AsyncScene/Web/npcs.js:NPC.COP.topics", () => Game.NPC && Game.NPC.COP && Game.NPC.COP.topics, { role: "cop", channel: "dm", idPrefix: "npc_cop_topics" }));
-      list.push(makeSource("report", "AsyncScene/Web/state.js:report flow hardcoded replies", () => ["Принял. Сейчас разберёмся.", "Цель не обнаружена. Проверю ещё раз.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Этот контакт уже отмечен. Повтор не требуется.", "Проверка сошлась. Контакт отмечен.", "Понимаю, тебя задело. Я вмешался.", "Проверка сошлась. Контакт отмечен.", "Цель не обнаружена. Проверю ещё раз.", "«Сдать» без фактов — штраф 1⭐. Проверь факты в следующий раз.", "NPC отправился за решётку на 5 минут."], { role: "cop", channel: "dm", idPrefix: "state_report_replies" }));
+      list.push(makeSource("report", "AsyncScene/Web/state.js:report flow hardcoded replies", () => ["Принял. Проверка началась.", "Цель не обнаружена. Проверю ещё раз.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Этот контакт уже отмечен. Повтор не требуется.", "Проверка сошлась. Контакт отмечен.", "Сообщение принято. Я вмешался.", "Проверка сошлась. Контакт отмечен.", "Цель не обнаружена. Проверю ещё раз.", "«Сдать» без фактов — штраф 1⭐. Запись в отчете.", "NPC отправился за решётку на 5 минут."], { role: "cop", channel: "dm", idPrefix: "state_report_replies" }));
       list.push(makeSource("dm", "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", () => "Ты мне пишешь? Тогда поговорим лично.", { role: "mafia", channel: "dm", idPrefix: "ui_dm_mafia_trap" }));
       list.push(makeSource("bandit", "AsyncScene/Web/state.js:sendRevengeDM.bandit", () => "долг вернем, не забудь", { role: "bandit", channel: "dm", idPrefix: "state_revenge_bandit" }));
       list.push(makeSource("toxic", "AsyncScene/Web/state.js:sendRevengeDM.default", () => "ты за это ответишь", { role: "toxic", channel: "dm", idPrefix: "state_revenge_toxic" }));
@@ -5975,6 +5975,79 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
     if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechInventoryOnce = smokeZoomerNpcSpeechInventoryOnce;
+
+    const NO_MENTORING_BUILD_TAG = "build_2026_06_06_step6_3_npc_no_mentoring";
+    const NO_MENTORING_COMMIT = "step6_3_npc_no_mentoring";
+    const NO_MENTORING_SMOKE_VERSION = "step6_3_npc_no_mentoring_smoke_v20260606_001";
+    const noMentoringRules = Object.freeze({
+      mentoringHits: Object.freeze([
+        { label: "direct_advice", pattern: /(совет|подскажу|попробуй|стоит|лучше|рекоменд|проверь|проверяй|проверяйте|убедись|убедитесь)/i },
+        { label: "you_should", pattern: /(тебе|вам|ты|вы)\s+(стоит|следует|надо|нужно|должен|должна|должны)/i },
+        { label: "think_about_consequences", pattern: /подум\w*\s+о\s+последств/i },
+        { label: "directive_lesson", pattern: /(?:не\s+отвечай|не\s+отвечайте|не\s+спорь|не\s+спорьте|не\s+ввязывай|не\s+ввязывайтесь|выбирай|выбирайте)\b/i }
+      ]),
+      teacherToneHits: Object.freeze([
+        { label: "lesson_voice", pattern: /(урок|обуч|объясняю|разбер[её]м|запомни|помните|вывод|главное|правильный ответ|учитель|ученик|домашн)/i },
+        { label: "corrective_classroom", pattern: /(правильно|неправильно|молодец|умничк|так держать|будь внимател|будьте внимател)/i }
+      ]),
+      moralizingHits: Object.freeze([
+        { label: "moral_judgement", pattern: /(стыд|вина|виноват|доверие|доверились|хорошая работа|отличная работа|хорошо сработал|ты сделал|честн|нечестн|заслуж)/i },
+        { label: "moral_lesson", pattern: /разрушает\s+доверие|подставлять\s+систему|сделал\s+дом\s+безопаснее/i }
+      ]),
+      hiddenMentoringHits: Object.freeze([
+        { label: "soft_guidance", pattern: /(сначала|сомневаешься|сомневаетесь|безопасн(?:ый|ее|о|ая)|держи связь|держитесь|держите себя|соблюдайте|сдерживайтесь|не создавайте|не раздувайте|прокачайся|приходи)/i },
+        { label: "long_instructional", pattern: /(?:потому что|если\s+.+(?:то|может)|чтобы|следовательно|таким образом)/i }
+      ])
+    });
+    const smokeZoomerNpcNoMentoringOnce = function smokeZoomerNpcNoMentoringOnce() {
+      const result = { ok: false, buildTag: NO_MENTORING_BUILD_TAG, commit: NO_MENTORING_COMMIT, smokeVersion: NO_MENTORING_SMOKE_VERSION, checkedCount: 0, mentoringHits: [], teacherToneHits: [], moralizingHits: [], hiddenMentoringHits: [], failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
+      const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item); };
+      const scan = (bucketName, entry, rule) => {
+        const text = norm(entry && entry.text);
+        const match = text.match(rule.pattern);
+        if (match) addUnique(result[bucketName], { label: rule.label, match: match[0], id: entry.id, sourcePath: entry.sourcePath, role: entry.role, channel: entry.channel, text });
+      };
+      try {
+        const srcs = sources();
+        const covered = new Set();
+        const inventory = [];
+        srcs.forEach((src, sourceIndex) => {
+          if (!src || !src.sourcePath) { addUnique(result.failures, { code: "source_metadata_missing", sourceIndex }); return; }
+          let value;
+          try { value = typeof src.get === "function" ? src.get() : src.value; } catch (err) { addUnique(result.failures, { code: "source_read_failed", sourcePath: src.sourcePath, message: err && err.message ? String(err.message) : String(err) }); return; }
+          const before = inventory.length;
+          collect(value, src, "", inventory);
+          if (inventory.length > before) covered.add(src.sourcePath);
+        });
+        ["AsyncScene/Web/npcs.js:NPC.SAY.cop.m", "AsyncScene/Web/npcs.js:NPC.SAY.mafia.m", "AsyncScene/Web/data.js:Data.COP_TEMPLATES.scolds", "AsyncScene/Web/npcs.js:NPC.COP.topics", "AsyncScene/Web/state.js:report flow hardcoded replies", "AsyncScene/Web/npcs.js:Game.NPCSpeech.TEMPLATES_BY_LOCALE"].forEach(sourcePath => {
+          if (!covered.has(sourcePath)) addUnique(result.missingCoverage, sourcePath);
+        });
+        inventory.forEach(entry => {
+          if (!entry || !norm(entry.text)) return;
+          if (/Data\.ARGUMENTS\./.test(entry.sourcePath || "")) return;
+          result.checkedCount += 1;
+          Object.keys(noMentoringRules).forEach(bucketName => noMentoringRules[bucketName].forEach(rule => scan(bucketName, entry, rule)));
+        });
+        if (result.checkedCount <= 0) addUnique(result.failures, "inventory_empty");
+      } catch (err) {
+        addUnique(result.failures, { code: "smoke_exception", message: err && err.message ? String(err.message) : String(err) });
+      }
+      ["mentoringHits", "teacherToneHits", "moralizingHits", "hiddenMentoringHits"].forEach(bucket => {
+        if (result[bucket].length) {
+          addUnique(result.forbiddenRemaining, bucket);
+          addUnique(result.failedChecks, `${bucket}_empty`);
+        }
+      });
+      if (result.failures.length) addUnique(result.failedChecks, "failures_empty");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining_empty");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage_empty");
+      result.ok = result.mentoringHits.length === 0 && result.teacherToneHits.length === 0 && result.moralizingHits.length === 0 && result.hiddenMentoringHits.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
+    devStore.NPC_SPEECH_NO_MENTORING_RULES = noMentoringRules;
+    devStore.smokeZoomerNpcNoMentoringOnce = smokeZoomerNpcNoMentoringOnce;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerNpcNoMentoringOnce = smokeZoomerNpcNoMentoringOnce;
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcNoMentoringOnce = smokeZoomerNpcNoMentoringOnce;
     return smokeZoomerNpcSpeechInventoryOnce;
   };
   installZoomerNpcSpeechInventorySmoke(G.__DEV);
@@ -33057,8 +33130,8 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       const battleLine = Game.NPC.generateReactionToMe(npcB, "Игрок");
       checkLine("battle_reply", battleLine);
       const reportLine = (Game.__DEV && typeof Game.__DEV.__probeNpcSpeechReportReactionLine === "function")
-        ? Game.__DEV.__probeNpcSpeechReportReactionLine(cop, "Принял. Сейчас разберёмся.")
-        : speech.generateRuntimeNpcLine(speech.makeCtx(cop, { source: "report_reaction", channel: "dm", tick: "runtime_smoke" }), "Принял. Сейчас разберёмся.");
+        ? Game.__DEV.__probeNpcSpeechReportReactionLine(cop, "Принял. Проверка началась.")
+        : speech.generateRuntimeNpcLine(speech.makeCtx(cop, { source: "report_reaction", channel: "dm", tick: "runtime_smoke" }), "Принял. Проверка началась.");
       checkLine("report_reaction", reportLine);
 
       let eventLine = "";
