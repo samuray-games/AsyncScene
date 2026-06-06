@@ -65,8 +65,8 @@ window.Game = window.Game || {};
     }),
     systemEvents: Object.freeze({
       ready: "Готово.",
-      dmReaction: "{name} обменялся(ась) реакцией с {target}.",
-      dmInvite: "{name} позвал(а) {guest} в личку к {target}.",
+      dmReaction: "{name} ↔ {target}: реакция.",
+      dmInvite: "{name}: +{guest} к {target}.",
       joined: "{name} на площади.",
       moved: "Переход: {location}.",
       battleChallenge: "{attackerName} [{attackerInf}] бросил вызов.",
@@ -74,7 +74,7 @@ window.Game = window.Game || {};
       battleWin: "{winner} победил. {loser} проиграл.",
       battleDraw: "{a} и {b}: ничья.",
       crowdStart: "Толпа решает.",
-      crowdResolved: "Толпа за {name}: {aVotes}:{bVotes}.",
+      crowdResolved: "Толпа: {name} {aVotes}:{bVotes}.",
       unlockOrange: "Оранжевые аргументы открыты.",
       unlockRed: "Красные аргументы открыты.",
       unlockBlack: "Чёрные аргументы открыты.",
@@ -619,9 +619,9 @@ window.Game = window.Game || {};
 
   const SYSTEM_Z_PHRASE_RULE = Object.freeze({
     id: "z-system-phrase-rule",
-    buildTag: "build_2026_06_06_step7_2_z_phrase_rule",
-    commit: "step7_2_z_phrase_rule",
-    smokeVersion: "step7_2_z_phrase_rule_smoke_v20260606_001",
+    buildTag: "build_2026_06_06_step7_2_z_phrase_rule_fix_runtime_violations",
+    commit: "step7_2_z_phrase_rule_fix_runtime_violations",
+    smokeVersion: "step7_2_z_phrase_rule_fix_runtime_violations_smoke_v20260606_002",
     preferredWordsMin: 2,
     preferredWordsMax: 4,
     maxWords: 4,
