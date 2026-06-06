@@ -6043,3 +6043,10 @@ Error: Download failure, code=1
 - The wrapper coverage smoke reports `ok`, identity fields, inventory/wrapper counts, coverage percentage, by-type counts, and failure buckets for missing coverage, duplicate ids, empty wrappers, placeholder mismatch, semantic drift, forbidden terms, failed checks, and failures.
 - Scope guard preserved: canon argument text is unchanged; wrappers are not applied to live gameplay; UI behavior, battle behavior, and defense logic are unchanged.
 - Required Safari command: `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()`.
+
+## 2026-06-06 — Step 6.4 NPC template shortening
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Shortened NPC speech templates in the requested battle, DM, event, report, and crowd surfaces while preserving role identity, intent, and one idea per line.
+- Added runtime smoke `Game.__DEV.smokeZoomerNpcShorteningOnce()` with required fields and 20–40% average reduction gating.
+- Refreshed runtime identity to `build_2026_06_06_step6_4_npc_template_shortening` / `step6_4_npc_template_shortening`.
+- Scope held: speech templates and dev smoke only; no UI, gameplay, economy, or unrelated refactoring; `Console.txt` was not used.

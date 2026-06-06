@@ -144,103 +144,103 @@ window.Game ||= {};
   NPC.SAY = {
     toxic: {
       m: [
-        "ты уверен в этой позиции",
-        "слабое место уже видно",
-        "говори прямо, без обходов",
-        "не тяни, ответ нужен сейчас",
-        "толпа услышала, теперь докажи",
+        "уверен в позиции",
+        "слабое место видно",
+        "говори прямо",
+        "не тяни, отвечай",
+        "толпа слышит, докажи",
         "выглядит хрупко, продолжай",
-        "сейчас станет ясно, кто держит удар",
+        "ясно, кто держит удар",
         "раунд открыт, говори точнее",
         "не уходи, отвечай",
-        "покажи аргумент, если он есть"
+        "покажи аргумент"
       ],
       f: [
-        "ты понимаешь, куда зашел",
-        "без шума, отвечай по сути",
-        "я слушаю, но терпение короткое",
-        "не тяни, скажи прямо",
-        "не прячь слабый ход за словами"
+        "понимаешь, куда зашел",
+        "без шума, по сути",
+        "слушаю, терпение короткое",
+        "не тяни, прямо",
+        "не прячь слабый ход"
       ]
     },
     bandit: {
       m: [
-        "я тебя вижу",
+        "вижу тебя",
         "деньги на стол",
         "стой ровно",
         "без героизма",
-        "я долго не торгуюсь",
+        "долго не торгуюсь",
         "отвечай или плати",
-        "посмотрим, сколько держишь",
+        "посмотрим, держишься",
         "не тяни",
-        "шаг назад и слушай",
+        "шаг назад, слушай",
         "уйти будет дешевле",
-        "решился или нет",
-        "ответишь — потеряешь больше"
+        "решился?",
+        "ответишь — потеряешь"
       ],
       f: [
-        "я тебя заметила",
+        "заметила тебя",
         "без резких движений",
-        "не мешай мне",
+        "не мешай",
         "отвечай или уходи",
         "не усложняй",
         "дважды не говорю",
-        "проверка будет дорогой",
+        "проверка дорогая",
         "решим сейчас",
-        "предупреждаю один раз",
+        "предупреждаю раз",
         "время вышло"
       ]
     },
     cop: {
       m: [
-        "Я на связи. Держим дистанцию",
-        "Вижу конфликт. Темп высокий",
+        "На связи. Дистанция",
+        "Вижу конфликт. Темп высок",
         "Провокация без ответа",
-        "Агрессивные рядом, дистанция",
-        "Увидел токсика или бандита — пиши в личку"
+        "Агрессия рядом, дистанция",
+        "Токсик или бандит — пиши"
       ],
       f: [
-        "Я на связи. Держим дистанцию",
-        "Вижу конфликт. Темп высокий",
+        "На связи. Дистанция",
+        "Вижу конфликт. Темп высок",
         "Провокация без ответа",
-        "Агрессивные рядом, дистанция",
-        "Увидел токсика или бандита — пиши в личку"
+        "Агрессия рядом, дистанция",
+        "Токсик или бандит — пиши"
       ]
     },
     mafia: {
       m: [
-        "Добрый вечер. Говорим спокойно",
-        "Лишний шум дорогой",
+        "Добрый вечер. Спокойно",
+        "Шум дорогой",
         "ход оставит след",
-        "Спешка здесь дорогая",
-        "Сомнение видно, выход рядом",
-        "ценю точность и тишину",
-        "договоримся без лишних глаз"
+        "Спешка дорогая",
+        "Сомнение видно, выход есть",
+        "ценю точность",
+        "договоримся без глаз"
       ],
       f: [
-        "Добрый вечер. Говорим спокойно",
-        "Лишний шум дорогой",
+        "Добрый вечер. Спокойно",
+        "Шум дорогой",
         "ход оставит след",
-        "Спешка здесь дорогая",
-        "Сомнение видно, выход рядом",
-        "ценю точность и тишину",
-        "договоримся без лишних глаз"
+        "Спешка дорогая",
+        "Сомнение видно, выход есть",
+        "ценю точность",
+        "договоримся без глаз"
       ]
     },
     crowd: {
       m: [
         "кто начнет первым",
-        "становится напряженно",
-        "посмотрим на доводы",
-        "неожиданно, читаю дальше",
-        "шумно на площади, но я остаюсь"
+        "напряжение растет",
+        "смотрим доводы",
+        "неожиданно, читаю",
+        "площадь шумит, остаюсь"
       ],
       f: [
-        "интересно, чем закончится",
+        "интересно, чем кончится",
         "напряжение растет",
-        "посмотрим, что будет",
-        "я читаю внимательно",
-        "на площади напряженно"
+        "смотрим, что будет",
+        "читаю внимательно",
+        "площадь напряжена"
       ]
     }
   };
@@ -605,16 +605,16 @@ window.Game ||= {};
   // Villain DM flow: question -> challenge
   const villainQuestions = [
     "ты здесь? отвечай",
-    "это про тебя? отвечай",
-    "кто держит слово?",
+    "про тебя? отвечай",
+    "держишь слово?",
     "это твоя тема?",
-    "войдешь в спор или мимо?"
+    "в спор или мимо?"
   ];
   const villainChallenges = [
     "идем в раунд",
-    "готовность видна — раунд рядом",
-    "раунд все покажет",
-    "готов к спору?"
+    "готовность видна — раунд",
+    "раунд покажет",
+    "готов спорить?"
   ];
 
   NPC.generateVillainQuestion = (npc) => {
@@ -834,44 +834,44 @@ window.Game ||= {};
     const intensities = ["y", "o", "r", "k"];
     const roleLines = {
       greetings: {
-        cop: ["вижу тебя у {PLACE}", "привет, держим дистанцию"],
-        mafia: ["добрый вечер, {PLAYER}", "обсудим {TOPIC} тихо"],
-        bandit: ["{PLAYER}, стой ровно", "у {PLACE}, без движений"],
-        toxic: ["{PLAYER}, покажи позицию", "говори про {TOPIC}"],
-        neutral: ["привет, {PLAYER}", "я рядом у {PLACE}"]
+        cop: ["вижу у {PLACE}", "привет, дистанция"],
+        mafia: ["вечер, {PLAYER}", "{TOPIC} обсудим тихо"],
+        bandit: ["{PLAYER}, стой ровно", "{PLACE}, без движений"],
+        toxic: ["{PLAYER}, позицию", "про {TOPIC}"],
+        neutral: ["привет, {PLAYER}", "рядом у {PLACE}"]
       },
       threats: {
-        cop: ["не дави, отойди", "сбавь темп"],
-        mafia: ["спокойствие не слабость", "шаг назад разумнее"],
-        bandit: ["{PLAYER}, деньги ближе", "не тяни"],
+        cop: ["не дави", "сбавь темп"],
+        mafia: ["спокойствие — не слабость", "шаг назад"],
+        bandit: ["{PLAYER}, деньги", "не тяни"],
         toxic: ["покажи, чего стоишь", "говори по делу"],
-        neutral: ["конфликт растет", "тема на грани"]
+        neutral: ["конфликт выше", "тема грань"]
       },
       victory: {
         cop: ["конфликт закрыт", "шум стих"],
-        mafia: ["итог понятен", "тишина закрепит итог"],
+        mafia: ["итог понятен", "тишина закрепит"],
         bandit: ["забрал свое", "разговор окончен"],
-        toxic: ["раунд за мной", "сказал жестко и точно"],
-        neutral: ["раунд закрыт", "площадь выдохнула"]
+        toxic: ["раунд за мной", "жестко и точно"],
+        neutral: ["раунд закрыт", "площадь выдох"]
       },
       defeat: {
         cop: ["вижу ошибку", "идем дальше"],
         mafia: ["бывает", "не суетись"],
-        bandit: ["не вывез", "слабый ход, {PLAYER}"],
-        toxic: ["тема тяжелее", "уверенность просела"],
+        bandit: ["не вывез", "слабый ход"],
+        toxic: ["тема тяжелее", "уверенность ниже"],
         neutral: ["не пошло", "раунд проигран"]
       },
       neutral: {
-        cop: ["держим дистанцию", "пиши по делу"],
-        mafia: ["тише — дешевле", "точные слова дешевле"],
-        bandit: ["смотрю без движений", "тишина давит"],
-        toxic: ["чем ответишь?", "слушаю недолго"],
-        neutral: ["площадь шумит", "смотрим на {TOPIC}"]
+        cop: ["держим дистанцию", "пиши дело"],
+        mafia: ["тише — дешевле", "точность дешевле"],
+        bandit: ["смотрю, без движений", "тишина давит"],
+        toxic: ["чем ответишь?", "слушаю мало"],
+        neutral: ["площадь шумит", "смотрим {TOPIC}"]
       }
     };
     const channelLead = {
       dm: ["личка:", "между нами:"],
-      event: ["у {PLACE}:", "на площади:"],
+      event: ["{PLACE}:", "площадь:"],
       battle: ["раунд:", "спор:"]
     };
     const out = {};
@@ -1386,7 +1386,7 @@ window.Game ||= {};
     const canonRows = [
       { source: "Data.NPC_CHAT_LINES.0", before: "ну че кто первый вбросит", after: "кто начнет первым", meaning: "crowd still asks who starts the exchange" },
       { source: "Data.NPC_CHAT_LINES.6", before: "мне скучно, дайте движ", after: "мне скучно, нужен ход", meaning: "crowd still wants action in the scene" },
-      { source: "Data.NPC_CHAT_LINES.8", before: "сегодня пахнет баттлами", after: "сейчас будет спор", meaning: "crowd still expects a conflict" },
+      { source: "Data.NPC_CHAT_LINES.8", before: "сегодня пахнет баттлами", after: "будет спор", meaning: "crowd still expects a conflict" },
       { source: "Data.NPC_CHAT_LINES.12", before: "баттл это просто разговор с адреналином", after: "спор стал резче", meaning: "line still frames the conflict as a sharper argument" },
       { source: "NPC.SAY.bandit.m.9", before: "Свалить будет дешевле", after: "уйти будет дешевле", meaning: "bandit still says leaving costs less" },
       { source: "NPC.SAY.mafia.m.2", before: "Подумай, какой след оставит этот ход", after: "ход оставит след", meaning: "mafia still warns about consequences of the move" },
@@ -1472,6 +1472,130 @@ window.Game ||= {};
       && result.covered.step34SystemTexts === 1;
     return result;
   };
+
+  NPCSpeech.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step6_4_npc_template_shortening_v1_20260606_${buildTag}_commit_${commit}`;
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      checkedCount: 0,
+      averageReductionPercent: 0,
+      semanticDrift: [],
+      informationLoss: [],
+      roleIdentityLoss: [],
+      shorteningCoverage: { battle: 0, dm: 0, event: 0, report: 0, crowd: 0 },
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => {
+      const key = JSON.stringify(value);
+      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? { check } : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim().toLocaleLowerCase("ru-RU");
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => {
+      if (value == null) return undefined;
+      if (/^\d+$/.test(key)) return value[Number(key)];
+      return value[key];
+    }, root);
+    const rows = [
+      { scope: "dm", role: "toxic", source: "NPC.SAY.toxic.m.0", before: "ты уверен в этой позиции", after: "уверен в позиции", must: ["уверен", "позиции"] },
+      { scope: "battle", role: "toxic", source: "NPC.SAY.toxic.m.3", before: "не тяни, ответ нужен сейчас", after: "не тяни, отвечай", must: ["не тяни", "отвечай"] },
+      { scope: "event", role: "toxic", source: "NPC.SAY.toxic.m.4", before: "толпа услышала, теперь докажи", after: "толпа слышит, докажи", must: ["толпа", "докажи"] },
+      { scope: "dm", role: "bandit", source: "NPC.SAY.bandit.m.8", before: "шаг назад и слушай", after: "шаг назад, слушай", must: ["шаг назад", "слушай"] },
+      { scope: "battle", role: "bandit", source: "NPC.SAY.bandit.m.11", before: "ответишь — потеряешь больше", after: "ответишь — потеряешь", must: ["ответишь", "потеряешь"] },
+      { scope: "dm", role: "cop", source: "NPC.SAY.cop.m.0", before: "Я на связи. Держим дистанцию", after: "На связи. Дистанция", must: ["связи", "дистанция"] },
+      { scope: "report", role: "cop", source: "Game.Data.COP_TEMPLATES.toxicDescriptions.0", before: "Токсик — хамоватая тень, прячется за оскорблениями и агрессией.", after: "Токсик прячется за оскорблениями.", must: ["токсик", "оскорбления"] },
+      { scope: "report", role: "cop", source: "Game.Data.COP_TEMPLATES.banditDescriptions.0", before: "Бандит — драчун с холодными глазами, ищет наживу.", after: "Бандит ищет наживу.", must: ["бандит", "наживу"] },
+      { scope: "report", role: "cop", source: "Game.Data.COP_TEMPLATES.scolds.4", before: "Деталей не хватило, «Сдать» вызвало переполох.", after: "Деталей мало, «Сдать» шумит.", must: ["детал", "сдать"] },
+      { scope: "event", role: "mafia", source: "NPC.SAY.mafia.m.0", before: "Добрый вечер. Говорим спокойно", after: "Добрый вечер. Спокойно", must: ["вечер", "спокойно"] },
+      { scope: "dm", role: "mafia", source: "NPC.SAY.mafia.m.6", before: "договоримся без лишних глаз", after: "договоримся без глаз", must: ["договоримся", "глаз"] },
+      { scope: "crowd", role: "crowd", source: "NPC.SAY.crowd.m.4", before: "шумно на площади, но я остаюсь", after: "площадь шумит, остаюсь", must: ["площад", "остаюсь"] },
+      { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.1", before: "я смотрю со стороны", after: "смотрю со стороны", must: ["смотрю", "стороны"] },
+      { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.6", before: "мне скучно, нужен ход", after: "скучно, нужен ход", must: ["скучно", "ход"] },
+      { scope: "crowd", role: "crowd", source: "Game.Data.NPC_CHAT_LINES.24", before: "я тут из-за шума", after: "тут из-за шума", must: ["тут", "шума"] },
+      { scope: "dm", role: "bandit", source: "villainQuestions.1", before: "это про тебя? отвечай", after: "про тебя? отвечай", must: ["про тебя", "отвечай"] },
+      { scope: "battle", role: "bandit", source: "villainChallenges.1", before: "готовность видна — раунд рядом", after: "готовность видна — раунд", must: ["готовность", "раунд"] },
+      { scope: "dm", role: "toxic", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.greetings.toxic.dm.y.0", before: "личка: {PLAYER}, покажи позицию", after: "личка: {PLAYER}, позицию", must: ["личка", "позицию"] },
+      { scope: "event", role: "neutral", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.threats.neutral.event.y.0", before: "у {PLACE}: конфликт растет", after: "{PLACE}: конфликт выше", must: ["{place}", "конфликт"] },
+      { scope: "battle", role: "toxic", source: "NPCSpeech.TEMPLATES_BY_LOCALE.ru.victory.toxic.battle.y.1", before: "спор: сказал жестко и точно", after: "спор: жестко и точно", must: ["спор", "жестко", "точно"] }
+    ];
+    const roleHints = {
+      cop: ["связ", "дистанц", "токсик", "бандит", "сдать", "детал"],
+      mafia: ["вечер", "спокой", "договор", "глаз"],
+      bandit: ["шаг", "слуш", "ответ", "потер", "раунд", "готов", "про тебя"],
+      toxic: ["уверен", "позици", "отвеч", "докажи", "жестко"],
+      neutral: ["конфликт", "площад", "тема"],
+      crowd: ["площад", "смотр", "скучно", "шум"]
+    };
+    const forbidden = ["просто", "как бы", "ну типа", "давайте", "лишних", "теперь", "уже", "сейчас станет", "если он есть", "можем реагировать на каждый", "ради хайпа", "треш-стрим"];
+    try {
+      const root = { NPC, Game, villainQuestions, villainChallenges, NPCSpeech };
+      let beforeChars = 0;
+      let afterChars = 0;
+      rows.forEach((row) => {
+        result.checkedCount += 1;
+        result.shorteningCoverage[row.scope] = (result.shorteningCoverage[row.scope] || 0) + 1;
+        const currentRaw = getPath(root, row.source);
+        const current = normalize(currentRaw);
+        const expected = normalize(row.after);
+        beforeChars += String(row.before || "").length;
+        afterChars += String(currentRaw || "").length;
+        if (current !== expected) addUnique(result.semanticDrift, { source: row.source, expected: row.after, actual: String(currentRaw || "") });
+        (row.must || []).forEach((token) => {
+          if (current.indexOf(normalize(token)) === -1) addUnique(result.informationLoss, { source: row.source, missing: token, text: String(currentRaw || "") });
+        });
+        const hints = roleHints[row.role] || [];
+        if (hints.length && !hints.some((hint) => current.indexOf(normalize(hint)) !== -1)) {
+          addUnique(result.roleIdentityLoss, { source: row.source, role: row.role, text: String(currentRaw || "") });
+        }
+        forbidden.forEach((term) => {
+          const needle = normalize(term);
+          const wordOnly = /^[а-яёa-z0-9]+$/i.test(needle);
+          const hit = wordOnly
+            ? new RegExp(`(^|[^а-яёa-z0-9])${needle}(?=$|[^а-яёa-z0-9])`, "i").test(current)
+            : current.indexOf(needle) !== -1;
+          if (hit) addUnique(result.forbiddenRemaining, { source: row.source, term, text: String(currentRaw || "") });
+        });
+      });
+      result.averageReductionPercent = beforeChars > 0 ? Math.round(((beforeChars - afterChars) / beforeChars) * 1000) / 10 : 0;
+      ["battle", "dm", "event", "report", "crowd"].forEach((scope) => {
+        if (!result.shorteningCoverage[scope]) addUnique(result.missingCoverage, scope);
+      });
+      if (result.averageReductionPercent < 20 || result.averageReductionPercent > 40) fail("average_reduction_percent_out_of_range", result.averageReductionPercent);
+      if (result.semanticDrift.length) fail("semantic_drift", result.semanticDrift.slice());
+      if (result.informationLoss.length) fail("information_loss", result.informationLoss.slice());
+      if (result.roleIdentityLoss.length) fail("role_identity_loss", result.roleIdentityLoss.slice());
+      if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
+      if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+      if (!buildTag || String(buildTag).indexOf("step6_4_npc_template_shortening") === -1) fail("build_tag_identifies_runtime_build", buildTag);
+      if (!commit || String(commit).indexOf("step6_4_npc_template_shortening") === -1) fail("commit_identifies_task_commit", commit);
+      if (!smokeVersion || smokeVersion.indexOf("step6_4_npc_template_shortening_v1_20260606") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.checkedCount > 0
+      && result.averageReductionPercent >= 20
+      && result.averageReductionPercent <= 40
+      && result.semanticDrift.length === 0
+      && result.informationLoss.length === 0
+      && result.roleIdentityLoss.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.NPCSpeech = NPCSpeech;
   Game.__DEV ||= {};
   Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
@@ -1496,6 +1620,12 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeMillennialWordingOnce === "function"
       ? Game.NPCSpeech.smokeMillennialWordingOnce()
       : { ok: false, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+  Game.__DEV.smokeZoomerNpcShorteningOnce = function smokeZoomerNpcShorteningOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcShorteningOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcShorteningOnce()
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_4_npc_template_shortening_missing", checkedCount: 0, averageReductionPercent: 0, semanticDrift: [], informationLoss: [], roleIdentityLoss: [], shorteningCoverage: {}, failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
