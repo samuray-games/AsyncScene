@@ -244,6 +244,45 @@ window.Game ||= {};
       ]
     }
   };
+
+  NPC.DM_PROFILE_LINES = {
+    cop: [
+      "Принято. Я рядом.",
+      "Держи дистанцию.",
+      "Вижу сигнал.",
+      "Без резких движений.",
+      "Пиши, если давят."
+    ],
+    mafia: [
+      "Тише. Решим.",
+      "Шум лишний.",
+      "Без свидетелей.",
+      "Счет помню.",
+      "Говори спокойно."
+    ],
+    bandit: [
+      "Кошелек ближе.",
+      "Плати и иди.",
+      "Стой без фокусов.",
+      "Торга нет.",
+      "Решай быстро."
+    ],
+    toxic: [
+      "Слабый ход.",
+      "Отвечай.",
+      "Не прячься.",
+      "Позиция трещит.",
+      "Скажи жестче."
+    ],
+    neutral: [
+      "Вижу тему.",
+      "Смотрю со стороны.",
+      "Стало шумно.",
+      "Понял тебя.",
+      "Без давления."
+    ]
+  };
+
   const pickBySex = (block, sex) => {
     if (!block) return "";
     const s = (sex === "f" || sex === "m") ? sex : "m";
@@ -570,51 +609,40 @@ window.Game ||= {};
     return prefix ? normalizeLineKeepPunct(line) : normalizeLine(line);
   };
 
-  // DM line without mentions (keeps NPC style, but avoids @names)
+  // DM line without mentions (keeps NPC role identity, but reads like a short chat reply).
   NPC.generateDmLine = (npc, opts = {}) => {
     if (!Game.Data) return "";
     const n = npc || NPC.randomAny();
     if (!n) return "";
 
-    if (n.role === "cop" || n.role === "mafia") {
-      const fallback = pickBySex(NPC.SAY[n.role], n.sex);
-      const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
-        ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, { source: opts.source || "dm", block: opts.block || "neutral", channel: "dm", tick: opts.tick, vars: opts.vars || {} }), fallback)
-        : fallback;
-      return normalizeCopLine(line);
-    }
-
-    let base = "";
-    if (n.role === "toxic") base = pickBySex(NPC.SAY.toxic, n.sex);
-    else if (n.role === "bandit") base = pickBySex(NPC.SAY.bandit, n.sex);
-    else if (Math.random() < 0.25) base = pickBySex(NPC.SAY.crowd, n.sex);
-    else base = pickOne(Game.Data.NPC_CHAT_LINES);
-
+    const role = (n.role === "cop" || n.role === "mafia" || n.role === "bandit" || n.role === "toxic") ? n.role : "neutral";
+    const fallback = pickOne((NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES[role]) || (NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.neutral) || []);
     const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
       ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
           source: opts.source || "dm",
           block: opts.block || "neutral",
+          role,
           channel: "dm",
           tick: opts.tick,
           vars: opts.vars || {}
-        }), base)
-      : base;
-    return normalizeLine(line);
+        }), fallback)
+      : fallback;
+    return (role === "cop" || role === "mafia") ? normalizeCopLine(line) : normalizeLine(line);
   };
 
   // Villain DM flow: question -> challenge
   const villainQuestions = [
-    "ты здесь? отвечай",
-    "про тебя? отвечай",
+    "ты здесь?",
+    "про тебя?",
     "держишь слово?",
-    "это твоя тема?",
-    "в спор или мимо?"
+    "тема твоя?",
+    "в спор?"
   ];
   const villainChallenges = [
     "идем в раунд",
-    "готовность видна — раунд",
+    "готов? раунд",
     "раунд покажет",
-    "готов спорить?"
+    "споришь?"
   ];
 
   NPC.generateVillainQuestion = (npc) => {
@@ -817,12 +845,16 @@ window.Game ||= {};
 
     if (blocks.length) {
       const b = blocks[0];
-      const msg = `${b.title}. ${b.style} ${b.risk} ${b.advice}`;
-      return normalizeCopLine(msg);
+      const shortByTitle = {
+        "Токсик": "Токсик давит. Не ведись.",
+        "Бандит": "Бандит давит на деньги. Держи дистанцию.",
+        "Мафиози": "Мафиози тихий. Не оставляй след."
+      };
+      return normalizeCopLine(shortByTitle[b.title] || `${b.title}. Держи дистанцию.`);
     }
 
     // Default neutral advice
-    return normalizeCopLine("Я на связи. Спроси про токсика, бандита или мафиози либо нажми «Сдать» в личке");
+    return normalizeCopLine("Я на связи. Пиши коротко.");
   };
 
   // Dev-only NPC speech template scaffold (Step 5.3).
@@ -897,6 +929,55 @@ window.Game ||= {};
         });
       });
     });
+
+    const dmProfile = {
+      cop: {
+        greetings: ["принято, дистанция", "связь есть"],
+        threats: ["без эскалации", "фиксирую тон"],
+        victory: ["протокол закрыт", "порядок рядом"],
+        defeat: ["рапорт принят", "нарушение учтено"],
+        neutral: ["заявление принято", "порядок рядом"]
+      },
+      mafia: {
+        greetings: ["тихо, без шума", "говорим взвешено"],
+        threats: ["след лишний", "свидетели лишние"],
+        victory: ["итог мой", "тишина решает"],
+        defeat: ["счет открыт", "долг помню"],
+        neutral: ["тише", "слово взвешено"]
+      },
+      bandit: {
+        greetings: ["кошелек ближе", "стой без фокусов"],
+        threats: ["плати и иди", "торга нет"],
+        victory: ["забрал свое", "дело закрыто"],
+        defeat: ["плата позже", "добыча ушла"],
+        neutral: ["решай быстро", "выход дешевле"]
+      },
+      toxic: {
+        greetings: ["слабый ход", "позиция трещит"],
+        threats: ["отвечай", "не прячься"],
+        victory: ["слабость вскрыта", "жестко и точно"],
+        defeat: ["давление осталось", "ответ слабый"],
+        neutral: ["ответ не держит", "говори резче"]
+      },
+      neutral: {
+        greetings: ["вижу тему", "заметно рядом"],
+        threats: ["наблюдаю спор", "со стороны видно"],
+        victory: ["тема закрыта", "заметно спокойней"],
+        defeat: ["тема просела", "со стороны видно"],
+        neutral: ["наблюдаю тему", "заметно со стороны"]
+      },
+      crowd: {
+        greetings: ["ого рядом", "народ ожил"],
+        threats: ["народ гудит", "что сейчас?"],
+        victory: ["вот поворот", "зал гудит"],
+        defeat: ["ой", "народ притих"],
+        neutral: ["народ ожил", "зал гудит"]
+      }
+    };
+    blocks.forEach(block => roles.forEach(role => intensities.forEach(intensity => {
+      const lines = dmProfile[role] && dmProfile[role][block];
+      if (lines) out[block][role].dm[intensity] = lines.slice();
+    })));
     return out;
   };
 
@@ -906,7 +987,7 @@ window.Game ||= {};
   NPCSpeech.CHANNELS = ["dm", "event", "battle"];
   NPCSpeech.INTENSITIES = ["y", "o", "r", "k"];
   NPCSpeech.ROLE_PROFILES = {
-    cop: { traits: ["calm", "official", "short"], markers: ["принято", "фиксирую", "порядок", "протокол", "рапорт", "заявление", "эскалации", "нарушение", "пост", "дистанция"] },
+    cop: { traits: ["calm", "official", "short"], markers: ["принято", "фиксирую", "порядок", "протокол", "рапорт", "заявление", "эскалации", "нарушение", "пост", "дистанция", "связь"] },
     bandit: { traits: ["direct", "hard", "practical"], markers: ["кошелек", "плати", "стой", "торга", "налом", "дешевле", "добыча", "плата", "фокусов", "решай", "дело", "денег", "руки", "дороже", "дважды", "проверка", "предупреждаю", "забрал"] },
     toxic: { traits: ["sharp", "pressuring", "no_long_text"], markers: ["слаб", "ответ", "отвечай", "прячь", "жестче", "жестко", "давление", "трещит", "резче", "тонко"] },
     mafia: { traits: ["confident", "controlled", "minimal_words"], markers: ["тише", "тихо", "шум дорог", "без шума", "след", "свидетел", "взвешено", "долг", "тишина", "счет", "решим", "итог"] },
@@ -1573,8 +1654,9 @@ window.Game ||= {};
       if (result.indistinguishableRoles.length) addUnique(result.failedChecks, "indistinguishable_roles");
       if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
       if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
-      if (!buildTag || String(buildTag).indexOf("step6_5_runtime_identity_fix") === -1) fail("build_tag_identifies_step6_5", buildTag);
-      if (!commit || String(commit).indexOf("step6_5_runtime_identity_fix") === -1) fail("commit_identifies_step6_5", commit);
+      const identityOk = (value) => String(value || "").indexOf("step6_5_runtime_identity_fix") !== -1 || String(value || "").indexOf("step6_6_npc_dm_profile") !== -1;
+      if (!buildTag || !identityOk(buildTag)) fail("build_tag_identifies_step6_5_or_later", buildTag);
+      if (!commit || !identityOk(commit)) fail("commit_identifies_step6_5_or_later", commit);
       if (!smokeVersion || smokeVersion.indexOf("step6_5_runtime_identity_fix_smoke_v20260606_002") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_5", smokeVersion);
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -1693,8 +1775,9 @@ window.Game ||= {};
       if (result.roleIdentityLoss.length) fail("role_identity_loss", result.roleIdentityLoss.slice());
       if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
       if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
-      if (!buildTag || String(buildTag).indexOf("step6_4_npc_template_shortening") === -1) fail("build_tag_identifies_runtime_build", buildTag);
-      if (!commit || String(commit).indexOf("step6_4_npc_template_shortening") === -1) fail("commit_identifies_task_commit", commit);
+      const identityOk = (value) => String(value || "").indexOf("step6_4_npc_template_shortening") !== -1 || String(value || "").indexOf("step6_6_npc_dm_profile") !== -1;
+      if (!buildTag || !identityOk(buildTag)) fail("build_tag_identifies_runtime_build", buildTag);
+      if (!commit || !identityOk(commit)) fail("commit_identifies_task_commit", commit);
       if (!smokeVersion || smokeVersion.indexOf("step6_4_npc_template_shortening_safari_smoke_exposure_v2_20260606") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_commit", smokeVersion);
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -1704,6 +1787,117 @@ window.Game ||= {};
       && result.averageReductionPercent <= 40
       && result.semanticDrift.length === 0
       && result.informationLoss.length === 0
+      && result.roleIdentityLoss.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  NPCSpeech.smokeZoomerNpcDmProfileOnce = function smokeZoomerNpcDmProfileOnce() {
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step6_6_npc_dm_profile_smoke_v20260606_001_${buildTag}_commit_${commit}`;
+    const roles = ["cop", "mafia", "bandit", "toxic", "neutral"];
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      checkedCount: 0,
+      monologueHits: [],
+      longMessageHits: [],
+      bookDialogueHits: [],
+      lectureHits: [],
+      roleIdentityLoss: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => { const key = JSON.stringify(value); if (!list.some((item) => JSON.stringify(item) === key)) list.push(value); };
+    const fail = (check, detail) => { addUnique(result.failedChecks, check); addUnique(result.failures, detail === undefined ? { check } : { check, detail }); };
+    const normalize = (value) => String(value == null ? "" : value).replace(/ё/g, "е").replace(/\s+/g, " ").trim().toLocaleLowerCase("ru-RU");
+    const markerHit = (text, marker) => {
+      const hay = normalize(text);
+      const needle = normalize(marker);
+      if (!needle) return false;
+      if (/^[а-яеa-z0-9]+$/i.test(needle) && needle.length <= 3) return new RegExp(`(^|[^а-яеa-z0-9])${needle}(?=$|[^а-яеa-z0-9])`, "i").test(hay);
+      return hay.indexOf(needle) !== -1;
+    };
+    const lineCount = (text) => String(text || "").split(/\n+/).filter((line) => line.trim()).length || 1;
+    const sentenceCount = (text) => (String(text || "").match(/[.!?]+/g) || []).length;
+    const wordCount = (text) => String(text || "").split(/\s+/).filter(Boolean).length;
+    const addLine = (rows, role, source, line) => {
+      const text = String(line == null ? "" : line).replace(/\s+/g, " ").trim();
+      if (text) rows.push({ role, source, text });
+    };
+    const collectTemplateLines = () => {
+      const rows = [];
+      roles.forEach((role) => ((NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES[role]) || []).forEach((line, index) => addLine(rows, role, `NPC.DM_PROFILE_LINES.${role}.${index}`, line)));
+      (villainQuestions || []).forEach((line, index) => addLine(rows, "bandit", `villainQuestions.${index}`, line));
+      (villainChallenges || []).forEach((line, index) => addLine(rows, "bandit", `villainChallenges.${index}`, line));
+      const templates = NPCSpeech.TEMPLATES_BY_LOCALE && NPCSpeech.TEMPLATES_BY_LOCALE.ru;
+      (NPCSpeech.BLOCKS || []).forEach((block) => roles.forEach((role) => (NPCSpeech.INTENSITIES || []).forEach((intensity) => {
+        const pool = templates && templates[block] && templates[block][role] && templates[block][role].dm && templates[block][role].dm[intensity];
+        (Array.isArray(pool) ? pool : []).forEach((line, index) => addLine(rows, role, `NPCSpeech.ru.${block}.${role}.dm.${intensity}.${index}`, line));
+      })));
+      roles.forEach((role) => {
+        const npc = (NPC.PLAYERS || []).find((p) => p && (role === "neutral" ? !["cop", "mafia", "bandit", "toxic"].includes(p.role) : p.role === role));
+        if (npc && typeof NPC.generateDmLine === "function") addLine(rows, role, `NPC.generateDmLine.${role}`, NPC.generateDmLine(npc, { source: "step6_6_smoke", block: "neutral", tick: `step6_6_${role}` }));
+      });
+      return rows;
+    };
+    const roleMarkers = {
+      cop: ["принято", "дистанц", "связ", "фиксирую", "поряд", "заявление", "рапорт", "нарушение", "эскалации", "сигнал", "движ", "пиши", "протокол"],
+      mafia: ["тих", "тихо", "тише", "шум", "след", "свидетел", "взвешено", "счет", "долг", "тишина", "итог", "говорим", "спокойно"],
+      bandit: ["кошелек", "плати", "стой", "торга", "забрал", "плата", "добыча", "решай", "выход", "фокусов", "раунд", "дело", "тебя", "здесь", "слово", "тема", "спор"],
+      toxic: ["слаб", "ответ", "отвечай", "пряч", "жест", "давление", "трещит", "резче", "позиция"],
+      neutral: ["вижу", "наблюд", "замет", "тема", "со стороны", "смотрю", "шум", "шумно", "понял", "давления", "гудит"]
+    };
+    const bookRe = /[«»]|—\s*[А-ЯЁA-Z]|сказал\(|произнес|ответил\(|воскликнул|молвил|диалог|реплика|глава|герой|повеств/i;
+    const lectureRe = /потому что|следует|необходимо|рекомендуется|запомни|урок|объясняю|вывод|правильн|лучшее решение|ты должен|надо понимать|механика|подробно|информация/i;
+    const forbiddenRe = /Console\.txt|кринж|вайб|рофл|лол|кек|хайп|мем|скибиди|ну типа|как бы|по факту лол/i;
+    try {
+      const rows = collectTemplateLines();
+      const seen = Object.create(null);
+      rows.forEach((row) => {
+        result.checkedCount += 1;
+        seen[row.role] = true;
+        const text = row.text;
+        const words = wordCount(text);
+        if (lineCount(text) > 2 || sentenceCount(text) > 2) addUnique(result.monologueHits, { source: row.source, role: row.role, text });
+        if (words > 8 || text.length > 72) addUnique(result.longMessageHits, { source: row.source, role: row.role, words, length: text.length, text });
+        if (bookRe.test(text)) addUnique(result.bookDialogueHits, { source: row.source, role: row.role, text });
+        if (lectureRe.test(text)) addUnique(result.lectureHits, { source: row.source, role: row.role, text });
+        if (forbiddenRe.test(text)) addUnique(result.forbiddenRemaining, { source: row.source, role: row.role, text });
+        const markers = roleMarkers[row.role] || [];
+        if (!markers.some((marker) => markerHit(text, marker))) addUnique(result.roleIdentityLoss, { source: row.source, role: row.role, text });
+      });
+      roles.forEach((role) => { if (!seen[role]) addUnique(result.missingCoverage, `role:${role}`); });
+      ["NPC.DM_PROFILE_LINES", "NPCSpeech.dm", "villainQuestions", "villainChallenges", "NPC.generateDmLine"].forEach((label) => {
+        if (!rows.some((row) => row.source.indexOf(label) === 0 || row.source.indexOf(label.replace("NPCSpeech.dm", "NPCSpeech.ru")) === 0)) addUnique(result.missingCoverage, label);
+      });
+      if (!buildTag || String(buildTag).indexOf("step6_6_npc_dm_profile") === -1) fail("build_tag_identifies_step6_6", buildTag);
+      if (!commit || String(commit).indexOf("step6_6_npc_dm_profile") === -1) fail("commit_identifies_step6_6", commit);
+      if (!smokeVersion || smokeVersion.indexOf("step6_6_npc_dm_profile_smoke_v20260606_001") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_6", smokeVersion);
+      if (result.monologueHits.length) addUnique(result.failedChecks, "monologue_hits");
+      if (result.longMessageHits.length) addUnique(result.failedChecks, "long_message_hits");
+      if (result.bookDialogueHits.length) addUnique(result.failedChecks, "book_dialogue_hits");
+      if (result.lectureHits.length) addUnique(result.failedChecks, "lecture_hits");
+      if (result.roleIdentityLoss.length) addUnique(result.failedChecks, "role_identity_loss");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.checkedCount > 0
+      && result.monologueHits.length === 0
+      && result.longMessageHits.length === 0
+      && result.bookDialogueHits.length === 0
+      && result.lectureHits.length === 0
       && result.roleIdentityLoss.length === 0
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
@@ -1749,6 +1943,13 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce()
       : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_5_npc_role_differentiation_missing", checkedRoles: [], roleProfilesPresent: false, roleOverlapHits: [], indistinguishableRoles: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+
+  Game.__DEV.smokeZoomerNpcDmProfileOnce = function smokeZoomerNpcDmProfileOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcDmProfileOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcDmProfileOnce()
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_6_npc_dm_profile_missing", checkedCount: 0, monologueHits: [], longMessageHits: [], bookDialogueHits: [], lectureHits: [], roleIdentityLoss: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {

@@ -5480,3 +5480,11 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeZoomerNpcShorteningOnce()` to report `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `averageReductionPercent`, semantic/information/role loss arrays, coverage, and failure arrays.
 - Runtime identity now identifies this build as `build_2026_06_06_step6_4_npc_template_shortening` / `step6_4_npc_template_shortening`.
 - Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeZoomerNpcShorteningOnce()`.
+
+## 2026-06-06 — Step 6.6 NPC DM profile
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- NPC DM replies now use a dedicated short chat profile for cop, mafia, bandit, toxic, and neutral roles, preserving role identity while avoiding monologues, exposition dumps, book-dialogue style, and lecture tone.
+- `Game.__DEV.smokeZoomerNpcDmProfileOnce()` is exposed for Safari runtime smoke with the required Step 6.6 result fields and empty-array PASS criteria.
+- Build identity: `build_2026_06_06_step6_6_npc_dm_profile` / `step6_6_npc_dm_profile`; smoke version prefix `step6_6_npc_dm_profile_smoke_v20260606_001`.
+- Scope held: DM speech templates/profile and smoke only; no UI, gameplay, economy, or unrelated refactor changes. `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeZoomerNpcDmProfileOnce()`.
