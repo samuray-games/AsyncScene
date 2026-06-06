@@ -5469,3 +5469,10 @@ Error: Download failure, code=1
 - New smoke: `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()` returns `ok`, `buildTag`, `commit`, unique `smokeVersion`, `inventoryCount`, `wrapperCount`, `coveragePercent`, `byTypeCounts`, `missingCoverage`, `duplicateIds`, `emptyWrappers`, `placeholderMismatch`, `semanticDrift`, `forbiddenRemaining`, `failedChecks`, and `failures`.
 - The smoke builds wrapper entries from inventory ids without applying them to live gameplay, checks 100% coverage, duplicate wrapper ids, empty wrappers, placeholder preservation, strict rule-based semantic drift, and forbidden zoomer/meme slang.
 - Scope held: no canon argument text changes, no runtime argument replacement, no UI behavior changes, no battle/defense logic changes, and no gameplay changes. Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeZoomerArgumentWrapperCoverageOnce()`.
+
+## 2026-06-06 — Step 6.4 NPC template shortening
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Shortened NPC speech templates across battle, DM, event, report, and crowd scopes by removing filler/redundancy while keeping meaning and role voice.
+- Added `Game.__DEV.smokeZoomerNpcShorteningOnce()` to report `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `averageReductionPercent`, semantic/information/role loss arrays, coverage, and failure arrays.
+- Runtime identity now identifies this build as `build_2026_06_06_step6_4_npc_template_shortening` / `step6_4_npc_template_shortening`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeZoomerNpcShorteningOnce()`.
