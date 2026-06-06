@@ -1712,6 +1712,117 @@ window.Game ||= {};
     return result;
   };
 
+
+  NPCSpeech.smokeZoomerNpcDmProfileOnce = function smokeZoomerNpcDmProfileOnce() {
+    const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
+    const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
+    const smokeVersion = `step6_6_safari_smoke_exposure_fix_v20260606_001_${buildTag}_commit_${commit}`;
+    const roles = ["cop", "mafia", "bandit", "toxic", "neutral"];
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      checkedCount: 0,
+      monologueHits: [],
+      longMessageHits: [],
+      bookDialogueHits: [],
+      lectureHits: [],
+      roleIdentityLoss: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (list, value) => { const key = JSON.stringify(value); if (!list.some((item) => JSON.stringify(item) === key)) list.push(value); };
+    const fail = (check, detail) => { addUnique(result.failedChecks, check); addUnique(result.failures, detail === undefined ? { check } : { check, detail }); };
+    const normalize = (value) => String(value == null ? "" : value).replace(/ё/g, "е").replace(/\s+/g, " ").trim().toLocaleLowerCase("ru-RU");
+    const markerHit = (text, marker) => {
+      const hay = normalize(text);
+      const needle = normalize(marker);
+      if (!needle) return false;
+      if (/^[а-яеa-z0-9]+$/i.test(needle) && needle.length <= 3) return new RegExp(`(^|[^а-яеa-z0-9])${needle}(?=$|[^а-яеa-z0-9])`, "i").test(hay);
+      return hay.indexOf(needle) !== -1;
+    };
+    const lineCount = (text) => String(text || "").split(/\n+/).filter((line) => line.trim()).length || 1;
+    const sentenceCount = (text) => (String(text || "").match(/[.!?]+/g) || []).length;
+    const wordCount = (text) => String(text || "").split(/\s+/).filter(Boolean).length;
+    const addLine = (rows, role, source, line) => {
+      const text = String(line == null ? "" : line).replace(/\s+/g, " ").trim();
+      if (text) rows.push({ role, source, text });
+    };
+    const collectTemplateLines = () => {
+      const rows = [];
+      roles.forEach((role) => ((NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES[role]) || []).forEach((line, index) => addLine(rows, role, `NPC.DM_PROFILE_LINES.${role}.${index}`, line)));
+      (villainQuestions || []).forEach((line, index) => addLine(rows, "bandit", `villainQuestions.${index}`, line));
+      (villainChallenges || []).forEach((line, index) => addLine(rows, "bandit", `villainChallenges.${index}`, line));
+      const templates = NPCSpeech.TEMPLATES_BY_LOCALE && NPCSpeech.TEMPLATES_BY_LOCALE.ru;
+      (NPCSpeech.BLOCKS || []).forEach((block) => roles.forEach((role) => (NPCSpeech.INTENSITIES || []).forEach((intensity) => {
+        const pool = templates && templates[block] && templates[block][role] && templates[block][role].dm && templates[block][role].dm[intensity];
+        (Array.isArray(pool) ? pool : []).forEach((line, index) => addLine(rows, role, `NPCSpeech.ru.${block}.${role}.dm.${intensity}.${index}`, line));
+      })));
+      roles.forEach((role) => {
+        const npc = (NPC.PLAYERS || []).find((p) => p && (role === "neutral" ? !["cop", "mafia", "bandit", "toxic"].includes(p.role) : p.role === role));
+        if (npc && typeof NPC.generateDmLine === "function") addLine(rows, role, `NPC.generateDmLine.${role}`, NPC.generateDmLine(npc, { source: "step6_6_smoke", block: "neutral", tick: `step6_6_${role}` }));
+      });
+      return rows;
+    };
+    const roleMarkers = {
+      cop: ["принято", "дистанц", "связ", "фиксирую", "поряд", "заявление", "рапорт", "нарушение", "эскалации", "сигнал", "движ", "пиши", "протокол"],
+      mafia: ["тих", "тихо", "тише", "шум", "след", "свидетел", "взвешено", "счет", "долг", "тишина", "итог", "говорим", "спокойно"],
+      bandit: ["кошелек", "плати", "стой", "торга", "забрал", "плата", "добыча", "решай", "выход", "фокусов", "раунд", "дело", "тебя", "здесь", "слово", "тема", "спор"],
+      toxic: ["слаб", "ответ", "отвечай", "пряч", "жест", "давление", "трещит", "резче", "позиция"],
+      neutral: ["вижу", "наблюд", "замет", "тема", "со стороны", "смотрю", "шум", "шумно", "понял", "давления", "гудит"]
+    };
+    const bookRe = /[«»]|—\s*[А-ЯЁA-Z]|сказал\(|произнес|ответил\(|воскликнул|молвил|диалог|реплика|глава|герой|повеств/i;
+    const lectureRe = /потому что|следует|необходимо|рекомендуется|запомни|урок|объясняю|вывод|правильн|лучшее решение|ты должен|надо понимать|механика|подробно|информация/i;
+    const forbiddenRe = /Console\.txt|кринж|вайб|рофл|лол|кек|хайп|мем|скибиди|ну типа|как бы|по факту лол/i;
+    try {
+      const rows = collectTemplateLines();
+      const seen = Object.create(null);
+      rows.forEach((row) => {
+        result.checkedCount += 1;
+        seen[row.role] = true;
+        const text = row.text;
+        const words = wordCount(text);
+        if (lineCount(text) > 2 || sentenceCount(text) > 2) addUnique(result.monologueHits, { source: row.source, role: row.role, text });
+        if (words > 8 || text.length > 72) addUnique(result.longMessageHits, { source: row.source, role: row.role, words, length: text.length, text });
+        if (bookRe.test(text)) addUnique(result.bookDialogueHits, { source: row.source, role: row.role, text });
+        if (lectureRe.test(text)) addUnique(result.lectureHits, { source: row.source, role: row.role, text });
+        if (forbiddenRe.test(text)) addUnique(result.forbiddenRemaining, { source: row.source, role: row.role, text });
+        const markers = roleMarkers[row.role] || [];
+        if (!markers.some((marker) => markerHit(text, marker))) addUnique(result.roleIdentityLoss, { source: row.source, role: row.role, text });
+      });
+      roles.forEach((role) => { if (!seen[role]) addUnique(result.missingCoverage, `role:${role}`); });
+      ["NPC.DM_PROFILE_LINES", "NPCSpeech.dm", "villainQuestions", "villainChallenges", "NPC.generateDmLine"].forEach((label) => {
+        if (!rows.some((row) => row.source.indexOf(label) === 0 || row.source.indexOf(label.replace("NPCSpeech.dm", "NPCSpeech.ru")) === 0)) addUnique(result.missingCoverage, label);
+      });
+      if (!buildTag || String(buildTag).indexOf("step6_6_npc_dm_profile") === -1) fail("build_tag_identifies_step6_6", buildTag);
+      if (!commit || String(commit).indexOf("step6_6_npc_dm_profile") === -1) fail("commit_identifies_step6_6", commit);
+      if (!smokeVersion || smokeVersion.indexOf("step6_6_safari_smoke_exposure_fix_v20260606_001") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_6", smokeVersion);
+      if (result.monologueHits.length) addUnique(result.failedChecks, "monologue_hits");
+      if (result.longMessageHits.length) addUnique(result.failedChecks, "long_message_hits");
+      if (result.bookDialogueHits.length) addUnique(result.failedChecks, "book_dialogue_hits");
+      if (result.lectureHits.length) addUnique(result.failedChecks, "lecture_hits");
+      if (result.roleIdentityLoss.length) addUnique(result.failedChecks, "role_identity_loss");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.checkedCount > 0
+      && result.monologueHits.length === 0
+      && result.longMessageHits.length === 0
+      && result.bookDialogueHits.length === 0
+      && result.lectureHits.length === 0
+      && result.roleIdentityLoss.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.NPCSpeech = NPCSpeech;
   Game.__DEV ||= {};
   Game.__DEV.smokeNpcSpeechTemplateScaffoldOnce = function smokeNpcSpeechTemplateScaffoldOnce() {
@@ -1749,6 +1860,13 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce()
       : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_5_npc_role_differentiation_missing", checkedRoles: [], roleProfilesPresent: false, roleOverlapHits: [], indistinguishableRoles: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+
+  Game.__DEV.smokeZoomerNpcDmProfileOnce = function smokeZoomerNpcDmProfileOnce() {
+    return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcDmProfileOnce === "function"
+      ? Game.NPCSpeech.smokeZoomerNpcDmProfileOnce()
+      : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_6_safari_smoke_exposure_fix_missing", checkedCount: 0, monologueHits: [], longMessageHits: [], bookDialogueHits: [], lectureHits: [], roleIdentityLoss: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
   };
 
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
