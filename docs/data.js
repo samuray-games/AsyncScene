@@ -133,15 +133,15 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.TEXTS = {
     genz: {
       tie_start: "Толпа решает.",
-      tie_call_to_action: "Выбери имя — выбери сторону.",
-      tie_click_name_hint: "Выбери имя.",
+      tie_call_to_action: "Имя задаёт сторону.",
+      tie_click_name_hint: "Имя в списке — сторона.",
       vote_ok: "Голос учтён.",
       vote_already: "Уже учтён.",
       vote_fail: "Голос не учтён.",
       tie_timer: "Осталось: {sec}s",
       tie_end_winner: "Победил {name} - {aVotes}:{bVotes}.",
       tie_end_draw: "Поровну по голосам - {aVotes}:{bVotes}.",
-      tie_chat_start: "Выбери имя в событиях.",
+      tie_chat_start: "Толпа решает по именам.",
       tie_chat_end_winner: "Толпа решает. Победил {name} - {aVotes}:{bVotes}.",
       tie_chat_end_draw: "Толпа решает. Поровну - {aVotes}:{bVotes}.",
 
