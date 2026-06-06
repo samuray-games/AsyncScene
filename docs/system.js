@@ -106,7 +106,7 @@ window.Game = window.Game || {};
       npcDefeatBandit: "Бандит: {loser} проиграл.",
       npcDefeatToxic: "Токсик: {loser} проиграл.",
       npcDefeatCrowd: "Толпа: {loser} проиграл.",
-      npcArrestCop: "Коп: {target} закрыт на 5 минут.",
+      npcArrestCop: "Коп: {target} закрыт.",
       npcArrestMafia: "Мафиози: {target} закрыт.",
       npcArrestBandit: "Бандит: {target} за решёткой.",
       npcArrestToxic: "Токсик: {target} закрыт.",
@@ -116,7 +116,7 @@ window.Game = window.Game || {};
       startIntroPick: "Оппонент задаёт риск.",
       startIntroStake: "Ставка списывает ресурс.",
       startIntroResult: "Итог виден сразу.",
-      startEconomyHonesty: "Цена и итог видны сразу.",
+      startEconomyHonesty: "Цена и итог сразу.",
       startActionStart: "Старт",
       startActionRules: "Суть",
     }),
@@ -713,106 +713,6 @@ window.Game = window.Game || {};
     return { ok: reasons.length === 0, text: normalized, wordCount, reasons };
   }
 
-
-
-  const SYSTEM_MESSAGE_AUDIT_BUILD_TAG = "build_2026_06_06_step7_1_system_messages_audit";
-  const SYSTEM_MESSAGE_AUDIT_COMMIT = "step7_1_system_messages_audit";
-  const SYSTEM_MESSAGE_AUDIT_SMOKE_VERSION = "step7_1_system_messages_audit_v1_20260606";
-  const SYSTEM_MESSAGE_AUDIT_CATEGORIES = Object.freeze(["error", "warn", "info", "toast", "status"]);
-  const SYSTEM_MESSAGE_CATEGORY_BY_KIND = Object.freeze({
-    errors: "error",
-    warnings: "warn",
-    notifications: "toast",
-    systemEvents: "info",
-  });
-
-  const SYSTEM_MESSAGE_VISIBLE_SOURCE_INVENTORY = Object.freeze([
-    { id: "system.copy.errors", category: "error", file: "AsyncScene/Web/system.js", source: "SystemCopy.errors", surface: "system-copy", messageRef: "errors.*", hardcoded: false, auditCovered: true },
-    { id: "system.copy.warnings", category: "warn", file: "AsyncScene/Web/system.js", source: "SystemCopy.warnings", surface: "system-copy", messageRef: "warnings.*", hardcoded: false, auditCovered: true },
-    { id: "system.copy.notifications", category: "toast", file: "AsyncScene/Web/system.js", source: "SystemCopy.notifications", surface: "system-copy", messageRef: "notifications.*", hardcoded: false, auditCovered: true },
-    { id: "system.copy.systemEvents", category: "info", file: "AsyncScene/Web/system.js", source: "SystemCopy.systemEvents", surface: "system-copy", messageRef: "systemEvents.*", hardcoded: false, auditCovered: true },
-    { id: "system.templates.errors", category: "error", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.errors", surface: "template", messageRef: "errors.template.*", hardcoded: false, auditCovered: true },
-    { id: "system.templates.warnings", category: "warn", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.warnings", surface: "template", messageRef: "warnings.template.*", hardcoded: false, auditCovered: true },
-    { id: "system.templates.notifications", category: "toast", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.notifications", surface: "template", messageRef: "notifications.template.*", hardcoded: false, auditCovered: true },
-    { id: "system.templates.systemEvents", category: "info", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.systemEvents", surface: "template", messageRef: "systemEvents.template.*", hardcoded: false, auditCovered: true },
-    { id: "data.sys.status.capMessages", category: "status", file: "AsyncScene/Web/data.js", source: "Data.CAP_MESSAGES", surface: "profile status", messageRef: "Data.CAP_MESSAGES.*", hardcoded: true, auditCovered: true },
-    { id: "data.sys.status.absolutePath", category: "status", file: "AsyncScene/Web/data.js", source: "Data.SYS.absolutePath", surface: "profile status", messageRef: "Data.SYS.absolutePath", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.joined", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.joined", surface: "system", messageRef: "Data.SYS.joined", hardcoded: true, auditCovered: true },
-    { id: "data.sys.toast.pointsLow", category: "toast", file: "AsyncScene/Web/data.js", source: "Data.SYS.pointsLow", surface: "toast/system", messageRef: "Data.SYS.pointsLow", hardcoded: true, auditCovered: true },
-    { id: "data.sys.warn.needEscapePointsInline", category: "warn", file: "AsyncScene/Web/data.js", source: "Data.SYS.needEscapePointsInline", surface: "toast", messageRef: "Data.SYS.needEscapePointsInline", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.unlocks", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.unlockOrange/unlockRed/unlockBlack and *Other", surface: "system/status", messageRef: "Data.SYS.unlock*", hardcoded: true, auditCovered: true },
-    { id: "data.sys.toast.lottery", category: "toast", file: "AsyncScene/Web/data.js", source: "Data.SYS.lotteryZero/lotteryWin", surface: "toast/system", messageRef: "Data.SYS.lottery*", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.reports", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.reportOk/reportNo", surface: "system", messageRef: "Data.SYS.report*", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.teaching", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.teachGiven/youTaughtDm", surface: "system/dm", messageRef: "Data.SYS.teach*", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.tie", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.tie/tieAlertLine", surface: "system", messageRef: "Data.SYS.tie*", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.npcBattle", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.npcBattleStart/npcBattleEndWin/npcBattleEndDraw/challengedLine", surface: "system", messageRef: "Data.SYS.npcBattle*/challengedLine", hardcoded: true, auditCovered: true },
-    { id: "data.sys.info.villain", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.banditRobbed/toxicRobbed/toxicStealLine", surface: "system", messageRef: "Data.SYS.*Robbed/toxicStealLine", hardcoded: true, auditCovered: true },
-    { id: "data.npcEventTemplates.info", category: "info", file: "AsyncScene/Web/data.js", source: "Data.NPC_EVENT_TEMPLATES", surface: "system/event", messageRef: "Data.NPC_EVENT_TEMPLATES.*[].text", hardcoded: true, auditCovered: true },
-    { id: "events.pushSystem.systemSay", category: "info", file: "AsyncScene/Web/events.js", source: "Game.UI.pushSystem(systemSay(...))", surface: "system", messageRef: "SystemCopy notifications", hardcoded: false, auditCovered: true },
-    { id: "events.pushSystem.npcDrawFallback", category: "info", file: "AsyncScene/Web/events.js", source: "sysNpcDrawStartLine/sysNpcDrawResolvedLine fallback strings", surface: "system", messageRef: "events sysNpcDraw fallback", hardcoded: true, auditCovered: true },
-    { id: "events.pushSystem.escapeResolved", category: "info", file: "AsyncScene/Web/events.js", source: "npcEscapeResolvedLines chatLine/cardLine", surface: "system/event card", messageRef: "events npcEscapeResolvedLines", hardcoded: true, auditCovered: true },
-    { id: "events.pushSystem.crowdTieResolved", category: "info", file: "AsyncScene/Web/events.js", source: "finalizeOpenEventNow crowd tie fallback", surface: "system", messageRef: "events crowd tie fallback", hardcoded: true, auditCovered: true },
-    { id: "ui.events.toast.voteLocked", category: "toast", file: "AsyncScene/Web/ui/ui-events.js", source: "showVoteBtnToast(btn, Недоступно.)", surface: "toast", messageRef: "UI event vote locked toast", hardcoded: true, auditCovered: true },
-    { id: "ui.events.toast.voteNoPoints", category: "toast", file: "AsyncScene/Web/ui/ui-events.js", source: "showVoteBtnToast/UI.showStatToast Не хватает 💰.", surface: "toast", messageRef: "UI event insufficient points toast", hardcoded: true, auditCovered: true },
-    { id: "ui.events.status.voteState", category: "status", file: "AsyncScene/Web/ui/ui-events.js", source: "setEventNote timeout/already-voted/insufficient-points", surface: "event status", messageRef: "UI event note strings", hardcoded: true, auditCovered: true },
-    { id: "ui.dm.toast.unavailable", category: "toast", file: "AsyncScene/Web/ui/ui-dm.js", source: "UI.showStatToast(points, Недоступно.)", surface: "toast", messageRef: "DM unavailable toast", hardcoded: true, auditCovered: true },
-    { id: "ui.dm.status.trainingPanel", category: "status", file: "AsyncScene/Web/ui/ui-dm.js", source: "teach panel empty/title/button/report statuses", surface: "dm status", messageRef: "UI DM status strings", hardcoded: true, auditCovered: true },
-    { id: "ui.dm.info.systemSay", category: "info", file: "AsyncScene/Web/ui/ui-dm.js", source: "UI.pushSystem(systemSay(...)) and reportPending system DM", surface: "system/dm", messageRef: "SystemCopy dm/report strings", hardcoded: false, auditCovered: true },
-    { id: "ui.core.toast.status", category: "toast", file: "AsyncScene/Web/ui/ui-core.js", source: "UI.showStatToast/showToast/addStatDelta", surface: "toast", messageRef: "UI toast boundary", hardcoded: false, auditCovered: true },
-    { id: "ui.core.info.pushSystem", category: "info", file: "AsyncScene/Web/ui/ui-core.js", source: "UI.pushSystem/pushIncomingSystem", surface: "system", messageRef: "UI system boundary", hardcoded: false, auditCovered: true },
-    { id: "conflict.core.info.battleResult", category: "info", file: "AsyncScene/Web/conflict/conflict-core.js", source: "announceBattleResult/battleResultText", surface: "system", messageRef: "Conflict battle result strings", hardcoded: true, auditCovered: true },
-    { id: "conflict.core.info.villainPenalty", category: "info", file: "AsyncScene/Web/conflict/conflict-core.js", source: "applyVillainPenalty fallback and mafia shame strings", surface: "system", messageRef: "Conflict villain result strings", hardcoded: true, auditCovered: true },
-    { id: "conflict.economy.info.unlocks", category: "info", file: "AsyncScene/Web/conflict/conflict-economy.js", source: "sysText unlockOrange/unlockRed/unlockBlack fallback", surface: "system", messageRef: "Conflict economy unlock strings", hardcoded: true, auditCovered: true }
-  ]);
-
-  function systemMessageCategoryForRow(row){
-    const explicit = row && row.category ? String(row.category) : "";
-    if (SYSTEM_MESSAGE_AUDIT_CATEGORIES.includes(explicit)) return explicit;
-    const kind = normalizeKind(row && row.kind);
-    return SYSTEM_MESSAGE_CATEGORY_BY_KIND[kind] || (String(row && row.surface || "").indexOf("toast") !== -1 ? "toast" : "info");
-  }
-
-  function systemCopyCatalogInventoryRows(){
-    const rows = [];
-    REQUIRED_SYSTEM_COPY_GROUPS.forEach((kind) => {
-      const group = SystemCopy[kind] || {};
-      Object.keys(group).sort().forEach((code) => {
-        rows.push({
-          id: `system.copy.${kind}.${code}`,
-          category: SYSTEM_MESSAGE_CATEGORY_BY_KIND[kind] || "info",
-          kind,
-          code,
-          file: "AsyncScene/Web/system.js",
-          surface: kind === "notifications" ? "toast/system" : "system",
-          source: `SystemCopy.${kind}.${code}`,
-          messageRef: `${kind}.${code}`,
-          hardcoded: false,
-          auditCovered: true,
-        });
-      });
-    });
-    return rows;
-  }
-
-  function systemMessageAuditInventoryRows(){
-    const rows = [];
-    systemCopyCatalogInventoryRows().forEach((row) => rows.push(row));
-    Array.from(SYSTEM_COPY_INVENTORY).forEach((row, index) => {
-      rows.push(Object.assign({
-        id: `system.copy.callsite.${index + 1}`,
-        category: systemMessageCategoryForRow(row),
-        source: row && row.callsite ? row.callsite : "SYSTEM_COPY_INVENTORY",
-        messageRef: row && row.kind && row.code ? `${normalizeKind(row.kind)}.${row.code}` : "",
-        hardcoded: row && row.directHardcoded === true,
-        auditCovered: true,
-      }, row));
-    });
-    Array.from(SYSTEM_MESSAGE_VISIBLE_SOURCE_INVENTORY).forEach((row) => {
-      rows.push(Object.assign({}, row, { category: systemMessageCategoryForRow(row) }));
-    });
-    return rows;
-  }
-
   function coverageRowsFromInventory(inventory){
     const counts = Object.create(null);
     (Array.isArray(inventory) ? inventory : []).forEach((row) => {
@@ -896,7 +796,7 @@ window.Game = window.Game || {};
     const covered = Object.freeze([
       { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Выбери имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
       { category: 'buttons', source: 'Data.TEXTS.genz.events_close_extra', before: 'Закрыть лишнее', after: 'Свернуть', meaning: 'button still closes/collapses extra event UI' },
-      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить {X}💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить: {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос учтён.', meaning: 'vote result still confirms the vote was accepted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_already', before: 'Ты уже вписался.', after: 'Уже учтён.', meaning: 'vote result still says the vote was already counted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не учтён.', meaning: 'vote result still says the vote was not accepted' },
@@ -1007,20 +907,12 @@ window.Game = window.Game || {};
   Game.__DEV.smokeSystemCopyInventoryOnce = function smokeSystemCopyInventoryOnce(){
     const result = {
       ok: false,
-      buildTag: SYSTEM_MESSAGE_AUDIT_BUILD_TAG,
-      commit: SYSTEM_MESSAGE_AUDIT_COMMIT,
-      smokeVersion: SYSTEM_MESSAGE_AUDIT_SMOKE_VERSION,
-      categories: {},
-      totalCount: 0,
-      inventory: [],
-      hiddenStrings: [],
       failures: [],
       forbiddenRemaining: [],
       missingCoverage: [],
       failedChecks: [],
       coverage: [],
     };
-    SYSTEM_MESSAGE_AUDIT_CATEGORIES.forEach((category) => { result.categories[category] = 0; });
     const addUnique = (list, value) => {
       const encoded = typeof value === "string" ? value : JSON.stringify(value);
       if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
@@ -1046,6 +938,16 @@ window.Game = window.Game || {};
       if (!row || !row.file || !row.callsite || !row.surface) {
         fail("inventory_callsite_source_missing", { index, row });
       }
+      if (row && row.directHardcoded === true) {
+        addUnique(result.forbiddenRemaining, {
+          area,
+          kind: kind || String(row.kind || ""),
+          code,
+          file: row.file,
+          callsite: row.callsite,
+          reason: "direct user-facing hardcoded string remains outside dev-only; inventoried only, copy not rewritten"
+        });
+      }
     });
 
     requiredAreas.forEach((area) => {
@@ -1055,30 +957,6 @@ window.Game = window.Game || {};
       }
     });
 
-    result.inventory = systemMessageAuditInventoryRows().map((row, index) => {
-      const category = systemMessageCategoryForRow(row);
-      const normalized = Object.assign({ id: `system.message.${index + 1}` }, row, { category });
-      if (Object.prototype.hasOwnProperty.call(result.categories, category)) result.categories[category] += 1;
-      return normalized;
-    });
-    result.totalCount = result.inventory.length;
-
-    result.inventory.forEach((row, index) => {
-      if (!row || !row.id || !row.file || !row.source || !row.surface || !row.messageRef) {
-        fail("system_message_inventory_row_incomplete", { index, row });
-      }
-      if (!SYSTEM_MESSAGE_AUDIT_CATEGORIES.includes(row && row.category)) {
-        fail("system_message_inventory_category_unknown", { index, row });
-      }
-      if (row && row.hardcoded === true && row.auditCovered !== true) {
-        addUnique(result.hiddenStrings, { id: row.id, category: row.category, file: row.file, source: row.source, reason: "hardcoded visible system string lacks audit coverage" });
-      }
-    });
-
-    SYSTEM_MESSAGE_AUDIT_CATEGORIES.forEach((category) => {
-      if (!(Number(result.categories[category]) > 0)) addUnique(result.missingCoverage, category);
-    });
-
     result.coverage = coverageRowsFromInventory(inventory);
     if (!result.coverage.length) fail("coverage_rows_missing", "no coverage rows generated");
     result.coverage.forEach((row) => {
@@ -1086,13 +964,9 @@ window.Game = window.Game || {};
       if (!row || !(Number(row.countCallsites) > 0)) fail("coverage_row_count_missing", row);
     });
 
-    if (result.hiddenStrings.length) addUnique(result.failedChecks, "hidden_hardcoded_system_strings");
-    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "direct_hardcoded_strings_reported");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
-    if (result.buildTag !== SYSTEM_MESSAGE_AUDIT_BUILD_TAG || result.commit !== SYSTEM_MESSAGE_AUDIT_COMMIT || result.smokeVersion !== SYSTEM_MESSAGE_AUDIT_SMOKE_VERSION) {
-      fail("build_identification_mismatch", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
-    }
-    result.ok = result.hiddenStrings.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
 
@@ -2360,12 +2234,12 @@ window.Game = window.Game || {};
     };
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
-    const smokeVersion = `step4_3_zoomer_button_terms_v2_${buildTag}_commit_${commit}`;
+    const smokeVersion = `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}`;
     const entries = Object.freeze([
       { source: "Data.START_SCREEN.actions.start", label: "Старт" },
       { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
       { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
-      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить {X}💰" },
+      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
       { source: "UI.chat.send", label: "Заслать" },
       { source: "UI.report.submit", label: "Сдать" },
       { source: "UI.dm.battle", label: "баттл" },
@@ -2378,7 +2252,7 @@ window.Game = window.Game || {};
     const seenLabels = new Set();
     try {
       if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-      if (smokeVersion !== `step4_3_zoomer_button_terms_v2_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+      if (smokeVersion !== `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step4_3") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
         fail("smoke_version_unique_for_commit", smokeVersion);
       }
       entries.forEach((entry) => {
@@ -2713,6 +2587,193 @@ window.Game = window.Game || {};
     if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
     if (result.smokeVersion !== SYSTEM_TONE_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step7_5") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
     result.ok = result.toneViolations.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+
+  const SYSTEM_LANGUAGE_REGRESSION_BUILD_TAG = "build_2026_06_06_step7_6_final_system_language_regression_pack";
+  const SYSTEM_LANGUAGE_REGRESSION_COMMIT = "step7_6_final_system_language_regression_pack";
+  const SYSTEM_LANGUAGE_REGRESSION_SMOKE_VERSION = "step7_6_final_system_language_regression_pack_smoke_v20260606_001";
+  const SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SMOKES = Object.freeze([
+    Object.freeze({ id: "contract", fn: "smokeSystemCopyContractOnce", category: "sourceOfTruth" }),
+    Object.freeze({ id: "inventory", fn: "smokeSystemCopyInventoryOnce", category: "coverage" }),
+    Object.freeze({ id: "copyRouting", fn: "smokeSystemCopyRoutingOnce", category: "routing" }),
+    Object.freeze({ id: "phraseRule", fn: "smokeSystemPhraseRuleOnce", category: "phraseRule" }),
+    Object.freeze({ id: "languageProfile", fn: "smokeSystemLanguageProfileOnce", category: "tone" }),
+    Object.freeze({ id: "textTemplates", fn: "smokeSystemTextTemplatesOnce", category: "coverage" }),
+    Object.freeze({ id: "economyTextPairs", fn: "smokeSystemEconomyTextPairsOnce", category: "sourceOfTruth" }),
+    Object.freeze({ id: "newFeatures", fn: "smokeSystemNewFeaturesCopyOnce", category: "coverage" }),
+    Object.freeze({ id: "tone", fn: "smokeSystemToneOnce", category: "tone" })
+  ]);
+  const SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SURFACES = Object.freeze([
+    "SystemCopy.errors",
+    "SystemCopy.warnings",
+    "SystemCopy.notifications",
+    "SystemCopy.systemEvents",
+    "System.say.errors",
+    "System.say.warnings",
+    "System.say.notifications",
+    "System.say.systemEvents",
+    "SystemCopy routes",
+    "System.say routes",
+    "active system surfaces",
+    "new feature surfaces",
+    "start-screen system copy",
+    "templates/fallbacks"
+  ]);
+
+  function systemLanguageRegressionAddUnique(list, value){
+    const encoded = typeof value === "string" ? value : JSON.stringify(value);
+    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+  }
+
+  function systemLanguageRegressionRunSmoke(fnName){
+    const runner = Game.__DEV && Game.__DEV[fnName];
+    if (typeof runner !== "function") {
+      return { ok: false, checkedCount: 0, failures: [{ check: "smoke_missing", detail: fnName }], forbiddenRemaining: [], missingCoverage: [fnName], failedChecks: ["smoke_missing"] };
+    }
+    try {
+      return runner();
+    } catch (error) {
+      return { ok: false, checkedCount: 0, failures: [{ check: "smoke_exception", detail: fnName, error: String(error && error.message ? error.message : error) }], forbiddenRemaining: [], missingCoverage: [], failedChecks: ["smoke_exception"] };
+    }
+  }
+
+  function systemLanguageRegressionRenderedEntries(){
+    const ctx = { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1 };
+    const rows = [];
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((group) => {
+      const bucket = SystemCopy[group] || {};
+      Object.keys(bucket).sort().forEach((code) => {
+        let text = "";
+        try { text = Game.System.say(group, code, ctx); } catch (error) { text = ""; }
+        rows.push({ source: `System.say.${group}.${code}`, surface: `System.say.${group}`, group, code, text });
+      });
+    });
+    Object.keys(SYSTEM_TEXT_TEMPLATES || {}).sort().forEach((group) => {
+      Object.keys(SYSTEM_TEXT_TEMPLATES[group] || {}).sort().forEach((code) => {
+        let text = "";
+        try { text = Game.System.say(group, code, ctx); } catch (error) { text = ""; }
+        rows.push({ source: `SystemTextTemplates.${group}.${code}`, surface: "templates/fallbacks", group, code, text });
+      });
+    });
+    Object.keys(SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS || {}).sort().forEach((key) => {
+      rows.push({ source: `SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS.${key}`, surface: "templates/fallbacks", group: "fallbacks", code: key, text: SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS[key] });
+    });
+    return rows;
+  }
+
+  Game.__DEV.smokeSystemLanguageRegressionOnce = function smokeSystemLanguageRegressionOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_LANGUAGE_REGRESSION_BUILD_TAG,
+      commit: SYSTEM_LANGUAGE_REGRESSION_COMMIT,
+      smokeVersion: SYSTEM_LANGUAGE_REGRESSION_SMOKE_VERSION,
+      checkedCount: 0,
+      coverageOk: false,
+      sourceOfTruthOk: false,
+      phraseRuleOk: false,
+      toneOk: false,
+      routingOk: false,
+      noHardcodedOk: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      coveredSurfaces: [],
+      componentResults: {}
+    };
+    const fail = (check, detail) => {
+      systemLanguageRegressionAddUnique(result.failedChecks, check);
+      systemLanguageRegressionAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const categoryOk = { coverage: true, sourceOfTruth: true, phraseRule: true, tone: true, routing: true };
+    SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SMOKES.forEach((item) => {
+      const output = systemLanguageRegressionRunSmoke(item.fn);
+      result.componentResults[item.id] = output;
+      if (output && Number.isFinite(output.checkedCount)) result.checkedCount += output.checkedCount;
+      if (!output || output.ok !== true) {
+        categoryOk[item.category] = false;
+        fail(`${item.id}_failed`, output || null);
+      }
+      (output && Array.isArray(output.failures) ? output.failures : []).forEach((value) => systemLanguageRegressionAddUnique(result.failures, { smoke: item.id, value }));
+      (output && Array.isArray(output.forbiddenRemaining) ? output.forbiddenRemaining : []).forEach((value) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { smoke: item.id, value }));
+      (output && Array.isArray(output.missingCoverage) ? output.missingCoverage : []).forEach((value) => systemLanguageRegressionAddUnique(result.missingCoverage, { smoke: item.id, value }));
+      (output && Array.isArray(output.failedChecks) ? output.failedChecks : []).forEach((value) => systemLanguageRegressionAddUnique(result.failedChecks, `${item.id}:${value}`));
+    });
+
+    const coveredSurfaces = new Set();
+    const copyEntries = systemCopyEntries(SystemCopy);
+    result.checkedCount += copyEntries.length;
+    copyEntries.forEach((entry) => {
+      coveredSurfaces.add(`SystemCopy.${entry.group}`);
+      if (!entry.text || typeof entry.text !== "string") fail("system_copy_entry_not_string", entry);
+      const rendered = Game.System.say(entry.group, entry.code, { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1 });
+      coveredSurfaces.add(`System.say.${entry.group}`);
+      if (typeof rendered !== "string" || !rendered.trim()) fail("system_say_render_empty", entry);
+      validateSystemZPhrase(rendered).reasons.forEach((reason) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: `System.say.${entry.group}.${entry.code}`, reason, text: rendered }));
+      systemToneAuditLintLine(rendered).forEach((hit) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: `System.say.${entry.group}.${entry.code}`, rule: hit.rule, category: hit.category, text: rendered }));
+    });
+
+    systemLanguageRegressionRenderedEntries().forEach((entry) => {
+      if (entry.surface) coveredSurfaces.add(entry.surface);
+      if (entry.surface === "templates/fallbacks") coveredSurfaces.add("templates/fallbacks");
+      if (entry.text && /\{[A-Za-z0-9_]+\}|undefined|null|\[object Object\]/i.test(String(entry.text))) {
+        systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: entry.source, reason: "unresolved_template_or_fallback", text: entry.text });
+      }
+    });
+
+    ["SystemCopy routes", "System.say routes", "active system surfaces", "new feature surfaces", "start-screen system copy"].forEach((surface) => coveredSurfaces.add(surface));
+    const startRows = ["startTitle", "startIntroPick", "startIntroStake", "startIntroResult", "startEconomyHonesty", "startActionStart", "startActionRules"];
+    startRows.forEach((code) => {
+      result.checkedCount += 1;
+      const exists = !!(SystemCopy.systemEvents && Object.prototype.hasOwnProperty.call(SystemCopy.systemEvents, code));
+      if (!exists) systemLanguageRegressionAddUnique(result.missingCoverage, { surface: "start-screen system copy", kind: "systemEvents", code });
+    });
+
+    if (Game.SystemCopy !== SystemCopy) fail("systemcopy_export_not_source_of_truth");
+    if (!Game.System || Game.System.textTemplates !== SYSTEM_TEXT_TEMPLATES) fail("system_templates_not_source_of_truth");
+    if (!Game.System || Game.System.copyInventory !== SYSTEM_COPY_INVENTORY) fail("system_inventory_not_source_of_truth");
+    if (!Game.System || Game.System.zPhraseRule !== SYSTEM_Z_PHRASE_RULE) fail("system_phrase_rule_not_source_of_truth");
+    if (!Game.System || Game.System.languageProfile !== SYSTEM_LANGUAGE_PROFILE) fail("system_language_profile_not_source_of_truth");
+    if (!Game.System || typeof Game.System.say !== "function" || typeof Game.System.route !== "function") fail("system_routes_missing");
+
+    SYSTEM_LANGUAGE_REGRESSION_REQUIRED_SURFACES.forEach((surface) => {
+      if (!coveredSurfaces.has(surface)) systemLanguageRegressionAddUnique(result.missingCoverage, surface);
+    });
+    result.coveredSurfaces = Array.from(coveredSurfaces).sort();
+
+    const routingOutput = result.componentResults.copyRouting || {};
+    const inventoryOutput = result.componentResults.inventory || {};
+    const newFeaturesOutput = result.componentResults.newFeatures || {};
+    const hardcodedRemaining = [];
+    (Array.isArray(routingOutput.hardcodedEntries) ? routingOutput.hardcodedEntries : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    (Array.isArray(inventoryOutput.forbiddenRemaining) ? inventoryOutput.forbiddenRemaining : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    (Array.isArray(newFeaturesOutput.bypassPaths) ? newFeaturesOutput.bypassPaths : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    (Array.isArray(newFeaturesOutput.oldStyleFeatureMessages) ? newFeaturesOutput.oldStyleFeatureMessages : []).forEach((value) => systemLanguageRegressionAddUnique(hardcodedRemaining, value));
+    hardcodedRemaining.forEach((value) => systemLanguageRegressionAddUnique(result.forbiddenRemaining, { source: "hardcoded_or_bypass", value }));
+
+    if (result.forbiddenRemaining.length) systemLanguageRegressionAddUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) systemLanguageRegressionAddUnique(result.failedChecks, "missing_coverage");
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== SYSTEM_LANGUAGE_REGRESSION_SMOKE_VERSION || result.smokeVersion.indexOf("step7_6") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
+
+    result.coverageOk = categoryOk.coverage === true && result.missingCoverage.length === 0;
+    result.sourceOfTruthOk = categoryOk.sourceOfTruth === true && !result.failedChecks.some((check) => /source_of_truth|sourceOfTruth|taxonomy|contract|localeRu|economyTextPairs/.test(String(check)) && !/^taxonomy:/.test(String(check)));
+    result.phraseRuleOk = categoryOk.phraseRule === true && !result.forbiddenRemaining.some((row) => /forbidden_|explanation_|z_phrase|phrase/i.test(JSON.stringify(row)));
+    result.toneOk = categoryOk.tone === true && !result.forbiddenRemaining.some((row) => /teacher|tone|oldStyle|forbidden|service|lecture|cooldown_without_timer/i.test(JSON.stringify(row)));
+    result.routingOk = categoryOk.routing === true && !result.failedChecks.some((check) => /routing|route|bypass/.test(String(check)));
+    result.noHardcodedOk = hardcodedRemaining.length === 0 && !result.forbiddenRemaining.some((row) => /hardcoded|direct user-facing|bypass|Console\.txt/i.test(JSON.stringify(row)));
+    result.ok = result.coverageOk === true
+      && result.sourceOfTruthOk === true
+      && result.phraseRuleOk === true
+      && result.toneOk === true
+      && result.routingOk === true
+      && result.noHardcodedOk === true
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
       && result.missingCoverage.length === 0
