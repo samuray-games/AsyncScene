@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_4_npc_template_shortening_runtime_fail_fix";
-  const RUNTIME_COMMIT = "step6_4_npc_template_shortening_runtime_fail_fix";
+  const RUNTIME_BUILD_TAG = "build_2026_06_06_step6_5_runtime_identity_fix";
+  const RUNTIME_COMMIT = "step6_5_runtime_identity_fix";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
