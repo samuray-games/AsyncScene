@@ -32,16 +32,16 @@ window.Game = window.Game || {};
       pointsLowBattle: "Мало 💰 на баттл.",
       unavailable: "Недоступно.",
       notFound: "Не найдено.",
-      choosePlayer: "Выбери игрока.",
+      choosePlayer: "Игрок не указан.",
       reportFalsePenalty: "Штраф: -5 💰.",
       reportNo: "Коп: донос пустой, -5💰.",
-      p2pInvalidAmount: "Введи сумму.",
+      p2pInvalidAmount: "Сумма некорректна.",
       p2pSelfTransferForbidden: "Себе нельзя.",
       p2pTransferFailed: "Передача не прошла.",
     }),
     warnings: Object.freeze({
-      checkInput: "Проверь ввод.",
-      cooldownShort: "Подожди немного.",
+      checkInput: "Ввод некорректен.",
+      cooldownShort: "Кулдаун активен.",
       copCooldown: "Проверка займет время.",
       alreadyVoted: "Уже принято.",
       respectPairDaily: "Уважение уже отправлено.",
@@ -113,10 +113,10 @@ window.Game = window.Game || {};
       npcArrestCrowd: "Толпа: {target} закрыт.",
       p2pBacklogReason: "P2P: анти-абуз.",
       startTitle: "AsyncScene",
-      startIntroPick: "Выбери оппонента.",
-      startIntroStake: "Сделай ставку.",
-      startIntroResult: "Проверь итог.",
-      startEconomyHonesty: "Смотри цену и итог.",
+      startIntroPick: "Оппонент задаёт риск.",
+      startIntroStake: "Ставка списывает ресурс.",
+      startIntroResult: "Итог виден сразу.",
+      startEconomyHonesty: "Цена и итог видны сразу.",
       startActionStart: "Старт",
       startActionRules: "Суть",
     }),
@@ -131,11 +131,11 @@ window.Game = window.Game || {};
     errors: Object.freeze({
       blockedWithHint: "Не получилось: {what}. {hint}",
       unavailableWithHint: "Недоступно: {what}. {hint}",
-      needsValue: "Проверь: {what}. {hint}",
+      needsValue: "{what}: нет значения. {hint}",
     }),
     warnings: Object.freeze({
       actionOption: "{what}. {option}",
-      waitOption: "{what}. Можно позже.",
+      waitOption: "{what}. Пауза активна.",
       noEffectOption: "{what}. {option}",
     }),
     notifications: Object.freeze({
@@ -157,8 +157,8 @@ window.Game = window.Game || {};
 
   const SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS = Object.freeze({
     what: "действие",
-    hint: "Попробуй позже.",
-    option: "Выбери другой вариант.",
+    hint: "Доступ закрыт.",
+    option: "Другой вариант доступен.",
     value: "—",
     a: "участник",
     b: "участник",
@@ -1397,7 +1397,7 @@ window.Game = window.Game || {};
       userLocale: "ru",
       what: "действие",
       hint: "Можно позже.",
-      option: "Выбери другой вариант.",
+      option: "Другой вариант доступен.",
       value: "значение",
       a: "Анна",
       b: "Борис",
@@ -2387,9 +2387,9 @@ window.Game = window.Game || {};
   };
 
 
-  const SYSTEM_TONE_AUDIT_BUILD_TAG = "build_2026_06_06_step7_5_system_tone_audit";
-  const SYSTEM_TONE_AUDIT_COMMIT = "step7_5_system_tone_audit";
-  const SYSTEM_TONE_AUDIT_SMOKE_VERSION = "step7_5_system_tone_audit_smoke_v20260606_001";
+  const SYSTEM_TONE_AUDIT_BUILD_TAG = "build_2026_06_06_step7_5_tone_runtime_fix";
+  const SYSTEM_TONE_AUDIT_COMMIT = "step7_5_tone_runtime_fix";
+  const SYSTEM_TONE_AUDIT_SMOKE_VERSION = "step7_5_tone_runtime_fix_smoke_v20260606_001";
   const SYSTEM_TONE_AUDIT_REQUIRED_SURFACES = Object.freeze([
     "SystemCopy.errors",
     "SystemCopy.warnings",
