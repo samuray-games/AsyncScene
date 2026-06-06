@@ -1,3 +1,9 @@
+## 2026-06-06 — Step 7.3 SystemCopy dictionary audit
+- Added dev-only `Game.__DEV.smokeSystemCopyRoutingOnce()` in both served system bundles to audit system-message routing without changing copy, gameplay logic, or UI behavior.
+- The smoke returns the required fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `routedCount`, `hardcodedCount`, `hardcodedEntries`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Covered target groups are `points`, `rep`, `cooldown`, `lock`, `success`, and `fail`, including recent report compensation, villain/battle outcomes, unlocks, NPC event templates, respect, escape, and crowd/economy delta systems.
+- The audit detects remaining hardcoded system-message paths only; it does not rewrite them. Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeSystemCopyRoutingOnce()`.
+
 ## 2026-06-06 — Step 7.2 z-phrase runtime violations
 - READY_FOR_RUNTIME_SMOKE only.
 - Shortened runtime system copy for `dmReaction`, `dmInvite`, and `crowdResolved`.
