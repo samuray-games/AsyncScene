@@ -12,16 +12,16 @@ window.Game = window.Game || {};
 
   Data.START_SCREEN_TEXT_MAX_LENGTH = 36;
   Data.START_SCREEN = Object.freeze({
-    title: "AsyncScene",
+    title: systemSay("systemEvents", "startTitle"),
     introLines: Object.freeze([
-      "Выбери оппонента.",
-      "Сделай ставку.",
-      "Проверь итог."
+      systemSay("systemEvents", "startIntroPick"),
+      systemSay("systemEvents", "startIntroStake"),
+      systemSay("systemEvents", "startIntroResult")
     ]),
-    economyHonestyLine: "Смотри цену и итог.",
+    economyHonestyLine: systemSay("systemEvents", "startEconomyHonesty"),
     actions: Object.freeze({
-      start: "Старт",
-      rules: "Суть"
+      start: systemSay("systemEvents", "startActionStart"),
+      rules: systemSay("systemEvents", "startActionRules")
     })
   });
 

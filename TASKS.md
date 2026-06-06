@@ -1,3 +1,9 @@
+## 2026-06-06 — Step 7.4 SystemCopy bypass fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Routed the runtime-reported P2P backlog, P2P validation, P2P transfer success, and start screen copy through `SystemCopy` / `Game.System.say` in app and docs bundles.
+- Refreshed build identity to `build_2026_06_06_step7_4_systemcopy_bypass_fix` / `step7_4_systemcopy_bypass_fix` / `step7_4_systemcopy_bypass_fix_smoke_v20260606_002`.
+- Required Safari command: `Game.__DEV.smokeSystemNewFeaturesCopyOnce()`.
+
 ## 2026-06-06 — Step 7.4 new features SystemCopy coverage audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only audit smoke `Game.__DEV.smokeSystemNewFeaturesCopyOnce()` for bank, P2P, respect, report, crowd, battle, training, DM, and start screen coverage.
