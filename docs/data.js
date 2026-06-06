@@ -3,6 +3,7 @@ window.Game = window.Game || {};
 
 (() => {
   const Data = {};
+  const systemSay = (kind, code, ctx) => (window.Game && window.Game.System && typeof window.Game.System.say === "function") ? window.Game.System.say(kind, code, ctx || {}) : "";
 
   Data.RANDOM_NAMES = [
     "Ray","Samuray","Ohmylord","Neko","Rin","Yuna","Sora","Kai","Mika","Aki",
@@ -168,7 +169,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       cop_busy: ["Я сейчас занят, связь позже.", "Сейчас не могу, оформляю другое дело."],
       cop_report_ok: ["Проверка сошлась. Вмешался.", "Проверка сошлась. Занялся."],
       cop_report_fail: ["Не подтвердилось. Факты не сошлись."],
-      cop_cooldown: ["Проверка займет время."],
+      cop_cooldown: [systemSay("warnings", "copCooldown") || "Проверка займет время."],
 
       // UI type hints (Canon)
       hint_type_who: "Ответь: кто?",
@@ -3222,26 +3223,26 @@ K YN A9: Нет.
     joined: (name) => `${name} залетел(а) на площадь. Ща будет.`,
 
     // Баттлы - экономика
-    pointsLow: "Не прокает: мало 💰 на баттл.",
+    pointsLow: systemSay("errors", "pointsLowBattle") || "Мало 💰 на баттл.",
     needEscapePointsInline: "Не хватает 💰, чтобы Свалить.",
 
     // Анлоки аргументов (для себя и для остальных)
-    unlockOrange: "Твои аргументы теперь сильные.",
-    unlockRed: "Твои аргументы теперь мощные.",
-    unlockBlack: "Твои аргументы теперь абсолютные.",
-    unlockOrangeOther: (name) => `Аргументы ${name} теперь сильные.`,
-    unlockRedOther: (name) => `Аргументы ${name} теперь мощные.`,
+    unlockOrange: systemSay("systemEvents", "unlockOrange") || "Оранжевые аргументы открыты.",
+    unlockRed: systemSay("systemEvents", "unlockRed") || "Красные аргументы открыты.",
+    unlockBlack: systemSay("systemEvents", "unlockBlack") || "Чёрные аргументы открыты.",
+    unlockOrangeOther: (name) => systemSay("systemEvents", "unlockOrangeOther", { name }) || `Аргументы ${name} теперь сильные.`,
+    unlockRedOther: (name) => systemSay("systemEvents", "unlockRedOther", { name }) || `Аргументы ${name} теперь мощные.`,
     // После анлока красных UI может показывать это вместо счётчика "до k"
-    absolutePath: "Абсолют уже рядом.",
-    unlockBlackOther: (name) => `Аргументы ${name} теперь абсолютные.`,
+    absolutePath: systemSay("systemEvents", "unlockBlack") || "Чёрные аргументы открыты.",
+    unlockBlackOther: (name) => systemSay("systemEvents", "unlockBlackOther", { name }) || `Аргументы ${name} теперь абсолютные.`,
 
     // Лотерея
     lotteryZero: "Лотерея: 0. Фейл.",
     lotteryWin: (n) => `Лотерея: +${n}. Залетело.`,
 
     // Донос копу
-    reportOk: (name) => `Коп: ${name} сдан, +2💰.`,
-    reportNo: "Коп: донос пустой, -5💰.",
+    reportOk: (name) => systemSay("notifications", "reportOk", { name }) || `Коп: ${name} сдан, +2💰.`,
+    reportNo: systemSay("errors", "reportNo") || "Коп: донос пустой, -5💰.",
 
     // Обучение аргументу
     teachGiven: (toName, argument, cost) => `Ты научил(а) ${toName} за ${cost}: "${argument}". Одноразовый.`,
@@ -3264,32 +3265,32 @@ K YN A9: Нет.
     challengedLine: (attackerName, attackerInf) => `${attackerName} [${attackerInf}] бросил вызов.`,
 
     // Особые персонажи
-    banditRobbed: "Бандит забрал 💰.",
-    toxicRobbed: "Токсик забрал 💰.",
-    toxicStealLine: (cost) => `Токсик забрал ${cost}💰.`,
+    banditRobbed: systemSay("systemEvents", "banditRobbed") || "Бандит забрал 💰.",
+    toxicRobbed: systemSay("systemEvents", "toxicRobbed") || "Токсик забрал 💰.",
+    toxicStealLine: (cost) => systemSay("systemEvents", "toxicStealLine", { cost }) || `Токсик забрал ${cost}💰.`,
   };
 
   Data.NPC_EVENT_TEMPLATES = Object.freeze({
     victory: Object.freeze([
-      { role: "cop", text: "Коп: победа за {winner}." },
-      { role: "mafia", text: "Мафиози: итог за {winner}." },
-      { role: "bandit", text: "Бандит: {winner} забрал раунд." },
-      { role: "toxic", text: "Токсик: {winner} победил." },
-      { role: "crowd", text: "Толпа: {winner} победил." }
+      { role: "cop", text: systemSay("systemEvents", "npcVictoryCop", { winner: "{winner}" }) || "Коп: победа за {winner}." },
+      { role: "mafia", text: systemSay("systemEvents", "npcVictoryMafia", { winner: "{winner}" }) || "Мафиози: итог за {winner}." },
+      { role: "bandit", text: systemSay("systemEvents", "npcVictoryBandit", { winner: "{winner}" }) || "Бандит: {winner} забрал раунд." },
+      { role: "toxic", text: systemSay("systemEvents", "npcVictoryToxic", { winner: "{winner}" }) || "Токсик: {winner} победил." },
+      { role: "crowd", text: systemSay("systemEvents", "npcVictoryCrowd", { winner: "{winner}" }) || "Толпа: {winner} победил." }
     ]),
     defeat: Object.freeze([
-      { role: "cop", text: "Коп: {loser} проиграл." },
-      { role: "mafia", text: "Мафиози: {loser} должен." },
-      { role: "bandit", text: "Бандит: {loser} проиграл, добыча ушла." },
-      { role: "toxic", text: "Токсик: {loser} слабее." },
-      { role: "crowd", text: "Толпа: {loser} проиграл." }
+      { role: "cop", text: systemSay("systemEvents", "npcDefeatCop", { loser: "{loser}" }) || "Коп: {loser} проиграл." },
+      { role: "mafia", text: systemSay("systemEvents", "npcDefeatMafia", { loser: "{loser}" }) || "Мафиози: {loser} проиграл." },
+      { role: "bandit", text: systemSay("systemEvents", "npcDefeatBandit", { loser: "{loser}" }) || "Бандит: {loser} проиграл." },
+      { role: "toxic", text: systemSay("systemEvents", "npcDefeatToxic", { loser: "{loser}" }) || "Токсик: {loser} проиграл." },
+      { role: "crowd", text: systemSay("systemEvents", "npcDefeatCrowd", { loser: "{loser}" }) || "Толпа: {loser} проиграл." }
     ]),
     arrest: Object.freeze([
-      { role: "cop", text: "Коп: {target} закрыт на 5 минут." },
-      { role: "mafia", text: "Мафиози: {target} исчез с площади." },
-      { role: "bandit", text: "Бандит: {target} за решёткой." },
-      { role: "toxic", text: "Токсик: {target} сел." },
-      { role: "crowd", text: "Толпа: {target} закрыт." }
+      { role: "cop", text: systemSay("systemEvents", "npcArrestCop", { target: "{target}" }) || "Коп: {target} закрыт на 5 минут." },
+      { role: "mafia", text: systemSay("systemEvents", "npcArrestMafia", { target: "{target}" }) || "Мафиози: {target} закрыт." },
+      { role: "bandit", text: systemSay("systemEvents", "npcArrestBandit", { target: "{target}" }) || "Бандит: {target} за решёткой." },
+      { role: "toxic", text: systemSay("systemEvents", "npcArrestToxic", { target: "{target}" }) || "Токсик: {target} закрыт." },
+      { role: "crowd", text: systemSay("systemEvents", "npcArrestCrowd", { target: "{target}" }) || "Толпа: {target} закрыт." }
     ]),
     rumor: Object.freeze([
       { role: "cop", text: "Коп: слух про {target}." },
