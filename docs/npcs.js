@@ -1492,7 +1492,7 @@ window.Game ||= {};
   NPCSpeech.smokeZoomerNpcRoleDifferentiationOnce = function smokeZoomerNpcRoleDifferentiationOnce() {
     const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || Game.__buildTag || (Game.__DEV && Game.__DEV.buildTag) || null;
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
-    const smokeVersion = `step6_5_npc_role_differentiation_smoke_v20260606_001_${buildTag}_commit_${commit}`;
+    const smokeVersion = `step6_5_runtime_identity_fix_smoke_v20260606_002_${buildTag}_commit_${commit}`;
     const checkedRoles = ["cop", "bandit", "toxic", "mafia", "neutral", "crowd"];
     const result = {
       ok: false,
@@ -1573,9 +1573,9 @@ window.Game ||= {};
       if (result.indistinguishableRoles.length) addUnique(result.failedChecks, "indistinguishable_roles");
       if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
       if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
-      if (!buildTag || String(buildTag).indexOf("step6_5_npc_role_differentiation") === -1) fail("build_tag_identifies_step6_5", buildTag);
-      if (!commit || String(commit).indexOf("step6_5_npc_role_differentiation") === -1) fail("commit_identifies_step6_5", commit);
-      if (!smokeVersion || smokeVersion.indexOf("step6_5_npc_role_differentiation_smoke_v20260606_001") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_5", smokeVersion);
+      if (!buildTag || String(buildTag).indexOf("step6_5_runtime_identity_fix") === -1) fail("build_tag_identifies_step6_5", buildTag);
+      if (!commit || String(commit).indexOf("step6_5_runtime_identity_fix") === -1) fail("commit_identifies_step6_5", commit);
+      if (!smokeVersion || smokeVersion.indexOf("step6_5_runtime_identity_fix_smoke_v20260606_002") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) fail("smoke_version_unique_for_step6_5", smokeVersion);
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
     }
