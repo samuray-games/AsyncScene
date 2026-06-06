@@ -2050,6 +2050,141 @@ window.Game ||= {};
     return result;
   };
 
+
+  Game.__DEV.smokeZoomerNpcCompatibilityOnce = function smokeZoomerNpcCompatibilityOnce() {
+    const BUILD_TAG = "build_2026_06_06_step6_8_zoomer_npc_compatibility_audit";
+    const COMMIT = "step6_8_zoomer_npc_compatibility_audit";
+    const SMOKE_VERSION = "step6_8_zoomer_npc_compatibility_smoke_v20260606_001";
+    const result = {
+      ok: false,
+      buildTag: BUILD_TAG,
+      commit: COMMIT,
+      smokeVersion: SMOKE_VERSION,
+      checkedSystems: [],
+      checkedSources: [],
+      legacyStyleHits: [],
+      bypassPaths: [],
+      uncategorizedSpeechSources: [],
+      futureRoleCoverageGaps: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some(x => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const fail = (code, detail) => {
+      addUnique(result.failures, detail === undefined ? code : { code, detail });
+      addUnique(result.failedChecks, code);
+    };
+    const addSystem = (id, detail = {}) => addUnique(result.checkedSystems, Object.assign({ id }, detail));
+    const addSource = (id, detail = {}) => addUnique(result.checkedSources, Object.assign({ id }, detail));
+    const textOf = (value) => {
+      if (value == null) return [];
+      if (Array.isArray(value)) return value.flatMap(textOf);
+      if (typeof value === "object") return Object.keys(value).flatMap(k => textOf(value[k]));
+      return [String(value)];
+    };
+    const collectSources = () => {
+      const D = Game.Data || {};
+      const speech = Game.NPCSpeech || {};
+      const out = [];
+      const push = (category, id, getter) => out.push({ category, id, getter });
+      push("npc_profile", "NPC.SAY", () => NPC.SAY);
+      push("dm", "NPC.DM_PROFILE_LINES", () => NPC.DM_PROFILE_LINES);
+      push("dm", "villainQuestions", () => villainQuestions);
+      push("dm", "villainChallenges", () => villainChallenges);
+      push("report", "Game.Data.COP_TEMPLATES", () => D.COP_TEMPLATES);
+      push("crowd", "Game.Data.NPC_CHAT_LINES", () => D.NPC_CHAT_LINES);
+      push("system_event", "Game.Data.NPC_EVENT_TEMPLATES", () => D.NPC_EVENT_TEMPLATES);
+      push("npc_speech_templates", "Game.NPCSpeech.TEMPLATES_BY_LOCALE", () => speech.TEMPLATES_BY_LOCALE);
+      push("role_profile", "Game.NPCSpeech.ROLE_PROFILES", () => speech.ROLE_PROFILES);
+      (Array.isArray(NPC.SPEECH_INVENTORY_SOURCES) ? NPC.SPEECH_INVENTORY_SOURCES : []).forEach((row, index) => {
+        push(row && row.category ? row.category : "", row && row.source ? row.source : `NPC.SPEECH_INVENTORY_SOURCES.${index}`, () => (row && typeof row.get === "function") ? row.get() : null);
+      });
+      return out;
+    };
+    const legacyPatterns = [
+      { code: "email_polite", re: /\b(пожалуйста|благодарю|будьте добры|с уважением)\b/i },
+      { code: "teacher_mentor", re: /\b(главное|делаем вывод|ты должен|следует|необходимо|надо понимать|правильный выбор)\b/i },
+      { code: "book_dialogue", re: /^\s*—\s*[А-ЯЁа-яё]/u },
+      { code: "overexplained", re: /потому что|на самом деле|если не ошиб|вероятно|возможно|кажется|похоже|вроде/i }
+    ];
+    const entrypoints = [
+      { system: "cops", id: "NPC.generateCopReply", fn: () => NPC.generateCopReply("сдать токсика"), profile: "zoomer_npc_profile_via_cop_reply" },
+      { system: "mafia", id: "NPC.generateChatLine.mafia", fn: () => NPC.generateChatLine({ id: "step68_mafia", name: "Мафия", role: "mafia", npc: true, influence: 8, sex: "m" }, { source: "step6_8_mafia", block: "neutral", channel: "event", tick: "step6_8_mafia" }), profile: "Game.NPCSpeech.generateRuntimeNpcLine" },
+      { system: "DM threads", id: "NPC.generateDmLine.neutral", fn: () => NPC.generateDmLine({ id: "step68_dm", name: "Дара", role: "neutral", npc: true, influence: 4, sex: "f" }, { source: "step6_8_dm", tick: "step6_8_dm" }), profile: "Game.NPCSpeech.generateRuntimeNpcLine" },
+      { system: "DM threads", id: "NPC.generateVillainQuestion", fn: () => NPC.generateVillainQuestion({ id: "step68_toxic", role: "toxic", npc: true }), profile: "NPC.DM_PROFILE_LINES.compat_short_npc" },
+      { system: "DM threads", id: "NPC.generateVillainChallenge", fn: () => NPC.generateVillainChallenge({ id: "step68_bandit", role: "bandit", npc: true }), profile: "NPC.DM_PROFILE_LINES.compat_short_npc" },
+      { system: "accusation/injection flow", id: "Data.NPC_EVENT_TEMPLATES.accusationInjection", fn: () => ((Game.Data && Game.Data.NPC_EVENT_TEMPLATES && Game.Data.NPC_EVENT_TEMPLATES.accusationInjection || [])[0] || {}).text || "", profile: "Game.Data.NPC_EVENT_TEMPLATES" },
+      { system: "crowd", id: "NPC.generateChatLine.crowd", fn: () => NPC.generateChatLine({ id: "step68_crowd", name: "Толпа", role: "crowd", npc: true, influence: 3, sex: "u" }, { source: "step6_8_crowd", block: "neutral", channel: "event", tick: "step6_8_crowd" }), profile: "Game.NPCSpeech.generateRuntimeNpcLine" },
+      { system: "report flow", id: "NPC.generateDmLine.cop", fn: () => NPC.generateDmLine({ id: "step68_cop", name: "Коп", role: "cop", npc: true, influence: 6, sex: "m" }, { source: "report_reaction", block: "neutral", tick: "step6_8_report" }), profile: "Game.NPCSpeech.generateRuntimeNpcLine" },
+      { system: "future role registration paths", id: "NPCSpeech.unknownRoleFallback", fn: () => Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx({ id: "step68_future", name: "Будущий", role: "future_role_step68", npc: true }, { source: "future_role", channel: "dm", tick: "step6_8_future" }), ""), profile: "neutral_zoom_profile_fallback" },
+      { system: "all NPC speech emitters", id: "NPC.generateReactionToMe", fn: () => NPC.generateReactionToMe({ id: "step68_react", name: "Глеб", role: "toxic", npc: true, influence: 5, sex: "m" }, "Игрок"), profile: "Game.NPCSpeech.generateRuntimeNpcLine" },
+      { system: "all NPC speech emitters", id: "NPC.generateAggroDMLine", fn: () => NPC.generateAggroDMLine({ id: "step68_aggro", name: "Олег", role: "bandit", npc: true, influence: 5, sex: "m" }), profile: "NPC.SAY.compat_short_npc" },
+      { system: "all NPC speech emitters", id: "NPC.tick", fn: () => { const row = NPC.tick("chat"); return row && row.text; }, profile: "NPC.generateChatLine" },
+      { system: "all NPC speech emitters", id: "NPC.reactToChat", fn: () => { const row = NPC.reactToChat("привет", "Игрок"); return row && row.text; }, profile: "NPC.generateReactionToMe" }
+    ];
+    const requiredSystems = ["cops", "mafia", "DM threads", "accusation/injection flow", "crowd", "report flow", "future role registration paths", "all NPC speech emitters"];
+    const requiredSources = ["NPC.SAY", "NPC.DM_PROFILE_LINES", "villainQuestions", "villainChallenges", "Game.Data.COP_TEMPLATES", "Game.Data.NPC_CHAT_LINES", "Game.Data.NPC_EVENT_TEMPLATES", "Game.NPCSpeech.TEMPLATES_BY_LOCALE", "Game.NPCSpeech.ROLE_PROFILES"];
+    try {
+      if (!Game.NPCSpeech || typeof Game.NPCSpeech.generateRuntimeNpcLine !== "function" || typeof Game.NPCSpeech.makeCtx !== "function") fail("npc_speech_profile_missing");
+      if (Game.NPCSpeech && typeof Game.NPCSpeech.clearRuntimeProofLog === "function") Game.NPCSpeech.clearRuntimeProofLog();
+      entrypoints.forEach(row => {
+        let line = "";
+        try { line = row.fn ? row.fn() : ""; } catch (err) { fail("entrypoint_exception", { id: row.id, message: err && err.message ? String(err.message) : String(err) }); }
+        addSystem(row.system, { entrypoint: row.id, profile: row.profile, sample: String(line || "") });
+        if (!String(line || "").trim()) addUnique(result.missingCoverage, row.id);
+      });
+      collectSources().forEach(row => {
+        if (!row.category) addUnique(result.uncategorizedSpeechSources, row.id);
+        let value = null;
+        try { value = row.getter ? row.getter() : null; } catch (err) { fail("source_exception", { id: row.id, message: err && err.message ? String(err.message) : String(err) }); }
+        const lines = textOf(value).filter(Boolean);
+        addSource(row.id, { category: row.category || null, count: lines.length });
+        if (requiredSources.includes(row.id) && !lines.length) addUnique(result.missingCoverage, row.id);
+        lines.forEach((line, index) => {
+          const low = String(line || "").toLowerCase().replace(/ё/g, "е");
+          legacyPatterns.forEach(p => { if (p.re.test(low)) addUnique(result.legacyStyleHits, { source: row.id, index, code: p.code, line }); });
+          if (/\b(миллениал|millennial|старый стиль)\b/i.test(low)) addUnique(result.forbiddenRemaining, { source: row.id, index, line });
+        });
+      });
+      const proof = Game.NPCSpeech && typeof Game.NPCSpeech.getRuntimeProofLog === "function" ? Game.NPCSpeech.getRuntimeProofLog() : [];
+      const proofSources = new Set((proof || []).map(row => String(row && row.source || "")).filter(Boolean));
+      ["step6_8_mafia", "step6_8_dm", "step6_8_crowd", "report_reaction", "future_role", "battle_reply"].forEach(source => {
+        if (!proofSources.has(source)) addUnique(result.bypassPaths, { source, reason: "no_runtime_profile_proof" });
+      });
+      (proof || []).forEach(row => { if (row && row.fallbackUsed === true) addUnique(result.bypassPaths, { source: row.source || null, reason: "fallback_used", line: row.line || "" }); });
+      const roles = Game.NPCSpeech && Array.isArray(Game.NPCSpeech.ROLES) ? Game.NPCSpeech.ROLES : [];
+      const profiles = Game.NPCSpeech && Game.NPCSpeech.ROLE_PROFILES ? Game.NPCSpeech.ROLE_PROFILES : {};
+      roles.forEach(role => { if (!profiles[role === "crowd" ? "crowd" : role]) addUnique(result.futureRoleCoverageGaps, { role, reason: "role_profile_missing" }); });
+      const futureCtx = Game.NPCSpeech.makeCtx({ id: "step68_future_probe", role: "unregistered_step68", npc: true }, { source: "future_role", channel: "dm", tick: "step6_8_future_probe" });
+      const futurePool = Game.NPCSpeech.getPool(futureCtx);
+      if (!futurePool || futurePool.role !== "neutral") addUnique(result.futureRoleCoverageGaps, { role: "unregistered_step68", reason: "unknown_role_not_normalized_to_neutral", actual: futurePool && futurePool.role });
+      requiredSystems.forEach(system => { if (!result.checkedSystems.some(row => row && row.id === system)) addUnique(result.missingCoverage, `system:${system}`); });
+      requiredSources.forEach(source => { if (!result.checkedSources.some(row => row && row.id === source)) addUnique(result.missingCoverage, `source:${source}`); });
+      if (result.legacyStyleHits.length) addUnique(result.failedChecks, "legacy_style_hits");
+      if (result.bypassPaths.length) addUnique(result.failedChecks, "bypass_paths");
+      if (result.uncategorizedSpeechSources.length) addUnique(result.failedChecks, "uncategorized_speech_sources");
+      if (result.futureRoleCoverageGaps.length) addUnique(result.failedChecks, "future_role_coverage_gaps");
+      if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
+      if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.legacyStyleHits.length === 0
+      && result.bypassPaths.length === 0
+      && result.uncategorizedSpeechSources.length === 0
+      && result.futureRoleCoverageGaps.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   Game.__DEV.smokeNpcSpeechRegressionPackOnce = function smokeNpcSpeechRegressionPackOnce() {
     const result = {
       ok: false,
