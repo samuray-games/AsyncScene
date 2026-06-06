@@ -6066,3 +6066,11 @@ Error: Download failure, code=1
 - Runtime identity now identifies this build as `build_2026_06_06_step6_6_npc_dm_profile` / `step6_6_npc_dm_profile` with a Step 6.6-specific smoke version.
 - Scope held: DM speech templates/profile and runtime smoke only; no UI, gameplay, economy, or unrelated refactor changes. `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeZoomerNpcDmProfileOnce()`.
+
+## 2026-06-06 — Step 6.9 Final Z_NPC_TEMPLATE_SET
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created the canonical Zoomer NPC speech artifact set: `NPC_SPEECH_PROFILE_ZOOMER`, `NPC_ROLE_RULES_ZOOMER`, `NPC_STOP_PHRASES`, and `NPC_TEMPLATE_SET_Z`.
+- Routed runtime NPC speech templates through `NPC_TEMPLATE_SET_Z` so future NPC templates share the same canonical artifact path.
+- Added `Game.__DEV.smokeZoomerNpcTemplateSetOnce()` with Step 6.9 build identity and required empty-array PASS criteria.
+- Scope held: NPC speech artifacts and validation/smoke only; no UI, gameplay, economy, unrelated refactor, or `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZoomerNpcTemplateSetOnce()`.
