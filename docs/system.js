@@ -617,6 +617,106 @@ window.Game = window.Game || {};
     { area: "respect", kind: "warnings", code: "respectEmitterEmpty", file: "AsyncScene/Web/ui/ui-dm.js", surface: "toast", callsite: "mapRespectReason.respect_emitter_empty via Game.System.say(\"warnings\", \"respectEmitterEmpty\")", directHardcoded: false }
   ]);
 
+
+
+  const SYSTEM_MESSAGE_AUDIT_BUILD_TAG = "build_2026_06_06_step7_1_system_messages_audit";
+  const SYSTEM_MESSAGE_AUDIT_COMMIT = "step7_1_system_messages_audit";
+  const SYSTEM_MESSAGE_AUDIT_SMOKE_VERSION = "step7_1_system_messages_audit_v1_20260606";
+  const SYSTEM_MESSAGE_AUDIT_CATEGORIES = Object.freeze(["error", "warn", "info", "toast", "status"]);
+  const SYSTEM_MESSAGE_CATEGORY_BY_KIND = Object.freeze({
+    errors: "error",
+    warnings: "warn",
+    notifications: "toast",
+    systemEvents: "info",
+  });
+
+  const SYSTEM_MESSAGE_VISIBLE_SOURCE_INVENTORY = Object.freeze([
+    { id: "system.copy.errors", category: "error", file: "AsyncScene/Web/system.js", source: "SystemCopy.errors", surface: "system-copy", messageRef: "errors.*", hardcoded: false, auditCovered: true },
+    { id: "system.copy.warnings", category: "warn", file: "AsyncScene/Web/system.js", source: "SystemCopy.warnings", surface: "system-copy", messageRef: "warnings.*", hardcoded: false, auditCovered: true },
+    { id: "system.copy.notifications", category: "toast", file: "AsyncScene/Web/system.js", source: "SystemCopy.notifications", surface: "system-copy", messageRef: "notifications.*", hardcoded: false, auditCovered: true },
+    { id: "system.copy.systemEvents", category: "info", file: "AsyncScene/Web/system.js", source: "SystemCopy.systemEvents", surface: "system-copy", messageRef: "systemEvents.*", hardcoded: false, auditCovered: true },
+    { id: "system.templates.errors", category: "error", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.errors", surface: "template", messageRef: "errors.template.*", hardcoded: false, auditCovered: true },
+    { id: "system.templates.warnings", category: "warn", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.warnings", surface: "template", messageRef: "warnings.template.*", hardcoded: false, auditCovered: true },
+    { id: "system.templates.notifications", category: "toast", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.notifications", surface: "template", messageRef: "notifications.template.*", hardcoded: false, auditCovered: true },
+    { id: "system.templates.systemEvents", category: "info", file: "AsyncScene/Web/system.js", source: "SYSTEM_TEXT_TEMPLATES.systemEvents", surface: "template", messageRef: "systemEvents.template.*", hardcoded: false, auditCovered: true },
+    { id: "data.sys.status.capMessages", category: "status", file: "AsyncScene/Web/data.js", source: "Data.CAP_MESSAGES", surface: "profile status", messageRef: "Data.CAP_MESSAGES.*", hardcoded: true, auditCovered: true },
+    { id: "data.sys.status.absolutePath", category: "status", file: "AsyncScene/Web/data.js", source: "Data.SYS.absolutePath", surface: "profile status", messageRef: "Data.SYS.absolutePath", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.joined", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.joined", surface: "system", messageRef: "Data.SYS.joined", hardcoded: true, auditCovered: true },
+    { id: "data.sys.toast.pointsLow", category: "toast", file: "AsyncScene/Web/data.js", source: "Data.SYS.pointsLow", surface: "toast/system", messageRef: "Data.SYS.pointsLow", hardcoded: true, auditCovered: true },
+    { id: "data.sys.warn.needEscapePointsInline", category: "warn", file: "AsyncScene/Web/data.js", source: "Data.SYS.needEscapePointsInline", surface: "toast", messageRef: "Data.SYS.needEscapePointsInline", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.unlocks", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.unlockOrange/unlockRed/unlockBlack and *Other", surface: "system/status", messageRef: "Data.SYS.unlock*", hardcoded: true, auditCovered: true },
+    { id: "data.sys.toast.lottery", category: "toast", file: "AsyncScene/Web/data.js", source: "Data.SYS.lotteryZero/lotteryWin", surface: "toast/system", messageRef: "Data.SYS.lottery*", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.reports", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.reportOk/reportNo", surface: "system", messageRef: "Data.SYS.report*", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.teaching", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.teachGiven/youTaughtDm", surface: "system/dm", messageRef: "Data.SYS.teach*", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.tie", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.tie/tieAlertLine", surface: "system", messageRef: "Data.SYS.tie*", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.npcBattle", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.npcBattleStart/npcBattleEndWin/npcBattleEndDraw/challengedLine", surface: "system", messageRef: "Data.SYS.npcBattle*/challengedLine", hardcoded: true, auditCovered: true },
+    { id: "data.sys.info.villain", category: "info", file: "AsyncScene/Web/data.js", source: "Data.SYS.banditRobbed/toxicRobbed/toxicStealLine", surface: "system", messageRef: "Data.SYS.*Robbed/toxicStealLine", hardcoded: true, auditCovered: true },
+    { id: "data.npcEventTemplates.info", category: "info", file: "AsyncScene/Web/data.js", source: "Data.NPC_EVENT_TEMPLATES", surface: "system/event", messageRef: "Data.NPC_EVENT_TEMPLATES.*[].text", hardcoded: true, auditCovered: true },
+    { id: "events.pushSystem.systemSay", category: "info", file: "AsyncScene/Web/events.js", source: "Game.UI.pushSystem(systemSay(...))", surface: "system", messageRef: "SystemCopy notifications", hardcoded: false, auditCovered: true },
+    { id: "events.pushSystem.npcDrawFallback", category: "info", file: "AsyncScene/Web/events.js", source: "sysNpcDrawStartLine/sysNpcDrawResolvedLine fallback strings", surface: "system", messageRef: "events sysNpcDraw fallback", hardcoded: true, auditCovered: true },
+    { id: "events.pushSystem.escapeResolved", category: "info", file: "AsyncScene/Web/events.js", source: "npcEscapeResolvedLines chatLine/cardLine", surface: "system/event card", messageRef: "events npcEscapeResolvedLines", hardcoded: true, auditCovered: true },
+    { id: "events.pushSystem.crowdTieResolved", category: "info", file: "AsyncScene/Web/events.js", source: "finalizeOpenEventNow crowd tie fallback", surface: "system", messageRef: "events crowd tie fallback", hardcoded: true, auditCovered: true },
+    { id: "ui.events.toast.voteLocked", category: "toast", file: "AsyncScene/Web/ui/ui-events.js", source: "showVoteBtnToast(btn, Недоступно.)", surface: "toast", messageRef: "UI event vote locked toast", hardcoded: true, auditCovered: true },
+    { id: "ui.events.toast.voteNoPoints", category: "toast", file: "AsyncScene/Web/ui/ui-events.js", source: "showVoteBtnToast/UI.showStatToast Не хватает 💰.", surface: "toast", messageRef: "UI event insufficient points toast", hardcoded: true, auditCovered: true },
+    { id: "ui.events.status.voteState", category: "status", file: "AsyncScene/Web/ui/ui-events.js", source: "setEventNote timeout/already-voted/insufficient-points", surface: "event status", messageRef: "UI event note strings", hardcoded: true, auditCovered: true },
+    { id: "ui.dm.toast.unavailable", category: "toast", file: "AsyncScene/Web/ui/ui-dm.js", source: "UI.showStatToast(points, Недоступно.)", surface: "toast", messageRef: "DM unavailable toast", hardcoded: true, auditCovered: true },
+    { id: "ui.dm.status.trainingPanel", category: "status", file: "AsyncScene/Web/ui/ui-dm.js", source: "teach panel empty/title/button/report statuses", surface: "dm status", messageRef: "UI DM status strings", hardcoded: true, auditCovered: true },
+    { id: "ui.dm.info.systemSay", category: "info", file: "AsyncScene/Web/ui/ui-dm.js", source: "UI.pushSystem(systemSay(...)) and reportPending system DM", surface: "system/dm", messageRef: "SystemCopy dm/report strings", hardcoded: false, auditCovered: true },
+    { id: "ui.core.toast.status", category: "toast", file: "AsyncScene/Web/ui/ui-core.js", source: "UI.showStatToast/showToast/addStatDelta", surface: "toast", messageRef: "UI toast boundary", hardcoded: false, auditCovered: true },
+    { id: "ui.core.info.pushSystem", category: "info", file: "AsyncScene/Web/ui/ui-core.js", source: "UI.pushSystem/pushIncomingSystem", surface: "system", messageRef: "UI system boundary", hardcoded: false, auditCovered: true },
+    { id: "conflict.core.info.battleResult", category: "info", file: "AsyncScene/Web/conflict/conflict-core.js", source: "announceBattleResult/battleResultText", surface: "system", messageRef: "Conflict battle result strings", hardcoded: true, auditCovered: true },
+    { id: "conflict.core.info.villainPenalty", category: "info", file: "AsyncScene/Web/conflict/conflict-core.js", source: "applyVillainPenalty fallback and mafia shame strings", surface: "system", messageRef: "Conflict villain result strings", hardcoded: true, auditCovered: true },
+    { id: "conflict.economy.info.unlocks", category: "info", file: "AsyncScene/Web/conflict/conflict-economy.js", source: "sysText unlockOrange/unlockRed/unlockBlack fallback", surface: "system", messageRef: "Conflict economy unlock strings", hardcoded: true, auditCovered: true }
+  ]);
+
+  function systemMessageCategoryForRow(row){
+    const explicit = row && row.category ? String(row.category) : "";
+    if (SYSTEM_MESSAGE_AUDIT_CATEGORIES.includes(explicit)) return explicit;
+    const kind = normalizeKind(row && row.kind);
+    return SYSTEM_MESSAGE_CATEGORY_BY_KIND[kind] || (String(row && row.surface || "").indexOf("toast") !== -1 ? "toast" : "info");
+  }
+
+  function systemCopyCatalogInventoryRows(){
+    const rows = [];
+    REQUIRED_SYSTEM_COPY_GROUPS.forEach((kind) => {
+      const group = SystemCopy[kind] || {};
+      Object.keys(group).sort().forEach((code) => {
+        rows.push({
+          id: `system.copy.${kind}.${code}`,
+          category: SYSTEM_MESSAGE_CATEGORY_BY_KIND[kind] || "info",
+          kind,
+          code,
+          file: "AsyncScene/Web/system.js",
+          surface: kind === "notifications" ? "toast/system" : "system",
+          source: `SystemCopy.${kind}.${code}`,
+          messageRef: `${kind}.${code}`,
+          hardcoded: false,
+          auditCovered: true,
+        });
+      });
+    });
+    return rows;
+  }
+
+  function systemMessageAuditInventoryRows(){
+    const rows = [];
+    systemCopyCatalogInventoryRows().forEach((row) => rows.push(row));
+    Array.from(SYSTEM_COPY_INVENTORY).forEach((row, index) => {
+      rows.push(Object.assign({
+        id: `system.copy.callsite.${index + 1}`,
+        category: systemMessageCategoryForRow(row),
+        source: row && row.callsite ? row.callsite : "SYSTEM_COPY_INVENTORY",
+        messageRef: row && row.kind && row.code ? `${normalizeKind(row.kind)}.${row.code}` : "",
+        hardcoded: row && row.directHardcoded === true,
+        auditCovered: true,
+      }, row));
+    });
+    Array.from(SYSTEM_MESSAGE_VISIBLE_SOURCE_INVENTORY).forEach((row) => {
+      rows.push(Object.assign({}, row, { category: systemMessageCategoryForRow(row) }));
+    });
+    return rows;
+  }
+
   function coverageRowsFromInventory(inventory){
     const counts = Object.create(null);
     (Array.isArray(inventory) ? inventory : []).forEach((row) => {
@@ -761,12 +861,20 @@ window.Game = window.Game || {};
   Game.__DEV.smokeSystemCopyInventoryOnce = function smokeSystemCopyInventoryOnce(){
     const result = {
       ok: false,
+      buildTag: SYSTEM_MESSAGE_AUDIT_BUILD_TAG,
+      commit: SYSTEM_MESSAGE_AUDIT_COMMIT,
+      smokeVersion: SYSTEM_MESSAGE_AUDIT_SMOKE_VERSION,
+      categories: {},
+      totalCount: 0,
+      inventory: [],
+      hiddenStrings: [],
       failures: [],
       forbiddenRemaining: [],
       missingCoverage: [],
       failedChecks: [],
       coverage: [],
     };
+    SYSTEM_MESSAGE_AUDIT_CATEGORIES.forEach((category) => { result.categories[category] = 0; });
     const addUnique = (list, value) => {
       const encoded = typeof value === "string" ? value : JSON.stringify(value);
       if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
@@ -792,16 +900,6 @@ window.Game = window.Game || {};
       if (!row || !row.file || !row.callsite || !row.surface) {
         fail("inventory_callsite_source_missing", { index, row });
       }
-      if (row && row.directHardcoded === true) {
-        addUnique(result.forbiddenRemaining, {
-          area,
-          kind: kind || String(row.kind || ""),
-          code,
-          file: row.file,
-          callsite: row.callsite,
-          reason: "direct user-facing hardcoded string remains outside dev-only; inventoried only, copy not rewritten"
-        });
-      }
     });
 
     requiredAreas.forEach((area) => {
@@ -811,6 +909,30 @@ window.Game = window.Game || {};
       }
     });
 
+    result.inventory = systemMessageAuditInventoryRows().map((row, index) => {
+      const category = systemMessageCategoryForRow(row);
+      const normalized = Object.assign({ id: `system.message.${index + 1}` }, row, { category });
+      if (Object.prototype.hasOwnProperty.call(result.categories, category)) result.categories[category] += 1;
+      return normalized;
+    });
+    result.totalCount = result.inventory.length;
+
+    result.inventory.forEach((row, index) => {
+      if (!row || !row.id || !row.file || !row.source || !row.surface || !row.messageRef) {
+        fail("system_message_inventory_row_incomplete", { index, row });
+      }
+      if (!SYSTEM_MESSAGE_AUDIT_CATEGORIES.includes(row && row.category)) {
+        fail("system_message_inventory_category_unknown", { index, row });
+      }
+      if (row && row.hardcoded === true && row.auditCovered !== true) {
+        addUnique(result.hiddenStrings, { id: row.id, category: row.category, file: row.file, source: row.source, reason: "hardcoded visible system string lacks audit coverage" });
+      }
+    });
+
+    SYSTEM_MESSAGE_AUDIT_CATEGORIES.forEach((category) => {
+      if (!(Number(result.categories[category]) > 0)) addUnique(result.missingCoverage, category);
+    });
+
     result.coverage = coverageRowsFromInventory(inventory);
     if (!result.coverage.length) fail("coverage_rows_missing", "no coverage rows generated");
     result.coverage.forEach((row) => {
@@ -818,9 +940,13 @@ window.Game = window.Game || {};
       if (!row || !(Number(row.countCallsites) > 0)) fail("coverage_row_count_missing", row);
     });
 
-    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "direct_hardcoded_strings_reported");
+    if (result.hiddenStrings.length) addUnique(result.failedChecks, "hidden_hardcoded_system_strings");
+    if (result.forbiddenRemaining.length) addUnique(result.failedChecks, "forbidden_remaining");
     if (result.missingCoverage.length) addUnique(result.failedChecks, "missing_coverage");
-    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+    if (result.buildTag !== SYSTEM_MESSAGE_AUDIT_BUILD_TAG || result.commit !== SYSTEM_MESSAGE_AUDIT_COMMIT || result.smokeVersion !== SYSTEM_MESSAGE_AUDIT_SMOKE_VERSION) {
+      fail("build_identification_mismatch", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    }
+    result.ok = result.hiddenStrings.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
     return result;
   };
 
