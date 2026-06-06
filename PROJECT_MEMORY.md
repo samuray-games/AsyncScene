@@ -1,3 +1,10 @@
+## 2026-06-06 — Step 7.4 new features SystemCopy coverage audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only audit smoke `Game.__DEV.smokeSystemNewFeaturesCopyOnce()` for bank, P2P, respect, report, crowd, battle, training, DM, and start screen coverage.
+- The smoke returns `ok`, build identity fields, `checkedFeatures`, `missingFeatureCoverage`, `oldStyleFeatureMessages`, `bypassPaths`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Scope held: dev-only audit smoke, identity/cache-bust, and docs only; no message rewrites, no gameplay logic changes, no UI behavior changes, no broad refactor, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeSystemNewFeaturesCopyOnce()`.
+
 - 2026-06-06 Step 7.3 SystemCopy routing fix: READY_FOR_RUNTIME_SMOKE. Routed only the 16 runtime-smoke-reported hardcoded system-message paths through unified `SystemCopy` / `Game.System.say` sources in the served docs and app bundles.
 - Covered paths: state report compensation deltas, toxic/bandit robbery lines, `Data.TEXTS.genz.cop_cooldown`, unlock copy/fallbacks, report ok/no, points-low, battle result announce, mafia shame, and NPC victory/defeat/arrest template text.
 - Refreshed build identity to `build_2026_06_06_step7_3_systemcopy_routing_fix`, commit marker `step7_3_systemcopy_routing_fix`, and smoke version `step7_3_systemcopy_routing_fix_smoke_v20260606_002`. Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeSystemCopyRoutingOnce()`.
