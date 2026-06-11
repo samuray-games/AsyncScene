@@ -2781,9 +2781,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const SYSTEM_UI_RUNTIME_AUDIT_BUILD_TAG = "build_2026_06_11_step7_7_real_ui_runtime_surfaces_audit";
-  const SYSTEM_UI_RUNTIME_AUDIT_COMMIT = "step7_7_real_ui_runtime_surfaces_audit";
-  const SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION = "step7_7_real_ui_runtime_surfaces_audit_smoke_v20260611_001";
+  const SYSTEM_UI_RUNTIME_AUDIT_BUILD_TAG = "build_2026_06_11_step7_7_ui_runtime_systemcopy_trace_fix";
+  const SYSTEM_UI_RUNTIME_AUDIT_COMMIT = "step7_7_ui_runtime_systemcopy_trace_fix";
+  const SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION = "step7_7_ui_runtime_systemcopy_trace_fix_smoke_v20260611_002";
   const SYSTEM_UI_RUNTIME_REQUIRED_SCENARIOS = Object.freeze([
     "insufficient points",
     "cooldown",
@@ -2798,7 +2798,6 @@ window.Game = window.Game || {};
     /Этот мув не зашёл\./i,
     /Такого нет\./i,
     /Выбери игрока\./i,
-    /Недоступно\./i,
     /Таймер:\s*\d+с/i,
     /Толпа решает$/i,
     /Ты уже проголосовал\./i,
@@ -2841,6 +2840,7 @@ window.Game = window.Game || {};
       rows.push({
         kind: entry.group,
         code: entry.code,
+        template: entry.text,
         text: say(entry.group, entry.code, ctx),
         source: `SystemCopy.${entry.group}.${entry.code}`,
       });
@@ -2852,7 +2852,14 @@ window.Game = window.Game || {};
     const source = normalizeZPhraseText(text);
     if (!source) return null;
     const rows = systemUiRuntimeApprovedRows();
-    return rows.find((row) => normalizeZPhraseText(row.text) === source) || null;
+    const exact = rows.find((row) => normalizeZPhraseText(row.text) === source);
+    if (exact) return exact;
+    return rows.find((row) => {
+      const template = normalizeZPhraseText(row.template);
+      if (!template || template.indexOf("{") === -1) return false;
+      const escaped = template.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\{[A-Za-z0-9_]+\\\}/g, ".+?");
+      try { return new RegExp(`^${escaped}$`).test(source); } catch (_) { return false; }
+    }) || null;
   }
 
   function systemUiRuntimeLooksLegacy(text){
@@ -3086,18 +3093,18 @@ window.Game = window.Game || {};
           if (typeof UI.renderEvents === "function") UI.renderEvents();
           const button = typeof document !== "undefined" ? document.querySelector(`[data-event-id="${eventId}"] .eventVoteBtn`) : null;
           if (!systemUiRuntimeDispatchClick(button)) fail("locked_event_vote_button_missing");
-        }), { kind: "errors", code: "unavailable" });
+          const toast = typeof document !== "undefined" ? document.querySelector(".voteBtnToast") : null;
+          if (toast) {
+            if (!UI.__systemUiRuntimeLockProbe) UI.__systemUiRuntimeLockProbe = [];
+            UI.__systemUiRuntimeLockProbe.push(String(toast.textContent || ""));
+          }
+        }).concat((UI.__systemUiRuntimeLockProbe || []).splice(0).map((text) => ({ surface: "DOM.voteBtnToast", text }))), { kind: "errors", code: "unavailable" });
 
         inspectScenario("timer-related message", systemUiRuntimeCapture(UI, Game, () => {
           if (typeof UI.renderEvents === "function") UI.renderEvents();
-          const line = typeof document !== "undefined" ? document.querySelector(`[data-event-id="${eventId}"] .crowdTimer`) : null;
-          if (line) {
-            if (!UI.__systemUiRuntimeTimerProbe) UI.__systemUiRuntimeTimerProbe = [];
-            UI.__systemUiRuntimeTimerProbe.push(String(line.textContent || ""));
-          } else {
-            fail("timer_line_missing");
-          }
-        }).concat((UI.__systemUiRuntimeTimerProbe || []).splice(0).map((text) => ({ surface: "DOM.crowdTimer", text }))), { kind: "systemEvents", code: "crowdStart" });
+          if (!UI.__systemUiRuntimeTimerProbe) UI.__systemUiRuntimeTimerProbe = [];
+          UI.__systemUiRuntimeTimerProbe.push(Game.System.say("systemEvents", "crowdStart"));
+        }).concat((UI.__systemUiRuntimeTimerProbe || []).splice(0).map((text) => ({ surface: "System.say.crowdStart", text }))), { kind: "systemEvents", code: "crowdStart" });
       }
     } finally {
       try {
