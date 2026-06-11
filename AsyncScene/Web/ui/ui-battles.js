@@ -1693,7 +1693,7 @@ UI.renderBattles = () => {
               return;
             }
             if (res.reason === "no_points" || res.reason === "insufficient") {
-              UI.showStatToast("points", "Не хватает 💰.");
+              UI.showStatToast("points", systemSay("errors", "insufficientPoints"));
               return;
             }
           }

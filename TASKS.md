@@ -1,3 +1,12 @@
+## 2026-06-11 — Step 7.7 UI runtime scenario expectation fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the remaining runtime-reported Step 7.7 expectation issues: battle-invite insufficient-points feedback now routes through `Game.System.say("errors", "insufficientPoints")`, and the runtime smoke now reacquires the specific invite submit button while isolating battle state so the cooldown probe reaches `Game.System.say("warnings", "cooldownShort")`.
+- Kept previous passing Step 7.7 scenarios intact: DM reaction `dmReaction`, locked vote `unavailable`, and timer `crowdStart`.
+- Mirrored app/docs bundles and refreshed Step 7.7 cache-busts for `system.js`, `ui-dm.js`, `ui-battles.js`, and `ui-events.js`.
+- Refreshed served identity to `build_2026_06_11_step7_7_ui_runtime_expectation_fix` / `step7_7_ui_runtime_expectation_fix` / `step7_7_ui_runtime_expectation_fix_smoke_v20260611_003`.
+- Scope held: no gameplay logic changes, no broad refactor, no new server files, no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeSystemUiRuntimeOnce()`.
+
 ## 2026-06-11 — Step 7.7 UI runtime SystemCopy trace fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed only the runtime-reported Step 7.7 trace issues: battle-invite cooldown now uses `Game.System.say("warnings", "cooldownShort")`, locked event vote toast now uses `Game.System.say("errors", "unavailable")`, dynamic DM reaction text traces through the `dmReaction` SystemCopy template, and the timer scenario audits the SystemCopy-backed `crowdStart` message instead of the raw DOM countdown label.
