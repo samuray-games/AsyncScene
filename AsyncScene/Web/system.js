@@ -3139,4 +3139,137 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const FAKE_TONE_COVERAGE_BUILD_TAG = "build_2026_06_11_step8_1_fake_tone_coverage_inventory";
+  const FAKE_TONE_COVERAGE_COMMIT = "step8_1_fake_tone_coverage_inventory";
+  const FAKE_TONE_COVERAGE_SMOKE_VERSION = "step8_1_fake_tone_coverage_inventory_smoke_v20260611_001";
+  const FAKE_TONE_COVERAGE_REQUIRED_ZONES = Object.freeze([
+    "system messages",
+    "NPC speech",
+    "interface labels",
+    "arguments",
+    "hints",
+    "new feature texts",
+  ]);
+  const FAKE_TONE_COVERAGE_ZONE_PROBES = Object.freeze({
+    "system messages": Object.freeze([
+      "Game.__DEV.smokeSystemToneOnce",
+      "Game.__DEV.smokeSystemLanguageRegressionOnce",
+      "Game.SystemCopy",
+    ]),
+    "NPC speech": Object.freeze([
+      "Game.__DEV.smokeZoomerNpcCompatibilityOnce",
+      "Game.__DEV.smokeZoomerNpcNoMentoringOnce",
+      "Game.NPCSpeech",
+    ]),
+    "interface labels": Object.freeze([
+      "Game.__DEV.smokeZoomerTermsReadyOnce",
+      "Game.__DEV.smokeZoomerTermsInventoryOnce",
+      "document.uiLabels",
+    ]),
+    "arguments": Object.freeze([
+      "Game.__DEV.smokeZoomerArgumentAuthenticityOnce",
+      "Game.__DEV.smokeZoomerArgumentWrappersOnce",
+      "Game.Data.ARGUMENTS",
+    ]),
+    "hints": Object.freeze([
+      "Game.__DEV.smokeZoomerHintTermsOnce",
+      "Game.__DEV.styleLexTouchpointsOnce",
+      "Game.Data.TEXTS.genz.hints",
+    ]),
+    "new feature texts": Object.freeze([
+      "Game.__DEV.smokeSystemNewFeaturesCopyOnce",
+      "Game.__DEV.smokeZoomerNewFeaturesTermsOnce",
+      "SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS",
+    ]),
+  });
+
+  function fakeToneCoverageAddUnique(list, value){
+    const encoded = typeof value === "string" ? value : JSON.stringify(value);
+    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+  }
+
+  function fakeToneCoverageHasUiLabels(){
+    if (typeof document === "undefined") return false;
+    const selectors = [
+      "button",
+      "input[placeholder]",
+      "[aria-label]",
+      ".blockHeader",
+      ".pill",
+      ".statChip",
+    ];
+    try {
+      return selectors.some((selector) => Array.from(document.querySelectorAll(selector)).some((node) => {
+        const text = String((node && (node.getAttribute && (node.getAttribute("aria-label") || node.getAttribute("placeholder")))) || (node && node.textContent) || "").trim();
+        return text.length > 0;
+      }));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function fakeToneCoverageProbeAvailable(probe){
+    const dev = Game && Game.__DEV ? Game.__DEV : null;
+    const data = Game && Game.Data ? Game.Data : null;
+    if (probe === "Game.__DEV.smokeSystemToneOnce") return !!(dev && typeof dev.smokeSystemToneOnce === "function");
+    if (probe === "Game.__DEV.smokeSystemLanguageRegressionOnce") return !!(dev && typeof dev.smokeSystemLanguageRegressionOnce === "function");
+    if (probe === "Game.SystemCopy") return !!(Game && Game.SystemCopy && Object.keys(Game.SystemCopy).length);
+    if (probe === "Game.__DEV.smokeZoomerNpcCompatibilityOnce") return !!(dev && typeof dev.smokeZoomerNpcCompatibilityOnce === "function");
+    if (probe === "Game.__DEV.smokeZoomerNpcNoMentoringOnce") return !!(dev && typeof dev.smokeZoomerNpcNoMentoringOnce === "function");
+    if (probe === "Game.NPCSpeech") return !!(Game && Game.NPCSpeech);
+    if (probe === "Game.__DEV.smokeZoomerTermsReadyOnce") return !!(dev && typeof dev.smokeZoomerTermsReadyOnce === "function");
+    if (probe === "Game.__DEV.smokeZoomerTermsInventoryOnce") return !!(dev && typeof dev.smokeZoomerTermsInventoryOnce === "function");
+    if (probe === "document.uiLabels") return fakeToneCoverageHasUiLabels();
+    if (probe === "Game.__DEV.smokeZoomerArgumentAuthenticityOnce") return !!(dev && typeof dev.smokeZoomerArgumentAuthenticityOnce === "function");
+    if (probe === "Game.__DEV.smokeZoomerArgumentWrappersOnce") return !!(dev && typeof dev.smokeZoomerArgumentWrappersOnce === "function");
+    if (probe === "Game.Data.ARGUMENTS") return !!(data && data.ARGUMENTS && Object.keys(data.ARGUMENTS).length);
+    if (probe === "Game.__DEV.smokeZoomerHintTermsOnce") return !!(dev && typeof dev.smokeZoomerHintTermsOnce === "function");
+    if (probe === "Game.__DEV.styleLexTouchpointsOnce") return !!(dev && typeof dev.styleLexTouchpointsOnce === "function");
+    if (probe === "Game.Data.TEXTS.genz.hints") {
+      const genz = data && data.TEXTS && data.TEXTS.genz ? data.TEXTS.genz : {};
+      return Object.keys(genz).some((key) => /hint/i.test(key));
+    }
+    if (probe === "Game.__DEV.smokeSystemNewFeaturesCopyOnce") return !!(dev && typeof dev.smokeSystemNewFeaturesCopyOnce === "function");
+    if (probe === "Game.__DEV.smokeZoomerNewFeaturesTermsOnce") return !!(dev && typeof dev.smokeZoomerNewFeaturesTermsOnce === "function");
+    if (probe === "SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS") return typeof SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS !== "undefined" && Array.isArray(Array.from(SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS)) && SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS.length > 0;
+    return false;
+  }
+
+  Game.__DEV.smokeFakeToneZonesOnce = function smokeFakeToneZonesOnce(){
+    const result = {
+      ok: false,
+      buildTag: FAKE_TONE_COVERAGE_BUILD_TAG,
+      commit: FAKE_TONE_COVERAGE_COMMIT,
+      smokeVersion: FAKE_TONE_COVERAGE_SMOKE_VERSION,
+      checkedZones: [],
+      missingCoverage: [],
+      failures: [],
+      forbiddenRemaining: [],
+      failedChecks: [],
+    };
+    const fail = (check, detail) => {
+      fakeToneCoverageAddUnique(result.failedChecks, check);
+      fakeToneCoverageAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    FAKE_TONE_COVERAGE_REQUIRED_ZONES.forEach((zone) => {
+      const probes = Array.from(FAKE_TONE_COVERAGE_ZONE_PROBES[zone] || []);
+      const available = probes.filter((probe) => fakeToneCoverageProbeAvailable(probe));
+      result.checkedZones.push({ zone, covered: available.length > 0, probes: available });
+      if (!available.length) {
+        fakeToneCoverageAddUnique(result.missingCoverage, zone);
+        fail("coverage_zone_missing", zone);
+      }
+    });
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== FAKE_TONE_COVERAGE_SMOKE_VERSION || result.smokeVersion.indexOf("step8_1") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+      fail("smoke_version_unique_for_commit", result.smokeVersion);
+    }
+    if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    result.ok = result.missingCoverage.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
 })();

@@ -1,3 +1,11 @@
+## 2026-06-11 — Step 8.1 fake-tone coverage inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only Safari command `Game.__DEV.smokeFakeToneZonesOnce()` to inventory fake-tone coverage zones without rewriting UI text, NPC text, or gameplay logic.
+- Required zones covered by the inventory: system messages, NPC speech, interface labels, arguments, hints, and new feature texts.
+- Result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedZones`, `missingCoverage`, `failures`, `forbiddenRemaining`, and `failedChecks`.
+- Served identity: `build_2026_06_11_step8_1_fake_tone_coverage_inventory` / `step8_1_fake_tone_coverage_inventory` / `step8_1_fake_tone_coverage_inventory_smoke_v20260611_001`.
+- Required Safari command: `Game.__DEV.smokeFakeToneZonesOnce()`.
+
 ## 2026-06-11 — Step 7.7 UI runtime scenario expectation fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed only the remaining runtime-reported Step 7.7 expectation issues: battle-invite insufficient-points feedback now routes through `Game.System.say("errors", "insufficientPoints")`, and the runtime smoke now reacquires the specific invite submit button while isolating battle state so the cooldown probe reaches `Game.System.say("warnings", "cooldownShort")`.

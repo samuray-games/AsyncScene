@@ -1,3 +1,12 @@
+## 2026-06-11 — Step 8.1 fake-tone coverage inventory
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeFakeToneZonesOnce()` as a dev-only coverage inventory for fake-tone audit zones.
+- The smoke checks coverage-zone reachability only: system messages, NPC speech, interface labels, arguments, hints, and new feature texts.
+- It returns `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedZones`, `missingCoverage`, `failures`, `forbiddenRemaining`, and `failedChecks`; PASS requires all failure arrays to be empty.
+- Scope held: no UI text rewrite, no NPC text rewrite, no gameplay logic change, and no `Console.txt` usage.
+- Served identity: `build_2026_06_11_step8_1_fake_tone_coverage_inventory` / `step8_1_fake_tone_coverage_inventory` / `step8_1_fake_tone_coverage_inventory_smoke_v20260611_001`.
+- Safari command: `Game.__DEV.smokeFakeToneZonesOnce()`.
+
 ## 2026-06-11 — Step 7.7 UI runtime scenario expectation fix
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Narrowly fixed the two remaining Step 7.7 runtime expectation failures: the battle invite no-points path now emits `SystemCopy.errors.insufficientPoints`, and the smoke’s battle invite driver isolates current battle state and clicks the scoped invite submit button so the cooldown scenario reaches `SystemCopy.warnings.cooldownShort`.
