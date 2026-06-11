@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_06_step7_5_tone_runtime_fix";
-  const RUNTIME_COMMIT = "step7_5_tone_runtime_fix";
+  const RUNTIME_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
+  const RUNTIME_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -33452,9 +33452,22 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     console.warn("ONBOARDING_SPEC_SMOKE_INSTALLED_V1", typeof devStore.smokeOnboardingSpecOnce);
   }
 
+  function installStopFakeLexiconSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object") return;
+    if (typeof Game.__stopFakeLexiconSmokeOnce === "function") {
+      devStore.smokeStopFakeLexiconOnce = function smokeStopFakeLexiconOnce() {
+        return Game.__stopFakeLexiconSmokeOnce();
+      };
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeStopFakeLexiconOnce = devStore.smokeStopFakeLexiconOnce;
+    }
+    console.warn("STOP_FAKE_LEXICON_SMOKE_INSTALLED_V1", typeof devStore.smokeStopFakeLexiconOnce);
+  }
+
 
   installDevMenuMinimalSmoke(Game.__DEV);
   installOnboardingSpecSmoke(Game.__DEV);
+  installStopFakeLexiconSmoke(Game.__DEV);
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
   installStep3UiTaxonomySmoke(Game.__DEV);
@@ -33475,6 +33488,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installStep3TerminologyCompletionGateSmoke(Game.__DEV);
   console.warn("DEV_MENU_MINIMAL_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeDevMenuMinimalOnce);
   console.warn("ONBOARDING_SPEC_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeOnboardingSpecOnce);
+  console.warn("STOP_FAKE_LEXICON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStopFakeLexiconOnce);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);

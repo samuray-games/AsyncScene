@@ -3541,4 +3541,144 @@ window.Game = window.Game || {};
     return Game.__DEV.smokeFakeToneFiltersOnce();
   };
 
+  const STOP_FAKE_LEXICON_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
+  const STOP_FAKE_LEXICON_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
+  const STOP_FAKE_LEXICON_SMOKE_VERSION = "step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001";
+  const STOP_FAKE_LEXICON_CATEGORIES = Object.freeze({
+    memeHits: Object.freeze({
+      check: "meme_language",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(лол|лмао|кек|рофл|жиза|скибиди|мемн(?:о|ый|ая|ое|ые)?|press\s*f|go\s*brrr|sus)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+    teenSlangHits: Object.freeze({
+      check: "teenage_tone",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(ч[её]|щас|го|изи|имба|топчик|хайп|флекс|слей|зумерск(?:ий|ая|ое|ие)|тик\s?ток|тикток)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+    flirtingHits: Object.freeze({
+      check: "flirting_trying_too_hard_tone",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(краш|красавчик|милаш(?:ка|ный|ная|ное)?|детка|зай(?:ка)?|секси|флирт(?:у|овать|овый)?|подмиг(?:иваю|нул|нула)?|rizz)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+    vibeHits: Object.freeze({
+      check: "vibe_style_wording",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(вайб(?:овый|овая|овое|овые|а|ом)?|vibe|vibes)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+    cringeHits: Object.freeze({
+      check: "cringe_style_wording",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(кринж(?:овый|овая|овое|овые|а|ем)?|зашквар|cringe)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+    relaxedToneHits: Object.freeze({
+      check: "relaxed_tone_wording",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(на\s+расслабоне|расслабон|на\s+чилле|чилл(?:им|овый|овая|овое|ые)?|без\s+напряга|релакс)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+    excessiveIronyHits: Object.freeze({
+      check: "excessive_irony",
+      patterns: Object.freeze([
+        /(^|[^А-Яа-яЁёA-Za-z0-9_])(иронично|сарказм|саркастично|ха[-\s]?ха|ну\s+конечно|ага,\s*щас|смешно\s+аж)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+      ]),
+    }),
+  });
+
+  function stopFakeLexiconAddHit(result, bucketName, entry, pattern){
+    const hit = {
+      zone: entry.zone,
+      source: entry.source,
+      text: entry.text,
+      pattern: String(pattern && pattern.source ? pattern.source : pattern),
+    };
+    fakeToneCoverageAddUnique(result[bucketName], hit);
+    fakeToneCoverageAddUnique(result.forbiddenRemaining, hit);
+  }
+
+  Game.__DEV.smokeStopFakeLexiconOnce = function smokeStopFakeLexiconOnce(){
+    const result = {
+      ok: false,
+      buildTag: STOP_FAKE_LEXICON_BUILD_TAG,
+      commit: STOP_FAKE_LEXICON_COMMIT,
+      smokeVersion: STOP_FAKE_LEXICON_SMOKE_VERSION,
+      checkedCount: 0,
+      checkedZones: [],
+      memeHits: [],
+      teenSlangHits: [],
+      flirtingHits: [],
+      vibeHits: [],
+      cringeHits: [],
+      relaxedToneHits: [],
+      excessiveIronyHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const fail = (check, detail) => {
+      fakeToneCoverageAddUnique(result.failedChecks, check);
+      fakeToneCoverageAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const entries = fakeToneCollectCheckedTexts();
+    const checkedZones = new Set();
+    entries.forEach((entry) => {
+      if (!entry || !entry.text) return;
+      checkedZones.add(entry.zone);
+      Object.keys(STOP_FAKE_LEXICON_CATEGORIES).forEach((bucketName) => {
+        const category = STOP_FAKE_LEXICON_CATEGORIES[bucketName];
+        category.patterns.forEach((pattern) => {
+          if (pattern.test(entry.text)) stopFakeLexiconAddHit(result, bucketName, entry, pattern);
+        });
+      });
+    });
+    result.checkedCount = entries.length;
+    result.checkedZones = FAKE_TONE_COVERAGE_REQUIRED_ZONES.filter((zone) => checkedZones.has(zone));
+    FAKE_TONE_COVERAGE_REQUIRED_ZONES.forEach((zone) => {
+      if (!checkedZones.has(zone)) {
+        fakeToneCoverageAddUnique(result.missingCoverage, zone);
+        fail("checked_text_zone_missing", zone);
+      }
+    });
+    Object.keys(STOP_FAKE_LEXICON_CATEGORIES).forEach((bucketName) => {
+      if (result[bucketName].length) fail(STOP_FAKE_LEXICON_CATEGORIES[bucketName].check, result[bucketName]);
+    });
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== STOP_FAKE_LEXICON_SMOKE_VERSION || result.smokeVersion.indexOf("step8_3") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+      fail("smoke_version_unique_for_commit", result.smokeVersion);
+    }
+    if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    result.ok = result.checkedCount > 0
+      && result.checkedZones.length === FAKE_TONE_COVERAGE_REQUIRED_ZONES.length
+      && result.memeHits.length === 0
+      && result.teenSlangHits.length === 0
+      && result.flirtingHits.length === 0
+      && result.vibeHits.length === 0
+      && result.cringeHits.length === 0
+      && result.relaxedToneHits.length === 0
+      && result.excessiveIronyHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+  Game.__stopFakeLexiconSmokeOnce = Game.__DEV.smokeStopFakeLexiconOnce;
+  function exposeStopFakeLexiconSmoke(){
+    if (!Game.__DEV) Game.__DEV = {};
+    Game.__DEV.smokeStopFakeLexiconOnce = Game.__stopFakeLexiconSmokeOnce;
+    if (!Game.Dev) Game.Dev = {};
+    Game.Dev.smokeStopFakeLexiconOnce = Game.__stopFakeLexiconSmokeOnce;
+  }
+  exposeStopFakeLexiconSmoke();
+  if (typeof setTimeout === "function") {
+    setTimeout(exposeStopFakeLexiconSmoke, 0);
+    setTimeout(exposeStopFakeLexiconSmoke, 250);
+    setTimeout(exposeStopFakeLexiconSmoke, 1000);
+  }
+
 })();

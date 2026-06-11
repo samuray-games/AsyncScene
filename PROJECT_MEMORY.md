@@ -1,3 +1,12 @@
+## 2026-06-11 — Step 8.3 stop-fake lexicon enforcement
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeStopFakeLexiconOnce()` as the dev-only runtime smoke for stop-fake lexicon enforcement.
+- The smoke audits the existing Step 8 text collectors only: system messages, NPC speech, interface labels, arguments, hints, and new feature texts.
+- Banned categories are reported separately as `memeHits`, `teenSlangHits`, `flirtingHits`, `vibeHits`, `cringeHits`, `relaxedToneHits`, and `excessiveIronyHits`; PASS requires all hit arrays plus `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` to be empty.
+- Scope held: no gameplay logic change, no unrelated refactor, and no text rewrite outside detected runtime stop markers.
+- Served identity: `build_2026_06_11_step8_3_stop_fake_lexicon_enforcement` / `step8_3_stop_fake_lexicon_enforcement` / `step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001`.
+- Safari command: `Game.__DEV.smokeStopFakeLexiconOnce()`.
+
 ## 2026-06-11 — Step 8.2 fake-tone validation filters
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeFakeToneFiltersOnce()` as the dev-only runtime smoke for fake-tone validation.

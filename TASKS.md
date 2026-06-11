@@ -1,3 +1,13 @@
+## 2026-06-11 — Step 8.3 stop-fake lexicon enforcement
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only Safari command `Game.__DEV.smokeStopFakeLexiconOnce()` for stop-fake lexicon enforcement.
+- Required categories checked: meme language, teenage tone, flirting / trying-too-hard tone, vibe style wording, cringe style wording, "на расслабоне" style wording, and excessive irony.
+- Required zones checked: system messages, NPC speech, interface labels, arguments, hints, and new feature texts.
+- Result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `checkedZones`, `memeHits`, `teenSlangHits`, `flirtingHits`, `vibeHits`, `cringeHits`, `relaxedToneHits`, `excessiveIronyHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_11_step8_3_stop_fake_lexicon_enforcement` / `step8_3_stop_fake_lexicon_enforcement` / `step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001`.
+- Scope held: audit-only smoke plus identity/docs; no gameplay logic change, no unrelated refactor, and no text rewrite outside detected runtime stop markers.
+- Required Safari command: `Game.__DEV.smokeStopFakeLexiconOnce()`.
+
 ## 2026-06-11 — Step 8.2 fake-tone validation filters
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only Safari command `Game.__DEV.smokeFakeToneFiltersOnce()` for fake-tone validation filters.
