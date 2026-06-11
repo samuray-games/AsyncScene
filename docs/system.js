@@ -2781,9 +2781,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const SYSTEM_UI_RUNTIME_AUDIT_BUILD_TAG = "build_2026_06_11_step7_7_ui_runtime_systemcopy_trace_fix";
-  const SYSTEM_UI_RUNTIME_AUDIT_COMMIT = "step7_7_ui_runtime_systemcopy_trace_fix";
-  const SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION = "step7_7_ui_runtime_systemcopy_trace_fix_smoke_v20260611_002";
+  const SYSTEM_UI_RUNTIME_AUDIT_BUILD_TAG = "build_2026_06_11_step7_7_ui_runtime_expectation_fix";
+  const SYSTEM_UI_RUNTIME_AUDIT_COMMIT = "step7_7_ui_runtime_expectation_fix";
+  const SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION = "step7_7_ui_runtime_expectation_fix_smoke_v20260611_003";
   const SYSTEM_UI_RUNTIME_REQUIRED_SCENARIOS = Object.freeze([
     "insufficient points",
     "cooldown",
@@ -2910,10 +2910,9 @@ window.Game = window.Game || {};
     const input = (typeof document !== "undefined") ? document.getElementById("battleInviteInput") : null;
     if (input) {
       input.value = String(targetName || "");
-      try { input.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
     }
     const root = input && input.closest ? (input.closest(".eventRow") || input.parentNode || document) : document;
-    return systemUiRuntimeFindButton("баттл", root) || systemUiRuntimeFindButton("баттл", document);
+    return systemUiRuntimeFindButton("баттл", root);
   }
 
   function systemUiRuntimeCapture(UI, GameObj, fn){
@@ -3048,6 +3047,7 @@ window.Game = window.Game || {};
     try {
       if (UI && S && S.me && target) {
         S.battleCooldowns = S.battleCooldowns || {};
+        S.battles = [];
 
         S.me.points = 0;
         delete S.battleCooldowns[target.id];

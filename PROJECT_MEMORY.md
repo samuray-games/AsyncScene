@@ -1,3 +1,11 @@
+## 2026-06-11 — Step 7.7 UI runtime scenario expectation fix
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Narrowly fixed the two remaining Step 7.7 runtime expectation failures: the battle invite no-points path now emits `SystemCopy.errors.insufficientPoints`, and the smoke’s battle invite driver isolates current battle state and clicks the scoped invite submit button so the cooldown scenario reaches `SystemCopy.warnings.cooldownShort`.
+- Previous passing scenarios were left intact: `dmReaction`, `unavailable`, and `crowdStart`.
+- Mirrored app/docs bundles and refreshed Step 7.7 cache-busts for `system.js`, `ui-dm.js`, `ui-battles.js`, and `ui-events.js`.
+- Served identity: `build_2026_06_11_step7_7_ui_runtime_expectation_fix` / `step7_7_ui_runtime_expectation_fix` / `step7_7_ui_runtime_expectation_fix_smoke_v20260611_003`.
+- Safari command: `Game.__DEV.smokeSystemUiRuntimeOnce()`.
+
 ## 2026-06-11 — Step 7.7 UI runtime SystemCopy trace fix
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Runtime-reported Step 7.7 issues were fixed narrowly: cooldown battle-invite toast routes through `SystemCopy.warnings.cooldownShort`, locked event vote toast routes through `SystemCopy.errors.unavailable`, dynamic DM reaction lines are traceable through the `dmReaction` template, and timer coverage checks `SystemCopy.systemEvents.crowdStart` instead of raw `.crowdTimer` countdown text.

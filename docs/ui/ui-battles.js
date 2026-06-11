@@ -1685,7 +1685,7 @@ UI.renderBattles = () => {
             }
           } catch (_) {}
           if (res && res.ok === false && (res.reason === "no_points" || res.reason === "insufficient")) {
-            UI.showStatToast("points", "Не хватает 💰.");
+            UI.showStatToast("points", systemSay("errors", "insufficientPoints"));
             return;
           }
 
