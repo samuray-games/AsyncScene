@@ -3139,9 +3139,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const FAKE_TONE_COVERAGE_BUILD_TAG = "build_2026_06_11_step8_1_fake_tone_coverage_inventory";
-  const FAKE_TONE_COVERAGE_COMMIT = "step8_1_fake_tone_coverage_inventory";
-  const FAKE_TONE_COVERAGE_SMOKE_VERSION = "step8_1_fake_tone_coverage_inventory_smoke_v20260611_001";
+  const FAKE_TONE_COVERAGE_BUILD_TAG = "build_2026_06_11_step8_2_fake_tone_validation_filters";
+  const FAKE_TONE_COVERAGE_COMMIT = "step8_2_fake_tone_validation_filters";
+  const FAKE_TONE_COVERAGE_SMOKE_VERSION = "step8_2_fake_tone_validation_filters_smoke_v20260611_001";
   const FAKE_TONE_COVERAGE_REQUIRED_ZONES = Object.freeze([
     "system messages",
     "NPC speech",
@@ -3182,11 +3182,236 @@ window.Game = window.Game || {};
       "SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS",
     ]),
   });
+  const FAKE_TONE_FILTER_NAMES = Object.freeze([
+    "trying_to_sound_young",
+    "eye_roll_risk",
+    "age_20_25_authenticity",
+  ]);
+  const FAKE_TONE_SAMPLE_CONTEXT = Object.freeze({
+    name: "Имя",
+    target: "Цель",
+    guest: "Гость",
+    voteCost: 1,
+    rematchCost: 1,
+    escapeCost: 1,
+    location: "Площадь",
+    teacher: "A",
+    student: "B",
+    oppName: "Оппонент",
+    text: "итог",
+    winner: "A",
+    loser: "B",
+    a: "A",
+    b: "B",
+    aVotes: 1,
+    bVotes: 0,
+    attackerName: "A",
+    attackerInf: 1,
+    returnAmount: 1,
+    cost: 1,
+    amount: 1,
+  });
 
   function fakeToneCoverageAddUnique(list, value){
     const encoded = typeof value === "string" ? value : JSON.stringify(value);
     if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
   }
+
+  function fakeToneNormalizeText(value){
+    return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+  }
+
+  function fakeToneIsTextLike(value){
+    return typeof value === "string" && fakeToneNormalizeText(value).length > 0;
+  }
+
+  function fakeTonePushEntry(entries, seen, zone, source, text, meta){
+    const normalized = fakeToneNormalizeText(text);
+    if (!normalized) return;
+    const key = `${zone}\u0000${source}\u0000${normalized}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    entries.push(Object.assign({
+      zone,
+      source: String(source || "unknown"),
+      text: normalized,
+    }, meta || {}));
+  }
+
+  function fakeToneCollectStrings(value, zone, source, entries, seen, depth){
+    if (depth > 6 || value == null) return;
+    if (typeof value === "string") {
+      fakeTonePushEntry(entries, seen, zone, source, value);
+      return;
+    }
+    if (typeof value === "function") {
+      try {
+        ["Имя", "Площадь", "Цель"].forEach((sample, index) => {
+          const rendered = value(sample, sample, sample);
+          if (fakeToneIsTextLike(rendered)) fakeTonePushEntry(entries, seen, zone, `${source}.rendered.${index}`, rendered);
+        });
+      } catch (_) {}
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => fakeToneCollectStrings(item, zone, `${source}.${index}`, entries, seen, depth + 1));
+      return;
+    }
+    if (typeof value === "object") {
+      Object.keys(value).forEach((key) => {
+        const item = value[key];
+        if (typeof item === "string" || typeof item === "function" || Array.isArray(item) || (item && typeof item === "object")) {
+          fakeToneCollectStrings(item, zone, `${source}.${key}`, entries, seen, depth + 1);
+        }
+      });
+    }
+  }
+
+  function fakeToneRenderSystem(kind, code){
+    try {
+      if (Game.System && typeof Game.System.say === "function") {
+        return Game.System.say(kind, code, FAKE_TONE_SAMPLE_CONTEXT);
+      }
+    } catch (_) {}
+    return "";
+  }
+
+  function fakeToneCollectSystemMessages(entries, seen){
+    if (Game.SystemCopy || SystemCopy) {
+      fakeToneCollectStrings(Game.SystemCopy || SystemCopy, "system messages", "Game.SystemCopy", entries, seen, 0);
+    }
+    if (typeof SYSTEM_TEXT_TEMPLATES !== "undefined") {
+      fakeToneCollectStrings(SYSTEM_TEXT_TEMPLATES, "system messages", "SYSTEM_TEXT_TEMPLATES", entries, seen, 0);
+    }
+    if (typeof SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS !== "undefined") {
+      fakeToneCollectStrings(SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS, "system messages", "SYSTEM_TEMPLATE_PLACEHOLDER_FALLBACKS", entries, seen, 0);
+    }
+    if (typeof SYSTEM_COPY_INVENTORY !== "undefined") {
+      Array.from(SYSTEM_COPY_INVENTORY).forEach((row, index) => {
+        const kind = normalizeKind(row && row.kind);
+        const code = String(row && row.code || "").trim();
+        if (kind && code) fakeTonePushEntry(entries, seen, "system messages", `SYSTEM_COPY_INVENTORY.${index}.${kind}.${code}`, fakeToneRenderSystem(kind, code));
+      });
+    }
+  }
+
+  function fakeToneCollectNpcSpeech(entries, seen){
+    const data = Game && Game.Data ? Game.Data : {};
+    const npc = Game && Game.NPC ? Game.NPC : {};
+    const speech = Game && Game.NPCSpeech ? Game.NPCSpeech : {};
+    fakeToneCollectStrings(npc.SAY, "NPC speech", "Game.NPC.SAY", entries, seen, 0);
+    fakeToneCollectStrings(npc.DM_PROFILE_LINES, "NPC speech", "Game.NPC.DM_PROFILE_LINES", entries, seen, 0);
+    fakeToneCollectStrings(npc.villainQuestions, "NPC speech", "Game.NPC.villainQuestions", entries, seen, 0);
+    fakeToneCollectStrings(npc.villainChallenges, "NPC speech", "Game.NPC.villainChallenges", entries, seen, 0);
+    fakeToneCollectStrings(data.COP_TEMPLATES, "NPC speech", "Game.Data.COP_TEMPLATES", entries, seen, 0);
+    fakeToneCollectStrings(data.NPC_CHAT_LINES, "NPC speech", "Game.Data.NPC_CHAT_LINES", entries, seen, 0);
+    fakeToneCollectStrings(data.NPC_EVENT_TEMPLATES, "NPC speech", "Game.Data.NPC_EVENT_TEMPLATES", entries, seen, 0);
+    fakeToneCollectStrings(speech.TEMPLATES_BY_LOCALE, "NPC speech", "Game.NPCSpeech.TEMPLATES_BY_LOCALE", entries, seen, 0);
+    fakeToneCollectStrings(speech.ROLE_PROFILES, "NPC speech", "Game.NPCSpeech.ROLE_PROFILES", entries, seen, 0);
+  }
+
+  function fakeToneCollectInterfaceLabels(entries, seen){
+    if (typeof document === "undefined") return;
+    const selectors = [
+      "button",
+      "input[placeholder]",
+      "[aria-label]",
+      "[title]",
+      ".blockHeader",
+      ".headerTitleText",
+      ".battleTitleText",
+      ".pill",
+    ];
+    try {
+      selectors.forEach((selector) => {
+        Array.from(document.querySelectorAll(selector)).forEach((node, index) => {
+          const label = (node.getAttribute && (node.getAttribute("aria-label") || node.getAttribute("placeholder") || node.getAttribute("title"))) || node.textContent || "";
+          fakeTonePushEntry(entries, seen, "interface labels", `document.${selector}.${index}`, label);
+        });
+      });
+    } catch (_) {}
+  }
+
+  function fakeToneCollectArguments(entries, seen){
+    const data = Game && Game.Data ? Game.Data : {};
+    try {
+      if (data && typeof data.initArgumentsOnce === "function") data.initArgumentsOnce();
+    } catch (_) {}
+    ["attack", "defense"].forEach((side) => {
+      const list = data && data.ARGUMENTS && Array.isArray(data.ARGUMENTS[side]) ? data.ARGUMENTS[side] : [];
+      list.forEach((row, index) => fakeTonePushEntry(entries, seen, "arguments", `Game.Data.ARGUMENTS.${side}.${index}`, row && row.text, { side, id: row && row.id }));
+    });
+  }
+
+  function fakeToneCollectHints(entries, seen){
+    const data = Game && Game.Data ? Game.Data : {};
+    const genz = data && data.TEXTS && data.TEXTS.genz ? data.TEXTS.genz : {};
+    [
+      "tie_call_to_action",
+      "tie_click_name_hint",
+      "invite_open_hint",
+      "hint_type_who",
+      "hint_type_where",
+      "hint_type_about",
+      "hint_type_yn",
+    ].forEach((key) => fakeTonePushEntry(entries, seen, "hints", `Game.Data.TEXTS.genz.${key}`, genz[key]));
+    if (data && data.START_SCREEN) {
+      fakeToneCollectStrings(data.START_SCREEN.introLines, "hints", "Game.Data.START_SCREEN.introLines", entries, seen, 0);
+      fakeTonePushEntry(entries, seen, "hints", "Game.Data.START_SCREEN.economyHonestyLine", data.START_SCREEN.economyHonestyLine);
+    }
+  }
+
+  function fakeToneCollectNewFeatureTexts(entries, seen){
+    if (typeof SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS !== "undefined") {
+      Array.from(SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS).forEach((row, index) => {
+        const kind = normalizeKind(row && row.kind);
+        const code = String(row && row.code || "").trim();
+        if (kind && code) fakeTonePushEntry(entries, seen, "new feature texts", `SYSTEM_NEW_FEATURES_COPY_AUDIT_ROWS.${index}.${kind}.${code}`, fakeToneRenderSystem(kind, code), { feature: row && row.feature });
+      });
+    }
+    const data = Game && Game.Data ? Game.Data : {};
+    if (data && data.START_SCREEN) fakeToneCollectStrings(data.START_SCREEN, "new feature texts", "Game.Data.START_SCREEN", entries, seen, 0);
+  }
+
+  function fakeToneCollectCheckedTexts(){
+    const entries = [];
+    const seen = new Set();
+    fakeToneCollectSystemMessages(entries, seen);
+    fakeToneCollectNpcSpeech(entries, seen);
+    fakeToneCollectInterfaceLabels(entries, seen);
+    fakeToneCollectArguments(entries, seen);
+    fakeToneCollectHints(entries, seen);
+    fakeToneCollectNewFeatureTexts(entries, seen);
+    return entries;
+  }
+
+  const FAKE_TONE_FILTERS = Object.freeze({
+    trying_to_sound_young: Object.freeze({
+      id: "trying_to_sound_young",
+      test(text){
+        return !/(^|[^А-Яа-яЁёA-Za-z])(кринж|вайб|имба|рофл|изи|лол|лмао|кек|жиза|краш|флекс|чилл|хайп|бро|чел|сигма|скуф|лит|slay|vibe|cringe|yeet|based|rizz|sus)(?=$|[^А-Яа-яЁёA-Za-z])/i.test(text);
+      },
+    }),
+    eye_roll_risk: Object.freeze({
+      id: "eye_roll_risk",
+      test(text){
+        const normalized = fakeToneNormalizeText(text);
+        if (/(?:[!?]){3,}|(?:[🔥💯😎🤙✨]){2,}|[#]{1,}\w+/.test(normalized)) return false;
+        if (/[A-ZА-ЯЁ]{8,}/.test(normalized.replace(/[A-ZА-ЯЁ]{1,4}\b/g, ""))) return false;
+        return !/(ну\s+типа|прям\s+вау|это\s+база|молод[её]жн|по[-\s]?молодому|как\s+в\s+тиктоке|на\s+сленге)/i.test(normalized);
+      },
+    }),
+    age_20_25_authenticity: Object.freeze({
+      id: "age_20_25_authenticity",
+      test(text){
+        const normalized = fakeToneNormalizeText(text);
+        if (!normalized) return false;
+        if (/(подрост|тинейдж|школьн|зумер|gen\s*z|поколени[ея]\s*z|детск|малолет|тусовк)/i.test(normalized)) return false;
+        if (normalized.length > 180 && /(?:ты|твой|тебя|тебе)/i.test(normalized) && /(?:должен|обязан|запомни|пойми)/i.test(normalized)) return false;
+        return true;
+      },
+    }),
+  });
 
   function fakeToneCoverageHasUiLabels(){
     if (typeof document === "undefined") return false;
@@ -3235,13 +3460,15 @@ window.Game = window.Game || {};
     return false;
   }
 
-  Game.__DEV.smokeFakeToneZonesOnce = function smokeFakeToneZonesOnce(){
+  Game.__DEV.smokeFakeToneFiltersOnce = function smokeFakeToneFiltersOnce(){
     const result = {
       ok: false,
       buildTag: FAKE_TONE_COVERAGE_BUILD_TAG,
       commit: FAKE_TONE_COVERAGE_COMMIT,
       smokeVersion: FAKE_TONE_COVERAGE_SMOKE_VERSION,
       checkedZones: [],
+      checkedFilters: [],
+      checkedCount: 0,
       missingCoverage: [],
       failures: [],
       forbiddenRemaining: [],
@@ -3260,16 +3487,58 @@ window.Game = window.Game || {};
         fail("coverage_zone_missing", zone);
       }
     });
+    FAKE_TONE_FILTER_NAMES.forEach((name) => {
+      if (!FAKE_TONE_FILTERS[name] || typeof FAKE_TONE_FILTERS[name].test !== "function") {
+        fakeToneCoverageAddUnique(result.missingCoverage, name);
+        fail("filter_missing", name);
+      } else {
+        result.checkedFilters.push(name);
+      }
+    });
+    const entries = fakeToneCollectCheckedTexts();
+    const checkedZonesWithText = new Set();
+    entries.forEach((entry) => {
+      if (entry && entry.zone) checkedZonesWithText.add(entry.zone);
+      FAKE_TONE_FILTER_NAMES.forEach((name) => {
+        const filter = FAKE_TONE_FILTERS[name];
+        if (!filter || typeof filter.test !== "function") return;
+        let passed = false;
+        try {
+          passed = filter.test(entry.text, entry);
+        } catch (error) {
+          passed = false;
+          fail("filter_exception", { filter: name, source: entry.source, error: String(error && error.message ? error.message : error) });
+        }
+        if (!passed) {
+          const failure = { filter: name, zone: entry.zone, source: entry.source, text: entry.text };
+          fakeToneCoverageAddUnique(result.forbiddenRemaining, failure);
+          fail(name, failure);
+        }
+      });
+    });
+    result.checkedCount = entries.length;
+    FAKE_TONE_COVERAGE_REQUIRED_ZONES.forEach((zone) => {
+      if (!checkedZonesWithText.has(zone)) {
+        fakeToneCoverageAddUnique(result.missingCoverage, zone);
+        fail("checked_text_zone_missing", zone);
+      }
+    });
     if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
-    if (result.smokeVersion !== FAKE_TONE_COVERAGE_SMOKE_VERSION || result.smokeVersion.indexOf("step8_1") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+    if (result.smokeVersion !== FAKE_TONE_COVERAGE_SMOKE_VERSION || result.smokeVersion.indexOf("step8_2") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
       fail("smoke_version_unique_for_commit", result.smokeVersion);
     }
     if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
-    result.ok = result.missingCoverage.length === 0
+    result.ok = result.checkedFilters.length === FAKE_TONE_FILTER_NAMES.length
+      && result.checkedZones.length === FAKE_TONE_COVERAGE_REQUIRED_ZONES.length
+      && result.checkedCount > 0
+      && result.missingCoverage.length === 0
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
       && result.failedChecks.length === 0;
     return result;
+  };
+  Game.__DEV.smokeFakeToneZonesOnce = function smokeFakeToneZonesOnce(){
+    return Game.__DEV.smokeFakeToneFiltersOnce();
   };
 
 })();

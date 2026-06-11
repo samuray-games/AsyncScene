@@ -1,3 +1,12 @@
+## 2026-06-11 — Step 8.2 fake-tone validation filters
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only Safari command `Game.__DEV.smokeFakeToneFiltersOnce()` for fake-tone validation filters.
+- Required filters: `trying_to_sound_young`, `eye_roll_risk`, and `age_20_25_authenticity`.
+- Required zones checked: system messages, NPC speech, interface labels, arguments, hints, and new feature texts.
+- Result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedZones`, `checkedFilters`, `checkedCount`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_11_step8_2_fake_tone_validation_filters` / `step8_2_fake_tone_validation_filters` / `step8_2_fake_tone_validation_filters_smoke_v20260611_001`.
+- Required Safari command: `Game.__DEV.smokeFakeToneFiltersOnce()`.
+
 ## 2026-06-11 — Step 8.1 fake-tone coverage inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only Safari command `Game.__DEV.smokeFakeToneZonesOnce()` to inventory fake-tone coverage zones without rewriting UI text, NPC text, or gameplay logic.
