@@ -2781,4 +2781,355 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const SYSTEM_UI_RUNTIME_AUDIT_BUILD_TAG = "build_2026_06_11_step7_7_real_ui_runtime_surfaces_audit";
+  const SYSTEM_UI_RUNTIME_AUDIT_COMMIT = "step7_7_real_ui_runtime_surfaces_audit";
+  const SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION = "step7_7_real_ui_runtime_surfaces_audit_smoke_v20260611_001";
+  const SYSTEM_UI_RUNTIME_REQUIRED_SCENARIOS = Object.freeze([
+    "insufficient points",
+    "cooldown",
+    "success",
+    "lock/forbidden action",
+    "timer-related message",
+  ]);
+  const SYSTEM_UI_RUNTIME_LEGACY_PATTERNS = Object.freeze([
+    /Подожди немного\./i,
+    /Дай паузу\./i,
+    /Не залетело\./i,
+    /Этот мув не зашёл\./i,
+    /Такого нет\./i,
+    /Выбери игрока\./i,
+    /Недоступно\./i,
+    /Таймер:\s*\d+с/i,
+    /Толпа решает$/i,
+    /Ты уже проголосовал\./i,
+    /Всё, тайм-аут\./i,
+    /Служба безопасности блокирует/i,
+  ]);
+
+  function systemUiRuntimeAddUnique(list, value){
+    const encoded = typeof value === "string" ? value : JSON.stringify(value);
+    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+  }
+
+  function systemUiRuntimeApprovedRows(){
+    const rows = [];
+    systemCopyEntries(SystemCopy).forEach((entry) => {
+      const ctx = {
+        name: "Игрок",
+        target: "Цель",
+        guest: "Гость",
+        location: "Площадь",
+        voteCost: 1,
+        rematchCost: 1,
+        escapeCost: 1,
+        teacher: "A",
+        student: "B",
+        oppName: "Оппонент",
+        text: "итог",
+        winner: "A",
+        loser: "B",
+        a: "A",
+        b: "B",
+        aVotes: 1,
+        bVotes: 0,
+        attackerName: "A",
+        attackerInf: 1,
+        returnAmount: 1,
+        amount: 1,
+        cost: 1,
+      };
+      rows.push({
+        kind: entry.group,
+        code: entry.code,
+        text: say(entry.group, entry.code, ctx),
+        source: `SystemCopy.${entry.group}.${entry.code}`,
+      });
+    });
+    return rows;
+  }
+
+  function systemUiRuntimeSourceForText(text){
+    const source = normalizeZPhraseText(text);
+    if (!source) return null;
+    const rows = systemUiRuntimeApprovedRows();
+    return rows.find((row) => normalizeZPhraseText(row.text) === source) || null;
+  }
+
+  function systemUiRuntimeLooksLegacy(text){
+    const source = String(text || "");
+    return SYSTEM_UI_RUNTIME_LEGACY_PATTERNS.some((pattern) => {
+      pattern.lastIndex = 0;
+      return pattern.test(source);
+    });
+  }
+
+  function systemUiRuntimeFindTarget(S){
+    const players = S && S.players && typeof S.players === "object" ? Object.values(S.players) : [];
+    return players.find((p) => p && !p.isMe && String(p.id || "") !== "me" && p.role !== "cop") || players.find((p) => p && !p.isMe && String(p.id || "") !== "me") || null;
+  }
+
+  function systemUiRuntimeClone(value){
+    try { return JSON.parse(JSON.stringify(value)); } catch (_) { return value; }
+  }
+
+  function systemUiRuntimeRestoreObject(target, snapshot){
+    if (!target || !snapshot || typeof target !== "object" || typeof snapshot !== "object") return;
+    Object.keys(target).forEach((key) => { delete target[key]; });
+    Object.keys(snapshot).forEach((key) => { target[key] = snapshot[key]; });
+  }
+
+  function systemUiRuntimeFindButton(text, root){
+    if (typeof document === "undefined") return null;
+    const scope = root && root.querySelectorAll ? root : document;
+    const wanted = String(text || "").trim().toLowerCase();
+    return Array.from(scope.querySelectorAll("button")).find((button) => String(button.textContent || "").trim().toLowerCase() === wanted) || null;
+  }
+
+  function systemUiRuntimeDispatchClick(button){
+    if (!button) return false;
+    try {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+      return true;
+    } catch (_) {
+      try { button.click(); return true; } catch (__) {}
+    }
+    return false;
+  }
+
+  function systemUiRuntimeOpenBattleInvite(UI, targetName){
+    if (!UI || typeof UI.renderBattles !== "function") return null;
+    UI._battleInvite = Object.assign({}, UI._battleInvite || {}, { open: true, q: String(targetName || ""), sel: 0 });
+    UI.renderBattles();
+    const input = (typeof document !== "undefined") ? document.getElementById("battleInviteInput") : null;
+    if (input) {
+      input.value = String(targetName || "");
+      try { input.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+    }
+    const root = input && input.closest ? (input.closest(".eventRow") || input.parentNode || document) : document;
+    return systemUiRuntimeFindButton("баттл", root) || systemUiRuntimeFindButton("баттл", document);
+  }
+
+  function systemUiRuntimeCapture(UI, GameObj, fn){
+    const seen = [];
+    const add = (surface, text, meta) => {
+      const source = String(text || "").trim();
+      if (!source) return;
+      seen.push(Object.assign({ surface, text: source }, meta || {}));
+    };
+    const originals = {
+      showStatToast: UI && UI.showStatToast,
+      showActionToast: UI && UI.showActionToast,
+      showToast: UI && UI.showToast,
+      pushSystem: UI && UI.pushSystem,
+      pushDm: GameObj && GameObj.__A && GameObj.__A.pushDm,
+    };
+    try {
+      if (UI && typeof UI.showStatToast === "function") {
+        UI.showStatToast = function(kind, text){
+          add("UI.showStatToast", text, { statKind: kind });
+          return originals.showStatToast.apply(this, arguments);
+        };
+      }
+      if (UI && typeof UI.showActionToast === "function") {
+        UI.showActionToast = function(anchor, text){
+          add("UI.showActionToast", text);
+          return originals.showActionToast.apply(this, arguments);
+        };
+      }
+      if (UI && typeof UI.showToast === "function") {
+        UI.showToast = function(text){
+          add("UI.showToast", text);
+          return originals.showToast.apply(this, arguments);
+        };
+      }
+      if (UI && typeof UI.pushSystem === "function") {
+        UI.pushSystem = function(text, opts){
+          add("UI.pushSystem", text, { routed: !!(opts && opts.routed), kind: opts && opts.kind, code: opts && opts.code });
+          return originals.pushSystem.apply(this, arguments);
+        };
+      }
+      if (GameObj && GameObj.__A && typeof GameObj.__A.pushDm === "function") {
+        GameObj.__A.pushDm = function(withId, name, text, opts){
+          if (opts && opts.isSystem) add("Game.__A.pushDm", text, { dmTargetId: withId, speaker: name });
+          return originals.pushDm.apply(this, arguments);
+        };
+      }
+      fn();
+    } catch (error) {
+      add("exception", String(error && error.message ? error.message : error));
+    } finally {
+      if (UI && originals.showStatToast) UI.showStatToast = originals.showStatToast;
+      if (UI && originals.showActionToast) UI.showActionToast = originals.showActionToast;
+      if (UI && originals.showToast) UI.showToast = originals.showToast;
+      if (UI && originals.pushSystem) UI.pushSystem = originals.pushSystem;
+      if (GameObj && GameObj.__A && originals.pushDm) GameObj.__A.pushDm = originals.pushDm;
+    }
+    return seen;
+  }
+
+  Game.__DEV.smokeSystemUiRuntimeOnce = function smokeSystemUiRuntimeOnce(){
+    const result = {
+      ok: false,
+      buildTag: SYSTEM_UI_RUNTIME_AUDIT_BUILD_TAG,
+      commit: SYSTEM_UI_RUNTIME_AUDIT_COMMIT,
+      smokeVersion: SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION,
+      checkedScenarios: [],
+      legacyUiMessages: [],
+      bypassPaths: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const fail = (check, detail) => {
+      systemUiRuntimeAddUnique(result.failedChecks, check);
+      systemUiRuntimeAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const UI = Game && Game.UI ? Game.UI : null;
+    const S = Game && Game.__S ? Game.__S : null;
+    const target = systemUiRuntimeFindTarget(S);
+    const snapshots = {
+      me: S && S.me ? systemUiRuntimeClone(S.me) : null,
+      battleCooldowns: S && S.battleCooldowns ? systemUiRuntimeClone(S.battleCooldowns) : null,
+      events: S && Array.isArray(S.events) ? systemUiRuntimeClone(S.events) : null,
+      dm: S && S.dm ? systemUiRuntimeClone(S.dm) : null,
+      dmMessages: S && Array.isArray(S.dmMessages) ? systemUiRuntimeClone(S.dmMessages) : null,
+      battles: S && Array.isArray(S.battles) ? systemUiRuntimeClone(S.battles) : null,
+      battleInvite: UI && UI._battleInvite ? systemUiRuntimeClone(UI._battleInvite) : null,
+    };
+    const inspectScenario = (scenario, messages, expected) => {
+      const row = { scenario, messages: [], ok: false };
+      (Array.isArray(messages) ? messages : []).forEach((message) => {
+        const source = systemUiRuntimeSourceForText(message.text);
+        const phrase = validateSystemZPhrase(message.text);
+        const entry = Object.assign({}, message, {
+          sourceTrace: source ? source.source : null,
+          kind: source ? source.kind : null,
+          code: source ? source.code : null,
+          zPhraseOk: phrase.ok,
+          zPhraseReasons: phrase.reasons,
+        });
+        row.messages.push(entry);
+        if (!source) {
+          systemUiRuntimeAddUnique(result.bypassPaths, { scenario, surface: message.surface, text: message.text, reason: "not_traced_to_SystemCopy_or_System.say" });
+        }
+        if (systemUiRuntimeLooksLegacy(message.text)) {
+          systemUiRuntimeAddUnique(result.legacyUiMessages, { scenario, surface: message.surface, text: message.text });
+        }
+        if (!phrase.ok) {
+          systemUiRuntimeAddUnique(result.forbiddenRemaining, { scenario, text: message.text, reasons: phrase.reasons });
+        }
+      });
+      const wanted = expected && expected.code ? messages.some((message) => {
+        const source = systemUiRuntimeSourceForText(message.text);
+        return source && source.kind === expected.kind && source.code === expected.code;
+      }) : messages.length > 0;
+      row.ok = wanted && row.messages.length > 0;
+      if (!row.messages.length) {
+        systemUiRuntimeAddUnique(result.missingCoverage, scenario);
+        fail("scenario_message_missing", scenario);
+      } else if (!wanted) {
+        fail("scenario_expected_systemcopy_trace_missing", { scenario, expected, messages: row.messages });
+      }
+      result.checkedScenarios.push(row);
+    };
+
+    if (!UI) fail("ui_missing");
+    if (!S || !S.me || !S.players) fail("state_missing");
+    if (!target) fail("target_player_missing");
+
+    try {
+      if (UI && S && S.me && target) {
+        S.battleCooldowns = S.battleCooldowns || {};
+
+        S.me.points = 0;
+        delete S.battleCooldowns[target.id];
+        inspectScenario("insufficient points", systemUiRuntimeCapture(UI, Game, () => {
+          const button = systemUiRuntimeOpenBattleInvite(UI, target.name);
+          if (!systemUiRuntimeDispatchClick(button)) fail("insufficient_points_button_missing");
+        }), { kind: "errors", code: "insufficientPoints" });
+
+        S.me.points = 5;
+        S.battleCooldowns[target.id] = Date.now();
+        inspectScenario("cooldown", systemUiRuntimeCapture(UI, Game, () => {
+          const button = systemUiRuntimeOpenBattleInvite(UI, target.name);
+          if (!systemUiRuntimeDispatchClick(button)) fail("cooldown_button_missing");
+        }), { kind: "warnings", code: "cooldownShort" });
+        delete S.battleCooldowns[target.id];
+
+        S.dm = Object.assign({}, S.dm || {}, { open: true, activeId: target.id });
+        inspectScenario("success", systemUiRuntimeCapture(UI, Game, () => {
+          if (typeof UI.renderDM === "function") UI.renderDM();
+          const actions = typeof document !== "undefined" ? document.getElementById("dmActions") : null;
+          const button = systemUiRuntimeFindButton("Лайк", actions || document);
+          if (!systemUiRuntimeDispatchClick(button)) fail("success_like_button_missing");
+        }), { kind: "systemEvents", code: "dmReaction" });
+
+        const now = Date.now();
+        const eventId = `system_ui_runtime_lock_${now}`;
+        const event = {
+          id: eventId,
+          kind: "draw",
+          state: "open",
+          title: "Толпа решает.",
+          a: { id: target.id, name: target.name, influence: target.influence || 0 },
+          b: { id: "system_ui_runtime_other", name: "Другой", influence: 0 },
+          aName: target.name,
+          bName: "Другой",
+          createdAt: now,
+          endsAt: now + 5000,
+          crowd: { voters: { me: "a" }, aVotes: 1, bVotes: 0, votesA: 1, votesB: 0, cap: 2, countdownStartMs: now, countdownMs: 5000 },
+        };
+        S.events = Array.isArray(S.events) ? S.events : [];
+        S.events.unshift(event);
+        inspectScenario("lock/forbidden action", systemUiRuntimeCapture(UI, Game, () => {
+          if (typeof UI.renderEvents === "function") UI.renderEvents();
+          const button = typeof document !== "undefined" ? document.querySelector(`[data-event-id="${eventId}"] .eventVoteBtn`) : null;
+          if (!systemUiRuntimeDispatchClick(button)) fail("locked_event_vote_button_missing");
+        }), { kind: "errors", code: "unavailable" });
+
+        inspectScenario("timer-related message", systemUiRuntimeCapture(UI, Game, () => {
+          if (typeof UI.renderEvents === "function") UI.renderEvents();
+          const line = typeof document !== "undefined" ? document.querySelector(`[data-event-id="${eventId}"] .crowdTimer`) : null;
+          if (line) {
+            if (!UI.__systemUiRuntimeTimerProbe) UI.__systemUiRuntimeTimerProbe = [];
+            UI.__systemUiRuntimeTimerProbe.push(String(line.textContent || ""));
+          } else {
+            fail("timer_line_missing");
+          }
+        }).concat((UI.__systemUiRuntimeTimerProbe || []).splice(0).map((text) => ({ surface: "DOM.crowdTimer", text }))), { kind: "systemEvents", code: "crowdStart" });
+      }
+    } finally {
+      try {
+        if (S && snapshots.me && S.me) systemUiRuntimeRestoreObject(S.me, snapshots.me);
+        if (S && snapshots.battleCooldowns) S.battleCooldowns = snapshots.battleCooldowns;
+        if (S && snapshots.events) S.events = snapshots.events;
+        if (S && snapshots.dm) S.dm = snapshots.dm;
+        if (S && snapshots.dmMessages) S.dmMessages = snapshots.dmMessages;
+        if (S && snapshots.battles) S.battles = snapshots.battles;
+        if (UI) UI._battleInvite = snapshots.battleInvite || { open: false, q: "", sel: 0 };
+        if (UI && typeof UI.renderAll === "function") UI.renderAll();
+      } catch (_) {}
+    }
+
+    SYSTEM_UI_RUNTIME_REQUIRED_SCENARIOS.forEach((scenario) => {
+      if (!result.checkedScenarios.some((row) => row && row.scenario === scenario)) {
+        systemUiRuntimeAddUnique(result.missingCoverage, scenario);
+      }
+    });
+    if (result.legacyUiMessages.length) systemUiRuntimeAddUnique(result.failedChecks, "legacy_ui_messages_remaining");
+    if (result.bypassPaths.length) systemUiRuntimeAddUnique(result.failedChecks, "ui_systemcopy_bypass_paths_remaining");
+    if (result.forbiddenRemaining.length) systemUiRuntimeAddUnique(result.failedChecks, "forbidden_remaining");
+    if (result.missingCoverage.length) systemUiRuntimeAddUnique(result.failedChecks, "missing_coverage");
+    if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+    if (result.smokeVersion !== SYSTEM_UI_RUNTIME_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step7_7") === -1) fail("smoke_version_unique_for_step", result.smokeVersion);
+    result.ok = result.legacyUiMessages.length === 0
+      && result.bypassPaths.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
 })();

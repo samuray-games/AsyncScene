@@ -1,3 +1,11 @@
+## 2026-06-11 — Step 7.7 real UI runtime surfaces audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only `Game.__DEV.smokeSystemUiRuntimeOnce()` to audit actual UI-triggered system messages for insufficient points, cooldown, success, lock/forbidden action, and timer-related message scenarios.
+- The smoke wraps UI output methods only during execution, uses DOM/UI clicks where available, snapshots/restores touched runtime state, and reports `checkedScenarios`, `legacyUiMessages`, `bypassPaths`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Runtime PASS condition remains strict: `ok:true` plus empty `legacyUiMessages`, `bypassPaths`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Scope held: audit-only runtime smoke, identity/cache-bust, and docs; no gameplay logic changes, no UI behavior changes, no broad refactor, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeSystemUiRuntimeOnce()`.
+
 ## 2026-06-06 — Step 7.6 final system language regression pack
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only `Game.__DEV.smokeSystemLanguageRegressionOnce()` as the final Step 7 system-language regression smoke for SystemCopy, System.say, active surfaces, new feature surfaces, start-screen copy, templates, fallbacks, source-of-truth, phrase, tone, routing, and hardcoded/bypass checks.
