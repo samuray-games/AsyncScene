@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "smoke:asyncscene": "node scripts/run-asyncscene-smoke.mjs",
-    "smoke:help": "node -e \"const fs=require(\\\"fs\\\"); const pkg=JSON.parse(fs.readFileSync(\\\"package.json\\\",\\\"utf8\\\")); console.log(Object.keys(pkg.scripts).filter(s=>s.startsWith(\\\"smoke:\\\")).map(s=>\\\"npm run \\\"+s).join(\\\"\\\\n\\\"));\""
+    "smoke:help": "node --input-type=commonjs -e \"const fs=require(\\\"fs\\\"); const pkg=JSON.parse(fs.readFileSync(\\\"package.json\\\",\\\"utf8\\\")); console.log(Object.keys(pkg.scripts).filter(s=>s.startsWith(\\\"smoke:\\\")).map(s=>\\\"npm run \\\"+s).join(\\\"\\\\n\\\"));\""
   },
   "dependencies": {
     "playwright": "^1.42.1"
