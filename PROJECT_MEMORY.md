@@ -1,3 +1,11 @@
+## 2026-06-11 — Step 7.7 real UI runtime surfaces audit
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- `Game.__DEV.smokeSystemUiRuntimeOnce()` now runs a dev-only audit for actual UI-triggered insufficient points, cooldown, success, lock/forbidden action, and timer-related message surfaces.
+- The result shape includes `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedScenarios`, `legacyUiMessages`, `bypassPaths`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- The smoke traces observed messages against `SystemCopy`/`Game.System.say`, applies z-phrase validation, flags legacy UI phrases and hardcoded/bypass paths, and restores touched runtime state after probing.
+- Served identity: `build_2026_06_11_step7_7_real_ui_runtime_surfaces_audit` / `step7_7_real_ui_runtime_surfaces_audit` / `step7_7_real_ui_runtime_surfaces_audit_smoke_v20260611_001`.
+- Safari command: `Game.__DEV.smokeSystemUiRuntimeOnce()`.
+
 ## 2026-06-06 — Step 7.6 final system language regression pack
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - `Game.__DEV.smokeSystemLanguageRegressionOnce()` now composes the Step 7 system-language audit pack and returns the required result shape: `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `coverageOk`, `sourceOfTruthOk`, `phraseRuleOk`, `toneOk`, `routingOk`, `noHardcodedOk`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
