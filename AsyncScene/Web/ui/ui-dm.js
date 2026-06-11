@@ -929,7 +929,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const btnLike = mkBtn("Лайк", () => {
       dmPushLine(withId, getS().me.name, "❤️");
       dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["каеф","ну норм","хех","ладно"]) : "каеф"));
-      UI.pushSystem(systemSay("systemEvents", "dmReaction", { name: getS().me.name, target: target.name }));
+      UI.pushSystem(systemSay("systemEvents", "dmReaction", { name: getS().me.name, target: target.name }), { routed: true, kind: "systemEvents", code: "dmReaction" });
       requestAll();
     });
 

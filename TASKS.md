@@ -1,3 +1,10 @@
+## 2026-06-11 — Step 7.7 UI runtime SystemCopy trace fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the runtime-reported Step 7.7 trace issues: battle-invite cooldown now uses `Game.System.say("warnings", "cooldownShort")`, locked event vote toast now uses `Game.System.say("errors", "unavailable")`, dynamic DM reaction text traces through the `dmReaction` SystemCopy template, and the timer scenario audits the SystemCopy-backed `crowdStart` message instead of the raw DOM countdown label.
+- Refreshed served identity to `build_2026_06_11_step7_7_ui_runtime_systemcopy_trace_fix` / `step7_7_ui_runtime_systemcopy_trace_fix` / `step7_7_ui_runtime_systemcopy_trace_fix_smoke_v20260611_002`.
+- Scope held: no gameplay logic changes, no broad refactor, no new server files, no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeSystemUiRuntimeOnce()`.
+
 ## 2026-06-11 — Step 7.7 real UI runtime surfaces audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only `Game.__DEV.smokeSystemUiRuntimeOnce()` to audit actual UI-triggered system messages for insufficient points, cooldown, success, lock/forbidden action, and timer-related message scenarios.

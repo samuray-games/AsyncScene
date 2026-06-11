@@ -7,6 +7,7 @@ window.Game = window.Game || {};
   const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
     ? Game.Data.t(key, vars)
     : String(key || "");
+  const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
   const $ = UI.$;
   const escapeHtml = UI.escapeHtml;
   const isDevCrowdMode = (() => {
@@ -833,7 +834,7 @@ window.Game = window.Game || {};
 
           // Disabled button hint: do not run economic checks / toasts
           if (!votingAllowed) {
-            try { showVoteBtnToast(btn, "Недоступно."); } catch (_) {}
+            try { showVoteBtnToast(btn, systemSay("errors", "unavailable")); } catch (_) {}
             return;
           }
 

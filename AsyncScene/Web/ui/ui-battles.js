@@ -1669,7 +1669,7 @@ UI.renderBattles = () => {
           const last = cdMap[cid] || 0;
           const cdMs = 3 * 60 * 1000;
           if (last && (Date.now() - last) < cdMs) {
-            UI.showStatToast("points", "Подожди немного.");
+            UI.showStatToast("points", systemSay("warnings", "cooldownShort"));
             return;
           }
 
