@@ -1,3 +1,13 @@
+## 2026-06-12 — Step 8.12 z-profile runtime acceptance smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Add the final Safari runtime acceptance smoke for the completed z-profile package without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
+- Added dev-only Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
+- Smoke verifies the runtime can enable the z-profile text style safely, the completed package remains text-only over millennial, game logic stays unchanged, no new logic keys/conditions/entities/handlers/economy rules/battle rules/state mutations appear, texts stay shorter/simpler/authentic, derivation/mapping and new-feature coverage remain complete, the final package exists and passes, `moneyLog` stays unchanged, and the ECON-UI final smoke contract remains reachable.
+- Smoke result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `completedChecks`, `checkedCount`, `runtimeStyleBefore`, `runtimeStyleAfter`, `runtimeStyleRestored`, `runtimeEnablementOk`, `moneyLogBeforeLength`, `moneyLogAfterLength`, `moneyLogSignatureBefore`, `moneyLogSignatureAfter`, `moneyLogChanged`, `econUiReferenceOk`, `finalContractOk`, `derivationMappingOk`, `speedAuditOk`, `simplicityAuditOk`, `authenticityAuditOk`, `newFeaturesAuditOk`, `finalPackageOk`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_12_z_profile_runtime_acceptance_smoke` / `step8_12_z_profile_runtime_acceptance_smoke` / `step8_12_z_profile_runtime_acceptance_smoke_v20260612_001`.
+- Scope held: acceptance-only smoke plus mirrored cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 7 z-profile final package document
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Create only the final `UI_PROFILE_ZOOMER_FINAL.md` package document plus a Safari smoke for package completeness, without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.

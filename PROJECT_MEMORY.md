@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.12 z-profile runtime acceptance smoke
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()` in the mirrored runtime system bundles.
+- The smoke verifies the runtime z-profile enablement path, the text-only-over-millennial package contract, unchanged game logic, no new logic keys/conditions/entities/handlers/economy rules/battle rules/state mutations, shorter/simpler/authentic texts, complete derivation/mapping and new-feature coverage, final package existence/pass status, unchanged `moneyLog`, and the presence of the existing ECON-UI final smoke contract.
+- Result fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `completedChecks`, `checkedCount`, `runtimeStyleBefore`, `runtimeStyleAfter`, `runtimeStyleRestored`, `runtimeEnablementOk`, `moneyLogBeforeLength`, `moneyLogAfterLength`, `moneyLogSignatureBefore`, `moneyLogSignatureAfter`, `moneyLogChanged`, `econUiReferenceOk`, `finalContractOk`, `derivationMappingOk`, `speedAuditOk`, `simplicityAuditOk`, `authenticityAuditOk`, `newFeaturesAuditOk`, `finalPackageOk`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_12_z_profile_runtime_acceptance_smoke` / `step8_12_z_profile_runtime_acceptance_smoke` / `step8_12_z_profile_runtime_acceptance_smoke_v20260612_001`.
+- Scope held: acceptance-only smoke plus mirrored cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 6 fix new-features aggregate dependency outputs
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Fixed only stale Step 6 dependency outputs feeding `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
