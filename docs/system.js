@@ -3546,6 +3546,22 @@ window.Game = window.Game || {};
   const FAKE_TONE_SAMPLE_AUDIT_SMOKE_VERSION = "step8_5_sampled_fake_tone_smoke_self_alias_fix_v20260612_002";
   const FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN = 30;
   const FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MAX = 50;
+  const FUTURE_TEXT_ANTI_FAKE_GATE_BUILD_TAG = "build_2026_06_12_step8_6_future_text_anti_fake_gate";
+  const FUTURE_TEXT_ANTI_FAKE_GATE_COMMIT = "step8_6_future_text_anti_fake_gate";
+  const FUTURE_TEXT_ANTI_FAKE_GATE_SMOKE_VERSION = "step8_6_future_text_anti_fake_gate_smoke_v20260612_001";
+  const FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS = Object.freeze([
+    "Game.__DEV.smokeFakeToneFiltersOnce",
+    "Game.__DEV.smokeFakeToneSampleAuditOnce",
+    "Game.__DEV.smokeStopFakeLexiconOnce",
+  ]);
+  const FUTURE_TEXT_ANTI_FAKE_GATE_SURFACE_REGISTRY = Object.freeze([
+    Object.freeze({ surface: "system messages", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
+    Object.freeze({ surface: "NPC speech", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
+    Object.freeze({ surface: "interface labels", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
+    Object.freeze({ surface: "arguments", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
+    Object.freeze({ surface: "hints", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
+    Object.freeze({ surface: "new feature texts", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
+  ]);
 
   function fakeToneSampleAuditPickEntries(entries){
     const byZone = new Map();
@@ -3637,6 +3653,82 @@ window.Game = window.Game || {};
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
       && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+  Game.__DEV.smokeFutureTextAntiFakeGateOnce = function smokeFutureTextAntiFakeGateOnce(){
+    const result = {
+      ok: false,
+      buildTag: FUTURE_TEXT_ANTI_FAKE_GATE_BUILD_TAG,
+      commit: FUTURE_TEXT_ANTI_FAKE_GATE_COMMIT,
+      smokeVersion: FUTURE_TEXT_ANTI_FAKE_GATE_SMOKE_VERSION,
+      registeredSurfaces: [],
+      coveredSurfaces: [],
+      uncoveredFutureTextSurfaces: [],
+      unguardedTextAdditions: [],
+      missingCoverage: [],
+      failures: [],
+      forbiddenRemaining: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    try {
+      const entries = fakeToneCollectCheckedTexts();
+      const seenSurfaces = new Set();
+      const currentSurfaces = Array.from(new Set(entries.map((entry) => entry.zone))).filter(Boolean);
+      const registryBySurface = new Map();
+      FUTURE_TEXT_ANTI_FAKE_GATE_SURFACE_REGISTRY.forEach((row) => {
+        if (row && row.surface) registryBySurface.set(String(row.surface), row);
+      });
+      result.registeredSurfaces = FUTURE_TEXT_ANTI_FAKE_GATE_SURFACE_REGISTRY.map((row) => row.surface);
+      currentSurfaces.forEach((surface) => {
+        if (!registryBySurface.has(surface)) {
+          addUnique(result.uncoveredFutureTextSurfaces, surface);
+          addUnique(result.unguardedTextAdditions, { surface, reason: "surface_not_registered" });
+        } else {
+          seenSurfaces.add(surface);
+        }
+      });
+      FUTURE_TEXT_ANTI_FAKE_GATE_SURFACE_REGISTRY.forEach((row) => {
+        const surface = String(row && row.surface || "");
+        if (!surface) {
+          addUnique(result.unguardedTextAdditions, { surface: "", reason: "empty_registry_surface" });
+          return;
+        }
+        result.coveredSurfaces.push(surface);
+        const guards = Array.isArray(row && row.guards) ? row.guards : [];
+        const guardedByStep8 = guards.some((guard) => [
+          "Game.__DEV.smokeFakeToneFiltersOnce",
+          "Game.__DEV.smokeFakeToneSampleAuditOnce",
+          "Game.__DEV.smokeStopFakeLexiconOnce",
+        ].includes(String(guard)));
+        if (!guardedByStep8) {
+          addUnique(result.unguardedTextAdditions, { surface, reason: "missing_step8_guard", guards });
+        }
+        if (!seenSurfaces.has(surface)) addUnique(result.missingCoverage, surface);
+      });
+      if (currentSurfaces.length !== result.coveredSurfaces.length) fail("surface_registry_mismatch", { currentSurfaces, coveredSurfaces: result.coveredSurfaces.slice() });
+      if (result.uncoveredFutureTextSurfaces.length) fail("future_text_surface_not_registered", result.uncoveredFutureTextSurfaces.slice());
+      if (result.unguardedTextAdditions.length) fail("unguarded_text_additions_present", result.unguardedTextAdditions.slice());
+      if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== FUTURE_TEXT_ANTI_FAKE_GATE_SMOKE_VERSION || result.smokeVersion.indexOf("step8_6") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+        fail("smoke_version_unique_for_commit", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.uncoveredFutureTextSurfaces.length === 0
+      && result.unguardedTextAdditions.length === 0
+      && result.missingCoverage.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
       && result.failedChecks.length === 0;
     return result;
   };

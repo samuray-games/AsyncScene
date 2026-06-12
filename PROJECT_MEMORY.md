@@ -1,3 +1,11 @@
+## 2026-06-12 — Step 8.6 future text anti-fake gate
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeFutureTextAntiFakeGateOnce()` as the dev-only runtime guard for future user-facing text additions.
+- The gate returns `ok`, `buildTag`, `commit`, `smokeVersion`, `registeredSurfaces`, `coveredSurfaces`, `uncoveredFutureTextSurfaces`, `unguardedTextAdditions`, `missingCoverage`, `failures`, `forbiddenRemaining`, and `failedChecks`.
+- Registered surfaces are `system messages`, `NPC speech`, `interface labels`, `arguments`, `hints`, and `new feature texts`; any future surface must be registered and tied to the Step 8 fake-tone checks before it is accepted.
+- Served identity: `build_2026_06_12_step8_6_future_text_anti_fake_gate` / `step8_6_future_text_anti_fake_gate` / `step8_6_future_text_anti_fake_gate_smoke_v20260612_001`.
+- Safari command: `Game.__DEV.smokeFutureTextAntiFakeGateOnce()`.
+
 ## 2026-06-12 — Step 8.5 sampled fake-tone smoke
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeFakeToneSampleAuditOnce()` as the dev-only runtime smoke for a representative sample audit across `UI`, `NPC speech`, `system messages`, and `arguments`.
