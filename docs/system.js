@@ -3846,9 +3846,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract";
-  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract";
-  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_001";
+  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_runtime_scope_fix";
+  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_runtime_scope_fix";
+  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_002";
 
   Game.__DEV.smokeZProfileFinalContractOnce = function smokeZProfileFinalContractOnce(){
     const result = {
@@ -3878,7 +3878,11 @@ window.Game = window.Game || {};
       addUnique(result.failedChecks, check);
       addUnique(result.failures, detail === undefined ? check : { check, detail });
     };
-    const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+    const normalize = (value) => String(value == null ? "" : value)
+      .replace(/\r\n?/g, "\n")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\u00a0/g, " ")
+      .trim();
     const fetchTextSync = (path) => {
       try {
         const xhr = new XMLHttpRequest();
