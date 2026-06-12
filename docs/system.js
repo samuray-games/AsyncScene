@@ -4950,6 +4950,162 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_12_z_profile_runtime_acceptance_smoke";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_COMMIT = "step8_12_z_profile_runtime_acceptance_smoke";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION = "step8_12_z_profile_runtime_acceptance_smoke_v20260612_001";
+
+  Game.__DEV.smokeZProfileRuntimeAcceptanceOnce = function smokeZProfileRuntimeAcceptanceOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_RUNTIME_ACCEPTANCE_BUILD_TAG,
+      commit: Z_PROFILE_RUNTIME_ACCEPTANCE_COMMIT,
+      smokeVersion: Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION,
+      completedChecks: [],
+      checkedCount: 0,
+      runtimeStyleBefore: null,
+      runtimeStyleAfter: null,
+      runtimeStyleRestored: null,
+      runtimeEnablementOk: false,
+      moneyLogBeforeLength: 0,
+      moneyLogAfterLength: 0,
+      moneyLogSignatureBefore: "",
+      moneyLogSignatureAfter: "",
+      moneyLogChanged: false,
+      econUiReferenceOk: false,
+      finalContractOk: false,
+      derivationMappingOk: false,
+      speedAuditOk: false,
+      simplicityAuditOk: false,
+      authenticityAuditOk: false,
+      newFeaturesAuditOk: false,
+      finalPackageOk: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const getMoneyLogRows = () => {
+      if (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) return Game.__D.moneyLog;
+      if (Game && Game.State && Array.isArray(Game.State.moneyLog)) return Game.State.moneyLog;
+      return [];
+    };
+    const snapshotMoneyLog = () => {
+      const rows = getMoneyLogRows();
+      let hash = 2166136261 >>> 0;
+      rows.forEach((row, index) => {
+        const parts = [
+          index,
+          row && row.reason,
+          row && (row.currency || row.kind || ""),
+          row && row.amount,
+          row && row.battleId,
+          row && row.txId,
+          row && row.sourceId,
+          row && row.targetId,
+        ].map((value) => String(value == null ? "" : value)).join("|");
+        for (let i = 0; i < parts.length; i += 1) {
+          hash ^= parts.charCodeAt(i);
+          hash = Math.imul(hash, 16777619) >>> 0;
+        }
+      });
+      return { length: rows.length, signature: `0x${hash.toString(16).padStart(8, "0")}` };
+    };
+    const runRequiredSmoke = (checkName, fn, resultKey) => {
+      let subResult = null;
+      try {
+        subResult = typeof fn === "function" ? fn() : null;
+      } catch (err) {
+        subResult = { ok: false, failures: [{ check: "smoke_exception", detail: err && err.message ? String(err.message) : String(err) }], failedChecks: ["smoke_exception"] };
+      }
+      if (!subResult) {
+        addUnique(result.missingCoverage, checkName);
+        fail("step_missing", checkName);
+        return null;
+      }
+      addUnique(result.completedChecks, checkName);
+      result.checkedCount += 1;
+      if (resultKey) result[resultKey] = subResult.ok === true;
+      if (subResult.ok !== true) fail(`${checkName}_not_ok`, subResult);
+      return subResult;
+    };
+    const previousStyle = (typeof Data !== "undefined" && Data && typeof Data.getArgCanonTextStyle === "function")
+      ? Data.getArgCanonTextStyle()
+      : null;
+    const moneyBefore = snapshotMoneyLog();
+    result.moneyLogBeforeLength = moneyBefore.length;
+    result.moneyLogSignatureBefore = moneyBefore.signature;
+    let styleNeedsRestore = false;
+    try {
+      if (typeof Data === "undefined" || !Data || typeof Data.setArgCanonTextStyle !== "function" || typeof Data.getArgCanonTextStyle !== "function") {
+        fail("runtime_style_switch_missing", null);
+      } else {
+        const enabledStyle = Data.setArgCanonTextStyle("millennial");
+        styleNeedsRestore = true;
+        result.runtimeStyleAfter = Data.getArgCanonTextStyle();
+        result.runtimeEnablementOk = enabledStyle === "millennial" && result.runtimeStyleAfter === "millennial";
+        if (!result.runtimeEnablementOk) fail("runtime_enablement_failed", { enabledStyle, runtimeStyleAfter: result.runtimeStyleAfter });
+      }
+      if (styleNeedsRestore && previousStyle !== null) {
+        Data.setArgCanonTextStyle(previousStyle);
+        result.runtimeStyleRestored = Data.getArgCanonTextStyle() === previousStyle;
+        styleNeedsRestore = false;
+        if (!result.runtimeStyleRestored) fail("runtime_style_restore_failed", { before: previousStyle, after: Data.getArgCanonTextStyle() });
+      }
+      result.econUiReferenceOk = typeof Game.__DEV.smokeEconUi_RegressionPackOnce === "function"
+        && /ECON_UI8_FINAL_BEGIN/.test(String(Game.__DEV.smokeEconUi_RegressionPackOnce));
+      if (!result.econUiReferenceOk) fail("econ_ui_reference_missing", "Game.__DEV.smokeEconUi_RegressionPackOnce");
+      runRequiredSmoke("final_contract", Game.__DEV.smokeZProfileFinalContractOnce, "finalContractOk");
+      runRequiredSmoke("derivation_mapping", Game.__DEV.smokeZProfileDerivationMappingOnce, "derivationMappingOk");
+      runRequiredSmoke("speed_audit", Game.__DEV.smokeZProfileSpeedAuditOnce, "speedAuditOk");
+      runRequiredSmoke("simplicity_audit", Game.__DEV.smokeZProfileSimplicityAuditOnce, "simplicityAuditOk");
+      runRequiredSmoke("authenticity_audit", Game.__DEV.smokeZProfileAuthenticityAuditOnce, "authenticityAuditOk");
+      runRequiredSmoke("new_features_audit", Game.__DEV.smokeZProfileNewFeaturesAuditOnce, "newFeaturesAuditOk");
+      runRequiredSmoke("final_package", Game.__DEV.smokeZProfileFinalPackageOnce, "finalPackageOk");
+      const moneyAfter = snapshotMoneyLog();
+      result.moneyLogAfterLength = moneyAfter.length;
+      result.moneyLogSignatureAfter = moneyAfter.signature;
+      result.moneyLogChanged = result.moneyLogBeforeLength !== result.moneyLogAfterLength || result.moneyLogSignatureBefore !== result.moneyLogSignatureAfter;
+      if (result.moneyLogChanged) {
+        fail("money_log_unchanged", {
+          before: { length: result.moneyLogBeforeLength, signature: result.moneyLogSignatureBefore },
+          after: { length: result.moneyLogAfterLength, signature: result.moneyLogSignatureAfter },
+        });
+      }
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION || !/^step8_12_z_profile_runtime_acceptance_smoke_v\d{8}_\d{3}$/.test(result.smokeVersion)) {
+        fail("smoke_version_unique_for_commit", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    } finally {
+      if (styleNeedsRestore && previousStyle !== null && typeof Data !== "undefined" && Data && typeof Data.setArgCanonTextStyle === "function") {
+        try { Data.setArgCanonTextStyle(previousStyle); } catch (_) {}
+      }
+    }
+    result.ok = result.runtimeEnablementOk === true
+      && result.runtimeStyleRestored === true
+      && result.econUiReferenceOk === true
+      && result.moneyLogChanged === false
+      && result.finalContractOk === true
+      && result.derivationMappingOk === true
+      && result.speedAuditOk === true
+      && result.simplicityAuditOk === true
+      && result.authenticityAuditOk === true
+      && result.newFeaturesAuditOk === true
+      && result.finalPackageOk === true
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const STOP_FAKE_LEXICON_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_SMOKE_VERSION = "step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001";
