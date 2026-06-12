@@ -2035,8 +2035,8 @@ window.Game = window.Game || {};
       { area: "actions", source: "SystemCopy.warnings.escapeNeedsPoints", before: "Не хватает 💰, чтобы Свалить.", after: "Не хватает 💰 на Свалить.", meaning: "escape warning still says the paid Svalit action lacks money" },
       { area: "actions", source: "Data.TEXTS.genz.cop_report_accept.0", before: "Я тебя понял. Проверяю информацию.", after: "Понял. Проверяю.", meaning: "cop report acceptance still confirms the report is being checked" },
       { area: "npcSpeech", source: "Data.TEXTS.genz.cop_report_ok.0", before: "Проверка сошлась. Я вмешался.", after: "Проверка сошлась. Вмешался.", meaning: "cop speech still says verification matched and the cop intervened" },
-      { area: "npcSpeech", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Дайте время, я занят делом.", meaning: "cop cooldown speech still says the cop needs time because another case is active" },
-      { area: "npcSpeech", source: "NPC.COP.topics.bandit.advice", before: "Лучшее решение - Свалить или не ввязываться. Если вступили в бой, главное - не проиграть.", after: "Лучше Свалить или не ввязываться. В бою главное — не проиграть.", meaning: "bandit advice still recommends Svalit or avoiding the fight and preserving battle honesty" },
+      { area: "npcSpeech", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Проверка займет время.", meaning: "cop cooldown speech still says the cop needs time because the report check is still active" },
+      { area: "npcSpeech", source: "NPC.COP.topics.bandit.advice", before: "Лучшее решение - Свалить или не ввязываться. Если вступили в бой, главное - не проиграть.", after: "Свалить закрывает контакт. Проигрыш бьет по 💰.", meaning: "bandit advice still says escape cuts the contact and defeat costs money" },
       { area: "systemCopy", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "SystemCopy report reward remains routed through SystemCopy with unchanged placeholder and money" },
       { area: "systemCopy", source: "SystemCopy.errors.reportFalsePenalty", before: "Не получилось. Штраф: -5 💰.", after: "Штраф: -5 💰.", meaning: "SystemCopy false report penalty remains explicit and unchanged" },
       { area: "actionHonesty", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "action honesty keeps Sdat as the visible action and does not imply a different outcome" },
@@ -4359,9 +4359,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_NEW_FEATURES_AUDIT_BUILD_TAG = "build_2026_06_12_step6_z_profile_new_features_audit";
-  const Z_PROFILE_NEW_FEATURES_AUDIT_COMMIT = "step6_z_profile_new_features_audit";
-  const Z_PROFILE_NEW_FEATURES_AUDIT_SMOKE_VERSION = "step6_z_profile_new_features_audit_v20260612_001";
+  const Z_PROFILE_NEW_FEATURES_AUDIT_BUILD_TAG = "build_2026_06_12_step6b_z_profile_new_features_audit_dependency_fix";
+  const Z_PROFILE_NEW_FEATURES_AUDIT_COMMIT = "step6b_z_profile_new_features_audit_dependency_fix";
+  const Z_PROFILE_NEW_FEATURES_AUDIT_SMOKE_VERSION = "step6_z_profile_new_features_audit_v20260612_002";
 
   Game.__DEV.smokeZProfileNewFeaturesAuditOnce = function smokeZProfileNewFeaturesAuditOnce(){
     const result = {

@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 6 fix new-features aggregate dependency outputs
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Fix only stale Step 6 dependency outputs so `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()` reflects the current already-passed z-profile speed, simplicity, and authenticity state.
+- Updated stale dependency fixtures in `Game.__DEV.smokeZoomerNewFeatureCopyOnce()` for `Data.TEXTS.genz.cop_cooldown.0` and `NPC.COP.topics.bandit.advice` to the current canonical z-profile texts.
+- Narrowed only the Step 6.3 no-mentoring audit rule so the runtime phrase `время стоит денег` no longer false-triggers mentoring hits; mentoring coverage surfaces and the no-new-logic/entity/state checks remain unchanged.
+- Refreshed served identity to `build_2026_06_12_step6b_z_profile_new_features_audit_dependency_fix` / `step6b_z_profile_new_features_audit_dependency_fix` / `step6_z_profile_new_features_audit_v20260612_002`.
+- Scope held: dependency-fixture/rule wiring only plus mirrored served cache-bust/build-marker/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
+
 ## 2026-06-12 — Step 6 z-profile new-features coverage audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Verify that features added after z-profile introduction still comply with the z-profile contract without adding gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.

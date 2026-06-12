@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 6 fix new-features aggregate dependency outputs
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Fixed only stale Step 6 dependency outputs feeding `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
+- `Game.__DEV.smokeZoomerNewFeatureCopyOnce()` now expects the current canonical z-profile NPC texts for `Data.TEXTS.genz.cop_cooldown.0` and `NPC.COP.topics.bandit.advice`, matching the already-passed speed/simplicity/authenticity audit state.
+- Narrowed only the no-mentoring fixture rule by removing the bare `стоит` token from the direct-advice regex, so canonical phrases like `время стоит денег` no longer produce false mentoring hits while the rest of the no-mentoring coverage remains unchanged.
+- Served identity: `build_2026_06_12_step6b_z_profile_new_features_audit_dependency_fix` / `step6b_z_profile_new_features_audit_dependency_fix` / `step6_z_profile_new_features_audit_v20260612_002`.
+- Scope held: dependency-fixture/rule wiring plus mirrored served cache-bust/docs updates only; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
+
 ## 2026-06-12 — Step 6 z-profile new-features coverage audit
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()` in the mirrored runtime system bundles.
