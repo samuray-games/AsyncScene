@@ -33476,11 +33476,24 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     console.warn("NEUTRAL_REPLACEMENT_AUDIT_SMOKE_INSTALLED_V1", typeof devStore.smokeNeutralReplacementAuditOnce);
   }
 
+  function installFakeToneSampleAuditSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object") return;
+    if (typeof Game.__DEV.smokeFakeToneSampleAuditOnce === "function") {
+      devStore.smokeFakeToneSampleAuditOnce = function smokeFakeToneSampleAuditOnce() {
+        return Game.__DEV.smokeFakeToneSampleAuditOnce();
+      };
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeFakeToneSampleAuditOnce = devStore.smokeFakeToneSampleAuditOnce;
+    }
+    console.warn("FAKE_TONE_SAMPLE_AUDIT_SMOKE_INSTALLED_V1", typeof devStore.smokeFakeToneSampleAuditOnce);
+  }
+
 
   installDevMenuMinimalSmoke(Game.__DEV);
   installOnboardingSpecSmoke(Game.__DEV);
   installStopFakeLexiconSmoke(Game.__DEV);
   installNeutralReplacementAuditSmoke(Game.__DEV);
+  installFakeToneSampleAuditSmoke(Game.__DEV);
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
   installStep3UiTaxonomySmoke(Game.__DEV);
@@ -33503,6 +33516,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("ONBOARDING_SPEC_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeOnboardingSpecOnce);
   console.warn("STOP_FAKE_LEXICON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStopFakeLexiconOnce);
   console.warn("NEUTRAL_REPLACEMENT_AUDIT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeNeutralReplacementAuditOnce);
+  console.warn("FAKE_TONE_SAMPLE_AUDIT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeFakeToneSampleAuditOnce);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);

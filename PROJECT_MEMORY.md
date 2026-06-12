@@ -1,3 +1,11 @@
+## 2026-06-12 — Step 8.5 sampled fake-tone smoke
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeFakeToneSampleAuditOnce()` as the dev-only runtime smoke for a representative sample audit across `UI`, `NPC speech`, `system messages`, and `arguments`.
+- The smoke requires at least 30 sampled entries, targets 30-50 entries, and reports `sampleCount`, `sampledZones`, `fakeToneHits`, `memeHits`, `tryingToSoundYoungHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` alongside build identity.
+- Served identity: `build_2026_06_12_step8_5_sampled_fake_tone_smoke` / `step8_5_sampled_fake_tone_smoke` / `step8_5_sampled_fake_tone_smoke_v20260612_001`.
+- Scope held: audit-only smoke, identity/docs, and mirrored bundles; no gameplay logic rewrite, no unrelated refactor, and no `Console.txt` usage.
+- Safari command: `Game.__DEV.smokeFakeToneSampleAuditOnce()`.
+
 ## 2026-06-11 — Step 8.3 stop-fake lexicon enforcement
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeStopFakeLexiconOnce()` as the dev-only runtime smoke for stop-fake lexicon enforcement.
