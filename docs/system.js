@@ -3846,9 +3846,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_SPEED_AUDIT_BUILD_TAG = "build_2026_06_12_step8_10c_z_profile_speed_audit_rule_validated_fix";
-  const Z_PROFILE_SPEED_AUDIT_COMMIT = "step8_10c_z_profile_speed_audit_rule_validated_fix";
-  const Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION = "step8_10_z_profile_speed_audit_v20260612_003";
+  const Z_PROFILE_SPEED_AUDIT_BUILD_TAG = "build_2026_06_12_step8_10d_z_profile_speed_audit_fixture_fix";
+  const Z_PROFILE_SPEED_AUDIT_COMMIT = "step8_10d_z_profile_speed_audit_fixture_fix";
+  const Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION = "step8_10_z_profile_speed_audit_v20260612_004";
 
   Game.__DEV.smokeZProfileSpeedAuditOnce = function smokeZProfileSpeedAuditOnce(){
     const result = {
@@ -3898,7 +3898,7 @@ window.Game = window.Game || {};
       Object.freeze({ id: "ui_tie_click_name_hint", category: "ui", source: "Data.TEXTS.genz.tie_click_name_hint", before: "Кликни на имя, за кого хочешь вписаться.", after: "Имя в списке — сторона.", meaning: "CTA still tells the player to pick a name for the crowd choice." }),
       Object.freeze({ id: "ui_events_empty", category: "ui", source: "Data.TEXTS.genz.events_empty", before: "Ничего не происходит, сплошная болтовня.", after: "Открой события.", meaning: "Empty-events guidance still points the player to the events panel." }),
       Object.freeze({ id: "ui_invite_open_hint", category: "ui", source: "Data.TEXTS.genz.invite_open_hint", before: "Введи ник игрока. Без ошибок, иначе не сработает.", after: "Введи точный ник.", meaning: "Invite hint still requires the exact player nickname." }),
-      Object.freeze({ id: "ui_report_hint", category: "ui", source: "dom#reportHint", before: "Сдать бандита или токсика за +2 💰.", after: "Сдай токсика, бандита или мафиози.", meaning: "Report hint keeps the same cop-report target guidance on the current canonical DM surface." }),
+      Object.freeze({ id: "ui_report_hint", category: "ui", source: "dom#reportHint", before: "Сообщить о токсике, бандите или мафиози.", after: "Сдай токсика, бандита или мафиози.", meaning: "Report hint keeps the same cop-report target guidance on the current canonical DM surface." }),
       Object.freeze({ id: "npc_report_accept", category: "npc", source: "Data.TEXTS.genz.cop_report_accept.0", before: "Я тебя понял. Проверяю информацию.", after: "Понял. Проверяю.", meaning: "Cop acceptance still confirms the report is understood and under review." }),
       Object.freeze({ id: "npc_report_ok", category: "npc", source: "Data.TEXTS.genz.cop_report_ok.0", before: "Проверка сошлась. Я вмешался.", after: "Проверка сошлась. Вмешался.", meaning: "Cop resolution still says the check matched and the cop intervened." }),
       Object.freeze({ id: "npc_cooldown", category: "npc", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Проверка займет время.", meaning: "Cooldown line still says the cop needs time because the report check is still in progress." }),

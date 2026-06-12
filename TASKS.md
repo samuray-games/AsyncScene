@@ -1,3 +1,13 @@
+## 2026-06-12 — Step 8.10d z-profile speed audit fixture fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Remove the last false `economy_value_changed` hit by fixing the remaining stale speed-audit fixture for `dom#reportHint`.
+- Root cause: runtime `reportHint` text was already corrected, but the speed audit still used a stale `before` comparison string containing `+2 💰`, so the row-level economy token preservation check kept firing from fixture data rather than runtime text.
+- Fixed only the Step 8.10 `ui_report_hint` audit source row: `before` now uses `Сообщить о токсике, бандите или мафиози.` while `after` remains the current canonical runtime text `Сдай токсика, бандита или мафиози.`.
+- Shortening calculations, thresholds, meaning coverage logic, orphan checks, and no-new-logic/entity/state checks were kept unchanged.
+- Served identity: `build_2026_06_12_step8_10d_z_profile_speed_audit_fixture_fix` / `step8_10d_z_profile_speed_audit_fixture_fix` / `step8_10_z_profile_speed_audit_v20260612_004`.
+- Scope held: audit-fixture-only fix plus served identity/cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileSpeedAuditOnce()`.
+
 ## 2026-06-12 — Step 8.10c z-profile speed audit rule-validated fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Resolve the remaining Step 8.10 speed-audit mismatches by separating stale audit expectations from real rule/copy drift.
