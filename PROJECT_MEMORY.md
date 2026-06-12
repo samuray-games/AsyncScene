@@ -5601,3 +5601,11 @@ Error: Download failure, code=1
 - Runtime NPC template selection reads `Game.NPCSpeech.TEMPLATES_BY_LOCALE` from `NPC_TEMPLATE_SET_Z.templatesByLocale`, preserving role identity while keeping lines short, direct, alive, non-meme, non-teen-slang, non-mentoring, and non-teacher-toned.
 - New runtime smoke: `Game.__DEV.smokeZoomerNpcTemplateSetOnce()` returns the Step 6.9 fields and keeps PASS gated on empty `teenSlangHits`, `memeHits`, `mentoringHits`, `teacherToneHits`, `roleIdentityLoss`, `identicalPhraseClusters`, `futureTemplateBypassPaths`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 - Scope held: NPC speech artifacts and validation/smoke only; no UI, gameplay, economy, unrelated refactor, or `Console.txt` usage.
+
+## 2026-06-12 — Step 8.4 neutral replacement audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Replaced remaining fake-tone audit targets with calmer direct wording: the `хайп` argument prompts now ask who is being discussed/heard, and the toxic cop description now says only that the toxic actor distorts truth.
+- Added `Game.__DEV.smokeNeutralReplacementAuditOnce()` in the mirrored system bundles. It checks system messages, NPC speech, interface labels, arguments, hints, and new feature texts, then validates the explicit before/after replacement pairs for meaning retention, no fake tone, no mentoring tone, no boring one-word rewrite, and no length increase.
+- Required result fields are `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `replacementPairsChecked`, `meaningLossHits`, `boringToneHits`, `longRewriteHits`, `mentoringToneHits`, `fakeToneHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Runtime identity is `build_2026_06_12_step8_4_neutral_replacement_audit` / `step8_4_neutral_replacement_audit`; smoke version is `step8_4_neutral_replacement_audit_smoke_v20260612_001`.
+- Scope held: neutral replacement audit/copy plus smoke/cache-bust only; no gameplay logic, no unrelated refactor, and `Console.txt` was not used. Safari must run `Game.__DEV.smokeNeutralReplacementAuditOnce()`.
