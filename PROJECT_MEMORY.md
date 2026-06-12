@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.13 z-profile final acceptance marker
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeZProfileFinalAcceptanceOnce()` as the final Safari aggregate for the completed z-profile package.
+- The smoke checks the runtime acceptance chain, the final package contract, all steps 1-8 PASS references, and the explicit final completion marker: `z-profile is a fast millennial skin, not a new game, not a youth-slang generator.`
+- Final package docs now carry the Step 7 and Step 8 PASS references plus the completion marker, while the package remains text-only and derived from `UI_PROFILE_MILLENNIAL`.
+- Served identity: `build_2026_06_12_step8_13_z_profile_final_acceptance_marker` / `step8_13_z_profile_final_acceptance_marker` / `step8_13_z_profile_final_acceptance_marker_v20260612_001`.
+- Scope held: final-acceptance smoke plus mirrored docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileFinalAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 8.12b z-profile runtime acceptance smoke coverage fix
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Fixed only the runtime acceptance smoke coverage gaps reported by Safari.

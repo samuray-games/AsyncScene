@@ -4768,14 +4768,15 @@ window.Game = window.Game || {};
 
   const Z_PROFILE_FINAL_PACKAGE_BUILD_TAG = "build_2026_06_12_step7_z_profile_final_package";
   const Z_PROFILE_FINAL_PACKAGE_COMMIT = "step7_z_profile_final_package";
-  const Z_PROFILE_FINAL_PACKAGE_SMOKE_VERSION = "step7_z_profile_final_package_v20260612_001";
+  const Z_PROFILE_FINAL_PACKAGE_SMOKE_VERSION = "step7_z_profile_final_package_v20260612_002";
   const Z_PROFILE_FINAL_PACKAGE_REQUIRED_SECTIONS = Object.freeze([
     "Final z-profile rules",
     "Forbidden list",
     "Examples",
     "Millennial -> zoomer mapping reference",
     "Smoke commands",
-    "PASS status references for steps 1-6",
+    "PASS status references for steps 1-8",
+    "Final completion marker",
     "Text-only derivation rule",
     "No-new-runtime rule",
   ]);
@@ -4795,6 +4796,7 @@ window.Game = window.Game || {};
       mappingReferenceExists: false,
       smokeCommandsExist: false,
       passStepReferences: [],
+      finalCompletionMarkerExists: false,
       textOnlyDerivationRuleExists: false,
       noNewRuntimeRuleExists: false,
       orphanRequiredSections: [],
@@ -4894,7 +4896,9 @@ window.Game = window.Game || {};
       result.examplesExist = /##\s+Examples\b/.test(rawText) && /\|\s*millennial\s*\|\s*zoomer final\s*\|/i.test(rawText);
       result.mappingReferenceExists = /##\s+Millennial -> zoomer mapping reference\b/.test(rawText) && /UI_PROFILE_ZOOMER_DIFF\.md/.test(rawText);
       result.smokeCommandsExist = /##\s+Smoke commands\b/.test(rawText) && /Game\.__DEV\.smokeZProfileFinalPackageOnce\(\)/.test(rawText);
-      result.passStepReferences = [1, 2, 3, 4, 5, 6].filter((step) => new RegExp(`Step ${step} PASS reference:`, "i").test(rawText));
+      result.passStepReferences = [1, 2, 3, 4, 5, 6, 7, 8].filter((step) => new RegExp(`Step ${step} PASS reference:`, "i").test(rawText));
+      result.finalCompletionMarkerExists = /##\s+Final completion marker\b/.test(rawText)
+        && /z-profile is a fast millennial skin, not a new game, not a youth-slang generator\./.test(rawText);
       result.textOnlyDerivationRuleExists = /text-only and derived from `UI_PROFILE_MILLENNIAL`/i.test(rawText);
       result.noNewRuntimeRuleExists = /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./.test(rawText)
         && /No new logic keys are allowed\./.test(rawText);
@@ -4902,7 +4906,8 @@ window.Game = window.Game || {};
       if (!result.examplesExist) fail("examples_exist", "missing_examples");
       if (!result.mappingReferenceExists) fail("mapping_reference_exists", "missing_mapping_reference");
       if (!result.smokeCommandsExist) fail("smoke_commands_exist", "missing_smoke_commands");
-      if (result.passStepReferences.length !== 6) fail("steps_1_6_pass_references_exist", result.passStepReferences.slice());
+      if (result.passStepReferences.length !== 8) fail("steps_1_8_pass_references_exist", result.passStepReferences.slice());
+      if (!result.finalCompletionMarkerExists) fail("final_completion_marker_exists", "missing_completion_marker");
       if (!result.textOnlyDerivationRuleExists) fail("text_only_derivation_rule_exists", "missing_text_only_derivation_rule");
       if (!result.noNewRuntimeRuleExists) fail("no_new_runtime_rule_exists", "missing_no_new_runtime_rule");
       if (!/^#\s+UI_PROFILE_ZOOMER_FINAL\b/m.test(rawText)) fail("final_package_header_exists", "missing_header");
@@ -4941,7 +4946,8 @@ window.Game = window.Game || {};
       && result.examplesExist === true
       && result.mappingReferenceExists === true
       && result.smokeCommandsExist === true
-      && result.passStepReferences.length === 6
+      && result.passStepReferences.length === 8
+      && result.finalCompletionMarkerExists === true
       && result.textOnlyDerivationRuleExists === true
       && result.noNewRuntimeRuleExists === true
       && result.orphanRequiredSections.length === 0
@@ -5167,6 +5173,146 @@ window.Game = window.Game || {};
       && result.authenticityAuditOk === true
       && result.newFeaturesAuditOk === true
       && result.finalPackageOk === true
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
+  const Z_PROFILE_FINAL_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_13_z_profile_final_acceptance_marker";
+  const Z_PROFILE_FINAL_ACCEPTANCE_COMMIT = "step8_13_z_profile_final_acceptance_marker";
+  const Z_PROFILE_FINAL_ACCEPTANCE_SMOKE_VERSION = "step8_13_z_profile_final_acceptance_marker_v20260612_001";
+
+  Game.__DEV.smokeZProfileFinalAcceptanceOnce = function smokeZProfileFinalAcceptanceOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_FINAL_ACCEPTANCE_BUILD_TAG,
+      commit: Z_PROFILE_FINAL_ACCEPTANCE_COMMIT,
+      smokeVersion: Z_PROFILE_FINAL_ACCEPTANCE_SMOKE_VERSION,
+      completedChecks: [],
+      checkedCount: 0,
+      finalPackagePath: null,
+      finalPackageExists: false,
+      runtimeAcceptanceOk: false,
+      finalPackageOk: false,
+      passStepReferences: [],
+      finalCompletionMarkerExists: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const runRequiredSmoke = (checkName, fn, resultKey) => {
+      let subResult = null;
+      try {
+        subResult = typeof fn === "function" ? fn() : null;
+      } catch (err) {
+        subResult = { ok: false, failures: [{ check: "smoke_exception", detail: err && err.message ? String(err.message) : String(err) }], failedChecks: ["smoke_exception"] };
+      }
+      if (!subResult) {
+        addUnique(result.missingCoverage, checkName);
+        fail("step_missing", checkName);
+        return null;
+      }
+      addUnique(result.completedChecks, checkName);
+      result.checkedCount += 1;
+      if (resultKey) result[resultKey] = subResult.ok === true;
+      if (subResult.ok !== true) fail(`${checkName}_not_ok`, subResult);
+      return subResult;
+    };
+    const fetchTextSync = (path) => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "" };
+        return { ok: false, reason: `http_${xhr.status || 0}` };
+      } catch (_) {
+        return { ok: false, reason: "xhr_exception" };
+      }
+    };
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const seen = new Set();
+      const add = (value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        candidates.push(value);
+      };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => {
+        try {
+          add(new URL(fileName, baseUri).href);
+        } catch (_) {}
+      });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null };
+    };
+    const normalize = (value) => String(value == null ? "" : value)
+      .replace(/\r\n?/g, "\n")
+      .replace(/\u00a0/g, " ")
+      .trim();
+    try {
+      const runtimeAcceptanceRes = runRequiredSmoke("runtime_acceptance", Game.__DEV.smokeZProfileRuntimeAcceptanceOnce, "runtimeAcceptanceOk");
+      const finalRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_FINAL.md");
+      result.finalPackagePath = finalRes.path || null;
+      result.finalPackageExists = !!finalRes.ok;
+      if (!finalRes.ok) fail("final_package_exists", { path: "UI_PROFILE_ZOOMER_FINAL.md", reason: finalRes.reason || "unavailable" });
+      const rawText = finalRes.ok ? String(finalRes.text || "") : "";
+      const headings = rawText.match(/^##\s+.+$/gm) || [];
+      result.passStepReferences = [1, 2, 3, 4, 5, 6, 7, 8].filter((step) => new RegExp(`Step ${step} PASS reference:`, "i").test(rawText));
+      if (result.passStepReferences.length !== 8) fail("steps_1_8_pass_references_exist", result.passStepReferences.slice());
+      result.finalCompletionMarkerExists = /##\s+Final completion marker\b/.test(rawText)
+        && /z-profile is a fast millennial skin, not a new game, not a youth-slang generator\./.test(rawText);
+      if (!result.finalCompletionMarkerExists) fail("final_completion_marker_exists", "missing_completion_marker");
+      if (!headings.length) fail("final_package_doc_missing_headings", null);
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_FINAL_ACCEPTANCE_SMOKE_VERSION || !/^step8_13_z_profile_final_acceptance_marker_v\d{8}_\d{3}$/.test(result.smokeVersion)) {
+        fail("smoke_version_unique_for_commit", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+      if (!runtimeAcceptanceRes || runtimeAcceptanceRes.ok !== true) fail("runtime_acceptance_not_passed", runtimeAcceptanceRes);
+      if (!runtimeAcceptanceRes || runtimeAcceptanceRes.finalPackageOk !== true) fail("runtime_final_package_not_passed", runtimeAcceptanceRes);
+      result.finalPackageOk = runtimeAcceptanceRes ? runtimeAcceptanceRes.finalPackageOk === true : false;
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.runtimeAcceptanceOk === true
+      && result.finalPackageExists === true
+      && result.finalPackageOk === true
+      && result.passStepReferences.length === 8
+      && result.finalCompletionMarkerExists === true
       && result.failures.length === 0
       && result.forbiddenRemaining.length === 0
       && result.missingCoverage.length === 0
