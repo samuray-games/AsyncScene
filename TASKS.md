@@ -8,6 +8,17 @@
 - Scope held: acceptance-only smoke plus mirrored cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
 
+## 2026-06-12 — Step 8.12b z-profile runtime acceptance smoke coverage fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Fix only the Step 8 runtime acceptance smoke coverage gaps reported by Safari without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, state mutations, or runtime texts.
+- Kept all existing acceptance checks and `moneyLog` verification unchanged.
+- Fixed runtime style verification to resolve the live style API from the actual runtime object and verify enable/restore through `getArgCanonTextStyle()` / `setArgCanonTextStyle()` instead of assuming a bare global `Data`.
+- Fixed ECON-UI verification to require both `Game.__DEV.smokeEconUi_RegressionPackOnce` and `Game.__DEV.smokeEconUi_FinalAuditOnce`, and to execute the final ECON-UI audit smoke so runtime acceptance proves ECON-UI was actually checked.
+- Smoke result now also reports `econUiAuditOk` while preserving the existing Step 8 aggregate checks and `moneyLogChanged` behavior.
+- Served identity: `build_2026_06_12_step8_12b_z_profile_runtime_acceptance_coverage_fix` / `step8_12b_z_profile_runtime_acceptance_coverage_fix` / `step8_12_z_profile_runtime_acceptance_smoke_v20260612_002`.
+- Scope held: runtime-acceptance coverage fix only plus mirrored docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 7 z-profile final package document
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Create only the final `UI_PROFILE_ZOOMER_FINAL.md` package document plus a Safari smoke for package completeness, without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.

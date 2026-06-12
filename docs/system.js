@@ -4950,9 +4950,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_RUNTIME_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_12_z_profile_runtime_acceptance_smoke";
-  const Z_PROFILE_RUNTIME_ACCEPTANCE_COMMIT = "step8_12_z_profile_runtime_acceptance_smoke";
-  const Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION = "step8_12_z_profile_runtime_acceptance_smoke_v20260612_001";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_12b_z_profile_runtime_acceptance_coverage_fix";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_COMMIT = "step8_12b_z_profile_runtime_acceptance_coverage_fix";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION = "step8_12_z_profile_runtime_acceptance_smoke_v20260612_002";
 
   Game.__DEV.smokeZProfileRuntimeAcceptanceOnce = function smokeZProfileRuntimeAcceptanceOnce(){
     const result = {
@@ -4971,6 +4971,7 @@ window.Game = window.Game || {};
       moneyLogSignatureBefore: "",
       moneyLogSignatureAfter: "",
       moneyLogChanged: false,
+      econUiAuditOk: false,
       econUiReferenceOk: false,
       finalContractOk: false,
       derivationMappingOk: false,
@@ -4989,6 +4990,12 @@ window.Game = window.Game || {};
       addUnique(result.failedChecks, check);
       addUnique(result.failures, detail === undefined ? check : { check, detail });
     };
+    const dataApi = (() => {
+      if (typeof Data !== "undefined" && Data) return Data;
+      if (Game && Game.Data) return Game.Data;
+      if (typeof window !== "undefined" && window.Data) return window.Data;
+      return null;
+    })();
     const getMoneyLogRows = () => {
       if (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) return Game.__D.moneyLog;
       if (Game && Game.State && Array.isArray(Game.State.moneyLog)) return Game.State.moneyLog;
@@ -5033,32 +5040,35 @@ window.Game = window.Game || {};
       if (subResult.ok !== true) fail(`${checkName}_not_ok`, subResult);
       return subResult;
     };
-    const previousStyle = (typeof Data !== "undefined" && Data && typeof Data.getArgCanonTextStyle === "function")
-      ? Data.getArgCanonTextStyle()
+    const previousStyle = (dataApi && typeof dataApi.getArgCanonTextStyle === "function")
+      ? dataApi.getArgCanonTextStyle()
       : null;
+    result.runtimeStyleBefore = previousStyle;
     const moneyBefore = snapshotMoneyLog();
     result.moneyLogBeforeLength = moneyBefore.length;
     result.moneyLogSignatureBefore = moneyBefore.signature;
     let styleNeedsRestore = false;
     try {
-      if (typeof Data === "undefined" || !Data || typeof Data.setArgCanonTextStyle !== "function" || typeof Data.getArgCanonTextStyle !== "function") {
+      if (!dataApi || typeof dataApi.setArgCanonTextStyle !== "function" || typeof dataApi.getArgCanonTextStyle !== "function") {
         fail("runtime_style_switch_missing", null);
       } else {
-        const enabledStyle = Data.setArgCanonTextStyle("millennial");
+        const enabledStyle = dataApi.setArgCanonTextStyle("millennial");
         styleNeedsRestore = true;
-        result.runtimeStyleAfter = Data.getArgCanonTextStyle();
+        result.runtimeStyleAfter = dataApi.getArgCanonTextStyle();
         result.runtimeEnablementOk = enabledStyle === "millennial" && result.runtimeStyleAfter === "millennial";
         if (!result.runtimeEnablementOk) fail("runtime_enablement_failed", { enabledStyle, runtimeStyleAfter: result.runtimeStyleAfter });
       }
       if (styleNeedsRestore && previousStyle !== null) {
-        Data.setArgCanonTextStyle(previousStyle);
-        result.runtimeStyleRestored = Data.getArgCanonTextStyle() === previousStyle;
+        dataApi.setArgCanonTextStyle(previousStyle);
+        result.runtimeStyleRestored = dataApi.getArgCanonTextStyle() === previousStyle;
         styleNeedsRestore = false;
-        if (!result.runtimeStyleRestored) fail("runtime_style_restore_failed", { before: previousStyle, after: Data.getArgCanonTextStyle() });
+        if (!result.runtimeStyleRestored) fail("runtime_style_restore_failed", { before: previousStyle, after: dataApi.getArgCanonTextStyle() });
       }
       result.econUiReferenceOk = typeof Game.__DEV.smokeEconUi_RegressionPackOnce === "function"
-        && /ECON_UI8_FINAL_BEGIN/.test(String(Game.__DEV.smokeEconUi_RegressionPackOnce));
+        && typeof Game.__DEV.smokeEconUi_FinalAuditOnce === "function";
       if (!result.econUiReferenceOk) fail("econ_ui_reference_missing", "Game.__DEV.smokeEconUi_RegressionPackOnce");
+      const econUiRes = runRequiredSmoke("econ_ui_final_audit", Game.__DEV.smokeEconUi_FinalAuditOnce, "econUiAuditOk");
+      if (!econUiRes || econUiRes.ok !== true) fail("econ_ui_not_checked", econUiRes);
       runRequiredSmoke("final_contract", Game.__DEV.smokeZProfileFinalContractOnce, "finalContractOk");
       runRequiredSmoke("derivation_mapping", Game.__DEV.smokeZProfileDerivationMappingOnce, "derivationMappingOk");
       runRequiredSmoke("speed_audit", Game.__DEV.smokeZProfileSpeedAuditOnce, "speedAuditOk");
@@ -5084,12 +5094,13 @@ window.Game = window.Game || {};
     } catch (err) {
       fail("smoke_exception", err && err.message ? String(err.message) : String(err));
     } finally {
-      if (styleNeedsRestore && previousStyle !== null && typeof Data !== "undefined" && Data && typeof Data.setArgCanonTextStyle === "function") {
-        try { Data.setArgCanonTextStyle(previousStyle); } catch (_) {}
+      if (styleNeedsRestore && previousStyle !== null && dataApi && typeof dataApi.setArgCanonTextStyle === "function") {
+        try { dataApi.setArgCanonTextStyle(previousStyle); } catch (_) {}
       }
     }
     result.ok = result.runtimeEnablementOk === true
       && result.runtimeStyleRestored === true
+      && result.econUiAuditOk === true
       && result.econUiReferenceOk === true
       && result.moneyLogChanged === false
       && result.finalContractOk === true

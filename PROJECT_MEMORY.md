@@ -1,3 +1,13 @@
+## 2026-06-12 — Step 8.12b z-profile runtime acceptance smoke coverage fix
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Fixed only the runtime acceptance smoke coverage gaps reported by Safari.
+- The style verification now resolves the live style API from the actual runtime object and verifies millennial enable/restore through `getArgCanonTextStyle()` / `setArgCanonTextStyle()` instead of assuming a bare global `Data`.
+- The ECON-UI verification now requires both `Game.__DEV.smokeEconUi_RegressionPackOnce` and `Game.__DEV.smokeEconUi_FinalAuditOnce`, and executes the final ECON-UI audit smoke so runtime acceptance proves ECON-UI was checked rather than inferred from helper presence.
+- Existing acceptance checks for final contract, derivation mapping, speed, simplicity, authenticity, new-features, final package, and unchanged `moneyLog` were kept intact; the result now also reports `econUiAuditOk`.
+- Served identity: `build_2026_06_12_step8_12b_z_profile_runtime_acceptance_coverage_fix` / `step8_12b_z_profile_runtime_acceptance_coverage_fix` / `step8_12_z_profile_runtime_acceptance_smoke_v20260612_002`.
+- Scope held: runtime-acceptance coverage fix only plus mirrored docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 8.12 z-profile runtime acceptance smoke
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()` in the mirrored runtime system bundles.
