@@ -1,3 +1,14 @@
+## 2026-06-12 — Step 7 z-profile final package document
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Create only the final `UI_PROFILE_ZOOMER_FINAL.md` package document plus a Safari smoke for package completeness, without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
+- Added package document: `UI_PROFILE_ZOOMER_FINAL.md` and mirrored served copy `docs/UI_PROFILE_ZOOMER_FINAL.md`.
+- Added Safari smoke command: `Game.__DEV.smokeZProfileFinalPackageOnce()`.
+- Smoke verifies the final package file exists, all required sections exist, the forbidden list exists, examples exist, the millennial -> zoomer mapping reference exists, the smoke commands list exists, Step 1-6 PASS references exist, the text-only derivation rule exists, the no-new-logic/entity/condition/economy/battle/handler/state rule exists, no orphan required sections remain, and no new logic keys, conditions, entities, handlers, economy rules, battle rules, or state mutations are introduced by the package contract.
+- Smoke result fields: `ok`, `buildTag`, `commit`, unique `smokeVersion`, `finalPackagePath`, `finalPackageExists`, `requiredSections`, `missingSections`, `forbiddenListExists`, `examplesExist`, `mappingReferenceExists`, `smokeCommandsExist`, `passStepReferences`, `textOnlyDerivationRuleExists`, `noNewRuntimeRuleExists`, `orphanRequiredSections`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step7_z_profile_final_package` / `step7_z_profile_final_package` / `step7_z_profile_final_package_v20260612_001`.
+- Scope held: package-doc and audit-only smoke plus mirrored served bundle/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, no runtime text rewrites beyond the package itself, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileFinalPackageOnce()`.
+
 ## 2026-06-12 — Step 6 fix new-features aggregate dependency outputs
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Fix only stale Step 6 dependency outputs so `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()` reflects the current already-passed z-profile speed, simplicity, and authenticity state.
