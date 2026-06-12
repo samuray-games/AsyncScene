@@ -1,3 +1,13 @@
+## 2026-06-12 — Step 8.10c z-profile speed audit rule-validated fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Resolve the remaining Step 8.10 speed-audit mismatches by separating stale audit expectations from real rule/copy drift.
+- Rule validation result: `dom#reportHint` was a real UI copy drift, because current report rules allow `toxic`, `bandit`, and `mafia`, while truthful reports do not guarantee `+2 💰`; the static DOM hint was corrected to `Сдай токсика, бандита или мафиози.`.
+- Rule validation result: `NPC.COP.topics.bandit.advice` is the current canonical runtime advice line, so only the audit mapping was updated to `Свалить закрывает контакт. Проигрыш бьет по 💰.`.
+- Shortening calculations, pass thresholds, meaning coverage logic, orphan checks, and no-new-logic/entity/state checks were kept unchanged.
+- Served identity: `build_2026_06_12_step8_10c_z_profile_speed_audit_rule_validated_fix` / `step8_10c_z_profile_speed_audit_rule_validated_fix` / `step8_10_z_profile_speed_audit_v20260612_003`.
+- Scope held: one canonical UI text fix, one audit-mapping fix, plus served identity/cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileSpeedAuditOnce()`.
+
 ## 2026-06-12 — Step 8.10b z-profile speed audit mapping fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Fix only Step 8.10 `mapping_current_text_mismatch` failures by updating the speed-audit expected z-profile strings to the current canonical runtime texts.
