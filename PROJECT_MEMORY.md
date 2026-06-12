@@ -1,3 +1,11 @@
+## 2026-06-12 — Step 8.8 z-profile final contract
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added dev-only `Game.__DEV.smokeZProfileFinalContractOnce()` as the final Step 8 z-profile contract smoke. It verifies the z-profile is derived from `UI_PROFILE_MILLENNIAL`, stays delta-only/text-only, and does not introduce new logic keys, conditions, entities, handlers, economy rules, battle rules, or state mutations.
+- The smoke returns `ok`, `buildTag`, `commit`, `smokeVersion`, `millennialSourcePath`, `zoomerProfilePath`, `millennialSourceExists`, `zoomerProfileExists`, `textOnlyViolations`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_8_z_profile_final_contract` / `step8_8_z_profile_final_contract` / `step8_8_z_profile_final_contract_v20260612_001`.
+- Scope held: final contract and identity/docs only; no gameplay logic rewrite, no unrelated refactor, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileFinalContractOnce()`.
+
 ## 2026-06-12 — Step 8.7 z-profile acceptance smoke
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileAcceptanceOnce()` as the final Step 8 aggregate acceptance smoke. It composes only the existing Step 8.1-8.6 checks and returns `ok`, `buildTag`, `commit`, `smokeVersion`, `completedSteps`, `checkedCount`, `artificialYouthTone`, `eyeRollFailures`, `memeLanguage`, `forcedSlang`, `exaggeratedCoolness`, `unnaturalDialogue`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.

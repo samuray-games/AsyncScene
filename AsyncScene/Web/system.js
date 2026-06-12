@@ -3855,6 +3855,210 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract";
+  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract";
+  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_001";
+
+  Game.__DEV.smokeZProfileFinalContractOnce = function smokeZProfileFinalContractOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_FINAL_CONTRACT_BUILD_TAG,
+      commit: Z_PROFILE_FINAL_CONTRACT_COMMIT,
+      smokeVersion: Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION,
+      millennialSourcePath: null,
+      zoomerProfilePath: null,
+      millennialSourceExists: false,
+      zoomerProfileExists: false,
+      textOnlyViolations: [],
+      newLogicKeyHits: [],
+      newConditionHits: [],
+      newEntityHits: [],
+      newHandlerHits: [],
+      newEconomyRuleHits: [],
+      newBattleRuleHits: [],
+      stateMutationHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+    const fetchTextSync = (path) => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          return { ok: true, text: xhr.responseText || "" };
+        }
+        return { ok: false, reason: `http_${xhr.status || 0}` };
+      } catch (_) {
+        return { ok: false, reason: "xhr_exception" };
+      }
+    };
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const seen = new Set();
+      const add = (value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        candidates.push(value);
+      };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => {
+        try {
+          add(new URL(fileName, baseUri).href);
+        } catch (_) {}
+      });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null };
+    };
+    try {
+      const millennialRes = fetchTextFromCandidates("UI_PROFILE_MILLENNIAL.md");
+      const zoomerRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+      result.millennialSourcePath = millennialRes.path || null;
+      result.zoomerProfilePath = zoomerRes.path || null;
+      result.millennialSourceExists = !!millennialRes.ok;
+      result.zoomerProfileExists = !!zoomerRes.ok;
+      if (!millennialRes.ok) fail("millennial_source_exists", { path: "UI_PROFILE_MILLENNIAL.md", reason: millennialRes.reason || "unavailable" });
+      if (!zoomerRes.ok) fail("zoomer_profile_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: zoomerRes.reason || "unavailable" });
+      const millennialRaw = millennialRes.ok ? String(millennialRes.text || "") : "";
+      const zoomerRaw = zoomerRes.ok ? String(zoomerRes.text || "") : "";
+      const millennialText = normalize(millennialRaw);
+      const zoomerText = normalize(zoomerRaw);
+      const millennialLines = millennialRaw ? millennialRaw.split(/\r?\n/).map((line) => normalize(line)).filter(Boolean) : [];
+      const zoomerLines = zoomerRaw ? zoomerRaw.split(/\r?\n/).map((line) => normalize(line)).filter(Boolean) : [];
+      const sharedLines = zoomerLines.filter((line) => millennialLines.includes(line));
+      const requiredPhrases = [
+        "delta-only",
+        "UI_PROFILE_MILLENNIAL",
+        "existing millennial meaning",
+        "zoomer delta",
+        "No runtime strings are rewritten by this table.",
+        "No gameplay, logic, category, or copy application changes.",
+        "This document is delta-only over `UI_PROFILE_MILLENNIAL`."
+      ];
+      if (!zoomerText.trim()) {
+        addUnique(result.textOnlyViolations, "empty_doc");
+        fail("zoomer_profile_exists", "empty_doc");
+      }
+      requiredPhrases.forEach((phrase) => {
+        if (!zoomerText.includes(phrase)) {
+          addUnique(result.textOnlyViolations, { missing: phrase });
+          fail("text_only_contract", { missing: phrase });
+        }
+      });
+      if (!/UI_PROFILE_MILLENNIAL/i.test(zoomerText)) {
+        addUnique(result.textOnlyViolations, "missing_source_reference");
+        fail("derived_from_millennial_source", "missing_source_reference");
+      }
+      if (!/millennial\s*->\s*zoomer/i.test(zoomerText)) {
+        addUnique(result.textOnlyViolations, "missing_comparison_table");
+        fail("derived_from_millennial_source", "missing_comparison_table");
+      }
+      if (sharedLines.length === 0) {
+        addUnique(result.textOnlyViolations, "no_shared_lines_with_source");
+        fail("derived_from_millennial_source", "no_shared_lines_with_source");
+      }
+      if (zoomerText.indexOf("```") !== -1) {
+        addUnique(result.textOnlyViolations, "contains_code_fence");
+        fail("text_only_contract", "contains_code_fence");
+      }
+      if (/<script|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(zoomerText)) {
+        addUnique(result.textOnlyViolations, "contains_code_like_markup");
+        fail("text_only_contract", "contains_code_like_markup");
+      }
+      const forbiddenChecks = [
+        { key: "newLogicKeyHits", re: /\b(new\s+)?logic\s+keys?\b/i, check: "new_logic_keys" },
+        { key: "newConditionHits", re: /\b(new\s+)?conditions?\b/i, check: "new_conditions" },
+        { key: "newEntityHits", re: /\b(new\s+)?entities?\b/i, check: "new_entities" },
+        { key: "newHandlerHits", re: /\b(new\s+)?handlers?\b/i, check: "new_handlers" },
+        { key: "newEconomyRuleHits", re: /\b(new\s+)?economy\s+rules?\b/i, check: "new_economy_rules" },
+        { key: "newBattleRuleHits", re: /\b(new\s+)?battle\s+rules?\b/i, check: "new_battle_rules" },
+        { key: "stateMutationHits", re: /\bstate\s+mutations?\b/i, check: "state_mutations" }
+      ];
+      forbiddenChecks.forEach(({ key, re, check }) => {
+        const matches = zoomerText.match(re);
+        if (matches && matches.length) {
+          result[key] = matches.slice(0, 12);
+          addUnique(result.forbiddenRemaining, check);
+          addUnique(result.textOnlyViolations, { check, matches: matches.slice(0, 12) });
+          fail(check, matches.slice(0, 12));
+        }
+      });
+      if (/new\s+(logic|condition|entity|handler|economy rule|battle rule)/i.test(zoomerText)) {
+        addUnique(result.textOnlyViolations, "introduces_new_runtime_concepts");
+        fail("text_only_contract", "introduces_new_runtime_concepts");
+      }
+      if (/state\s+mutation/i.test(zoomerText) && !/no\s+state\s+mutation/i.test(zoomerText)) {
+        addUnique(result.textOnlyViolations, "mentions_state_mutations_as_new_work");
+        fail("text_only_contract", "mentions_state_mutations_as_new_work");
+      }
+      if (!millennialText.includes("Профиль ориентирован")) {
+        addUnique(result.textOnlyViolations, "missing_millennial_profile_core");
+        fail("millennial_source_exists", "missing_millennial_profile_core");
+      }
+      if (!zoomerText.includes("UI_PROFILE_ZOOMER_DIFF")) {
+        addUnique(result.textOnlyViolations, "missing_profile_header");
+        fail("zoomer_profile_exists", "missing_profile_header");
+      }
+      if (!buildTag || !commit || !smokeVersion) fail("build_identification_missing", { buildTag, commit, smokeVersion });
+      if (smokeVersion !== Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION || smokeVersion.indexOf("step8_8") === -1 || smokeVersion.indexOf(commit) === -1) {
+        fail("smoke_version_unique_for_commit", smokeVersion);
+      }
+      if (buildTag.indexOf(commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag, commit });
+      if (result.millennialSourceExists !== true) fail("millennial_source_exists", result.millennialSourcePath);
+      if (result.zoomerProfileExists !== true) fail("zoomer_profile_exists", result.zoomerProfilePath);
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.millennialSourceExists === true
+      && result.zoomerProfileExists === true
+      && result.textOnlyViolations.length === 0
+      && result.newLogicKeyHits.length === 0
+      && result.newConditionHits.length === 0
+      && result.newEntityHits.length === 0
+      && result.newHandlerHits.length === 0
+      && result.newEconomyRuleHits.length === 0
+      && result.newBattleRuleHits.length === 0
+      && result.stateMutationHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const STOP_FAKE_LEXICON_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_SMOKE_VERSION = "step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001";
