@@ -33478,9 +33478,13 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   function installFakeToneSampleAuditSmoke(devStore) {
     if (!devStore || typeof devStore !== "object") return;
-    if (typeof Game.__DEV.smokeFakeToneSampleAuditOnce === "function") {
+    const smokeImpl = typeof devStore.__smokeFakeToneSampleAuditOnceImpl === "function"
+      ? devStore.__smokeFakeToneSampleAuditOnceImpl
+      : (typeof devStore.smokeFakeToneSampleAuditOnce === "function" ? devStore.smokeFakeToneSampleAuditOnce : null);
+    if (typeof smokeImpl === "function") {
+      devStore.__smokeFakeToneSampleAuditOnceImpl = smokeImpl;
       devStore.smokeFakeToneSampleAuditOnce = function smokeFakeToneSampleAuditOnce() {
-        return Game.__DEV.smokeFakeToneSampleAuditOnce();
+        return smokeImpl();
       };
       if (!Game.Dev) Game.Dev = {};
       Game.Dev.smokeFakeToneSampleAuditOnce = devStore.smokeFakeToneSampleAuditOnce;

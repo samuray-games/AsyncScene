@@ -3538,9 +3538,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const FAKE_TONE_SAMPLE_AUDIT_BUILD_TAG = "build_2026_06_12_step8_5_sampled_fake_tone_smoke";
-  const FAKE_TONE_SAMPLE_AUDIT_COMMIT = "step8_5_sampled_fake_tone_smoke";
-  const FAKE_TONE_SAMPLE_AUDIT_SMOKE_VERSION = "step8_5_sampled_fake_tone_smoke_v20260612_001";
+  const FAKE_TONE_SAMPLE_AUDIT_BUILD_TAG = "build_2026_06_12_step8_5_sampled_fake_tone_smoke_self_alias_fix";
+  const FAKE_TONE_SAMPLE_AUDIT_COMMIT = "step8_5_sampled_fake_tone_smoke_self_alias_fix";
+  const FAKE_TONE_SAMPLE_AUDIT_SMOKE_VERSION = "step8_5_sampled_fake_tone_smoke_self_alias_fix_v20260612_002";
   const FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN = 30;
   const FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MAX = 50;
 
