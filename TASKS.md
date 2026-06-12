@@ -6265,3 +6265,12 @@ Error: Download failure, code=1
 - PASS requires empty `meaningLossHits`, `boringToneHits`, `longRewriteHits`, `mentoringToneHits`, `fakeToneHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 - Scope held: copy audit plus smoke/cache-bust only; no gameplay logic, no unrelated refactor, and `Console.txt` was not used.
 - Required Safari command: `Game.__DEV.smokeNeutralReplacementAuditOnce()`.
+## 2026-06-12 — Step 5 z-profile authenticity audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Verify that key z-profile UI, NPC, and system texts feel natural and do not read like a fake young-voice rewrite.
+- Added Safari smoke command: `Game.__DEV.smokeZProfileAuthenticityAuditOnce()`.
+- Smoke verifies no meme language, no forced slang, no exaggerated coolness, no artificial youth tone, no irony for the sake of irony, no eye-roll phrasing, no cringe wording, no generation stereotypes, no roleplay-style "fellow kids" language, key UI texts audited, key NPC texts audited, key system texts audited, no orphan audit rows, and no new logic keys, conditions, entities, handlers, economy rules, battle rules, or state mutations.
+- Smoke output includes `buildTag`, `commit`, and unique `smokeVersion`.
+- Served identity: `build_2026_06_12_step5_z_profile_authenticity_audit` / `step5_z_profile_authenticity_audit` / `step5_z_profile_authenticity_audit_v20260612_001`.
+- Scope held: audit-only smoke plus mirrored bundle/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileAuthenticityAuditOnce()`.

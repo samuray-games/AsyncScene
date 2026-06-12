@@ -4176,6 +4176,180 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const Z_PROFILE_AUTHENTICITY_AUDIT_BUILD_TAG = "build_2026_06_12_step5_z_profile_authenticity_audit";
+  const Z_PROFILE_AUTHENTICITY_AUDIT_COMMIT = "step5_z_profile_authenticity_audit";
+  const Z_PROFILE_AUTHENTICITY_AUDIT_SMOKE_VERSION = "step5_z_profile_authenticity_audit_v20260612_001";
+
+  Game.__DEV.smokeZProfileAuthenticityAuditOnce = function smokeZProfileAuthenticityAuditOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_AUTHENTICITY_AUDIT_BUILD_TAG,
+      commit: Z_PROFILE_AUTHENTICITY_AUDIT_COMMIT,
+      smokeVersion: Z_PROFILE_AUTHENTICITY_AUDIT_SMOKE_VERSION,
+      auditedCategories: [],
+      checkedCount: 0,
+      memeLanguageHits: [],
+      forcedSlangHits: [],
+      exaggeratedCoolnessHits: [],
+      artificialYouthToneHits: [],
+      ironyForIronyHits: [],
+      eyeRollPhrasingHits: [],
+      cringeWordingHits: [],
+      generationStereotypeHits: [],
+      fellowKidsHits: [],
+      orphanAuditRows: [],
+      newLogicKeyHits: [],
+      newConditionHits: [],
+      newEntityHits: [],
+      newHandlerHits: [],
+      newEconomyRuleHits: [],
+      newBattleRuleHits: [],
+      stateMutationHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const key = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => (value && Object.prototype.hasOwnProperty.call(value, key) ? value[key] : undefined), root);
+    const currentText = (source) => {
+      const normalized = String(source || "");
+      if (!normalized) return undefined;
+      if (normalized.indexOf("dom#") === 0 && typeof document !== "undefined") {
+        const node = document.getElementById(normalized.slice(4));
+        return node ? node.textContent : undefined;
+      }
+      if (normalized.indexOf("NPC.") === 0) return getPath({ NPC: Game.NPC || {} }, normalized);
+      return getPath(Game, normalized);
+    };
+    const auditedRows = Object.freeze([
+      Object.freeze({ id: "ui_tie_click_name_hint", category: "ui", source: "Data.TEXTS.genz.tie_click_name_hint", expected: "Имя в списке — сторона." }),
+      Object.freeze({ id: "ui_events_empty", category: "ui", source: "Data.TEXTS.genz.events_empty", expected: "Открой события." }),
+      Object.freeze({ id: "ui_invite_open_hint", category: "ui", source: "Data.TEXTS.genz.invite_open_hint", expected: "Введи точный ник." }),
+      Object.freeze({ id: "ui_report_hint", category: "ui", source: "dom#reportHint", expected: "Сдай токсика, бандита или мафиози." }),
+      Object.freeze({ id: "npc_report_accept", category: "npc", source: "Data.TEXTS.genz.cop_report_accept.0", expected: "Понял. Проверяю." }),
+      Object.freeze({ id: "npc_report_ok", category: "npc", source: "Data.TEXTS.genz.cop_report_ok.0", expected: "Проверка сошлась. Вмешался." }),
+      Object.freeze({ id: "npc_cooldown", category: "npc", source: "Data.TEXTS.genz.cop_cooldown.0", expected: "Проверка займет время." }),
+      Object.freeze({ id: "npc_bandit_advice", category: "npc", source: "NPC.COP.topics.bandit.advice", expected: "Свалить закрывает контакт. Проигрыш бьет по 💰." }),
+      Object.freeze({ id: "system_report_reward", category: "system", source: "SystemCopy.notifications.reportTrueReward", expected: "Сдать {name}: +2💰." }),
+      Object.freeze({ id: "system_report_penalty", category: "system", source: "SystemCopy.errors.reportFalsePenalty", expected: "Штраф: -5 💰." }),
+      Object.freeze({ id: "system_battle_challenge", category: "system", source: "SystemCopy.systemEvents.battleChallenge", expected: "{attackerName} [{attackerInf}] бросил вызов." }),
+      Object.freeze({ id: "system_crowd_resolved", category: "system", source: "SystemCopy.systemEvents.crowdResolved", expected: "Толпа: {name} {aVotes}:{bVotes}." }),
+    ]);
+    const requiredCategories = ["ui", "npc", "system"];
+    const seenIds = new Set();
+    const seenSources = new Set();
+    const memeLanguageRe = /\b(?:мем|rofl|лол|кек|орально|орнул|жиза|имба|краш|чилл)\b/i;
+    const forcedSlangRe = /\b(?:изи|вайб|вайбовый|рил|рилс|жесть|хайп|скип|кринжово|угар)\b/i;
+    const exaggeratedCoolnessRe = /\b(?:ультра|суперзаряж|максимально мощ|легендарн|топчик|самый сок)\b/i;
+    const artificialYouthToneRe = /\b(?:по кайфу|на расслабоне|чисто|типа того|движ|движуха|по фасту)\b/i;
+    const ironyForIronyRe = /\b(?:ну конечно|ага конечно|как будто|спасибо, очень помогло|irony)\b/i;
+    const eyeRollPhrasingRe = /\b(?:ну да|ой всё|серьезно что ли|капец|мда)\b/i;
+    const cringeWordingRe = /\b(?:кринж|кринжу|зашквар|токсик в душе|сигма|альфа)\b/i;
+    const generationStereotypeRe = /\b(?:зумер|бумер|миллениал|поколени[ея]|gen z|gen-z)\b/i;
+    const fellowKidsRe = /\b(?:йоу|yo\b|бро|братиш|fellow kids|молодежь|ребзя)\b/i;
+    const forbiddenChecks = [
+      { key: "newLogicKeyHits", re: /\bnew\s+logic\s+keys?\b/i, check: "no_new_logic_keys" },
+      { key: "newConditionHits", re: /\bnew\s+conditions?\b/i, check: "no_new_conditions" },
+      { key: "newEntityHits", re: /\bnew\s+entities?\b/i, check: "no_new_entities" },
+      { key: "newHandlerHits", re: /\bnew\s+handlers?\b/i, check: "no_new_handlers" },
+      { key: "newEconomyRuleHits", re: /\bnew\s+economy\s+rules?\b/i, check: "no_new_economy_rules" },
+      { key: "newBattleRuleHits", re: /\bnew\s+battle\s+rules?\b/i, check: "no_new_battle_rules" },
+      { key: "stateMutationHits", re: /\bstate\s+mutations?\b/i, check: "no_state_mutations" },
+    ];
+    const auditText = auditedRows.map((row) => `${row.id} ${row.category} ${row.source} ${row.expected}`).join("\n");
+    const pushHit = (bucketName, check, row, match) => {
+      const hit = { id: row.id, source: row.source, text: row.expected, match: match ? String(match[0] || match) : null };
+      addUnique(result[bucketName], hit);
+      addUnique(result.forbiddenRemaining, check);
+      fail(check, hit);
+    };
+    try {
+      auditedRows.forEach((row) => {
+        result.checkedCount += 1;
+        addUnique(result.auditedCategories, row.category);
+        if (!requiredCategories.includes(row.category)) addUnique(result.orphanAuditRows, { id: row.id, reason: "unknown_category" });
+        if (seenIds.has(row.id)) addUnique(result.orphanAuditRows, { id: row.id, reason: "duplicate_id" });
+        seenIds.add(row.id);
+        if (seenSources.has(row.source)) addUnique(result.orphanAuditRows, { source: row.source, reason: "duplicate_source" });
+        seenSources.add(row.source);
+        const current = normalize(currentText(row.source));
+        const expected = normalize(row.expected);
+        if (!current) {
+          addUnique(result.orphanAuditRows, { id: row.id, source: row.source, reason: "source_unresolved" });
+          fail("no_orphan_audit_rows", { id: row.id, source: row.source });
+          return;
+        }
+        if (current !== expected) fail("mapping_current_text_mismatch", { source: row.source, expected, actual: current });
+        const checks = [
+          ["memeLanguageHits", "no_meme_language", memeLanguageRe],
+          ["forcedSlangHits", "no_forced_slang", forcedSlangRe],
+          ["exaggeratedCoolnessHits", "no_exaggerated_coolness", exaggeratedCoolnessRe],
+          ["artificialYouthToneHits", "no_artificial_youth_tone", artificialYouthToneRe],
+          ["ironyForIronyHits", "no_irony_for_irony", ironyForIronyRe],
+          ["eyeRollPhrasingHits", "no_eye_roll_phrasing", eyeRollPhrasingRe],
+          ["cringeWordingHits", "no_cringe_wording", cringeWordingRe],
+          ["generationStereotypeHits", "no_generation_stereotypes", generationStereotypeRe],
+          ["fellowKidsHits", "no_roleplay_style_fellow_kids_language", fellowKidsRe],
+        ];
+        checks.forEach(([bucketName, check, re]) => {
+          const match = current.match(re);
+          if (match) pushHit(bucketName, check, row, match);
+        });
+      });
+      requiredCategories.forEach((category) => {
+        if (!result.auditedCategories.includes(category)) addUnique(result.missingCoverage, category);
+      });
+      if (result.orphanAuditRows.length) fail("no_orphan_audit_rows", result.orphanAuditRows.slice());
+      forbiddenChecks.forEach(({ key, re, check }) => {
+        const matches = auditText.match(re);
+        if (matches && matches.length) {
+          result[key] = matches.slice(0, 12);
+          addUnique(result.forbiddenRemaining, check);
+          fail(check, matches.slice(0, 12));
+        }
+      });
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_AUTHENTICITY_AUDIT_SMOKE_VERSION || !/^step5_z_profile_authenticity_audit_v\d{8}_\d{3}$/.test(result.smokeVersion)) {
+        fail("smoke_version_unique", result.smokeVersion);
+      }
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.auditedCategories.length === requiredCategories.length
+      && result.checkedCount > 0
+      && result.memeLanguageHits.length === 0
+      && result.forcedSlangHits.length === 0
+      && result.exaggeratedCoolnessHits.length === 0
+      && result.artificialYouthToneHits.length === 0
+      && result.ironyForIronyHits.length === 0
+      && result.eyeRollPhrasingHits.length === 0
+      && result.cringeWordingHits.length === 0
+      && result.generationStereotypeHits.length === 0
+      && result.fellowKidsHits.length === 0
+      && result.orphanAuditRows.length === 0
+      && result.newLogicKeyHits.length === 0
+      && result.newConditionHits.length === 0
+      && result.newEntityHits.length === 0
+      && result.newHandlerHits.length === 0
+      && result.newEconomyRuleHits.length === 0
+      && result.newBattleRuleHits.length === 0
+      && result.stateMutationHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_checker_fix";
   const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_smoke_version_checker_fix";
   const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_005";

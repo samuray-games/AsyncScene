@@ -5704,3 +5704,11 @@ Error: Download failure, code=1
 - Required result fields are `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedCount`, `replacementPairsChecked`, `meaningLossHits`, `boringToneHits`, `longRewriteHits`, `mentoringToneHits`, `fakeToneHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 - Runtime identity is `build_2026_06_12_step8_4_neutral_replacement_audit` / `step8_4_neutral_replacement_audit`; smoke version is `step8_4_neutral_replacement_audit_smoke_v20260612_001`.
 - Scope held: neutral replacement audit/copy plus smoke/cache-bust only; no gameplay logic, no unrelated refactor, and `Console.txt` was not used. Safari must run `Game.__DEV.smokeNeutralReplacementAuditOnce()`.
+## 2026-06-12 — Step 5 z-profile authenticity audit
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeZProfileAuthenticityAuditOnce()` in the mirrored runtime system bundles.
+- The smoke audits key z-profile UI, NPC, and system texts against the current canonical runtime strings and rejects meme language, forced slang, exaggerated coolness, artificial youth tone, irony for the sake of irony, eye-roll phrasing, cringe wording, generation stereotypes, roleplay-style "fellow kids" language, and orphan audit rows.
+- Result fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `auditedCategories`, `checkedCount`, `memeLanguageHits`, `forcedSlangHits`, `exaggeratedCoolnessHits`, `artificialYouthToneHits`, `ironyForIronyHits`, `eyeRollPhrasingHits`, `cringeWordingHits`, `generationStereotypeHits`, `fellowKidsHits`, `orphanAuditRows`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step5_z_profile_authenticity_audit` / `step5_z_profile_authenticity_audit` / `step5_z_profile_authenticity_audit_v20260612_001`.
+- Scope held: audit-only smoke and mirrored cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileAuthenticityAuditOnce()`.
