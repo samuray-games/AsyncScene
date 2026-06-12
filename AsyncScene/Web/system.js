@@ -3742,6 +3742,119 @@ window.Game = window.Game || {};
     return Game.__DEV.smokeFakeToneFiltersOnce();
   };
 
+  const Z_PROFILE_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_7_z_profile_acceptance_smoke";
+  const Z_PROFILE_ACCEPTANCE_COMMIT = "step8_7_z_profile_acceptance_smoke";
+  const Z_PROFILE_ACCEPTANCE_SMOKE_VERSION = "step8_7_z_profile_acceptance_smoke_v20260612_001";
+
+  Game.__DEV.smokeZProfileAcceptanceOnce = function smokeZProfileAcceptanceOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_ACCEPTANCE_BUILD_TAG,
+      commit: Z_PROFILE_ACCEPTANCE_COMMIT,
+      smokeVersion: Z_PROFILE_ACCEPTANCE_SMOKE_VERSION,
+      completedSteps: [],
+      checkedCount: 0,
+      artificialYouthTone: [],
+      eyeRollFailures: [],
+      memeLanguage: [],
+      forcedSlang: [],
+      exaggeratedCoolness: [],
+      unnaturalDialogue: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const mergeStep = (stepName, subResult) => {
+      addUnique(result.completedSteps, stepName);
+      const checkedCount = Number.isFinite(subResult && subResult.checkedCount) ? (subResult.checkedCount | 0)
+        : Number.isFinite(subResult && subResult.sampleCount) ? (subResult.sampleCount | 0)
+        : Number.isFinite(subResult && subResult.checkedZones && subResult.checkedZones.length) ? (subResult.checkedZones.length | 0)
+        : Number.isFinite(subResult && subResult.registeredSurfaces && subResult.registeredSurfaces.length) ? (subResult.registeredSurfaces.length | 0)
+        : 0;
+      result.checkedCount += checkedCount;
+      return checkedCount;
+    };
+    const mergeArrays = (target, source) => {
+      (Array.isArray(source) ? source : []).forEach((item) => addUnique(target, item));
+    };
+    const runStep = (stepName, fn) => {
+      let subResult = null;
+      try {
+        subResult = typeof fn === "function" ? fn() : null;
+      } catch (err) {
+        subResult = { ok: false, failures: [{ check: "smoke_exception", detail: err && err.message ? String(err.message) : String(err) }], failedChecks: ["smoke_exception"] };
+      }
+      if (!subResult) {
+        fail("step_missing", stepName);
+        return null;
+      }
+      mergeStep(stepName, subResult);
+      mergeArrays(result.artificialYouthTone, subResult.artificialYouthTone);
+      mergeArrays(result.artificialYouthTone, subResult.tryingToSoundYoungHits);
+      mergeArrays(result.eyeRollFailures, subResult.eyeRollFailures);
+      mergeArrays(result.eyeRollFailures, subResult.eyeRollHits);
+      mergeArrays(result.memeLanguage, subResult.memeLanguage);
+      mergeArrays(result.memeLanguage, subResult.memeHits);
+      mergeArrays(result.forcedSlang, subResult.forcedSlang);
+      mergeArrays(result.forcedSlang, subResult.teenSlangHits);
+      mergeArrays(result.exaggeratedCoolness, subResult.exaggeratedCoolness);
+      mergeArrays(result.unnaturalDialogue, subResult.unnaturalDialogue);
+      mergeArrays(result.failures, subResult.failures);
+      mergeArrays(result.forbiddenRemaining, subResult.forbiddenRemaining);
+      mergeArrays(result.missingCoverage, subResult.missingCoverage);
+      mergeArrays(result.failedChecks, subResult.failedChecks);
+      if (subResult.ok !== true) addUnique(result.failures, { check: `${stepName}_not_ok`, detail: subResult });
+      return subResult;
+    };
+    try {
+      const step81 = runStep("8.1", Game.__DEV.smokeFakeToneZonesOnce);
+      const step82 = runStep("8.2", Game.__DEV.smokeFakeToneFiltersOnce);
+      const step83 = runStep("8.3", Game.__DEV.smokeStopFakeLexiconOnce);
+      const step84 = runStep("8.4", Game.__DEV.smokeNeutralReplacementAuditOnce);
+      const step85 = runStep("8.5", Game.__DEV.smokeFakeToneSampleAuditOnce);
+      const step86 = runStep("8.6", Game.__DEV.smokeFutureTextAntiFakeGateOnce);
+      if (!step81) fail("step_8_1_missing", null);
+      if (!step82) fail("step_8_2_missing", null);
+      if (!step83) fail("step_8_3_missing", null);
+      if (!step84) fail("step_8_4_missing", null);
+      if (!step85) fail("step_8_5_missing", null);
+      if (!step86) fail("step_8_6_missing", null);
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_ACCEPTANCE_SMOKE_VERSION || result.smokeVersion.indexOf("step8_7") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+        fail("smoke_version_unique_for_commit", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    const countsOk = result.completedSteps.length === 6;
+    result.ok = countsOk
+      && result.checkedCount > 0
+      && result.completedSteps.indexOf("8.1") !== -1
+      && result.completedSteps.indexOf("8.2") !== -1
+      && result.completedSteps.indexOf("8.3") !== -1
+      && result.completedSteps.indexOf("8.4") !== -1
+      && result.completedSteps.indexOf("8.5") !== -1
+      && result.completedSteps.indexOf("8.6") !== -1
+      && result.artificialYouthTone.length === 0
+      && result.eyeRollFailures.length === 0
+      && result.memeLanguage.length === 0
+      && result.forcedSlang.length === 0
+      && result.exaggeratedCoolness.length === 0
+      && result.unnaturalDialogue.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const STOP_FAKE_LEXICON_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_SMOKE_VERSION = "step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001";
