@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.10 z-profile speed audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only `Game.__DEV.smokeZProfileSpeedAuditOnce()` in the mirrored runtime system bundles.
+- The smoke audits key UI, NPC, and system z-profile texts against their millennial source lines, checks that current runtime text matches the audited shortened form, requires approximately 30-40% average shortening or better, requires a meaning-preservation note for every audited row, and rejects orphan audit rows.
+- Result fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `auditedCategories`, `auditedRowCount`, `averageShortening`, `categoryAverages`, `meaningCoverageCount`, `orphanAuditRows`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_10_z_profile_speed_audit` / `step8_10_z_profile_speed_audit` / `step8_10_z_profile_speed_audit_v20260612_001`.
+- Scope held: audit-only smoke plus served identity/cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileSpeedAuditOnce()`.
+
 ## 2026-06-12 — Step 8.9b z-profile derivation mapping source fix
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Fixed only `Game.__DEV.smokeZProfileDerivationMappingOnce()` source wiring: the smoke now reports `millennialSourcePath` from `UI_PROFILE_MILLENNIAL.md`, reports `zoomerProfilePath` from `UI_PROFILE_ZOOMER_DIFF.md`, and reads the canonical mapping rows from the real zoomer profile document instead of the millennial metadata file.
