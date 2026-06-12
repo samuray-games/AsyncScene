@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.10b z-profile speed audit mapping fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Fix only Step 8.10 `mapping_current_text_mismatch` failures by updating the speed-audit expected z-profile strings to the current canonical runtime texts.
+- Updated only the audit source mappings for the affected UI, NPC, and system rows: `tie_click_name_hint`, cop report DM hint, cop cooldown reply, `SystemCopy.systemEvents.battleChallenge`, and `SystemCopy.systemEvents.crowdResolved`.
+- Shortening calculations, pass thresholds, meaning coverage logic, orphan checks, and no-new-logic/entity/state checks were kept unchanged.
+- Served identity: `build_2026_06_12_step8_10b_z_profile_speed_audit_mapping_fix` / `step8_10b_z_profile_speed_audit_mapping_fix` / `step8_10_z_profile_speed_audit_v20260612_002`.
+- Scope held: audit-mapping-only fix plus served identity/cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileSpeedAuditOnce()`.
+
 ## 2026-06-12 — Step 8.10 z-profile speed audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Implement only the z-profile speed audit for key UI, NPC, and system texts against millennial source wording without adding gameplay logic, conditions, entities, or unrelated refactors.

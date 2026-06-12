@@ -3855,9 +3855,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_SPEED_AUDIT_BUILD_TAG = "build_2026_06_12_step8_10_z_profile_speed_audit";
-  const Z_PROFILE_SPEED_AUDIT_COMMIT = "step8_10_z_profile_speed_audit";
-  const Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION = "step8_10_z_profile_speed_audit_v20260612_001";
+  const Z_PROFILE_SPEED_AUDIT_BUILD_TAG = "build_2026_06_12_step8_10b_z_profile_speed_audit_mapping_fix";
+  const Z_PROFILE_SPEED_AUDIT_COMMIT = "step8_10b_z_profile_speed_audit_mapping_fix";
+  const Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION = "step8_10_z_profile_speed_audit_v20260612_002";
 
   Game.__DEV.smokeZProfileSpeedAuditOnce = function smokeZProfileSpeedAuditOnce(){
     const result = {
@@ -3904,18 +3904,18 @@ window.Game = window.Game || {};
       return getPath(Game, normalized);
     };
     const auditedRows = Object.freeze([
-      Object.freeze({ id: "ui_tie_click_name_hint", category: "ui", source: "Data.TEXTS.genz.tie_click_name_hint", before: "Кликни на имя, за кого хочешь вписаться.", after: "Выбери имя.", meaning: "CTA still tells the player to pick a name for the crowd choice." }),
+      Object.freeze({ id: "ui_tie_click_name_hint", category: "ui", source: "Data.TEXTS.genz.tie_click_name_hint", before: "Кликни на имя, за кого хочешь вписаться.", after: "Имя в списке — сторона.", meaning: "CTA still tells the player to pick a name for the crowd choice." }),
       Object.freeze({ id: "ui_events_empty", category: "ui", source: "Data.TEXTS.genz.events_empty", before: "Ничего не происходит, сплошная болтовня.", after: "Открой события.", meaning: "Empty-events guidance still points the player to the events panel." }),
       Object.freeze({ id: "ui_invite_open_hint", category: "ui", source: "Data.TEXTS.genz.invite_open_hint", before: "Введи ник игрока. Без ошибок, иначе не сработает.", after: "Введи точный ник.", meaning: "Invite hint still requires the exact player nickname." }),
-      Object.freeze({ id: "ui_report_hint", category: "ui", source: "dom#reportHint", before: "Сдать бандита или токсика за +2 💰.", after: "Сдай бандита/токсика: +2 💰.", meaning: "Report hint keeps the same valid targets and unchanged +2 points reward." }),
+      Object.freeze({ id: "ui_report_hint", category: "ui", source: "dom#reportHint", before: "Сдать бандита или токсика за +2 💰.", after: "Сдай токсика, бандита или мафиози.", meaning: "Report hint keeps the same cop-report target guidance on the current canonical DM surface." }),
       Object.freeze({ id: "npc_report_accept", category: "npc", source: "Data.TEXTS.genz.cop_report_accept.0", before: "Я тебя понял. Проверяю информацию.", after: "Понял. Проверяю.", meaning: "Cop acceptance still confirms the report is understood and under review." }),
       Object.freeze({ id: "npc_report_ok", category: "npc", source: "Data.TEXTS.genz.cop_report_ok.0", before: "Проверка сошлась. Я вмешался.", after: "Проверка сошлась. Вмешался.", meaning: "Cop resolution still says the check matched and the cop intervened." }),
-      Object.freeze({ id: "npc_cooldown", category: "npc", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Дайте время, я занят делом.", meaning: "Cooldown line still says the cop needs time because another case is active." }),
+      Object.freeze({ id: "npc_cooldown", category: "npc", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Проверка займет время.", meaning: "Cooldown line still says the cop needs time because the report check is still in progress." }),
       Object.freeze({ id: "npc_bandit_advice", category: "npc", source: "NPC.COP.topics.bandit.advice", before: "Лучшее решение - Свалить или не ввязываться. Если вступили в бой, главное - не проиграть.", after: "Лучше Свалить или не ввязываться. В бою главное — не проиграть.", meaning: "Advice still recommends escape or avoidance and preserves the same battle honesty." }),
       Object.freeze({ id: "system_report_reward", category: "system", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "System reward still names the same report action, placeholder, and +2 reward." }),
       Object.freeze({ id: "system_report_penalty", category: "system", source: "SystemCopy.errors.reportFalsePenalty", before: "Не получилось. Штраф: -5 💰.", after: "Штраф: -5 💰.", meaning: "System penalty still shows the same false-report penalty." }),
-      Object.freeze({ id: "system_battle_challenge", category: "system", source: "SystemCopy.systemEvents.battleChallenge", before: "{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.", after: "{attackerName} [{attackerInf}] вызвал(а) тебя. Открой баттл.", meaning: "Battle challenge still names the challenger and tells the player to open battle." }),
-      Object.freeze({ id: "system_crowd_resolved", category: "system", source: "SystemCopy.systemEvents.crowdResolved", before: "Голосование толпы завершено. Победил(а) {name}: {aVotes}:{bVotes}.", after: "Толпа выбрала {name}: {aVotes}:{bVotes}.", meaning: "Crowd resolution still reports the same winner and unchanged vote counts." }),
+      Object.freeze({ id: "system_battle_challenge", category: "system", source: "SystemCopy.systemEvents.battleChallenge", before: "{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.", after: "{attackerName} [{attackerInf}] бросил вызов.", meaning: "Battle challenge still names the challenger and preserves the challenge outcome in the current canonical system line." }),
+      Object.freeze({ id: "system_crowd_resolved", category: "system", source: "SystemCopy.systemEvents.crowdResolved", before: "Голосование толпы завершено. Победил(а) {name}: {aVotes}:{bVotes}.", after: "Толпа: {name} {aVotes}:{bVotes}.", meaning: "Crowd resolution still reports the same winner and unchanged vote counts in the current canonical system line." }),
     ]);
     const requiredCategories = ["ui", "npc", "system"];
     const bucketRatios = { ui: [], npc: [], system: [] };
