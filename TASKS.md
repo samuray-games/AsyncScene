@@ -1,3 +1,10 @@
+## 2026-06-12 — Step 8.7 z-profile acceptance smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only aggregate `Game.__DEV.smokeZProfileAcceptanceOnce()` as the final Step 8 acceptance smoke. It only composes the existing Step 8.1-8.6 checks and returns the aggregate result shape: `ok`, `buildTag`, `commit`, `smokeVersion`, `completedSteps`, `checkedCount`, `artificialYouthTone`, `eyeRollFailures`, `memeLanguage`, `forcedSlang`, `exaggeratedCoolness`, `unnaturalDialogue`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_7_z_profile_acceptance_smoke` / `step8_7_z_profile_acceptance_smoke` / `step8_7_z_profile_acceptance_smoke_v20260612_001`.
+- Scope held: aggregate-only smoke plus identity/docs; no gameplay logic rewrite, no unrelated refactor, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 8.6 future text anti-fake gate
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only Safari command `Game.__DEV.smokeFutureTextAntiFakeGateOnce()` to guard future user-facing text surfaces against bypassing Step 8 fake-tone checks.
