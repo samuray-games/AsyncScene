@@ -3855,6 +3855,171 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const Z_PROFILE_SPEED_AUDIT_BUILD_TAG = "build_2026_06_12_step8_10_z_profile_speed_audit";
+  const Z_PROFILE_SPEED_AUDIT_COMMIT = "step8_10_z_profile_speed_audit";
+  const Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION = "step8_10_z_profile_speed_audit_v20260612_001";
+
+  Game.__DEV.smokeZProfileSpeedAuditOnce = function smokeZProfileSpeedAuditOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_SPEED_AUDIT_BUILD_TAG,
+      commit: Z_PROFILE_SPEED_AUDIT_COMMIT,
+      smokeVersion: Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION,
+      auditedCategories: [],
+      auditedRowCount: 0,
+      averageShortening: 0,
+      categoryAverages: { ui: 0, npc: 0, system: 0 },
+      meaningCoverageCount: 0,
+      orphanAuditRows: [],
+      newLogicKeyHits: [],
+      newConditionHits: [],
+      newEntityHits: [],
+      newHandlerHits: [],
+      newEconomyRuleHits: [],
+      newBattleRuleHits: [],
+      stateMutationHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => {
+      const key = typeof value === "string" ? value : JSON.stringify(value);
+      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+    };
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => (value && Object.prototype.hasOwnProperty.call(value, key) ? value[key] : undefined), root);
+    const currentText = (source) => {
+      const normalized = String(source || "");
+      if (!normalized) return undefined;
+      if (normalized.indexOf("dom#") === 0 && typeof document !== "undefined") {
+        const node = document.getElementById(normalized.slice(4));
+        return node ? node.textContent : undefined;
+      }
+      if (normalized.indexOf("NPC.") === 0) return getPath({ NPC: Game.NPC || {} }, normalized);
+      return getPath(Game, normalized);
+    };
+    const auditedRows = Object.freeze([
+      Object.freeze({ id: "ui_tie_click_name_hint", category: "ui", source: "Data.TEXTS.genz.tie_click_name_hint", before: "Кликни на имя, за кого хочешь вписаться.", after: "Выбери имя.", meaning: "CTA still tells the player to pick a name for the crowd choice." }),
+      Object.freeze({ id: "ui_events_empty", category: "ui", source: "Data.TEXTS.genz.events_empty", before: "Ничего не происходит, сплошная болтовня.", after: "Открой события.", meaning: "Empty-events guidance still points the player to the events panel." }),
+      Object.freeze({ id: "ui_invite_open_hint", category: "ui", source: "Data.TEXTS.genz.invite_open_hint", before: "Введи ник игрока. Без ошибок, иначе не сработает.", after: "Введи точный ник.", meaning: "Invite hint still requires the exact player nickname." }),
+      Object.freeze({ id: "ui_report_hint", category: "ui", source: "dom#reportHint", before: "Сдать бандита или токсика за +2 💰.", after: "Сдай бандита/токсика: +2 💰.", meaning: "Report hint keeps the same valid targets and unchanged +2 points reward." }),
+      Object.freeze({ id: "npc_report_accept", category: "npc", source: "Data.TEXTS.genz.cop_report_accept.0", before: "Я тебя понял. Проверяю информацию.", after: "Понял. Проверяю.", meaning: "Cop acceptance still confirms the report is understood and under review." }),
+      Object.freeze({ id: "npc_report_ok", category: "npc", source: "Data.TEXTS.genz.cop_report_ok.0", before: "Проверка сошлась. Я вмешался.", after: "Проверка сошлась. Вмешался.", meaning: "Cop resolution still says the check matched and the cop intervened." }),
+      Object.freeze({ id: "npc_cooldown", category: "npc", source: "Data.TEXTS.genz.cop_cooldown.0", before: "Дайте мне время, я ещё занят предыдущим делом.", after: "Дайте время, я занят делом.", meaning: "Cooldown line still says the cop needs time because another case is active." }),
+      Object.freeze({ id: "npc_bandit_advice", category: "npc", source: "NPC.COP.topics.bandit.advice", before: "Лучшее решение - Свалить или не ввязываться. Если вступили в бой, главное - не проиграть.", after: "Лучше Свалить или не ввязываться. В бою главное — не проиграть.", meaning: "Advice still recommends escape or avoidance and preserves the same battle honesty." }),
+      Object.freeze({ id: "system_report_reward", category: "system", source: "SystemCopy.notifications.reportTrueReward", before: "Засчитано. Сдать {name}: +2💰.", after: "Сдать {name}: +2💰.", meaning: "System reward still names the same report action, placeholder, and +2 reward." }),
+      Object.freeze({ id: "system_report_penalty", category: "system", source: "SystemCopy.errors.reportFalsePenalty", before: "Не получилось. Штраф: -5 💰.", after: "Штраф: -5 💰.", meaning: "System penalty still shows the same false-report penalty." }),
+      Object.freeze({ id: "system_battle_challenge", category: "system", source: "SystemCopy.systemEvents.battleChallenge", before: "{attackerName} [{attackerInf}] вызвал(а) тебя на баттл. Открой баттл сверху.", after: "{attackerName} [{attackerInf}] вызвал(а) тебя. Открой баттл.", meaning: "Battle challenge still names the challenger and tells the player to open battle." }),
+      Object.freeze({ id: "system_crowd_resolved", category: "system", source: "SystemCopy.systemEvents.crowdResolved", before: "Голосование толпы завершено. Победил(а) {name}: {aVotes}:{bVotes}.", after: "Толпа выбрала {name}: {aVotes}:{bVotes}.", meaning: "Crowd resolution still reports the same winner and unchanged vote counts." }),
+    ]);
+    const requiredCategories = ["ui", "npc", "system"];
+    const bucketRatios = { ui: [], npc: [], system: [] };
+    const seenIds = new Set();
+    const seenSources = new Set();
+    const placeholderRe = /\{[^}]+\}/g;
+    const economyRe = /[+-]?\d+\s*💰|\{[A-Za-z]+Cost\}|\{cost\}|\{X\}|\{aVotes\}|\{bVotes\}/g;
+    const auditText = auditedRows.map((row) => `${row.id} ${row.category} ${row.source} ${row.before} ${row.after} ${row.meaning}`).join("\n");
+    const forbiddenChecks = [
+      { key: "newLogicKeyHits", re: /\bnew\s+logic\s+keys?\b/i, check: "no_new_logic_keys" },
+      { key: "newConditionHits", re: /\bnew\s+conditions?\b/i, check: "no_new_conditions" },
+      { key: "newEntityHits", re: /\bnew\s+entities?\b/i, check: "no_new_entities" },
+      { key: "newHandlerHits", re: /\bnew\s+handlers?\b/i, check: "no_new_handlers" },
+      { key: "newEconomyRuleHits", re: /\bnew\s+economy\s+rules?\b/i, check: "no_new_economy_rules" },
+      { key: "newBattleRuleHits", re: /\bnew\s+battle\s+rules?\b/i, check: "no_new_battle_rules" },
+      { key: "stateMutationHits", re: /\bstate\s+mutations?\b/i, check: "no_state_mutations" },
+    ];
+    try {
+      auditedRows.forEach((row) => {
+        result.auditedRowCount += 1;
+        addUnique(result.auditedCategories, row.category);
+        if (!requiredCategories.includes(row.category)) {
+          addUnique(result.orphanAuditRows, { id: row.id, reason: "unknown_category" });
+        }
+        if (seenIds.has(row.id)) {
+          addUnique(result.orphanAuditRows, { id: row.id, reason: "duplicate_id" });
+        }
+        seenIds.add(row.id);
+        if (seenSources.has(row.source)) {
+          addUnique(result.orphanAuditRows, { source: row.source, reason: "duplicate_source" });
+        }
+        seenSources.add(row.source);
+        if (!row.meaning || normalize(row.meaning).length < 24) {
+          fail("meaning_preservation_coverage", { id: row.id, meaning: row.meaning || "" });
+        } else {
+          result.meaningCoverageCount += 1;
+        }
+        const current = normalize(currentText(row.source));
+        const before = normalize(row.before);
+        const after = normalize(row.after);
+        if (!current) {
+          addUnique(result.orphanAuditRows, { id: row.id, source: row.source, reason: "source_unresolved" });
+          fail("no_orphan_audit_rows", { id: row.id, source: row.source });
+          return;
+        }
+        if (current !== after) fail("mapping_current_text_mismatch", { source: row.source, expected: after, actual: current });
+        if (!(after.length < before.length)) fail("text_not_shorter_than_millennial", { id: row.id, before, after });
+        const ratio = before.length > 0 ? (before.length - after.length) / before.length : 0;
+        bucketRatios[row.category].push(ratio);
+        const placeholdersBefore = before.match(placeholderRe) || [];
+        const placeholdersAfter = after.match(placeholderRe) || [];
+        placeholdersBefore.forEach((token) => {
+          if (!placeholdersAfter.includes(token)) fail("placeholder_lost", { source: row.source, token });
+        });
+        const economyBefore = before.match(economyRe) || [];
+        const economyAfter = after.match(economyRe) || [];
+        economyBefore.forEach((token) => {
+          if (!economyAfter.includes(token)) fail("economy_value_changed", { source: row.source, token });
+        });
+      });
+      requiredCategories.forEach((category) => {
+        if (!result.auditedCategories.includes(category)) addUnique(result.missingCoverage, category);
+        const ratios = bucketRatios[category];
+        result.categoryAverages[category] = ratios.length ? Number((ratios.reduce((sum, value) => sum + value, 0) / ratios.length).toFixed(3)) : 0;
+      });
+      const allRatios = requiredCategories.flatMap((category) => bucketRatios[category]);
+      result.averageShortening = allRatios.length ? Number((allRatios.reduce((sum, value) => sum + value, 0) / allRatios.length).toFixed(3)) : 0;
+      if (result.averageShortening < 0.30) fail("average_shortening_30_percent_or_better", result.averageShortening);
+      if (result.meaningCoverageCount !== result.auditedRowCount) fail("meaning_preservation_coverage", { covered: result.meaningCoverageCount, audited: result.auditedRowCount });
+      if (result.orphanAuditRows.length) fail("no_orphan_audit_rows", result.orphanAuditRows.slice());
+      forbiddenChecks.forEach(({ key, re, check }) => {
+        const matches = auditText.match(re);
+        if (matches && matches.length) {
+          result[key] = matches.slice(0, 12);
+          addUnique(result.forbiddenRemaining, check);
+          fail(check, matches.slice(0, 12));
+        }
+      });
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_SPEED_AUDIT_SMOKE_VERSION || !/^step8_10_z_profile_speed_audit_v\d{8}_\d{3}$/.test(result.smokeVersion)) {
+        fail("smoke_version_unique", result.smokeVersion);
+      }
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.auditedCategories.length === requiredCategories.length
+      && result.auditedRowCount > 0
+      && result.averageShortening >= 0.30
+      && result.meaningCoverageCount === result.auditedRowCount
+      && result.orphanAuditRows.length === 0
+      && result.newLogicKeyHits.length === 0
+      && result.newConditionHits.length === 0
+      && result.newEntityHits.length === 0
+      && result.newHandlerHits.length === 0
+      && result.newEconomyRuleHits.length === 0
+      && result.newBattleRuleHits.length === 0
+      && result.stateMutationHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_checker_fix";
   const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_smoke_version_checker_fix";
   const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_005";
