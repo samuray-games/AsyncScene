@@ -3667,6 +3667,199 @@ window.Game = window.Game || {};
       && result.failedChecks.length === 0;
     return result;
   };
+
+  const NEUTRAL_REPLACEMENT_AUDIT_BUILD_TAG = "build_2026_06_12_step8_4_neutral_replacement_audit";
+  const NEUTRAL_REPLACEMENT_AUDIT_COMMIT = "step8_4_neutral_replacement_audit";
+  const NEUTRAL_REPLACEMENT_AUDIT_SMOKE_VERSION = "step8_4_neutral_replacement_audit_smoke_v20260612_001";
+  const NEUTRAL_REPLACEMENT_AUDIT_PAIRS = Object.freeze([
+    Object.freeze({
+      zone: "arguments",
+      source: "Game.Data.ARG_BASE_Y.about.7.q",
+      before: "Кто сейчас, возможно, на хайпе?",
+      after: "Кого обсуждают?",
+      mustKeep: Object.freeze(["обсужд"]),
+    }),
+    Object.freeze({
+      zone: "arguments",
+      source: "Game.Data.ARG_BASE_O.about.7.q",
+      before: "Кто сейчас на хайпе?",
+      after: "Кого обсуждают?",
+      mustKeep: Object.freeze(["обсужд"]),
+    }),
+    Object.freeze({
+      zone: "arguments",
+      source: "Game.Data.ARG_BASE_R.about.7.q",
+      before: "Кто на хайпе..!",
+      after: "Кого слышно?!",
+      mustKeep: Object.freeze(["слыш"]),
+    }),
+    Object.freeze({
+      zone: "arguments",
+      source: "Game.Data.ARG_BASE_K.about.7.q",
+      before: "Назови того кто на хайпе!",
+      after: "Назови кого обсуждают!",
+      mustKeep: Object.freeze(["назови", "обсужд"]),
+    }),
+    Object.freeze({
+      zone: "NPC speech",
+      source: "Game.Data.COP_TEMPLATES.toxicDescriptions.5",
+      before: "Токсик мастерски искажает правду ради хайпа.",
+      after: "Токсик искажает правду.",
+      mustKeep: Object.freeze(["токсик", "искаж", "правд"]),
+    }),
+  ]);
+  const NEUTRAL_REPLACEMENT_FAKE_TONE_PATTERNS = Object.freeze([
+    /(^|[^А-Яа-яЁёA-Za-z0-9_])(кринж\w*|вайб\w*|имба|изи|рофл|лол|кек|жиза|краш|флекс|топчик|хайп\w*|скибиди|зумерск\w*|vibe|cringe|rizz|sus)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+    /(^|[^А-Яа-яЁёA-Za-z0-9_])(лови|тащи|разнос|легенда|эпично|огонь|бомба)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+    /(как\s+говорит\s+молод[её]жь|по[-\s]?молод[её]жному|для\s+зумеров|на\s+чилле|без\s+негатива)/i,
+  ]);
+  const NEUTRAL_REPLACEMENT_MENTORING_PATTERNS = Object.freeze([
+    /(давай\s+разбер[её]м|запомни|объясн(?:ю|яем|яю)|научи(?:сь|м)|урок|настав|совет|подскажу)/i,
+    /(^|[^А-Яа-яЁёA-Za-z0-9_])(ты\s+долж(?:ен|на|ны)|тебе\s+стоит|следует|необходимо|надо\s+понимать)(?=$|[^А-Яа-яЁёA-Za-z0-9_])/i,
+    /(правильн(?:ый|ая|ое|ые|о)|неправильн(?:ый|ая|ое|ые|о)|лучший\s+выбор|молодец|умничк)/i,
+  ]);
+  const NEUTRAL_REPLACEMENT_BORING_PATTERNS = Object.freeze([
+    /^(ок|ладно|готово|ясно|понятно|нормально|сделано)\.?$/i,
+    /^(можно|попробуй|попробовать)\.?$/i,
+  ]);
+
+  function neutralReplacementNormalize(value){
+    return fakeToneNormalizeText(value).toLowerCase().replace(/ё/g, "е");
+  }
+
+  function neutralReplacementPatternHit(text, patterns){
+    const value = fakeToneNormalizeText(text);
+    for (let index = 0; index < patterns.length; index += 1) {
+      const pattern = patterns[index];
+      if (pattern && pattern.test(value)) return pattern;
+    }
+    return null;
+  }
+
+  function neutralReplacementGetPath(path){
+    const root = { Game, Data: Game && Game.Data, SystemCopy: Game && Game.SystemCopy };
+    return String(path || "").split(".").reduce((value, key) => {
+      if (value == null) return undefined;
+      if (key === "Game") return Game;
+      if (/^\d+$/.test(key)) return value[Number(key)];
+      return value[key];
+    }, root);
+  }
+
+  function neutralReplacementAddEntryHit(list, entry, pattern, kind){
+    fakeToneCoverageAddUnique(list, {
+      zone: entry.zone,
+      source: entry.source,
+      text: entry.text,
+      kind,
+      pattern: String(pattern && pattern.source ? pattern.source : pattern),
+    });
+  }
+
+  Game.__DEV.smokeNeutralReplacementAuditOnce = function smokeNeutralReplacementAuditOnce(){
+    const result = {
+      ok: false,
+      buildTag: NEUTRAL_REPLACEMENT_AUDIT_BUILD_TAG,
+      commit: NEUTRAL_REPLACEMENT_AUDIT_COMMIT,
+      smokeVersion: NEUTRAL_REPLACEMENT_AUDIT_SMOKE_VERSION,
+      checkedCount: 0,
+      replacementPairsChecked: 0,
+      meaningLossHits: [],
+      boringToneHits: [],
+      longRewriteHits: [],
+      mentoringToneHits: [],
+      fakeToneHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const fail = (check, detail) => {
+      fakeToneCoverageAddUnique(result.failedChecks, check);
+      fakeToneCoverageAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    try {
+      const entries = fakeToneCollectCheckedTexts();
+      const checkedZones = new Set();
+      entries.forEach((entry) => {
+        if (!entry || !entry.text) return;
+        checkedZones.add(entry.zone);
+        const fakePattern = neutralReplacementPatternHit(entry.text, NEUTRAL_REPLACEMENT_FAKE_TONE_PATTERNS);
+        if (fakePattern) neutralReplacementAddEntryHit(result.fakeToneHits, entry, fakePattern, "runtime_text");
+        const mentoringPattern = neutralReplacementPatternHit(entry.text, NEUTRAL_REPLACEMENT_MENTORING_PATTERNS);
+        if (mentoringPattern) neutralReplacementAddEntryHit(result.mentoringToneHits, entry, mentoringPattern, "runtime_text");
+      });
+      result.checkedCount = entries.length;
+      FAKE_TONE_COVERAGE_REQUIRED_ZONES.forEach((zone) => {
+        if (!checkedZones.has(zone)) fakeToneCoverageAddUnique(result.missingCoverage, zone);
+      });
+      NEUTRAL_REPLACEMENT_AUDIT_PAIRS.forEach((pair) => {
+        result.replacementPairsChecked += 1;
+        const current = fakeToneNormalizeText(neutralReplacementGetPath(pair.source));
+        const expected = fakeToneNormalizeText(pair.after);
+        const before = fakeToneNormalizeText(pair.before);
+        const actual = current || expected;
+        const normalizedActual = neutralReplacementNormalize(actual);
+        if (!current || current !== expected) {
+          fakeToneCoverageAddUnique(result.missingCoverage, { source: pair.source, expected, actual: current || null });
+        }
+        Array.from(pair.mustKeep || []).forEach((token) => {
+          if (normalizedActual.indexOf(neutralReplacementNormalize(token)) === -1) {
+            fakeToneCoverageAddUnique(result.meaningLossHits, { source: pair.source, before, after: actual, missing: token });
+          }
+        });
+        const boringPattern = neutralReplacementPatternHit(actual, NEUTRAL_REPLACEMENT_BORING_PATTERNS);
+        if (boringPattern) fakeToneCoverageAddUnique(result.boringToneHits, { source: pair.source, before, after: actual, pattern: String(boringPattern.source || boringPattern) });
+        if (actual.length > before.length) fakeToneCoverageAddUnique(result.longRewriteHits, { source: pair.source, beforeLength: before.length, afterLength: actual.length, before, after: actual });
+        const fakePattern = neutralReplacementPatternHit(actual, NEUTRAL_REPLACEMENT_FAKE_TONE_PATTERNS);
+        if (fakePattern) fakeToneCoverageAddUnique(result.fakeToneHits, { zone: pair.zone, source: pair.source, text: actual, kind: "replacement_pair", pattern: String(fakePattern.source || fakePattern) });
+        const mentoringPattern = neutralReplacementPatternHit(actual, NEUTRAL_REPLACEMENT_MENTORING_PATTERNS);
+        if (mentoringPattern) fakeToneCoverageAddUnique(result.mentoringToneHits, { zone: pair.zone, source: pair.source, text: actual, kind: "replacement_pair", pattern: String(mentoringPattern.source || mentoringPattern) });
+      });
+      result.forbiddenRemaining = [].concat(result.fakeToneHits, result.mentoringToneHits);
+      if (result.replacementPairsChecked !== NEUTRAL_REPLACEMENT_AUDIT_PAIRS.length || result.replacementPairsChecked < 1) fail("replacement_pairs_missing", result.replacementPairsChecked);
+      if (result.checkedCount < 1) fail("checked_texts_missing", result.checkedCount);
+      if (result.meaningLossHits.length) fail("meaning_loss_hits_empty", result.meaningLossHits);
+      if (result.boringToneHits.length) fail("boring_tone_hits_empty", result.boringToneHits);
+      if (result.longRewriteHits.length) fail("long_rewrite_hits_empty", result.longRewriteHits);
+      if (result.mentoringToneHits.length) fail("mentoring_tone_hits_empty", result.mentoringToneHits);
+      if (result.fakeToneHits.length) fail("fake_tone_hits_empty", result.fakeToneHits);
+      if (result.forbiddenRemaining.length) fail("forbidden_remaining_empty", result.forbiddenRemaining);
+      if (result.missingCoverage.length) fail("missing_coverage_empty", result.missingCoverage);
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== NEUTRAL_REPLACEMENT_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step8_4") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+        fail("smoke_version_unique_for_commit", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.checkedCount > 0
+      && result.replacementPairsChecked === NEUTRAL_REPLACEMENT_AUDIT_PAIRS.length
+      && result.meaningLossHits.length === 0
+      && result.boringToneHits.length === 0
+      && result.longRewriteHits.length === 0
+      && result.mentoringToneHits.length === 0
+      && result.fakeToneHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+  Game.__neutralReplacementAuditSmokeOnce = Game.__DEV.smokeNeutralReplacementAuditOnce;
+  function exposeNeutralReplacementAuditSmoke(){
+    if (!Game.__DEV) Game.__DEV = {};
+    Game.__DEV.smokeNeutralReplacementAuditOnce = Game.__neutralReplacementAuditSmokeOnce;
+    if (!Game.Dev) Game.Dev = {};
+    Game.Dev.smokeNeutralReplacementAuditOnce = Game.__neutralReplacementAuditSmokeOnce;
+  }
+  exposeNeutralReplacementAuditSmoke();
+  if (typeof setTimeout === "function") {
+    setTimeout(exposeNeutralReplacementAuditSmoke, 0);
+    setTimeout(exposeNeutralReplacementAuditSmoke, 250);
+    setTimeout(exposeNeutralReplacementAuditSmoke, 1000);
+  }
   Game.__stopFakeLexiconSmokeOnce = Game.__DEV.smokeStopFakeLexiconOnce;
   function exposeStopFakeLexiconSmoke(){
     if (!Game.__DEV) Game.__DEV = {};

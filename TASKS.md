@@ -6157,3 +6157,11 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeZoomerNpcTemplateSetOnce()` with Step 6.9 build identity and required empty-array PASS criteria.
 - Scope held: NPC speech artifacts and validation/smoke only; no UI, gameplay, economy, unrelated refactor, or `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZoomerNpcTemplateSetOnce()`.
+
+## 2026-06-12 - Step 8.4 neutral replacement audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Normalized the remaining fake-tone replacement targets in argument prompts and the toxic cop description so meaning stays direct without meme, mentoring, youth, or inflated wording.
+- Added runtime smoke `Game.__DEV.smokeNeutralReplacementAuditOnce()` with build identity `build_2026_06_12_step8_4_neutral_replacement_audit`, commit marker `step8_4_neutral_replacement_audit`, and smoke version `step8_4_neutral_replacement_audit_smoke_v20260612_001`.
+- PASS requires empty `meaningLossHits`, `boringToneHits`, `longRewriteHits`, `mentoringToneHits`, `fakeToneHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Scope held: copy audit plus smoke/cache-bust only; no gameplay logic, no unrelated refactor, and `Console.txt` was not used.
+- Required Safari command: `Game.__DEV.smokeNeutralReplacementAuditOnce()`.
