@@ -3248,8 +3248,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           ["SystemCopy.warnings.escapeNeedsPoints", "Не хватает 💰 на Свалить."],
           ["Data.TEXTS.genz.cop_report_accept.0", "Понял. Проверяю."],
           ["Data.TEXTS.genz.cop_report_ok.0", "Проверка сошлась. Вмешался."],
-          ["Data.TEXTS.genz.cop_cooldown.0", "Дайте время, я занят делом."],
-          ["NPC.COP.topics.bandit.advice", "Лучше Свалить или не ввязываться. В бою главное — не проиграть."]
+          ["Data.TEXTS.genz.cop_cooldown.0", "Проверка займет время."],
+          ["NPC.COP.topics.bandit.advice", "Свалить закрывает контакт. Проигрыш бьет по 💰."]
         ];
         exactAcceptedRows.forEach(([source, accepted]) => systemRows.push([source, currentText(source), String(accepted).length]));
         systemRows.forEach(([source, text, maxLength]) => {
@@ -6211,7 +6211,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const NO_MENTORING_SMOKE_VERSION = "step6_4_npc_template_shortening_runtime_fail_fix_smoke_v20260606_001";
     const noMentoringRules = Object.freeze({
       mentoringHits: Object.freeze([
-        { label: "direct_advice", pattern: /(совет|подскажу|попробуй|стоит|лучше|рекоменд|проверь|проверяй|проверяйте|убедись|убедитесь)/i },
+        { label: "direct_advice", pattern: /(совет|подскажу|попробуй|лучше|рекоменд|проверь|проверяй|проверяйте|убедись|убедитесь)/i },
         { label: "you_should", pattern: /(тебе|вам|ты|вы)\s+(стоит|следует|надо|нужно|должен|должна|должны)/i },
         { label: "think_about_consequences", pattern: /подум\w*\s+о\s+последств/i },
         { label: "directive_lesson", pattern: /(?:не\s+отвечай|не\s+отвечайте|не\s+спорь|не\s+спорьте|не\s+ввязывай|не\s+ввязывайтесь|выбирай|выбирайте)\b/i }
