@@ -3541,6 +3541,106 @@ window.Game = window.Game || {};
     return Game.__DEV.smokeFakeToneFiltersOnce();
   };
 
+  const FAKE_TONE_SAMPLE_AUDIT_BUILD_TAG = "build_2026_06_12_step8_5_sampled_fake_tone_smoke";
+  const FAKE_TONE_SAMPLE_AUDIT_COMMIT = "step8_5_sampled_fake_tone_smoke";
+  const FAKE_TONE_SAMPLE_AUDIT_SMOKE_VERSION = "step8_5_sampled_fake_tone_smoke_v20260612_001";
+  const FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN = 30;
+  const FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MAX = 50;
+
+  function fakeToneSampleAuditPickEntries(entries){
+    const byZone = new Map();
+    entries.forEach((entry) => {
+      const zone = entry && entry.zone ? String(entry.zone) : "unknown";
+      if (!byZone.has(zone)) byZone.set(zone, []);
+      byZone.get(zone).push(entry);
+    });
+    const zones = ["UI", "NPC speech", "system messages", "arguments"].filter((zone) => zone === "UI" || byZone.has(zone) || (zone === "UI" && byZone.has("interface labels")));
+    const picks = [];
+    const perZoneTarget = { UI: 8, "NPC speech": 8, "system messages": 7, arguments: 7 };
+    zones.forEach((zone) => {
+      const rows = zone === "UI" ? (byZone.get("interface labels") || []) : (byZone.get(zone) || []);
+      const target = perZoneTarget[zone] || 0;
+      const step = rows.length > target ? Math.max(1, Math.floor(rows.length / target)) : 1;
+      for (let i = 0; i < rows.length && picks.length < FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MAX; i += step) {
+        if (target && rows.length >= target && picks.filter((item) => item.zone === zone).length >= target) break;
+        picks.push(rows[i]);
+      }
+    });
+    if (picks.length < FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN) {
+      entries.forEach((entry) => {
+        if (picks.length >= FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN) return;
+        if (!picks.some((item) => item.zone === entry.zone && item.source === entry.source && item.text === entry.text)) {
+          picks.push(entry);
+        }
+      });
+    }
+    return picks.slice(0, FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MAX);
+  }
+
+  Game.__DEV.smokeFakeToneSampleAuditOnce = function smokeFakeToneSampleAuditOnce(){
+    const result = {
+      ok: false,
+      buildTag: FAKE_TONE_SAMPLE_AUDIT_BUILD_TAG,
+      commit: FAKE_TONE_SAMPLE_AUDIT_COMMIT,
+      smokeVersion: FAKE_TONE_SAMPLE_AUDIT_SMOKE_VERSION,
+      sampleCount: 0,
+      sampledZones: [],
+      fakeToneHits: [],
+      memeHits: [],
+      tryingToSoundYoungHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const fail = (check, detail) => {
+      fakeToneCoverageAddUnique(result.failedChecks, check);
+      fakeToneCoverageAddUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    try {
+      const entries = fakeToneCollectCheckedTexts();
+      const sampled = fakeToneSampleAuditPickEntries(entries);
+      result.sampleCount = sampled.length;
+      sampled.forEach((entry) => {
+        const sampledZone = entry.zone === "interface labels" ? "UI" : entry.zone;
+        if (!result.sampledZones.includes(sampledZone)) result.sampledZones.push(sampledZone);
+        const text = fakeToneNormalizeText(entry.text);
+        if (/(?:[^\p{L}\p{N}]|^)(кринж\w*|вайб\w*|имба|изи|рофл|лол|кек|жиза|краш|флекс|топчик|хайп\w*|скибиди|зумерск\w*|vibe|cringe|rizz|sus|мем\w*|мемас\w*|мемчик\w*)(?:[^\p{L}\p{N}]|$)/iu.test(text)) {
+          fakeToneCoverageAddUnique(result.memeHits, { zone: entry.zone, source: entry.source, text });
+        }
+        if (/(?:[^\p{L}\p{N}]|^)(кринж\w*|вайб\w*|имба|изи|рофл|лол|кек|жиза|краш|флекс|топчик|хайп\w*|скибиди|зумерск\w*|vibe|cringe|rizz|sus)(?:[^\p{L}\p{N}]|$)/iu.test(text)) {
+          fakeToneCoverageAddUnique(result.tryingToSoundYoungHits, { zone: entry.zone, source: entry.source, text });
+          fakeToneCoverageAddUnique(result.fakeToneHits, { zone: entry.zone, source: entry.source, text, kind: "trying_to_sound_young" });
+        }
+      });
+      ["UI", "NPC speech", "system messages", "arguments"].forEach((zone) => {
+        if (!result.sampledZones.includes(zone)) fakeToneCoverageAddUnique(result.missingCoverage, zone);
+      });
+      if (result.sampleCount < FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN) fail("sample_count_below_minimum", result.sampleCount);
+      if (result.memeHits.length) fail("meme_hits_present", result.memeHits);
+      if (result.tryingToSoundYoungHits.length) fail("trying_to_sound_young_hits_present", result.tryingToSoundYoungHits);
+      if (result.fakeToneHits.length) fail("fake_tone_hits_present", result.fakeToneHits);
+      if (result.forbiddenRemaining.length) fail("forbidden_remaining_present", result.forbiddenRemaining);
+      if (result.missingCoverage.length) fail("missing_coverage_present", result.missingCoverage);
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== FAKE_TONE_SAMPLE_AUDIT_SMOKE_VERSION || result.smokeVersion.indexOf("step8_5") === -1 || result.smokeVersion.indexOf(result.commit) === -1) {
+        fail("smoke_version_unique_for_commit", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.sampleCount >= FAKE_TONE_SAMPLE_AUDIT_SAMPLE_MIN
+      && result.fakeToneHits.length === 0
+      && result.memeHits.length === 0
+      && result.tryingToSoundYoungHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const STOP_FAKE_LEXICON_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_SMOKE_VERSION = "step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001";
