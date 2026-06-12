@@ -3855,9 +3855,15 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_fix";
-  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_smoke_version_fix";
-  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_004";
+  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_checker_fix";
+  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_smoke_version_checker_fix";
+  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_005";
+  const Z_PROFILE_FINAL_CONTRACT_PREVIOUS_SMOKE_VERSIONS = Object.freeze([
+    "step8_8_z_profile_final_contract_v20260612_001",
+    "step8_8_z_profile_final_contract_v20260612_002",
+    "step8_8_z_profile_final_contract_v20260612_003",
+    "step8_8_z_profile_final_contract_v20260612_004",
+  ]);
 
   Game.__DEV.smokeZProfileFinalContractOnce = function smokeZProfileFinalContractOnce(){
     const result = {
@@ -4033,7 +4039,9 @@ window.Game = window.Game || {};
         fail("zoomer_profile_exists", "missing_profile_header");
       }
       if (!buildTag || !commit || !smokeVersion) fail("build_identification_missing", { buildTag, commit, smokeVersion });
-      if (smokeVersion !== Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION || smokeVersion.indexOf("step8_8") === -1 || smokeVersion.indexOf(commit) === -1) {
+      if (smokeVersion !== Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION
+        || !/^step8_8_z_profile_final_contract_v\d{8}_\d{3}$/.test(smokeVersion)
+        || Z_PROFILE_FINAL_CONTRACT_PREVIOUS_SMOKE_VERSIONS.indexOf(smokeVersion) !== -1) {
         fail("smoke_version_unique_for_commit", smokeVersion);
       }
       if (buildTag.indexOf(commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag, commit });
