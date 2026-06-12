@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.6 future text anti-fake gate
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only Safari command `Game.__DEV.smokeFutureTextAntiFakeGateOnce()` to guard future user-facing text surfaces against bypassing Step 8 fake-tone checks.
+- Required coverage: system messages, NPC speech, interface labels, arguments, hints, new feature texts, and any registered future text surface.
+- Result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `registeredSurfaces`, `coveredSurfaces`, `uncoveredFutureTextSurfaces`, `unguardedTextAdditions`, `missingCoverage`, `failures`, `forbiddenRemaining`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_6_future_text_anti_fake_gate` / `step8_6_future_text_anti_fake_gate` / `step8_6_future_text_anti_fake_gate_smoke_v20260612_001`.
+- Scope held: audit-only gate plus identity/docs; no gameplay logic rewrite, no unrelated refactor, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeFutureTextAntiFakeGateOnce()`.
+
 ## 2026-06-12 — Step 8.5 sampled fake-tone smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only Safari command `Game.__DEV.smokeFakeToneSampleAuditOnce()` for a representative sample audit across UI, NPC speech, system messages, and arguments.
