@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 6 z-profile new-features coverage audit
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()` in the mirrored runtime system bundles.
+- The smoke audits canonical post-z-profile feature texts on the start screen, economy/action honesty surfaces, system messages, and NPC speech, rejects millennial fallback wording, and composes the existing new-features, NPC compatibility, argument-wrapper, speed, simplicity, authenticity, and derivation smokes.
+- Result fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `checkedSurfaces`, `checkedCount`, `auditedRowCount`, `orphanAuditRows`, `millennialFallbackHits`, `speedViolations`, `simplicityViolations`, `authenticityViolations`, `derivationViolations`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step6_z_profile_new_features_audit` / `step6_z_profile_new_features_audit` / `step6_z_profile_new_features_audit_v20260612_001`.
+- Scope held: audit-only smoke and mirrored served cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
+
 ## 2026-06-12 — Step 8.11 z-profile simplicity audit
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileSimplicityAuditOnce()` in the mirrored runtime system bundles.

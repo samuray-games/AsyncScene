@@ -4359,6 +4359,201 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const Z_PROFILE_NEW_FEATURES_AUDIT_BUILD_TAG = "build_2026_06_12_step6_z_profile_new_features_audit";
+  const Z_PROFILE_NEW_FEATURES_AUDIT_COMMIT = "step6_z_profile_new_features_audit";
+  const Z_PROFILE_NEW_FEATURES_AUDIT_SMOKE_VERSION = "step6_z_profile_new_features_audit_v20260612_001";
+
+  Game.__DEV.smokeZProfileNewFeaturesAuditOnce = function smokeZProfileNewFeaturesAuditOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_NEW_FEATURES_AUDIT_BUILD_TAG,
+      commit: Z_PROFILE_NEW_FEATURES_AUDIT_COMMIT,
+      smokeVersion: Z_PROFILE_NEW_FEATURES_AUDIT_SMOKE_VERSION,
+      checkedSurfaces: [],
+      checkedCount: 0,
+      auditedRowCount: 0,
+      orphanAuditRows: [],
+      millennialFallbackHits: [],
+      speedViolations: [],
+      simplicityViolations: [],
+      authenticityViolations: [],
+      derivationViolations: [],
+      newLogicKeyHits: [],
+      newConditionHits: [],
+      newEntityHits: [],
+      newHandlerHits: [],
+      newEconomyRuleHits: [],
+      newBattleRuleHits: [],
+      stateMutationHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    const getPath = (root, path) => String(path || "").split(".").reduce((value, key) => (value && Object.prototype.hasOwnProperty.call(value, key) ? value[key] : undefined), root);
+    const currentText = (source) => {
+      const normalizedSource = String(source || "");
+      if (!normalizedSource) return undefined;
+      if (normalizedSource.indexOf("dom#") === 0 && typeof document !== "undefined") {
+        const node = document.getElementById(normalizedSource.slice(4));
+        return node ? node.textContent : undefined;
+      }
+      if (normalizedSource.indexOf("NPC.") === 0) return getPath({ NPC: Game.NPC || {} }, normalizedSource);
+      return getPath(Game, normalizedSource);
+    };
+    const auditedRows = Object.freeze([
+      Object.freeze({ id: "start_title", surface: "startScreen", source: "Data.START_SCREEN.title", expected: "AsyncScene" }),
+      Object.freeze({ id: "start_intro_pick", surface: "startScreen", source: "Data.START_SCREEN.introLines.0", expected: "Оппонент задаёт риск." }),
+      Object.freeze({ id: "start_intro_stake", surface: "startScreen", source: "Data.START_SCREEN.introLines.1", expected: "Ставка списывает ресурс." }),
+      Object.freeze({ id: "start_intro_result", surface: "startScreen", source: "Data.START_SCREEN.introLines.2", expected: "Итог виден сразу." }),
+      Object.freeze({ id: "start_economy_honesty", surface: "startScreen", source: "Data.START_SCREEN.economyHonestyLine", expected: "Цена и итог сразу." }),
+      Object.freeze({ id: "start_action_start", surface: "startScreen", source: "Data.START_SCREEN.actions.start", expected: "Старт" }),
+      Object.freeze({ id: "start_action_rules", surface: "startScreen", source: "Data.START_SCREEN.actions.rules", expected: "Суть" }),
+      Object.freeze({ id: "action_escape_needs_points", surface: "economyActionHonesty", source: "SystemCopy.warnings.escapeNeedsPoints", expected: "Не хватает 💰 на Свалить." }),
+      Object.freeze({ id: "economy_report_reward", surface: "economyActionHonesty", source: "SystemCopy.notifications.reportTrueReward", expected: "Сдать {name}: +2💰." }),
+      Object.freeze({ id: "economy_report_penalty", surface: "economyActionHonesty", source: "SystemCopy.errors.reportFalsePenalty", expected: "Штраф: -5 💰." }),
+      Object.freeze({ id: "system_battle_challenge", surface: "systemMessages", source: "SystemCopy.systemEvents.battleChallenge", expected: "{attackerName} [{attackerInf}] бросил вызов." }),
+      Object.freeze({ id: "system_crowd_resolved", surface: "systemMessages", source: "SystemCopy.systemEvents.crowdResolved", expected: "Толпа: {name} {aVotes}:{bVotes}." }),
+      Object.freeze({ id: "npc_report_accept", surface: "npcSpeech", source: "Data.TEXTS.genz.cop_report_accept.0", expected: "Понял. Проверяю." }),
+      Object.freeze({ id: "npc_report_ok", surface: "npcSpeech", source: "Data.TEXTS.genz.cop_report_ok.0", expected: "Проверка сошлась. Вмешался." }),
+      Object.freeze({ id: "npc_cooldown", surface: "npcSpeech", source: "Data.TEXTS.genz.cop_cooldown.0", expected: "Проверка займет время." }),
+      Object.freeze({ id: "npc_bandit_advice", surface: "npcSpeech", source: "NPC.COP.topics.bandit.advice", expected: "Свалить закрывает контакт. Проигрыш бьет по 💰." }),
+    ]);
+    const requiredSurfaces = ["startScreen", "economyActionHonesty", "systemMessages", "npcSpeech", "argumentWrappers"];
+    const seenIds = new Set();
+    const seenSources = new Set();
+    const fallbackRe = /\b(?:миллениал|millennial|legacy|old wording|older wording|старый стиль)\b/i;
+    const auditText = auditedRows.map((row) => `${row.id} ${row.surface} ${row.source} ${row.expected}`).join("\n");
+    const mergeArray = (target, values) => {
+      (Array.isArray(values) ? values : []).forEach((value) => addUnique(target, value));
+    };
+    const mergeForbiddenClassHits = (subResult) => {
+      mergeArray(result.newLogicKeyHits, subResult && subResult.newLogicKeyHits);
+      mergeArray(result.newConditionHits, subResult && subResult.newConditionHits);
+      mergeArray(result.newEntityHits, subResult && subResult.newEntityHits);
+      mergeArray(result.newHandlerHits, subResult && subResult.newHandlerHits);
+      mergeArray(result.newEconomyRuleHits, subResult && subResult.newEconomyRuleHits);
+      mergeArray(result.newBattleRuleHits, subResult && subResult.newBattleRuleHits);
+      mergeArray(result.stateMutationHits, subResult && subResult.stateMutationHits);
+    };
+    const collectViolations = (target, subResult, extraKeys) => {
+      mergeArray(target, subResult && subResult.failures);
+      mergeArray(target, subResult && subResult.forbiddenRemaining);
+      mergeArray(target, subResult && subResult.failedChecks);
+      mergeArray(target, subResult && subResult.missingCoverage);
+      (Array.isArray(extraKeys) ? extraKeys : []).forEach((key) => mergeArray(target, subResult && subResult[key]));
+    };
+    const runRequiredSmoke = (surface, name, fn, target, extraKeys) => {
+      addUnique(result.checkedSurfaces, surface);
+      let subResult = null;
+      try {
+        subResult = typeof fn === "function" ? fn() : null;
+      } catch (err) {
+        subResult = { ok: false, failures: [{ check: "smoke_exception", detail: err && err.message ? String(err.message) : String(err) }], failedChecks: ["smoke_exception"] };
+      }
+      result.checkedCount += 1;
+      if (!subResult) {
+        addUnique(result.missingCoverage, name);
+        fail("required_smoke_missing", name);
+        return null;
+      }
+      mergeForbiddenClassHits(subResult);
+      mergeArray(result.orphanAuditRows, subResult && subResult.orphanAuditRows);
+      collectViolations(target, subResult, extraKeys);
+      if (subResult.ok !== true) fail("required_smoke_not_ok", { surface, smoke: name, detail: subResult });
+      return subResult;
+    };
+    try {
+      auditedRows.forEach((row) => {
+        result.auditedRowCount += 1;
+        addUnique(result.checkedSurfaces, row.surface);
+        if (seenIds.has(row.id)) addUnique(result.orphanAuditRows, { id: row.id, reason: "duplicate_id" });
+        seenIds.add(row.id);
+        if (seenSources.has(row.source)) addUnique(result.orphanAuditRows, { source: row.source, reason: "duplicate_source" });
+        seenSources.add(row.source);
+        const current = normalize(currentText(row.source));
+        const expected = normalize(row.expected);
+        if (!current) {
+          addUnique(result.orphanAuditRows, { id: row.id, source: row.source, reason: "source_unresolved" });
+          fail("no_orphan_audit_rows", { id: row.id, source: row.source });
+          return;
+        }
+        if (current !== expected) fail("mapping_current_text_mismatch", { source: row.source, expected, actual: current });
+        if (fallbackRe.test(current)) {
+          addUnique(result.millennialFallbackHits, { id: row.id, source: row.source, text: current });
+          fail("no_millennial_wording_fallback", { id: row.id, source: row.source, text: current });
+        }
+      });
+      runRequiredSmoke("economyActionHonesty", "Game.__DEV.smokeZoomerNewFeatureCopyOnce", Game.__DEV.smokeZoomerNewFeatureCopyOnce, result.simplicityViolations, []);
+      runRequiredSmoke("systemMessages", "Game.__DEV.smokeSystemNewFeaturesCopyOnce", Game.__DEV.smokeSystemNewFeaturesCopyOnce, result.millennialFallbackHits, ["oldStyleFeatureMessages", "bypassPaths", "missingFeatureCoverage"]);
+      runRequiredSmoke("npcSpeech", "Game.__DEV.smokeZoomerNpcCompatibilityOnce", Game.__DEV.smokeZoomerNpcCompatibilityOnce, result.millennialFallbackHits, ["legacyStyleHits", "bypassPaths", "futureRoleCoverageGaps", "uncategorizedSpeechSources"]);
+      runRequiredSmoke("npcSpeech", "Game.__DEV.smokeZoomerNpcNoMentoringOnce", Game.__DEV.smokeZoomerNpcNoMentoringOnce, result.simplicityViolations, ["mentoringHits", "teacherToneHits", "moralizingHits", "hiddenMentoringHits"]);
+      runRequiredSmoke("argumentWrappers", "Game.__DEV.smokeZoomerArgumentWrappersOnce", Game.__DEV.smokeZoomerArgumentWrappersOnce, result.simplicityViolations, ["semanticDrift", "simplicityViolations"]);
+      runRequiredSmoke("argumentWrappers", "Game.__DEV.smokeZoomerArgumentAuthenticityOnce", Game.__DEV.smokeZoomerArgumentAuthenticityOnce, result.authenticityViolations, ["forcedSlang", "memeLanguage", "cringePhrasing", "exaggeratedCoolness", "roleplayTone", "artificialYouthTone", "generationStereotypes", "unnaturalDialogue", "eyeRollFailures"]);
+      runRequiredSmoke("systemMessages", "Game.__DEV.smokeZProfileSpeedAuditOnce", Game.__DEV.smokeZProfileSpeedAuditOnce, result.speedViolations, ["orphanAuditRows"]);
+      runRequiredSmoke("systemMessages", "Game.__DEV.smokeZProfileSimplicityAuditOnce", Game.__DEV.smokeZProfileSimplicityAuditOnce, result.simplicityViolations, ["orphanAuditRows", "unnecessaryExplanationHits", "multiStepPhrasingHits", "teacherToneHits", "corporateWordingHits", "overcomplicatedStructureHits", "smartSoundingHits"]);
+      runRequiredSmoke("systemMessages", "Game.__DEV.smokeZProfileAuthenticityAuditOnce", Game.__DEV.smokeZProfileAuthenticityAuditOnce, result.authenticityViolations, ["orphanAuditRows", "memeLanguageHits", "forcedSlangHits", "exaggeratedCoolnessHits", "artificialYouthToneHits", "ironyForIronyHits", "eyeRollPhrasingHits", "cringeWordingHits", "generationStereotypeHits", "fellowKidsHits"]);
+      runRequiredSmoke("systemMessages", "Game.__DEV.smokeZProfileDerivationMappingOnce", Game.__DEV.smokeZProfileDerivationMappingOnce, result.derivationViolations, ["orphanZLines"]);
+      requiredSurfaces.forEach((surface) => {
+        if (!result.checkedSurfaces.includes(surface)) addUnique(result.missingCoverage, surface);
+      });
+      if (result.orphanAuditRows.length) fail("no_orphan_audit_rows", result.orphanAuditRows.slice());
+      if (result.millennialFallbackHits.length) fail("no_millennial_wording_fallback", result.millennialFallbackHits.slice());
+      if (result.speedViolations.length) fail("no_speed_violations", result.speedViolations.slice(0, 12));
+      if (result.simplicityViolations.length) fail("no_simplicity_violations", result.simplicityViolations.slice(0, 12));
+      if (result.authenticityViolations.length) fail("no_authenticity_violations", result.authenticityViolations.slice(0, 12));
+      if (result.derivationViolations.length) fail("no_derivation_violations", result.derivationViolations.slice(0, 12));
+      [
+        ["no_new_logic_keys", result.newLogicKeyHits],
+        ["no_new_conditions", result.newConditionHits],
+        ["no_new_entities", result.newEntityHits],
+        ["no_new_handlers", result.newHandlerHits],
+        ["no_new_economy_rules", result.newEconomyRuleHits],
+        ["no_new_battle_rules", result.newBattleRuleHits],
+        ["no_state_mutations", result.stateMutationHits],
+      ].forEach(([check, hits]) => {
+        if (Array.isArray(hits) && hits.length) fail(check, hits.slice(0, 12));
+      });
+      if (/\b(?:new logic|new conditions|new entities|new handlers|new economy rules|new battle rules|state mutations)\b/i.test(auditText)) {
+        fail("audit_rows_must_be_text_only", auditText);
+      }
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_NEW_FEATURES_AUDIT_SMOKE_VERSION || !/^step6_z_profile_new_features_audit_v\d{8}_\d{3}$/.test(result.smokeVersion)) {
+        fail("smoke_version_unique", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.checkedSurfaces.length === requiredSurfaces.length
+      && result.checkedCount >= 9
+      && result.auditedRowCount === auditedRows.length
+      && result.orphanAuditRows.length === 0
+      && result.millennialFallbackHits.length === 0
+      && result.speedViolations.length === 0
+      && result.simplicityViolations.length === 0
+      && result.authenticityViolations.length === 0
+      && result.derivationViolations.length === 0
+      && result.newLogicKeyHits.length === 0
+      && result.newConditionHits.length === 0
+      && result.newEntityHits.length === 0
+      && result.newHandlerHits.length === 0
+      && result.newEconomyRuleHits.length === 0
+      && result.newBattleRuleHits.length === 0
+      && result.stateMutationHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_checker_fix";
   const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_smoke_version_checker_fix";
   const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_005";

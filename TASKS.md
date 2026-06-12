@@ -1,3 +1,13 @@
+## 2026-06-12 — Step 6 z-profile new-features coverage audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Verify that features added after z-profile introduction still comply with the z-profile contract without adding gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
+- Added Safari smoke command: `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
+- Smoke audits current start screen, economy/action honesty, system-message, and NPC feature texts against the canonical z-profile runtime strings; requires no millennial fallback wording; and composes the existing argument-wrapper, NPC compatibility, system new-features, speed, simplicity, authenticity, and derivation smokes.
+- Smoke returns `ok`, `buildTag`, `commit`, unique `smokeVersion`, `checkedSurfaces`, `checkedCount`, `auditedRowCount`, `orphanAuditRows`, `millennialFallbackHits`, `speedViolations`, `simplicityViolations`, `authenticityViolations`, `derivationViolations`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step6_z_profile_new_features_audit` / `step6_z_profile_new_features_audit` / `step6_z_profile_new_features_audit_v20260612_001`.
+- Scope held: audit-only smoke plus mirrored served cache-bust/build-marker/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`.
+
 ## 2026-06-12 — Step 8.11 z-profile simplicity audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Verify that key z-profile UI, NPC, and system texts stay simple, direct, and readable in one pass without adding gameplay logic, conditions, entities, or unrelated refactors.
