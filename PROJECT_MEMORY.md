@@ -1,9 +1,9 @@
-## 2026-06-12 — Step 8.8 z-profile final contract contract-check fix
+## 2026-06-12 — Step 8.8 z-profile final contract smokeVersion fix
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
-- Fixed only the Step 8.8 smoke contract/runtime issues in `Game.__DEV.smokeZProfileFinalContractOnce()`: derivation now checks the real delta-only source reference/comparison-table contract instead of requiring literal shared lines, and build identity fields now come from local smoke scope so Safari can always return `buildTag`, `commit`, and `smokeVersion`.
+- Fixed only Step 8.8 smokeVersion generation/wiring in `Game.__DEV.smokeZProfileFinalContractOnce()` so this commit exposes a new runtime-visible identity and no longer reuses `step8_8_z_profile_final_contract_v20260612_003`.
 - The smoke returns `ok`, `buildTag`, `commit`, `smokeVersion`, `millennialSourcePath`, `zoomerProfilePath`, `millennialSourceExists`, `zoomerProfileExists`, `textOnlyViolations`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
-- Served identity: `build_2026_06_12_step8_8_z_profile_final_contract_contract_check_fix` / `step8_8_z_profile_final_contract_contract_check_fix` / `step8_8_z_profile_final_contract_v20260612_003`.
-- Scope held: Step 8.8 smoke and identity/docs only; no gameplay logic rewrite, no contract semantic change, no unrelated refactor, and no `Console.txt` usage.
+- Served identity: `build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_fix` / `step8_8_z_profile_final_contract_smoke_version_fix` / `step8_8_z_profile_final_contract_v20260612_004`.
+- Scope held: smokeVersion/identity wiring and docs only; no gameplay logic rewrite, no contract semantic change, no profile-check change, no unrelated refactor, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZProfileFinalContractOnce()`.
 
 ## 2026-06-12 — Step 8.7 z-profile acceptance smoke

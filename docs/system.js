@@ -3846,9 +3846,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_contract_check_fix";
-  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_contract_check_fix";
-  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_003";
+  const Z_PROFILE_FINAL_CONTRACT_BUILD_TAG = "build_2026_06_12_step8_8_z_profile_final_contract_smoke_version_fix";
+  const Z_PROFILE_FINAL_CONTRACT_COMMIT = "step8_8_z_profile_final_contract_smoke_version_fix";
+  const Z_PROFILE_FINAL_CONTRACT_SMOKE_VERSION = "step8_8_z_profile_final_contract_v20260612_004";
 
   Game.__DEV.smokeZProfileFinalContractOnce = function smokeZProfileFinalContractOnce(){
     const result = {
