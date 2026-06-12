@@ -4757,6 +4757,199 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const Z_PROFILE_FINAL_PACKAGE_BUILD_TAG = "build_2026_06_12_step7_z_profile_final_package";
+  const Z_PROFILE_FINAL_PACKAGE_COMMIT = "step7_z_profile_final_package";
+  const Z_PROFILE_FINAL_PACKAGE_SMOKE_VERSION = "step7_z_profile_final_package_v20260612_001";
+  const Z_PROFILE_FINAL_PACKAGE_REQUIRED_SECTIONS = Object.freeze([
+    "Final z-profile rules",
+    "Forbidden list",
+    "Examples",
+    "Millennial -> zoomer mapping reference",
+    "Smoke commands",
+    "PASS status references for steps 1-6",
+    "Text-only derivation rule",
+    "No-new-runtime rule",
+  ]);
+
+  Game.__DEV.smokeZProfileFinalPackageOnce = function smokeZProfileFinalPackageOnce(){
+    const result = {
+      ok: false,
+      buildTag: Z_PROFILE_FINAL_PACKAGE_BUILD_TAG,
+      commit: Z_PROFILE_FINAL_PACKAGE_COMMIT,
+      smokeVersion: Z_PROFILE_FINAL_PACKAGE_SMOKE_VERSION,
+      finalPackagePath: null,
+      finalPackageExists: false,
+      requiredSections: [],
+      missingSections: [],
+      forbiddenListExists: false,
+      examplesExist: false,
+      mappingReferenceExists: false,
+      smokeCommandsExist: false,
+      passStepReferences: [],
+      textOnlyDerivationRuleExists: false,
+      noNewRuntimeRuleExists: false,
+      orphanRequiredSections: [],
+      newLogicKeyHits: [],
+      newConditionHits: [],
+      newEntityHits: [],
+      newHandlerHits: [],
+      newEconomyRuleHits: [],
+      newBattleRuleHits: [],
+      stateMutationHits: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+    };
+    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+    const fail = (check, detail) => {
+      addUnique(result.failedChecks, check);
+      addUnique(result.failures, detail === undefined ? check : { check, detail });
+    };
+    const fetchTextSync = (path) => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "" };
+        return { ok: false, reason: `http_${xhr.status || 0}` };
+      } catch (_) {
+        return { ok: false, reason: "xhr_exception" };
+      }
+    };
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const seen = new Set();
+      const add = (value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        candidates.push(value);
+      };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => {
+        try {
+          add(new URL(fileName, baseUri).href);
+        } catch (_) {}
+      });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null };
+    };
+    const normalize = (value) => String(value == null ? "" : value)
+      .replace(/\r\n?/g, "\n")
+      .replace(/\u00a0/g, " ")
+      .trim();
+    const hasLine = (text, pattern) => pattern.test(text);
+    try {
+      const finalRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_FINAL.md");
+      result.finalPackagePath = finalRes.path || null;
+      result.finalPackageExists = !!finalRes.ok;
+      if (!finalRes.ok) fail("final_package_exists", { path: "UI_PROFILE_ZOOMER_FINAL.md", reason: finalRes.reason || "unavailable" });
+      const rawText = finalRes.ok ? String(finalRes.text || "") : "";
+      const text = normalize(rawText);
+      const headings = rawText.match(/^##\s+.+$/gm) || [];
+      result.requiredSections = headings.map((line) => line.replace(/^##\s+/, "").trim());
+      Z_PROFILE_FINAL_PACKAGE_REQUIRED_SECTIONS.forEach((section) => {
+        if (result.requiredSections.indexOf(section) === -1) {
+          addUnique(result.missingSections, section);
+          fail("required_section_exists", section);
+        }
+      });
+      result.orphanRequiredSections = result.requiredSections.filter((section) => Z_PROFILE_FINAL_PACKAGE_REQUIRED_SECTIONS.indexOf(section) === -1);
+      if (result.orphanRequiredSections.length) fail("no_orphan_required_sections", result.orphanRequiredSections.slice());
+      result.forbiddenListExists = /##\s+Forbidden list\b/.test(rawText) && /-\s+No memes\./.test(rawText);
+      result.examplesExist = /##\s+Examples\b/.test(rawText) && /\|\s*millennial\s*\|\s*zoomer final\s*\|/i.test(rawText);
+      result.mappingReferenceExists = /##\s+Millennial -> zoomer mapping reference\b/.test(rawText) && /UI_PROFILE_ZOOMER_DIFF\.md/.test(rawText);
+      result.smokeCommandsExist = /##\s+Smoke commands\b/.test(rawText) && /Game\.__DEV\.smokeZProfileFinalPackageOnce\(\)/.test(rawText);
+      result.passStepReferences = [1, 2, 3, 4, 5, 6].filter((step) => new RegExp(`Step ${step} PASS reference:`, "i").test(rawText));
+      result.textOnlyDerivationRuleExists = /text-only and derived from `UI_PROFILE_MILLENNIAL`/i.test(rawText);
+      result.noNewRuntimeRuleExists = /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./.test(rawText)
+        && /No new logic keys are allowed\./.test(rawText);
+      if (!result.forbiddenListExists) fail("forbidden_list_exists", "missing_forbidden_list");
+      if (!result.examplesExist) fail("examples_exist", "missing_examples");
+      if (!result.mappingReferenceExists) fail("mapping_reference_exists", "missing_mapping_reference");
+      if (!result.smokeCommandsExist) fail("smoke_commands_exist", "missing_smoke_commands");
+      if (result.passStepReferences.length !== 6) fail("steps_1_6_pass_references_exist", result.passStepReferences.slice());
+      if (!result.textOnlyDerivationRuleExists) fail("text_only_derivation_rule_exists", "missing_text_only_derivation_rule");
+      if (!result.noNewRuntimeRuleExists) fail("no_new_runtime_rule_exists", "missing_no_new_runtime_rule");
+      if (!/^#\s+UI_PROFILE_ZOOMER_FINAL\b/m.test(rawText)) fail("final_package_header_exists", "missing_header");
+      if (/```/.test(rawText)) fail("text_only_package", "contains_code_fence");
+      if (/<script|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(rawText)) fail("text_only_package", "contains_code_like_markup");
+      const noNewChecks = [
+        { key: "newLogicKeyHits", check: "new_logic_keys", allow: /No new logic keys are allowed\./, deny: /\bnew logic keys?\b/i },
+        { key: "newConditionHits", check: "new_conditions", allow: /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./, deny: /\bnew conditions?\b/i },
+        { key: "newEntityHits", check: "new_entities", allow: /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./, deny: /\bnew entities\b/i },
+        { key: "newHandlerHits", check: "new_handlers", allow: /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./, deny: /\bnew handlers?\b/i },
+        { key: "newEconomyRuleHits", check: "new_economy_rules", allow: /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./, deny: /\bnew economy rules?\b/i },
+        { key: "newBattleRuleHits", check: "new_battle_rules", allow: /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./, deny: /\bnew battle rules?\b/i },
+        { key: "stateMutationHits", check: "state_mutations", allow: /No new logic, entities, conditions, economy rules, battle rules, handlers, or state mutations are allowed\./, deny: /\bstate mutations?\b/i },
+      ];
+      noNewChecks.forEach(({ key, check, allow, deny }) => {
+        const matches = rawText.match(new RegExp(deny.source, deny.flags.includes("g") ? deny.flags : `${deny.flags}g`)) || [];
+        const allowed = hasLine(rawText, allow);
+        if (matches.length && !allowed) {
+          result[key] = matches.slice(0, 12);
+          addUnique(result.forbiddenRemaining, check);
+          fail(check, matches.slice(0, 12));
+        }
+      });
+      if (!result.finalPackageExists) fail("final_package_exists", result.finalPackagePath);
+      if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });
+      if (result.smokeVersion !== Z_PROFILE_FINAL_PACKAGE_SMOKE_VERSION || !/^step7_z_profile_final_package_v\d{8}_\d{3}$/.test(result.smokeVersion)) {
+        fail("smoke_version_unique", result.smokeVersion);
+      }
+      if (result.buildTag.indexOf(result.commit) === -1) fail("build_tag_commit_marker_mismatch", { buildTag: result.buildTag, commit: result.commit });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.finalPackageExists === true
+      && result.missingSections.length === 0
+      && result.forbiddenListExists === true
+      && result.examplesExist === true
+      && result.mappingReferenceExists === true
+      && result.smokeCommandsExist === true
+      && result.passStepReferences.length === 6
+      && result.textOnlyDerivationRuleExists === true
+      && result.noNewRuntimeRuleExists === true
+      && result.orphanRequiredSections.length === 0
+      && result.newLogicKeyHits.length === 0
+      && result.newConditionHits.length === 0
+      && result.newEntityHits.length === 0
+      && result.newHandlerHits.length === 0
+      && result.newEconomyRuleHits.length === 0
+      && result.newBattleRuleHits.length === 0
+      && result.stateMutationHits.length === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0;
+    return result;
+  };
+
   const STOP_FAKE_LEXICON_BUILD_TAG = "build_2026_06_11_step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_COMMIT = "step8_3_stop_fake_lexicon_enforcement";
   const STOP_FAKE_LEXICON_SMOKE_VERSION = "step8_3_stop_fake_lexicon_enforcement_smoke_v20260611_001";
