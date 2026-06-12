@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_12_step8_9_z_profile_derivation_mapping";
-  const RUNTIME_COMMIT = "step8_9_z_profile_derivation_mapping";
+  const RUNTIME_BUILD_TAG = "build_2026_06_12_step8_9b_z_profile_derivation_mapping_source_fix";
+  const RUNTIME_COMMIT = "step8_9b_z_profile_derivation_mapping_source_fix";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1920,7 +1920,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const smokeZProfileDerivationMappingOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = `step8_9_z_profile_derivation_mapping_v1_${buildTag}_commit_${commit}`;
+      const smokeVersion = `step8_9_z_profile_derivation_mapping_v2_${buildTag}_commit_${commit}`;
       const result = {
         ok: false,
         buildTag,
@@ -2028,8 +2028,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           .filter((row) => row.id && row.millennial && row.zoomer);
       };
       try {
-        const millennialRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
-        const zoomerRes = fetchTextFromCandidates("docs/UI_PROFILE_ZOOMER_DIFF.md");
+        const millennialRes = fetchTextFromCandidates("UI_PROFILE_MILLENNIAL.md");
+        const zoomerRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
         result.millennialSourcePath = millennialRes.ok ? millennialRes.path : null;
         result.zoomerProfilePath = zoomerRes.ok ? zoomerRes.path : null;
         result.millennialSourceExists = !!millennialRes.ok;
@@ -2038,8 +2038,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (!millennialRes.ok) fail("millennial_source_exists", millennialRes.reason || "unavailable");
         if (!zoomerRes.ok) fail("zoomer_profile_exists", zoomerRes.reason || "unavailable");
         const zoomerText = zoomerRes.ok ? String(zoomerRes.text || "") : "";
-        const sourceText = millennialRes.ok ? String(millennialRes.text || "") : "";
-        const sourceSection = extractSection(sourceText, "UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE");
+        const sourceSection = extractSection(zoomerText, "UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE");
         const zoomerSection = extractSection(zoomerText, "UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE");
         result.mappingTableExists = !!sourceSection && !!zoomerSection;
         if (!sourceSection) {
@@ -2084,7 +2083,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (sourceRows.length === 0) fail("source_rows_present", "missing_rows");
         if (zoomerRows.length === 0) fail("zoomer_rows_present", "missing_rows");
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step8_9_z_profile_derivation_mapping_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step8_9") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (smokeVersion !== `step8_9_z_profile_derivation_mapping_v2_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step8_9") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
           fail("smoke_version_unique_for_commit", smokeVersion);
         }
       } catch (err) {
