@@ -1,3 +1,11 @@
+## 2026-06-12 — Step 8.9b z-profile derivation mapping source fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only `Game.__DEV.smokeZProfileDerivationMappingOnce()` source wiring: `millennialSourcePath` now resolves from `UI_PROFILE_MILLENNIAL.md`, `zoomerProfilePath` now resolves from `UI_PROFILE_ZOOMER_DIFF.md`, and the canonical mapping table is parsed from the real zoomer profile document instead of the millennial metadata file.
+- Result fields remain `ok`, `buildTag`, `commit`, `smokeVersion`, `millennialSourcePath`, `zoomerProfilePath`, `millennialSourceExists`, `zoomerProfileExists`, `mappingTableExists`, `mappingRowCount`, `mappedZLineCount`, `orphanZLines`, `orphanCount`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_9b_z_profile_derivation_mapping_source_fix` / `step8_9b_z_profile_derivation_mapping_source_fix` / `step8_9_z_profile_derivation_mapping_v2_build_2026_06_12_step8_9b_z_profile_derivation_mapping_source_fix_commit_step8_9b_z_profile_derivation_mapping_source_fix`.
+- Scope held: derivation-mapping source paths and profile loading only; orphan detection unchanged, no gameplay logic rewrite, no condition/entity/handler/state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileDerivationMappingOnce()`.
+
 ## 2026-06-12 — Step 8.9 z-profile derivation mapping
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only `Game.__DEV.smokeZProfileDerivationMappingOnce()` to verify the explicit millennial -> zoomer mapping table against the real `UI_PROFILE_ZOOMER_DIFF.md` source/doc copy.
