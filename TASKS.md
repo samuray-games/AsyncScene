@@ -1,3 +1,11 @@
+## 2026-06-12 — Step 8.9 z-profile derivation mapping
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only `Game.__DEV.smokeZProfileDerivationMappingOnce()` to verify the explicit millennial -> zoomer mapping table against the real `UI_PROFILE_ZOOMER_DIFF.md` source/doc copy.
+- The smoke returns `ok`, `buildTag`, `commit`, `smokeVersion`, `millennialSourcePath`, `zoomerProfilePath`, `millennialSourceExists`, `zoomerProfileExists`, `mappingTableExists`, `mappingRowCount`, `mappedZLineCount`, `orphanZLines`, `orphanCount`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_9_z_profile_derivation_mapping` / `step8_9_z_profile_derivation_mapping` / `step8_9_z_profile_derivation_mapping_v1_build_2026_06_12_step8_9_z_profile_derivation_mapping_commit_step8_9_z_profile_derivation_mapping`.
+- Scope held: derivation mapping smoke and identity/docs only; no gameplay logic rewrite, no condition/entity/handler/state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileDerivationMappingOnce()`.
+
 ## 2026-06-12 — Step 8.8 z-profile final contract smokeVersion checker fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed only Step 8.8 `smoke_version_unique_for_commit` validation in `Game.__DEV.smokeZProfileFinalContractOnce()`: the checker now rejects known previous Step 8.8 smoke versions instead of requiring the smokeVersion string to contain the commit marker.

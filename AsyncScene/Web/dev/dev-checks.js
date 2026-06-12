@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_12_step8_7_z_profile_acceptance_smoke";
-  const RUNTIME_COMMIT = "step8_7_z_profile_acceptance_smoke";
+  const RUNTIME_BUILD_TAG = "build_2026_06_12_step8_9_z_profile_derivation_mapping";
+  const RUNTIME_COMMIT = "step8_9_z_profile_derivation_mapping";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -1787,6 +1787,234 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.unmappedEntries.length === 0
         && result.ambiguousMappings.length === 0
         && result.pairCount === result.inventoryCount
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
+    const smokeZProfileDerivationMappingOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step8_9_z_profile_derivation_mapping_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZProfileDerivationMappingOnce",
+        millennialSourcePath: null,
+        zoomerProfilePath: null,
+        millennialSourceExists: false,
+        zoomerProfileExists: false,
+        mappingTableExists: false,
+        mappingRowCount: 0,
+        mappedZLineCount: 0,
+        orphanZLines: [],
+        orphanCount: 0,
+        sourceRows: [],
+        tableRows: [],
+        newLogicKeyHits: [],
+        newConditionHits: [],
+        newEntityHits: [],
+        newHandlerHits: [],
+        newEconomyRuleHits: [],
+        newBattleRuleHits: [],
+        stateMutationHits: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "" };
+          return { ok: false, reason: `http_${xhr.status || 0}` };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception" };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try { add(new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const extractSection = (text, sectionTitle) => {
+        const re = new RegExp(`##\\s*${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([\\s\\S]*?)(?:\\n## |\\n# |$)`, "i");
+        const match = String(text || "").match(re);
+        return match ? String(match[1] || "") : "";
+      };
+      const parseMappingRows = (sectionText) => {
+        return String(sectionText || "")
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter((line) => /^\|/.test(line) && !/^\|\s*-+/.test(line))
+          .map((line) => line.split("|").map((cell) => cell.trim()).filter(Boolean))
+          .filter((cells) => cells.length >= 3)
+          .slice(1)
+          .map((cells) => ({
+            id: normalize(cells[0] || ""),
+            millennial: normalize(cells[1] || ""),
+            zoomer: normalize(cells[2] || "")
+          }))
+          .filter((row) => row.id && row.millennial && row.zoomer);
+      };
+      const analyzeRows = (rows) => {
+        const issues = [];
+        const zLines = [];
+        rows.forEach((row, idx) => {
+          if (!row.id || !row.millennial || !row.zoomer) {
+            issues.push({ idx, id: row.id || null, millennial: row.millennial || null, zoomer: row.zoomer || null });
+            return;
+          }
+          zLines.push({ idx, id: row.id, millennial: row.millennial, zoomer: row.zoomer });
+        });
+        return { issues, zLines };
+      };
+      try {
+        const millennialRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        const zoomerRes = fetchTextFromCandidates("docs/UI_PROFILE_ZOOMER_DIFF.md");
+        result.millennialSourcePath = millennialRes.ok ? millennialRes.path : null;
+        result.zoomerProfilePath = zoomerRes.ok ? zoomerRes.path : null;
+        result.millennialSourceExists = !!millennialRes.ok;
+        result.zoomerProfileExists = !!zoomerRes.ok;
+        result.mappingTableExists = false;
+        if (!millennialRes.ok) fail("millennial_source_exists", millennialRes.reason || "unavailable");
+        if (!zoomerRes.ok) fail("zoomer_profile_exists", zoomerRes.reason || "unavailable");
+        const zoomerText = zoomerRes.ok ? String(zoomerRes.text || "") : "";
+        const sourceText = millennialRes.ok ? String(millennialRes.text || "") : "";
+        const sourceSection = extractSection(sourceText, "UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE");
+        const zoomerSection = extractSection(zoomerText, "UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE");
+        result.mappingTableExists = !!sourceSection && !!zoomerSection;
+        if (!sourceSection) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE");
+          fail("mapping_table_exists", "missing_source_section");
+        }
+        const sourceRows = parseMappingRows(sourceSection);
+        const zoomerRows = parseMappingRows(zoomerSection);
+        result.sourceRows = sourceRows;
+        result.tableRows = zoomerRows;
+        result.mappingRowCount = zoomerRows.length;
+        const sourceById = new Map();
+        const sourceByMillennial = new Map();
+        sourceRows.forEach((row) => {
+          if (!sourceById.has(row.id)) sourceById.set(row.id, row);
+          if (!sourceByMillennial.has(row.millennial)) sourceByMillennial.set(row.millennial, row);
+        });
+        const tableById = new Map();
+        zoomerRows.forEach((row, idx) => {
+          tableById.set(row.id, row);
+          if (/todo|tbd|уточнить|unresolved|\?\?\?/i.test(`${row.id} ${row.millennial} ${row.zoomer}`)) {
+            addUnique(result.orphanZLines, { idx, id: row.id, millennial: row.millennial, zoomer: row.zoomer });
+            fail("no_orphan_z_lines", { idx, id: row.id, millennial: row.millennial, zoomer: row.zoomer });
+          }
+          if (!sourceById.has(row.id)) {
+            addUnique(result.orphanZLines, { idx, id: row.id, millennial: row.millennial, zoomer: row.zoomer });
+            fail("source_row_exists_for_id", { idx, id: row.id });
+          }
+          const sourceRow = sourceById.get(row.id);
+          if (sourceRow) {
+            if (sourceRow.millennial !== row.millennial) {
+              addUnique(result.orphanZLines, { idx, id: row.id, millennial: row.millennial, zoomer: row.zoomer });
+              fail("millennial_source_matches", { idx, id: row.id, source: sourceRow.millennial, table: row.millennial });
+            }
+            if (sourceRow.zoomer !== row.zoomer) {
+              addUnique(result.orphanZLines, { idx, id: row.id, millennial: row.millennial, zoomer: row.zoomer });
+              fail("zoomer_source_matches", { idx, id: row.id, source: sourceRow.zoomer, table: row.zoomer });
+            }
+          }
+        });
+        result.mappedZLineCount = zoomerRows.length;
+        result.orphanCount = result.orphanZLines.length;
+        const expectedCount = sourceRows.length;
+        if (result.mappingRowCount !== expectedCount) fail("mapping_rows_match_source", { mappingRowCount: result.mappingRowCount, sourceCount: expectedCount });
+        if (result.orphanCount !== 0) fail("no_orphan_z_lines", result.orphanZLines.slice());
+        if (sourceRows.length === 0) fail("source_rows_present", "missing_rows");
+        if (zoomerRows.length === 0) fail("zoomer_rows_present", "missing_rows");
+        [
+          ["logic", result.newLogicKeyHits],
+          ["condition", result.newConditionHits],
+          ["entity", result.newEntityHits],
+          ["handler", result.newHandlerHits],
+          ["economy", result.newEconomyRuleHits],
+          ["battle", result.newBattleRuleHits],
+          ["state", result.stateMutationHits]
+        ].forEach(([label, hits]) => {
+          const regex = new RegExp(label, "i");
+          const sourceHits = [];
+          zoomerRows.forEach((row) => {
+            const raw = `${row.id} ${row.millennial} ${row.zoomer}`;
+            if (regex.test(raw) && !/profile|canonical|mapping/i.test(raw)) sourceHits.push(raw);
+          });
+          hits.push(...sourceHits);
+        });
+        if (result.newLogicKeyHits.length) fail("no_new_logic_keys", result.newLogicKeyHits.slice());
+        if (result.newConditionHits.length) fail("no_new_conditions", result.newConditionHits.slice());
+        if (result.newEntityHits.length) fail("no_new_entities", result.newEntityHits.slice());
+        if (result.newHandlerHits.length) fail("no_new_handlers", result.newHandlerHits.slice());
+        if (result.newEconomyRuleHits.length) fail("no_new_economy_rules", result.newEconomyRuleHits.slice());
+        if (result.newBattleRuleHits.length) fail("no_new_battle_rules", result.newBattleRuleHits.slice());
+        if (result.stateMutationHits.length) fail("no_state_mutations", result.stateMutationHits.slice());
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step8_9_z_profile_derivation_mapping_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step8_9") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.millennialSourceExists === true
+        && result.zoomerProfileExists === true
+        && result.mappingTableExists === true
+        && result.orphanCount === 0
+        && result.mappingRowCount > 0
+        && result.mappingRowCount === result.mappedZLineCount
         && !!result.buildTag
         && !!result.commit
         && !!result.smokeVersion;
@@ -5576,6 +5804,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
+    Game.Dev.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     Game.Dev.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
     Game.Dev.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
@@ -5601,6 +5830,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeZoomerTermsReadyOnce = smokeZoomerTermsReadyOnce;
     G.__DEV.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     G.__DEV.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
+    G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -5615,6 +5845,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
+    devStore.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
     devStore.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
