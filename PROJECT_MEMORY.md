@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.10b z-profile speed audit mapping fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the stale `Game.__DEV.smokeZProfileSpeedAuditOnce()` expected `after` mappings that Safari reported via `mapping_current_text_mismatch`.
+- Updated the audit rows to the current canonical runtime strings for `Data.TEXTS.genz.tie_click_name_hint`, the cop report DM `reportHint`, `Data.TEXTS.genz.cop_cooldown.0`, `SystemCopy.systemEvents.battleChallenge`, and `SystemCopy.systemEvents.crowdResolved`.
+- Shortening calculations, average threshold gating, meaning-preservation coverage logic, orphan-row checks, and the no-new-logic/entity/handler/economy-rule/battle-rule/state-mutation checks remain unchanged.
+- Served identity: `build_2026_06_12_step8_10b_z_profile_speed_audit_mapping_fix` / `step8_10b_z_profile_speed_audit_mapping_fix` / `step8_10_z_profile_speed_audit_v20260612_002`.
+- Scope held: audit-mapping-only fix plus served identity/cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileSpeedAuditOnce()`.
+
 ## 2026-06-12 — Step 8.10 z-profile speed audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added dev-only `Game.__DEV.smokeZProfileSpeedAuditOnce()` in the mirrored runtime system bundles.
