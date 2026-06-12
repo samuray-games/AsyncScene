@@ -8,6 +8,16 @@
 - Scope held: acceptance-only smoke plus mirrored cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
 
+## 2026-06-12 — Step 8.13 z-profile final acceptance marker
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Add the final Safari acceptance smoke for the completed z-profile package so the package contract now proves the 100% completion marker without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
+- Added dev-only Safari command: `Game.__DEV.smokeZProfileFinalAcceptanceOnce()`.
+- Smoke verifies the final package contract remains text-only over millennial, the runtime acceptance chain still passes, the final package exists, all steps 1-8 PASS references are present, and the explicit final completion marker exists: `z-profile is a fast millennial skin, not a new game, not a youth-slang generator.`
+- Smoke result fields: `ok`, `buildTag`, `commit`, `smokeVersion`, `completedChecks`, `checkedCount`, `finalPackagePath`, `finalPackageExists`, `runtimeAcceptanceOk`, `finalPackageOk`, `passStepReferences`, `finalCompletionMarkerExists`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_13_z_profile_final_acceptance_marker` / `step8_13_z_profile_final_acceptance_marker` / `step8_13_z_profile_final_acceptance_marker_v20260612_001`.
+- Scope held: final-acceptance smoke plus mirrored docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileFinalAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 8.12b z-profile runtime acceptance smoke coverage fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Fix only the Step 8 runtime acceptance smoke coverage gaps reported by Safari without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, state mutations, or runtime texts.

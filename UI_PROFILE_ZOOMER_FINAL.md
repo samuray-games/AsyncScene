@@ -44,13 +44,14 @@ Reference source: `UI_PROFILE_ZOOMER_DIFF.md`, section `UI_PROFILE_ZOOMER_CANONI
 ## Smoke commands
 
 - `Game.__DEV.smokeZProfileFinalPackageOnce()`
+- `Game.__DEV.smokeZProfileFinalAcceptanceOnce()`
 - `Game.__DEV.smokeZProfileDerivationMappingOnce()`
 - `Game.__DEV.smokeZProfileSpeedAuditOnce()`
 - `Game.__DEV.smokeZProfileSimplicityAuditOnce()`
 - `Game.__DEV.smokeZProfileAuthenticityAuditOnce()`
 - `Game.__DEV.smokeZProfileNewFeaturesAuditOnce()`
 
-## PASS status references for steps 1-6
+## PASS status references for steps 1-8
 
 - Step 1 PASS reference: terminology/profile base PASS is recorded in the prior step package chain and remains the upstream base for this final package.
 - Step 2 PASS reference: UI shortening PASS is recorded by the Step 2 package chain and remains part of the final z-profile package baseline.
@@ -58,6 +59,12 @@ Reference source: `UI_PROFILE_ZOOMER_DIFF.md`, section `UI_PROFILE_ZOOMER_CANONI
 - Step 4 PASS reference: terminology and mapping PASS references remain part of the z-profile baseline.
 - Step 5 PASS reference: authenticity PASS reference remains part of the z-profile baseline.
 - Step 6 PASS reference: new-features compatibility PASS reference remains part of the z-profile baseline.
+- Step 7 PASS reference: final package PASS reference remains part of the z-profile baseline and locks the final package contract.
+- Step 8 PASS reference: runtime acceptance PASS reference remains part of the z-profile baseline and confirms the final runtime smoke chain.
+
+## Final completion marker
+
+- z-profile is a fast millennial skin, not a new game, not a youth-slang generator.
 
 ## Text-only derivation rule
 
