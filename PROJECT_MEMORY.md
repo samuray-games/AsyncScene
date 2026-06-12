@@ -1,3 +1,12 @@
+## 2026-06-12 — Step 8.11 z-profile simplicity audit
+- READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `Game.__DEV.smokeZProfileSimplicityAuditOnce()` in the mirrored runtime system bundles.
+- The smoke audits key z-profile UI, NPC, and system texts against the current canonical runtime strings and rejects unnecessary explanations, multi-step phrasing, teacher/mentor tone, corporate or bureaucratic wording, overcomplicated sentence structures, smart-sounding wording, and orphan audit rows.
+- Result fields include `ok`, `buildTag`, `commit`, `smokeVersion`, `auditedCategories`, `checkedCount`, `unnecessaryExplanationHits`, `multiStepPhrasingHits`, `teacherToneHits`, `corporateWordingHits`, `overcomplicatedStructureHits`, `smartSoundingHits`, `orphanAuditRows`, `newLogicKeyHits`, `newConditionHits`, `newEntityHits`, `newHandlerHits`, `newEconomyRuleHits`, `newBattleRuleHits`, `stateMutationHits`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_12_step8_11_z_profile_simplicity_audit` / `step8_11_z_profile_simplicity_audit` / `step8_11_z_profile_simplicity_audit_v20260612_001`.
+- Scope held: audit-only smoke and mirrored cache-bust/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileSimplicityAuditOnce()`.
+
 ## 2026-06-12 — Step 8.10d z-profile speed audit fixture fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Traced the final `economy_value_changed` failure to the Step 8.10 speed-audit fixture itself, not runtime text, fallback text, or active report rules.
