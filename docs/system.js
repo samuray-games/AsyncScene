@@ -4950,9 +4950,9 @@ window.Game = window.Game || {};
     return result;
   };
 
-  const Z_PROFILE_RUNTIME_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_12b_z_profile_runtime_acceptance_coverage_fix";
-  const Z_PROFILE_RUNTIME_ACCEPTANCE_COMMIT = "step8_12b_z_profile_runtime_acceptance_coverage_fix";
-  const Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION = "step8_12_z_profile_runtime_acceptance_smoke_v20260612_002";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_12c_z_profile_runtime_acceptance_moneylog_restore_fix";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_COMMIT = "step8_12c_z_profile_runtime_acceptance_moneylog_restore_fix";
+  const Z_PROFILE_RUNTIME_ACCEPTANCE_SMOKE_VERSION = "step8_12_z_profile_runtime_acceptance_smoke_v20260612_003";
 
   Game.__DEV.smokeZProfileRuntimeAcceptanceOnce = function smokeZProfileRuntimeAcceptanceOnce(){
     const result = {
@@ -4971,6 +4971,7 @@ window.Game = window.Game || {};
       moneyLogSignatureBefore: "",
       moneyLogSignatureAfter: "",
       moneyLogChanged: false,
+      moneyLogMutationSources: [],
       econUiAuditOk: false,
       econUiReferenceOk: false,
       finalContractOk: false,
@@ -5001,6 +5002,38 @@ window.Game = window.Game || {};
       if (Game && Game.State && Array.isArray(Game.State.moneyLog)) return Game.State.moneyLog;
       return [];
     };
+    const cloneRows = (rows) => (Array.isArray(rows) ? rows.map((row) => (row && typeof row === "object" ? { ...row } : row)) : []);
+    const cloneLogByBattle = (source) => {
+      const out = {};
+      if (!source || typeof source !== "object") return out;
+      Object.keys(source).forEach((key) => {
+        out[key] = cloneRows(source[key]);
+      });
+      return out;
+    };
+    const captureLogState = () => {
+      const dbg = (Game && Game.__D && typeof Game.__D === "object") ? Game.__D : null;
+      const state = (Game && Game.State && typeof Game.State === "object") ? Game.State : null;
+      return {
+        moneyLog: cloneRows(dbg && dbg.moneyLog),
+        moneyLogByBattle: cloneLogByBattle(dbg && dbg.moneyLogByBattle),
+        stateMoneyLog: cloneRows(state && state.moneyLog),
+      };
+    };
+    const restoreLogState = (snapshot) => {
+      const dbg = (Game && Game.__D && typeof Game.__D === "object") ? Game.__D : null;
+      const state = (Game && Game.State && typeof Game.State === "object") ? Game.State : null;
+      if (dbg) {
+        dbg.moneyLog = cloneRows(snapshot && snapshot.moneyLog);
+        dbg.moneyLogByBattle = cloneLogByBattle(snapshot && snapshot.moneyLogByBattle);
+      }
+      if (state && Object.prototype.hasOwnProperty.call(state, "moneyLog")) {
+        state.moneyLog = dbg && Array.isArray(dbg.moneyLog) ? dbg.moneyLog : cloneRows(snapshot && snapshot.stateMoneyLog);
+      }
+      if (Game && Game.__DEV && typeof Game.__DEV === "object" && dbg && Array.isArray(dbg.moneyLog)) {
+        Game.__DEV.__debugMoneyLog__ = dbg.moneyLog;
+      }
+    };
     const snapshotMoneyLog = () => {
       const rows = getMoneyLogRows();
       let hash = 2166136261 >>> 0;
@@ -5022,7 +5055,9 @@ window.Game = window.Game || {};
       });
       return { length: rows.length, signature: `0x${hash.toString(16).padStart(8, "0")}` };
     };
-    const runRequiredSmoke = (checkName, fn, resultKey) => {
+    const runRequiredSmoke = (checkName, fn, resultKey, options) => {
+      const logStateBefore = captureLogState();
+      const moneyBeforeLocal = snapshotMoneyLog();
       let subResult = null;
       try {
         subResult = typeof fn === "function" ? fn() : null;
@@ -5037,6 +5072,18 @@ window.Game = window.Game || {};
       addUnique(result.completedChecks, checkName);
       result.checkedCount += 1;
       if (resultKey) result[resultKey] = subResult.ok === true;
+      const moneyAfterLocal = snapshotMoneyLog();
+      const mutated = moneyBeforeLocal.length !== moneyAfterLocal.length || moneyBeforeLocal.signature !== moneyAfterLocal.signature;
+      if (mutated) {
+        addUnique(result.moneyLogMutationSources, {
+          check: checkName,
+          before: { length: moneyBeforeLocal.length, signature: moneyBeforeLocal.signature },
+          after: { length: moneyAfterLocal.length, signature: moneyAfterLocal.signature },
+        });
+        if (options && options.restoreMoneyLog === true) {
+          restoreLogState(logStateBefore);
+        }
+      }
       if (subResult.ok !== true) fail(`${checkName}_not_ok`, subResult);
       return subResult;
     };
@@ -5067,7 +5114,7 @@ window.Game = window.Game || {};
       result.econUiReferenceOk = typeof Game.__DEV.smokeEconUi_RegressionPackOnce === "function"
         && typeof Game.__DEV.smokeEconUi_FinalAuditOnce === "function";
       if (!result.econUiReferenceOk) fail("econ_ui_reference_missing", "Game.__DEV.smokeEconUi_RegressionPackOnce");
-      const econUiRes = runRequiredSmoke("econ_ui_final_audit", Game.__DEV.smokeEconUi_FinalAuditOnce, "econUiAuditOk");
+      const econUiRes = runRequiredSmoke("econ_ui_final_audit", Game.__DEV.smokeEconUi_FinalAuditOnce, "econUiAuditOk", { restoreMoneyLog: true });
       if (!econUiRes || econUiRes.ok !== true) fail("econ_ui_not_checked", econUiRes);
       runRequiredSmoke("final_contract", Game.__DEV.smokeZProfileFinalContractOnce, "finalContractOk");
       runRequiredSmoke("derivation_mapping", Game.__DEV.smokeZProfileDerivationMappingOnce, "derivationMappingOk");
@@ -5084,6 +5131,7 @@ window.Game = window.Game || {};
         fail("money_log_unchanged", {
           before: { length: result.moneyLogBeforeLength, signature: result.moneyLogSignatureBefore },
           after: { length: result.moneyLogAfterLength, signature: result.moneyLogSignatureAfter },
+          mutationSources: result.moneyLogMutationSources.slice(),
         });
       }
       if (!result.buildTag || !result.commit || !result.smokeVersion) fail("build_identification_missing", { buildTag: result.buildTag, commit: result.commit, smokeVersion: result.smokeVersion });

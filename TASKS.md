@@ -19,6 +19,17 @@
 - Scope held: runtime-acceptance coverage fix only plus mirrored docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
 
+## 2026-06-12 — Step 8.12c z-profile runtime acceptance moneyLog restore fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Fix only the Step 8 runtime acceptance `money_log_unchanged` failure without weakening validation or changing any other acceptance checks.
+- Root cause: `Game.__DEV.smokeEconUi_FinalAuditOnce()` is not read-only. It runs `Game.__DEV.smokeEconUi_RegressionPackOnce()`, `Game.__DEV.smokeEconUi_NoSilentReasonsOnce()`, and `Game.__DEV.smokeEconUi_ZeroSumOnce()`, and those ECON-UI dependency smokes intentionally append audit rows to `Game.__D.moneyLog`.
+- Acceptance smoke now tracks per-check `moneyLog` signatures in `moneyLogMutationSources`, so Safari can attribute any mutation to the exact dependency smoke instead of only reporting a final before/after mismatch.
+- Acceptance smoke snapshots and restores `moneyLog` / `moneyLogByBattle` state around the mutating ECON-UI final audit dependency, keeping `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()` read-only while still requiring the ECON-UI audit to execute and pass.
+- `moneyLogChanged` verification remains unchanged at the top level: the acceptance smoke still fails if any mutation survives the read-only restore boundary.
+- Served identity: `build_2026_06_12_step8_12c_z_profile_runtime_acceptance_moneylog_restore_fix` / `step8_12c_z_profile_runtime_acceptance_moneylog_restore_fix` / `step8_12_z_profile_runtime_acceptance_smoke_v20260612_003`.
+- Scope held: runtime-acceptance moneyLog restore only plus mirrored docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeZProfileRuntimeAcceptanceOnce()`.
+
 ## 2026-06-12 — Step 7 z-profile final package document
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Create only the final `UI_PROFILE_ZOOMER_FINAL.md` package document plus a Safari smoke for package completeness, without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
