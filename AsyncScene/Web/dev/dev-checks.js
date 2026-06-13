@@ -37,6 +37,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.__DEV && typeof G.__DEV.smokeStyleLexPack === "function" && typeof G.Dev.smokeStyleLexPack !== "function") {
     G.Dev.smokeStyleLexPack = G.__DEV.smokeStyleLexPack;
   }
+  if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep37Final === "function" && typeof G.Dev.smokeToneProfilesStep37Final !== "function") {
+    G.Dev.smokeToneProfilesStep37Final = G.__DEV.smokeToneProfilesStep37Final;
+  }
+  if (G.Dev && typeof G.Dev.smokeToneProfilesStep37Final === "function" && typeof G.__DEV.smokeToneProfilesStep37Final !== "function") {
+    G.__DEV.smokeToneProfilesStep37Final = G.Dev.smokeToneProfilesStep37Final;
+  }
 
   function installProfileSelfCheck(devStore) {
     if (!devStore || typeof devStore !== "object") return;

@@ -2,6 +2,7 @@
 - Added the final integrated Step 3 runtime smoke as `Game.__DEV.smokeToneProfilesStep37Final()` with identity `build_2026_06_14_step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke_v20260614_001`.
 - The aggregate smoke composes the existing Step 3 first-launch, secondary-visibility, alternate-resolver, replacement, save-validation, weird-input, and future-hook smokes into one runtime result contract without changing underlying gameplay, resolver mappings, profiles, or save schema.
 - The runtime output now exposes the required final booleans: `firstLaunchOk`, `profileSelectionOk`, `secondaryFieldAppearsAfterFirstSelection`, `profileChangeAfterFirstEntryOk`, `reloadOk`, `saveContainsOnlyUiProfile`, `noBirthYearAgeFantasyBirthYear`, `weirdInputsSafe`, and `futureAncientReady`, alongside `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Added a dev-checks bridge so the smoke is exported through the same `Game.__DEV`/`Game.Dev` handoff pattern used by other Safari smokes.
 - Added the dedicated local smoke entrypoint `npm run smoke:step6_3_7` for the new aggregate runtime command.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.6 save validation runtime fix
