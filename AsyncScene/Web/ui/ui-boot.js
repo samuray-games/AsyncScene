@@ -2380,6 +2380,111 @@ window.Game = window.Game || {};
         return result;
       };
     }
+    if (typeof G.__DEV.smokeBirthYearSecondarySafeWeirdInputs !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_3_4_secondary_safe_weird_inputs";
+      const COMMIT = "step6_3_4_secondary_safe_weird_inputs";
+      const SMOKE_VERSION = "step6_3_4_secondary_safe_weird_inputs_smoke_v20260614_003";
+      const readPersistedText = () => {
+        const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+        let storageText = "";
+        try {
+          if (window.localStorage) {
+            const entries = [];
+            for (let i = 0; i < window.localStorage.length; i += 1) {
+              const key = window.localStorage.key(i);
+              entries.push(`${key}=${window.localStorage.getItem(key)}`);
+            }
+            storageText = entries.join("|");
+          }
+        } catch (_) {}
+        const saveText = JSON.stringify((state && state.save) || {});
+        const snapshotText = JSON.stringify((state && (state.snapshot || state.worldSnapshot)) || {});
+        const worldSnapshotText = JSON.stringify((state && state.worldSnapshot) || {});
+        return { storageText, saveText, snapshotText, worldSnapshotText, allText: [storageText, saveText, snapshotText, worldSnapshotText].join("|") };
+      };
+      const readProfile = () => (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "default");
+      const setPrimary = (value) => {
+        const next = String(value == null ? "" : value).padStart(2, "0").slice(-2);
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
+        if (digit0) digit0.textContent = next[0];
+        if (digit1) digit1.textContent = next[1];
+        if (picker) picker.setAttribute("data-birth-year-value", next);
+        return next;
+      };
+      const setSecondary = (value) => {
+        const field = document.getElementById("startBirthYearFeelingInput");
+        if (field) field.value = String(value == null ? "" : value);
+        return field ? String(field.value || "") : "";
+      };
+      G.__DEV.smokeBirthYearSecondarySafeWeirdInputs = function smokeBirthYearSecondarySafeWeirdInputs() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          acceptedInputs: [],
+          fallbackProfiles: [],
+          resolverSafeForWeirdInputs: false,
+          noRawWeirdInputPersistence: false,
+          uiFunctionalAfterWeirdInputs: false,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          const startBtn = document.getElementById("btnStart");
+          if (!startBtn) fail("start_button_missing", null);
+          const weirdInputs = ["0000", "3026", "1138", "476 AD", "25 BBY"];
+          const acceptedInputs = [];
+          const fallbackProfiles = [];
+          weirdInputs.forEach((input) => {
+            setPrimary("90");
+            setSecondary(input);
+            acceptedInputs.push(String((document.getElementById("startBirthYearFeelingInput") || {}).value || ""));
+            const profile = G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function"
+              ? G.Data.resolveUiProfileFromBirthYearValue(input)
+              : "default";
+            fallbackProfiles.push(profile);
+            if (profile !== "default") fail("weird_input_not_default", { input, profile });
+            if (startBtn) startBtn.click();
+            if (readProfile() !== "default") fail("weird_input_did_not_fallback_to_default", { input, profile: readProfile() });
+            if (typeof UI.returnToStartScreen === "function") UI.returnToStartScreen();
+            else if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          });
+          result.acceptedInputs = acceptedInputs;
+          result.fallbackProfiles = fallbackProfiles;
+          const after = readPersistedText();
+          const forbiddenPattern = /(birthYear|birth_year|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i;
+          result.noRawWeirdInputPersistence = !/0000|3026|1138|476 AD|25 BBY/.test(after.allText) && !forbiddenPattern.test(after.allText);
+          result.resolverSafeForWeirdInputs = result.fallbackProfiles.every((profile) => profile === "default");
+          result.uiFunctionalAfterWeirdInputs = readProfile() === "default";
+          if (!result.noRawWeirdInputPersistence) fail("raw_weird_input_persisted", after);
+          if (!result.resolverSafeForWeirdInputs) fail("weird_input_not_default_fallback", result.fallbackProfiles);
+          if (!result.uiFunctionalAfterWeirdInputs) fail("ui_not_functional_after_weird_inputs", readProfile());
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.acceptedInputs.length === 5
+          && result.resolverSafeForWeirdInputs === true
+          && result.noRawWeirdInputPersistence === true
+          && result.uiFunctionalAfterWeirdInputs === true;
+        if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+        G.Dev.smokeBirthYearSecondarySafeWeirdInputs = G.__DEV.smokeBirthYearSecondarySafeWeirdInputs;
+        return result;
+      };
+    }
     if (typeof G.__DEV.smokeFirstEntryFlag !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_first_entry_flag";
       const COMMIT = "step6_3_first_entry_flag";
