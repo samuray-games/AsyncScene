@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.1 first entry flag
+- Persisted the existing onboarding completion flag on the first successful UI-profile selection so repeat startups can detect that a profile was already chosen before.
+- The runtime keeps using the existing `onboardingSeen` storage/state path (`AsyncScene_onboarding_seen_v1`); no secondary field, profile switching, resolver changes, or future profile support were added.
+- Added dev-only smoke `Game.__DEV.smokeFirstEntryFlag()` to verify first-launch reset state, first successful `90 -> millennial` selection, onboarding flag persistence, repeat-startup detection, and repeat `01 -> zoomer` selection.
+- Served identity: `build_2026_06_14_step6_3_first_entry_flag` / `step6_3_first_entry_flag` / `step6_3_first_entry_flag_smoke_v20260614_001`.
+
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Kept the UI profile resolver and save privacy contract unchanged, and added the final runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
 - The smoke now checks `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, `rawInputClearedAfterResolver`, `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, and `uiProfileFromResolverOnly`, plus the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.

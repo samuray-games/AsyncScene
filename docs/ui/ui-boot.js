@@ -267,6 +267,12 @@ window.Game = window.Game || {};
     return uiProfile;
   }
 
+  function persistFirstUiProfileSelection(UI, uiProfile) {
+    if (uiProfile === "default") return false;
+    setOnboardingSeen(UI, true);
+    return true;
+  }
+
   function shouldShowFreshStartScreen(UI) {
     const G = window.Game || {};
     const S = (UI && UI.S) || G.State || G.__S || null;
@@ -832,6 +838,7 @@ window.Game = window.Game || {};
       } catch (_) {}
       try {
         const uiProfile = applyUiProfileBeforeEnter(UI, readBirthYearProfileValue());
+        persistFirstUiProfileSelection(UI, uiProfile);
         if (UI && UI.S) {
           UI.S.flags = UI.S.flags || {};
           UI.S.flags.uiProfile = uiProfile;
@@ -953,6 +960,7 @@ window.Game = window.Game || {};
       }
       const birthYearValue = readBirthYearProfileValue();
       const uiProfile = applyUiProfileBeforeEnter(UI, birthYearValue);
+      persistFirstUiProfileSelection(UI, uiProfile);
       markBootDiag(`UI_PROFILE_RESOLVED:${uiProfile}`);
 
       if (resumeMode && !(S.flags.started || S.isStarted === true)) {
@@ -2110,6 +2118,94 @@ window.Game = window.Game || {};
           && result.rawInputClearedAfterResolver === true;
         if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
         G.Dev.smokeBirthYearUiProfileSelectionFinal = G.__DEV.smokeBirthYearUiProfileSelectionFinal;
+        return result;
+      };
+    }
+    if (typeof G.__DEV.smokeFirstEntryFlag !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_3_first_entry_flag";
+      const COMMIT = "step6_3_first_entry_flag";
+      const SMOKE_VERSION = "step6_3_first_entry_flag_smoke_v20260614_001";
+      const readOnboardingSeen = () => getOnboardingSeen(UI);
+      const setPrimary = (value) => {
+        const next = String(value == null ? "" : value).padStart(2, "0").slice(-2);
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
+        if (digit0) digit0.textContent = next[0];
+        if (digit1) digit1.textContent = next[1];
+        if (picker) picker.setAttribute("data-birth-year-value", next);
+        return next;
+      };
+      const enterGame = () => {
+        const btn = document.getElementById("btnStart");
+        if (!btn) throw new Error("btnStart_missing");
+        btn.click();
+      };
+      G.__DEV.smokeFirstEntryFlag = function smokeFirstEntryFlag() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          onboardingSeenBefore: false,
+          onboardingSeenAfterFirstSelection: false,
+          onboardingSeenOnRepeatStartup: false,
+          firstProfile: null,
+          repeatProfile: null,
+          repeatResumeDetected: false,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          resetOnboardingSeen(UI);
+          result.onboardingSeenBefore = readOnboardingSeen();
+          if (result.onboardingSeenBefore !== false) fail("onboarding_flag_not_reset", result.onboardingSeenBefore);
+
+          setPrimary("90");
+          enterGame();
+          result.firstProfile = (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || null);
+          result.onboardingSeenAfterFirstSelection = readOnboardingSeen();
+          if (result.firstProfile !== "millennial") fail("first_profile_not_millennial", result.firstProfile);
+          if (result.onboardingSeenAfterFirstSelection !== true) fail("onboarding_flag_not_persisted", result.onboardingSeenAfterFirstSelection);
+
+          if (UI && UI.S) {
+            UI.S.flags = UI.S.flags || {};
+            UI.S.flags.started = false;
+            UI.S.isStarted = false;
+          }
+          if (G.State) {
+            G.State.flags = G.State.flags || {};
+            G.State.flags.started = false;
+            G.State.isStarted = false;
+          }
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          result.onboardingSeenOnRepeatStartup = readOnboardingSeen();
+          if (result.onboardingSeenOnRepeatStartup !== true) fail("repeat_startup_cannot_detect_previous_selection", result.onboardingSeenOnRepeatStartup);
+
+          setPrimary("01");
+          enterGame();
+          result.repeatProfile = (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || null);
+          result.repeatResumeDetected = readOnboardingSeen() === true && result.repeatProfile === "zoomer";
+          if (result.repeatProfile !== "zoomer") fail("repeat_profile_not_zoomer", result.repeatProfile);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.onboardingSeenBefore === false
+          && result.onboardingSeenAfterFirstSelection === true
+          && result.onboardingSeenOnRepeatStartup === true
+          && result.firstProfile === "millennial"
+          && result.repeatProfile === "zoomer"
+          && result.repeatResumeDetected === true;
         return result;
       };
     }
