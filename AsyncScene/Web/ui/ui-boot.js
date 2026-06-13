@@ -246,6 +246,12 @@ window.Game = window.Game || {};
     return String(picker.getAttribute("data-birth-year-value") || "").trim();
   }
 
+  function readUiProfileResolverValue() {
+    const secondary = String((document.getElementById("startBirthYearFeelingInput") || {}).value || "").trim();
+    if (secondary) return secondary;
+    return readBirthYearProfileValue();
+  }
+
   function resetStartScreenInputs() {
     const picker = document.getElementById("startBirthYearPicker");
     const digit0 = document.getElementById("startBirthYearDigit0");
@@ -863,9 +869,7 @@ window.Game = window.Game || {};
         if (e && typeof e.preventDefault === "function") e.preventDefault();
       } catch (_) {}
       try {
-        const primaryBirthYearValue = readBirthYearProfileValue();
-        const secondaryBirthYearFeelingValue = String((document.getElementById("startBirthYearFeelingInput") || {}).value || "").trim();
-        const uiProfile = applyUiProfileBeforeEnter(UI, secondaryBirthYearFeelingValue || primaryBirthYearValue);
+        const uiProfile = applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
         persistFirstUiProfileSelection(UI, uiProfile);
         if (UI && UI.S) {
           UI.S.flags = UI.S.flags || {};
@@ -986,8 +990,7 @@ window.Game = window.Game || {};
       if (G.__DEV && typeof G.__DEV === "object") {
         G.__DEV.__uiProfileAppliedBeforeEnter = false;
       }
-      const birthYearValue = readBirthYearProfileValue();
-      const uiProfile = applyUiProfileBeforeEnter(UI, birthYearValue);
+      const uiProfile = applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
       persistFirstUiProfileSelection(UI, uiProfile);
       markBootDiag(`UI_PROFILE_RESOLVED:${uiProfile}`);
 
@@ -2251,7 +2254,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeBirthYearSecondaryAlternateResolver !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_3_secondary_alternate_resolver";
       const COMMIT = "step6_3_3_secondary_alternate_resolver";
-      const SMOKE_VERSION = "step6_3_3_secondary_alternate_resolver_smoke_v20260614_001";
+      const SMOKE_VERSION = "step6_3_3_secondary_alternate_resolver_smoke_v20260614_002";
       const ALLOWED_PERSIST_KEYS = new Set(["AsyncScene_onboarding_seen_v1"]);
       const collectPersisted = () => {
         const storage = [];

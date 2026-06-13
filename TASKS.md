@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver path fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: fix the actual runtime alternate-resolver execution path so secondary input can override a previously selected primary profile through the existing Profile Resolver, while keeping uiProfile-only persistence unchanged.
+- Kept dev-only Safari command: `Game.__DEV.smokeBirthYearSecondaryAlternateResolver()`.
+- Smoke still verifies primary profile selection, secondary resolver execution, `uiProfile` replacement after secondary input, uiProfile-only persistence, no raw secondary value persistence, and returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_14_step6_3_3_secondary_alternate_resolver` / `step6_3_3_secondary_alternate_resolver` / `step6_3_3_secondary_alternate_resolver_smoke_v20260614_002`.
+- Scope held: runtime resolver path fix only; no profile history, no new storage keys, no weird-input handling beyond the current fallback behavior, no unrelated refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearSecondaryAlternateResolver()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: route the secondary start-screen field through the existing Profile Resolver so it can change `uiProfile`, while persisting only the resolved `uiProfile` and leaving the primary birth-year flow unchanged.
