@@ -1,3 +1,13 @@
+## 2026-06-13 — Step 6.2.1 two-digit year expansion
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the central two-digit year resolver expansion so `00-27` maps to `2000-2027` and `28-99` maps to `1928-1999`.
+- The year-to-profile bands now resolve in one place: `1928-1945 -> silent`, `1946-1964 -> boomer`, `1965-1980 -> genX`, `1981-1996 -> millennial`, `1997-2012 -> zoomer`, and `2013-2027 -> alpha`.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+- Smoke coverage now checks `87 -> 1987 -> millennial`, `98 -> 1998 -> zoomer`, `04 -> 2004 -> zoomer`, `15 -> 2015 -> alpha`, `55 -> 1955 -> boomer`, and `30 -> 1930 -> silent`, and returns `buildTag`, `commit`, `smokeVersion`, resolver checks, and `ok`.
+- Served identity: `build_2026_06_13_step6_2_two_digit_year_expansion` / `step6_2_two_digit_year_expansion` / `step6_2_two_digit_year_expansion_smoke_v20260613_001`.
+- Scope held: resolver-only change plus mirrored docs updates; no save/load changes, no UI changes, no persistence additions, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.7 final UI profile selection smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Add the final integrated Safari smoke for the whole UI profile selection flow.
