@@ -1971,7 +1971,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_13_step6_2_5_reload_behavior_ui_profile_fix";
       const COMMIT = "step6_2_5_reload_behavior_ui_profile_fix";
-      const SMOKE_VERSION = "step6_2_5_reload_behavior_ui_profile_fix_v20260613_001";
+      const SMOKE_VERSION = "step6_2_5_reload_behavior_ui_profile_fix_v20260613_002";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
