@@ -290,6 +290,16 @@ window.Game = window.Game || {};
     const uiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
+    const profileTargets = [Data, UI && UI.S, G.__S, G.State];
+    profileTargets.forEach((state) => {
+      if (!state || typeof state !== "object") return;
+      if (state.flags && typeof state.flags === "object" && Object.prototype.hasOwnProperty.call(state.flags, "uiProfile")) {
+        delete state.flags.uiProfile;
+      }
+      if (state.save && typeof state.save === "object" && Object.prototype.hasOwnProperty.call(state.save, "uiProfile")) {
+        delete state.save.uiProfile;
+      }
+    });
     if (Data && typeof Data.setUiProfile === "function") {
       Data.setUiProfile(uiProfile);
     } else if (Data && typeof Data === "object") {
@@ -2251,7 +2261,7 @@ window.Game = window.Game || {};
         return result;
       };
     }
-    if (typeof G.__DEV.smokeBirthYearSecondaryAlternateResolver !== "function") {
+  if (typeof G.__DEV.smokeBirthYearSecondaryAlternateResolver !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_3_secondary_alternate_resolver";
       const COMMIT = "step6_3_3_secondary_alternate_resolver";
       const SMOKE_VERSION = "step6_3_3_secondary_alternate_resolver_smoke_v20260614_002";
@@ -2377,6 +2387,113 @@ window.Game = window.Game || {};
           && result.uiProfileChangesAfterSecondaryInput === true
           && result.onlyUiProfilePersisted === true
           && result.rawSecondaryValuePersisted === false;
+        return result;
+      };
+    }
+    if (typeof G.__DEV.smokeBirthYearProfileReplacement !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_3_5_profile_replacement";
+      const COMMIT = "step6_3_5_profile_replacement";
+      const SMOKE_VERSION = "step6_3_5_profile_replacement_smoke_v20260614_001";
+      const readProfile = () => (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "default");
+      const setPrimary = (value) => {
+        const next = String(value == null ? "" : value).padStart(2, "0").slice(-2);
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
+        if (digit0) digit0.textContent = next[0];
+        if (digit1) digit1.textContent = next[1];
+        if (picker) picker.setAttribute("data-birth-year-value", next);
+        return next;
+      };
+      const setSecondary = (value) => {
+        const field = document.getElementById("startBirthYearFeelingInput");
+        if (field) field.value = String(value == null ? "" : value);
+        return field ? String(field.value || "") : "";
+      };
+      const collectActiveProfile = () => {
+        const save = (() => {
+          const state = (G.__S && typeof G.__S === "object" ? G.__S : null) || (G.State && typeof G.State === "object" ? G.State : null) || {};
+          return state.save && typeof state.save === "object" ? state.save : {};
+        })();
+        return {
+          data: readProfile(),
+          uiFlags: (G.__S && G.__S.flags && G.__S.flags.uiProfile) || null,
+          stateFlags: (G.State && G.State.flags && G.State.flags.uiProfile) || null,
+          save: save.uiProfile || null,
+        };
+      };
+      const allProfileValues = (snapshot) => [snapshot.data, snapshot.uiFlags, snapshot.stateFlags, snapshot.save].filter((value) => value != null).map((value) => String(value));
+      G.__DEV.smokeBirthYearProfileReplacement = function smokeBirthYearProfileReplacement() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          millennialToZoomerWorks: false,
+          zoomerToMillennialWorks: false,
+          onlyCurrentProfileActive: false,
+          activeProfileAfterMillennial: null,
+          activeProfileAfterZoomer: null,
+          activeProfileAfterReturn: null,
+          activeProfileSnapshots: [],
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          const startBtn = document.getElementById("btnStart");
+          if (!startBtn) fail("start_button_missing", null);
+
+          setPrimary("90");
+          setSecondary("");
+          if (startBtn) startBtn.click();
+          result.activeProfileAfterMillennial = readProfile();
+          result.millennialToZoomerWorks = result.activeProfileAfterMillennial === "millennial";
+          if (!result.millennialToZoomerWorks) fail("millennial_profile_failed", result.activeProfileAfterMillennial);
+          result.activeProfileSnapshots.push({ step: "millennial", snapshot: collectActiveProfile() });
+
+          if (typeof UI.returnToStartScreen === "function") UI.returnToStartScreen();
+          else if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+
+          setPrimary("90");
+          setSecondary("01");
+          if (startBtn) startBtn.click();
+          result.activeProfileAfterZoomer = readProfile();
+          result.zoomerToMillennialWorks = result.activeProfileAfterZoomer === "zoomer";
+          if (!result.zoomerToMillennialWorks) fail("zoomer_profile_failed", result.activeProfileAfterZoomer);
+          result.activeProfileSnapshots.push({ step: "zoomer", snapshot: collectActiveProfile() });
+
+          if (typeof UI.returnToStartScreen === "function") UI.returnToStartScreen();
+          else if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+
+          setPrimary("90");
+          setSecondary("");
+          if (startBtn) startBtn.click();
+          result.activeProfileAfterReturn = readProfile();
+          result.activeProfileSnapshots.push({ step: "return", snapshot: collectActiveProfile() });
+
+          const finalSnapshot = result.activeProfileSnapshots[result.activeProfileSnapshots.length - 1] ? result.activeProfileSnapshots[result.activeProfileSnapshots.length - 1].snapshot : null;
+          const finalValues = finalSnapshot ? allProfileValues(finalSnapshot) : [];
+          result.onlyCurrentProfileActive = result.activeProfileAfterReturn === "millennial"
+            && finalValues.length > 0
+            && finalValues.every((value) => value === "millennial");
+          if (!result.onlyCurrentProfileActive) fail("mixed_profile_state", { snapshot: finalSnapshot, finalValues });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.millennialToZoomerWorks === true
+          && result.zoomerToMillennialWorks === true
+          && result.onlyCurrentProfileActive === true;
         return result;
       };
     }

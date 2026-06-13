@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.5 profile replacement
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make a newly selected UI profile fully replace the previous one, with no mixed profile state and no persistence schema change.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearProfileReplacement()`.
+- Smoke verifies `90 -> millennial`, `01 -> zoomer`, millennial -> zoomer replacement, zoomer -> millennial replacement, only the current profile remains active after each switch, no profile mixing remains in the active UI state, and persistence contains only the final `uiProfile`.
+- Served identity: `build_2026_06_14_step6_3_5_profile_replacement` / `step6_3_5_profile_replacement` / `step6_3_5_profile_replacement_smoke_v20260614_001`.
+- Scope held: replacement-only runtime state handling; no profile history, no blending, no new save fields, no resolver changes, no unrelated refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearProfileReplacement()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.4 safe weird inputs
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make the secondary start-screen field safely accept unusual inputs while preserving the existing fallback behavior, with no new future/ancient profile content and no raw secondary persistence.
