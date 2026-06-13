@@ -136,7 +136,31 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       Object.freeze({ min: 0, max: 12 }),
     ]),
   });
+  const UI_PROFILE_RESERVED_FUTURE_IDS = Object.freeze([
+    "ancient",
+    "future",
+    "sci-fi",
+    "medieval",
+    "absurd",
+  ]);
+  const UI_PROFILE_RESERVED_FUTURE_ID_SET = new Set(UI_PROFILE_RESERVED_FUTURE_IDS);
+  const UI_PROFILE_FUTURE_HOOK = Object.freeze({
+    reservedIds: UI_PROFILE_RESERVED_FUTURE_IDS,
+    defaultProfile: "default",
+    isReservedId(profile) {
+      const value = String(profile == null ? "" : profile).trim().toLowerCase();
+      return UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value);
+    },
+    resolve(profile) {
+      const value = String(profile == null ? "" : profile).trim().toLowerCase();
+      if (!value) return "default";
+      if (UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value)) return "default";
+      return "default";
+    },
+  });
   Data.UI_PROFILE_RULES = UI_PROFILE_RULES;
+  Data.UI_PROFILE_RESERVED_FUTURE_IDS = UI_PROFILE_RESERVED_FUTURE_IDS;
+  Data.UI_PROFILE_FUTURE_HOOK = UI_PROFILE_FUTURE_HOOK;
   Data.UI_PROFILE = "default";
 
   Data.normalizeUiProfile = (profile) => {
@@ -144,6 +168,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     if (value === "default" || value === "millennial" || value === "zoomer") return value;
     return "default";
   };
+  Data.isReservedFutureUiProfileId = (profile) => UI_PROFILE_RESERVED_FUTURE_ID_SET.has(String(profile == null ? "" : profile).trim().toLowerCase());
+  Data.resolveUiProfileFromFutureValue = (value) => UI_PROFILE_FUTURE_HOOK.resolve(value);
 
   Data.resolveUiProfileFromBirthYearValue = (value) => {
     const raw = String(value == null ? "" : value).trim();

@@ -1592,6 +1592,185 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeUiProfileResolver = G.__DEV.smokeUiProfileResolver;
     }
+    if (typeof G.__DEV.smokeFutureFunnyUiHook !== "function") {
+      const BUILD_TAG = "build_2026_06_13_step6_7_future_funny_ui_hook";
+      const COMMIT = "step6_7_future_funny_ui_hook";
+      const SMOKE_VERSION = "step6_7_future_funny_ui_hook_smoke_v20260613_001";
+      const RESERVED_FUTURE_PROFILE_IDS = ["ancient", "future", "sci-fi", "medieval", "absurd"];
+      const ACTIVE_PROFILE_IDS = ["default", "millennial", "zoomer"];
+      const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
+      const collectPersisted = () => {
+        const storageKeys = [];
+        const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+        try {
+          if (window.localStorage) {
+            for (let i = 0; i < window.localStorage.length; i += 1) storageKeys.push(window.localStorage.key(i));
+          }
+        } catch (_) {}
+        return {
+          storageKeys,
+          saveKeys: Object.keys((state && state.save) || {}),
+          snapshotKeys: Object.keys((state && (state.snapshot || state.worldSnapshot)) || {}),
+          worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {}),
+        };
+      };
+      const diffKeys = (before, after) => {
+        const beforeKeys = new Set([...(before.storageKeys || []), ...(before.saveKeys || []), ...(before.snapshotKeys || []), ...(before.worldSnapshotKeys || [])]);
+        const afterKeys = new Set([...(after.storageKeys || []), ...(after.saveKeys || []), ...(after.snapshotKeys || []), ...(after.worldSnapshotKeys || [])]);
+        return Array.from(afterKeys).filter((key) => !beforeKeys.has(key));
+      };
+      const readVisibility = () => {
+        const startScreen = document.getElementById("startScreen");
+        const picker = document.getElementById("startBirthYearPicker");
+        const field = document.getElementById("startBirthYearFeelingInput");
+        const cs = startScreen && typeof getComputedStyle === "function" ? getComputedStyle(startScreen) : null;
+        return {
+          startScreenVisible: !!(startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden") && (!cs || (cs.display !== "none" && cs.visibility !== "hidden"))),
+          primarySelectorVisible: !!(picker && picker.getBoundingClientRect && picker.getBoundingClientRect().width > 0 && picker.getBoundingClientRect().height > 0),
+          secondaryFieldVisible: !!(field && field.getBoundingClientRect && field.getBoundingClientRect().width > 0 && field.getBoundingClientRect().height > 0),
+        };
+      };
+      const readTextSnapshot = () => ({
+        uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
+        textMode: G.Data ? G.Data.TEXT_MODE : null,
+        argStyle: G.Data && typeof G.Data.getArgCanonTextStyle === "function" ? G.Data.getArgCanonTextStyle() : null,
+        systemProfile: (G.System && G.System.languageProfile) || null,
+      });
+      const hasFutureProfileContent = () => {
+        const selectors = [
+          '[data-ui-profile="ancient"]',
+          '[data-ui-profile="future"]',
+          '[data-ui-profile="sci-fi"]',
+          '[data-ui-profile="medieval"]',
+          '[data-ui-profile="absurd"]',
+          "#uiProfileAncient",
+          "#uiProfileFuture",
+          "#uiProfileSciFi",
+          "#uiProfileMedieval",
+          "#uiProfileAbsurd",
+          "#ancientUiProfile",
+          "#futureUiProfile",
+          "#sciFiUiProfile",
+          "#medievalUiProfile",
+          "#absurdUiProfile",
+        ];
+        return selectors.some((selector) => !!document.querySelector(selector));
+      };
+      G.__DEV.smokeFutureFunnyUiHook = function smokeFutureFunnyUiHook() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          reservedFutureProfileIds: [],
+          activeProfileIds: ACTIVE_PROFILE_IDS.slice(),
+          unsupportedValuesFallbackToDefault: false,
+          reservedProfilesFallbackToDefault: false,
+          fakeProfileContentCreated: false,
+          primaryResolverStillWorks: false,
+          startScreenStillWorks: false,
+          newStorageKeys: [],
+          textMixingDetected: false,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (!G.Data || typeof G.Data.UI_PROFILE_FUTURE_HOOK !== "object") fail("future_hook_missing", "Game.Data.UI_PROFILE_FUTURE_HOOK");
+          if (!G.Data || typeof G.Data.resolveUiProfileFromFutureValue !== "function") fail("future_resolver_missing", "Game.Data.resolveUiProfileFromFutureValue");
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("primary_resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          if (!G.Data || typeof G.Data.normalizeUiProfile !== "function") fail("normalize_missing", "Game.Data.normalizeUiProfile");
+
+          const hook = G.Data && G.Data.UI_PROFILE_FUTURE_HOOK && typeof G.Data.UI_PROFILE_FUTURE_HOOK === "object" ? G.Data.UI_PROFILE_FUTURE_HOOK : null;
+          const beforePersisted = collectPersisted();
+          const beforeText = readTextSnapshot();
+
+          if (hook && Array.isArray(hook.reservedIds)) {
+            result.reservedFutureProfileIds = hook.reservedIds.slice();
+            if (result.reservedFutureProfileIds.length !== RESERVED_FUTURE_PROFILE_IDS.length || !RESERVED_FUTURE_PROFILE_IDS.every((id, idx) => result.reservedFutureProfileIds[idx] === id)) {
+              fail("reserved_ids_mismatch", result.reservedFutureProfileIds.slice());
+            }
+          } else {
+            result.reservedFutureProfileIds = RESERVED_FUTURE_PROFILE_IDS.slice();
+          }
+
+          const startVisibilityBefore = readVisibility();
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
+            G.__DEV.refreshOnboardingStartScreenOnce();
+          }
+          const startVisibilityAfter = readVisibility();
+          result.startScreenStillWorks = !!(startVisibilityAfter.startScreenVisible && startVisibilityAfter.primarySelectorVisible && startVisibilityAfter.secondaryFieldVisible);
+          if (!result.startScreenStillWorks) fail("start_screen_broken", startVisibilityAfter);
+
+          const reservedChecks = RESERVED_FUTURE_PROFILE_IDS.map((id) => {
+            const normalized = G.Data.normalizeUiProfile(id);
+            const futureResolved = G.Data.resolveUiProfileFromFutureValue(id);
+            const reservedHookId = hook && typeof hook.isReservedId === "function" ? hook.isReservedId(id) === true : false;
+            const reservedHelper = typeof G.Data.isReservedFutureUiProfileId === "function" ? G.Data.isReservedFutureUiProfileId(id) === true : false;
+            if (normalized !== "default" || futureResolved !== "default" || reservedHookId !== true || reservedHelper !== true) {
+              fail("reserved_id_not_default", { id, normalized, futureResolved, reservedHookId, reservedHelper });
+            }
+            return { id, normalized, futureResolved, reservedHookId, reservedHelper };
+          });
+          result.reservedProfilesFallbackToDefault = reservedChecks.length === RESERVED_FUTURE_PROFILE_IDS.length && reservedChecks.every((entry) => entry.normalized === "default" && entry.futureResolved === "default");
+
+          const unsupportedResults = UNSUPPORTED_VALUES.map((value) => {
+            const resolved = G.Data.resolveUiProfileFromFutureValue(value);
+            if (resolved !== "default") fail("unsupported_value_not_default", { value, resolved });
+            return resolved;
+          });
+          result.unsupportedValuesFallbackToDefault = unsupportedResults.length === UNSUPPORTED_VALUES.length && unsupportedResults.every((resolved) => resolved === "default");
+
+          const primary90 = G.Data.resolveUiProfileFromBirthYearValue("90");
+          const primary01 = G.Data.resolveUiProfileFromBirthYearValue("01");
+          const primaryEmpty = G.Data.resolveUiProfileFromBirthYearValue("");
+          result.primaryResolverStillWorks = primary90 === "millennial" && primary01 === "zoomer" && primaryEmpty === "default";
+          if (!result.primaryResolverStillWorks) fail("primary_resolver_regressed", { primary90, primary01, primaryEmpty });
+
+          result.fakeProfileContentCreated = hasFutureProfileContent();
+          if (result.fakeProfileContentCreated) fail("future_profile_content_created", "future profile containers are active");
+
+          const afterPersisted = collectPersisted();
+          result.newStorageKeys = diffKeys(beforePersisted, afterPersisted);
+          if (result.newStorageKeys.length) fail("new_storage_keys_detected", result.newStorageKeys.slice());
+
+          const afterText = readTextSnapshot();
+          result.textMixingDetected = JSON.stringify(beforeText) !== JSON.stringify(afterText) && (
+            beforeText.textMode !== afterText.textMode
+            || beforeText.argStyle !== afterText.argStyle
+            || beforeText.systemProfile !== afterText.systemProfile
+          );
+          if (result.textMixingDetected) fail("text_sources_mixed", { before: beforeText, after: afterText });
+
+          if (!startVisibilityBefore.startScreenVisible || !startVisibilityBefore.primarySelectorVisible || !startVisibilityBefore.secondaryFieldVisible) {
+            fail("start_screen_not_ready_before_hook", startVisibilityBefore);
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.reservedFutureProfileIds.length === RESERVED_FUTURE_PROFILE_IDS.length
+          && result.activeProfileIds.length === ACTIVE_PROFILE_IDS.length
+          && result.unsupportedValuesFallbackToDefault === true
+          && result.reservedProfilesFallbackToDefault === true
+          && result.fakeProfileContentCreated === false
+          && result.primaryResolverStillWorks === true
+          && result.startScreenStillWorks === true
+          && result.newStorageKeys.length === 0
+          && result.textMixingDetected === false
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
