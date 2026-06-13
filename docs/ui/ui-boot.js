@@ -200,6 +200,20 @@ window.Game = window.Game || {};
       el.style.zIndex = el.style.zIndex || "2";
       if (el.tagName === "BUTTON" && !el.getAttribute("type")) el.setAttribute("type", "button");
     });
+    const showSecondary = getOnboardingSeen(UI);
+    const secondaryEls = [
+      st.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel"),
+      st.querySelector("#startBirthYearFeelingInput") || document.getElementById("startBirthYearFeelingInput"),
+    ];
+    secondaryEls.forEach((el) => {
+      if (!el) return;
+      el.hidden = !showSecondary;
+      el.style.display = showSecondary ? "" : "none";
+      el.style.visibility = showSecondary ? "visible" : "hidden";
+      el.style.opacity = showSecondary ? "1" : "0";
+      el.setAttribute("aria-hidden", showSecondary ? "false" : "true");
+      el.style.pointerEvents = showSecondary ? "auto" : "none";
+    });
   }
 
   function getOnboardingSeen(UI) {
@@ -1493,7 +1507,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeBirthYearSecondaryFieldVisibility !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_secondary_field_visibility";
       const COMMIT = "step6_3_secondary_field_visibility";
-      const SMOKE_VERSION = "step6_3_secondary_field_visibility_smoke_v20260614_001";
+      const SMOKE_VERSION = "step6_3_secondary_field_visibility_smoke_v20260614_002";
       const readVisibility = () => {
         const label = document.getElementById("startBirthYearFeelingLabel");
         const field = document.getElementById("startBirthYearFeelingInput");
