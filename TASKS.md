@@ -70,6 +70,12 @@
 - Smoke now reports firstRenderObserved, enterObserved, enterPath, appliedBeforeFirstRender, and the render/apply order trace fields needed to diagnose the first render path, plus the central boundary rules, required case set, pre-enter application ordering, no new storage keys, and no millennial/zoomer text-source mixing.
 - Served identity: `build_2026_06_13_step6_5_ui_profile_resolver_smoke_assertion_fix` / `step6_5_ui_profile_resolver_smoke_assertion_fix` / `step6_5_ui_profile_resolver_smoke_assertion_fix_smoke_v20260613_001`.
 - Scope held: resolver-only start-flow wiring plus mirrored docs/app updates; no persistence, no birth-year storage, no age/birthDate/generation storage, and no `Console.txt` usage.
+
+## 2026-06-13 — Step 6.2.3 Resolver Boundary
+- Goal: clean the UI/start-screen resolver boundary so all generation rules stay in one resolver location and the UI only calls that resolver.
+- Scope held: resolver-boundary cleanup only; no save/load changes, no UI text changes, no persistence additions, and no unrelated refactors.
+- Smoke coverage must include `resolverBoundarySingleSourceOk`, `noGenerationRangeDupesInUiCode`, `invalidInputUsesResolverDefault`, `startScreenUsesResolverOnly`, `gameProfileSelectionConsistent`, plus the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
+- Served identity for this step uses `build_2026_06_13_step6_2_3_resolver_boundary_cleanup`, commit marker `step6_2_3_resolver_boundary_cleanup`, and smoke version `step6_2_3_resolver_boundary_cleanup_v20260613_001`.
 - Required Safari command: `Game.__DEV.smokeUiProfileResolver()`.
 
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.4 no persistence rule
