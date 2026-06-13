@@ -1,7 +1,8 @@
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Goal: keep the resolver behavior and save privacy unchanged while finalizing runtime smoke coverage for the UI profile selection flow.
+- Goal: keep the resolver behavior and save privacy unchanged while finalizing runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
 - Smoke coverage now includes `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, `rawInputClearedAfterResolver`, `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, `uiProfileFromResolverOnly`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `buildTag`, `commit`, and `smokeVersion`.
+- Served runtime bundle fix applied to `ui/ui-boot.js` in both trees so Safari loads the Step 6.2.6 smoke body, not the older Step 6.2.5 body.
 - Served identity: `build_2026_06_13_step6_2_6_ui_profile_selection_final_smoke` / `step6_2_6_ui_profile_selection_final_smoke` / `step6_2_6_ui_profile_selection_final_smoke_v20260613_001`.
 - Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
 
