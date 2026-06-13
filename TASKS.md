@@ -1,9 +1,9 @@
-## 2026-06-13 — Step 6 Tone Profiles Step 1.6 future funny UI hook side-effect fix
+## 2026-06-13 — Step 6 Tone Profiles Step 1.6 future funny UI hook smoke undefined fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Make the future UI hook smoke side-effect safe without changing the hook logic or resolver boundaries.
 - Added dev-only Safari command: `Game.__DEV.smokeFutureFunnyUiHook()`.
-- Smoke verifies the reserved ids `ancient`, `future`, `sci-fi`, `medieval`, and `absurd`, confirms they stay reserved-only and resolve to `default`, checks unsupported secondary values fall back to `default`, confirms the primary resolver still maps `90 -> millennial`, `01 -> zoomer`, and `"" -> default`, confirms no future profile text containers or storage keys were created, confirms no text mixing, and now snapshots/restores the original screen, primary value, secondary value, and UI profile.
-- Served identity: `build_2026_06_13_step6_7_future_funny_ui_hook_fix` / `step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook_smoke_v20260613_002`.
+- Smoke verifies the reserved ids `ancient`, `future`, `sci-fi`, `medieval`, and `absurd`, confirms they stay reserved-only and resolve to `default`, checks unsupported secondary values fall back to `default`, confirms the primary resolver still maps `90 -> millennial`, `01 -> zoomer`, and `"" -> default`, confirms no future profile text containers or storage keys were created, confirms no text mixing, and now snapshots/restores the original screen, primary value, secondary value, and UI profile without the undefined visibility reference.
+- Served identity: `build_2026_06_13_step6_7_future_funny_ui_hook_fix2` / `step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook_smoke_v20260613_003`.
 - Scope held: smoke fix only; no active future profiles, no profile text content, no persistence, no start screen rewrite, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeFutureFunnyUiHook()`.
 

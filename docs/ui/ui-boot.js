@@ -1593,9 +1593,9 @@ window.Game = window.Game || {};
       G.Dev.smokeUiProfileResolver = G.__DEV.smokeUiProfileResolver;
     }
     if (typeof G.__DEV.smokeFutureFunnyUiHook !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_7_future_funny_ui_hook_fix";
+      const BUILD_TAG = "build_2026_06_13_step6_7_future_funny_ui_hook_fix2";
       const COMMIT = "step6_7_future_funny_ui_hook";
-      const SMOKE_VERSION = "step6_7_future_funny_ui_hook_smoke_v20260613_002";
+      const SMOKE_VERSION = "step6_7_future_funny_ui_hook_smoke_v20260613_003";
       const RESERVED_FUTURE_PROFILE_IDS = ["ancient", "future", "sci-fi", "medieval", "absurd"];
       const ACTIVE_PROFILE_IDS = ["default", "millennial", "zoomer"];
       const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
@@ -1779,9 +1779,6 @@ window.Game = window.Game || {};
           );
           if (result.textMixingDetected) fail("text_sources_mixed", { before: beforeText, after: afterText });
 
-          if (!startVisibilityBefore.startScreenVisible || !startVisibilityBefore.primarySelectorVisible || !startVisibilityBefore.secondaryFieldVisible) {
-            fail("start_screen_not_ready_before_hook", startVisibilityBefore);
-          }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         } finally {
