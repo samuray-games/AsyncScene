@@ -1,3 +1,12 @@
+## 2026-06-13 — Step 6 Tone Profiles Step 1.6 future funny UI hook
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Add a safe reserved-only future UI profile hook next to the existing resolver boundary without activating ancient/future/sci-fi/medieval/absurd UI content.
+- Added dev-only Safari command: `Game.__DEV.smokeFutureFunnyUiHook()`.
+- Smoke verifies the reserved ids `ancient`, `future`, `sci-fi`, `medieval`, and `absurd`, confirms they stay reserved-only and resolve to `default`, checks unsupported secondary values fall back to `default`, confirms the primary resolver still maps `90 -> millennial`, `01 -> zoomer`, and `"" -> default`, confirms no future profile text containers or storage keys were created, and confirms no text mixing.
+- Served identity: `build_2026_06_13_step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook_smoke_v20260613_001`.
+- Scope held: hook/config only; no active future profiles, no profile text content, no persistence, no start screen rewrite, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeFutureFunnyUiHook()`.
+
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.5 change-later flow
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Let the player return to the start screen, see the UI selector again, change the two-digit UI profile, and keep the new secondary future-feeling field as a safe no-op hook.
