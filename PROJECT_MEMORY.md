@@ -11,11 +11,12 @@
 - Added dev-only smoke `Game.__DEV.smokeBirthYearValueContract()` to verify representative states `00, 01, 09, 10, 42, 95, 99`, empty-state safety, and the absence of age/birthDate/date-object leakage or new localStorage/save/world-snapshot keys.
 - Updated build identity to `build_2026_06_13_step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract_smoke_v20260613_001`.
 
-## 2026-06-13 — Step 6 Tone Profiles Step 1.3 UI profile resolver apply-before-render
+## 2026-06-13 — Step 6 Tone Profiles Step 1.3 UI profile resolver order trace
 - Added the UI profile resolver for the two-digit birth-year value: `81-96` maps to millennial, `97-99` and `00-12` map to zoomer, and empty/untouched values stay default.
 - The resolver boundaries live in one central `UI_PROFILE_RULES` contract and are applied before the first in-game render path, with no persistence and no stored birth-year, age, birthDate, or generation values.
 - Added dev-only smoke `Game.__DEV.smokeUiProfileResolver()` to verify the required case set, boundary contract, pre-enter application ordering, and the absence of new storage keys or profile text mixing.
-- Updated build identity to `build_2026_06_13_step6_3_ui_profile_resolver_apply_before_render` / `step6_3_ui_profile_resolver_apply_before_render` / `step6_3_ui_profile_resolver_apply_before_render_smoke_v20260613_001`.
+- Added the order-trace diagnostics `firstRenderPath`, `profileResolvedAt`, `profileAppliedAt`, `firstRenderProfileRead`, `resolverProfileWriteTarget`, and `applyOrderTrace` to confirm the first render sequence.
+- Updated build identity to `build_2026_06_13_step6_4_ui_profile_resolver_order_trace` / `step6_4_ui_profile_resolver_order_trace` / `step6_4_ui_profile_resolver_order_trace_smoke_v20260613_001`.
 
 ## 2026-06-13 — Runtime source diagnosis
 - Added `Game.__DEV.smokeRuntimeSourceDiagnosis()` to report the exact runtime source currently executing in Safari, including page URL, pathname, origin, loaded JS files, source flavor, and buildTag/smokeVersion comparisons between docs and AsyncScene/Web paths.

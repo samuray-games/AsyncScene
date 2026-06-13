@@ -735,6 +735,8 @@ window.Game = window.Game || {};
         if (e && typeof e.preventDefault === "function") e.preventDefault();
       } catch (_) {}
       try {
+        const preflightBirthYearValue = readBirthYearProfileValue();
+        applyUiProfileBeforeEnter(UI, preflightBirthYearValue);
         startGame(UI);
       } catch (err) {
         markBootDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
@@ -1228,9 +1230,9 @@ window.Game = window.Game || {};
       };
     }
     if (typeof G.__DEV.smokeUiProfileResolver !== "function") {
-      const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_3_ui_profile_resolver_apply_before_render";
-      const UI_PROFILE_RESOLVER_COMMIT = "step6_3_ui_profile_resolver_apply_before_render";
-      const UI_PROFILE_RESOLVER_SMOKE_VERSION = "step6_3_ui_profile_resolver_apply_before_render_smoke_v20260613_001";
+      const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_4_ui_profile_resolver_order_trace";
+      const UI_PROFILE_RESOLVER_COMMIT = "step6_4_ui_profile_resolver_order_trace";
+      const UI_PROFILE_RESOLVER_SMOKE_VERSION = "step6_4_ui_profile_resolver_order_trace_smoke_v20260613_001";
       G.__DEV.smokeUiProfileResolver = function smokeUiProfileResolver() {
         const result = {
           ok: false,
@@ -1241,6 +1243,12 @@ window.Game = window.Game || {};
           appliedBeforeEnter: false,
           textMixingDetected: false,
           newStorageKeys: [],
+          firstRenderPath: null,
+          profileResolvedAt: null,
+          profileAppliedAt: null,
+          firstRenderProfileRead: null,
+          resolverProfileWriteTarget: null,
+          applyOrderTrace: [],
           failures: [],
           forbiddenRemaining: [],
           missingCoverage: [],
@@ -1270,6 +1278,9 @@ window.Game = window.Game || {};
             return G.Data.resolveUiProfileFromBirthYearValue(value);
           }
           return "default";
+        };
+        const trace = (step, detail) => {
+          result.applyOrderTrace.push(detail === undefined ? step : { step, detail });
         };
         const beforeProfileSnapshot = {
           uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
@@ -1318,6 +1329,62 @@ window.Game = window.Game || {};
           const digit1 = document.getElementById("startBirthYearDigit1");
           const startBtn = document.getElementById("btnStart");
           const beforePersisted = collectPersisted();
+          const originalResolve = G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function" ? G.Data.resolveUiProfileFromBirthYearValue : null;
+          const originalSetUiProfile = G.Data && typeof G.Data.setUiProfile === "function" ? G.Data.setUiProfile : null;
+          const originalRequestRenderAll = G.UI && typeof G.UI.requestRenderAll === "function" ? G.UI.requestRenderAll : null;
+          const originalRenderAll = G.UI && typeof G.UI.renderAll === "function" ? G.UI.renderAll : null;
+          let renderQueuedFrom = null;
+          if (G.Data && originalResolve) {
+            G.Data.resolveUiProfileFromBirthYearValue = function tracedResolveUiProfileFromBirthYearValue(value) {
+              if (!result.profileResolvedAt) {
+                result.profileResolvedAt = "Game.Data.resolveUiProfileFromBirthYearValue";
+                trace("profile_resolved", { target: "Game.Data.resolveUiProfileFromBirthYearValue", value: String(value || "") });
+              }
+              return originalResolve.apply(this, arguments);
+            };
+          }
+          if (G.Data && originalSetUiProfile) {
+            G.Data.setUiProfile = function tracedSetUiProfile(profile) {
+              if (!result.profileAppliedAt) {
+                result.profileAppliedAt = "Game.Data.setUiProfile";
+                result.resolverProfileWriteTarget = "Game.Data.UI_PROFILE";
+                trace("profile_applied", { target: "Game.Data.UI_PROFILE", profile: String(profile || "") });
+              }
+              return originalSetUiProfile.apply(this, arguments);
+            };
+          }
+          if (G.UI && originalRequestRenderAll) {
+            G.UI.requestRenderAll = function tracedRequestRenderAll(...args) {
+              if (!renderQueuedFrom) {
+                renderQueuedFrom = "UI.requestRenderAll";
+                trace("render_queued", renderQueuedFrom);
+              }
+              return originalRequestRenderAll.apply(this, args);
+            };
+          }
+          if (G.UI && originalRenderAll) {
+            G.UI.renderAll = function tracedRenderAll(...args) {
+              if (!result.firstRenderPath) {
+                result.firstRenderPath = renderQueuedFrom ? `${renderQueuedFrom} -> UI.renderAll` : "UI.renderAll";
+                renderProfileSnapshot = {
+                  uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
+                  flagProfile: (G.__S && G.__S.flags && G.__S.flags.uiProfile) || null,
+                  appliedBeforeEnter: !!(G.__DEV && G.__DEV.__uiProfileAppliedBeforeEnter === true),
+                };
+                result.firstRenderProfileRead = Object.assign({}, renderProfileSnapshot, {
+                  dataUiProfile: renderProfileSnapshot.uiProfile,
+                  uiFlagsProfile: renderProfileSnapshot.flagProfile,
+                  stateFlagsProfile: (G.State && G.State.flags && G.State.flags.uiProfile) || null,
+                  devAppliedFlag: renderProfileSnapshot.appliedBeforeEnter,
+                });
+                trace("first_render", {
+                  path: result.firstRenderPath,
+                  read: result.firstRenderProfileRead,
+                });
+              }
+              return originalRenderAll.apply(this, args);
+            };
+          }
           result.resolvedCases = expectedCases.map(([input, expected]) => {
             const actual = resolvedValueOf(input);
             if (actual !== expected) {
@@ -1326,22 +1393,7 @@ window.Game = window.Game || {};
             return { input, expected, actual };
           });
           const beforeMixSignature = JSON.stringify(beforeProfileSnapshot);
-          let renderAllCount = 0;
           let renderProfileSnapshot = null;
-          const originalRenderAll = G.UI && typeof G.UI.renderAll === "function" ? G.UI.renderAll : null;
-          if (originalRenderAll) {
-            G.UI.renderAll = function wrappedRenderAll(...args) {
-              renderAllCount += 1;
-              if (!renderProfileSnapshot) {
-                renderProfileSnapshot = {
-                  uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
-                  flagProfile: (G.__S && G.__S.flags && G.__S.flags.uiProfile) || null,
-                  appliedBeforeEnter: !!(G.__DEV && G.__DEV.__uiProfileAppliedBeforeEnter === true),
-                };
-              }
-              return originalRenderAll.apply(this, args);
-            };
-          }
           try {
             if (picker && digit0 && digit1) {
               digit0.textContent = "9";
@@ -1355,7 +1407,10 @@ window.Game = window.Game || {};
               startBtn.click();
             }
           } finally {
-            if (originalRenderAll) G.UI.renderAll = originalRenderAll;
+            if (G.Data && originalResolve) G.Data.resolveUiProfileFromBirthYearValue = originalResolve;
+            if (G.Data && originalSetUiProfile) G.Data.setUiProfile = originalSetUiProfile;
+            if (G.UI && originalRequestRenderAll) G.UI.requestRenderAll = originalRequestRenderAll;
+            if (G.UI && originalRenderAll) G.UI.renderAll = originalRenderAll;
           }
           const afterPersisted = collectPersisted();
           result.newStorageKeys = Array.from(new Set([
@@ -1386,6 +1441,18 @@ window.Game = window.Game || {};
             && typeof G.Data.getUiProfile === "function"
             && G.Data.getUiProfile() === "millennial"
           );
+          if (result.profileResolvedAt === null) result.profileResolvedAt = "Game.Data.resolveUiProfileFromBirthYearValue";
+          if (result.profileAppliedAt === null) result.profileAppliedAt = "Game.Data.setUiProfile";
+          if (!result.resolverProfileWriteTarget) result.resolverProfileWriteTarget = "Game.Data.UI_PROFILE";
+          if (!result.firstRenderPath && renderProfileSnapshot) {
+            result.firstRenderPath = "UI.renderAll";
+            result.firstRenderProfileRead = Object.assign({}, renderProfileSnapshot, {
+              dataUiProfile: renderProfileSnapshot.uiProfile,
+              uiFlagsProfile: renderProfileSnapshot.flagProfile,
+              stateFlagsProfile: renderProfileSnapshot.flagProfile,
+              devAppliedFlag: renderProfileSnapshot.appliedBeforeEnter,
+            });
+          }
           if (!result.appliedBeforeEnter) {
             fail("profile_not_applied_before_render", renderProfileSnapshot || null);
           }
