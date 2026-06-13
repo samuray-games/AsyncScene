@@ -133,6 +133,9 @@ window.Game = window.Game || {};
           <h1 id="startTitle"></h1>
           <div id="startIntroLines"></div>
           <div id="startEconomyHonestyLine"></div>
+          <label id="startBirthYearLabel" class="startFieldLabel" for="startBirthYearInput">Последние 2 цифры года рождения</label>
+          <input id="startBirthYearInput" class="startFieldInput" type="text" inputmode="numeric" autocomplete="off" maxlength="2" aria-describedby="startBirthYearHint" />
+          <div id="startBirthYearHint" class="startFieldHint">Только для интерфейса. Мы не сохраняем это. Можно изменить позже.</div>
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
             <button id="btnRules" class="btn"></button>
@@ -178,11 +181,11 @@ window.Game = window.Game || {};
       card.style.position = card.style.position || "relative";
       card.style.zIndex = card.style.zIndex || "1";
     }
-    st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding").forEach((button) => {
-      button.style.pointerEvents = "auto";
-      button.style.position = button.style.position || "relative";
-      button.style.zIndex = button.style.zIndex || "2";
-      if (!button.getAttribute("type")) button.setAttribute("type", "button");
+    st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding, #startBirthYearInput").forEach((el) => {
+      el.style.pointerEvents = "auto";
+      el.style.position = el.style.position || "relative";
+      el.style.zIndex = el.style.zIndex || "2";
+      if (el.tagName === "BUTTON" && !el.getAttribute("type")) el.setAttribute("type", "button");
     });
   }
 
@@ -286,6 +289,38 @@ window.Game = window.Game || {};
     if (economyEl) {
       economyEl.textContent = spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine : "";
     }
+
+    let birthYearLabel = $("startBirthYearLabel") || document.getElementById("startBirthYearLabel");
+    if (!birthYearLabel && economyEl && economyEl.parentNode) {
+      birthYearLabel = document.createElement("label");
+      birthYearLabel.id = "startBirthYearLabel";
+      birthYearLabel.className = "startFieldLabel";
+      birthYearLabel.setAttribute("for", "startBirthYearInput");
+      economyEl.parentNode.insertBefore(birthYearLabel, economyEl.nextSibling);
+    }
+    if (birthYearLabel) birthYearLabel.textContent = "Последние 2 цифры года рождения";
+
+    let birthYearInput = $("startBirthYearInput") || document.getElementById("startBirthYearInput");
+    if (!birthYearInput && birthYearLabel && birthYearLabel.parentNode) {
+      birthYearInput = document.createElement("input");
+      birthYearInput.id = "startBirthYearInput";
+      birthYearInput.className = "startFieldInput";
+      birthYearInput.type = "text";
+      birthYearInput.setAttribute("inputmode", "numeric");
+      birthYearInput.setAttribute("autocomplete", "off");
+      birthYearInput.setAttribute("maxlength", "2");
+      birthYearInput.setAttribute("aria-describedby", "startBirthYearHint");
+      birthYearLabel.parentNode.insertBefore(birthYearInput, birthYearLabel.nextSibling);
+    }
+
+    let birthYearHint = $("startBirthYearHint") || document.getElementById("startBirthYearHint");
+    if (!birthYearHint && birthYearInput && birthYearInput.parentNode) {
+      birthYearHint = document.createElement("div");
+      birthYearHint.id = "startBirthYearHint";
+      birthYearHint.className = "startFieldHint";
+      birthYearInput.parentNode.insertBefore(birthYearHint, birthYearInput.nextSibling);
+    }
+    if (birthYearHint) birthYearHint.textContent = "Только для интерфейса. Мы не сохраняем это. Можно изменить позже.";
 
     const resumeMode = getOnboardingSeen(UI);
     const startBtn = $("btnStart") || document.getElementById("btnStart");
@@ -893,6 +928,80 @@ window.Game = window.Game || {};
         resetVisible: !!(document.getElementById("btnResetOnboarding") && !document.getElementById("btnResetOnboarding").hidden),
       };
     };
+    if (typeof G.__DEV.smokeBirthYearStartScreenUi !== "function") {
+      G.__DEV.smokeBirthYearStartScreenUi = function smokeBirthYearStartScreenUi() {
+        const result = {
+          ok: false,
+          buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
+          commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
+          smokeVersion: "step6_1_birth_year_start_screen_ui_smoke_v20260613_001",
+          startScreenVisible: false,
+          inputVisible: false,
+          helperVisible: false,
+          emptyStartOk: false,
+          persistenceHits: [],
+          failures: [],
+          failedChecks: []
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const st = document.getElementById("startScreen");
+          const input = document.getElementById("startBirthYearInput");
+          const hint = document.getElementById("startBirthYearHint");
+          if (!st) fail("start_screen_missing", null);
+          if (!input) fail("birth_year_input_missing", null);
+          if (!hint) fail("helper_missing", null);
+          if (st) {
+            const cs = getComputedStyle(st);
+            result.startScreenVisible = !st.hidden && !st.classList.contains("hidden") && cs.display !== "none" && cs.visibility !== "hidden";
+            if (!result.startScreenVisible) fail("start_screen_not_visible", null);
+          }
+          if (input) {
+            const cs = getComputedStyle(input);
+            result.inputVisible = !input.hidden && cs.display !== "none" && cs.visibility !== "hidden" && input.getClientRects().length > 0;
+            if (!result.inputVisible) fail("birth_year_input_not_visible", null);
+          }
+          if (hint) {
+            const cs = getComputedStyle(hint);
+            result.helperVisible = !hint.hidden && cs.display !== "none" && cs.visibility !== "hidden" && hint.getClientRects().length > 0;
+            if (!result.helperVisible) fail("helper_not_visible", null);
+            if ((hint.textContent || "").trim() !== "Только для интерфейса. Мы не сохраняем это. Можно изменить позже.") fail("helper_copy_mismatch", (hint.textContent || "").trim());
+          }
+          const startBtn = document.getElementById("btnStart");
+          if (!startBtn) {
+            fail("start_button_missing", null);
+          } else {
+            const before = {
+              localStorageKeys: Object.keys(window.localStorage || {}),
+              saveKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.save) || {})),
+              snapshotKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.snapshot) || {}))
+            };
+            if (input) input.value = "";
+            startBtn.click();
+            const after = {
+              localStorageKeys: Object.keys(window.localStorage || {}),
+              saveKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.save) || {})),
+              snapshotKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.snapshot) || {}))
+            };
+            result.emptyStartOk = !!(window.Game && window.Game.__S && window.Game.__S.isStarted === true);
+            if (!result.emptyStartOk) fail("empty_start_blocked", null);
+            const combined = JSON.stringify({ before, after });
+            if (/birth|year|age/i.test(combined)) {
+              result.persistenceHits.push(combined);
+              fail("persistence_hit", combined);
+            }
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0;
+        console.warn("BIRTH_YEAR_START_SCREEN_UI_SMOKE", result.ok ? "PASS" : "FAIL", result);
+        return result;
+      };
+    }
     if (typeof G.__DEV.smokeZoomerForbiddenRulesOnce !== "function") {
       const fetchTextSync = (path) => {
         try {
