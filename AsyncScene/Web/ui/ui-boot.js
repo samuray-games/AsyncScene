@@ -1933,6 +1933,407 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
     }
+    if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
+      const BUILD_TAG = "build_2026_06_13_step6_8_birth_year_ui_profile_selection_final";
+      const COMMIT = "step6_8_birth_year_ui_profile_selection_final";
+      const SMOKE_VERSION = "step6_8_birth_year_ui_profile_selection_final_smoke_v20260613_001";
+      const RESERVED_FUTURE_PROFILE_IDS = ["ancient", "future", "sci-fi", "medieval", "absurd"];
+      G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          startScreenOk: false,
+          primarySelectorOk: false,
+          helperTextOk: false,
+          emptySafe: false,
+          millennialCaseOk: false,
+          zoomerCaseOk: false,
+          invalidTextValuesSafe: false,
+          returnedToStart: false,
+          profileChangeAfterReturnWorks: false,
+          noPersistenceOk: false,
+          secondaryFieldOk: false,
+          weirdSecondaryValuesSafe: false,
+          secondaryAffectsProfile: false,
+          futureHookOk: false,
+          textMixingDetected: false,
+          newStorageKeys: [],
+          sideEffectSafe: false,
+          uiStateRestored: false,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: []
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const cloneJson = (value) => {
+          try {
+            return JSON.parse(JSON.stringify(value == null ? {} : value));
+          } catch (_) {
+            return value && typeof value === "object" ? {} : value;
+          }
+        };
+        const assignObject = (target, source) => {
+          if (!target || typeof target !== "object") return;
+          const next = source && typeof source === "object" ? source : {};
+          Object.keys(target).forEach((key) => {
+            if (!Object.prototype.hasOwnProperty.call(next, key)) delete target[key];
+          });
+          Object.keys(next).forEach((key) => { target[key] = next[key]; });
+        };
+        const readProfile = () => (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "default");
+        const readVisibility = () => {
+          const startScreen = document.getElementById("startScreen");
+          const picker = document.getElementById("startBirthYearPicker");
+          const helper = document.getElementById("startBirthYearHint");
+          const field = document.getElementById("startBirthYearFeelingInput");
+          const cs = startScreen && typeof getComputedStyle === "function" ? getComputedStyle(startScreen) : null;
+          return {
+            startScreenVisible: !!(startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden") && (!cs || (cs.display !== "none" && cs.visibility !== "hidden"))),
+            primarySelectorVisible: !!(picker && picker.getBoundingClientRect && picker.getBoundingClientRect().width > 0 && picker.getBoundingClientRect().height > 0),
+            helperTextVisible: !!(helper && helper.getBoundingClientRect && helper.getBoundingClientRect().width > 0 && helper.getBoundingClientRect().height > 0),
+            secondaryFieldVisible: !!(field && field.getBoundingClientRect && field.getBoundingClientRect().width > 0 && field.getBoundingClientRect().height > 0)
+          };
+        };
+        const readTextSignature = () => JSON.stringify({
+          textMode: G.Data ? G.Data.TEXT_MODE : null,
+          argStyle: G.Data && typeof G.Data.getArgCanonTextStyle === "function" ? G.Data.getArgCanonTextStyle() : null,
+          systemProfile: (G.System && G.System.languageProfile) || null,
+        });
+        const setPrimary = (value) => {
+          const next = String(value == null ? "" : value).padStart(2, "0").slice(-2);
+          const picker = document.getElementById("startBirthYearPicker");
+          const digit0 = document.getElementById("startBirthYearDigit0");
+          const digit1 = document.getElementById("startBirthYearDigit1");
+          if (digit0) digit0.textContent = next[0];
+          if (digit1) digit1.textContent = next[1];
+          if (picker) picker.setAttribute("data-birth-year-value", next);
+          return next;
+        };
+        const setPrimaryRaw = (value) => {
+          const picker = document.getElementById("startBirthYearPicker");
+          if (picker) picker.setAttribute("data-birth-year-value", String(value == null ? "" : value));
+          return picker ? String(picker.getAttribute("data-birth-year-value") || "") : "";
+        };
+        const setSecondary = (value) => {
+          const field = document.getElementById("startBirthYearFeelingInput");
+          if (field) field.value = String(value == null ? "" : value);
+          return field ? String(field.value || "") : "";
+        };
+        const resolvePrimary = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
+          ? G.Data.resolveUiProfileFromBirthYearValue(value)
+          : "default";
+        const resolveFuture = (value) => (G.Data && typeof G.Data.resolveUiProfileFromFutureValue === "function")
+          ? G.Data.resolveUiProfileFromFutureValue(value)
+          : "default";
+        const returnToStart = () => {
+          if (typeof UI.returnToStartScreen === "function") return UI.returnToStartScreen();
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") return G.__DEV.refreshOnboardingStartScreenOnce();
+          return readVisibility();
+        };
+        const clickStart = () => {
+          const btn = document.getElementById("btnStart");
+          if (!btn) {
+            fail("start_button_missing", null);
+            return false;
+          }
+          btn.click();
+          return true;
+        };
+        const collectPersisted = () => {
+          const storage = [];
+          try {
+            if (window.localStorage) {
+              for (let i = 0; i < window.localStorage.length; i += 1) {
+                const key = window.localStorage.key(i);
+                storage.push([key, window.localStorage.getItem(key)]);
+              }
+            }
+          } catch (_) {}
+          const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+          const save = (state && state.save) || {};
+          const snapshot = (state && (state.snapshot || state.worldSnapshot)) || {};
+          const worldSnapshot = (state && state.worldSnapshot) || {};
+          const safeText = (value) => {
+            try { return JSON.stringify(value == null ? {} : value); } catch (_) { return "[unserializable]"; }
+          };
+          return {
+            storage,
+            storageKeys: storage.map((x) => x[0]),
+            saveKeys: Object.keys(save || {}),
+            snapshotKeys: Object.keys(snapshot || {}),
+            worldSnapshotKeys: Object.keys(worldSnapshot || {}),
+            allKeys: Array.from(new Set(storage.map((x) => x[0]).concat(Object.keys(save || {}), Object.keys(snapshot || {}), Object.keys(worldSnapshot || {})).filter(Boolean))),
+            allText: storage.map((x) => `${x[0]}=${x[1]}`).join("|") + safeText(save) + safeText(snapshot) + safeText(worldSnapshot)
+          };
+        };
+        const diffKeys = (before, after) => {
+          const beforeKeys = new Set([...(before.storageKeys || []), ...(before.saveKeys || []), ...(before.snapshotKeys || []), ...(before.worldSnapshotKeys || [])]);
+          const afterKeys = new Set([...(after.storageKeys || []), ...(after.saveKeys || []), ...(after.snapshotKeys || []), ...(after.worldSnapshotKeys || [])]);
+          return Array.from(afterKeys).filter((key) => !beforeKeys.has(key));
+        };
+        const restorePersisted = (before) => {
+          try {
+            if (window.localStorage) {
+              const keys = [];
+              for (let i = 0; i < window.localStorage.length; i += 1) keys.push(window.localStorage.key(i));
+              keys.forEach((key) => window.localStorage.removeItem(key));
+              (before.storage || []).forEach(([key, value]) => {
+                try { window.localStorage.setItem(key, value); } catch (_) {}
+              });
+            }
+          } catch (_) {}
+          const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+          if (state) {
+            const targets = [
+              [state, before.state],
+              [window.Game && window.Game.__S && window.Game.__S !== state ? window.Game.__S : null, before.state],
+              [window.Game && window.Game.State && window.Game.State !== state && window.Game.State !== window.Game.__S ? window.Game.State : null, before.state],
+            ];
+            const applySnapshot = (target, snapshot) => {
+              if (!target || !snapshot) return;
+              if (!target.save || typeof target.save !== "object") target.save = {};
+              if (!target.snapshot || typeof target.snapshot !== "object") target.snapshot = {};
+              if (!target.worldSnapshot || typeof target.worldSnapshot !== "object") target.worldSnapshot = {};
+              if (!target.flags || typeof target.flags !== "object") target.flags = {};
+              if (!target.progress || typeof target.progress !== "object") target.progress = {};
+              assignObject(target.save, snapshot.save);
+              assignObject(target.snapshot, snapshot.snapshot);
+              assignObject(target.worldSnapshot, snapshot.worldSnapshot);
+              assignObject(target.flags, snapshot.flags);
+              assignObject(target.progress, snapshot.progress);
+              if (typeof snapshot.isStarted !== "undefined") target.isStarted = snapshot.isStarted;
+            };
+            targets.forEach(([target, snapshot]) => applySnapshot(target, snapshot));
+          }
+        };
+        const stateTargets = [];
+        const addStateTarget = (target) => {
+          if (target && stateTargets.indexOf(target) < 0) stateTargets.push(target);
+        };
+        addStateTarget(UI && UI.S);
+        addStateTarget(G.__S);
+        addStateTarget(G.State);
+        const originalState = stateTargets.map((target) => ({
+          target,
+          save: cloneJson(target.save),
+          snapshot: cloneJson(target.snapshot),
+          worldSnapshot: cloneJson(target.worldSnapshot),
+          flags: cloneJson(target.flags),
+          progress: cloneJson(target.progress),
+          isStarted: target.isStarted
+        }));
+        const restoreState = () => {
+          originalState.forEach((snapshot) => {
+            const target = snapshot && snapshot.target;
+            if (!target || typeof target !== "object") return;
+            if (!target.save || typeof target.save !== "object") target.save = {};
+            if (!target.snapshot || typeof target.snapshot !== "object") target.snapshot = {};
+            if (!target.worldSnapshot || typeof target.worldSnapshot !== "object") target.worldSnapshot = {};
+            if (!target.flags || typeof target.flags !== "object") target.flags = {};
+            if (!target.progress || typeof target.progress !== "object") target.progress = {};
+            assignObject(target.save, snapshot.save);
+            assignObject(target.snapshot, snapshot.snapshot);
+            assignObject(target.worldSnapshot, snapshot.worldSnapshot);
+            assignObject(target.flags, snapshot.flags);
+            assignObject(target.progress, snapshot.progress);
+            if (typeof snapshot.isStarted !== "undefined") target.isStarted = snapshot.isStarted;
+          });
+        };
+        const restoreProfile = (profile) => {
+          if (G.Data && typeof G.Data.setUiProfile === "function") {
+            G.Data.setUiProfile(profile);
+          } else if (G.Data && typeof G.Data === "object") {
+            G.Data.UI_PROFILE = profile;
+          }
+          [UI && UI.S, G.__S, G.State].forEach((target) => {
+            if (!target || typeof target !== "object") return;
+            target.flags = target.flags || {};
+            target.flags.uiProfile = profile;
+          });
+        };
+        const originalVisibility = readVisibility();
+        const originalPrimaryValue = String((document.getElementById("startBirthYearPicker") && document.getElementById("startBirthYearPicker").getAttribute("data-birth-year-value")) || "");
+        const originalSecondaryValue = String((document.getElementById("startBirthYearFeelingInput") && document.getElementById("startBirthYearFeelingInput").value) || "");
+        const originalProfile = readProfile();
+        const originalTextSignature = readTextSignature();
+        const originalDevAppliedBeforeEnter = !!(G.__DEV && G.__DEV.__uiProfileAppliedBeforeEnter === true);
+        const beforePersisted = collectPersisted();
+        const originalWasStart = originalVisibility.startScreenVisible === true;
+        const restoreOriginalView = () => {
+          setPrimary(originalPrimaryValue || "00");
+          setSecondary(originalSecondaryValue || "");
+          restoreProfile(originalProfile);
+          if (G.__DEV && typeof G.__DEV === "object") {
+            G.__DEV.__uiProfileAppliedBeforeEnter = originalDevAppliedBeforeEnter;
+          }
+          if (originalWasStart) {
+            returnToStart();
+          } else {
+            clickStart();
+          }
+        };
+        try {
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          if (!G.Data || typeof G.Data.resolveUiProfileFromFutureValue !== "function") fail("future_resolver_missing", "Game.Data.resolveUiProfileFromFutureValue");
+          if (!G.Data || typeof G.Data.isReservedFutureUiProfileId !== "function") fail("future_reserved_id_helper_missing", "Game.Data.isReservedFutureUiProfileId");
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
+            G.__DEV.refreshOnboardingStartScreenOnce();
+          } else {
+            returnToStart();
+          }
+          const startVisible = readVisibility();
+          result.startScreenOk = startVisible.startScreenVisible === true;
+          result.primarySelectorOk = startVisible.primarySelectorVisible === true;
+          result.helperTextOk = startVisible.helperTextVisible === true && !!document.getElementById("startBirthYearHint");
+          result.secondaryFieldOk = startVisible.secondaryFieldVisible === true;
+          if (!result.startScreenOk) fail("start_screen_not_visible", startVisible);
+          if (!result.primarySelectorOk) fail("primary_selector_not_visible", startVisible);
+          if (!result.helperTextOk) fail("helper_text_not_visible", startVisible);
+          if (!result.secondaryFieldOk) fail("secondary_field_not_visible", startVisible);
+          const noPrimaryTextInput = !document.querySelector("#startBirthYearPicker input, #startBirthYearPicker textarea");
+          if (!noPrimaryTextInput) fail("primary_selector_contains_text_input", null);
+
+          result.emptySafe = resolvePrimary("") === "default";
+          if (!result.emptySafe) fail("empty_default_resolver_failed", resolvePrimary(""));
+          setPrimary("00");
+          setSecondary("");
+          clickStart();
+          result.emptySafe = result.emptySafe && readProfile() === "zoomer";
+          if (!result.emptySafe) fail("empty_default_start_failed", readProfile());
+
+          returnToStart();
+          setPrimary("90");
+          setSecondary("");
+          clickStart();
+          result.millennialCaseOk = readProfile() === "millennial";
+          if (!result.millennialCaseOk) fail("millennial_case_failed", readProfile());
+          returnToStart();
+          result.returnedToStart = !!readVisibility().startScreenVisible;
+          if (!result.returnedToStart) fail("returned_to_start_failed", readVisibility());
+          const afterReturnVisible = readVisibility();
+          result.secondaryFieldOk = result.secondaryFieldOk && afterReturnVisible.secondaryFieldVisible === true;
+          if (!afterReturnVisible.secondaryFieldVisible) fail("secondary_field_not_visible_after_return", afterReturnVisible);
+          setPrimary("01");
+          setSecondary("");
+          clickStart();
+          result.zoomerCaseOk = readProfile() === "zoomer";
+          if (!result.zoomerCaseOk) fail("zoomer_case_failed", readProfile());
+          result.profileChangeAfterReturnWorks = result.zoomerCaseOk === true;
+          returnToStart();
+          const invalidTextValues = ["2001", "ab"];
+          const invalidObserved = [];
+          invalidTextValues.forEach((value) => {
+            setPrimaryRaw(value);
+            setSecondary("");
+            clickStart();
+            invalidObserved.push(readProfile());
+            returnToStart();
+          });
+          result.invalidTextValuesSafe = invalidObserved.length === invalidTextValues.length
+            && invalidObserved.every((value) => value === "default")
+            && invalidTextValues.every((value) => resolvePrimary(value) === "default");
+          if (!result.invalidTextValuesSafe) fail("invalid_text_values_rejected", invalidObserved);
+
+          const weirdSecondaryValues = ["", "0000", "3026", "-400", "born near Tatooine", "medieval knight year"];
+          const weirdObserved = [];
+          weirdSecondaryValues.forEach((value) => {
+            setPrimary("01");
+            setSecondary(value);
+            clickStart();
+            const profile = readProfile();
+            weirdObserved.push(profile);
+            if (profile !== "zoomer") {
+              result.secondaryAffectsProfile = true;
+              fail("secondary_value_changed_profile", { value, profile });
+            }
+            returnToStart();
+          });
+          result.weirdSecondaryValuesSafe = weirdObserved.length === weirdSecondaryValues.length && weirdObserved.every((value) => value === "zoomer");
+          if (!result.weirdSecondaryValuesSafe) fail("weird_secondary_values_not_safe", weirdObserved);
+
+          const reservedIdsOk = Array.isArray(G.Data.UI_PROFILE_RESERVED_FUTURE_IDS) && RESERVED_FUTURE_PROFILE_IDS.every((id) => G.Data.UI_PROFILE_RESERVED_FUTURE_IDS.indexOf(id) >= 0);
+          const futureFallbackOk = RESERVED_FUTURE_PROFILE_IDS.every((id) => G.Data.isReservedFutureUiProfileId(id) === true && resolveFuture(id) === "default");
+          const weirdFutureFallbackOk = ["born near Tatooine", "medieval knight year", "2001", "ab"].every((value) => resolveFuture(value) === "default");
+          const fakeProfileNodes = RESERVED_FUTURE_PROFILE_IDS.filter((id) => (
+            document.getElementById(`${id}UiProfile`)
+            || document.getElementById(`${id.replace(/-/g, "")}UiProfile`)
+            || document.querySelector(`[data-ui-profile="${id}"]`)
+          ));
+          result.futureHookOk = reservedIdsOk && futureFallbackOk && weirdFutureFallbackOk && fakeProfileNodes.length === 0;
+          if (!result.futureHookOk) fail("future_hook_inert", { reservedIdsOk, futureFallbackOk, weirdFutureFallbackOk, fakeProfileNodes });
+
+          result.noPersistenceOk = true;
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          restoreProfile(originalProfile);
+          restoreState();
+          restorePersisted(beforePersisted);
+          setPrimary(originalPrimaryValue || "00");
+          setSecondary(originalSecondaryValue || "");
+          if (originalWasStart) {
+            returnToStart();
+          } else {
+            clickStart();
+            restorePersisted(beforePersisted);
+            restoreState();
+            restoreProfile(originalProfile);
+          }
+          if (G.__DEV && typeof G.__DEV === "object") {
+            G.__DEV.__uiProfileAppliedBeforeEnter = originalDevAppliedBeforeEnter;
+          }
+        }
+        const finalPersisted = collectPersisted();
+        result.newStorageKeys = diffKeys(beforePersisted, finalPersisted);
+        const finalTextSignature = readTextSignature();
+        result.textMixingDetected = originalTextSignature !== finalTextSignature;
+        if (result.textMixingDetected) fail("text_sources_mixed", { before: originalTextSignature, after: finalTextSignature });
+        result.sideEffectSafe = (
+          JSON.stringify(originalVisibility) === JSON.stringify(readVisibility())
+          && String(originalPrimaryValue || "") === String((document.getElementById("startBirthYearPicker") && document.getElementById("startBirthYearPicker").getAttribute("data-birth-year-value")) || "")
+          && String(originalSecondaryValue || "") === String((document.getElementById("startBirthYearFeelingInput") && document.getElementById("startBirthYearFeelingInput").value) || "")
+          && String(originalProfile || "") === String(readProfile() || "")
+        );
+        result.uiStateRestored = result.sideEffectSafe === true && result.textMixingDetected === false;
+        result.noPersistenceOk = result.newStorageKeys.length === 0
+          && !finalPersisted.allText.includes("born near Tatooine")
+          && !finalPersisted.allText.includes("medieval knight year");
+        if (!result.noPersistenceOk) fail("persistence_not_clean", { newStorageKeys: result.newStorageKeys, allText: finalPersisted.allText });
+        if (!result.sideEffectSafe) fail("side_effect_unsafe", { originalVisibility, finalVisibility: readVisibility(), originalPrimaryValue, originalSecondaryValue, originalProfile });
+        if (!result.uiStateRestored) fail("ui_state_not_restored", { originalVisibility, finalVisibility: readVisibility(), originalPrimaryValue, originalSecondaryValue, originalProfile });
+        result.ok = result.startScreenOk === true
+          && result.primarySelectorOk === true
+          && result.helperTextOk === true
+          && result.emptySafe === true
+          && result.millennialCaseOk === true
+          && result.zoomerCaseOk === true
+          && result.invalidTextValuesSafe === true
+          && result.returnedToStart === true
+          && result.profileChangeAfterReturnWorks === true
+          && result.noPersistenceOk === true
+          && result.secondaryFieldOk === true
+          && result.weirdSecondaryValuesSafe === true
+          && result.secondaryAffectsProfile === false
+          && result.futureHookOk === true
+          && result.textMixingDetected === false
+          && result.newStorageKeys.length === 0
+          && result.sideEffectSafe === true
+          && result.uiStateRestored === true
+          && result.failures.length === 0
+          && result.failedChecks.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0;
+        if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+        G.Dev.smokeBirthYearUiProfileSelectionFinal = G.__DEV.smokeBirthYearUiProfileSelectionFinal;
+        return result;
+      };
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
