@@ -246,6 +246,38 @@ window.Game = window.Game || {};
     return String(picker.getAttribute("data-birth-year-value") || "").trim();
   }
 
+  function resetStartScreenInputs() {
+    const picker = document.getElementById("startBirthYearPicker");
+    const digit0 = document.getElementById("startBirthYearDigit0");
+    const digit1 = document.getElementById("startBirthYearDigit1");
+    const secondary = document.getElementById("startBirthYearFeelingInput");
+    if (digit0) digit0.textContent = "0";
+    if (digit1) digit1.textContent = "0";
+    if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", "00");
+    if (secondary) secondary.value = "";
+  }
+
+  function restoreFreshStartScreenState(UI) {
+    const G = window.Game || {};
+    resetOnboardingSeen(UI);
+    if (UI && UI.S) {
+      UI.S.isStarted = false;
+      UI.S.flags = UI.S.flags || {};
+      UI.S.flags.started = false;
+    }
+    if (G.State) {
+      G.State.isStarted = false;
+      G.State.flags = G.State.flags || {};
+      G.State.flags.started = false;
+    }
+    if (G.__DEV && typeof G.__DEV === "object") {
+      G.__DEV.__uiProfileAppliedBeforeEnter = false;
+    }
+    resetStartScreenInputs();
+    applyStartScreenContent(UI);
+    ensureStartScreenVisible(UI);
+  }
+
   function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {
     const G = window.Game || {};
     const Data = G.Data || null;
@@ -819,14 +851,7 @@ window.Game = window.Game || {};
         markBootDiag("reset_onboarding_click");
         try { if (e && typeof e.preventDefault === "function") e.preventDefault(); } catch (_) {}
         try { if (e && typeof e.stopPropagation === "function") e.stopPropagation(); } catch (_) {}
-        resetOnboardingSeen(UI);
-        if (UI.S) {
-          UI.S.isStarted = false;
-          UI.S.flags = UI.S.flags || {};
-          UI.S.flags.started = false;
-        }
-        applyStartScreenContent(UI);
-        ensureStartScreenVisible(UI);
+        restoreFreshStartScreenState(UI);
       };
     }
 
@@ -1132,6 +1157,15 @@ window.Game = window.Game || {};
         onboardingSeen: getOnboardingSeen(UI),
         primaryText: ((document.getElementById("btnStart") || {}).textContent || "").trim(),
         resetVisible: !!(document.getElementById("btnResetOnboarding") && !document.getElementById("btnResetOnboarding").hidden),
+      };
+    };
+    G.__DEV.restoreFreshStartScreenStateOnce = function restoreFreshStartScreenStateOnce() {
+      restoreFreshStartScreenState(UI);
+      return {
+        ok: true,
+        onboardingSeen: getOnboardingSeen(UI),
+        primaryValue: readBirthYearProfileValue(),
+        secondaryValue: ((document.getElementById("startBirthYearFeelingInput") || {}).value || ""),
       };
     };
     const runBirthYearNoPersistenceSmoke = function runBirthYearNoPersistenceSmoke() {
@@ -1479,17 +1513,23 @@ window.Game = window.Game || {};
       };
     }
     if (typeof G.__DEV.smokeBirthYearSecondaryFieldVisibility !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_3_secondary_field_visibility";
-      const COMMIT = "step6_3_secondary_field_visibility";
-      const SMOKE_VERSION = "step6_3_secondary_field_visibility_smoke_v20260614_002";
+      const BUILD_TAG = "build_2026_06_14_step6_3_secondary_field_first_launch_state_fix";
+      const COMMIT = "step6_3_secondary_field_first_launch_state_fix";
+      const SMOKE_VERSION = "step6_3_secondary_field_first_launch_state_fix_smoke_v20260614_001";
       const readVisibility = () => {
         const label = document.getElementById("startBirthYearFeelingLabel");
         const field = document.getElementById("startBirthYearFeelingInput");
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
         const csLabel = label && typeof getComputedStyle === "function" ? getComputedStyle(label) : null;
         const csField = field && typeof getComputedStyle === "function" ? getComputedStyle(field) : null;
         return {
           labelVisible: !!(label && !label.hidden && (!csLabel || (csLabel.display !== "none" && csLabel.visibility !== "hidden"))),
           fieldVisible: !!(field && !field.hidden && (!csField || (csField.display !== "none" && csField.visibility !== "hidden"))),
+          primaryValue: picker && typeof picker.getAttribute === "function" ? String(picker.getAttribute("data-birth-year-value") || "") : "",
+          digit0: String((digit0 && digit0.textContent) || ""),
+          digit1: String((digit1 && digit1.textContent) || ""),
         };
       };
       G.__DEV.smokeBirthYearSecondaryFieldVisibility = function smokeBirthYearSecondaryFieldVisibility() {
@@ -1500,6 +1540,10 @@ window.Game = window.Game || {};
           smokeVersion: SMOKE_VERSION,
           hiddenOnFirstLaunch: false,
           visibleAfterSelection: false,
+          cleanupRestoredDigits: false,
+          firstLaunchDetails: null,
+          afterSelectionDetails: null,
+          cleanupDetails: null,
           failures: [],
           failedChecks: [],
           forbiddenRemaining: [],
@@ -1510,33 +1554,41 @@ window.Game = window.Game || {};
           result.failures.push(detail === undefined ? check : { check, detail });
         };
         try {
-          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
-          resetOnboardingSeen(UI);
+          const restoreFresh = () => {
+            if (typeof G.__DEV.restoreFreshStartScreenStateOnce === "function") return G.__DEV.restoreFreshStartScreenStateOnce();
+            restoreFreshStartScreenState(UI);
+            return { ok: true };
+          };
+          restoreFresh();
           const first = readVisibility();
+          result.firstLaunchDetails = first;
           result.hiddenOnFirstLaunch = first.labelVisible === false && first.fieldVisible === false;
           if (!result.hiddenOnFirstLaunch) fail("secondary_field_visible_on_first_launch", first);
+          if (first.primaryValue !== "00" || first.digit0 !== "0" || first.digit1 !== "0") fail("first_launch_digits_not_reset", first);
 
+          resetStartScreenInputs();
+          const picker = document.getElementById("startBirthYearPicker");
           const digit0 = document.getElementById("startBirthYearDigit0");
           const digit1 = document.getElementById("startBirthYearDigit1");
           const btn = document.getElementById("btnStart");
           if (digit0) digit0.textContent = "9";
           if (digit1) digit1.textContent = "0";
-          if (btn) btn.click();
+          if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", "90");
+          if (!btn) fail("start_button_missing", null);
+          else btn.click();
 
-          if (UI && UI.S) {
-            UI.S.flags = UI.S.flags || {};
-            UI.S.flags.started = false;
-            UI.S.isStarted = false;
-          }
-          if (G.State) {
-            G.State.flags = G.State.flags || {};
-            G.State.flags.started = false;
-            G.State.isStarted = false;
-          }
           if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
           const second = readVisibility();
+          result.afterSelectionDetails = second;
           result.visibleAfterSelection = second.labelVisible === true && second.fieldVisible === true;
           if (!result.visibleAfterSelection) fail("secondary_field_hidden_after_onboarding", second);
+          if (second.primaryValue !== "90") fail("selection_digits_not_at_test_value", second);
+
+          restoreFresh();
+          const cleanup = readVisibility();
+          result.cleanupDetails = cleanup;
+          result.cleanupRestoredDigits = cleanup.primaryValue === "00" && cleanup.digit0 === "0" && cleanup.digit1 === "0";
+          if (!result.cleanupRestoredDigits) fail("smoke_cleanup_corrupted_start_digits", cleanup);
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
@@ -1544,7 +1596,8 @@ window.Game = window.Game || {};
           && result.failures.length === 0
           && result.missingCoverage.length === 0
           && result.hiddenOnFirstLaunch === true
-          && result.visibleAfterSelection === true;
+          && result.visibleAfterSelection === true
+          && result.cleanupRestoredDigits === true;
         return result;
       };
     }

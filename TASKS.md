@@ -25,6 +25,15 @@
 - Scope held: runtime visibility fix only; no secondary input persistence, no uiProfile change, no alternate resolver behavior, no profile replacement, and no UI redesign.
 - Required Safari command: `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()`.
 
+## 2026-06-14 — Step 6 Tone Profiles Step 3.2 first-launch state fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: fix the real fresh-state reset/bootstrap path so first-launch state restores `onboardingSeen=false`, `00` digits, cleared secondary input, and hidden secondary field before the smoke reads visibility.
+- Updated dev-only Safari command: `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()`.
+- Smoke now checks first-launch secondary hidden, post-selection secondary visible, and cleanup restoration of start-screen digits/visibility details, while still returning `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+- Served identity: `build_2026_06_14_step6_3_secondary_field_first_launch_state_fix` / `step6_3_secondary_field_first_launch_state_fix` / `step6_3_secondary_field_first_launch_state_fix_smoke_v20260614_001`.
+- Scope held: fresh-state reset/runtime-smoke cleanup only; no secondary input persistence, no uiProfile change, no alternate resolver behavior, no resolver-range changes, and no UI redesign.
+- Required Safari command: `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()`.
+
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep the resolver behavior and save privacy unchanged while finalizing runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
