@@ -1,6 +1,7 @@
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
-- Kept the UI profile resolver and save privacy contract unchanged, and added the final runtime smoke coverage for the UI profile selection flow.
+- Kept the UI profile resolver and save privacy contract unchanged, and added the final runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
 - The smoke now checks `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, `rawInputClearedAfterResolver`, `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, and `uiProfileFromResolverOnly`, plus the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
+- Updated the served `ui/ui-boot.js` runtime body in both trees so Safari receives the Step 6.2.6 smoke implementation instead of the older Step 6.2.5 body.
 - Served identity for this step is `build_2026_06_13_step6_2_6_ui_profile_selection_final_smoke` / `step6_2_6_ui_profile_selection_final_smoke` / `step6_2_6_ui_profile_selection_final_smoke_v20260613_001`.
 
 ## 2026-06-13 — Step 6.2.2 runtime input to profile

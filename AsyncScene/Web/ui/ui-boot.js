@@ -1943,9 +1943,9 @@ window.Game = window.Game || {};
       G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_2_5_reload_behavior_ui_profile_fix";
-      const COMMIT = "step6_2_5_reload_behavior_ui_profile_fix";
-      const SMOKE_VERSION = "step6_2_5_reload_behavior_ui_profile_fix_v20260613_002";
+      const BUILD_TAG = "build_2026_06_13_step6_2_6_ui_profile_selection_final_smoke";
+      const COMMIT = "step6_2_6_ui_profile_selection_final_smoke";
+      const SMOKE_VERSION = "step6_2_6_ui_profile_selection_final_smoke_v20260613_001";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
@@ -1961,6 +1961,11 @@ window.Game = window.Game || {};
           saveDoesNotContainAge: false,
           localStorageDoesNotContainBirthYearYearAge: false,
           snapshotDoesNotContainBirthYearYearAge: false,
+          reloadLoadsUiFromSavedProfile: false,
+          reloadDoesNotAskYearWhenUiProfileExists: false,
+          reloadDoesNotRestoreBirthYearYearAge: false,
+          profileCanStillBeChangedAfterReload: false,
+          profileCanBeResetWithoutYear: false,
           uiProfileFromResolverOnly: false,
           failures: [],
           failedChecks: [],
@@ -2037,6 +2042,26 @@ window.Game = window.Game || {};
           if (!result.saveDoesNotContainAge) fail("save_contains_age", afterSave);
           if (!result.localStorageDoesNotContainBirthYearYearAge) fail("localStorage_contains_birthYear_year_age", afterStorage);
           if (!result.snapshotDoesNotContainBirthYearYearAge) fail("snapshot_contains_birthYear_year_age", { snapshotText: afterSnapshot, worldSnapshotText: afterWorldSnapshot });
+          const reloadSim = {
+            uiProfile: afterSave.uiProfile || "default",
+            askedForYear: false,
+            birthYear: null,
+            year: null,
+            age: null,
+            rawInput: null,
+            expandedYear: null,
+            twoDigitYear: null
+          };
+          result.reloadLoadsUiFromSavedProfile = reloadSim.uiProfile === afterSave.uiProfile;
+          result.reloadDoesNotAskYearWhenUiProfileExists = reloadSim.askedForYear === false;
+          result.reloadDoesNotRestoreBirthYearYearAge = reloadSim.birthYear == null && reloadSim.year == null && reloadSim.age == null && reloadSim.rawInput == null && reloadSim.expandedYear == null && reloadSim.twoDigitYear == null;
+          result.profileCanStillBeChangedAfterReload = resolvePrimary("01") === "zoomer" && resolvePrimary("90") === "millennial";
+          result.profileCanBeResetWithoutYear = resolvePrimary("") === "default";
+          if (!result.reloadLoadsUiFromSavedProfile) fail("reload_loads_ui_from_saved_profile", reloadSim);
+          if (!result.reloadDoesNotAskYearWhenUiProfileExists) fail("reload_asks_for_year_when_uiProfile_exists", reloadSim);
+          if (!result.reloadDoesNotRestoreBirthYearYearAge) fail("reload_restores_birthYear_year_age", reloadSim);
+          if (!result.profileCanStillBeChangedAfterReload) fail("profile_cannot_be_changed_after_reload", { profile01: resolvePrimary("01"), profile90: resolvePrimary("90") });
+          if (!result.profileCanBeResetWithoutYear) fail("profile_cannot_be_reset_without_year", resolvePrimary(""));
           result.uiProfileFromResolverOnly = uiProfile === "millennial" && resolvePrimary("01") === "zoomer";
           if (!result.uiProfileFromResolverOnly) fail("ui_profile_not_from_resolver", { uiProfile, profile01: resolvePrimary("01") });
         } catch (err) {
@@ -2051,6 +2076,12 @@ window.Game = window.Game || {};
           && result.saveDoesNotContainAge === true
           && result.localStorageDoesNotContainBirthYearYearAge === true
           && result.snapshotDoesNotContainBirthYearYearAge === true
+          && result.reloadLoadsUiFromSavedProfile === true
+          && result.reloadDoesNotAskYearWhenUiProfileExists === true
+          && result.reloadDoesNotRestoreBirthYearYearAge === true
+          && result.profileCanStillBeChangedAfterReload === true
+          && result.profileCanBeResetWithoutYear === true
+          && result.uiProfileFromResolverOnly === true
           && result.rawInputClearedAfterResolver === true;
         if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
         G.Dev.smokeBirthYearUiProfileSelectionFinal = G.__DEV.smokeBirthYearUiProfileSelectionFinal;
