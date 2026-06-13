@@ -1,6 +1,7 @@
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.7 final smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add one final integrated runtime smoke for the Step 3 change-later flow without changing gameplay behavior, resolver mappings, save schema, profile inventory, or persistence model.
+- Fixed the runtime exposure path so `Game.__DEV.smokeToneProfilesStep37Final()` is bridged through the same DEV export layer used by other Safari smokes.
 - Added dedicated Safari/runtime smoke command: `Game.__DEV.smokeToneProfilesStep37Final()`.
 - Added dedicated CLI smoke command: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8080/AsyncScene/Web/index.html npm run smoke:step6_3_7`.
 - Smoke output includes `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
