@@ -1186,6 +1186,73 @@ window.Game = window.Game || {};
         return runBirthYearValueContractSmoke();
       };
     }
+    if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
+      G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
+        const scripts = Array.from(document.scripts || []).map((node) => {
+          const src = node && node.getAttribute ? node.getAttribute("src") : "";
+          return {
+            src: src || "",
+            type: node && node.getAttribute ? (node.getAttribute("type") || "") : "",
+            defer: !!(node && node.defer),
+            async: !!(node && node.async),
+          };
+        });
+        const loadedSources = scripts.map((entry) => entry.src).filter(Boolean);
+        const currentScript = document.currentScript || null;
+        const currentScriptSrc = currentScript && currentScript.getAttribute ? (currentScript.getAttribute("src") || "") : "";
+        const runtimeBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null;
+        const runtimeSmokeVersion = typeof G.__DEV.smokeBirthYearValueContract === "function"
+          ? "step6_1_birth_year_value_contract_smoke_v20260613_001"
+          : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_1_birth_year_wheels_ui_smoke_v20260613_003" : null);
+        const runtimeCommit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null;
+        const pageUrl = typeof location !== "undefined" ? location.href : null;
+        const pathname = typeof location !== "undefined" ? location.pathname : null;
+        const origin = typeof location !== "undefined" ? location.origin : null;
+        const sourceFlavor = /\/docs\//.test(pageUrl || "") || /\/docs\//.test(currentScriptSrc || "")
+          ? "docs"
+          : (/\/AsyncScene\/Web\//.test(pageUrl || "") || /\/AsyncScene\/Web\//.test(currentScriptSrc || "") ? "AsyncScene/Web" : "unknown");
+        const htmlSource = currentScriptSrc && /ui-boot\.js$/.test(currentScriptSrc)
+          ? currentScriptSrc.replace(/ui\/ui-boot\.js.*$/, "index.html")
+          : null;
+        const runtimeBundleHints = loadedSources.filter((src) => /(?:ui\/ui-boot\.js|dev\/dev-checks\.js|index\.html)/.test(src));
+        const docsBuildTag = G.__DEV.buildTag || null;
+        const docsSmokeVersion = typeof G.__DEV.smokeBirthYearStartScreenUi === "function"
+          ? "step6_1_birth_year_wheels_ui_smoke_v20260613_003"
+          : null;
+        const asyncBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || null;
+        const asyncSmokeVersion = runtimeSmokeVersion;
+        return {
+          ok: true,
+          buildTag: runtimeBuildTag,
+          smokeVersion: runtimeSmokeVersion,
+          commit: runtimeCommit,
+          pageUrl,
+          pathname,
+          origin,
+          indexHtmlSource: htmlSource,
+          jsFilesLoaded: loadedSources,
+          runtimeFlavor: sourceFlavor,
+          docsBuildTag,
+          asyncWebBuildTag: asyncBuildTag,
+          buildTagsMatch: docsBuildTag === asyncBuildTag,
+          docsSmokeVersion,
+          asyncWebSmokeVersion: asyncSmokeVersion,
+          smokeVersionsMatch: docsSmokeVersion === asyncSmokeVersion,
+          currentScriptSrc,
+          runtimeBundleHints,
+          detectedMismatch: {
+            buildTagMismatch: docsBuildTag !== asyncBuildTag,
+            smokeVersionMismatch: docsSmokeVersion !== asyncSmokeVersion,
+            indexMismatch: !htmlSource || !/index\.html$/.test(htmlSource),
+          },
+          sourceLocations: {
+            indexHtml: ["AsyncScene/Web/index.html", "docs/index.html"],
+            uiBoot: ["AsyncScene/Web/ui/ui-boot.js", "docs/ui/ui-boot.js"],
+            devChecks: ["AsyncScene/Web/dev/dev-checks.js", "docs/dev/dev-checks.js"],
+          }
+        };
+      };
+    }
     if (typeof G.__DEV.smokeZoomerForbiddenRulesOnce !== "function") {
       const fetchTextSync = (path) => {
         try {
