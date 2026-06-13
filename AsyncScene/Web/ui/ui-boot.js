@@ -1939,7 +1939,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_13_step6_2_runtime_input_to_profile";
       const COMMIT = "step6_2_runtime_input_to_profile";
-      const SMOKE_VERSION = "step6_2_runtime_input_to_profile_smoke_v20260613_002";
+      const SMOKE_VERSION = "step6_2_runtime_input_to_profile_smoke_v20260613_003";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
