@@ -21,7 +21,7 @@
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.4 no persistence rule
 - Birth-year wheels and the derived UI profile remain runtime-only; this feature must not write birth-year digits, birthYear, birth_year, year, age, birthDate, birthday, generation, generationYear, profileYear, uiBirthYear, selectedBirthYear, or selectedYear into localStorage, save, or world snapshot data.
 - Added dev-only smoke `Game.__DEV.smokeBirthYearNoPersistence()` in both served bundles to snapshot localStorage/save/world state before selection, test representative values `90` and `01`, verify reload-safe digit clearing, and confirm the resolver still maps `90 -> millennial` and `01 -> zoomer`.
-- Updated served identity to `build_2026_06_13_step6_2_birth_year_no_persistence_fix` / `step6_2_birth_year_no_persistence_fix` / `step6_2_birth_year_no_persistence_smoke_v20260613_003`.
+- Updated served identity to `build_2026_06_13_step6_2_birth_year_no_persistence_fix` / `step6_2_birth_year_no_persistence_fix` / `step6_2_birth_year_no_persistence_smoke_v20260613_004`.
 - Scope held: persistence rule only; no UI redesign, no resolver boundary changes, no profile text changes, no future/funny profiles, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearNoPersistence()`.
 
