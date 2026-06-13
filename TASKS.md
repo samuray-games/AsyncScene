@@ -1,12 +1,13 @@
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.7 final smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add one final integrated runtime smoke for the Step 3 change-later flow without changing gameplay behavior, resolver mappings, save schema, profile inventory, or persistence model.
-- Fixed the runtime exposure path so `Game.__DEV.smokeToneProfilesStep37Final()` is bridged through the same DEV export layer used by other Safari smokes.
+- Identified the real runtime export issue: Safari was still executing the deployed `docs` bundle, whose `index.html` and `ui/ui-boot.js` never received the Step 3.7 smoke registration.
+- Updated the actual served `docs` runtime path so `Game.__DEV.smokeToneProfilesStep37Final()` is defined in the same `ui/ui-boot.js` registration layer as the working Step 3 smokes, with the same `Game.Dev` mirror path.
 - Added dedicated Safari/runtime smoke command: `Game.__DEV.smokeToneProfilesStep37Final()`.
 - Added dedicated CLI smoke command: `ASYNCSCENE_SMOKE_URL=http://127.0.0.1:8080/AsyncScene/Web/index.html npm run smoke:step6_3_7`.
 - Smoke output includes `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 - Smoke booleans include `firstLaunchOk`, `profileSelectionOk`, `secondaryFieldAppearsAfterFirstSelection`, `profileChangeAfterFirstEntryOk`, `reloadOk`, `saveContainsOnlyUiProfile`, `noBirthYearAgeFantasyBirthYear`, `weirdInputsSafe`, and `futureAncientReady`.
-- Served identity: `build_2026_06_14_step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke_v20260614_001`.
+- Served identity: `build_2026_06_14_step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke_v20260614_002`.
 - Scope held: final smoke only; no gameplay changes, no new profiles, no resolver mapping changes, no save-schema changes, no profile history, no unrelated refactors, and no `Console.txt` usage.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.6 save validation runtime fix

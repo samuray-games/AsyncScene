@@ -2723,6 +2723,181 @@ window.Game = window.Game || {};
         return result;
       };
     }
+    if (typeof G.__DEV.smokeToneProfilesStep37Final !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_3_7_tone_profiles_final_smoke";
+      const COMMIT = "step6_3_7_tone_profiles_final_smoke";
+      const SMOKE_VERSION = "step6_3_7_tone_profiles_final_smoke_v20260614_002";
+      const appendUnique = (target, value) => {
+        const key = JSON.stringify(value);
+        if (!target.some((entry) => JSON.stringify(entry) === key)) target.push(value);
+      };
+      G.__DEV.smokeToneProfilesStep37Final = function smokeToneProfilesStep37Final() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          firstLaunchOk: false,
+          profileSelectionOk: false,
+          secondaryFieldAppearsAfterFirstSelection: false,
+          profileChangeAfterFirstEntryOk: false,
+          reloadOk: false,
+          saveContainsOnlyUiProfile: false,
+          noBirthYearAgeFantasyBirthYear: false,
+          weirdInputsSafe: false,
+          futureAncientReady: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const mergeChild = (name, child) => {
+          if (!child || typeof child !== "object") {
+            fail(`${name}_missing`, child);
+            return;
+          }
+          if (Array.isArray(child.failures)) child.failures.forEach((entry) => appendUnique(result.failures, { smoke: name, detail: entry }));
+          if (Array.isArray(child.forbiddenRemaining)) child.forbiddenRemaining.forEach((entry) => appendUnique(result.forbiddenRemaining, { smoke: name, detail: entry }));
+          if (Array.isArray(child.missingCoverage)) child.missingCoverage.forEach((entry) => appendUnique(result.missingCoverage, { smoke: name, detail: entry }));
+          if (Array.isArray(child.failedChecks)) child.failedChecks.forEach((entry) => appendUnique(result.failedChecks, `${name}:${entry}`));
+        };
+        try {
+          const visibility = typeof G.__DEV.smokeBirthYearSecondaryFieldVisibility === "function"
+            ? G.__DEV.smokeBirthYearSecondaryFieldVisibility()
+            : null;
+          const firstEntry = typeof G.__DEV.smokeFirstEntryFlag === "function"
+            ? G.__DEV.smokeFirstEntryFlag()
+            : null;
+          const replacement = typeof G.__DEV.smokeBirthYearProfileReplacement === "function"
+            ? G.__DEV.smokeBirthYearProfileReplacement()
+            : null;
+          const saveValidation = typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal === "function"
+            ? G.__DEV.smokeBirthYearUiProfileSelectionFinal()
+            : null;
+          const weirdInputs = typeof G.__DEV.smokeBirthYearSecondarySafeWeirdInputs === "function"
+            ? G.__DEV.smokeBirthYearSecondarySafeWeirdInputs()
+            : null;
+          const futureHook = typeof G.__DEV.smokeFutureFunnyUiHook === "function"
+            ? G.__DEV.smokeFutureFunnyUiHook()
+            : null;
+          const alternateResolver = typeof G.__DEV.smokeBirthYearSecondaryAlternateResolver === "function"
+            ? G.__DEV.smokeBirthYearSecondaryAlternateResolver()
+            : null;
+
+          [
+            ["visibility", visibility],
+            ["firstEntry", firstEntry],
+            ["replacement", replacement],
+            ["saveValidation", saveValidation],
+            ["weirdInputs", weirdInputs],
+            ["futureHook", futureHook],
+            ["alternateResolver", alternateResolver],
+          ].forEach(([name, child]) => mergeChild(name, child));
+
+          result.firstLaunchOk = !!(
+            visibility
+            && visibility.hiddenOnFirstLaunch === true
+            && firstEntry
+            && firstEntry.onboardingSeenBefore === false
+          );
+          if (!result.firstLaunchOk) fail("first_launch_failed", { visibility, firstEntry });
+
+          result.profileSelectionOk = !!(
+            firstEntry
+            && firstEntry.firstProfile === "millennial"
+            && firstEntry.repeatProfile === "zoomer"
+            && saveValidation
+            && saveValidation.uiProfileFromResolverOnly === true
+          );
+          if (!result.profileSelectionOk) fail("profile_selection_failed", { firstEntry, saveValidation });
+
+          result.secondaryFieldAppearsAfterFirstSelection = !!(
+            visibility
+            && visibility.visibleAfterSelection === true
+          );
+          if (!result.secondaryFieldAppearsAfterFirstSelection) fail("secondary_field_visibility_failed", visibility);
+
+          result.profileChangeAfterFirstEntryOk = !!(
+            alternateResolver
+            && alternateResolver.uiProfileChangesAfterSecondaryInput === true
+            && replacement
+            && replacement.onlyCurrentProfileActive === true
+          );
+          if (!result.profileChangeAfterFirstEntryOk) fail("profile_change_after_first_entry_failed", { alternateResolver, replacement });
+
+          result.reloadOk = !!(
+            firstEntry
+            && firstEntry.onboardingSeenOnRepeatStartup === true
+            && firstEntry.repeatResumeDetected === true
+            && saveValidation
+            && saveValidation.reloadLoadsUiFromSavedProfile === true
+            && saveValidation.reloadDoesNotAskYearWhenUiProfileExists === true
+            && saveValidation.reloadDoesNotRestoreBirthYearYearAge === true
+          );
+          if (!result.reloadOk) fail("reload_failed", { firstEntry, saveValidation });
+
+          result.saveContainsOnlyUiProfile = !!(
+            saveValidation
+            && saveValidation.saveContainsUiProfile === true
+            && saveValidation.saveDoesNotContainBirthYear === true
+            && saveValidation.saveDoesNotContainYear === true
+            && saveValidation.saveDoesNotContainAge === true
+            && alternateResolver
+            && alternateResolver.onlyUiProfilePersisted === true
+          );
+          if (!result.saveContainsOnlyUiProfile) fail("save_schema_failed", { saveValidation, alternateResolver });
+
+          result.noBirthYearAgeFantasyBirthYear = !!(
+            saveValidation
+            && saveValidation.saveDoesNotContainBirthYear === true
+            && saveValidation.saveDoesNotContainYear === true
+            && saveValidation.saveDoesNotContainAge === true
+            && saveValidation.localStorageDoesNotContainBirthYearYearAge === true
+            && saveValidation.snapshotDoesNotContainBirthYearYearAge === true
+          );
+          if (!result.noBirthYearAgeFantasyBirthYear) fail("forbidden_persistence_detected", saveValidation);
+
+          result.weirdInputsSafe = !!(
+            weirdInputs
+            && weirdInputs.resolverSafeForWeirdInputs === true
+            && weirdInputs.noRawWeirdInputPersistence === true
+            && weirdInputs.uiFunctionalAfterWeirdInputs === true
+          );
+          if (!result.weirdInputsSafe) fail("weird_inputs_failed", weirdInputs);
+
+          result.futureAncientReady = !!(
+            futureHook
+            && futureHook.reservedProfilesFallbackToDefault === true
+            && futureHook.unsupportedValuesFallbackToDefault === true
+            && futureHook.fakeProfileContentCreated === false
+            && futureHook.primaryResolverStillWorks === true
+          );
+          if (!result.futureAncientReady) fail("future_ancient_readiness_failed", futureHook);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.firstLaunchOk === true
+          && result.profileSelectionOk === true
+          && result.secondaryFieldAppearsAfterFirstSelection === true
+          && result.profileChangeAfterFirstEntryOk === true
+          && result.reloadOk === true
+          && result.saveContainsOnlyUiProfile === true
+          && result.noBirthYearAgeFantasyBirthYear === true
+          && result.weirdInputsSafe === true
+          && result.futureAncientReady === true
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep37Final = G.__DEV.smokeToneProfilesStep37Final;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
