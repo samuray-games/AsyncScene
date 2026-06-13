@@ -1,8 +1,8 @@
-## 2026-06-13 — Step 6.2.5 reload behavior
+## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Goal: keep the resolver behavior and save privacy unchanged while making reload restore only the saved `uiProfile`, not birth year, year, age, raw input, expanded year, or two-digit year.
-- Smoke coverage now includes `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `buildTag`, `commit`, and `smokeVersion`.
-- Served identity: `build_2026_06_13_step6_2_5_reload_behavior_ui_profile_fix` / `step6_2_5_reload_behavior_ui_profile_fix` / `step6_2_5_reload_behavior_ui_profile_fix_v20260613_002`.
+- Goal: keep the resolver behavior and save privacy unchanged while finalizing runtime smoke coverage for the UI profile selection flow.
+- Smoke coverage now includes `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, `rawInputClearedAfterResolver`, `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, `uiProfileFromResolverOnly`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `buildTag`, `commit`, and `smokeVersion`.
+- Served identity: `build_2026_06_13_step6_2_6_ui_profile_selection_final_smoke` / `step6_2_6_ui_profile_selection_final_smoke` / `step6_2_6_ui_profile_selection_final_smoke_v20260613_001`.
 - Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
 
 ## 2026-06-13 — Step 6.2.2 runtime input to profile
