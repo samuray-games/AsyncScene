@@ -1,3 +1,9 @@
+## 2026-06-13 — Step 6 Tone Profiles Step 1.5 change-later flow
+- Added a user-facing return-to-start path through the menu plus a secondary start-screen field: `я на самом деле чувствую будто я родился в …`.
+- The returned start screen re-shows the two-digit UI selector, keeps the secondary field runtime-only, and lets the player change the profile again by adjusting the wheels before re-entering.
+- Added dev-only smoke `Game.__DEV.smokeBirthYearChangeLaterFlow()` to verify the 90 -> millennial -> return -> 01 -> zoomer path, weird secondary values, no saved birth/fantasy values, no new storage keys, and no fake profiles.
+- Updated build identity to `build_2026_06_13_step6_6_birth_year_change_later_flow` / `step6_6_birth_year_change_later_flow` / `step6_6_birth_year_change_later_flow_smoke_v20260613_001`.
+
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.1 start screen UI only
 - Added a non-persistent start-screen birth-year wheel picker to the app and docs mirrors: label `Последние 2 цифры года рождения`, helper text `Только для интерфейса. Не сохраняем. Можно поменять позже.`
 - The start screen still starts with the default 00 picker; no resolver logic, parsing, save wiring, or persistent storage was added.

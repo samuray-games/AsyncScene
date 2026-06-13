@@ -134,6 +134,37 @@ window.Game = window.Game || {};
     panel.classList.toggle("hidden", !S.flags.manifestOpen);
   }
 
+  function ensureReturnToStartControls() {
+    const block = getMenuBlock();
+    if (!block) return;
+    const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
+    if (!body) return;
+
+    let wrap = document.getElementById("returnToStartControls");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "returnToStartControls";
+      wrap.className = "eventRow";
+      wrap.style.gap = "8px";
+      wrap.style.flexWrap = "wrap";
+      wrap.style.alignItems = "center";
+      body.appendChild(wrap);
+    }
+    wrap.innerHTML = "";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn small";
+    btn.textContent = "К старту";
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (UI && typeof UI.returnToStartScreen === "function") UI.returnToStartScreen();
+      if (UI && typeof UI.hideMenu === "function") UI.hideMenu();
+    };
+    wrap.appendChild(btn);
+  }
+
   function isDevModeActive() {
     return isLocalDevModeUnlocked();
   }
@@ -450,6 +481,7 @@ window.Game = window.Game || {};
     ensureLotteryControls();
     ensurePointsActions();
     ensureManifestControls();
+    ensureReturnToStartControls();
     ensureDevModeControls();
     ensureLoggerControls();
     if (UI.trainingControls && typeof UI.trainingControls.refresh === "function") {
@@ -503,6 +535,7 @@ window.Game = window.Game || {};
     applyMenuLabels();
     if (S.flags && S.flags.menuOpen) ensureMenuHeaderHasCloseX();
     ensureManifestControls();
+    ensureReturnToStartControls();
     ensureDevModeControls();
     ensureLoggerControls();
   };

@@ -1,3 +1,13 @@
+## 2026-06-13 — Step 6 Tone Profiles Step 1.5 change-later flow
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Let the player return to the start screen, see the UI selector again, change the two-digit UI profile, and keep the new secondary future-feeling field as a safe no-op hook.
+- Added a user-facing return-to-start menu action plus a secondary start-screen field: `я на самом деле чувствую будто я родился в …`.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearChangeLaterFlow()`.
+- Smoke verifies the required 90 -> millennial -> return -> 01 -> zoomer path, the start screen selector and secondary field after return, the safe weird secondary values `""`, `0000`, `3026`, `-400`, `born near Tatooine`, and `medieval knight year`, no secondary-driven profile change, no saved birth/fantasy values, no new storage keys, and no fake profiles.
+- Served identity: `build_2026_06_13_step6_6_birth_year_change_later_flow` / `step6_6_birth_year_change_later_flow` / `step6_6_birth_year_change_later_flow_smoke_v20260613_001`.
+- Scope held: return/start flow only; no resolver boundary changes, no profile text changes, no persistence, no future/funny UI profiles, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearChangeLaterFlow()`.
+
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.1 start screen UI only
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Add only the visible start-screen birth-year wheel UI without resolver logic, parsing, saving, or any persistence.

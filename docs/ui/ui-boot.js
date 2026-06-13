@@ -147,6 +147,8 @@ window.Game = window.Game || {};
             </div>
           </div>
           <div id="startBirthYearHint" class="startFieldHint">Только для интерфейса. Не сохраняем. Можно поменять позже.</div>
+          <label id="startBirthYearFeelingLabel" class="startFieldLabel">я на самом деле чувствую будто я родился в …</label>
+          <input id="startBirthYearFeelingInput" class="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" />
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
             <button id="btnRules" class="btn"></button>
@@ -380,6 +382,32 @@ window.Game = window.Game || {};
       birthYearHint.textContent = "Только для интерфейса. Не сохраняем. Можно поменять позже.";
     }
 
+    let birthYearFeelingLabel = $("startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel");
+    if (!birthYearFeelingLabel) {
+      birthYearFeelingLabel = document.createElement("label");
+      birthYearFeelingLabel.id = "startBirthYearFeelingLabel";
+      birthYearFeelingLabel.className = "startFieldLabel";
+      birthYearFeelingLabel.textContent = "я на самом деле чувствую будто я родился в …";
+      const insertFeelingLabelBefore = $("startBtns") || document.getElementById("startBtns");
+      if (insertFeelingLabelBefore && insertFeelingLabelBefore.parentNode) insertFeelingLabelBefore.parentNode.insertBefore(birthYearFeelingLabel, insertFeelingLabelBefore);
+    } else {
+      birthYearFeelingLabel.textContent = "я на самом деле чувствую будто я родился в …";
+    }
+
+    let birthYearFeelingInput = $("startBirthYearFeelingInput") || document.getElementById("startBirthYearFeelingInput");
+    if (!birthYearFeelingInput) {
+      birthYearFeelingInput = document.createElement("input");
+      birthYearFeelingInput.id = "startBirthYearFeelingInput";
+      birthYearFeelingInput.className = "input";
+      birthYearFeelingInput.type = "text";
+      birthYearFeelingInput.autocomplete = "off";
+      birthYearFeelingInput.autocapitalize = "off";
+      birthYearFeelingInput.spellcheck = false;
+      birthYearFeelingInput.inputMode = "text";
+      const insertFeelingInputBefore = $("startBtns") || document.getElementById("startBtns");
+      if (insertFeelingInputBefore && insertFeelingInputBefore.parentNode) insertFeelingInputBefore.parentNode.insertBefore(birthYearFeelingInput, insertFeelingInputBefore);
+    }
+
     const digit0 = $("startBirthYearDigit0") || document.getElementById("startBirthYearDigit0");
     const digit1 = $("startBirthYearDigit1") || document.getElementById("startBirthYearDigit1");
     const digitEls = [digit0, digit1];
@@ -451,6 +479,40 @@ window.Game = window.Game || {};
     // Also stop clicks from being swallowed by the overlay in case CSS keeps it on top
     st.style.pointerEvents = "none";
     return st;
+  }
+
+  function returnToStartScreen(UI) {
+    const G = window.Game || {};
+    const S = UI && UI.S ? UI.S : null;
+    if (UI && typeof UI.hideMenu === "function") {
+      try { UI.hideMenu(); } catch (_) {}
+    }
+    if (S) {
+      S.flags = S.flags || {};
+      S.flags.started = false;
+      S.isStarted = false;
+      S.flags.menuOpen = false;
+    }
+    if (G.State && G.State !== S) {
+      G.State.isStarted = false;
+      if (G.State.flags) {
+        G.State.flags.started = false;
+        G.State.flags.menuOpen = false;
+      }
+    }
+    if (G.__DEV && typeof G.__DEV === "object") {
+      G.__DEV.__uiProfileAppliedBeforeEnter = false;
+    }
+    applyStartScreenContent(UI);
+    ensureStartScreenVisible(UI);
+    const startScreen = document.getElementById("startScreen");
+    const cs = startScreen && typeof getComputedStyle === "function" ? getComputedStyle(startScreen) : null;
+    const visible = !!(startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden") && (!cs || (cs.display !== "none" && cs.visibility !== "hidden")));
+    return {
+      ok: visible,
+      startVisible: !!document.getElementById("startScreen"),
+      onboardingSeen: getOnboardingSeen(UI),
+    };
   }
 
   function toggleAccordion(UI, bodyId, arrowId) {
@@ -728,6 +790,8 @@ window.Game = window.Game || {};
         ensureStartScreenVisible(UI);
       };
     }
+
+    UI.returnToStartScreen = () => returnToStartScreen(UI);
 
     const runStart = (source, e) => {
       markBootDiag(source);
@@ -1150,6 +1214,112 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeBirthYearValueContract !== "function") G.__DEV.smokeBirthYearValueContract = function smokeBirthYearValueContract() { return runBirthYearNoPersistenceSmoke(); };
     if (typeof G.__DEV.smokeBirthYearStartScreenUi !== "function") G.__DEV.smokeBirthYearStartScreenUi = function smokeBirthYearStartScreenUi() { return runBirthYearNoPersistenceSmoke(); };
     if (typeof G.__DEV.smokeBirthYearNoPersistence !== "function") G.__DEV.smokeBirthYearNoPersistence = function smokeBirthYearNoPersistence() { return runBirthYearNoPersistenceSmoke(); };
+    if (typeof G.__DEV.smokeBirthYearChangeLaterFlow !== "function") {
+      const BUILD_TAG = "build_2026_06_13_step6_6_birth_year_change_later_flow";
+      const COMMIT = "step6_6_birth_year_change_later_flow";
+      const SMOKE_VERSION = "step6_6_birth_year_change_later_flow_smoke_v20260613_001";
+      const ALLOWED_PERSIST_KEYS = new Set(["AsyncScene_onboarding_seen_v1"]);
+      const weirdSecondaryValues = ["", "0000", "3026", "-400", "born near Tatooine", "medieval knight year"];
+      const readProfile = () => (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "default");
+      const collectPersisted = () => {
+        const storage = [];
+        const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+        try {
+          if (window.localStorage) {
+            for (let i = 0; i < window.localStorage.length; i += 1) {
+              const key = window.localStorage.key(i);
+              storage.push([key, window.localStorage.getItem(key)]);
+            }
+          }
+        } catch (_) {}
+        const save = (state && state.save) || {};
+        const snapshot = (state && (state.snapshot || state.worldSnapshot)) || {};
+        const worldSnapshot = (state && state.worldSnapshot) || {};
+        return { storage, storageKeys: storage.map((x) => x[0]), saveText: JSON.stringify(save || {}), snapshotText: JSON.stringify(snapshot || {}), worldSnapshotText: JSON.stringify(worldSnapshot || {}), allText: storage.map((x) => `${x[0]}=${x[1]}`).join("|") + JSON.stringify(save || {}) + JSON.stringify(snapshot || {}) + JSON.stringify(worldSnapshot || {}) };
+      };
+      const readVisibility = () => {
+        const startScreen = document.getElementById("startScreen");
+        const picker = document.getElementById("startBirthYearPicker");
+        const field = document.getElementById("startBirthYearFeelingInput");
+        const cs = startScreen && typeof getComputedStyle === "function" ? getComputedStyle(startScreen) : null;
+        return { startScreenVisible: !!(startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden") && (!cs || (cs.display !== "none" && cs.visibility !== "hidden"))), primarySelectorVisible: !!(picker && picker.getBoundingClientRect && picker.getBoundingClientRect().width > 0 && picker.getBoundingClientRect().height > 0), secondaryFieldVisible: !!(field && field.getBoundingClientRect && field.getBoundingClientRect().width > 0 && field.getBoundingClientRect().height > 0) };
+      };
+      const setPrimary = (value) => {
+        const next = String(value == null ? "" : value).padStart(2, "0").slice(-2);
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
+        if (digit0) digit0.textContent = next[0];
+        if (digit1) digit1.textContent = next[1];
+        if (picker) picker.setAttribute("data-birth-year-value", next);
+        return next;
+      };
+      const setSecondary = (value) => { const field = document.getElementById("startBirthYearFeelingInput"); if (field) field.value = String(value == null ? "" : value); return field ? String(field.value || "") : ""; };
+      const enterGame = () => { const btn = document.getElementById("btnStart"); if (!btn) throw new Error("btnStart_missing"); btn.click(); };
+      const returnToStart = () => { if (typeof UI.returnToStartScreen === "function") return UI.returnToStartScreen(); if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") return G.__DEV.refreshOnboardingStartScreenOnce(); return readVisibility(); };
+      const diffKeys = (before, after) => { const beforeKeys = new Set([...(before.storageKeys || []), ...(before.saveKeys || []), ...(before.snapshotKeys || []), ...(before.worldSnapshotKeys || [])]); const afterKeys = new Set([...(after.storageKeys || []), ...(after.saveKeys || []), ...(after.snapshotKeys || []), ...(after.worldSnapshotKeys || [])]); return Array.from(afterKeys).filter((key) => !beforeKeys.has(key) && !ALLOWED_PERSIST_KEYS.has(key)); };
+      G.__DEV.smokeBirthYearChangeLaterFlow = function smokeBirthYearChangeLaterFlow() {
+        const result = { ok: false, buildTag: BUILD_TAG, commit: COMMIT, smokeVersion: SMOKE_VERSION, returnedToStart: false, primarySelectorVisibleAfterReturn: false, secondaryFieldVisibleAfterReturn: false, profileChangeAfterReturnWorks: false, weirdSecondaryValuesSafe: false, secondaryAffectsProfile: false, newStorageKeys: [], savedFantasyValueDetected: false, savedBirthYearDetected: false, fakeProfilesCreated: [], failures: [], failedChecks: [], forbiddenRemaining: [], missingCoverage: [] };
+        const fail = (check, detail) => { if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check); result.failures.push(detail === undefined ? check : { check, detail }); };
+        try {
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", null);
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          const before = collectPersisted();
+          const startVisible = readVisibility();
+          if (!startVisible.startScreenVisible) fail("start_screen_not_visible_before_flow", startVisible);
+          setPrimary("90");
+          setSecondary("");
+          enterGame();
+          const firstProfile = readProfile();
+          if (firstProfile !== "millennial") fail("millennial_profile_missing", firstProfile);
+          const afterFirst = collectPersisted();
+          const firstNewKeys = diffKeys(before, afterFirst);
+          if (firstNewKeys.length) { result.newStorageKeys = Array.from(new Set([...result.newStorageKeys, ...firstNewKeys])); fail("new_storage_keys_after_first_start", firstNewKeys); }
+          const returned = returnToStart();
+          const afterReturnVisible = readVisibility();
+          result.returnedToStart = !!(returned && returned.ok) || afterReturnVisible.startScreenVisible === true;
+          result.primarySelectorVisibleAfterReturn = afterReturnVisible.primarySelectorVisible;
+          result.secondaryFieldVisibleAfterReturn = afterReturnVisible.secondaryFieldVisible;
+          if (!result.returnedToStart) fail("returned_to_start_failed", returned);
+          if (!result.primarySelectorVisibleAfterReturn) fail("primary_selector_not_visible_after_return", afterReturnVisible);
+          if (!result.secondaryFieldVisibleAfterReturn) fail("secondary_field_not_visible_after_return", afterReturnVisible);
+          setPrimary("01");
+          setSecondary("");
+          enterGame();
+          const secondProfile = readProfile();
+          result.profileChangeAfterReturnWorks = secondProfile === "zoomer";
+          if (!result.profileChangeAfterReturnWorks) fail("profile_change_after_return_failed", secondProfile);
+          const weirdObserved = [];
+          for (const weirdValue of weirdSecondaryValues) {
+            returnToStart();
+            const visible = readVisibility();
+            if (!visible.startScreenVisible || !visible.primarySelectorVisible || !visible.secondaryFieldVisible) { fail("start_screen_not_restored_for_secondary_test", { weirdValue, visible }); continue; }
+            setPrimary("01");
+            setSecondary(weirdValue);
+            enterGame();
+            const profile = readProfile();
+            weirdObserved.push(profile);
+            if (profile !== "zoomer") { result.secondaryAffectsProfile = true; fail("secondary_value_changed_profile", { weirdValue, profile }); }
+            const afterWeird = collectPersisted();
+            const newKeys = diffKeys(before, afterWeird);
+            if (newKeys.length) { result.newStorageKeys = Array.from(new Set([...result.newStorageKeys, ...newKeys])); fail("new_storage_keys_after_secondary_value", { weirdValue, newKeys }); }
+            const text = afterWeird.allText;
+            if (text.includes("born near Tatooine") || text.includes("medieval knight year")) { result.savedFantasyValueDetected = true; fail("fantasy_value_saved", weirdValue); }
+          }
+          result.weirdSecondaryValuesSafe = weirdObserved.length === weirdSecondaryValues.length && weirdObserved.every((value) => value === "zoomer");
+          result.fakeProfilesCreated = weirdObserved.filter((value) => !["default", "millennial", "zoomer"].includes(value));
+          if (result.fakeProfilesCreated.length) fail("fake_profiles_created", result.fakeProfilesCreated.slice());
+          const after = collectPersisted();
+          const finalNewKeys = diffKeys(before, after);
+          if (finalNewKeys.length) { result.newStorageKeys = Array.from(new Set([...result.newStorageKeys, ...finalNewKeys])); if (result.newStorageKeys.length) fail("new_storage_keys_detected", result.newStorageKeys.slice()); }
+          if (!result.savedFantasyValueDetected && (after.allText.includes("born near Tatooine") || after.allText.includes("medieval knight year"))) { result.savedFantasyValueDetected = true; fail("saved_fantasy_value_detected", after.allText); }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.returnedToStart === true && result.primarySelectorVisibleAfterReturn === true && result.secondaryFieldVisibleAfterReturn === true && result.profileChangeAfterReturnWorks === true && result.weirdSecondaryValuesSafe === true && result.secondaryAffectsProfile === false && result.newStorageKeys.length === 0 && result.savedFantasyValueDetected === false && result.savedBirthYearDetected === false && result.fakeProfilesCreated.length === 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+        return result;
+      };
+    }
     if (typeof G.__DEV.smokeUiProfileResolver !== "function") {
       const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_5_ui_profile_resolver_smoke_assertion_fix";
       const UI_PROFILE_RESOLVER_COMMIT = "step6_5_ui_profile_resolver_smoke_assertion_fix";
