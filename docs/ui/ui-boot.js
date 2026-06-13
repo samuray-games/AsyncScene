@@ -988,7 +988,7 @@ window.Game = window.Game || {};
           ok: false,
           buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
           commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
-          smokeVersion: "step6_1_birth_year_wheels_ui_smoke_v20260613_003",
+          smokeVersion: "step6_1_birth_year_value_contract_smoke_v20260613_001",
           producedValuesSample: [],
           invalidValuesDetected: [],
           emptyStateSafe: false,
@@ -1009,8 +1009,8 @@ window.Game = window.Game || {};
           forbiddenRemaining: [],
           missingCoverage: []
         };
-        const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_1_birth_year_wheels_ui";
-        const EXPECTED_COMMIT = "step6_1_birth_year_wheels_ui";
+        const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_1_birth_year_value_contract";
+        const EXPECTED_COMMIT = "step6_1_birth_year_value_contract";
         const EXPECTED_SMOKE_VERSION = "step6_1_birth_year_value_contract_smoke_v20260613_001";
         const fail = (check, detail) => {
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
@@ -1203,7 +1203,7 @@ window.Game = window.Game || {};
         const runtimeBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null;
         const runtimeSmokeVersion = typeof G.__DEV.smokeBirthYearValueContract === "function"
           ? "step6_1_birth_year_value_contract_smoke_v20260613_001"
-          : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_1_birth_year_wheels_ui_smoke_v20260613_003" : null);
+          : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_1_birth_year_value_contract_smoke_v20260613_001" : null);
         const runtimeCommit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null;
         const pageUrl = typeof location !== "undefined" ? location.href : null;
         const pathname = typeof location !== "undefined" ? location.pathname : null;
@@ -1217,7 +1217,7 @@ window.Game = window.Game || {};
         const runtimeBundleHints = loadedSources.filter((src) => /(?:ui\/ui-boot\.js|dev\/dev-checks\.js|index\.html)/.test(src));
         const docsBuildTag = G.__DEV.buildTag || null;
         const docsSmokeVersion = typeof G.__DEV.smokeBirthYearStartScreenUi === "function"
-          ? "step6_1_birth_year_wheels_ui_smoke_v20260613_003"
+          ? "step6_1_birth_year_value_contract_smoke_v20260613_001"
           : null;
         const asyncBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || null;
         const asyncSmokeVersion = runtimeSmokeVersion;

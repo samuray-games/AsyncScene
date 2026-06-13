@@ -6381,3 +6381,11 @@ Error: Download failure, code=1
 - No gameplay logic, UI logic, or Birth Year logic changed.
 - Scope held: HTML script URL refresh only; no smoke logic changes and no `Console.txt` usage.
 - Required Safari command remains `Game.__DEV.smokeRuntimeSourceDiagnosis()` followed by `Game.__DEV.smokeBirthYearValueContract()`.
+
+## 2026-06-13 — Step 6 Tone Profiles Step 1.2 marker fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Align the runtime identity markers with Step 1.2 so buildTag, commit, and smokeVersion consistently identify the birth-year value contract.
+- Updated the served runtime build markers in `AsyncScene/Web/ui/ui-boot.js`, `docs/ui/ui-boot.js`, `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, and the mirrored `index.html` files.
+- Cache-bust suffix was bumped to `step6_1_birth_year_value_contract_20260613b` so Safari loads the marker fix.
+- Scope held: marker-only update plus refreshed HTML script URLs; no gameplay logic, no UI logic, no Birth Year logic, and no `Console.txt` usage.
+- Required Safari command remains `Game.__DEV.smokeRuntimeSourceDiagnosis()` followed by `Game.__DEV.smokeBirthYearValueContract()`.

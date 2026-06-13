@@ -21,6 +21,11 @@
 - This refresh is cache-bust only; it does not alter gameplay, UI, Birth Year logic, or smoke behavior.
 - The goal is to make Safari pick up the current Step 1.2 runtime source instead of the older wheel UI cached entry.
 
+## 2026-06-13 — Step 6 Tone Profiles Step 1.2 marker fix
+- Aligned runtime identity markers across app/docs served files to `build_2026_06_13_step6_1_birth_year_value_contract` and `step6_1_birth_year_value_contract`.
+- The smoke identity now also reports `step6_1_birth_year_value_contract_smoke_v20260613_001` consistently in both bundles.
+- Bumped HTML cache-busts to `step6_1_birth_year_value_contract_20260613b` so Safari can load the marker-corrected JS.
+
 ## 2026-06-12 — Step 8.13 z-profile final acceptance marker
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileFinalAcceptanceOnce()` as the final Safari aggregate for the completed z-profile package.
