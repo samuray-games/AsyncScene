@@ -6373,3 +6373,11 @@ Error: Download failure, code=1
 - Served identity: `build_2026_06_12_step5_z_profile_authenticity_audit` / `step5_z_profile_authenticity_audit` / `step5_z_profile_authenticity_audit_v20260612_001`.
 - Scope held: audit-only smoke plus mirrored bundle/docs updates; no gameplay logic changes, no new conditions/entities/handlers, no economy or battle rule changes, no state mutation changes, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeZProfileAuthenticityAuditOnce()`.
+
+## 2026-06-13 — Step 6 Tone Profiles Step 1.2 cache-bust refresh
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Refresh only the served HTML cache-busting paths so Safari loads the Step 1.2 ui-boot.js and dev-checks.js bundles.
+- Updated both `AsyncScene/Web/index.html` and `docs/index.html` to use `ui/ui-boot.js?v=step6_1_birth_year_value_contract_20260613a` and `dev/dev-checks.js?v=step6_1_birth_year_value_contract_20260613a`.
+- No gameplay logic, UI logic, or Birth Year logic changed.
+- Scope held: HTML script URL refresh only; no smoke logic changes and no `Console.txt` usage.
+- Required Safari command remains `Game.__DEV.smokeRuntimeSourceDiagnosis()` followed by `Game.__DEV.smokeBirthYearValueContract()`.

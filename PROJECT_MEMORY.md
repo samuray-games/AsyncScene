@@ -16,6 +16,11 @@
 - The diagnosis smoke is read-only and does not change gameplay, UI, or Birth Year logic.
 - The current source trail still points to the old `step6_1_birth_year_wheels_ui` identity in the served HTML/dev-check path, so this step is for source identification only.
 
+## 2026-06-13 — Step 6 Tone Profiles Step 1.2 cache-bust refresh
+- Updated both served HTML mirrors to load `ui/ui-boot.js?v=step6_1_birth_year_value_contract_20260613a` and `dev/dev-checks.js?v=step6_1_birth_year_value_contract_20260613a`.
+- This refresh is cache-bust only; it does not alter gameplay, UI, Birth Year logic, or smoke behavior.
+- The goal is to make Safari pick up the current Step 1.2 runtime source instead of the older wheel UI cached entry.
+
 ## 2026-06-12 — Step 8.13 z-profile final acceptance marker
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileFinalAcceptanceOnce()` as the final Safari aggregate for the completed z-profile package.
