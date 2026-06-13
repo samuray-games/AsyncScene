@@ -10,6 +10,12 @@
 - Added dev-only smoke `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()` to verify hidden-first-launch versus visible-after-selection behavior.
 - Served identity: `build_2026_06_14_step6_3_secondary_field_visibility` / `step6_3_secondary_field_visibility` / `step6_3_secondary_field_visibility_smoke_v20260614_001`.
 
+## 2026-06-14 — Step 6 Tone Profiles Step 3.2 secondary field visibility fix
+- Moved the secondary-field visibility gate into the shared start-screen visibility path so fresh boots, refreshes, and return-to-start flows all hide it until onboardingSeen becomes true.
+- Kept the secondary field runtime-only: no input persistence, no uiProfile changes, no alternate resolver behavior, no profile replacement, and no UI redesign were added.
+- Updated dev-only smoke `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()` to track the fix-commit smoke version.
+- Served identity: `build_2026_06_14_step6_3_secondary_field_visibility` / `step6_3_secondary_field_visibility` / `step6_3_secondary_field_visibility_smoke_v20260614_002`.
+
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Kept the UI profile resolver and save privacy contract unchanged, and added the final runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
 - The smoke now checks `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, `rawInputClearedAfterResolver`, `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, and `uiProfileFromResolverOnly`, plus the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
