@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.4 safe weird inputs
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make the secondary start-screen field safely accept unusual inputs while preserving the existing fallback behavior, with no new future/ancient profile content and no raw secondary persistence.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearSecondarySafeWeirdInputs()`.
+- Smoke verifies the example inputs `0000`, `3026`, `1138`, `476 AD`, and `25 BBY` are accepted, each resolves through the existing default fallback path, no startup failure or blank-screen behavior appears, the UI remains usable after each run, and no raw weird input is persisted.
+- Served identity: `build_2026_06_14_step6_3_4_secondary_safe_weird_inputs` / `step6_3_4_secondary_safe_weird_inputs` / `step6_3_4_secondary_safe_weird_inputs_smoke_v20260614_003`.
+- Scope held: safe weird-input handling only; no primary birth-year flow changes, no known profile mapping changes, no future profile support, no ancient profile support, and no unrelated refactors.
+- Required Safari command: `Game.__DEV.smokeBirthYearSecondarySafeWeirdInputs()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver path fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the actual runtime alternate-resolver execution path so secondary input can override a previously selected primary profile through the existing Profile Resolver, while keeping uiProfile-only persistence unchanged.

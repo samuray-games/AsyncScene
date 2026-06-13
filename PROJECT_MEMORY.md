@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.4 safe weird inputs
+- The secondary start-screen field now safely accepts unusual values and routes them through the existing fallback path without creating new future or ancient profiles.
+- The primary birth-year flow stays unchanged, known profile mappings stay unchanged, and raw secondary values are not persisted.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearSecondarySafeWeirdInputs()`.
+- Smoke coverage now checks the example inputs `0000`, `3026`, `1138`, `476 AD`, and `25 BBY`, no startup failure, no blank screen, fallback safety, UI usability, and the absence of raw weird-input persistence.
+- Served identity: `build_2026_06_14_step6_3_4_secondary_safe_weird_inputs` / `step6_3_4_secondary_safe_weird_inputs` / `step6_3_4_secondary_safe_weird_inputs_smoke_v20260614_003`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver path fix
 - Fixed the real runtime overwrite path: `runStart()` and `startGame()` now both resolve `uiProfile` from the same secondary-or-primary input source, so a secondary selection can replace an earlier primary selection instead of being overwritten back to the primary profile.
 - The persistence contract stays unchanged: only resolved `uiProfile` is stored, no raw secondary value is persisted, and no new storage keys were added.
