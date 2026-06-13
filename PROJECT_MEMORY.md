@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver path fix
+- Fixed the real runtime overwrite path: `runStart()` and `startGame()` now both resolve `uiProfile` from the same secondary-or-primary input source, so a secondary selection can replace an earlier primary selection instead of being overwritten back to the primary profile.
+- The persistence contract stays unchanged: only resolved `uiProfile` is stored, no raw secondary value is persisted, and no new storage keys were added.
+- The Step 3.3 smoke remains `Game.__DEV.smokeBirthYearSecondaryAlternateResolver()` and now reports smoke version `step6_3_3_secondary_alternate_resolver_smoke_v20260614_002`.
+- Served identity remains `build_2026_06_14_step6_3_3_secondary_alternate_resolver` / `step6_3_3_secondary_alternate_resolver`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver
 - The secondary start-screen field now routes through the existing Profile Resolver, and whichever field is used at start resolves the active `uiProfile` before enter.
 - Only the resolved `uiProfile` is persisted; the raw secondary field value is not stored in save, localStorage, snapshot, or world-snapshot state.
