@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.1 first entry flag
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: persist the existing onboarding completion flag on the first successful UI-profile selection so repeat startups can detect that a profile was already chosen before.
+- Added dev-only Safari command: `Game.__DEV.smokeFirstEntryFlag()`.
+- Smoke verifies first-launch reset state, first successful `90 -> millennial` selection, onboarding flag persistence after the first selection, repeat-startup detection, repeat `01 -> zoomer` selection, and the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
+- Served identity: `build_2026_06_14_step6_3_first_entry_flag` / `step6_3_first_entry_flag` / `step6_3_first_entry_flag_smoke_v20260614_001`.
+- Scope held: first-entry flag only; no secondary field, no profile switching, no resolver changes, no future profile support, and no UI redesign.
+- Required Safari command: `Game.__DEV.smokeFirstEntryFlag()`.
+
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep the resolver behavior and save privacy unchanged while finalizing runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
