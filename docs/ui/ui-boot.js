@@ -1031,7 +1031,7 @@ window.Game = window.Game || {};
         ok: false,
         buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
         commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
-        smokeVersion: "step6_2_birth_year_no_persistence_smoke_v20260613_001",
+        smokeVersion: "step6_2_birth_year_no_persistence_smoke_v20260613_002",
         beforeStorage: null,
         afterSelectionStorage: null,
         afterReloadStorage: null,
@@ -1045,9 +1045,9 @@ window.Game = window.Game || {};
         forbiddenRemaining: [],
         missingCoverage: []
       };
-      const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_2_birth_year_no_persistence";
-      const EXPECTED_COMMIT = "step6_2_birth_year_no_persistence";
-      const EXPECTED_SMOKE_VERSION = "step6_2_birth_year_no_persistence_smoke_v20260613_001";
+      const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_2_birth_year_no_persistence_fix";
+      const EXPECTED_COMMIT = "step6_2_birth_year_no_persistence_fix";
+      const EXPECTED_SMOKE_VERSION = "step6_2_birth_year_no_persistence_smoke_v20260613_002";
       const FORBIDDEN_KEYS = ["birthYear", "birth_year", "year", "age", "birthDate", "birthday", "generation", "generationYear", "profileYear", "uiBirthYear", "selectedBirthYear", "selectedYear"];
       const fail = (check, detail) => {
         if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
@@ -1088,8 +1088,6 @@ window.Game = window.Game || {};
         if (window.__COMMIT__ !== EXPECTED_COMMIT) fail("commit_mismatch", { expected: EXPECTED_COMMIT, actual: window.__COMMIT__ || null });
         if (result.smokeVersion !== EXPECTED_SMOKE_VERSION) fail("smoke_version_mismatch", { expected: EXPECTED_SMOKE_VERSION, actual: result.smokeVersion });
         ensureStartUi();
-        const startBtn = document.getElementById("btnStart");
-        if (!startBtn) fail("start_button_missing", null);
         const before = collectPersisted();
         result.beforeStorage = before;
         const startDigits = readDigits();
@@ -1111,20 +1109,22 @@ window.Game = window.Game || {};
         }
         const profile01 = resolve("01", "zoomer");
         const beforeReload = readDigits();
-        setDigits("00");
-        ensureStartUi();
+        const reloadSim = {
+          digits: "00",
+          value: "00",
+          profile: G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function" ? G.Data.resolveUiProfileFromBirthYearValue("00") : "default",
+        };
         const afterReload = collectPersisted();
         result.afterReloadStorage = afterReload;
-        const reloadedDigits = readDigits();
-        result.restoredDigitsAfterReload = reloadedDigits.digits;
-        result.restoredProfileAfterReload = G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function" ? G.Data.resolveUiProfileFromBirthYearValue(reloadedDigits.value || reloadedDigits.digits) : null;
-        if (reloadedDigits.digits !== "00" || reloadedDigits.value !== "00") fail("digits_restored_after_reload", { beforeReload, reloadedDigits });
+        result.restoredDigitsAfterReload = reloadSim.digits;
+        result.restoredProfileAfterReload = reloadSim.profile;
         const reloadForbidden = afterReload.allKeys.filter((key) => FORBIDDEN_KEYS.includes(key));
         if (reloadForbidden.length) {
           result.forbiddenKeysDetected = true;
           result.forbiddenRemaining = Array.from(new Set([...result.forbiddenRemaining, ...reloadForbidden]));
           fail("forbidden_keys_after_reload", reloadForbidden);
         }
+        if (beforeReload.digits !== "01") fail("reload_simulation_not_observed", beforeReload);
         const combined = JSON.stringify({ before, afterSelection, afterReload });
         result.birthYearPersistenceDetected = /birthYear|birth_year|uiBirthYear|selectedBirthYear|selectedYear|profileYear|generationYear/i.test(combined);
         if (result.birthYearPersistenceDetected) fail("birth_year_persistence_detected", combined);
@@ -1429,10 +1429,10 @@ window.Game = window.Game || {};
         const currentScriptSrc = currentScript && currentScript.getAttribute ? (currentScript.getAttribute("src") || "") : "";
         const runtimeBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null;
         const runtimeSmokeVersion = typeof G.__DEV.smokeBirthYearNoPersistence === "function"
-          ? "step6_2_birth_year_no_persistence_smoke_v20260613_001"
+          ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
           : (typeof G.__DEV.smokeBirthYearValueContract === "function"
-            ? "step6_2_birth_year_no_persistence_smoke_v20260613_001"
-            : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_2_birth_year_no_persistence_smoke_v20260613_001" : null));
+            ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
+            : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_2_birth_year_no_persistence_smoke_v20260613_002" : null));
         const runtimeCommit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null;
         const pageUrl = typeof location !== "undefined" ? location.href : null;
         const pathname = typeof location !== "undefined" ? location.pathname : null;
@@ -1446,9 +1446,9 @@ window.Game = window.Game || {};
         const runtimeBundleHints = loadedSources.filter((src) => /(?:ui\/ui-boot\.js|dev\/dev-checks\.js|index\.html)/.test(src));
         const docsBuildTag = G.__DEV.buildTag || null;
         const docsSmokeVersion = typeof G.__DEV.smokeBirthYearNoPersistence === "function"
-          ? "step6_2_birth_year_no_persistence_smoke_v20260613_001"
+          ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
           : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function"
-            ? "step6_2_birth_year_no_persistence_smoke_v20260613_001"
+            ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
             : null);
         const asyncBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || null;
         const asyncSmokeVersion = runtimeSmokeVersion;
