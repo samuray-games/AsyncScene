@@ -16,6 +16,12 @@
 - Updated dev-only smoke `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()` to track the fix-commit smoke version.
 - Served identity: `build_2026_06_14_step6_3_secondary_field_visibility` / `step6_3_secondary_field_visibility` / `step6_3_secondary_field_visibility_smoke_v20260614_002`.
 
+## 2026-06-14 — Step 6 Tone Profiles Step 3.2 first-launch state fix
+- Added a shared fresh-start restore path that resets onboardingSeen to false, restores the start-screen digits to `00`, clears the secondary input, and re-renders the visible start screen in first-launch state.
+- Wired the reset-onboarding button and the Step 3.2 smoke through that same fresh-state restore path so runtime reset behavior and smoke cleanup now use the same code path.
+- Updated dev-only smoke `Game.__DEV.smokeBirthYearSecondaryFieldVisibility()` to report first-launch details, after-selection details, and cleanup digit restoration under the new identity.
+- Served identity: `build_2026_06_14_step6_3_secondary_field_first_launch_state_fix` / `step6_3_secondary_field_first_launch_state_fix` / `step6_3_secondary_field_first_launch_state_fix_smoke_v20260614_001`.
+
 ## 2026-06-13 — Step 6.2.6 final smoke for profile resolver
 - Kept the UI profile resolver and save privacy contract unchanged, and added the final runtime smoke coverage for the UI profile selection flow in the served runtime bundle.
 - The smoke now checks `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, `rawInputClearedAfterResolver`, `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, and `uiProfileFromResolverOnly`, plus the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
