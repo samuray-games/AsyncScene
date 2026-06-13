@@ -420,6 +420,19 @@ window.Game = window.Game || {};
       if (insertFeelingInputBefore && insertFeelingInputBefore.parentNode) insertFeelingInputBefore.parentNode.insertBefore(birthYearFeelingInput, insertFeelingInputBefore);
     }
 
+    const secondaryFieldVisible = getOnboardingSeen(UI);
+    const setSecondaryFieldVisible = (el, visible) => {
+      if (!el) return;
+      el.hidden = !visible;
+      el.style.display = visible ? "" : "none";
+      el.style.visibility = visible ? "visible" : "hidden";
+      el.style.opacity = visible ? "1" : "0";
+      el.setAttribute("aria-hidden", visible ? "false" : "true");
+      el.style.pointerEvents = visible ? "auto" : "none";
+    };
+    setSecondaryFieldVisible(birthYearFeelingLabel, secondaryFieldVisible);
+    setSecondaryFieldVisible(birthYearFeelingInput, secondaryFieldVisible);
+
     const digit0 = $("startBirthYearDigit0") || document.getElementById("startBirthYearDigit0");
     const digit1 = $("startBirthYearDigit1") || document.getElementById("startBirthYearDigit1");
     const digitEls = [digit0, digit1];
@@ -1474,6 +1487,76 @@ window.Game = window.Game || {};
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0
           && result.failedChecks.length === 0;
+        return result;
+      };
+    }
+    if (typeof G.__DEV.smokeBirthYearSecondaryFieldVisibility !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_3_secondary_field_visibility";
+      const COMMIT = "step6_3_secondary_field_visibility";
+      const SMOKE_VERSION = "step6_3_secondary_field_visibility_smoke_v20260614_001";
+      const readVisibility = () => {
+        const label = document.getElementById("startBirthYearFeelingLabel");
+        const field = document.getElementById("startBirthYearFeelingInput");
+        const csLabel = label && typeof getComputedStyle === "function" ? getComputedStyle(label) : null;
+        const csField = field && typeof getComputedStyle === "function" ? getComputedStyle(field) : null;
+        return {
+          labelVisible: !!(label && !label.hidden && (!csLabel || (csLabel.display !== "none" && csLabel.visibility !== "hidden"))),
+          fieldVisible: !!(field && !field.hidden && (!csField || (csField.display !== "none" && csField.visibility !== "hidden"))),
+        };
+      };
+      G.__DEV.smokeBirthYearSecondaryFieldVisibility = function smokeBirthYearSecondaryFieldVisibility() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          hiddenOnFirstLaunch: false,
+          visibleAfterSelection: false,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          resetOnboardingSeen(UI);
+          const first = readVisibility();
+          result.hiddenOnFirstLaunch = first.labelVisible === false && first.fieldVisible === false;
+          if (!result.hiddenOnFirstLaunch) fail("secondary_field_visible_on_first_launch", first);
+
+          const digit0 = document.getElementById("startBirthYearDigit0");
+          const digit1 = document.getElementById("startBirthYearDigit1");
+          const btn = document.getElementById("btnStart");
+          if (digit0) digit0.textContent = "9";
+          if (digit1) digit1.textContent = "0";
+          if (btn) btn.click();
+
+          if (UI && UI.S) {
+            UI.S.flags = UI.S.flags || {};
+            UI.S.flags.started = false;
+            UI.S.isStarted = false;
+          }
+          if (G.State) {
+            G.State.flags = G.State.flags || {};
+            G.State.flags.started = false;
+            G.State.isStarted = false;
+          }
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          const second = readVisibility();
+          result.visibleAfterSelection = second.labelVisible === true && second.fieldVisible === true;
+          if (!result.visibleAfterSelection) fail("secondary_field_hidden_after_onboarding", second);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.hiddenOnFirstLaunch === true
+          && result.visibleAfterSelection === true;
         return result;
       };
     }
