@@ -863,7 +863,9 @@ window.Game = window.Game || {};
         if (e && typeof e.preventDefault === "function") e.preventDefault();
       } catch (_) {}
       try {
-        const uiProfile = applyUiProfileBeforeEnter(UI, readBirthYearProfileValue());
+        const primaryBirthYearValue = readBirthYearProfileValue();
+        const secondaryBirthYearFeelingValue = String((document.getElementById("startBirthYearFeelingInput") || {}).value || "").trim();
+        const uiProfile = applyUiProfileBeforeEnter(UI, secondaryBirthYearFeelingValue || primaryBirthYearValue);
         persistFirstUiProfileSelection(UI, uiProfile);
         if (UI && UI.S) {
           UI.S.flags = UI.S.flags || {};
@@ -2243,6 +2245,135 @@ window.Game = window.Game || {};
           && result.rawInputClearedAfterResolver === true;
         if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
         G.Dev.smokeBirthYearUiProfileSelectionFinal = G.__DEV.smokeBirthYearUiProfileSelectionFinal;
+        return result;
+      };
+    }
+    if (typeof G.__DEV.smokeBirthYearSecondaryAlternateResolver !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_3_3_secondary_alternate_resolver";
+      const COMMIT = "step6_3_3_secondary_alternate_resolver";
+      const SMOKE_VERSION = "step6_3_3_secondary_alternate_resolver_smoke_v20260614_001";
+      const ALLOWED_PERSIST_KEYS = new Set(["AsyncScene_onboarding_seen_v1"]);
+      const collectPersisted = () => {
+        const storage = [];
+        const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+        try {
+          if (window.localStorage) {
+            for (let i = 0; i < window.localStorage.length; i += 1) {
+              const key = window.localStorage.key(i);
+              storage.push([key, window.localStorage.getItem(key)]);
+            }
+          }
+        } catch (_) {}
+        const save = (state && state.save) || {};
+        const snapshot = (state && (state.snapshot || state.worldSnapshot)) || {};
+        const worldSnapshot = (state && state.worldSnapshot) || {};
+        return {
+          storage,
+          storageKeys: storage.map((x) => x[0]),
+          saveText: JSON.stringify(save || {}),
+          snapshotText: JSON.stringify(snapshot || {}),
+          worldSnapshotText: JSON.stringify(worldSnapshot || {}),
+          allText: storage.map((x) => `${x[0]}=${x[1]}`).join("|") + JSON.stringify(save || {}) + JSON.stringify(snapshot || {}) + JSON.stringify(worldSnapshot || {}),
+        };
+      };
+      const readProfile = () => (G.Data && typeof G.Data.getUiProfile === "function") ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "default");
+      const setPrimary = (value) => {
+        const next = String(value == null ? "" : value).padStart(2, "0").slice(-2);
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
+        if (digit0) digit0.textContent = next[0];
+        if (digit1) digit1.textContent = next[1];
+        if (picker) picker.setAttribute("data-birth-year-value", next);
+        return next;
+      };
+      const setSecondary = (value) => {
+        const field = document.getElementById("startBirthYearFeelingInput");
+        if (field) field.value = String(value == null ? "" : value);
+        return field ? String(field.value || "") : "";
+      };
+      const diffKeys = (before, after) => {
+        const beforeKeys = new Set([...(before.storageKeys || []), ...(before.saveKeys || []), ...(before.snapshotKeys || []), ...(before.worldSnapshotKeys || [])]);
+        const afterKeys = new Set([...(after.storageKeys || []), ...(after.saveKeys || []), ...(after.snapshotKeys || []), ...(after.worldSnapshotKeys || [])]);
+        return Array.from(afterKeys).filter((key) => !beforeKeys.has(key) && !ALLOWED_PERSIST_KEYS.has(key));
+      };
+      G.__DEV.smokeBirthYearSecondaryAlternateResolver = function smokeBirthYearSecondaryAlternateResolver() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          primaryProfileWorks: false,
+          secondaryResolverWorks: false,
+          uiProfileChangesAfterSecondaryInput: false,
+          onlyUiProfilePersisted: false,
+          rawSecondaryValuePersisted: false,
+          newStorageKeys: [],
+          beforeProfile: null,
+          afterPrimaryProfile: null,
+          afterSecondaryProfile: null,
+          beforePersisted: null,
+          afterPrimaryPersisted: null,
+          afterSecondaryPersisted: null,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          const before = collectPersisted();
+          result.beforePersisted = before;
+          setPrimary("90");
+          setSecondary("");
+          const startBtn = document.getElementById("btnStart");
+          if (!startBtn) fail("start_button_missing", null);
+          else startBtn.click();
+          result.afterPrimaryProfile = readProfile();
+          result.primaryProfileWorks = result.afterPrimaryProfile === "millennial";
+          if (!result.primaryProfileWorks) fail("primary_profile_failed", result.afterPrimaryProfile);
+          const afterPrimary = collectPersisted();
+          result.afterPrimaryPersisted = afterPrimary;
+          if (typeof UI.returnToStartScreen === "function") UI.returnToStartScreen();
+          else if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+          setPrimary("90");
+          setSecondary("01");
+          if (startBtn) startBtn.click();
+          result.afterSecondaryProfile = readProfile();
+          result.secondaryResolverWorks = result.afterSecondaryProfile === "zoomer";
+          result.uiProfileChangesAfterSecondaryInput = result.afterPrimaryProfile !== result.afterSecondaryProfile && result.afterSecondaryProfile === "zoomer";
+          if (!result.secondaryResolverWorks) fail("secondary_resolver_failed", { input: "01", profile: result.afterSecondaryProfile });
+          if (!result.uiProfileChangesAfterSecondaryInput) fail("ui_profile_not_changed_by_secondary", { before: result.afterPrimaryProfile, after: result.afterSecondaryProfile });
+          const afterSecondary = collectPersisted();
+          result.afterSecondaryPersisted = afterSecondary;
+          result.newStorageKeys = diffKeys(before, afterSecondary);
+          const afterSave = JSON.parse(afterSecondary.saveText || "{}");
+          const rawLeakText = afterSecondary.allText || "";
+          result.onlyUiProfilePersisted = Object.keys(afterSave || []).every((key) => key === "uiProfile")
+            && Object.prototype.hasOwnProperty.call(afterSave, "uiProfile")
+            && !/01/.test(rawLeakText)
+            && !/90/.test(rawLeakText)
+            && !/(birthYear|birth_year|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i.test(rawLeakText)
+            && result.newStorageKeys.length === 0;
+          result.rawSecondaryValuePersisted = /01/.test(rawLeakText) || /(birthYear|birth_year|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i.test(rawLeakText);
+          if (!result.onlyUiProfilePersisted) fail("ui_profile_only_persistence_failed", { afterSave, rawLeakText, newStorageKeys: result.newStorageKeys.slice() });
+          if (result.rawSecondaryValuePersisted) fail("raw_secondary_value_persisted", rawLeakText);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.primaryProfileWorks === true
+          && result.secondaryResolverWorks === true
+          && result.uiProfileChangesAfterSecondaryInput === true
+          && result.onlyUiProfilePersisted === true
+          && result.rawSecondaryValuePersisted === false;
         return result;
       };
     }
