@@ -1707,9 +1707,9 @@ window.Game = window.Game || {};
       G.Dev.smokeUiProfileResolver = G.__DEV.smokeUiProfileResolver;
     }
     if (typeof G.__DEV.smokeFutureFunnyUiHook !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_7_future_funny_ui_hook";
+      const BUILD_TAG = "build_2026_06_13_step6_7_future_funny_ui_hook_fix";
       const COMMIT = "step6_7_future_funny_ui_hook";
-      const SMOKE_VERSION = "step6_7_future_funny_ui_hook_smoke_v20260613_001";
+      const SMOKE_VERSION = "step6_7_future_funny_ui_hook_smoke_v20260613_002";
       const RESERVED_FUTURE_PROFILE_IDS = ["ancient", "future", "sci-fi", "medieval", "absurd"];
       const ACTIVE_PROFILE_IDS = ["default", "millennial", "zoomer"];
       const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
@@ -1743,6 +1743,27 @@ window.Game = window.Game || {};
           primarySelectorVisible: !!(picker && picker.getBoundingClientRect && picker.getBoundingClientRect().width > 0 && picker.getBoundingClientRect().height > 0),
           secondaryFieldVisible: !!(field && field.getBoundingClientRect && field.getBoundingClientRect().width > 0 && field.getBoundingClientRect().height > 0),
         };
+      };
+      const readPrimaryValue = () => {
+        const picker = document.getElementById("startBirthYearPicker");
+        return picker && typeof picker.getAttribute === "function" ? String(picker.getAttribute("data-birth-year-value") || "") : "";
+      };
+      const readSecondaryValue = () => {
+        const field = document.getElementById("startBirthYearFeelingInput");
+        return field ? String(field.value || "") : "";
+      };
+      const restorePrimaryValue = (value) => {
+        const next = String(value == null ? "" : value);
+        const picker = document.getElementById("startBirthYearPicker");
+        const digit0 = document.getElementById("startBirthYearDigit0");
+        const digit1 = document.getElementById("startBirthYearDigit1");
+        if (digit0 && next.length > 0) digit0.textContent = next[0];
+        if (digit1 && next.length > 1) digit1.textContent = next[1];
+        if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", next);
+      };
+      const restoreSecondaryValue = (value) => {
+        const field = document.getElementById("startBirthYearFeelingInput");
+        if (field) field.value = String(value == null ? "" : value);
       };
       const readTextSnapshot = () => ({
         uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
@@ -1785,6 +1806,14 @@ window.Game = window.Game || {};
           startScreenStillWorks: false,
           newStorageKeys: [],
           textMixingDetected: false,
+          sideEffectSafe: false,
+          originalScreen: null,
+          finalScreen: null,
+          originalPrimaryValue: null,
+          finalPrimaryValue: null,
+          originalSecondaryValue: null,
+          finalSecondaryValue: null,
+          uiStateRestored: false,
           failures: [],
           failedChecks: [],
           forbiddenRemaining: [],
@@ -1794,6 +1823,7 @@ window.Game = window.Game || {};
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
           result.failures.push(detail === undefined ? check : { check, detail });
         };
+        let originalProfile = null;
         try {
           if (!G.Data || typeof G.Data.UI_PROFILE_FUTURE_HOOK !== "object") fail("future_hook_missing", "Game.Data.UI_PROFILE_FUTURE_HOOK");
           if (!G.Data || typeof G.Data.resolveUiProfileFromFutureValue !== "function") fail("future_resolver_missing", "Game.Data.resolveUiProfileFromFutureValue");
@@ -1803,6 +1833,13 @@ window.Game = window.Game || {};
           const hook = G.Data && G.Data.UI_PROFILE_FUTURE_HOOK && typeof G.Data.UI_PROFILE_FUTURE_HOOK === "object" ? G.Data.UI_PROFILE_FUTURE_HOOK : null;
           const beforePersisted = collectPersisted();
           const beforeText = readTextSnapshot();
+          originalProfile = beforeText.uiProfile;
+          const originalScreen = readVisibility();
+          const originalPrimaryValue = readPrimaryValue();
+          const originalSecondaryValue = readSecondaryValue();
+          result.originalScreen = originalScreen;
+          result.originalPrimaryValue = originalPrimaryValue;
+          result.originalSecondaryValue = originalSecondaryValue;
 
           if (hook && Array.isArray(hook.reservedIds)) {
             result.reservedFutureProfileIds = hook.reservedIds.slice();
@@ -1813,13 +1850,8 @@ window.Game = window.Game || {};
             result.reservedFutureProfileIds = RESERVED_FUTURE_PROFILE_IDS.slice();
           }
 
-          const startVisibilityBefore = readVisibility();
-          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
-            G.__DEV.refreshOnboardingStartScreenOnce();
-          }
-          const startVisibilityAfter = readVisibility();
-          result.startScreenStillWorks = !!(startVisibilityAfter.startScreenVisible && startVisibilityAfter.primarySelectorVisible && startVisibilityAfter.secondaryFieldVisible);
-          if (!result.startScreenStillWorks) fail("start_screen_broken", startVisibilityAfter);
+          result.startScreenStillWorks = !!(document.getElementById("startScreen") && document.getElementById("startBirthYearPicker") && document.getElementById("startBirthYearFeelingInput"));
+          if (!result.startScreenStillWorks) fail("start_screen_broken", readVisibility());
 
           const reservedChecks = RESERVED_FUTURE_PROFILE_IDS.map((id) => {
             const normalized = G.Data.normalizeUiProfile(id);
@@ -1866,6 +1898,23 @@ window.Game = window.Game || {};
           }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          restorePrimaryValue(result.originalPrimaryValue);
+          restoreSecondaryValue(result.originalSecondaryValue);
+          if (G.Data && typeof G.Data.setUiProfile === "function") {
+            G.Data.setUiProfile(result.originalScreen && result.originalScreen.uiProfile != null ? result.originalScreen.uiProfile : originalProfile);
+          } else if (G.Data && typeof G.Data === "object") {
+            G.Data.UI_PROFILE = result.originalScreen && result.originalScreen.uiProfile != null ? result.originalScreen.uiProfile : originalProfile;
+          }
+          result.finalScreen = readVisibility();
+          result.finalPrimaryValue = readPrimaryValue();
+          result.finalSecondaryValue = readSecondaryValue();
+          result.uiStateRestored = JSON.stringify(result.originalScreen) === JSON.stringify(result.finalScreen)
+            && String(result.originalPrimaryValue || "") === String(result.finalPrimaryValue || "")
+            && String(result.originalSecondaryValue || "") === String(result.finalSecondaryValue || "")
+            && String(originalProfile || "") === String((G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null) || "");
+          result.sideEffectSafe = result.uiStateRestored === true;
+          if (!result.uiStateRestored) fail("ui_state_not_restored", { originalScreen: result.originalScreen, finalScreen: result.finalScreen, originalPrimaryValue: result.originalPrimaryValue, finalPrimaryValue: result.finalPrimaryValue, originalSecondaryValue: result.originalSecondaryValue, finalSecondaryValue: result.finalSecondaryValue, originalProfile });
         }
         result.ok = result.reservedFutureProfileIds.length === RESERVED_FUTURE_PROFILE_IDS.length
           && result.activeProfileIds.length === ACTIVE_PROFILE_IDS.length
@@ -1876,6 +1925,8 @@ window.Game = window.Game || {};
           && result.startScreenStillWorks === true
           && result.newStorageKeys.length === 0
           && result.textMixingDetected === false
+          && result.sideEffectSafe === true
+          && result.uiStateRestored === true
           && result.failures.length === 0
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0
