@@ -2116,9 +2116,9 @@ window.Game = window.Game || {};
       G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_2_6_ui_profile_selection_final_smoke";
-      const COMMIT = "step6_2_6_ui_profile_selection_final_smoke";
-      const SMOKE_VERSION = "step6_2_6_ui_profile_selection_final_smoke_v20260613_001";
+      const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";
+      const COMMIT = "step6_3_6_ui_profile_save_validation";
+      const SMOKE_VERSION = "step6_3_6_ui_profile_save_validation_v20260614_001";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
@@ -2194,7 +2194,8 @@ window.Game = window.Game || {};
           const uiProfile = resolvePrimary("90");
           if (uiProfile !== "millennial") fail("ui_profile_from_resolver_failed", { input: "90", uiProfile });
           const afterRawText = readPersistedText();
-          const forbiddenPattern = /(birthYear|birth_year|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i;
+          const forbiddenPattern = /(birthYear|birth_year|fantasyBirthYear|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i;
+          const forbiddenValues = ["90", "01", "1987", "1998", "2004", "2015", "1955", "1930"];
           result.rawInputClearedAfterResolver = beforeRawText.allText === afterRawText.allText && !/90|01/.test(afterRawText.allText);
           if (!result.rawInputClearedAfterResolver) fail("raw_input_not_cleared_after_resolver", { beforeRawText, afterRawText });
           const afterSave = JSON.parse(afterRawText.saveText || "{}");
@@ -2207,7 +2208,7 @@ window.Game = window.Game || {};
           result.saveDoesNotContainBirthYear = !Object.prototype.hasOwnProperty.call(afterSave, "birthYear");
           result.saveDoesNotContainYear = !Object.prototype.hasOwnProperty.call(afterSave, "year");
           result.saveDoesNotContainAge = !Object.prototype.hasOwnProperty.call(afterSave, "age");
-          result.localStorageDoesNotContainBirthYearYearAge = !forbiddenPattern.test(afterStorage);
+          result.localStorageDoesNotContainBirthYearYearAge = !forbiddenPattern.test(afterStorage) && !forbiddenValues.some((value) => afterStorage.indexOf(value) !== -1);
           result.snapshotDoesNotContainBirthYearYearAge = !forbiddenPattern.test(afterSnapshot) && !forbiddenPattern.test(afterWorldSnapshot);
           if (!result.saveContainsUiProfile) fail("save_missing_uiProfile", afterSave);
           if (!result.saveDoesNotContainBirthYear) fail("save_contains_birthYear", afterSave);
@@ -2215,6 +2216,11 @@ window.Game = window.Game || {};
           if (!result.saveDoesNotContainAge) fail("save_contains_age", afterSave);
           if (!result.localStorageDoesNotContainBirthYearYearAge) fail("localStorage_contains_birthYear_year_age", afterStorage);
           if (!result.snapshotDoesNotContainBirthYearYearAge) fail("snapshot_contains_birthYear_year_age", { snapshotText: afterSnapshot, worldSnapshotText: afterWorldSnapshot });
+          forbiddenValues.forEach((value) => {
+            if (afterRawText.allText.indexOf(value) !== -1) {
+              fail("forbidden_year_value_found", { value, text: afterRawText.allText });
+            }
+          });
           const reloadSim = {
             uiProfile: afterSave.uiProfile || "default",
             askedForYear: false,
@@ -2255,7 +2261,8 @@ window.Game = window.Game || {};
           && result.profileCanStillBeChangedAfterReload === true
           && result.profileCanBeResetWithoutYear === true
           && result.uiProfileFromResolverOnly === true
-          && result.rawInputClearedAfterResolver === true;
+          && result.rawInputClearedAfterResolver === true
+          && forbiddenValues.every((value) => afterRawText.allText.indexOf(value) === -1);
         if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
         G.Dev.smokeBirthYearUiProfileSelectionFinal = G.__DEV.smokeBirthYearUiProfileSelectionFinal;
         return result;

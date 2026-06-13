@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.6 save validation
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep the UI profile selection flow resolver and replacement behavior unchanged while validating that save/localStorage stay uiProfile-only and do not retain any raw or year-like profile-selection values.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+- Smoke verifies save contains only `uiProfile`, no `birthYear`, no `age`, no `fantasyBirthYear`, no raw primary or secondary year-like values, no forbidden year-like values in save/localStorage, and returns the standard `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
+- Served identity: `build_2026_06_14_step6_3_6_ui_profile_save_validation` / `step6_3_6_ui_profile_save_validation` / `step6_3_6_ui_profile_save_validation_v20260614_001`.
+- Scope held: save/localStorage validation only; no resolver behavior changes, no secondary field behavior changes, no profile replacement changes, no new save fields, no unrelated refactors, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.5 profile replacement
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make a newly selected UI profile fully replace the previous one, with no mixed profile state and no persistence schema change.
