@@ -1,9 +1,9 @@
-## 2026-06-13 — Step 6 Tone Profiles Step 1.6 future funny UI hook
-- Added a centralized reserved-only future UI profile hook beside the existing birth-year resolver boundary.
-- Reserved ids: `ancient`, `future`, `sci-fi`, `medieval`, `absurd`.
-- The hook resolves all reserved ids and unsupported secondary values to `default` for now, so no future profile content becomes active yet and the current millennial/zoomer resolver behavior stays unchanged.
-- Added dev-only smoke `Game.__DEV.smokeFutureFunnyUiHook()` to verify the reserved ids, unsupported-value fallback, primary resolver stability, start screen stability, no future profile containers, no new storage keys, and no text mixing.
-- Updated served identity to `build_2026_06_13_step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook_smoke_v20260613_001`.
+## 2026-06-13 — Step 6 Tone Profiles Step 1.6 future funny UI hook side-effect fix
+- The reserved-only future UI profile hook remains beside the existing birth-year resolver boundary.
+- Reserved ids stay `ancient`, `future`, `sci-fi`, `medieval`, and `absurd`.
+- The hook still resolves all reserved ids and unsupported secondary values to `default`, so no future profile content becomes active yet and the current millennial/zoomer resolver behavior stays unchanged.
+- Updated `Game.__DEV.smokeFutureFunnyUiHook()` so it snapshots and restores the original screen, primary value, secondary value, and runtime UI profile instead of forcing the start screen to be visible.
+- Updated served identity to `build_2026_06_13_step6_7_future_funny_ui_hook_fix` / `step6_7_future_funny_ui_hook` / `step6_7_future_funny_ui_hook_smoke_v20260613_002`.
 
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.5 change-later flow
 - Added a user-facing return-to-start path through the menu plus a secondary start-screen field: `я на самом деле чувствую будто я родился в …`.
