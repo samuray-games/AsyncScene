@@ -10,6 +10,11 @@
 - The generation boundary is now centralized in `Data.expandUiBirthYearValue()` plus `Data.resolveUiProfileFromBirthYearValue()`, and invalid or missing input still resolves to `default`.
 - Served identity for this cleanup is `build_2026_06_13_step6_2_3_resolver_boundary_cleanup` / `step6_2_3_resolver_boundary_cleanup` / `step6_2_3_resolver_boundary_cleanup_v20260613_001`.
 
+## 2026-06-13 — Step 6.2.4 save only uiProfile
+- Kept the UI profile resolver behavior unchanged and narrowed the persistence contract so save, localStorage, and snapshots only need `uiProfile` for this flow.
+- The updated smoke now checks `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, and `rawInputClearedAfterResolver`.
+- Served identity for this step is `build_2026_06_13_step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile_v20260613_002`.
+
 ## 2026-06-13 — Step 6.2.1 two-digit year expansion
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the central two-digit year resolver expansion so `00-27` maps to `2000-2027` and `28-99` maps to `1928-1999`.
