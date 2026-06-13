@@ -3,7 +3,7 @@
 - Goal: Add only the visible start-screen birth-year wheel UI without resolver logic, parsing, saving, or any persistence.
 - Added dev-only Safari command: `Game.__DEV.smokeBirthYearStartScreenUi()`.
 - Smoke verifies the start screen exists, the two-digit picker is visible, the up/down controls are visible, the helper text is visible, empty start still works, and the UI field does not leak into localStorage/save/snapshot/world state.
-- Served identity: `build_2026_06_13_step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui_smoke_v20260613_002`.
+- Served identity: `build_2026_06_13_step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui_smoke_v20260613_003`.
 - Scope held: UI-only start-screen wheel picker plus mirrored docs/app updates; no resolver logic, no year parsing, no persistence, no new global data containers, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearStartScreenUi()`.
 
