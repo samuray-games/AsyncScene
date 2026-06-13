@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.3 alternate resolver
+- The secondary start-screen field now routes through the existing Profile Resolver, and whichever field is used at start resolves the active `uiProfile` before enter.
+- Only the resolved `uiProfile` is persisted; the raw secondary field value is not stored in save, localStorage, snapshot, or world-snapshot state.
+- The primary birth-year flow stays unchanged, and the new dev-only smoke is `Game.__DEV.smokeBirthYearSecondaryAlternateResolver()`.
+- Served identity: `build_2026_06_14_step6_3_3_secondary_alternate_resolver` / `step6_3_3_secondary_alternate_resolver` / `step6_3_3_secondary_alternate_resolver_smoke_v20260614_001`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.1 first entry flag
 - Persisted the existing onboarding completion flag on the first successful UI-profile selection so repeat startups can detect that a profile was already chosen before.
 - The runtime keeps using the existing `onboardingSeen` storage/state path (`AsyncScene_onboarding_seen_v1`); no secondary field, profile switching, resolver changes, or future profile support were added.
