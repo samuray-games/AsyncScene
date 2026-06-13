@@ -2146,6 +2146,8 @@ window.Game = window.Game || {};
       const COMMIT = "step6_3_6_ui_profile_save_validation";
       const SMOKE_VERSION = "step6_3_6_ui_profile_save_validation_v20260614_001";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
+        const forbiddenValues = ["90", "01", "1987", "1998", "2004", "2015", "1955", "1930"];
+        let afterRawText = null;
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -2219,9 +2221,8 @@ window.Game = window.Game || {};
           const beforeRawText = readPersistedText();
           const uiProfile = resolvePrimary("90");
           if (uiProfile !== "millennial") fail("ui_profile_from_resolver_failed", { input: "90", uiProfile });
-          const afterRawText = readPersistedText();
+          afterRawText = readPersistedText();
           const forbiddenPattern = /(birthYear|birth_year|fantasyBirthYear|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i;
-          const forbiddenValues = ["90", "01", "1987", "1998", "2004", "2015", "1955", "1930"];
           result.rawInputClearedAfterResolver = beforeRawText.allText === afterRawText.allText && !/90|01/.test(afterRawText.allText);
           if (!result.rawInputClearedAfterResolver) fail("raw_input_not_cleared_after_resolver", { beforeRawText, afterRawText });
           const afterSave = JSON.parse(afterRawText.saveText || "{}");

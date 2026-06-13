@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.6 save validation runtime fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the smoke implementation scope bug by hoisting shared validation locals out of the inner `try` block so `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()` can finish the Step 3.6 checks instead of crashing on `ReferenceError`.
+- The validation checks themselves remain the same: uiProfile-only save, no `birthYear`, no `age`, no `fantasyBirthYear`, and no raw year-like values in save/localStorage.
+- Served identity remains `build_2026_06_14_step6_3_6_ui_profile_save_validation` / `step6_3_6_ui_profile_save_validation` / `step6_3_6_ui_profile_save_validation_v20260614_001`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.6 save validation
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep the UI profile selection flow resolver and replacement behavior unchanged while validating that save/localStorage stay uiProfile-only and do not retain any raw or year-like profile-selection values.
