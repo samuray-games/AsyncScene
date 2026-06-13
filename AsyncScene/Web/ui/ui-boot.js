@@ -352,17 +352,19 @@ window.Game = window.Game || {};
       const num = Number(value);
       return Number.isFinite(num) ? ((num % 10) + 10) % 10 : 0;
     };
+    const getBirthYearValue = () => `${digitEls.map((node) => String(clampDigit(node && node.textContent))).join("")}`;
     const setDigit = (index, nextValue) => {
       const el = digitEls[index];
       if (!el) return;
       const value = clampDigit(nextValue);
       el.textContent = String(value);
       el.setAttribute("data-birth-year-digit-value", String(value));
-      if (birthYearPicker) birthYearPicker.setAttribute("data-birth-year-value", `${digitEls.map((node) => String(clampDigit(node && node.textContent))).join("")}`);
+      if (birthYearPicker) birthYearPicker.setAttribute("data-birth-year-value", getBirthYearValue());
     };
     const getDigit = (index) => clampDigit(digitEls[index] && digitEls[index].textContent);
     if (digit0) setDigit(0, digit0.textContent || "0");
     if (digit1) setDigit(1, digit1.textContent || "0");
+    if (birthYearPicker) birthYearPicker.setAttribute("data-birth-year-value", getBirthYearValue());
     if (birthYearPicker && birthYearPicker.dataset.bound !== "1") {
       birthYearPicker.addEventListener("click", (event) => {
         const button = event.target && event.target.closest ? event.target.closest("button[data-birth-year-step]") : null;
@@ -981,13 +983,21 @@ window.Game = window.Game || {};
         resetVisible: !!(document.getElementById("btnResetOnboarding") && !document.getElementById("btnResetOnboarding").hidden),
       };
     };
-    if (typeof G.__DEV.smokeBirthYearStartScreenUi !== "function") {
-      G.__DEV.smokeBirthYearStartScreenUi = function smokeBirthYearStartScreenUi() {
+    const runBirthYearValueContractSmoke = function runBirthYearValueContractSmoke() {
         const result = {
           ok: false,
           buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
           commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
           smokeVersion: "step6_1_birth_year_wheels_ui_smoke_v20260613_003",
+          producedValuesSample: [],
+          invalidValuesDetected: [],
+          emptyStateSafe: false,
+          ageCreated: false,
+          birthDateCreated: false,
+          dateObjectCreated: false,
+          newStorageKeys: [],
+          failures: [],
+          failedChecks: [],
           startScreenVisible: false,
           digitPickerVisible: false,
           upDownControlsVisible: false,
@@ -997,12 +1007,11 @@ window.Game = window.Game || {};
           agePath: null,
           birthYearPersistenceDetected: false,
           forbiddenRemaining: [],
-          missingCoverage: [],
-          failures: [],
-          failedChecks: []
+          missingCoverage: []
         };
         const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_1_birth_year_wheels_ui";
         const EXPECTED_COMMIT = "step6_1_birth_year_wheels_ui";
+        const EXPECTED_SMOKE_VERSION = "step6_1_birth_year_value_contract_smoke_v20260613_001";
         const fail = (check, detail) => {
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
           result.failures.push(detail === undefined ? check : { check, detail });
@@ -1015,6 +1024,7 @@ window.Game = window.Game || {};
         try {
           if (window.__BUILD_TAG__ !== EXPECTED_BUILD_TAG) fail("build_tag_mismatch", { expected: EXPECTED_BUILD_TAG, actual: window.__BUILD_TAG__ || null });
           if (window.__COMMIT__ !== EXPECTED_COMMIT) fail("commit_mismatch", { expected: EXPECTED_COMMIT, actual: window.__COMMIT__ || null });
+          if (result.smokeVersion !== EXPECTED_SMOKE_VERSION) fail("smoke_version_mismatch", { expected: EXPECTED_SMOKE_VERSION, actual: result.smokeVersion });
           if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
             G.__DEV.refreshOnboardingStartScreenOnce();
           }
@@ -1037,26 +1047,72 @@ window.Game = window.Game || {};
           if (!result.upDownControlsVisible) fail("up_down_controls_not_visible", controls.map((el) => el && el.id).filter(Boolean));
           result.helperVisible = isVisible(hint) && (hint.textContent || "").trim() === "Только для интерфейса. Не сохраняем. Можно поменять позже.";
           if (!result.helperVisible) fail("helper_not_visible", hint ? (hint.textContent || "").trim() : null);
+          const readValue = () => (picker && typeof picker.getAttribute === "function" ? String(picker.getAttribute("data-birth-year-value") || "") : "");
+          const initialValue = readValue();
+          const sampleStates = [
+            ["00", [0, 0]],
+            ["01", [0, 1]],
+            ["09", [0, 9]],
+            ["10", [1, 0]],
+            ["42", [4, 2]],
+            ["95", [9, 5]],
+            ["99", [9, 9]],
+          ];
+          result.producedValuesSample = [];
+          for (const [expectedValue, digits] of sampleStates) {
+            if (digit0) digit0.textContent = String(digits[0]);
+            if (digit1) digit1.textContent = String(digits[1]);
+            if (picker) picker.setAttribute("data-birth-year-value", `${digits[0]}${digits[1]}`);
+            const producedValue = readValue();
+            result.producedValuesSample.push(producedValue);
+            if (!/^\d{2}$/.test(producedValue)) {
+              result.invalidValuesDetected.push({ expected: expectedValue, produced: producedValue });
+            } else if (producedValue !== expectedValue) {
+              result.invalidValuesDetected.push({ expected: expectedValue, produced: producedValue });
+            }
+          }
+          result.emptyStateSafe = /^\d{2}$/.test(initialValue) || initialValue === "";
+          if (!result.emptyStateSafe) fail("empty_state_not_safe", initialValue);
+          if (picker && /^\d{2}$/.test(initialValue)) picker.setAttribute("data-birth-year-value", initialValue);
+          const collectPersisted = () => {
+            const storageKeys = [];
+            try {
+              if (window.localStorage) {
+                for (let i = 0; i < window.localStorage.length; i += 1) storageKeys.push(window.localStorage.key(i));
+              }
+            } catch (_) {}
+            const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+            return {
+              storageKeys,
+              saveKeys: Object.keys((state && state.save) || {}),
+              snapshotKeys: Object.keys((state && (state.snapshot || state.worldSnapshot)) || {}),
+              worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {})
+            };
+          };
+          const findAgeAndBirthDatePaths = () => {
+            const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+            const sources = [
+              ["state.save", state && state.save],
+              ["state.snapshot", state && state.snapshot],
+              ["state.worldSnapshot", state && state.worldSnapshot],
+              ["window.__D", window.Game && window.Game.__D],
+            ];
+            const hits = { ageCreated: false, birthDateCreated: false, dateObjectCreated: false };
+            for (const [basePath, obj] of sources) {
+              if (!obj || typeof obj !== "object") continue;
+              for (const key of Object.keys(obj)) {
+                if (key === "age" || /age/i.test(key)) hits.ageCreated = true;
+                if (key === "birthDate" || /birthdate/i.test(key)) hits.birthDateCreated = true;
+                if (key === "date" || /date/i.test(key)) hits.dateObjectCreated = true;
+              }
+            }
+            return hits;
+          };
           const startBtn = document.getElementById("btnStart");
           if (!startBtn) {
             fail("start_button_missing", null);
           } else {
-            const collectPersisted = () => {
-              const storageKeys = [];
-              try {
-                if (window.localStorage) {
-                  for (let i = 0; i < window.localStorage.length; i += 1) storageKeys.push(window.localStorage.key(i));
-                }
-              } catch (_) {}
-              const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
-              return {
-                storageKeys,
-                saveKeys: Object.keys((state && state.save) || {}),
-                snapshotKeys: Object.keys((state && (state.snapshot || state.worldSnapshot)) || {}),
-                worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {})
-              };
-            };
-            const findAgePath = () => {
+            const ageInfo = (() => {
               const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
               const sources = [
                 ["state.save", state && state.save],
@@ -1071,8 +1127,7 @@ window.Game = window.Game || {};
                 }
               }
               return { ageSource: "none", agePath: null };
-            };
-            const ageInfo = findAgePath();
+            })();
             result.ageSource = ageInfo.ageSource;
             result.agePath = ageInfo.agePath;
             const before = collectPersisted();
@@ -1085,11 +1140,25 @@ window.Game = window.Game || {};
             const ageMatches = combined.match(/(?:^|[^a-zA-Z])age(?:[^a-zA-Z]|$)/i);
             result.birthYearPersistenceDetected = !!featureMatches;
             const ageFeatureLeak = ageMatches && result.ageSource !== "preexisting";
+            const birthDateLeak = /birthDate|birthdate|dateObject|new Date|Date\(/i.test(combined);
+            result.ageCreated = !!ageMatches && result.ageSource !== "preexisting";
+            result.birthDateCreated = birthDateLeak;
+            result.dateObjectCreated = birthDateLeak;
+            result.newStorageKeys = Array.from(new Set([
+              ...((after.storageKeys || []).filter((key) => !(before.storageKeys || []).includes(key))),
+              ...((after.saveKeys || []).filter((key) => !(before.saveKeys || []).includes(key))),
+              ...((after.snapshotKeys || []).filter((key) => !(before.snapshotKeys || []).includes(key))),
+              ...((after.worldSnapshotKeys || []).filter((key) => !(before.worldSnapshotKeys || []).includes(key))),
+            ]));
+            if (result.newStorageKeys.length) fail("new_storage_keys_detected", result.newStorageKeys.slice());
             const matches = featureMatches || ageFeatureLeak ? Array.from(new Set([...(featureMatches || []), ...(ageFeatureLeak ? ["age"] : [])])) : [];
             if (matches && matches.length) {
               result.forbiddenRemaining = Array.from(new Set(matches));
               fail("persistence_hit", result.forbiddenRemaining.slice());
             }
+            if (result.ageCreated) fail("age_created", true);
+            if (result.birthDateCreated) fail("birthdate_created", true);
+            if (result.dateObjectCreated) fail("date_object_created", true);
           }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -1097,9 +1166,24 @@ window.Game = window.Game || {};
         result.ok = result.failedChecks.length === 0
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0
-          && result.birthYearPersistenceDetected === false;
+          && result.birthYearPersistenceDetected === false
+          && result.invalidValuesDetected.length === 0
+          && result.emptyStateSafe === true
+          && result.ageCreated === false
+          && result.birthDateCreated === false
+          && result.dateObjectCreated === false
+          && result.newStorageKeys.length === 0;
         console.warn("BIRTH_YEAR_START_SCREEN_UI_SMOKE", result.ok ? "PASS" : "FAIL", result);
         return result;
+      };
+    if (typeof G.__DEV.smokeBirthYearValueContract !== "function") {
+      G.__DEV.smokeBirthYearValueContract = function smokeBirthYearValueContract() {
+        return runBirthYearValueContractSmoke();
+      };
+    }
+    if (typeof G.__DEV.smokeBirthYearStartScreenUi !== "function") {
+      G.__DEV.smokeBirthYearStartScreenUi = function smokeBirthYearStartScreenUi() {
+        return runBirthYearValueContractSmoke();
       };
     }
     if (typeof G.__DEV.smokeZoomerForbiddenRulesOnce !== "function") {

@@ -5,6 +5,12 @@
 - Added smoke diagnostics `ageSource`, `agePath`, and `birthYearPersistenceDetected` so pre-existing unrelated `age` fields no longer trigger this step.
 - Updated build identity to `build_2026_06_13_step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui_smoke_v20260613_003`.
 
+## 2026-06-13 — Step 6 Tone Profiles Step 1.2 birth year value contract
+- Added the birth-year value contract for the start-screen wheels: the UI contract now normalizes to two digits only and can only produce strings from `00` to `99`.
+- The contract is still non-persistent and does not derive a real birth date, compute age, or create new storage keys.
+- Added dev-only smoke `Game.__DEV.smokeBirthYearValueContract()` to verify representative states `00, 01, 09, 10, 42, 95, 99`, empty-state safety, and the absence of age/birthDate/date-object leakage or new localStorage/save/world-snapshot keys.
+- Updated build identity to `build_2026_06_13_step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract_smoke_v20260613_001`.
+
 ## 2026-06-12 — Step 8.13 z-profile final acceptance marker
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileFinalAcceptanceOnce()` as the final Safari aggregate for the completed z-profile package.

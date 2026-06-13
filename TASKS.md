@@ -7,6 +7,15 @@
 - Scope held: UI-only start-screen wheel picker plus mirrored docs/app updates; no resolver logic, no year parsing, no persistence, no new global data containers, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearStartScreenUi()`.
 
+## 2026-06-13 — Step 6 Tone Profiles Step 1.2 birth year value contract
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Define only the birth-year value contract for the two-wheel start-screen UI, with no age resolver, no birth-date derivation, and no persistence.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearValueContract()`.
+- Smoke verifies the contract only produces `00` through `99`, representative wheel states round-trip as two digits, empty start is safe, no age or birth-date object is created by this feature, and no new localStorage/save/world-snapshot keys appear.
+- Served identity: `build_2026_06_13_step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract_smoke_v20260613_001`.
+- Scope held: contract-only start-screen value wiring plus mirrored docs/app updates; no resolver logic, no date objects, no age computation, no persistence, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearValueContract()`.
+
 ## 2026-06-12 — Step 8.12 z-profile runtime acceptance smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Add the final Safari runtime acceptance smoke for the completed z-profile package without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
