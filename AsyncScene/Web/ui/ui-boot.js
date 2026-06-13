@@ -245,6 +245,14 @@ window.Game = window.Game || {};
       UI.S.flags = UI.S.flags || {};
       UI.S.flags.uiProfile = profile;
     }
+    if (G.__S && G.__S !== (UI && UI.S)) {
+      G.__S.flags = G.__S.flags || {};
+      G.__S.flags.uiProfile = profile;
+    }
+    if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
+      G.State.flags = G.State.flags || {};
+      G.State.flags.uiProfile = profile;
+    }
     if (G.__DEV && typeof G.__DEV === "object") {
       G.__DEV.__uiProfileAppliedBeforeEnter = true;
     }
@@ -1220,9 +1228,9 @@ window.Game = window.Game || {};
       };
     }
     if (typeof G.__DEV.smokeUiProfileResolver !== "function") {
-      const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_2_ui_profile_resolver";
-      const UI_PROFILE_RESOLVER_COMMIT = "step6_2_ui_profile_resolver";
-      const UI_PROFILE_RESOLVER_SMOKE_VERSION = "step6_2_ui_profile_resolver_smoke_v20260613_001";
+      const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_3_ui_profile_resolver_apply_before_render";
+      const UI_PROFILE_RESOLVER_COMMIT = "step6_3_ui_profile_resolver_apply_before_render";
+      const UI_PROFILE_RESOLVER_SMOKE_VERSION = "step6_3_ui_profile_resolver_apply_before_render_smoke_v20260613_001";
       G.__DEV.smokeUiProfileResolver = function smokeUiProfileResolver() {
         const result = {
           ok: false,
