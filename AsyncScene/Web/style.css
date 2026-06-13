@@ -1394,6 +1394,37 @@ button:disabled{opacity:.55; cursor:not-allowed}
   font-size:15px;
   line-height:1.35;
 }
+.startFieldLabel{
+  display:block;
+  text-align:left;
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.01em;
+}
+.startFieldInput{
+  width:100%;
+  min-height:44px;
+  padding:0 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--surface);
+  color:var(--text);
+  font:inherit;
+  font-size:16px;
+  text-align:center;
+}
+.startFieldInput::placeholder{
+  color:var(--muted);
+  opacity:.75;
+}
+.startFieldHint{
+  text-align:left;
+  font-size:12px;
+  line-height:1.35;
+  color:var(--muted);
+  opacity:.9;
+}
 .startIntroLine{
   margin:0;
 }
@@ -1437,6 +1468,9 @@ button:disabled{opacity:.55; cursor:not-allowed}
   }
   #startIntroLines{
     font-size:14px;
+  }
+  .startFieldInput{
+    min-height:42px;
   }
 }
 @media (max-width: 860px){
