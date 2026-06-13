@@ -128,8 +128,30 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     return Data.RULES.p2pPlayerToPlayerEnabled;
   };
 
-  // UI profile resolver (default | millennial | zoomer)
+  // UI profile resolver (default | silent | boomer | genX | millennial | zoomer | alpha)
   const UI_PROFILE_RULES = Object.freeze({
+    twoDigitYear: Object.freeze({
+      legacyMin: 28,
+      legacyMax: 99,
+      modernMin: 0,
+      modernMax: 27,
+      resolve(raw) {
+        if (!/^\d{2}$/.test(raw)) return null;
+        const value = Number(raw);
+        if (Number.isNaN(value)) return null;
+        if (value >= this.modernMin && value <= this.modernMax) return 2000 + value;
+        if (value >= this.legacyMin && value <= this.legacyMax) return 1900 + value;
+        return null;
+      },
+    }),
+    yearBands: Object.freeze([
+      Object.freeze({ min: 1928, max: 1945, profile: "silent" }),
+      Object.freeze({ min: 1946, max: 1964, profile: "boomer" }),
+      Object.freeze({ min: 1965, max: 1980, profile: "genX" }),
+      Object.freeze({ min: 1981, max: 1996, profile: "millennial" }),
+      Object.freeze({ min: 1997, max: 2012, profile: "zoomer" }),
+      Object.freeze({ min: 2013, max: 2027, profile: "alpha" }),
+    ]),
     millennial: Object.freeze({ min: 81, max: 96 }),
     zoomer: Object.freeze([
       Object.freeze({ min: 97, max: 99 }),
@@ -173,11 +195,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.resolveUiProfileFromBirthYearValue = (value) => {
     const raw = String(value == null ? "" : value).trim();
-    if (!raw) return "default";
-    if (!/^\d{2}$/.test(raw)) return "default";
-    const year = Number(raw);
-    if (year >= UI_PROFILE_RULES.millennial.min && year <= UI_PROFILE_RULES.millennial.max) return "millennial";
-    if (UI_PROFILE_RULES.zoomer.some((range) => year >= range.min && year <= range.max)) return "zoomer";
+    const year = UI_PROFILE_RULES.twoDigitYear.resolve(raw);
+    if (year == null) return "default";
+    const band = UI_PROFILE_RULES.yearBands.find((range) => year >= range.min && year <= range.max);
+    if (band) return band.profile;
     return "default";
   };
 

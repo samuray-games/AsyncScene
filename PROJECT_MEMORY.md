@@ -1,8 +1,8 @@
 ## 2026-06-13 — Step 6.2.2 runtime input to profile
 - Added the runtime handoff so the start-screen year field value is passed directly into the existing UI profile resolver, and runtime keeps only the resolved `uiProfile`.
 - The start flow no longer keeps raw year input in runtime state or routes it into save, snapshot, localStorage, or UI profile logic.
-- Synced the served docs smoke body so `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()` now resolves only the runtime-input path instead of the old Step 6.8 UI aggregate body.
-- Updated the Safari smoke identity to `build_2026_06_13_step6_2_runtime_input_to_profile` / `step6_2_runtime_input_to_profile` / `step6_2_runtime_input_to_profile_smoke_v20260613_003`.
+- Synced the served docs smoke body so `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()` now resolves the runtime-input path and the full-year band mapping instead of the old Step 6.8 UI aggregate body.
+- Updated the Safari smoke identity to `build_2026_06_13_step6_2_runtime_input_to_profile_mapping` / `step6_2_runtime_input_to_profile_mapping` / `step6_2_runtime_input_to_profile_mapping_smoke_v20260613_001`.
 - Smoke coverage now asserts `90 -> millennial`, `01 -> zoomer`, raw-input disappearance after resolver, no birthYear/year/age/raw input persistence, and resolver-sourced UI profile usage.
 
 ## 2026-06-13 — Step 6.2.1 two-digit year expansion
