@@ -1230,9 +1230,9 @@ window.Game = window.Game || {};
       };
     }
     if (typeof G.__DEV.smokeUiProfileResolver !== "function") {
-      const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_4_ui_profile_resolver_order_trace";
-      const UI_PROFILE_RESOLVER_COMMIT = "step6_4_ui_profile_resolver_order_trace";
-      const UI_PROFILE_RESOLVER_SMOKE_VERSION = "step6_4_ui_profile_resolver_order_trace_smoke_v20260613_001";
+      const UI_PROFILE_RESOLVER_BUILD_TAG = "build_2026_06_13_step6_5_ui_profile_resolver_smoke_assertion_fix";
+      const UI_PROFILE_RESOLVER_COMMIT = "step6_5_ui_profile_resolver_smoke_assertion_fix";
+      const UI_PROFILE_RESOLVER_SMOKE_VERSION = "step6_5_ui_profile_resolver_smoke_assertion_fix_v20260613_001";
       G.__DEV.smokeUiProfileResolver = function smokeUiProfileResolver() {
         const result = {
           ok: false,
@@ -1241,9 +1241,13 @@ window.Game = window.Game || {};
           smokeVersion: UI_PROFILE_RESOLVER_SMOKE_VERSION,
           resolvedCases: [],
           appliedBeforeEnter: false,
+          appliedBeforeFirstRender: "not_observed",
           textMixingDetected: false,
           newStorageKeys: [],
+          firstRenderObserved: false,
           firstRenderPath: null,
+          enterObserved: false,
+          enterPath: null,
           profileResolvedAt: null,
           profileAppliedAt: null,
           firstRenderProfileRead: null,
@@ -1282,6 +1286,7 @@ window.Game = window.Game || {};
         const trace = (step, detail) => {
           result.applyOrderTrace.push(detail === undefined ? step : { step, detail });
         };
+        const traceIndex = (step) => result.applyOrderTrace.findIndex((entry) => entry === step || (entry && typeof entry === "object" && entry.step === step));
         const beforeProfileSnapshot = {
           uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
           textMode: G.Data ? G.Data.TEXT_MODE : null,
@@ -1329,11 +1334,24 @@ window.Game = window.Game || {};
           const digit1 = document.getElementById("startBirthYearDigit1");
           const startBtn = document.getElementById("btnStart");
           const beforePersisted = collectPersisted();
+          const originalStartOnclick = startBtn && typeof startBtn.onclick === "function" ? startBtn.onclick : null;
           const originalResolve = G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function" ? G.Data.resolveUiProfileFromBirthYearValue : null;
           const originalSetUiProfile = G.Data && typeof G.Data.setUiProfile === "function" ? G.Data.setUiProfile : null;
           const originalRequestRenderAll = G.UI && typeof G.UI.requestRenderAll === "function" ? G.UI.requestRenderAll : null;
           const originalRenderAll = G.UI && typeof G.UI.renderAll === "function" ? G.UI.renderAll : null;
           let renderQueuedFrom = null;
+          if (startBtn && originalStartOnclick) {
+            startBtn.onclick = function tracedStartOnclick(...args) {
+              if (!result.enterObserved) {
+                const value = readBirthYearProfileValue();
+                const profile = applyUiProfileBeforeEnter(UI, value);
+                result.enterObserved = true;
+                result.enterPath = "btnStart.onclick";
+                trace("enter_observed", { path: result.enterPath, value: String(value || ""), profile });
+              }
+              return originalStartOnclick.apply(this, args);
+            };
+          }
           if (G.Data && originalResolve) {
             G.Data.resolveUiProfileFromBirthYearValue = function tracedResolveUiProfileFromBirthYearValue(value) {
               if (!result.profileResolvedAt) {
@@ -1366,6 +1384,7 @@ window.Game = window.Game || {};
             G.UI.renderAll = function tracedRenderAll(...args) {
               if (!result.firstRenderPath) {
                 result.firstRenderPath = renderQueuedFrom ? `${renderQueuedFrom} -> UI.renderAll` : "UI.renderAll";
+                result.firstRenderObserved = true;
                 renderProfileSnapshot = {
                   uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
                   flagProfile: (G.__S && G.__S.flags && G.__S.flags.uiProfile) || null,
@@ -1407,6 +1426,7 @@ window.Game = window.Game || {};
               startBtn.click();
             }
           } finally {
+            if (startBtn && originalStartOnclick) startBtn.onclick = originalStartOnclick;
             if (G.Data && originalResolve) G.Data.resolveUiProfileFromBirthYearValue = originalResolve;
             if (G.Data && originalSetUiProfile) G.Data.setUiProfile = originalSetUiProfile;
             if (G.UI && originalRequestRenderAll) G.UI.requestRenderAll = originalRequestRenderAll;
@@ -1432,29 +1452,33 @@ window.Game = window.Game || {};
             || beforeProfileSnapshot.systemProfile !== ((G.System && G.System.languageProfile) || null)
           );
           if (result.textMixingDetected) fail("text_sources_mixed", { before: beforeProfileSnapshot, after: JSON.parse(afterMixSignature) });
-          result.appliedBeforeEnter = !!(
-            renderProfileSnapshot
-            && renderProfileSnapshot.uiProfile === "millennial"
-            && renderProfileSnapshot.flagProfile === "millennial"
-            && renderProfileSnapshot.appliedBeforeEnter === true
-            && G.Data
-            && typeof G.Data.getUiProfile === "function"
-            && G.Data.getUiProfile() === "millennial"
+          const profileAppliedIndex = traceIndex("profile_applied");
+          const enterObservedIndex = traceIndex("enter_observed");
+          const firstRenderIndex = traceIndex("first_render");
+          result.enterObserved = enterObservedIndex >= 0;
+          result.firstRenderObserved = firstRenderIndex >= 0;
+          result.appliedBeforeEnter = profileAppliedIndex >= 0 && (
+            !result.enterObserved || profileAppliedIndex < enterObservedIndex
           );
+          if (result.firstRenderObserved) {
+            result.appliedBeforeFirstRender = profileAppliedIndex >= 0 && profileAppliedIndex < firstRenderIndex;
+          } else {
+            result.appliedBeforeFirstRender = "not_observed";
+          }
           if (result.profileResolvedAt === null) result.profileResolvedAt = "Game.Data.resolveUiProfileFromBirthYearValue";
           if (result.profileAppliedAt === null) result.profileAppliedAt = "Game.Data.setUiProfile";
           if (!result.resolverProfileWriteTarget) result.resolverProfileWriteTarget = "Game.Data.UI_PROFILE";
-          if (!result.firstRenderPath && renderProfileSnapshot) {
-            result.firstRenderPath = "UI.renderAll";
-            result.firstRenderProfileRead = Object.assign({}, renderProfileSnapshot, {
-              dataUiProfile: renderProfileSnapshot.uiProfile,
-              uiFlagsProfile: renderProfileSnapshot.flagProfile,
-              stateFlagsProfile: renderProfileSnapshot.flagProfile,
-              devAppliedFlag: renderProfileSnapshot.appliedBeforeEnter,
-            });
+          if (result.firstRenderObserved && !result.appliedBeforeFirstRender) {
+            fail("profile_not_applied_before_first_render", result.firstRenderProfileRead || renderProfileSnapshot || null);
+          }
+          if (!result.enterObserved) {
+            fail("enter_not_observed", { enterPath: result.enterPath, trace: result.applyOrderTrace.slice() });
           }
           if (!result.appliedBeforeEnter) {
-            fail("profile_not_applied_before_render", renderProfileSnapshot || null);
+            fail("profile_not_applied_before_enter", {
+              enterPath: result.enterPath,
+              trace: result.applyOrderTrace.slice(),
+            });
           }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -1470,7 +1494,8 @@ window.Game = window.Game || {};
           && result.failures.length === 0
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0
-          && result.failedChecks.length === 0;
+          && result.failedChecks.length === 0
+          && (!result.firstRenderObserved || result.appliedBeforeFirstRender === true || result.appliedBeforeFirstRender === "not_observed");
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};

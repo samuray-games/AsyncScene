@@ -16,12 +16,12 @@
 - Scope held: contract-only start-screen value wiring plus mirrored docs/app updates; no resolver logic, no date objects, no age computation, no persistence, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearValueContract()`.
 
-## 2026-06-13 — Step 6 Tone Profiles Step 1.3 UI profile resolver order trace
+## 2026-06-13 — Step 6 Tone Profiles Step 1.3 UI profile resolver smoke assertion fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Resolve the start-screen two-digit value into the runtime UI profile before entering the game, with no persistence and no new profile text mixing.
 - Added dev-only smoke `Game.__DEV.smokeUiProfileResolver()`.
-- Smoke now reports the render/apply order trace fields needed to diagnose the first render path, plus the central boundary rules, required case set, pre-enter application ordering, no new storage keys, and no millennial/zoomer text-source mixing.
-- Served identity: `build_2026_06_13_step6_4_ui_profile_resolver_order_trace` / `step6_4_ui_profile_resolver_order_trace` / `step6_4_ui_profile_resolver_order_trace_smoke_v20260613_001`.
+- Smoke now reports firstRenderObserved, enterObserved, enterPath, appliedBeforeFirstRender, and the render/apply order trace fields needed to diagnose the first render path, plus the central boundary rules, required case set, pre-enter application ordering, no new storage keys, and no millennial/zoomer text-source mixing.
+- Served identity: `build_2026_06_13_step6_5_ui_profile_resolver_smoke_assertion_fix` / `step6_5_ui_profile_resolver_smoke_assertion_fix` / `step6_5_ui_profile_resolver_smoke_assertion_fix_smoke_v20260613_001`.
 - Scope held: resolver-only start-flow wiring plus mirrored docs/app updates; no persistence, no birth-year storage, no age/birthDate/generation storage, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeUiProfileResolver()`.
 
