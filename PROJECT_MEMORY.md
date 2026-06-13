@@ -1,3 +1,8 @@
+## 2026-06-13 — Step 6.2.5 reload behavior
+- Kept the UI profile resolver and save privacy contract unchanged, and added reload-specific coverage so a saved `uiProfile` restores the UI without re-asking for birth year.
+- The smoke now checks `reloadLoadsUiFromSavedProfile`, `reloadDoesNotAskYearWhenUiProfileExists`, `reloadDoesNotRestoreBirthYearYearAge`, `profileCanStillBeChangedAfterReload`, `profileCanBeResetWithoutYear`, plus the existing save/privacy fields and the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
+- Served identity for this step is `build_2026_06_13_step6_2_5_reload_behavior_ui_profile_fix` / `step6_2_5_reload_behavior_ui_profile_fix` / `step6_2_5_reload_behavior_ui_profile_fix_v20260613_001`.
+
 ## 2026-06-13 — Step 6.2.2 runtime input to profile
 - Added the runtime handoff so the start-screen year field value is passed directly into the existing UI profile resolver, and runtime keeps only the resolved `uiProfile`.
 - The start flow no longer keeps raw year input in runtime state or routes it into save, snapshot, localStorage, or UI profile logic.
