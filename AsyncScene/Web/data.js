@@ -128,6 +128,40 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     return Data.RULES.p2pPlayerToPlayerEnabled;
   };
 
+  // UI profile resolver (default | millennial | zoomer)
+  const UI_PROFILE_RULES = Object.freeze({
+    millennial: Object.freeze({ min: 81, max: 96 }),
+    zoomer: Object.freeze([
+      Object.freeze({ min: 97, max: 99 }),
+      Object.freeze({ min: 0, max: 12 }),
+    ]),
+  });
+  Data.UI_PROFILE_RULES = UI_PROFILE_RULES;
+  Data.UI_PROFILE = "default";
+
+  Data.normalizeUiProfile = (profile) => {
+    const value = String(profile || "").trim().toLowerCase();
+    if (value === "default" || value === "millennial" || value === "zoomer") return value;
+    return "default";
+  };
+
+  Data.resolveUiProfileFromBirthYearValue = (value) => {
+    const raw = String(value == null ? "" : value).trim();
+    if (!raw) return "default";
+    if (!/^\d{2}$/.test(raw)) return "default";
+    const year = Number(raw);
+    if (year >= UI_PROFILE_RULES.millennial.min && year <= UI_PROFILE_RULES.millennial.max) return "millennial";
+    if (UI_PROFILE_RULES.zoomer.some((range) => year >= range.min && year <= range.max)) return "zoomer";
+    return "default";
+  };
+
+  Data.setUiProfile = (profile) => {
+    Data.UI_PROFILE = Data.normalizeUiProfile(profile);
+    return Data.UI_PROFILE;
+  };
+
+  Data.getUiProfile = () => Data.normalizeUiProfile(Data.UI_PROFILE);
+
   // Text mode (genz | alpha)
   Data.TEXT_MODE = "genz";
   Data.TEXTS = {

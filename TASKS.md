@@ -16,6 +16,15 @@
 - Scope held: contract-only start-screen value wiring plus mirrored docs/app updates; no resolver logic, no date objects, no age computation, no persistence, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearValueContract()`.
 
+## 2026-06-13 — Step 6 Tone Profiles Step 1.3 UI profile resolver
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Resolve the start-screen two-digit value into the runtime UI profile before entering the game, with no persistence and no new profile text mixing.
+- Added dev-only smoke `Game.__DEV.smokeUiProfileResolver()`.
+- Smoke verifies the central boundary rules, the required case set, pre-enter application ordering, no new storage keys, and no millennial/zoomer text-source mixing.
+- Served identity: `build_2026_06_13_step6_2_ui_profile_resolver` / `step6_2_ui_profile_resolver` / `step6_2_ui_profile_resolver_smoke_v20260613_001`.
+- Scope held: resolver-only start-flow wiring plus mirrored docs/app updates; no persistence, no birth-year storage, no age/birthDate/generation storage, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeUiProfileResolver()`.
+
 ## 2026-06-13 — Runtime source diagnosis
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Diagnose the exact served runtime source currently executing in Safari without changing gameplay, UI, or Birth Year logic.
