@@ -1,3 +1,11 @@
+## 2026-06-13 — Step 6 Tone Profiles Step 1.7 final UI profile selection smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Add the final integrated Safari smoke for the whole UI profile selection flow.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+- Smoke coverage: start screen, primary two-digit wheel selector, helper text, empty/default safety, `90 -> millennial`, `01 -> zoomer`, invalid text-style values `2001` and `ab`, return-to-start behavior, post-return profile changes, no birth/year/age/fantasy/generation persistence, the secondary future-feeling field, weird secondary values `0000`, `3026`, `-400`, `born near Tatooine`, and `medieval knight year`, inert future-hook reserved ids `ancient`, `future`, `sci-fi`, `medieval`, and `absurd`, no millennial/zoomer text mixing, no new inconsistent storage keys, and side-effect-safe restoration of the original screen, wheel values, secondary value, and runtime profile.
+- Served identity: `build_2026_06_13_step6_8_birth_year_ui_profile_selection_final` / `step6_8_birth_year_ui_profile_selection_final` / `step6_8_birth_year_ui_profile_selection_final_smoke_v20260613_001`.
+- Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.6 future funny UI hook smoke undefined fix
 - The reserved-only future UI profile hook remains beside the existing birth-year resolver boundary.
 - Reserved ids stay `ancient`, `future`, `sci-fi`, `medieval`, and `absurd`.
