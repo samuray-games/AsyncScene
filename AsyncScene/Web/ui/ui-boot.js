@@ -235,30 +235,30 @@ window.Game = window.Game || {};
   function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {
     const G = window.Game || {};
     const Data = G.Data || null;
-    const profile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
+    const uiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
     if (Data && typeof Data.setUiProfile === "function") {
-      Data.setUiProfile(profile);
+      Data.setUiProfile(uiProfile);
     } else if (Data && typeof Data === "object") {
-      Data.UI_PROFILE = profile;
+      Data.UI_PROFILE = uiProfile;
     }
     if (UI && UI.S) {
       UI.S.flags = UI.S.flags || {};
-      UI.S.flags.uiProfile = profile;
+      UI.S.flags.uiProfile = uiProfile;
     }
     if (G.__S && G.__S !== (UI && UI.S)) {
       G.__S.flags = G.__S.flags || {};
-      G.__S.flags.uiProfile = profile;
+      G.__S.flags.uiProfile = uiProfile;
     }
     if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
       G.State.flags = G.State.flags || {};
-      G.State.flags.uiProfile = profile;
+      G.State.flags.uiProfile = uiProfile;
     }
     if (G.__DEV && typeof G.__DEV === "object") {
       G.__DEV.__uiProfileAppliedBeforeEnter = true;
     }
-    return profile;
+    return uiProfile;
   }
 
   function shouldShowFreshStartScreen(UI) {
@@ -799,8 +799,11 @@ window.Game = window.Game || {};
         if (e && typeof e.preventDefault === "function") e.preventDefault();
       } catch (_) {}
       try {
-        const preflightBirthYearValue = readBirthYearProfileValue();
-        applyUiProfileBeforeEnter(UI, preflightBirthYearValue);
+        const uiProfile = applyUiProfileBeforeEnter(UI, readBirthYearProfileValue());
+        if (UI && UI.S) {
+          UI.S.flags = UI.S.flags || {};
+          UI.S.flags.uiProfile = uiProfile;
+        }
         startGame(UI);
       } catch (err) {
         markBootDiag(`START_EXCEPTION:${err && err.message ? err.message : String(err)}`);
@@ -1934,9 +1937,9 @@ window.Game = window.Game || {};
       G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_2_two_digit_year_expansion";
-      const COMMIT = "step6_2_two_digit_year_expansion";
-      const SMOKE_VERSION = "step6_2_two_digit_year_expansion_smoke_v20260613_001";
+      const BUILD_TAG = "build_2026_06_13_step6_2_runtime_input_to_profile";
+      const COMMIT = "step6_2_runtime_input_to_profile";
+      const SMOKE_VERSION = "step6_2_runtime_input_to_profile_smoke_v20260613_001";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
@@ -1945,6 +1948,9 @@ window.Game = window.Game || {};
           smokeVersion: SMOKE_VERSION,
           resolverChecks: [],
           checkMap: {},
+          rawInputClearedAfterResolver: false,
+          noBirthYearOrAgeStateLeak: false,
+          uiProfileFromResolverOnly: false,
           failures: [],
           failedChecks: [],
           forbiddenRemaining: [],
@@ -1957,6 +1963,24 @@ window.Game = window.Game || {};
         const resolvePrimary = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
           ? G.Data.resolveUiProfileFromBirthYearValue(value)
           : "default";
+        const readPersistedText = () => {
+          const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+          let storageText = "";
+          try {
+            if (window.localStorage) {
+              const entries = [];
+              for (let i = 0; i < window.localStorage.length; i += 1) {
+                const key = window.localStorage.key(i);
+                entries.push(`${key}=${window.localStorage.getItem(key)}`);
+              }
+              storageText = entries.join("|");
+            }
+          } catch (_) {}
+          const saveText = JSON.stringify((state && state.save) || {});
+          const snapshotText = JSON.stringify((state && (state.snapshot || state.worldSnapshot)) || {});
+          const worldSnapshotText = JSON.stringify((state && state.worldSnapshot) || {});
+          return [storageText, saveText, snapshotText, worldSnapshotText].join("|");
+        };
         try {
           if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
           const cases = [
@@ -1975,6 +1999,16 @@ window.Game = window.Game || {};
             result.checkMap[entry.input] = { input: entry.input, year: expandedYear, profile: actualProfile, ok };
             return result.checkMap[entry.input];
           });
+          const beforeRawText = readPersistedText();
+          const uiProfile = resolvePrimary("90");
+          if (uiProfile !== "millennial") fail("ui_profile_from_resolver_failed", { input: "90", uiProfile });
+          const afterRawText = readPersistedText();
+          result.rawInputClearedAfterResolver = !/90|01/.test(afterRawText) && afterRawText === beforeRawText;
+          if (!result.rawInputClearedAfterResolver) fail("raw_input_not_cleared_after_resolver", { beforeRawText, afterRawText });
+          result.noBirthYearOrAgeStateLeak = !/(birthYear|birth_year|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i.test(afterRawText);
+          if (!result.noBirthYearOrAgeStateLeak) fail("birth_year_or_age_state_leak", afterRawText);
+          result.uiProfileFromResolverOnly = uiProfile === "millennial" && resolvePrimary("01") === "zoomer";
+          if (!result.uiProfileFromResolverOnly) fail("ui_profile_not_from_resolver", { uiProfile, profile01: resolvePrimary("01") });
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
