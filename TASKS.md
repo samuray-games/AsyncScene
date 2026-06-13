@@ -78,6 +78,14 @@
 - Served identity for this step uses `build_2026_06_13_step6_2_3_resolver_boundary_cleanup`, commit marker `step6_2_3_resolver_boundary_cleanup`, and smoke version `step6_2_3_resolver_boundary_cleanup_v20260613_001`.
 - Required Safari command: `Game.__DEV.smokeUiProfileResolver()`.
 
+## 2026-06-13 — Step 6.2.4 save only uiProfile
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep the resolver behavior unchanged while ensuring save, localStorage, and snapshots only retain `uiProfile` for the UI profile selection flow.
+- Smoke coverage now includes `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, and `rawInputClearedAfterResolver`, along with the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
+- Served identity: `build_2026_06_13_step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile_v20260613_002`.
+- Scope held: save/persistence contract only; no resolver change, no UI change, no unrelated save/load refactor, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
+
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.4 no persistence rule
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Enforce that the birth-year wheel digits and derived UI profile stay runtime-only and do not persist birth/year/age data.
