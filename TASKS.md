@@ -1,10 +1,10 @@
 ## 2026-06-13 — Step 6 Tone Profiles Step 1.1 start screen UI only
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Goal: Add only the visible start-screen birth-year hint field UI without resolver logic, parsing, saving, or any persistence.
+- Goal: Add only the visible start-screen birth-year wheel UI without resolver logic, parsing, saving, or any persistence.
 - Added dev-only Safari command: `Game.__DEV.smokeBirthYearStartScreenUi()`.
-- Smoke verifies the start screen exists, the birth-year input is visible, the helper text is visible, empty start still works, and the UI field does not leak into localStorage/save/snapshot state.
-- Served identity: `build_2026_06_13_step6_1_birth_year_start_screen_ui` / `step6_1_birth_year_start_screen_ui` / `step6_1_birth_year_start_screen_ui_smoke_v20260613_001`.
-- Scope held: UI-only start-screen hint field plus mirrored docs/app updates; no resolver logic, no year parsing, no persistence, no new global data containers, and no `Console.txt` usage.
+- Smoke verifies the start screen exists, the two-digit picker is visible, the up/down controls are visible, the helper text is visible, empty start still works, and the UI field does not leak into localStorage/save/snapshot/world state.
+- Served identity: `build_2026_06_13_step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui_smoke_v20260613_002`.
+- Scope held: UI-only start-screen wheel picker plus mirrored docs/app updates; no resolver logic, no year parsing, no persistence, no new global data containers, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearStartScreenUi()`.
 
 ## 2026-06-12 — Step 8.12 z-profile runtime acceptance smoke
