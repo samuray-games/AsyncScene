@@ -82,7 +82,7 @@
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep the resolver behavior unchanged while ensuring save, localStorage, and snapshots only retain `uiProfile` for the UI profile selection flow.
 - Smoke coverage now includes `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, and `rawInputClearedAfterResolver`, along with the standard `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` fields.
-- Served identity: `build_2026_06_13_step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile_v20260613_002`.
+- Served identity: `build_2026_06_13_step6_2_4_save_only_ui_profile_fix` / `step6_2_4_save_only_ui_profile_fix` / `step6_2_4_save_only_ui_profile_fix_v20260613_003`.
 - Scope held: save/persistence contract only; no resolver change, no UI change, no unrelated save/load refactor, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearUiProfileSelectionFinal()`.
 

@@ -255,6 +255,12 @@ window.Game = window.Game || {};
       G.State.flags = G.State.flags || {};
       G.State.flags.uiProfile = uiProfile;
     }
+    const saveTargets = [UI && UI.S, G.__S, G.State];
+    saveTargets.forEach((state) => {
+      if (!state) return;
+      state.save = state.save && typeof state.save === "object" ? state.save : {};
+      state.save.uiProfile = uiProfile;
+    });
     if (G.__DEV && typeof G.__DEV === "object") {
       G.__DEV.__uiProfileAppliedBeforeEnter = true;
     }
@@ -1937,9 +1943,9 @@ window.Game = window.Game || {};
       G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_2_4_save_only_ui_profile";
-      const COMMIT = "step6_2_4_save_only_ui_profile";
-      const SMOKE_VERSION = "step6_2_4_save_only_ui_profile_v20260613_002";
+      const BUILD_TAG = "build_2026_06_13_step6_2_4_save_only_ui_profile_fix";
+      const COMMIT = "step6_2_4_save_only_ui_profile_fix";
+      const SMOKE_VERSION = "step6_2_4_save_only_ui_profile_fix_v20260613_003";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
