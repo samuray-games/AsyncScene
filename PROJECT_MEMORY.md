@@ -2,7 +2,8 @@
 - Added a non-persistent start-screen birth-year wheel picker to the app and docs mirrors: label `Последние 2 цифры года рождения`, helper text `Только для интерфейса. Не сохраняем. Можно поменять позже.`
 - The start screen still starts with the default 00 picker; no resolver logic, parsing, save wiring, or persistent storage was added.
 - Added dev-only smoke `Game.__DEV.smokeBirthYearStartScreenUi()` to verify visibility, empty/default-start behavior, and the absence of localStorage/save/snapshot/world-state leakage for this UI field.
-- Updated build identity to `build_2026_06_13_step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui_smoke_v20260613_002`.
+- Added smoke diagnostics `ageSource`, `agePath`, and `birthYearPersistenceDetected` so pre-existing unrelated `age` fields no longer trigger this step.
+- Updated build identity to `build_2026_06_13_step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui` / `step6_1_birth_year_wheels_ui_smoke_v20260613_003`.
 
 ## 2026-06-12 — Step 8.13 z-profile final acceptance marker
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.

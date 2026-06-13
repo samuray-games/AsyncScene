@@ -987,12 +987,15 @@ window.Game = window.Game || {};
           ok: false,
           buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
           commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
-          smokeVersion: "step6_1_birth_year_wheels_ui_smoke_v20260613_002",
+          smokeVersion: "step6_1_birth_year_wheels_ui_smoke_v20260613_003",
           startScreenVisible: false,
           digitPickerVisible: false,
           upDownControlsVisible: false,
           helperVisible: false,
           emptyStartOk: false,
+          ageSource: null,
+          agePath: null,
+          birthYearPersistenceDetected: false,
           forbiddenRemaining: [],
           missingCoverage: [],
           failures: [],
@@ -1053,13 +1056,36 @@ window.Game = window.Game || {};
                 worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {})
               };
             };
+            const findAgePath = () => {
+              const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+              const sources = [
+                ["state.save", state && state.save],
+                ["state.snapshot", state && state.snapshot],
+                ["state.worldSnapshot", state && state.worldSnapshot],
+                ["window.__D", window.Game && window.Game.__D],
+              ];
+              for (const [basePath, obj] of sources) {
+                if (!obj || typeof obj !== "object") continue;
+                for (const key of Object.keys(obj)) {
+                  if (key === "age" || /age/i.test(key)) return { ageSource: "preexisting", agePath: `${basePath}.${key}` };
+                }
+              }
+              return { ageSource: "none", agePath: null };
+            };
+            const ageInfo = findAgePath();
+            result.ageSource = ageInfo.ageSource;
+            result.agePath = ageInfo.agePath;
             const before = collectPersisted();
             startBtn.click();
             const after = collectPersisted();
             result.emptyStartOk = !!(window.Game && window.Game.__S && window.Game.__S.isStarted === true);
             if (!result.emptyStartOk) fail("empty_start_blocked", null);
             const combined = JSON.stringify({ before, after });
-            const matches = combined.match(/birthYear|birth_year|startBirthYear|age|selectedDigit|digit0|digit1|picker|wheel/i);
+            const featureMatches = combined.match(/birthYear|birth_year|startBirthYear|selectedDigit|digit0|digit1|picker|wheel/i);
+            const ageMatches = combined.match(/(?:^|[^a-zA-Z])age(?:[^a-zA-Z]|$)/i);
+            result.birthYearPersistenceDetected = !!featureMatches;
+            const ageFeatureLeak = ageMatches && result.ageSource !== "preexisting";
+            const matches = featureMatches || ageFeatureLeak ? Array.from(new Set([...(featureMatches || []), ...(ageFeatureLeak ? ["age"] : [])])) : [];
             if (matches && matches.length) {
               result.forbiddenRemaining = Array.from(new Set(matches));
               fail("persistence_hit", result.forbiddenRemaining.slice());
@@ -1070,7 +1096,8 @@ window.Game = window.Game || {};
         }
         result.ok = result.failedChecks.length === 0
           && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0;
+          && result.missingCoverage.length === 0
+          && result.birthYearPersistenceDetected === false;
         console.warn("BIRTH_YEAR_START_SCREEN_UI_SMOKE", result.ok ? "PASS" : "FAIL", result);
         return result;
       };
