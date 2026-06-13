@@ -133,9 +133,20 @@ window.Game = window.Game || {};
           <h1 id="startTitle"></h1>
           <div id="startIntroLines"></div>
           <div id="startEconomyHonestyLine"></div>
-          <label id="startBirthYearLabel" class="startFieldLabel" for="startBirthYearInput">Последние 2 цифры года рождения</label>
-          <input id="startBirthYearInput" class="startFieldInput" type="text" inputmode="numeric" autocomplete="off" maxlength="2" aria-describedby="startBirthYearHint" />
-          <div id="startBirthYearHint" class="startFieldHint">Только для интерфейса. Мы не сохраняем это. Можно изменить позже.</div>
+          <label id="startBirthYearLabel" class="startFieldLabel">Последние 2 цифры года рождения</label>
+          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="Последние 2 цифры года рождения">
+            <div class="startBirthYearWheel" data-birth-year-digit="0">
+              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="Увеличить первую цифру">▲</button>
+              <div id="startBirthYearDigit0" class="startBirthYearDigit" aria-live="polite">0</div>
+              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="Уменьшить первую цифру">▼</button>
+            </div>
+            <div class="startBirthYearWheel" data-birth-year-digit="1">
+              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="Увеличить вторую цифру">▲</button>
+              <div id="startBirthYearDigit1" class="startBirthYearDigit" aria-live="polite">0</div>
+              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="Уменьшить вторую цифру">▼</button>
+            </div>
+          </div>
+          <div id="startBirthYearHint" class="startFieldHint">Только для интерфейса. Не сохраняем. Можно поменять позже.</div>
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
             <button id="btnRules" class="btn"></button>
@@ -181,7 +192,7 @@ window.Game = window.Game || {};
       card.style.position = card.style.position || "relative";
       card.style.zIndex = card.style.zIndex || "1";
     }
-    st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding, #startBirthYearInput").forEach((el) => {
+    st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding, #startBirthYearPicker button").forEach((el) => {
       el.style.pointerEvents = "auto";
       el.style.position = el.style.position || "relative";
       el.style.zIndex = el.style.zIndex || "2";
@@ -291,36 +302,78 @@ window.Game = window.Game || {};
     }
 
     let birthYearLabel = $("startBirthYearLabel") || document.getElementById("startBirthYearLabel");
-    if (!birthYearLabel && economyEl && economyEl.parentNode) {
+    if (!birthYearLabel) {
       birthYearLabel = document.createElement("label");
       birthYearLabel.id = "startBirthYearLabel";
       birthYearLabel.className = "startFieldLabel";
-      birthYearLabel.setAttribute("for", "startBirthYearInput");
-      economyEl.parentNode.insertBefore(birthYearLabel, economyEl.nextSibling);
+      birthYearLabel.textContent = "Последние 2 цифры года рождения";
+      const insertLabelBefore = $("startBirthYearPicker") || document.getElementById("startBirthYearPicker") || $("startBtns") || document.getElementById("startBtns");
+      if (insertLabelBefore && insertLabelBefore.parentNode) insertLabelBefore.parentNode.insertBefore(birthYearLabel, insertLabelBefore);
+      else if (economyEl && economyEl.parentNode) economyEl.parentNode.insertBefore(birthYearLabel, economyEl.nextSibling);
+    } else {
+      birthYearLabel.textContent = "Последние 2 цифры года рождения";
     }
-    if (birthYearLabel) birthYearLabel.textContent = "Последние 2 цифры года рождения";
 
-    let birthYearInput = $("startBirthYearInput") || document.getElementById("startBirthYearInput");
-    if (!birthYearInput && birthYearLabel && birthYearLabel.parentNode) {
-      birthYearInput = document.createElement("input");
-      birthYearInput.id = "startBirthYearInput";
-      birthYearInput.className = "startFieldInput";
-      birthYearInput.type = "text";
-      birthYearInput.setAttribute("inputmode", "numeric");
-      birthYearInput.setAttribute("autocomplete", "off");
-      birthYearInput.setAttribute("maxlength", "2");
-      birthYearInput.setAttribute("aria-describedby", "startBirthYearHint");
-      birthYearLabel.parentNode.insertBefore(birthYearInput, birthYearLabel.nextSibling);
+    let birthYearPicker = $("startBirthYearPicker") || document.getElementById("startBirthYearPicker");
+    if (!birthYearPicker) {
+      const buildWheel = (index, ordinal) => `
+        <div class="startBirthYearWheel" data-birth-year-digit="${index}">
+          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="Увеличить ${ordinal} цифру">▲</button>
+          <div id="startBirthYearDigit${index}" class="startBirthYearDigit" aria-live="polite">0</div>
+          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="Уменьшить ${ordinal} цифру">▼</button>
+        </div>`;
+      birthYearPicker = document.createElement("div");
+      birthYearPicker.id = "startBirthYearPicker";
+      birthYearPicker.className = "startBirthYearPicker";
+      birthYearPicker.setAttribute("aria-label", "Последние 2 цифры года рождения");
+      birthYearPicker.innerHTML = buildWheel(0, "первую") + buildWheel(1, "вторую");
+      const insertPickerBefore = $("startBirthYearHint") || document.getElementById("startBirthYearHint") || $("startBtns") || document.getElementById("startBtns");
+      if (insertPickerBefore && insertPickerBefore.parentNode) insertPickerBefore.parentNode.insertBefore(birthYearPicker, insertPickerBefore);
+      else if (birthYearLabel && birthYearLabel.parentNode) birthYearLabel.parentNode.insertBefore(birthYearPicker, birthYearLabel.nextSibling);
     }
 
     let birthYearHint = $("startBirthYearHint") || document.getElementById("startBirthYearHint");
-    if (!birthYearHint && birthYearInput && birthYearInput.parentNode) {
+    if (!birthYearHint) {
       birthYearHint = document.createElement("div");
       birthYearHint.id = "startBirthYearHint";
       birthYearHint.className = "startFieldHint";
-      birthYearInput.parentNode.insertBefore(birthYearHint, birthYearInput.nextSibling);
+      birthYearHint.textContent = "Только для интерфейса. Не сохраняем. Можно поменять позже.";
+      const insertHintBefore = $("startBtns") || document.getElementById("startBtns");
+      if (insertHintBefore && insertHintBefore.parentNode) insertHintBefore.parentNode.insertBefore(birthYearHint, insertHintBefore);
+      else if (birthYearPicker && birthYearPicker.parentNode) birthYearPicker.parentNode.insertBefore(birthYearHint, birthYearPicker.nextSibling);
+    } else {
+      birthYearHint.textContent = "Только для интерфейса. Не сохраняем. Можно поменять позже.";
     }
-    if (birthYearHint) birthYearHint.textContent = "Только для интерфейса. Мы не сохраняем это. Можно изменить позже.";
+
+    const digit0 = $("startBirthYearDigit0") || document.getElementById("startBirthYearDigit0");
+    const digit1 = $("startBirthYearDigit1") || document.getElementById("startBirthYearDigit1");
+    const digitEls = [digit0, digit1];
+    const clampDigit = (value) => {
+      const num = Number(value);
+      return Number.isFinite(num) ? ((num % 10) + 10) % 10 : 0;
+    };
+    const setDigit = (index, nextValue) => {
+      const el = digitEls[index];
+      if (!el) return;
+      const value = clampDigit(nextValue);
+      el.textContent = String(value);
+      el.setAttribute("data-birth-year-digit-value", String(value));
+      if (birthYearPicker) birthYearPicker.setAttribute("data-birth-year-value", `${digitEls.map((node) => String(clampDigit(node && node.textContent))).join("")}`);
+    };
+    const getDigit = (index) => clampDigit(digitEls[index] && digitEls[index].textContent);
+    if (digit0) setDigit(0, digit0.textContent || "0");
+    if (digit1) setDigit(1, digit1.textContent || "0");
+    if (birthYearPicker && birthYearPicker.dataset.bound !== "1") {
+      birthYearPicker.addEventListener("click", (event) => {
+        const button = event.target && event.target.closest ? event.target.closest("button[data-birth-year-step]") : null;
+        if (!button || !birthYearPicker.contains(button)) return;
+        event.preventDefault();
+        const index = Number(button.getAttribute("data-birth-year-index") || "0");
+        const step = Number(button.getAttribute("data-birth-year-step") || "0");
+        setDigit(index, getDigit(index) + step);
+      });
+      birthYearPicker.dataset.bound = "1";
+    }
 
     const resumeMode = getOnboardingSeen(UI);
     const startBtn = $("btnStart") || document.getElementById("btnStart");
@@ -934,70 +987,90 @@ window.Game = window.Game || {};
           ok: false,
           buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
           commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
-          smokeVersion: "step6_1_birth_year_start_screen_ui_smoke_v20260613_001",
+          smokeVersion: "step6_1_birth_year_wheels_ui_smoke_v20260613_002",
           startScreenVisible: false,
-          inputVisible: false,
+          digitPickerVisible: false,
+          upDownControlsVisible: false,
           helperVisible: false,
           emptyStartOk: false,
-          persistenceHits: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
           failures: [],
           failedChecks: []
         };
+        const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_1_birth_year_wheels_ui";
+        const EXPECTED_COMMIT = "step6_1_birth_year_wheels_ui";
         const fail = (check, detail) => {
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
           result.failures.push(detail === undefined ? check : { check, detail });
         };
+        const isVisible = (el) => {
+          if (!el) return false;
+          const cs = getComputedStyle(el);
+          return !el.hidden && !el.classList.contains("hidden") && cs.display !== "none" && cs.visibility !== "hidden" && el.getClientRects().length > 0;
+        };
         try {
-          const st = document.getElementById("startScreen");
-          const input = document.getElementById("startBirthYearInput");
+          if (window.__BUILD_TAG__ !== EXPECTED_BUILD_TAG) fail("build_tag_mismatch", { expected: EXPECTED_BUILD_TAG, actual: window.__BUILD_TAG__ || null });
+          if (window.__COMMIT__ !== EXPECTED_COMMIT) fail("commit_mismatch", { expected: EXPECTED_COMMIT, actual: window.__COMMIT__ || null });
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
+            G.__DEV.refreshOnboardingStartScreenOnce();
+          }
+          let st = document.getElementById("startScreen");
+          if (!isVisible(st) && G.__A && typeof G.__A.resetOnboardingSeen === "function") {
+            try { G.__A.resetOnboardingSeen(); } catch (_) {}
+            if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+            st = document.getElementById("startScreen");
+          }
+          result.startScreenVisible = isVisible(st);
+          if (!result.startScreenVisible) fail("start_screen_not_visible", null);
+          const picker = document.getElementById("startBirthYearPicker");
           const hint = document.getElementById("startBirthYearHint");
-          if (!st) fail("start_screen_missing", null);
-          if (!input) fail("birth_year_input_missing", null);
-          if (!hint) fail("helper_missing", null);
-          if (st) {
-            const cs = getComputedStyle(st);
-            result.startScreenVisible = !st.hidden && !st.classList.contains("hidden") && cs.display !== "none" && cs.visibility !== "hidden";
-            if (!result.startScreenVisible) fail("start_screen_not_visible", null);
-          }
-          if (input) {
-            const cs = getComputedStyle(input);
-            result.inputVisible = !input.hidden && cs.display !== "none" && cs.visibility !== "hidden" && input.getClientRects().length > 0;
-            if (!result.inputVisible) fail("birth_year_input_not_visible", null);
-          }
-          if (hint) {
-            const cs = getComputedStyle(hint);
-            result.helperVisible = !hint.hidden && cs.display !== "none" && cs.visibility !== "hidden" && hint.getClientRects().length > 0;
-            if (!result.helperVisible) fail("helper_not_visible", null);
-            if ((hint.textContent || "").trim() !== "Только для интерфейса. Мы не сохраняем это. Можно изменить позже.") fail("helper_copy_mismatch", (hint.textContent || "").trim());
-          }
+          const digit0 = document.getElementById("startBirthYearDigit0");
+          const digit1 = document.getElementById("startBirthYearDigit1");
+          const controls = picker ? Array.from(picker.querySelectorAll("button[data-birth-year-step]")) : [];
+          result.digitPickerVisible = isVisible(picker) && isVisible(digit0) && isVisible(digit1);
+          if (!result.digitPickerVisible) fail("digit_picker_not_visible", null);
+          result.upDownControlsVisible = controls.length === 4 && controls.every(isVisible);
+          if (!result.upDownControlsVisible) fail("up_down_controls_not_visible", controls.map((el) => el && el.id).filter(Boolean));
+          result.helperVisible = isVisible(hint) && (hint.textContent || "").trim() === "Только для интерфейса. Не сохраняем. Можно поменять позже.";
+          if (!result.helperVisible) fail("helper_not_visible", hint ? (hint.textContent || "").trim() : null);
           const startBtn = document.getElementById("btnStart");
           if (!startBtn) {
             fail("start_button_missing", null);
           } else {
-            const before = {
-              localStorageKeys: Object.keys(window.localStorage || {}),
-              saveKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.save) || {})),
-              snapshotKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.snapshot) || {}))
+            const collectPersisted = () => {
+              const storageKeys = [];
+              try {
+                if (window.localStorage) {
+                  for (let i = 0; i < window.localStorage.length; i += 1) storageKeys.push(window.localStorage.key(i));
+                }
+              } catch (_) {}
+              const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+              return {
+                storageKeys,
+                saveKeys: Object.keys((state && state.save) || {}),
+                snapshotKeys: Object.keys((state && (state.snapshot || state.worldSnapshot)) || {}),
+                worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {})
+              };
             };
-            if (input) input.value = "";
+            const before = collectPersisted();
             startBtn.click();
-            const after = {
-              localStorageKeys: Object.keys(window.localStorage || {}),
-              saveKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.save) || {})),
-              snapshotKeys: Object.keys(((window.Game && window.Game.__S && window.Game.__S.snapshot) || {}))
-            };
+            const after = collectPersisted();
             result.emptyStartOk = !!(window.Game && window.Game.__S && window.Game.__S.isStarted === true);
             if (!result.emptyStartOk) fail("empty_start_blocked", null);
             const combined = JSON.stringify({ before, after });
-            if (/birth|year|age/i.test(combined)) {
-              result.persistenceHits.push(combined);
-              fail("persistence_hit", combined);
+            const matches = combined.match(/birthYear|birth_year|startBirthYear|age|selectedDigit|digit0|digit1|picker|wheel/i);
+            if (matches && matches.length) {
+              result.forbiddenRemaining = Array.from(new Set(matches));
+              fail("persistence_hit", result.forbiddenRemaining.slice());
             }
           }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
-        result.ok = result.failedChecks.length === 0;
+        result.ok = result.failedChecks.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0;
         console.warn("BIRTH_YEAR_START_SCREEN_UI_SMOKE", result.ok ? "PASS" : "FAIL", result);
         return result;
       };

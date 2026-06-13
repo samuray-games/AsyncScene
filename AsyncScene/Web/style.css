@@ -1402,21 +1402,57 @@ button:disabled{opacity:.55; cursor:not-allowed}
   color:var(--muted);
   letter-spacing:.01em;
 }
-.startFieldInput{
+.startBirthYearPicker{
+  display:flex;
+  justify-content:center;
+  gap:12px;
   width:100%;
-  min-height:44px;
-  padding:0 14px;
+  margin-top:-2px;
+}
+.startBirthYearWheel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-width:108px;
+  padding:12px 10px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(180deg, var(--surface), var(--panel2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.startBirthYearArrow{
+  width:100%;
+  min-height:42px;
   border:1px solid var(--line);
   border-radius:14px;
   background:var(--surface);
   color:var(--text);
-  font:inherit;
-  font-size:16px;
-  text-align:center;
+  font-size:22px;
+  line-height:1;
+  font-weight:900;
+  padding:0;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.startFieldInput::placeholder{
-  color:var(--muted);
-  opacity:.75;
+.startBirthYearArrow:active{
+  transform:translateY(1px);
+}
+.startBirthYearDigit{
+  width:100%;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:16px;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.05);
+  color:var(--text);
+  font-size:44px;
+  font-weight:900;
+  letter-spacing:.04em;
+  font-variant-numeric: tabular-nums;
 }
 .startFieldHint{
   text-align:left;
@@ -1469,8 +1505,21 @@ button:disabled{opacity:.55; cursor:not-allowed}
   #startIntroLines{
     font-size:14px;
   }
-  .startFieldInput{
-    min-height:42px;
+  .startBirthYearPicker{
+    gap:10px;
+  }
+  .startBirthYearWheel{
+    min-width:96px;
+    padding:10px 8px;
+    border-radius:16px;
+  }
+  .startBirthYearArrow{
+    min-height:40px;
+    font-size:21px;
+  }
+  .startBirthYearDigit{
+    min-height:54px;
+    font-size:40px;
   }
 }
 @media (max-width: 860px){
