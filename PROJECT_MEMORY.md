@@ -11,6 +11,11 @@
 - Added dev-only smoke `Game.__DEV.smokeBirthYearValueContract()` to verify representative states `00, 01, 09, 10, 42, 95, 99`, empty-state safety, and the absence of age/birthDate/date-object leakage or new localStorage/save/world-snapshot keys.
 - Updated build identity to `build_2026_06_13_step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract_smoke_v20260613_001`.
 
+## 2026-06-13 — Runtime source diagnosis
+- Added `Game.__DEV.smokeRuntimeSourceDiagnosis()` to report the exact runtime source currently executing in Safari, including page URL, pathname, origin, loaded JS files, source flavor, and buildTag/smokeVersion comparisons between docs and AsyncScene/Web paths.
+- The diagnosis smoke is read-only and does not change gameplay, UI, or Birth Year logic.
+- The current source trail still points to the old `step6_1_birth_year_wheels_ui` identity in the served HTML/dev-check path, so this step is for source identification only.
+
 ## 2026-06-12 — Step 8.13 z-profile final acceptance marker
 - READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `Game.__DEV.smokeZProfileFinalAcceptanceOnce()` as the final Safari aggregate for the completed z-profile package.

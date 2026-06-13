@@ -16,6 +16,15 @@
 - Scope held: contract-only start-screen value wiring plus mirrored docs/app updates; no resolver logic, no date objects, no age computation, no persistence, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeBirthYearValueContract()`.
 
+## 2026-06-13 — Runtime source diagnosis
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Diagnose the exact served runtime source currently executing in Safari without changing gameplay, UI, or Birth Year logic.
+- Added dev-only Safari command: `Game.__DEV.smokeRuntimeSourceDiagnosis()`.
+- Smoke reports the active buildTag, smokeVersion, commit, page URL, pathname, origin, loaded JS files, runtime flavor, buildTag/smokeVersion comparisons between docs and AsyncScene/Web paths, and the detected mismatch evidence.
+- Served identity remains the current runtime bundle identity; this step is diagnostics only and does not change feature behavior.
+- Scope held: source tracing only; no gameplay logic, no UI logic, no resolver logic, no persistence, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeRuntimeSourceDiagnosis()`.
+
 ## 2026-06-12 — Step 8.12 z-profile runtime acceptance smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Add the final Safari runtime acceptance smoke for the completed z-profile package without changing gameplay logic, conditions, entities, handlers, economy rules, battle rules, or state mutations.
