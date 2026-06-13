@@ -1937,9 +1937,9 @@ window.Game = window.Game || {};
       G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_2_runtime_input_to_profile_mapping";
-      const COMMIT = "step6_2_runtime_input_to_profile_mapping";
-      const SMOKE_VERSION = "step6_2_runtime_input_to_profile_mapping_smoke_v20260613_001";
+      const BUILD_TAG = "build_2026_06_13_step6_2_3_resolver_boundary_cleanup";
+      const COMMIT = "step6_2_3_resolver_boundary_cleanup";
+      const SMOKE_VERSION = "step6_2_3_resolver_boundary_cleanup_v20260613_001";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const result = {
           ok: false,
@@ -1993,7 +1993,9 @@ window.Game = window.Game || {};
           ];
           result.resolverChecks = cases.map((entry) => {
             const actualProfile = resolvePrimary(entry.input);
-            const expandedYear = /^[0-9]{2}$/.test(entry.input) ? ((Number(entry.input) <= 27) ? 2000 + Number(entry.input) : 1900 + Number(entry.input)) : null;
+            const expandedYear = G.Data && typeof G.Data.expandUiBirthYearValue === "function"
+              ? G.Data.expandUiBirthYearValue(entry.input)
+              : null;
             const ok = expandedYear === entry.year && actualProfile === entry.profile;
             if (!ok) fail(`resolver_${entry.input}`, { expected: entry, actual: { input: entry.input, year: expandedYear, profile: actualProfile } });
             result.checkMap[entry.input] = { input: entry.input, year: expandedYear, profile: actualProfile, ok };

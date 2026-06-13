@@ -5,6 +5,11 @@
 - Updated the Safari smoke identity to `build_2026_06_13_step6_2_runtime_input_to_profile_mapping` / `step6_2_runtime_input_to_profile_mapping` / `step6_2_runtime_input_to_profile_mapping_smoke_v20260613_001`.
 - Smoke coverage now asserts `90 -> millennial`, `01 -> zoomer`, raw-input disappearance after resolver, no birthYear/year/age/raw input persistence, and resolver-sourced UI profile usage.
 
+## 2026-06-13 — Step 6.2.3 Resolver Boundary
+- Added the boundary-only cleanup so the shared resolver owns the two-digit year expansion and the year-band mapping, while the UI smoke now calls the resolver helper instead of recomputing century rules itself.
+- The generation boundary is now centralized in `Data.expandUiBirthYearValue()` plus `Data.resolveUiProfileFromBirthYearValue()`, and invalid or missing input still resolves to `default`.
+- Served identity for this cleanup is `build_2026_06_13_step6_2_3_resolver_boundary_cleanup` / `step6_2_3_resolver_boundary_cleanup` / `step6_2_3_resolver_boundary_cleanup_v20260613_001`.
+
 ## 2026-06-13 — Step 6.2.1 two-digit year expansion
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the central two-digit year resolver expansion so `00-27` maps to `2000-2027` and `28-99` maps to `1928-1999`.

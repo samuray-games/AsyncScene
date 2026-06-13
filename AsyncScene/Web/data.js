@@ -193,9 +193,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.isReservedFutureUiProfileId = (profile) => UI_PROFILE_RESERVED_FUTURE_ID_SET.has(String(profile == null ? "" : profile).trim().toLowerCase());
   Data.resolveUiProfileFromFutureValue = (value) => UI_PROFILE_FUTURE_HOOK.resolve(value);
 
+  Data.expandUiBirthYearValue = (value) => UI_PROFILE_RULES.twoDigitYear.resolve(String(value == null ? "" : value).trim());
+
   Data.resolveUiProfileFromBirthYearValue = (value) => {
-    const raw = String(value == null ? "" : value).trim();
-    const year = UI_PROFILE_RULES.twoDigitYear.resolve(raw);
+    const year = Data.expandUiBirthYearValue(value);
     if (year == null) return "default";
     const band = UI_PROFILE_RULES.yearBands.find((range) => year >= range.min && year <= range.max);
     return band ? band.profile : "default";
