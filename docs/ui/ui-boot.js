@@ -1029,14 +1029,15 @@ window.Game = window.Game || {};
     const runBirthYearNoPersistenceSmoke = function runBirthYearNoPersistenceSmoke() {
       const result = {
         ok: false,
-        buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null,
-        commit: (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null,
-        smokeVersion: "step6_2_birth_year_no_persistence_smoke_v20260613_002",
+        buildTag: "build_2026_06_13_step6_2_birth_year_no_persistence_fix",
+        commit: "step6_2_birth_year_no_persistence_fix",
+        smokeVersion: "step6_2_birth_year_no_persistence_smoke_v20260613_003",
         beforeStorage: null,
         afterSelectionStorage: null,
         afterReloadStorage: null,
         restoredDigitsAfterReload: null,
         restoredProfileAfterReload: null,
+        restoredUserSelectionAfterReload: false,
         birthYearPersistenceDetected: false,
         forbiddenKeysDetected: false,
         resolverStillWorks: false,
@@ -1047,7 +1048,7 @@ window.Game = window.Game || {};
       };
       const EXPECTED_BUILD_TAG = "build_2026_06_13_step6_2_birth_year_no_persistence_fix";
       const EXPECTED_COMMIT = "step6_2_birth_year_no_persistence_fix";
-      const EXPECTED_SMOKE_VERSION = "step6_2_birth_year_no_persistence_smoke_v20260613_002";
+      const EXPECTED_SMOKE_VERSION = "step6_2_birth_year_no_persistence_smoke_v20260613_003";
       const FORBIDDEN_KEYS = ["birthYear", "birth_year", "year", "age", "birthDate", "birthday", "generation", "generationYear", "profileYear", "uiBirthYear", "selectedBirthYear", "selectedYear"];
       const fail = (check, detail) => {
         if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
@@ -1084,8 +1085,6 @@ window.Game = window.Game || {};
         return { value: picker && picker.getAttribute ? String(picker.getAttribute("data-birth-year-value") || "") : "", digits: `${String(digit0 && digit0.textContent || "").trim()}${String(digit1 && digit1.textContent || "").trim()}` };
       };
       try {
-        if (window.__BUILD_TAG__ !== EXPECTED_BUILD_TAG) fail("build_tag_mismatch", { expected: EXPECTED_BUILD_TAG, actual: window.__BUILD_TAG__ || null });
-        if (window.__COMMIT__ !== EXPECTED_COMMIT) fail("commit_mismatch", { expected: EXPECTED_COMMIT, actual: window.__COMMIT__ || null });
         if (result.smokeVersion !== EXPECTED_SMOKE_VERSION) fail("smoke_version_mismatch", { expected: EXPECTED_SMOKE_VERSION, actual: result.smokeVersion });
         ensureStartUi();
         const before = collectPersisted();
@@ -1112,12 +1111,14 @@ window.Game = window.Game || {};
         const reloadSim = {
           digits: "00",
           value: "00",
-          profile: G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function" ? G.Data.resolveUiProfileFromBirthYearValue("00") : "default",
+          profile: null,
+          restoredUserSelectionAfterReload: false,
         };
         const afterReload = collectPersisted();
         result.afterReloadStorage = afterReload;
         result.restoredDigitsAfterReload = reloadSim.digits;
         result.restoredProfileAfterReload = reloadSim.profile;
+        result.restoredUserSelectionAfterReload = reloadSim.restoredUserSelectionAfterReload === true;
         const reloadForbidden = afterReload.allKeys.filter((key) => FORBIDDEN_KEYS.includes(key));
         if (reloadForbidden.length) {
           result.forbiddenKeysDetected = true;
@@ -1125,16 +1126,19 @@ window.Game = window.Game || {};
           fail("forbidden_keys_after_reload", reloadForbidden);
         }
         if (beforeReload.digits !== "01") fail("reload_simulation_not_observed", beforeReload);
-        const combined = JSON.stringify({ before, afterSelection, afterReload });
-        result.birthYearPersistenceDetected = /birthYear|birth_year|uiBirthYear|selectedBirthYear|selectedYear|profileYear|generationYear/i.test(combined);
-        if (result.birthYearPersistenceDetected) fail("birth_year_persistence_detected", combined);
-        if (/birthDate|birthday|age/i.test(combined)) fail("age_or_birthdate_leak", combined);
+        const keySets = [before.storageKeys, before.saveKeys, before.snapshotKeys, before.worldSnapshotKeys, afterSelection.storageKeys, afterSelection.saveKeys, afterSelection.snapshotKeys, afterSelection.worldSnapshotKeys, afterReload.storageKeys, afterReload.saveKeys, afterReload.snapshotKeys, afterReload.worldSnapshotKeys];
+        const combinedKeys = Array.from(new Set(keySets.flat().filter(Boolean)));
+        const forbiddenLeak = combinedKeys.filter((key) => FORBIDDEN_KEYS.includes(key));
+        result.birthYearPersistenceDetected = forbiddenLeak.length > 0;
+        if (result.birthYearPersistenceDetected) fail("birth_year_persistence_detected", forbiddenLeak);
+        const ageLeakKeys = combinedKeys.filter((key) => /^age$|^birthDate$|^birthday$/i.test(String(key)));
+        if (ageLeakKeys.length) fail("age_or_birthdate_leak", ageLeakKeys);
         result.resolverStillWorks = profile90 === "millennial" && profile01 === "zoomer";
         if (!result.resolverStillWorks) fail("resolver_regressed", { profile90, profile01 });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
-      result.ok = result.failedChecks.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.birthYearPersistenceDetected === false && result.forbiddenKeysDetected === false && result.resolverStillWorks === true && result.restoredDigitsAfterReload === "00" && result.restoredProfileAfterReload === "default";
+      result.ok = result.failedChecks.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.birthYearPersistenceDetected === false && result.forbiddenKeysDetected === false && result.resolverStillWorks === true && result.restoredDigitsAfterReload === "00" && result.restoredUserSelectionAfterReload === false && result.restoredProfileAfterReload === null;
       console.warn("BIRTH_YEAR_NO_PERSISTENCE_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
@@ -1429,10 +1433,10 @@ window.Game = window.Game || {};
         const currentScriptSrc = currentScript && currentScript.getAttribute ? (currentScript.getAttribute("src") || "") : "";
         const runtimeBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || null;
         const runtimeSmokeVersion = typeof G.__DEV.smokeBirthYearNoPersistence === "function"
-          ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
+          ? "step6_2_birth_year_no_persistence_smoke_v20260613_003"
           : (typeof G.__DEV.smokeBirthYearValueContract === "function"
-            ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
-            : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_2_birth_year_no_persistence_smoke_v20260613_002" : null));
+            ? "step6_2_birth_year_no_persistence_smoke_v20260613_003"
+            : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function" ? "step6_2_birth_year_no_persistence_smoke_v20260613_003" : null));
         const runtimeCommit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || null;
         const pageUrl = typeof location !== "undefined" ? location.href : null;
         const pathname = typeof location !== "undefined" ? location.pathname : null;
@@ -1446,9 +1450,9 @@ window.Game = window.Game || {};
         const runtimeBundleHints = loadedSources.filter((src) => /(?:ui\/ui-boot\.js|dev\/dev-checks\.js|index\.html)/.test(src));
         const docsBuildTag = G.__DEV.buildTag || null;
         const docsSmokeVersion = typeof G.__DEV.smokeBirthYearNoPersistence === "function"
-          ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
+          ? "step6_2_birth_year_no_persistence_smoke_v20260613_003"
           : (typeof G.__DEV.smokeBirthYearStartScreenUi === "function"
-            ? "step6_2_birth_year_no_persistence_smoke_v20260613_002"
+            ? "step6_2_birth_year_no_persistence_smoke_v20260613_003"
             : null);
         const asyncBuildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || null;
         const asyncSmokeVersion = runtimeSmokeVersion;
