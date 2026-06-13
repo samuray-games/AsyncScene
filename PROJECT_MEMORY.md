@@ -13,7 +13,7 @@
 ## 2026-06-13 — Step 6.2.4 save only uiProfile
 - Kept the UI profile resolver behavior unchanged and narrowed the persistence contract so save, localStorage, and snapshots only need `uiProfile` for this flow.
 - The updated smoke now checks `saveContainsUiProfile`, `saveDoesNotContainBirthYear`, `saveDoesNotContainYear`, `saveDoesNotContainAge`, `localStorageDoesNotContainBirthYearYearAge`, `snapshotDoesNotContainBirthYearYearAge`, and `rawInputClearedAfterResolver`.
-- Served identity for this step is `build_2026_06_13_step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile` / `step6_2_4_save_only_ui_profile_v20260613_002`.
+- Served identity for this step is `build_2026_06_13_step6_2_4_save_only_ui_profile_fix` / `step6_2_4_save_only_ui_profile_fix` / `step6_2_4_save_only_ui_profile_fix_v20260613_003`.
 
 ## 2026-06-13 — Step 6.2.1 two-digit year expansion
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
