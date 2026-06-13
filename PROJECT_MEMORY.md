@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 3.5 profile replacement
+- The UI profile handoff now clears the previous profile carriers before writing the new resolved `uiProfile`, so the active runtime state is replaced instead of accumulated.
+- The persistence contract stays unchanged: only the final resolved `uiProfile` is written, with no new save fields, no profile history, and no profile blending.
+- Added dev-only smoke `Game.__DEV.smokeBirthYearProfileReplacement()` to verify millennial -> zoomer replacement, zoomer -> millennial replacement, only one active profile after each switch, no profile mixing in active state, and final-save `uiProfile` isolation.
+- Served identity: `build_2026_06_14_step6_3_5_profile_replacement` / `step6_3_5_profile_replacement` / `step6_3_5_profile_replacement_smoke_v20260614_001`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.4 safe weird inputs
 - The secondary start-screen field now safely accepts unusual values and routes them through the existing fallback path without creating new future or ancient profiles.
 - The primary birth-year flow stays unchanged, known profile mappings stay unchanged, and raw secondary values are not persisted.
