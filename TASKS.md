@@ -25,6 +25,15 @@
 - Scope held: resolver-only start-flow wiring plus mirrored docs/app updates; no persistence, no birth-year storage, no age/birthDate/generation storage, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeUiProfileResolver()`.
 
+## 2026-06-13 — Step 6 Tone Profiles Step 1.4 no persistence rule
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Enforce that the birth-year wheel digits and derived UI profile stay runtime-only and do not persist birth/year/age data.
+- Added dev-only Safari command: `Game.__DEV.smokeBirthYearNoPersistence()`.
+- Smoke verifies before/after localStorage-save-world snapshots, representative values `90` and `01`, reload-safe digit clearing, no birth/year/age key creation, no birthDate/age creation, and the unchanged resolver mapping `90 -> millennial`, `01 -> zoomer`.
+- Served identity: `build_2026_06_13_step6_2_birth_year_no_persistence` / `step6_2_birth_year_no_persistence` / `step6_2_birth_year_no_persistence_smoke_v20260613_001`.
+- Scope held: persistence rule only; no UI redesign, no resolver boundary changes, no profile text changes, no future/funny profiles, no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeBirthYearNoPersistence()`.
+
 ## 2026-06-13 — Runtime source diagnosis
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: Diagnose the exact served runtime source currently executing in Safari without changing gameplay, UI, or Birth Year logic.
