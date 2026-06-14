@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.3R Zoomer Feel Pass Economy real coverage repair
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: connect the Step 6.3 economy flavor keys to real visible UI routes where they exist, keep dictionary-only keys honest where no visible callsite is present, and avoid any gameplay, ECON, moneyLog, balance, price, reward, penalty, income, expense, REP, points, or outcome changes.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep63REconomyRealCoverage()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `coverage`, and `summary`, with `coverage` listing all 10 Step 6.3 keys and the route/dictionary/diff fields required by this pass.
+- Scope held: resolver wiring and smoke only; no gameplay changes, no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.2R Conflict Results real coverage smoke contract fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the Step 6.2R smoke contract so dictionary-only keys remain visible in coverage and summary but do not populate `missingCoverage` when they are accepted by the smoke.

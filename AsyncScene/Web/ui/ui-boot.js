@@ -4906,6 +4906,178 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep63EconomyFlavorFix4 = G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage !== "function") {
+      G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage = function smokeZoomerFeelStep63REconomyRealCoverage() {
+        const buildTag = "build_2026_06_15_step6_3r_economy_real_coverage";
+        const commit = "step6_3r_economy_real_coverage";
+        const smokeVersion = "step6_3r_economy_real_coverage_v20260615_001";
+        const keys = [
+          "money_received",
+          "money_spent",
+          "money_changed_positive",
+          "money_changed_negative",
+          "poverty_state",
+          "rich_state",
+          "bankrupt_state",
+          "income_event",
+          "expense_event",
+          "economy_neutral",
+        ];
+        const routeMap = {
+          money_received: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          money_spent: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          money_changed_positive: ["AsyncScene/Web/ui/ui-core.js:showDeltaToastInstant"],
+          money_changed_negative: ["AsyncScene/Web/ui/ui-core.js:showDeltaToastInstant"],
+          poverty_state: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          rich_state: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          bankrupt_state: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          income_event: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          expense_event: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+          economy_neutral: ["AsyncScene/Web/state.js:pushEconToastFromLogRef"],
+        };
+        const scenarios = {
+          money_received: [{ row: { currency: "points", amount: 1, reason: "gift_received", sourceId: "sink", targetId: "me" }, opts: { balanceAfter: 5 } }],
+          money_spent: [{ row: { currency: "points", amount: 1, reason: "spend", sourceId: "me", targetId: "sink" }, opts: { balanceAfter: 5 } }],
+          money_changed_positive: [{ row: { currency: "points", amount: 1, reason: "misc_gain", sourceId: "npc_a", targetId: "npc_b" }, opts: { balanceAfter: 5 } }],
+          money_changed_negative: [{ row: { currency: "points", amount: -1, reason: "misc_loss", sourceId: "npc_a", targetId: "npc_b" }, opts: { balanceAfter: 4 } }],
+          poverty_state: [{ row: { currency: "points", amount: 1, reason: "gift_received", sourceId: "sink", targetId: "me" }, opts: { balanceAfter: 1 } }],
+          rich_state: [{ row: { currency: "points", amount: 1, reason: "gift_received", sourceId: "sink", targetId: "me" }, opts: { balanceAfter: 20 } }],
+          bankrupt_state: [{ row: { currency: "points", amount: -1, reason: "spend", sourceId: "me", targetId: "sink" }, opts: { balanceAfter: 0 } }],
+          income_event: [{ row: { currency: "points", amount: 1, reason: "income_bonus", sourceId: "sink", targetId: "me" }, opts: { balanceAfter: 6 } }],
+          expense_event: [{ row: { currency: "points", amount: 1, reason: "purchase_cost", sourceId: "me", targetId: "sink" }, opts: { balanceAfter: 4 } }],
+          economy_neutral: [{ row: { currency: "points", amount: 0, reason: "noop", sourceId: "me", targetId: "me" }, opts: { balanceAfter: 5 } }],
+        };
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const snapshotEconomy = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          toastLog: stableJson(G.__D && Array.isArray(G.__D.toastLog) ? G.__D.toastLog : []),
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          econ: stableJson(G.ECON || {}),
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "")
+        });
+        const withProfile = (profileName, run) => {
+          const Data = G.Data || null;
+          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+          const beforeProfile = getUiProfile ? getUiProfile() : "default";
+          const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+          try {
+            if (setUiProfile) setUiProfile(profileName);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
+            return run();
+          } finally {
+            if (setUiProfile) setUiProfile(beforeProfile);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
+          }
+        };
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+          summary: {
+            totalKeys: keys.length,
+            dictionaryExistsCount: 0,
+            routeConnectedCount: 0,
+            dictionaryOnlyCount: 0,
+            differingTextCount: 0,
+          }
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const beforeEconomy = snapshotEconomy();
+        try {
+          const D = G.Data || {};
+          const system = G.System || null;
+          const profileKeys = Array.isArray(system && system.profileTextKeys) ? system.profileTextKeys.slice() : [];
+          const resolver = G.__D && typeof G.__D.resolveEconomyFlavorToastText === "function"
+            ? G.__D.resolveEconomyFlavorToastText
+            : null;
+          const keyResolver = G.__D && typeof G.__D.resolveEconomyFlavorToastKey === "function"
+            ? G.__D.resolveEconomyFlavorToastKey
+            : null;
+          if (!system || typeof system.profileText !== "function") fail("profile_text_resolver_missing", "Game.System.profileText");
+          if (!resolver) fail("economy_flavor_text_resolver_missing", "Game.__D.resolveEconomyFlavorToastText");
+          if (!keyResolver) fail("economy_flavor_key_resolver_missing", "Game.__D.resolveEconomyFlavorToastKey");
+          keys.forEach((key) => {
+            const sample = scenarios[key] && scenarios[key][0] ? scenarios[key][0] : null;
+            const millennialText = sample ? withProfile("millennial", () => String(resolver(sample.row, sample.opts || {}) || "")) : "";
+            const zoomerText = sample ? withProfile("zoomer", () => String(resolver(sample.row, sample.opts || {}) || "")) : "";
+            const liveResolverOutputDiffers = millennialText !== zoomerText;
+            const dictionaryExists = profileKeys.includes(key);
+            const routeConnected = Array.isArray(routeMap[key]) && routeMap[key].length > 0 && !!resolver && !!keyResolver;
+            const dictionaryOnly = !routeConnected;
+            const callsites = Array.isArray(routeMap[key]) ? routeMap[key].slice() : [];
+            const pass = dictionaryExists && routeConnected && liveResolverOutputDiffers && !!millennialText && !!zoomerText && !dictionaryOnly;
+            result.coverage.push({
+              key,
+              millennialText,
+              zoomerText,
+              differs: liveResolverOutputDiffers,
+              dictionaryExists,
+              routeConnected,
+              dictionaryOnly,
+              liveResolverOutputDiffers,
+              callsites,
+              pass,
+            });
+            if (!dictionaryExists) fail("dictionary_missing", { key });
+            if (!millennialText) fail("millennial_text_missing", { key });
+            if (!zoomerText) fail("zoomer_text_missing", { key });
+            if (!liveResolverOutputDiffers) fail("profile_text_not_different", { key, millennialText, zoomerText });
+            if (!routeConnected) fail("route_not_connected", { key, callsites });
+            if (dictionaryOnly && routeConnected) fail("dictionary_only_flag_invalid", { key });
+          });
+          const requiredRoutes = ["money_received", "money_spent", "money_changed_positive", "money_changed_negative"];
+          requiredRoutes.forEach((key) => {
+            const row = result.coverage.find((entry) => entry.key === key);
+            if (!row || row.routeConnected !== true) fail("required_route_missing", { key, callsites: row ? row.callsites : [] });
+          });
+          result.summary.dictionaryExistsCount = result.coverage.filter((row) => row.dictionaryExists === true).length;
+          result.summary.routeConnectedCount = result.coverage.filter((row) => row.routeConnected === true).length;
+          result.summary.dictionaryOnlyCount = result.coverage.filter((row) => row.dictionaryOnly === true).length;
+          result.summary.differingTextCount = result.coverage.filter((row) => row.differs === true).length;
+          if (result.summary.dictionaryExistsCount !== keys.length) fail("dictionary_exists_count_mismatch", result.summary.dictionaryExistsCount);
+          if (result.summary.differingTextCount !== keys.length) fail("differing_text_count_mismatch", result.summary.differingTextCount);
+          if (result.summary.routeConnectedCount < 2) fail("insufficient_route_connected_keys", result.summary.routeConnectedCount);
+          if (result.summary.dictionaryOnlyCount !== 0) fail("dictionary_only_keys_remaining", result.summary.dictionaryOnlyCount);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterEconomy = snapshotEconomy();
+        if (stableJson(beforeEconomy) !== stableJson(afterEconomy)) {
+          fail("economy_mutated_during_smoke", { beforeEconomy, afterEconomy });
+        }
+        result.missingCoverage = result.coverage.filter((row) => !row.pass).map((row) => ({
+          key: row.key,
+          callsites: row.callsites,
+          reason: !row.dictionaryExists ? "dictionary_missing" : (!row.routeConnected ? "route_missing" : (!row.differs ? "texts_not_different" : "dictionary_only"))
+        }));
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.coverage.length === keys.length
+          && result.coverage.every((row) => row.pass === true)
+          && result.summary.dictionaryExistsCount === keys.length
+          && result.summary.routeConnectedCount >= 2
+          && result.summary.differingTextCount === keys.length;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep63REconomyRealCoverage = G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";

@@ -124,6 +124,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeZoomerFeelStep63EconomyFlavorFix4 === "function" && typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4 !== "function") {
     G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4 = G.Dev.smokeZoomerFeelStep63EconomyFlavorFix4;
   }
+  if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage === "function" && typeof G.Dev.smokeZoomerFeelStep63REconomyRealCoverage !== "function") {
+    G.Dev.smokeZoomerFeelStep63REconomyRealCoverage = G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage;
+  }
+  if (G.Dev && typeof G.Dev.smokeZoomerFeelStep63REconomyRealCoverage === "function" && typeof G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage !== "function") {
+    G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage = G.Dev.smokeZoomerFeelStep63REconomyRealCoverage;
+  }
   if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage === "function" && typeof G.Dev.smokeZoomerFeelStep61RCoreSystemRealCoverage !== "function") {
     G.Dev.smokeZoomerFeelStep61RCoreSystemRealCoverage = G.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage;
   }

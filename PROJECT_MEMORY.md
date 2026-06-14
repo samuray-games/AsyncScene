@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.3R Zoomer Feel Pass Economy real coverage repair
+- Step 6.0 inventory showed the Step 6.3 economy keys existed in the resolver dictionary but were not yet connected to discovered real visible callsites.
+- Added the real-visible economy routing helpers in `AsyncScene/Web/state.js` and `AsyncScene/Web/ui/ui-core.js`, then mirrored the same runtime changes into the served `docs/` bundle.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63REconomyRealCoverage()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep63REconomyRealCoverage()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-15 — Step 6.2R Conflict Results real coverage smoke contract fix 1
 - Runtime result held: `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage()` reported `ok:true` while still placing accepted dictionary-only keys into `missingCoverage`, which violated the smoke contract for this pass.
 - Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
