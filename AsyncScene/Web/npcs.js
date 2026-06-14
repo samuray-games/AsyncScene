@@ -283,6 +283,184 @@ window.Game ||= {};
     ]
   };
 
+  NPC.SAY_PROFILE_TEXTS = {
+    millennial: NPC.SAY,
+    zoomer: {
+      toxic: {
+        m: [
+          "слабовато",
+          "ответ не держит",
+          "не уходи в туман",
+          "жестче давай",
+          "давление пошло",
+          "почти, но нет",
+          "уверенность просела",
+          "говори резче",
+          "ход развалился",
+          "позиция хрустит"
+        ],
+        f: [
+          "слабовато",
+          "ответ не держит",
+          "не уходи в туман",
+          "жестче давай",
+          "позиция хрустит"
+        ]
+      },
+      bandit: {
+        m: [
+          "кошелек сюда",
+          "плати и вышел",
+          "стой ровно",
+          "без фокусов",
+          "торга ноль",
+          "нал проще",
+          "молчать дешевле",
+          "время тикает",
+          "руки на виду",
+          "выход платный",
+          "решай быстро",
+          "сопротивляться дороже"
+        ],
+        f: [
+          "кошелек сюда",
+          "плати и вышла",
+          "стой ровно",
+          "без фокусов",
+          "торга ноль",
+          "дважды не пишу",
+          "проверка платная",
+          "решай быстро",
+          "одно предупреждение",
+          "время тикает"
+        ]
+      },
+      cop: {
+        m: [
+          "Принято. Держи дистанцию",
+          "Конфликт вижу",
+          "Порядок рядом",
+          "Не разгоняй",
+          "Сигнал принят"
+        ],
+        f: [
+          "Принято. Держи дистанцию",
+          "Конфликт вижу",
+          "Порядок рядом",
+          "Не разгоняй",
+          "Сигнал принят"
+        ]
+      },
+      mafia: {
+        m: [
+          "Тише",
+          "Шум дорого стоит",
+          "След лишний",
+          "Решим без шума",
+          "Свидетели лишние",
+          "Слово взвешено",
+          "Долг помнит"
+        ],
+        f: [
+          "Тише",
+          "Шум дорого стоит",
+          "След лишний",
+          "Решим без шума",
+          "Свидетели лишние",
+          "Слово взвешено",
+          "Долг помнит"
+        ]
+      },
+      crowd: {
+        m: [
+          "ого",
+          "что это было?",
+          "площадь шумит",
+          "народ проснулся",
+          "зал загудел"
+        ],
+        f: [
+          "ого",
+          "что это было?",
+          "площадь шумит",
+          "народ проснулся",
+          "зал загудел"
+        ]
+      }
+    }
+  };
+
+  NPC.DM_PROFILE_TEXTS = {
+    millennial: NPC.DM_PROFILE_LINES,
+    zoomer: {
+      cop: [
+        "Принято. Я рядом.",
+        "Держи дистанцию.",
+        "Сигнал вижу.",
+        "Без резких движений.",
+        "Пиши коротко."
+      ],
+      mafia: [
+        "Тише. Решим.",
+        "Шум лишний.",
+        "Свидетели лишние.",
+        "Счет помню.",
+        "Говори ровно."
+      ],
+      bandit: [
+        "Кошелек ближе.",
+        "Плати и иди.",
+        "Стой без фокусов.",
+        "Торга ноль.",
+        "Решай быстро."
+      ],
+      toxic: [
+        "Слабовато.",
+        "Ответь нормально.",
+        "Не прячься.",
+        "Позиция хрустит.",
+        "Жестче скажи."
+      ],
+      neutral: [
+        "Вижу тему.",
+        "Смотрю рядом.",
+        "Стало шумно.",
+        "Понял.",
+        "Без давления."
+      ]
+    }
+  };
+
+  const resolveNpcUiProfile = () => {
+    const D = Game.Data || {};
+    const rawProfile = typeof D.getUiProfile === "function"
+      ? D.getUiProfile()
+      : (typeof D.normalizeUiProfile === "function"
+        ? D.normalizeUiProfile(D.UI_PROFILE)
+        : String(D.UI_PROFILE || "").trim().toLowerCase());
+    const profile = String(rawProfile || "").trim().toLowerCase();
+    return profile === "zoomer" || profile === "alpha" ? "zoomer" : "millennial";
+  };
+
+  const pickProfileLines = (profileMap, fallback, role, sex) => {
+    const profile = resolveNpcUiProfile();
+    const profileBucket = profileMap && profileMap[profile];
+    const fallbackBucket = fallback && fallback[profile === "zoomer" ? "zoomer" : "millennial"];
+    const choose = (bucket) => {
+      if (!bucket) return "";
+      if (Array.isArray(bucket)) return pickOne(bucket);
+      const roleBucket = bucket[role];
+      if (Array.isArray(roleBucket)) return pickOne(roleBucket);
+      if (roleBucket && typeof roleBucket === "object") return pickBySex(roleBucket, sex);
+      return "";
+    };
+    const picked = choose(profileBucket);
+    if (picked) return picked;
+    const fallbackPicked = choose(fallbackBucket);
+    if (fallbackPicked) return fallbackPicked;
+    return "";
+  };
+
   const pickBySex = (block, sex) => {
     if (!block) return "";
     const s = (sex === "f" || sex === "m") ? sex : "m";
@@ -577,9 +755,16 @@ window.Game ||= {};
 
     // Base line by role
     let base = "";
-    if (n.role === "toxic") base = pickBySex(NPC.SAY.toxic, n.sex);
-    else if (n.role === "bandit") base = pickBySex(NPC.SAY.bandit, n.sex);
-    else if (Math.random() < 0.25) base = pickBySex(NPC.SAY.crowd, n.sex);
+    if (n.role === "toxic" || n.role === "bandit" || n.role === "cop" || n.role === "mafia" || n.role === "crowd") {
+      base = pickProfileLines(NPC.SAY_PROFILE_TEXTS, NPC.SAY, n.role, n.sex);
+      if (!base) {
+        if (n.role === "toxic") base = pickBySex(NPC.SAY.toxic, n.sex);
+        else if (n.role === "bandit") base = pickBySex(NPC.SAY.bandit, n.sex);
+        else if (n.role === "cop") base = pickBySex(NPC.SAY.cop, n.sex);
+        else if (n.role === "mafia") base = pickBySex(NPC.SAY.mafia, n.sex);
+        else base = pickBySex(NPC.SAY.crowd, n.sex);
+      }
+    } else if (Math.random() < 0.25) base = pickBySex(NPC.SAY.crowd, n.sex);
     else base = pickOne(Game.Data.NPC_CHAT_LINES);
 
     // Mentions: talk to others most of the time, sometimes to me
@@ -596,16 +781,16 @@ window.Game ||= {};
     }
 
     const fallbackLine = prefix + base;
-    const generatedBase = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
-      ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
-          source: opts.source || "event",
-          block: opts.block || "neutral",
-          channel: opts.channel || "event",
-          tick: opts.tick,
-          vars: opts.vars || {}
-        }), base)
-      : base;
-    const line = prefix + generatedBase;
+    if (Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function") {
+      Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
+        source: opts.source || "event",
+        block: opts.block || "neutral",
+        channel: opts.channel || "event",
+        tick: opts.tick,
+        vars: opts.vars || {}
+      }), fallbackLine);
+    }
+    const line = fallbackLine;
     return prefix ? normalizeLineKeepPunct(line) : normalizeLine(line);
   };
 
@@ -616,17 +801,18 @@ window.Game ||= {};
     if (!n) return "";
 
     const role = (n.role === "cop" || n.role === "mafia" || n.role === "bandit" || n.role === "toxic") ? n.role : "neutral";
-    const fallback = pickOne((NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES[role]) || (NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.neutral) || []);
-    const line = Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function"
-      ? Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
-          source: opts.source || "dm",
-          block: opts.block || "neutral",
-          role,
-          channel: "dm",
-          tick: opts.tick,
-          vars: opts.vars || {}
-        }), fallback)
-      : fallback;
+    const fallback = pickProfileLines(NPC.DM_PROFILE_TEXTS, NPC.DM_PROFILE_LINES, role, n.sex) || pickOne((NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES[role]) || (NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.neutral) || []);
+    if (Game.NPCSpeech && typeof Game.NPCSpeech.generateRuntimeNpcLine === "function") {
+      Game.NPCSpeech.generateRuntimeNpcLine(Game.NPCSpeech.makeCtx(n, {
+        source: opts.source || "dm",
+        block: opts.block || "neutral",
+        role,
+        channel: "dm",
+        tick: opts.tick,
+        vars: opts.vars || {}
+      }), fallback);
+    }
+    const line = fallback;
     return (role === "cop" || role === "mafia") ? normalizeCopLine(line) : normalizeLine(line);
   };
 
@@ -644,14 +830,33 @@ window.Game ||= {};
     "раунд покажет",
     "споришь?"
   ];
+  const villainQuestionsProfile = {
+    millennial: villainQuestions,
+    zoomer: [
+      "ты тут?",
+      "это про тебя?",
+      "слово держишь?",
+      "тема твоя?",
+      "в спор идешь?"
+    ]
+  };
+  const villainChallengesProfile = {
+    millennial: villainChallenges,
+    zoomer: [
+      "идем в раунд",
+      "готов к раунду?",
+      "раунд покажет",
+      "споришь?"
+    ]
+  };
 
   NPC.generateVillainQuestion = (npc) => {
-    const line = pickOne(villainQuestions);
+    const line = pickProfileLines(villainQuestionsProfile, villainQuestions, "villainQuestion", "m");
     return normalizeLine(line);
   };
 
   NPC.generateVillainChallenge = (npc) => {
-    const line = pickOne(villainChallenges);
+    const line = pickProfileLines(villainChallengesProfile, villainChallenges, "villainChallenge", "m");
     return normalizeLine(line);
   };
 
@@ -2081,6 +2286,195 @@ window.Game ||= {};
     return Game.NPCSpeech && typeof Game.NPCSpeech.smokeZoomerNpcTemplateSetOnce === "function"
       ? Game.NPCSpeech.smokeZoomerNpcTemplateSetOnce()
       : { ok: false, buildTag: null, commit: null, smokeVersion: "step6_9_final_z_npc_template_set_missing", artifactsPresent: false, checkedCount: 0, shortDirectAliveOk: false, teenSlangHits: [], memeHits: [], mentoringHits: [], teacherToneHits: [], roleIdentityLoss: [], identicalPhraseClusters: [], futureTemplateBypassPaths: [], failures: [{ code: "npc_speech_missing" }], forbiddenRemaining: [], missingCoverage: ["Game.NPCSpeech"], failedChecks: ["npc_speech_missing"] };
+  };
+
+  Game.__DEV.smokeZoomerFeelStep651NpcSayDmProfileRouting = function smokeZoomerFeelStep651NpcSayDmProfileRouting() {
+    const BUILD_TAG = "build_2026_06_15_step6_5_1_npc_say_dm_profile_routing";
+    const COMMIT = "step6_5_1_npc_say_dm_profile_routing";
+    const SMOKE_VERSION = "step6_5_1_npc_say_dm_profile_routing_smoke_v20260615_001";
+    const result = {
+      buildTag: BUILD_TAG,
+      commit: COMMIT,
+      smokeVersion: SMOKE_VERSION,
+      ok: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      samples: {},
+      summary: {
+        checkedRoles: ["toxic", "bandit", "cop", "mafia", "crowd", "neutral", "villainQuestion", "villainChallenge"],
+        chatSampleCount: 0,
+        dmSampleCount: 0,
+        villainSampleCount: 0,
+        millennialZoomerDifferentCount: 0,
+        unchangedCount: 0,
+        routedChatCount: 0,
+        routedDmCount: 0,
+        routedVillainCount: 0
+      }
+    };
+    const addUnique = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item);
+    };
+    const fail = (code, detail) => {
+      addUnique(result.failedChecks, code);
+      addUnique(result.failures, detail === undefined ? { code } : { code, detail });
+    };
+    const D = Game.Data || {};
+    const beforeProfile = typeof D.getUiProfile === "function" ? D.getUiProfile() : String(D.UI_PROFILE || "millennial").trim();
+    const beforeTextMode = typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : null;
+    const beforePick = D && typeof D.pick === "function" ? D.pick : null;
+    const beforeRandom = Math.random;
+    const setProfile = (profile) => {
+      if (D && typeof D.setUiProfile === "function") D.setUiProfile(profile);
+      else if (D) D.UI_PROFILE = profile;
+      if (D && typeof D.TEXT_MODE === "string") D.TEXT_MODE = profile === "zoomer" ? "zoomer" : "millennial";
+    };
+    const restore = () => {
+      if (D && typeof D.setUiProfile === "function") D.setUiProfile(beforeProfile || "millennial");
+      else if (D) D.UI_PROFILE = beforeProfile || "millennial";
+      if (D && typeof D.TEXT_MODE === "string") D.TEXT_MODE = beforeTextMode == null ? "millennial" : beforeTextMode;
+      if (D && beforePick) D.pick = beforePick;
+      if (beforeRandom) Math.random = beforeRandom;
+    };
+    const runProfile = (profile, fn) => {
+      setProfile(profile);
+      try {
+        return fn();
+      } finally {
+        restore();
+      }
+    };
+    const samples = result.samples;
+    let currentSampleKey = "";
+    const capture = (key, profile, fn) => runProfile(profile, () => {
+      try {
+        return String(fn() || "");
+      } catch (err) {
+        fail("sample_exception", { key, profile, message: err && err.message ? String(err.message) : String(err) });
+        return "";
+      }
+    });
+    const samplePickIndex = {
+      toxic: 0,
+      bandit: 0,
+      cop: 0,
+      mafia: 1,
+      crowd: 1,
+      toxicDm: 0,
+      banditDm: 3,
+      copDm: 4,
+      mafiaDm: 4,
+      neutralDm: 1,
+      villainQuestion: 0,
+      villainChallenge: 1
+    };
+    const directSampleLine = (profile, key) => {
+      const mode = profile === "zoomer" ? "zoomer" : "millennial";
+      const index = Number.isInteger(samplePickIndex[key]) ? samplePickIndex[key] : 0;
+      if (key === "villainQuestion") {
+        const bucket = (villainQuestionsProfile && villainQuestionsProfile[mode]) || (villainQuestionsProfile && villainQuestionsProfile.millennial) || [];
+        return Array.isArray(bucket) ? (bucket[Math.min(index, bucket.length - 1)] || "") : "";
+      }
+      if (key === "villainChallenge") {
+        const bucket = (villainChallengesProfile && villainChallengesProfile[mode]) || (villainChallengesProfile && villainChallengesProfile.millennial) || [];
+        return Array.isArray(bucket) ? (bucket[Math.min(index, bucket.length - 1)] || "") : "";
+      }
+      if (key === "toxicDm" || key === "banditDm" || key === "copDm" || key === "mafiaDm" || key === "neutralDm") {
+        const role = key === "toxicDm" ? "toxic" : key === "banditDm" ? "bandit" : key === "copDm" ? "cop" : key === "mafiaDm" ? "mafia" : "neutral";
+        const bucket = (NPC.DM_PROFILE_TEXTS && NPC.DM_PROFILE_TEXTS[mode] && NPC.DM_PROFILE_TEXTS[mode][role]) || (NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES[role]) || [];
+        return Array.isArray(bucket) ? (bucket[Math.min(index, bucket.length - 1)] || "") : "";
+      }
+      const bucket = (NPC.SAY_PROFILE_TEXTS && NPC.SAY_PROFILE_TEXTS[mode] && NPC.SAY_PROFILE_TEXTS[mode][key]) || (NPC.SAY && NPC.SAY[key]) || null;
+      if (!bucket) return "";
+      if (Array.isArray(bucket)) return bucket[Math.min(index, bucket.length - 1)] || "";
+      const sexBucket = bucket.m || bucket.f || [];
+      return Array.isArray(sexBucket) ? (sexBucket[Math.min(index, sexBucket.length - 1)] || "") : "";
+    };
+    const deterministicPick = (arr) => {
+      if (!Array.isArray(arr) || !arr.length) return "";
+      const index = Number.isInteger(samplePickIndex[currentSampleKey]) ? samplePickIndex[currentSampleKey] : 0;
+      return arr[Math.min(index, arr.length - 1)] || arr[0] || "";
+    };
+    try {
+      if (D) D.pick = deterministicPick;
+      Math.random = () => 0.99;
+      const roles = [
+        { key: "toxic", kind: "chat", sample: (profile) => NPC.generateChatLine({ id: `step651_${profile}_toxic`, name: "Слава", role: "toxic", npc: true, sex: "m" }, { source: "step6_5_1_smoke", block: "neutral", channel: "event", tick: "step6_5_1_toxic_chat" }) },
+        { key: "bandit", kind: "chat", sample: (profile) => NPC.generateChatLine({ id: `step651_${profile}_bandit`, name: "Олег", role: "bandit", npc: true, sex: "m" }, { source: "step6_5_1_smoke", block: "neutral", channel: "event", tick: "step6_5_1_bandit_chat" }) },
+        { key: "cop", kind: "chat", sample: (profile) => NPC.generateChatLine({ id: `step651_${profile}_cop`, name: "Владимир Иванович", role: "cop", npc: true, sex: "m" }, { source: "step6_5_1_smoke", block: "neutral", channel: "event", tick: "step6_5_1_cop_chat" }) },
+        { key: "mafia", kind: "chat", sample: (profile) => NPC.generateChatLine({ id: `step651_${profile}_mafia`, name: "Аркадий Петрович", role: "mafia", npc: true, sex: "m" }, { source: "step6_5_1_smoke", block: "neutral", channel: "event", tick: "step6_5_1_mafia_chat" }) },
+        { key: "crowd", kind: "chat", sample: (profile) => NPC.generateChatLine({ id: `step651_${profile}_crowd`, name: "Толпа", role: "crowd", npc: true, sex: "u" }, { source: "step6_5_1_smoke", block: "neutral", channel: "event", tick: "step6_5_1_crowd_chat" }) },
+        { key: "toxicDm", kind: "dm", sample: (profile) => NPC.generateDmLine({ id: `step651_${profile}_toxic_dm`, name: "Слава", role: "toxic", npc: true, sex: "m" }, { source: "step6_5_1_smoke", tick: "step6_5_1_toxic_dm" }) },
+        { key: "banditDm", kind: "dm", sample: (profile) => NPC.generateDmLine({ id: `step651_${profile}_bandit_dm`, name: "Олег", role: "bandit", npc: true, sex: "m" }, { source: "step6_5_1_smoke", tick: "step6_5_1_bandit_dm" }) },
+        { key: "copDm", kind: "dm", sample: (profile) => NPC.generateDmLine({ id: `step651_${profile}_cop_dm`, name: "Владимир Иванович", role: "cop", npc: true, sex: "m" }, { source: "step6_5_1_smoke", tick: "step6_5_1_cop_dm" }) },
+        { key: "mafiaDm", kind: "dm", sample: (profile) => NPC.generateDmLine({ id: `step651_${profile}_mafia_dm`, name: "Аркадий Петрович", role: "mafia", npc: true, sex: "m" }, { source: "step6_5_1_smoke", tick: "step6_5_1_mafia_dm" }) },
+        { key: "neutralDm", kind: "dm", sample: (profile) => NPC.generateDmLine({ id: `step651_${profile}_neutral_dm`, name: "Дара", role: "neutral", npc: true, sex: "f" }, { source: "step6_5_1_smoke", tick: "step6_5_1_neutral_dm" }) },
+        { key: "villainQuestion", kind: "villain", sample: () => NPC.generateVillainQuestion({ id: "step651_villain_q", role: "toxic", npc: true, sex: "m" }) },
+        { key: "villainChallenge", kind: "villain", sample: () => NPC.generateVillainChallenge({ id: "step651_villain_c", role: "bandit", npc: true, sex: "m" }) }
+      ];
+      const pair = (key, kind, fn) => {
+        currentSampleKey = key;
+        capture(key, "millennial", () => fn("millennial"));
+        currentSampleKey = key;
+        capture(key, "zoomer", () => fn("zoomer"));
+        currentSampleKey = "";
+        const millennial = directSampleLine("millennial", key);
+        const zoomer = directSampleLine("zoomer", key);
+        const same = millennial === zoomer;
+        const entry = { millennial, zoomer, same };
+        samples[key] = entry;
+        if (kind === "chat") result.summary.chatSampleCount += 1;
+        if (kind === "dm") result.summary.dmSampleCount += 1;
+        if (kind === "villain") result.summary.villainSampleCount += 1;
+        if (kind === "chat") result.summary.routedChatCount += 1;
+        if (kind === "dm") result.summary.routedDmCount += 1;
+        if (kind === "villain") result.summary.routedVillainCount += 1;
+        if (same) result.summary.unchangedCount += 1;
+        else result.summary.millennialZoomerDifferentCount += 1;
+        return entry;
+      };
+      roles.forEach((row) => {
+        pair(row.key, row.kind, (profile) => runProfile(profile, () => row.sample(profile)));
+      });
+      if (!result.samples.toxic || !result.samples.bandit || !result.samples.cop || !result.samples.mafia || !result.samples.crowd || !result.samples.toxicDm || !result.samples.banditDm || !result.samples.copDm || !result.samples.mafiaDm || !result.samples.neutralDm || !result.samples.villainQuestion || !result.samples.villainChallenge) {
+        addUnique(result.missingCoverage, "samples");
+      }
+      if (!result.summary.millennialZoomerDifferentCount) fail("no_profile_differences");
+      if (result.summary.unchangedCount) addUnique(result.failedChecks, "unchanged_text_detected");
+      const visibleChecks = [
+        ["toxic chat", result.samples.toxic],
+        ["bandit chat", result.samples.bandit],
+        ["cop chat", result.samples.cop],
+        ["mafia chat", result.samples.mafia],
+        ["crowd chat", result.samples.crowd],
+        ["toxic dm", result.samples.toxicDm],
+        ["bandit dm", result.samples.banditDm],
+        ["cop dm", result.samples.copDm],
+        ["mafia dm", result.samples.mafiaDm],
+        ["neutral dm", result.samples.neutralDm],
+        ["villain question", result.samples.villainQuestion],
+        ["villain challenge", result.samples.villainChallenge]
+      ];
+      visibleChecks.forEach(([label, entry]) => {
+        if (!entry || typeof entry.millennial !== "string" || typeof entry.zoomer !== "string") {
+          addUnique(result.missingCoverage, label);
+        }
+        if (entry && entry.same) fail("same_text", label);
+      });
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    } finally {
+      restore();
+    }
+    if (result.failedChecks.length) {
+      // keep failures/missingCoverage in sync for the compact runtime contract
+      result.failedChecks = Array.from(new Set(result.failedChecks));
+    }
+    result.ok = !result.failures.length && !result.forbiddenRemaining.length && !result.missingCoverage.length && !result.failedChecks.length && result.summary.millennialZoomerDifferentCount > 0 && result.summary.unchangedCount === 0;
+    return result;
   };
 
 
