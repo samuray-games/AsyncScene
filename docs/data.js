@@ -249,8 +249,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.getUiProfile = () => Data.normalizeUiProfile(Data.UI_PROFILE);
 
-  // Text mode (genz | alpha)
-  Data.TEXT_MODE = "genz";
+  // Text mode (millennial/default | zoomer)
+  Data.TEXT_MODE = "millennial";
   Data.TEXTS = {
     genz: {
       tie_start: "Толпа решает.",
@@ -343,6 +343,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
         "но только ⚡ определяет, считается ли с тобой этот мир."
     }
   };
+
+  Data.TEXTS.millennial = Data.TEXTS.genz;
+  Data.TEXTS.default = Data.TEXTS.genz;
+  Data.TEXTS.zoomer = Data.TEXTS.alpha;
 
   // Cop templates (authoritative strings, insert as-is; placeholders are replaced at send time)
   Data.COP_TEMPLATES = {
@@ -452,10 +456,11 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.OVERPOINTS_TO_REP = 5;
 
   Data.t = (key, vars = {}) => {
-    const mode = (Data.TEXT_MODE === "alpha") ? "alpha" : "genz";
+    const rawMode = String(Data.TEXT_MODE || "").trim().toLowerCase();
+    const mode = (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") ? "zoomer" : "millennial";
     const layer = (Data.TEXTS && Data.TEXTS[mode]) ? Data.TEXTS[mode] : {};
-    const genz = (Data.TEXTS && Data.TEXTS.genz) ? Data.TEXTS.genz : {};
-    let str = (layer && layer[key] != null) ? layer[key] : (genz && genz[key] != null) ? genz[key] : String(key || "");
+    const millennial = (Data.TEXTS && Data.TEXTS.millennial) ? Data.TEXTS.millennial : ((Data.TEXTS && Data.TEXTS.genz) ? Data.TEXTS.genz : {});
+    let str = (layer && layer[key] != null) ? layer[key] : (millennial && millennial[key] != null) ? millennial[key] : String(key || "");
     str = String(str || "");
     return str.replace(/\{(\w+)\}/g, (_, k) => {
       const v = (vars && Object.prototype.hasOwnProperty.call(vars, k)) ? vars[k] : "";

@@ -76,6 +76,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix4 === "function" && typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix4 !== "function") {
     G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix4 = G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix4;
   }
+  if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5 === "function" && typeof G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix5 !== "function") {
+    G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix5 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5;
+  }
+  if (G.Dev && typeof G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix5 === "function" && typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5 !== "function") {
+    G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5 = G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix5;
+  }
   if (G.Dev && typeof G.Dev.smokeToneProfilesStep45NoDataStorageRuleFix1 === "function" && typeof G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 !== "function") {
     G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 = G.Dev.smokeToneProfilesStep45NoDataStorageRuleFix1;
   }
