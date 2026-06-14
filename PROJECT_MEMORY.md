@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.1 Zoomer Feel Pass Core System Messages
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the 8 required Step 6.1 core system message entries as profile-aware resolver data on `Game.System.profileText(...)` in both served trees, with safe millennial fallback and a narrow route overlay for `errors.insufficientPoints`, `notifications.saved`, and `systemEvents.ready`.
+- Routed the battle/rematch zero-money toast path through `Game.System.say("errors", "insufficientPoints")` so the live 0-money toast now differs between `millennial` and `zoomer` without touching gameplay or economy logic.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep61CoreSystemMessages()` with identity `build_2026_06_14_step6_1_core_system_messages` / `step6_1_core_system_messages` / `step6_1_core_system_messages_v20260614_001`.
+- The smoke returns the required object fields, lists all 8 keys in `coverage`, enforces per-key millennial/zoomer presence plus difference, verifies `not_enough_money` and `purchase_success` differ, and checks no `moneyLog`/player-economy mutation happens while the smoke runs.
+
 ## 2026-06-14 — Step 6 Tone Profiles UI Profile Text Coverage Smoke
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesUiTextCoverage()` with build identity `build_2026_06_14_tone_profiles_ui_text_coverage` / `tone_profiles_ui_text_coverage` / `tone_profiles_ui_text_coverage_v20260614_001`.
 - The smoke checks the named UI copy paths for resolver usage under both `millennial` and `zoomer`, reports per-path `differenceExpected`, `differs`, `resolverUsedOk`, and `pass`, and returns the required aggregate flags for active profiles, coverage, and drift boundaries.

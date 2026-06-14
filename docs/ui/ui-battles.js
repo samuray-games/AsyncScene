@@ -1082,7 +1082,7 @@
     };
     const normalized = String(reason).toLowerCase();
     if (["no_points", "insufficient", "min_reserve", "minreserve"].includes(normalized)) {
-      statToast("Не хватает 💰.");
+      statToast(systemSay("errors", "insufficientPoints"));
       return;
     }
     if (normalized === "already_requested") {
@@ -1211,7 +1211,7 @@
       try {
         const mePts = (Game && Game.__S && Game.__S.me && Number.isFinite(Game.__S.me.points)) ? (Game.__S.me.points | 0) : 0;
         if ((mePts | 0) <= 0 && opts && String(opts.mode || "").toLowerCase() !== "off") {
-          const msg = "Не хватает 💰.";
+          const msg = systemSay("errors", "insufficientPoints");
           if (anchorBtn) {
             showBtnToastRight(anchorBtn, msg);
           } else if (UI && typeof UI.showStatToast === "function") {
@@ -1230,7 +1230,7 @@
           res.reason === "min_reserve" ||
           res.error === "not_enough_points"
         ) {
-         const msg = "Не хватает 💰.";
+         const msg = systemSay("errors", "insufficientPoints");
          if (anchorBtn) {
            showBtnToastRight(anchorBtn, msg);
          } else if (UI && typeof UI.showStatToast === "function") {
@@ -1325,7 +1325,7 @@
     } catch (_) {}
 
     if ((S.me.points || 0) < need) {
-      const msg = "Не хватает 💰.";
+      const msg = systemSay("errors", "insufficientPoints");
       if (UI && typeof UI.showStatToast === "function") {
         UI.showStatToast("points", msg);
       } else if (act[0] && act[0].id) {

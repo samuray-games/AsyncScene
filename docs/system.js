@@ -126,6 +126,43 @@ window.Game = window.Game || {};
     ru: SYSTEM_COPY_RU,
   });
   const SystemCopy = SYSTEM_COPY_RU;
+  const SYSTEM_PROFILE_TEXT_KEYS = Object.freeze([
+    "not_enough_money",
+    "not_enough_stars",
+    "purchase_success",
+    "sale_success",
+    "reward_received",
+    "penalty_received",
+    "generic_error",
+    "generic_success",
+  ]);
+  const SYSTEM_PROFILE_TEXT_COPY = Object.freeze({
+    millennial: Object.freeze({
+      not_enough_money: "Недостаточно денег.",
+      not_enough_stars: "Недостаточно звёзд.",
+      purchase_success: "Покупка выполнена.",
+      sale_success: "Продажа выполнена.",
+      reward_received: "Награда получена.",
+      penalty_received: "Штраф применён.",
+      generic_error: "Что-то пошло не так.",
+      generic_success: "Готово.",
+    }),
+    zoomer: Object.freeze({
+      not_enough_money: "Кошелёк в нуле 💀",
+      not_enough_stars: "Звёзд не завезли ⭐",
+      purchase_success: "Забрал. Минус монеты.",
+      sale_success: "Слил в плюс.",
+      reward_received: "Лут прилетел.",
+      penalty_received: "Минуснули.",
+      generic_error: "Что-то сломалось 🫠",
+      generic_success: "Есть.",
+    }),
+  });
+  const SYSTEM_PROFILE_TEXT_ROUTE_MAP = Object.freeze({
+    "errors.insufficientPoints": "not_enough_money",
+    "notifications.saved": "generic_success",
+    "systemEvents.ready": "generic_success",
+  });
 
   const SYSTEM_TEXT_TEMPLATES_RU = Object.freeze({
     errors: Object.freeze({
@@ -353,6 +390,28 @@ window.Game = window.Game || {};
     return SYSTEM_TEXT_TEMPLATE_LOCALES[key] || SYSTEM_TEXT_TEMPLATE_LOCALES[SYSTEM_DEFAULT_LOCALE];
   }
 
+  function activeSystemTextProfile(){
+    const data = Game && Game.Data ? Game.Data : null;
+    const profile = data && typeof data.getUiProfile === "function"
+      ? String(data.getUiProfile() || "millennial").trim().toLowerCase()
+      : String((data && data.UI_PROFILE) || "millennial").trim().toLowerCase();
+    return (profile === "zoomer" || profile === "alpha") ? "zoomer" : "millennial";
+  }
+
+  function resolveProfileTextEntry(key){
+    const entryKey = String(key || "").trim();
+    if (!entryKey) return "";
+    const profile = activeSystemTextProfile();
+    const bucket = SYSTEM_PROFILE_TEXT_COPY[profile] || SYSTEM_PROFILE_TEXT_COPY.millennial;
+    const fallback = SYSTEM_PROFILE_TEXT_COPY.millennial || {};
+    return String((bucket && bucket[entryKey] != null) ? bucket[entryKey] : (fallback[entryKey] != null ? fallback[entryKey] : ""));
+  }
+
+  function resolveProfileTextKeyForRoute(group, code){
+    const routeKey = `${String(group || "").trim()}.${String(code || "").trim()}`;
+    return SYSTEM_PROFILE_TEXT_ROUTE_MAP[routeKey] || "";
+  }
+
   function systemCopyEntries(copy){
     const source = copy && typeof copy === "object" ? copy : SystemCopy;
     const rows = [];
@@ -497,6 +556,11 @@ window.Game = window.Game || {};
   function say(kind, code, ctx){
     const group = normalizeKind(kind);
     const safeCtx = (ctx && typeof ctx === "object") ? ctx : {};
+    const profileTextKey = resolveProfileTextKeyForRoute(group, code);
+    if (profileTextKey) {
+      const profileText = resolveProfileTextEntry(profileTextKey);
+      if (profileText) return renderTemplate(profileText, safeCtx) || FALLBACK_MESSAGE;
+    }
     const template = resolveSystemTemplate(group, code, safeCtx);
     const rendered = renderTemplate(template, safeCtx);
     return rendered || FALLBACK_MESSAGE;
@@ -731,6 +795,12 @@ window.Game = window.Game || {};
   Game.SystemCopy = SystemCopy;
   Game.System = Object.freeze({
     say,
+    profileText: (key, ctx) => {
+      const rendered = resolveProfileTextEntry(key);
+      return renderTemplate(rendered || "", (ctx && typeof ctx === "object") ? ctx : {}) || rendered || FALLBACK_MESSAGE;
+    },
+    profileTextKeys: SYSTEM_PROFILE_TEXT_KEYS.slice(),
+    profileTextCopy: SYSTEM_PROFILE_TEXT_COPY,
     defaultLocale: SYSTEM_DEFAULT_LOCALE,
     supportedLocales: SYSTEM_SUPPORTED_LOCALES,
     activeLocale: activeSystemLocale,
