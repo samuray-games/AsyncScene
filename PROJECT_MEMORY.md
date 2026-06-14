@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor smoke scope fix 3
+- Fix2 existed, but Safari failed inside the smoke with `Can't find variable: withProfile`, which showed the smoke was depending on another smoke's local helper scope.
+- Added a local safe profile wrapper inside the new dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix3()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix3()`.
+- Runtime PASS is still not claimed until Safari runs the fix smoke.
+
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor served dictionary fix 2
 - Fix1 smoke existed, but Safari still returned empty millennial/zoomer text for all 10 economy keys because the served canonical resolver dictionary was still missing the Step 6.3 entries.
 - Patched the actual served runtime dictionary path and added the new dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix2()`.
