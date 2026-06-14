@@ -1919,10 +1919,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeUiProfileResolver = G.__DEV.smokeUiProfileResolver;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_4_6_future_expansion_hook_fix1";
-      const COMMIT = "step6_4_6_future_expansion_hook_fix1";
-      const SMOKE_VERSION = "step6_4_6_future_expansion_hook_fix1_smoke_v20260614_001";
+    if (typeof G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_6_future_expansion_hook_fix3";
+      const COMMIT = "step6_4_6_future_expansion_hook_fix3";
+      const SMOKE_VERSION = "step6_4_6_future_expansion_hook_fix3_smoke_v20260614_001";
       const FUTURE_PROFILE_IDS = ["ancient", "classic", "future", "sciFi", "medieval", "empire", "galactic"];
       const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
       const collectPersisted = () => {
@@ -1999,7 +1999,7 @@ window.Game = window.Game || {};
         argStyle: G.Data && typeof G.Data.getArgCanonTextStyle === "function" ? G.Data.getArgCanonTextStyle() : null,
         systemProfile: (G.System && G.System.languageProfile) || null,
       });
-      G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2 = function smokeToneProfilesStep46FutureExpansionHookFix2() {
+      G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3 = function smokeToneProfilesStep46FutureExpansionHookFix3() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -2162,9 +2162,7 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep46FutureExpansionHookFix2 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2;
-      G.__DEV.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2;
-      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2;
+      G.Dev.smokeToneProfilesStep46FutureExpansionHookFix3 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";
