@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 1
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix1()` with build identity `build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix1` / `step6_5_6_dev_ui_profile_indicator_fix1` / `step6_5_6_dev_ui_profile_indicator_fix1_v20260614_001`.
+- The dev menu now restores the existing Enable/Disable Dev Mode button and Console Panel button behavior while keeping the `UI Profile:` indicator read-only and dev-only.
+- Scope held: menu-control restoration only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, and no save changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicator()` with build identity `build_2026_06_14_step6_5_6_dev_ui_profile_indicator` / `step6_5_6_dev_ui_profile_indicator` / `step6_5_6_dev_ui_profile_indicator_v20260614_001`.
 - The dev menu now shows a read-only `UI Profile: millennial|zoomer|alpha` indicator only when Dev Mode is unlocked, and the menu re-renders the label from the active `uiProfile` so it tracks profile changes.
