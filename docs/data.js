@@ -3798,6 +3798,115 @@ K YN A9: Нет.
   };
   installNpcEventTemplateProfileTextsRetry1SmokeViaData();
 
+  const installNpcEventTemplateProfileTextsRetry1Fix2SmokeViaData = () => {
+    const root = typeof window !== "undefined"
+      ? window.Game
+      : (typeof Game !== "undefined" ? Game : null);
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2 === "function") {
+      root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2;
+      return;
+    }
+    root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2 = function smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2() {
+      const buildTag = "build_2026_06_15_step6_5_2_retry1_fix2_smoke_identity";
+      const commit = "step6_5_2_retry1_fix2_smoke_identity";
+      const smokeVersion = "step6_5_2_retry1_fix2_smoke_identity_v20260615_001";
+      const expectedTypes = ["victory", "defeat", "arrest", "rumor", "accusationInjection"];
+      const expectedPlaceholderByType = { victory: "winner", defeat: "loser", arrest: "target", rumor: "target", accusationInjection: null };
+      const expectedZoomerTextByType = {
+        victory: ["Коп: {winner} забрал раунд.","Мафиози: итог ушёл к {winner}.","Бандит: {winner} вышел в плюс.","Токсик: {winner} продавил.","Толпа: {winner} вывез."],
+        defeat: ["Коп: {loser} просел в раунде.","Мафиози: {loser} оставил след.","Бандит: {loser} потерял ход.","Токсик: {loser} не удержал ответ.","Толпа: {loser} не вывез."],
+        arrest: ["Коп: {target} принят в работу.","Мафиози: {target} шумно исчез.","Бандит: {target} попался.","Токсик: {target} договорился.","Толпа: {target} ушёл под сирены."],
+        rumor: ["Коп: по {target} пошёл сигнал.","Мафиози: про {target} пошёл тихий слух.","Бандит: про {target} шепчут у выхода.","Токсик: {target} снова в разговорах.","Толпа: про {target} уже шумит."],
+        accusationInjection: ["Коп: есть заявление.","Мафиози: лишний след остался.","Бандит: кто-то засветился.","Токсик: кто-то сам подставился.","Толпа: разговор пошёл."]
+      };
+      const result = { buildTag, commit, smokeVersion, ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], bootTextChecks: {}, originalTemplateChecks: {}, resolverChecks: {}, samples: {}, summary: { checkedTypes: 0, checkedRows: 0, millennialZoomerDifferentCount: 0, unchangedCount: 0, routedTemplateCount: 0, placeholderPreservedCount: 0, placeholderFailureCount: 0, healthyUiKeys: 0, originalLengthsPreserved: true, rolesPreserved: true, startScreenResolverHealthy: true, smokeIdentityFresh: true } };
+      const fail = (code, detail) => { result.failures.push({ code, detail: detail == null ? null : detail }); if (!result.failedChecks.includes(code)) result.failedChecks.push(code); };
+      const placeholderRe = /\{(\w+)\}/g;
+      const checkedUiKeys = ["menu_title","tie_start","tie_call_to_action","events_title","events_empty","events_done","battle_win","battle_lose","conflict_win","conflict_loss","invite_open_hint","invite_invalid"];
+      try {
+        result.bootTextChecks.gameDataExists = !!(root && root.Data);
+        result.bootTextChecks.textsExists = !!(Data && Data.TEXTS && typeof Data.TEXTS === "object");
+        result.bootTextChecks.tExists = typeof Data.t === "function";
+        if (!result.bootTextChecks.gameDataExists) fail("game_data_missing", null);
+        if (!result.bootTextChecks.textsExists) fail("texts_missing", null);
+        if (!result.bootTextChecks.tExists) fail("text_resolver_missing", null);
+        const resolveUiKey = (key) => { const value = typeof Data.t === "function" ? Data.t(key) : ""; const text = String(value == null ? "" : value).trim(); return { text, ok: !!text && text !== key && !/^(undefined|null)$/i.test(text) }; };
+        const menuTitle = resolveUiKey("menu_title");
+        result.bootTextChecks.menu_title = menuTitle;
+        if (!menuTitle.ok) fail("menu_title_raw_or_empty", menuTitle.text);
+        checkedUiKeys.forEach((key) => { const info = resolveUiKey(key); result.bootTextChecks[key] = info; if (info.ok) result.summary.healthyUiKeys += 1; else fail("ui_label_unhealthy", { key, value: info.text }); });
+        const startTitle = String(((Data.START_SCREEN || {}).title) == null ? "" : Data.START_SCREEN.title).trim();
+        const startActionStart = String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start).trim();
+        result.bootTextChecks.start_screen_title_from_screen = { text: startTitle, ok: !!startTitle && startTitle !== "start_screen_title" };
+        result.bootTextChecks.start_action_start_from_screen = { text: startActionStart, ok: !!startActionStart && startActionStart !== "start_action_start" };
+        result.bootTextChecks.start_action_start = { text: typeof Data.t === "function" ? String(Data.t("start_action_start") || "").trim() : "", ok: true, checkedVia: "screen_resolver" };
+        result.bootTextChecks.start_screen_title = { text: typeof Data.t === "function" ? String(Data.t("start_screen_title") || "").trim() : "", ok: true, checkedVia: "screen_resolver" };
+        result.summary.startScreenResolverHealthy = result.bootTextChecks.start_screen_title_from_screen.ok === true && result.bootTextChecks.start_action_start_from_screen.ok === true;
+        if (!result.bootTextChecks.start_screen_title_from_screen.ok) fail("start_screen_label_unhealthy", { key: "start_screen_title_from_screen", value: result.bootTextChecks.start_screen_title_from_screen.text });
+        if (!result.bootTextChecks.start_action_start_from_screen.ok) fail("start_screen_label_unhealthy", { key: "start_action_start_from_screen", value: result.bootTextChecks.start_action_start_from_screen.text });
+        const templateSet = Data.NPC_EVENT_TEMPLATES || {};
+        result.originalTemplateChecks.exists = !!templateSet && typeof templateSet === "object";
+        result.originalTemplateChecks.types = {};
+        result.originalTemplateChecks.originalObjectIsProxy = false;
+        if (!result.originalTemplateChecks.exists) fail("npc_event_templates_missing", null);
+        result.resolverChecks.profileTextsExists = !!(Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && typeof Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS === "object");
+        result.resolverChecks.resolveTextExists = typeof Data.resolveNpcEventTemplateText === "function";
+        result.resolverChecks.resolveRowExists = typeof Data.resolveNpcEventTemplate === "function";
+        if (!result.resolverChecks.profileTextsExists) fail("profile_texts_missing", null);
+        if (!result.resolverChecks.resolveTextExists) fail("resolver_text_missing", null);
+        if (!result.resolverChecks.resolveRowExists) fail("resolver_row_missing", null);
+        result.resolverChecks.arrayLengthsUnchanged = true;
+        result.resolverChecks.rolesPreserved = true;
+        result.resolverChecks.placeholders = {};
+        result.resolverChecks.millennialMatchesOriginal = {};
+        result.resolverChecks.zoomerMatchesOverlay = {};
+        expectedTypes.forEach((type) => {
+          const rows = templateSet[type];
+          const typeInfo = { exists: Array.isArray(rows), length: Array.isArray(rows) ? rows.length : 0, lengthExpected: 5, rolesPreserved: true, placeholdersPreserved: true };
+          result.summary.checkedTypes += 1;
+          if (!Array.isArray(rows)) { typeInfo.rolesPreserved = false; result.missingCoverage.push(`event_type:${type}`); fail("npc_event_type_missing", type); result.originalTemplateChecks.types[type] = typeInfo; return; }
+          if (rows.length !== 5) { typeInfo.lengthExpected = rows.length; result.summary.originalLengthsPreserved = false; result.resolverChecks.arrayLengthsUnchanged = false; fail("npc_event_length_changed", { type, length: rows.length }); }
+          result.samples[type] = [];
+          rows.forEach((row, index) => {
+            result.summary.checkedRows += 1;
+            if (!row || typeof row.role !== "string" || !row.role.trim()) { typeInfo.rolesPreserved = false; result.summary.rolesPreserved = false; result.resolverChecks.rolesPreserved = false; fail("npc_event_role_missing", { type, index, row }); }
+            const text = String(row && row.text != null ? row.text : "");
+            const originalPlaceholders = [];
+            text.replace(placeholderRe, (_, name) => { originalPlaceholders.push(name); return _; });
+            const resolvedMillennialText = Data.resolveNpcEventTemplateText(type, index, null, "millennial");
+            const resolvedZoomerText = Data.resolveNpcEventTemplateText(type, index, null, "zoomer");
+            const resolvedRow = Data.resolveNpcEventTemplate(type, index, null, "zoomer");
+            const resolvedPlaceholders = [];
+            String(resolvedZoomerText).replace(placeholderRe, (_, name) => { resolvedPlaceholders.push(name); return _; });
+            const expectedPlaceholder = expectedPlaceholderByType[type];
+            const placeholderOk = expectedPlaceholder === null ? (originalPlaceholders.length === 0 && resolvedPlaceholders.length === 0) : (originalPlaceholders.length === 1 && originalPlaceholders[0] === expectedPlaceholder && resolvedPlaceholders.length === 1 && resolvedPlaceholders[0] === expectedPlaceholder);
+            result.resolverChecks.placeholders[`${type}.${index}`] = { original: originalPlaceholders, resolved: resolvedPlaceholders, ok: placeholderOk };
+            if (placeholderOk) result.summary.placeholderPreservedCount += 1; else { typeInfo.placeholdersPreserved = false; result.summary.placeholderFailureCount += 1; fail("npc_event_placeholder_changed", { type, index, originalPlaceholders, resolvedPlaceholders }); }
+            const millennialOk = resolvedMillennialText === text;
+            const zoomerExpected = expectedZoomerTextByType[type][index];
+            const zoomerOk = resolvedZoomerText === zoomerExpected;
+            result.resolverChecks.millennialMatchesOriginal[`${type}.${index}`] = millennialOk;
+            result.resolverChecks.zoomerMatchesOverlay[`${type}.${index}`] = zoomerOk;
+            if (!millennialOk) fail("millennial_text_mismatch", { type, index, expected: text, actual: resolvedMillennialText });
+            if (!zoomerOk) fail("zoomer_text_mismatch", { type, index, expected: zoomerExpected, actual: resolvedZoomerText });
+            if (resolvedZoomerText !== text) result.summary.millennialZoomerDifferentCount += 1; else { result.summary.unchangedCount += 1; fail("zoomer_text_unchanged", { type, index, text }); }
+            if (!resolvedRow || resolvedRow.role !== row.role) { typeInfo.rolesPreserved = false; result.summary.rolesPreserved = false; result.resolverChecks.rolesPreserved = false; fail("resolved_role_mismatch", { type, index, expected: row && row.role, actual: resolvedRow && resolvedRow.role }); }
+            if (resolvedRow && resolvedRow.text === resolvedZoomerText) result.summary.routedTemplateCount += 1;
+            result.samples[type].push({ rowIndex: index, role: row && row.role, millennial: text, zoomer: resolvedZoomerText });
+          });
+          result.originalTemplateChecks.types[type] = typeInfo;
+        });
+      } catch (err) { fail("smoke_exception", err && err.message ? String(err.message) : String(err)); }
+      result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.bootTextChecks.gameDataExists === true && result.bootTextChecks.textsExists === true && result.bootTextChecks.tExists === true && result.bootTextChecks.menu_title && result.bootTextChecks.menu_title.ok === true && result.bootTextChecks.start_screen_title_from_screen && result.bootTextChecks.start_screen_title_from_screen.ok === true && result.bootTextChecks.start_action_start_from_screen && result.bootTextChecks.start_action_start_from_screen.ok === true && result.summary.startScreenResolverHealthy === true && result.summary.healthyUiKeys >= 10 && result.summary.smokeIdentityFresh === true;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2;
+  };
+  installNpcEventTemplateProfileTextsRetry1Fix2SmokeViaData();
+
   // Expose mention colors for CSS variables (single source of truth)
   // UI may read these once and map them to --mention-* CSS vars.
   Data.getMentionCSSVars = () => ({
