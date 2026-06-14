@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.1 Zoomer Feel Pass Core System Messages
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: add the 8 required millennial/zoomer core system message entries through the existing resolver path, route the 0-money battle toasts through that resolver, and expose the Step 6.1 Safari smoke without touching gameplay, ECON, moneyLog, rewards, penalties, balances, prices, or outcomes.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep61CoreSystemMessages()`.
+- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 8 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Scope held: resolver overlay plus battle-toast routing only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles UI Profile Text Coverage Smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add a runtime smoke `Game.__DEV.smokeToneProfilesUiTextCoverage()` that verifies important UI copy paths go through the text resolver, proves both `millennial` and `zoomer` profiles are active, and records where differences are expected vs. where matching text is correct.

@@ -4493,6 +4493,106 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesUiTextCoverage = G.__DEV.smokeToneProfilesUiTextCoverage;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep61CoreSystemMessages !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_1_core_system_messages";
+      const COMMIT = "step6_1_core_system_messages";
+      const SMOKE_VERSION = "step6_1_core_system_messages_v20260614_001";
+      const REQUIRED_KEYS = Object.freeze([
+        "not_enough_money",
+        "not_enough_stars",
+        "purchase_success",
+        "sale_success",
+        "reward_received",
+        "penalty_received",
+        "generic_error",
+        "generic_success",
+      ]);
+      const stableJson = (value) => {
+        try { return JSON.stringify(value); } catch (_) { return String(value); }
+      };
+      const snapshotEconomy = () => ({
+        moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+        mePoints: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : null,
+        meRep: Number.isFinite(G.__S && G.__S.me && G.__S.me.rep) ? (G.__S.me.rep | 0) : null,
+      });
+      const withProfile = (profileName, run) => {
+        const Data = G.Data || null;
+        const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+        const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+        const beforeProfile = getUiProfile ? getUiProfile() : "default";
+        const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+        try {
+          if (setUiProfile) setUiProfile(profileName);
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
+          return run();
+        } finally {
+          if (setUiProfile) setUiProfile(beforeProfile);
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
+        }
+      };
+      G.__DEV.smokeZoomerFeelStep61CoreSystemMessages = function smokeZoomerFeelStep61CoreSystemMessages() {
+        const result = {
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (key) => {
+          if (result.missingCoverage.indexOf(key) < 0) result.missingCoverage.push(key);
+        };
+        const beforeEconomy = snapshotEconomy();
+        try {
+          if (!G.System || typeof G.System.profileText !== "function") fail("profile_text_resolver_missing");
+          const exportedKeys = G.System && Array.isArray(G.System.profileTextKeys) ? G.System.profileTextKeys.slice() : [];
+          REQUIRED_KEYS.forEach((key) => {
+            if (exportedKeys.indexOf(key) < 0) miss(key);
+            const millennialText = withProfile("millennial", () => String(G.System.profileText(key) || ""));
+            const zoomerText = withProfile("zoomer", () => String(G.System.profileText(key) || ""));
+            const differs = millennialText !== zoomerText;
+            const pass = !!millennialText && !!zoomerText && differs;
+            result.coverage.push({ key, millennialText, zoomerText, differs, pass });
+            if (!millennialText) fail("millennial_text_missing", { key });
+            if (!zoomerText) fail("zoomer_text_missing", { key });
+            if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
+          });
+          const moneyCoverage = result.coverage.find((entry) => entry.key === "not_enough_money");
+          const purchaseCoverage = result.coverage.find((entry) => entry.key === "purchase_success");
+          if (!moneyCoverage) miss("not_enough_money");
+          if (!purchaseCoverage) miss("purchase_success");
+          if (moneyCoverage && moneyCoverage.differs !== true) fail("not_enough_money_not_different", moneyCoverage);
+          if (purchaseCoverage && purchaseCoverage.differs !== true) fail("purchase_success_not_different", purchaseCoverage);
+          const millennialSystemMoney = withProfile("millennial", () => String(G.System.say("errors", "insufficientPoints") || ""));
+          const zoomerSystemMoney = withProfile("zoomer", () => String(G.System.say("errors", "insufficientPoints") || ""));
+          if (!(millennialSystemMoney && zoomerSystemMoney && millennialSystemMoney !== zoomerSystemMoney)) {
+            fail("not_enough_money_route_missing", { millennialSystemMoney, zoomerSystemMoney });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterEconomy = snapshotEconomy();
+        if (stableJson(beforeEconomy) !== stableJson(afterEconomy)) {
+          fail("economy_mutated_during_smoke", { beforeEconomy, afterEconomy });
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.coverage.length === REQUIRED_KEYS.length
+          && result.coverage.every((entry) => entry.pass === true);
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep61CoreSystemMessages = G.__DEV.smokeZoomerFeelStep61CoreSystemMessages;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";
