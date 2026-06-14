@@ -751,6 +751,68 @@ window.Game = window.Game || {};
     return `${icon}${textAmount}${reason}`.trim();
   }
 
+  function getCurrentPointsBalance(){
+    const S = Game && Game.__S ? Game.__S : null;
+    const me = S && S.me ? S.me : null;
+    if (me && Number.isFinite(me.points)) return me.points | 0;
+    const playersMe = S && S.players && S.players.me;
+    if (playersMe && Number.isFinite(playersMe.points)) return playersMe.points | 0;
+    return 0;
+  }
+
+  function normalizeEconomyReason(reason){
+    return String(reason || "").trim().toLowerCase();
+  }
+
+  function resolveEconomyFlavorToastKey(payload, opts = {}){
+    if (!payload) return "";
+    const currency = String(payload.currency || "points").toLowerCase();
+    if (currency !== "points") return "";
+    const amount = Number.isFinite(payload.amount) ? (payload.amount | 0) : 0;
+    const reason = normalizeEconomyReason(payload.reason);
+    const sourceId = String(payload.sourceId || "").trim();
+    const targetId = String(payload.targetId || "").trim();
+    const balanceAfter = Number.isFinite(opts.balanceAfter)
+      ? (opts.balanceAfter | 0)
+      : (targetId === "me" || sourceId === "me" ? getCurrentPointsBalance() : null);
+    const balanceBefore = Number.isFinite(opts.balanceBefore)
+      ? (opts.balanceBefore | 0)
+      : (Number.isFinite(balanceAfter) ? (balanceAfter - amount) : null);
+    const richThreshold = (Game && Game.Data && Number.isFinite(Game.Data.RICH_THRESHOLD)) ? (Game.Data.RICH_THRESHOLD | 0) : 20;
+    const povertyThreshold = (Game && Game.Data && Number.isFinite(Game.Data.POINTS_SOFT_CAP))
+      ? Math.max(1, Math.floor((Game.Data.POINTS_SOFT_CAP | 0) / 10))
+      : 2;
+    const incomeReason = /(^|[._-])(reward|refund|income|plus|win|earned)(?=$|[._-])/.test(reason);
+    const expenseReason = /(^|[._-])(cost|expense|spent|charge|fee|penalty|tax|robbed|steal|purchase|buy|pay|payment|rematch|escape)(?=$|[._-])/.test(reason);
+    if (amount === 0) return "economy_neutral";
+    if (Number.isFinite(balanceAfter)) {
+      if (balanceAfter <= 0) return "bankrupt_state";
+      if (balanceAfter <= povertyThreshold) return "poverty_state";
+      if (balanceAfter >= richThreshold) return "rich_state";
+    }
+    if (amount > 0) {
+      if (incomeReason) return "income_event";
+      if (targetId === "me" || sourceId === "sink" || sourceId.startsWith("crowd:")) return "money_received";
+      if (Number.isFinite(balanceBefore) && Number.isFinite(balanceAfter) && balanceAfter > balanceBefore) return "money_changed_positive";
+      return "money_changed_positive";
+    }
+    if (amount < 0) {
+      if (expenseReason) return "expense_event";
+      if (sourceId === "me" || targetId === "sink" || targetId.startsWith("crowd:")) return "money_spent";
+      if (Number.isFinite(balanceBefore) && Number.isFinite(balanceAfter) && balanceAfter < balanceBefore) return "money_changed_negative";
+      return "money_changed_negative";
+    }
+    return "";
+  }
+
+  function resolveEconomyFlavorToastText(row, opts = {}){
+    const payload = createEconPayload(row);
+    if (!payload) return "";
+    const key = resolveEconomyFlavorToastKey(payload, opts);
+    if (!key || !Game || !Game.System || typeof Game.System.profileText !== "function") return "";
+    return String(Game.System.profileText(key) || "").trim();
+  }
+
   function createEconPayload(row){
     if (!row || typeof row !== "object") return null;
     const currency = String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points";
@@ -777,7 +839,11 @@ window.Game = window.Game || {};
       eventId: row.eventId
     };
     if (!payload) return "";
-    return formatEconToastText(payload);
+    const flavorText = resolveEconomyFlavorToastText(row, {
+      balanceBefore: Number.isFinite(row && row.balanceBefore) ? (row.balanceBefore | 0) : undefined,
+      balanceAfter: Number.isFinite(row && row.balanceAfter) ? (row.balanceAfter | 0) : undefined
+    });
+    return flavorText || formatEconToastText(payload);
   }
 
   function logEconToastSideEffect(fn, detail){
@@ -8170,6 +8236,12 @@ window.Game = window.Game || {};
   }
   if (typeof debugStore.pushEconToastFromLogRef !== "function") {
     debugStore.pushEconToastFromLogRef = pushEconToastFromLogRef;
+  }
+  if (typeof debugStore.resolveEconomyFlavorToastKey !== "function") {
+    debugStore.resolveEconomyFlavorToastKey = resolveEconomyFlavorToastKey;
+  }
+  if (typeof debugStore.resolveEconomyFlavorToastText !== "function") {
+    debugStore.resolveEconomyFlavorToastText = resolveEconomyFlavorToastText;
   }
   defineGameSurfaceProp("State", "__S");
   defineGameSurfaceProp("Debug", "__D");

@@ -932,7 +932,13 @@ window.Game = window.Game || {};
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
     const icon = icons[kind] || "";
     const sign = d > 0 ? "+" : "";
-    const text = `${icon} ${sign}${d}`;
+    const flavorKey = kind === "points"
+      ? (d > 0 ? "money_changed_positive" : "money_changed_negative")
+      : "";
+    const flavorText = flavorKey && Game && Game.System && typeof Game.System.profileText === "function"
+      ? String(Game.System.profileText(flavorKey) || "").trim()
+      : "";
+    const text = flavorText || `${icon} ${sign}${d}`;
 
     const r = anchor.getBoundingClientRect();
     const left = Math.round(r.left + (r.width / 2));
