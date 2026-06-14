@@ -1,3 +1,11 @@
+## 2026-06-14 — Step 6.0 Zoomer Feel Pass Real UI Text Inventory & Coverage Map
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: inventory currently visible real UI text call sites before more Zoomer Feel content work, and verify whether Step 6.1-6.4 profile keys are actually connected to visible UI or still dictionary-only.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `inventory`, `existingProfileKeys`, `suspectedGaps`, and `summary`.
+- Summary contract: `totalCandidates`, `profileAwareCount`, `hardcodedCount`, `resolverUsedCount`, `suspectedGapCount`, `coveredByStep61Count`, `coveredByStep62Count`, `coveredByStep63Count`, `coveredByStep64Count`, `recommendedForZoomerFeelCount`, and `highFrequencyRecommendedCount`.
+- Scope held: inventory and runtime audit only; no text rewrites, no new profile entries, no gameplay changes, no UI behavior changes, no NPC/conflict/economy/reputation logic changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.5.0 Zoomer Feel Pass NPC Speech Inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: inventory the current NPC speech / NPC reaction / crowd comment / conflict feed / DM text surface before Step 6.5 content writing, without rewriting text, adding profile entries, changing gameplay, or changing NPC behavior.
@@ -10,6 +18,7 @@
 - Goal: make reputation flavor UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, REP, points, money, ECON, moneyLog, rewards, penalties, balances, voting math, or conflict outcomes.
 - Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep64ReputationFlavor()`.
 - Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 10 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Step 6.0 follow-up: dictionary groundwork passed, but real visible UI coverage is still pending verification through `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
 - Scope held: resolver wiring, dictionary entries, coverage, and smoke only; no gameplay changes, no REP changes, no points changes, no money changes, no ECON changes, no moneyLog changes, and no `Console.txt` usage.
 
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor
@@ -17,6 +26,7 @@
 - Goal: make economy flavor UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, ECON, moneyLog, balances, prices, rewards, penalties, income, expenses, or transaction math.
 - Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep63EconomyFlavor()`.
 - Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 10 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Step 6.0 follow-up: dictionary groundwork passed, but real visible UI coverage is still pending verification through `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
 - Scope held: resolver wiring, dictionary entries, coverage, and smoke only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
 
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor runtime smoke exposure fix 1
@@ -52,6 +62,7 @@
 - Goal: make core conflict result UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, conflict outcomes, REP, points, money, ECON, moneyLog, rewards, penalties, balances, prices, or voting math.
 - Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep62ConflictResults()`.
 - Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 8 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Step 6.0 follow-up: dictionary groundwork passed, but real visible UI coverage is still pending verification through `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
 - Scope held: resolver wiring plus smoke coverage only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
 
 ## 2026-06-14 — Step 6.1 Zoomer Feel Pass Core System Messages
@@ -59,6 +70,7 @@
 - Goal: add the 8 required millennial/zoomer core system message entries through the existing resolver path, route the 0-money battle toasts through that resolver, and expose the Step 6.1 Safari smoke without touching gameplay, ECON, moneyLog, rewards, penalties, balances, prices, or outcomes.
 - Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep61CoreSystemMessages()`.
 - Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 8 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Step 6.0 follow-up: dictionary groundwork passed, but real visible UI coverage is still pending verification through `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
 - Scope held: resolver overlay plus battle-toast routing only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
 
 ## 2026-06-14 — Step 6 Tone Profiles UI Profile Text Coverage Smoke

@@ -8111,5 +8111,140 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep650NpcSpeechInventory = G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep60RealUiTextInventory !== "function") {
+      G.__DEV.smokeZoomerFeelStep60RealUiTextInventory = function smokeZoomerFeelStep60RealUiTextInventory() {
+        const buildTag = "build_2026_06_14_step6_0_real_ui_text_inventory";
+        const commit = "step6_0_real_ui_text_inventory";
+        const smokeVersion = "step6_0_real_ui_text_inventory_v20260614_001";
+        const result = { buildTag, commit, smokeVersion, ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], inventory: [], existingProfileKeys: [], suspectedGaps: [], summary: { totalCandidates: 0, profileAwareCount: 0, hardcodedCount: 0, resolverUsedCount: 0, suspectedGapCount: 0, coveredByStep61Count: 0, coveredByStep62Count: 0, coveredByStep63Count: 0, coveredByStep64Count: 0, recommendedForZoomerFeelCount: 0, highFrequencyRecommendedCount: 0 } };
+        const stableJson = (value) => { try { return JSON.stringify(value); } catch (_) { return String(value); } };
+        const pushUnique = (list, value) => { const key = stableJson(value); if (!list.some((item) => stableJson(item) === key)) list.push(value); };
+        const fail = (check, detail) => { pushUnique(result.failedChecks, check); pushUnique(result.failures, detail === undefined ? check : { check, detail }); };
+        const snapshotState = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          moneyLogByBattle: stableJson(G.__D && G.__D.moneyLogByBattle ? G.__D.moneyLogByBattle : {}),
+          econ: stableJson(G.ECON || {}),
+          votes: stableJson(G.__S && G.__S.votes ? G.__S.votes : {}),
+          conflict: stableJson(G.__S && G.__S.conflict ? G.__S.conflict : {}),
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "")
+        });
+        const stepMap = {
+          not_enough_money: "6.1", not_enough_stars: "6.1", purchase_success: "6.1", sale_success: "6.1", reward_received: "6.1", penalty_received: "6.1", generic_error: "6.1", generic_success: "6.1",
+          conflict_win: "6.2", conflict_loss: "6.2", conflict_draw: "6.2", supported_majority: "6.2", supported_minority: "6.2", majority_won: "6.2", minority_lost: "6.2", conflict_finished: "6.2",
+          money_received: "6.3", money_spent: "6.3", money_changed_positive: "6.3", money_changed_negative: "6.3", poverty_state: "6.3", rich_state: "6.3", bankrupt_state: "6.3", income_event: "6.3", expense_event: "6.3", economy_neutral: "6.3",
+          reputation_increased: "6.4", reputation_decreased: "6.4", reputation_unchanged: "6.4", respect_gained: "6.4", respect_lost: "6.4", disrespect_event: "6.4", reputation_high: "6.4", reputation_low: "6.4", reputation_recovered: "6.4", reputation_damaged: "6.4"
+        };
+        const inventoryMap = Object.create(null);
+        const addRow = (row) => {
+          const next = Object.assign({ profileKey: "", notes: "", coveredByStep61To64: false, coveredByStep: "", frequencyGuess: "low" }, row || {});
+          if (!next.key || !next.text || !next.filePath || !next.zone) fail("inventory_row_missing_fields", next);
+          ["hardcoded", "resolverUsed", "currentlyProfileAware", "recommendedForZoomerFeel"].forEach((field) => { if (typeof next[field] === "undefined") fail("inventory_row_missing_flags", { field, row: next }); });
+          const step = next.profileKey && stepMap[next.profileKey] ? stepMap[next.profileKey] : "";
+          next.coveredByStep = next.coveredByStep || step;
+          next.coveredByStep61To64 = !!(next.coveredByStep || (next.profileKey && stepMap[next.profileKey]));
+          if (!inventoryMap[next.key]) inventoryMap[next.key] = next;
+        };
+        const addTextRow = (key, text, filePath, component, zone, opts = {}) => {
+          const value = String(text == null ? "" : text).trim();
+          if (!value) return;
+          addRow({ key, text: value, filePath, component, zone, currentlyProfileAware: !!opts.currentlyProfileAware, resolverUsed: !!opts.resolverUsed, hardcoded: !!opts.hardcoded, profileKey: String(opts.profileKey || ""), frequencyGuess: opts.frequencyGuess || "low", recommendedForZoomerFeel: !!opts.recommendedForZoomerFeel, notes: String(opts.notes || "") });
+        };
+        const walkStrings = (root, source, filePath, component, zone, opts = {}) => {
+          if (root == null) return;
+          if (typeof root === "string") return addTextRow(source, root, filePath, component, zone, opts);
+          if (Array.isArray(root)) return root.forEach((item, index) => walkStrings(item, `${source}.${index}`, filePath, component, zone, opts));
+          if (typeof root === "object") return Object.keys(root).forEach((key) => walkStrings(root[key], `${source}.${key}`, filePath, component, zone, opts));
+        };
+        const addProfileKeyCoverage = (profileKey, routeConnected, notes) => {
+          pushUnique(result.existingProfileKeys, { key: profileKey, coveredByStep: stepMap[profileKey] || "", routeConnected: !!routeConnected, notes: String(notes || "") });
+          if (!routeConnected) pushUnique(result.missingCoverage, { profileKey, coveredByStep: stepMap[profileKey] || "", reason: "dictionary_only_no_visible_callsite" });
+        };
+        const beforeState = snapshotState();
+        try {
+          const D = G.Data || {};
+          const System = G.System || {};
+          const NPC = G.NPC || {};
+          const copyInventory = Array.isArray(System.copyInventory) ? System.copyInventory : [];
+          const routeMap = System.profileTextRouteMap || {};
+          const profileKeys = Array.isArray(System.profileTextKeys) ? System.profileTextKeys.slice() : [];
+          const routedVisibleCodes = new Set();
+          const areaZoneMap = {
+            battles: "conflict_results", rematch: "rematch", economy: "economy", rewards: "rewards_penalties", inventory: "core_system", storage: "purchase_sale", training: "economy", respect: "reputation", report: "cop_flow", cop: "cop_flow", start: "onboarding", events: "chronicle", escape: "buttons_labels"
+          };
+          copyInventory.forEach((row, index) => {
+            const routeId = `${String(row && row.kind || "").trim()}.${String(row && row.code || "").trim()}`;
+            const profileKey = routeMap[routeId] || "";
+            const rendered = System && typeof System.say === "function" ? System.say(row.kind, row.code, { name: "Имя", target: "Цель", guest: "Гость", voteCost: 1, rematchCost: 1, escapeCost: 1, location: "Площадь", teacher: "A", student: "B", oppName: "Оппонент", text: "итог", winner: "A", loser: "B", a: "A", b: "B", aVotes: 1, bVotes: 0, attackerName: "A", attackerInf: 1, returnAmount: 1, cost: 1, amount: 1, value: 1, what: "Статус" }) : "";
+            const zone = areaZoneMap[row && row.area] || ((row && row.surface) === "toast" ? "toasts" : "core_system");
+            addTextRow(`copyInventory.${index}.${row.kind}.${row.code}`, rendered || routeId, row.file || "AsyncScene/Web/system.js", row.callsite || "SYSTEM_COPY_INVENTORY", zone, { currentlyProfileAware: !!profileKey, resolverUsed: true, hardcoded: !!(row && row.directHardcoded), profileKey, frequencyGuess: zone === "toasts" ? "high" : "medium", recommendedForZoomerFeel: !profileKey || !!stepMap[profileKey], notes: `surface=${row && row.surface || ""}` });
+            if (profileKey) routedVisibleCodes.add(profileKey);
+          });
+          ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"].forEach((key) => {
+            const text = typeof D.resolveConflictResultText === "function" ? D.resolveConflictResultText(key) : (typeof D.t === "function" ? D.t(key) : "");
+            addTextRow(`conflictResult.${key}`, text, "AsyncScene/Web/conflict/conflict-core.js", "conflictResultText", "conflict_results", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, profileKey: key, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible conflict result resolver path" });
+            if (text) routedVisibleCodes.add(key);
+          });
+          const texts = D.TEXTS || {};
+          const genz = texts.genz || {};
+          addTextRow("texts.genz.events_empty", genz.events_empty, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "empty_states", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible empty events hint through Data.t('events_empty')" });
+          addTextRow("texts.genz.escape_button_label", genz.escape_button_label, "AsyncScene/Web/ui/ui-battles.js", "escape button", "buttons_labels", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible escape CTA label" });
+          addTextRow("texts.genz.teach_sent_dm", genz.teach_sent_dm, "AsyncScene/Web/ui/ui-dm.js", "teach sent dm", "economy", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "DM training cost text" });
+          addTextRow("texts.genz.teach_sent_chat", genz.teach_sent_chat, "AsyncScene/Web/ui/ui-dm.js", "teach sent chat", "economy", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "system training feed text" });
+          addTextRow("texts.genz.menu_title", genz.menu_title, "AsyncScene/Web/ui/ui-menu.js", "applyMenuLabels", "buttons_labels", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "menu button and panel title" });
+          ["cop_report_accept", "cop_report_ok", "cop_report_fail", "cop_busy", "cop_cooldown"].forEach((key) => walkStrings(genz[key], `texts.genz.${key}`, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "cop_flow", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: key === "cop_report_accept" || key === "cop_report_ok" ? "high" : "medium", recommendedForZoomerFeel: true, notes: "cop/report visible text array" }));
+          if (D.START_SCREEN) {
+            addTextRow("startScreen.title", D.START_SCREEN.title, "AsyncScene/Web/data.js", "Data.START_SCREEN", "onboarding", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "start screen title" });
+            walkStrings(D.START_SCREEN.introLines, "startScreen.introLines", "AsyncScene/Web/data.js", "Data.START_SCREEN", "onboarding", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "start screen intro lines" });
+            addTextRow("startScreen.economyHonestyLine", D.START_SCREEN.economyHonestyLine, "AsyncScene/Web/data.js", "Data.START_SCREEN", "economy", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "start screen economy explainer" });
+            walkStrings(D.START_SCREEN.actions, "startScreen.actions", "AsyncScene/Web/data.js", "Data.START_SCREEN.actions", "buttons_labels", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "start screen button labels" });
+          }
+          [["uiMenu.manifestButton", "Цель"], ["uiMenu.manifestTitle", "Цель"], ["uiMenu.returnToStart", "К старту"], ["uiMenu.devDisable", "Disable Dev Mode"], ["uiMenu.devEnable", "Enable Dev Mode"], ["uiMenu.consolePanel", "Console Panel"], ["uiMenu.unavailable", "Недоступно."]].forEach((row) => addTextRow(row[0], row[1], "AsyncScene/Web/ui/ui-menu.js", "ui-menu hardcoded label", "buttons_labels", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible hardcoded menu label" }));
+          [["uiDm.respectNoPoints", "Не хватает 💰."], ["uiDm.respectFallback", "Сейчас не получилось. Попробуй позже."]].forEach((row) => addTextRow(row[0], row[1], "AsyncScene/Web/ui/ui-dm.js", "mapRespectReason", "reputation", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible respect flow fallback" }));
+          walkStrings(NPC.SAY && NPC.SAY.crowd, "NPC.SAY.crowd", "AsyncScene/Web/npcs.js", "NPC.SAY", "crowd_comment", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "crowd speech pool" });
+          walkStrings(D.NPC_CHAT_LINES, "Data.NPC_CHAT_LINES", "AsyncScene/Web/data.js", "Data.NPC_CHAT_LINES", "crowd_comment", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "crowd chat/event lines" });
+          walkStrings(NPC.SAY && NPC.SAY.toxic, "NPC.SAY.toxic", "AsyncScene/Web/npcs.js", "NPC.SAY", "npc_speech", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "toxic npc speech pool" });
+          walkStrings(NPC.SAY && NPC.SAY.bandit, "NPC.SAY.bandit", "AsyncScene/Web/npcs.js", "NPC.SAY", "npc_speech", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "bandit npc speech pool" });
+          walkStrings(NPC.DM_PROFILE_LINES, "NPC.DM_PROFILE_LINES", "AsyncScene/Web/npcs.js", "NPC.DM_PROFILE_LINES", "npc_speech", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "low", recommendedForZoomerFeel: true, notes: "npc dm visible templates" });
+          walkStrings(D.COP_TEMPLATES, "Data.COP_TEMPLATES", "AsyncScene/Web/data.js", "Data.COP_TEMPLATES", "cop_flow", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "cop flow visible replies/descriptions" });
+          walkStrings(D.NPC_EVENT_TEMPLATES, "Data.NPC_EVENT_TEMPLATES", "AsyncScene/Web/data.js", "Data.NPC_EVENT_TEMPLATES", "chronicle", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "npc event feed lines" });
+          result.inventory = Object.keys(inventoryMap).sort().map((key) => inventoryMap[key]);
+          profileKeys.forEach((profileKey) => addProfileKeyCoverage(profileKey, routedVisibleCodes.has(profileKey), routedVisibleCodes.has(profileKey) ? "visible routed system callsite found" : "present in resolver dictionary but not mapped to a discovered real visible callsite"));
+          Object.keys(stepMap).filter((profileKey) => /^6\.2$/.test(stepMap[profileKey])).forEach((profileKey) => {
+            if (!profileKeys.includes(profileKey)) addProfileKeyCoverage(profileKey, routedVisibleCodes.has(profileKey), "conflict key tracked through Data.resolveConflictResultText");
+          });
+          result.suspectedGaps = result.inventory.filter((row) => !row.currentlyProfileAware && row.recommendedForZoomerFeel && (row.frequencyGuess === "high" || row.frequencyGuess === "medium")).map((row) => ({ key: row.key, text: row.text, filePath: row.filePath, zone: row.zone, notes: row.notes || "visible string is not profile-aware" }));
+          result.summary.totalCandidates = result.inventory.length;
+          result.summary.profileAwareCount = result.inventory.filter((row) => row.currentlyProfileAware === true).length;
+          result.summary.hardcodedCount = result.inventory.filter((row) => row.hardcoded === true).length;
+          result.summary.resolverUsedCount = result.inventory.filter((row) => row.resolverUsed === true).length;
+          result.summary.suspectedGapCount = result.suspectedGaps.length;
+          result.summary.coveredByStep61Count = result.inventory.filter((row) => row.coveredByStep === "6.1").length;
+          result.summary.coveredByStep62Count = result.inventory.filter((row) => row.coveredByStep === "6.2").length;
+          result.summary.coveredByStep63Count = result.inventory.filter((row) => row.coveredByStep === "6.3").length;
+          result.summary.coveredByStep64Count = result.inventory.filter((row) => row.coveredByStep === "6.4").length;
+          result.summary.recommendedForZoomerFeelCount = result.inventory.filter((row) => row.recommendedForZoomerFeel === true).length;
+          result.summary.highFrequencyRecommendedCount = result.inventory.filter((row) => row.recommendedForZoomerFeel === true && row.frequencyGuess === "high").length;
+          if (!result.inventory.length) fail("inventory_empty", "no_real_ui_candidates_found");
+          if (!(result.summary.totalCandidates > 0)) fail("inventory_total_missing", result.summary);
+          if (!result.existingProfileKeys.length) fail("existing_profile_keys_empty", "resolver_dictionary_keys_not_found");
+          if (!Array.isArray(result.suspectedGaps)) fail("suspected_gaps_missing", "suspectedGaps must be an array");
+          result.inventory.forEach((row) => {
+            ["key", "text", "filePath", "zone", "hardcoded", "resolverUsed", "currentlyProfileAware", "recommendedForZoomerFeel"].forEach((field) => {
+              if (typeof row[field] === "undefined" || row[field] === "") fail("inventory_contract_missing_field", { key: row.key || "", field });
+            });
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterState = snapshotState();
+        if (stableJson(beforeState) !== stableJson(afterState)) fail("state_mutated_during_smoke", { beforeState, afterState });
+        result.ok = result.inventory.length > 0 && result.summary.totalCandidates > 0 && result.existingProfileKeys.length > 0 && Array.isArray(result.suspectedGaps) && result.failures.length === 0 && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep60RealUiTextInventory = G.__DEV.smokeZoomerFeelStep60RealUiTextInventory;
+    }
   }
 })();
