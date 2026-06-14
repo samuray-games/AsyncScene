@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.4 Zoomer Feel Pass Reputation Flavor
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make reputation flavor UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, REP, points, money, ECON, moneyLog, rewards, penalties, balances, voting math, or conflict outcomes.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep64ReputationFlavor()`.
+- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 10 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Scope held: resolver wiring, dictionary entries, coverage, and smoke only; no gameplay changes, no REP changes, no points changes, no money changes, no ECON changes, no moneyLog changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make economy flavor UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, ECON, moneyLog, balances, prices, rewards, penalties, income, expenses, or transaction math.
