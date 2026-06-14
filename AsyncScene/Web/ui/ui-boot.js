@@ -7000,4 +7000,98 @@ window.Game = window.Game || {};
 
   installGlobalDiagnostics();
   whenReady(initWithRetry);
+  if (window.Game) {
+    const G = window.Game;
+    if (!G.__DEV) G.__DEV = {};
+    if (!G.Dev) G.Dev = {};
+    if (typeof G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory !== "function") {
+      G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory = function smokeZoomerFeelStep650NpcSpeechInventory() {
+        const buildTag = "build_2026_06_14_step6_5_0_zoomer_feel_npc_speech_inventory";
+        const commit = "step6_5_0_zoomer_feel_npc_speech_inventory";
+        const smokeVersion = "step6_5_0_zoomer_feel_npc_speech_inventory_v20260614_001";
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const snapshotState = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          moneyLogByBattle: stableJson(G.__D && G.__D.moneyLogByBattle ? G.__D.moneyLogByBattle : {}),
+          econ: stableJson(G.ECON || {}),
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          votes: stableJson(G.__S && G.__S.votes ? G.__S.votes : {}),
+          conflict: stableJson(G.__S && G.__S.conflict ? G.__S.conflict : {}),
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || ""
+        });
+        const result = { buildTag, commit, smokeVersion, ok: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [], inventory: [], summary: { totalCandidates: 0, npcSpeechCount: 0, npcReactionCount: 0, crowdCommentCount: 0, hardcodedCount: 0, resolverCount: 0, recommendedForStep65Count: 0 } };
+        const addUnique = (list, value) => { const key = stableJson(value); if (!list.some((item) => stableJson(item) === key)) list.push(value); };
+        const fail = (check, detail) => { addUnique(result.failedChecks, check); addUnique(result.failures, detail === undefined ? check : { check, detail }); };
+        const addRow = (row) => {
+          const next = Object.assign({}, row);
+          if (!next.key || !next.text || !next.filePath || !next.category) fail("inventory_row_missing_fields", next);
+          if (typeof next.hardcoded === "undefined" || typeof next.resolverUsed === "undefined" || typeof next.recommendedForStep65 === "undefined") fail("inventory_row_missing_flags", next);
+          result.inventory.push(next);
+        };
+        const addString = (key, text, filePath, category, opts = {}) => {
+          const value = String(text == null ? "" : text).trim();
+          if (!value) return;
+          addRow({ key, text: value, filePath, category, currentlyProfileAware: !!opts.currentlyProfileAware, resolverUsed: !!opts.resolverUsed, hardcoded: !!opts.hardcoded, recommendedForStep65: !!opts.recommendedForStep65, notes: String(opts.notes || "") });
+        };
+        const walk = (root, source, filePath, category, opts = {}) => {
+          if (root == null) return;
+          if (typeof root === "string") return addString(source, root, filePath, category, opts);
+          if (Array.isArray(root)) return root.forEach((item, index) => walk(item, `${source}.${index}`, filePath, category, opts));
+          if (typeof root === "object") Object.keys(root).forEach((key) => walk(root[key], `${source}.${key}`, filePath, category, opts));
+        };
+        const addRoleLines = (source, lines, category, opts = {}) => (Array.isArray(lines) ? lines : []).forEach((line, index) => addString(`${source}.${index}`, line, opts.filePath || "AsyncScene/Web/npcs.js", category, opts));
+        const beforeState = snapshotState();
+        try {
+          const D = G.Data || {};
+          const NPC = G.NPC || {};
+          const speech = G.NPCSpeech || {};
+          addRoleLines("NPC.SAY.toxic.m", NPC.SAY && NPC.SAY.toxic && NPC.SAY.toxic.m, "npc_speech", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.toxic.f", NPC.SAY && NPC.SAY.toxic && NPC.SAY.toxic.f, "npc_speech", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.bandit.m", NPC.SAY && NPC.SAY.bandit && NPC.SAY.bandit.m, "npc_speech", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.bandit.f", NPC.SAY && NPC.SAY.bandit && NPC.SAY.bandit.f, "npc_speech", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.cop.m", NPC.SAY && NPC.SAY.cop && NPC.SAY.cop.m, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.cop.f", NPC.SAY && NPC.SAY.cop && NPC.SAY.cop.f, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.mafia.m", NPC.SAY && NPC.SAY.mafia && NPC.SAY.mafia.m, "npc_speech", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.mafia.f", NPC.SAY && NPC.SAY.mafia && NPC.SAY.mafia.f, "npc_speech", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.crowd.m", NPC.SAY && NPC.SAY.crowd && NPC.SAY.crowd.m, "crowd_comment", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.SAY.crowd.f", NPC.SAY && NPC.SAY.crowd && NPC.SAY.crowd.f, "crowd_comment", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.DM_PROFILE_LINES.cop", NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.cop, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.DM_PROFILE_LINES.mafia", NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.mafia, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.DM_PROFILE_LINES.bandit", NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.bandit, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.DM_PROFILE_LINES.toxic", NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.toxic, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("NPC.DM_PROFILE_LINES.neutral", NPC.DM_PROFILE_LINES && NPC.DM_PROFILE_LINES.neutral, "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("villainQuestions", typeof villainQuestions !== "undefined" ? villainQuestions : [], "npc_dm", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          addRoleLines("villainChallenges", typeof villainChallenges !== "undefined" ? villainChallenges : [], "conflict_feed", { filePath: "AsyncScene/Web/npcs.js", currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          Object.keys(D.COP_TEMPLATES || {}).forEach((group) => walk(D.COP_TEMPLATES[group], `Data.COP_TEMPLATES.${group}`, "AsyncScene/Web/data.js", (group === "warnings" || group === "chatReplies" || group === "cooldownReplies") ? "npc_dm" : "npc_speech", { currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true }));
+          walk(D.NPC_CHAT_LINES, "Data.NPC_CHAT_LINES", "AsyncScene/Web/data.js", "crowd_comment", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, recommendedForStep65: true });
+          Object.keys(D.NPC_EVENT_TEMPLATES || {}).forEach((group) => walk(D.NPC_EVENT_TEMPLATES[group], `Data.NPC_EVENT_TEMPLATES.${group}`, "AsyncScene/Web/data.js", "conflict_feed", { currentlyProfileAware: true, resolverUsed: true, hardcoded: true, recommendedForStep65: true }));
+          walk(speech.TEMPLATES_BY_LOCALE && speech.TEMPLATES_BY_LOCALE.ru, "NPCSpeech.TEMPLATES_BY_LOCALE.ru", "AsyncScene/Web/npcs.js", "npc_speech", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, recommendedForStep65: true });
+          walk(speech.ROLE_PROFILES, "NPCSpeech.ROLE_PROFILES", "AsyncScene/Web/npcs.js", "npc_speech", { currentlyProfileAware: true, resolverUsed: false, hardcoded: false, recommendedForStep65: false });
+          const deduped = [];
+          const seen = new Set();
+          result.inventory.forEach((row) => { if (!row || !row.key || seen.has(row.key)) return; seen.add(row.key); deduped.push(row); });
+          result.inventory = deduped;
+          result.summary.totalCandidates = result.inventory.length;
+          result.summary.npcSpeechCount = result.inventory.filter((row) => row.category === "npc_speech").length;
+          result.summary.npcReactionCount = result.inventory.filter((row) => row.category === "npc_reaction").length;
+          result.summary.crowdCommentCount = result.inventory.filter((row) => row.category === "crowd_comment").length;
+          result.summary.hardcodedCount = result.inventory.filter((row) => row.hardcoded === true).length;
+          result.summary.resolverCount = result.inventory.filter((row) => row.resolverUsed === true).length;
+          result.summary.recommendedForStep65Count = result.inventory.filter((row) => row.recommendedForStep65 === true).length;
+          if (!result.inventory.length) fail("inventory_empty", "no_candidates");
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterState = snapshotState();
+        if (stableJson(beforeState) !== stableJson(afterState)) fail("state_mutated_during_smoke", { beforeState, afterState });
+        result.ok = result.inventory.length > 0 && result.summary.totalCandidates > 0 && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep650NpcSpeechInventory = G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory;
+    }
+  }
 })();

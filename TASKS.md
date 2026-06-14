@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.5.0 Zoomer Feel Pass NPC Speech Inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: inventory the current NPC speech / NPC reaction / crowd comment / conflict feed / DM text surface before Step 6.5 content writing, without rewriting text, adding profile entries, changing gameplay, or changing NPC behavior.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventory()`.
+- Smoke coverage must return `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `inventory`, and `summary`, and the summary must include `totalCandidates`, `npcSpeechCount`, `npcReactionCount`, `crowdCommentCount`, `hardcodedCount`, `resolverCount`, and `recommendedForStep65Count`.
+- Scope held: inventory and smoke only; no gameplay changes, no REP changes, no points changes, no money changes, no ECON changes, no moneyLog changes, no voting math changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.4 Zoomer Feel Pass Reputation Flavor
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make reputation flavor UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, REP, points, money, ECON, moneyLog, rewards, penalties, balances, voting math, or conflict outcomes.
