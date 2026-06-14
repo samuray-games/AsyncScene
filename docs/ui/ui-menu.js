@@ -279,6 +279,7 @@ window.Game = window.Game || {};
     wrap.innerHTML = "";
 
     const btn = document.createElement("button");
+    btn.id = "consolePanelButton";
     btn.type = "button";
     btn.className = "btn small";
     btn.textContent = "Console Panel";
@@ -288,7 +289,14 @@ window.Game = window.Game || {};
       e.stopPropagation();
       if (typeof window.toggleConsolePanel === "function") {
         window.toggleConsolePanel();
+        return;
       }
+      if (typeof window.showConsolePanel === "function") {
+        window.showConsolePanel();
+        return;
+      }
+      const panel = document.getElementById("consolePanel");
+      if (panel) panel.classList.remove("hidden");
     };
     wrap.appendChild(btn);
   }
