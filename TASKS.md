@@ -6,7 +6,7 @@
 - Retry1 adds safe resolver-only routing via `Data.resolveNpcEventTemplateText(type, rowIndex, vars, forcedProfile)` and `Data.resolveNpcEventTemplate(type, rowIndex, vars, forcedProfile)` without using `Proxy`, without wrapping root `Data`, without touching `Data.TEXTS` or `Data.t`, and without altering existing template arrays in place.
 - Added dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1()`.
 - Retry1 smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `bootTextChecks`, `originalTemplateChecks`, `resolverChecks`, `samples`, and `summary`.
-- Retry1 summary contract: `checkedTypes`, `checkedRows`, `millennialZoomerDifferentCount`, `unchangedCount`, `routedTemplateCount`, `placeholderPreservedCount`, `placeholderFailureCount`, `healthyUiKeys`, `originalLengthsPreserved`, and `rolesPreserved`.
+- Retry1 summary contract: `checkedTypes`, `checkedRows`, `millennialZoomerDifferentCount`, `unchangedCount`, `routedTemplateCount`, `placeholderPreservedCount`, `placeholderFailureCount`, `healthyUiKeys`, `originalLengthsPreserved`, `rolesPreserved`, and `startScreenResolverHealthy`.
 - Scope held: resolver overlay and smoke only; no gameplay changes, no NPC behavior changes, no conflict logic changes, no REP/points/money/ECON/moneyLog/persistence/event journal changes, and no `Console.txt` usage.
 
 ## 2026-06-15 — Step 6.5.2 Fix1 restore UI boot after broken data.js change
