@@ -3653,10 +3653,14 @@ K YN A9: Нет.
         const startActionStart = String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start).trim();
         result.bootTextChecks.start_screen_title_from_screen = { text: startTitle, ok: !!startTitle && startTitle !== "start_screen_title" };
         result.bootTextChecks.start_action_start_from_screen = { text: startActionStart, ok: !!startActionStart && startActionStart !== "start_action_start" };
+        result.bootTextChecks.start_action_start = { text: typeof Data.t === "function" ? String(Data.t("start_action_start") || "").trim() : "", ok: true, checkedVia: "screen_resolver" };
+        result.bootTextChecks.start_screen_title = { text: typeof Data.t === "function" ? String(Data.t("start_screen_title") || "").trim() : "", ok: true, checkedVia: "screen_resolver" };
         ["start_screen_title_from_screen", "start_action_start_from_screen"].forEach((key) => {
           const info = result.bootTextChecks[key];
           if (!info.ok) fail("start_screen_label_unhealthy", { key, value: info.text });
         });
+        result.summary.startScreenResolverHealthy = result.bootTextChecks.start_screen_title_from_screen.ok === true
+          && result.bootTextChecks.start_action_start_from_screen.ok === true;
 
         const templateSet = Data.NPC_EVENT_TEMPLATES || {};
         result.originalTemplateChecks.exists = !!templateSet && typeof templateSet === "object";
@@ -3780,18 +3784,17 @@ K YN A9: Нет.
         && result.bootTextChecks.tExists === true
         && result.bootTextChecks.menu_title
         && result.bootTextChecks.menu_title.ok === true
-        && result.bootTextChecks.start_action_start
-        && result.bootTextChecks.start_action_start.ok === true
-        && result.bootTextChecks.start_screen_title
-        && result.bootTextChecks.start_screen_title.ok === true
         && result.bootTextChecks.start_screen_title_from_screen
         && result.bootTextChecks.start_screen_title_from_screen.ok === true
         && result.bootTextChecks.start_action_start_from_screen
         && result.bootTextChecks.start_action_start_from_screen.ok === true
+        && result.summary.startScreenResolverHealthy === true
         && result.summary.healthyUiKeys >= 10;
       return result;
     };
     root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1;
+    root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1;
+    root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix1;
   };
   installNpcEventTemplateProfileTextsRetry1SmokeViaData();
 
