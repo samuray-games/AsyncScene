@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke fix 1
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1()` with build identity `build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke_fix1` / `step6_4_7_fantasy_years_safe_final_smoke_fix1` / `step6_4_7_fantasy_years_safe_final_smoke_fix1_v20260614_001`.
+- The retry keeps the Fantasy Years Safe coverage, verifies the required inputs `3026`, `1138`, `0`, `-400`, `999999`, empty value, and `abc`, confirms valid `uiProfile` resolution, checks save/localStorage stay uiProfile-only and year-free, and preserves the implemented `millennial`, `zoomer`, and `alpha` profiles.
+- Scope held: smoke coverage retry only; no resolver band changes, no fallback changes, no start-screen flow changes, no save/storage behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke()` with build identity `build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke` / `step6_4_7_fantasy_years_safe_final_smoke` / `step6_4_7_fantasy_years_safe_final_smoke_v20260614_001`.
 - The smoke covers the required inputs `3026`, `1138`, `0`, `-400`, `999999`, empty value, and `abc`, verifies valid `uiProfile` resolution with no `undefined` profile, checks save/localStorage remain uiProfile-only and year-free, confirms `millennial`, `zoomer`, and `alpha` still work, and restores UI state after execution.

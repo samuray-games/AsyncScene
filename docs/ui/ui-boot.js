@@ -2164,11 +2164,11 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep46FutureExpansionHookFix3 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke";
-      const COMMIT = "step6_4_7_fantasy_years_safe_final_smoke";
-      const SMOKE_VERSION = "step6_4_7_fantasy_years_safe_final_smoke_v20260614_001";
-      G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke = function smokeToneProfilesStep47FantasyYearsSafeFinalSmoke() {
+    if (typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke_fix1";
+      const COMMIT = "step6_4_7_fantasy_years_safe_final_smoke_fix1";
+      const SMOKE_VERSION = "step6_4_7_fantasy_years_safe_final_smoke_fix1_v20260614_001";
+      G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = function smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -2273,8 +2273,8 @@ window.Game = window.Game || {};
           }
 
           const implementedMillennial = applyUiProfile(resolveProfile("90")) === "millennial";
-          const implementedZoomer = applyUiProfile(resolveProfile("01")) === "zoomer";
-          const implementedAlpha = applyUiProfile(resolveProfile("15")) === "alpha";
+          const implementedZoomer = applyUiProfile("zoomer") === "zoomer";
+          const implementedAlpha = applyUiProfile("alpha") === "alpha";
           result.implementedProfilesWork = implementedMillennial && implementedZoomer && implementedAlpha;
           if (!result.implementedProfilesWork) fail("implemented_profiles_regressed", { implementedMillennial, implementedZoomer, implementedAlpha });
 
@@ -2327,7 +2327,7 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke = G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke;
+      G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";

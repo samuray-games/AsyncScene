@@ -70,11 +70,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeToneProfilesStep45NoDataStorageRuleFix1 === "function" && typeof G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 !== "function") {
     G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 = G.Dev.smokeToneProfilesStep45NoDataStorageRuleFix1;
   }
-  if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke === "function" && typeof G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke !== "function") {
-    G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke = G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke;
+  if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 === "function" && typeof G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 !== "function") {
+    G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1;
   }
-  if (G.Dev && typeof G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke === "function" && typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke !== "function") {
-    G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke = G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke;
+  if (G.Dev && typeof G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 === "function" && typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 !== "function") {
+    G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1;
   }
   if (G.Dev && typeof G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix2 === "function" && typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2 !== "function") {
     G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2 = G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix2;
