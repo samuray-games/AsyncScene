@@ -9,6 +9,13 @@
 - Retry1 summary contract: `checkedTypes`, `checkedRows`, `millennialZoomerDifferentCount`, `unchangedCount`, `routedTemplateCount`, `placeholderPreservedCount`, `placeholderFailureCount`, `healthyUiKeys`, `originalLengthsPreserved`, `rolesPreserved`, and `startScreenResolverHealthy`.
 - Scope held: resolver overlay and smoke only; no gameplay changes, no NPC behavior changes, no conflict logic changes, no REP/points/money/ECON/moneyLog/persistence/event journal changes, and no `Console.txt` usage.
 
+## 2026-06-15 — Step 6.5.2 Retry1 Fix2 fresh smoke identity
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Retry1Fix1 was still aliasing the old Retry1 smoke identity and returned the old failure shape, so Fix2 introduces a brand-new non-aliased Safari command instead of reusing the prior one.
+- Added dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1Fix2()`.
+- Fix2 smoke identity: `build_2026_06_15_step6_5_2_retry1_fix2_smoke_identity` / `step6_5_2_retry1_fix2_smoke_identity` / `step6_5_2_retry1_fix2_smoke_identity_v20260615_001`.
+- Fix2 keeps the same safe resolver/template checks and corrected screen-resolver UI checks, but reports a fresh smoke identity so the served command is not confused with Retry1 or Retry1Fix1.
+
 ## 2026-06-15 — Step 6.5.2 Fix1 restore UI boot after broken data.js change
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Runtime failure after commit `826c3d0`: Safari reported `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` as undefined, the start screen went blank, and UI labels fell back to raw keys such as `menu_title`.
