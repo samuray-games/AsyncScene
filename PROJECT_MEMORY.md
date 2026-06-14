@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.6 future expansion hook
+- Added a single `UI_PROFILE_REGISTRY` hook that separates supported profiles from future reserved keys so new tone profiles can be added through resolver/profile config without rewriting the start-screen flow.
+- Future keys currently reserved in the registry are `ancient`, `classic`, `future`, `sciFi`, `medieval`, `empire`, and `galactic`.
+- Unsupported future-profile values now safely fall back to the existing millennial UI path, while `millennial`, `zoomer`, and `alpha` remain implemented.
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep46FutureExpansionHook()` with build identity `build_2026_06_14_step6_4_6_future_expansion_hook` / `step6_4_6_future_expansion_hook` / `step6_4_6_future_expansion_hook_smoke_v20260614_001`.
+- Scope held: registry/extension hook only; no save/storage behavior changes, no year storage, no visible start-screen flow changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.5 no data storage rule fix 1
 - Added the retry smoke `Game.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1()` to exercise the saved-uiProfile restore branch directly and verify the reload contract after the default-fallback failure.
 - The runtime restore path now re-applies saved `uiProfile` into `Data`, `UI.S.flags`, `G.__S.flags`, and `G.State.flags` when `state.save.uiProfile` is present.
