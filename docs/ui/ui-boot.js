@@ -5914,8 +5914,138 @@ window.Game = window.Game || {};
           && result.step55Ok === true;
         return result;
       };
+      G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix3 = function smokeToneProfilesStep5RuntimeAcceptanceFix3() {
+        const result = {
+          buildTag: "build_2026_06_14_step6_5_5_runtime_acceptance_fix3",
+          commit: "step6_5_5_runtime_acceptance_fix3",
+          smokeVersion: "step6_5_5_runtime_acceptance_fix3_v20260614_001",
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          uiProfileIsTextSkin: false,
+          gameplayUnchanged: false,
+          saveHasNoYear: false,
+          saveContainsOnlyUiProfile: false,
+          profileDoesNotAffectBalance: false,
+          profileNotInEcon: false,
+          profileNotInMoneyLog: false,
+          step51Ok: false,
+          step52Ok: false,
+          step53Ok: false,
+          step54Ok: false,
+          step55Ok: false,
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        const liveSnapshot = captureLiveSnapshot();
+        try {
+          if (!G.__A || typeof G.__A.resetAll !== "function" || typeof G.__A.seedPlayers !== "function") miss("state_reset_api_missing");
+          if (!(G.__A && typeof G.__A.applyReportByRole === "function")) miss("report_api_missing");
+          if (!(G.__DEV && typeof G.__DEV.smokeBattleCrowdOutcomeOnce === "function")) miss("battle_smoke_missing");
+          if (!(G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function")) miss("sum_points_snapshot_missing");
+          if (!(G.Data && typeof G.Data.t === "function")) miss("ui_text_resolver_missing");
+          const refHits = scanForUiProfileRefs();
+          if (refHits.length) fail("uiProfile_refs_found", refHits);
+          const econHits = scanForEconMoneyLogUiProfileRefs();
+          if (econHits.length) fail("econ_moneylog_uiProfile_refs_found", econHits);
+          const battleHits = scanForBattleOrCooldownUiProfileRefs();
+          if (battleHits.length) fail("battle_cooldown_uiProfile_refs_found", battleHits);
+
+          const millennial = runScenarioPass("millennial");
+          const zoomer = runScenarioPass("zoomer");
+          const millennialVisible = millennial.visibleUiText || {};
+          const zoomerVisible = zoomer.visibleUiText || {};
+          result.uiProfileIsTextSkin = stableJson(millennialVisible) !== stableJson(zoomerVisible);
+          result.profileNotInMoneyLog = stableJson(millennial.moneyLog) === stableJson(zoomer.moneyLog);
+          result.profileNotInEcon = stableJson(millennial.econDelta) === stableJson(zoomer.econDelta)
+            && millennial.repDelta === zoomer.repDelta
+            && millennial.pointsDelta === zoomer.pointsDelta;
+          result.profileDoesNotAffectBalance = stableJson(millennial.cooldowns) === stableJson(zoomer.cooldowns)
+            && stableJson(millennial.battleResult) === stableJson(zoomer.battleResult)
+            && stableJson(buildStructuralPayload(millennial)) === stableJson(buildStructuralPayload(zoomer));
+          result.gameplayUnchanged = result.profileNotInEcon === true
+            && result.profileNotInMoneyLog === true
+            && result.profileDoesNotAffectBalance === true;
+          const saveProbe = (() => {
+            const save = (G.__S && G.__S.save && typeof G.__S.save === "object") ? G.__S.save : {};
+            const keys = Object.keys(save).sort();
+            const forbiddenYearPaths = [];
+            const seen = new Set();
+            const yearLikeKey = /(^year$|birth.?year|birth.?year.?input|fantasy.?year|born.?year|real.?year)/i;
+            const walk = (value, path) => {
+              if (!value || typeof value !== "object") return;
+              if (seen.has(value)) return;
+              seen.add(value);
+              Object.keys(value).forEach((key) => {
+                const nextPath = path ? `${path}.${key}` : key;
+                if (yearLikeKey.test(String(key))) forbiddenYearPaths.push(nextPath);
+                walk(value[key], nextPath);
+              });
+            };
+            walk(save, "");
+            return {
+              save,
+              keys,
+              forbiddenYearPaths,
+              hasYear: forbiddenYearPaths.length > 0,
+              onlyUiProfile: keys.length === 1 && keys[0] === "uiProfile"
+            };
+          })();
+          result.saveHasNoYear = saveProbe.hasYear === false;
+          result.saveContainsOnlyUiProfile = saveProbe.onlyUiProfile === true;
+          result.step51Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5 === "function" && G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5().ok);
+          result.step52Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep52TextResolverOnly === "function" && G.__DEV.smokeToneProfilesStep52TextResolverOnly().ok);
+          result.step53Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock === "function" && G.__DEV.smokeToneProfilesStep53MoneyLogLock().ok);
+          result.step54Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep54EconLockFix2 === "function" && G.__DEV.smokeToneProfilesStep54EconLockFix2().ok);
+          result.step55Ok = !!(millennial.ok && zoomer.ok && result.uiProfileIsTextSkin && result.gameplayUnchanged && result.saveHasNoYear && result.saveContainsOnlyUiProfile);
+          if (!result.uiProfileIsTextSkin) fail("ui_profile_text_skin_mismatch", { millennial: millennialVisible, zoomer: zoomerVisible });
+          if (!result.profileNotInMoneyLog) fail("profile_in_moneyLog", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
+          if (!result.profileNotInEcon) fail("profile_in_econ", { millennial: millennial.econDelta, zoomer: zoomer.econDelta });
+          if (!result.profileDoesNotAffectBalance) fail("profile_affects_balance", { millennial: millennial.battleResult, zoomer: zoomer.battleResult });
+          if (!result.saveHasNoYear) fail("save_has_year", { save: saveProbe.save, forbiddenYearPaths: saveProbe.forbiddenYearPaths });
+          if (!result.saveContainsOnlyUiProfile) fail("save_not_uiProfile_only", saveProbe.keys);
+          if (!(result.step51Ok && result.step52Ok && result.step53Ok && result.step54Ok && result.step55Ok)) {
+            fail("step_smoke_dependency_failed", {
+              step51Ok: result.step51Ok,
+              step52Ok: result.step52Ok,
+              step53Ok: result.step53Ok,
+              step54Ok: result.step54Ok,
+              step55Ok: result.step55Ok
+            });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          restoreStateSnapshot(liveSnapshot);
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.uiProfileIsTextSkin === true
+          && result.gameplayUnchanged === true
+          && result.saveHasNoYear === true
+          && result.saveContainsOnlyUiProfile === true
+          && result.profileDoesNotAffectBalance === true
+          && result.profileNotInEcon === true
+          && result.profileNotInMoneyLog === true
+          && result.step51Ok === true
+          && result.step52Ok === true
+          && result.step53Ok === true
+          && result.step54Ok === true
+          && result.step55Ok === true;
+        return result;
+      };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2;
+      G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix3 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix3;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
