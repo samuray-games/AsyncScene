@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke fix 1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: retry the final Fantasy Years Safe smoke with a corrected zoomer assertion while preserving millennial, zoomer, alpha, and storage safety behavior.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1()`.
+- Smoke coverage verifies the required inputs `3026`, `1138`, `0`, `-400`, `999999`, empty value, and `abc`, confirms every input resolves to a valid `uiProfile`, checks no `undefined` profile appears, asserts save contains only `uiProfile`, rejects `fantasyYear`, `birthYear`, and raw input persistence, checks localStorage contains no year values, confirms existing implemented profiles `millennial`, `zoomer`, and `alpha` still work, confirms unsupported/future/reserved profiles fall back to millennial UI, and restores UI state after the smoke.
+- Served identity: `build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke_fix1` / `step6_4_7_fantasy_years_safe_final_smoke_fix1` / `step6_4_7_fantasy_years_safe_final_smoke_fix1_v20260614_001`.
+- Scope held: smoke coverage only; no resolver band changes, no fallback changes, no start-screen flow changes, no save/storage behavior changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add the final Safari smoke for Fantasy Years Safe, covering the required inputs, implemented profile pass-through, unsupported/future/reserved fallback behavior, storage hygiene, and UI restoration without changing resolver bands or persistence rules.
