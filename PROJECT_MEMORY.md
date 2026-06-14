@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.5.2 Retry1 safe NPC conflict feed profile texts
+- The first Step 6.5.2 attempt broke UI boot after commit `826c3d0`: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` was undefined, the start screen went blank, and UI labels fell back to raw keys such as `menu_title`.
+- Fix1 restored UI boot safely by removing the unsafe top-level injection/proxy path, restoring the original frozen `Data.NPC_EVENT_TEMPLATES`, and adding `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1()` for boot-health verification.
+- Retry1 keeps `Data.NPC_EVENT_TEMPLATES` intact as the millennial/default source and adds a separate plain-object overlay map at `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS` in both `AsyncScene/Web/data.js` and `docs/data.js`.
+- Retry1 uses safe resolver-only routing via `Data.resolveNpcEventTemplateText(type, rowIndex, vars, forcedProfile)` and `Data.resolveNpcEventTemplate(type, rowIndex, vars, forcedProfile)` with no `Proxy`, no root `Data` wrapping, no `Data.TEXTS` / `Data.t` mutation, and no in-place changes to existing event template rows.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1()` with build identity `build_2026_06_15_step6_5_2_retry1_safe_npc_conflict_feed_profile_texts` / `step6_5_2_retry1_safe_npc_conflict_feed_profile_texts` / `step6_5_2_retry1_safe_npc_conflict_feed_profile_texts_smoke_v20260615_001`.
+- Retry1 smoke verifies UI boot text health, original template integrity, resolver availability, millennial-vs-zoomer text divergence for all 5 event types x 5 rows, placeholder preservation, role preservation, and unchanged array lengths without mutating gameplay, NPC, conflict, REP, points, ECON, moneyLog, persistence, or event-journal state.
+
 ## 2026-06-15 — Step 6.5.2 Fix1 restore UI boot after broken data.js change
 - Commit `826c3d0` broke Safari boot: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` was undefined, the start screen failed to render, and UI labels fell back to raw keys such as `menu_title`.
 - Root cause in both `AsyncScene/Web/data.js` and `docs/data.js`: the Step 6.5.2 patch added `root.Dev...` at top level outside the smoke installer scope, which threw during `data.js` evaluation and prevented the normal `Data.TEXTS` / `Data.t(...)` boot contract from loading.

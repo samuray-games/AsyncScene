@@ -3450,22 +3450,131 @@ K YN A9: Нет.
     ])
   });
 
+  Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS = Object.freeze({
+    zoomer: Object.freeze({
+      victory: Object.freeze([
+        "Коп: {winner} забрал раунд.",
+        "Мафиози: итог ушёл к {winner}.",
+        "Бандит: {winner} вышел в плюс.",
+        "Токсик: {winner} продавил.",
+        "Толпа: {winner} вывез."
+      ]),
+      defeat: Object.freeze([
+        "Коп: {loser} просел в раунде.",
+        "Мафиози: {loser} оставил след.",
+        "Бандит: {loser} потерял ход.",
+        "Токсик: {loser} не удержал ответ.",
+        "Толпа: {loser} не вывез."
+      ]),
+      arrest: Object.freeze([
+        "Коп: {target} принят в работу.",
+        "Мафиози: {target} шумно исчез.",
+        "Бандит: {target} попался.",
+        "Токсик: {target} договорился.",
+        "Толпа: {target} ушёл под сирены."
+      ]),
+      rumor: Object.freeze([
+        "Коп: по {target} пошёл сигнал.",
+        "Мафиози: про {target} пошёл тихий слух.",
+        "Бандит: про {target} шепчут у выхода.",
+        "Токсик: {target} снова в разговорах.",
+        "Толпа: про {target} уже шумит."
+      ]),
+      accusationInjection: Object.freeze([
+        "Коп: есть заявление.",
+        "Мафиози: лишний след остался.",
+        "Бандит: кто-то засветился.",
+        "Токсик: кто-то сам подставился.",
+        "Толпа: разговор пошёл."
+      ])
+    })
+  });
+
+  Data.resolveNpcEventTemplateText = function resolveNpcEventTemplateText(type, rowIndex, vars, forcedProfile) {
+    const templateRows = Data.NPC_EVENT_TEMPLATES && Data.NPC_EVENT_TEMPLATES[type];
+    const originalRow = Array.isArray(templateRows) ? templateRows[rowIndex] : null;
+    if (!originalRow) return "";
+    const profile = forcedProfile || (typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE);
+    const overlayRows = profile === "zoomer"
+      ? (((Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS || {}).zoomer || {})[type])
+      : null;
+    const overlayText = Array.isArray(overlayRows) ? overlayRows[rowIndex] : null;
+    return typeof overlayText === "string" && overlayText ? overlayText : String(originalRow.text == null ? "" : originalRow.text);
+  };
+
+  Data.resolveNpcEventTemplate = function resolveNpcEventTemplate(type, rowIndex, vars, forcedProfile) {
+    const templateRows = Data.NPC_EVENT_TEMPLATES && Data.NPC_EVENT_TEMPLATES[type];
+    const originalRow = Array.isArray(templateRows) ? templateRows[rowIndex] : null;
+    if (!originalRow) return null;
+    return {
+      role: originalRow.role,
+      text: Data.resolveNpcEventTemplateText(type, rowIndex, vars, forcedProfile)
+    };
+  };
+
 
   Data.pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  const installNpcEventTemplateProfileTextsFix1SmokeViaData = () => {
-    const root = (typeof window !== "undefined") ? window.Game : Game;
+  const installNpcEventTemplateProfileTextsRetry1SmokeViaData = () => {
+    const root = typeof window !== "undefined"
+      ? window.Game
+      : (typeof Game !== "undefined" ? Game : null);
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-    if (typeof root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 === "function") {
-      root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1;
+    if (typeof root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1 === "function") {
+      root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1;
       return;
     }
-    root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 = function smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1() {
-      const buildTag = "build_2026_06_15_step6_5_2_fix1_restore_ui_boot";
-      const commit = "step6_5_2_fix1_restore_ui_boot";
-      const smokeVersion = "step6_5_2_fix1_restore_ui_boot_smoke_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1 = function smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1() {
+      const buildTag = "build_2026_06_15_step6_5_2_retry1_safe_npc_conflict_feed_profile_texts";
+      const commit = "step6_5_2_retry1_safe_npc_conflict_feed_profile_texts";
+      const smokeVersion = "step6_5_2_retry1_safe_npc_conflict_feed_profile_texts_smoke_v20260615_001";
+      const expectedTypes = ["victory", "defeat", "arrest", "rumor", "accusationInjection"];
+      const expectedPlaceholderByType = {
+        victory: "winner",
+        defeat: "loser",
+        arrest: "target",
+        rumor: "target",
+        accusationInjection: null
+      };
+      const expectedZoomerTextByType = {
+        victory: [
+          "Коп: {winner} забрал раунд.",
+          "Мафиози: итог ушёл к {winner}.",
+          "Бандит: {winner} вышел в плюс.",
+          "Токсик: {winner} продавил.",
+          "Толпа: {winner} вывез."
+        ],
+        defeat: [
+          "Коп: {loser} просел в раунде.",
+          "Мафиози: {loser} оставил след.",
+          "Бандит: {loser} потерял ход.",
+          "Токсик: {loser} не удержал ответ.",
+          "Толпа: {loser} не вывез."
+        ],
+        arrest: [
+          "Коп: {target} принят в работу.",
+          "Мафиози: {target} шумно исчез.",
+          "Бандит: {target} попался.",
+          "Токсик: {target} договорился.",
+          "Толпа: {target} ушёл под сирены."
+        ],
+        rumor: [
+          "Коп: по {target} пошёл сигнал.",
+          "Мафиози: про {target} пошёл тихий слух.",
+          "Бандит: про {target} шепчут у выхода.",
+          "Токсик: {target} снова в разговорах.",
+          "Толпа: про {target} уже шумит."
+        ],
+        accusationInjection: [
+          "Коп: есть заявление.",
+          "Мафиози: лишний след остался.",
+          "Бандит: кто-то засветился.",
+          "Токсик: кто-то сам подставился.",
+          "Толпа: разговор пошёл."
+        ]
+      };
       const result = {
         buildTag,
         commit,
@@ -3476,13 +3585,20 @@ K YN A9: Нет.
         missingCoverage: [],
         failedChecks: [],
         bootTextChecks: {},
-        uiLabelChecks: {},
-        npcEventTemplateChecks: {},
+        originalTemplateChecks: {},
+        resolverChecks: {},
+        samples: {},
         summary: {
-          checkedUiKeys: 0,
+          checkedTypes: 0,
+          checkedRows: 0,
+          millennialZoomerDifferentCount: 0,
+          unchangedCount: 0,
+          routedTemplateCount: 0,
+          placeholderPreservedCount: 0,
+          placeholderFailureCount: 0,
           healthyUiKeys: 0,
-          checkedEventTypes: 0,
-          checkedEventRows: 0
+          originalLengthsPreserved: true,
+          rolesPreserved: true
         }
       };
       const fail = (code, detail) => {
@@ -3492,6 +3608,8 @@ K YN A9: Нет.
       const placeholderRe = /\{(\w+)\}/g;
       const checkedUiKeys = [
         "menu_title",
+        "start_action_start",
+        "start_screen_title",
         "tie_start",
         "tie_call_to_action",
         "events_title",
@@ -3504,8 +3622,6 @@ K YN A9: Нет.
         "invite_open_hint",
         "invite_invalid"
       ];
-      const previousTextMode = Data.TEXT_MODE;
-      const previousProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
       try {
         result.bootTextChecks.gameDataExists = !!(root && root.Data);
         result.bootTextChecks.textsExists = !!(Data && Data.TEXTS && typeof Data.TEXTS === "object");
@@ -3513,9 +3629,6 @@ K YN A9: Нет.
         if (!result.bootTextChecks.gameDataExists) fail("game_data_missing", null);
         if (!result.bootTextChecks.textsExists) fail("texts_missing", null);
         if (!result.bootTextChecks.tExists) fail("text_resolver_missing", null);
-
-        if (typeof Data.setUiProfile === "function") Data.setUiProfile("millennial");
-        Data.TEXT_MODE = "millennial";
 
         const resolveUiKey = (key) => {
           const value = typeof Data.t === "function" ? Data.t(key) : "";
@@ -3525,75 +3638,137 @@ K YN A9: Нет.
         };
 
         const menuTitle = resolveUiKey("menu_title");
-        result.bootTextChecks.menuTitleResolved = menuTitle.text;
-        result.bootTextChecks.menuTitleHealthy = menuTitle.ok;
+        result.bootTextChecks.menu_title = menuTitle;
         if (!menuTitle.ok) fail("menu_title_raw_or_empty", menuTitle.text);
 
         checkedUiKeys.forEach((key) => {
           const info = resolveUiKey(key);
-          result.uiLabelChecks[key] = info;
-          result.summary.checkedUiKeys += 1;
+          result.bootTextChecks[key] = info;
           if (info.ok) result.summary.healthyUiKeys += 1;
           else fail("ui_label_unhealthy", { key, value: info.text });
         });
 
         const startTitle = String(((Data.START_SCREEN || {}).title) == null ? "" : Data.START_SCREEN.title).trim();
         const startActionStart = String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start).trim();
-        const startActionRules = String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules).trim();
-        result.uiLabelChecks.start_screen_title = { text: startTitle, ok: !!startTitle && startTitle !== "startTitle" };
-        result.uiLabelChecks.start_action_start = { text: startActionStart, ok: !!startActionStart && startActionStart !== "startActionStart" };
-        result.uiLabelChecks.start_action_rules = { text: startActionRules, ok: !!startActionRules && startActionRules !== "startActionRules" };
-        ["start_screen_title", "start_action_start", "start_action_rules"].forEach((key) => {
-          const info = result.uiLabelChecks[key];
+        result.bootTextChecks.start_screen_title_from_screen = { text: startTitle, ok: !!startTitle && startTitle !== "start_screen_title" };
+        result.bootTextChecks.start_action_start_from_screen = { text: startActionStart, ok: !!startActionStart && startActionStart !== "start_action_start" };
+        ["start_screen_title_from_screen", "start_action_start_from_screen"].forEach((key) => {
+          const info = result.bootTextChecks[key];
           if (!info.ok) fail("start_screen_label_unhealthy", { key, value: info.text });
         });
 
         const templateSet = Data.NPC_EVENT_TEMPLATES || {};
-        const expectedTypes = ["victory", "defeat", "arrest", "rumor", "accusationInjection"];
-        result.npcEventTemplateChecks.exists = !!templateSet && typeof templateSet === "object";
-        if (!result.npcEventTemplateChecks.exists) fail("npc_event_templates_missing", null);
-        result.npcEventTemplateChecks.types = {};
-        result.npcEventTemplateChecks.placeholders = {};
+        result.originalTemplateChecks.exists = !!templateSet && typeof templateSet === "object";
+        result.originalTemplateChecks.types = {};
+        result.originalTemplateChecks.originalObjectIsProxy = false;
+        if (!result.originalTemplateChecks.exists) fail("npc_event_templates_missing", null);
+        result.resolverChecks.profileTextsExists = !!(Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && typeof Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS === "object");
+        result.resolverChecks.resolveTextExists = typeof Data.resolveNpcEventTemplateText === "function";
+        result.resolverChecks.resolveRowExists = typeof Data.resolveNpcEventTemplate === "function";
+        if (!result.resolverChecks.profileTextsExists) fail("profile_texts_missing", null);
+        if (!result.resolverChecks.resolveTextExists) fail("resolver_text_missing", null);
+        if (!result.resolverChecks.resolveRowExists) fail("resolver_row_missing", null);
+        result.resolverChecks.arrayLengthsUnchanged = true;
+        result.resolverChecks.rolesPreserved = true;
+        result.resolverChecks.placeholders = {};
+        result.resolverChecks.millennialMatchesOriginal = {};
+        result.resolverChecks.zoomerMatchesOverlay = {};
         expectedTypes.forEach((type) => {
           const rows = templateSet[type];
           const typeInfo = {
             exists: Array.isArray(rows),
             length: Array.isArray(rows) ? rows.length : 0,
-            rolesPreserved: true
+            lengthExpected: 5,
+            rolesPreserved: true,
+            placeholdersPreserved: true
           };
-          result.summary.checkedEventTypes += 1;
+          result.summary.checkedTypes += 1;
           if (!Array.isArray(rows)) {
             typeInfo.rolesPreserved = false;
             result.missingCoverage.push(`event_type:${type}`);
             fail("npc_event_type_missing", type);
-            result.npcEventTemplateChecks.types[type] = typeInfo;
+            result.originalTemplateChecks.types[type] = typeInfo;
             return;
           }
+          if (rows.length !== 5) {
+            typeInfo.lengthExpected = rows.length;
+            result.summary.originalLengthsPreserved = false;
+            result.resolverChecks.arrayLengthsUnchanged = false;
+            fail("npc_event_length_changed", { type, length: rows.length });
+          }
+          result.samples[type] = [];
           rows.forEach((row, index) => {
-            result.summary.checkedEventRows += 1;
+            result.summary.checkedRows += 1;
             if (!row || typeof row.role !== "string" || !row.role.trim()) {
               typeInfo.rolesPreserved = false;
+              result.summary.rolesPreserved = false;
+              result.resolverChecks.rolesPreserved = false;
               fail("npc_event_role_missing", { type, index, row });
             }
             const text = String(row && row.text != null ? row.text : "");
-            const placeholders = [];
+            const originalPlaceholders = [];
             text.replace(placeholderRe, (_, name) => {
-              placeholders.push(name);
+              originalPlaceholders.push(name);
               return _;
             });
-            result.npcEventTemplateChecks.placeholders[`${type}.${index}`] = placeholders;
+            const resolvedMillennialText = Data.resolveNpcEventTemplateText(type, index, null, "millennial");
+            const resolvedZoomerText = Data.resolveNpcEventTemplateText(type, index, null, "zoomer");
+            const resolvedRow = typeof Data.resolveNpcEventTemplate === "function"
+              ? Data.resolveNpcEventTemplate(type, index, null, "zoomer")
+              : null;
+            const resolvedPlaceholders = [];
+            String(resolvedZoomerText).replace(placeholderRe, (_, name) => {
+              resolvedPlaceholders.push(name);
+              return _;
+            });
+            const expectedPlaceholder = expectedPlaceholderByType[type];
+            const placeholderOk = expectedPlaceholder === null
+              ? (originalPlaceholders.length === 0 && resolvedPlaceholders.length === 0)
+              : (originalPlaceholders.length === 1
+                && originalPlaceholders[0] === expectedPlaceholder
+                && resolvedPlaceholders.length === 1
+                && resolvedPlaceholders[0] === expectedPlaceholder);
+            result.resolverChecks.placeholders[`${type}.${index}`] = {
+              original: originalPlaceholders,
+              resolved: resolvedPlaceholders,
+              ok: placeholderOk
+            };
+            if (placeholderOk) result.summary.placeholderPreservedCount += 1;
+            else {
+              typeInfo.placeholdersPreserved = false;
+              result.summary.placeholderFailureCount += 1;
+              fail("npc_event_placeholder_changed", { type, index, originalPlaceholders, resolvedPlaceholders });
+            }
+            const millennialOk = resolvedMillennialText === text;
+            const zoomerExpected = expectedZoomerTextByType[type][index];
+            const zoomerOk = resolvedZoomerText === zoomerExpected;
+            result.resolverChecks.millennialMatchesOriginal[`${type}.${index}`] = millennialOk;
+            result.resolverChecks.zoomerMatchesOverlay[`${type}.${index}`] = zoomerOk;
+            if (!millennialOk) fail("millennial_text_mismatch", { type, index, expected: text, actual: resolvedMillennialText });
+            if (!zoomerOk) fail("zoomer_text_mismatch", { type, index, expected: zoomerExpected, actual: resolvedZoomerText });
+            if (resolvedZoomerText !== text) result.summary.millennialZoomerDifferentCount += 1;
+            else {
+              result.summary.unchangedCount += 1;
+              fail("zoomer_text_unchanged", { type, index, text });
+            }
+            if (!resolvedRow || resolvedRow.role !== row.role) {
+              typeInfo.rolesPreserved = false;
+              result.summary.rolesPreserved = false;
+              result.resolverChecks.rolesPreserved = false;
+              fail("resolved_role_mismatch", { type, index, expected: row && row.role, actual: resolvedRow && resolvedRow.role });
+            }
+            if (resolvedRow && resolvedRow.text === resolvedZoomerText) result.summary.routedTemplateCount += 1;
+            result.samples[type].push({
+              rowIndex: index,
+              role: row && row.role,
+              millennial: text,
+              zoomer: resolvedZoomerText
+            });
           });
-          if (typeInfo.length === 0) {
-            result.missingCoverage.push(`event_rows:${type}`);
-            fail("npc_event_rows_empty", type);
-          }
-          result.npcEventTemplateChecks.types[type] = typeInfo;
+          result.originalTemplateChecks.types[type] = typeInfo;
         });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-      } finally {
-        Data.TEXT_MODE = previousTextMode;
-        if (typeof Data.setUiProfile === "function") Data.setUiProfile(previousProfile);
       }
       result.ok = result.failures.length === 0
         && result.forbiddenRemaining.length === 0
@@ -3602,13 +3777,22 @@ K YN A9: Нет.
         && result.bootTextChecks.gameDataExists === true
         && result.bootTextChecks.textsExists === true
         && result.bootTextChecks.tExists === true
-        && result.bootTextChecks.menuTitleHealthy === true
+        && result.bootTextChecks.menu_title
+        && result.bootTextChecks.menu_title.ok === true
+        && result.bootTextChecks.start_action_start
+        && result.bootTextChecks.start_action_start.ok === true
+        && result.bootTextChecks.start_screen_title
+        && result.bootTextChecks.start_screen_title.ok === true
+        && result.bootTextChecks.start_screen_title_from_screen
+        && result.bootTextChecks.start_screen_title_from_screen.ok === true
+        && result.bootTextChecks.start_action_start_from_screen
+        && result.bootTextChecks.start_action_start_from_screen.ok === true
         && result.summary.healthyUiKeys >= 10;
       return result;
     };
-    root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1;
+    root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1;
   };
-  installNpcEventTemplateProfileTextsFix1SmokeViaData();
+  installNpcEventTemplateProfileTextsRetry1SmokeViaData();
 
   // Expose mention colors for CSS variables (single source of truth)
   // UI may read these once and map them to --mention-* CSS vars.

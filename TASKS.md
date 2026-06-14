@@ -1,3 +1,14 @@
+## 2026-06-15 — Step 6.5.2 Retry1 safe NPC conflict feed profile texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Previous Step 6.5.2 attempt after commit `826c3d0` broke UI boot: the start screen went blank, labels fell back to raw keys like `menu_title`, and the intended smoke command was undefined.
+- Fix1 restored UI boot safely by rolling back the unsafe top-level injection/proxy path and confirming health with `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1()`.
+- Retry1 keeps the original frozen `Data.NPC_EVENT_TEMPLATES` as the millennial/default source and adds a separate plain-object overlay map at `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS`.
+- Retry1 adds safe resolver-only routing via `Data.resolveNpcEventTemplateText(type, rowIndex, vars, forcedProfile)` and `Data.resolveNpcEventTemplate(type, rowIndex, vars, forcedProfile)` without using `Proxy`, without wrapping root `Data`, without touching `Data.TEXTS` or `Data.t`, and without altering existing template arrays in place.
+- Added dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsRetry1()`.
+- Retry1 smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `bootTextChecks`, `originalTemplateChecks`, `resolverChecks`, `samples`, and `summary`.
+- Retry1 summary contract: `checkedTypes`, `checkedRows`, `millennialZoomerDifferentCount`, `unchangedCount`, `routedTemplateCount`, `placeholderPreservedCount`, `placeholderFailureCount`, `healthyUiKeys`, `originalLengthsPreserved`, and `rolesPreserved`.
+- Scope held: resolver overlay and smoke only; no gameplay changes, no NPC behavior changes, no conflict logic changes, no REP/points/money/ECON/moneyLog/persistence/event journal changes, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.5.2 Fix1 restore UI boot after broken data.js change
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Runtime failure after commit `826c3d0`: Safari reported `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` as undefined, the start screen went blank, and UI labels fell back to raw keys such as `menu_title`.
