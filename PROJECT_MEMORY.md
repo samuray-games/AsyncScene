@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.2R Conflict Results real coverage smoke contract fix 1
+- Runtime result held: `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage()` reported `ok:true` while still placing accepted dictionary-only keys into `missingCoverage`, which violated the smoke contract for this pass.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
+- Fix1 keeps `minority_lost` and `conflict_finished` visible in `coverage` and `summary` as dictionary-only keys, but reserves `missingCoverage` for actual required failures only, so accepted dictionary-only rows no longer block runtime PASS.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-14 — Step 6.2R Zoomer Feel Pass Conflict Results real coverage verification
 - Step 6.0 finding held: the Step 6.2 conflict keys already existed in the real resolver dictionary, but runtime acceptance for this pass still needed proof of which result-message branches were genuinely visible and which remained dictionary-only.
 - Reused the exact existing Step 6.2 content pack and repaired only existing visible hardcoded fallback branches in `AsyncScene/Web/conflict/conflict-api.js` plus `AsyncScene/Web/conflict/conflict-core.js` so millennial output stays the same while real resolver-backed zoomer output can surface on those already-live paths.
