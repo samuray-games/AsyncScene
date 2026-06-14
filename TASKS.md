@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: prove `uiProfile` is text-only at runtime, with no gameplay, ECON, moneyLog, battle, cooldown, or save-schema expansion beyond existing `uiProfile`.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptance()`.
+- Smoke coverage verifies the runtime acceptance contract for `uiProfileIsTextSkin`, `gameplayUnchanged`, `saveHasNoYear`, `saveContainsOnlyUiProfile`, `profileDoesNotAffectBalance`, `profileNotInEcon`, `profileNotInMoneyLog`, and the step dependency flags `step51Ok` through `step55Ok`.
+- Served identity: `build_2026_06_14_step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance_v20260614_001`.
+- Scope held: acceptance smoke only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, no UI redesign, and no year fields stored.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptance()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.5 runtime smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: run the same isolated deterministic runtime scenario under `millennial` and `zoomer` and prove only visible UI text differs, while gameplay, ECON, moneyLog, battle logic, cooldowns, and save behavior stay unchanged.

@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptance()` with build identity `build_2026_06_14_step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance_v20260614_001`.
+- The smoke checks that `uiProfile` is a text-only skin, gameplay stays unchanged, save data contains only `uiProfile` with no year fields, balance is unaffected, and `uiProfile` does not enter ECON or `moneyLog`.
+- Scope held: acceptance smoke only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, no UI redesign, and no stored birth-year fields.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.5 runtime smoke
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep55RuntimeSmoke()` with build identity `build_2026_06_14_step6_5_5_runtime_smoke` / `step6_5_5_runtime_smoke` / `step6_5_5_runtime_smoke_v20260614_001`.
 - The smoke snapshots the live runtime, rebuilds identical isolated baselines via `Game.__A.resetAll()` and `Game.__A.seedPlayers()` for each profile pass, runs one deterministic report step plus one deterministic battle step per profile, compares `moneyLog`, ECON delta, REP delta, points delta, cooldown maps, structural battle result, and visible UI text samples, and restores the original runtime session afterward.

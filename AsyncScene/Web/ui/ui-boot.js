@@ -4242,6 +4242,58 @@ window.Game = window.Game || {};
         });
         return hits;
       };
+      const scanForYearOrBirthFieldRefs = () => {
+        const targets = [
+          G.__A && G.__A.applyReportByRole,
+          G.__A && G.__A.transferPoints,
+          G.__A && G.__A.transferRep,
+          G.__A && G.__A.applyBattleOutcome,
+          G.ConflictEconomy,
+          G._ConflictEconomy,
+          G.Data && G.Data.resolveUiProfileFromBirthYearValue,
+          G.Data && G.Data.normalizeUiBirthYearValue,
+          G.Data && G.Data.setUiProfile,
+          G.Data && G.Data.getUiProfile
+        ];
+        const hits = [];
+        targets.forEach((fn, idx) => {
+          if (typeof fn !== "function") return;
+          const src = Function.prototype.toString.call(fn);
+          if (/birthYearInput|birthYear|fantasyYear|\byear\b/i.test(src)) hits.push({ idx, name: fn.name || `fn_${idx}` });
+        });
+        return hits;
+      };
+      const scanForEconMoneyLogUiProfileRefs = () => {
+        const targets = [
+          G.__A && G.__A.applyReportByRole,
+          G.__A && G.__A.transferPoints,
+          G.__A && G.__A.transferRep,
+          G.__A && G.__A.applyBattleOutcome,
+          G.ConflictEconomy,
+          G._ConflictEconomy
+        ];
+        const hits = [];
+        targets.forEach((fn, idx) => {
+          if (typeof fn !== "function") return;
+          const src = Function.prototype.toString.call(fn);
+          if (/uiProfile/i.test(src) || /moneyLog/i.test(src) || /econ/i.test(src)) hits.push({ idx, name: fn.name || `fn_${idx}` });
+        });
+        return hits;
+      };
+      const scanForBattleOrCooldownUiProfileRefs = () => {
+        const targets = [
+          G.__A && G.__A.applyBattleOutcome,
+          G.__A && G.__A.smokeBattleCrowdOutcomeOnce,
+          G.__DEV && G.__DEV.smokeBattleCrowdOutcomeOnce
+        ];
+        const hits = [];
+        targets.forEach((fn, idx) => {
+          if (typeof fn !== "function") return;
+          const src = Function.prototype.toString.call(fn);
+          if (/uiProfile/i.test(src) || /battle/i.test(src) || /cooldown/i.test(src)) hits.push({ idx, name: fn.name || `fn_${idx}` });
+        });
+        return hits;
+      };
       const sumCurrency = (rows, currency) => {
         return (Array.isArray(rows) ? rows : []).reduce((total, row) => {
           const kind = String(row && row.currency || row && row.kind || "").toLowerCase();
@@ -5127,10 +5179,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep54EconLockFix2 = G.__DEV.smokeToneProfilesStep54EconLockFix2;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep55RuntimeSmoke !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_5_5_runtime_smoke";
-      const COMMIT = "step6_5_5_runtime_smoke";
-      const SMOKE_VERSION = "step6_5_5_runtime_smoke_v20260614_001";
+    if (typeof G.__DEV.smokeToneProfilesStep5RuntimeAcceptance !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_5_runtime_acceptance";
+      const COMMIT = "step6_5_5_runtime_acceptance";
+      const SMOKE_VERSION = "step6_5_5_runtime_acceptance_v20260614_001";
       const cloneData = (value) => {
         if (typeof structuredClone === "function") {
           try { return structuredClone(value); } catch (_) {}
@@ -5505,7 +5557,7 @@ window.Game = window.Game || {};
         };
         return out;
       };
-      G.__DEV.smokeToneProfilesStep55RuntimeSmoke = function smokeToneProfilesStep55RuntimeSmoke() {
+      G.__DEV.smokeToneProfilesStep5RuntimeAcceptance = function smokeToneProfilesStep5RuntimeAcceptance() {
         const result = {
           buildTag: BUILD_TAG,
           commit: COMMIT,
@@ -5515,17 +5567,18 @@ window.Game = window.Game || {};
           forbiddenRemaining: [],
           missingCoverage: [],
           failedChecks: [],
-          uiTextDiffersOk: false,
-          moneyLogMatch: false,
-          econDeltaMatch: false,
-          repDeltaMatch: false,
-          pointsDeltaMatch: false,
-          cooldownsMatch: false,
-          battleResultMatch: false,
-          structuralDataMatch: false,
-          onlyUiTextDiffers: false,
-          millennialResult: null,
-          zoomerResult: null,
+          uiProfileIsTextSkin: false,
+          gameplayUnchanged: false,
+          saveHasNoYear: false,
+          saveContainsOnlyUiProfile: false,
+          profileDoesNotAffectBalance: false,
+          profileNotInEcon: false,
+          profileNotInMoneyLog: false,
+          step51Ok: false,
+          step52Ok: false,
+          step53Ok: false,
+          step54Ok: false,
+          step55Ok: false,
         };
         const fail = (check, detail) => {
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
@@ -5542,40 +5595,57 @@ window.Game = window.Game || {};
           if (!(G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function")) miss("sum_points_snapshot_missing");
           if (!(G.Data && typeof G.Data.t === "function")) miss("ui_text_resolver_missing");
           const refHits = scanForUiProfileRefs();
-          if (refHits.length) fail("econ_uiProfile_refs_found", refHits);
+          if (refHits.length) fail("uiProfile_refs_found", refHits);
+          const yearHits = scanForYearOrBirthFieldRefs();
+          if (yearHits.length) fail("year_field_refs_found", yearHits);
+          const econHits = scanForEconMoneyLogUiProfileRefs();
+          if (econHits.length) fail("econ_moneylog_uiProfile_refs_found", econHits);
+          const battleHits = scanForBattleOrCooldownUiProfileRefs();
+          if (battleHits.length) fail("battle_cooldown_uiProfile_refs_found", battleHits);
 
           const millennial = runScenarioPass("millennial");
           const zoomer = runScenarioPass("zoomer");
-          result.millennialResult = millennial;
-          result.zoomerResult = zoomer;
-
           const millennialVisible = millennial.visibleUiText || {};
           const zoomerVisible = zoomer.visibleUiText || {};
-          result.uiTextDiffersOk = stableJson(millennialVisible) !== stableJson(zoomerVisible);
-          result.moneyLogMatch = stableJson(millennial.moneyLog) === stableJson(zoomer.moneyLog);
-          result.econDeltaMatch = stableJson(millennial.econDelta) === stableJson(zoomer.econDelta);
-          result.repDeltaMatch = millennial.repDelta === zoomer.repDelta;
-          result.pointsDeltaMatch = millennial.pointsDelta === zoomer.pointsDelta;
-          result.cooldownsMatch = stableJson(millennial.cooldowns) === stableJson(zoomer.cooldowns);
-          result.battleResultMatch = stableJson(millennial.battleResult) === stableJson(zoomer.battleResult);
-          result.structuralDataMatch = stableJson(buildStructuralPayload(millennial)) === stableJson(buildStructuralPayload(zoomer));
-          result.onlyUiTextDiffers = result.structuralDataMatch === true && result.uiTextDiffersOk === true;
-
-          if (!result.uiTextDiffersOk) fail("visible_ui_text_did_not_differ", { millennial: millennialVisible, zoomer: zoomerVisible });
-          if (!result.moneyLogMatch) fail("moneyLog_mismatch", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
-          if (!result.econDeltaMatch) fail("econ_delta_mismatch", { millennial: millennial.econDelta, zoomer: zoomer.econDelta });
-          if (!result.repDeltaMatch) fail("rep_delta_mismatch", { millennial: millennial.repDelta, zoomer: zoomer.repDelta });
-          if (!result.pointsDeltaMatch) fail("points_delta_mismatch", { millennial: millennial.pointsDelta, zoomer: zoomer.pointsDelta });
-          if (!result.cooldownsMatch) fail("cooldowns_mismatch", { millennial: millennial.cooldowns, zoomer: zoomer.cooldowns });
-          if (!result.battleResultMatch) fail("battle_result_mismatch", { millennial: millennial.battleResult, zoomer: zoomer.battleResult });
-          if (!result.structuralDataMatch) fail("structural_data_mismatch", {
-            millennial: buildStructuralPayload(millennial),
-            zoomer: buildStructuralPayload(zoomer)
-          });
-          if (!result.onlyUiTextDiffers) fail("only_ui_text_differs_failed", {
-            uiTextDiffersOk: result.uiTextDiffersOk,
-            structuralDataMatch: result.structuralDataMatch
-          });
+          result.uiProfileIsTextSkin = stableJson(millennialVisible) !== stableJson(zoomerVisible);
+          result.profileNotInMoneyLog = stableJson(millennial.moneyLog) === stableJson(zoomer.moneyLog);
+          result.profileNotInEcon = stableJson(millennial.econDelta) === stableJson(zoomer.econDelta)
+            && millennial.repDelta === zoomer.repDelta
+            && millennial.pointsDelta === zoomer.pointsDelta;
+          result.profileDoesNotAffectBalance = stableJson(millennial.cooldowns) === stableJson(zoomer.cooldowns)
+            && stableJson(millennial.battleResult) === stableJson(zoomer.battleResult)
+            && stableJson(buildStructuralPayload(millennial)) === stableJson(buildStructuralPayload(zoomer));
+          result.gameplayUnchanged = result.profileNotInEcon === true
+            && result.profileNotInMoneyLog === true
+            && result.profileDoesNotAffectBalance === true;
+          const saveProbe = (() => {
+            const save = (G.__S && G.__S.save && typeof G.__S.save === "object") ? G.__S.save : {};
+            const keys = Object.keys(save);
+            const hasYear = ["birthYear", "birthYearInput", "fantasyYear", "year"].some((key) => Object.prototype.hasOwnProperty.call(save, key));
+            return { save, keys, hasYear, onlyUiProfile: keys.length === 1 && keys[0] === "uiProfile" };
+          })();
+          result.saveHasNoYear = saveProbe.hasYear === false;
+          result.saveContainsOnlyUiProfile = saveProbe.onlyUiProfile === true;
+          result.step51Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5 === "function" && G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5().ok);
+          result.step52Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep52TextResolverOnly === "function" && G.__DEV.smokeToneProfilesStep52TextResolverOnly().ok);
+          result.step53Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock === "function" && G.__DEV.smokeToneProfilesStep53MoneyLogLock().ok);
+          result.step54Ok = !!(G.__DEV && typeof G.__DEV.smokeToneProfilesStep54EconLockFix2 === "function" && G.__DEV.smokeToneProfilesStep54EconLockFix2().ok);
+          result.step55Ok = !!(millennial.ok && zoomer.ok && result.uiProfileIsTextSkin && result.gameplayUnchanged && result.saveHasNoYear && result.saveContainsOnlyUiProfile);
+          if (!result.uiProfileIsTextSkin) fail("ui_profile_text_skin_mismatch", { millennial: millennialVisible, zoomer: zoomerVisible });
+          if (!result.profileNotInMoneyLog) fail("profile_in_moneyLog", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
+          if (!result.profileNotInEcon) fail("profile_in_econ", { millennial: millennial.econDelta, zoomer: zoomer.econDelta });
+          if (!result.profileDoesNotAffectBalance) fail("profile_affects_balance", { millennial: millennial.battleResult, zoomer: zoomer.battleResult });
+          if (!result.saveHasNoYear) fail("save_has_year", saveProbe.save);
+          if (!result.saveContainsOnlyUiProfile) fail("save_not_uiProfile_only", saveProbe.keys);
+          if (!(result.step51Ok && result.step52Ok && result.step53Ok && result.step54Ok && result.step55Ok)) {
+            fail("step_smoke_dependency_failed", {
+              step51Ok: result.step51Ok,
+              step52Ok: result.step52Ok,
+              step53Ok: result.step53Ok,
+              step54Ok: result.step54Ok,
+              step55Ok: result.step55Ok
+            });
+          }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         } finally {
@@ -5585,19 +5655,22 @@ window.Game = window.Game || {};
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0
           && result.failedChecks.length === 0
-          && result.uiTextDiffersOk === true
-          && result.moneyLogMatch === true
-          && result.econDeltaMatch === true
-          && result.repDeltaMatch === true
-          && result.pointsDeltaMatch === true
-          && result.cooldownsMatch === true
-          && result.battleResultMatch === true
-          && result.structuralDataMatch === true
-          && result.onlyUiTextDiffers === true;
+          && result.uiProfileIsTextSkin === true
+          && result.gameplayUnchanged === true
+          && result.saveHasNoYear === true
+          && result.saveContainsOnlyUiProfile === true
+          && result.profileDoesNotAffectBalance === true
+          && result.profileNotInEcon === true
+          && result.profileNotInMoneyLog === true
+          && result.step51Ok === true
+          && result.step52Ok === true
+          && result.step53Ok === true
+          && result.step54Ok === true
+          && result.step55Ok === true;
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep55RuntimeSmoke = G.__DEV.smokeToneProfilesStep55RuntimeSmoke;
+      G.Dev.smokeToneProfilesStep5RuntimeAcceptance = G.__DEV.smokeToneProfilesStep5RuntimeAcceptance;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
