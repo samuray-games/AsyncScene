@@ -5,6 +5,7 @@
   "scripts": {
     "smoke:asyncscene": "node scripts/run-asyncscene-smoke.mjs",
     "smoke:step6_3_7": "node scripts/run-asyncscene-smoke.mjs smokeToneProfilesStep37Final",
+    "smoke:step6_5_3": "node scripts/run-asyncscene-smoke.mjs smokeToneProfilesStep53MoneyLogLock",
     "smoke:help": "node --input-type=commonjs -e \"const fs=require(\\\"fs\\\"); const pkg=JSON.parse(fs.readFileSync(\\\"package.json\\\",\\\"utf8\\\")); console.log(Object.keys(pkg.scripts).filter(s=>s.startsWith(\\\"smoke:\\\")).map(s=>\\\"npm run \\\"+s).join(\\\"\\\\n\\\"));\""
   },
   "dependencies": {

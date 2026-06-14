@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.3 moneyLog lock
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep53MoneyLogLock()` with build identity `build_2026_06_14_step6_5_3_moneylog_lock` / `step6_5_3_moneylog_lock` / `step6_5_3_moneylog_lock_smoke_v20260614_001`.
+- The smoke runs the same report-style moneyLog-producing scenario under `millennial` and `zoomer`, then compares entry count, codes, reasons, amounts, and structural fields so `uiProfile` can affect only visible copy above the log.
+- Scope held: moneyLog lock audit only; no gameplay changes, no ECON changes, no battle changes, no cooldown changes, and no save behavior changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.2 text resolver only
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep52TextResolverOnly()` with build identity `build_2026_06_14_step6_5_2_text_resolver_only` / `step6_5_2_text_resolver_only` / `step6_5_2_text_resolver_only_smoke_v20260614_001`.
 - The smoke checks that millennial vs zoomer UI text differs through `Data.t()` / the UI text resolver only, that game logic does not check `uiProfile` or import/call the profile resolver, that scattered profile conditionals are not present outside the UI resolver layer, and that ECON/moneyLog/battle/cooldown remain free of `uiProfile` refs.
