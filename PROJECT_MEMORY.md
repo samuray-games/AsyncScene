@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.3 fantasy resolver fix 1
+- Fixed the year-0 resolver edge case so normalized year `0` now resolves to `ancient`.
+- Preserved the other year-band mappings and kept the fallback safe for unsupported profile keys.
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep43FantasyResolverFix1()` with a new `buildTag`, `commit`, and `smokeVersion`.
+- Runtime PASS is still pending until Safari runs the fix smoke.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.3 fantasy resolver
 - Updated the year-band resolver so any normalized integer year maps into a valid profile band across ancient, medieval, renaissance, industrial, boomer, X, millennial, zoomer, alpha, and future.
 - Kept the fallback safe for unsupported profile keys and did not change UI flow, save/storage behavior, or stored year data.
