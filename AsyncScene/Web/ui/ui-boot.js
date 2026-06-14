@@ -2877,7 +2877,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeToneProfilesStep42SafeNormalization !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_4_2_safe_normalization";
       const COMMIT = "step6_4_2_safe_normalization";
-      const SMOKE_VERSION = "step6_4_2_safe_normalization_smoke_v20260614_001";
+      const SMOKE_VERSION = "step6_4_2_safe_normalization_smoke_v20260614_002";
       G.__DEV.smokeToneProfilesStep42SafeNormalization = function smokeToneProfilesStep42SafeNormalization() {
         const result = {
           ok: false,
@@ -2917,8 +2917,8 @@ window.Game = window.Game || {};
           if (!result.emptyInputSafe) fail("empty_input_not_safe", { normalizedEmpty, resolvedEmpty: resolve("") });
           result.garbageInputFallsBack = normalizedGarbage === null && resolve("born near Tatooine") === "default";
           if (!result.garbageInputFallsBack) fail("garbage_input_not_fallback", { normalizedGarbage, resolvedGarbage: resolve("born near Tatooine") });
-          result.normalizedResolverOnly = normalized90 === "90" && resolve("90") === "millennial";
-          if (!result.normalizedResolverOnly) fail("resolver_not_using_normalized_value", { normalized90, resolved90: resolve("90") });
+          result.normalizedResolverOnly = normalized90 === "90" && resolve(normalized90) === "millennial" && resolve("90") === resolve(normalized90);
+          if (!result.normalizedResolverOnly) fail("resolver_not_using_normalized_value", { normalized90, resolved90: resolve("90"), resolvedNormalized90: resolve(normalized90) });
           result.noUndefinedUiProfile = !(
             typeof resolve("90") === "undefined"
             || typeof resolve("") === "undefined"
