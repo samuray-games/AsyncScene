@@ -4287,6 +4287,91 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep62ConflictResults = G.__DEV.smokeZoomerFeelStep62ConflictResults;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavor !== "function") {
+      G.__DEV.smokeZoomerFeelStep63EconomyFlavor = function smokeZoomerFeelStep63EconomyFlavor() {
+        const buildTag = "build_2026_06_14_step6_3_zoomer_feel_economy_flavor";
+        const commit = "step6_3_zoomer_feel_economy_flavor";
+        const smokeVersion = "step6_3_zoomer_feel_economy_flavor_v20260614_001";
+        const keys = [
+          "money_received",
+          "money_spent",
+          "money_changed_positive",
+          "money_changed_negative",
+          "poverty_state",
+          "rich_state",
+          "bankrupt_state",
+          "income_event",
+          "expense_event",
+          "economy_neutral",
+        ];
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const snapshotEconomy = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          prices: stableJson(G.__S && G.__S.prices ? G.__S.prices : {}),
+          rewards: stableJson(G.__S && G.__S.rewards ? G.__S.rewards : {}),
+          penalties: stableJson(G.__S && G.__S.penalties ? G.__S.penalties : {}),
+          income: stableJson(G.__S && G.__S.income ? G.__S.income : {}),
+          expenses: stableJson(G.__S && G.__S.expenses ? G.__S.expenses : {}),
+          econ: stableJson(G.ECON || {}),
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || ""
+        });
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const beforeEconomy = snapshotEconomy();
+        try {
+          const D = G.Data || {};
+          if (!D || typeof D.t !== "function") fail("resolver_missing", "Data.t");
+          const tables = {
+            millennial: (D.TEXTS && D.TEXTS.millennial) || {},
+            zoomer: (D.TEXTS && D.TEXTS.zoomer) || {}
+          };
+          keys.forEach((key) => {
+            const millennialText = String(tables.millennial[key] || "");
+            const zoomerText = String(tables.zoomer[key] || "");
+            const differs = millennialText !== zoomerText;
+            const pass = !!millennialText && !!zoomerText && differs;
+            result.coverage.push({ key, millennialText, zoomerText, differs, pass });
+            if (!millennialText) fail("millennial_text_missing", { key });
+            if (!zoomerText) fail("zoomer_text_missing", { key });
+            if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterEconomy = snapshotEconomy();
+        if (stableJson(beforeEconomy) !== stableJson(afterEconomy)) {
+          fail("economy_mutated_during_smoke", { beforeEconomy, afterEconomy });
+        }
+        result.missingCoverage = keys.filter((key) => !result.coverage.some((row) => row.key === key));
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.coverage.length === keys.length
+          && result.coverage.every((row) => row.pass === true);
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep63EconomyFlavor = G.__DEV.smokeZoomerFeelStep63EconomyFlavor;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";
