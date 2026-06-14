@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 4
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix4()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary_fix4` / `step6_5_1_ui_only_boundary_fix4` / `step6_5_1_ui_only_boundary_smoke_v20260614_005`.
+- The smoke reports raw `tie_start` values for the millennial and zoomer source tables, resolver output for each profile, active `TEXT_MODE` before each resolve, and whether the resolver is reading the expected table, while preserving the ECON/moneyLog/battle/cooldown boundary checks.
+- Scope held: diagnostic output only; no gameplay changes, no balance changes, and no save behavior changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 3
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix3()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_fix3` / `step6_5_1_ui_only_boundary_smoke_v20260614_004`.
 - The UI bootstrap now syncs the active `uiProfile` into the UI copy mode so `Data.t()` follows the active profile inside the UI boundary, and the smoke verifies millennial vs zoomer copy differs for a profile-specific key.

@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: diagnose the remaining contradiction in the UI-only boundary smoke by exposing raw profile table values, active text modes, and resolver outputs without changing gameplay, balance, save behavior, or boundary enforcement.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix4()`.
+- Smoke coverage verifies the active profile before each lookup, reports raw `tie_start` values for millennial and zoomer tables, reports resolver output and `TEXT_MODE` for each profile, and confirms whether the resolver is reading the expected table while keeping the ECON/moneyLog/battle/cooldown boundary checks intact.
+- Served identity: `build_2026_06_14_step6_5_1_ui_only_boundary_fix4` / `step6_5_1_ui_only_boundary_fix4` / `step6_5_1_ui_only_boundary_smoke_v20260614_005`.
+- Scope held: diagnostics only; no gameplay changes, no balance changes, no save changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix4()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make the UI copy resolver follow the active `uiProfile` by syncing the UI copy mode from the active profile inside the UI boundary, without changing gameplay, balance, or save behavior.
