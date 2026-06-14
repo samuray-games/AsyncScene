@@ -240,6 +240,18 @@ window.Game = window.Game || {};
     return setOnboardingSeen(UI, false);
   }
 
+  function syncUiTextModeFromUiProfile(uiProfile) {
+    const G = window.Game || {};
+    const Data = G.Data || null;
+    if (!Data || typeof Data !== "object") return "genz";
+    const normalized = typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(uiProfile)
+      : String(uiProfile || "").trim().toLowerCase();
+    const mode = (normalized === "alpha" || normalized === "zoomer") ? "alpha" : "genz";
+    Data.TEXT_MODE = mode;
+    return mode;
+  }
+
   function readBirthYearProfileValue() {
     const picker = document.getElementById("startBirthYearPicker");
     if (!picker || typeof picker.getAttribute !== "function") return "";
@@ -310,6 +322,7 @@ window.Game = window.Game || {};
     } else if (Data && typeof Data === "object") {
       Data.UI_PROFILE = uiProfile;
     }
+    syncUiTextModeFromUiProfile(uiProfile);
     if (UI && UI.S) {
       UI.S.flags = UI.S.flags || {};
       UI.S.flags.uiProfile = uiProfile;
@@ -2399,6 +2412,7 @@ window.Game = window.Game || {};
           } else if (D && typeof D === "object") {
             D.UI_PROFILE = savedUiProfile;
           }
+          syncUiTextModeFromUiProfile(savedUiProfile);
           if (UI && UI.S) {
             UI.S.flags = UI.S.flags || {};
             UI.S.flags.uiProfile = savedUiProfile;
@@ -3487,6 +3501,126 @@ window.Game = window.Game || {};
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix2 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2;
+    }
+    if (typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix3 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_1_ui_only_boundary";
+      const COMMIT = "step6_5_1_ui_only_boundary_fix3";
+      const SMOKE_VERSION = "step6_5_1_ui_only_boundary_smoke_v20260614_004";
+      const collectFunctionSources = (rootLabel, root, hits, visited) => {
+        if (!root || (typeof root !== "object" && typeof root !== "function")) return;
+        if (visited.has(root)) return;
+        visited.add(root);
+        Object.keys(root).forEach((key) => {
+          let value;
+          try { value = root[key]; } catch (_) { return; }
+          const path = `${rootLabel}.${key}`;
+          if (typeof value === "function") {
+            const source = String(Function.prototype.toString.call(value));
+            if (/\buiProfile\b/.test(source)) hits.push({ path, source: source.slice(0, 220) });
+            return;
+          }
+          if (value && (typeof value === "object" || typeof value === "function")) {
+            collectFunctionSources(path, value, hits, visited);
+          }
+        });
+      };
+      G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix3 = function smokeToneProfilesStep51UiOnlyBoundaryFix3() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          econHasNoUiProfileRefs: false,
+          moneyLogHasNoUiProfileRefs: false,
+          battleHasNoUiProfileRefs: false,
+          cooldownHasNoUiProfileRefs: false,
+          uiProfileTextChangesOk: false,
+          activeMillennialProfile: "",
+          activeZoomerProfile: "",
+          sampleKey: "",
+          sampleMillennial: "",
+          sampleZoomer: "",
+          profileSwitchWorked: false,
+          profileSpecificKeyExists: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const hits = [];
+          const visited = new Set();
+          collectFunctionSources("Game._ConflictEconomy", G._ConflictEconomy, hits, visited);
+          collectFunctionSources("Game.ConflictEconomy", G.ConflictEconomy, hits, visited);
+          collectFunctionSources("Game.State", G.State, hits, visited);
+          collectFunctionSources("Game.__D", G.__D, hits, visited);
+          collectFunctionSources("Game.UI", G.UI, hits, visited);
+          collectFunctionSources("Game.System", G.System, hits, visited);
+
+          const econHits = hits.filter((hit) => /^Game\.(?:_ConflictEconomy|ConflictEconomy)/.test(hit.path));
+          const moneyLogHits = hits.filter((hit) => /moneyLog/i.test(hit.path));
+          const battleHits = hits.filter((hit) => /battle/i.test(hit.path) && !/ui-boot\.js/i.test(hit.path));
+          const cooldownHits = hits.filter((hit) => /cooldown/i.test(hit.path));
+
+          result.econHasNoUiProfileRefs = econHits.length === 0;
+          result.moneyLogHasNoUiProfileRefs = moneyLogHits.length === 0;
+          result.battleHasNoUiProfileRefs = battleHits.length === 0;
+          result.cooldownHasNoUiProfileRefs = cooldownHits.length === 0;
+
+          if (!result.econHasNoUiProfileRefs) fail("econ_uiProfile_reference_found", econHits);
+          if (!result.moneyLogHasNoUiProfileRefs) fail("moneyLog_uiProfile_reference_found", moneyLogHits);
+          if (!result.battleHasNoUiProfileRefs) fail("battle_uiProfile_reference_found", battleHits);
+          if (!result.cooldownHasNoUiProfileRefs) fail("cooldown_uiProfile_reference_found", cooldownHits);
+
+          const Data = G.Data || null;
+          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+          const t = Data && typeof Data.t === "function" ? Data.t.bind(Data) : null;
+          const syncTextMode = typeof syncUiTextModeFromUiProfile === "function" ? syncUiTextModeFromUiProfile : null;
+          const before = getUiProfile ? getUiProfile() : "default";
+          const sampleKey = "tie_start";
+          result.sampleKey = sampleKey;
+          if (setUiProfile) setUiProfile("millennial");
+          if (syncTextMode) syncTextMode("millennial");
+          result.activeMillennialProfile = getUiProfile ? getUiProfile() : "";
+          result.sampleMillennial = t ? t(sampleKey) : "";
+          const directMillennial = Data && Data.TEXTS && Data.TEXTS.genz ? String(Data.TEXTS.genz[sampleKey] || "") : "";
+          if (setUiProfile) setUiProfile("zoomer");
+          if (syncTextMode) syncTextMode("zoomer");
+          result.activeZoomerProfile = getUiProfile ? getUiProfile() : "";
+          result.sampleZoomer = t ? t(sampleKey) : "";
+          const directZoomer = Data && Data.TEXTS && Data.TEXTS.alpha ? String(Data.TEXTS.alpha[sampleKey] || "") : "";
+          if (setUiProfile) setUiProfile(before);
+          if (syncTextMode) syncTextMode(before);
+          result.profileSwitchWorked = result.activeMillennialProfile === "millennial" && result.activeZoomerProfile === "zoomer";
+          result.profileSpecificKeyExists = !!String(directMillennial || "").trim() && !!String(directZoomer || "").trim() && directMillennial !== directZoomer;
+          result.uiProfileTextChangesOk = result.profileSwitchWorked === true
+            && result.profileSpecificKeyExists === true
+            && String(result.sampleMillennial || "") !== String(result.sampleZoomer || "");
+          if (!result.profileSpecificKeyExists) fail("profile_specific_key_missing", { sampleKey, directMillennial, directZoomer });
+          if (!result.profileSwitchWorked) fail("profile_switch_not_working", { before, activeMillennialProfile: result.activeMillennialProfile, activeZoomerProfile: result.activeZoomerProfile });
+          if (result.profileSpecificKeyExists && String(result.sampleMillennial || "") === String(result.sampleZoomer || "")) {
+            fail("ui_profile_text_did_not_change", { before, sampleKey, sampleMillennial: result.sampleMillennial, sampleZoomer: result.sampleZoomer });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.econHasNoUiProfileRefs === true
+          && result.moneyLogHasNoUiProfileRefs === true
+          && result.battleHasNoUiProfileRefs === true
+          && result.cooldownHasNoUiProfileRefs === true
+          && result.uiProfileTextChangesOk === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix3 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix3;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
