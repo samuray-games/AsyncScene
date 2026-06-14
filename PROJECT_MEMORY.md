@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 3
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix3()` with build identity `build_2026_06_14_step6_5_5_runtime_acceptance_fix3` / `step6_5_5_runtime_acceptance_fix3` / `step6_5_5_runtime_acceptance_fix3_v20260614_001`.
+- The Fix3 smoke removes the missing helper dependency by scanning the save payload directly inside the exact runtime smoke body Safari executes, while keeping the existing ECON, moneyLog, battle, cooldown, and UI-profile acceptance gates active.
+- Scope held: wiring fix only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, no save changes, and no check weakening.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 2
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2()` with build identity `build_2026_06_14_step6_5_5_runtime_acceptance_fix2` / `step6_5_5_runtime_acceptance_fix2` / `step6_5_5_runtime_acceptance_fix2_v20260614_001`.
 - The Fix2 command now points at the new acceptance implementation and keeps the helper-scoped year/ECON/moneyLog/battle/cooldown probes inside the exact smoke Safari runs.
