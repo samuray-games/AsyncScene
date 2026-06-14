@@ -5573,6 +5573,165 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep64ReputationFlavor = G.__DEV.smokeZoomerFeelStep64ReputationFlavor;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage !== "function") {
+      G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage = function smokeZoomerFeelStep64RReputationRealCoverage() {
+        const buildTag = "build_2026_06_15_step6_4r_reputation_real_coverage";
+        const commit = "step6_4r_reputation_real_coverage";
+        const smokeVersion = "step6_4r_reputation_real_coverage_v20260615_001";
+        const keys = [
+          "reputation_increased",
+          "reputation_decreased",
+          "reputation_unchanged",
+          "respect_gained",
+          "respect_lost",
+          "disrespect_event",
+          "reputation_high",
+          "reputation_low",
+          "reputation_recovered",
+          "reputation_damaged",
+        ];
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const snapshotState = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          econ: stableJson(G.ECON || {}),
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "")
+        });
+        const withProfile = (profileName, run) => {
+          const Data = G.Data || null;
+          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+          const beforeProfile = getUiProfile ? getUiProfile() : "default";
+          const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+          try {
+            if (setUiProfile) setUiProfile(profileName);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
+            return run();
+          } finally {
+            if (setUiProfile) setUiProfile(beforeProfile);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
+          }
+        };
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+          summary: {
+            totalKeys: keys.length,
+            dictionaryExistsCount: 0,
+            routeConnectedCount: 0,
+            dictionaryOnlyCount: 0,
+            differingTextCount: 0,
+          }
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const routeMap = {
+          reputation_increased: ["AsyncScene/Web/events.js:Game.UI.showStatToast('rep', Game.System.profileText('reputation_increased'))", "AsyncScene/Web/ui/ui-core.js:UI.resolveRepDeltaFlavorText(1)"],
+          reputation_decreased: ["AsyncScene/Web/ui/ui-core.js:UI.resolveRepDeltaFlavorText(-1)"],
+          respect_gained: ["AsyncScene/Web/ui/ui-dm.js:Game.System.profileText('respect_gained') -> showRespectToast('rep', ...)"],
+          reputation_unchanged: [],
+          respect_lost: [],
+          disrespect_event: [],
+          reputation_high: [],
+          reputation_low: [],
+          reputation_recovered: [],
+          reputation_damaged: [],
+        };
+        const routeSampler = {
+          reputation_increased: () => (G.UI && typeof G.UI.resolveRepDeltaFlavorText === "function") ? String(G.UI.resolveRepDeltaFlavorText(1) || "") : "",
+          reputation_decreased: () => (G.UI && typeof G.UI.resolveRepDeltaFlavorText === "function") ? String(G.UI.resolveRepDeltaFlavorText(-1) || "") : "",
+          respect_gained: () => (G.System && typeof G.System.profileText === "function") ? String(G.System.profileText("respect_gained") || "") : "",
+        };
+        const requiredRoutes = new Set(["reputation_increased", "reputation_decreased", "respect_gained"]);
+        const beforeState = snapshotState();
+        try {
+          if (!G.System || typeof G.System.profileText !== "function") fail("profile_text_resolver_missing", "Game.System.profileText");
+          const exportedKeys = G.System && Array.isArray(G.System.profileTextKeys) ? G.System.profileTextKeys.slice() : [];
+          const smokeFnExists = typeof G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage === "function";
+          if (!smokeFnExists) fail("runtime_smoke_missing", "Game.__DEV.smokeZoomerFeelStep64RReputationRealCoverage");
+          keys.forEach((key) => {
+            const dictionaryExists = exportedKeys.indexOf(key) >= 0;
+            const millennialText = withProfile("millennial", () => String(G.System.profileText(key) || ""));
+            const zoomerText = withProfile("zoomer", () => String(G.System.profileText(key) || ""));
+            const differs = !!millennialText && !!zoomerText && millennialText !== zoomerText;
+            const callsites = Array.isArray(routeMap[key]) ? routeMap[key].slice() : [];
+            const routeConnected = callsites.length > 0;
+            const dictionaryOnly = dictionaryExists && !routeConnected;
+            const liveMillennial = routeConnected && routeSampler[key] ? withProfile("millennial", () => String(routeSampler[key]() || "")) : millennialText;
+            const liveZoomer = routeConnected && routeSampler[key] ? withProfile("zoomer", () => String(routeSampler[key]() || "")) : zoomerText;
+            const liveResolverOutputDiffers = !!liveMillennial && !!liveZoomer && liveMillennial !== liveZoomer;
+            const pass = dictionaryExists && !!millennialText && !!zoomerText && differs && liveResolverOutputDiffers;
+            result.coverage.push({
+              key,
+              millennialText,
+              zoomerText,
+              differs,
+              dictionaryExists,
+              routeConnected,
+              dictionaryOnly,
+              liveResolverOutputDiffers,
+              callsites,
+              pass,
+            });
+            if (!dictionaryExists) fail("dictionary_missing", { key });
+            if (!millennialText) fail("millennial_text_missing", { key });
+            if (!zoomerText) fail("zoomer_text_missing", { key });
+            if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
+            if (routeConnected && !liveResolverOutputDiffers) fail("live_resolver_output_not_different", { key, liveMillennial, liveZoomer });
+            if (requiredRoutes.has(key) && !routeConnected) {
+              fail("required_route_missing", { key, callsites });
+              if (result.missingCoverage.indexOf(key) < 0) result.missingCoverage.push({ key, reason: "required_visible_route_missing", callsites });
+            }
+          });
+          result.summary.dictionaryExistsCount = result.coverage.filter((row) => row.dictionaryExists === true).length;
+          result.summary.routeConnectedCount = result.coverage.filter((row) => row.routeConnected === true).length;
+          result.summary.dictionaryOnlyCount = result.coverage.filter((row) => row.dictionaryOnly === true).length;
+          result.summary.differingTextCount = result.coverage.filter((row) => row.differs === true).length;
+          if (result.summary.dictionaryExistsCount !== keys.length) fail("dictionary_exists_count_mismatch", result.summary.dictionaryExistsCount);
+          if (result.summary.differingTextCount !== keys.length) fail("differing_text_count_mismatch", result.summary.differingTextCount);
+          if (result.summary.routeConnectedCount < 2) fail("insufficient_route_connected_keys", result.summary.routeConnectedCount);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterState = snapshotState();
+        if (stableJson(beforeState) !== stableJson(afterState)) {
+          fail("state_mutated_during_smoke", { beforeState, afterState });
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.coverage.length === keys.length
+          && result.coverage.every((row) => row.pass === true)
+          && result.summary.dictionaryExistsCount === keys.length
+          && result.summary.differingTextCount === keys.length
+          && result.summary.routeConnectedCount >= 2;
+        if (!result.ok && result.missingCoverage.length === 0) {
+          result.missingCoverage = result.coverage.filter((row) => !row.pass).map((row) => ({
+            key: row.key,
+            reason: !row.dictionaryExists ? "dictionary_missing" : (!row.routeConnected ? "required_visible_route_missing" : (!row.differs ? "profile_text_not_different" : "live_resolver_output_not_different")),
+            callsites: row.callsites
+          }));
+        }
+        if (result.ok) result.missingCoverage = [];
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep64RReputationRealCoverage = G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";

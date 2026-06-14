@@ -145,6 +145,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeZoomerFeelStep63REconomyRealCoverage === "function" && typeof G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage !== "function") {
     G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage = G.Dev.smokeZoomerFeelStep63REconomyRealCoverage;
   }
+  if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage === "function" && typeof G.Dev.smokeZoomerFeelStep64RReputationRealCoverage !== "function") {
+    G.Dev.smokeZoomerFeelStep64RReputationRealCoverage = G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage;
+  }
+  if (G.Dev && typeof G.Dev.smokeZoomerFeelStep64RReputationRealCoverage === "function" && typeof G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage !== "function") {
+    G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage = G.Dev.smokeZoomerFeelStep64RReputationRealCoverage;
+  }
   if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep64ReputationFlavor === "function" && typeof G.Dev.smokeZoomerFeelStep64ReputationFlavor !== "function") {
     G.Dev.smokeZoomerFeelStep64ReputationFlavor = G.__DEV.smokeZoomerFeelStep64ReputationFlavor;
   }

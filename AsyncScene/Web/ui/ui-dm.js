@@ -60,7 +60,9 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   if (!res) return null;
   if (res.ok) {
     const respectPaidText = systemSay("notifications", "respectPaid");
-    const respectTargetRepText = systemSay("notifications", "respectTargetRep");
+    const respectTargetRepText = (Game.System && typeof Game.System.profileText === "function")
+      ? String(Game.System.profileText("respect_gained") || "").trim()
+      : systemSay("notifications", "respectTargetRep");
     showRespectToast("points", respectPaidText);
     showRespectToast("rep", respectTargetRepText);
     callDevToastProbe(respectPaidText);
