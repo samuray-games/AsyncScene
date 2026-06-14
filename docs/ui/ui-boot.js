@@ -2384,6 +2384,123 @@ window.Game = window.Game || {};
         return result;
       };
     }
+    if (typeof G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_5_no_data_storage_rule_fix1";
+      const COMMIT = "step6_4_5_no_data_storage_rule_fix1";
+      const SMOKE_VERSION = "step6_4_5_no_data_storage_rule_fix1_smoke_v20260614_001";
+      const applySavedUiProfile = (savedUiProfile) => {
+        const D = G.Data || null;
+        if (savedUiProfile) {
+          if (D && typeof D.setUiProfile === "function") {
+            D.setUiProfile(savedUiProfile);
+          } else if (D && typeof D === "object") {
+            D.UI_PROFILE = savedUiProfile;
+          }
+          if (UI && UI.S) {
+            UI.S.flags = UI.S.flags || {};
+            UI.S.flags.uiProfile = savedUiProfile;
+          }
+          if (G.__S && G.__S !== (UI && UI.S)) {
+            G.__S.flags = G.__S.flags || {};
+            G.__S.flags.uiProfile = savedUiProfile;
+          }
+          if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
+            G.State.flags = G.State.flags || {};
+            G.State.flags.uiProfile = savedUiProfile;
+          }
+        }
+        return (D && typeof D.getUiProfile === "function") ? D.getUiProfile() : ((D && D.UI_PROFILE) || "default");
+      };
+      G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 = function smokeToneProfilesStep45NoDataStorageRuleFix1() {
+        const rawFantasyInput = "476 AD";
+        const forbiddenValues = ["476 AD", "3026", "1987", "1998", "2004", "2015", "1955", "1930", "90", "01"];
+        let afterRawText = null;
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          saveContainsUiProfile: false,
+          saveDoesNotContainFantasyYear: false,
+          saveDoesNotContainBirthYear: false,
+          localStorageDoesNotContainYearField: false,
+          rawFantasyInputNotPersisted: false,
+          reloadRestoresUiProfile: false,
+          noUndefinedUiProfile: false,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const resolvePrimary = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
+          ? G.Data.resolveUiProfileFromBirthYearValue(value)
+          : "default";
+        const readPersistedText = () => {
+          const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
+          let storageText = "";
+          try {
+            if (window.localStorage) {
+              const entries = [];
+              for (let i = 0; i < window.localStorage.length; i += 1) {
+                const key = window.localStorage.key(i);
+                entries.push(`${key}=${window.localStorage.getItem(key)}`);
+              }
+              storageText = entries.join("|");
+            }
+          } catch (_) {}
+          const saveText = JSON.stringify((state && state.save) || {});
+          return { storageText, saveText, allText: [storageText, saveText].join("|") };
+        };
+        try {
+          const beforeRawText = readPersistedText();
+          const uiProfile = resolvePrimary(rawFantasyInput);
+          afterRawText = readPersistedText();
+          const afterSave = JSON.parse(afterRawText.saveText || "{}");
+          const afterStorage = afterRawText.storageText || "";
+          const saveKeys = Object.keys(afterSave || {});
+          result.saveContainsUiProfile = Object.prototype.hasOwnProperty.call(afterSave, "uiProfile") && ["default", "millennial", "zoomer", "alpha", "boomer", "genX", "silent"].includes(String(afterSave.uiProfile || ""));
+          result.saveDoesNotContainFantasyYear = !Object.prototype.hasOwnProperty.call(afterSave, "fantasyYear");
+          result.saveDoesNotContainBirthYear = !Object.prototype.hasOwnProperty.call(afterSave, "birthYear");
+          result.localStorageDoesNotContainYearField = !/(fantasyYear|birthYear|selectedYear|birth_year|uiBirthYear|selectedBirthYear|year=|\"year\"|year:)/i.test(afterStorage) && !forbiddenValues.some((value) => afterStorage.indexOf(value) !== -1);
+          result.rawFantasyInputNotPersisted = beforeRawText.allText === afterRawText.allText && !afterRawText.allText.includes(rawFantasyInput);
+          const reloadedUiProfile = applySavedUiProfile(afterSave.uiProfile || "");
+          result.reloadRestoresUiProfile = reloadedUiProfile === afterSave.uiProfile;
+          result.noUndefinedUiProfile = typeof reloadedUiProfile !== "undefined" && reloadedUiProfile !== null;
+          if (!result.noUndefinedUiProfile) fail("undefined_uiProfile", { reloadedUiProfile });
+          if (saveKeys.some((key) => key !== "uiProfile")) fail("save_contains_extra_keys", saveKeys);
+          if (!result.saveContainsUiProfile) fail("save_missing_uiProfile", afterSave);
+          if (!result.saveDoesNotContainFantasyYear) fail("save_contains_fantasyYear", afterSave);
+          if (!result.saveDoesNotContainBirthYear) fail("save_contains_birthYear", afterSave);
+          if (!result.localStorageDoesNotContainYearField) fail("localStorage_contains_year_field", afterStorage);
+          if (!result.reloadRestoresUiProfile) fail("reload_does_not_restore_uiProfile", { savedUiProfile: afterSave.uiProfile, reloadedUiProfile });
+          if (!result.rawFantasyInputNotPersisted) fail("raw_fantasy_input_persisted", { rawFantasyInput, beforeRawText, afterRawText });
+          forbiddenValues.forEach((value) => {
+            if (afterRawText.allText.indexOf(value) !== -1) {
+              fail("forbidden_year_value_found", { value, text: afterRawText.allText });
+            }
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.saveContainsUiProfile === true
+          && result.saveDoesNotContainFantasyYear === true
+          && result.saveDoesNotContainBirthYear === true
+          && result.localStorageDoesNotContainYearField === true
+          && result.reloadRestoresUiProfile === true
+          && result.rawFantasyInputNotPersisted === true
+          && result.noUndefinedUiProfile === true;
+        if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+        G.Dev.smokeToneProfilesStep45NoDataStorageRuleFix1 = G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1;
+        return result;
+      };
+    }
   if (typeof G.__DEV.smokeBirthYearSecondaryAlternateResolver !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_3_secondary_alternate_resolver";
       const COMMIT = "step6_3_3_secondary_alternate_resolver";
