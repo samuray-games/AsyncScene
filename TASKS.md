@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.2R Conflict Results real coverage smoke contract fix 1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: fix the Step 6.2R smoke contract so dictionary-only keys remain visible in coverage and summary but do not populate `missingCoverage` when they are accepted by the smoke.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `coverage`, and `summary`.
+- Scope held: smoke contract only; no gameplay changes, no conflict outcome changes, no voting math changes, no REP/points/money/ECON/moneyLog/rewards/penalties/balance/price changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.2R Zoomer Feel Pass Conflict Results real coverage verification
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: verify real visible UI route coverage for the existing Step 6.2 conflict-result content pack, distinguish live resolver routes from dictionary-only keys, and repair only already-existing visible resolver paths where hardcoded fallback text remained.

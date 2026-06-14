@@ -157,6 +157,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverage === "function" && typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage !== "function") {
     G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage = G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverage;
   }
+  if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 === "function" && typeof G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
+    G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1;
+  }
+  if (G.Dev && typeof G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 === "function" && typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
+    G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1;
+  }
   if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator === "function" && typeof G.Dev.smokeToneProfilesStep56DevUiProfileIndicator !== "function") {
     G.Dev.smokeToneProfilesStep56DevUiProfileIndicator = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator;
   }

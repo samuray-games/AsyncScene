@@ -4882,6 +4882,143 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverage = G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
+      G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = function smokeZoomerFeelStep62RConflictResultsRealCoverageFix1() {
+        const buildTag = "build_2026_06_15_step6_2R_conflict_results_real_coverage_fix1";
+        const commit = "step6_2R_conflict_results_real_coverage_fix1";
+        const smokeVersion = "step6_2R_conflict_results_real_coverage_fix1_v20260615_001";
+        const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
+        const routeMap = {
+          conflict_win: [
+            "AsyncScene/Web/conflict/conflict-core.js:2438 resultLine conflictResultText(conflict_win|conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-arguments.js:1084 resultLine resolveConflictResultText(conflict_win)",
+            "AsyncScene/Web/conflict/conflict-api.js:1253 fallback resultLine resolveConflictResultText(conflict_win)",
+            "AsyncScene/Web/conflict/conflict-core.js:928 battleResultText fallback resolveConflictResultText(conflict_win)"
+          ],
+          conflict_loss: [
+            "AsyncScene/Web/conflict/conflict-core.js:2438 resultLine conflictResultText(conflict_win|conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-arguments.js:1085 resultLine resolveConflictResultText(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-api.js:1010 forced lose resultLine resolveConflictResultText(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-api.js:1254 fallback resultLine resolveConflictResultText(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-core.js:929 battleResultText fallback resolveConflictResultText(conflict_loss)"
+          ],
+          conflict_draw: [
+            "AsyncScene/Web/conflict/conflict-core.js:2377 resultLine conflictResultText(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-arguments.js:1082 resultLine resolveConflictResultText(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-api.js:1251 fallback resultLine resolveConflictResultText(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-core.js:930 battleResultText fallback resolveConflictResultText(conflict_draw)"
+          ],
+          supported_majority: [
+            "AsyncScene/Web/conflict/conflict-core.js:2444 defender branch resultLine conflictResultText(supported_majority|supported_minority)"
+          ],
+          supported_minority: [
+            "AsyncScene/Web/conflict/conflict-core.js:2444 defender branch resultLine conflictResultText(supported_majority|supported_minority)"
+          ],
+          majority_won: [
+            "AsyncScene/Web/conflict/conflict-core.js:2430 crowd-majority branch resultLine conflictResultText(majority_won)"
+          ],
+          minority_lost: [],
+          conflict_finished: []
+        };
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const pushUnique = (list, value) => {
+          const key = stableJson(value);
+          if (!list.some((item) => stableJson(item) === key)) list.push(value);
+        };
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+          summary: { totalKeys: keys.length, dictionaryExistsCount: 0, routeConnectedCount: 0, dictionaryOnlyCount: 0, differingTextCount: 0 }
+        };
+        const fail = (check, detail) => {
+          pushUnique(result.failedChecks, check);
+          pushUnique(result.failures, detail === undefined ? check : { check, detail });
+        };
+        const snapshot = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          econ: stableJson(G.ECON || {}),
+          rewards: stableJson(G.__S && G.__S.rewards ? G.__S.rewards : {}),
+          penalties: stableJson(G.__S && G.__S.penalties ? G.__S.penalties : {}),
+          conflict: stableJson(G.__S && G.__S.conflict ? G.__S.conflict : {}),
+          battles: stableJson(G.__S && Array.isArray(G.__S.battles) ? G.__S.battles.map((b) => ({ id: b && b.id, result: b && b.result, resultLine: b && b.resultLine, status: b && b.status, finished: !!(b && b.finished), resolved: !!(b && b.resolved) })) : []),
+          textMode: G.Data && typeof G.Data.TEXT_MODE === "string" ? G.Data.TEXT_MODE : "",
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "")
+        });
+        const withMode = (mode, fn) => {
+          const D = G.Data || {};
+          const prev = D.TEXT_MODE;
+          D.TEXT_MODE = mode;
+          try { return fn(); } finally { D.TEXT_MODE = prev; }
+        };
+        const before = snapshot();
+        try {
+          const D = G.Data || {};
+          const millennialTable = (D.TEXTS && D.TEXTS.millennial) || {};
+          const zoomerTable = (D.TEXTS && D.TEXTS.zoomer) || {};
+          if (typeof D.resolveConflictResultText !== "function") fail("conflict_resolver_missing", "Data.resolveConflictResultText");
+          keys.forEach((key) => {
+            const millennialText = String(millennialTable[key] || "");
+            const zoomerText = String(zoomerTable[key] || "");
+            const differs = !!millennialText && !!zoomerText && millennialText !== zoomerText;
+            const dictionaryExists = !!millennialText && !!zoomerText;
+            const callsites = Array.isArray(routeMap[key]) ? routeMap[key].slice() : [];
+            const routeConnected = callsites.length > 0;
+            const dictionaryOnly = dictionaryExists && !routeConnected;
+            const liveMillennial = withMode("millennial", () => String(typeof D.resolveConflictResultText === "function" ? (D.resolveConflictResultText(key) || "") : ""));
+            const liveZoomer = withMode("zoomer", () => String(typeof D.resolveConflictResultText === "function" ? (D.resolveConflictResultText(key) || "") : ""));
+            const liveResolverOutputDiffers = !!liveMillennial && !!liveZoomer && liveMillennial !== liveZoomer;
+            const pass = dictionaryExists && differs && (!routeConnected || liveResolverOutputDiffers);
+            result.coverage.push({ key, millennialText, zoomerText, differs, dictionaryExists, routeConnected, dictionaryOnly, liveResolverOutputDiffers, callsites, pass });
+            if (!dictionaryExists) fail("dictionary_text_missing", { key, millennialText, zoomerText });
+            if (!differs) fail("dictionary_text_not_different", { key, millennialText, zoomerText });
+            if (routeConnected && !liveResolverOutputDiffers) fail("live_resolver_output_not_different", { key, liveMillennial, liveZoomer });
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          const after = snapshot();
+          if (stableJson(before) !== stableJson(after)) fail("gameplay_state_mutated", { before, after });
+        }
+        result.summary.dictionaryExistsCount = result.coverage.filter((row) => row.dictionaryExists).length;
+        result.summary.routeConnectedCount = result.coverage.filter((row) => row.routeConnected).length;
+        result.summary.dictionaryOnlyCount = result.coverage.filter((row) => row.dictionaryOnly).length;
+        result.summary.differingTextCount = result.coverage.filter((row) => row.differs).length;
+        if (result.summary.dictionaryExistsCount !== 8) fail("dictionary_exists_count_mismatch", result.summary.dictionaryExistsCount);
+        if (result.summary.differingTextCount !== 8) fail("differing_text_count_mismatch", result.summary.differingTextCount);
+        if (result.summary.routeConnectedCount < 5) fail("insufficient_route_connected_keys", result.summary.routeConnectedCount);
+        ["conflict_win", "conflict_loss", "conflict_draw"].forEach((key) => {
+          const row = result.coverage.find((entry) => entry.key === key);
+          if (!row || !row.routeConnected) fail("required_route_missing", key);
+        });
+        result.ok = result.failures.length === 0
+          && result.failedChecks.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.coverage.length === 8
+          && result.summary.dictionaryExistsCount === 8
+          && result.summary.differingTextCount === 8
+          && result.summary.routeConnectedCount >= 5;
+        result.missingCoverage = result.ok ? [] : result.coverage.filter((row) => !row.dictionaryExists || !row.differs || (row.routeConnected === false && ["conflict_win", "conflict_loss", "conflict_draw"].includes(row.key))).map((row) => ({
+          key: row.key,
+          reason: !row.dictionaryExists ? "dictionary_missing" : (!row.differs ? "texts_not_different" : "required_route_missing"),
+          callsites: row.callsites
+        }));
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1;
+    }
     if (typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1 !== "function") {
       G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1 = function smokeZoomerFeelStep63EconomyFlavorFix1() {
         const buildTag = "build_2026_06_14_step6_3_zoomer_feel_economy_flavor_fix1";
