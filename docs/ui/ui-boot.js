@@ -5424,10 +5424,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep54EconLockFix2 = G.__DEV.smokeToneProfilesStep54EconLockFix2;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix1 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_5_5_runtime_acceptance";
-      const COMMIT = "step6_5_5_runtime_acceptance";
-      const SMOKE_VERSION = "step6_5_5_runtime_acceptance_v20260614_001";
+    if (typeof G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_5_runtime_acceptance_fix2";
+      const COMMIT = "step6_5_5_runtime_acceptance_fix2";
+      const SMOKE_VERSION = "step6_5_5_runtime_acceptance_fix2_v20260614_001";
       const cloneData = (value) => {
         if (typeof structuredClone === "function") {
           try { return structuredClone(value); } catch (_) {}
@@ -5802,7 +5802,7 @@ window.Game = window.Game || {};
         };
         return out;
       };
-      G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix1 = function smokeToneProfilesStep5RuntimeAcceptanceFix1() {
+      G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2 = function smokeToneProfilesStep5RuntimeAcceptanceFix2() {
         const result = {
           buildTag: BUILD_TAG,
           commit: COMMIT,
@@ -5915,7 +5915,7 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix1 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix1;
+      G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
