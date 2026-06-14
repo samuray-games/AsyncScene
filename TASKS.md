@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.5 no data storage rule
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep the fantasy-year resolver path intact while ensuring only the resolved `uiProfile` is written to save data and no year-like values survive into localStorage.
+- Added dev-only Safari command: `Game.__DEV.smokeToneProfilesStep45NoDataStorageRule()`.
+- Smoke coverage verifies `uiProfile` is saved, `fantasyYear` is not saved, `birthYear` is not saved, localStorage contains no stored year field, reload restores `uiProfile`, and raw fantasy input does not persist.
+- Served identity: `build_2026_06_14_step6_4_5_no_data_storage_rule` / `step6_4_5_no_data_storage_rule` / `step6_4_5_no_data_storage_rule_smoke_v20260614_001`.
+- Scope held: persistence-only cleanup plus mirrored smoke/export wiring; no resolver band changes, no fallback changes, no start-screen flow changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep45NoDataStorageRule()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback fix 2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: preserve implemented profile pass-through while keeping unsupported profiles on the millennial fallback, and register a fresh Safari retry smoke in the served GitHub Pages runtime.

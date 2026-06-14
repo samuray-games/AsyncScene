@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.5 no data storage rule
+- Replaced the profile save write path so it now stores only `{ uiProfile }` instead of carrying any existing save fields forward.
+- Added dev-only smoke `Game.__DEV.smokeToneProfilesStep45NoDataStorageRule()` to verify `uiProfile` persistence, absence of `fantasyYear` and `birthYear`, no year field in localStorage, reload restoration of `uiProfile`, and no raw fantasy-input persistence.
+- Served identity: `build_2026_06_14_step6_4_5_no_data_storage_rule` / `step6_4_5_no_data_storage_rule` / `step6_4_5_no_data_storage_rule_smoke_v20260614_001`.
+- Scope held: storage-only rule enforcement; no resolver logic, no profile bands, no fallback behavior, no start-screen flow changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback fix 2
 - Fixed the UI application boundary so implemented profile IDs pass through unchanged while unsupported values still fall back to millennial.
 - Mirrored the retry Safari smoke registration into the served GitHub Pages runtime so `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2()` is exported in the bundle Safari actually loads.
