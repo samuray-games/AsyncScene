@@ -1927,10 +1927,18 @@ window.Game = window.Game || {};
       const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
       const collectPersisted = () => {
         const storageKeys = [];
+        let storageText = "";
         const state = (window.Game && (window.Game.__S || window.Game.State)) || null;
         try {
           if (window.localStorage) {
-            for (let i = 0; i < window.localStorage.length; i += 1) storageKeys.push(window.localStorage.key(i));
+            const entries = [];
+            for (let i = 0; i < window.localStorage.length; i += 1) {
+              const key = window.localStorage.key(i);
+              const value = window.localStorage.getItem(key);
+              storageKeys.push(key);
+              entries.push(`${key}=${value}`);
+            }
+            storageText = entries.join("|");
           }
         } catch (_) {}
         const saveText = String(JSON.stringify((state && state.save) || {}) || "");
@@ -1941,6 +1949,7 @@ window.Game = window.Game || {};
           saveKeys: Object.keys((state && state.save) || {}),
           snapshotKeys: Object.keys((state && (state.snapshot || state.worldSnapshot)) || {}),
           worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {}),
+          storageText,
           saveText,
           snapshotText,
           worldSnapshotText,
@@ -1990,7 +1999,7 @@ window.Game = window.Game || {};
         argStyle: G.Data && typeof G.Data.getArgCanonTextStyle === "function" ? G.Data.getArgCanonTextStyle() : null,
         systemProfile: (G.System && G.System.languageProfile) || null,
       });
-      G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1 = function smokeToneProfilesStep46FutureExpansionHookFix1() {
+      G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2 = function smokeToneProfilesStep46FutureExpansionHookFix2() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -2153,9 +2162,9 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep46FutureExpansionHookFix1 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1;
-      G.__DEV.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1;
-      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1;
+      G.Dev.smokeToneProfilesStep46FutureExpansionHookFix2 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2;
+      G.__DEV.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2;
+      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";

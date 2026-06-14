@@ -6655,11 +6655,11 @@ Error: Download failure, code=1
 - Cache-bust suffix was bumped to `step6_1_birth_year_value_contract_20260613b` so Safari loads the marker fix.
 - Scope held: marker-only update plus refreshed HTML script URLs; no gameplay logic, no UI logic, no Birth Year logic, and no `Console.txt` usage.
 - Required Safari command remains `Game.__DEV.smokeRuntimeSourceDiagnosis()` followed by `Game.__DEV.smokeBirthYearValueContract()`.
-## 2026-06-14 — Step 6 Tone Profiles Step 4.6 future expansion hook fix 1
+## 2026-06-14 — Step 6 Tone Profiles Step 4.6 future expansion hook fix 2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add a single registry/extension hook for supported and future `uiProfile` keys so new profiles can be introduced through resolver/profile config without rewriting the start-screen flow.
-- Added dev-only Safari command: `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1()`.
+- Added dev-only Safari command: `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2()`.
 - Smoke coverage verifies the hook/registry includes `ancient`, `classic`, `future`, `sciFi`, `medieval`, `empire`, and `galactic`, reserved hook ids are visible before UI fallback, unsupported reserved profiles fall back safely to millennial UI, `millennial` remains millennial, `zoomer` remains zoomer, `alpha` remains alpha, no `undefined uiProfile` appears, and no year values are persisted.
-- Served identity: `build_2026_06_14_step6_4_6_future_expansion_hook_fix1` / `step6_4_6_future_expansion_hook_fix1` / `step6_4_6_future_expansion_hook_fix1_smoke_v20260614_001`.
+- Served identity: `build_2026_06_14_step6_4_6_future_expansion_hook_fix2` / `step6_4_6_future_expansion_hook_fix2` / `step6_4_6_future_expansion_hook_fix2_smoke_v20260614_001`.
 - Scope held: registry hook only; no save/storage behavior changes, no year storage, no visible start-screen flow changes, and no `Console.txt` usage.
-- Required Safari command: `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1()`.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2()`.
