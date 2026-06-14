@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.5.2 Zoomer Feel Pass NPC Conflict Feed Profile Texts
+- Added a profile-aware `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS` overlay plus `Data.resolveNpcEventTemplateText(type, index, field, vars)` bridge in both `AsyncScene/Web/data.js` and `docs/data.js`, while keeping the existing `Data.NPC_EVENT_TEMPLATES` shape as the millennial/default fallback through a resolver-backed proxy.
+- The zoomer content pack now covers victory, defeat, arrest, rumor, and accusationInjection with the exact new role texts and preserved placeholders, roles, and array lengths.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts()` with build identity `build_2026_06_15_step6_5_2_npc_conflict_feed_profile_texts` / `step6_5_2_npc_conflict_feed_profile_texts` / `step6_5_2_npc_conflict_feed_profile_texts_smoke_v20260615_001`.
+- The smoke returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `samples`, and `summary`, and checks profile differences, placeholder preservation, role preservation, length preservation, and resolver routing without mutating gameplay, NPC, or conflict state.
+- Exact Safari command: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts()`.
+
 ## 2026-06-15 — Step 6.5.1 Zoomer Feel Pass NPC SAY + DM Profile Routing
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: route visible NPC chat, DM, and villain prompt lines through the new millennial/zoomer profile text maps while keeping the millennial/default arrays as fallback and preserving the existing NPCSpeech runtime generator.
