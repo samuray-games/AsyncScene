@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6.1R Zoomer Feel Pass Core System real coverage repair
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: connect existing Step 6.1 core system keys to real visible UI routes where they already exist, and report dictionary-only keys honestly where no safe real callsite exists today.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage()`.
+- Scope held: real UI routing repair and smoke only; no gameplay changes, no ECON changes, no moneyLog changes, no balances/prices/rewards/penalties math changes, no conflict logic changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.0 Zoomer Feel Pass Real UI Text Inventory & Coverage Map
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: inventory currently visible real UI text call sites before more Zoomer Feel content work, and verify whether Step 6.1-6.4 profile keys are actually connected to visible UI or still dictionary-only.
