@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.3 fantasy resolver
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make the resolver map every normalized year into a valid UI profile band, including ancient, medieval, renaissance, industrial, boomer, X, millennial, zoomer, alpha, and future, without changing UI flow or save/storage behavior.
+- Added dev-only Safari command: `Game.__DEV.smokeToneProfilesStep43FantasyResolver()`.
+- Smoke coverage verifies `-400`, `0`, `1138`, `1799`, `1946`, `1987`, `1998`, `2015`, `currentYear`, `currentYear + 1`, and `999999`, and checks that no `uiProfile` result is `undefined`.
+- Served identity: `build_2026_06_14_step6_4_3_fantasy_resolver` / `step6_4_3_fantasy_resolver` / `step6_4_3_fantasy_resolver_smoke_v20260614_001`.
+- Scope held: resolver band mapping plus safe fallback for unsupported profile keys; no Step 4.4 work beyond that fallback, no save changes, no UI flow changes, no storage of year values, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep43FantasyResolver()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.2 safe normalization
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add a normalization layer so fantasy year input is sanitized before resolver evaluation, with NaN blocked, empty input handled safely, invalid text routed to fallback, and resolver evaluation receiving only normalized values.

@@ -2941,6 +2941,70 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep42SafeNormalization = G.__DEV.smokeToneProfilesStep42SafeNormalization;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep43FantasyResolver !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_3_fantasy_resolver";
+      const COMMIT = "step6_4_3_fantasy_resolver";
+      const SMOKE_VERSION = "step6_4_3_fantasy_resolver_smoke_v20260614_001";
+      G.__DEV.smokeToneProfilesStep43FantasyResolver = function smokeToneProfilesStep43FantasyResolver() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          noUndefinedUiProfile: false,
+          resolverCoverageOk: false,
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          const resolve = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
+            ? G.Data.resolveUiProfileFromBirthYearValue(value)
+            : "default";
+          const currentYear = new Date().getFullYear();
+          const cases = [
+            { year: -400, expected: "ancient" },
+            { year: 0, expected: "ancient" },
+            { year: 1138, expected: "medieval" },
+            { year: 1799, expected: "renaissance" },
+            { year: 1946, expected: "boomer" },
+            { year: 1987, expected: "millennial" },
+            { year: 1998, expected: "zoomer" },
+            { year: 2015, expected: "alpha" },
+            { year: currentYear, expected: "alpha" },
+            { year: currentYear + 1, expected: "future" },
+            { year: 999999, expected: "future" },
+          ];
+          result.resolverChecks = cases.map((entry) => {
+            const actual = resolve(String(entry.year));
+            const ok = actual === entry.expected && actual !== undefined;
+            if (!ok) fail(`year_${entry.year}`, { expected: entry.expected, actual });
+            return { year: entry.year, expected: entry.expected, actual, ok };
+          });
+          result.noUndefinedUiProfile = result.resolverChecks.every((entry) => entry.actual !== undefined && entry.actual !== null);
+          if (!result.noUndefinedUiProfile) fail("undefined_uiProfile", result.resolverChecks);
+          result.resolverCoverageOk = result.resolverChecks.length === cases.length
+            && result.resolverChecks.every((entry) => entry.ok === true);
+          if (!result.resolverCoverageOk) fail("resolver_coverage_failed", result.resolverChecks);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.noUndefinedUiProfile === true
+          && result.resolverCoverageOk === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep43FantasyResolver = G.__DEV.smokeToneProfilesStep43FantasyResolver;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
