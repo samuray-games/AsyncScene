@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles UI Profile Text Coverage Smoke
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesUiTextCoverage()` with build identity `build_2026_06_14_tone_profiles_ui_text_coverage` / `tone_profiles_ui_text_coverage` / `tone_profiles_ui_text_coverage_v20260614_001`.
+- The smoke checks the named UI copy paths for resolver usage under both `millennial` and `zoomer`, reports per-path `differenceExpected`, `differs`, `resolverUsedOk`, and `pass`, and returns the required aggregate flags for active profiles, coverage, and drift boundaries.
+- Scope held: runtime smoke only; no gameplay changes, no ECON changes, no moneyLog changes, no battle logic changes, no cooldown logic changes, no save changes, and no unrelated copy rewrites.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 3
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3()` with build identity `build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix3` / `step6_5_6_dev_ui_profile_indicator_fix3` / `step6_5_6_dev_ui_profile_indicator_fix3_v20260614_001`.
 - The served `docs` runtime now mirrors the Fix2 export for `Game.__DEV` and `Game.Dev`, and Fix3 verifies both the Fix2 export and the Fix3 export are present in Safari-loaded runtime.
