@@ -4867,6 +4867,105 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep63EconomyFlavorFix2 = G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix2;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4 !== "function") {
+      G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4 = function smokeZoomerFeelStep63EconomyFlavorFix4() {
+        const buildTag = "build_2026_06_14_step6_3_zoomer_feel_economy_flavor_fix4";
+        const commit = "step6_3_zoomer_feel_economy_flavor_fix4";
+        const smokeVersion = "step6_3_zoomer_feel_economy_flavor_fix4_v20260614_001";
+        const keys = [
+          "money_received",
+          "money_spent",
+          "money_changed_positive",
+          "money_changed_negative",
+          "poverty_state",
+          "rich_state",
+          "bankrupt_state",
+          "income_event",
+          "expense_event",
+          "economy_neutral",
+        ];
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const snapshotEconomy = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
+          prices: stableJson(G.__S && G.__S.prices ? G.__S.prices : {}),
+          rewards: stableJson(G.__S && G.__S.rewards ? G.__S.rewards : {}),
+          penalties: stableJson(G.__S && G.__S.penalties ? G.__S.penalties : {}),
+          income: stableJson(G.__S && G.__S.income ? G.__S.income : {}),
+          expenses: stableJson(G.__S && G.__S.expenses ? G.__S.expenses : {}),
+          econ: stableJson(G.ECON || {}),
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || ""
+        });
+        const withProfile = (profileName, run) => {
+          const Data = G.Data || null;
+          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+          const beforeProfile = getUiProfile ? getUiProfile() : "default";
+          const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+          try {
+            if (setUiProfile) setUiProfile(profileName);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
+            return run();
+          } finally {
+            if (setUiProfile) setUiProfile(beforeProfile);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
+          }
+        };
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (key) => {
+          if (result.missingCoverage.indexOf(key) < 0) result.missingCoverage.push(key);
+        };
+        const beforeEconomy = snapshotEconomy();
+        try {
+          if (!G.System || typeof G.System.profileText !== "function") fail("profile_text_resolver_missing");
+          const exportedKeys = G.System && Array.isArray(G.System.profileTextKeys) ? G.System.profileTextKeys.slice() : [];
+          keys.forEach((key) => {
+            if (exportedKeys.indexOf(key) < 0) miss(key);
+            const millennialText = withProfile("millennial", () => String(G.System.profileText(key) || ""));
+            const zoomerText = withProfile("zoomer", () => String(G.System.profileText(key) || ""));
+            const differs = millennialText !== zoomerText;
+            const pass = !!millennialText && !!zoomerText && differs;
+            result.coverage.push({ key, millennialText, zoomerText, differs, pass });
+            if (!millennialText) fail("millennial_text_missing", { key });
+            if (!zoomerText) fail("zoomer_text_missing", { key });
+            if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterEconomy = snapshotEconomy();
+        if (stableJson(beforeEconomy) !== stableJson(afterEconomy)) {
+          fail("economy_mutated_during_smoke", { beforeEconomy, afterEconomy });
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.coverage.length === keys.length
+          && result.coverage.every((row) => row.pass === true);
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep63EconomyFlavorFix4 = G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";

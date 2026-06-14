@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor served command exposure fix 4
+- Safari still had `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix2()`, but `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix3` was undefined because the Fix3 function body had not been added to the served `docs/ui/ui-boot.js` attachment path that Safari actually loads.
+- Added the new dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4()` through the same served attachment/export pattern used by the working Step 6.1 and Step 6.2 commands.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4()`.
+- Runtime PASS is still not claimed until Safari runs the fix smoke.
+
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor smoke scope fix 3
 - Fix2 existed, but Safari failed inside the smoke with `Can't find variable: withProfile`, which showed the smoke was depending on another smoke's local helper scope.
 - Added a local safe profile wrapper inside the new dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix3()`.
