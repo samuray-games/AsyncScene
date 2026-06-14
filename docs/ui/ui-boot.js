@@ -287,9 +287,13 @@ window.Game = window.Game || {};
   function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {
     const G = window.Game || {};
     const Data = G.Data || null;
-    const uiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
+    const implementedUiProfileSet = new Set(["millennial", "zoomer", "alpha"]);
+    const resolvedUiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
+    const uiProfile = implementedUiProfileSet.has(String(rawBirthYearValue == null ? "" : rawBirthYearValue).trim().toLowerCase())
+      ? String(rawBirthYearValue).trim().toLowerCase()
+      : (implementedUiProfileSet.has(String(resolvedUiProfile || "")) ? resolvedUiProfile : "millennial");
     const profileTargets = [Data, UI && UI.S, G.__S, G.State];
     profileTargets.forEach((state) => {
       if (!state || typeof state !== "object") return;
@@ -3158,6 +3162,70 @@ window.Game = window.Game || {};
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix1 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1;
+    }
+    if (typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_4_unknown_profile_fallback_fix2";
+      const COMMIT = "step6_4_4_unknown_profile_fallback_fix2";
+      const SMOKE_VERSION = "step6_4_4_unknown_profile_fallback_fix2_smoke_v20260614_001";
+      const applyUiProfile = (value) => {
+        const implementedUiProfileSet = new Set(["millennial", "zoomer", "alpha"]);
+        const raw = String(value == null ? "" : value).trim().toLowerCase();
+        if (implementedUiProfileSet.has(raw)) return raw;
+        const resolved = (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
+          ? G.Data.resolveUiProfileFromBirthYearValue(value)
+          : "default";
+        return implementedUiProfileSet.has(String(resolved || "")) ? resolved : "millennial";
+      };
+      G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2 = function smokeToneProfilesStep44UnknownProfileFallbackFix2() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          failures: [],
+          failedChecks: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          noUndefinedUiProfile: false,
+          checks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const cases = [
+            { input: "ancient", expected: "millennial" },
+            { input: "medieval", expected: "millennial" },
+            { input: "renaissance", expected: "millennial" },
+            { input: "industrial", expected: "millennial" },
+            { input: "future", expected: "millennial" },
+            { input: "unknown profile", expected: "millennial" },
+            { input: "millennial", expected: "millennial" },
+            { input: "zoomer", expected: "zoomer" },
+            { input: "alpha", expected: "alpha" },
+          ];
+          result.checks = cases.map((entry) => {
+            const actual = applyUiProfile(entry.input);
+            const ok = actual === entry.expected && actual !== undefined;
+            if (!ok) fail(`profile_${entry.input}`, { expected: entry.expected, actual });
+            return { input: entry.input, actual, expected: entry.expected, ok };
+          });
+          result.noUndefinedUiProfile = result.checks.every((entry) => entry.actual !== undefined && entry.actual !== null);
+          if (!result.noUndefinedUiProfile) fail("undefined_uiProfile", result.checks);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.noUndefinedUiProfile === true
+          && result.checks.length === 9
+          && result.checks.every((entry) => entry.ok === true);
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix2 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {

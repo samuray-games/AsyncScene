@@ -287,13 +287,13 @@ window.Game = window.Game || {};
   function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {
     const G = window.Game || {};
     const Data = G.Data || null;
+    const implementedUiProfileSet = new Set(["millennial", "zoomer", "alpha"]);
     const resolvedUiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
-    const implementedUiProfileSet = new Set(["millennial", "zoomer", "alpha"]);
-    const uiProfile = implementedUiProfileSet.has(String(resolvedUiProfile || ""))
-      ? resolvedUiProfile
-      : "millennial";
+    const uiProfile = implementedUiProfileSet.has(String(rawBirthYearValue == null ? "" : rawBirthYearValue).trim().toLowerCase())
+      ? String(rawBirthYearValue).trim().toLowerCase()
+      : (implementedUiProfileSet.has(String(resolvedUiProfile || "")) ? resolvedUiProfile : "millennial");
     const profileTargets = [Data, UI && UI.S, G.__S, G.State];
     profileTargets.forEach((state) => {
       if (!state || typeof state !== "object") return;

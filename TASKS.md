@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback fix 2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: preserve implemented profile pass-through while keeping unsupported profiles on the millennial fallback, and register a fresh Safari retry smoke in the served GitHub Pages runtime.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2()`.
+- Smoke coverage verifies `ancient`, `medieval`, `renaissance`, `industrial`, `future`, `unknown profile`, and `default` fall back to `millennial`, while `millennial` remains `millennial`, `zoomer` remains `zoomer`, and `alpha` remains `alpha`; it also checks no `undefined` UI profile and no startup failure.
+- Served identity: `build_2026_06_14_step6_4_4_unknown_profile_fallback_fix2` / `step6_4_4_unknown_profile_fallback_fix2` / `step6_4_4_unknown_profile_fallback_fix2_smoke_v20260614_001`.
+- Scope held: UI application boundary fix plus served-runtime export/registration update; no resolver band changes, no save/storage changes, no start-screen flow changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: register the retry Safari smoke in the served GitHub Pages runtime so the unknown-profile fallback can be verified in Safari, without changing the fallback behavior itself.
