@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicator()` with build identity `build_2026_06_14_step6_5_6_dev_ui_profile_indicator` / `step6_5_6_dev_ui_profile_indicator` / `step6_5_6_dev_ui_profile_indicator_v20260614_001`.
+- The dev menu now shows a read-only `UI Profile: millennial|zoomer|alpha` indicator only when Dev Mode is unlocked, and the menu re-renders the label from the active `uiProfile` so it tracks profile changes.
+- Scope held: dev-menu indicator only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 4
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix4()` with build identity `build_2026_06_14_step6_5_5_runtime_acceptance_fix4` / `step6_5_5_runtime_acceptance_fix4` / `step6_5_5_runtime_acceptance_fix4_v20260614_001`.
 - The Fix4 smoke is fully self-contained in the exact function Safari runs: local snapshot/restore, local deterministic scenario execution, local code scans for `uiProfile` leakage into ECON/moneyLog/battle/cooldown paths, and local save scans for forbidden year-like fields.
