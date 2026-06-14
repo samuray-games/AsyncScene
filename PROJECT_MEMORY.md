@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor
+- Implemented the 10 economy-flavor profile text keys in the existing `Game.System.profileText(...)` resolver tables for millennial and zoomer, with the exact content pack strings and safe millennial fallback preserved.
+- Added the dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavor()` to verify all 10 keys exist, differ by profile, and do not mutate gameplay/economy state during coverage.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep63EconomyFlavor()`.
+- Runtime PASS is still not claimed until Safari runs the smoke.
+
 ## 2026-06-14 — Step 6.2 Zoomer Feel Pass Conflict Results
 - Implemented the eight conflict-result profile text keys in the existing resolver tables for millennial and zoomer, with a shared `Data.resolveConflictResultText()` helper routed through `Data.t()`.
 - Routed the visible conflict result lines through the resolver where the conflict core currently writes result text, keeping gameplay logic and outcome math unchanged.
