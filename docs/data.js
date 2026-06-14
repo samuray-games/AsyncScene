@@ -185,6 +185,24 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       return "millennial";
     },
   });
+  const UI_PROFILE_CANONICAL_MAP = Object.freeze({
+    default: "default",
+    silent: "silent",
+    ancient: "ancient",
+    classic: "classic",
+    future: "future",
+    scifi: "sciFi",
+    medieval: "medieval",
+    empire: "empire",
+    galactic: "galactic",
+    renaissance: "renaissance",
+    industrial: "industrial",
+    boomer: "boomer",
+    genx: "genX",
+    millennial: "millennial",
+    zoomer: "zoomer",
+    alpha: "alpha",
+  });
   Data.UI_PROFILE_REGISTRY = UI_PROFILE_REGISTRY;
   Data.UI_PROFILE_RULES = UI_PROFILE_RULES;
   Data.UI_PROFILE_RESERVED_FUTURE_IDS = UI_PROFILE_RESERVED_FUTURE_IDS;
@@ -193,9 +211,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.normalizeUiProfile = (profile) => {
     const value = String(profile || "").trim().toLowerCase();
-    if (value === "genx") return "genX";
-    if (value === "default" || value === "silent" || value === "ancient" || value === "classic" || value === "future" || value === "sciFi" || value === "medieval" || value === "empire" || value === "galactic" || value === "renaissance" || value === "industrial" || value === "boomer" || value === "millennial" || value === "zoomer" || value === "alpha") return value;
-    return "default";
+    return Object.prototype.hasOwnProperty.call(UI_PROFILE_CANONICAL_MAP, value)
+      ? UI_PROFILE_CANONICAL_MAP[value]
+      : "default";
   };
   Data.isReservedFutureUiProfileId = (profile) => UI_PROFILE_RESERVED_FUTURE_ID_SET.has(String(profile == null ? "" : profile).trim().toLowerCase());
   Data.resolveUiProfileFromFutureValue = (value) => UI_PROFILE_FUTURE_HOOK.resolve(value);

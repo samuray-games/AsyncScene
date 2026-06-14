@@ -1919,10 +1919,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeUiProfileResolver = G.__DEV.smokeUiProfileResolver;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep46FutureExpansionHook !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_4_6_future_expansion_hook";
-      const COMMIT = "step6_4_6_future_expansion_hook";
-      const SMOKE_VERSION = "step6_4_6_future_expansion_hook_smoke_v20260614_001";
+    if (typeof G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_6_future_expansion_hook_fix1";
+      const COMMIT = "step6_4_6_future_expansion_hook_fix1";
+      const SMOKE_VERSION = "step6_4_6_future_expansion_hook_fix1_smoke_v20260614_001";
       const FUTURE_PROFILE_IDS = ["ancient", "classic", "future", "sciFi", "medieval", "empire", "galactic"];
       const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
       const collectPersisted = () => {
@@ -1933,11 +1933,18 @@ window.Game = window.Game || {};
             for (let i = 0; i < window.localStorage.length; i += 1) storageKeys.push(window.localStorage.key(i));
           }
         } catch (_) {}
+        const saveText = String(JSON.stringify((state && state.save) || {}) || "");
+        const snapshotText = String(JSON.stringify((state && (state.snapshot || state.worldSnapshot)) || {}) || "");
+        const worldSnapshotText = String(JSON.stringify((state && state.worldSnapshot) || {}) || "");
         return {
           storageKeys,
           saveKeys: Object.keys((state && state.save) || {}),
           snapshotKeys: Object.keys((state && (state.snapshot || state.worldSnapshot)) || {}),
           worldSnapshotKeys: Object.keys((state && state.worldSnapshot) || {}),
+          saveText,
+          snapshotText,
+          worldSnapshotText,
+          allText: [storageText, saveText, snapshotText, worldSnapshotText].filter((text) => typeof text === "string" && text.length > 0).join("|"),
         };
       };
       const diffKeys = (before, after) => {
@@ -1983,7 +1990,7 @@ window.Game = window.Game || {};
         argStyle: G.Data && typeof G.Data.getArgCanonTextStyle === "function" ? G.Data.getArgCanonTextStyle() : null,
         systemProfile: (G.System && G.System.languageProfile) || null,
       });
-      G.__DEV.smokeToneProfilesStep46FutureExpansionHook = function smokeToneProfilesStep46FutureExpansionHook() {
+      G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1 = function smokeToneProfilesStep46FutureExpansionHookFix1() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -2090,8 +2097,9 @@ window.Game = window.Game || {};
             normalizedGalactic: G.Data.normalizeUiProfile("galactic"),
           });
 
-          result.noYearValuesPersisted = !collectPersisted().allText.match(/\b(?:birthYear|fantasyYear|selectedYear|year=|\"year\"|year:)\b/i);
-          if (!result.noYearValuesPersisted) fail("year_values_persisted", collectPersisted());
+          const persistedText = collectPersisted();
+          result.noYearValuesPersisted = !String(persistedText.allText || "").match(/\b(?:birthYear|fantasyYear|selectedYear|year=|\"year\"|year:)\b/i);
+          if (!result.noYearValuesPersisted) fail("year_values_persisted", persistedText);
 
           const afterPersisted = collectPersisted();
           result.newStorageKeys = diffKeys(beforePersisted, afterPersisted);
@@ -2145,9 +2153,9 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep46FutureExpansionHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHook;
-      G.__DEV.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHook;
-      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHook;
+      G.Dev.smokeToneProfilesStep46FutureExpansionHookFix1 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1;
+      G.__DEV.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1;
+      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix1;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";
