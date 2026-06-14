@@ -50,6 +50,16 @@
 - Smoke coverage must return `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `inventory`, and `summary`, and the summary must include `totalCandidates`, `npcSpeechCount`, `npcReactionCount`, `crowdCommentCount`, `hardcodedCount`, `resolverCount`, and `recommendedForStep65Count`.
 - Scope held: inventory and smoke only; no gameplay changes, no REP changes, no points changes, no money changes, no ECON changes, no moneyLog changes, no voting math changes, and no `Console.txt` usage.
 
+## 2026-06-15 — Step 6.5.0 NPC Speech Inventory output compact fix 1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Runtime issue: `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventory()` returned a huge inventory object that Safari/chat truncated before `ok`, `missingCoverage`, `failedChecks`, and `summary` were visible.
+- Added compact dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryFix1()`.
+- Added paginated dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryPage(pageIndex)`.
+- Compact smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `summary`, `pageCommands`, and `categorySamples`.
+- Compact summary contract: `totalCandidates`, `npcSpeechCount`, `npcReactionCount`, `crowdCommentCount`, `npcDmCount`, `conflictFeedCount`, `hardcodedCount`, `resolverCount`, `recommendedForStep65Count`, `pageSize`, and `totalPages`.
+- Page smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `pageIndex`, `pageSize`, `totalPages`, `rows`, `failures`, and `failedChecks`.
+- Scope held: output shaping only; no NPC text rewrites, no profile variants, no gameplay logic changes, no conflict/REP/points/money/ECON/moneyLog/voting/outcome changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.4 Zoomer Feel Pass Reputation Flavor
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make reputation flavor UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, REP, points, money, ECON, moneyLog, rewards, penalties, balances, voting math, or conflict outcomes.

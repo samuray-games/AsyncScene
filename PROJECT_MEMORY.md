@@ -50,6 +50,15 @@
 - Summary contract: `totalCandidates`, `npcSpeechCount`, `npcReactionCount`, `crowdCommentCount`, `hardcodedCount`, `resolverCount`, and `recommendedForStep65Count`.
 - Scope held: inventory only; no text rewrites, no new profile entries, no gameplay changes, no REP changes, no points changes, no money changes, no ECON changes, no moneyLog changes, no voting math changes, and no `Console.txt` usage.
 
+## 2026-06-15 — Step 6.5.0 NPC Speech Inventory output compact fix 1
+- Runtime issue: the Step 6.5 inventory smoke returned a huge inventory object, and Safari/chat truncated the tail before `ok`, `missingCoverage`, `failedChecks`, and `summary` were visible.
+- Added compact dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryFix1()`.
+- Added paginated dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryPage(pageIndex)`.
+- Compact smoke contract: returns only `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `summary`, `pageCommands`, and `categorySamples`.
+- Compact summary contract: `totalCandidates`, `npcSpeechCount`, `npcReactionCount`, `crowdCommentCount`, `npcDmCount`, `conflictFeedCount`, `hardcodedCount`, `resolverCount`, `recommendedForStep65Count`, `pageSize`, and `totalPages`.
+- Page smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `pageIndex`, `pageSize`, `totalPages`, `rows`, `failures`, and `failedChecks`.
+- Scope held: output shaping only; no NPC text rewrites, no profile variants, no gameplay logic changes, no conflict/REP/points/money/ECON/moneyLog/voting/outcome changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.4 Zoomer Feel Pass Reputation Flavor
 - Added the 10 Step 6.4 reputation flavor keys to the served `Game.System.profileText(...)` dictionary for both `millennial` and `zoomer`, using the exact content pack strings and safe millennial fallback.
 - Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep64ReputationFlavor()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.

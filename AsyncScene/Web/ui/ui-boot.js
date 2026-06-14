@@ -7761,6 +7761,127 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep650NpcSpeechInventory = G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryPage !== "function") {
+      G.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryPage = function smokeZoomerFeelStep650NpcSpeechInventoryPage(pageIndex) {
+        const buildTag = "build_2026_06_14_step6_5_0_zoomer_feel_npc_speech_inventory";
+        const commit = "step6_5_0_zoomer_feel_npc_speech_inventory";
+        const smokeVersion = "step6_5_0_zoomer_feel_npc_speech_inventory_page_v20260615_001";
+        const base = typeof G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory === "function" ? G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory() : null;
+        const rows = base && Array.isArray(base.inventory) ? base.inventory : [];
+        const pageSize = 25;
+        const totalPages = rows.length ? Math.ceil(rows.length / pageSize) : 0;
+        const index = Number.isFinite(pageIndex) ? Math.max(0, Math.floor(pageIndex)) : 0;
+        const start = index * pageSize;
+        const pageRows = rows.slice(start, start + pageSize).map((row) => ({
+          key: row.key,
+          text: row.text,
+          filePath: row.filePath,
+          category: row.category,
+          currentlyProfileAware: !!row.currentlyProfileAware,
+          resolverUsed: !!row.resolverUsed,
+          hardcoded: !!row.hardcoded,
+          recommendedForStep65: !!row.recommendedForStep65,
+          notes: String(row.notes || "")
+        }));
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: !!(base && base.ok === true && rows.length > 0 && index < totalPages),
+          pageIndex: index,
+          pageSize,
+          totalPages,
+          rows: pageRows,
+          failures: [],
+          failedChecks: []
+        };
+        if (!base) {
+          result.failures.push("inventory_unavailable");
+          result.failedChecks.push("inventory_unavailable");
+          result.ok = false;
+        } else if (!rows.length) {
+          result.failures.push("inventory_empty");
+          result.failedChecks.push("inventory_empty");
+          result.ok = false;
+        } else if (index >= totalPages) {
+          result.failures.push({ check: "page_out_of_range", detail: { pageIndex: index, totalPages } });
+          result.failedChecks.push("page_out_of_range");
+          result.ok = false;
+        }
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep650NpcSpeechInventoryPage = G.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryPage;
+    }
+    if (typeof G.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryFix1 !== "function") {
+      G.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryFix1 = function smokeZoomerFeelStep650NpcSpeechInventoryFix1() {
+        const buildTag = "build_2026_06_14_step6_5_0_zoomer_feel_npc_speech_inventory";
+        const commit = "step6_5_0_zoomer_feel_npc_speech_inventory";
+        const smokeVersion = "step6_5_0_zoomer_feel_npc_speech_inventory_fix1_v20260615_001";
+        const pageSize = 25;
+        const base = typeof G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory === "function" ? G.__DEV.smokeZoomerFeelStep650NpcSpeechInventory() : null;
+        const rows = base && Array.isArray(base.inventory) ? base.inventory : [];
+        const totalCandidates = rows.length;
+        const totalPages = totalCandidates ? Math.ceil(totalCandidates / pageSize) : 0;
+        const sampleLimit = 5;
+        const categorySamples = Object.create(null);
+        const addSample = (row) => {
+          const category = String(row && row.category || "");
+          if (!categorySamples[category]) categorySamples[category] = [];
+          if (categorySamples[category].length < sampleLimit) {
+            categorySamples[category].push({
+              key: row.key,
+              text: row.text,
+              filePath: row.filePath,
+              category: row.category,
+              currentlyProfileAware: !!row.currentlyProfileAware,
+              resolverUsed: !!row.resolverUsed,
+              hardcoded: !!row.hardcoded,
+              recommendedForStep65: !!row.recommendedForStep65,
+              notes: String(row.notes || "")
+            });
+          }
+        };
+        rows.forEach((row) => addSample(row));
+        const summary = {
+          totalCandidates,
+          npcSpeechCount: base && base.summary ? base.summary.npcSpeechCount || 0 : 0,
+          npcReactionCount: base && base.summary ? base.summary.npcReactionCount || 0 : 0,
+          crowdCommentCount: base && base.summary ? base.summary.crowdCommentCount || 0 : 0,
+          npcDmCount: rows.filter((row) => row.category === "npc_dm").length,
+          conflictFeedCount: rows.filter((row) => row.category === "conflict_feed").length,
+          hardcodedCount: base && base.summary ? base.summary.hardcodedCount || 0 : 0,
+          resolverCount: base && base.summary ? base.summary.resolverCount || 0 : 0,
+          recommendedForStep65Count: base && base.summary ? base.summary.recommendedForStep65Count || 0 : 0,
+          pageSize,
+          totalPages
+        };
+        const pageCommands = Array.from({ length: totalPages }, (_, index) => `Game.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryPage(${index})`);
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: !!(base && base.ok === true && totalCandidates > 0 && (!base.failures || base.failures.length === 0) && (!base.forbiddenRemaining || base.forbiddenRemaining.length === 0) && (!base.missingCoverage || base.missingCoverage.length === 0) && (!base.failedChecks || base.failedChecks.length === 0)),
+          failures: base && Array.isArray(base.failures) ? base.failures.slice() : [],
+          forbiddenRemaining: base && Array.isArray(base.forbiddenRemaining) ? base.forbiddenRemaining.slice() : [],
+          missingCoverage: base && Array.isArray(base.missingCoverage) ? base.missingCoverage.slice() : [],
+          failedChecks: base && Array.isArray(base.failedChecks) ? base.failedChecks.slice() : [],
+          summary,
+          pageCommands,
+          categorySamples
+        };
+        if (!base) {
+          result.failures.push("inventory_unavailable");
+          result.failedChecks.push("inventory_unavailable");
+          result.ok = false;
+        } else if (totalCandidates <= 0) {
+          result.failures.push("inventory_empty");
+          result.failedChecks.push("inventory_empty");
+          result.ok = false;
+        }
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep650NpcSpeechInventoryFix1 = G.__DEV.smokeZoomerFeelStep650NpcSpeechInventoryFix1;
+    }
     if (typeof G.__DEV.smokeZoomerFeelStep60RealUiTextInventory !== "function") {
       G.__DEV.smokeZoomerFeelStep60RealUiTextInventory = function smokeZoomerFeelStep60RealUiTextInventory() {
         const buildTag = "build_2026_06_14_step6_0_real_ui_text_inventory";
