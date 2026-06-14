@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep ECON formulas unchanged while ensuring ECON never reads `uiProfile`, and verify millennial vs zoomer produce identical money/REP/points results under the same deterministic economy scenario.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep54EconLock()`.
+- Smoke coverage verifies `uiProfile` is absent from the live ECON function sources, runs the same deterministic report-style economy scenario under `millennial` and `zoomer`, compares money delta, REP delta, points delta, ECON output, and zero-sum result, and returns the required result contract fields.
+- Served identity: `build_2026_06_14_step6_5_4_econ_lock` / `step6_5_4_econ_lock` / `step6_5_4_econ_lock_smoke_v20260614_001`.
+- Scope held: ECON audit only; no gameplay changes, no UI text changes, no moneyLog changes, no battle logic changes, no cooldown changes, no save changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep54EconLock()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.3 moneyLog lock
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep `moneyLog` identical across UI profiles so `uiProfile` can affect visible copy only, with no profile-specific payload, reason, code, amount, or structure changes in `moneyLog`.
