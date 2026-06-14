@@ -179,14 +179,6 @@ window.Game = window.Game || {};
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
     if (!body) return;
 
-    if (!isDevModeActive()) {
-      const existing = document.getElementById("devModeControls");
-      if (existing) existing.remove();
-      const indicator = document.getElementById("devUiProfileIndicatorWrap");
-      if (indicator) indicator.remove();
-      return;
-    }
-
     let wrap = document.getElementById("devModeControls");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -237,6 +229,10 @@ window.Game = window.Game || {};
     wrap.appendChild(btn);
 
     let indicatorWrap = document.getElementById("devUiProfileIndicatorWrap");
+    if (!isDevModeActive()) {
+      if (indicatorWrap) indicatorWrap.remove();
+      return;
+    }
     if (!indicatorWrap) {
       indicatorWrap = document.createElement("div");
       indicatorWrap.id = "devUiProfileIndicatorWrap";
