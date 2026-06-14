@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundary()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_smoke_v20260614_001`.
+- The smoke verifies `uiProfile` is not referenced by the ECON path, moneyLog path, battle path, or cooldown path, and confirms profile-based visible copy still changes when the UI profile changes.
+- Scope held: UI-only boundary validation; no gameplay changes, no balance changes, and no unrelated text rewrites.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke fix 1
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1()` with build identity `build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke_fix1` / `step6_4_7_fantasy_years_safe_final_smoke_fix1` / `step6_4_7_fantasy_years_safe_final_smoke_fix1_v20260614_001`.
 - The retry keeps the Fantasy Years Safe coverage, verifies the required inputs `3026`, `1138`, `0`, `-400`, `999999`, empty value, and `abc`, confirms valid `uiProfile` resolution, checks save/localStorage stay uiProfile-only and year-free, and preserves the implemented `millennial`, `zoomer`, and `alpha` profiles.
