@@ -115,6 +115,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeToneProfilesStep54EconLockFix2 === "function" && typeof G.__DEV.smokeToneProfilesStep54EconLockFix2 !== "function") {
     G.__DEV.smokeToneProfilesStep54EconLockFix2 = G.Dev.smokeToneProfilesStep54EconLockFix2;
   }
+  if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator === "function" && typeof G.Dev.smokeToneProfilesStep56DevUiProfileIndicator !== "function") {
+    G.Dev.smokeToneProfilesStep56DevUiProfileIndicator = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator;
+  }
+  if (G.Dev && typeof G.Dev.smokeToneProfilesStep56DevUiProfileIndicator === "function" && typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator !== "function") {
+    G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator = G.Dev.smokeToneProfilesStep56DevUiProfileIndicator;
+  }
   if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2 === "function" && typeof G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 !== "function") {
     G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2;
   }

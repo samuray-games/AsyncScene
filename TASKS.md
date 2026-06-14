@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: show the active `uiProfile` in the dev menu only as read-only text, keep it out of normal player mode, and prove the indicator updates with profile changes without touching gameplay, ECON, moneyLog, battle, or cooldown logic.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicator()`.
+- Smoke coverage checks dev-mode visibility, normal-mode hiding, live indicator updates after profile change, read-only behavior, gameplay stability, and that `uiProfile` does not enter ECON or `moneyLog`.
+- Served identity: `build_2026_06_14_step6_5_6_dev_ui_profile_indicator` / `step6_5_6_dev_ui_profile_indicator` / `step6_5_6_dev_ui_profile_indicator_v20260614_001`.
+- Scope held: dev-menu indicator only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicator()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make the runtime acceptance smoke fully self-contained so no outer helper symbol can break Safari execution.

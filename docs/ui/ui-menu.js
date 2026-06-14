@@ -179,6 +179,14 @@ window.Game = window.Game || {};
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
     if (!body) return;
 
+    if (!isDevModeActive()) {
+      const existing = document.getElementById("devModeControls");
+      if (existing) existing.remove();
+      const indicator = document.getElementById("devUiProfileIndicatorWrap");
+      if (indicator) indicator.remove();
+      return;
+    }
+
     let wrap = document.getElementById("devModeControls");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -227,6 +235,33 @@ window.Game = window.Game || {};
       if (UI.renderMenu) UI.renderMenu();
     };
     wrap.appendChild(btn);
+
+    let indicatorWrap = document.getElementById("devUiProfileIndicatorWrap");
+    if (!indicatorWrap) {
+      indicatorWrap = document.createElement("div");
+      indicatorWrap.id = "devUiProfileIndicatorWrap";
+      indicatorWrap.className = "eventRow";
+      indicatorWrap.style.gap = "8px";
+      indicatorWrap.style.flexWrap = "wrap";
+      indicatorWrap.style.alignItems = "center";
+      body.appendChild(indicatorWrap);
+    }
+    indicatorWrap.innerHTML = "";
+
+    const label = document.createElement("span");
+    label.className = "devUiProfileIndicatorLabel";
+    label.textContent = "UI Profile:";
+    const value = document.createElement("span");
+    value.id = "devUiProfileIndicator";
+    value.className = "devUiProfileIndicatorValue";
+    const profile = (Game.Data && typeof Game.Data.getUiProfile === "function")
+      ? String(Game.Data.getUiProfile() || "millennial")
+      : "millennial";
+    value.textContent = profile;
+    value.setAttribute("aria-readonly", "true");
+    value.title = "Read-only active uiProfile indicator";
+    indicatorWrap.appendChild(label);
+    indicatorWrap.appendChild(value);
   }
 
   function ensureLoggerControls() {
