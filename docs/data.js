@@ -129,6 +129,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   };
 
   // UI profile resolver (default | silent | ancient | medieval | renaissance | industrial | boomer | genX | millennial | zoomer | alpha | future)
+  const UI_PROFILE_REGISTRY = Object.freeze({
+    supported: Object.freeze(["default", "millennial", "zoomer", "alpha"]),
+    future: Object.freeze(["ancient", "classic", "future", "sciFi", "medieval", "empire", "galactic"]),
+  });
   const UI_PROFILE_RULES = Object.freeze({
     twoDigitYear: Object.freeze({
       legacyMin: 28,
@@ -162,28 +166,26 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       Object.freeze({ min: 0, max: 12 }),
     ]),
   });
-  const UI_PROFILE_RESERVED_FUTURE_IDS = Object.freeze([
-    "ancient",
-    "future",
-    "sci-fi",
-    "medieval",
-    "absurd",
-  ]);
-  const UI_PROFILE_RESERVED_FUTURE_ID_SET = new Set(UI_PROFILE_RESERVED_FUTURE_IDS);
+  const UI_PROFILE_RESERVED_FUTURE_IDS = Object.freeze(UI_PROFILE_REGISTRY.future.slice());
+  const UI_PROFILE_RESERVED_FUTURE_ID_SET = new Set(UI_PROFILE_RESERVED_FUTURE_IDS.map((value) => String(value).trim().toLowerCase()));
   const UI_PROFILE_FUTURE_HOOK = Object.freeze({
+    registry: UI_PROFILE_REGISTRY,
+    supportedIds: UI_PROFILE_REGISTRY.supported,
     reservedIds: UI_PROFILE_RESERVED_FUTURE_IDS,
-    defaultProfile: "default",
+    defaultProfile: "millennial",
     isReservedId(profile) {
       const value = String(profile == null ? "" : profile).trim().toLowerCase();
       return UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value);
     },
     resolve(profile) {
       const value = String(profile == null ? "" : profile).trim().toLowerCase();
-      if (!value) return "default";
-      if (UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value)) return "default";
-      return "default";
+      if (!value) return "millennial";
+      if (UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value)) return "millennial";
+      if (UI_PROFILE_REGISTRY.supported.includes(value)) return value;
+      return "millennial";
     },
   });
+  Data.UI_PROFILE_REGISTRY = UI_PROFILE_REGISTRY;
   Data.UI_PROFILE_RULES = UI_PROFILE_RULES;
   Data.UI_PROFILE_RESERVED_FUTURE_IDS = UI_PROFILE_RESERVED_FUTURE_IDS;
   Data.UI_PROFILE_FUTURE_HOOK = UI_PROFILE_FUTURE_HOOK;
@@ -191,7 +193,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.normalizeUiProfile = (profile) => {
     const value = String(profile || "").trim().toLowerCase();
-    if (value === "default" || value === "ancient" || value === "medieval" || value === "renaissance" || value === "industrial" || value === "boomer" || value === "genx" || value === "genX" || value === "millennial" || value === "zoomer" || value === "alpha" || value === "future" || value === "silent") return value === "genx" ? "genX" : value;
+    if (value === "genx") return "genX";
+    if (value === "default" || value === "silent" || value === "ancient" || value === "classic" || value === "future" || value === "sciFi" || value === "medieval" || value === "empire" || value === "galactic" || value === "renaissance" || value === "industrial" || value === "boomer" || value === "millennial" || value === "zoomer" || value === "alpha") return value;
     return "default";
   };
   Data.isReservedFutureUiProfileId = (profile) => UI_PROFILE_RESERVED_FUTURE_ID_SET.has(String(profile == null ? "" : profile).trim().toLowerCase());

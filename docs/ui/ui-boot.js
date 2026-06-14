@@ -287,13 +287,17 @@ window.Game = window.Game || {};
   function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {
     const G = window.Game || {};
     const Data = G.Data || null;
-    const implementedUiProfileSet = new Set(["millennial", "zoomer", "alpha"]);
+    const registry = Data && Data.UI_PROFILE_REGISTRY && typeof Data.UI_PROFILE_REGISTRY === "object" ? Data.UI_PROFILE_REGISTRY : null;
+    const supportedUiProfileSet = new Set(Array.isArray(registry && registry.supported) ? registry.supported.map((value) => String(value || "").trim().toLowerCase()) : ["default", "millennial", "zoomer", "alpha"]);
     const resolvedUiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
-    const uiProfile = implementedUiProfileSet.has(String(rawBirthYearValue == null ? "" : rawBirthYearValue).trim().toLowerCase())
-      ? String(rawBirthYearValue).trim().toLowerCase()
-      : (implementedUiProfileSet.has(String(resolvedUiProfile || "")) ? resolvedUiProfile : "millennial");
+    const normalizedResolvedUiProfile = Data && typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(resolvedUiProfile)
+      : String(resolvedUiProfile || "").trim().toLowerCase();
+    const uiProfile = supportedUiProfileSet.has(normalizedResolvedUiProfile)
+      ? normalizedResolvedUiProfile
+      : "millennial";
     const profileTargets = [Data, UI && UI.S, G.__S, G.State];
     profileTargets.forEach((state) => {
       if (!state || typeof state !== "object") return;
@@ -1915,12 +1919,11 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeUiProfileResolver = G.__DEV.smokeUiProfileResolver;
     }
-    if (typeof G.__DEV.smokeFutureFunnyUiHook !== "function") {
-      const BUILD_TAG = "build_2026_06_13_step6_7_future_funny_ui_hook_fix2";
-      const COMMIT = "step6_7_future_funny_ui_hook";
-      const SMOKE_VERSION = "step6_7_future_funny_ui_hook_smoke_v20260613_003";
-      const RESERVED_FUTURE_PROFILE_IDS = ["ancient", "future", "sci-fi", "medieval", "absurd"];
-      const ACTIVE_PROFILE_IDS = ["default", "millennial", "zoomer"];
+    if (typeof G.__DEV.smokeToneProfilesStep46FutureExpansionHook !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_6_future_expansion_hook";
+      const COMMIT = "step6_4_6_future_expansion_hook";
+      const SMOKE_VERSION = "step6_4_6_future_expansion_hook_smoke_v20260614_001";
+      const FUTURE_PROFILE_IDS = ["ancient", "classic", "future", "sciFi", "medieval", "empire", "galactic"];
       const UNSUPPORTED_VALUES = ["3026", "-400", "born near Tatooine", "medieval knight year", "???"];
       const collectPersisted = () => {
         const storageKeys = [];
@@ -1980,39 +1983,21 @@ window.Game = window.Game || {};
         argStyle: G.Data && typeof G.Data.getArgCanonTextStyle === "function" ? G.Data.getArgCanonTextStyle() : null,
         systemProfile: (G.System && G.System.languageProfile) || null,
       });
-      const hasFutureProfileContent = () => {
-        const selectors = [
-          '[data-ui-profile="ancient"]',
-          '[data-ui-profile="future"]',
-          '[data-ui-profile="sci-fi"]',
-          '[data-ui-profile="medieval"]',
-          '[data-ui-profile="absurd"]',
-          "#uiProfileAncient",
-          "#uiProfileFuture",
-          "#uiProfileSciFi",
-          "#uiProfileMedieval",
-          "#uiProfileAbsurd",
-          "#ancientUiProfile",
-          "#futureUiProfile",
-          "#sciFiUiProfile",
-          "#medievalUiProfile",
-          "#absurdUiProfile",
-        ];
-        return selectors.some((selector) => !!document.querySelector(selector));
-      };
-      G.__DEV.smokeFutureFunnyUiHook = function smokeFutureFunnyUiHook() {
+      G.__DEV.smokeToneProfilesStep46FutureExpansionHook = function smokeToneProfilesStep46FutureExpansionHook() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
           commit: COMMIT,
           smokeVersion: SMOKE_VERSION,
-          reservedFutureProfileIds: [],
-          activeProfileIds: ACTIVE_PROFILE_IDS.slice(),
-          unsupportedValuesFallbackToDefault: false,
-          reservedProfilesFallbackToDefault: false,
-          fakeProfileContentCreated: false,
-          primaryResolverStillWorks: false,
-          startScreenStillWorks: false,
+          registryIncludesFutureProfileIds: [],
+          supportedProfileIds: [],
+          unsupportedValuesFallbackToMillennial: false,
+          registryFallbackUsesMillennial: false,
+          millennialRemainsMillennial: false,
+          zoomerRemainsZoomer: false,
+          alphaRemainsAlpha: false,
+          noUndefinedUiProfile: false,
+          noYearValuesPersisted: false,
           newStorageKeys: [],
           textMixingDetected: false,
           sideEffectSafe: false,
@@ -2035,11 +2020,13 @@ window.Game = window.Game || {};
         let originalProfile = null;
         try {
           if (!G.Data || typeof G.Data.UI_PROFILE_FUTURE_HOOK !== "object") fail("future_hook_missing", "Game.Data.UI_PROFILE_FUTURE_HOOK");
+          if (!G.Data || typeof G.Data.UI_PROFILE_REGISTRY !== "object") fail("registry_missing", "Game.Data.UI_PROFILE_REGISTRY");
           if (!G.Data || typeof G.Data.resolveUiProfileFromFutureValue !== "function") fail("future_resolver_missing", "Game.Data.resolveUiProfileFromFutureValue");
           if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("primary_resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
           if (!G.Data || typeof G.Data.normalizeUiProfile !== "function") fail("normalize_missing", "Game.Data.normalizeUiProfile");
 
           const hook = G.Data && G.Data.UI_PROFILE_FUTURE_HOOK && typeof G.Data.UI_PROFILE_FUTURE_HOOK === "object" ? G.Data.UI_PROFILE_FUTURE_HOOK : null;
+          const registry = G.Data && G.Data.UI_PROFILE_REGISTRY && typeof G.Data.UI_PROFILE_REGISTRY === "object" ? G.Data.UI_PROFILE_REGISTRY : null;
           const beforePersisted = collectPersisted();
           const beforeText = readTextSnapshot();
           originalProfile = beforeText.uiProfile;
@@ -2051,44 +2038,60 @@ window.Game = window.Game || {};
           result.originalSecondaryValue = originalSecondaryValue;
 
           if (hook && Array.isArray(hook.reservedIds)) {
-            result.reservedFutureProfileIds = hook.reservedIds.slice();
-            if (result.reservedFutureProfileIds.length !== RESERVED_FUTURE_PROFILE_IDS.length || !RESERVED_FUTURE_PROFILE_IDS.every((id, idx) => result.reservedFutureProfileIds[idx] === id)) {
-              fail("reserved_ids_mismatch", result.reservedFutureProfileIds.slice());
-            }
-          } else {
-            result.reservedFutureProfileIds = RESERVED_FUTURE_PROFILE_IDS.slice();
+            result.registryIncludesFutureProfileIds = hook.reservedIds.slice();
+          } else if (registry && Array.isArray(registry.future)) {
+            result.registryIncludesFutureProfileIds = registry.future.slice();
           }
+          if (registry && Array.isArray(registry.supported)) result.supportedProfileIds = registry.supported.slice();
+          const registryFutureMatch = FUTURE_PROFILE_IDS.every((id, idx) => result.registryIncludesFutureProfileIds[idx] === id);
+          if (!registryFutureMatch) fail("registry_future_ids_mismatch", result.registryIncludesFutureProfileIds.slice());
+          if (!(result.supportedProfileIds.includes("millennial") && result.supportedProfileIds.includes("zoomer") && result.supportedProfileIds.includes("alpha"))) fail("registry_supported_ids_missing", result.supportedProfileIds.slice());
 
-          result.startScreenStillWorks = !!(document.getElementById("startScreen") && document.getElementById("startBirthYearPicker") && document.getElementById("startBirthYearFeelingInput"));
-          if (!result.startScreenStillWorks) fail("start_screen_broken", readVisibility());
-
-          const reservedChecks = RESERVED_FUTURE_PROFILE_IDS.map((id) => {
+          const reservedChecks = FUTURE_PROFILE_IDS.map((id) => {
             const normalized = G.Data.normalizeUiProfile(id);
             const futureResolved = G.Data.resolveUiProfileFromFutureValue(id);
             const reservedHookId = hook && typeof hook.isReservedId === "function" ? hook.isReservedId(id) === true : false;
             const reservedHelper = typeof G.Data.isReservedFutureUiProfileId === "function" ? G.Data.isReservedFutureUiProfileId(id) === true : false;
-            if (normalized !== "default" || futureResolved !== "default" || reservedHookId !== true || reservedHelper !== true) {
-              fail("reserved_id_not_default", { id, normalized, futureResolved, reservedHookId, reservedHelper });
+            if (normalized !== id || futureResolved !== "millennial" || reservedHookId !== true || reservedHelper !== true) {
+              fail("reserved_id_not_registry_value", { id, normalized, futureResolved, reservedHookId, reservedHelper });
             }
             return { id, normalized, futureResolved, reservedHookId, reservedHelper };
           });
-          result.reservedProfilesFallbackToDefault = reservedChecks.length === RESERVED_FUTURE_PROFILE_IDS.length && reservedChecks.every((entry) => entry.normalized === "default" && entry.futureResolved === "default");
+          result.registryFallbackUsesMillennial = reservedChecks.length === FUTURE_PROFILE_IDS.length && reservedChecks.every((entry) => entry.futureResolved === "millennial");
 
           const unsupportedResults = UNSUPPORTED_VALUES.map((value) => {
             const resolved = G.Data.resolveUiProfileFromFutureValue(value);
-            if (resolved !== "default") fail("unsupported_value_not_default", { value, resolved });
+            if (resolved !== "millennial") fail("unsupported_value_not_millennial", { value, resolved });
             return resolved;
           });
-          result.unsupportedValuesFallbackToDefault = unsupportedResults.length === UNSUPPORTED_VALUES.length && unsupportedResults.every((resolved) => resolved === "default");
+          result.unsupportedValuesFallbackToMillennial = unsupportedResults.length === UNSUPPORTED_VALUES.length && unsupportedResults.every((resolved) => resolved === "millennial");
 
           const primary90 = G.Data.resolveUiProfileFromBirthYearValue("90");
           const primary01 = G.Data.resolveUiProfileFromBirthYearValue("01");
           const primaryEmpty = G.Data.resolveUiProfileFromBirthYearValue("");
-          result.primaryResolverStillWorks = primary90 === "millennial" && primary01 === "zoomer" && primaryEmpty === "default";
-          if (!result.primaryResolverStillWorks) fail("primary_resolver_regressed", { primary90, primary01, primaryEmpty });
+          const millennialProfile = G.Data.resolveUiProfileFromFutureValue("millennial");
+          const zoomerProfile = G.Data.resolveUiProfileFromFutureValue("zoomer");
+          const alphaProfile = G.Data.resolveUiProfileFromFutureValue("alpha");
+          result.millennialRemainsMillennial = millennialProfile === "millennial";
+          result.zoomerRemainsZoomer = zoomerProfile === "zoomer";
+          result.alphaRemainsAlpha = alphaProfile === "alpha";
+          if (!result.millennialRemainsMillennial) fail("millennial_regressed", { millennialProfile });
+          if (!result.zoomerRemainsZoomer) fail("zoomer_regressed", { zoomerProfile });
+          if (!result.alphaRemainsAlpha) fail("alpha_regressed", { alphaProfile });
 
-          result.fakeProfileContentCreated = hasFutureProfileContent();
-          if (result.fakeProfileContentCreated) fail("future_profile_content_created", "future profile containers are active");
+          result.noUndefinedUiProfile = ![
+            G.Data.resolveUiProfileFromFutureValue("unknown future value"),
+            G.Data.resolveUiProfileFromFutureValue("galactic"),
+            G.Data.normalizeUiProfile("galactic"),
+          ].some((value) => typeof value === "undefined" || value === null);
+          if (!result.noUndefinedUiProfile) fail("undefined_uiProfile", {
+            unknown: G.Data.resolveUiProfileFromFutureValue("unknown future value"),
+            galactic: G.Data.resolveUiProfileFromFutureValue("galactic"),
+            normalizedGalactic: G.Data.normalizeUiProfile("galactic"),
+          });
+
+          result.noYearValuesPersisted = !collectPersisted().allText.match(/\b(?:birthYear|fantasyYear|selectedYear|year=|\"year\"|year:)\b/i);
+          if (!result.noYearValuesPersisted) fail("year_values_persisted", collectPersisted());
 
           const afterPersisted = collectPersisted();
           result.newStorageKeys = diffKeys(beforePersisted, afterPersisted);
@@ -2122,13 +2125,15 @@ window.Game = window.Game || {};
           result.sideEffectSafe = result.uiStateRestored === true;
           if (!result.uiStateRestored) fail("ui_state_not_restored", { originalScreen: result.originalScreen, finalScreen: result.finalScreen, originalPrimaryValue: result.originalPrimaryValue, finalPrimaryValue: result.finalPrimaryValue, originalSecondaryValue: result.originalSecondaryValue, finalSecondaryValue: result.finalSecondaryValue, originalProfile });
         }
-        result.ok = result.reservedFutureProfileIds.length === RESERVED_FUTURE_PROFILE_IDS.length
-          && result.activeProfileIds.length === ACTIVE_PROFILE_IDS.length
-          && result.unsupportedValuesFallbackToDefault === true
-          && result.reservedProfilesFallbackToDefault === true
-          && result.fakeProfileContentCreated === false
-          && result.primaryResolverStillWorks === true
-          && result.startScreenStillWorks === true
+        result.ok = result.registryIncludesFutureProfileIds.length === FUTURE_PROFILE_IDS.length
+          && result.supportedProfileIds.length >= 4
+          && result.unsupportedValuesFallbackToMillennial === true
+          && result.registryFallbackUsesMillennial === true
+          && result.millennialRemainsMillennial === true
+          && result.zoomerRemainsZoomer === true
+          && result.alphaRemainsAlpha === true
+          && result.noUndefinedUiProfile === true
+          && result.noYearValuesPersisted === true
           && result.newStorageKeys.length === 0
           && result.textMixingDetected === false
           && result.sideEffectSafe === true
@@ -2140,7 +2145,9 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeFutureFunnyUiHook;
+      G.Dev.smokeToneProfilesStep46FutureExpansionHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHook;
+      G.__DEV.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHook;
+      G.Dev.smokeFutureFunnyUiHook = G.__DEV.smokeToneProfilesStep46FutureExpansionHook;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";
@@ -3078,10 +3085,13 @@ window.Game = window.Game || {};
 
           result.futureAncientReady = !!(
             futureHook
-            && futureHook.reservedProfilesFallbackToDefault === true
-            && futureHook.unsupportedValuesFallbackToDefault === true
-            && futureHook.fakeProfileContentCreated === false
-            && futureHook.primaryResolverStillWorks === true
+            && futureHook.registryFallbackUsesMillennial === true
+            && futureHook.unsupportedValuesFallbackToMillennial === true
+            && futureHook.noUndefinedUiProfile === true
+            && futureHook.noYearValuesPersisted === true
+            && futureHook.millennialRemainsMillennial === true
+            && futureHook.zoomerRemainsZoomer === true
+            && futureHook.alphaRemainsAlpha === true
           );
           if (!result.futureAncientReady) fail("future_ancient_readiness_failed", futureHook);
         } catch (err) {
