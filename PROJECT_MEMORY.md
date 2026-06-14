@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor runtime smoke exposure fix 1
+- Safari runtime reported `Game.__DEV.smokeZoomerFeelStep63EconomyFlavor` as undefined, which showed the smoke had not been exposed through the served `docs/` runtime bundle.
+- Mirrored the smoke exposure into the served runtime path and added the new dev-only Safari command `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1()`.
+- Runtime PASS is still not claimed until Safari runs the fix smoke.
+
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor
 - Implemented the 10 economy-flavor profile text keys in the existing `Game.System.profileText(...)` resolver tables for millennial and zoomer, with the exact content pack strings and safe millennial fallback preserved.
 - Added the dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavor()` to verify all 10 keys exist, differ by profile, and do not mutate gameplay/economy state during coverage.
