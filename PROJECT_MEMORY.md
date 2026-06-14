@@ -1,8 +1,8 @@
-## 2026-06-14 — Step 6 Tone Profiles Step 4.6 future expansion hook fix 2
+## 2026-06-14 — Step 6 Tone Profiles Step 4.6 future expansion hook fix 3
 - Added a single `UI_PROFILE_REGISTRY` hook that separates supported profiles from future reserved keys so new tone profiles can be added through resolver/profile config without rewriting the start-screen flow.
 - Future keys currently reserved in the registry are `ancient`, `classic`, `future`, `sciFi`, `medieval`, `empire`, and `galactic`.
 - Unsupported reserved profile values still fall back safely to the millennial UI at the application boundary, while `millennial`, `zoomer`, and `alpha` remain implemented.
-- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix2()` with build identity `build_2026_06_14_step6_4_6_future_expansion_hook_fix2` / `step6_4_6_future_expansion_hook_fix2` / `step6_4_6_future_expansion_hook_fix2_smoke_v20260614_001`.
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3()` with build identity `build_2026_06_14_step6_4_6_future_expansion_hook_fix3` / `step6_4_6_future_expansion_hook_fix3` / `step6_4_6_future_expansion_hook_fix3_smoke_v20260614_001`.
 - Scope held: registry/extension hook only; no save/storage behavior changes, no year storage, no visible start-screen flow changes, and no `Console.txt` usage.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.5 no data storage rule fix 1
