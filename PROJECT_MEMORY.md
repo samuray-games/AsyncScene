@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock fix 1
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep54EconLockFix1()` with build identity `build_2026_06_14_step6_5_4_econ_lock_fix1` / `step6_5_4_econ_lock_fix1` / `step6_5_4_econ_lock_fix1_smoke_v20260614_001`.
+- The smoke resets report/cooldown/rate-limit scenario state before each profile pass, forces a deterministic report target, records start/end money and scenario delta for both profiles, keeps the previous ECON/REP/points/zero-sum checks, and reports whether any money mismatch comes from setup drift, scenario preparation leakage, post-scenario zero-sum rows, or nondeterministic runtime state.
+- Scope held: investigation smoke only; no ECON formula changes, no gameplay changes, no moneyLog changes, no battle logic changes, no cooldown changes, and no save changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep54EconLock()` with build identity `build_2026_06_14_step6_5_4_econ_lock` / `step6_5_4_econ_lock` / `step6_5_4_econ_lock_smoke_v20260614_001`.
 - The smoke runs the same deterministic report-style economy scenario under `millennial` and `zoomer`, compares money delta, REP delta, points delta, ECON output, and zero-sum result, and checks the live ECON function sources do not reference `uiProfile`.
