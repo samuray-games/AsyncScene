@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.4R Zoomer Feel Pass Reputation real coverage repair
+- Step 6.0 inventory held: the Step 6.4 reputation keys were present in the resolver dictionary, but real visible UI coverage was still pending.
+- Routed the visible reputation gain/loss paths through the existing profile text resolver in `AsyncScene/Web/ui/ui-core.js`, `AsyncScene/Web/events.js`, and `AsyncScene/Web/ui/ui-dm.js`, then mirrored the same runtime text-routing repair into `docs/`.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep64RReputationRealCoverage()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep64RReputationRealCoverage()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-15 — Step 6.3R Zoomer Feel Pass Economy real coverage repair
 - Step 6.0 inventory showed the Step 6.3 economy keys existed in the resolver dictionary but were not yet connected to discovered real visible callsites.
 - Added the real-visible economy routing helpers in `AsyncScene/Web/state.js` and `AsyncScene/Web/ui/ui-core.js`, then mirrored the same runtime changes into the served `docs/` bundle.

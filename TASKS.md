@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.4R Zoomer Feel Pass Reputation real coverage repair
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: connect the Step 6.4 reputation flavor strings to real visible UI routes where they already exist, keep dictionary-only keys honest where no visible callsite exists today, and avoid any gameplay, REP, points, money, ECON, moneyLog, balance, reward, penalty, or conflict outcome changes.
+- Step 6.0 finding: the Step 6.4 keys existed in the resolver dictionary, but real visible UI coverage was still pending.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep64RReputationRealCoverage()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `coverage`, and `summary`, with `coverage` listing all 10 Step 6.4 keys and the `dictionaryExists`, `routeConnected`, `dictionaryOnly`, and `liveResolverOutputDiffers` flags required by this pass.
+- Scope held: visible routing repair and smoke only; no gameplay changes, no REP math changes, no points/money/ECON changes, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.3R Zoomer Feel Pass Economy real coverage repair
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: connect the Step 6.3 economy flavor keys to real visible UI routes where they exist, keep dictionary-only keys honest where no visible callsite is present, and avoid any gameplay, ECON, moneyLog, balance, price, reward, penalty, income, expense, REP, points, or outcome changes.

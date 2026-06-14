@@ -156,8 +156,11 @@ window.Game ||= {};
     const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
     if (me && me.id && me.id === voterId) {
       try {
-        if (Game.UI && typeof Game.UI.pushSystem === "function") {
-          Game.UI.pushSystem(systemSay("notifications", "repDeltaPlusOne"));
+        if (Game.UI && typeof Game.UI.showStatToast === "function") {
+          const repPlusText = (Game.System && typeof Game.System.profileText === "function")
+            ? String(Game.System.profileText("reputation_increased") || "").trim()
+            : systemSay("notifications", "repDeltaPlusOne");
+          Game.UI.showStatToast("rep", repPlusText);
         }
       } catch (_) {}
     }

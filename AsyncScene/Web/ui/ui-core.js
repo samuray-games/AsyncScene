@@ -934,10 +934,12 @@ window.Game = window.Game || {};
     const sign = d > 0 ? "+" : "";
     const flavorKey = kind === "points"
       ? (d > 0 ? "money_changed_positive" : "money_changed_negative")
-      : "";
-    const flavorText = flavorKey && Game && Game.System && typeof Game.System.profileText === "function"
-      ? String(Game.System.profileText(flavorKey) || "").trim()
-      : "";
+      : (kind === "rep" ? (d > 0 ? "reputation_increased" : "reputation_decreased") : "");
+    const flavorText = kind === "rep" && typeof UI.resolveRepDeltaFlavorText === "function"
+      ? String(UI.resolveRepDeltaFlavorText(d) || "").trim()
+      : (flavorKey && Game && Game.System && typeof Game.System.profileText === "function"
+        ? String(Game.System.profileText(flavorKey) || "").trim()
+        : "");
     const text = flavorText || `${icon} ${sign}${d}`;
 
     const r = anchor.getBoundingClientRect();
@@ -965,9 +967,9 @@ window.Game = window.Game || {};
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
 
-    activeDeltaToasts[`${kind}:${toast.id}`] = { el: toast, value: d };
-    try {
-      const tape = Game && Game.__DEV ? (Game.__DEV.__toastTape__ || []) : [];
+  activeDeltaToasts[`${kind}:${toast.id}`] = { el: toast, value: d };
+  try {
+    const tape = Game && Game.__DEV ? (Game.__DEV.__toastTape__ || []) : [];
       tape.push({
         kind,
         text,
@@ -980,9 +982,19 @@ window.Game = window.Game || {};
       });
       if (tape.length > 40) tape.splice(0, tape.length - 40);
       Game.__DEV.__toastTape__ = tape;
-    } catch (_) {}
-    return toast;
+  } catch (_) {}
+  return toast;
   }
+
+  UI.resolveRepDeltaFlavorText = function resolveRepDeltaFlavorText(delta) {
+    const d = (delta | 0);
+    const key = d > 0
+      ? "reputation_increased"
+      : (d < 0 ? "reputation_decreased" : "reputation_unchanged");
+    return (Game && Game.System && typeof Game.System.profileText === "function")
+      ? String(Game.System.profileText(key) || "").trim()
+      : "";
+  };
 
   const pushToastToTape = (text) => {
     try {
