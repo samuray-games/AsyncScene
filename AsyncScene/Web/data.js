@@ -211,7 +211,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.resolveUiProfileFromBirthYearValue = (value) => {
     const normalizedValue = Data.normalizeUiBirthYearValue(value);
     if (normalizedValue == null) return "default";
-    const year = /^-?\d{1,2}$/.test(normalizedValue)
+    const year = normalizedValue === "0"
+      ? 0
+      : /^-?\d{1,2}$/.test(normalizedValue)
       ? Data.expandUiBirthYearValue(normalizedValue)
       : Number(normalizedValue);
     if (!Number.isFinite(year)) return "default";
