@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.4 Zoomer Feel Pass Reputation Flavor
+- Added the 10 Step 6.4 reputation flavor keys to the served `Game.System.profileText(...)` dictionary for both `millennial` and `zoomer`, using the exact content pack strings and safe millennial fallback.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep64ReputationFlavor()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
+- Smoke coverage verifies all 10 keys exist in the live runtime resolver, checks both profile texts are non-empty and different, and snapshots REP/points/moneyLog/ECON/balance-related state before and after to ensure the smoke does not mutate gameplay state.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep64ReputationFlavor()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor served command exposure fix 4
 - Safari still had `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix2()`, but `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix3` was undefined because the Fix3 function body had not been added to the served `docs/ui/ui-boot.js` attachment path that Safari actually loads.
 - Added the new dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix4()` through the same served attachment/export pattern used by the working Step 6.1 and Step 6.2 commands.
