@@ -4343,6 +4343,126 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep52TextResolverOnly = G.__DEV.smokeToneProfilesStep52TextResolverOnly;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
+      const COMMIT = "step6_5_3_moneylog_lock";
+      const SMOKE_VERSION = "step6_5_3_moneylog_lock_smoke_v20260614_001";
+      const normalizeMoneyLogRow = (row) => {
+        const entry = row && typeof row === "object" ? row : {};
+        const keys = Object.keys(entry).sort();
+        const structural = keys.reduce((acc, key) => {
+          const value = entry[key];
+          acc[key] = {
+            type: Array.isArray(value) ? "array" : typeof value,
+            present: typeof value !== "undefined",
+          };
+          return acc;
+        }, {});
+        return {
+          keys,
+          structural,
+          code: String(entry.code || entry.reasonCode || entry.reason || entry.type || ""),
+          reason: String(entry.reason || entry.reasonCode || entry.code || entry.type || ""),
+          amount: Number.isFinite(entry.amount) ? (entry.amount | 0) : (Number.isFinite(entry.delta) ? (entry.delta | 0) : null),
+          value: Number.isFinite(entry.value) ? (entry.value | 0) : null,
+        };
+      };
+      const captureMoneyLogSlice = (startIndex) => {
+        const rows = (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.slice(startIndex) : [];
+        return rows.map((row) => normalizeMoneyLogRow(row));
+      };
+      const compareMoneyLogSlices = (left, right) => {
+        const entriesMatch = left.length === right.length;
+        const codesMatch = entriesMatch && left.every((row, idx) => row.code === right[idx].code);
+        const reasonsMatch = entriesMatch && left.every((row, idx) => row.reason === right[idx].reason);
+        const amountsMatch = entriesMatch && left.every((row, idx) => row.amount === right[idx].amount && row.value === right[idx].value);
+        const structureMatch = entriesMatch && left.every((row, idx) => JSON.stringify(row.structural) === JSON.stringify(right[idx].structural));
+        return { entriesMatch, codesMatch, reasonsMatch, amountsMatch, structureMatch };
+      };
+      const runProfilePass = (profileName) => {
+        const Data = G.Data || null;
+        const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+        const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+        const beforeProfile = getUiProfile ? getUiProfile() : "default";
+        const logStart = (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.length : 0;
+        const beforeSnapshot = (G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function") ? G.__DEV.sumPointsSnapshot() : null;
+        const S = G.__S || G.State || {};
+        const players = S.players || {};
+        const reportTarget = Object.values(players).find((p) => p && p.npc && ["toxic", "bandit", "mafia"].includes(String(p.role || p.type || "").toLowerCase())) || null;
+        const reportRole = reportTarget ? String(reportTarget.role || reportTarget.type || "toxic") : "toxic";
+        let reportResult = null;
+        try {
+          if (setUiProfile) setUiProfile(profileName);
+          if (G.__A && typeof G.__A.applyReportByRole === "function") {
+            reportResult = G.__A.applyReportByRole(reportRole, { actionId: `tone_profiles_step53_${profileName}_${Date.now()}` });
+          } else if (typeof window.devReportTest === "function") {
+            reportResult = window.devReportTest({ mode: "true" });
+          } else {
+            reportResult = { ok: false, reason: "report_api_missing" };
+          }
+        } finally {
+          if (setUiProfile) setUiProfile(beforeProfile);
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeProfile === "zoomer" ? "zoomer" : "millennial";
+        }
+        const afterSnapshot = (G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function") ? G.__DEV.sumPointsSnapshot() : null;
+        const moneyLog = captureMoneyLogSlice(logStart);
+        return { profile: profileName, beforeSnapshot, afterSnapshot, reportResult, moneyLog };
+      };
+      G.__DEV.smokeToneProfilesStep53MoneyLogLock = function smokeToneProfilesStep53MoneyLogLock() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          moneyLogEntriesMatch: false,
+          moneyLogAmountsMatch: false,
+          moneyLogReasonsMatch: false,
+          moneyLogCodesMatch: false,
+          moneyLogStructureMatch: false,
+          millennialMoneyLog: [],
+          zoomerMoneyLog: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const millennial = runProfilePass("millennial");
+          const zoomer = runProfilePass("zoomer");
+          result.millennialMoneyLog = millennial.moneyLog;
+          result.zoomerMoneyLog = zoomer.moneyLog;
+          const comparison = compareMoneyLogSlices(millennial.moneyLog, zoomer.moneyLog);
+          result.moneyLogEntriesMatch = comparison.entriesMatch;
+          result.moneyLogAmountsMatch = comparison.amountsMatch;
+          result.moneyLogReasonsMatch = comparison.reasonsMatch;
+          result.moneyLogCodesMatch = comparison.codesMatch;
+          result.moneyLogStructureMatch = comparison.structureMatch;
+          if (!result.moneyLogEntriesMatch) fail("moneyLog_entry_count_mismatch", { millennial: millennial.moneyLog.length, zoomer: zoomer.moneyLog.length });
+          if (!result.moneyLogCodesMatch) fail("moneyLog_code_mismatch", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
+          if (!result.moneyLogReasonsMatch) fail("moneyLog_reason_mismatch", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
+          if (!result.moneyLogAmountsMatch) fail("moneyLog_amount_mismatch", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
+          if (!result.moneyLogStructureMatch) fail("moneyLog_structure_mismatch", { millennial: millennial.moneyLog, zoomer: zoomer.moneyLog });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failures.length === 0
+          && result.failedChecks.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.moneyLogEntriesMatch === true
+          && result.moneyLogAmountsMatch === true
+          && result.moneyLogReasonsMatch === true
+          && result.moneyLogCodesMatch === true
+          && result.moneyLogStructureMatch === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep53MoneyLogLock = G.__DEV.smokeToneProfilesStep53MoneyLogLock;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {

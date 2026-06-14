@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.3 moneyLog lock
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep `moneyLog` identical across UI profiles so `uiProfile` can affect visible copy only, with no profile-specific payload, reason, code, amount, or structure changes in `moneyLog`.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep53MoneyLogLock()`.
+- Smoke coverage verifies the same report-style scenario under `millennial` and `zoomer`, compares `moneyLog` entry count, codes, reasons, amounts, and structural fields, and allows only UI text rendered above the log to vary.
+- Served identity: `build_2026_06_14_step6_5_3_moneylog_lock` / `step6_5_3_moneylog_lock` / `step6_5_3_moneylog_lock_smoke_v20260614_001`.
+- Scope held: moneyLog lock audit only; no gameplay changes, no ECON changes, no battle changes, no cooldown changes, no save changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep53MoneyLogLock()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.2 text resolver only
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep all millennial/zoomer differences inside the UI text resolver layer so game logic receives already resolved strings and does not inspect `uiProfile` or profile resolver internals.
