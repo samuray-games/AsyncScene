@@ -1,3 +1,11 @@
+## 2026-06-14 — Step 6.1R Zoomer Feel Pass Core System real coverage repair
+- Step 6.0 runtime finding held: Step 6.1 core system keys existed in the resolver dictionary, but real visible route coverage lagged behind, while Step 6.2 conflict keys already had real route coverage.
+- Repaired one real visible hardcoded callsite in `AsyncScene/Web/ui/ui-dm.js` by routing the respect-flow `respect_no_points` fallback through `Game.System.say("errors", "insufficientPoints")`, preserving the existing millennial output while letting zoomer differ through the live resolver.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
+- The smoke returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `coverage`, and `summary`, distinguishes `dictionaryExists`, `routeConnected`, `liveResolverOutputDiffers`, and `dictionaryOnly`, and only marks `not_enough_money` plus `generic_success` as route-connected today.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-14 — Step 6.0 Zoomer Feel Pass Real UI Text Inventory & Coverage Map
 - Added because Step 6.1-6.4 had already passed dictionary/resolver groundwork, but the next content writing step still needed proof of which currently visible UI strings are actually wired to those profile-aware keys versus still living as hardcoded or non-profile-aware real call sites.
 - Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.

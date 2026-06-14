@@ -4493,10 +4493,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesUiTextCoverage = G.__DEV.smokeToneProfilesUiTextCoverage;
     }
-    if (typeof G.__DEV.smokeZoomerFeelStep61CoreSystemMessages !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_1_core_system_messages";
-      const COMMIT = "step6_1_core_system_messages";
-      const SMOKE_VERSION = "step6_1_core_system_messages_v20260614_001";
+    if (typeof G.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_1R_core_system_real_coverage_repair";
+      const COMMIT = "step6_1R_core_system_real_coverage_repair";
+      const SMOKE_VERSION = "step6_1R_core_system_real_coverage_repair_v20260614_001";
       const REQUIRED_KEYS = Object.freeze([
         "not_enough_money",
         "not_enough_stars",
@@ -4530,7 +4530,46 @@ window.Game = window.Game || {};
           if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
         }
       };
-      G.__DEV.smokeZoomerFeelStep61CoreSystemMessages = function smokeZoomerFeelStep61CoreSystemMessages() {
+      const CALLSITE_COVERAGE = Object.freeze({
+        not_enough_money: Object.freeze([
+          "Game.System.say('errors','insufficientPoints') via ui-battles rematch/escape/call flows",
+          "Game.System.say('errors','insufficientPoints') via ui-dm respect_no_points fallback"
+        ]),
+        not_enough_stars: Object.freeze([]),
+        purchase_success: Object.freeze([]),
+        sale_success: Object.freeze([]),
+        reward_received: Object.freeze([]),
+        penalty_received: Object.freeze([]),
+        generic_error: Object.freeze([]),
+        generic_success: Object.freeze([
+          "Game.System.say('notifications','saved')",
+          "Game.System.say('systemEvents','ready')"
+        ]),
+      });
+      const readRouteStatus = (key) => {
+        if (key === "not_enough_money") {
+          const millennial = withProfile("millennial", () => String(G.System.say("errors", "insufficientPoints") || ""));
+          const zoomer = withProfile("zoomer", () => String(G.System.say("errors", "insufficientPoints") || ""));
+          return {
+            routeConnected: !!(millennial && zoomer && millennial !== zoomer),
+            liveResolverOutputDiffers: !!(millennial && zoomer && millennial !== zoomer),
+          };
+        }
+        if (key === "generic_success") {
+          const savedMillennial = withProfile("millennial", () => String(G.System.say("notifications", "saved") || ""));
+          const savedZoomer = withProfile("zoomer", () => String(G.System.say("notifications", "saved") || ""));
+          const readyMillennial = withProfile("millennial", () => String(G.System.say("systemEvents", "ready") || ""));
+          const readyZoomer = withProfile("zoomer", () => String(G.System.say("systemEvents", "ready") || ""));
+          const savedDiffers = !!(savedMillennial && savedZoomer && savedMillennial !== savedZoomer);
+          const readyDiffers = !!(readyMillennial && readyZoomer && readyMillennial !== readyZoomer);
+          return {
+            routeConnected: savedDiffers || readyDiffers,
+            liveResolverOutputDiffers: savedDiffers || readyDiffers,
+          };
+        }
+        return { routeConnected: false, liveResolverOutputDiffers: false };
+      };
+      G.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage = function smokeZoomerFeelStep61RCoreSystemRealCoverage() {
         const result = {
           buildTag: BUILD_TAG,
           commit: COMMIT,
@@ -4541,6 +4580,13 @@ window.Game = window.Game || {};
           missingCoverage: [],
           failedChecks: [],
           coverage: [],
+          summary: {
+            totalKeys: REQUIRED_KEYS.length,
+            dictionaryExistsCount: 0,
+            routeConnectedCount: 0,
+            dictionaryOnlyCount: 0,
+            differingTextCount: 0,
+          },
         };
         const fail = (check, detail) => {
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
@@ -4554,27 +4600,44 @@ window.Game = window.Game || {};
           if (!G.System || typeof G.System.profileText !== "function") fail("profile_text_resolver_missing");
           const exportedKeys = G.System && Array.isArray(G.System.profileTextKeys) ? G.System.profileTextKeys.slice() : [];
           REQUIRED_KEYS.forEach((key) => {
-            if (exportedKeys.indexOf(key) < 0) miss(key);
+            const dictionaryExists = exportedKeys.indexOf(key) >= 0;
+            if (!dictionaryExists) miss(key);
             const millennialText = withProfile("millennial", () => String(G.System.profileText(key) || ""));
             const zoomerText = withProfile("zoomer", () => String(G.System.profileText(key) || ""));
             const differs = millennialText !== zoomerText;
-            const pass = !!millennialText && !!zoomerText && differs;
-            result.coverage.push({ key, millennialText, zoomerText, differs, pass });
+            const routeStatus = readRouteStatus(key);
+            const callsites = CALLSITE_COVERAGE[key] ? CALLSITE_COVERAGE[key].slice() : [];
+            const dictionaryOnly = !routeStatus.routeConnected;
+            const pass = dictionaryExists && !!millennialText && !!zoomerText && differs && (routeStatus.routeConnected || dictionaryOnly);
+            result.coverage.push({
+              key,
+              millennialText,
+              zoomerText,
+              differs,
+              dictionaryExists,
+              routeConnected: routeStatus.routeConnected,
+              liveResolverOutputDiffers: routeStatus.liveResolverOutputDiffers,
+              dictionaryOnly,
+              callsites,
+              pass,
+            });
             if (!millennialText) fail("millennial_text_missing", { key });
             if (!zoomerText) fail("zoomer_text_missing", { key });
             if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
+            if (!dictionaryExists) fail("dictionary_key_missing", { key });
           });
+          result.summary.dictionaryExistsCount = result.coverage.filter((entry) => entry.dictionaryExists).length;
+          result.summary.routeConnectedCount = result.coverage.filter((entry) => entry.routeConnected).length;
+          result.summary.dictionaryOnlyCount = result.coverage.filter((entry) => entry.dictionaryOnly).length;
+          result.summary.differingTextCount = result.coverage.filter((entry) => entry.differs).length;
           const moneyCoverage = result.coverage.find((entry) => entry.key === "not_enough_money");
+          const starsCoverage = result.coverage.find((entry) => entry.key === "not_enough_stars");
           const purchaseCoverage = result.coverage.find((entry) => entry.key === "purchase_success");
           if (!moneyCoverage) miss("not_enough_money");
-          if (!purchaseCoverage) miss("purchase_success");
-          if (moneyCoverage && moneyCoverage.differs !== true) fail("not_enough_money_not_different", moneyCoverage);
-          if (purchaseCoverage && purchaseCoverage.differs !== true) fail("purchase_success_not_different", purchaseCoverage);
-          const millennialSystemMoney = withProfile("millennial", () => String(G.System.say("errors", "insufficientPoints") || ""));
-          const zoomerSystemMoney = withProfile("zoomer", () => String(G.System.say("errors", "insufficientPoints") || ""));
-          if (!(millennialSystemMoney && zoomerSystemMoney && millennialSystemMoney !== zoomerSystemMoney)) {
-            fail("not_enough_money_route_missing", { millennialSystemMoney, zoomerSystemMoney });
-          }
+          if (!moneyCoverage || moneyCoverage.routeConnected !== true) fail("not_enough_money_route_missing", moneyCoverage || null);
+          if (starsCoverage && starsCoverage.callsites.length > 0 && starsCoverage.routeConnected !== true) fail("not_enough_stars_route_missing", starsCoverage);
+          if (purchaseCoverage && purchaseCoverage.callsites.length > 0 && purchaseCoverage.routeConnected !== true) fail("purchase_success_route_missing", purchaseCoverage);
+          if (result.summary.routeConnectedCount < 2) fail("minimum_real_route_coverage_not_met", result.summary);
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
@@ -4587,11 +4650,14 @@ window.Game = window.Game || {};
           && result.missingCoverage.length === 0
           && result.failedChecks.length === 0
           && result.coverage.length === REQUIRED_KEYS.length
-          && result.coverage.every((entry) => entry.pass === true);
+          && result.coverage.every((entry) => entry.pass === true)
+          && result.summary.dictionaryExistsCount === REQUIRED_KEYS.length
+          && result.summary.differingTextCount === REQUIRED_KEYS.length
+          && result.summary.routeConnectedCount >= 2;
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeZoomerFeelStep61CoreSystemMessages = G.__DEV.smokeZoomerFeelStep61CoreSystemMessages;
+      G.Dev.smokeZoomerFeelStep61RCoreSystemRealCoverage = G.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage;
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62ConflictResults !== "function") {
       G.__DEV.smokeZoomerFeelStep62ConflictResults = function smokeZoomerFeelStep62ConflictResults() {

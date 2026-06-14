@@ -14,7 +14,7 @@ const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say ==
 Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
-  respect_no_points: "Не хватает 💰.",
+  respect_no_points: systemSay("errors", "insufficientPoints"),
   respect_pair_daily: systemSay("warnings", "respectPairDaily"),
   respect_no_chain: systemSay("warnings", "respectNoChain"),
   respect_emitter_empty: systemSay("warnings", "respectEmitterEmpty"),
