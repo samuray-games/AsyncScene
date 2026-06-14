@@ -3963,6 +3963,141 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix5 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep52TextResolverOnly !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_2_text_resolver_only";
+      const COMMIT = "step6_5_2_text_resolver_only";
+      const SMOKE_VERSION = "step6_5_2_text_resolver_only_smoke_v20260614_001";
+      const collectFunctionSources = (rootLabel, root, hits, visited) => {
+        if (!root || (typeof root !== "object" && typeof root !== "function")) return;
+        if (visited.has(root)) return;
+        visited.add(root);
+        Object.keys(root).forEach((key) => {
+          let value;
+          try { value = root[key]; } catch (_) { return; }
+          const path = `${rootLabel}.${key}`;
+          if (typeof value === "function") {
+            const source = String(Function.prototype.toString.call(value));
+            if (/\buiProfile\b/.test(source) || /\b(profileResolver|resolveUiProfileFromBirthYearValue|resolveUiProfileFromFutureValue)\b/.test(source)) {
+              hits.push({ path, source: source.slice(0, 260) });
+            }
+            return;
+          }
+          if (value && (typeof value === "object" || typeof value === "function")) {
+            collectFunctionSources(path, value, hits, visited);
+          }
+        });
+      };
+      const collectSourceTextHits = (label, value, patterns) => {
+        const source = String(value == null ? "" : value);
+        const matched = patterns.filter((pattern) => pattern.test(source));
+        return matched.length ? [{ label, matched: matched.map((pattern) => String(pattern)), source: source.slice(0, 260) }] : [];
+      };
+      G.__DEV.smokeToneProfilesStep52TextResolverOnly = function smokeToneProfilesStep52TextResolverOnly() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          uiTextDiffersOk: false,
+          resolverOnlyOk: false,
+          gameLogicHasNoUiProfileChecks: false,
+          gameLogicDoesNotImportProfileResolver: false,
+          noScatteredProfileConditionals: false,
+          econHasNoUiProfileRefs: false,
+          moneyLogHasNoUiProfileRefs: false,
+          battleHasNoUiProfileRefs: false,
+          cooldownHasNoUiProfileRefs: false,
+          millennialText: "",
+          zoomerText: "",
+          sampleKey: "tie_start",
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const Data = G.Data || null;
+          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+          const t = Data && typeof Data.t === "function" ? Data.t.bind(Data) : null;
+          const beforeProfile = getUiProfile ? getUiProfile() : "default";
+          const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+
+          const logicRoots = [];
+          const logicVisited = new Set();
+          collectFunctionSources("Game._ConflictEconomy", G._ConflictEconomy, logicRoots, logicVisited);
+          collectFunctionSources("Game.ConflictEconomy", G.ConflictEconomy, logicRoots, logicVisited);
+          collectFunctionSources("Game.State", G.State, logicRoots, logicVisited);
+          collectFunctionSources("Game.Battle", G.Battle, logicRoots, logicVisited);
+          collectFunctionSources("Game.Conflict", G.Conflict, logicRoots, logicVisited);
+
+          const uiProfileChecks = logicRoots.filter((hit) => /\buiProfile\b/.test(hit.source));
+          const resolverImports = logicRoots.filter((hit) => /\b(resolveUiProfileFromBirthYearValue|resolveUiProfileFromFutureValue|profileResolver)\b/.test(hit.source));
+          const scatteredConditionals = logicRoots.filter((hit) => /\b(?:if|switch)\b[\s\S]{0,120}\buiProfile\b/.test(hit.source));
+
+          const econHits = collectSourceTextHits("econ", G._ConflictEconomy, [/\buiProfile\b/, /\bresolveUiProfileFrom/]);
+          const moneyLogHits = collectSourceTextHits("moneyLog", G.__D && G.__D.moneyLog, [/\buiProfile\b/, /\bresolveUiProfileFrom/]);
+          const battleHits = collectSourceTextHits("battle", G.Battle, [/\buiProfile\b/, /\bresolveUiProfileFrom/]);
+          const cooldownHits = collectSourceTextHits("cooldown", G.State && G.State.cooldowns, [/\buiProfile\b/, /\bresolveUiProfileFrom/]);
+
+          result.gameLogicHasNoUiProfileChecks = uiProfileChecks.length === 0;
+          result.gameLogicDoesNotImportProfileResolver = resolverImports.length === 0;
+          result.noScatteredProfileConditionals = scatteredConditionals.length === 0;
+          result.econHasNoUiProfileRefs = econHits.length === 0;
+          result.moneyLogHasNoUiProfileRefs = moneyLogHits.length === 0;
+          result.battleHasNoUiProfileRefs = battleHits.length === 0;
+          result.cooldownHasNoUiProfileRefs = cooldownHits.length === 0;
+
+          if (!result.gameLogicHasNoUiProfileChecks) fail("game_logic_uiProfile_check_found", uiProfileChecks);
+          if (!result.gameLogicDoesNotImportProfileResolver) fail("game_logic_profile_resolver_import_found", resolverImports);
+          if (!result.noScatteredProfileConditionals) fail("scattered_profile_conditionals_found", scatteredConditionals);
+          if (!result.econHasNoUiProfileRefs) fail("econ_uiProfile_reference_found", econHits);
+          if (!result.moneyLogHasNoUiProfileRefs) fail("moneyLog_uiProfile_reference_found", moneyLogHits);
+          if (!result.battleHasNoUiProfileRefs) fail("battle_uiProfile_reference_found", battleHits);
+          if (!result.cooldownHasNoUiProfileRefs) fail("cooldown_uiProfile_reference_found", cooldownHits);
+
+          if (setUiProfile) setUiProfile("millennial");
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = "millennial";
+          result.millennialText = t ? String(t(result.sampleKey) || "") : "";
+          if (setUiProfile) setUiProfile("zoomer");
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = "zoomer";
+          result.zoomerText = t ? String(t(result.sampleKey) || "") : "";
+          if (setUiProfile) setUiProfile(beforeProfile);
+          if (Data && typeof beforeTextMode === "string") Data.TEXT_MODE = beforeTextMode;
+
+          result.uiTextDiffersOk = String(result.millennialText || "") !== String(result.zoomerText || "")
+            && String(result.millennialText || "").trim() !== ""
+            && String(result.zoomerText || "").trim() !== "";
+          result.resolverOnlyOk = result.uiTextDiffersOk === true
+            && result.gameLogicHasNoUiProfileChecks === true
+            && result.gameLogicDoesNotImportProfileResolver === true
+            && result.noScatteredProfileConditionals === true;
+
+          if (!result.uiTextDiffersOk) fail("ui_text_did_not_differ", { sampleKey: result.sampleKey, millennialText: result.millennialText, zoomerText: result.zoomerText });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.uiTextDiffersOk === true
+          && result.resolverOnlyOk === true
+          && result.gameLogicHasNoUiProfileChecks === true
+          && result.gameLogicDoesNotImportProfileResolver === true
+          && result.noScatteredProfileConditionals === true
+          && result.econHasNoUiProfileRefs === true
+          && result.moneyLogHasNoUiProfileRefs === true
+          && result.battleHasNoUiProfileRefs === true
+          && result.cooldownHasNoUiProfileRefs === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep52TextResolverOnly = G.__DEV.smokeToneProfilesStep52TextResolverOnly;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {

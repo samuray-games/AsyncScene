@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.2 text resolver only
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep all millennial/zoomer differences inside the UI text resolver layer so game logic receives already resolved strings and does not inspect `uiProfile` or profile resolver internals.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep52TextResolverOnly()`.
+- Smoke coverage verifies millennial vs zoomer UI text differs, the difference comes through `Data.t()` / the text resolver only, game logic has no `uiProfile` checks, game logic does not import or call the profile resolver, no scattered profile conditionals exist outside the UI resolver layer, and ECON/moneyLog/battle/cooldown remain free of `uiProfile` refs.
+- Served identity: `build_2026_06_14_step6_5_2_text_resolver_only` / `step6_5_2_text_resolver_only` / `step6_5_2_text_resolver_only_smoke_v20260614_001`.
+- Scope held: UI resolver/text-only audit; no gameplay changes, no ECON changes, no moneyLog changes, no battle logic changes, no cooldown logic changes, and no save behavior changes.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep52TextResolverOnly()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 5
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: sync the active `uiProfile` to the UI text mode aliases so millennial resolves through the millennial/default table and zoomer resolves through the zoomer table, without touching gameplay, balance, save behavior, or boundary enforcement.

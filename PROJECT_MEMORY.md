@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.2 text resolver only
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep52TextResolverOnly()` with build identity `build_2026_06_14_step6_5_2_text_resolver_only` / `step6_5_2_text_resolver_only` / `step6_5_2_text_resolver_only_smoke_v20260614_001`.
+- The smoke checks that millennial vs zoomer UI text differs through `Data.t()` / the UI text resolver only, that game logic does not check `uiProfile` or import/call the profile resolver, that scattered profile conditionals are not present outside the UI resolver layer, and that ECON/moneyLog/battle/cooldown remain free of `uiProfile` refs.
+- Scope held: UI resolver/text-only audit; no gameplay changes, no ECON changes, no moneyLog changes, no battle logic changes, no cooldown logic changes, and no save behavior changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 5
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix5()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary_fix5` / `step6_5_1_ui_only_boundary_fix5` / `step6_5_1_ui_only_boundary_smoke_v20260614_006`.
 - The UI bootstrap now syncs `uiProfile` into explicit `millennial` and `zoomer` text-mode aliases, `Data.t()` resolves through those aliases with millennial/default fallback, and the smoke verifies raw vs resolved `tie_start` values plus active `TEXT_MODE` for both profiles while preserving the ECON/moneyLog/battle/cooldown boundary checks.
