@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.5.1 Zoomer Feel Pass NPC SAY + DM Profile Routing
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: route visible NPC chat, DM, and villain prompt lines through the new millennial/zoomer profile text maps while keeping the millennial/default arrays as fallback and preserving the existing NPCSpeech runtime generator.
+- Added dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep651NpcSayDmProfileRouting()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `samples`, and `summary`.
+- Summary contract: `checkedRoles`, `chatSampleCount`, `dmSampleCount`, `villainSampleCount`, `millennialZoomerDifferentCount`, `unchangedCount`, `routedChatCount`, `routedDmCount`, and `routedVillainCount`.
+- Scope held: profile-aware text routing and smoke only; no gameplay changes, no NPC selection changes, no conflict changes, no REP/points/money/ECON/moneyLog/voting/outcome/persistence/chronology changes, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.4R Zoomer Feel Pass Reputation real coverage repair
 - Step 6.0 inventory held: the Step 6.4 reputation keys were present in the resolver dictionary, but real visible UI coverage was still pending.
 - Routed the visible reputation gain/loss paths through the existing profile text resolver in `AsyncScene/Web/ui/ui-core.js`, `AsyncScene/Web/events.js`, and `AsyncScene/Web/ui/ui-dm.js`, then mirrored the same runtime text-routing repair into `docs/`.
