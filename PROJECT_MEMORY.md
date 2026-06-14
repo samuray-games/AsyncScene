@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 3
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix3()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_fix3` / `step6_5_1_ui_only_boundary_smoke_v20260614_004`.
+- The UI bootstrap now syncs the active `uiProfile` into the UI copy mode so `Data.t()` follows the active profile inside the UI boundary, and the smoke verifies millennial vs zoomer copy differs for a profile-specific key.
+- Scope held: UI-only copy resolver sync; no gameplay changes, no balance changes, and no save behavior changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 2
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_smoke_v20260614_003`.
 - The smoke verifies `uiProfile` is not referenced by the ECON path, moneyLog path, battle path, or cooldown path, proves the active profile before each lookup, and validates a profile-specific key exists before comparing millennial vs zoomer text.
