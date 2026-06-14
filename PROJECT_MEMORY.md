@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.1 full year input
+- Updated the fantasy year input to accept signed integer text at the UI layer by adding the signed pattern hint `-?[0-9]*` in both served trees.
+- The field still stays resolver-neutral: no normalization, no save changes, no profile-selection changes, and no new systems.
+- Negative values remain intact as typed; the change is limited to UI input acceptance.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.7 final smoke
 - Added the final integrated Step 3 runtime smoke as `Game.__DEV.smokeToneProfilesStep37Final()` with identity `build_2026_06_14_step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke` / `step6_3_7_tone_profiles_final_smoke_v20260614_002`.
 - The aggregate smoke composes the existing Step 3 first-launch, secondary-visibility, alternate-resolver, replacement, save-validation, weird-input, and future-hook smokes into one runtime result contract without changing underlying gameplay, resolver mappings, profiles, or save schema.

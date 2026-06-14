@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.1 full year input
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make the fantasy year field accept any integer value at the UI layer, including negative values, without changing resolver behavior, normalization, save logic, or profile selection logic.
+- Updated the start-screen text input to carry a signed-integer pattern hint (`-?[0-9]*`) in both served trees so browsers accept `3026`, `1138`, `0`, `-400`, and `999999` as input text.
+- Scope held: UI acceptance only; no resolver changes, no normalization changes, no save changes, no profile-selection changes, and no unrelated refactors.
+- Required Safari command remains the existing final smoke path.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 3.7 final smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add one final integrated runtime smoke for the Step 3 change-later flow without changing gameplay behavior, resolver mappings, save schema, profile inventory, or persistence model.
