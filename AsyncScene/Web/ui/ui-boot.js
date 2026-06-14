@@ -478,6 +478,7 @@ window.Game = window.Game || {};
       birthYearFeelingInput.autocapitalize = "off";
       birthYearFeelingInput.spellcheck = false;
       birthYearFeelingInput.inputMode = "text";
+      birthYearFeelingInput.pattern = "-?[0-9]*";
       const insertFeelingInputBefore = $("startBtns") || document.getElementById("startBtns");
       if (insertFeelingInputBefore && insertFeelingInputBefore.parentNode) insertFeelingInputBefore.parentNode.insertBefore(birthYearFeelingInput, insertFeelingInputBefore);
     }
