@@ -1,3 +1,11 @@
+## 2026-06-14 — Step 6 Tone Profiles UI Profile Text Coverage Smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: add a runtime smoke `Game.__DEV.smokeToneProfilesUiTextCoverage()` that verifies important UI copy paths go through the text resolver, proves both `millennial` and `zoomer` profiles are active, and records where differences are expected vs. where matching text is correct.
+- Smoke coverage: not enough money, not enough stars, purchase, sale, reward, penalty, rematch, cop reward, inventory full, cooldown.
+- Served identity: `build_2026_06_14_tone_profiles_ui_text_coverage` / `tone_profiles_ui_text_coverage` / `tone_profiles_ui_text_coverage_v20260614_001`.
+- Scope held: runtime smoke only; no gameplay changes, no ECON changes, no moneyLog changes, no battle logic changes, no cooldown logic changes, no save changes, and no unrelated copy rewrites.
+- Required Safari command: `Game.__DEV.smokeToneProfilesUiTextCoverage()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: export the Fix2 smoke into the served runtime so Safari exposes `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2()` and add a Fix3 smoke that proves the export is present.

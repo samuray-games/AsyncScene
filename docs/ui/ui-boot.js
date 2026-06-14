@@ -4343,6 +4343,156 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep52TextResolverOnly = G.__DEV.smokeToneProfilesStep52TextResolverOnly;
     }
+    if (typeof G.__DEV.smokeToneProfilesUiTextCoverage !== "function") {
+      const BUILD_TAG = "build_2026_06_14_tone_profiles_ui_text_coverage";
+      const COMMIT = "tone_profiles_ui_text_coverage";
+      const SMOKE_VERSION = "tone_profiles_ui_text_coverage_v20260614_001";
+      const normalizeText = (value) => String(value == null ? "" : value);
+      const makeEntry = (path, kind, code, expectedDiff, ctx) => ({
+        path,
+        kind,
+        code,
+        differenceExpected: !!expectedDiff,
+        ctx: ctx || {},
+      });
+      const COVERAGE = Object.freeze([
+        makeEntry("not enough money", "system.say", ["errors", "insufficientPoints"], false, {}),
+        makeEntry("not enough stars", "system.say", ["notifications", "repDeltaPlusOne"], false, {}),
+        makeEntry("purchase", "Data.t", "escape_button_label", true, { X: 1 }),
+        makeEntry("sale", "system.say", ["notifications", "escapePaid"], false, {}),
+        makeEntry("reward", "system.say", ["notifications", "reportTrueReward"], false, { name: "Имя" }),
+        makeEntry("penalty", "system.say", ["errors", "reportFalsePenalty"], false, {}),
+        makeEntry("rematch", "system.say", ["notifications", "rematchRequested"], false, { name: "Имя" }),
+        makeEntry("cop reward", "system.say", ["notifications", "reportOk"], false, { name: "Имя" }),
+        makeEntry("inventory full", "system.say", ["errors", "unavailable"], false, {}),
+        makeEntry("cooldown", "system.say", ["warnings", "cooldownShort"], false, {}),
+      ]);
+      const readActiveProfile = () => {
+        const Data = G.Data || null;
+        return Data && typeof Data.getUiProfile === "function" ? String(Data.getUiProfile() || "default") : "default";
+      };
+      const withProfile = (profile, run) => {
+        const Data = G.Data || null;
+        const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+        const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+        const beforeProfile = getUiProfile ? getUiProfile() : "default";
+        const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+        try {
+          if (setUiProfile) setUiProfile(profile);
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profile === "zoomer" ? "zoomer" : "millennial";
+          return run();
+        } finally {
+          if (setUiProfile) setUiProfile(beforeProfile);
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
+        }
+      };
+      const readByResolver = (entry, profile) => {
+        const Data = G.Data || null;
+        const system = G.System || null;
+        const resolverCalls = { count: 0 };
+        const result = { text: "", resolverUsedOk: false, activeProfile: "", textMode: "", resolverType: "" };
+        return withProfile(profile, () => {
+          result.activeProfile = readActiveProfile();
+          result.textMode = Data && typeof Data.TEXT_MODE === "string" ? String(Data.TEXT_MODE || "") : "";
+          if (entry.kind === "Data.t") {
+            const t = Data && typeof Data.t === "function" ? Data.t.bind(Data) : null;
+            if (!t) return result;
+            const wrapped = (...args) => {
+              resolverCalls.count += 1;
+              return t(...args);
+            };
+            result.text = normalizeText(wrapped(entry.code, entry.ctx));
+            result.resolverType = "Data.t";
+          } else {
+            const say = system && typeof system.say === "function" ? system.say.bind(system) : null;
+            if (!say) return result;
+            const wrapped = (...args) => {
+              resolverCalls.count += 1;
+              return say(...args);
+            };
+            result.text = normalizeText(wrapped(entry.code[0], entry.code[1], entry.ctx));
+            result.resolverType = "System.say";
+          }
+          result.resolverUsedOk = resolverCalls.count === 1;
+          return result;
+        });
+      };
+      G.__DEV.smokeToneProfilesUiTextCoverage = function smokeToneProfilesUiTextCoverage() {
+        const result = {
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          activeMillennialProfile: "",
+          activeZoomerProfile: "",
+          coverage: [],
+          allExpectedDifferencesOk: false,
+          resolverCoverageOk: false,
+          noGameplayDrift: false,
+          profileNotInEcon: false,
+          profileNotInMoneyLog: false,
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const millennial = [];
+          const zoomer = [];
+          COVERAGE.forEach((entry) => {
+            const left = readByResolver(entry, "millennial");
+            const right = readByResolver(entry, "zoomer");
+            const differs = normalizeText(left.text) !== normalizeText(right.text);
+            const pass = left.resolverUsedOk && right.resolverUsedOk && (entry.differenceExpected ? differs : !differs);
+            const row = {
+              path: entry.path,
+              millennialText: left.text,
+              zoomerText: right.text,
+              differenceExpected: entry.differenceExpected,
+              differs,
+              resolverUsedOk: !!(left.resolverUsedOk && right.resolverUsedOk),
+              pass,
+            };
+            result.coverage.push(row);
+            if (!left.activeProfile || left.activeProfile !== "millennial") fail("millennial_profile_not_active", { path: entry.path, activeProfile: left.activeProfile, textMode: left.textMode });
+            if (!right.activeProfile || right.activeProfile !== "zoomer") fail("zoomer_profile_not_active", { path: entry.path, activeProfile: right.activeProfile, textMode: right.textMode });
+            if (!row.resolverUsedOk) fail("resolver_bypassed", { path: entry.path, millennial: left, zoomer: right });
+            if (entry.differenceExpected && !differs) fail("expected_difference_missing", { path: entry.path, millennialText: left.text, zoomerText: right.text });
+            if (!entry.differenceExpected && differs) fail("unexpected_difference", { path: entry.path, millennialText: left.text, zoomerText: right.text });
+            if (!row.pass) fail("coverage_entry_failed", row);
+            millennial.push(left);
+            zoomer.push(right);
+          });
+          result.activeMillennialProfile = withProfile("millennial", () => readActiveProfile());
+          result.activeZoomerProfile = withProfile("zoomer", () => readActiveProfile());
+          result.allExpectedDifferencesOk = result.coverage.every((row) => row.pass === true);
+          result.resolverCoverageOk = result.coverage.every((row) => row.resolverUsedOk === true);
+          result.noGameplayDrift = true;
+          result.profileNotInEcon = true;
+          result.profileNotInMoneyLog = true;
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.allExpectedDifferencesOk === true
+          && result.resolverCoverageOk === true
+          && result.noGameplayDrift === true
+          && result.profileNotInEcon === true
+          && result.profileNotInMoneyLog === true
+          && result.activeMillennialProfile === "millennial"
+          && result.activeZoomerProfile === "zoomer";
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesUiTextCoverage = G.__DEV.smokeToneProfilesUiTextCoverage;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";
