@@ -128,7 +128,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     return Data.RULES.p2pPlayerToPlayerEnabled;
   };
 
-  // UI profile resolver (default | silent | boomer | genX | millennial | zoomer | alpha)
+  // UI profile resolver (default | silent | ancient | medieval | renaissance | industrial | boomer | genX | millennial | zoomer | alpha | future)
   const UI_PROFILE_RULES = Object.freeze({
     twoDigitYear: Object.freeze({
       legacyMin: 28,
@@ -145,12 +145,16 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       },
     }),
     yearBands: Object.freeze([
-      Object.freeze({ min: 1928, max: 1945, profile: "silent" }),
+      Object.freeze({ min: Number.NEGATIVE_INFINITY, max: 0, profile: "ancient" }),
+      Object.freeze({ min: 1, max: 1499, profile: "medieval" }),
+      Object.freeze({ min: 1500, max: 1799, profile: "renaissance" }),
+      Object.freeze({ min: 1800, max: 1945, profile: "industrial" }),
       Object.freeze({ min: 1946, max: 1964, profile: "boomer" }),
       Object.freeze({ min: 1965, max: 1980, profile: "genX" }),
       Object.freeze({ min: 1981, max: 1996, profile: "millennial" }),
       Object.freeze({ min: 1997, max: 2012, profile: "zoomer" }),
-      Object.freeze({ min: 2013, max: 2027, profile: "alpha" }),
+      Object.freeze({ min: 2013, max: new Date().getFullYear(), profile: "alpha" }),
+      Object.freeze({ min: new Date().getFullYear() + 1, max: Number.POSITIVE_INFINITY, profile: "future" }),
     ]),
     millennial: Object.freeze({ min: 81, max: 96 }),
     zoomer: Object.freeze([
@@ -187,7 +191,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.normalizeUiProfile = (profile) => {
     const value = String(profile || "").trim().toLowerCase();
-    if (value === "default" || value === "millennial" || value === "zoomer") return value;
+    if (value === "default" || value === "ancient" || value === "medieval" || value === "renaissance" || value === "industrial" || value === "boomer" || value === "genx" || value === "genX" || value === "millennial" || value === "zoomer" || value === "alpha" || value === "future" || value === "silent") return value === "genx" ? "genX" : value;
     return "default";
   };
   Data.isReservedFutureUiProfileId = (profile) => UI_PROFILE_RESERVED_FUTURE_ID_SET.has(String(profile == null ? "" : profile).trim().toLowerCase());
@@ -196,11 +200,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.normalizeUiBirthYearValue = (value) => {
     const raw = String(value == null ? "" : value).trim();
     if (!raw) return null;
-    if (!/^\d{2}$/.test(raw)) return null;
+    if (!/^-?\d+$/.test(raw)) return null;
     const numeric = Number(raw);
     if (!Number.isFinite(numeric)) return null;
-    const normalized = String(Math.trunc(numeric)).padStart(2, "0").slice(-2);
-    return /^\d{2}$/.test(normalized) ? normalized : null;
+    return String(Math.trunc(numeric));
   };
 
   Data.expandUiBirthYearValue = (normalizedValue) => UI_PROFILE_RULES.twoDigitYear.resolve(String(normalizedValue == null ? "" : normalizedValue).trim());
@@ -208,8 +211,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.resolveUiProfileFromBirthYearValue = (value) => {
     const normalizedValue = Data.normalizeUiBirthYearValue(value);
     if (normalizedValue == null) return "default";
-    const year = Data.expandUiBirthYearValue(normalizedValue);
-    if (year == null) return "default";
+    const year = /^-?\d{1,2}$/.test(normalizedValue)
+      ? Data.expandUiBirthYearValue(normalizedValue)
+      : Number(normalizedValue);
+    if (!Number.isFinite(year)) return "default";
     const band = UI_PROFILE_RULES.yearBands.find((range) => year >= range.min && year <= range.max);
     return band ? band.profile : "default";
   };

@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.3 fantasy resolver
+- Updated the year-band resolver so any normalized integer year maps into a valid profile band across ancient, medieval, renaissance, industrial, boomer, X, millennial, zoomer, alpha, and future.
+- Kept the fallback safe for unsupported profile keys and did not change UI flow, save/storage behavior, or stored year data.
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep43FantasyResolver()` with its own `buildTag`, `commit`, and `smokeVersion` values.
+- Runtime PASS is still pending until Safari runs the smoke.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.2 safe normalization
 - Added `Game.Data.normalizeUiBirthYearValue()` and made `Game.Data.resolveUiProfileFromBirthYearValue()` use it as the single normalization gate before any profile-band evaluation.
 - The resolver path now rejects empty and invalid text input safely, blocks `NaN` from the resolver boundary, and falls back to `default` when normalization fails.
