@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.5 no data storage rule fix 1
+- Added the retry smoke `Game.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1()` to exercise the saved-uiProfile restore branch directly and verify the reload contract after the default-fallback failure.
+- The runtime restore path now re-applies saved `uiProfile` into `Data`, `UI.S.flags`, `G.__S.flags`, and `G.State.flags` when `state.save.uiProfile` is present.
+- Served identity: `build_2026_06_14_step6_4_5_no_data_storage_rule_fix1` / `step6_4_5_no_data_storage_rule_fix1` / `step6_4_5_no_data_storage_rule_fix1_smoke_v20260614_001`.
+- Scope held: restore-path retry only; no resolver band changes, no fallback changes, no start-screen flow changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.5 no data storage rule
 - Replaced the profile save write path so it now stores only `{ uiProfile }` instead of carrying any existing save fields forward.
 - Added dev-only smoke `Game.__DEV.smokeToneProfilesStep45NoDataStorageRule()` to verify `uiProfile` persistence, absence of `fantasyYear` and `birthYear`, no year field in localStorage, reload restoration of `uiProfile`, and no raw fantasy-input persistence.
