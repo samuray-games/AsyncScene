@@ -3412,7 +3412,7 @@ K YN A9: Нет.
     toxicStealLine: (cost) => systemSay("systemEvents", "toxicStealLine", { cost }) || `Токсик забрал ${cost}💰.`,
   };
 
-  const NPC_EVENT_TEMPLATE_MILLENNIAL = Object.freeze({
+  Data.NPC_EVENT_TEMPLATES = Object.freeze({
     victory: Object.freeze([
       { role: "cop", text: systemSay("systemEvents", "npcVictoryCop", { winner: "{winner}" }) || "Коп: победа за {winner}." },
       { role: "mafia", text: systemSay("systemEvents", "npcVictoryMafia", { winner: "{winner}" }) || "Мафиози: итог за {winner}." },
@@ -3449,265 +3449,166 @@ K YN A9: Нет.
       { role: "crowd", text: "Толпа: обвинение в чате." }
     ])
   });
-  const NPC_EVENT_TEMPLATE_PROFILE_TEXTS = Object.freeze({
-    zoomer: Object.freeze({
-      victory: Object.freeze([
-        { role: "cop", text: "Коп: {winner} забрал раунд." },
-        { role: "mafia", text: "Мафиози: итог ушёл к {winner}." },
-        { role: "bandit", text: "Бандит: {winner} вышел в плюс." },
-        { role: "toxic", text: "Токсик: {winner} продавил." },
-        { role: "crowd", text: "Толпа: {winner} вывез." }
-      ]),
-      defeat: Object.freeze([
-        { role: "cop", text: "Коп: {loser} просел в раунде." },
-        { role: "mafia", text: "Мафиози: {loser} оставил след." },
-        { role: "bandit", text: "Бандит: {loser} потерял ход." },
-        { role: "toxic", text: "Токсик: {loser} не удержал ответ." },
-        { role: "crowd", text: "Толпа: {loser} не вывез." }
-      ]),
-      arrest: Object.freeze([
-        { role: "cop", text: "Коп: {npc} принят в работу." },
-        { role: "mafia", text: "Мафиози: {npc} шумно исчез." },
-        { role: "bandit", text: "Бандит: {npc} попался." },
-        { role: "toxic", text: "Токсик: {npc} договорился." },
-        { role: "crowd", text: "Толпа: {npc} ушёл под сирены." }
-      ]),
-      rumor: Object.freeze([
-        { role: "cop", text: "Коп: по {npc} пошёл сигнал." },
-        { role: "mafia", text: "Мафиози: про {npc} пошёл тихий слух." },
-        { role: "bandit", text: "Бандит: про {npc} шепчут у выхода." },
-        { role: "toxic", text: "Токсик: {npc} снова в разговорах." },
-        { role: "crowd", text: "Толпа: про {npc} уже шумит." }
-      ]),
-      accusationInjection: Object.freeze([
-        { role: "cop", text: "Коп: по {target} есть заявление." },
-        { role: "mafia", text: "Мафиози: {target} оставил лишний след." },
-        { role: "bandit", text: "Бандит: {target} засветился." },
-        { role: "toxic", text: "Токсик: {target} сам подставился." },
-        { role: "crowd", text: "Толпа: {target} попал в разговор." }
-      ])
-    })
-  });
-  const NPC_EVENT_TEMPLATE_TYPES = Object.freeze(Object.keys(NPC_EVENT_TEMPLATE_MILLENNIAL));
-  const NPC_EVENT_TEMPLATE_EMPTY_ROWS = Object.freeze([]);
-  const NPC_EVENT_TEMPLATE_EMPTY_ROW = Object.freeze({ role: "", text: "" });
-  const NPC_EVENT_TEMPLATE_PLACEHOLDER_RE = /\{(\w+)\}/g;
-  const NPC_EVENT_TEMPLATE_PROFILE_CACHE = Object.create(null);
-  const normalizeNpcEventTemplateProfile = (profile) => {
-    const value = String(profile == null ? "" : profile).trim().toLowerCase();
-    return value === "zoomer" ? "zoomer" : "millennial";
-  };
-  const replaceNpcEventTemplatePlaceholders = (text, vars) => String(text == null ? "" : text).replace(NPC_EVENT_TEMPLATE_PLACEHOLDER_RE, (match, key) => {
-    if (vars && Object.prototype.hasOwnProperty.call(vars, key)) return String(vars[key]);
-    return match;
-  });
-  const getNpcEventTemplateRowsForProfile = (type, profile) => {
-    const profileKey = normalizeNpcEventTemplateProfile(profile);
-    if (profileKey === "millennial") return NPC_EVENT_TEMPLATE_MILLENNIAL[type] || NPC_EVENT_TEMPLATE_EMPTY_ROWS;
-    const cached = NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey];
-    if (cached && cached[type]) return cached[type];
-    const overlay = (NPC_EVENT_TEMPLATE_PROFILE_TEXTS[profileKey] && NPC_EVENT_TEMPLATE_PROFILE_TEXTS[profileKey][type]) || NPC_EVENT_TEMPLATE_EMPTY_ROWS;
-    const base = NPC_EVENT_TEMPLATE_MILLENNIAL[type] || NPC_EVENT_TEMPLATE_EMPTY_ROWS;
-    const rows = Object.freeze(base.map((row, index) => {
-      const sourceRow = overlay[index] || row || NPC_EVENT_TEMPLATE_EMPTY_ROW;
-      return Object.freeze({
-        role: sourceRow && sourceRow.role != null ? String(sourceRow.role) : "",
-        text: Data.resolveNpcEventTemplateText(type, index, "text", null, profileKey)
-      });
-    }));
-    if (!NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey]) NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey] = Object.create(null);
-    NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey][type] = rows;
-    return rows;
-  };
-  const getNpcEventTemplateSetForProfile = (profile) => {
-    const profileKey = normalizeNpcEventTemplateProfile(profile);
-    if (profileKey === "millennial") return NPC_EVENT_TEMPLATE_MILLENNIAL;
-    const cached = NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey];
-    if (cached && cached.__all__) return cached.__all__;
-    const set = {};
-    NPC_EVENT_TEMPLATE_TYPES.forEach((type) => {
-      set[type] = getNpcEventTemplateRowsForProfile(type, profileKey);
-    });
-    const frozen = Object.freeze(set);
-    if (!NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey]) NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey] = Object.create(null);
-    NPC_EVENT_TEMPLATE_PROFILE_CACHE[profileKey].__all__ = frozen;
-    return frozen;
-  };
-  Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS = NPC_EVENT_TEMPLATE_PROFILE_TEXTS;
-  Data.resolveNpcEventTemplateText = (type, index, field, vars, profileOverride) => {
-    const profileKey = normalizeNpcEventTemplateProfile(profileOverride != null ? profileOverride : (typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE));
-    const key = String(field == null ? "text" : field);
-    const baseRows = NPC_EVENT_TEMPLATE_MILLENNIAL[type] || NPC_EVENT_TEMPLATE_EMPTY_ROWS;
-    const row = baseRows[index] || NPC_EVENT_TEMPLATE_EMPTY_ROW;
-    const overlayRows = profileKey === "zoomer" ? ((NPC_EVENT_TEMPLATE_PROFILE_TEXTS.zoomer && NPC_EVENT_TEMPLATE_PROFILE_TEXTS.zoomer[type]) || NPC_EVENT_TEMPLATE_EMPTY_ROWS) : NPC_EVENT_TEMPLATE_EMPTY_ROWS;
-    const sourceRow = profileKey === "zoomer" ? (overlayRows[index] || row) : row;
-    const value = sourceRow && Object.prototype.hasOwnProperty.call(sourceRow, key) ? sourceRow[key] : row[key];
-    return replaceNpcEventTemplatePlaceholders(value, vars);
-  };
-  Data.NPC_EVENT_TEMPLATES = new Proxy(NPC_EVENT_TEMPLATE_MILLENNIAL, {
-    get(target, prop, receiver) {
-      if (typeof prop === "string" && Object.prototype.hasOwnProperty.call(target, prop)) {
-        return getNpcEventTemplateSetForProfile(typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE)[prop];
-      }
-      return Reflect.get(target, prop, receiver);
-    },
-    ownKeys(target) {
-      return Reflect.ownKeys(target);
-    },
-    getOwnPropertyDescriptor(target, prop) {
-      return Object.getOwnPropertyDescriptor(target, prop);
-    },
-    has(target, prop) {
-      return Reflect.has(target, prop);
-    }
-  });
 
 
   Data.pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  const installNpcEventTemplateProfileTextsSmokeViaData = () => {
+  const installNpcEventTemplateProfileTextsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
-    if (typeof root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts === "function") return;
-    const buildTag = "build_2026_06_15_step6_5_2_npc_conflict_feed_profile_texts";
-    const commit = "step6_5_2_npc_conflict_feed_profile_texts";
-    const smokeVersion = "step6_5_2_npc_conflict_feed_profile_texts_smoke_v20260615_001";
-    const baseProfile = "millennial";
-    const zoomerProfile = "zoomer";
-    const forbiddenTerms = ["кринж", "вайб", "изи", "рофл", "лол", "хайп", "топчик", "имба", "жиза"];
-    const placeholderOf = (text) => {
-      const tokens = [];
-      String(text == null ? "" : text).replace(NPC_EVENT_TEMPLATE_PLACEHOLDER_RE, (_, key) => {
-        tokens.push(key);
-        return _;
-      });
-      return tokens;
-    };
-    const captureTemplateSet = (profile) => {
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 === "function") {
+      root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1;
+      return;
+    }
+    root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 = function smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1() {
+      const buildTag = "build_2026_06_15_step6_5_2_fix1_restore_ui_boot";
+      const commit = "step6_5_2_fix1_restore_ui_boot";
+      const smokeVersion = "step6_5_2_fix1_restore_ui_boot_smoke_v20260615_001";
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        bootTextChecks: {},
+        uiLabelChecks: {},
+        npcEventTemplateChecks: {},
+        summary: {
+          checkedUiKeys: 0,
+          healthyUiKeys: 0,
+          checkedEventTypes: 0,
+          checkedEventRows: 0
+        }
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const placeholderRe = /\{(\w+)\}/g;
+      const checkedUiKeys = [
+        "menu_title",
+        "tie_start",
+        "tie_call_to_action",
+        "events_title",
+        "events_empty",
+        "events_done",
+        "battle_win",
+        "battle_lose",
+        "conflict_win",
+        "conflict_loss",
+        "invite_open_hint",
+        "invite_invalid"
+      ];
+      const previousTextMode = Data.TEXT_MODE;
       const previousProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
-      if (typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
       try {
+        result.bootTextChecks.gameDataExists = !!(root && root.Data);
+        result.bootTextChecks.textsExists = !!(Data && Data.TEXTS && typeof Data.TEXTS === "object");
+        result.bootTextChecks.tExists = typeof Data.t === "function";
+        if (!result.bootTextChecks.gameDataExists) fail("game_data_missing", null);
+        if (!result.bootTextChecks.textsExists) fail("texts_missing", null);
+        if (!result.bootTextChecks.tExists) fail("text_resolver_missing", null);
+
+        if (typeof Data.setUiProfile === "function") Data.setUiProfile("millennial");
+        Data.TEXT_MODE = "millennial";
+
+        const resolveUiKey = (key) => {
+          const value = typeof Data.t === "function" ? Data.t(key) : "";
+          const text = String(value == null ? "" : value).trim();
+          const ok = !!text && text !== key && !/^(undefined|null)$/i.test(text);
+          return { text, ok };
+        };
+
+        const menuTitle = resolveUiKey("menu_title");
+        result.bootTextChecks.menuTitleResolved = menuTitle.text;
+        result.bootTextChecks.menuTitleHealthy = menuTitle.ok;
+        if (!menuTitle.ok) fail("menu_title_raw_or_empty", menuTitle.text);
+
+        checkedUiKeys.forEach((key) => {
+          const info = resolveUiKey(key);
+          result.uiLabelChecks[key] = info;
+          result.summary.checkedUiKeys += 1;
+          if (info.ok) result.summary.healthyUiKeys += 1;
+          else fail("ui_label_unhealthy", { key, value: info.text });
+        });
+
+        const startTitle = String(((Data.START_SCREEN || {}).title) == null ? "" : Data.START_SCREEN.title).trim();
+        const startActionStart = String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start).trim();
+        const startActionRules = String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules).trim();
+        result.uiLabelChecks.start_screen_title = { text: startTitle, ok: !!startTitle && startTitle !== "startTitle" };
+        result.uiLabelChecks.start_action_start = { text: startActionStart, ok: !!startActionStart && startActionStart !== "startActionStart" };
+        result.uiLabelChecks.start_action_rules = { text: startActionRules, ok: !!startActionRules && startActionRules !== "startActionRules" };
+        ["start_screen_title", "start_action_start", "start_action_rules"].forEach((key) => {
+          const info = result.uiLabelChecks[key];
+          if (!info.ok) fail("start_screen_label_unhealthy", { key, value: info.text });
+        });
+
         const templateSet = Data.NPC_EVENT_TEMPLATES || {};
-        return Object.keys(templateSet).reduce((acc, type) => {
+        const expectedTypes = ["victory", "defeat", "arrest", "rumor", "accusationInjection"];
+        result.npcEventTemplateChecks.exists = !!templateSet && typeof templateSet === "object";
+        if (!result.npcEventTemplateChecks.exists) fail("npc_event_templates_missing", null);
+        result.npcEventTemplateChecks.types = {};
+        result.npcEventTemplateChecks.placeholders = {};
+        expectedTypes.forEach((type) => {
           const rows = templateSet[type];
-          acc[type] = Array.isArray(rows) ? rows.map((row) => ({
-            role: String(row && row.role != null ? row.role : ""),
-            text: String(row && row.text != null ? row.text : "")
-          })) : [];
-          return acc;
-        }, {});
+          const typeInfo = {
+            exists: Array.isArray(rows),
+            length: Array.isArray(rows) ? rows.length : 0,
+            rolesPreserved: true
+          };
+          result.summary.checkedEventTypes += 1;
+          if (!Array.isArray(rows)) {
+            typeInfo.rolesPreserved = false;
+            result.missingCoverage.push(`event_type:${type}`);
+            fail("npc_event_type_missing", type);
+            result.npcEventTemplateChecks.types[type] = typeInfo;
+            return;
+          }
+          rows.forEach((row, index) => {
+            result.summary.checkedEventRows += 1;
+            if (!row || typeof row.role !== "string" || !row.role.trim()) {
+              typeInfo.rolesPreserved = false;
+              fail("npc_event_role_missing", { type, index, row });
+            }
+            const text = String(row && row.text != null ? row.text : "");
+            const placeholders = [];
+            text.replace(placeholderRe, (_, name) => {
+              placeholders.push(name);
+              return _;
+            });
+            result.npcEventTemplateChecks.placeholders[`${type}.${index}`] = placeholders;
+          });
+          if (typeInfo.length === 0) {
+            result.missingCoverage.push(`event_rows:${type}`);
+            fail("npc_event_rows_empty", type);
+          }
+          result.npcEventTemplateChecks.types[type] = typeInfo;
+        });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       } finally {
+        Data.TEXT_MODE = previousTextMode;
         if (typeof Data.setUiProfile === "function") Data.setUiProfile(previousProfile);
       }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.bootTextChecks.gameDataExists === true
+        && result.bootTextChecks.textsExists === true
+        && result.bootTextChecks.tExists === true
+        && result.bootTextChecks.menuTitleHealthy === true
+        && result.summary.healthyUiKeys >= 10;
+      return result;
     };
-    const result = {
-      buildTag,
-      commit,
-      smokeVersion,
-      ok: false,
-      failures: [],
-      forbiddenRemaining: [],
-      missingCoverage: [],
-      failedChecks: [],
-      samples: {},
-      summary: {
-        checkedTypes: 0,
-        checkedRows: 0,
-        millennialZoomerDifferentCount: 0,
-        unchangedCount: 0,
-        routedTemplateCount: 0,
-        placeholderPreservedCount: 0,
-        placeholderFailureCount: 0
-      }
-    };
-    const fail = (code, detail) => {
-      result.failures.push({ code, detail: detail == null ? null : detail });
-      if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
-    };
-    try {
-      const previousProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
-      const millennialTemplates = captureTemplateSet(baseProfile);
-      const zoomerTemplates = captureTemplateSet(zoomerProfile);
-      if (typeof Data.setUiProfile === "function") Data.setUiProfile(previousProfile);
-      const expectedTypes = Array.isArray(NPC_EVENT_TEMPLATE_TYPES) ? NPC_EVENT_TEMPLATE_TYPES : Object.keys(NPC_EVENT_TEMPLATE_MILLENNIAL || {});
-      result.summary.checkedTypes = expectedTypes.length;
-      expectedTypes.forEach((type) => {
-        const millennialRows = Array.isArray(millennialTemplates[type]) ? millennialTemplates[type] : null;
-        const zoomerRows = Array.isArray(zoomerTemplates[type]) ? zoomerTemplates[type] : null;
-        if (!millennialRows || !zoomerRows) {
-          result.missingCoverage.push(`type:${type}`);
-          fail("missing_template_type", { type, millennialRows: !!millennialRows, zoomerRows: !!zoomerRows });
-          return;
-        }
-        if (millennialRows.length !== zoomerRows.length) {
-          result.missingCoverage.push(`length:${type}`);
-          fail("template_length_changed", { type, millennialLength: millennialRows.length, zoomerLength: zoomerRows.length });
-          return;
-        }
-        result.summary.checkedRows += millennialRows.length;
-        result.samples[type] = [];
-        millennialRows.forEach((millennialRow, index) => {
-          const zoomerRow = zoomerRows[index] || { role: "", text: "" };
-          const routedMillennial = Data.resolveNpcEventTemplateText(type, index, "text", null, baseProfile);
-          const routedZoomer = Data.resolveNpcEventTemplateText(type, index, "text", null, zoomerProfile);
-          if (millennialRow.text === routedMillennial && zoomerRow.text === routedZoomer) {
-            result.summary.routedTemplateCount += 1;
-          } else {
-            fail("resolver_route_mismatch", {
-              type,
-              index,
-              millennialText: millennialRow.text,
-              routedMillennial,
-              zoomerText: zoomerRow.text,
-              routedZoomer
-            });
-          }
-          if (millennialRow.role !== zoomerRow.role) {
-            fail("role_changed", { type, index, millennialRole: millennialRow.role, zoomerRole: zoomerRow.role });
-          }
-          const millennialText = String(millennialRow.text || "");
-          const zoomerText = String(zoomerRow.text || "");
-          const millennialPlaceholders = placeholderOf(millennialText);
-          const zoomerPlaceholders = placeholderOf(zoomerText);
-          if (millennialText === zoomerText) {
-            result.summary.unchangedCount += 1;
-            fail("text_not_different", { type, index, role: millennialRow.role, text: millennialText });
-          } else {
-            result.summary.millennialZoomerDifferentCount += 1;
-          }
-          if (JSON.stringify(millennialPlaceholders) === JSON.stringify(zoomerPlaceholders)) {
-            result.summary.placeholderPreservedCount += 1;
-          } else {
-            result.summary.placeholderFailureCount += 1;
-            fail("placeholder_changed", { type, index, role: millennialRow.role, millennialPlaceholders, zoomerPlaceholders });
-          }
-          const combinedText = `${millennialText} ${zoomerText}`.toLowerCase();
-          forbiddenTerms.forEach((term) => {
-            if (combinedText.includes(term)) {
-              const entry = { type, index, role: millennialRow.role, term };
-              if (!result.forbiddenRemaining.some((item) => item.type === entry.type && item.index === entry.index && item.role === entry.role && item.term === entry.term)) {
-                result.forbiddenRemaining.push(entry);
-              }
-            }
-          });
-          result.samples[type].push({
-            role: millennialRow.role,
-            millennial: millennialText,
-            zoomer: zoomerText
-          });
-        });
-      });
-      if (typeof Data.setUiProfile === "function") Data.setUiProfile(previousProfile);
-    } catch (err) {
-      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-    }
-    result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.summary.checkedTypes === (Array.isArray(NPC_EVENT_TEMPLATE_TYPES) ? NPC_EVENT_TEMPLATE_TYPES.length : Object.keys(NPC_EVENT_TEMPLATE_MILLENNIAL || {}).length) && result.summary.checkedRows > 0 && result.summary.millennialZoomerDifferentCount === result.summary.checkedRows && result.summary.unchangedCount === 0 && result.summary.routedTemplateCount === result.summary.checkedRows && result.summary.placeholderPreservedCount === result.summary.checkedRows && result.summary.placeholderFailureCount === 0;
-    return result;
+    root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1 = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1;
   };
-  installNpcEventTemplateProfileTextsSmokeViaData();
-  if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-  root.Dev.smokeZoomerFeelStep652NpcConflictFeedProfileTexts = root.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts;
+  installNpcEventTemplateProfileTextsFix1SmokeViaData();
 
   // Expose mention colors for CSS variables (single source of truth)
   // UI may read these once and map them to --mention-* CSS vars.

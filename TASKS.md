@@ -1,10 +1,12 @@
-## 2026-06-15 — Step 6.5.2 Zoomer Feel Pass NPC Conflict Feed Profile Texts
+## 2026-06-15 — Step 6.5.2 Fix1 restore UI boot after broken data.js change
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Goal: make the conflict feed and NPC event template text visibly differ between millennial and zoomer profiles while keeping `Data.NPC_EVENT_TEMPLATES` as the millennial/default fallback, adding the profile overlay map plus resolver bridge, and preserving roles, lengths, placeholders, event ordering, and gameplay logic.
-- Added dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts()`.
-- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `samples`, and `summary`.
-- Summary contract: `checkedTypes`, `checkedRows`, `millennialZoomerDifferentCount`, `unchangedCount`, `routedTemplateCount`, `placeholderPreservedCount`, and `placeholderFailureCount`.
-- Scope held: profile-aware conflict-feed text routing and smoke only; no gameplay changes, no NPC behavior changes, no conflict logic changes, no REP/points/money/ECON/moneyLog/voting/outcome/persistence/chronology changes, and no `Console.txt` usage.
+- Runtime failure after commit `826c3d0`: Safari reported `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` as undefined, the start screen went blank, and UI labels fell back to raw keys such as `menu_title`.
+- Root cause in `data.js` / `docs/data.js`: the Step 6.5.2 change injected a top-level `root.Dev...` reference outside the installer scope, which broke `data.js` evaluation and prevented the normal `Data.TEXTS` / `Data.t(...)` boot path from loading.
+- Fix1 priority: restore healthy UI boot first by reverting the unsafe Step 6.5.2 proxy/overlay path, restoring the original `Data.NPC_EVENT_TEMPLATES` structure, and adding a new boot-health smoke only.
+- Added dev-only Safari smoke: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `bootTextChecks`, `uiLabelChecks`, `npcEventTemplateChecks`, and `summary`.
+- Step 6.5.2 content-pack progress remains NOT PASS; the profile-aware NPC event template feature was rolled back for safety in this fix.
+- Scope held: UI boot recovery and smoke only; no gameplay changes, no NPC behavior changes, no conflict logic changes, no REP/points/money/ECON/moneyLog/voting/outcome/persistence/chronology changes, and no `Console.txt` usage.
 
 ## 2026-06-15 — Step 6.5.1 Zoomer Feel Pass NPC SAY + DM Profile Routing
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
