@@ -19,6 +19,13 @@
 - Smoke coverage now reads the real resolver path through `Data.t(...)`, verifies all 10 economy keys resolve for both profiles, and returns the required `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage` fields.
 - Scope held: served dictionary/resolver wiring only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
 
+## 2026-06-14 — Step 6.3 Zoomer Feel Pass Economy Flavor smoke scope fix 3
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Runtime result: Fix2 existed, but the smoke itself failed with `Can't find variable: withProfile`, which was a local scope bug inside the runtime smoke implementation.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep63EconomyFlavorFix3()`.
+- Smoke coverage keeps the same 10 economy checks, uses a local safe profile wrapper inside the smoke, and returns the required `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage` fields.
+- Scope held: smoke implementation scope fix only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.2 Zoomer Feel Pass Conflict Results
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: make core conflict result UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, conflict outcomes, REP, points, money, ECON, moneyLog, rewards, penalties, balances, prices, or voting math.

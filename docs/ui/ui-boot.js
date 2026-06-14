@@ -4731,6 +4731,21 @@ window.Game = window.Game || {};
           result.failures.push(detail === undefined ? check : { check, detail });
         };
         const beforeEconomy = snapshotEconomy();
+        const withProfile = (profileName, run) => {
+          const Data = G.Data || null;
+          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+          const beforeProfile = getUiProfile ? getUiProfile() : "default";
+          const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+          try {
+            if (setUiProfile) setUiProfile(profileName);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
+            return run();
+          } finally {
+            if (setUiProfile) setUiProfile(beforeProfile);
+            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
+          }
+        };
         try {
           const D = G.Data || {};
           if (!D || typeof D.t !== "function") fail("resolver_missing", "Data.t");
