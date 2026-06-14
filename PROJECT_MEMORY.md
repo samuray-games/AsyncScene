@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.2 Zoomer Feel Pass Conflict Results
+- Implemented the eight conflict-result profile text keys in the existing resolver tables for millennial and zoomer, with a shared `Data.resolveConflictResultText()` helper routed through `Data.t()`.
+- Routed the visible conflict result lines through the resolver where the conflict core currently writes result text, keeping gameplay logic and outcome math unchanged.
+- Added the new dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep62ConflictResults()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep62ConflictResults()`.
+- Runtime PASS is still not claimed until Safari runs the smoke.
+
 ## 2026-06-14 — Step 6.1 Zoomer Feel Pass Core System Messages
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the 8 required Step 6.1 core system message entries as profile-aware resolver data on `Game.System.profileText(...)` in both served trees, with safe millennial fallback and a narrow route overlay for `errors.insufficientPoints`, `notifications.saved`, and `systemEvents.ready`.

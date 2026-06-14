@@ -12,6 +12,12 @@
 
   // Local helpers
   function now(){ return Date.now(); }
+  function conflictResultText(key) {
+    const D = Game.Data || {};
+    if (D && typeof D.resolveConflictResultText === "function") return D.resolveConflictResultText(key);
+    if (D && typeof D.t === "function") return D.t(key);
+    return "";
+  }
   function clamp0(n){ return Math.max(0, n|0); }
   const DRAW_VOTE_DURATION_MS = 10000;
   const CROWD_TIMER_WARMUP_MS = 60000;
@@ -2370,7 +2376,7 @@
       v.winnerId = null;
       ensureBattleCrowdCap(v, b);
       b.result = "draw";
-      b.resultLine = "Толпа решает";
+      b.resultLine = conflictResultText("conflict_draw") || "Толпа решает";
       b.note = "Поровну, без перевеса. Ещё круг.";
       b.updatedAt = now();
       return { outcome: "TIE", crowdCapMeta };
@@ -2423,7 +2429,7 @@
           }
         }
       } else {
-        b.resultLine = "Победа";
+        b.resultLine = conflictResultText("majority_won") || "Победа";
         withRepSourceOverride(() => applyEconomyForOutcome(b.result, b));
       }
     } else if (attackerWins) {
@@ -2431,13 +2437,13 @@
       if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
       if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
       b.note = "Толпа решила: атакующий затащил.";
-      b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
+      b.resultLine = conflictResultText(b.result === "win" ? "conflict_win" : "conflict_loss") || (b.result === "win" ? "Победа" : "Поражение");
     } else {
       b.result = iAmDefender ? "win" : (iAmAttacker ? "lose" : "lose");
       if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
       if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
       b.note = "Толпа решила: защитник отбился.";
-      b.resultLine = (b.result === "win") ? "Победа" : "Поражение";
+      b.resultLine = conflictResultText(b.result === "win" ? "supported_majority" : "supported_minority") || (b.result === "win" ? "Победа" : "Поражение");
     }
 
     // Persist winner metadata for UI/events.
