@@ -1,9 +1,10 @@
-## 2026-06-15 — Step 6.5.2 Zoomer Feel Pass NPC Conflict Feed Profile Texts
-- Added a profile-aware `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS` overlay plus `Data.resolveNpcEventTemplateText(type, index, field, vars)` bridge in both `AsyncScene/Web/data.js` and `docs/data.js`, while keeping the existing `Data.NPC_EVENT_TEMPLATES` shape as the millennial/default fallback through a resolver-backed proxy.
-- The zoomer content pack now covers victory, defeat, arrest, rumor, and accusationInjection with the exact new role texts and preserved placeholders, roles, and array lengths.
-- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts()` with build identity `build_2026_06_15_step6_5_2_npc_conflict_feed_profile_texts` / `step6_5_2_npc_conflict_feed_profile_texts` / `step6_5_2_npc_conflict_feed_profile_texts_smoke_v20260615_001`.
-- The smoke returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `samples`, and `summary`, and checks profile differences, placeholder preservation, role preservation, length preservation, and resolver routing without mutating gameplay, NPC, or conflict state.
-- Exact Safari command: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts()`.
+## 2026-06-15 — Step 6.5.2 Fix1 restore UI boot after broken data.js change
+- Commit `826c3d0` broke Safari boot: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` was undefined, the start screen failed to render, and UI labels fell back to raw keys such as `menu_title`.
+- Root cause in both `AsyncScene/Web/data.js` and `docs/data.js`: the Step 6.5.2 patch added `root.Dev...` at top level outside the smoke installer scope, which threw during `data.js` evaluation and prevented the normal `Data.TEXTS` / `Data.t(...)` boot contract from loading.
+- Fix1 restores UI health first by reverting the unsafe profile-aware `NPC_EVENT_TEMPLATES` proxy/overlay path and restoring the original frozen `Data.NPC_EVENT_TEMPLATES` structure.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1()` with build identity `build_2026_06_15_step6_5_2_fix1_restore_ui_boot` / `step6_5_2_fix1_restore_ui_boot` / `step6_5_2_fix1_restore_ui_boot_smoke_v20260615_001`.
+- The Fix1 smoke checks `Game.Data`, `Game.Data.TEXTS`, `Game.Data.t(...)`, core UI label resolution, start-screen labels, and NPC event template structure without mutating gameplay, NPC, conflict, or persistence state.
+- Step 6.5.2 content-pack routing is intentionally rolled back in this fix; runtime PASS is not claimed until Safari confirms boot is healthy and the new Fix1 smoke returns the full object.
 
 ## 2026-06-15 — Step 6.5.1 Zoomer Feel Pass NPC SAY + DM Profile Routing
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
