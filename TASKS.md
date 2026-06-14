@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock fix 2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: move the Step 5.4 ECON comparison onto identical isolated baselines so millennial and zoomer run from the same deterministic state without touching ECON formulas, gameplay, moneyLog behavior, battle logic, cooldown logic, or save behavior.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep54EconLockFix2()`.
+- Smoke coverage now snapshots the live runtime, resets through `Game.__A.resetAll()` plus `Game.__A.seedPlayers()` for each isolated profile pass, normalizes starting money/REP/points, clears mutable report/security/moneyLog state used by this smoke, compares only isolated scenario deltas, runs zero-sum in separate isolated passes, and restores the original live session after completion.
+- Served identity: `build_2026_06_14_step6_5_4_econ_lock_fix2` / `step6_5_4_econ_lock_fix2` / `step6_5_4_econ_lock_fix2_smoke_v20260614_001`.
+- Scope held: smoke isolation only; no ECON formula changes, no gameplay changes, no moneyLog changes, no battle logic changes, no cooldown changes, no save changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep54EconLockFix2()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: investigate the Step 5.4 money delta contradiction without changing ECON formulas, gameplay, moneyLog behavior, battle logic, cooldown logic, or save behavior.

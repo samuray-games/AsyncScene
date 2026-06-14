@@ -4725,6 +4725,408 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep54EconLockFix1 = G.__DEV.smokeToneProfilesStep54EconLockFix1;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep54EconLockFix2 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_4_econ_lock_fix2";
+      const COMMIT = "step6_5_4_econ_lock_fix2";
+      const SMOKE_VERSION = "step6_5_4_econ_lock_fix2_smoke_v20260614_001";
+      const cloneData = (value) => {
+        if (typeof structuredClone === "function") {
+          try { return structuredClone(value); } catch (_) {}
+        }
+        try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
+      };
+      const stableJson = (value) => {
+        try { return JSON.stringify(value); } catch (_) { return String(value); }
+      };
+      const withPointsWrite = (fn) => (typeof G._withPointsWrite === "function" ? G._withPointsWrite(fn) : fn());
+      const scanForUiProfileRefs = () => {
+        const targets = [
+          G.__A && G.__A.applyReportByRole,
+          G.__A && G.__A.transferPoints,
+          G.__A && G.__A.transferRep,
+          G.__A && G.__A.applyBattleOutcome,
+          G.ConflictEconomy,
+          G._ConflictEconomy
+        ];
+        const hits = [];
+        targets.forEach((fn, idx) => {
+          if (typeof fn !== "function") return;
+          const src = Function.prototype.toString.call(fn);
+          if (src.indexOf("uiProfile") >= 0) hits.push({ idx, name: fn.name || `fn_${idx}` });
+        });
+        return hits;
+      };
+      const readUiProfile = () => {
+        const Data = G.Data || null;
+        return (Data && typeof Data.getUiProfile === "function") ? String(Data.getUiProfile() || "default") : "default";
+      };
+      const setUiProfile = (profile) => {
+        const Data = G.Data || null;
+        if (Data && typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
+      };
+      const getPointsSnapshot = () => (G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function")
+        ? G.__DEV.sumPointsSnapshot({ includeWorld: true, includePools: true })
+        : null;
+      const getPlayerMoney = () => {
+        const S = G.__S || G.State || {};
+        return (S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0;
+      };
+      const getPlayerRep = () => {
+        const S = G.__S || G.State || {};
+        return Number.isFinite(S.rep) ? (S.rep | 0) : 0;
+      };
+      const sumCurrency = (rows, currency) => {
+        return (Array.isArray(rows) ? rows : []).reduce((total, row) => {
+          const kind = String(row && row.currency || row && row.kind || "").toLowerCase();
+          if (kind !== currency) return total;
+          const amount = Number.isFinite(row && row.amount) ? row.amount : (Number.isFinite(row && row.delta) ? row.delta : 0);
+          return total + amount;
+        }, 0);
+      };
+      const syncMoneyMirror = () => {
+        if (G.__A && typeof G.__A.syncMeToPlayers === "function") G.__A.syncMeToPlayers();
+      };
+      const captureLiveSnapshot = () => {
+        const S = G.__S || G.State || {};
+        const dbg = G.__D || {};
+        const sec = G.__SEC || {};
+        const Data = G.Data || {};
+        return {
+          state: cloneData(S),
+          debug: cloneData(dbg),
+          securityBuckets: sec.buckets && typeof sec.buckets.entries === "function" ? Array.from(sec.buckets.entries()) : [],
+          uiProfile: readUiProfile(),
+          textMode: typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : null
+        };
+      };
+      const restoreDebugSnapshot = (snapshot) => {
+        const dbg = G.__D || (G.__D = {});
+        const data = snapshot && snapshot.debug ? snapshot.debug : {};
+        Object.keys(dbg).forEach((key) => {
+          if (!Object.prototype.hasOwnProperty.call(data, key)) delete dbg[key];
+        });
+        Object.keys(data || {}).forEach((key) => {
+          dbg[key] = cloneData(data[key]);
+        });
+      };
+      const restoreStateSnapshot = (snapshot) => {
+        if (!snapshot || !snapshot.state || !G.__A || typeof G.__A.resetAll !== "function") return false;
+        const snap = snapshot.state;
+        const S = G.__S || G.State || {};
+        G.__A.resetAll();
+        if (typeof G.__A.seedPlayers === "function") G.__A.seedPlayers();
+        S.isStarted = !!snap.isStarted;
+        Object.assign(S.npc || {}, cloneData(snap.npc || {}));
+        withPointsWrite(() => Object.assign(S.me || {}, cloneData(snap.me || {})));
+        S.rep = Number.isFinite(snap.rep) ? (snap.rep | 0) : 0;
+        S.influence = Number.isFinite(snap.influence) ? (snap.influence | 0) : 0;
+        const currentPlayers = S.players || {};
+        const snapPlayers = snap.players || {};
+        const restoredPlayers = {};
+        Object.keys(snapPlayers).forEach((id) => {
+          const restored = currentPlayers[id] || {};
+          const source = cloneData(snapPlayers[id]) || {};
+          withPointsWrite(() => {
+            if (Object.prototype.hasOwnProperty.call(source, "points")) restored.points = Number.isFinite(source.points) ? (source.points | 0) : 0;
+          });
+          Object.keys(source).forEach((key) => {
+            if (key === "points") return;
+            restored[key] = source[key];
+          });
+          restoredPlayers[id] = restored;
+        });
+        S.players = restoredPlayers;
+        S.points = cloneData(snap.points || {});
+        S.progress = cloneData(snap.progress || {});
+        S.training = cloneData(snap.training || {});
+        S.dayIndex = Number.isFinite(snap.dayIndex) ? (snap.dayIndex | 0) : 0;
+        S.chat = cloneData(snap.chat || []);
+        S.chatAutoReplyNonceByMessageId = cloneData(snap.chatAutoReplyNonceByMessageId || {});
+        if (S.chat && typeof S.chat === "object") S.chat.autoReplyNonceByMessageId = S.chatAutoReplyNonceByMessageId;
+        S.dm = cloneData(snap.dm || {});
+        S.reports = cloneData(snap.reports || {});
+        S.jailed = cloneData(snap.jailed || {});
+        S.victimByRole = cloneData(snap.victimByRole || {});
+        S.revengeUntil = Number.isFinite(snap.revengeUntil) ? snap.revengeUntil : 0;
+        S.battleCooldowns = cloneData(snap.battleCooldowns || {});
+        S.battleProvocationCooldowns = cloneData(snap.battleProvocationCooldowns || {});
+        S.battles = cloneData(snap.battles || []);
+        S.events = cloneData(snap.events || []);
+        S.lottery = cloneData(snap.lottery || {});
+        S.flags = cloneData(snap.flags || {});
+        S.eventsMeta = cloneData(snap.eventsMeta || {});
+        S.vote = cloneData(snap.vote || {});
+        S.securityFlags = cloneData(snap.securityFlags || {});
+        S.sightings = cloneData(snap.sightings || {});
+        S.assignedCopId = snap.assignedCopId || null;
+        S._seededNPCs = !!snap._seededNPCs;
+        S.copCooldowns = S.reports && S.reports.copCooldowns ? S.reports.copCooldowns : {};
+        S.provocationCooldowns = S.battleProvocationCooldowns;
+        syncMoneyMirror();
+        restoreDebugSnapshot(snapshot);
+        const sec = G.__SEC || null;
+        if (sec && sec.buckets && typeof sec.buckets.clear === "function") {
+          sec.buckets.clear();
+          (snapshot.securityBuckets || []).forEach((entry) => {
+            if (Array.isArray(entry) && entry.length === 2) sec.buckets.set(entry[0], entry[1]);
+          });
+        }
+        setUiProfile(snapshot.uiProfile || "default");
+        if (G.Data && typeof snapshot.textMode === "string") G.Data.TEXT_MODE = snapshot.textMode;
+        return true;
+      };
+      const pickDeterministicReportTarget = () => {
+        const S = G.__S || G.State || {};
+        const candidates = Object.values(S.players || {}).filter((p) => {
+          const role = String(p && (p.role || p.type) || "").toLowerCase();
+          return p && p.npc && (role === "toxic" || role === "bandit" || role === "mafia");
+        });
+        candidates.sort((a, b) => String(a && a.id || "").localeCompare(String(b && b.id || "")));
+        const target = candidates[0] || null;
+        return target ? { id: String(target.id || ""), name: String(target.name || ""), role: String(target.role || target.type || "").toLowerCase() } : null;
+      };
+      const prepareSandbox = (profileName) => {
+        const baseline = { startMoney: 30, startRep: 0, startInfluence: 0 };
+        const out = {
+          ok: false,
+          profile: profileName,
+          baseline,
+          target: null,
+          startPointsTotal: null,
+          state: null
+        };
+        if (!G.__A || typeof G.__A.resetAll !== "function" || typeof G.__A.seedPlayers !== "function") {
+          out.reason = "state_reset_api_missing";
+          return out;
+        }
+        G.__A.resetAll();
+        G.__A.seedPlayers();
+        const S = G.__S || G.State || {};
+        setUiProfile(profileName);
+        if (G.Data && typeof G.Data.TEXT_MODE === "string") G.Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
+        withPointsWrite(() => {
+          S.me.points = baseline.startMoney;
+        });
+        S.me.name = "Smoke";
+        S.me.influence = baseline.startInfluence;
+        S.me.wins = 0;
+        S.me.winsSinceInfluence = 0;
+        S.rep = baseline.startRep;
+        S.influence = 0;
+        S.isStarted = true;
+        if (S.flags && typeof S.flags === "object") S.flags.started = true;
+        syncMoneyMirror();
+        if (G.__D && typeof G.__D === "object") {
+          G.__D.moneyLog = [];
+          G.__D.moneyLogByBattle = {};
+          G.__D.repeatRateLimitLog = [];
+        }
+        if (S.reports && typeof S.reports === "object") {
+          S.reports.lastAt = 0;
+          S.reports.history = {};
+          S.reports.copCooldowns = {};
+          S.reports.pendingByActorId = {};
+          S.reports.pendingById = {};
+        }
+        S.assignedCopId = null;
+        S.copCooldowns = S.reports && S.reports.copCooldowns ? S.reports.copCooldowns : {};
+        if (G.__SEC && G.__SEC.buckets && typeof G.__SEC.buckets.clear === "function") G.__SEC.buckets.clear();
+        out.target = pickDeterministicReportTarget();
+        const pointsSnapshot = getPointsSnapshot();
+        out.startPointsTotal = pointsSnapshot && Number.isFinite(pointsSnapshot.total) ? pointsSnapshot.total : null;
+        out.state = {
+          money: getPlayerMoney(),
+          rep: getPlayerRep(),
+          pointsTotal: out.startPointsTotal,
+          reportHistoryKeys: Object.keys((S.reports && S.reports.history) || {}).sort(),
+          pendingKeys: Object.keys((S.reports && S.reports.pendingById) || {}).sort(),
+          copCooldownKeys: Object.keys((S.reports && S.reports.copCooldowns) || {}).sort(),
+          bucketCount: (G.__SEC && G.__SEC.buckets && typeof G.__SEC.buckets.size === "number") ? G.__SEC.buckets.size : null,
+          moneyLogLen: (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.length : null
+        };
+        out.ok = !!out.target
+          && out.state.money === baseline.startMoney
+          && out.state.rep === baseline.startRep
+          && out.state.reportHistoryKeys.length === 0
+          && out.state.pendingKeys.length === 0
+          && out.state.copCooldownKeys.length === 0
+          && (out.state.bucketCount === 0 || out.state.bucketCount === null)
+          && out.state.moneyLogLen === 0;
+        if (!out.ok && !out.reason) out.reason = "baseline_verification_failed";
+        return out;
+      };
+      const runScenarioPass = (profileName) => {
+        const prep = prepareSandbox(profileName);
+        const out = {
+          profile: profileName,
+          prep,
+          econResult: null,
+          startMoney: prep.state ? prep.state.money : null,
+          endMoney: null,
+          moneyDelta: null,
+          repDelta: null,
+          pointsDelta: null
+        };
+        if (!prep.ok) {
+          out.econResult = { ok: false, reason: prep.reason || "sandbox_prepare_failed" };
+          return out;
+        }
+        const startRep = getPlayerRep();
+        const startPoints = prep.startPointsTotal;
+        const startMoney = getPlayerMoney();
+        const beforeLogLen = (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.length : 0;
+        out.econResult = (G.__A && typeof G.__A.applyReportByRole === "function")
+          ? G.__A.applyReportByRole(prep.target.name, { actionId: `tone_profiles_step54_fix2_${profileName}` })
+          : { ok: false, reason: "report_api_missing" };
+        const endMoney = getPlayerMoney();
+        const endRep = getPlayerRep();
+        const endPointsSnapshot = getPointsSnapshot();
+        const endPoints = endPointsSnapshot && Number.isFinite(endPointsSnapshot.total) ? endPointsSnapshot.total : null;
+        const logRows = (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.slice(beforeLogLen) : [];
+        out.startMoney = startMoney;
+        out.endMoney = endMoney;
+        out.moneyDelta = endMoney - startMoney;
+        out.repDelta = endRep - startRep;
+        out.pointsDelta = (Number.isFinite(startPoints) && Number.isFinite(endPoints)) ? (endPoints - startPoints) : null;
+        out.moneyLogDelta = sumCurrency(logRows, "points");
+        out.repLogDelta = sumCurrency(logRows, "rep");
+        out.target = prep.target;
+        return out;
+      };
+      const runZeroSumPass = (profileName) => {
+        const prep = prepareSandbox(profileName);
+        if (!prep.ok) return { ok: false, reason: prep.reason || "sandbox_prepare_failed" };
+        return (G.__DEV && typeof G.__DEV.smokeEconUi_ZeroSumOnce === "function")
+          ? G.__DEV.smokeEconUi_ZeroSumOnce()
+          : { ok: false, reason: "zero_sum_missing" };
+      };
+      G.__DEV.smokeToneProfilesStep54EconLockFix2 = function smokeToneProfilesStep54EconLockFix2() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          econHasNoUiProfileRefs: false,
+          econResultsMatch: false,
+          moneyDeltaMatch: false,
+          repDeltaMatch: false,
+          pointsDeltaMatch: false,
+          zeroSumOk: false,
+          scenarioStateResetOk: false,
+          deterministicScenarioOk: false,
+          baselineStateMatch: false,
+          millennialStartMoney: null,
+          zoomerStartMoney: null,
+          millennialEndMoney: null,
+          zoomerEndMoney: null,
+          millennialMoneyDelta: null,
+          zoomerMoneyDelta: null,
+          millennialRepDelta: null,
+          zoomerRepDelta: null,
+          millennialPointsDelta: null,
+          zoomerPointsDelta: null,
+          millennialEconResult: null,
+          zoomerEconResult: null,
+          moneyDeltaSource: "unresolved"
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const liveSnapshot = captureLiveSnapshot();
+        try {
+          const refHits = scanForUiProfileRefs();
+          result.econHasNoUiProfileRefs = refHits.length === 0;
+          if (!result.econHasNoUiProfileRefs) fail("econ_uiProfile_refs_found", refHits);
+          const millennial = runScenarioPass("millennial");
+          const zoomer = runScenarioPass("zoomer");
+          result.millennialEconResult = millennial.econResult;
+          result.zoomerEconResult = zoomer.econResult;
+          result.millennialStartMoney = millennial.startMoney;
+          result.zoomerStartMoney = zoomer.startMoney;
+          result.millennialEndMoney = millennial.endMoney;
+          result.zoomerEndMoney = zoomer.endMoney;
+          result.millennialMoneyDelta = millennial.moneyDelta;
+          result.zoomerMoneyDelta = zoomer.moneyDelta;
+          result.millennialRepDelta = millennial.repDelta;
+          result.zoomerRepDelta = zoomer.repDelta;
+          result.millennialPointsDelta = millennial.pointsDelta;
+          result.zoomerPointsDelta = zoomer.pointsDelta;
+          result.scenarioStateResetOk = !!(millennial.prep && millennial.prep.ok && zoomer.prep && zoomer.prep.ok);
+          result.baselineStateMatch = result.scenarioStateResetOk
+            && stableJson(millennial.prep.baseline) === stableJson(zoomer.prep.baseline)
+            && stableJson(millennial.prep.target) === stableJson(zoomer.prep.target)
+            && stableJson(millennial.prep.state) === stableJson(zoomer.prep.state);
+          result.econResultsMatch = stableJson(millennial.econResult) === stableJson(zoomer.econResult);
+          result.moneyDeltaMatch = millennial.moneyDelta === zoomer.moneyDelta;
+          result.repDeltaMatch = millennial.repDelta === zoomer.repDelta;
+          result.pointsDeltaMatch = millennial.pointsDelta === zoomer.pointsDelta;
+          const zeroSumMillennial = runZeroSumPass("millennial");
+          const zeroSumZoomer = runZeroSumPass("zoomer");
+          result.zeroSumOk = !!(zeroSumMillennial && zeroSumMillennial.ok && zeroSumZoomer && zeroSumZoomer.ok);
+          result.deterministicScenarioOk = result.baselineStateMatch
+            && result.econResultsMatch
+            && result.moneyDeltaMatch
+            && result.repDeltaMatch
+            && result.pointsDeltaMatch;
+          if (!result.scenarioStateResetOk) fail("scenario_state_reset_failed", { millennial: millennial.prep, zoomer: zoomer.prep });
+          if (!result.baselineStateMatch) fail("baseline_state_mismatch", { millennial: millennial.prep, zoomer: zoomer.prep });
+          if (!result.econResultsMatch) fail("econ_result_mismatch", { millennial: millennial.econResult, zoomer: zoomer.econResult });
+          if (!result.moneyDeltaMatch) fail("money_delta_mismatch", { millennial: millennial.moneyDelta, zoomer: zoomer.moneyDelta });
+          if (!result.repDeltaMatch) fail("rep_delta_mismatch", { millennial: millennial.repDelta, zoomer: zoomer.repDelta });
+          if (!result.pointsDeltaMatch) fail("points_delta_mismatch", { millennial: millennial.pointsDelta, zoomer: zoomer.pointsDelta });
+          if (!result.zeroSumOk) fail("zero_sum_failed", { millennial: zeroSumMillennial, zoomer: zeroSumZoomer });
+          if (!result.deterministicScenarioOk) {
+            fail("deterministic_scenario_failed", {
+              millennial: {
+                target: millennial.target,
+                moneyDelta: millennial.moneyDelta,
+                repDelta: millennial.repDelta,
+                pointsDelta: millennial.pointsDelta
+              },
+              zoomer: {
+                target: zoomer.target,
+                moneyDelta: zoomer.moneyDelta,
+                repDelta: zoomer.repDelta,
+                pointsDelta: zoomer.pointsDelta
+              }
+            });
+          }
+          if (!result.moneyDeltaMatch) {
+            if (!result.scenarioStateResetOk) result.moneyDeltaSource = "sandbox_reset_failed";
+            else if (!result.baselineStateMatch) result.moneyDeltaSource = "baseline_state_mismatch";
+            else if (!result.econResultsMatch) result.moneyDeltaSource = "scenario_econ_result_mismatch";
+            else result.moneyDeltaSource = "isolated_scenario_delta_mismatch";
+          } else {
+            result.moneyDeltaSource = "no_mismatch_detected";
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          restoreStateSnapshot(liveSnapshot);
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.econHasNoUiProfileRefs === true
+          && result.econResultsMatch === true
+          && result.moneyDeltaMatch === true
+          && result.repDeltaMatch === true
+          && result.pointsDeltaMatch === true
+          && result.zeroSumOk === true
+          && result.scenarioStateResetOk === true
+          && result.deterministicScenarioOk === true
+          && result.baselineStateMatch === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep54EconLockFix2 = G.__DEV.smokeToneProfilesStep54EconLockFix2;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
