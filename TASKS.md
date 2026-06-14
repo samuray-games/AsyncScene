@@ -1,3 +1,13 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.5 runtime smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: run the same isolated deterministic runtime scenario under `millennial` and `zoomer` and prove only visible UI text differs, while gameplay, ECON, moneyLog, battle logic, cooldowns, and save behavior stay unchanged.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep55RuntimeSmoke()`.
+- Smoke coverage snapshots live runtime state, rebuilds the same isolated baseline for each profile, runs a deterministic report step plus deterministic battle step, compares `moneyLog`, ECON delta, REP delta, points delta, cooldowns, battle result, and visible UI text, then restores the original live session.
+- Smoke output now returns only the required contract fields: `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `uiTextDiffersOk`, `moneyLogMatch`, `econDeltaMatch`, `repDeltaMatch`, `pointsDeltaMatch`, `cooldownsMatch`, `battleResultMatch`, `structuralDataMatch`, `onlyUiTextDiffers`, `millennialResult`, and `zoomerResult`.
+- Served identity: `build_2026_06_14_step6_5_5_runtime_smoke` / `step6_5_5_runtime_smoke` / `step6_5_5_runtime_smoke_v20260614_001`.
+- Scope held: smoke-only coverage; no gameplay changes, no ECON changes, no moneyLog changes, no battle logic changes, no cooldown changes, no save changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep55RuntimeSmoke()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock fix 2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: move the Step 5.4 ECON comparison onto identical isolated baselines so millennial and zoomer run from the same deterministic state without touching ECON formulas, gameplay, moneyLog behavior, battle logic, cooldown logic, or save behavior.
