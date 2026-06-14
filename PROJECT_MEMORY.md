@@ -1,6 +1,6 @@
-## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 1
-- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_smoke_v20260614_002`.
-- The smoke verifies `uiProfile` is not referenced by the ECON path, moneyLog path, battle path, or cooldown path, and confirms profile-based visible copy still changes when the UI profile changes using a profile-sensitive copy key.
+## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 2
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2()` with build identity `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_smoke_v20260614_003`.
+- The smoke verifies `uiProfile` is not referenced by the ECON path, moneyLog path, battle path, or cooldown path, proves the active profile before each lookup, and validates a profile-specific key exists before comparing millennial vs zoomer text.
 - Scope held: UI-only boundary validation; no gameplay changes, no balance changes, and no unrelated text rewrites.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke fix 1

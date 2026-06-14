@@ -3619,10 +3619,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix2 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1 !== "function") {
+    if (typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2 !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_1_ui_only_boundary";
       const COMMIT = "step6_5_1_ui_only_boundary";
-      const SMOKE_VERSION = "step6_5_1_ui_only_boundary_smoke_v20260614_002";
+      const SMOKE_VERSION = "step6_5_1_ui_only_boundary_smoke_v20260614_003";
       const collectFunctionSources = (rootLabel, root, hits, visited) => {
         if (!root || (typeof root !== "object" && typeof root !== "function")) return;
         if (visited.has(root)) return;
@@ -3641,7 +3641,7 @@ window.Game = window.Game || {};
           }
         });
       };
-      G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1 = function smokeToneProfilesStep51UiOnlyBoundaryFix1() {
+      G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2 = function smokeToneProfilesStep51UiOnlyBoundaryFix2() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -3652,8 +3652,13 @@ window.Game = window.Game || {};
           battleHasNoUiProfileRefs: false,
           cooldownHasNoUiProfileRefs: false,
           uiProfileTextChangesOk: false,
+          activeMillennialProfile: "",
+          activeZoomerProfile: "",
+          sampleKey: "",
           sampleMillennial: "",
           sampleZoomer: "",
+          profileSwitchWorked: false,
+          profileSpecificKeyExists: false,
           failures: [],
           forbiddenRemaining: [],
           missingCoverage: [],
@@ -3694,15 +3699,26 @@ window.Game = window.Game || {};
           const t = Data && typeof Data.t === "function" ? Data.t.bind(Data) : null;
           const before = getUiProfile ? getUiProfile() : "default";
           const sampleKey = "tie_start";
+          result.sampleKey = sampleKey;
           if (setUiProfile) setUiProfile("millennial");
+          result.activeMillennialProfile = getUiProfile ? getUiProfile() : "";
           result.sampleMillennial = t ? t(sampleKey) : "";
+          const directMillennial = Data && Data.TEXTS && Data.TEXTS.genz ? String(Data.TEXTS.genz[sampleKey] || "") : "";
           if (setUiProfile) setUiProfile("zoomer");
+          result.activeZoomerProfile = getUiProfile ? getUiProfile() : "";
           result.sampleZoomer = t ? t(sampleKey) : "";
+          const directZoomer = Data && Data.TEXTS && Data.TEXTS.alpha ? String(Data.TEXTS.alpha[sampleKey] || "") : "";
           if (setUiProfile) setUiProfile(before);
-          result.uiProfileTextChangesOk = String(result.sampleMillennial || "") !== String(result.sampleZoomer || "")
-            && !!String(result.sampleMillennial || "").trim()
-            && !!String(result.sampleZoomer || "").trim();
-          if (!result.uiProfileTextChangesOk) fail("ui_profile_text_did_not_change", { before, sampleKey, sampleMillennial: result.sampleMillennial, sampleZoomer: result.sampleZoomer });
+          result.profileSwitchWorked = result.activeMillennialProfile === "millennial" && result.activeZoomerProfile === "zoomer";
+          result.profileSpecificKeyExists = !!String(directMillennial || "").trim() && !!String(directZoomer || "").trim() && directMillennial !== directZoomer;
+          result.uiProfileTextChangesOk = result.profileSwitchWorked === true
+            && result.profileSpecificKeyExists === true
+            && String(result.sampleMillennial || "") !== String(result.sampleZoomer || "");
+          if (!result.profileSpecificKeyExists) fail("profile_specific_key_missing", { sampleKey, directMillennial, directZoomer });
+          if (!result.profileSwitchWorked) fail("profile_switch_not_working", { before, activeMillennialProfile: result.activeMillennialProfile, activeZoomerProfile: result.activeZoomerProfile });
+          if (result.profileSpecificKeyExists && String(result.sampleMillennial || "") === String(result.sampleZoomer || "")) {
+            fail("ui_profile_text_did_not_change", { before, sampleKey, sampleMillennial: result.sampleMillennial, sampleZoomer: result.sampleZoomer });
+          }
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
@@ -3717,7 +3733,7 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix1 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1;
+      G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix2 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
