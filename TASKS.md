@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 3
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: export the Fix2 smoke into the served runtime so Safari exposes `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2()` and add a Fix3 smoke that proves the export is present.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3()`.
+- Smoke coverage checks Fix2 export presence, Fix3 export presence, dev mode toggle behavior, Console Panel button behavior, console panel hidden-before/after state, indicator visibility, indicator updates, read-only state, gameplay stability, and no `uiProfile` leakage into ECON or `moneyLog`.
+- Served identity: `build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix3` / `step6_5_6_dev_ui_profile_indicator_fix3` / `step6_5_6_dev_ui_profile_indicator_fix3_v20260614_001`.
+- Scope held: export/mirror wiring only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, no save changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: restore the Console Panel button so it opens the panel when clicked while keeping the dev-only `uiProfile` indicator read-only and non-interactive.

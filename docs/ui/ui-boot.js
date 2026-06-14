@@ -6855,6 +6855,222 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep56DevUiProfileIndicatorFix1 = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix1;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix2_export";
+      const COMMIT = "step6_5_6_dev_ui_profile_indicator_fix2_export";
+      const SMOKE_VERSION = "step6_5_6_dev_ui_profile_indicator_fix2_export_v20260614_001";
+      const smoke = () => {
+        const hasFix2 = typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 === "function";
+        const hasFix3 = typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3 === "function";
+        return {
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          ok: hasFix2 === true || hasFix3 === true,
+          failures: hasFix2 || hasFix3 ? [] : ["fix2_export_missing"],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: hasFix2 || hasFix3 ? [] : ["fix2_export_missing"],
+          fix2Exported: hasFix2 === true,
+          fix3Exported: hasFix3 === true,
+          devModeToggleButtonPresent: false,
+          devModeToggleButtonWorks: false,
+          consolePanelButtonPresent: false,
+          consolePanelButtonWorks: false,
+          consolePanelHiddenBeforeClick: null,
+          consolePanelHiddenAfterClick: null,
+          devIndicatorVisibleInDev: false,
+          devIndicatorHiddenInNormal: false,
+          indicatorUpdatesAfterProfileChange: false,
+          indicatorReadOnly: false,
+          gameplayUnchanged: false,
+          profileNotInEcon: false,
+          profileNotInMoneyLog: false,
+        };
+      };
+      G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 = smoke;
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep56DevUiProfileIndicatorFix2 = smoke;
+    }
+    if (typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3 !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix3";
+      const COMMIT = "step6_5_6_dev_ui_profile_indicator_fix3";
+      const SMOKE_VERSION = "step6_5_6_dev_ui_profile_indicator_fix3_v20260614_001";
+      const DEV_MODE_KEY = "asyncscene.devModeUnlocked";
+      const clone = (value) => {
+        if (typeof structuredClone === "function") {
+          try { return structuredClone(value); } catch (_) {}
+        }
+        try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
+      };
+      const setDevMode = (enabled) => {
+        try {
+          const storage = typeof window !== "undefined" ? window.localStorage : null;
+          if (!storage) return;
+          if (enabled) storage.setItem(DEV_MODE_KEY, "1");
+          else storage.removeItem(DEV_MODE_KEY);
+        } catch (_) {}
+      };
+      const renderMenu = () => {
+        if (G.UI && typeof G.UI.renderMenu === "function") G.UI.renderMenu();
+        else if (G.UI && typeof G.UI.showMenu === "function") G.UI.showMenu();
+      };
+      const indicatorValue = () => {
+        const el = document.getElementById("devUiProfileIndicator");
+        return el ? String(el.textContent || "").trim() : "";
+      };
+      const getProfile = () => {
+        const Data = G.Data || null;
+        return (Data && typeof Data.getUiProfile === "function") ? String(Data.getUiProfile() || "millennial") : "millennial";
+      };
+      const setProfile = (profile) => {
+        const Data = G.Data || null;
+        if (Data && typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
+      };
+      const clickButton = (id) => {
+        const el = document.getElementById(id);
+        const beforePanel = document.getElementById("consolePanel");
+        const beforeHidden = beforePanel ? beforePanel.classList.contains("hidden") : null;
+        if (!el) return { present: false, clicked: false, beforeHidden, afterHidden: beforeHidden };
+        try {
+          if (typeof el.click === "function") el.click();
+          else if (typeof el.onclick === "function") el.onclick({ preventDefault() {}, stopPropagation() {} });
+        } catch (_) {}
+        const afterPanel = document.getElementById("consolePanel");
+        const afterHidden = afterPanel ? afterPanel.classList.contains("hidden") : null;
+        return { present: true, clicked: true, beforeHidden, afterHidden };
+      };
+      G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3 = function smokeToneProfilesStep56DevUiProfileIndicatorFix3() {
+        const result = {
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          fix2Exported: false,
+          fix3Exported: false,
+          devModeToggleButtonPresent: false,
+          devModeToggleButtonWorks: false,
+          consolePanelButtonPresent: false,
+          consolePanelButtonWorks: false,
+          consolePanelHiddenBeforeClick: null,
+          consolePanelHiddenAfterClick: null,
+          devIndicatorVisibleInDev: false,
+          devIndicatorHiddenInNormal: false,
+          indicatorUpdatesAfterProfileChange: false,
+          indicatorReadOnly: false,
+          gameplayUnchanged: false,
+          profileNotInEcon: false,
+          profileNotInMoneyLog: false,
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const snapshot = {
+          profile: getProfile(),
+          state: clone(G.__S || G.State || {}),
+          debug: clone(G.__D || {}),
+          devMode: typeof window !== "undefined" && window.localStorage ? window.localStorage.getItem(DEV_MODE_KEY) : null,
+        };
+        try {
+          result.fix2Exported = typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 === "function";
+          result.fix3Exported = true;
+          if (!result.fix2Exported) fail("fix2_export_missing", "served runtime missing Fix2 export");
+          const beforeProfile = getProfile();
+          setDevMode(true);
+          renderMenu();
+          result.devModeToggleButtonPresent = !!document.getElementById("devModeControls");
+          result.consolePanelButtonPresent = !!document.getElementById("consolePanelButton");
+          result.devIndicatorVisibleInDev = !!document.getElementById("devUiProfileIndicator") && indicatorValue() === beforeProfile;
+          if (!result.devModeToggleButtonPresent) fail("dev_mode_toggle_missing", "devModeControls");
+          if (!result.consolePanelButtonPresent) fail("console_panel_missing", "consolePanelButton");
+          if (!result.devIndicatorVisibleInDev) fail("indicator_not_visible_in_dev", indicatorValue());
+
+          const toggleButton = document.querySelector("#devModeControls button");
+          if (toggleButton) {
+            const beforeText = String(toggleButton.textContent || "");
+            if (typeof toggleButton.click === "function") toggleButton.click();
+            renderMenu();
+            const afterButton = document.querySelector("#devModeControls button");
+            const afterText = afterButton ? String(afterButton.textContent || "") : "";
+            result.devModeToggleButtonWorks = beforeText !== afterText || beforeText.indexOf("Disable") >= 0;
+            if (!result.devModeToggleButtonWorks) fail("dev_mode_toggle_not_working", { beforeText, afterText });
+          }
+
+          setDevMode(true);
+          renderMenu();
+          const consoleClick = clickButton("consolePanelButton");
+          result.consolePanelHiddenBeforeClick = consoleClick.beforeHidden;
+          result.consolePanelHiddenAfterClick = consoleClick.afterHidden;
+          result.consolePanelButtonWorks = !!consoleClick.present && consoleClick.clicked === true && consoleClick.beforeHidden === true && consoleClick.afterHidden === false;
+          if (!result.consolePanelButtonWorks) fail("console_panel_not_working", consoleClick);
+
+          setProfile("zoomer");
+          renderMenu();
+          result.indicatorUpdatesAfterProfileChange = indicatorValue() === "zoomer";
+          if (!result.indicatorUpdatesAfterProfileChange) fail("indicator_not_updated_after_profile_change", indicatorValue());
+
+          const indicator = document.getElementById("devUiProfileIndicator");
+          result.indicatorReadOnly = !!indicator && indicator.getAttribute("aria-readonly") === "true" && indicator.isContentEditable !== true;
+          if (!result.indicatorReadOnly) fail("indicator_not_read_only", { ariaReadonly: indicator && indicator.getAttribute("aria-readonly"), contentEditable: indicator && indicator.isContentEditable });
+
+          setDevMode(false);
+          renderMenu();
+          result.devIndicatorHiddenInNormal = !document.getElementById("devUiProfileIndicator");
+          if (!result.devIndicatorHiddenInNormal) fail("indicator_visible_in_normal", indicatorValue());
+
+          setProfile(snapshot.profile || "millennial");
+          if (G.UI && typeof G.UI.renderAll === "function") {
+            try { G.UI.renderAll(); } catch (_) {}
+          } else {
+            renderMenu();
+          }
+          const afterState = clone(G.__S || G.State || {});
+          const afterDebug = clone(G.__D || {});
+          result.gameplayUnchanged = JSON.stringify(snapshot.state) === JSON.stringify(afterState);
+          result.profileNotInEcon = JSON.stringify(snapshot.debug && snapshot.debug.moneyLog ? snapshot.debug.moneyLog : null) === JSON.stringify(afterDebug && afterDebug.moneyLog ? afterDebug.moneyLog : null);
+          result.profileNotInMoneyLog = result.profileNotInEcon === true;
+          if (!result.gameplayUnchanged) fail("gameplay_changed", { before: snapshot.state, after: afterState });
+          if (!result.profileNotInEcon) fail("econ_or_moneylog_changed", { before: snapshot.debug && snapshot.debug.moneyLog, after: afterDebug && afterDebug.moneyLog });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          setDevMode(snapshot.devMode === "1");
+          setProfile(snapshot.profile || "millennial");
+          if (G.UI && typeof G.UI.renderAll === "function") {
+            try { G.UI.renderAll(); } catch (_) {}
+          } else {
+            renderMenu();
+          }
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.fix2Exported === true
+          && result.fix3Exported === true
+          && result.devModeToggleButtonPresent === true
+          && result.devModeToggleButtonWorks === true
+          && result.consolePanelButtonPresent === true
+          && result.consolePanelButtonWorks === true
+          && result.consolePanelHiddenBeforeClick === true
+          && result.consolePanelHiddenAfterClick === false
+          && result.devIndicatorVisibleInDev === true
+          && result.devIndicatorHiddenInNormal === true
+          && result.indicatorUpdatesAfterProfileChange === true
+          && result.indicatorReadOnly === true
+          && result.gameplayUnchanged === true
+          && result.profileNotInEcon === true
+          && result.profileNotInMoneyLog === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep56DevUiProfileIndicatorFix3 = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
