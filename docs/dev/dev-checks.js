@@ -49,6 +49,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeToneProfilesStep42SafeNormalization === "function" && typeof G.__DEV.smokeToneProfilesStep42SafeNormalization !== "function") {
     G.__DEV.smokeToneProfilesStep42SafeNormalization = G.Dev.smokeToneProfilesStep42SafeNormalization;
   }
+  if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1 === "function" && typeof G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix1 !== "function") {
+    G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix1 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1;
+  }
+  if (G.Dev && typeof G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix1 === "function" && typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1 !== "function") {
+    G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1 = G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix1;
+  }
 
   function installProfileSelfCheck(devStore) {
     if (!devStore || typeof devStore !== "object") return;

@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback fix 1
+- Mirrored the retry Safari smoke registration into the served GitHub Pages runtime so `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1()` is exported in the bundle Safari actually loads.
+- Kept the unknown-profile fallback logic unchanged.
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1()` with dedicated `buildTag`, `commit`, and `smokeVersion` values.
+- Runtime PASS is still pending until Safari runs the smoke.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback
 - Added the UI fallback layer so unsupported resolver outputs now route to the implemented millennial UI instead of reaching a missing profile UI.
 - Kept the resolver bands, save/storage behavior, and start-screen flow unchanged.
