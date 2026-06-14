@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.5 runtime smoke
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep55RuntimeSmoke()` with build identity `build_2026_06_14_step6_5_5_runtime_smoke` / `step6_5_5_runtime_smoke` / `step6_5_5_runtime_smoke_v20260614_001`.
+- The smoke snapshots the live runtime, rebuilds identical isolated baselines via `Game.__A.resetAll()` and `Game.__A.seedPlayers()` for each profile pass, runs one deterministic report step plus one deterministic battle step per profile, compares `moneyLog`, ECON delta, REP delta, points delta, cooldown maps, structural battle result, and visible UI text samples, and restores the original runtime session afterward.
+- Scope held: smoke-only coverage; no gameplay changes, no ECON changes, no moneyLog changes, no battle logic changes, no cooldown changes, and no save changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock fix 2
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep54EconLockFix2()` with build identity `build_2026_06_14_step6_5_4_econ_lock_fix2` / `step6_5_4_econ_lock_fix2` / `step6_5_4_econ_lock_fix2_smoke_v20260614_001`.
 - The smoke snapshots the live runtime, rebuilds isolated baselines through `Game.__A.resetAll()` and `Game.__A.seedPlayers()` for each profile pass, normalizes starting money/REP/points, clears mutable report/security/moneyLog state used by the smoke, compares only isolated scenario deltas, runs zero-sum in separate isolated passes, and restores the original session afterward.
