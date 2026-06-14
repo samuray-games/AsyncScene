@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.0 Zoomer Feel Pass Real UI Text Inventory & Coverage Map
+- Added because Step 6.1-6.4 had already passed dictionary/resolver groundwork, but the next content writing step still needed proof of which currently visible UI strings are actually wired to those profile-aware keys versus still living as hardcoded or non-profile-aware real call sites.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
+- The inventory smoke snapshots live REP/points/balances/moneyLog/ECON/conflict state, walks real visible UI sources such as `Game.System.copyInventory`, conflict-result call sites, `Data.TEXTS.genz`, `Data.START_SCREEN`, menu labels, respect/reputation fallbacks, crowd/NPC/cops/event text pools, and returns `inventory`, `existingProfileKeys`, `suspectedGaps`, `missingCoverage`, and summary counts for real UI coverage versus dictionary-only keys.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep60RealUiTextInventory()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-14 — Step 6.5.0 Zoomer Feel Pass NPC Speech Inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Inventory target: current NPC speech, NPC reaction, crowd comment, conflict feed, and DM-response text before Step 6.5 content writing.
