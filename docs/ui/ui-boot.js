@@ -4463,6 +4463,165 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep53MoneyLogLock = G.__DEV.smokeToneProfilesStep53MoneyLogLock;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep54EconLock !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_5_4_econ_lock";
+      const COMMIT = "step6_5_4_econ_lock";
+      const SMOKE_VERSION = "step6_5_4_econ_lock_smoke_v20260614_001";
+      const stableJson = (value) => {
+        try { return JSON.stringify(value); } catch (_) { return String(value); }
+      };
+      const scanForUiProfileRefs = () => {
+        const targets = [
+          G.__A && G.__A.applyReportByRole,
+          G.__A && G.__A.transferPoints,
+          G.__A && G.__A.transferRep,
+          G.__A && G.__A.applyBattleOutcome,
+          G.ConflictEconomy,
+          G._ConflictEconomy
+        ];
+        const hits = [];
+        targets.forEach((fn, idx) => {
+          if (typeof fn !== "function") return;
+          const src = Function.prototype.toString.call(fn);
+          if (src.indexOf("uiProfile") >= 0) hits.push({ idx, name: fn.name || `fn_${idx}` });
+        });
+        return hits;
+      };
+      const sumCurrency = (rows, currency) => {
+        return (Array.isArray(rows) ? rows : []).reduce((total, row) => {
+          const kind = String(row && row.currency || row && row.kind || "").toLowerCase();
+          if (kind !== currency) return total;
+          const amount = Number.isFinite(row && row.amount) ? row.amount : (Number.isFinite(row && row.delta) ? row.delta : 0);
+          return total + amount;
+        }, 0);
+      };
+      const normalizeMoneyLogRow = (row) => {
+        const entry = row && typeof row === "object" ? row : {};
+        return {
+          currency: String(entry.currency || entry.kind || "points").toLowerCase() === "rep" ? "rep" : "points",
+          amount: Number.isFinite(entry.amount) ? (entry.amount | 0) : (Number.isFinite(entry.delta) ? (entry.delta | 0) : 0),
+          reason: String(entry.reason || entry.reasonCode || entry.code || entry.type || ""),
+          code: String(entry.code || entry.reasonCode || entry.reason || entry.type || ""),
+          keys: Object.keys(entry).sort(),
+          structural: Object.keys(entry).sort().reduce((acc, key) => {
+            const value = entry[key];
+            acc[key] = { type: Array.isArray(value) ? "array" : typeof value, present: typeof value !== "undefined" };
+            return acc;
+          }, {})
+        };
+      };
+      const captureMoneyLogSlice = (startIndex) => {
+        const rows = (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.slice(startIndex) : [];
+        return rows.map((row) => normalizeMoneyLogRow(row));
+      };
+      const compareEconOutputs = (left, right) => stableJson(left) === stableJson(right);
+      const runProfilePass = (profileName) => {
+        const Data = G.Data || null;
+        const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
+        const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
+        const beforeProfile = getUiProfile ? getUiProfile() : "default";
+        const logStart = (G.__D && Array.isArray(G.__D.moneyLog)) ? G.__D.moneyLog.length : 0;
+        const beforeSnapshot = (G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function") ? G.__DEV.sumPointsSnapshot({ includeWorld: true, includePools: true }) : null;
+        const S = G.__S || G.State || {};
+        const players = S.players || {};
+        const reportTarget = Object.values(players).find((p) => p && p.npc && ["toxic", "bandit", "mafia"].includes(String(p.role || p.type || "").toLowerCase())) || null;
+        const reportRole = reportTarget ? String(reportTarget.role || reportTarget.type || "toxic") : "toxic";
+        let econResult = null;
+        let zeroSumResult = null;
+        try {
+          if (setUiProfile) setUiProfile(profileName);
+          if (G.__A && typeof G.__A.applyReportByRole === "function") {
+            econResult = G.__A.applyReportByRole(reportRole, { actionId: `tone_profiles_step54_${profileName}` });
+          } else if (typeof window.devReportTest === "function") {
+            econResult = window.devReportTest({ mode: "true" });
+          } else {
+            econResult = { ok: false, reason: "report_api_missing" };
+          }
+          zeroSumResult = (G.__DEV && typeof G.__DEV.smokeEconUi_ZeroSumOnce === "function")
+            ? G.__DEV.smokeEconUi_ZeroSumOnce()
+            : { ok: false, reason: "zero_sum_missing" };
+        } finally {
+          if (setUiProfile) setUiProfile(beforeProfile);
+          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeProfile === "zoomer" ? "zoomer" : "millennial";
+        }
+        const afterSnapshot = (G.__DEV && typeof G.__DEV.sumPointsSnapshot === "function") ? G.__DEV.sumPointsSnapshot({ includeWorld: true, includePools: true }) : null;
+        const moneyLog = captureMoneyLogSlice(logStart);
+        const moneyDelta = sumCurrency(moneyLog, "points");
+        const repDelta = sumCurrency(moneyLog, "rep");
+        const pointsDelta = (beforeSnapshot && afterSnapshot && Number.isFinite(beforeSnapshot.total) && Number.isFinite(afterSnapshot.total))
+          ? (afterSnapshot.total - beforeSnapshot.total)
+          : null;
+        return {
+          profile: profileName,
+          beforeSnapshot,
+          afterSnapshot,
+          moneyLog,
+          econResult,
+          zeroSumResult,
+          moneyDelta,
+          repDelta,
+          pointsDelta
+        };
+      };
+      G.__DEV.smokeToneProfilesStep54EconLock = function smokeToneProfilesStep54EconLock() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          econHasNoUiProfileRefs: false,
+          econResultsMatch: false,
+          moneyDeltaMatch: false,
+          repDeltaMatch: false,
+          pointsDeltaMatch: false,
+          zeroSumOk: false,
+          millennialEconResult: null,
+          zoomerEconResult: null
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          const refHits = scanForUiProfileRefs();
+          result.econHasNoUiProfileRefs = refHits.length === 0;
+          if (!result.econHasNoUiProfileRefs) fail("econ_uiProfile_refs_found", refHits);
+          const millennial = runProfilePass("millennial");
+          const zoomer = runProfilePass("zoomer");
+          result.millennialEconResult = millennial.econResult;
+          result.zoomerEconResult = zoomer.econResult;
+          result.econResultsMatch = compareEconOutputs(millennial.econResult, zoomer.econResult);
+          result.moneyDeltaMatch = millennial.moneyDelta === zoomer.moneyDelta;
+          result.repDeltaMatch = millennial.repDelta === zoomer.repDelta;
+          result.pointsDeltaMatch = millennial.pointsDelta === zoomer.pointsDelta;
+          result.zeroSumOk = !!(millennial.zeroSumResult && millennial.zeroSumResult.ok && zoomer.zeroSumResult && zoomer.zeroSumResult.ok);
+          if (!result.econResultsMatch) fail("econ_result_mismatch", { millennial: millennial.econResult, zoomer: zoomer.econResult });
+          if (!result.moneyDeltaMatch) fail("money_delta_mismatch", { millennial: millennial.moneyDelta, zoomer: zoomer.moneyDelta });
+          if (!result.repDeltaMatch) fail("rep_delta_mismatch", { millennial: millennial.repDelta, zoomer: zoomer.repDelta });
+          if (!result.pointsDeltaMatch) fail("points_delta_mismatch", { millennial: millennial.pointsDelta, zoomer: zoomer.pointsDelta });
+          if (!result.zeroSumOk) fail("zero_sum_failed", { millennial: millennial.zeroSumResult, zoomer: zoomer.zeroSumResult });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.econHasNoUiProfileRefs === true
+          && result.econResultsMatch === true
+          && result.moneyDeltaMatch === true
+          && result.repDeltaMatch === true
+          && result.pointsDeltaMatch === true
+          && result.zeroSumOk === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep54EconLock = G.__DEV.smokeToneProfilesStep54EconLock;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {

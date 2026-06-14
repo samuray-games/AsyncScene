@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.4 ECON lock
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep54EconLock()` with build identity `build_2026_06_14_step6_5_4_econ_lock` / `step6_5_4_econ_lock` / `step6_5_4_econ_lock_smoke_v20260614_001`.
+- The smoke runs the same deterministic report-style economy scenario under `millennial` and `zoomer`, compares money delta, REP delta, points delta, ECON output, and zero-sum result, and checks the live ECON function sources do not reference `uiProfile`.
+- Scope held: ECON audit only; no gameplay changes, no UI text changes, no moneyLog changes, no battle logic changes, no cooldown changes, and no save changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.3 moneyLog lock
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep53MoneyLogLock()` with build identity `build_2026_06_14_step6_5_3_moneylog_lock` / `step6_5_3_moneylog_lock` / `step6_5_3_moneylog_lock_smoke_v20260614_001`.
 - The smoke runs the same report-style moneyLog-producing scenario under `millennial` and `zoomer`, then compares entry count, codes, reasons, amounts, and structural fields so `uiProfile` can affect only visible copy above the log.
