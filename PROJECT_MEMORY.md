@@ -1,3 +1,9 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback
+- Added the UI fallback layer so unsupported resolver outputs now route to the implemented millennial UI instead of reaching a missing profile UI.
+- Kept the resolver bands, save/storage behavior, and start-screen flow unchanged.
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallback()` with dedicated `buildTag`, `commit`, and `smokeVersion` values.
+- Runtime PASS is still pending until Safari runs the smoke.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.3 fantasy resolver fix 1
 - Fixed the year-0 resolver edge case so normalized year `0` now resolves to `ancient`.
 - Preserved the other year-band mappings and kept the fallback safe for unsupported profile keys.
