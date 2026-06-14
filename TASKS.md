@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.4 unknown profile fallback
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep unsupported resolver outputs from reaching a missing UI by routing any unimplemented tone profile to the existing millennial UI fallback, while preserving implemented profile behavior, resolver bands, save/storage behavior, and start-screen flow.
+- Added dev-only Safari command: `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallback()`.
+- Smoke coverage verifies `ancient`, `medieval`, `renaissance`, `industrial`, `future`, `unknown profile`, and `default` all fall back to `millennial`, while `millennial` stays `millennial`, `zoomer` stays `zoomer`, and `alpha` stays `alpha`; it also checks no `undefined` UI profile is produced.
+- Served identity: `build_2026_06_14_step6_4_4_unknown_profile_fallback` / `step6_4_4_unknown_profile_fallback` / `step6_4_4_unknown_profile_fallback_smoke_v20260614_001`.
+- Scope held: UI fallback layer only; no resolver band changes, no save/storage changes, no start-screen flow changes, and no `Console.txt` usage.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep44UnknownProfileFallback()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.3 fantasy resolver fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the year-0 edge case in the fantasy resolver so normalized year `0` resolves to `ancient`, while preserving the other year-band mappings and keeping the fallback safe.
