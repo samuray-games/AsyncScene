@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 1
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix1()` with build identity `build_2026_06_14_step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance_v20260614_001`.
+- The fix keeps the acceptance checks in the same smoke closure so Safari can execute the helper-scoped year, ECON, moneyLog, battle, cooldown, and save probes without relaxing any gate.
+- Scope held: wiring fix only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, no save changes, and no check weakening.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptance()` with build identity `build_2026_06_14_step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance` / `step6_5_5_runtime_acceptance_v20260614_001`.
 - The smoke checks that `uiProfile` is a text-only skin, gameplay stays unchanged, save data contains only `uiProfile` with no year fields, balance is unaffected, and `uiProfile` does not enter ECON or `moneyLog`.
