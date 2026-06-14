@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 2
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2()` with build identity `build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix2` / `step6_5_6_dev_ui_profile_indicator_fix2` / `step6_5_6_dev_ui_profile_indicator_fix2_v20260614_001`.
+- The Console Panel button now explicitly opens the panel when the global toggle helper is missing, and the smoke checks the real button element instead of the container wrapper.
+- Scope held: console-panel wiring only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, and no save changes.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5.6 Dev UI profile indicator fix 1
 - Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix1()` with build identity `build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix1` / `step6_5_6_dev_ui_profile_indicator_fix1` / `step6_5_6_dev_ui_profile_indicator_fix1_v20260614_001`.
 - The dev menu now restores the existing Enable/Disable Dev Mode button and Console Panel button behavior while keeping the `UI Profile:` indicator read-only and dev-only.
