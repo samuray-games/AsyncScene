@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make the runtime acceptance smoke fully self-contained so no outer helper symbol can break Safari execution.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix4()`.
+- Smoke coverage keeps the acceptance contract active and inlines all acceptance-path scans inside the Fix4 function body, including direct runtime scans for `uiProfile` references in ECON/moneyLog/battle/cooldown-adjacent code plus direct save-payload scans for forbidden year-like fields.
+- Served identity: `build_2026_06_14_step6_5_5_runtime_acceptance_fix4` / `step6_5_5_runtime_acceptance_fix4` / `step6_5_5_runtime_acceptance_fix4_v20260614_001`.
+- Scope held: smoke wiring fix only; no gameplay changes, no ECON changes, no moneyLog changes, no battle changes, no cooldown changes, no save changes, and no check weakening.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix4()`.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 5 runtime acceptance fix 3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: remove the missing helper dependency from the runtime acceptance smoke by inlining the save/year scan directly inside the Fix3 smoke body.
