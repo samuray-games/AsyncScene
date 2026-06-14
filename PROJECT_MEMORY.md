@@ -1,3 +1,8 @@
+## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke
+- Added dev-only Safari smoke `Game.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmoke()` with build identity `build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke` / `step6_4_7_fantasy_years_safe_final_smoke` / `step6_4_7_fantasy_years_safe_final_smoke_v20260614_001`.
+- The smoke covers the required inputs `3026`, `1138`, `0`, `-400`, `999999`, empty value, and `abc`, verifies valid `uiProfile` resolution with no `undefined` profile, checks save/localStorage remain uiProfile-only and year-free, confirms `millennial`, `zoomer`, and `alpha` still work, and restores UI state after execution.
+- Scope held: smoke coverage only; no resolver band changes, no fallback changes, no start-screen flow changes, no save/storage behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.6 future expansion hook fix 3
 - Added a single `UI_PROFILE_REGISTRY` hook that separates supported profiles from future reserved keys so new tone profiles can be added through resolver/profile config without rewriting the start-screen flow.
 - Future keys currently reserved in the registry are `ancient`, `classic`, `future`, `sciFi`, `medieval`, `empire`, and `galactic`.
