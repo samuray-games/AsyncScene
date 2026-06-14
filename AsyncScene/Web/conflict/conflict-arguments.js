@@ -1077,7 +1077,13 @@
       core.finalize(battle.id, outcome);
     } else {
       battle.result = outcome || "draw";
-      battle.resultLine = (battle.result === "draw") ? "Толпа решает" : (battle.result === "win" ? "Победа" : "Поражение");
+      const D = Game.Data || {};
+      const resolved = battle.result === "draw"
+        ? (D.resolveConflictResultText ? D.resolveConflictResultText("conflict_draw") : (D.t ? D.t("conflict_draw") : "Толпа решает"))
+        : (battle.result === "win"
+          ? (D.resolveConflictResultText ? D.resolveConflictResultText("conflict_win") : (D.t ? D.t("conflict_win") : "Победа"))
+          : (D.resolveConflictResultText ? D.resolveConflictResultText("conflict_loss") : (D.t ? D.t("conflict_loss") : "Поражение")));
+      battle.resultLine = resolved;
       if (battle.result === "draw") {
         battle.status = "draw";
         battle.draw = true;

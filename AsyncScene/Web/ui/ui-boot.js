@@ -4198,6 +4198,95 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep61CoreSystemMessages = G.__DEV.smokeZoomerFeelStep61CoreSystemMessages;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep62ConflictResults !== "function") {
+      G.__DEV.smokeZoomerFeelStep62ConflictResults = function smokeZoomerFeelStep62ConflictResults() {
+        const buildTag = "build_2026_06_14_step6_2_zoomer_feel_conflict_results";
+        const commit = "step6_2_zoomer_feel_conflict_results";
+        const smokeVersion = "step6_2_zoomer_feel_conflict_results_v20260614_001";
+        const keys = [
+          "conflict_win",
+          "conflict_loss",
+          "conflict_draw",
+          "supported_majority",
+          "supported_minority",
+          "majority_won",
+          "minority_lost",
+          "conflict_finished",
+        ];
+        const stableJson = (value) => {
+          try { return JSON.stringify(value); } catch (_) { return String(value); }
+        };
+        const snapshot = () => ({
+          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
+          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
+          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
+          save: stableJson(G.__S && G.__S.save ? G.__S.save : {}),
+          textMode: G.Data && typeof G.Data.TEXT_MODE === "string" ? G.Data.TEXT_MODE : "",
+          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || ""
+        });
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          coverage: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const before = snapshot();
+        try {
+          const D = G.Data || {};
+          if (!D || typeof D.t !== "function") fail("resolver_missing", "Data.t");
+          if (typeof D.resolveConflictResultText !== "function") fail("conflict_resolver_missing", "Data.resolveConflictResultText");
+          const tables = {
+            millennial: (D.TEXTS && D.TEXTS.millennial) || {},
+            zoomer: (D.TEXTS && D.TEXTS.zoomer) || {}
+          };
+          keys.forEach((key) => {
+            const millennialText = String(tables.millennial[key] || "");
+            const zoomerText = String(tables.zoomer[key] || "");
+            const differs = millennialText !== zoomerText;
+            const pass = !!millennialText && !!zoomerText && differs;
+            result.coverage.push({ key, millennialText, zoomerText, differs, pass });
+            if (!millennialText) fail("millennial_text_missing", { key });
+            if (!zoomerText) fail("zoomer_text_missing", { key });
+            if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
+          });
+          ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority"].forEach((key) => {
+            const prevMode = D.TEXT_MODE;
+            D.TEXT_MODE = "millennial";
+            const millennialText = String(D.resolveConflictResultText(key) || "");
+            D.TEXT_MODE = "zoomer";
+            const zoomerText = String(D.resolveConflictResultText(key) || "");
+            D.TEXT_MODE = prevMode;
+            if (!millennialText || !zoomerText || millennialText === zoomerText) {
+              fail("visible_conflict_text_not_profile_aware", { key, millennialText, zoomerText });
+            }
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          const after = snapshot();
+          if (stableJson(before) !== stableJson(after)) fail("gameplay_state_mutated", { before, after });
+        }
+        result.missingCoverage = keys.filter((key) => !result.coverage.some((row) => row.key === key));
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.coverage.length === 8
+          && result.coverage.every((row) => row.pass === true);
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeZoomerFeelStep62ConflictResults = G.__DEV.smokeZoomerFeelStep62ConflictResults;
+    }
     if (typeof G.__DEV.smokeToneProfilesStep53MoneyLogLock !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_3_moneylog_lock";
       const COMMIT = "step6_5_3_moneylog_lock";

@@ -1,3 +1,10 @@
+## 2026-06-14 — Step 6.2 Zoomer Feel Pass Conflict Results
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make core conflict result UI messages profile-aware for millennial and zoomer using the existing profile text resolver, without changing gameplay logic, conflict outcomes, REP, points, money, ECON, moneyLog, rewards, penalties, balances, prices, or voting math.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep62ConflictResults()`.
+- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 8 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+- Scope held: resolver wiring plus smoke coverage only; no gameplay changes, no ECON changes, no moneyLog changes, no balance changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.1 Zoomer Feel Pass Core System Messages
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: add the 8 required millennial/zoomer core system message entries through the existing resolver path, route the 0-money battle toasts through that resolver, and expose the Step 6.1 Safari smoke without touching gameplay, ECON, moneyLog, rewards, penalties, balances, prices, or outcomes.
