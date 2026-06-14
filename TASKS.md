@@ -1,3 +1,12 @@
+## 2026-06-14 — Step 6.2R Zoomer Feel Pass Conflict Results real coverage verification
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: verify real visible UI route coverage for the existing Step 6.2 conflict-result content pack, distinguish live resolver routes from dictionary-only keys, and repair only already-existing visible resolver paths where hardcoded fallback text remained.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `coverage`, and `summary`.
+- Coverage contract: all 8 Step 6.2 keys with `millennialText`, `zoomerText`, `differs`, `dictionaryExists`, `routeConnected`, `dictionaryOnly`, `liveResolverOutputDiffers`, `callsites`, and `pass`.
+- Summary contract: `totalKeys`, `dictionaryExistsCount`, `routeConnectedCount`, `dictionaryOnlyCount`, and `differingTextCount`.
+- Scope held: real UI coverage verification/repair only; no gameplay changes, no conflict outcome changes, no voting math changes, no REP/points/money/ECON/moneyLog/rewards/penalties/balance/price changes, and no `Console.txt` usage.
+
 ## 2026-06-14 — Step 6.1R Zoomer Feel Pass Core System real coverage repair
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: connect existing Step 6.1 core system keys to real visible UI routes where they already exist, and report dictionary-only keys honestly where no safe real callsite exists today.

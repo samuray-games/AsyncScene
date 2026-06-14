@@ -1,3 +1,11 @@
+## 2026-06-14 — Step 6.2R Zoomer Feel Pass Conflict Results real coverage verification
+- Step 6.0 finding held: the Step 6.2 conflict keys already existed in the real resolver dictionary, but runtime acceptance for this pass still needed proof of which result-message branches were genuinely visible and which remained dictionary-only.
+- Reused the exact existing Step 6.2 content pack and repaired only existing visible hardcoded fallback branches in `AsyncScene/Web/conflict/conflict-api.js` plus `AsyncScene/Web/conflict/conflict-core.js` so millennial output stays the same while real resolver-backed zoomer output can surface on those already-live paths.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage()` in the served `docs/ui/ui-boot.js` attachment path and mirrored the export in `docs/dev/dev-checks.js`.
+- The smoke returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `coverage`, and `summary`, distinguishes `dictionaryExists`, `routeConnected`, `liveResolverOutputDiffers`, and `dictionaryOnly`, and only marks a key route-connected when a real visible conflict-result callsite is present.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage()`.
+- Status remains READY_FOR_RUNTIME_SMOKE until Safari confirms runtime PASS.
+
 ## 2026-06-14 — Step 6.1R Zoomer Feel Pass Core System real coverage repair
 - Step 6.0 runtime finding held: Step 6.1 core system keys existed in the resolver dictionary, but real visible route coverage lagged behind, while Step 6.2 conflict keys already had real route coverage.
 - Repaired one real visible hardcoded callsite in `AsyncScene/Web/ui/ui-dm.js` by routing the respect-flow `respect_no_points` fallback through `Game.System.say("errors", "insufficientPoints")`, preserving the existing millennial output while letting zoomer differ through the live resolver.

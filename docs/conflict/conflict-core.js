@@ -925,9 +925,9 @@
     if (!b) return "";
     if (b.resultLine && String(b.resultLine).trim()) return String(b.resultLine).trim();
     const r = String(b.result || "").toLowerCase();
-    if (r === "win") return "Победа";
-    if (r === "lose") return "Поражение";
-    if (r === "draw") return "Толпа решает";
+    if (r === "win") return conflictResultText("conflict_win") || "Победа";
+    if (r === "lose") return conflictResultText("conflict_loss") || "Поражение";
+    if (r === "draw") return conflictResultText("conflict_draw") || "Толпа решает";
     if (r === "escaped") return "Свалить";
     if (r === "ignored") return "Отвали";
     if (r === "stay" || r === "blocked") return "Остался";
