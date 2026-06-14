@@ -3619,10 +3619,10 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix2 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundary !== "function") {
+    if (typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1 !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_1_ui_only_boundary";
       const COMMIT = "step6_5_1_ui_only_boundary";
-      const SMOKE_VERSION = "step6_5_1_ui_only_boundary_smoke_v20260614_001";
+      const SMOKE_VERSION = "step6_5_1_ui_only_boundary_smoke_v20260614_002";
       const collectFunctionSources = (rootLabel, root, hits, visited) => {
         if (!root || (typeof root !== "object" && typeof root !== "function")) return;
         if (visited.has(root)) return;
@@ -3641,7 +3641,7 @@ window.Game = window.Game || {};
           }
         });
       };
-      G.__DEV.smokeToneProfilesStep51UiOnlyBoundary = function smokeToneProfilesStep51UiOnlyBoundary() {
+      G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1 = function smokeToneProfilesStep51UiOnlyBoundaryFix1() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
@@ -3652,6 +3652,8 @@ window.Game = window.Game || {};
           battleHasNoUiProfileRefs: false,
           cooldownHasNoUiProfileRefs: false,
           uiProfileTextChangesOk: false,
+          sampleMillennial: "",
+          sampleZoomer: "",
           failures: [],
           forbiddenRemaining: [],
           missingCoverage: [],
@@ -3691,12 +3693,16 @@ window.Game = window.Game || {};
           const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
           const t = Data && typeof Data.t === "function" ? Data.t.bind(Data) : null;
           const before = getUiProfile ? getUiProfile() : "default";
-          const sampleDefault = t ? t("battle_win") : "";
-          if (setUiProfile) setUiProfile("alpha");
-          const sampleAlpha = t ? t("battle_win") : "";
+          const sampleKey = "tie_start";
+          if (setUiProfile) setUiProfile("millennial");
+          result.sampleMillennial = t ? t(sampleKey) : "";
+          if (setUiProfile) setUiProfile("zoomer");
+          result.sampleZoomer = t ? t(sampleKey) : "";
           if (setUiProfile) setUiProfile(before);
-          result.uiProfileTextChangesOk = String(sampleDefault || "") !== String(sampleAlpha || "") && !!String(sampleDefault || "").trim() && !!String(sampleAlpha || "").trim();
-          if (!result.uiProfileTextChangesOk) fail("ui_profile_text_did_not_change", { before, sampleDefault, sampleAlpha });
+          result.uiProfileTextChangesOk = String(result.sampleMillennial || "") !== String(result.sampleZoomer || "")
+            && !!String(result.sampleMillennial || "").trim()
+            && !!String(result.sampleZoomer || "").trim();
+          if (!result.uiProfileTextChangesOk) fail("ui_profile_text_did_not_change", { before, sampleKey, sampleMillennial: result.sampleMillennial, sampleZoomer: result.sampleZoomer });
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
@@ -3711,7 +3717,7 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep51UiOnlyBoundary = G.__DEV.smokeToneProfilesStep51UiOnlyBoundary;
+      G.Dev.smokeToneProfilesStep51UiOnlyBoundaryFix1 = G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1;
     }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {

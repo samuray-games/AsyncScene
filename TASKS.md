@@ -1,11 +1,11 @@
-## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary
+## 2026-06-14 — Step 6 Tone Profiles Step 5.1 UI-only boundary fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep `uiProfile` confined to the UI copy/text resolver layer and block direct runtime dependencies from ECON, moneyLog, battle, and cooldown code paths without changing gameplay, balance, or unrelated text.
-- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundary()`.
+- Added new dev-only Safari command: `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1()`.
 - Smoke coverage verifies `uiProfile` is not referenced by the ECON path, moneyLog path, battle path, or cooldown path, and confirms visible profile text still changes when the UI profile changes.
-- Served identity: `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_smoke_v20260614_001`.
+- Served identity: `build_2026_06_14_step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary` / `step6_5_1_ui_only_boundary_smoke_v20260614_002`.
 - Scope held: boundary validation only; no gameplay changes, no balance changes, no unrelated text rewrites, and no `Console.txt` usage.
-- Required Safari command: `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundary()`.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix1()`.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.7 fantasy years safe final smoke fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
