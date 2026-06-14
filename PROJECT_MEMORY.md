@@ -1,6 +1,7 @@
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.2 safe normalization
 - Added `Game.Data.normalizeUiBirthYearValue()` and made `Game.Data.resolveUiProfileFromBirthYearValue()` use it as the single normalization gate before any profile-band evaluation.
 - The resolver path now rejects empty and invalid text input safely, blocks `NaN` from the resolver boundary, and falls back to `default` when normalization fails.
+- Added runtime smoke `Game.__DEV.smokeToneProfilesStep42SafeNormalization()` with dedicated `buildTag`, `commit`, and `smokeVersion` values for Safari verification.
 - Scope held: normalization boundary only; no resolver range changes, no new profile types, no save changes, no UI-flow changes, and no storage behavior changes.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.1 full year input

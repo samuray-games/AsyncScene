@@ -2899,6 +2899,73 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep37Final = G.__DEV.smokeToneProfilesStep37Final;
     }
+    if (typeof G.__DEV.smokeToneProfilesStep42SafeNormalization !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_2_safe_normalization";
+      const COMMIT = "step6_4_2_safe_normalization";
+      const SMOKE_VERSION = "step6_4_2_safe_normalization_smoke_v20260614_001";
+      G.__DEV.smokeToneProfilesStep42SafeNormalization = function smokeToneProfilesStep42SafeNormalization() {
+        const result = {
+          ok: false,
+          buildTag: BUILD_TAG,
+          commit: COMMIT,
+          smokeVersion: SMOKE_VERSION,
+          normalizedResolverOnly: false,
+          noNaNToResolver: false,
+          emptyInputSafe: false,
+          garbageInputFallsBack: false,
+          noUndefinedUiProfile: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        try {
+          if (!G.Data || typeof G.Data.normalizeUiBirthYearValue !== "function") fail("normalizer_missing", "Game.Data.normalizeUiBirthYearValue");
+          if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          const normalize = (value) => (G.Data && typeof G.Data.normalizeUiBirthYearValue === "function")
+            ? G.Data.normalizeUiBirthYearValue(value)
+            : null;
+          const resolve = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
+            ? G.Data.resolveUiProfileFromBirthYearValue(value)
+            : "default";
+          const normalized90 = normalize("90");
+          const normalizedEmpty = normalize("");
+          const normalizedGarbage = normalize("born near Tatooine");
+          const normalizedNaN = normalize("NaN");
+          result.noNaNToResolver = normalizedNaN === null && resolve(Number.NaN) === "default";
+          if (!result.noNaNToResolver) fail("nan_reached_resolver_or_failed_safe_default", { normalizedNaN, resolvedNaN: resolve(Number.NaN) });
+          result.emptyInputSafe = normalizedEmpty === null && resolve("") === "default";
+          if (!result.emptyInputSafe) fail("empty_input_not_safe", { normalizedEmpty, resolvedEmpty: resolve("") });
+          result.garbageInputFallsBack = normalizedGarbage === null && resolve("born near Tatooine") === "default";
+          if (!result.garbageInputFallsBack) fail("garbage_input_not_fallback", { normalizedGarbage, resolvedGarbage: resolve("born near Tatooine") });
+          result.normalizedResolverOnly = normalized90 === "90" && resolve("90") === "millennial";
+          if (!result.normalizedResolverOnly) fail("resolver_not_using_normalized_value", { normalized90, resolved90: resolve("90") });
+          result.noUndefinedUiProfile = !(
+            typeof resolve("90") === "undefined"
+            || typeof resolve("") === "undefined"
+            || typeof resolve("born near Tatooine") === "undefined"
+          );
+          if (!result.noUndefinedUiProfile) fail("undefined_uiProfile", { resolved90: resolve("90"), resolvedEmpty: resolve(""), resolvedGarbage: resolve("born near Tatooine") });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.normalizedResolverOnly === true
+          && result.noNaNToResolver === true
+          && result.emptyInputSafe === true
+          && result.garbageInputFallsBack === true
+          && result.noUndefinedUiProfile === true;
+        return result;
+      };
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeToneProfilesStep42SafeNormalization = G.__DEV.smokeToneProfilesStep42SafeNormalization;
+    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {

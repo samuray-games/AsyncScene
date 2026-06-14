@@ -3,8 +3,10 @@
 - Goal: add a normalization layer so fantasy year input is sanitized before resolver evaluation, with NaN blocked, empty input handled safely, invalid text routed to fallback, and resolver evaluation receiving only normalized values.
 - Added `Game.Data.normalizeUiBirthYearValue()` as the single normalization entry point used by `Game.Data.resolveUiProfileFromBirthYearValue()`.
 - `resolveUiProfileFromBirthYearValue()` now normalizes first, then expands and resolves only the normalized two-digit value; raw invalid input never reaches the band lookup path.
+- Added new Safari/runtime smoke `Game.__DEV.smokeToneProfilesStep42SafeNormalization()` with its own `buildTag`, `commit`, and `smokeVersion` fields.
+- Smoke coverage checks that NaN is blocked before resolver evaluation, empty input is safe, garbage input falls back, resolver sees only normalized values, and `uiProfile` is never undefined.
 - Scope held: normalization boundary only; no resolver year-range changes, no new profile types, no save changes, no UI flow changes, no storage behavior changes, and no unrelated refactors.
-- Required Safari command remains the existing final smoke path.
+- Required Safari command: `Game.__DEV.smokeToneProfilesStep42SafeNormalization()`.
 
 ## 2026-06-14 — Step 6 Tone Profiles Step 4.1 full year input
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
