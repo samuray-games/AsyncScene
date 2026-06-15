@@ -268,6 +268,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
       events_title: "События ({count})",
       events_empty: "Открой события.",
+      battles_empty: "Вызовов нет.",
+      dm_empty: "Пока пусто.",
+      dm_action_unavailable: "Недоступно.",
+      battle_energy_locked_hint: "Откроется на ⚡{energy}",
       events_close_extra: "Свернуть",
       events_clear_all: "Очистить",
       events_done: "Готово",
@@ -321,7 +325,11 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       tie_chat_end_draw: "ТОЛПА: DRAW {aVotes}:{bVotes}",
 
       events_title: "EVENTS {count}",
-      events_empty: "0 EVENTS",
+      events_empty: "Пока тихо.",
+      battles_empty: "Раундов нет.",
+      dm_empty: "Личка молчит.",
+      dm_action_unavailable: "Пока закрыто.",
+      battle_energy_locked_hint: "Нужно ⚡{energy}",
       events_close_extra: "СВЕРНУТЬ",
       events_clear_all: "ЧИСТКА",
       events_done: "OK",
@@ -5307,6 +5315,185 @@ K YN A9: Нет.
   };
 
   installOnboardingRegressionPackSmokeViaData();
+
+  const installEmptyStatesProfileTextsSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts";
+    const commit = "step6_6_1_empty_states_profile_texts";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_v20260615_001";
+    const samplesOf = (profile, key, vars) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try {
+        return String(Data.t(key, vars) || "");
+      } finally {
+        Data.TEXT_MODE = prev;
+      }
+    };
+    const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts = function smokeZoomerFeelStep661EmptyStatesProfileTexts() {
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        samples: {},
+        routeChecks: {},
+        summary: {
+          checkedKeys: 0,
+          millennialZoomerDifferentCount: 0,
+          unchangedCount: 0,
+          resolverBackedCount: 0,
+          hardcodedRemainingAllowedCount: 0,
+          routeConnectedCount: 0,
+          docsMirrorUpdated: false
+        }
+      };
+      const fail = (code, detail) => {
+        result.failedChecks.push(code);
+        result.failures.push({ code, detail: detail == null ? null : detail });
+      };
+      try {
+        const samples = {
+          events_empty: {
+            millennial: samplesOf("millennial", "events_empty"),
+            zoomer: samplesOf("zoomer", "events_empty")
+          },
+          battles_empty: {
+            millennial: samplesOf("millennial", "battles_empty"),
+            zoomer: samplesOf("zoomer", "battles_empty")
+          },
+          dm_empty: {
+            millennial: samplesOf("millennial", "dm_empty"),
+            zoomer: samplesOf("zoomer", "dm_empty")
+          },
+          dm_action_unavailable: {
+            millennial: samplesOf("millennial", "dm_action_unavailable"),
+            zoomer: samplesOf("zoomer", "dm_action_unavailable")
+          },
+          battle_energy_locked_hint: {
+            millennial: samplesOf("millennial", "battle_energy_locked_hint", { energy: 5 }),
+            zoomer: samplesOf("zoomer", "battle_energy_locked_hint", { energy: 5 })
+          }
+        };
+        result.samples = samples;
+        const checkedKeys = Object.keys(samples);
+        result.summary.checkedKeys = checkedKeys.length;
+        checkedKeys.forEach((key) => {
+          const row = samples[key];
+          if (!row || typeof row.millennial !== "string" || typeof row.zoomer !== "string") {
+            fail("sample_missing", { key, row });
+            return;
+          }
+          if (row.millennial !== row.zoomer) result.summary.millennialZoomerDifferentCount += 1;
+          else result.summary.unchangedCount += 1;
+        });
+
+        const eventsSrc = sourceOf(root.UI && root.UI.renderEvents);
+        const battlesSrc = sourceOf(root.UI && root.UI.renderBattles);
+        const dmSrc = sourceOf(root.UI && root.UI.renderDM);
+        const teachSrc = sourceOf(root.UI && root.UI.openTeachPanel);
+
+        result.routeChecks.eventsEmptyResolver = /t\(\s*["']events_empty["']\s*\)/.test(eventsSrc);
+        result.routeChecks.battlesEmptyResolver = /t\(\s*["']battles_empty["']\s*\)/.test(battlesSrc);
+        result.routeChecks.battlesEmptyNoHardcoded = !/Вызовов нет\./.test(battlesSrc);
+        result.routeChecks.dmEmptyResolver = /t\(\s*["']dm_empty["']\s*\)/.test(teachSrc);
+        result.routeChecks.dmEmptyNoHardcoded = !/Пока пусто\./.test(teachSrc);
+        result.routeChecks.dmActionUnavailableResolver = /t\(\s*["']dm_action_unavailable["']\s*\)/.test(dmSrc);
+        result.routeChecks.dmActionUnavailableNoHardcoded = !/Недоступно\./.test(dmSrc);
+        result.routeChecks.battleEnergyLockedHintResolver = /t\(\s*["']battle_energy_locked_hint["']\s*,\s*\{\s*energy\s*:\s*5\s*\}\s*\)/.test(battlesSrc);
+        result.routeChecks.battleEnergyLockedHintEnergyPreserved = samples.battle_energy_locked_hint.millennial.includes("⚡5") && samples.battle_energy_locked_hint.zoomer.includes("⚡5");
+
+        const docsMirrorPairs = [
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.events_empty === "Открой события.",
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.battles_empty === "Вызовов нет.",
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.dm_empty === "Пока пусто.",
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.dm_action_unavailable === "Недоступно.",
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.battle_energy_locked_hint === "Откроется на ⚡{energy}",
+          Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.events_empty === "Пока тихо.",
+          Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.battles_empty === "Раундов нет.",
+          Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.dm_empty === "Личка молчит.",
+          Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.dm_action_unavailable === "Пока закрыто.",
+          Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.battle_energy_locked_hint === "Нужно ⚡{energy}"
+        ];
+        result.routeChecks.docsMirrorUpdated = docsMirrorPairs.every(Boolean);
+
+        result.summary.resolverBackedCount = [
+          result.routeChecks.eventsEmptyResolver,
+          result.routeChecks.battlesEmptyResolver,
+          result.routeChecks.dmEmptyResolver,
+          result.routeChecks.dmActionUnavailableResolver,
+          result.routeChecks.battleEnergyLockedHintResolver
+        ].filter(Boolean).length;
+        result.summary.routeConnectedCount = [
+          result.routeChecks.eventsEmptyResolver,
+          result.routeChecks.battlesEmptyResolver,
+          result.routeChecks.battlesEmptyNoHardcoded,
+          result.routeChecks.dmEmptyResolver,
+          result.routeChecks.dmEmptyNoHardcoded,
+          result.routeChecks.dmActionUnavailableResolver,
+          result.routeChecks.dmActionUnavailableNoHardcoded,
+          result.routeChecks.battleEnergyLockedHintResolver,
+          result.routeChecks.battleEnergyLockedHintEnergyPreserved,
+          result.routeChecks.docsMirrorUpdated
+        ].filter(Boolean).length;
+        result.summary.hardcodedRemainingAllowedCount = 0;
+
+        checkedKeys.forEach((key) => {
+          if (result.samples[key].millennial === result.samples[key].zoomer) {
+            result.missingCoverage.push(key);
+          }
+        });
+        [
+          ["events_empty", result.routeChecks.eventsEmptyResolver && result.routeChecks.docsMirrorUpdated],
+          ["battles_empty", result.routeChecks.battlesEmptyResolver && result.routeChecks.battlesEmptyNoHardcoded && result.routeChecks.docsMirrorUpdated],
+          ["dm_empty", result.routeChecks.dmEmptyResolver && result.routeChecks.dmEmptyNoHardcoded && result.routeChecks.docsMirrorUpdated],
+          ["dm_action_unavailable", result.routeChecks.dmActionUnavailableResolver && result.routeChecks.dmActionUnavailableNoHardcoded && result.routeChecks.docsMirrorUpdated],
+          ["battle_energy_locked_hint", result.routeChecks.battleEnergyLockedHintResolver && result.routeChecks.battleEnergyLockedHintEnergyPreserved && result.routeChecks.docsMirrorUpdated]
+        ].forEach(([key, ok]) => {
+          if (!ok) fail("route_check_failed", key);
+        });
+
+        const routeFlags = [
+          result.routeChecks.eventsEmptyResolver,
+          result.routeChecks.battlesEmptyResolver,
+          result.routeChecks.battlesEmptyNoHardcoded,
+          result.routeChecks.dmEmptyResolver,
+          result.routeChecks.dmEmptyNoHardcoded,
+          result.routeChecks.dmActionUnavailableResolver,
+          result.routeChecks.dmActionUnavailableNoHardcoded,
+          result.routeChecks.battleEnergyLockedHintResolver,
+          result.routeChecks.battleEnergyLockedHintEnergyPreserved,
+          result.routeChecks.docsMirrorUpdated
+        ];
+        result.forbiddenRemaining = routeFlags.includes(false)
+          ? ["empty_state_copy_not_fully_routed"]
+          : [];
+        result.ok = result.failures.length === 0
+          && result.failedChecks.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.summary.millennialZoomerDifferentCount === checkedKeys.length
+          && result.summary.resolverBackedCount === checkedKeys.length
+          && result.summary.routeConnectedCount >= 5
+          && result.summary.docsMirrorUpdated === true;
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTexts = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts;
+  };
+
+  installEmptyStatesProfileTextsSmokeViaData();
 
   Game.Data = Data;
 })();

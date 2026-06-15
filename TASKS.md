@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.6.1 Zoomer Feel Pass Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: route the visible empty-state and disabled-state copy through the existing profile text resolver with millennial fallback, while keeping gameplay logic, availability checks, costs, and branching unchanged.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `samples`, `routeChecks`, and `summary`.
+- Summary contract: `checkedKeys`, `millennialZoomerDifferentCount`, `unchangedCount`, `resolverBackedCount`, `hardcodedRemainingAllowedCount`, `routeConnectedCount`, and `docsMirrorUpdated`.
+- Scope held: copy routing and smoke only; no gameplay changes, no event logic changes, no battle logic changes, no DM logic changes, no REP/points/money/ECON/moneyLog/persistence/event journal changes, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.5.2 Retry1 safe NPC conflict feed profile texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Previous Step 6.5.2 attempt after commit `826c3d0` broke UI boot: the start screen went blank, labels fell back to raw keys like `menu_title`, and the intended smoke command was undefined.

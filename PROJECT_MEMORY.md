@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.6.1 Zoomer Feel Pass Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the new profile-aware empty-state and disabled-state keys in `AsyncScene/Web/data.js` and `docs/data.js`: `events_empty`, `battles_empty`, `dm_empty`, `dm_action_unavailable`, and `battle_energy_locked_hint`, with millennial fallback preserved.
+- Routed the visible empty/disabled UI copy in `AsyncScene/Web/ui/ui-battles.js` and `AsyncScene/Web/ui/ui-dm.js` through `Data.t(...)` without changing gameplay logic, costs, availability checks, or render branching.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts()`.
+- Updated the docs mirror inventory in `docs/ui/ui-boot.js` and the profile diff table in `docs/UI_PROFILE_ZOOMER_DIFF.md`.
+
 ## 2026-06-15 — Step 6.5.2 Retry1 safe NPC conflict feed profile texts
 - The first Step 6.5.2 attempt broke UI boot after commit `826c3d0`: `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTexts` was undefined, the start screen went blank, and UI labels fell back to raw keys such as `menu_title`.
 - Fix1 restored UI boot safely by removing the unsafe top-level injection/proxy path, restoring the original frozen `Data.NPC_EVENT_TEMPLATES`, and adding `Game.__DEV.smokeZoomerFeelStep652NpcConflictFeedProfileTextsFix1()` for boot-health verification.
