@@ -5,6 +5,13 @@
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels()`.
 - Scope held: start screen copy routing and smoke only; no birth-year/profile selection logic changes, no saved storage key changes, no first-launch/reset flow changes, no dev mode changes, no gameplay/REP/points/money/ECON/moneyLog/event journal changes, and no UI/menu/event/battle/DM logic changes.
 
+## 2026-06-15 — Step 6.7.1 Fix1 Start Screen Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: fix the smoke/profile-selection check so input `04` is validated through the canonical resolver with leading-zero semantics preserved.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1()`.
+- Scope held: smoke diagnostics and profile-selection verification only; no visible copy, profile mapping thresholds, storage keys, first-launch/reset flow, dev mode flow, gameplay, or event/economy logic changes.
+
 ## 2026-06-15 — Step 6.6.1 Fix11 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the docs mirror verification so the already-green runtime route smoke can report `docsMirrorUpdated:true`.
