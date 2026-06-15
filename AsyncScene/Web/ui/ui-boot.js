@@ -353,6 +353,48 @@ window.Game = window.Game || {};
     return normalized || "default";
   }
 
+  function syncStartScreenRootTexts(root, UI, activeProfile) {
+    const G = window.Game || {};
+    const D = G.Data || null;
+    if (!root || typeof root.querySelector !== "function") return;
+    const resumeMode = getOnboardingSeen(UI);
+    const titleText = resolveStartScreenText(D, "start_title", activeProfile);
+    const labelText = resolveStartScreenText(D, "birth_digits_label", activeProfile);
+    const helperText = resolveStartScreenText(D, "profile_helper", activeProfile);
+    const feelingText = resolveStartScreenText(D, "fantasy_birth_label", activeProfile);
+    const startText = resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile) : resolveStartScreenText(D, "start_action", activeProfile);
+    const rulesText = resolveStartScreenText(D, "rules_action", activeProfile);
+    const resetText = resolveStartScreenText(D, "start_reset", activeProfile);
+    const setText = (selector, value) => {
+      const el = root.querySelector(selector);
+      if (el) el.textContent = String(value || "");
+    };
+    const setAttr = (selector, attr, value) => {
+      const el = root.querySelector(selector);
+      if (el) el.setAttribute(attr, String(value || ""));
+    };
+    setText("#startTitle", titleText);
+    setText("#startBirthYearLabel", labelText);
+    setAttr("#startBirthYearPicker", "aria-label", labelText);
+    setAttr("#startBirthYear0Up", "aria-label", resolveStartScreenText(D, "digit_up_first", activeProfile));
+    setAttr("#startBirthYear0Up", "title", resolveStartScreenText(D, "digit_up_first", activeProfile));
+    setAttr("#startBirthYear0Down", "aria-label", resolveStartScreenText(D, "digit_down_first", activeProfile));
+    setAttr("#startBirthYear0Down", "title", resolveStartScreenText(D, "digit_down_first", activeProfile));
+    setAttr("#startBirthYear1Up", "aria-label", resolveStartScreenText(D, "digit_up_second", activeProfile));
+    setAttr("#startBirthYear1Up", "title", resolveStartScreenText(D, "digit_up_second", activeProfile));
+    setAttr("#startBirthYear1Down", "aria-label", resolveStartScreenText(D, "digit_down_second", activeProfile));
+    setAttr("#startBirthYear1Down", "title", resolveStartScreenText(D, "digit_down_second", activeProfile));
+    setText("#startBirthYearHint", helperText);
+    setText("#startBirthYearFeelingLabel", feelingText);
+    setText("#btnStart", startText);
+    setAttr("#btnStart", "aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+    setAttr("#btnStart", "title", resolveStartScreenText(D, "start_action", activeProfile));
+    setText("#btnRules", rulesText);
+    setAttr("#btnRules", "aria-label", rulesText);
+    setAttr("#btnRules", "title", rulesText);
+    setText("#btnResetOnboarding", resetText);
+  }
+
   function syncStartScreenUiProfileFromSelection(UI, rawBirthYearValue) {
     const G = window.Game || {};
     const Data = G.Data || null;
@@ -522,6 +564,7 @@ window.Game = window.Game || {};
     const $ = UI.$;
     markUiBootVersion();
     const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    const activeProfile = getActiveStartScreenProfile(UI);
     const spec = (D && D.START_SCREEN) ? D.START_SCREEN : null;
     const title = spec && typeof spec.title === "string" ? spec.title : "";
     const introLines = spec && Array.isArray(spec.introLines) ? spec.introLines.slice(0, 3) : [];
@@ -556,26 +599,26 @@ window.Game = window.Game || {};
       birthYearLabel = document.createElement("label");
       birthYearLabel.id = "startBirthYearLabel";
       birthYearLabel.className = "startFieldLabel";
-      birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label");
+      birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label", activeProfile);
       const insertLabelBefore = $("startBirthYearPicker") || document.getElementById("startBirthYearPicker") || $("startBtns") || document.getElementById("startBtns");
       if (insertLabelBefore && insertLabelBefore.parentNode) insertLabelBefore.parentNode.insertBefore(birthYearLabel, insertLabelBefore);
       else if (economyEl && economyEl.parentNode) economyEl.parentNode.insertBefore(birthYearLabel, economyEl.nextSibling);
     } else {
-      birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label");
+      birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label", activeProfile);
     }
 
     let birthYearPicker = $("startBirthYearPicker") || document.getElementById("startBirthYearPicker");
     if (!birthYearPicker) {
       const buildWheel = (index, ordinal) => `
         <div class="startBirthYearWheel" data-birth-year-digit="${index}">
-          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second")}" title="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second")}">▲</button>
+          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second", activeProfile)}" title="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second", activeProfile)}">▲</button>
           <div id="startBirthYearDigit${index}" class="startBirthYearDigit" aria-live="polite">0</div>
-          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second")}" title="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second")}">▼</button>
+          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second", activeProfile)}" title="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second", activeProfile)}">▼</button>
         </div>`;
       birthYearPicker = document.createElement("div");
       birthYearPicker.id = "startBirthYearPicker";
       birthYearPicker.className = "startBirthYearPicker";
-      birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label"));
+      birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label", activeProfile));
       birthYearPicker.innerHTML = buildWheel(0, "первую") + buildWheel(1, "вторую");
       const insertPickerBefore = $("startBirthYearHint") || document.getElementById("startBirthYearHint") || $("startBtns") || document.getElementById("startBtns");
       if (insertPickerBefore && insertPickerBefore.parentNode) insertPickerBefore.parentNode.insertBefore(birthYearPicker, insertPickerBefore);
@@ -587,12 +630,12 @@ window.Game = window.Game || {};
       birthYearHint = document.createElement("div");
       birthYearHint.id = "startBirthYearHint";
       birthYearHint.className = "startFieldHint";
-      birthYearHint.textContent = resolveStartScreenText(D, "profile_helper");
+      birthYearHint.textContent = resolveStartScreenText(D, "profile_helper", activeProfile);
       const insertHintBefore = $("startBtns") || document.getElementById("startBtns");
       if (insertHintBefore && insertHintBefore.parentNode) insertHintBefore.parentNode.insertBefore(birthYearHint, insertHintBefore);
       else if (birthYearPicker && birthYearPicker.parentNode) birthYearPicker.parentNode.insertBefore(birthYearHint, birthYearPicker.nextSibling);
     } else {
-      birthYearHint.textContent = resolveStartScreenText(D, "profile_helper");
+      birthYearHint.textContent = resolveStartScreenText(D, "profile_helper", activeProfile);
     }
 
     let birthYearFeelingLabel = $("startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel");
@@ -600,11 +643,11 @@ window.Game = window.Game || {};
       birthYearFeelingLabel = document.createElement("label");
       birthYearFeelingLabel.id = "startBirthYearFeelingLabel";
       birthYearFeelingLabel.className = "startFieldLabel";
-      birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label");
+      birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label", activeProfile);
       const insertFeelingLabelBefore = $("startBtns") || document.getElementById("startBtns");
       if (insertFeelingLabelBefore && insertFeelingLabelBefore.parentNode) insertFeelingLabelBefore.parentNode.insertBefore(birthYearFeelingLabel, insertFeelingLabelBefore);
     } else {
-      birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label");
+      birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label", activeProfile);
     }
 
     let birthYearFeelingInput = $("startBirthYearFeelingInput") || document.getElementById("startBirthYearFeelingInput");
@@ -698,21 +741,21 @@ window.Game = window.Game || {};
     }
     const startBtn = $("btnStart") || document.getElementById("btnStart");
     if (startBtn) {
-      startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue") : resolveStartScreenText(D, "start_action");
-      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start"));
-      startBtn.title = resolveStartScreenText(D, "start_action");
+      startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile) : resolveStartScreenText(D, "start_action", activeProfile);
+      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+      startBtn.title = resolveStartScreenText(D, "start_action", activeProfile);
     }
 
     const rulesBtn = $("btnRules") || document.getElementById("btnRules");
     if (rulesBtn) {
-      rulesBtn.textContent = resolveStartScreenText(D, "rules_action");
-      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action"));
-      rulesBtn.title = resolveStartScreenText(D, "rules_action");
+      rulesBtn.textContent = resolveStartScreenText(D, "rules_action", activeProfile);
+      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action", activeProfile));
+      rulesBtn.title = resolveStartScreenText(D, "rules_action", activeProfile);
     }
 
     const resetBtn = $("btnResetOnboarding") || document.getElementById("btnResetOnboarding");
     if (resetBtn) {
-      resetBtn.textContent = resolveStartScreenText(D, "start_reset");
+      resetBtn.textContent = resolveStartScreenText(D, "start_reset", activeProfile);
       resetBtn.hidden = !resumeMode;
       resetBtn.classList.toggle("hidden", !resumeMode);
       resetBtn.style.display = resumeMode ? "block" : "none";
@@ -723,6 +766,13 @@ window.Game = window.Game || {};
       resetBtn.style.fontSize = "12px";
       resetBtn.style.textDecoration = "underline";
       resetBtn.style.opacity = "0.78";
+    }
+    const startRoots = [];
+    try { Array.from(document.querySelectorAll("#startScreen")).forEach((node) => { if (node && startRoots.indexOf(node) < 0) startRoots.push(node); }); } catch (_) {}
+    if (startRoots.length > 1) {
+      startRoots.forEach((root) => {
+        if (root && root !== st) syncStartScreenRootTexts(root, UI, activeProfile);
+      });
     }
   }
 
@@ -8664,11 +8714,11 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1;
     }
-    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 !== "function") {
-      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix3() {
-        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix3_actual_dom";
-        const commit = "step6_7_1_start_screen_buttons_labels_fix3_actual_dom";
-        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix3_actual_dom_v20260615_001";
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix4() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite";
+        const commit = "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite_v20260615_001";
         const result = {
           buildTag,
           commit,
@@ -8714,6 +8764,15 @@ window.Game = window.Game || {};
             missingDocsRouteKeys: [],
             ok: false,
           },
+          domWriteDiagnostics: {
+            duplicateStartNodesCount: 0,
+            activeStartRootFound: false,
+            assignmentsAfterResolverDetected: false,
+            hardcodedDefaultDomWritesRemaining: [],
+            refreshCalledAfterProfileSet: false,
+            readNodesMatchUpdatedNodes: false,
+            ok: false,
+          },
           summary: {
             checkedKeys: 0,
             millennialZoomerDifferentCount: 0,
@@ -8724,6 +8783,7 @@ window.Game = window.Game || {};
             smokeIdentityFresh: false,
             domRoutesConnectedCount: 0,
             sourceRoutesConnectedCount: 0,
+            domOverwriteFixed: false,
           },
         };
         const fail = (check, detail) => {
@@ -8778,15 +8838,20 @@ window.Game = window.Game || {};
           result.routeChecks.millennialFallbackPreserved = keys.filter((key) => result.samples[key].millennial === resolve(key, "") && result.samples[key].millennial === resolve(key, "missing")).length >= 6;
           result.routeChecks.zoomerDiffers = result.summary.millennialZoomerDifferentCount >= 6;
 
-          const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
-          const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
-          const labelEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null;
-          const pickerEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null;
-          const hintEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null;
-          const feelingEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null;
-          const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
-          const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
-          const resetBtn = (typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null;
+          const startRoots = [];
+          try { Array.from(document.querySelectorAll("#startScreen")).forEach((node) => { if (node && startRoots.indexOf(node) < 0) startRoots.push(node); }); } catch (_) {}
+          const st = startRoots.find((root) => root && root.classList && root.classList.contains("active") && !root.hidden)
+            || startRoots.find((root) => root && !root.hidden)
+            || startRoots[0]
+            || ((typeof document !== "undefined") ? document.getElementById("startScreen") : null);
+          const titleEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startTitle") || document.getElementById("startTitle")) : ((typeof document !== "undefined") ? document.getElementById("startTitle") : null);
+          const labelEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null);
+          const pickerEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null);
+          const hintEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null);
+          const feelingEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null);
+          const startBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnStart") || document.getElementById("btnStart")) : ((typeof document !== "undefined") ? document.getElementById("btnStart") : null);
+          const rulesBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnRules") || document.getElementById("btnRules")) : ((typeof document !== "undefined") ? document.getElementById("btnRules") : null);
+          const resetBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding")) : ((typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null);
           result.routeChecks.startScreenBootHealthy = !!(st && titleEl && labelEl && pickerEl && hintEl && feelingEl && startBtn && rulesBtn && resetBtn);
           if (!result.routeChecks.startScreenBootHealthy) fail("start_screen_boot_unhealthy", {
             st: !!st,
@@ -8874,6 +8939,50 @@ window.Game = window.Game || {};
             result.routeChecks.uiBootRoutesResolver = false;
           }
 
+          const actualByRoot = startRoots.map((root) => {
+            const q = (selector) => root && typeof root.querySelector === "function" ? root.querySelector(selector) : null;
+            return {
+              titleText: String((q("#startTitle") || {}).textContent || "").trim(),
+              labelText: String((q("#startBirthYearLabel") || {}).textContent || "").trim(),
+              hintText: String((q("#startBirthYearHint") || {}).textContent || "").trim(),
+              feelingText: String((q("#startBirthYearFeelingLabel") || {}).textContent || "").trim(),
+              startText: String((q("#btnStart") || {}).textContent || "").trim(),
+              rulesText: String((q("#btnRules") || {}).textContent || "").trim(),
+              resetText: String((q("#btnResetOnboarding") || {}).textContent || "").trim(),
+            };
+          });
+          const activeRootMatch = actualByRoot.find((entry) => entry.titleText === expectedTitleText && entry.labelText === expectedLabelText && entry.hintText === expectedHintText && entry.feelingText === expectedFeelingText && entry.startText === expectedStartText && entry.rulesText === expectedRulesText && entry.resetText === expectedResetText) || null;
+          result.domWriteDiagnostics.duplicateStartNodesCount = startRoots.length;
+          result.domWriteDiagnostics.activeStartRootFound = !!activeRootMatch;
+          result.domWriteDiagnostics.assignmentsAfterResolverDetected = !!(startRoots.length > 0 && !activeRootMatch);
+          result.domWriteDiagnostics.hardcodedDefaultDomWritesRemaining = activeRootMatch ? [] : [
+            ...(result.domRouteDiagnostics.titleText !== expectedTitleText ? ["title"] : []),
+            ...(result.domRouteDiagnostics.labelText !== expectedLabelText ? ["birth_digits_label"] : []),
+            ...(result.domRouteDiagnostics.hintText !== expectedHintText ? ["profile_helper"] : []),
+            ...(result.domRouteDiagnostics.feelingText !== expectedFeelingText ? ["fantasy_birth_label"] : []),
+            ...(result.domRouteDiagnostics.startText !== expectedStartText ? ["start_button"] : []),
+            ...(result.domRouteDiagnostics.rulesText !== expectedRulesText ? ["rules_button"] : []),
+            ...(result.domRouteDiagnostics.resetText !== expectedResetText ? ["reset_button"] : []),
+          ];
+          result.domWriteDiagnostics.refreshCalledAfterProfileSet = typeof G.__DEV.refreshOnboardingStartScreenOnce === "function"
+            && result.domRouteDiagnostics.activeProfileUsedForDom === activeProfile;
+          result.domWriteDiagnostics.readNodesMatchUpdatedNodes = startRoots.length > 0
+            && startRoots.every((root) => {
+              const q = (selector) => root && typeof root.querySelector === "function" ? root.querySelector(selector) : null;
+              return String((q("#startTitle") || {}).textContent || "").trim() === expectedTitleText
+                && String((q("#startBirthYearLabel") || {}).textContent || "").trim() === expectedLabelText
+                && String((q("#startBirthYearHint") || {}).textContent || "").trim() === expectedHintText
+                && String((q("#startBirthYearFeelingLabel") || {}).textContent || "").trim() === expectedFeelingText
+                && String((q("#btnStart") || {}).textContent || "").trim() === expectedStartText
+                && String((q("#btnRules") || {}).textContent || "").trim() === expectedRulesText
+                && String((q("#btnResetOnboarding") || {}).textContent || "").trim() === expectedResetText;
+            });
+          result.domWriteDiagnostics.ok = result.domWriteDiagnostics.activeStartRootFound
+            && result.domWriteDiagnostics.assignmentsAfterResolverDetected === false
+            && result.domWriteDiagnostics.hardcodedDefaultDomWritesRemaining.length === 0
+            && result.domWriteDiagnostics.refreshCalledAfterProfileSet === true
+            && result.domWriteDiagnostics.readNodesMatchUpdatedNodes === true;
+
           const inputsChecked = ["87", "98", "04", "15"];
           const expectedByInput = {
             "87": "millennial",
@@ -8914,6 +9023,7 @@ window.Game = window.Game || {};
             && result.routeChecks.resolverExists
             && result.routeChecks.startScreenBootHealthy
             && result.routeChecks.uiBootRoutesResolver
+            && result.domWriteDiagnostics.ok
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
             && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
             && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
@@ -8930,15 +9040,15 @@ window.Game = window.Game || {};
             && result.samples.start_action.zoomer === "Войти";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
-          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 === "function"
-            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix3_actual_dom"
-            && commit === "step6_7_1_start_screen_buttons_labels_fix3_actual_dom"
-            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix3_actual_dom_v20260615_001";
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite"
+            && commit === "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite_v20260615_001";
           if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
             buildTag,
             commit,
             smokeVersion,
-            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 === "function",
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 === "function",
           });
 
           result.summary.routeConnectedCount = [
@@ -8964,12 +9074,13 @@ window.Game = window.Game || {};
             result.domRouteDiagnostics.rulesText === expectedRulesText,
             result.domRouteDiagnostics.resetText === expectedResetText,
           ].filter(Boolean).length;
-          result.summary.sourceRoutesConnectedCount = [
+            result.summary.sourceRoutesConnectedCount = [
             result.sourceRouteDiagnostics.uiBootAssignmentsFound,
             result.sourceRouteDiagnostics.ok,
             result.sourceRouteDiagnostics.routedKeysFoundInRuntimeSource.length >= 11,
             result.sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0,
           ].filter(Boolean).length;
+          result.summary.domOverwriteFixed = !!result.domWriteDiagnostics.ok;
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
@@ -8996,10 +9107,11 @@ window.Game = window.Game || {};
           && result.routeChecks.noStaleSmokeIdentity === true
           && result.profileSelectionDiagnostics.ok === true
           && result.domRouteDiagnostics.ok === true
-          && result.sourceRouteDiagnostics.ok === true;
+          && result.sourceRouteDiagnostics.ok === true
+          && result.domWriteDiagnostics.ok === true;
         return result;
       };
-      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3;
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4;
     }
   }
 })();
