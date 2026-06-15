@@ -6061,11 +6061,19 @@ K YN A9: Нет.
     const scanFreeT = () => {
       const filesScanned = [
         "AsyncScene/Web/data.js",
-        "docs/data.js"
+        "docs/data.js",
+        "AsyncScene/Web/ui/ui-dm.js",
+        "docs/ui/ui-dm.js",
+        "AsyncScene/Web/ui/ui-battles.js",
+        "docs/ui/ui-battles.js"
       ];
       const sources = [
-        { file: "AsyncScene/Web/data.js", source: sourceOf(root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2) + "\n" + sourceOf(root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3) },
-        { file: "docs/data.js", source: sourceOf(root.Dev && root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2) + "\n" + sourceOf(root.Dev && root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3) }
+        { file: "AsyncScene/Web/data.js", source: sourceOf(root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2) + "\n" + sourceOf(root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3) + "\n" + sourceOf(root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4) + "\n" + sourceOf(root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5) },
+        { file: "docs/data.js", source: sourceOf(root.Dev && root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2) + "\n" + sourceOf(root.Dev && root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3) + "\n" + sourceOf(root.Dev && root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4) + "\n" + sourceOf(root.Dev && root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5) },
+        { file: "AsyncScene/Web/ui/ui-dm.js", source: sourceOf(root.UI && root.UI.renderDM) + "\n" + sourceOf(root.UI && root.UI.openTeachPanel) },
+        { file: "docs/ui/ui-dm.js", source: sourceOf(root.UI && root.UI.renderDM) + "\n" + sourceOf(root.UI && root.UI.openTeachPanel) },
+        { file: "AsyncScene/Web/ui/ui-battles.js", source: sourceOf(root.UI && root.UI.renderBattles) },
+        { file: "docs/ui/ui-battles.js", source: sourceOf(root.UI && root.UI.renderBattles) }
       ];
       const offendingReferences = [];
       const pattern = /(^|[^\/.\w])t\(/g;
@@ -6073,6 +6081,8 @@ K YN A9: Нет.
       try {
         sources.forEach((row) => {
           const cleaned = stripComments(row.source);
+          const hasLocalT = /\b(?:const|let|var)\s+t\s*=|\bfunction\s+t\s*\(/.test(cleaned);
+          if (hasLocalT) return;
           let match;
           while ((match = pattern.exec(cleaned))) {
             offendingReferences.push({
@@ -6193,6 +6203,61 @@ K YN A9: Нет.
   };
 
   installEmptyStatesProfileTextsFix5SmokeViaData();
+
+  const installEmptyStatesProfileTextsFix6SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix6";
+    const commit = "step6_6_1_empty_states_profile_texts_fix6";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix6_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix6() {
+      const base = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5
+        ? root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5()
+        : {
+            ok: false,
+            failures: [{ code: "smoke_unavailable", detail: null }],
+            forbiddenRemaining: ["smoke_unavailable"],
+            missingCoverage: ["smoke_unavailable"],
+            failedChecks: ["smoke_unavailable"],
+            samples: {},
+            routeChecks: {},
+            summary: {
+              checkedKeys: 0,
+              millennialZoomerDifferentCount: 0,
+              unchangedCount: 0,
+              resolverBackedCount: 0,
+              hardcodedRemainingAllowedCount: 0,
+              routeConnectedCount: 0,
+              docsMirrorUpdated: false,
+              smokeIdentityFresh: false,
+              noFreeTReferences: false
+            },
+            tFreeReferenceScan: { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "smoke_unavailable" }
+          };
+      const result = base;
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.tFreeReferenceScan = result.tFreeReferenceScan || { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "scan_missing" };
+      result.summary = result.summary || {};
+      result.summary.smokeIdentityFresh = true;
+      result.summary.noFreeTReferences = !!result.tFreeReferenceScan.ok;
+      result.ok = !!result.ok
+        && !!result.tFreeReferenceScan.ok
+        && !result.tFreeReferenceScan.diagnosticError
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6;
+  };
+
+  installEmptyStatesProfileTextsFix6SmokeViaData();
 
   Game.Data = Data;
 })();

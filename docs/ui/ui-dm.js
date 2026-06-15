@@ -11,6 +11,9 @@ window.Game = window.Game || {};
 console.warn("UI_DM_V1_LOADED", { ts: Date.now() });
 if (!Game.__DEV) Game.__DEV = {};
 const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
+const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
+  ? Game.Data.t(key, vars)
+  : String(key || "");
 Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
