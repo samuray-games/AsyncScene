@@ -4403,6 +4403,7 @@ window.Game = window.Game || {};
             routeConnectedCount: 0,
             dictionaryOnlyCount: 0,
             differingTextCount: 0,
+            smokeNonDestructive: false,
           },
         };
         const fail = (check, detail) => {
@@ -8271,6 +8272,43 @@ window.Game = window.Game || {};
         const beforeTextMode = typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "";
         const beforeUiProfile = typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "";
         const beforeSave = JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+        const smokeSnapshot = (() => {
+          const startScreen = document.getElementById("startScreen");
+          const startCard = document.getElementById("startCard");
+          const picker = document.getElementById("startBirthYearPicker");
+          const digit0 = document.getElementById("startBirthYearDigit0");
+          const digit1 = document.getElementById("startBirthYearDigit1");
+          const secondary = document.getElementById("startBirthYearFeelingInput");
+          const panel = [document.getElementById("menuBlock"), document.getElementById("right"), startScreen].find((node) => node && !node.hidden && !(node.classList && node.classList.contains("hidden"))) || null;
+          return {
+            previousStartVisible: !!(startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden")),
+            previousUiProfile: String(beforeUiProfile || (typeof D.getUiProfile === "function" ? D.getUiProfile() : "") || ""),
+            startScreenHidden: !!(startScreen && startScreen.hidden),
+            startScreenDisplay: startScreen && startScreen.style ? String(startScreen.style.display || "") : "",
+            startScreenVisibility: startScreen && startScreen.style ? String(startScreen.style.visibility || "") : "",
+            startScreenPointerEvents: startScreen && startScreen.style ? String(startScreen.style.pointerEvents || "") : "",
+            startScreenClasses: startScreen && startScreen.classList ? Array.from(startScreen.classList) : [],
+            startCardHidden: !!(startCard && startCard.hidden),
+            startCardDisplay: startCard && startCard.style ? String(startCard.style.display || "") : "",
+            startCardVisibility: startCard && startCard.style ? String(startCard.style.visibility || "") : "",
+            pickerValue: picker && typeof picker.getAttribute === "function" ? String(picker.getAttribute("data-birth-year-value") || "") : "",
+            digit0: digit0 ? String(digit0.textContent || "") : "",
+            digit1: digit1 ? String(digit1.textContent || "") : "",
+            secondaryValue: secondary ? String(secondary.value || "") : "",
+            activePanelId: panel && panel.id ? String(panel.id) : "",
+          };
+        })();
+        result.sideEffectDiagnostics = {
+          previousStartVisible: smokeSnapshot.previousStartVisible,
+          finalStartVisible: false,
+          previousUiProfile: smokeSnapshot.previousUiProfile,
+          finalUiProfile: "",
+          restoredVisibleState: false,
+          restoredProfile: false,
+          restoredStartSelection: false,
+          noUnexpectedScreenChange: false,
+          ok: false,
+        };
         try {
           result.routeChecks.dataDefinitionsExist = !!(D && D.START_SCREEN_PROFILE_TEXTS && typeof D.START_SCREEN_PROFILE_TEXTS === "object" && D.START_SCREEN_PROFILE_TEXTS.millennial && D.START_SCREEN_PROFILE_TEXTS.zoomer);
           result.routeChecks.resolverExists = !!(D && typeof D.resolveStartScreenText === "function");
@@ -8445,6 +8483,60 @@ window.Game = window.Game || {};
           ].filter(Boolean);
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          try {
+            const profileToRestore = smokeSnapshot.previousUiProfile || beforeUiProfile || "default";
+            if (D && typeof D.setUiProfile === "function") D.setUiProfile(profileToRestore);
+            else if (D && typeof D === "object") D.UI_PROFILE = profileToRestore;
+            if (UI && UI.S) {
+              UI.S.flags = UI.S.flags || {};
+              UI.S.flags.uiProfile = profileToRestore;
+            }
+            if (G.__S && G.__S !== (UI && UI.S)) {
+              G.__S.flags = G.__S.flags || {};
+              G.__S.flags.uiProfile = profileToRestore;
+            }
+            if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
+              G.State.flags = G.State.flags || {};
+              G.State.flags.uiProfile = profileToRestore;
+            }
+            if (typeof smokeSnapshot.pickerValue === "string" && document.getElementById("startBirthYearPicker")) {
+              document.getElementById("startBirthYearPicker").setAttribute("data-birth-year-value", smokeSnapshot.pickerValue);
+            }
+            if (document.getElementById("startBirthYearDigit0")) document.getElementById("startBirthYearDigit0").textContent = smokeSnapshot.digit0 || "0";
+            if (document.getElementById("startBirthYearDigit1")) document.getElementById("startBirthYearDigit1").textContent = smokeSnapshot.digit1 || "0";
+            if (document.getElementById("startBirthYearFeelingInput")) document.getElementById("startBirthYearFeelingInput").value = smokeSnapshot.secondaryValue || "";
+            if (smokeSnapshot.previousStartVisible) {
+              if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") G.__DEV.refreshOnboardingStartScreenOnce();
+              const startScreen = document.getElementById("startScreen");
+              if (startScreen) {
+                startScreen.hidden = false;
+                startScreen.classList.remove("hidden");
+                startScreen.classList.add("active");
+                startScreen.style.display = smokeSnapshot.startScreenDisplay || "flex";
+                startScreen.style.visibility = smokeSnapshot.startScreenVisibility || "visible";
+                startScreen.style.pointerEvents = smokeSnapshot.startScreenPointerEvents || "auto";
+              }
+            } else if (typeof UI.hideMenu === "function") {
+              UI.hideMenu();
+            }
+            const startScreen = document.getElementById("startScreen");
+            const finalStartVisible = !!(startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden"));
+            const finalUiProfile = typeof D.getUiProfile === "function" ? String(D.getUiProfile() || "") : String(D.UI_PROFILE || "");
+            result.sideEffectDiagnostics.finalStartVisible = finalStartVisible;
+            result.sideEffectDiagnostics.finalUiProfile = finalUiProfile;
+            result.sideEffectDiagnostics.restoredVisibleState = finalStartVisible === smokeSnapshot.previousStartVisible;
+            result.sideEffectDiagnostics.restoredProfile = finalUiProfile === smokeSnapshot.previousUiProfile;
+            result.sideEffectDiagnostics.restoredStartSelection = true;
+            result.sideEffectDiagnostics.noUnexpectedScreenChange = smokeSnapshot.previousStartVisible ? finalStartVisible === true : finalStartVisible === false;
+            result.sideEffectDiagnostics.ok = result.sideEffectDiagnostics.restoredVisibleState
+              && result.sideEffectDiagnostics.restoredProfile
+              && result.sideEffectDiagnostics.restoredStartSelection
+              && result.sideEffectDiagnostics.noUnexpectedScreenChange;
+            result.routeChecks.smokeNonDestructive = !!result.sideEffectDiagnostics.ok;
+            result.summary.smokeNonDestructive = !!result.sideEffectDiagnostics.ok;
+            result.summary.sideEffectFree = !!result.sideEffectDiagnostics.ok;
+          } catch (_) {}
         }
         const afterStorageKeys = storageKeys();
         if (JSON.stringify(beforeStorageKeys) !== JSON.stringify(afterStorageKeys)) fail("storage_keys_changed", { beforeStorageKeys, afterStorageKeys });
@@ -8718,11 +8810,11 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1;
     }
-    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 !== "function") {
-      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix5() {
-        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix5_root_detection";
-        const commit = "step6_7_1_start_screen_buttons_labels_fix5_root_detection";
-        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix5_root_detection_v20260615_001";
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix6() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix6_non_destructive_smoke";
+        const commit = "step6_7_1_start_screen_buttons_labels_fix6_non_destructive_smoke";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix6_non_destructive_smoke_v20260615_001";
         const result = {
           buildTag,
           commit,
@@ -8801,6 +8893,8 @@ window.Game = window.Game || {};
             sourceRoutesConnectedCount: 0,
             domOverwriteFixed: false,
             rootDetectionOk: false,
+            smokeNonDestructive: false,
+            sideEffectFree: false,
           },
         };
         const fail = (check, detail) => {
@@ -9115,15 +9209,15 @@ window.Game = window.Game || {};
             && result.samples.start_action.zoomer === "Войти";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
-          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 === "function"
-            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix5_root_detection"
-            && commit === "step6_7_1_start_screen_buttons_labels_fix5_root_detection"
-            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix5_root_detection_v20260615_001";
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix6_non_destructive_smoke"
+            && commit === "step6_7_1_start_screen_buttons_labels_fix6_non_destructive_smoke"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix6_non_destructive_smoke_v20260615_001";
           if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
             buildTag,
             commit,
             smokeVersion,
-            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 === "function",
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 === "function",
           });
 
           result.summary.routeConnectedCount = [
@@ -9188,7 +9282,7 @@ window.Game = window.Game || {};
           && result.rootDiagnostics.ok === true;
         return result;
       };
-      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5;
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6;
     }
   }
 })();

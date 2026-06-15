@@ -1,9 +1,9 @@
-## 2026-06-15 — Step 6.7.1 Fix5 Start Screen Buttons & Labels Profile Texts
+## 2026-06-15 — Step 6.7.1 Fix6 Start Screen Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Fix4 failed because the smoke's `startRoots` handling was not reliable enough for the live root scope, so the smoke could throw before profile-selection diagnostics and root detection completed.
-- Fix5 adds a shared start-root collector, a safe refresh call after active profile resolution, compact `rootDiagnostics`, and a guard that prevents saved profile state from stomping an already-selected active profile during the start-screen refresh path.
-- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5()`.
-- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5()`.
+- Fix5 passed the feature checks, but running the smoke left the app on the start screen, which breaks the smoke contract.
+- Fix6 wraps the smoke in a state snapshot/restore path so the previous visible screen and profile are restored after probing the start screen.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6()`.
 
 ## 2026-06-15 — Step 6.7.1 Start Screen Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
