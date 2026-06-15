@@ -1,3 +1,8 @@
+## 2026-06-15 — Step 6.6.1 Fix11 Empty States Profile Texts
+- Fix11 corrects the docs mirror verification after Fix10 stayed feature-green but still reported `docsMirrorUpdated:false` because the smoke checked the wrong mirror object path.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11()`.
+- Fix11 keeps the runtime route diagnosis intact and only corrects the docs mirror bookkeeping.
+
 ## 2026-06-15 — Step 6.6.1 Fix10 Empty States Profile Texts
 - Fix10 repairs the smoke aggregation/bookkeeping after Fix9 diagnosed the DM unavailable route successfully but left required route fields and summary counts incomplete.
 - The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10()`.
