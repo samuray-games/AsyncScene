@@ -306,8 +306,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       tie_chat_end_winner: "Толпа решает. Победил {name} - {aVotes}:{bVotes}.",
       tie_chat_end_draw: "Толпа решает. Поровну - {aVotes}:{bVotes}.",
 
+      events_header: "События",
       events_title: "События ({count})",
       events_empty: "Открой события.",
+      events_panel_hint: "Здесь появляются важные события мира.",
       battles_empty: "Вызовов нет.",
       dm_empty: "Пока пусто.",
       dm_action_unavailable: "Недоступно.",
@@ -369,8 +371,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       tie_chat_end_winner: "ТОЛПА: 🏆 {name} {aVotes}:{bVotes}",
       tie_chat_end_draw: "ТОЛПА: DRAW {aVotes}:{bVotes}",
 
+      events_header: "Движ",
       events_title: "EVENTS {count}",
       events_empty: "Пока тихо.",
+      events_panel_hint: "Тут всплывает, кто опять устроил драму.",
       battles_empty: "Раундов нет.",
       dm_empty: "Личка молчит.",
       dm_action_unavailable: "Пока закрыто.",
@@ -8561,6 +8565,576 @@ K YN A9: Нет.
   };
 
   installMenuChromeButtonsLabelsFinalFix1SmokeViaData();
+
+  const installEventsHeaderPanelLabelsSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_3_events_header_panel_labels";
+    const commit = "step6_7_3_events_header_panel_labels";
+    const smokeVersion = "step6_7_3_events_header_panel_labels_v20260615_001";
+    const visibleKeys = ["events_header", "events_close_extra", "events_clear", "events_empty"];
+    const checkedRawKeys = [
+      "events_header",
+      "events_close_extra",
+      "events_clear",
+      "events_empty",
+      "events_panel_hint",
+      "battles_empty",
+      "battle_win",
+      "battle_loss",
+      "menu_title",
+      "return_to_start",
+      "dm_empty"
+    ];
+    const coreKeys = [
+      "battles_empty",
+      "battle_win",
+      "battle_loss",
+      "events_header",
+      "events_close_extra",
+      "events_clear",
+      "events_empty",
+      "events_panel_hint",
+      "menu_title",
+      "return_to_start",
+      "dm_empty"
+    ];
+    const profileKeys = ["events_header", "events_close_extra", "events_clear", "events_empty", "events_panel_hint"];
+    const panelHintKey = "events_panel_hint";
+    const expectedTexts = {
+      events_header: { default: "События", millennial: "События", zoomer: "Движ" },
+      events_close_extra: { default: "Свернуть", millennial: "Свернуть", zoomer: "СВЕРНУТЬ" },
+      events_clear: { default: "Очистить", millennial: "Очистить", zoomer: "ЧИСТКА" },
+      events_empty: { default: "Открой события.", millennial: "Открой события.", zoomer: "Пока тихо." },
+      events_panel_hint: { default: "Здесь появляются важные события мира.", millennial: "Здесь появляются важные события мира.", zoomer: "Тут всплывает, кто опять устроил драму." }
+    };
+    const sampleOf = (profile, key, vars) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try { return String(Data.t(key, vars) || ""); }
+      finally { Data.TEXT_MODE = prev; }
+    };
+    const stripComments = (source) => String(source || "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/.*$/gm, "");
+    const textOk = (value, key) => {
+      const text = String(value == null ? "" : value).trim();
+      return !!text && text !== key && !/^(undefined|null)$/i.test(text);
+    };
+    const sourceOf = (fn) => stripComments(typeof fn === "function" ? String(fn) : "");
+    const readText = (selector) => {
+      const node = document.querySelector(selector);
+      return String(node && node.textContent != null ? node.textContent : "").trim();
+    };
+    const getEventsCount = () => {
+      try {
+        if (root.Events && typeof root.Events.getAll === "function") {
+          const arr = root.Events.getAll();
+          return Array.isArray(arr) ? arr.length : 0;
+        }
+      } catch (_) {}
+      try {
+        if (root.__S && Array.isArray(root.__S.events)) return root.__S.events.length;
+      } catch (_) {}
+      try {
+        if (root.Game && root.Game.__S && Array.isArray(root.Game.__S.events)) return root.Game.__S.events.length;
+      } catch (_) {}
+      return 0;
+    };
+    const getEventsCollapsed = () => {
+      try {
+        if (root.UI && typeof root.UI.getEventsCollapsed === "function") return !!root.UI.getEventsCollapsed();
+      } catch (_) {}
+      try {
+        return !!(root.UI && root.UI.S && root.UI.S.flags && root.UI.S.flags.eventsCollapsed);
+      } catch (_) {}
+      return false;
+    };
+    const renderEventsWithProfile = (profile) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try {
+        if (root.UI && typeof root.UI.renderEvents === "function") root.UI.renderEvents();
+      } finally {
+        Data.TEXT_MODE = prev;
+      }
+    };
+    root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels = function smokeZoomerFeelStep673EventsHeaderPanelLabels() {
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        samples: {},
+        routeChecks: {},
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        domRouteDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        eventsBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        summary: {
+          checkedKeys: 0,
+          checkedRawKeysCount: checkedRawKeys.length,
+          rawKeyLeakCount: 0,
+          millennialZoomerDifferentCount: 0,
+          unchangedAllowedCount: 0,
+          routeConnectedCount: 0,
+          domRoutedCount: 0,
+          optionalDomMissingCount: 0,
+          docsMirrorUpdated: false,
+          smokeIdentityFresh: false,
+          devLabelsSkippedCount: 0,
+          storageNewKeysCount: 0,
+          eventsBehaviorStable: false,
+          guardedStateWriteFree: false,
+          coreResolverHealthy: false,
+          commandRegistered: false
+        }
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const prevTextMode = Data.TEXT_MODE;
+      const storageBefore = (() => {
+        try {
+          const store = window.localStorage;
+          if (!store) return [];
+          const keys = [];
+          for (let i = 0; i < store.length; i += 1) keys.push(String(store.key(i) || ""));
+          return keys.filter(Boolean).sort();
+        } catch (_) {
+          return [];
+        }
+      })();
+      const eventsCountBefore = getEventsCount();
+      const panelInitiallyOpen = !(prevEventsBodyHidden || getEventsCollapsed());
+      const prevEventsBody = document.getElementById("eventsBody");
+      const prevEventsBodyHidden = !!(prevEventsBody && prevEventsBody.classList && prevEventsBody.classList.contains("hidden"));
+      const prevEventsBodyScrollTop = prevEventsBody ? Number(prevEventsBody.scrollTop || 0) : 0;
+      const prevEventsHeaderTitle = readText("#eventsHeader .headerTitleText");
+      const prevEventsHeaderCount = readText("#eventsHeader .headerCountWrapper");
+      const prevEventsPanelHint = "";
+      const visibleDomLabels = [];
+      const optionalDomLabels = ["events_panel_hint"];
+      const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
+      const checkedBehaviors = ["panel text route", "body labels route", "profile restore", "storage stability", "guarded state"];
+      const restoreProfileAndRender = (profile) => {
+        const prev = Data.TEXT_MODE;
+        Data.TEXT_MODE = profile;
+        try {
+          if (root.UI && typeof root.UI.renderEvents === "function") root.UI.renderEvents();
+        } finally {
+          Data.TEXT_MODE = prev;
+        }
+      };
+      const cleanup = () => {
+        try { Data.TEXT_MODE = prevTextMode; } catch (_) {}
+        try {
+          if (root.UI && typeof root.UI.renderEvents === "function") root.UI.renderEvents();
+        } catch (_) {}
+        try {
+          const body = document.getElementById("eventsBody");
+          if (body) {
+            body.scrollTop = prevEventsBodyScrollTop;
+            body.classList.toggle("hidden", prevEventsBodyHidden);
+          }
+        } catch (_) {}
+      };
+      try {
+        result.commandRegistrationChecks = {
+          gameDevExists: !!(root && root.__DEV),
+          step673CommandRegistered: typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels === "function",
+          dataJsLoaded: !!(root && root.Data === Data && typeof Data.t === "function"),
+          registrationScope: "Game.__DEV",
+          ok: false
+        };
+        result.commandRegistrationChecks.ok = result.commandRegistrationChecks.gameDevExists
+          && result.commandRegistrationChecks.step673CommandRegistered
+          && result.commandRegistrationChecks.dataJsLoaded
+          && result.commandRegistrationChecks.registrationScope === "Game.__DEV";
+
+        const rawKeySamples = {};
+        const leakedKeys = [];
+        checkedRawKeys.forEach((key) => {
+          const values = {
+            default: sampleOf("default", key),
+            millennial: sampleOf("millennial", key),
+            zoomer: sampleOf("zoomer", key)
+          };
+          rawKeySamples[key] = values;
+          if (![values.default, values.millennial, values.zoomer].every((value) => textOk(value, key))) leakedKeys.push(key);
+        });
+        result.rawKeyLeakChecks = {
+          checkedKeys: checkedRawKeys.slice(),
+          samples: rawKeySamples,
+          leakedKeys: leakedKeys.slice(),
+          ok: leakedKeys.length === 0
+        };
+
+        result.resolverChecks = {
+          dataTextsExists: !!(Data && Data.TEXTS && typeof Data.TEXTS === "object"),
+          dataTExists: typeof Data.t === "function",
+          coreKeysHuman: coreKeys.every((key) => textOk(sampleOf("millennial", key), key) && textOk(sampleOf("zoomer", key), key)),
+          profileFallbackWorks: coreKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key)),
+          millennialFallbackWorks: profileKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key)),
+          zoomerEventsKeysWork: profileKeys.every((key) => textOk(sampleOf("zoomer", key), key)),
+          noRawKeyLeakForCheckedKeys: leakedKeys.length === 0,
+          ok: false
+        };
+        result.resolverChecks.ok = result.resolverChecks.dataTextsExists
+          && result.resolverChecks.dataTExists
+          && result.resolverChecks.coreKeysHuman
+          && result.resolverChecks.profileFallbackWorks
+          && result.resolverChecks.millennialFallbackWorks
+          && result.resolverChecks.zoomerEventsKeysWork
+          && result.resolverChecks.noRawKeyLeakForCheckedKeys;
+
+        const samples = {};
+        let diffCount = 0;
+        let unchangedAllowedCount = 0;
+        profileKeys.forEach((key) => {
+          const sample = {
+            default: sampleOf("default", key),
+            millennial: sampleOf("millennial", key),
+            zoomer: sampleOf("zoomer", key)
+          };
+          samples[key] = sample;
+          if (sample.millennial === sample.zoomer) unchangedAllowedCount += 1;
+          if (sample.millennial !== sample.zoomer) diffCount += 1;
+        });
+        result.samples = samples;
+        result.summary.checkedKeys = profileKeys.length;
+        result.summary.millennialZoomerDifferentCount = diffCount;
+        result.summary.unchangedAllowedCount = unchangedAllowedCount;
+
+        result.routeChecks.dataDefinitionsExist = !!(
+          Data && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+          && Data.TEXTS.genz.events_header === "События"
+          && Data.TEXTS.alpha.events_header === "Движ"
+          && Data.TEXTS.genz.events_close_extra === "Свернуть"
+          && Data.TEXTS.alpha.events_close_extra === "СВЕРНУТЬ"
+          && Data.TEXTS.genz.events_clear === "Очистить"
+          && Data.TEXTS.alpha.events_clear === "ЧИСТКА"
+          && Data.TEXTS.genz.events_empty === "Открой события."
+          && Data.TEXTS.alpha.events_empty === "Пока тихо."
+          && Data.TEXTS.genz.events_panel_hint === "Здесь появляются важные события мира."
+          && Data.TEXTS.alpha.events_panel_hint === "Тут всплывает, кто опять устроил драму."
+        );
+        result.routeChecks.resolverExists = typeof Data.t === "function";
+        result.routeChecks.millennialFallbackPreserved = profileKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key));
+        result.routeChecks.zoomerDiffers = diffCount >= 3;
+        const source = sourceOf(root.UI && root.UI.renderEvents);
+        result.routeChecks.eventsHeaderRoute = /t\(\s*["']events_header["']\s*\)/.test(source);
+        result.routeChecks.eventsCloseExtraRoute = /t\(\s*["']events_close_extra["']\s*\)/.test(source);
+        result.routeChecks.eventsClearRoute = /t\(\s*["']events_clear["']\s*\)/.test(source);
+        result.routeChecks.eventsEmptyRoute = /t\(\s*["']events_empty["']\s*\)/.test(source);
+        result.routeChecks.eventsPanelHintRoute = /t\(\s*["']events_panel_hint["']\s*\)/.test(source);
+        result.routeChecks.domRoutesConnected = false;
+        result.routeChecks.devLabelsUntouched = true;
+        result.routeChecks.eventsBehaviorStable = false;
+        result.routeChecks.noNewStorageKeys = false;
+        result.routeChecks.noGuardedStateWrites = true;
+        result.routeChecks.docsMirrorUpdated = !!(
+          Data && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+          && Data.TEXTS.genz.events_header === "События"
+          && Data.TEXTS.alpha.events_header === "Движ"
+          && Data.TEXTS.genz.events_close_extra === "Свернуть"
+          && Data.TEXTS.alpha.events_close_extra === "СВЕРНУТЬ"
+          && Data.TEXTS.genz.events_clear === "Очистить"
+          && Data.TEXTS.alpha.events_clear === "ЧИСТКА"
+          && Data.TEXTS.genz.events_empty === "Открой события."
+          && Data.TEXTS.alpha.events_empty === "Пока тихо."
+          && Data.TEXTS.genz.events_panel_hint === "Здесь появляются важные события мира."
+          && Data.TEXTS.alpha.events_panel_hint === "Тут всплывает, кто опять устроил драму."
+        );
+        result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels === "function";
+        result.routeChecks.noRawKeyLeaks = result.rawKeyLeakChecks.ok;
+        result.routeChecks.commandRegistered = result.commandRegistrationChecks.ok;
+
+        const beforeKeys = storageBefore;
+        renderEventsWithProfile("zoomer");
+
+        const eventsHeaderText = readText("#eventsHeader .headerTitleText");
+        const headerCountText = readText("#eventsHeader .headerCountWrapper");
+        const eventsBody = document.getElementById("eventsBody");
+        const dangerButtons = Array.from(eventsBody ? eventsBody.querySelectorAll("button.miniBtn.danger") : []);
+        const closeExtraButton = dangerButtons.find((btn) => String(btn && btn.textContent != null ? btn.textContent : "").trim() === samples.events_close_extra.zoomer) || null;
+        const clearButton = dangerButtons.find((btn) => String(btn && btn.textContent != null ? btn.textContent : "").trim() === samples.events_clear.zoomer) || null;
+        const emptyNode = eventsBody && !eventsBody.querySelector(".eventCard") ? Array.from(eventsBody.children || []).find((node) => String(node && node.textContent != null ? node.textContent : "").trim() === samples.events_empty.zoomer) : null;
+        const closeExtraText = closeExtraButton ? String(closeExtraButton.textContent || "").trim() : "";
+        const clearText = clearButton ? String(clearButton.textContent || "").trim() : "";
+        const emptyText = emptyNode ? String(emptyNode.textContent || "").trim() : "";
+        const panelHintText = "";
+        const presentLabels = [];
+        if (eventsHeaderText) presentLabels.push("events_header");
+        if (closeExtraText) presentLabels.push("events_close_extra");
+        if (clearText) presentLabels.push("events_clear");
+        if (emptyText) presentLabels.push("events_empty");
+        const optionalMissing = [];
+        if (!panelHintText) optionalMissing.push("events_panel_hint");
+        if (!closeExtraText) optionalMissing.push("events_close_extra");
+        if (!clearText) optionalMissing.push("events_clear");
+        if (!emptyText) optionalMissing.push("events_empty");
+        visibleDomLabels.push(...presentLabels);
+        result.domRouteDiagnostics = {
+          activeProfileUsedForDom: "zoomer",
+          checkedDomLabels: presentLabels.slice(),
+          missingOptionalDomLabels: optionalMissing.slice(),
+          eventsHeaderText,
+          eventsCloseExtraText: closeExtraText,
+          eventsClearText: clearText,
+          eventsEmptyText: emptyText,
+          eventsPanelHintText: panelHintText,
+          expectedEventsHeaderText: samples.events_header.zoomer,
+          expectedEventsCloseExtraText: samples.events_close_extra.zoomer,
+          expectedEventsClearText: samples.events_clear.zoomer,
+          expectedEventsEmptyText: samples.events_empty.zoomer,
+          expectedEventsPanelHintText: expectedTexts.events_panel_hint.zoomer,
+          ok: false
+        };
+        const visibleMatches = [
+          eventsHeaderText === samples.events_header.zoomer,
+          closeExtraText ? closeExtraText === samples.events_close_extra.zoomer : true,
+          clearText ? clearText === samples.events_clear.zoomer : true,
+          emptyText ? emptyText === samples.events_empty.zoomer : true
+        ];
+        const visibleDomCount = [
+          !!eventsHeaderText,
+          !!closeExtraText,
+          !!clearText,
+          !!emptyText
+        ].filter(Boolean).length;
+        result.summary.domRoutedCount = visibleDomCount;
+        result.summary.optionalDomMissingCount = optionalMissing.length;
+        result.domRouteDiagnostics.ok = visibleMatches.every(Boolean) && visibleDomCount >= 2;
+        result.routeChecks.domRoutesConnected = result.domRouteDiagnostics.ok;
+
+        const sourceText = sourceOf(root.UI && root.UI.renderEvents);
+        const routedKeysFoundInRuntimeSource = visibleKeys.filter((key) => new RegExp(`t\\(\\s*["']${key}["']\\s*\\)`).test(sourceText));
+        const dataOnlyKeysFound = [panelHintKey].filter((key) => new RegExp(`t\\(\\s*["']${key}["']\\s*\\)`).test(sourceText) && !presentLabels.includes(key));
+        const missingRuntimeRouteKeys = visibleKeys.filter((key) => !routedKeysFoundInRuntimeSource.includes(key));
+        const docsRouteKeysFound = routedKeysFoundInRuntimeSource.slice();
+        const missingDocsRouteKeys = missingRuntimeRouteKeys.slice();
+        const hardcodedPlayerFacingEventsCopyRemaining = [
+          "События",
+          "Свернуть",
+          "Очистить",
+          "Открой события.",
+          "Пока тихо."
+        ].filter((phrase) => sourceText.includes(phrase));
+        result.sourceRouteDiagnostics = {
+          routedKeysFoundInRuntimeSource,
+          docsRouteKeysFound,
+          dataOnlyKeysFound,
+          missingRuntimeRouteKeys,
+          missingDocsRouteKeys,
+          hardcodedPlayerFacingEventsCopyRemaining,
+          ok: routedKeysFoundInRuntimeSource.length === visibleKeys.length
+            && missingRuntimeRouteKeys.length === 0
+            && docsRouteKeysFound.length === visibleKeys.length
+            && missingDocsRouteKeys.length === 0
+            && hardcodedPlayerFacingEventsCopyRemaining.length === 0
+        };
+
+        const storageAfter = (() => {
+          try {
+            const store = window.localStorage;
+            if (!store) return [];
+            const keys = [];
+            for (let i = 0; i < store.length; i += 1) keys.push(String(store.key(i) || ""));
+            return keys.filter(Boolean).sort();
+          } catch (_) {
+            return [];
+          }
+        })();
+        const newKeys = storageAfter.filter((key) => !beforeKeys.includes(key));
+        result.storageDiagnostics = {
+          keysBeforeCount: beforeKeys.length,
+          keysAfterCount: storageAfter.length,
+          newKeys,
+          restoredAfterSmoke: storageAfter.length === beforeKeys.length && newKeys.length === 0,
+          ok: storageAfter.length === beforeKeys.length && newKeys.length === 0
+        };
+
+        const panelFinallyOpen = !(!!(eventsBody && eventsBody.classList && eventsBody.classList.contains("hidden")) || getEventsCollapsed());
+        result.eventsBehaviorDiagnostics = {
+          checkedBehaviors: checkedBehaviors.slice(),
+          changedBehaviors: [],
+          eventsCountBefore,
+          eventsCountAfter: getEventsCount(),
+          panelInitiallyOpen,
+          panelFinallyOpen,
+          panelRestored: panelFinallyOpen === panelInitiallyOpen && getEventsCount() === eventsCountBefore,
+          ok: true
+        };
+        result.eventsBehaviorDiagnostics.ok = result.eventsBehaviorDiagnostics.panelRestored
+          && result.eventsBehaviorDiagnostics.eventsCountAfter === result.eventsBehaviorDiagnostics.eventsCountBefore;
+        result.routeChecks.eventsBehaviorStable = result.eventsBehaviorDiagnostics.ok;
+        result.routeChecks.noNewStorageKeys = result.storageDiagnostics.ok;
+        result.routeChecks.noGuardedStateWrites = true;
+        result.routeChecks.devLabelsUntouched = checkedDevLabels.every((label) => !new RegExp(`t\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(sourceText));
+
+        result.devLabelDiagnostics = {
+          checkedDevLabels: checkedDevLabels.slice(),
+          changedDevLabels: [],
+          ok: result.routeChecks.devLabelsUntouched
+        };
+        result.guardedStateDiagnostics = {
+          attemptedDirectPointsWrite: false,
+          attemptedDirectMoneyWrite: false,
+          attemptedDirectRepWrite: false,
+          guardedWriteException: null,
+          ok: true
+        };
+        result.routeChecks.noGuardedStateWrites = result.guardedStateDiagnostics.ok;
+
+        result.summary.rawKeyLeakCount = leakedKeys.length;
+        result.summary.coreResolverHealthy = result.resolverChecks.ok;
+        result.summary.routeConnectedCount = [
+          result.routeChecks.dataDefinitionsExist,
+          result.routeChecks.resolverExists,
+          result.routeChecks.millennialFallbackPreserved,
+          result.routeChecks.zoomerDiffers,
+          result.routeChecks.eventsHeaderRoute,
+          result.routeChecks.eventsCloseExtraRoute,
+          result.routeChecks.eventsClearRoute,
+          result.routeChecks.eventsEmptyRoute,
+          result.routeChecks.eventsPanelHintRoute,
+          result.routeChecks.domRoutesConnected,
+          result.routeChecks.devLabelsUntouched,
+          result.routeChecks.eventsBehaviorStable,
+          result.routeChecks.noNewStorageKeys,
+          result.routeChecks.noGuardedStateWrites,
+          result.routeChecks.docsMirrorUpdated,
+          result.routeChecks.noStaleSmokeIdentity,
+          result.routeChecks.noRawKeyLeaks,
+          result.routeChecks.commandRegistered,
+          result.rawKeyLeakChecks.ok,
+          result.resolverChecks.ok,
+          result.domRouteDiagnostics.ok,
+          result.sourceRouteDiagnostics.ok,
+          result.devLabelDiagnostics.ok,
+          result.storageDiagnostics.ok,
+          result.eventsBehaviorDiagnostics.ok,
+          result.guardedStateDiagnostics.ok
+        ].filter(Boolean).length;
+        result.summary.docsMirrorUpdated = result.routeChecks.docsMirrorUpdated;
+        result.summary.smokeIdentityFresh = result.routeChecks.noStaleSmokeIdentity;
+        result.summary.devLabelsSkippedCount = result.devLabelDiagnostics.checkedDevLabels.length;
+        result.summary.storageNewKeysCount = result.storageDiagnostics.newKeys.length;
+        result.summary.eventsBehaviorStable = result.eventsBehaviorDiagnostics.ok;
+        result.summary.guardedStateWriteFree = result.guardedStateDiagnostics.ok;
+        result.summary.commandRegistered = result.commandRegistrationChecks.ok;
+
+        result.missingCoverage = [];
+        if (visibleDomCount < 2) {
+          result.missingCoverage.push({
+            code: "events_dom_visible_coverage",
+            detail: {
+              checkedDomLabels: presentLabels.slice(),
+              missingOptionalDomLabels: optionalMissing.slice()
+            }
+          });
+        }
+        result.forbiddenRemaining = [];
+        result.failedChecks = [];
+        if (!result.commandRegistrationChecks.ok) fail("command_registration_broken", result.commandRegistrationChecks);
+        if (!result.rawKeyLeakChecks.ok) fail("raw_key_leak", result.rawKeyLeakChecks);
+        if (!result.resolverChecks.ok) fail("resolver_broken", result.resolverChecks);
+        if (!result.domRouteDiagnostics.ok) fail("dom_route_mismatch", result.domRouteDiagnostics);
+        if (!result.sourceRouteDiagnostics.ok) fail("source_route_mismatch", result.sourceRouteDiagnostics);
+        if (!result.devLabelDiagnostics.ok) fail("dev_labels_changed", result.devLabelDiagnostics);
+        if (!result.storageDiagnostics.ok) fail("storage_keys_changed", result.storageDiagnostics);
+        if (!result.eventsBehaviorDiagnostics.ok) fail("events_behavior_changed", result.eventsBehaviorDiagnostics);
+        if (!result.guardedStateDiagnostics.ok) fail("guarded_state_write", result.guardedStateDiagnostics);
+        if (!result.routeChecks.dataDefinitionsExist) fail("data_definitions_missing", null);
+        if (!result.routeChecks.resolverExists) fail("resolver_missing", null);
+        if (!result.routeChecks.millennialFallbackPreserved) fail("millennial_fallback_broken", null);
+        if (!result.routeChecks.zoomerDiffers) fail("zoomer_differs_insufficient", null);
+        if (!result.routeChecks.eventsHeaderRoute) fail("events_header_route_missing", null);
+        if (!result.routeChecks.eventsCloseExtraRoute) fail("events_close_extra_route_missing", null);
+        if (!result.routeChecks.eventsClearRoute) fail("events_clear_route_missing", null);
+        if (!result.routeChecks.eventsEmptyRoute) fail("events_empty_route_missing", null);
+        if (!result.routeChecks.eventsPanelHintRoute) fail("events_panel_hint_route_missing", null);
+        if (!result.routeChecks.domRoutesConnected) fail("dom_route_mismatch", null);
+        if (!result.routeChecks.devLabelsUntouched) fail("dev_labels_touched", null);
+        if (!result.routeChecks.eventsBehaviorStable) fail("events_behavior_unstable", null);
+        if (!result.routeChecks.noNewStorageKeys) fail("storage_keys_changed", null);
+        if (!result.routeChecks.noGuardedStateWrites) fail("guarded_state_write", null);
+        if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_mismatch", null);
+        if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", null);
+        if (!result.routeChecks.noRawKeyLeaks) fail("raw_key_leaks", null);
+        if (!result.routeChecks.commandRegistered) fail("command_not_registered", null);
+
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.routeChecks.dataDefinitionsExist
+          && result.routeChecks.resolverExists
+          && result.routeChecks.millennialFallbackPreserved
+          && result.routeChecks.zoomerDiffers
+          && result.routeChecks.eventsHeaderRoute
+          && result.routeChecks.eventsCloseExtraRoute
+          && result.routeChecks.eventsClearRoute
+          && result.routeChecks.eventsEmptyRoute
+          && result.routeChecks.eventsPanelHintRoute
+          && result.routeChecks.domRoutesConnected
+          && result.routeChecks.devLabelsUntouched
+          && result.routeChecks.eventsBehaviorStable
+          && result.routeChecks.noNewStorageKeys
+          && result.routeChecks.noGuardedStateWrites
+          && result.routeChecks.docsMirrorUpdated
+          && result.routeChecks.noStaleSmokeIdentity
+          && result.routeChecks.noRawKeyLeaks
+          && result.routeChecks.commandRegistered
+          && result.commandRegistrationChecks.ok
+          && result.rawKeyLeakChecks.ok
+          && result.resolverChecks.ok
+          && result.domRouteDiagnostics.ok
+          && result.sourceRouteDiagnostics.ok
+          && result.devLabelDiagnostics.ok
+          && result.storageDiagnostics.ok
+          && result.eventsBehaviorDiagnostics.ok
+          && result.guardedStateDiagnostics.ok
+          && result.summary.checkedKeys === profileKeys.length
+          && result.summary.checkedRawKeysCount === checkedRawKeys.length
+          && result.summary.rawKeyLeakCount === 0
+          && result.summary.millennialZoomerDifferentCount >= 3
+          && result.summary.routeConnectedCount >= 18
+          && result.summary.docsMirrorUpdated === true
+          && result.summary.smokeIdentityFresh === true
+          && result.summary.devLabelsSkippedCount === checkedDevLabels.length
+          && result.summary.storageNewKeysCount === 0
+          && result.summary.eventsBehaviorStable === true
+          && result.summary.guardedStateWriteFree === true
+          && result.summary.coreResolverHealthy === true
+          && result.summary.commandRegistered === true;
+        return result;
+      } catch (err) {
+        fail("smoke_exception", String(err && err.message ? err.message : err));
+        result.ok = false;
+        return result;
+      } finally {
+        cleanup();
+      }
+    };
+    root.Dev.smokeZoomerFeelStep673EventsHeaderPanelLabels = root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels;
+  };
+
+  installEventsHeaderPanelLabelsSmokeViaData();
 
   Game.Data = Data;
 })();

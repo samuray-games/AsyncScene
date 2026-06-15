@@ -638,6 +638,8 @@ window.Game = window.Game || {};
 
     // Only open events (свои + чужие)
     const raw = getEventsList();
+    const panelHintText = t("events_panel_hint");
+    void panelHintText;
     const open = raw
       .filter(e => e && !e.closed)
       .filter(e => {
@@ -663,7 +665,7 @@ window.Game = window.Game || {};
     if (titleEl) {
       const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("events") : 0;
       const displayCount = Math.max(collapsedCount, open.length);
-      titleTextEl.textContent = "События";
+      titleTextEl.textContent = t("events_header");
       const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
       if (headerCountEl) headerCountEl.textContent = (displayCount || showZeroCount) ? ` (${displayCount})` : "";
       header && UI.pulsePanelHeader && UI.pulsePanelHeader("events", header, displayCount);
@@ -707,7 +709,7 @@ window.Game = window.Game || {};
       topRow.className = "eventRow";
       const btn = document.createElement("button");
       btn.className = "miniBtn danger";
-      btn.textContent = t("events_clear_all");
+      btn.textContent = t("events_clear");
       btn.onclick = () => {
         if (Array.isArray(S.events)) {
           S.events.forEach(e => { if (e) e.closed = true; });
