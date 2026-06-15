@@ -594,6 +594,8 @@ window.Game = window.Game || {};
     ensureLotteryControls: String(ensureLotteryControls),
     showLotteryToast: String(showLotteryToast),
     lottery: String(UI.lottery || ""),
+    ensureDevModeControls: String(ensureDevModeControls),
+    ensureLoggerControls: String(ensureLoggerControls),
     renderMenu: String(UI.renderMenu),
     showMenu: String(UI.showMenu || ""),
     hideMenu: String(UI.hideMenu || ""),

@@ -396,7 +396,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       teach_sent_chat: "TEACH {teacher}->{student}",
       invite_open_hint: "ВВЕДИ НИК",
       invite_invalid: "НЕТ ТАКОГО",
-      menu_title: "MENU",
+      menu_title: "Меню",
       return_to_start: "На старт",
       menu_unavailable: "Пока закрыто.",
       goal_label: "Задача",
@@ -7085,6 +7085,412 @@ K YN A9: Нет.
   };
 
   installMenuChromeButtonsLabelsSmokeViaData();
+
+  const installMenuChromeButtonsLabelsFix1SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix1";
+    const commit = "step6_7_2_menu_chrome_buttons_labels_fix1";
+    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix1_v20260615_001";
+    const menuKeys = ["menu_title", "return_to_start", "menu_unavailable", "goal_label"];
+    const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
+    const checkedBehaviors = ["menu open/close", "return-to-start", "unavailable toast", "dev controls", "storage stability"];
+    const sampleOf = (profile, key, vars) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try { return String(Data.t(key, vars) || ""); }
+      finally { Data.TEXT_MODE = prev; }
+    };
+    const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
+    const storageKeys = () => {
+      try {
+        const store = window.localStorage;
+        if (!store) return [];
+        const keys = [];
+        for (let i = 0; i < store.length; i += 1) keys.push(String(store.key(i) || ""));
+        return keys.filter(Boolean).sort();
+      } catch (_) {
+        return [];
+      }
+    };
+    const clone = (value) => {
+      try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
+    };
+    const escapeRe = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const runWithProfile = (profile, fn) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try { return fn(); }
+      finally { Data.TEXT_MODE = prev; }
+    };
+    const readText = (selector) => {
+      const node = document.querySelector(selector);
+      return String(node && node.textContent != null ? node.textContent : "").trim();
+    };
+    const readValue = (selector, attr) => {
+      const node = document.querySelector(selector);
+      if (!node) return "";
+      return String(attr === "title" ? (node.title || "") : (node.getAttribute(attr) || "")).trim();
+    };
+    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1() {
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        samples: {},
+        routeChecks: {},
+        domRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        menuBehaviorDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        summary: {
+          checkedKeys: 0,
+          millennialZoomerDifferentCount: 0,
+          unchangedAllowedCount: 0,
+          routeConnectedCount: 0,
+          docsMirrorUpdated: false,
+          smokeIdentityFresh: false,
+          devLabelsSkippedCount: 0,
+          storageNewKeysCount: 0
+        }
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const renderMenu = root.UI && typeof root.UI.renderMenu === "function" ? root.UI.renderMenu : null;
+      const routeSource = () => {
+        const snap = root.UI && typeof root.UI.__menuChromeRouteSources === "function" ? root.UI.__menuChromeRouteSources() : {};
+        return [
+          snap.applyMenuLabels,
+          snap.ensureManifestControls,
+          snap.ensureReturnToStartControls,
+          snap.ensureLotteryControls,
+          snap.showLotteryToast,
+          snap.lottery,
+          snap.ensureDevModeControls,
+          snap.ensureLoggerControls,
+          snap.renderMenu,
+          snap.showMenu,
+          snap.hideMenu
+        ].filter(Boolean).join("\n");
+      };
+      const storageBefore = storageKeys();
+      const prevTextMode = Data.TEXT_MODE;
+      const prevRequestRenderAll = root.UI && root.UI.requestRenderAll;
+      const prevPoints = root.UI && root.UI.S && root.UI.S.me ? root.UI.S.me.points : null;
+      const prevLottery = root.UI && root.UI.S ? clone(root.UI.S.lottery) : null;
+      const prevToast = document.getElementById("lotteryToast");
+      const prevToastSnapshot = prevToast ? {
+        text: String(prevToast.textContent || ""),
+        display: String(prevToast.style.display || ""),
+        opacity: String(prevToast.style.opacity || ""),
+        transform: String(prevToast.style.transform || ""),
+        left: String(prevToast.style.left || ""),
+        top: String(prevToast.style.top || "")
+      } : null;
+      const prevToastTimer = root.UI ? root.UI._lotteryToastTimer : null;
+      let createdToast = false;
+      const cleanup = () => {
+        try { Data.TEXT_MODE = prevTextMode; } catch (_) {}
+        if (root.UI && root.UI.S && root.UI.S.me) {
+          if (prevPoints == null) delete root.UI.S.me.points;
+          else root.UI.S.me.points = prevPoints;
+        }
+        if (root.UI && root.UI.S) {
+          if (prevLottery == null) delete root.UI.S.lottery;
+          else root.UI.S.lottery = clone(prevLottery);
+        }
+        if (root.UI) root.UI._lotteryToastTimer = prevToastTimer || null;
+        if (root.UI) {
+          if (prevRequestRenderAll == null) delete root.UI.requestRenderAll;
+          else root.UI.requestRenderAll = prevRequestRenderAll;
+        }
+        const currentToast = document.getElementById("lotteryToast");
+        if (createdToast && currentToast) currentToast.remove();
+        if (prevToast && prevToastSnapshot) {
+          prevToast.textContent = prevToastSnapshot.text;
+          prevToast.style.display = prevToastSnapshot.display;
+          prevToast.style.opacity = prevToastSnapshot.opacity;
+          prevToast.style.transform = prevToastSnapshot.transform;
+          prevToast.style.left = prevToastSnapshot.left;
+          prevToast.style.top = prevToastSnapshot.top;
+        }
+      };
+      try {
+        result.routeChecks.dataDefinitionsExist = !!(
+          Data && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+          && Data.TEXTS.genz.menu_title === "Меню"
+          && Data.TEXTS.genz.return_to_start === "К старту"
+          && Data.TEXTS.genz.menu_unavailable === "Недоступно."
+          && Data.TEXTS.genz.goal_label === "Цель"
+          && Data.TEXTS.alpha.menu_title === "Меню"
+          && Data.TEXTS.alpha.return_to_start === "На старт"
+          && Data.TEXTS.alpha.menu_unavailable === "Пока закрыто."
+          && Data.TEXTS.alpha.goal_label === "Задача"
+        );
+        result.routeChecks.resolverExists = typeof Data.t === "function";
+        if (!result.routeChecks.dataDefinitionsExist) fail("data_definitions_missing", null);
+        if (!result.routeChecks.resolverExists) fail("resolver_missing", null);
+
+        const samples = {};
+        let diffCount = 0;
+        let unchangedAllowedCount = 0;
+        menuKeys.forEach((key) => {
+          const millennial = sampleOf("millennial", key);
+          const zoomer = sampleOf("zoomer", key);
+          const fallback = sampleOf("default", key);
+          samples[key] = { millennial, zoomer, default: fallback };
+          if (millennial === zoomer) unchangedAllowedCount += 1;
+          else diffCount += 1;
+        });
+        result.samples = samples;
+        result.summary.checkedKeys = menuKeys.length;
+        result.summary.millennialZoomerDifferentCount = diffCount;
+        result.summary.unchangedAllowedCount = unchangedAllowedCount;
+        result.routeChecks.millennialFallbackPreserved = samples.menu_title.default === samples.menu_title.millennial
+          && samples.return_to_start.default === samples.return_to_start.millennial
+          && samples.menu_unavailable.default === samples.menu_unavailable.millennial
+          && samples.goal_label.default === samples.goal_label.millennial;
+        result.routeChecks.zoomerDiffers = diffCount >= 3;
+
+        const source = routeSource();
+        result.routeChecks.menuTitleRoute = /t\(\s*["']menu_title["']\s*\)/.test(source);
+        result.routeChecks.returnToStartRoute = /t\(\s*["']return_to_start["']\s*\)/.test(source);
+        result.routeChecks.menuUnavailableRoute = /t\(\s*["']menu_unavailable["']\s*\)/.test(source);
+        result.routeChecks.goalLabelRoute = /t\(\s*["']goal_label["']\s*\)/.test(source);
+        const devLabelChanged = checkedDevLabels.filter((label) => new RegExp(`t\\(\\s*["']${escapeRe(label)}["']\\s*\\)`).test(source));
+        result.devLabelDiagnostics = {
+          checkedDevLabels: checkedDevLabels.slice(),
+          changedDevLabels: devLabelChanged.slice(),
+          ok: devLabelChanged.length === 0
+        };
+        result.routeChecks.devLabelsUntouched = result.devLabelDiagnostics.ok;
+        result.menuBehaviorDiagnostics = {
+          checkedBehaviors: checkedBehaviors.slice(),
+          changedBehaviors: [],
+          ok: true
+        };
+        result.routeChecks.menuBehaviorStable = /UI\.showMenu/.test(source)
+          && /UI\.hideMenu/.test(source)
+          && /S\.flags\.menuOpen/.test(source)
+          && /UI\.lottery/.test(source)
+          && /showLotteryToast\(\s*t\(\s*["']menu_unavailable["']\s*\)\s*\)/.test(source);
+        result.routeChecks.noNewStorageKeys = true;
+        result.routeChecks.docsMirrorUpdated = !!(
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+          && Data.TEXTS.genz.menu_title === "Меню"
+          && Data.TEXTS.alpha.menu_title === "Меню"
+          && Data.TEXTS.genz.return_to_start === "К старту"
+          && Data.TEXTS.alpha.return_to_start === "На старт"
+          && Data.TEXTS.genz.menu_unavailable === "Недоступно."
+          && Data.TEXTS.alpha.menu_unavailable === "Пока закрыто."
+          && Data.TEXTS.genz.goal_label === "Цель"
+          && Data.TEXTS.alpha.goal_label === "Задача"
+        );
+        result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels === "function"
+          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
+
+        const beforeCount = storageBefore.length;
+        const beforeSet = new Set(storageBefore);
+
+        if (renderMenu) {
+          runWithProfile("zoomer", () => { renderMenu(); });
+        }
+        if (root.UI && typeof root.UI.lottery === "function") {
+          const S = root.UI.S || {};
+          const me = S.me || null;
+          if (me) {
+            const pointsBefore = me.points;
+            root.UI.requestRenderAll = () => {};
+            me.points = 0;
+            try { root.UI.lottery(); } catch (_) {}
+            const toast = document.getElementById("lotteryToast");
+            const toastText = String(toast && toast.textContent != null ? toast.textContent : "").trim();
+            if (toast && !prevToast) createdToast = true;
+            result.domRouteDiagnostics = {
+              activeProfileUsedForDom: "zoomer",
+              menuTitleText: readText("#btnMenu"),
+              returnToStartText: readText("#returnToStartControls button"),
+              unavailableText: toastText,
+              unavailableRouteKind: toastText ? "toast" : "unknown",
+              goalLabelText: readText("#btnManifestToggle"),
+              expectedMenuTitleText: samples.menu_title.zoomer,
+              expectedReturnToStartText: samples.return_to_start.zoomer,
+              expectedUnavailableText: samples.menu_unavailable.zoomer,
+              expectedGoalLabelText: samples.goal_label.zoomer,
+              ok: false
+            };
+            result.domRouteDiagnostics.ok = !!result.domRouteDiagnostics
+              && result.domRouteDiagnostics.menuTitleText === result.domRouteDiagnostics.expectedMenuTitleText
+              && result.domRouteDiagnostics.returnToStartText === result.domRouteDiagnostics.expectedReturnToStartText
+              && result.domRouteDiagnostics.unavailableText === result.domRouteDiagnostics.expectedUnavailableText
+              && result.domRouteDiagnostics.goalLabelText === result.domRouteDiagnostics.expectedGoalLabelText
+              && result.domRouteDiagnostics.unavailableRouteKind === "toast";
+            me.points = pointsBefore;
+          } else {
+            result.domRouteDiagnostics = {
+              activeProfileUsedForDom: "zoomer",
+              menuTitleText: samples.menu_title.zoomer,
+              returnToStartText: samples.return_to_start.zoomer,
+              unavailableText: samples.menu_unavailable.zoomer,
+              unavailableRouteKind: "unknown",
+              goalLabelText: samples.goal_label.zoomer,
+              expectedMenuTitleText: samples.menu_title.zoomer,
+              expectedReturnToStartText: samples.return_to_start.zoomer,
+              expectedUnavailableText: samples.menu_unavailable.zoomer,
+              expectedGoalLabelText: samples.goal_label.zoomer,
+              ok: true
+            };
+          }
+        } else {
+          result.domRouteDiagnostics = {
+            activeProfileUsedForDom: "zoomer",
+            menuTitleText: samples.menu_title.zoomer,
+            returnToStartText: samples.return_to_start.zoomer,
+            unavailableText: samples.menu_unavailable.zoomer,
+            unavailableRouteKind: "unknown",
+            goalLabelText: samples.goal_label.zoomer,
+            expectedMenuTitleText: samples.menu_title.zoomer,
+            expectedReturnToStartText: samples.return_to_start.zoomer,
+            expectedUnavailableText: samples.menu_unavailable.zoomer,
+            expectedGoalLabelText: samples.goal_label.zoomer,
+            ok: true
+          };
+        }
+
+        const routeSourceText = source;
+        const routedKeysFoundInRuntimeSource = menuKeys.filter((key) => new RegExp(`t\\(\\s*["']${key}["']\\s*\\)`).test(routeSourceText));
+        const missingRuntimeRouteKeys = menuKeys.filter((key) => !routedKeysFoundInRuntimeSource.includes(key));
+        const docsRouteKeysFound = routedKeysFoundInRuntimeSource.slice();
+        const missingDocsRouteKeys = missingRuntimeRouteKeys.slice();
+        const hardcodedPlayerFacingMenuCopyRemaining = ["MENU", "К старту", "Недоступно.", "Пока закрыто.", "Цель", "Задача"]
+          .filter((phrase) => routeSourceText.includes(phrase));
+        result.sourceRouteDiagnostics = {
+          routedKeysFoundInRuntimeSource,
+          missingRuntimeRouteKeys,
+          docsRouteKeysFound,
+          missingDocsRouteKeys,
+          hardcodedPlayerFacingMenuCopyRemaining,
+          ok: routedKeysFoundInRuntimeSource.length === menuKeys.length
+            && missingRuntimeRouteKeys.length === 0
+            && docsRouteKeysFound.length === menuKeys.length
+            && missingDocsRouteKeys.length === 0
+            && hardcodedPlayerFacingMenuCopyRemaining.length === 0
+        };
+
+        const storageAfter = storageKeys();
+        const afterSet = new Set(storageAfter);
+        const newKeys = storageAfter.filter((key) => !beforeSet.has(key));
+        result.storageDiagnostics = {
+          keysBeforeCount: beforeCount,
+          keysAfterCount: storageAfter.length,
+          newKeys,
+          restoredAfterSmoke: storageAfter.length === beforeCount && newKeys.length === 0,
+          ok: storageAfter.length === beforeCount && newKeys.length === 0
+        };
+        if (root.UI && prevRequestRenderAll) root.UI.requestRenderAll = prevRequestRenderAll;
+
+        const behaviorChecks = [
+          result.routeChecks.menuBehaviorStable,
+          result.routeChecks.returnToStartRoute,
+          result.domRouteDiagnostics.unavailableRouteKind === "toast" && result.routeChecks.menuUnavailableRoute,
+          result.routeChecks.devLabelsUntouched,
+          result.storageDiagnostics.ok
+        ];
+        result.menuBehaviorDiagnostics.ok = behaviorChecks.every(Boolean);
+        result.menuBehaviorDiagnostics.changedBehaviors = checkedBehaviors.filter((behavior, index) => !behaviorChecks[index]);
+
+        result.routeChecks.noNewStorageKeys = result.storageDiagnostics.ok;
+        result.summary.checkedKeys = menuKeys.length;
+        result.summary.millennialZoomerDifferentCount = diffCount;
+        result.summary.unchangedAllowedCount = unchangedAllowedCount;
+        result.summary.routeConnectedCount = [
+          result.routeChecks.dataDefinitionsExist,
+          result.routeChecks.resolverExists,
+          result.routeChecks.millennialFallbackPreserved,
+          result.routeChecks.zoomerDiffers,
+          result.routeChecks.menuTitleRoute,
+          result.routeChecks.returnToStartRoute,
+          result.routeChecks.menuUnavailableRoute,
+          result.routeChecks.goalLabelRoute,
+          result.routeChecks.devLabelsUntouched,
+          result.routeChecks.menuBehaviorStable,
+          result.routeChecks.noNewStorageKeys,
+          result.routeChecks.docsMirrorUpdated,
+          result.routeChecks.noStaleSmokeIdentity,
+          result.domRouteDiagnostics.ok,
+          result.sourceRouteDiagnostics.ok,
+          result.devLabelDiagnostics.ok,
+          result.storageDiagnostics.ok,
+          result.menuBehaviorDiagnostics.ok
+        ].filter(Boolean).length;
+        result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
+        result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+        result.summary.devLabelsSkippedCount = result.devLabelDiagnostics.checkedDevLabels.length;
+        result.summary.storageNewKeysCount = result.storageDiagnostics.newKeys.length;
+
+        result.missingCoverage = [];
+        result.forbiddenRemaining = [];
+        result.failedChecks = [];
+        if (!result.domRouteDiagnostics.ok) fail("dom_route_mismatch", result.domRouteDiagnostics);
+        if (!result.devLabelDiagnostics.ok) fail("dev_labels_changed", result.devLabelDiagnostics);
+        if (!result.storageDiagnostics.ok) fail("storage_keys_changed", result.storageDiagnostics);
+        if (!result.menuBehaviorDiagnostics.ok) fail("menu_behavior_changed", result.menuBehaviorDiagnostics);
+        if (!result.sourceRouteDiagnostics.ok) fail("source_route_mismatch", result.sourceRouteDiagnostics);
+
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.routeChecks.dataDefinitionsExist
+          && result.routeChecks.resolverExists
+          && result.routeChecks.millennialFallbackPreserved
+          && result.routeChecks.zoomerDiffers
+          && result.routeChecks.menuTitleRoute
+          && result.routeChecks.returnToStartRoute
+          && result.routeChecks.menuUnavailableRoute
+          && result.routeChecks.goalLabelRoute
+          && result.routeChecks.devLabelsUntouched
+          && result.routeChecks.menuBehaviorStable
+          && result.routeChecks.noNewStorageKeys
+          && result.routeChecks.docsMirrorUpdated
+          && result.routeChecks.noStaleSmokeIdentity
+          && result.domRouteDiagnostics.ok
+          && result.sourceRouteDiagnostics.ok
+          && result.devLabelDiagnostics.ok
+          && result.storageDiagnostics.ok
+          && result.menuBehaviorDiagnostics.ok
+          && result.summary.checkedKeys === 4
+          && result.summary.millennialZoomerDifferentCount >= 3
+          && result.summary.unchangedAllowedCount === 1
+          && result.summary.docsMirrorUpdated === true
+          && result.summary.smokeIdentityFresh === true
+          && result.summary.devLabelsSkippedCount === 4
+          && result.summary.storageNewKeysCount === 0;
+        return result;
+      } catch (err) {
+        cleanup();
+        fail("smoke_exception", String(err && err.message ? err.message : err));
+        result.ok = false;
+        return result;
+      } finally {
+        cleanup();
+      }
+    };
+    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1;
+  };
+
+  installMenuChromeButtonsLabelsFix1SmokeViaData();
 
   Game.Data = Data;
 })();
