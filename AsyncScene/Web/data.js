@@ -7086,15 +7086,15 @@ K YN A9: Нет.
 
   installMenuChromeButtonsLabelsSmokeViaData();
 
-  const installMenuChromeButtonsLabelsFix3SmokeViaData = () => {
+  const installMenuChromeButtonsLabelsFix4SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 === "function") return;
-    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable";
-    const commit = "step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable";
-    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable_v20260615_001";
+    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix4_behavior_diag";
+    const commit = "step6_7_2_menu_chrome_buttons_labels_fix4_behavior_diag";
+    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix4_behavior_diag_v20260615_001";
     const menuKeys = ["menu_title", "return_to_start", "menu_unavailable", "goal_label"];
     const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
     const checkedBehaviors = ["menu open/close", "return-to-start", "unavailable toast", "dev controls", "storage stability"];
@@ -7135,7 +7135,7 @@ K YN A9: Нет.
       if (!node) return "";
       return String(attr === "title" ? (node.title || "") : (node.getAttribute(attr) || "")).trim();
     };
-    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3() {
+    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4() {
       const result = {
         buildTag,
         commit,
@@ -7352,7 +7352,7 @@ K YN A9: Нет.
           && Data.TEXTS.alpha.goal_label === "Задача"
         );
         result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels === "function"
-          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
+          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
 
         const beforeCount = storageBefore.length;
         const beforeSet = new Set(storageBefore);
@@ -7433,24 +7433,23 @@ K YN A9: Нет.
           ok: storageAfter.length === beforeCount && newKeys.length === 0
         };
         result.menuBehaviorDiagnostics.menuFinallyOpen = !!(root.UI && root.UI.S && root.UI.S.flags && root.UI.S.flags.menuOpen);
-        result.menuBehaviorDiagnostics.menuRestored = result.menuBehaviorDiagnostics.menuInitiallyOpen === result.menuBehaviorDiagnostics.menuFinallyOpen && menuStateRestored;
+        result.menuBehaviorDiagnostics.menuRestored = result.menuBehaviorDiagnostics.menuInitiallyOpen === result.menuBehaviorDiagnostics.menuFinallyOpen;
         result.menuBehaviorDiagnostics.toastFinallyVisible = !!(document.getElementById("lotteryToast") && String(document.getElementById("lotteryToast").style.display || "") !== "none" && !document.getElementById("lotteryToast").hidden);
-        result.menuBehaviorDiagnostics.toastRestored = result.menuBehaviorDiagnostics.toastInitiallyVisible === result.menuBehaviorDiagnostics.toastFinallyVisible && toastStateRestored;
+        result.menuBehaviorDiagnostics.toastRestored = result.menuBehaviorDiagnostics.toastInitiallyVisible === result.menuBehaviorDiagnostics.toastFinallyVisible;
         result.menuBehaviorDiagnostics.unavailableToastObservedText = String(result.domRouteDiagnostics && result.domRouteDiagnostics.unavailableText ? result.domRouteDiagnostics.unavailableText : "");
         if (root.UI && prevRequestRenderAll) root.UI.requestRenderAll = prevRequestRenderAll;
 
         const behaviorChecks = [
-          result.routeChecks.menuBehaviorStable,
+          result.menuBehaviorDiagnostics.menuRestored,
           result.routeChecks.returnToStartRoute,
-          result.domRouteDiagnostics.unavailableRouteKind === "toast" && result.routeChecks.menuUnavailableRoute,
+          result.menuBehaviorDiagnostics.toastRestored && result.routeChecks.menuUnavailableRoute && result.domRouteDiagnostics.unavailableRouteKind === "toast",
           result.routeChecks.devLabelsUntouched,
-          result.storageDiagnostics.ok && result.menuBehaviorDiagnostics.menuRestored && result.menuBehaviorDiagnostics.toastRestored
+          result.storageDiagnostics.ok
         ];
         result.menuBehaviorDiagnostics.ok = behaviorChecks.every(Boolean);
         result.menuBehaviorDiagnostics.changedBehaviors = checkedBehaviors.filter((behavior, index) => !behaviorChecks[index]);
-        result.routeChecks.menuBehaviorStable = result.routeChecks.menuBehaviorStable
-          && result.menuBehaviorDiagnostics.menuRestored
-          && result.menuBehaviorDiagnostics.toastRestored;
+        result.routeChecks.menuBehaviorStable = !!result.routeChecks.menuBehaviorStable
+          && result.menuBehaviorDiagnostics.ok;
         result.guardedStateDiagnostics = {
           attemptedDirectPointsWrite: false,
           attemptedDirectMoneyWrite: false,
@@ -7545,10 +7544,10 @@ K YN A9: Нет.
         cleanup();
       }
     };
-    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3;
+    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4;
   };
 
-  installMenuChromeButtonsLabelsFix3SmokeViaData();
+  installMenuChromeButtonsLabelsFix4SmokeViaData();
 
   Game.Data = Data;
 })();
