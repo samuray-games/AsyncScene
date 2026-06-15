@@ -477,7 +477,7 @@
         return t("battle_win");
       }
       if (rawL.includes("пораж") || rawL.includes("проиг") || rawL.includes("lose") || rawL.includes("loss") || rawL.includes("lost")) {
-        return t("battle_lose");
+        return t("battle_loss");
       }
 
       // Derive from common structured outcome fields.
@@ -485,7 +485,7 @@
       const rr = String(r).toLowerCase();
 
       if (rr === "win" || rr === "victory" || rr === "won" || rr === "attacker_win" || rr === "a_win") return t("battle_win");
-      if (rr === "lose" || rr === "loss" || rr === "lost" || rr === "defender_win" || rr === "b_win") return t("battle_lose");
+      if (rr === "lose" || rr === "loss" || rr === "lost" || rr === "defender_win" || rr === "b_win") return t("battle_loss");
       if (rr === "draw" || rr === "tie" || rr === "peace" || rr === "chill") return t("battle_draw");
 
       // If there was some other text, keep it (but avoid empty).
@@ -530,7 +530,7 @@
   function getBattleOutcomeLabel(battle) {
     const key = getBattleOutcomeKey(battle);
     if (key === "win") return t("battle_win");
-    if (key === "lose") return t("battle_lose");
+    if (key === "lose") return t("battle_loss");
     if (key === "draw") return t("battle_draw");
     return "";
   }
@@ -974,7 +974,7 @@
       rematchBtn.className = "btn small";
       rematchBtn.type = "button";
       rematchBtn.dataset.testid = "battle-rematch-btn";
-      rematchBtn.textContent = "Реванш";
+      rematchBtn.textContent = t("battle_action_rematch");
       rematchBtn.onclick = (e) => {
         stop(e);
         _captureBattleFocus(battle.id, card);
@@ -1457,7 +1457,7 @@ UI.renderBattles = () => {
       const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
       const displayCount = Math.max(collapsedCount, battlesCount);
       const battleTitle = header.querySelector(".battleTitleText");
-      if (battleTitle) battleTitle.textContent = "баттл";
+      if (battleTitle) battleTitle.textContent = t("battle_invite_title");
       const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
       if (countWrapper) countWrapper.style.display = (displayCount || showZeroCount) ? "" : "none";
       countEl.textContent = String(displayCount);
@@ -1569,10 +1569,10 @@ UI.renderBattles = () => {
       inviteRow.style.alignItems = "center";
 
       if (!UI._battleInvite || !UI._battleInvite.open) {
-        // Show button "Вызвать"
+        // Show button for opening the invite flow.
         const inviteBtn = document.createElement("button");
         inviteBtn.className = "btn";
-        inviteBtn.textContent = "Вызвать";
+        inviteBtn.textContent = t("battle_invite_title");
         inviteBtn.onclick = (e) => {
           stop(e);
           UI._battleInvite = UI._battleInvite || {};
@@ -1587,7 +1587,7 @@ UI.renderBattles = () => {
         };
         inviteRow.appendChild(inviteBtn);
       } else {
-        // Show input with clear × inside + "баттл" button + dropdown below
+        // Show input with clear × inside + battle action button + dropdown below
         const inputWrap = document.createElement("div");
         inputWrap.style.position = "relative";
         inputWrap.style.display = "flex";
@@ -1637,7 +1637,7 @@ UI.renderBattles = () => {
 
         const battleBtn = document.createElement("button");
         battleBtn.className = "btn small";
-        battleBtn.textContent = "баттл";
+        battleBtn.textContent = t("battle_action_attack");
         battleBtn.onclick = (e) => {
           stop(e);
           // Start battle from input value
@@ -1811,7 +1811,7 @@ UI.renderBattles = () => {
               UI._battleInvite.q = list[UI._battleInvite.sel || 0].name;
               input.value = UI._battleInvite.q;
             }
-            // Trigger "баттл" button click
+            // Trigger the battle submit button click
             battleBtn.click();
             return;
           }

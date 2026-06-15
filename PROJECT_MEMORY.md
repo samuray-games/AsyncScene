@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.7.4 Battle Invite / Action Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Routed the visible battle invite/action labels in `AsyncScene/Web/ui/ui-battles.js` and `docs/ui/ui-battles.js` through `Data.t(...)` so the battle panel now resolves the invite title, invite button, submit action, rematch button, empty-state hint, and resolved win/loss pill from the active profile.
+- Added profile-aware battle copy in `AsyncScene/Web/data.js` and `docs/data.js` for `battle_invite_title`, `battle_action_accept`, `battle_action_decline`, `battle_action_attack`, `battle_action_rematch`, `battle_action_report`, `battles_empty`, `battle_win`, and `battle_loss`, keeping millennial/default fallback intact and zoomer variants distinct.
+- Added the fresh smoke identity `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels()` with battle DOM, source, storage, and guarded-state diagnostics, but runtime PASS is still pending Safari confirmation.
+- Pending smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels()`.
+- Scope held: battle invite/action text routing and smoke only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.3 Fix2 Events Header / Panel Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. Safari/iPhone still must run `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2()` before claiming runtime PASS.
 - Fix1 still failed because it wrapped and re-called the original broken smoke, so the TDZ remained in the underlying `smokeZoomerFeelStep673EventsHeaderPanelLabels()` path.
