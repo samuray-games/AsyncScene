@@ -6055,6 +6055,9 @@ K YN A9: Нет.
       try { return String(fn && fn.toString ? fn.toString() : ""); }
       catch (_) { return ""; }
     };
+    const stripComments = (src) => String(src || "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1");
     const scanFreeT = () => {
       const filesScanned = [
         "AsyncScene/Web/data.js",
@@ -6066,22 +6069,28 @@ K YN A9: Нет.
       ];
       const offendingReferences = [];
       const pattern = /(^|[^\/.\w])t\(/g;
-      sources.forEach((row) => {
-        const cleaned = stripComments(row.source);
-        let match;
-        while ((match = pattern.exec(cleaned))) {
-          offendingReferences.push({
-            file: row.file,
-            index: match.index,
-            snippet: cleaned.slice(Math.max(0, match.index - 24), Math.min(cleaned.length, match.index + 36))
-          });
-          if (offendingReferences.length >= 8) break;
-        }
-      });
+      let diagnosticError = null;
+      try {
+        sources.forEach((row) => {
+          const cleaned = stripComments(row.source);
+          let match;
+          while ((match = pattern.exec(cleaned))) {
+            offendingReferences.push({
+              file: row.file,
+              index: match.index,
+              snippet: cleaned.slice(Math.max(0, match.index - 24), Math.min(cleaned.length, match.index + 36))
+            });
+            if (offendingReferences.length >= 8) break;
+          }
+        });
+      } catch (err) {
+        diagnosticError = err ? String(err.message || err) : "scan_failed";
+      }
       return {
         filesScanned,
         offendingReferences,
-        ok: offendingReferences.length === 0
+        diagnosticError,
+        ok: !diagnosticError && offendingReferences.length === 0
       };
     };
     root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix4() {
@@ -6127,6 +6136,63 @@ K YN A9: Нет.
   };
 
   installEmptyStatesProfileTextsFix4SmokeViaData();
+
+  const installEmptyStatesProfileTextsFix5SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix5";
+    const commit = "step6_6_1_empty_states_profile_texts_fix5";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix5_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix5() {
+      const base = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4
+        ? root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4()
+        : {
+            ok: false,
+            failures: [{ code: "smoke_unavailable", detail: null }],
+            forbiddenRemaining: ["smoke_unavailable"],
+            missingCoverage: ["smoke_unavailable"],
+            failedChecks: ["smoke_unavailable"],
+            samples: {},
+            routeChecks: {},
+            summary: {
+              checkedKeys: 0,
+              millennialZoomerDifferentCount: 0,
+              unchangedCount: 0,
+              resolverBackedCount: 0,
+              hardcodedRemainingAllowedCount: 0,
+              routeConnectedCount: 0,
+              docsMirrorUpdated: false,
+              smokeIdentityFresh: false,
+              noFreeTReferences: false
+            },
+            tFreeReferenceScan: { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "smoke_unavailable" }
+          };
+      const result = base;
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      if (!result.tFreeReferenceScan || typeof result.tFreeReferenceScan !== "object") {
+        result.tFreeReferenceScan = { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "scan_missing" };
+      }
+      result.summary = result.summary || {};
+      result.summary.smokeIdentityFresh = true;
+      result.summary.noFreeTReferences = !!result.tFreeReferenceScan.ok;
+      result.ok = !!result.ok
+        && !!result.tFreeReferenceScan.ok
+        && !result.tFreeReferenceScan.diagnosticError
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5;
+  };
+
+  installEmptyStatesProfileTextsFix5SmokeViaData();
 
   Game.Data = Data;
 })();

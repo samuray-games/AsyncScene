@@ -1,3 +1,9 @@
+## 2026-06-15 — Step 6.6.1 Fix5 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix5 follows the Fix4 smoke-only failure where `scanFreeT` called `stripComments` without a local definition in the served Safari scope.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix5()`.
+- Fix5 keeps the route checks from Fix4 intact and makes the free-reference scan best-effort.
+
 ## 2026-06-15 — Step 6.6.1 Fix4 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix4 follows the Fix3 failure, where Safari still reported `Can't find variable: t` in the empty-state smoke path even though the returned identity was fresh.
