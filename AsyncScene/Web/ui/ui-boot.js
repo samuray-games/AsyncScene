@@ -117,8 +117,49 @@ window.Game = window.Game || {};
     return UI;
   }
 
+  function resolveStartScreenText(Data, key, forcedProfile) {
+    if (Data && typeof Data.resolveStartScreenText === "function") {
+      return String(Data.resolveStartScreenText(key, forcedProfile) || "");
+    }
+    const raw = String(forcedProfile == null ? (Data && Data.TEXT_MODE) : forcedProfile || "").trim().toLowerCase();
+    const mode = (raw === "zoomer" || raw === "alpha" || raw === "genz") ? "zoomer" : "millennial";
+    const millennial = {
+      start_title: "AsyncScene",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
+      start_continue: "Продолжить",
+      start_start: "Старт",
+      start_reset: "Сбросить старт",
+      rules_action: "Правила",
+      start_action: "Старт",
+    };
+    const zoomer = {
+      start_title: "AsyncScene",
+      birth_digits_label: "Две цифры вайба",
+      digit_up_first: "Первая цифра выше",
+      digit_down_first: "Первая цифра ниже",
+      digit_up_second: "Вторая цифра выше",
+      digit_down_second: "Вторая цифра ниже",
+      profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
+      fantasy_birth_label: "по вайбу я родился в …",
+      start_continue: "Погнали",
+      start_start: "Старт",
+      start_reset: "Снести выбор",
+      rules_action: "Правила без душноты",
+      start_action: "Войти",
+    };
+    const table = mode === "zoomer" ? zoomer : millennial;
+    return String(Object.prototype.hasOwnProperty.call(table, key) ? table[key] : millennial[key] || "");
+  }
+
   function ensureStartScreenExists(UI) {
     const $ = UI.$;
+    const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
 
     // If UI.$ can't see it, try the raw DOM (in case ui-core changed $ semantics)
     let st = $("startScreen") || document.getElementById("startScreen");
@@ -133,21 +174,21 @@ window.Game = window.Game || {};
           <h1 id="startTitle"></h1>
           <div id="startIntroLines"></div>
           <div id="startEconomyHonestyLine"></div>
-          <label id="startBirthYearLabel" class="startFieldLabel">Последние 2 цифры года рождения</label>
-          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="Последние 2 цифры года рождения">
+          <label id="startBirthYearLabel" class="startFieldLabel">${resolveStartScreenText(D, "birth_digits_label")}</label>
+          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="${resolveStartScreenText(D, "birth_digits_label")}">
             <div class="startBirthYearWheel" data-birth-year-digit="0">
-              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="Увеличить первую цифру">▲</button>
+              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_up_first")}" title="${resolveStartScreenText(D, "digit_up_first")}">▲</button>
               <div id="startBirthYearDigit0" class="startBirthYearDigit" aria-live="polite">0</div>
-              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="Уменьшить первую цифру">▼</button>
+              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_down_first")}" title="${resolveStartScreenText(D, "digit_down_first")}">▼</button>
             </div>
             <div class="startBirthYearWheel" data-birth-year-digit="1">
-              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="Увеличить вторую цифру">▲</button>
+              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_up_second")}" title="${resolveStartScreenText(D, "digit_up_second")}">▲</button>
               <div id="startBirthYearDigit1" class="startBirthYearDigit" aria-live="polite">0</div>
-              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="Уменьшить вторую цифру">▼</button>
+              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_down_second")}" title="${resolveStartScreenText(D, "digit_down_second")}">▼</button>
             </div>
           </div>
-          <div id="startBirthYearHint" class="startFieldHint">Только для интерфейса. Не сохраняем. Можно поменять позже.</div>
-          <label id="startBirthYearFeelingLabel" class="startFieldLabel">я на самом деле чувствую будто я родился в …</label>
+          <div id="startBirthYearHint" class="startFieldHint">${resolveStartScreenText(D, "profile_helper")}</div>
+          <label id="startBirthYearFeelingLabel" class="startFieldLabel">${resolveStartScreenText(D, "fantasy_birth_label")}</label>
           <input id="startBirthYearFeelingInput" class="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" />
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
@@ -194,6 +235,40 @@ window.Game = window.Game || {};
       card.style.position = card.style.position || "relative";
       card.style.zIndex = card.style.zIndex || "1";
     }
+    const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    const titleEl = st.querySelector("#startTitle") || document.getElementById("startTitle");
+    if (titleEl) titleEl.textContent = resolveStartScreenText(D, "start_title");
+    const birthYearLabel = st.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel");
+    if (birthYearLabel) birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label");
+    const birthYearPicker = st.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker");
+    if (birthYearPicker) birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label"));
+    const arrow0Up = st.querySelector("#startBirthYear0Up") || document.getElementById("startBirthYear0Up");
+    if (arrow0Up) { arrow0Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_first")); arrow0Up.title = resolveStartScreenText(D, "digit_up_first"); }
+    const arrow0Down = st.querySelector("#startBirthYear0Down") || document.getElementById("startBirthYear0Down");
+    if (arrow0Down) { arrow0Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_first")); arrow0Down.title = resolveStartScreenText(D, "digit_down_first"); }
+    const arrow1Up = st.querySelector("#startBirthYear1Up") || document.getElementById("startBirthYear1Up");
+    if (arrow1Up) { arrow1Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_second")); arrow1Up.title = resolveStartScreenText(D, "digit_up_second"); }
+    const arrow1Down = st.querySelector("#startBirthYear1Down") || document.getElementById("startBirthYear1Down");
+    if (arrow1Down) { arrow1Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_second")); arrow1Down.title = resolveStartScreenText(D, "digit_down_second"); }
+    const birthYearHint = st.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint");
+    if (birthYearHint) birthYearHint.textContent = resolveStartScreenText(D, "profile_helper");
+    const birthYearFeelingLabel = st.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel");
+    if (birthYearFeelingLabel) birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label");
+    const startBtn = st.querySelector("#btnStart") || document.getElementById("btnStart");
+    const rulesBtn = st.querySelector("#btnRules") || document.getElementById("btnRules");
+    if (startBtn) {
+      const resumeMode = getOnboardingSeen(UI);
+      startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue") : resolveStartScreenText(D, "start_action");
+      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start"));
+      startBtn.title = resolveStartScreenText(D, "start_action");
+    }
+    if (rulesBtn) {
+      rulesBtn.textContent = resolveStartScreenText(D, "rules_action");
+      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action"));
+      rulesBtn.title = resolveStartScreenText(D, "rules_action");
+    }
+    const resetBtn = st.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding");
+    if (resetBtn) resetBtn.textContent = resolveStartScreenText(D, "start_reset");
     st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding, #startBirthYearPicker button").forEach((el) => {
       el.style.pointerEvents = "auto";
       el.style.position = el.style.position || "relative";
@@ -434,26 +509,26 @@ window.Game = window.Game || {};
       birthYearLabel = document.createElement("label");
       birthYearLabel.id = "startBirthYearLabel";
       birthYearLabel.className = "startFieldLabel";
-      birthYearLabel.textContent = "Последние 2 цифры года рождения";
+      birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label");
       const insertLabelBefore = $("startBirthYearPicker") || document.getElementById("startBirthYearPicker") || $("startBtns") || document.getElementById("startBtns");
       if (insertLabelBefore && insertLabelBefore.parentNode) insertLabelBefore.parentNode.insertBefore(birthYearLabel, insertLabelBefore);
       else if (economyEl && economyEl.parentNode) economyEl.parentNode.insertBefore(birthYearLabel, economyEl.nextSibling);
     } else {
-      birthYearLabel.textContent = "Последние 2 цифры года рождения";
+      birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label");
     }
 
     let birthYearPicker = $("startBirthYearPicker") || document.getElementById("startBirthYearPicker");
     if (!birthYearPicker) {
       const buildWheel = (index, ordinal) => `
         <div class="startBirthYearWheel" data-birth-year-digit="${index}">
-          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="Увеличить ${ordinal} цифру">▲</button>
+          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second")}" title="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second")}">▲</button>
           <div id="startBirthYearDigit${index}" class="startBirthYearDigit" aria-live="polite">0</div>
-          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="Уменьшить ${ordinal} цифру">▼</button>
+          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second")}" title="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second")}">▼</button>
         </div>`;
       birthYearPicker = document.createElement("div");
       birthYearPicker.id = "startBirthYearPicker";
       birthYearPicker.className = "startBirthYearPicker";
-      birthYearPicker.setAttribute("aria-label", "Последние 2 цифры года рождения");
+      birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label"));
       birthYearPicker.innerHTML = buildWheel(0, "первую") + buildWheel(1, "вторую");
       const insertPickerBefore = $("startBirthYearHint") || document.getElementById("startBirthYearHint") || $("startBtns") || document.getElementById("startBtns");
       if (insertPickerBefore && insertPickerBefore.parentNode) insertPickerBefore.parentNode.insertBefore(birthYearPicker, insertPickerBefore);
@@ -465,12 +540,12 @@ window.Game = window.Game || {};
       birthYearHint = document.createElement("div");
       birthYearHint.id = "startBirthYearHint";
       birthYearHint.className = "startFieldHint";
-      birthYearHint.textContent = "Только для интерфейса. Не сохраняем. Можно поменять позже.";
+      birthYearHint.textContent = resolveStartScreenText(D, "profile_helper");
       const insertHintBefore = $("startBtns") || document.getElementById("startBtns");
       if (insertHintBefore && insertHintBefore.parentNode) insertHintBefore.parentNode.insertBefore(birthYearHint, insertHintBefore);
       else if (birthYearPicker && birthYearPicker.parentNode) birthYearPicker.parentNode.insertBefore(birthYearHint, birthYearPicker.nextSibling);
     } else {
-      birthYearHint.textContent = "Только для интерфейса. Не сохраняем. Можно поменять позже.";
+      birthYearHint.textContent = resolveStartScreenText(D, "profile_helper");
     }
 
     let birthYearFeelingLabel = $("startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel");
@@ -478,11 +553,11 @@ window.Game = window.Game || {};
       birthYearFeelingLabel = document.createElement("label");
       birthYearFeelingLabel.id = "startBirthYearFeelingLabel";
       birthYearFeelingLabel.className = "startFieldLabel";
-      birthYearFeelingLabel.textContent = "я на самом деле чувствую будто я родился в …";
+      birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label");
       const insertFeelingLabelBefore = $("startBtns") || document.getElementById("startBtns");
       if (insertFeelingLabelBefore && insertFeelingLabelBefore.parentNode) insertFeelingLabelBefore.parentNode.insertBefore(birthYearFeelingLabel, insertFeelingLabelBefore);
     } else {
-      birthYearFeelingLabel.textContent = "я на самом деле чувствую будто я родился в …";
+      birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label");
     }
 
     let birthYearFeelingInput = $("startBirthYearFeelingInput") || document.getElementById("startBirthYearFeelingInput");
@@ -547,14 +622,22 @@ window.Game = window.Game || {};
 
     const resumeMode = getOnboardingSeen(UI);
     const startBtn = $("btnStart") || document.getElementById("btnStart");
-    if (startBtn) startBtn.textContent = resumeMode ? "Продолжить" : (typeof actions.start === "string" ? actions.start : "Старт");
+    if (startBtn) {
+      startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue") : resolveStartScreenText(D, "start_action");
+      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start"));
+      startBtn.title = resolveStartScreenText(D, "start_action");
+    }
 
     const rulesBtn = $("btnRules") || document.getElementById("btnRules");
-    if (rulesBtn) rulesBtn.textContent = typeof actions.rules === "string" ? actions.rules : "";
+    if (rulesBtn) {
+      rulesBtn.textContent = resolveStartScreenText(D, "rules_action");
+      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action"));
+      rulesBtn.title = resolveStartScreenText(D, "rules_action");
+    }
 
     const resetBtn = $("btnResetOnboarding") || document.getElementById("btnResetOnboarding");
     if (resetBtn) {
-      resetBtn.textContent = "Сбросить старт";
+      resetBtn.textContent = resolveStartScreenText(D, "start_reset");
       resetBtn.hidden = !resumeMode;
       resetBtn.classList.toggle("hidden", !resumeMode);
       resetBtn.style.display = resumeMode ? "block" : "none";
@@ -8016,6 +8099,237 @@ window.Game = window.Game || {};
         return result;
       };
       G.Dev.smokeZoomerFeelStep60RealUiTextInventory = G.__DEV.smokeZoomerFeelStep60RealUiTextInventory;
+    }
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels = function smokeZoomerFeelStep671StartScreenButtonsLabels() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels";
+        const commit = "step6_7_1_start_screen_buttons_labels";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_v20260615_001";
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          samples: {},
+          routeChecks: {},
+          summary: {
+            checkedKeys: 0,
+            millennialZoomerDifferentCount: 0,
+            unchangedAllowedCount: 0,
+            routeConnectedCount: 0,
+            profileSelectionChecksCount: 0,
+            docsMirrorUpdated: false,
+            smokeIdentityFresh: false,
+          },
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        const D = G.Data || {};
+        const resolve = (key, profile) => (D && typeof D.resolveStartScreenText === "function") ? String(D.resolveStartScreenText(key, profile) || "") : "";
+        const storageKeys = () => {
+          try { return window.localStorage ? Object.keys(window.localStorage).sort() : []; } catch (_) { return []; }
+        };
+        const beforeStorageKeys = storageKeys();
+        const beforeTextMode = typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "";
+        const beforeUiProfile = typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "";
+        const beforeSave = JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+        try {
+          result.routeChecks.dataDefinitionsExist = !!(D && D.START_SCREEN_PROFILE_TEXTS && typeof D.START_SCREEN_PROFILE_TEXTS === "object" && D.START_SCREEN_PROFILE_TEXTS.millennial && D.START_SCREEN_PROFILE_TEXTS.zoomer);
+          result.routeChecks.resolverExists = !!(D && typeof D.resolveStartScreenText === "function");
+          if (!result.routeChecks.dataDefinitionsExist) miss("start_screen_profile_texts_missing");
+          if (!result.routeChecks.resolverExists) miss("start_screen_resolver_missing");
+
+          const keys = [
+            "start_title",
+            "birth_digits_label",
+            "digit_up_first",
+            "digit_down_first",
+            "digit_up_second",
+            "digit_down_second",
+            "profile_helper",
+            "fantasy_birth_label",
+            "start_continue",
+            "start_start",
+            "start_reset",
+            "rules_action",
+            "start_action",
+          ];
+          keys.forEach((key) => {
+            result.samples[key] = {
+              millennial: resolve(key, "millennial"),
+              zoomer: resolve(key, "zoomer"),
+            };
+          });
+          result.summary.checkedKeys = keys.length;
+          result.summary.millennialZoomerDifferentCount = keys.filter((key) => result.samples[key].millennial !== result.samples[key].zoomer).length;
+          result.summary.unchangedAllowedCount = keys.filter((key) => result.samples[key].millennial === result.samples[key].zoomer).length;
+          result.routeChecks.millennialFallbackPreserved = keys.filter((key) => result.samples[key].millennial === resolve(key, "") && result.samples[key].millennial === resolve(key, "missing")).length >= 6;
+          result.routeChecks.zoomerDiffers = result.summary.millennialZoomerDifferentCount >= 6;
+
+          const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+          const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
+          const labelEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null;
+          const pickerEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null;
+          const hintEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null;
+          const feelingEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null;
+          const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+          const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
+          const resetBtn = (typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null;
+          const liveProfile = D && typeof D.getUiProfile === "function" ? D.getUiProfile() : (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "default");
+          const liveMode = String(liveProfile).trim().toLowerCase() === "zoomer" || String(liveProfile).trim().toLowerCase() === "alpha" ? "zoomer" : "millennial";
+          const liveResumeMode = !!(G.__A && typeof G.__A.getOnboardingSeen === "function" ? G.__A.getOnboardingSeen() : (G.__S && G.__S.progress && G.__S.progress.onboardingSeen === true));
+          result.routeChecks.startScreenBootHealthy = !!(st && titleEl && labelEl && pickerEl && hintEl && feelingEl && startBtn && rulesBtn && resetBtn);
+          if (!result.routeChecks.startScreenBootHealthy) fail("start_screen_boot_unhealthy", {
+            st: !!st,
+            titleEl: !!titleEl,
+            labelEl: !!labelEl,
+            pickerEl: !!pickerEl,
+            hintEl: !!hintEl,
+            feelingEl: !!feelingEl,
+            startBtn: !!startBtn,
+            rulesBtn: !!rulesBtn,
+            resetBtn: !!resetBtn,
+          });
+
+          if (result.routeChecks.startScreenBootHealthy) {
+            const titleText = String(titleEl.textContent || "").trim();
+            const labelText = String(labelEl.textContent || "").trim();
+            const hintText = String(hintEl.textContent || "").trim();
+            const feelingText = String(feelingEl.textContent || "").trim();
+            const startText = String(startBtn.textContent || "").trim();
+            const rulesText = String(rulesBtn.textContent || "").trim();
+            const resetText = String(resetBtn.textContent || "").trim();
+            const expectedStartText = liveResumeMode ? resolve("start_continue", liveMode) : resolve("start_action", liveMode);
+            result.routeChecks.uiBootRoutesResolver = titleText === resolve("start_title", liveMode)
+              && labelText === resolve("birth_digits_label", liveMode)
+              && hintText === resolve("profile_helper", liveMode)
+              && feelingText === resolve("fantasy_birth_label", liveMode)
+              && startText === expectedStartText
+              && rulesText === resolve("rules_action", liveMode)
+              && resetText === resolve("start_reset", liveMode)
+              && String(pickerEl.getAttribute("aria-label") || "") === resolve("birth_digits_label", liveMode);
+            if (!result.routeChecks.uiBootRoutesResolver) fail("ui_boot_start_screen_not_resolver_routed", {
+              titleText,
+              labelText,
+              hintText,
+              feelingText,
+              startText,
+              rulesText,
+              resetText,
+              expectedStartText,
+            });
+          } else {
+            result.routeChecks.uiBootRoutesResolver = false;
+          }
+
+          result.routeChecks.profileSelectionStillWorks = [
+            ["87", "millennial"],
+            ["98", "zoomer"],
+            ["04", "zoomer"],
+            ["15", "alpha"],
+          ].every(([input, expected]) => D && typeof D.resolveUiProfileFromBirthYearValue === "function" && D.resolveUiProfileFromBirthYearValue(input) === expected);
+          result.summary.profileSelectionChecksCount = 4;
+          if (!result.routeChecks.profileSelectionStillWorks) fail("profile_selection_mismatch", {
+            "87": D && typeof D.resolveUiProfileFromBirthYearValue === "function" ? D.resolveUiProfileFromBirthYearValue("87") : null,
+            "98": D && typeof D.resolveUiProfileFromBirthYearValue === "function" ? D.resolveUiProfileFromBirthYearValue("98") : null,
+            "04": D && typeof D.resolveUiProfileFromBirthYearValue === "function" ? D.resolveUiProfileFromBirthYearValue("04") : null,
+            "15": D && typeof D.resolveUiProfileFromBirthYearValue === "function" ? D.resolveUiProfileFromBirthYearValue("15") : null,
+          });
+
+          result.routeChecks.noNewStorageKeys = JSON.stringify(beforeStorageKeys) === JSON.stringify(storageKeys())
+            && beforeTextMode === (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")
+            && beforeUiProfile === (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")
+            && beforeSave === JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+          if (!result.routeChecks.noNewStorageKeys) fail("storage_or_state_mutated", {
+            beforeStorageKeys,
+            afterStorageKeys: storageKeys(),
+            beforeTextMode,
+            afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "",
+            beforeUiProfile,
+            afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "",
+          });
+
+          result.routeChecks.docsMirrorUpdated = result.routeChecks.dataDefinitionsExist
+            && result.routeChecks.resolverExists
+            && result.routeChecks.startScreenBootHealthy
+            && result.routeChecks.uiBootRoutesResolver
+            && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
+            && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
+            && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
+            && result.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
+            && result.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
+            && result.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
+            && result.samples.start_continue.millennial === "Продолжить"
+            && result.samples.start_continue.zoomer === "Погнали"
+            && result.samples.start_reset.millennial === "Сбросить старт"
+            && result.samples.start_reset.zoomer === "Снести выбор"
+            && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
+            && result.samples.rules_action.zoomer === "Правила без душноты"
+            && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
+            && result.samples.start_action.zoomer === "Войти";
+          if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
+
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels"
+            && commit === "step6_7_1_start_screen_buttons_labels"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_v20260615_001";
+          if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
+            buildTag,
+            commit,
+            smokeVersion,
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels === "function",
+          });
+
+          result.summary.routeConnectedCount = [
+            result.routeChecks.dataDefinitionsExist,
+            result.routeChecks.resolverExists,
+            result.routeChecks.millennialFallbackPreserved,
+            result.routeChecks.zoomerDiffers,
+            result.routeChecks.uiBootRoutesResolver,
+            result.routeChecks.startScreenBootHealthy,
+            result.routeChecks.profileSelectionStillWorks,
+            result.routeChecks.noNewStorageKeys,
+            result.routeChecks.docsMirrorUpdated,
+            result.routeChecks.noStaleSmokeIdentity,
+          ].filter(Boolean).length;
+          result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
+          result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+
+          result.forbiddenRemaining = [
+            result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
+            result.samples.start_start.millennial !== "Старт" || result.samples.start_start.zoomer !== "Старт" ? "start_start" : "",
+          ].filter(Boolean);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterStorageKeys = storageKeys();
+        if (JSON.stringify(beforeStorageKeys) !== JSON.stringify(afterStorageKeys)) fail("storage_keys_changed", { beforeStorageKeys, afterStorageKeys });
+        if (beforeTextMode !== (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")) fail("text_mode_changed", { beforeTextMode, afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "" });
+        if (beforeUiProfile !== (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")) fail("ui_profile_changed", { beforeUiProfile, afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "" });
+        if (beforeSave !== JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {})) fail("save_state_changed", { beforeSave, afterSave: JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {}) });
+        result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0
+          && result.routeChecks.dataDefinitionsExist === true
+          && result.routeChecks.resolverExists === true
+          && result.routeChecks.millennialFallbackPreserved === true
+          && result.routeChecks.zoomerDiffers === true
+          && result.routeChecks.uiBootRoutesResolver === true
+          && result.routeChecks.startScreenBootHealthy === true
+          && result.routeChecks.profileSelectionStillWorks === true
+          && result.routeChecks.noNewStorageKeys === true
+          && result.routeChecks.docsMirrorUpdated === true
+          && result.routeChecks.noStaleSmokeIdentity === true;
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabels = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels;
     }
   }
 })();

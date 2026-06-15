@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.1 Start Screen Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added profile-aware start-screen copy tables and resolver wiring in `AsyncScene/Web/data.js` and `docs/data.js` for `start_title`, `birth_digits_label`, `digit_up_*`, `digit_down_*`, `profile_helper`, `fantasy_birth_label`, `start_continue`, `start_start`, `start_reset`, `rules_action`, and `start_action`, with millennial/default fallback preserved and zoomer variants made visibly sharper.
+- Routed the visible start-screen labels/buttons/helper text in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` through `Data.resolveStartScreenText(...)` without touching birth-year/profile selection logic, saved storage keys, first-launch/reset flow, dev mode flow, or gameplay/economy/event logic.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels()`.
+
 ## 2026-06-15 — Step 6.6.1 Fix11 Empty States Profile Texts
 - Fix11 corrects the docs mirror verification after Fix10 stayed feature-green but still reported `docsMirrorUpdated:false` because the smoke checked the wrong mirror object path.
 - The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11()`.
