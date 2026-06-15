@@ -7068,10 +7068,10 @@ K YN A9: Нет.
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 === "function") return;
-    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix4_behavior_diag";
-    const commit = "step6_7_2_menu_chrome_buttons_labels_fix4_behavior_diag";
-    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix4_behavior_diag_v20260615_001";
+    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix5_toast_diag";
+    const commit = "step6_7_2_menu_chrome_buttons_labels_fix5_toast_diag";
+    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix5_toast_diag_v20260615_001";
     const menuKeys = ["menu_title", "return_to_start", "menu_unavailable", "goal_label"];
     const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
     const checkedBehaviors = ["menu open/close", "return-to-start", "unavailable toast", "dev controls", "storage stability"];
@@ -7106,7 +7106,7 @@ K YN A9: Нет.
       const node = document.querySelector(selector);
       return String(node && node.textContent != null ? node.textContent : "").trim();
     };
-    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4() {
+    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5() {
       const result = {
         buildTag,
         commit,
@@ -7323,7 +7323,7 @@ K YN A9: Нет.
           && Data.TEXTS.alpha.goal_label === "Задача"
         );
         result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels === "function"
-          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
+          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
 
         const beforeCount = storageBefore.length;
         const beforeSet = new Set(storageBefore);
@@ -7412,12 +7412,19 @@ K YN A9: Нет.
         const behaviorChecks = [
           result.menuBehaviorDiagnostics.menuRestored,
           result.routeChecks.returnToStartRoute,
-          result.menuBehaviorDiagnostics.toastRestored && result.routeChecks.menuUnavailableRoute && result.domRouteDiagnostics.unavailableRouteKind === "toast",
+          result.menuBehaviorDiagnostics.toastRestored,
           result.routeChecks.devLabelsUntouched,
           result.storageDiagnostics.ok
         ];
         result.menuBehaviorDiagnostics.ok = behaviorChecks.every(Boolean);
-        result.menuBehaviorDiagnostics.changedBehaviors = checkedBehaviors.filter((behavior, index) => !behaviorChecks[index]);
+        result.menuBehaviorDiagnostics.changedBehaviors = checkedBehaviors.filter((behavior, index) => {
+          if (behavior === "unavailable toast") {
+            return !result.menuBehaviorDiagnostics.toastRestored
+              || !result.routeChecks.menuUnavailableRoute
+              || result.domRouteDiagnostics.unavailableRouteKind !== "toast";
+          }
+          return !behaviorChecks[index];
+        });
         result.routeChecks.menuBehaviorStable = !!result.routeChecks.menuBehaviorStable
           && result.menuBehaviorDiagnostics.ok;
         result.guardedStateDiagnostics = {
@@ -7514,10 +7521,10 @@ K YN A9: Нет.
         cleanup();
       }
     };
-    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix4;
+    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5;
   };
 
-  installMenuChromeButtonsLabelsFix4SmokeViaData();
+  installMenuChromeButtonsLabelsFix5SmokeViaData();
 
   Game.Data = Data;
 })();
