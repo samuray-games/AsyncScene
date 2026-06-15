@@ -31,10 +31,16 @@
 - Scope held: resolver aliases, smoke diagnostics, and docs notes only; no gameplay, economy, event, battle, DM, or menu-behavior changes.
 
 ## 2026-06-15 — Step 6.7.2 Fix7 Restore UI Texts
-- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Status: PASS for the emergency restore smoke; final Step 6.7.2 smoke is still pending.
 - Fix6 still failed in Safari: the command stayed undefined and the UI kept leaking raw keys, which indicated `data.js` was not finishing evaluation in the served runtime.
 - Root cause for Fix7: the Fix5 smoke installer was declared as `installMenuChromeButtonsLabelsFix4SmokeViaData` but invoked as `installMenuChromeButtonsLabelsFix5SmokeViaData()`, which could abort `data.js` before `Game.Data = Data` and before later emergency smokes registered.
 - Fix7 repairs that installer mismatch, keeps the resolver/menu text tables intact, and adds `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts()` to verify command registration plus raw-key/resolver health directly in the served runtime.
+
+## 2026-06-15 — Step 6.7.2 Final Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Final Step 6.7.2 smoke command is now wired as `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal()`, with fresh identity `build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_final` / `step6_7_2_menu_chrome_buttons_labels_final` / `step6_7_2_menu_chrome_buttons_labels_final_v20260615_001`.
+- The final smoke is pending Safari confirmation and is intended to prove raw-key leakage stays closed, menu chrome stays profile-aware, menu behavior restores cleanly, storage stays clean, and guarded state writes remain untouched.
+- Scope held: menu chrome smoke diagnostics, DOM/source verification, storage snapshot/restore, guarded-state guard checks, and docs notes only; no economy writes, no gameplay changes, and no menu/dev behavior changes.
 
 ## 2026-06-15 — Step 6.7.2 Fix1 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
