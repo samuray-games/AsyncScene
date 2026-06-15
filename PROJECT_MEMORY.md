@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.2 Fix1 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Follow-up fix for the Step 6.7.2 menu chrome smoke: the served runtime/docs bundles now include `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1()`, which probes the toast-only unavailable route safely, snapshots and restores storage, keeps dev labels hardcoded, and records menu behavior diagnostics without touching gameplay or persistence.
+- Fixed the smoke identity to `build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix1` / `step6_7_2_menu_chrome_buttons_labels_fix1` / `step6_7_2_menu_chrome_buttons_labels_fix1_v20260615_001`.
+- Zoomer `menu_title` was restored to `Меню`, so menu title now stays stable and counts as an unchangedAllowed label while `return_to_start`, `menu_unavailable`, and `goal_label` still differ by profile.
+- Scope held: menu chrome smoke diagnostics, DOM/toast capture, dev-label verification, storage snapshot/restore, and docs notes only; no dev mode changes, no console panel changes, no menu open/close changes, and no gameplay/economy/event/battle/DM/persistence changes.
+
 ## 2026-06-15 — Step 6.7.2 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added profile-aware menu chrome text keys in `AsyncScene/Web/data.js` and `docs/data.js`: `menu_title`, `return_to_start`, `menu_unavailable`, and `goal_label`, with Millennial/default preserved as the fallback and Zoomer made more compact/casual on the visible player-facing labels.
