@@ -26,6 +26,13 @@
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix6RestoreUiTexts()`.
 - Scope held: resolver aliases, smoke diagnostics, and docs notes only; no gameplay, economy, event, battle, DM, or menu-behavior changes.
 
+## 2026-06-15 — Step 6.7.2 Fix7 Restore UI Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: restore `data.js` boot health after Fix6 still stayed undefined in Safari by repairing the broken smoke installer registration path and adding a fresh emergency resolver-health smoke.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts()`.
+- Scope held: `data.js` smoke registration, resolver-health verification, and docs notes only; no gameplay, economy, event, battle, DM, or menu-behavior changes.
+
 ## 2026-06-15 — Step 6.7.2 Fix1 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the menu chrome smoke failures without changing menu behavior, dev mode behavior, storage keys, or the player-facing profile resolver contract.
