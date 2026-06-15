@@ -1,3 +1,9 @@
+## 2026-06-15 — Step 6.6.1 Fix7 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix7 follows the Fix6 result where every check stayed green except `dmActionUnavailableRoute:false`.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7()`.
+- Fix7 keeps the DM unavailable-action route verification focused on the real visible disabled path in the docs/runtime mirror.
+
 ## 2026-06-15 — Step 6.6.1 Fix6 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix6 follows the Fix5 state where the smoke diagnostic was clean, but the actual docs UI route file still had an unscoped `t` path.

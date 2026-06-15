@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.6.1 Fix7 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: connect or correctly verify the DM unavailable-action route so the visible disabled path uses the profile-aware copy in both mirrors.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7()`.
+- Scope held: UI mirror wiring, smoke hardening, and docs notes only; no copy, gameplay, event, battle, DM, REP, points, money, ECON, moneyLog, persistence, or event journal changes.
+
 ## 2026-06-15 — Step 6.6.1 Fix6 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: remove the remaining free `t` reference from the actual UI route files and extend the smoke scan to cover the live DM/battles mirrors.
