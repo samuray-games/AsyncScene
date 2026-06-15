@@ -24,6 +24,38 @@ window.Game = window.Game || {};
       rules: systemSay("systemEvents", "startActionRules")
     })
   });
+  Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({
+    millennial: Object.freeze({
+      start_title: "AsyncScene",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
+      start_continue: "Продолжить",
+      start_start: "Старт",
+      start_reset: "Сбросить старт",
+      rules_action: String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules),
+      start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
+    }),
+    zoomer: Object.freeze({
+      start_title: "AsyncScene",
+      birth_digits_label: "Две цифры вайба",
+      digit_up_first: "Первая цифра выше",
+      digit_down_first: "Первая цифра ниже",
+      digit_up_second: "Вторая цифра выше",
+      digit_down_second: "Вторая цифра ниже",
+      profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
+      fantasy_birth_label: "по вайбу я родился в …",
+      start_continue: "Погнали",
+      start_start: "Старт",
+      start_reset: "Снести выбор",
+      rules_action: "Правила без душноты",
+      start_action: "Войти",
+    }),
+  });
 
   // === PROGRESSION (single source of truth) ===
   Data.PROGRESSION_V2 = true;
@@ -492,6 +524,15 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     });
   };
   Data.resolveConflictResultText = (key) => Data.t(key);
+  Data.resolveStartScreenText = (key, forcedProfile) => {
+    const rawMode = String(forcedProfile == null ? Data.TEXT_MODE : forcedProfile).trim().toLowerCase();
+    const mode = (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") ? "zoomer" : "millennial";
+    const tables = Data.START_SCREEN_PROFILE_TEXTS || {};
+    const active = tables[mode] || tables.millennial || {};
+    const fallback = tables.millennial || {};
+    const value = Object.prototype.hasOwnProperty.call(active, key) ? active[key] : fallback[key];
+    return String(value == null ? "" : value);
+  };
 
   Data.teachCostByColor = (color) => {
     const s0 = String(color || "").toLowerCase();
