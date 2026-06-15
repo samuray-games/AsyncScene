@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.6.1 Fix4 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: remove the last out-of-scope `t` reference from the Step 6.6.1 smoke path and report a compact free-reference scan.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix4()`.
+- Scope held: smoke hardening and docs notes only; no copy, gameplay, event, battle, DM, REP, points, money, ECON, moneyLog, persistence, or event journal changes.
+
 ## 2026-06-15 — Step 6.6.1 Fix3 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: remove the out-of-scope `t` dependency from the Fix2 smoke path while preserving the already-wired empty/disabled route coverage.
