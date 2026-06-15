@@ -7063,15 +7063,15 @@ K YN A9: Нет.
 
   installMenuChromeButtonsLabelsSmokeViaData();
 
-  const installMenuChromeButtonsLabelsFix1SmokeViaData = () => {
+  const installMenuChromeButtonsLabelsFix2SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 === "function") return;
-    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix1";
-    const commit = "step6_7_2_menu_chrome_buttons_labels_fix1";
-    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix1_v20260615_001";
+    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix2_safe_smoke";
+    const commit = "step6_7_2_menu_chrome_buttons_labels_fix2_safe_smoke";
+    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix2_safe_smoke_v20260615_001";
     const menuKeys = ["menu_title", "return_to_start", "menu_unavailable", "goal_label"];
     const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
     const checkedBehaviors = ["menu open/close", "return-to-start", "unavailable toast", "dev controls", "storage stability"];
@@ -7106,7 +7106,7 @@ K YN A9: Нет.
       const node = document.querySelector(selector);
       return String(node && node.textContent != null ? node.textContent : "").trim();
     };
-    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1() {
+    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2() {
       const result = {
         buildTag,
         commit,
@@ -7158,7 +7158,6 @@ K YN A9: Нет.
       const storageBefore = storageKeys();
       const prevTextMode = Data.TEXT_MODE;
       const prevRequestRenderAll = root.UI && root.UI.requestRenderAll;
-      const prevPoints = root.UI && root.UI.S && root.UI.S.me ? root.UI.S.me.points : null;
       const prevLottery = root.UI && root.UI.S ? clone(root.UI.S.lottery) : null;
       const prevToast = document.getElementById("lotteryToast");
       const prevToastSnapshot = prevToast ? {
@@ -7173,10 +7172,6 @@ K YN A9: Нет.
       let createdToast = false;
       const cleanup = () => {
         try { Data.TEXT_MODE = prevTextMode; } catch (_) {}
-        if (root.UI && root.UI.S && root.UI.S.me) {
-          if (prevPoints == null) delete root.UI.S.me.points;
-          else root.UI.S.me.points = prevPoints;
-        }
         if (root.UI && root.UI.S) {
           if (prevLottery == null) delete root.UI.S.lottery;
           else root.UI.S.lottery = clone(prevLottery);
@@ -7269,7 +7264,7 @@ K YN A9: Нет.
           && Data.TEXTS.alpha.goal_label === "Задача"
         );
         result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels === "function"
-          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
+          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
 
         const beforeCount = storageBefore.length;
         const beforeSet = new Set(storageBefore);
@@ -7277,52 +7272,33 @@ K YN A9: Нет.
         if (renderMenu) {
           runWithProfile("zoomer", () => { renderMenu(); });
         }
-        if (root.UI && typeof root.UI.lottery === "function") {
-          const S = root.UI.S || {};
-          const me = S.me || null;
-          if (me) {
-            const pointsBefore = me.points;
-            root.UI.requestRenderAll = () => {};
-            me.points = 0;
-            try { root.UI.lottery(); } catch (_) {}
-            const toast = document.getElementById("lotteryToast");
-            const toastText = String(toast && toast.textContent != null ? toast.textContent : "").trim();
-            if (toast && !prevToast) createdToast = true;
-            result.domRouteDiagnostics = {
-              activeProfileUsedForDom: "zoomer",
-              menuTitleText: readText("#btnMenu"),
-              returnToStartText: readText("#returnToStartControls button"),
-              unavailableText: toastText,
-              unavailableRouteKind: toastText ? "toast" : "unknown",
-              goalLabelText: readText("#btnManifestToggle"),
-              expectedMenuTitleText: samples.menu_title.zoomer,
-              expectedReturnToStartText: samples.return_to_start.zoomer,
-              expectedUnavailableText: samples.menu_unavailable.zoomer,
-              expectedGoalLabelText: samples.goal_label.zoomer,
-              ok: false
-            };
-            result.domRouteDiagnostics.ok = !!result.domRouteDiagnostics
-              && result.domRouteDiagnostics.menuTitleText === result.domRouteDiagnostics.expectedMenuTitleText
-              && result.domRouteDiagnostics.returnToStartText === result.domRouteDiagnostics.expectedReturnToStartText
-              && result.domRouteDiagnostics.unavailableText === result.domRouteDiagnostics.expectedUnavailableText
-              && result.domRouteDiagnostics.goalLabelText === result.domRouteDiagnostics.expectedGoalLabelText
-              && result.domRouteDiagnostics.unavailableRouteKind === "toast";
-            me.points = pointsBefore;
-          } else {
-            result.domRouteDiagnostics = {
-              activeProfileUsedForDom: "zoomer",
-              menuTitleText: samples.menu_title.zoomer,
-              returnToStartText: samples.return_to_start.zoomer,
-              unavailableText: samples.menu_unavailable.zoomer,
-              unavailableRouteKind: "unknown",
-              goalLabelText: samples.goal_label.zoomer,
-              expectedMenuTitleText: samples.menu_title.zoomer,
-              expectedReturnToStartText: samples.return_to_start.zoomer,
-              expectedUnavailableText: samples.menu_unavailable.zoomer,
-              expectedGoalLabelText: samples.goal_label.zoomer,
-              ok: true
-            };
-          }
+        if (root.UI && typeof root.UI.showLotteryToast === "function") {
+          const expectedUnavailableText = samples.menu_unavailable.zoomer;
+          try {
+            root.UI.showLotteryToast(expectedUnavailableText);
+            if (document.getElementById("lotteryToast") && !prevToast) createdToast = true;
+          } catch (_) {}
+          const toast = document.getElementById("lotteryToast");
+          const toastText = String(toast && toast.textContent != null ? toast.textContent : "").trim();
+          result.domRouteDiagnostics = {
+            activeProfileUsedForDom: "zoomer",
+            menuTitleText: readText("#btnMenu"),
+            returnToStartText: readText("#returnToStartControls button"),
+            unavailableText: toastText,
+            unavailableRouteKind: "toast",
+            goalLabelText: readText("#btnManifestToggle"),
+            expectedMenuTitleText: samples.menu_title.zoomer,
+            expectedReturnToStartText: samples.return_to_start.zoomer,
+            expectedUnavailableText,
+            expectedGoalLabelText: samples.goal_label.zoomer,
+            ok: false
+          };
+          result.domRouteDiagnostics.ok = !!result.domRouteDiagnostics
+            && result.domRouteDiagnostics.menuTitleText === result.domRouteDiagnostics.expectedMenuTitleText
+            && result.domRouteDiagnostics.returnToStartText === result.domRouteDiagnostics.expectedReturnToStartText
+            && result.domRouteDiagnostics.unavailableText === result.domRouteDiagnostics.expectedUnavailableText
+            && result.domRouteDiagnostics.goalLabelText === result.domRouteDiagnostics.expectedGoalLabelText
+            && result.domRouteDiagnostics.unavailableRouteKind === "toast";
         } else {
           result.domRouteDiagnostics = {
             activeProfileUsedForDom: "zoomer",
@@ -7457,10 +7433,10 @@ K YN A9: Нет.
         cleanup();
       }
     };
-    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1;
+    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2;
   };
 
-  installMenuChromeButtonsLabelsFix1SmokeViaData();
+  installMenuChromeButtonsLabelsFix2SmokeViaData();
 
   Game.Data = Data;
 })();
