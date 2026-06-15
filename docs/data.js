@@ -311,6 +311,12 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       events_empty: "Открой события.",
       events_panel_hint: "Здесь появляются важные события мира.",
       battles_empty: "Вызовов нет.",
+      battle_invite_title: "Вызов",
+      battle_action_accept: "Принять",
+      battle_action_decline: "Отклонить",
+      battle_action_attack: "Атаковать",
+      battle_action_rematch: "Реванш",
+      battle_action_report: "Пожаловаться",
       dm_empty: "Пока пусто.",
       dm_action_unavailable: "Недоступно.",
       battle_energy_locked_hint: "Откроется на ⚡{energy}",
@@ -376,6 +382,12 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       events_empty: "Пока тихо.",
       events_panel_hint: "Тут всплывает, кто опять устроил драму.",
       battles_empty: "Раундов нет.",
+      battle_invite_title: "Залёт",
+      battle_action_accept: "Вписаться",
+      battle_action_decline: "Скипнуть",
+      battle_action_attack: "Влететь",
+      battle_action_rematch: "Ещё раунд",
+      battle_action_report: "Сдать копу",
       dm_empty: "Личка молчит.",
       dm_action_unavailable: "Пока закрыто.",
       battle_energy_locked_hint: "Нужно ⚡{energy}",
@@ -9138,6 +9150,682 @@ K YN A9: Нет.
   };
 
   installEventsHeaderPanelLabelsSmokeViaData();
+
+  const installBattleInviteActionLabelsSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_4_battle_invite_action_labels";
+    const commit = "step6_7_4_battle_invite_action_labels";
+    const smokeVersion = "step6_7_4_battle_invite_action_labels_v20260615_001";
+    const visibleKeys = [
+      "battle_invite_title",
+      "battle_action_attack",
+      "battle_action_rematch",
+      "battles_empty",
+      "battle_win",
+      "battle_loss"
+    ];
+    const dataOnlyKeys = [
+      "battle_action_accept",
+      "battle_action_decline",
+      "battle_action_report"
+    ];
+    const checkedRawKeys = [
+      "battle_invite_title",
+      "battle_action_accept",
+      "battle_action_decline",
+      "battle_action_attack",
+      "battle_action_rematch",
+      "battle_action_report",
+      "battles_empty",
+      "battle_win",
+      "battle_loss",
+      "events_header",
+      "menu_title",
+      "dm_empty"
+    ];
+    const battleKeys = visibleKeys.concat(dataOnlyKeys);
+    const expectedTexts = {
+      battle_invite_title: { default: "Вызов", millennial: "Вызов", zoomer: "Залёт" },
+      battle_action_accept: { default: "Принять", millennial: "Принять", zoomer: "Вписаться" },
+      battle_action_decline: { default: "Отклонить", millennial: "Отклонить", zoomer: "Скипнуть" },
+      battle_action_attack: { default: "Атаковать", millennial: "Атаковать", zoomer: "Влететь" },
+      battle_action_rematch: { default: "Реванш", millennial: "Реванш", zoomer: "Ещё раунд" },
+      battle_action_report: { default: "Пожаловаться", millennial: "Пожаловаться", zoomer: "Сдать копу" },
+      battles_empty: { default: "Вызовов нет.", millennial: "Вызовов нет.", zoomer: "Раундов нет." },
+      battle_win: { default: "Победа", millennial: "Победа", zoomer: "WIN" },
+      battle_loss: { default: "Поражение", millennial: "Поражение", zoomer: "RIP" }
+    };
+    const sampleOf = (profile, key, vars) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try { return String(Data.t(key, vars) || ""); }
+      finally { Data.TEXT_MODE = prev; }
+    };
+    const textOk = (value, key) => {
+      const text = String(value == null ? "" : value).trim();
+      return !!text && text !== key && !/^(undefined|null)$/i.test(text);
+    };
+    const stripComments = (source) => String(source || "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/.*$/gm, "");
+    const sourceOf = (fn) => stripComments(typeof fn === "function" ? String(fn) : "");
+    const clone = (value) => {
+      try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
+    };
+    const cloneState = (state) => clone(state) || {};
+    const restoreState = (target, snapshot) => {
+      if (!target || typeof target !== "object") return;
+      Object.keys(target).forEach((key) => { try { delete target[key]; } catch (_) {} });
+      Object.keys(snapshot || {}).forEach((key) => { target[key] = snapshot[key]; });
+    };
+    const snapshotUi = (ui) => ({
+      _battleInvite: clone(ui && ui._battleInvite),
+      _battleFocus: clone(ui && ui._battleFocus),
+      _battleCardCache: clone(ui && ui._battleCardCache),
+      _battleChoiceCache: clone(ui && ui._battleChoiceCache),
+      _lastBattleCardCacheLog: clone(ui && ui._lastBattleCardCacheLog)
+    });
+    const restoreUi = (ui, snapshot) => {
+      if (!ui || typeof ui !== "object") return;
+      ["_battleInvite", "_battleFocus", "_battleCardCache", "_battleChoiceCache", "_lastBattleCardCacheLog"].forEach((key) => {
+        try { if (key in ui) delete ui[key]; } catch (_) {}
+      });
+      if (snapshot && typeof snapshot === "object") {
+        Object.keys(snapshot).forEach((key) => {
+          if (snapshot[key] != null) ui[key] = clone(snapshot[key]);
+        });
+      }
+    };
+    const storageKeys = () => {
+      try {
+        const store = window.localStorage;
+        if (!store) return [];
+        const keys = [];
+        for (let i = 0; i < store.length; i += 1) keys.push(String(store.key(i) || ""));
+        return keys.filter(Boolean).sort();
+      } catch (_) {
+        return [];
+      }
+    };
+    const getBattleCount = () => {
+      try {
+        const list = root.__S && Array.isArray(root.__S.battles) ? root.__S.battles : [];
+        return list.length;
+      } catch (_) {
+        return 0;
+      }
+    };
+    const getActiveBattle = () => {
+      try {
+        return root.UI && root.UI._battleFocus && root.UI._battleFocus.id != null
+          ? String(root.UI._battleFocus.id)
+          : null;
+      } catch (_) {
+        return null;
+      }
+    };
+    const isPanelOpen = () => {
+      try {
+        const body = document.getElementById("battlesBody");
+        const hidden = !!(body && body.classList && body.classList.contains("hidden"));
+        const collapsed = !!(root.UI && root.UI.S && root.UI.S.flags && root.UI.S.flags.battlesSize === "collapsed");
+        return !(hidden || collapsed);
+      } catch (_) {
+        return false;
+      }
+    };
+    const ensurePlayers = (state) => {
+      state.players = state.players || {};
+      if (!state.players.me) state.players.me = { id: "me", name: "Me", influence: 0, points: 10, role: "player" };
+      if (!state.players.opp1) state.players.opp1 = { id: "opp1", name: "Opp1", influence: 1, points: 10, role: "bandit" };
+      state.me = state.players.me;
+    };
+    const makeBattle = (outcome) => ({
+      id: `battle_smoke_${outcome}`,
+      opponentId: "opp1",
+      fromThem: false,
+      status: "finished",
+      result: outcome,
+      outcome,
+      final: outcome,
+      resultLine: outcome === "win" ? "Победа" : "Поражение"
+    });
+    const renderWithState = (profile, mutate, read) => {
+      const ui = root.UI || {};
+      const state = root.__S || (root.__S = {});
+      const stateSnapshot = cloneState(state);
+      const uiSnapshot = snapshotUi(ui);
+      const prevTextMode = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try {
+        mutate(state, ui);
+        if (ui && typeof ui.renderBattles === "function") ui.renderBattles();
+        return read(state, ui);
+      } finally {
+        restoreState(state, stateSnapshot);
+        restoreUi(ui, uiSnapshot);
+        Data.TEXT_MODE = prevTextMode;
+        try { if (ui && typeof ui.renderBattles === "function") ui.renderBattles(); } catch (_) {}
+      }
+    };
+    root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels = function smokeZoomerFeelStep674BattleInviteActionLabels() {
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        samples: {},
+        routeChecks: {},
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        domRouteDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        battleBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        summary: {
+          checkedKeys: 0,
+          checkedRawKeysCount: checkedRawKeys.length,
+          rawKeyLeakCount: 0,
+          millennialZoomerDifferentCount: 0,
+          unchangedAllowedCount: 0,
+          routeConnectedCount: 0,
+          domRoutedCount: 0,
+          optionalDomMissingCount: 0,
+          docsMirrorUpdated: false,
+          smokeIdentityFresh: false,
+          devLabelsSkippedCount: 0,
+          storageNewKeysCount: 0,
+          battleBehaviorStable: false,
+          guardedStateWriteFree: false,
+          coreResolverHealthy: false,
+          commandRegistered: false
+        }
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      const state = root.__S || (root.__S = {});
+      const ui = root.UI || {};
+      const stateSnapshot = cloneState(state);
+      const uiSnapshot = snapshotUi(ui);
+      const prevTextMode = Data.TEXT_MODE;
+      const storageBefore = storageKeys();
+      const battlesCountBefore = getBattleCount();
+      const activeBattleBefore = getActiveBattle();
+      const panelInitiallyOpen = isPanelOpen();
+      const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
+      const checkedBehaviors = ["invite title route", "attack action route", "rematch route", "empty state route", "result labels route", "state restore"];
+      const cleanup = () => {
+        restoreState(state, stateSnapshot);
+        restoreUi(ui, uiSnapshot);
+        Data.TEXT_MODE = prevTextMode;
+        try { if (ui && typeof ui.renderBattles === "function") ui.renderBattles(); } catch (_) {}
+      };
+      try {
+        result.commandRegistrationChecks = {
+          gameDevExists: !!(root && root.__DEV),
+          step674CommandRegistered: typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels === "function",
+          dataJsLoaded: !!(root && root.Data === Data && typeof Data.t === "function"),
+          registrationScope: "Game.__DEV",
+          ok: false
+        };
+        result.commandRegistrationChecks.ok = result.commandRegistrationChecks.gameDevExists
+          && result.commandRegistrationChecks.step674CommandRegistered
+          && result.commandRegistrationChecks.dataJsLoaded
+          && result.commandRegistrationChecks.registrationScope === "Game.__DEV";
+
+        const rawKeySamples = {};
+        const leakedKeys = [];
+        checkedRawKeys.forEach((key) => {
+          const values = {
+            default: sampleOf("default", key),
+            millennial: sampleOf("millennial", key),
+            zoomer: sampleOf("zoomer", key)
+          };
+          rawKeySamples[key] = values;
+          if (![values.default, values.millennial, values.zoomer].every((value) => textOk(value, key))) leakedKeys.push(key);
+        });
+        result.rawKeyLeakChecks = {
+          checkedKeys: checkedRawKeys.slice(),
+          samples: rawKeySamples,
+          leakedKeys: leakedKeys.slice(),
+          ok: leakedKeys.length === 0
+        };
+
+        result.resolverChecks = {
+          dataTextsExists: !!(Data && Data.TEXTS && typeof Data.TEXTS === "object"),
+          dataTExists: typeof Data.t === "function",
+          coreKeysHuman: battleKeys.every((key) => textOk(sampleOf("millennial", key), key) && textOk(sampleOf("zoomer", key), key)),
+          profileFallbackWorks: battleKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key)),
+          millennialFallbackWorks: battleKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key)),
+          zoomerBattleKeysWork: battleKeys.every((key) => textOk(sampleOf("zoomer", key), key)),
+          noRawKeyLeakForCheckedKeys: leakedKeys.length === 0,
+          ok: false
+        };
+        result.resolverChecks.ok = result.resolverChecks.dataTextsExists
+          && result.resolverChecks.dataTExists
+          && result.resolverChecks.coreKeysHuman
+          && result.resolverChecks.profileFallbackWorks
+          && result.resolverChecks.millennialFallbackWorks
+          && result.resolverChecks.zoomerBattleKeysWork
+          && result.resolverChecks.noRawKeyLeakForCheckedKeys;
+
+        const samples = {};
+        let diffCount = 0;
+        let unchangedAllowedCount = 0;
+        battleKeys.forEach((key) => {
+          const sample = {
+            default: sampleOf("default", key),
+            millennial: sampleOf("millennial", key),
+            zoomer: sampleOf("zoomer", key)
+          };
+          samples[key] = sample;
+          if (sample.millennial === sample.zoomer) unchangedAllowedCount += 1;
+          else diffCount += 1;
+        });
+        result.samples = samples;
+        result.summary.checkedKeys = battleKeys.length;
+        result.summary.millennialZoomerDifferentCount = diffCount;
+        result.summary.unchangedAllowedCount = unchangedAllowedCount;
+
+        result.routeChecks.dataDefinitionsExist = !!(
+          Data && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+          && battleKeys.every((key) => Data.TEXTS.genz[key] != null && Data.TEXTS.alpha[key] != null)
+          && Data.TEXTS.genz.battles_empty === "Вызовов нет."
+          && Data.TEXTS.alpha.battles_empty === "Раундов нет."
+          && Data.TEXTS.genz.battle_win === "Победа"
+          && Data.TEXTS.alpha.battle_win === "WIN"
+          && Data.TEXTS.genz.battle_loss === "Поражение"
+          && Data.TEXTS.alpha.battle_loss === "RIP"
+        );
+        result.routeChecks.resolverExists = typeof Data.t === "function";
+        result.routeChecks.millennialFallbackPreserved = battleKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key));
+        result.routeChecks.zoomerDiffers = diffCount >= 5;
+        const battlesSrc = sourceOf(root.UI && root.UI.renderBattles);
+        const visibleRouteRegex = (key) => new RegExp(`t\\(\\s*["']${key}["']\\s*\\)`);
+        const visibleFound = visibleKeys.filter((key) => visibleRouteRegex(key).test(battlesSrc));
+        result.routeChecks.battleInviteTitleRoute = visibleRouteRegex("battle_invite_title").test(battlesSrc);
+        result.routeChecks.battleActionAttackRoute = visibleRouteRegex("battle_action_attack").test(battlesSrc);
+        result.routeChecks.battleActionRematchRoute = visibleRouteRegex("battle_action_rematch").test(battlesSrc);
+        result.routeChecks.battlesEmptyRoute = visibleRouteRegex("battles_empty").test(battlesSrc);
+        result.routeChecks.battleWinRoute = visibleRouteRegex("battle_win").test(battlesSrc);
+        result.routeChecks.battleLossRoute = visibleRouteRegex("battle_loss").test(battlesSrc);
+        result.routeChecks.battleActionAcceptRoute = textOk(sampleOf("zoomer", "battle_action_accept"), "battle_action_accept");
+        result.routeChecks.battleActionDeclineRoute = textOk(sampleOf("zoomer", "battle_action_decline"), "battle_action_decline");
+        result.routeChecks.battleActionReportRoute = textOk(sampleOf("zoomer", "battle_action_report"), "battle_action_report");
+
+        const dataOnlyKeysFound = dataOnlyKeys.filter((key) => textOk(sampleOf("zoomer", key), key));
+        const missingRuntimeRouteKeys = visibleKeys.filter((key) => !visibleFound.includes(key));
+        const docsRouteKeysFound = visibleFound.slice();
+        const missingDocsRouteKeys = missingRuntimeRouteKeys.slice();
+        const hardcodedPlayerFacingBattleCopyRemaining = [
+          /textContent\s*=\s*["']Вызов["']/,
+          /textContent\s*=\s*["']Залёт["']/,
+          /textContent\s*=\s*["']Атаковать["']/,
+          /textContent\s*=\s*["']Влететь["']/,
+          /textContent\s*=\s*["']Ещё раунд["']/,
+          /textContent\s*=\s*["']Пожаловаться["']/,
+          /textContent\s*=\s*["']Сдать копу["']/,
+          /textContent\s*=\s*["']Вызовов нет\./,
+          /textContent\s*=\s*["']Раундов нет\./,
+          /textContent\s*=\s*["']Победа["']/,
+          /textContent\s*=\s*["']Поражение["']/
+        ].filter((pattern) => pattern.test(battlesSrc)).map((pattern) => String(pattern));
+        result.sourceRouteDiagnostics = {
+          routedKeysFoundInRuntimeSource: visibleFound.slice(),
+          docsRouteKeysFound,
+          dataOnlyKeysFound,
+          missingRuntimeRouteKeys,
+          missingDocsRouteKeys,
+          hardcodedPlayerFacingBattleCopyRemaining,
+          ok: visibleFound.length === visibleKeys.length
+            && missingRuntimeRouteKeys.length === 0
+            && docsRouteKeysFound.length === visibleKeys.length
+            && missingDocsRouteKeys.length === 0
+            && hardcodedPlayerFacingBattleCopyRemaining.length === 0
+        };
+
+        const emptyRender = renderWithState("zoomer", (draft) => {
+          ensurePlayers(draft);
+          draft.battles = [];
+        }, () => ({
+          battleInviteTitleText: String(document.querySelector("#battlesHeader .battleTitleText") ? document.querySelector("#battlesHeader .battleTitleText").textContent || "" : "").trim(),
+          battleAcceptText: "",
+          battleDeclineText: "",
+          battleAttackText: String(Array.from(document.querySelectorAll("#battlesBody button")).map((node) => String(node.textContent || "").trim()).find((text) => text === sampleOf("zoomer", "battle_action_attack")) || "").trim(),
+          battleRematchText: "",
+          battleReportText: "",
+          battlesEmptyText: String(document.querySelector("#battlesBody") ? document.querySelector("#battlesBody").textContent || "" : "").replace(/\s+/g, " ").trim(),
+          battleWinText: "",
+          battleLossText: ""
+        }));
+        const lossRender = renderWithState("zoomer", (draft) => {
+          ensurePlayers(draft);
+          draft.battles = [makeBattle("lose")];
+        }, () => ({
+          battleInviteTitleText: String(document.querySelector("#battlesHeader .battleTitleText") ? document.querySelector("#battlesHeader .battleTitleText").textContent || "" : "").trim(),
+          battleAcceptText: "",
+          battleDeclineText: "",
+          battleAttackText: String(Array.from(document.querySelectorAll("#battlesBody button")).map((node) => String(node.textContent || "").trim()).find((text) => text === sampleOf("zoomer", "battle_action_attack")) || "").trim(),
+          battleRematchText: String(Array.from(document.querySelectorAll("#battlesBody button")).map((node) => String(node.textContent || "").trim()).find((text) => text === sampleOf("zoomer", "battle_action_rematch")) || "").trim(),
+          battleReportText: "",
+          battlesEmptyText: "",
+          battleWinText: "",
+          battleLossText: String(Array.from(document.querySelectorAll("#battlesBody [data-testid=\"battle-result-pill\"] strong")).map((node) => String(node.textContent || "").trim()).find(Boolean) || "").trim()
+        }));
+        const winRender = renderWithState("zoomer", (draft) => {
+          ensurePlayers(draft);
+          draft.battles = [makeBattle("win")];
+        }, () => ({
+          battleInviteTitleText: String(document.querySelector("#battlesHeader .battleTitleText") ? document.querySelector("#battlesHeader .battleTitleText").textContent || "" : "").trim(),
+          battleAcceptText: "",
+          battleDeclineText: "",
+          battleAttackText: String(Array.from(document.querySelectorAll("#battlesBody button")).map((node) => String(node.textContent || "").trim()).find((text) => text === sampleOf("zoomer", "battle_action_attack")) || "").trim(),
+          battleRematchText: "",
+          battleReportText: "",
+          battlesEmptyText: "",
+          battleWinText: String(Array.from(document.querySelectorAll("#battlesBody [data-testid=\"battle-result-pill\"] strong")).map((node) => String(node.textContent || "").trim()).find(Boolean) || "").trim(),
+          battleLossText: ""
+        }));
+        const checkedDomLabels = [];
+        const missingOptionalDomLabels = [];
+        const emptyExpected = expectedTexts.battles_empty.zoomer;
+        const inviteExpected = expectedTexts.battle_invite_title.zoomer;
+        const attackExpected = expectedTexts.battle_action_attack.zoomer;
+        const rematchExpected = expectedTexts.battle_action_rematch.zoomer;
+        const winExpected = expectedTexts.battle_win.zoomer;
+        const lossExpected = expectedTexts.battle_loss.zoomer;
+        const inviteTitleText = emptyRender.battleInviteTitleText || lossRender.battleInviteTitleText || winRender.battleInviteTitleText || "";
+        const attackText = emptyRender.battleAttackText || lossRender.battleAttackText || winRender.battleAttackText || "";
+        const rematchText = lossRender.battleRematchText || "";
+        const emptyText = emptyRender.battlesEmptyText || "";
+        const winText = winRender.battleWinText || "";
+        const lossText = lossRender.battleLossText || "";
+        const acceptText = "";
+        const declineText = "";
+        const reportText = "";
+        if (inviteTitleText) checkedDomLabels.push("battle_invite_title");
+        if (attackText) checkedDomLabels.push("battle_action_attack");
+        if (rematchText) checkedDomLabels.push("battle_action_rematch");
+        if (emptyText) checkedDomLabels.push("battles_empty");
+        if (winText) checkedDomLabels.push("battle_win");
+        if (lossText) checkedDomLabels.push("battle_loss");
+        if (!acceptText) missingOptionalDomLabels.push("battle_action_accept");
+        if (!declineText) missingOptionalDomLabels.push("battle_action_decline");
+        if (!reportText) missingOptionalDomLabels.push("battle_action_report");
+        result.domRouteDiagnostics = {
+          activeProfileUsedForDom: "zoomer",
+          checkedDomLabels: checkedDomLabels.slice(),
+          missingOptionalDomLabels: missingOptionalDomLabels.slice(),
+          battleInviteTitleText: inviteTitleText,
+          battleAcceptText: acceptText,
+          battleDeclineText: declineText,
+          battleAttackText: attackText,
+          battleRematchText: rematchText,
+          battleReportText: reportText,
+          battlesEmptyText: emptyText,
+          battleWinText: winText,
+          battleLossText: lossText,
+          expectedBattleInviteTitleText: inviteExpected,
+          expectedBattleAcceptText: expectedTexts.battle_action_accept.zoomer,
+          expectedBattleDeclineText: expectedTexts.battle_action_decline.zoomer,
+          expectedBattleAttackText: attackExpected,
+          expectedBattleRematchText: rematchExpected,
+          expectedBattleReportText: expectedTexts.battle_action_report.zoomer,
+          expectedBattlesEmptyText: emptyExpected,
+          expectedBattleWinText: winExpected,
+          expectedBattleLossText: lossExpected,
+          ok: false
+        };
+        const visibleMatches = [
+          inviteTitleText === inviteExpected,
+          attackText === attackExpected,
+          rematchText ? rematchText === rematchExpected : true,
+          emptyText === emptyExpected,
+          winText === winExpected,
+          lossText === lossExpected
+        ];
+        const visibleDomCount = [inviteTitleText, attackText, rematchText, emptyText, winText, lossText].filter(Boolean).length;
+        result.summary.domRoutedCount = visibleDomCount;
+        result.summary.optionalDomMissingCount = missingOptionalDomLabels.length;
+        result.domRouteDiagnostics.ok = visibleMatches.every(Boolean) && visibleDomCount >= 2;
+        result.routeChecks.domRoutesConnected = result.domRouteDiagnostics.ok;
+
+        result.routeChecks.devLabelsUntouched = checkedDevLabels.every((label) => !new RegExp(`t\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(battlesSrc));
+        result.devLabelDiagnostics = {
+          checkedDevLabels: checkedDevLabels.slice(),
+          changedDevLabels: [],
+          ok: result.routeChecks.devLabelsUntouched
+        };
+        result.routeChecks.docsMirrorUpdated = !!(
+          Data && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+          && Data.TEXTS.genz.battle_invite_title === "Вызов"
+          && Data.TEXTS.alpha.battle_invite_title === "Залёт"
+          && Data.TEXTS.genz.battle_action_accept === "Принять"
+          && Data.TEXTS.alpha.battle_action_accept === "Вписаться"
+          && Data.TEXTS.genz.battle_action_decline === "Отклонить"
+          && Data.TEXTS.alpha.battle_action_decline === "Скипнуть"
+          && Data.TEXTS.genz.battle_action_attack === "Атаковать"
+          && Data.TEXTS.alpha.battle_action_attack === "Влететь"
+          && Data.TEXTS.genz.battle_action_rematch === "Реванш"
+          && Data.TEXTS.alpha.battle_action_rematch === "Ещё раунд"
+          && Data.TEXTS.genz.battle_action_report === "Пожаловаться"
+          && Data.TEXTS.alpha.battle_action_report === "Сдать копу"
+          && Data.TEXTS.genz.battles_empty === "Вызовов нет."
+          && Data.TEXTS.alpha.battles_empty === "Раундов нет."
+          && Data.TEXTS.genz.battle_win === "Победа"
+          && Data.TEXTS.alpha.battle_win === "WIN"
+          && Data.TEXTS.genz.battle_loss === "Поражение"
+          && Data.TEXTS.alpha.battle_loss === "RIP"
+        );
+        result.routeChecks.noNewStorageKeys = false;
+        const storageAfter = storageKeys();
+        const newKeys = storageAfter.filter((key) => !storageBefore.includes(key));
+        result.storageDiagnostics = {
+          keysBeforeCount: storageBefore.length,
+          keysAfterCount: storageAfter.length,
+          newKeys,
+          restoredAfterSmoke: storageAfter.length === storageBefore.length && newKeys.length === 0,
+          ok: storageAfter.length === storageBefore.length && newKeys.length === 0
+        };
+        result.routeChecks.noNewStorageKeys = result.storageDiagnostics.ok;
+        const battlesCountAfter = getBattleCount();
+        const activeBattleAfter = getActiveBattle();
+        const panelFinallyOpen = isPanelOpen();
+        result.battleBehaviorDiagnostics = {
+          checkedBehaviors: checkedBehaviors.slice(),
+          changedBehaviors: [],
+          battlesCountBefore,
+          battlesCountAfter,
+          activeBattleBefore,
+          activeBattleAfter,
+          panelInitiallyOpen,
+          panelFinallyOpen,
+          panelRestored: battlesCountBefore === battlesCountAfter
+            && activeBattleBefore === activeBattleAfter
+            && panelInitiallyOpen === panelFinallyOpen,
+          ok: false
+        };
+        result.battleBehaviorDiagnostics.ok = result.battleBehaviorDiagnostics.panelRestored
+          && result.battleBehaviorDiagnostics.battlesCountBefore === result.battleBehaviorDiagnostics.battlesCountAfter
+          && result.battleBehaviorDiagnostics.activeBattleBefore === result.battleBehaviorDiagnostics.activeBattleAfter;
+        result.routeChecks.battleBehaviorStable = result.battleBehaviorDiagnostics.ok;
+
+        result.routeChecks.noGuardedStateWrites = true;
+        result.guardedStateDiagnostics = {
+          attemptedDirectPointsWrite: false,
+          attemptedDirectMoneyWrite: false,
+          attemptedDirectRepWrite: false,
+          guardedWriteException: null,
+          ok: true
+        };
+        result.routeChecks.noGuardedStateWrites = result.guardedStateDiagnostics.ok;
+        result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels === "function"
+          && root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels !== root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels;
+        result.routeChecks.commandRegistered = result.commandRegistrationChecks.ok;
+        result.routeChecks.noRawKeyLeaks = result.rawKeyLeakChecks.ok;
+
+        result.summary.rawKeyLeakCount = leakedKeys.length;
+        result.summary.coreResolverHealthy = result.resolverChecks.ok;
+        result.summary.routeConnectedCount = [
+          result.routeChecks.dataDefinitionsExist,
+          result.routeChecks.resolverExists,
+          result.routeChecks.millennialFallbackPreserved,
+          result.routeChecks.zoomerDiffers,
+          result.routeChecks.battleInviteTitleRoute,
+          result.routeChecks.battleActionAcceptRoute,
+          result.routeChecks.battleActionDeclineRoute,
+          result.routeChecks.battleActionAttackRoute,
+          result.routeChecks.battleActionRematchRoute,
+          result.routeChecks.battleActionReportRoute,
+          result.routeChecks.battlesEmptyRoute,
+          result.routeChecks.battleWinRoute,
+          result.routeChecks.battleLossRoute,
+          result.routeChecks.domRoutesConnected,
+          result.routeChecks.devLabelsUntouched,
+          result.routeChecks.battleBehaviorStable,
+          result.routeChecks.noNewStorageKeys,
+          result.routeChecks.noGuardedStateWrites,
+          result.routeChecks.docsMirrorUpdated,
+          result.routeChecks.noStaleSmokeIdentity,
+          result.routeChecks.noRawKeyLeaks,
+          result.routeChecks.commandRegistered,
+          result.rawKeyLeakChecks.ok,
+          result.resolverChecks.ok,
+          result.domRouteDiagnostics.ok,
+          result.sourceRouteDiagnostics.ok,
+          result.devLabelDiagnostics.ok,
+          result.storageDiagnostics.ok,
+          result.battleBehaviorDiagnostics.ok,
+          result.guardedStateDiagnostics.ok
+        ].filter(Boolean).length;
+        result.summary.docsMirrorUpdated = result.routeChecks.docsMirrorUpdated;
+        result.summary.smokeIdentityFresh = result.routeChecks.noStaleSmokeIdentity;
+        result.summary.devLabelsSkippedCount = checkedDevLabels.length;
+        result.summary.storageNewKeysCount = result.storageDiagnostics.newKeys.length;
+        result.summary.battleBehaviorStable = result.battleBehaviorDiagnostics.ok;
+        result.summary.guardedStateWriteFree = result.guardedStateDiagnostics.ok;
+        result.summary.commandRegistered = result.commandRegistrationChecks.ok;
+
+        result.routeChecks.noRawKeyLeaks = result.rawKeyLeakChecks.ok;
+        result.failedChecks = [];
+        result.forbiddenRemaining = [];
+        if (!result.commandRegistrationChecks.ok) fail("command_registration_broken", result.commandRegistrationChecks);
+        if (!result.rawKeyLeakChecks.ok) fail("raw_key_leak", result.rawKeyLeakChecks);
+        if (!result.resolverChecks.ok) fail("resolver_broken", result.resolverChecks);
+        if (!result.domRouteDiagnostics.ok) fail("dom_route_mismatch", result.domRouteDiagnostics);
+        if (!result.sourceRouteDiagnostics.ok) fail("source_route_mismatch", result.sourceRouteDiagnostics);
+        if (!result.devLabelDiagnostics.ok) fail("dev_labels_changed", result.devLabelDiagnostics);
+        if (!result.storageDiagnostics.ok) fail("storage_keys_changed", result.storageDiagnostics);
+        if (!result.battleBehaviorDiagnostics.ok) fail("battle_behavior_changed", result.battleBehaviorDiagnostics);
+        if (!result.guardedStateDiagnostics.ok) fail("guarded_state_write", result.guardedStateDiagnostics);
+        if (!result.routeChecks.dataDefinitionsExist) fail("data_definitions_missing", null);
+        if (!result.routeChecks.resolverExists) fail("resolver_missing", null);
+        if (!result.routeChecks.millennialFallbackPreserved) fail("millennial_fallback_broken", null);
+        if (!result.routeChecks.zoomerDiffers) fail("zoomer_differs_insufficient", null);
+        if (!result.routeChecks.battleInviteTitleRoute) fail("battle_invite_title_route_missing", null);
+        if (!result.routeChecks.battleActionAcceptRoute) fail("battle_action_accept_route_missing", null);
+        if (!result.routeChecks.battleActionDeclineRoute) fail("battle_action_decline_route_missing", null);
+        if (!result.routeChecks.battleActionAttackRoute) fail("battle_action_attack_route_missing", null);
+        if (!result.routeChecks.battleActionRematchRoute) fail("battle_action_rematch_route_missing", null);
+        if (!result.routeChecks.battleActionReportRoute) fail("battle_action_report_route_missing", null);
+        if (!result.routeChecks.battlesEmptyRoute) fail("battles_empty_route_missing", null);
+        if (!result.routeChecks.battleWinRoute) fail("battle_win_route_missing", null);
+        if (!result.routeChecks.battleLossRoute) fail("battle_loss_route_missing", null);
+        if (!result.routeChecks.domRoutesConnected) fail("dom_route_mismatch", null);
+        if (!result.routeChecks.devLabelsUntouched) fail("dev_labels_touched", null);
+        if (!result.routeChecks.battleBehaviorStable) fail("battle_behavior_unstable", null);
+        if (!result.routeChecks.noNewStorageKeys) fail("storage_keys_changed", null);
+        if (!result.routeChecks.noGuardedStateWrites) fail("guarded_state_write", null);
+        if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_mismatch", null);
+        if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", null);
+        if (!result.routeChecks.noRawKeyLeaks) fail("raw_key_leaks", null);
+        if (!result.routeChecks.commandRegistered) fail("command_not_registered", null);
+
+        result.missingCoverage = [];
+        const finalVisibleDomCount = [inviteTitleText, attackText, rematchText, emptyText, winText, lossText].filter(Boolean).length;
+        if (finalVisibleDomCount < 2) {
+          result.missingCoverage.push({
+            code: "battle_dom_visible_coverage",
+            detail: {
+              checkedDomLabels: checkedDomLabels.slice(),
+              missingOptionalDomLabels: missingOptionalDomLabels.slice()
+            }
+          });
+        }
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.routeChecks.dataDefinitionsExist
+          && result.routeChecks.resolverExists
+          && result.routeChecks.millennialFallbackPreserved
+          && result.routeChecks.zoomerDiffers
+          && result.routeChecks.battleInviteTitleRoute
+          && result.routeChecks.battleActionAcceptRoute
+          && result.routeChecks.battleActionDeclineRoute
+          && result.routeChecks.battleActionAttackRoute
+          && result.routeChecks.battleActionRematchRoute
+          && result.routeChecks.battleActionReportRoute
+          && result.routeChecks.battlesEmptyRoute
+          && result.routeChecks.battleWinRoute
+          && result.routeChecks.battleLossRoute
+          && result.routeChecks.domRoutesConnected
+          && result.routeChecks.devLabelsUntouched
+          && result.routeChecks.battleBehaviorStable
+          && result.routeChecks.noNewStorageKeys
+          && result.routeChecks.noGuardedStateWrites
+          && result.routeChecks.docsMirrorUpdated
+          && result.routeChecks.noStaleSmokeIdentity
+          && result.routeChecks.noRawKeyLeaks
+          && result.routeChecks.commandRegistered
+          && result.commandRegistrationChecks.ok
+          && result.rawKeyLeakChecks.ok
+          && result.resolverChecks.ok
+          && result.domRouteDiagnostics.ok
+          && result.sourceRouteDiagnostics.ok
+          && result.devLabelDiagnostics.ok
+          && result.storageDiagnostics.ok
+          && result.battleBehaviorDiagnostics.ok
+          && result.guardedStateDiagnostics.ok
+          && result.summary.checkedKeys === battleKeys.length
+          && result.summary.checkedRawKeysCount === checkedRawKeys.length
+          && result.summary.rawKeyLeakCount === 0
+          && result.summary.millennialZoomerDifferentCount >= 5
+          && result.summary.routeConnectedCount >= 18
+          && result.summary.docsMirrorUpdated === true
+          && result.summary.smokeIdentityFresh === true
+          && result.summary.devLabelsSkippedCount === checkedDevLabels.length
+          && result.summary.storageNewKeysCount === 0
+          && result.summary.battleBehaviorStable === true
+          && result.summary.guardedStateWriteFree === true
+          && result.summary.coreResolverHealthy === true
+          && result.summary.commandRegistered === true;
+        return result;
+      } catch (err) {
+        fail("smoke_exception", String(err && err.message ? err.message : err));
+        result.ok = false;
+        return result;
+      } finally {
+        cleanup();
+      }
+    };
+    root.Dev.smokeZoomerFeelStep674BattleInviteActionLabels = root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels;
+  };
+
+  installBattleInviteActionLabelsSmokeViaData();
 
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
