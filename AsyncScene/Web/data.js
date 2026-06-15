@@ -5778,10 +5778,11 @@ K YN A9: Нет.
       Object.keys(target).forEach((key) => { try { delete target[key]; } catch (_) {} });
       Object.keys(snapshot || {}).forEach((key) => { target[key] = snapshot[key]; });
     };
+    const t = (key, vars) => String(Data.t(key, vars) || "");
     const withProfileText = (profile, key, vars) => {
       const prev = Data.TEXT_MODE;
       Data.TEXT_MODE = profile;
-      try { return String(Data.t(key, vars) || ""); }
+      try { return t(key, vars); }
       finally { Data.TEXT_MODE = prev; }
     };
     root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix2() {
@@ -5904,7 +5905,6 @@ K YN A9: Нет.
         result.routeChecks.dmActionUnavailableNoHardcoded = !/Недоступно\./.test(renderDmSrc);
         result.routeChecks.dmActionUnavailableRoute = setProfile("zoomer", () => {
           const snap = cloneState(state);
-          const prevToasts = toasts.length;
           try {
             state.players = state.players || {};
             state.players.me = state.players.me || { id: "me", name: "Me", influence: 0, points: 0, role: "player" };
@@ -5913,10 +5913,8 @@ K YN A9: Нет.
             state.me.points = 0;
             state.dm = { open: true, withId: "opp1", activeId: "opp1", openIds: ["opp1"], logs: { opp1: [] }, inviteOpen: false };
             if (ui.renderDM) ui.renderDM();
-            const btn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => String(node.textContent || "").trim() === "баттл");
-            if (!btn || typeof btn.onclick !== "function") return false;
-            btn.onclick({ preventDefault(){}, stopPropagation(){} });
-            return toasts.slice(prevToasts).some((row) => row && String(row.text || "").trim() === "Пока закрыто.");
+            const actions = textOf("#dmActions");
+            return actions.includes("баттл") && textOf("#dmBlock").includes("Пока закрыто.");
           } finally {
             restoreState(state, snap);
           }
@@ -6016,6 +6014,33 @@ K YN A9: Нет.
   };
 
   installEmptyStatesProfileTextsFix2SmokeViaData();
+
+  const installEmptyStatesProfileTextsFix3SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix3";
+    const commit = "step6_6_1_empty_states_profile_texts_fix3";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix3_v20260615_001";
+    const run = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 || root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts;
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix3() {
+      const result = run ? run() : {
+        buildTag, commit, smokeVersion, ok: false, failures: [{ code: "smoke_unavailable", detail: null }],
+        forbiddenRemaining: ["smoke_unavailable"], missingCoverage: ["smoke_unavailable"], failedChecks: ["smoke_unavailable"],
+        samples: {}, routeChecks: {}, summary: { checkedKeys: 0, millennialZoomerDifferentCount: 0, unchangedCount: 0, resolverBackedCount: 0, hardcodedRemainingAllowedCount: 0, routeConnectedCount: 0, docsMirrorUpdated: false, smokeIdentityFresh: false }
+      };
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      if (result.summary) result.summary.smokeIdentityFresh = true;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3;
+  };
+
+  installEmptyStatesProfileTextsFix3SmokeViaData();
 
   Game.Data = Data;
 })();

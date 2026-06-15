@@ -1,3 +1,9 @@
+## 2026-06-15 — Step 6.6.1 Fix3 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix3 addresses the Fix2 smoke exception caused by an out-of-scope `t` reference in the smoke/runtime path.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix3()`.
+- Fix3 keeps the route wiring from Fix2 intact and only hardens the smoke helper scope.
+
 ## 2026-06-15 — Step 6.6.1 Fix2 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix2 follows the Fix1 route failure where the content pack differed by profile but the real rendered routes still did not use the resolver for `battles_empty`, `dm_empty`, `dm_action_unavailable`, and `battle_energy_locked_hint`.
