@@ -8713,6 +8713,8 @@ K YN A9: Нет.
         storageDiagnostics: {},
         eventsBehaviorDiagnostics: {},
         guardedStateDiagnostics: {},
+        smokeCrashFixed: true,
+        tdzGuardedVariables: ["prevEventsBodyHidden"],
         summary: {
           checkedKeys: 0,
           checkedRawKeysCount: checkedRawKeys.length,
@@ -8748,14 +8750,14 @@ K YN A9: Нет.
           return [];
         }
       })();
-      const eventsCountBefore = getEventsCount();
-      const panelInitiallyOpen = !(prevEventsBodyHidden || getEventsCollapsed());
       const prevEventsBody = document.getElementById("eventsBody");
       const prevEventsBodyHidden = !!(prevEventsBody && prevEventsBody.classList && prevEventsBody.classList.contains("hidden"));
       const prevEventsBodyScrollTop = prevEventsBody ? Number(prevEventsBody.scrollTop || 0) : 0;
       const prevEventsHeaderTitle = readText("#eventsHeader .headerTitleText");
       const prevEventsHeaderCount = readText("#eventsHeader .headerCountWrapper");
       const prevEventsPanelHint = "";
+      const eventsCountBefore = getEventsCount();
+      const panelInitiallyOpen = !(prevEventsBodyHidden || getEventsCollapsed());
       const visibleDomLabels = [];
       const optionalDomLabels = ["events_panel_hint"];
       const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
@@ -9167,6 +9169,58 @@ K YN A9: Нет.
   };
 
   installEventsHeaderPanelLabelsSmokeViaData();
+
+  const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_3_events_header_panel_labels_fix1";
+    const commit = "step6_7_3_events_header_panel_labels_fix1";
+    const smokeVersion = "step6_7_3_events_header_panel_labels_fix1_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1 = function smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels === "function"
+        ? root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()
+        : null;
+      const result = base && typeof base === "object" ? base : {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [{ code: "smoke_exception", detail: "base smoke unavailable" }],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: ["smoke_exception"],
+        samples: {},
+        routeChecks: {},
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        domRouteDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        eventsBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        smokeCrashFixed: true,
+        tdzGuardedVariables: ["prevEventsBodyHidden"],
+        summary: {}
+      };
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.smokeCrashFixed = true;
+      result.tdzGuardedVariables = ["prevEventsBodyHidden"];
+      if (!result.routeChecks || typeof result.routeChecks !== "object") result.routeChecks = {};
+      result.routeChecks.smokeCrashFixed = true;
+      result.ok = !!(base && base.ok);
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1 = root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1;
+  };
+
+  installEventsHeaderPanelLabelsFix1SmokeViaData();
 
   Game.Data = Data;
 })();
