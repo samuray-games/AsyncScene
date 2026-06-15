@@ -1,6 +1,13 @@
+## 2026-06-15 — Step 6.7.3 Fix2 Events Header / Panel Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. Safari/iPhone still must run `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2()` before claiming runtime PASS.
+- Fix1 still failed because it wrapped and re-called the original broken smoke, so the TDZ remained in the underlying `smokeZoomerFeelStep673EventsHeaderPanelLabels()` path.
+- Fixed the original Step 6.7.3 smoke by moving the optional Events panel snapshot state, including `prevEventsBodyHidden`, ahead of any diagnostic/cleanup reads and giving it safe defaults before any use.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2()` with fresh identity `build_2026_06_15_step6_7_3_events_header_panel_labels_fix2_tdz_real` / `step6_7_3_events_header_panel_labels_fix2_tdz_real` / `step6_7_3_events_header_panel_labels_fix2_tdz_real_v20260615_001`.
+- Scope held: smoke initialization and diagnostics only; no visible copy changes, no event logic changes, no gameplay changes, no economy writes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.3 Fix1 Events Header / Panel Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. Safari/iPhone still must run `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1()` before claiming runtime PASS.
-- Fixed the Step 6.7.3 smoke crash by moving the optional Events panel snapshot state, including `prevEventsBodyHidden`, ahead of any diagnostic/cleanup reads so the smoke no longer hits a TDZ ReferenceError.
+- Fix1 only wrapped the original broken smoke; it did not eliminate the TDZ in the underlying `smokeZoomerFeelStep673EventsHeaderPanelLabels()` path.
 - Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1()` with fresh identity `build_2026_06_15_step6_7_3_events_header_panel_labels_fix1` / `step6_7_3_events_header_panel_labels_fix1` / `step6_7_3_events_header_panel_labels_fix1_v20260615_001`.
 - Scope held: smoke initialization and diagnostics only; no visible copy changes, no event logic changes, no gameplay changes, no economy writes, and no guarded state writes.
 

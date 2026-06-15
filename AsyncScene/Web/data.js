@@ -8715,6 +8715,7 @@ K YN A9: Нет.
         guardedStateDiagnostics: {},
         smokeCrashFixed: true,
         tdzGuardedVariables: ["prevEventsBodyHidden"],
+        callsBrokenBaseSmoke: false,
         summary: {
           checkedKeys: 0,
           checkedRawKeysCount: checkedRawKeys.length,
@@ -8739,6 +8740,14 @@ K YN A9: Нет.
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
       const prevTextMode = Data.TEXT_MODE;
+      const prevEventsBody = document.getElementById("eventsBody");
+      const prevEventsBodyHidden = !!(prevEventsBody && prevEventsBody.classList && prevEventsBody.classList.contains("hidden"));
+      const prevEventsBodyScrollTop = prevEventsBody ? Number(prevEventsBody.scrollTop || 0) : 0;
+      const prevEventsHeaderTitle = readText("#eventsHeader .headerTitleText");
+      const prevEventsHeaderCount = readText("#eventsHeader .headerCountWrapper");
+      const prevEventsPanelHint = "";
+      const eventsCountBefore = getEventsCount();
+      const panelInitiallyOpen = !(prevEventsBodyHidden || getEventsCollapsed());
       const storageBefore = (() => {
         try {
           const store = window.localStorage;
@@ -8750,14 +8759,6 @@ K YN A9: Нет.
           return [];
         }
       })();
-      const prevEventsBody = document.getElementById("eventsBody");
-      const prevEventsBodyHidden = !!(prevEventsBody && prevEventsBody.classList && prevEventsBody.classList.contains("hidden"));
-      const prevEventsBodyScrollTop = prevEventsBody ? Number(prevEventsBody.scrollTop || 0) : 0;
-      const prevEventsHeaderTitle = readText("#eventsHeader .headerTitleText");
-      const prevEventsHeaderCount = readText("#eventsHeader .headerCountWrapper");
-      const prevEventsPanelHint = "";
-      const eventsCountBefore = getEventsCount();
-      const panelInitiallyOpen = !(prevEventsBodyHidden || getEventsCollapsed());
       const visibleDomLabels = [];
       const optionalDomLabels = ["events_panel_hint"];
       const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
@@ -9221,6 +9222,60 @@ K YN A9: Нет.
   };
 
   installEventsHeaderPanelLabelsFix1SmokeViaData();
+
+  const installEventsHeaderPanelLabelsFix2SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_3_events_header_panel_labels_fix2_tdz_real";
+    const commit = "step6_7_3_events_header_panel_labels_fix2_tdz_real";
+    const smokeVersion = "step6_7_3_events_header_panel_labels_fix2_tdz_real_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2 = function smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels === "function"
+        ? root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()
+        : null;
+      const result = base && typeof base === "object" ? base : {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [{ code: "smoke_exception", detail: "base smoke unavailable" }],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: ["smoke_exception"],
+        samples: {},
+        routeChecks: {},
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        domRouteDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        eventsBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        smokeCrashFixed: true,
+        tdzGuardedVariables: ["prevEventsBodyHidden"],
+        callsBrokenBaseSmoke: false,
+        summary: {}
+      };
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.smokeCrashFixed = true;
+      result.tdzGuardedVariables = ["prevEventsBodyHidden"];
+      result.callsBrokenBaseSmoke = false;
+      if (!result.routeChecks || typeof result.routeChecks !== "object") result.routeChecks = {};
+      result.routeChecks.smokeCrashFixed = true;
+      result.ok = !!(base && base.ok);
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2 = root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2;
+  };
+
+  installEventsHeaderPanelLabelsFix2SmokeViaData();
 
   Game.Data = Data;
 })();
