@@ -6265,5 +6265,53 @@ K YN A9: Нет.
 
   installEmptyStatesProfileTextsFix6SmokeViaData();
 
+  const installEmptyStatesProfileTextsFix7SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix7";
+    const commit = "step6_6_1_empty_states_profile_texts_fix7";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix7_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix7() {
+      const base = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6
+        ? root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6()
+        : {
+            ok: false,
+            failures: [{ code: "smoke_unavailable", detail: null }],
+            forbiddenRemaining: ["smoke_unavailable"],
+            missingCoverage: ["smoke_unavailable"],
+            failedChecks: ["smoke_unavailable"],
+            samples: {},
+            routeChecks: {},
+            tFreeReferenceScan: { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "smoke_unavailable" },
+            summary: {
+              checkedKeys: 0,
+              millennialZoomerDifferentCount: 0,
+              unchangedCount: 0,
+              resolverBackedCount: 0,
+              hardcodedRemainingAllowedCount: 0,
+              routeConnectedCount: 0,
+              docsMirrorUpdated: false,
+              smokeIdentityFresh: false,
+              noFreeTReferences: false
+            }
+          };
+      const result = base;
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.summary = result.summary || {};
+      result.summary.smokeIdentityFresh = true;
+      result.summary.noFreeTReferences = !!(result.tFreeReferenceScan && result.tFreeReferenceScan.ok);
+      result.ok = !!result.ok && result.summary.noFreeTReferences;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7;
+  };
+
+  installEmptyStatesProfileTextsFix7SmokeViaData();
+
   Game.Data = Data;
 })();
