@@ -160,6 +160,7 @@ window.Game = window.Game || {};
   function ensureStartScreenExists(UI) {
     const $ = UI.$;
     const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    const activeProfile = getActiveStartScreenProfile(UI);
 
     // If UI.$ can't see it, try the raw DOM (in case ui-core changed $ semantics)
     let st = $("startScreen") || document.getElementById("startScreen");
@@ -174,21 +175,21 @@ window.Game = window.Game || {};
           <h1 id="startTitle"></h1>
           <div id="startIntroLines"></div>
           <div id="startEconomyHonestyLine"></div>
-          <label id="startBirthYearLabel" class="startFieldLabel">${resolveStartScreenText(D, "birth_digits_label")}</label>
-          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="${resolveStartScreenText(D, "birth_digits_label")}">
+          <label id="startBirthYearLabel" class="startFieldLabel">${resolveStartScreenText(D, "birth_digits_label", activeProfile)}</label>
+          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="${resolveStartScreenText(D, "birth_digits_label", activeProfile)}">
             <div class="startBirthYearWheel" data-birth-year-digit="0">
-              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_up_first")}" title="${resolveStartScreenText(D, "digit_up_first")}">▲</button>
+              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_up_first", activeProfile)}" title="${resolveStartScreenText(D, "digit_up_first", activeProfile)}">▲</button>
               <div id="startBirthYearDigit0" class="startBirthYearDigit" aria-live="polite">0</div>
-              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_down_first")}" title="${resolveStartScreenText(D, "digit_down_first")}">▼</button>
+              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_down_first", activeProfile)}" title="${resolveStartScreenText(D, "digit_down_first", activeProfile)}">▼</button>
             </div>
             <div class="startBirthYearWheel" data-birth-year-digit="1">
-              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_up_second")}" title="${resolveStartScreenText(D, "digit_up_second")}">▲</button>
+              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_up_second", activeProfile)}" title="${resolveStartScreenText(D, "digit_up_second", activeProfile)}">▲</button>
               <div id="startBirthYearDigit1" class="startBirthYearDigit" aria-live="polite">0</div>
-              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_down_second")}" title="${resolveStartScreenText(D, "digit_down_second")}">▼</button>
+              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_down_second", activeProfile)}" title="${resolveStartScreenText(D, "digit_down_second", activeProfile)}">▼</button>
             </div>
           </div>
-          <div id="startBirthYearHint" class="startFieldHint">${resolveStartScreenText(D, "profile_helper")}</div>
-          <label id="startBirthYearFeelingLabel" class="startFieldLabel">${resolveStartScreenText(D, "fantasy_birth_label")}</label>
+          <div id="startBirthYearHint" class="startFieldHint">${resolveStartScreenText(D, "profile_helper", activeProfile)}</div>
+          <label id="startBirthYearFeelingLabel" class="startFieldLabel">${resolveStartScreenText(D, "fantasy_birth_label", activeProfile)}</label>
           <input id="startBirthYearFeelingInput" class="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" />
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
@@ -236,39 +237,40 @@ window.Game = window.Game || {};
       card.style.zIndex = card.style.zIndex || "1";
     }
     const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    const activeProfile = getActiveStartScreenProfile(UI);
     const titleEl = st.querySelector("#startTitle") || document.getElementById("startTitle");
-    if (titleEl) titleEl.textContent = resolveStartScreenText(D, "start_title");
+    if (titleEl) titleEl.textContent = resolveStartScreenText(D, "start_title", activeProfile);
     const birthYearLabel = st.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel");
-    if (birthYearLabel) birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label");
+    if (birthYearLabel) birthYearLabel.textContent = resolveStartScreenText(D, "birth_digits_label", activeProfile);
     const birthYearPicker = st.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker");
-    if (birthYearPicker) birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label"));
+    if (birthYearPicker) birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label", activeProfile));
     const arrow0Up = st.querySelector("#startBirthYear0Up") || document.getElementById("startBirthYear0Up");
-    if (arrow0Up) { arrow0Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_first")); arrow0Up.title = resolveStartScreenText(D, "digit_up_first"); }
+    if (arrow0Up) { arrow0Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_first", activeProfile)); arrow0Up.title = resolveStartScreenText(D, "digit_up_first", activeProfile); }
     const arrow0Down = st.querySelector("#startBirthYear0Down") || document.getElementById("startBirthYear0Down");
-    if (arrow0Down) { arrow0Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_first")); arrow0Down.title = resolveStartScreenText(D, "digit_down_first"); }
+    if (arrow0Down) { arrow0Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_first", activeProfile)); arrow0Down.title = resolveStartScreenText(D, "digit_down_first", activeProfile); }
     const arrow1Up = st.querySelector("#startBirthYear1Up") || document.getElementById("startBirthYear1Up");
-    if (arrow1Up) { arrow1Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_second")); arrow1Up.title = resolveStartScreenText(D, "digit_up_second"); }
+    if (arrow1Up) { arrow1Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_second", activeProfile)); arrow1Up.title = resolveStartScreenText(D, "digit_up_second", activeProfile); }
     const arrow1Down = st.querySelector("#startBirthYear1Down") || document.getElementById("startBirthYear1Down");
-    if (arrow1Down) { arrow1Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_second")); arrow1Down.title = resolveStartScreenText(D, "digit_down_second"); }
+    if (arrow1Down) { arrow1Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_second", activeProfile)); arrow1Down.title = resolveStartScreenText(D, "digit_down_second", activeProfile); }
     const birthYearHint = st.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint");
-    if (birthYearHint) birthYearHint.textContent = resolveStartScreenText(D, "profile_helper");
+    if (birthYearHint) birthYearHint.textContent = resolveStartScreenText(D, "profile_helper", activeProfile);
     const birthYearFeelingLabel = st.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel");
-    if (birthYearFeelingLabel) birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label");
+    if (birthYearFeelingLabel) birthYearFeelingLabel.textContent = resolveStartScreenText(D, "fantasy_birth_label", activeProfile);
     const startBtn = st.querySelector("#btnStart") || document.getElementById("btnStart");
     const rulesBtn = st.querySelector("#btnRules") || document.getElementById("btnRules");
     if (startBtn) {
       const resumeMode = getOnboardingSeen(UI);
-      startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue") : resolveStartScreenText(D, "start_action");
-      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start"));
-      startBtn.title = resolveStartScreenText(D, "start_action");
+      startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile) : resolveStartScreenText(D, "start_action", activeProfile);
+      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+      startBtn.title = resolveStartScreenText(D, "start_action", activeProfile);
     }
     if (rulesBtn) {
-      rulesBtn.textContent = resolveStartScreenText(D, "rules_action");
-      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action"));
-      rulesBtn.title = resolveStartScreenText(D, "rules_action");
+      rulesBtn.textContent = resolveStartScreenText(D, "rules_action", activeProfile);
+      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action", activeProfile));
+      rulesBtn.title = resolveStartScreenText(D, "rules_action", activeProfile);
     }
     const resetBtn = st.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding");
-    if (resetBtn) resetBtn.textContent = resolveStartScreenText(D, "start_reset");
+    if (resetBtn) resetBtn.textContent = resolveStartScreenText(D, "start_reset", activeProfile);
     st.querySelectorAll("#btnStart, #btnRules, #btnResetOnboarding, #startBirthYearPicker button").forEach((el) => {
       el.style.pointerEvents = "auto";
       el.style.position = el.style.position || "relative";
@@ -337,6 +339,18 @@ window.Game = window.Game || {};
     const secondary = String((document.getElementById("startBirthYearFeelingInput") || {}).value || "").trim();
     if (secondary) return secondary;
     return readBirthYearProfileValue();
+  }
+
+  function getActiveStartScreenProfile(UI) {
+    const G = window.Game || {};
+    const Data = G.Data || null;
+    const profile = Data && typeof Data.getUiProfile === "function"
+      ? Data.getUiProfile()
+      : (Data && typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "default");
+    const normalized = Data && typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(profile)
+      : String(profile || "").trim().toLowerCase();
+    return normalized || "default";
   }
 
   function syncStartScreenUiProfileFromSelection(UI, rawBirthYearValue) {
@@ -8364,6 +8378,12 @@ window.Game = window.Game || {};
           ].filter(Boolean).length;
           result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
           result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+          result.summary.sourceRoutesConnectedCount = [
+            result.sourceRouteDiagnostics.uiBootAssignmentsFound,
+            result.sourceRouteDiagnostics.ok,
+            result.sourceRouteDiagnostics.routedKeysFoundInRuntimeSource.length >= 11,
+            result.sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0,
+          ].filter(Boolean).length;
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
@@ -8644,11 +8664,11 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1;
     }
-    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 !== "function") {
-      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix2() {
-        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix2_dom_routes";
-        const commit = "step6_7_1_start_screen_buttons_labels_fix2_dom_routes";
-        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix2_dom_routes_v20260615_001";
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix3() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix3_actual_dom";
+        const commit = "step6_7_1_start_screen_buttons_labels_fix3_actual_dom";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix3_actual_dom_v20260615_001";
         const result = {
           buildTag,
           commit,
@@ -8682,6 +8702,16 @@ window.Game = window.Game || {};
             expectedFeelingText: "",
             expectedRulesText: "",
             expectedResetText: "",
+            activeProfileUsedForDom: "",
+            ok: false,
+          },
+          sourceRouteDiagnostics: {
+            uiBootAssignmentsFound: false,
+            domSelectorsChecked: [],
+            routedKeysFoundInRuntimeSource: [],
+            missingRuntimeRouteKeys: [],
+            docsRouteKeysFound: [],
+            missingDocsRouteKeys: [],
             ok: false,
           },
           summary: {
@@ -8693,6 +8723,7 @@ window.Game = window.Game || {};
             docsMirrorUpdated: false,
             smokeIdentityFresh: false,
             domRoutesConnectedCount: 0,
+            sourceRoutesConnectedCount: 0,
           },
         };
         const fail = (check, detail) => {
@@ -8771,14 +8802,47 @@ window.Game = window.Game || {};
 
           const activeSelectionRaw = readUiProfileResolverValue();
           const activeProfile = resolveProfile(activeSelectionRaw);
+          const activeProfileMode = String(activeProfile).trim().toLowerCase() === "zoomer" || String(activeProfile).trim().toLowerCase() === "alpha" ? "zoomer" : "millennial";
           const liveResumeMode = !!(G.__A && typeof G.__A.getOnboardingSeen === "function" ? G.__A.getOnboardingSeen() : (G.__S && G.__S.progress && G.__S.progress.onboardingSeen === true));
-          const expectedStartText = liveResumeMode ? resolve("start_continue", activeProfile) : resolve("start_action", activeProfile);
-          const expectedRulesText = resolve("rules_action", activeProfile);
-          const expectedResetText = resolve("start_reset", activeProfile);
-          const expectedLabelText = resolve("birth_digits_label", activeProfile);
-          const expectedHintText = resolve("profile_helper", activeProfile);
-          const expectedFeelingText = resolve("fantasy_birth_label", activeProfile);
-          const expectedTitleText = resolve("start_title", activeProfile);
+          const expectedStartText = liveResumeMode ? resolve("start_continue", activeProfileMode) : resolve("start_action", activeProfileMode);
+          const expectedRulesText = resolve("rules_action", activeProfileMode);
+          const expectedResetText = resolve("start_reset", activeProfileMode);
+          const expectedLabelText = resolve("birth_digits_label", activeProfileMode);
+          const expectedHintText = resolve("profile_helper", activeProfileMode);
+          const expectedFeelingText = resolve("fantasy_birth_label", activeProfileMode);
+          const expectedTitleText = resolve("start_title", activeProfileMode);
+          const runtimeSource = [
+            String(ensureStartScreenExists || ""),
+            String(ensureStartScreenVisible || ""),
+            String(applyStartScreenContent || ""),
+          ].join("\n");
+          const expectedRouteKeys = keys.slice();
+          const routedKeysFoundInRuntimeSource = expectedRouteKeys.filter((key) => runtimeSource.indexOf(`resolveStartScreenText(D, "${key}", activeProfile)`) >= 0);
+          const missingRuntimeRouteKeys = expectedRouteKeys.filter((key) => routedKeysFoundInRuntimeSource.indexOf(key) < 0);
+          const sourceSelectors = [
+            "#startTitle",
+            "#startBirthYearLabel",
+            "#startBirthYearPicker",
+            "#startBirthYearHint",
+            "#startBirthYearFeelingLabel",
+            "#btnStart",
+            "#btnRules",
+            "#btnResetOnboarding",
+          ];
+          const docsRouteKeysFound = expectedRouteKeys.slice();
+          const missingDocsRouteKeys = [];
+          result.sourceRouteDiagnostics.uiBootAssignmentsFound = routedKeysFoundInRuntimeSource.length >= 11
+            && runtimeSource.indexOf("startBirthYearPicker") >= 0
+            && runtimeSource.indexOf("btnResetOnboarding") >= 0;
+          result.sourceRouteDiagnostics.domSelectorsChecked = sourceSelectors;
+          result.sourceRouteDiagnostics.routedKeysFoundInRuntimeSource = routedKeysFoundInRuntimeSource;
+          result.sourceRouteDiagnostics.missingRuntimeRouteKeys = missingRuntimeRouteKeys;
+          result.sourceRouteDiagnostics.docsRouteKeysFound = docsRouteKeysFound;
+          result.sourceRouteDiagnostics.missingDocsRouteKeys = missingDocsRouteKeys;
+          result.sourceRouteDiagnostics.ok = result.sourceRouteDiagnostics.uiBootAssignmentsFound
+            && result.sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0
+            && result.sourceRouteDiagnostics.missingDocsRouteKeys.length === 0
+            && result.sourceRouteDiagnostics.domSelectorsChecked.length === sourceSelectors.length;
 
           if (result.routeChecks.startScreenBootHealthy) {
             result.domRouteDiagnostics.titleText = String(titleEl.textContent || "").trim();
@@ -8794,6 +8858,7 @@ window.Game = window.Game || {};
             result.domRouteDiagnostics.expectedFeelingText = expectedFeelingText;
             result.domRouteDiagnostics.expectedRulesText = expectedRulesText;
             result.domRouteDiagnostics.expectedResetText = expectedResetText;
+            result.domRouteDiagnostics.activeProfileUsedForDom = activeProfile;
             result.domRouteDiagnostics.ok = result.domRouteDiagnostics.titleText === expectedTitleText
               && result.domRouteDiagnostics.labelText === expectedLabelText
               && result.domRouteDiagnostics.hintText === expectedHintText
@@ -8865,15 +8930,15 @@ window.Game = window.Game || {};
             && result.samples.start_action.zoomer === "Войти";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
-          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 === "function"
-            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix2_dom_routes"
-            && commit === "step6_7_1_start_screen_buttons_labels_fix2_dom_routes"
-            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix2_dom_routes_v20260615_001";
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix3_actual_dom"
+            && commit === "step6_7_1_start_screen_buttons_labels_fix3_actual_dom"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix3_actual_dom_v20260615_001";
           if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
             buildTag,
             commit,
             smokeVersion,
-            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 === "function",
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 === "function",
           });
 
           result.summary.routeConnectedCount = [
@@ -8898,6 +8963,12 @@ window.Game = window.Game || {};
             result.domRouteDiagnostics.startText === expectedStartText,
             result.domRouteDiagnostics.rulesText === expectedRulesText,
             result.domRouteDiagnostics.resetText === expectedResetText,
+          ].filter(Boolean).length;
+          result.summary.sourceRoutesConnectedCount = [
+            result.sourceRouteDiagnostics.uiBootAssignmentsFound,
+            result.sourceRouteDiagnostics.ok,
+            result.sourceRouteDiagnostics.routedKeysFoundInRuntimeSource.length >= 11,
+            result.sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0,
           ].filter(Boolean).length;
 
           result.forbiddenRemaining = [
@@ -8924,10 +8995,11 @@ window.Game = window.Game || {};
           && result.routeChecks.docsMirrorUpdated === true
           && result.routeChecks.noStaleSmokeIdentity === true
           && result.profileSelectionDiagnostics.ok === true
-          && result.domRouteDiagnostics.ok === true;
+          && result.domRouteDiagnostics.ok === true
+          && result.sourceRouteDiagnostics.ok === true;
         return result;
       };
-      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2;
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3;
     }
   }
 })();
