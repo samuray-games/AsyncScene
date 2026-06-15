@@ -339,6 +339,39 @@ window.Game = window.Game || {};
     return readBirthYearProfileValue();
   }
 
+  function syncStartScreenUiProfileFromSelection(UI, rawBirthYearValue) {
+    const G = window.Game || {};
+    const Data = G.Data || null;
+    if (!Data || typeof Data !== "object") return "default";
+    const registry = Data.UI_PROFILE_REGISTRY && typeof Data.UI_PROFILE_REGISTRY === "object" ? Data.UI_PROFILE_REGISTRY : null;
+    const supportedUiProfileSet = new Set(Array.isArray(registry && registry.supported) ? registry.supported.map((value) => String(value || "").trim().toLowerCase()) : ["default", "millennial", "zoomer", "alpha"]);
+    const resolvedUiProfile = typeof Data.resolveUiProfileFromBirthYearValue === "function"
+      ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
+      : "default";
+    const normalizedResolvedUiProfile = typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(resolvedUiProfile)
+      : String(resolvedUiProfile || "").trim().toLowerCase();
+    const uiProfile = supportedUiProfileSet.has(normalizedResolvedUiProfile) ? normalizedResolvedUiProfile : "millennial";
+    if (typeof Data.setUiProfile === "function") {
+      Data.setUiProfile(uiProfile);
+    } else {
+      Data.UI_PROFILE = uiProfile;
+    }
+    if (UI && UI.S) {
+      UI.S.flags = UI.S.flags || {};
+      UI.S.flags.uiProfile = uiProfile;
+    }
+    if (G.__S && G.__S !== (UI && UI.S)) {
+      G.__S.flags = G.__S.flags || {};
+      G.__S.flags.uiProfile = uiProfile;
+    }
+    if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
+      G.State.flags = G.State.flags || {};
+      G.State.flags.uiProfile = uiProfile;
+    }
+    return uiProfile;
+  }
+
   function resetStartScreenInputs() {
     const picker = document.getElementById("startBirthYearPicker");
     const digit0 = document.getElementById("startBirthYearDigit0");
@@ -615,6 +648,10 @@ window.Game = window.Game || {};
         const index = Number(button.getAttribute("data-birth-year-index") || "0");
         const step = Number(button.getAttribute("data-birth-year-step") || "0");
         setDigit(index, getDigit(index) + step);
+        syncStartScreenUiProfileFromSelection(UI, getBirthYearValue());
+        if (G.__DEV && typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
+          G.__DEV.refreshOnboardingStartScreenOnce();
+        }
       });
       birthYearPicker.dataset.bound = "1";
     }
@@ -9603,6 +9640,291 @@ window.Game = window.Game || {};
         return result;
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1;
+    }
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix2() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix2_dom_routes";
+        const commit = "step6_7_1_start_screen_buttons_labels_fix2_dom_routes";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix2_dom_routes_v20260615_001";
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          samples: {},
+          routeChecks: {},
+          profileSelectionDiagnostics: {
+            inputsChecked: [],
+            actualByInput: {},
+            expectedByInput: {},
+            helperUsed: false,
+            leadingZeroPreservedFor04: false,
+            ok: false,
+          },
+          domRouteDiagnostics: {
+            titleText: "",
+            labelText: "",
+            hintText: "",
+            feelingText: "",
+            startText: "",
+            rulesText: "",
+            resetText: "",
+            expectedStartText: "",
+            expectedLabelText: "",
+            expectedHintText: "",
+            expectedFeelingText: "",
+            expectedRulesText: "",
+            expectedResetText: "",
+            ok: false,
+          },
+          summary: {
+            checkedKeys: 0,
+            millennialZoomerDifferentCount: 0,
+            unchangedAllowedCount: 0,
+            routeConnectedCount: 0,
+            profileSelectionChecksCount: 0,
+            docsMirrorUpdated: false,
+            smokeIdentityFresh: false,
+            domRoutesConnectedCount: 0,
+          },
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        const D = G.Data || {};
+        const resolve = (key, profile) => (D && typeof D.resolveStartScreenText === "function") ? String(D.resolveStartScreenText(key, profile) || "") : "";
+        const resolveProfile = (value) => (D && typeof D.resolveUiProfileFromBirthYearValue === "function")
+          ? D.resolveUiProfileFromBirthYearValue(value)
+          : "default";
+        const storageKeys = () => {
+          try { return window.localStorage ? Object.keys(window.localStorage).sort() : []; } catch (_) { return []; }
+        };
+        const beforeStorageKeys = storageKeys();
+        const beforeTextMode = typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "";
+        const beforeUiProfile = typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "";
+        const beforeSave = JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+        try {
+          result.routeChecks.dataDefinitionsExist = !!(D && D.START_SCREEN_PROFILE_TEXTS && typeof D.START_SCREEN_PROFILE_TEXTS === "object" && D.START_SCREEN_PROFILE_TEXTS.millennial && D.START_SCREEN_PROFILE_TEXTS.zoomer);
+          result.routeChecks.resolverExists = !!(D && typeof D.resolveStartScreenText === "function");
+          if (!result.routeChecks.dataDefinitionsExist) miss("start_screen_profile_texts_missing");
+          if (!result.routeChecks.resolverExists) miss("start_screen_resolver_missing");
+
+          const keys = [
+            "start_title",
+            "birth_digits_label",
+            "digit_up_first",
+            "digit_down_first",
+            "digit_up_second",
+            "digit_down_second",
+            "profile_helper",
+            "fantasy_birth_label",
+            "start_continue",
+            "start_start",
+            "start_reset",
+            "rules_action",
+            "start_action",
+          ];
+          keys.forEach((key) => {
+            result.samples[key] = {
+              millennial: resolve(key, "millennial"),
+              zoomer: resolve(key, "zoomer"),
+            };
+          });
+          result.summary.checkedKeys = keys.length;
+          result.summary.millennialZoomerDifferentCount = keys.filter((key) => result.samples[key].millennial !== result.samples[key].zoomer).length;
+          result.summary.unchangedAllowedCount = keys.filter((key) => result.samples[key].millennial === result.samples[key].zoomer).length;
+          result.routeChecks.millennialFallbackPreserved = keys.filter((key) => result.samples[key].millennial === resolve(key, "") && result.samples[key].millennial === resolve(key, "missing")).length >= 6;
+          result.routeChecks.zoomerDiffers = result.summary.millennialZoomerDifferentCount >= 6;
+
+          const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+          const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
+          const labelEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null;
+          const pickerEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null;
+          const hintEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null;
+          const feelingEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null;
+          const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+          const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
+          const resetBtn = (typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null;
+          result.routeChecks.startScreenBootHealthy = !!(st && titleEl && labelEl && pickerEl && hintEl && feelingEl && startBtn && rulesBtn && resetBtn);
+          if (!result.routeChecks.startScreenBootHealthy) fail("start_screen_boot_unhealthy", {
+            st: !!st,
+            titleEl: !!titleEl,
+            labelEl: !!labelEl,
+            pickerEl: !!pickerEl,
+            hintEl: !!hintEl,
+            feelingEl: !!feelingEl,
+            startBtn: !!startBtn,
+            rulesBtn: !!rulesBtn,
+            resetBtn: !!resetBtn,
+          });
+
+          const activeSelectionRaw = readUiProfileResolverValue();
+          const activeProfile = resolveProfile(activeSelectionRaw);
+          const liveResumeMode = !!(G.__A && typeof G.__A.getOnboardingSeen === "function" ? G.__A.getOnboardingSeen() : (G.__S && G.__S.progress && G.__S.progress.onboardingSeen === true));
+          const expectedStartText = liveResumeMode ? resolve("start_continue", activeProfile) : resolve("start_action", activeProfile);
+          const expectedRulesText = resolve("rules_action", activeProfile);
+          const expectedResetText = resolve("start_reset", activeProfile);
+          const expectedLabelText = resolve("birth_digits_label", activeProfile);
+          const expectedHintText = resolve("profile_helper", activeProfile);
+          const expectedFeelingText = resolve("fantasy_birth_label", activeProfile);
+          const expectedTitleText = resolve("start_title", activeProfile);
+
+          if (result.routeChecks.startScreenBootHealthy) {
+            result.domRouteDiagnostics.titleText = String(titleEl.textContent || "").trim();
+            result.domRouteDiagnostics.labelText = String(labelEl.textContent || "").trim();
+            result.domRouteDiagnostics.hintText = String(hintEl.textContent || "").trim();
+            result.domRouteDiagnostics.feelingText = String(feelingEl.textContent || "").trim();
+            result.domRouteDiagnostics.startText = String(startBtn.textContent || "").trim();
+            result.domRouteDiagnostics.rulesText = String(rulesBtn.textContent || "").trim();
+            result.domRouteDiagnostics.resetText = String(resetBtn.textContent || "").trim();
+            result.domRouteDiagnostics.expectedStartText = expectedStartText;
+            result.domRouteDiagnostics.expectedLabelText = expectedLabelText;
+            result.domRouteDiagnostics.expectedHintText = expectedHintText;
+            result.domRouteDiagnostics.expectedFeelingText = expectedFeelingText;
+            result.domRouteDiagnostics.expectedRulesText = expectedRulesText;
+            result.domRouteDiagnostics.expectedResetText = expectedResetText;
+            result.domRouteDiagnostics.ok = result.domRouteDiagnostics.titleText === expectedTitleText
+              && result.domRouteDiagnostics.labelText === expectedLabelText
+              && result.domRouteDiagnostics.hintText === expectedHintText
+              && result.domRouteDiagnostics.feelingText === expectedFeelingText
+              && result.domRouteDiagnostics.startText === expectedStartText
+              && result.domRouteDiagnostics.rulesText === expectedRulesText
+              && result.domRouteDiagnostics.resetText === expectedResetText;
+            result.routeChecks.uiBootRoutesResolver = result.domRouteDiagnostics.ok
+              && String(pickerEl.getAttribute("aria-label") || "") === expectedLabelText
+              && String(titleEl.textContent || "").trim() === expectedTitleText;
+            if (!result.routeChecks.uiBootRoutesResolver) fail("ui_boot_start_screen_not_resolver_routed", result.domRouteDiagnostics);
+          } else {
+            result.routeChecks.uiBootRoutesResolver = false;
+          }
+
+          const inputsChecked = ["87", "98", "04", "15"];
+          const expectedByInput = {
+            "87": "millennial",
+            "98": "zoomer",
+            "04": "zoomer",
+            "15": "alpha",
+          };
+          const actualByInput = {};
+          result.profileSelectionDiagnostics.inputsChecked = inputsChecked.slice();
+          inputsChecked.forEach((input) => {
+            actualByInput[input] = resolveProfile(input);
+          });
+          result.profileSelectionDiagnostics.actualByInput = actualByInput;
+          result.profileSelectionDiagnostics.expectedByInput = expectedByInput;
+          result.profileSelectionDiagnostics.helperUsed = typeof D.resolveUiProfileFromBirthYearValue === "function";
+          result.profileSelectionDiagnostics.leadingZeroPreservedFor04 = String("04") === "04" && actualByInput["04"] === "zoomer";
+          result.profileSelectionDiagnostics.ok = result.profileSelectionDiagnostics.helperUsed
+            && result.profileSelectionDiagnostics.leadingZeroPreservedFor04
+            && inputsChecked.every((input) => actualByInput[input] === expectedByInput[input]);
+          result.routeChecks.profileSelectionStillWorks = result.profileSelectionDiagnostics.ok;
+          result.summary.profileSelectionChecksCount = inputsChecked.length;
+          if (!result.routeChecks.profileSelectionStillWorks) fail("profile_selection_mismatch", actualByInput);
+
+          result.routeChecks.noNewStorageKeys = JSON.stringify(beforeStorageKeys) === JSON.stringify(storageKeys())
+            && beforeTextMode === (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")
+            && beforeUiProfile === (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")
+            && beforeSave === JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+          if (!result.routeChecks.noNewStorageKeys) fail("storage_or_state_mutated", {
+            beforeStorageKeys,
+            afterStorageKeys: storageKeys(),
+            beforeTextMode,
+            afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "",
+            beforeUiProfile,
+            afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "",
+          });
+
+          result.routeChecks.docsMirrorUpdated = result.routeChecks.dataDefinitionsExist
+            && result.routeChecks.resolverExists
+            && result.routeChecks.startScreenBootHealthy
+            && result.routeChecks.uiBootRoutesResolver
+            && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
+            && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
+            && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
+            && result.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
+            && result.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
+            && result.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
+            && result.samples.start_continue.millennial === "Продолжить"
+            && result.samples.start_continue.zoomer === "Погнали"
+            && result.samples.start_reset.millennial === "Сбросить старт"
+            && result.samples.start_reset.zoomer === "Снести выбор"
+            && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
+            && result.samples.rules_action.zoomer === "Правила без душноты"
+            && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
+            && result.samples.start_action.zoomer === "Войти";
+          if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
+
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix2_dom_routes"
+            && commit === "step6_7_1_start_screen_buttons_labels_fix2_dom_routes"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix2_dom_routes_v20260615_001";
+          if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
+            buildTag,
+            commit,
+            smokeVersion,
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 === "function",
+          });
+
+          result.summary.routeConnectedCount = [
+            result.routeChecks.dataDefinitionsExist,
+            result.routeChecks.resolverExists,
+            result.routeChecks.millennialFallbackPreserved,
+            result.routeChecks.zoomerDiffers,
+            result.routeChecks.uiBootRoutesResolver,
+            result.routeChecks.startScreenBootHealthy,
+            result.routeChecks.profileSelectionStillWorks,
+            result.routeChecks.noNewStorageKeys,
+            result.routeChecks.docsMirrorUpdated,
+            result.routeChecks.noStaleSmokeIdentity,
+          ].filter(Boolean).length;
+          result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
+          result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+          result.summary.domRoutesConnectedCount = [
+            result.domRouteDiagnostics.titleText === expectedTitleText,
+            result.domRouteDiagnostics.labelText === expectedLabelText,
+            result.domRouteDiagnostics.hintText === expectedHintText,
+            result.domRouteDiagnostics.feelingText === expectedFeelingText,
+            result.domRouteDiagnostics.startText === expectedStartText,
+            result.domRouteDiagnostics.rulesText === expectedRulesText,
+            result.domRouteDiagnostics.resetText === expectedResetText,
+          ].filter(Boolean).length;
+
+          result.forbiddenRemaining = [
+            result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
+            result.samples.start_start.millennial !== "Старт" || result.samples.start_start.zoomer !== "Старт" ? "start_start" : "",
+          ].filter(Boolean);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterStorageKeys = storageKeys();
+        if (JSON.stringify(beforeStorageKeys) !== JSON.stringify(afterStorageKeys)) fail("storage_keys_changed", { beforeStorageKeys, afterStorageKeys });
+        if (beforeTextMode !== (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")) fail("text_mode_changed", { beforeTextMode, afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "" });
+        if (beforeUiProfile !== (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")) fail("ui_profile_changed", { beforeUiProfile, afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "" });
+        if (beforeSave !== JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {})) fail("save_state_changed", { beforeSave, afterSave: JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {}) });
+        result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0
+          && result.routeChecks.dataDefinitionsExist === true
+          && result.routeChecks.resolverExists === true
+          && result.routeChecks.millennialFallbackPreserved === true
+          && result.routeChecks.zoomerDiffers === true
+          && result.routeChecks.uiBootRoutesResolver === true
+          && result.routeChecks.startScreenBootHealthy === true
+          && result.routeChecks.profileSelectionStillWorks === true
+          && result.routeChecks.noNewStorageKeys === true
+          && result.routeChecks.docsMirrorUpdated === true
+          && result.routeChecks.noStaleSmokeIdentity === true
+          && result.profileSelectionDiagnostics.ok === true
+          && result.domRouteDiagnostics.ok === true;
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2;
     }
   }
 })();
