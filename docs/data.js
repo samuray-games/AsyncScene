@@ -5761,5 +5761,267 @@ K YN A9: Нет.
 
   installEmptyStatesProfileTextsFix1SmokeViaData();
 
+  const installEmptyStatesProfileTextsFix2SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix2";
+    const commit = "step6_6_1_empty_states_profile_texts_fix2";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix2_v20260615_001";
+    const stripComments = (src) => String(src || "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1");
+    const cloneState = (state) => {
+      try { return JSON.parse(JSON.stringify(state || {})); }
+      catch (_) { return {}; }
+    };
+    const restoreState = (target, snapshot) => {
+      if (!target || typeof target !== "object") return;
+      Object.keys(target).forEach((key) => { try { delete target[key]; } catch (_) {} });
+      Object.keys(snapshot || {}).forEach((key) => { target[key] = snapshot[key]; });
+    };
+    const withProfileText = (profile, key, vars) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try { return String(Data.t(key, vars) || ""); }
+      finally { Data.TEXT_MODE = prev; }
+    };
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix2() {
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        samples: {},
+        routeChecks: {},
+        summary: {
+          checkedKeys: 0,
+          millennialZoomerDifferentCount: 0,
+          unchangedCount: 0,
+          resolverBackedCount: 0,
+          hardcodedRemainingAllowedCount: 0,
+          routeConnectedCount: 0,
+          docsMirrorUpdated: false,
+          smokeIdentityFresh: false
+        }
+      };
+      const fail = (code, detail) => {
+        result.failedChecks.push(code);
+        result.failures.push({ code, detail: detail == null ? null : detail });
+      };
+      const ui = root.UI || {};
+      const state = root.__S || (root.__S = {});
+      const stateSnapshot = cloneState(state);
+      const originalToast = ui.showStatToast;
+      const originalTextMode = Data.TEXT_MODE;
+      const toasts = [];
+      const restore = () => {
+        restoreState(state, stateSnapshot);
+        Data.TEXT_MODE = originalTextMode;
+        if (typeof originalToast === "function") ui.showStatToast = originalToast;
+      };
+      const textOf = (selector) => {
+        const el = document.querySelector(selector);
+        return String(el ? el.textContent || "" : "").replace(/\s+/g, " ").trim();
+      };
+      const setProfile = (profile, fn) => {
+        const prev = Data.TEXT_MODE;
+        Data.TEXT_MODE = profile;
+        try { return fn(); }
+        finally { Data.TEXT_MODE = prev; }
+      };
+      const resetDom = (id) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = "";
+      };
+      try {
+        ui.showStatToast = function(kind, text) {
+          toasts.push({ kind: String(kind || ""), text: String(text || "") });
+          return typeof originalToast === "function" ? originalToast.apply(this, arguments) : undefined;
+        };
+
+        const samples = {
+          events_empty: { millennial: withProfileText("millennial", "events_empty"), zoomer: withProfileText("zoomer", "events_empty") },
+          battles_empty: { millennial: withProfileText("millennial", "battles_empty"), zoomer: withProfileText("zoomer", "battles_empty") },
+          dm_empty: { millennial: withProfileText("millennial", "dm_empty"), zoomer: withProfileText("zoomer", "dm_empty") },
+          dm_action_unavailable: { millennial: withProfileText("millennial", "dm_action_unavailable"), zoomer: withProfileText("zoomer", "dm_action_unavailable") },
+          battle_energy_locked_hint: { millennial: withProfileText("millennial", "battle_energy_locked_hint", { energy: 5 }), zoomer: withProfileText("zoomer", "battle_energy_locked_hint", { energy: 5 }) }
+        };
+        result.samples = samples;
+        const checkedKeys = Object.keys(samples);
+        result.summary.checkedKeys = checkedKeys.length;
+        checkedKeys.forEach((key) => {
+          const row = samples[key];
+          if (!row || typeof row.millennial !== "string" || typeof row.zoomer !== "string") {
+            fail("sample_missing", { key, row });
+            return;
+          }
+          if (row.millennial !== row.zoomer) result.summary.millennialZoomerDifferentCount += 1;
+          else result.summary.unchangedCount += 1;
+        });
+
+        const renderEventsSrc = stripComments(String(ui.renderEvents || ""));
+        const renderBattlesSrc = stripComments(String(ui.renderBattles || ""));
+        const renderDmSrc = stripComments(String(ui.renderDM || ""));
+
+        result.routeChecks.eventsEmptyResolver = /t\(\s*["']events_empty["']\s*\)/.test(renderEventsSrc);
+        result.routeChecks.eventsEmptyRoute = setProfile("zoomer", () => {
+          const snap = cloneState(state);
+          try {
+            state.events = [];
+            if (ui.renderEvents) ui.renderEvents();
+            return textOf("#eventsBody").includes("Пока тихо.");
+          } finally {
+            restoreState(state, snap);
+          }
+        });
+        result.routeChecks.battlesEmptyResolver = /t\(\s*["']battles_empty["']\s*\)/.test(renderBattlesSrc);
+        result.routeChecks.battlesEmptyNoHardcoded = !/Вызовов нет\./.test(renderBattlesSrc);
+        result.routeChecks.battlesEmptyRoute = setProfile("zoomer", () => {
+          const snap = cloneState(state);
+          try {
+            state.battles = [];
+            if (ui.renderBattles) ui.renderBattles();
+            return textOf("#battlesBody").includes("Раундов нет.");
+          } finally {
+            restoreState(state, snap);
+          }
+        });
+        result.routeChecks.dmEmptyResolver = /t\(\s*["']dm_empty["']\s*\)/.test(renderDmSrc);
+        result.routeChecks.dmEmptyNoHardcoded = !/Пока пусто\./.test(renderDmSrc);
+        result.routeChecks.dmEmptyRoute = setProfile("zoomer", () => {
+          const snap = cloneState(state);
+          try {
+            state.dm = { open: true, withId: null, openIds: [], activeId: null, logs: {}, inviteOpen: false };
+            if (ui.renderDM) ui.renderDM();
+            return textOf("#dmLog").includes("Личка молчит.");
+          } finally {
+            restoreState(state, snap);
+          }
+        });
+        result.routeChecks.dmActionUnavailableResolver = /t\(\s*["']dm_action_unavailable["']\s*\)/.test(renderDmSrc);
+        result.routeChecks.dmActionUnavailableNoHardcoded = !/Недоступно\./.test(renderDmSrc);
+        result.routeChecks.dmActionUnavailableRoute = setProfile("zoomer", () => {
+          const snap = cloneState(state);
+          const prevToasts = toasts.length;
+          try {
+            state.players = state.players || {};
+            state.players.me = state.players.me || { id: "me", name: "Me", influence: 0, points: 0, role: "player" };
+            state.players.opp1 = state.players.opp1 || { id: "opp1", name: "Opp1", influence: 1, points: 10, role: "bandit" };
+            state.me = state.players.me;
+            state.me.points = 0;
+            state.dm = { open: true, withId: "opp1", activeId: "opp1", openIds: ["opp1"], logs: { opp1: [] }, inviteOpen: false };
+            if (ui.renderDM) ui.renderDM();
+            const btn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => String(node.textContent || "").trim() === "баттл");
+            if (!btn || typeof btn.onclick !== "function") return false;
+            btn.onclick({ preventDefault(){}, stopPropagation(){} });
+            return toasts.slice(prevToasts).some((row) => row && String(row.text || "").trim() === "Пока закрыто.");
+          } finally {
+            restoreState(state, snap);
+          }
+        });
+        result.routeChecks.battleEnergyLockedHintResolver = /t\(\s*["']battle_energy_locked_hint["']\s*,\s*\{\s*energy\s*:\s*5\s*\}\s*\)/.test(renderBattlesSrc);
+        result.routeChecks.battleEnergyLockedHintRoute = setProfile("zoomer", () => {
+          const snap = cloneState(state);
+          try {
+            state.players = state.players || {};
+            state.players.me = state.players.me || { id: "me", name: "Me", influence: 0, points: 10, role: "player" };
+            state.players.opp1 = state.players.opp1 || { id: "opp1", name: "Opp1", influence: 1, points: 10, role: "bandit" };
+            state.me = state.players.me;
+            state.me.influence = 0;
+            state.battles = [{ id: "b1", opponentId: "opp1", status: "pickDefense", attack: { id: "a1", text: "A" }, defense: { id: "d1", text: "D" } }];
+            if (ui.renderBattles) ui.renderBattles();
+            const off = Array.from(document.querySelectorAll("button")).find((node) => String(node.textContent || "").trim() === "Отвали");
+            if (!off || typeof off.onmouseenter !== "function") return false;
+            off.onmouseenter();
+            const toast = Array.from(document.querySelectorAll(".btnToastRight")).map((el) => String(el.textContent || "").trim()).find(Boolean) || "";
+            return toast === "Нужно ⚡5";
+          } finally {
+            restoreState(state, snap);
+          }
+        });
+        result.routeChecks.battleEnergyLockedHintEnergyPreserved = samples.battle_energy_locked_hint.millennial.includes("⚡5") && samples.battle_energy_locked_hint.zoomer.includes("⚡5");
+        result.routeChecks.docsMirrorUpdated = !!(
+          Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.events_empty === "Открой события."
+          && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.battles_empty === "Вызовов нет."
+          && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.dm_empty === "Пока пусто."
+          && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.dm_action_unavailable === "Недоступно."
+          && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.genz.battle_energy_locked_hint === "Откроется на ⚡{energy}"
+          && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.events_empty === "Пока тихо."
+          && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.battles_empty === "Раундов нет."
+          && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.dm_empty === "Личка молчит."
+          && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.dm_action_unavailable === "Пока закрыто."
+          && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.battle_energy_locked_hint === "Нужно ⚡{energy}"
+        );
+        result.routeChecks.noStaleOldSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts === "function"
+          && typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1 === "function"
+          && typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 === "function"
+          && root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 !== root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1;
+
+        result.summary.resolverBackedCount = [
+          result.routeChecks.eventsEmptyResolver,
+          result.routeChecks.battlesEmptyResolver,
+          result.routeChecks.dmEmptyResolver,
+          result.routeChecks.dmActionUnavailableResolver,
+          result.routeChecks.battleEnergyLockedHintResolver
+        ].filter(Boolean).length;
+        result.summary.hardcodedRemainingAllowedCount = 0;
+        result.summary.routeConnectedCount = [
+          result.routeChecks.eventsEmptyRoute,
+          result.routeChecks.battlesEmptyRoute,
+          result.routeChecks.dmEmptyRoute,
+          result.routeChecks.dmActionUnavailableRoute,
+          result.routeChecks.battleEnergyLockedHintRoute,
+          result.routeChecks.docsMirrorUpdated,
+          result.routeChecks.noStaleOldSmokeIdentity
+        ].filter(Boolean).length;
+        result.summary.docsMirrorUpdated = result.routeChecks.docsMirrorUpdated;
+        result.summary.smokeIdentityFresh = result.routeChecks.noStaleOldSmokeIdentity;
+        result.ok = result.summary.millennialZoomerDifferentCount === checkedKeys.length
+          && result.summary.unchangedCount === 0
+          && result.summary.resolverBackedCount === checkedKeys.length
+          && result.routeChecks.eventsEmptyResolver
+          && result.routeChecks.eventsEmptyRoute
+          && result.routeChecks.battlesEmptyResolver
+          && result.routeChecks.battlesEmptyRoute
+          && result.routeChecks.battlesEmptyNoHardcoded
+          && result.routeChecks.dmEmptyResolver
+          && result.routeChecks.dmEmptyRoute
+          && result.routeChecks.dmEmptyNoHardcoded
+          && result.routeChecks.dmActionUnavailableResolver
+          && result.routeChecks.dmActionUnavailableRoute
+          && result.routeChecks.dmActionUnavailableNoHardcoded
+          && result.routeChecks.battleEnergyLockedHintResolver
+          && result.routeChecks.battleEnergyLockedHintRoute
+          && result.routeChecks.battleEnergyLockedHintEnergyPreserved
+          && result.routeChecks.docsMirrorUpdated
+          && result.routeChecks.noStaleOldSmokeIdentity
+          && result.summary.docsMirrorUpdated === result.routeChecks.docsMirrorUpdated
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0;
+        if (!result.ok) {
+          result.failures.push({ code: "smoke_not_ok", detail: { routeChecks: result.routeChecks, summary: result.summary } });
+          if (!result.failedChecks.includes("smoke_not_ok")) result.failedChecks.push("smoke_not_ok");
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      } finally {
+        restore();
+      }
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2;
+  };
+
+  installEmptyStatesProfileTextsFix2SmokeViaData();
+
   Game.Data = Data;
 })();

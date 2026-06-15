@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.6.1 Fix2 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: wire the existing profile-aware empty/disabled-state keys into the real UI render branches and keep the Fix2 smoke identity fresh after the Fix1 route failure.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2()`.
+- Scope held: route wiring and smoke only; no gameplay changes, no event logic changes, no battle logic changes, no DM logic changes, no REP/points/money/ECON/moneyLog/persistence/event journal changes, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.6.1 Fix1 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: connect the existing profile-aware empty-state and disabled-state copy keys to the real UI render branches without changing any gameplay, availability, energy, or economic logic.

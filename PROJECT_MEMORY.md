@@ -1,3 +1,9 @@
+## 2026-06-15 — Step 6.6.1 Fix2 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix2 follows the Fix1 route failure where the content pack differed by profile but the real rendered routes still did not use the resolver for `battles_empty`, `dm_empty`, `dm_action_unavailable`, and `battle_energy_locked_hint`.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2()`.
+- Fix2 keeps the copy pack unchanged and only checks route wiring, docs mirrors, preserved `{energy}` output, and fresh smoke identity.
+
 ## 2026-06-15 — Step 6.6.1 Fix1 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - The original Step 6.6.1 smoke proved the copy pack existed and differed by profile, but the route checks still failed because the DM empty branch never rendered an empty state and the smoke was reading the wrong route surfaces.
