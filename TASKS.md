@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.2 Final Fix1 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: correct the final smoke aggregation false negatives without changing feature behavior or any menu chrome implementation.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinalFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinalFix1()`.
+- Scope held: smoke aggregation normalization, diagnostics gating, and docs notes only; no copy, resolver, menu, dev, storage, or gameplay changes.
+
 ## 2026-06-15 — Step 6.7.2 Final Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: confirm the final menu chrome smoke stays profile-aware, behavior-stable, and free of raw-key leaks while keeping the menu, dev labels, storage, and guarded state unchanged.

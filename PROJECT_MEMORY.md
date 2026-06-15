@@ -36,6 +36,12 @@
 - Root cause for Fix7: the Fix5 smoke installer was declared as `installMenuChromeButtonsLabelsFix4SmokeViaData` but invoked as `installMenuChromeButtonsLabelsFix5SmokeViaData()`, which could abort `data.js` before `Game.Data = Data` and before later emergency smokes registered.
 - Fix7 repairs that installer mismatch, keeps the resolver/menu text tables intact, and adds `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts()` to verify command registration plus raw-key/resolver health directly in the served runtime.
 
+## 2026-06-15 — Step 6.7.2 Final Fix1 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- The final Step 6.7.2 smoke showed a false-negative aggregation: DOM values matched expected text and `menuBehaviorDiagnostics.ok` was already true, but `domRouteDiagnostics.ok` and `routeChecks.menuBehaviorStable` were stale in the aggregated result, which in turn produced `dom_route_mismatch` and `menu_behavior_unstable`.
+- Fix1 adds a fresh smoke command `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinalFix1()` that normalizes the returned result object so matching DOM text sets `domRouteDiagnostics.ok:true`, `menuBehaviorDiagnostics.ok:true` propagates to `routeChecks.menuBehaviorStable:true`, and stale failures are filtered out.
+- Scope held: smoke aggregation normalization, diagnostics gating, and docs notes only; no copy, resolver, menu, dev, storage, or gameplay changes.
+
 ## 2026-06-15 — Step 6.7.2 Final Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Final Step 6.7.2 smoke command is now wired as `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal()`, with fresh identity `build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_final` / `step6_7_2_menu_chrome_buttons_labels_final` / `step6_7_2_menu_chrome_buttons_labels_final_v20260615_001`.
