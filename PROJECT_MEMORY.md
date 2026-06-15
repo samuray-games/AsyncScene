@@ -1,3 +1,9 @@
+## 2026-06-15 — Step 6.6.1 Fix8 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix8 follows the Fix7 miss, where the docs mirror was updated but the actual runtime DM file was still not connected for the unavailable-action route.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8()`.
+- Fix8 verifies the runtime DM source itself and keeps the route checks and profile text pack intact.
+
 ## 2026-06-15 — Step 6.6.1 Fix7 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix7 follows the Fix6 result where every check stayed green except `dmActionUnavailableRoute:false`.

@@ -959,7 +959,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       p2p_invalid_amount: systemSay("errors", "p2pInvalidAmount"),
       p2p_insufficient_points: systemSay("errors", "insufficientPoints"),
       p2p_self_transfer_forbidden: systemSay("errors", "p2pSelfTransferForbidden"),
-      p2p_player_to_player_disabled: systemSay("errors", "unavailable"),
+      p2p_player_to_player_disabled: t("dm_action_unavailable"),
       p2p_disabled: t("dm_action_unavailable")
     };
     const appendP2PControls = () => {

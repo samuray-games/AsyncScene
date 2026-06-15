@@ -5918,8 +5918,13 @@ K YN A9: Нет.
             state.me.points = 0;
             state.dm = { open: true, withId: "opp1", activeId: "opp1", openIds: ["opp1"], logs: { opp1: [] }, inviteOpen: false };
             if (ui.renderDM) ui.renderDM();
-            const actions = textOf("#dmActions");
-            return actions.includes("баттл") && textOf("#dmBlock").includes("Пока закрыто.");
+            const p2pBtn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => {
+              const label = String(node.textContent || "").trim();
+              return label === "Передать 💰" || label === "Попросить 💰";
+            });
+            if (!p2pBtn || typeof p2pBtn.onclick !== "function") return false;
+            p2pBtn.onclick({ preventDefault(){}, stopPropagation(){} });
+            return textOf("#dmLog").includes("Пока закрыто.");
           } finally {
             restoreState(state, snap);
           }
@@ -6312,6 +6317,69 @@ K YN A9: Нет.
   };
 
   installEmptyStatesProfileTextsFix7SmokeViaData();
+
+  const installEmptyStatesProfileTextsFix8SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix8_runtime_dm";
+    const commit = "step6_6_1_empty_states_profile_texts_fix8_runtime_dm";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix8_runtime_dm_v20260615_001";
+    const sourceOf = (fn) => {
+      try { return String(fn && fn.toString ? fn.toString() : ""); }
+      catch (_) { return ""; }
+    };
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix8() {
+      const base = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7
+        ? root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix7()
+        : {
+            ok: false,
+            failures: [{ code: "smoke_unavailable", detail: null }],
+            forbiddenRemaining: ["smoke_unavailable"],
+            missingCoverage: ["smoke_unavailable"],
+            failedChecks: ["smoke_unavailable"],
+            samples: {},
+            routeChecks: {},
+            tFreeReferenceScan: { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "smoke_unavailable" },
+            summary: {
+              checkedKeys: 0,
+              millennialZoomerDifferentCount: 0,
+              unchangedCount: 0,
+              resolverBackedCount: 0,
+              hardcodedRemainingAllowedCount: 0,
+              routeConnectedCount: 0,
+              docsMirrorUpdated: false,
+              smokeIdentityFresh: false,
+              noFreeTReferences: false,
+              runtimeDmFileUpdated: false
+            }
+          };
+      const result = base;
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      const dmSrc = sourceOf(root.UI && root.UI.renderDM) + "\n" + sourceOf(root.UI && root.UI.openTeachPanel);
+      result.routeChecks.runtimeDmFileUpdated = /t\(\s*["']dm_action_unavailable["']\s*\)/.test(dmSrc)
+        && /showP2PSystem\(\s*t\(\s*["']dm_action_unavailable["']\s*\)\s*\)/.test(dmSrc);
+      result.summary = result.summary || {};
+      result.summary.smokeIdentityFresh = true;
+      result.summary.noFreeTReferences = !!(result.tFreeReferenceScan && result.tFreeReferenceScan.ok);
+      result.summary.runtimeDmFileUpdated = !!result.routeChecks.runtimeDmFileUpdated;
+      result.ok = !!result.ok
+        && result.routeChecks.runtimeDmFileUpdated
+        && result.summary.runtimeDmFileUpdated === result.routeChecks.runtimeDmFileUpdated
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8;
+  };
+
+  installEmptyStatesProfileTextsFix8SmokeViaData();
 
   Game.Data = Data;
 })();
