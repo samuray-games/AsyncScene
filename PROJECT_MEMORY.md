@@ -5,6 +5,13 @@
 - Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels()`.
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels()`.
 
+## 2026-06-15 — Step 6.7.1 Fix1 Start Screen Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- The original Step 6.7.1 smoke failed only on the profile-selection check because `04` resolved to `default` inside the smoke path even though the canonical resolver should treat it as `zoomer`.
+- Fix1 preserves leading-zero semantics by routing the smoke to the existing canonical profile resolver path and adding explicit diagnostics for `04`.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1()`.
+
 ## 2026-06-15 — Step 6.6.1 Fix11 Empty States Profile Texts
 - Fix11 corrects the docs mirror verification after Fix10 stayed feature-green but still reported `docsMirrorUpdated:false` because the smoke checked the wrong mirror object path.
 - The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11()`.

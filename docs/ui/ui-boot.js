@@ -9352,5 +9352,257 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabels = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels;
     }
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix1() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix1";
+        const commit = "step6_7_1_start_screen_buttons_labels_fix1";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix1_v20260615_001";
+        const result = {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+          samples: {},
+          routeChecks: {},
+          profileSelectionDiagnostics: {
+            inputsChecked: [],
+            actualByInput: {},
+            expectedByInput: {},
+            helperUsed: false,
+            leadingZeroPreservedFor04: false,
+            ok: false,
+          },
+          summary: {
+            checkedKeys: 0,
+            millennialZoomerDifferentCount: 0,
+            unchangedAllowedCount: 0,
+            routeConnectedCount: 0,
+            profileSelectionChecksCount: 0,
+            docsMirrorUpdated: false,
+            smokeIdentityFresh: false,
+          },
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        const D = G.Data || {};
+        const resolve = (key, profile) => (D && typeof D.resolveStartScreenText === "function") ? String(D.resolveStartScreenText(key, profile) || "") : "";
+        const resolveProfile = (value) => (D && typeof D.resolveUiProfileFromBirthYearValue === "function")
+          ? D.resolveUiProfileFromBirthYearValue(value)
+          : "default";
+        const storageKeys = () => {
+          try { return window.localStorage ? Object.keys(window.localStorage).sort() : []; } catch (_) { return []; }
+        };
+        const beforeStorageKeys = storageKeys();
+        const beforeTextMode = typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "";
+        const beforeUiProfile = typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "";
+        const beforeSave = JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+        try {
+          result.routeChecks.dataDefinitionsExist = !!(D && D.START_SCREEN_PROFILE_TEXTS && typeof D.START_SCREEN_PROFILE_TEXTS === "object" && D.START_SCREEN_PROFILE_TEXTS.millennial && D.START_SCREEN_PROFILE_TEXTS.zoomer);
+          result.routeChecks.resolverExists = !!(D && typeof D.resolveStartScreenText === "function");
+          if (!result.routeChecks.dataDefinitionsExist) miss("start_screen_profile_texts_missing");
+          if (!result.routeChecks.resolverExists) miss("start_screen_resolver_missing");
+
+          const keys = [
+            "start_title",
+            "birth_digits_label",
+            "digit_up_first",
+            "digit_down_first",
+            "digit_up_second",
+            "digit_down_second",
+            "profile_helper",
+            "fantasy_birth_label",
+            "start_continue",
+            "start_start",
+            "start_reset",
+            "rules_action",
+            "start_action",
+          ];
+          keys.forEach((key) => {
+            result.samples[key] = {
+              millennial: resolve(key, "millennial"),
+              zoomer: resolve(key, "zoomer"),
+            };
+          });
+          result.summary.checkedKeys = keys.length;
+          result.summary.millennialZoomerDifferentCount = keys.filter((key) => result.samples[key].millennial !== result.samples[key].zoomer).length;
+          result.summary.unchangedAllowedCount = keys.filter((key) => result.samples[key].millennial === result.samples[key].zoomer).length;
+          result.routeChecks.millennialFallbackPreserved = keys.filter((key) => result.samples[key].millennial === resolve(key, "") && result.samples[key].millennial === resolve(key, "missing")).length >= 6;
+          result.routeChecks.zoomerDiffers = result.summary.millennialZoomerDifferentCount >= 6;
+
+          const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+          const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
+          const labelEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null;
+          const pickerEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null;
+          const hintEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null;
+          const feelingEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null;
+          const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+          const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
+          const resetBtn = (typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null;
+          const liveProfile = D && typeof D.getUiProfile === "function" ? D.getUiProfile() : (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "default");
+          const liveMode = String(liveProfile).trim().toLowerCase() === "zoomer" || String(liveProfile).trim().toLowerCase() === "alpha" ? "zoomer" : "millennial";
+          const liveResumeMode = !!(G.__A && typeof G.__A.getOnboardingSeen === "function" ? G.__A.getOnboardingSeen() : (G.__S && G.__S.progress && G.__S.progress.onboardingSeen === true));
+          result.routeChecks.startScreenBootHealthy = !!(st && titleEl && labelEl && pickerEl && hintEl && feelingEl && startBtn && rulesBtn && resetBtn);
+          if (!result.routeChecks.startScreenBootHealthy) fail("start_screen_boot_unhealthy", {
+            st: !!st,
+            titleEl: !!titleEl,
+            labelEl: !!labelEl,
+            pickerEl: !!pickerEl,
+            hintEl: !!hintEl,
+            feelingEl: !!feelingEl,
+            startBtn: !!startBtn,
+            rulesBtn: !!rulesBtn,
+            resetBtn: !!resetBtn,
+          });
+
+          if (result.routeChecks.startScreenBootHealthy) {
+            const titleText = String(titleEl.textContent || "").trim();
+            const labelText = String(labelEl.textContent || "").trim();
+            const hintText = String(hintEl.textContent || "").trim();
+            const feelingText = String(feelingEl.textContent || "").trim();
+            const startText = String(startBtn.textContent || "").trim();
+            const rulesText = String(rulesBtn.textContent || "").trim();
+            const resetText = String(resetBtn.textContent || "").trim();
+            const expectedStartText = liveResumeMode ? resolve("start_continue", liveMode) : resolve("start_action", liveMode);
+            result.routeChecks.uiBootRoutesResolver = titleText === resolve("start_title", liveMode)
+              && labelText === resolve("birth_digits_label", liveMode)
+              && hintText === resolve("profile_helper", liveMode)
+              && feelingText === resolve("fantasy_birth_label", liveMode)
+              && startText === expectedStartText
+              && rulesText === resolve("rules_action", liveMode)
+              && resetText === resolve("start_reset", liveMode)
+              && String(pickerEl.getAttribute("aria-label") || "") === resolve("birth_digits_label", liveMode);
+            if (!result.routeChecks.uiBootRoutesResolver) fail("ui_boot_start_screen_not_resolver_routed", {
+              titleText,
+              labelText,
+              hintText,
+              feelingText,
+              startText,
+              rulesText,
+              resetText,
+              expectedStartText,
+            });
+          } else {
+            result.routeChecks.uiBootRoutesResolver = false;
+          }
+
+          const inputsChecked = ["87", "98", "04", "15"];
+          const expectedByInput = {
+            "87": "millennial",
+            "98": "zoomer",
+            "04": "zoomer",
+            "15": "alpha",
+          };
+          const actualByInput = {};
+          result.profileSelectionDiagnostics.inputsChecked = inputsChecked.slice();
+          inputsChecked.forEach((input) => {
+            actualByInput[input] = resolveProfile(input);
+          });
+          result.profileSelectionDiagnostics.actualByInput = actualByInput;
+          result.profileSelectionDiagnostics.expectedByInput = expectedByInput;
+          result.profileSelectionDiagnostics.helperUsed = typeof D.resolveUiProfileFromBirthYearValue === "function";
+          result.profileSelectionDiagnostics.leadingZeroPreservedFor04 = String("04") === "04" && actualByInput["04"] === "zoomer";
+          result.profileSelectionDiagnostics.ok = result.profileSelectionDiagnostics.helperUsed
+            && result.profileSelectionDiagnostics.leadingZeroPreservedFor04
+            && inputsChecked.every((input) => actualByInput[input] === expectedByInput[input]);
+          result.routeChecks.profileSelectionStillWorks = result.profileSelectionDiagnostics.ok;
+          result.summary.profileSelectionChecksCount = inputsChecked.length;
+          if (!result.routeChecks.profileSelectionStillWorks) fail("profile_selection_mismatch", actualByInput);
+
+          result.routeChecks.noNewStorageKeys = JSON.stringify(beforeStorageKeys) === JSON.stringify(storageKeys())
+            && beforeTextMode === (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")
+            && beforeUiProfile === (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")
+            && beforeSave === JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {});
+          if (!result.routeChecks.noNewStorageKeys) fail("storage_or_state_mutated", {
+            beforeStorageKeys,
+            afterStorageKeys: storageKeys(),
+            beforeTextMode,
+            afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "",
+            beforeUiProfile,
+            afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "",
+          });
+
+          result.routeChecks.docsMirrorUpdated = result.routeChecks.dataDefinitionsExist
+            && result.routeChecks.resolverExists
+            && result.routeChecks.startScreenBootHealthy
+            && result.routeChecks.uiBootRoutesResolver
+            && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
+            && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
+            && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
+            && result.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
+            && result.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
+            && result.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
+            && result.samples.start_continue.millennial === "Продолжить"
+            && result.samples.start_continue.zoomer === "Погнали"
+            && result.samples.start_reset.millennial === "Сбросить старт"
+            && result.samples.start_reset.zoomer === "Снести выбор"
+            && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
+            && result.samples.rules_action.zoomer === "Правила без душноты"
+            && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
+            && result.samples.start_action.zoomer === "Войти";
+          if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
+
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix1"
+            && commit === "step6_7_1_start_screen_buttons_labels_fix1"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix1_v20260615_001";
+          if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
+            buildTag,
+            commit,
+            smokeVersion,
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 === "function",
+          });
+
+          result.summary.routeConnectedCount = [
+            result.routeChecks.dataDefinitionsExist,
+            result.routeChecks.resolverExists,
+            result.routeChecks.millennialFallbackPreserved,
+            result.routeChecks.zoomerDiffers,
+            result.routeChecks.uiBootRoutesResolver,
+            result.routeChecks.startScreenBootHealthy,
+            result.routeChecks.profileSelectionStillWorks,
+            result.routeChecks.noNewStorageKeys,
+            result.routeChecks.docsMirrorUpdated,
+            result.routeChecks.noStaleSmokeIdentity,
+          ].filter(Boolean).length;
+          result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
+          result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+
+          result.forbiddenRemaining = [
+            result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
+            result.samples.start_start.millennial !== "Старт" || result.samples.start_start.zoomer !== "Старт" ? "start_start" : "",
+          ].filter(Boolean);
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        const afterStorageKeys = storageKeys();
+        if (JSON.stringify(beforeStorageKeys) !== JSON.stringify(afterStorageKeys)) fail("storage_keys_changed", { beforeStorageKeys, afterStorageKeys });
+        if (beforeTextMode !== (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")) fail("text_mode_changed", { beforeTextMode, afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "" });
+        if (beforeUiProfile !== (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")) fail("ui_profile_changed", { beforeUiProfile, afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "" });
+        if (beforeSave !== JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {})) fail("save_state_changed", { beforeSave, afterSave: JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {}) });
+        result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0
+          && result.routeChecks.dataDefinitionsExist === true
+          && result.routeChecks.resolverExists === true
+          && result.routeChecks.millennialFallbackPreserved === true
+          && result.routeChecks.zoomerDiffers === true
+          && result.routeChecks.uiBootRoutesResolver === true
+          && result.routeChecks.startScreenBootHealthy === true
+          && result.routeChecks.profileSelectionStillWorks === true
+          && result.routeChecks.noNewStorageKeys === true
+          && result.routeChecks.docsMirrorUpdated === true
+          && result.routeChecks.noStaleSmokeIdentity === true
+          && result.profileSelectionDiagnostics.ok === true;
+        return result;
+      };
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1;
+    }
   }
 })();

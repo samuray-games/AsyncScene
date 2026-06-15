@@ -262,13 +262,21 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.expandUiBirthYearValue = (normalizedValue) => UI_PROFILE_RULES.twoDigitYear.resolve(String(normalizedValue == null ? "" : normalizedValue).trim());
 
   Data.resolveUiProfileFromBirthYearValue = (value) => {
-    const normalizedValue = Data.normalizeUiBirthYearValue(value);
-    if (normalizedValue == null) return "default";
+    const raw = String(value == null ? "" : value).trim();
+    if (!raw) return "default";
+    const normalizedValue = Data.normalizeUiBirthYearValue(raw);
+    const twoDigitValue = /^\d{2}$/.test(raw) ? raw : normalizedValue;
+    if (twoDigitValue && /^\d{2}$/.test(twoDigitValue)) {
+      const year = Data.expandUiBirthYearValue(twoDigitValue);
+      if (!Number.isFinite(year)) return "default";
+      const band = UI_PROFILE_RULES.yearBands.find((range) => year >= range.min && year <= range.max);
+      return band ? band.profile : "default";
+    }
     const year = normalizedValue === "0"
       ? 0
-      : /^-?\d{1,2}$/.test(normalizedValue)
-      ? Data.expandUiBirthYearValue(normalizedValue)
-      : Number(normalizedValue);
+      : normalizedValue != null && /^-?\d{1,2}$/.test(normalizedValue)
+      ? Number(normalizedValue)
+      : Number(raw);
     if (!Number.isFinite(year)) return "default";
     const band = UI_PROFILE_RULES.yearBands.find((range) => year >= range.min && year <= range.max);
     return band ? band.profile : "default";
