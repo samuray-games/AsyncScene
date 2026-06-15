@@ -1,3 +1,8 @@
+## 2026-06-15 — Step 6.6.1 Fix10 Empty States Profile Texts
+- Fix10 repairs the smoke aggregation/bookkeeping after Fix9 diagnosed the DM unavailable route successfully but left required route fields and summary counts incomplete.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10()`.
+- Fix10 preserves the diagnosed runtime route and only normalizes the returned smoke structure.
+
 ## 2026-06-15 — Step 6.6.1 Fix9 Empty States Profile Texts
 - Fix9 diagnoses the remaining DM unavailable-route mismatch by treating the `баттл` zero-points toast as the canonical visible path and verifying it against the resolver-backed `dm_action_unavailable` copy.
 - The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix9()`.

@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.6.1 Fix10 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: fix the Fix9 smoke aggregation so the diagnosed DM unavailable route and the five empty-state surfaces are counted and reported correctly.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10()`.
+- Scope held: smoke aggregation and docs notes only; no copy, gameplay, event, battle, DM, REP, points, money, ECON, moneyLog, persistence, or event journal changes.
+
 ## 2026-06-15 — Step 6.6.1 Fix9 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: diagnose the exact DM unavailable-route mismatch and verify the canonical runtime toast path against the resolver-backed `dm_action_unavailable` copy.
