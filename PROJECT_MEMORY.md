@@ -6,6 +6,14 @@
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2()`.
 - Scope held: menu chrome smoke diagnostics, safe toast probing, storage snapshot/restore, and docs notes only; no economy writes, no gameplay changes, and no menu/dev behavior changes.
 
+## 2026-06-15 — Step 6.7.2 Fix3 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix2 left the feature checks green but still changed the menu open/close state and unavailable toast visibility while probing, so the smoke had to be made behavior-stable.
+- Fix3 restores the previous menu and toast state after probing and adds diagnostics for before/after/restored values without changing the feature implementation.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3()` with fresh identity `build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable` / `step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable` / `step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable_v20260615_001`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3()`.
+- Scope held: menu chrome smoke diagnostics, menu/toast state restoration, storage snapshot/restore, and docs notes only; no economy writes, no gameplay changes, and no menu/dev behavior changes.
+
 ## 2026-06-15 — Step 6.7.2 Fix1 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Follow-up fix for the Step 6.7.2 menu chrome smoke: the served runtime/docs bundles now include `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1()`, which probes the toast-only unavailable route safely, snapshots and restores storage, keeps dev labels hardcoded, and records menu behavior diagnostics without touching gameplay or persistence.

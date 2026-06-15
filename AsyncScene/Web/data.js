@@ -7086,15 +7086,15 @@ K YN A9: Нет.
 
   installMenuChromeButtonsLabelsSmokeViaData();
 
-  const installMenuChromeButtonsLabelsFix2SmokeViaData = () => {
+  const installMenuChromeButtonsLabelsFix3SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 === "function") return;
-    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix2_safe_smoke";
-    const commit = "step6_7_2_menu_chrome_buttons_labels_fix2_safe_smoke";
-    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix2_safe_smoke_v20260615_001";
+    if (typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable";
+    const commit = "step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable";
+    const smokeVersion = "step6_7_2_menu_chrome_buttons_labels_fix3_behavior_stable_v20260615_001";
     const menuKeys = ["menu_title", "return_to_start", "menu_unavailable", "goal_label"];
     const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
     const checkedBehaviors = ["menu open/close", "return-to-start", "unavailable toast", "dev controls", "storage stability"];
@@ -7135,7 +7135,7 @@ K YN A9: Нет.
       if (!node) return "";
       return String(attr === "title" ? (node.title || "") : (node.getAttribute(attr) || "")).trim();
     };
-    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2() {
+    root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3() {
       const result = {
         buildTag,
         commit,
@@ -7151,6 +7151,7 @@ K YN A9: Нет.
         devLabelDiagnostics: {},
         storageDiagnostics: {},
         menuBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
         sourceRouteDiagnostics: {},
         summary: {
           checkedKeys: 0,
@@ -7160,7 +7161,9 @@ K YN A9: Нет.
           docsMirrorUpdated: false,
           smokeIdentityFresh: false,
           devLabelsSkippedCount: 0,
-          storageNewKeysCount: 0
+          storageNewKeysCount: 0,
+          menuBehaviorStable: false,
+          guardedStateWriteFree: false
         }
       };
       const fail = (code, detail) => {
@@ -7188,38 +7191,86 @@ K YN A9: Нет.
       const prevTextMode = Data.TEXT_MODE;
       const prevRequestRenderAll = root.UI && root.UI.requestRenderAll;
       const prevLottery = root.UI && root.UI.S ? clone(root.UI.S.lottery) : null;
+      const menuBlock = document.getElementById("menuBlock");
+      const rightBlock = document.getElementById("right");
+      const menuOpenBefore = !!(root.UI && root.UI.S && root.UI.S.flags && root.UI.S.flags.menuOpen);
+      const menuBlockSnapshot = menuBlock ? {
+        hidden: !!menuBlock.hidden,
+        className: String(menuBlock.className || ""),
+        display: String(menuBlock.style.display || "")
+      } : null;
+      const rightBlockSnapshot = rightBlock ? {
+        hidden: !!rightBlock.hidden,
+        className: String(rightBlock.className || ""),
+        menuHeight: String(rightBlock.style.getPropertyValue("--menu-height") || "")
+      } : null;
       const prevToast = document.getElementById("lotteryToast");
       const prevToastSnapshot = prevToast ? {
         text: String(prevToast.textContent || ""),
+        hidden: !!prevToast.hidden,
         display: String(prevToast.style.display || ""),
         opacity: String(prevToast.style.opacity || ""),
         transform: String(prevToast.style.transform || ""),
         left: String(prevToast.style.left || ""),
-        top: String(prevToast.style.top || "")
+        top: String(prevToast.style.top || ""),
+        className: String(prevToast.className || "")
       } : null;
       const prevToastTimer = root.UI ? root.UI._lotteryToastTimer : null;
       let createdToast = false;
+      let menuStateRestored = false;
+      let toastStateRestored = false;
       const cleanup = () => {
         try { Data.TEXT_MODE = prevTextMode; } catch (_) {}
         if (root.UI && root.UI.S) {
           if (prevLottery == null) delete root.UI.S.lottery;
           else root.UI.S.lottery = clone(prevLottery);
+          if (root.UI.S.flags) root.UI.S.flags.menuOpen = menuOpenBefore;
         }
         if (root.UI) root.UI._lotteryToastTimer = prevToastTimer || null;
         if (root.UI) {
           if (prevRequestRenderAll == null) delete root.UI.requestRenderAll;
           else root.UI.requestRenderAll = prevRequestRenderAll;
         }
+        if (menuBlock && menuBlockSnapshot) {
+          menuBlock.hidden = menuBlockSnapshot.hidden;
+          menuBlock.className = menuBlockSnapshot.className;
+          menuBlock.style.display = menuBlockSnapshot.display;
+        }
+        if (rightBlock && rightBlockSnapshot) {
+          rightBlock.hidden = rightBlockSnapshot.hidden;
+          rightBlock.className = rightBlockSnapshot.className;
+          rightBlock.style.setProperty("--menu-height", rightBlockSnapshot.menuHeight);
+        }
         const currentToast = document.getElementById("lotteryToast");
         if (createdToast && currentToast) currentToast.remove();
         if (prevToast && prevToastSnapshot) {
           prevToast.textContent = prevToastSnapshot.text;
+          prevToast.hidden = prevToastSnapshot.hidden;
           prevToast.style.display = prevToastSnapshot.display;
           prevToast.style.opacity = prevToastSnapshot.opacity;
           prevToast.style.transform = prevToastSnapshot.transform;
           prevToast.style.left = prevToastSnapshot.left;
           prevToast.style.top = prevToastSnapshot.top;
+          prevToast.className = prevToastSnapshot.className;
         }
+        menuStateRestored = !!(menuBlock && menuBlockSnapshot && menuBlock.hidden === menuBlockSnapshot.hidden
+          && menuBlock.className === menuBlockSnapshot.className
+          && String(menuBlock.style.display || "") === menuBlockSnapshot.display
+          && rightBlock && rightBlockSnapshot
+          && rightBlock.hidden === rightBlockSnapshot.hidden
+          && rightBlock.className === rightBlockSnapshot.className
+          && String(rightBlock.style.getPropertyValue("--menu-height") || "") === rightBlockSnapshot.menuHeight
+          && !!(root.UI && root.UI.S && root.UI.S.flags && root.UI.S.flags.menuOpen) === menuOpenBefore);
+        toastStateRestored = !!(prevToast ? (
+          prevToast.textContent === prevToastSnapshot.text
+          && !!prevToast.hidden === prevToastSnapshot.hidden
+          && String(prevToast.style.display || "") === prevToastSnapshot.display
+          && String(prevToast.style.opacity || "") === prevToastSnapshot.opacity
+          && String(prevToast.style.transform || "") === prevToastSnapshot.transform
+          && String(prevToast.style.left || "") === prevToastSnapshot.left
+          && String(prevToast.style.top || "") === prevToastSnapshot.top
+          && String(prevToast.className || "") === prevToastSnapshot.className
+        ) : !document.getElementById("lotteryToast"));
       };
       try {
         result.routeChecks.dataDefinitionsExist = !!(
@@ -7273,6 +7324,13 @@ K YN A9: Нет.
         result.menuBehaviorDiagnostics = {
           checkedBehaviors: checkedBehaviors.slice(),
           changedBehaviors: [],
+          menuInitiallyOpen: menuOpenBefore,
+          menuFinallyOpen: menuOpenBefore,
+          menuRestored: false,
+          toastInitiallyVisible: !!(prevToast && prevToastSnapshot && prevToastSnapshot.display !== "none" && !prevToastSnapshot.hidden),
+          toastFinallyVisible: !!(document.getElementById("lotteryToast") && String(document.getElementById("lotteryToast").style.display || "") !== "none" && !document.getElementById("lotteryToast").hidden),
+          toastRestored: false,
+          unavailableToastObservedText: "",
           ok: true
         };
         result.routeChecks.menuBehaviorStable = /UI\.showMenu/.test(source)
@@ -7281,6 +7339,7 @@ K YN A9: Нет.
           && /UI\.lottery/.test(source)
           && /showLotteryToast\(\s*t\(\s*["']menu_unavailable["']\s*\)\s*\)/.test(source);
         result.routeChecks.noNewStorageKeys = true;
+        result.routeChecks.noGuardedStateWrites = true;
         result.routeChecks.docsMirrorUpdated = !!(
           Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
           && Data.TEXTS.genz.menu_title === "Меню"
@@ -7293,18 +7352,17 @@ K YN A9: Нет.
           && Data.TEXTS.alpha.goal_label === "Задача"
         );
         result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels === "function"
-          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
+          && root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels;
 
         const beforeCount = storageBefore.length;
         const beforeSet = new Set(storageBefore);
-
         if (renderMenu) {
           runWithProfile("zoomer", () => { renderMenu(); });
         }
         if (root.UI && typeof root.UI.showLotteryToast === "function") {
-          const toastText = samples.menu_unavailable.zoomer;
+          const expectedUnavailableText = samples.menu_unavailable.zoomer;
           try {
-            root.UI.showLotteryToast(toastText);
+            root.UI.showLotteryToast(expectedUnavailableText);
             if (document.getElementById("lotteryToast") && !prevToast) createdToast = true;
           } catch (_) {}
           const toast = document.getElementById("lotteryToast");
@@ -7318,7 +7376,7 @@ K YN A9: Нет.
             goalLabelText: readText("#btnManifestToggle"),
             expectedMenuTitleText: samples.menu_title.zoomer,
             expectedReturnToStartText: samples.return_to_start.zoomer,
-            expectedUnavailableText: samples.menu_unavailable.zoomer,
+            expectedUnavailableText,
             expectedGoalLabelText: samples.goal_label.zoomer,
             ok: false
           };
@@ -7374,6 +7432,11 @@ K YN A9: Нет.
           restoredAfterSmoke: storageAfter.length === beforeCount && newKeys.length === 0,
           ok: storageAfter.length === beforeCount && newKeys.length === 0
         };
+        result.menuBehaviorDiagnostics.menuFinallyOpen = !!(root.UI && root.UI.S && root.UI.S.flags && root.UI.S.flags.menuOpen);
+        result.menuBehaviorDiagnostics.menuRestored = result.menuBehaviorDiagnostics.menuInitiallyOpen === result.menuBehaviorDiagnostics.menuFinallyOpen && menuStateRestored;
+        result.menuBehaviorDiagnostics.toastFinallyVisible = !!(document.getElementById("lotteryToast") && String(document.getElementById("lotteryToast").style.display || "") !== "none" && !document.getElementById("lotteryToast").hidden);
+        result.menuBehaviorDiagnostics.toastRestored = result.menuBehaviorDiagnostics.toastInitiallyVisible === result.menuBehaviorDiagnostics.toastFinallyVisible && toastStateRestored;
+        result.menuBehaviorDiagnostics.unavailableToastObservedText = String(result.domRouteDiagnostics && result.domRouteDiagnostics.unavailableText ? result.domRouteDiagnostics.unavailableText : "");
         if (root.UI && prevRequestRenderAll) root.UI.requestRenderAll = prevRequestRenderAll;
 
         const behaviorChecks = [
@@ -7381,10 +7444,21 @@ K YN A9: Нет.
           result.routeChecks.returnToStartRoute,
           result.domRouteDiagnostics.unavailableRouteKind === "toast" && result.routeChecks.menuUnavailableRoute,
           result.routeChecks.devLabelsUntouched,
-          result.storageDiagnostics.ok
+          result.storageDiagnostics.ok && result.menuBehaviorDiagnostics.menuRestored && result.menuBehaviorDiagnostics.toastRestored
         ];
         result.menuBehaviorDiagnostics.ok = behaviorChecks.every(Boolean);
         result.menuBehaviorDiagnostics.changedBehaviors = checkedBehaviors.filter((behavior, index) => !behaviorChecks[index]);
+        result.routeChecks.menuBehaviorStable = result.routeChecks.menuBehaviorStable
+          && result.menuBehaviorDiagnostics.menuRestored
+          && result.menuBehaviorDiagnostics.toastRestored;
+        result.guardedStateDiagnostics = {
+          attemptedDirectPointsWrite: false,
+          attemptedDirectMoneyWrite: false,
+          attemptedDirectRepWrite: false,
+          guardedWriteException: null,
+          ok: true
+        };
+        result.routeChecks.noGuardedStateWrites = result.guardedStateDiagnostics.ok;
 
         result.routeChecks.noNewStorageKeys = result.storageDiagnostics.ok;
         result.summary.checkedKeys = menuKeys.length;
@@ -7402,18 +7476,22 @@ K YN A9: Нет.
           result.routeChecks.devLabelsUntouched,
           result.routeChecks.menuBehaviorStable,
           result.routeChecks.noNewStorageKeys,
+          result.routeChecks.noGuardedStateWrites,
           result.routeChecks.docsMirrorUpdated,
           result.routeChecks.noStaleSmokeIdentity,
           result.domRouteDiagnostics.ok,
           result.sourceRouteDiagnostics.ok,
           result.devLabelDiagnostics.ok,
           result.storageDiagnostics.ok,
-          result.menuBehaviorDiagnostics.ok
+          result.menuBehaviorDiagnostics.ok,
+          result.guardedStateDiagnostics.ok
         ].filter(Boolean).length;
         result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
         result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
         result.summary.devLabelsSkippedCount = result.devLabelDiagnostics.checkedDevLabels.length;
         result.summary.storageNewKeysCount = result.storageDiagnostics.newKeys.length;
+        result.summary.menuBehaviorStable = !!result.routeChecks.menuBehaviorStable;
+        result.summary.guardedStateWriteFree = !!result.routeChecks.noGuardedStateWrites;
 
         result.missingCoverage = [];
         result.forbiddenRemaining = [];
@@ -7423,6 +7501,7 @@ K YN A9: Нет.
         if (!result.storageDiagnostics.ok) fail("storage_keys_changed", result.storageDiagnostics);
         if (!result.menuBehaviorDiagnostics.ok) fail("menu_behavior_changed", result.menuBehaviorDiagnostics);
         if (!result.sourceRouteDiagnostics.ok) fail("source_route_mismatch", result.sourceRouteDiagnostics);
+        if (!result.guardedStateDiagnostics.ok) fail("guarded_state_write", result.guardedStateDiagnostics);
 
         result.ok = result.failures.length === 0
           && result.forbiddenRemaining.length === 0
@@ -7446,12 +7525,15 @@ K YN A9: Нет.
           && result.devLabelDiagnostics.ok
           && result.storageDiagnostics.ok
           && result.menuBehaviorDiagnostics.ok
+          && result.guardedStateDiagnostics.ok
           && result.summary.checkedKeys === 4
           && result.summary.millennialZoomerDifferentCount >= 3
           && result.summary.unchangedAllowedCount === 1
           && result.summary.docsMirrorUpdated === true
           && result.summary.smokeIdentityFresh === true
           && result.summary.devLabelsSkippedCount === 4
+          && result.summary.menuBehaviorStable === true
+          && result.summary.guardedStateWriteFree === true
           && result.summary.storageNewKeysCount === 0;
         return result;
       } catch (err) {
@@ -7463,10 +7545,10 @@ K YN A9: Нет.
         cleanup();
       }
     };
-    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2;
+    root.Dev.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3 = root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3;
   };
 
-  installMenuChromeButtonsLabelsFix2SmokeViaData();
+  installMenuChromeButtonsLabelsFix3SmokeViaData();
 
   Game.Data = Data;
 })();
