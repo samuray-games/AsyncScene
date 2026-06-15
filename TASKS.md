@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.6.1 Fix1 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: connect the existing profile-aware empty-state and disabled-state copy keys to the real UI render branches without changing any gameplay, availability, energy, or economic logic.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1()`.
+- Smoke contract: returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `samples`, `routeChecks`, and `summary`.
+- Summary contract: `checkedKeys`, `millennialZoomerDifferentCount`, `unchangedCount`, `resolverBackedCount`, `hardcodedRemainingAllowedCount`, `routeConnectedCount`, `docsMirrorUpdated`, and `smokeIdentityFresh`.
+- Scope held: route wiring and smoke only; no gameplay changes, no event logic changes, no battle logic changes, no DM logic changes, no REP/points/money/ECON/moneyLog/persistence/event journal changes, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.6.1 Zoomer Feel Pass Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: route the visible empty-state and disabled-state copy through the existing profile text resolver with millennial fallback, while keeping gameplay logic, availability checks, costs, and branching unchanged.

@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.6.1 Fix1 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- The original Step 6.6.1 smoke proved the copy pack existed and differed by profile, but the route checks still failed because the DM empty branch never rendered an empty state and the smoke was reading the wrong route surfaces.
+- Fix1 connects the visible empty and disabled states to their real UI render branches in `AsyncScene/Web/ui/ui-battles.js` and `AsyncScene/Web/ui/ui-dm.js` without changing copy or game logic.
+- Added the fresh Safari command `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1()`.
+- The Fix1 smoke checks actual rendered empty/disabled outputs, the preserved `{energy}` value, the docs mirrors, and that the new smoke identity is not aliased to the older Step 6.6.1 smoke.
+
 ## 2026-06-15 — Step 6.6.1 Zoomer Feel Pass Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the new profile-aware empty-state and disabled-state keys in `AsyncScene/Web/data.js` and `docs/data.js`: `events_empty`, `battles_empty`, `dm_empty`, `dm_action_unavailable`, and `battle_energy_locked_hint`, with millennial fallback preserved.
