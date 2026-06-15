@@ -465,7 +465,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
         if (!paidOk) {
           if (UI && typeof UI.showStatToast === "function") {
-            UI.showStatToast("points", "Недоступно.");
+            UI.showStatToast("points", t("dm_action_unavailable"));
           }
           UI.renderDM();
           return;
@@ -498,7 +498,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     if (all.length === 0) {
       const empty = document.createElement("div");
       empty.className = "pill";
-      empty.textContent = "Пока пусто.";
+      empty.textContent = t("dm_empty");
       panel.appendChild(empty);
     }
   }
@@ -672,7 +672,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     // DM must be hidden until explicitly opened by user action (bubble click / UI.openDM),
     // OR until an incoming DM opens the panel.
-    if (!S.dm.open || !S.dm.activeId) {
+    if (!S.dm.open) {
       if (dmBlock) dmBlock.classList.add("hidden");
       return;
     }
@@ -685,6 +685,17 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const box = $("dmLog");
     if (!box) return;
     if (!box.classList.contains("dmLog")) box.classList.add("dmLog");
+
+    if (!S.dm.activeId) {
+      box.innerHTML = "";
+      const empty = document.createElement("div");
+      empty.className = "pill";
+      empty.textContent = t("dm_empty");
+      box.appendChild(empty);
+      const actionsEmpty = $("dmActions");
+      if (actionsEmpty) actionsEmpty.innerHTML = "";
+      return;
+    }
 
     let target = getS().players[withId];
     if (!target) {
@@ -834,7 +845,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const btnBattle = mkBtn("баттл", () => {
       if ((getS().me.points || 0) <= 0) {
-        const msg = "Недоступно.";
+        const msg = t("dm_action_unavailable");
         if (UI && typeof UI.showStatToast === "function") {
           UI.showStatToast("points", msg);
         }
