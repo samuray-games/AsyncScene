@@ -1,3 +1,9 @@
+## 2026-06-15 — Step 6.7.3 Fix1 Events Header / Panel Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. Safari/iPhone still must run `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1()` before claiming runtime PASS.
+- Fixed the Step 6.7.3 smoke crash by moving the optional Events panel snapshot state, including `prevEventsBodyHidden`, ahead of any diagnostic/cleanup reads so the smoke no longer hits a TDZ ReferenceError.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1()` with fresh identity `build_2026_06_15_step6_7_3_events_header_panel_labels_fix1` / `step6_7_3_events_header_panel_labels_fix1` / `step6_7_3_events_header_panel_labels_fix1_v20260615_001`.
+- Scope held: smoke initialization and diagnostics only; no visible copy changes, no event logic changes, no gameplay changes, no economy writes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.3 Events Header / Panel Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. Safari/iPhone still must run `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()` before claiming runtime PASS.
 - Routed the visible Events panel header, collapse/clear labels, and empty-state text through `Data.t(...)` in both `AsyncScene/Web/ui/ui-events.js` and `docs/ui/ui-events.js`, while keeping `events_panel_hint` as a resolver-backed data-only key so no new visible UI was forced.

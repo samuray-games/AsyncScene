@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.3 Fix1 Events Header / Panel Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: fix the Step 6.7.3 smoke TDZ crash by initializing optional Events panel snapshot state before any diagnostic or cleanup code can read it.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1()`.
+- Scope held: smoke initialization and diagnostics only; no visible copy changes, no event logic changes, no gameplay changes, no economy writes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.3 Events Header / Panel Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: route the visible Events panel header, collapse/clear labels, and empty-state copy through the existing profile text resolver while keeping event generation, chronology/history/persistence, gameplay, and economy logic unchanged.
