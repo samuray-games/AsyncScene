@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.6.1 Fix6 Empty States Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: remove the remaining free `t` reference from the actual UI route files and extend the smoke scan to cover the live DM/battles mirrors.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix6()`.
+- Scope held: UI mirror wiring, smoke hardening, and docs notes only; no copy, gameplay, event, battle, DM, REP, points, money, ECON, moneyLog, persistence, or event journal changes.
+
 ## 2026-06-15 — Step 6.6.1 Fix5 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the smoke-only `stripComments` ReferenceError in the free-t diagnostic path while preserving the existing route checks and fresh smoke identity style.
