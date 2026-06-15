@@ -45,12 +45,13 @@ window.Game = window.Game || {};
 
   function applyMenuLabels() {
     const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
+    const unavailableText = t("menu_unavailable");
     const menuBtn = document.getElementById("btnMenu");
     if (menuBtn) menuBtn.textContent = t("menu_title");
     const lotTop = document.getElementById("btnLotteryTop");
     if (lotTop) {
-      lotTop.title = "Недоступно.";
-      lotTop.textContent = "Недоступно.";
+      lotTop.title = unavailableText;
+      lotTop.textContent = unavailableText;
     }
     const legacyRes = document.getElementById("lotteryResult");
     if (legacyRes) legacyRes.remove();
@@ -69,6 +70,7 @@ window.Game = window.Game || {};
 
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
     if (!body) return;
+    const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
 
     const btnId = "btnManifestToggle";
     let btn = document.getElementById(btnId);
@@ -76,7 +78,6 @@ window.Game = window.Game || {};
       btn = document.createElement("button");
       btn.id = btnId;
       btn.className = "btn small";
-      btn.textContent = "Цель";
       btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -87,6 +88,7 @@ window.Game = window.Game || {};
       };
       body.appendChild(btn);
     }
+    btn.textContent = t("goal_label");
 
     let panel = document.getElementById("manifestPanel");
     if (!panel) {
@@ -97,7 +99,6 @@ window.Game = window.Game || {};
       const header = document.createElement("div");
       header.className = "panelHeader";
       const title = document.createElement("div");
-      title.textContent = "Цель";
       const close = document.createElement("button");
       close.className = "btn closeX";
       close.type = "button";
@@ -112,6 +113,7 @@ window.Game = window.Game || {};
       };
       header.appendChild(title);
       header.appendChild(close);
+      title.textContent = t("goal_label");
 
       const panelBody = document.createElement("div");
       panelBody.className = "panelBody manifestBody";
@@ -121,6 +123,8 @@ window.Game = window.Game || {};
       panel.appendChild(panelBody);
       body.appendChild(panel);
     }
+    const titleEl = panel.querySelector(".panelHeader div");
+    if (titleEl) titleEl.textContent = t("goal_label");
 
     const D = (Game && Game.Data) ? Game.Data : null;
     const full = (D && D.TEXTS && D.TEXTS.manifest && D.TEXTS.manifest.full)
@@ -139,6 +143,7 @@ window.Game = window.Game || {};
     if (!block) return;
     const body = document.getElementById("menuBody") || block.querySelector(".blockBody, .panelBody");
     if (!body) return;
+    const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
 
     let wrap = document.getElementById("returnToStartControls");
     if (!wrap) {
@@ -155,7 +160,7 @@ window.Game = window.Game || {};
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn small";
-    btn.textContent = "К старту";
+    btn.textContent = t("return_to_start");
     btn.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -338,24 +343,27 @@ window.Game = window.Game || {};
   function ensureLotteryControls() {
     const dock = document.getElementById("lotteryDock");
     if (!dock) return;
+    const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
 
     const legacyHint = document.getElementById("lotteryHint");
     if (legacyHint) legacyHint.remove();
 
-    const existing = document.getElementById("lotteryControls");
-    if (existing && existing.parentElement === dock) return;
-    if (existing) existing.remove();
+    let existing = document.getElementById("lotteryControls");
+    if (existing && existing.parentElement !== dock) {
+      existing.remove();
+      existing = null;
+    }
     const legacyRes = document.getElementById("lotteryResult");
     if (legacyRes) legacyRes.remove();
 
     const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5 };
     const BET = (LOT.bet | 0) || 5;
 
-    const wrap = document.createElement("div");
+    const wrap = existing || document.createElement("div");
     wrap.id = "lotteryControls";
     wrap.className = "lotteryRow";
-    wrap.textContent = "Недоступно.";
-    dock.appendChild(wrap);
+    wrap.textContent = t("menu_unavailable");
+    if (!wrap.parentElement) dock.appendChild(wrap);
   }
 
   function showLotteryToast(text) {
@@ -579,9 +587,22 @@ window.Game = window.Game || {};
     ensureLoggerControls();
   };
 
+  UI.__menuChromeRouteSources = () => ({
+    applyMenuLabels: String(applyMenuLabels),
+    ensureManifestControls: String(ensureManifestControls),
+    ensureReturnToStartControls: String(ensureReturnToStartControls),
+    ensureLotteryControls: String(ensureLotteryControls),
+    showLotteryToast: String(showLotteryToast),
+    lottery: String(UI.lottery || ""),
+    renderMenu: String(UI.renderMenu),
+    showMenu: String(UI.showMenu || ""),
+    hideMenu: String(UI.hideMenu || ""),
+  });
+
   UI.lottery = () => {
+    const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
     ensureLotteryControls();
-    showLotteryToast("Недоступно.");
+    showLotteryToast(t("menu_unavailable"));
     return;
 
     const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5, cooldownMs: 10 * 60 * 1000 };
@@ -594,7 +615,7 @@ window.Game = window.Game || {};
     };
 
     if ((S.me.points || 0) < bet) {
-      notify("Недоступно.");
+      notify(t("menu_unavailable"));
       UI.requestRenderAll?.();
       return;
     }
@@ -612,7 +633,7 @@ window.Game = window.Game || {};
       ? Game.__A.spendPoints
       : null;
     if (spend && !spend(bet, "lottery")) {
-      notify("Недоступно.");
+      notify(t("menu_unavailable"));
       UI.requestRenderAll?.();
       return;
     }
