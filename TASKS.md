@@ -1,8 +1,8 @@
-## 2026-06-15 — Step 6.7.1 Fix4 Start Screen Buttons & Labels Profile Texts
+## 2026-06-15 — Step 6.7.1 Fix5 Start Screen Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Goal: stop the stale/default start-screen DOM overwrite by syncing the active visible root and duplicate roots through the profile resolver, then verify the fresh Fix4 smoke identity.
-- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4()`.
-- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4()`.
+- Goal: fix the start-root detection and stale overwrite path so the active visible root stays on the live profile resolver path and the Fix5 smoke can verify the live DOM route.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5()`.
 - Scope held: start-screen DOM routing, source-route diagnostics, DOM-write diagnostics, smoke diagnostics, and docs notes only; no profile mapping thresholds, storage keys, first-launch/reset flow, dev mode flow, gameplay, or event/economy logic changes.
 
 ## 2026-06-15 — Step 6.7.1 Start Screen Buttons & Labels Profile Texts

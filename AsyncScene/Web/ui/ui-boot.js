@@ -721,22 +721,25 @@ window.Game = window.Game || {};
       return String(profile || "").trim();
     })();
     if (savedUiProfile) {
-      if (D && typeof D.setUiProfile === "function") {
-        D.setUiProfile(savedUiProfile);
-      } else if (D && typeof D === "object") {
-        D.UI_PROFILE = savedUiProfile;
-      }
-      if (UI && UI.S) {
-        UI.S.flags = UI.S.flags || {};
-        UI.S.flags.uiProfile = savedUiProfile;
-      }
-      if (G.__S && G.__S !== (UI && UI.S)) {
-        G.__S.flags = G.__S.flags || {};
-        G.__S.flags.uiProfile = savedUiProfile;
-      }
-      if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
-        G.State.flags = G.State.flags || {};
-        G.State.flags.uiProfile = savedUiProfile;
+      const currentUiProfile = getActiveStartScreenProfile(UI);
+      if (!currentUiProfile || currentUiProfile === "default") {
+        if (D && typeof D.setUiProfile === "function") {
+          D.setUiProfile(savedUiProfile);
+        } else if (D && typeof D === "object") {
+          D.UI_PROFILE = savedUiProfile;
+        }
+        if (UI && UI.S) {
+          UI.S.flags = UI.S.flags || {};
+          UI.S.flags.uiProfile = savedUiProfile;
+        }
+        if (G.__S && G.__S !== (UI && UI.S)) {
+          G.__S.flags = G.__S.flags || {};
+          G.__S.flags.uiProfile = savedUiProfile;
+        }
+        if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
+          G.State.flags = G.State.flags || {};
+          G.State.flags.uiProfile = savedUiProfile;
+        }
       }
     }
     const startBtn = $("btnStart") || document.getElementById("btnStart");
@@ -1393,6 +1396,7 @@ window.Game = window.Game || {};
     G.__DEV.refreshOnboardingStartScreenOnce = function refreshOnboardingStartScreenOnce() {
       applyStartScreenContent(UI);
       ensureStartScreenVisible(UI);
+      try { syncStartScreenRootTexts(document, UI, getActiveStartScreenProfile(UI)); } catch (_) {}
       return {
         ok: true,
         onboardingSeen: getOnboardingSeen(UI),
@@ -8714,11 +8718,11 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1;
     }
-    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 !== "function") {
-      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix4() {
-        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite";
-        const commit = "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite";
-        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite_v20260615_001";
+    if (typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 !== "function") {
+      G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 = function smokeZoomerFeelStep671StartScreenButtonsLabelsFix5() {
+        const buildTag = "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix5_root_detection";
+        const commit = "step6_7_1_start_screen_buttons_labels_fix5_root_detection";
+        const smokeVersion = "step6_7_1_start_screen_buttons_labels_fix5_root_detection_v20260615_001";
         const result = {
           buildTag,
           commit,
@@ -8771,6 +8775,18 @@ window.Game = window.Game || {};
             hardcodedDefaultDomWritesRemaining: [],
             refreshCalledAfterProfileSet: false,
             readNodesMatchUpdatedNodes: false,
+            startRootsReferenceSafe: false,
+            ok: false,
+          },
+          rootDiagnostics: {
+            startRootStrategy: "",
+            startRootSelectorUsed: "",
+            activeStartRootFound: false,
+            candidateRootCount: 0,
+            duplicateStartNodesCount: 0,
+            readScopeDescription: "",
+            writeScopeDescription: "",
+            sameReadWriteScope: false,
             ok: false,
           },
           summary: {
@@ -8784,6 +8800,7 @@ window.Game = window.Game || {};
             domRoutesConnectedCount: 0,
             sourceRoutesConnectedCount: 0,
             domOverwriteFixed: false,
+            rootDetectionOk: false,
           },
         };
         const fail = (check, detail) => {
@@ -8798,6 +8815,24 @@ window.Game = window.Game || {};
         const resolveProfile = (value) => (D && typeof D.resolveUiProfileFromBirthYearValue === "function")
           ? D.resolveUiProfileFromBirthYearValue(value)
           : "default";
+        const collectStartRoots = () => {
+          const roots = [];
+          const seen = new Set();
+          const add = (node) => {
+            if (!node || seen.has(node)) return;
+            seen.add(node);
+            roots.push(node);
+          };
+          try { add(document.getElementById("startScreen")); } catch (_) {}
+          try { add(document.getElementById("startCard")); } catch (_) {}
+          try { add(document.body); } catch (_) {}
+          try { add(document); } catch (_) {}
+          return roots;
+        };
+        let startRoots = collectStartRoots();
+        let startRootSelectorUsed = startRoots.some((root) => root && root.id === "startScreen")
+          ? "#startScreen"
+          : (startRoots.some((root) => root && root.id === "startCard") ? "#startCard" : "document");
         const storageKeys = () => {
           try { return window.localStorage ? Object.keys(window.localStorage).sort() : []; } catch (_) { return []; }
         };
@@ -8838,20 +8873,38 @@ window.Game = window.Game || {};
           result.routeChecks.millennialFallbackPreserved = keys.filter((key) => result.samples[key].millennial === resolve(key, "") && result.samples[key].millennial === resolve(key, "missing")).length >= 6;
           result.routeChecks.zoomerDiffers = result.summary.millennialZoomerDifferentCount >= 6;
 
-          const startRoots = [];
-          try { Array.from(document.querySelectorAll("#startScreen")).forEach((node) => { if (node && startRoots.indexOf(node) < 0) startRoots.push(node); }); } catch (_) {}
-          const st = startRoots.find((root) => root && root.classList && root.classList.contains("active") && !root.hidden)
-            || startRoots.find((root) => root && !root.hidden)
-            || startRoots[0]
-            || ((typeof document !== "undefined") ? document.getElementById("startScreen") : null);
-          const titleEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startTitle") || document.getElementById("startTitle")) : ((typeof document !== "undefined") ? document.getElementById("startTitle") : null);
-          const labelEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null);
-          const pickerEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null);
-          const hintEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null);
-          const feelingEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null);
-          const startBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnStart") || document.getElementById("btnStart")) : ((typeof document !== "undefined") ? document.getElementById("btnStart") : null);
-          const rulesBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnRules") || document.getElementById("btnRules")) : ((typeof document !== "undefined") ? document.getElementById("btnRules") : null);
-          const resetBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding")) : ((typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null);
+          let st = null;
+          let titleEl = null;
+          let labelEl = null;
+          let pickerEl = null;
+          let hintEl = null;
+          let feelingEl = null;
+          let startBtn = null;
+          let rulesBtn = null;
+          let resetBtn = null;
+          const resolveStartScope = () => {
+            const refs = collectStartRoots();
+            startRoots = refs;
+            startRootSelectorUsed = refs.some((root) => root && root.id === "startScreen")
+              ? "#startScreen"
+              : (refs.some((root) => root && root.id === "startCard") ? "#startCard" : "document");
+            const candidate = refs.find((root) => root && root.classList && root.classList.contains("active") && !root.hidden)
+              || refs.find((root) => root && !root.hidden)
+              || refs[0]
+              || null;
+            st = candidate;
+            const scope = candidate || document;
+            titleEl = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#startTitle") || document.getElementById("startTitle")) : document.getElementById("startTitle");
+            labelEl = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel")) : document.getElementById("startBirthYearLabel");
+            pickerEl = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker")) : document.getElementById("startBirthYearPicker");
+            hintEl = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint")) : document.getElementById("startBirthYearHint");
+            feelingEl = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel")) : document.getElementById("startBirthYearFeelingLabel");
+            startBtn = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#btnStart") || document.getElementById("btnStart")) : document.getElementById("btnStart");
+            rulesBtn = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#btnRules") || document.getElementById("btnRules")) : document.getElementById("btnRules");
+            resetBtn = scope && typeof scope.querySelector === "function" ? (scope.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding")) : document.getElementById("btnResetOnboarding");
+            return { scope, candidate };
+          };
+          const initialScope = resolveStartScope();
           result.routeChecks.startScreenBootHealthy = !!(st && titleEl && labelEl && pickerEl && hintEl && feelingEl && startBtn && rulesBtn && resetBtn);
           if (!result.routeChecks.startScreenBootHealthy) fail("start_screen_boot_unhealthy", {
             st: !!st,
@@ -8868,6 +8921,10 @@ window.Game = window.Game || {};
           const activeSelectionRaw = readUiProfileResolverValue();
           const activeProfile = resolveProfile(activeSelectionRaw);
           const activeProfileMode = String(activeProfile).trim().toLowerCase() === "zoomer" || String(activeProfile).trim().toLowerCase() === "alpha" ? "zoomer" : "millennial";
+          if (typeof G.__DEV.refreshOnboardingStartScreenOnce === "function") {
+            try { G.__DEV.refreshOnboardingStartScreenOnce(); } catch (_) {}
+          }
+          resolveStartScope();
           const liveResumeMode = !!(G.__A && typeof G.__A.getOnboardingSeen === "function" ? G.__A.getOnboardingSeen() : (G.__S && G.__S.progress && G.__S.progress.onboardingSeen === true));
           const expectedStartText = liveResumeMode ? resolve("start_continue", activeProfileMode) : resolve("start_action", activeProfileMode);
           const expectedRulesText = resolve("rules_action", activeProfileMode);
@@ -8977,11 +9034,28 @@ window.Game = window.Game || {};
                 && String((q("#btnRules") || {}).textContent || "").trim() === expectedRulesText
                 && String((q("#btnResetOnboarding") || {}).textContent || "").trim() === expectedResetText;
             });
+          result.domWriteDiagnostics.startRootsReferenceSafe = Array.isArray(startRoots);
           result.domWriteDiagnostics.ok = result.domWriteDiagnostics.activeStartRootFound
             && result.domWriteDiagnostics.assignmentsAfterResolverDetected === false
             && result.domWriteDiagnostics.hardcodedDefaultDomWritesRemaining.length === 0
             && result.domWriteDiagnostics.refreshCalledAfterProfileSet === true
-            && result.domWriteDiagnostics.readNodesMatchUpdatedNodes === true;
+            && result.domWriteDiagnostics.readNodesMatchUpdatedNodes === true
+            && result.domWriteDiagnostics.startRootsReferenceSafe === true;
+
+          result.rootDiagnostics.startRootStrategy = st && st.id === "startScreen"
+            ? "wrapper-root"
+            : (st && st.id === "startCard" ? "card-root" : "document-fallback");
+          result.rootDiagnostics.startRootSelectorUsed = startRootSelectorUsed;
+          result.rootDiagnostics.activeStartRootFound = !!activeRootMatch;
+          result.rootDiagnostics.candidateRootCount = startRoots.length;
+          result.rootDiagnostics.duplicateStartNodesCount = (typeof document !== "undefined" && document.querySelectorAll) ? document.querySelectorAll("#startScreen").length : 0;
+          result.rootDiagnostics.readScopeDescription = "document.querySelector fallback with startScreen/startCard candidates";
+          result.rootDiagnostics.writeScopeDescription = "applyStartScreenContent + refreshOnboardingStartScreenOnce";
+          result.rootDiagnostics.sameReadWriteScope = result.domWriteDiagnostics.startRootsReferenceSafe && result.domWriteDiagnostics.activeStartRootFound;
+          result.rootDiagnostics.ok = result.rootDiagnostics.activeStartRootFound
+            && result.rootDiagnostics.candidateRootCount > 0
+            && result.rootDiagnostics.sameReadWriteScope === true
+            && result.rootDiagnostics.duplicateStartNodesCount >= 0;
 
           const inputsChecked = ["87", "98", "04", "15"];
           const expectedByInput = {
@@ -9023,6 +9097,7 @@ window.Game = window.Game || {};
             && result.routeChecks.resolverExists
             && result.routeChecks.startScreenBootHealthy
             && result.routeChecks.uiBootRoutesResolver
+            && result.rootDiagnostics.ok
             && result.domWriteDiagnostics.ok
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
             && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
@@ -9040,15 +9115,15 @@ window.Game = window.Game || {};
             && result.samples.start_action.zoomer === "Войти";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
-          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 === "function"
-            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite"
-            && commit === "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite"
-            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix4_dom_overwrite_v20260615_001";
+          result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 === "function"
+            && buildTag === "build_2026_06_15_step6_7_1_start_screen_buttons_labels_fix5_root_detection"
+            && commit === "step6_7_1_start_screen_buttons_labels_fix5_root_detection"
+            && smokeVersion === "step6_7_1_start_screen_buttons_labels_fix5_root_detection_v20260615_001";
           if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", {
             buildTag,
             commit,
             smokeVersion,
-            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 === "function",
+            fnExists: typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 === "function",
           });
 
           result.summary.routeConnectedCount = [
@@ -9081,6 +9156,7 @@ window.Game = window.Game || {};
             result.sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0,
           ].filter(Boolean).length;
           result.summary.domOverwriteFixed = !!result.domWriteDiagnostics.ok;
+          result.summary.rootDetectionOk = !!result.rootDiagnostics.ok;
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
@@ -9108,10 +9184,11 @@ window.Game = window.Game || {};
           && result.profileSelectionDiagnostics.ok === true
           && result.domRouteDiagnostics.ok === true
           && result.sourceRouteDiagnostics.ok === true
-          && result.domWriteDiagnostics.ok === true;
+          && result.domWriteDiagnostics.ok === true
+          && result.rootDiagnostics.ok === true;
         return result;
       };
-      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix4;
+      G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix5;
     }
   }
 })();
