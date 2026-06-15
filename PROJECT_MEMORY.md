@@ -15,9 +15,16 @@
 ## 2026-06-15 — Step 6.7.1 Fix2 Start Screen Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix1 still failed because the live start-screen DOM stayed on millennial/default copy while the current profile was zoomer, so the screen itself was not being refreshed from the active profile route.
-- Fix2 syncs the current start-screen profile back into the DOM rendering path and refreshes the visible labels/buttons/helper text after the profile selection changes.
+- Fix2 added a sync helper, but the live DOM nodes were still being written without the active profile forced through the resolver.
 - Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2()`.
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix2()`.
+
+## 2026-06-15 — Step 6.7.1 Fix3 Start Screen Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix2 still failed because the live start-screen DOM stayed on millennial/default copy even though the profile resolver samples were green, which showed the actual DOM nodes were not being written through the active profile route.
+- Fix3 wires the actual start-screen DOM nodes through `Data.resolveStartScreenText(...)` using the active selected profile and adds source-route diagnostics for the runtime/source mirror.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix3()`.
 
 ## 2026-06-15 — Step 6.6.1 Fix11 Empty States Profile Texts
 - Fix11 corrects the docs mirror verification after Fix10 stayed feature-green but still reported `docsMirrorUpdated:false` because the smoke checked the wrong mirror object path.
