@@ -1897,7 +1897,7 @@ UI.renderBattles = () => {
    if (!Array.isArray(S.battles) || S.battles.length === 0) {
      const hint = document.createElement("div");
      hint.className = "hint";
-     hint.textContent = "Вызовов нет.";
+     hint.textContent = t("battles_empty");
      body.appendChild(hint);
      try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
      return;
@@ -2840,7 +2840,7 @@ UI.renderBattles = () => {
 
             const showOffToast = () => {
               try {
-                const msg = "Откроется на ⚡5";
+                const msg = t("battle_energy_locked_hint", { energy: 5 });
                 try { showBtnToastRight(off, msg); } catch (_) {}
                 // ensure inline offToast stays hidden to avoid duplicate messages
                 try { offToast.style.display = "none"; } catch (_) {}

@@ -11,6 +11,9 @@ window.Game = window.Game || {};
 console.warn("UI_DM_V1_LOADED", { ts: Date.now() });
 if (!Game.__DEV) Game.__DEV = {};
 const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
+const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
+  ? Game.Data.t(key, vars)
+  : String(key || "");
 Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
@@ -464,9 +467,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         }
 
         if (!paidOk) {
-          if (UI && typeof UI.showStatToast === "function") {
-            UI.showStatToast("points", "Недоступно.");
-          }
+        if (UI && typeof UI.showStatToast === "function") {
+          UI.showStatToast("points", t("dm_action_unavailable"));
+        }
           UI.renderDM();
           return;
         }
@@ -498,10 +501,11 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     if (all.length === 0) {
       const empty = document.createElement("div");
       empty.className = "pill";
-      empty.textContent = "Пока пусто.";
+      empty.textContent = t("dm_empty");
       panel.appendChild(empty);
     }
   }
+  UI.openTeachPanel = openTeachPanel;
 
   UI.openDMByName = (name) => {
     if (!name || name === "Система") return;
@@ -834,7 +838,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const btnBattle = mkBtn("баттл", () => {
       if ((getS().me.points || 0) <= 0) {
-        const msg = "Недоступно.";
+        const msg = t("dm_action_unavailable");
         if (UI && typeof UI.showStatToast === "function") {
           UI.showStatToast("points", msg);
         }
@@ -945,7 +949,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       p2p_insufficient_points: systemSay("errors", "insufficientPoints"),
       p2p_self_transfer_forbidden: systemSay("errors", "p2pSelfTransferForbidden"),
       p2p_player_to_player_disabled: systemSay("errors", "unavailable"),
-      p2p_disabled: systemSay("errors", "unavailable")
+      p2p_disabled: t("dm_action_unavailable")
     };
     const appendP2PControls = () => {
       if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
@@ -968,7 +972,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         : false;
       return mkBtn(label, () => {
         if (!enabled) {
-          showP2PSystem(systemSay("errors", "unavailable"));
+          showP2PSystem(t("dm_action_unavailable"));
           return;
         }
         const promptText = (mode === "give")
