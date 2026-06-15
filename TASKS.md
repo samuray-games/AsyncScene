@@ -5,6 +5,13 @@
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix2()`.
 - Scope held: menu chrome smoke diagnostics, safe toast probing, storage snapshot/restore, and docs notes only; no economy writes, no gameplay changes, and no menu/dev behavior changes.
 
+## 2026-06-15 — Step 6.7.2 Fix3 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: keep the Fix2 feature checks green while restoring the menu open/close state and toast state after the smoke probes so the runtime app is left unchanged.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix3()`.
+- Scope held: menu chrome smoke diagnostics, menu/toast state restoration, storage snapshot/restore, and docs notes only; no economy writes, no gameplay changes, and no menu/dev behavior changes.
+
 ## 2026-06-15 — Step 6.7.2 Fix1 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: fix the menu chrome smoke failures without changing menu behavior, dev mode behavior, storage keys, or the player-facing profile resolver contract.
