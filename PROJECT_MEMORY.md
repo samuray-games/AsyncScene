@@ -22,6 +22,14 @@
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5()`.
 - Scope held: smoke diagnostics aggregation only; no economy writes, no gameplay changes, and no menu/dev behavior changes.
 
+## 2026-06-15 — Step 6.7.2 Fix6 Restore UI Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix5 exposed a critical text-resolver regression: raw UI keys were leaking and the Fix5 smoke command was not a safe recovery point.
+- Fix6 adds missing compatibility aliases for `battle_loss` and `events_clear`, then ships a fresh emergency smoke `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix6RestoreUiTexts()` to verify raw-key leakage stays closed and menu chrome labels still resolve.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix6RestoreUiTexts()` with fresh identity `build_2026_06_15_step6_7_2_fix6_restore_ui_texts` / `step6_7_2_fix6_restore_ui_texts` / `step6_7_2_fix6_restore_ui_texts_v20260615_001`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix6RestoreUiTexts()`.
+- Scope held: resolver aliases, smoke diagnostics, and docs notes only; no gameplay, economy, event, battle, DM, or menu-behavior changes.
+
 ## 2026-06-15 — Step 6.7.2 Fix1 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Follow-up fix for the Step 6.7.2 menu chrome smoke: the served runtime/docs bundles now include `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix1()`, which probes the toast-only unavailable route safely, snapshots and restores storage, keeps dev labels hardcoded, and records menu behavior diagnostics without touching gameplay or persistence.
