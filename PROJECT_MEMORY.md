@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.3 Events Header / Panel Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE, not final runtime PASS. Safari/iPhone still must run `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()` before claiming runtime PASS.
+- Routed the visible Events panel header, collapse/clear labels, and empty-state text through `Data.t(...)` in both `AsyncScene/Web/ui/ui-events.js` and `docs/ui/ui-events.js`, while keeping `events_panel_hint` as a resolver-backed data-only key so no new visible UI was forced.
+- Added profile-aware text entries in `AsyncScene/Web/data.js` and `docs/data.js` for `events_header`, `events_close_extra`, `events_clear`, `events_empty`, and `events_panel_hint`, with millennial/default fallback preserved and zoomer variants kept distinct.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()` with fresh identity `build_2026_06_15_step6_7_3_events_header_panel_labels` / `step6_7_3_events_header_panel_labels` / `step6_7_3_events_header_panel_labels_v20260615_001`.
+- Scope held: event-panel text routing and smoke only; no event generation changes, no chronology/history/persistence changes, no gameplay changes, no REP/points/money/ECON/moneyLog changes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.2 Fix2 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix1 crashed because the smoke cleanup directly wrote `State.me.points`, which hit the circulation/economy guard and proved the cleanup path was mutating guarded state.

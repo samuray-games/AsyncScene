@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.3 Events Header / Panel Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: route the visible Events panel header, collapse/clear labels, and empty-state copy through the existing profile text resolver while keeping event generation, chronology/history/persistence, gameplay, and economy logic unchanged.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabels()`.
+- Scope held: event-panel text routing, smoke diagnostics, and docs notes only; no event logic changes, no gameplay changes, no economy writes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.2 Final Fix1 Menu Chrome Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: correct the final smoke aggregation false negatives without changing feature behavior or any menu chrome implementation.
