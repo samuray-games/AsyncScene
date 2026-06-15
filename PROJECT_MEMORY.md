@@ -1,3 +1,8 @@
+## 2026-06-15 — Step 6.6.1 Fix9 Empty States Profile Texts
+- Fix9 diagnoses the remaining DM unavailable-route mismatch by treating the `баттл` zero-points toast as the canonical visible path and verifying it against the resolver-backed `dm_action_unavailable` copy.
+- The new smoke command is `Game.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix9()`.
+- Fix9 keeps the runtime DM wiring and mirror sync intact while adding compact route diagnostics for the actual visible branch.
+
 ## 2026-06-15 — Step 6.6.1 Fix8 Empty States Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix8 follows the Fix7 miss, where the docs mirror was updated but the actual runtime DM file was still not connected for the unavailable-action route.

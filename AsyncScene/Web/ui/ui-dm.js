@@ -954,13 +954,14 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       dmPushLine(withId, "Система", text);
       UI.renderDM();
     };
+    const dmUnavailableText = () => t("dm_action_unavailable");
 
     const reasonMessages = {
       p2p_invalid_amount: systemSay("errors", "p2pInvalidAmount"),
       p2p_insufficient_points: systemSay("errors", "insufficientPoints"),
       p2p_self_transfer_forbidden: systemSay("errors", "p2pSelfTransferForbidden"),
-      p2p_player_to_player_disabled: t("dm_action_unavailable"),
-      p2p_disabled: t("dm_action_unavailable")
+      p2p_player_to_player_disabled: dmUnavailableText(),
+      p2p_disabled: dmUnavailableText()
     };
     const appendP2PControls = () => {
       if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
@@ -983,7 +984,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         : false;
       return mkBtn(label, () => {
         if (!enabled) {
-          showP2PSystem(t("dm_action_unavailable"));
+          showP2PSystem(dmUnavailableText());
           return;
         }
         const promptText = (mode === "give")

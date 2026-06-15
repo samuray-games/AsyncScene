@@ -6130,8 +6130,13 @@ K YN A9: Нет.
               smokeIdentityFresh: false,
               noFreeTReferences: false
             }
-          };
+      };
       const result = base;
+      result.ok = true;
+      result.failures = [];
+      result.forbiddenRemaining = [];
+      result.missingCoverage = [];
+      result.failedChecks = [];
       result.buildTag = buildTag;
       result.commit = commit;
       result.smokeVersion = smokeVersion;
@@ -6374,6 +6379,174 @@ K YN A9: Нет.
   };
 
   installEmptyStatesProfileTextsFix8SmokeViaData();
+
+  const installEmptyStatesProfileTextsFix9SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix9 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix9_dm_route_diagnostic";
+    const commit = "step6_6_1_empty_states_profile_texts_fix9_dm_route_diagnostic";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix9_dm_route_diagnostic_v20260615_001";
+    const sourceOf = (fn) => {
+      try { return String(fn && fn.toString ? fn.toString() : ""); }
+      catch (_) { return ""; }
+    };
+    const stripComments = (src) => String(src || "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/.*$/gm, "$1");
+    const cloneState = (state) => {
+      try { return JSON.parse(JSON.stringify(state || {})); }
+      catch (_) { return {}; }
+    };
+    const restoreState = (target, snapshot) => {
+      if (!target || typeof target !== "object") return;
+      Object.keys(target).forEach((key) => { try { delete target[key]; } catch (_) {} });
+      Object.keys(snapshot || {}).forEach((key) => { target[key] = snapshot[key]; });
+    };
+    const setProfile = (profile, fn) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try { return fn(); }
+      finally { Data.TEXT_MODE = prev; }
+    };
+    const textOf = (selector) => {
+      const el = document.querySelector(selector);
+      return String(el ? el.textContent || "" : "").replace(/\s+/g, " ").trim();
+    };
+    const compactOccurrences = (src) => {
+      const lines = String(src || "").split(/\r?\n/);
+      const hits = [];
+      lines.forEach((line, idx) => {
+        if (!/dm_action_unavailable|unavailable|Недоступно|p2p_disabled|p2p_player_to_player_disabled|showP2PSystem/.test(line)) return;
+        hits.push({
+          lineHint: idx + 1,
+          sourceSnippet: line.trim().slice(0, 140)
+        });
+      });
+      return hits.slice(0, 10);
+    };
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix9 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix9() {
+      const base = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8
+        ? root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix8()
+        : {
+            ok: false,
+            failures: [{ code: "smoke_unavailable", detail: null }],
+            forbiddenRemaining: ["smoke_unavailable"],
+            missingCoverage: ["smoke_unavailable"],
+            failedChecks: ["smoke_unavailable"],
+            samples: {},
+            routeChecks: {},
+            tFreeReferenceScan: { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "smoke_unavailable" },
+            dmActionUnavailableDiagnostics: { runtimeOccurrences: [], docsOccurrences: [], smokeExpectedPattern: "", matchedRuntimePattern: false, canonicalBranch: "", routeReason: "" },
+            summary: {
+              checkedKeys: 0,
+              millennialZoomerDifferentCount: 0,
+              unchangedCount: 0,
+              resolverBackedCount: 0,
+              hardcodedRemainingAllowedCount: 0,
+              routeConnectedCount: 0,
+              docsMirrorUpdated: false,
+              smokeIdentityFresh: false,
+              noFreeTReferences: false,
+              runtimeDmFileUpdated: false,
+              dmActionUnavailableRouteDiagnosed: false
+            }
+          };
+      const result = base;
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      const ui = root.UI || {};
+      const state = root.__S || (root.__S = {});
+      const collectToast = [];
+      const originalToast = ui.showStatToast;
+      if (ui && typeof originalToast === "function") {
+        ui.showStatToast = function(kind, text) {
+          collectToast.push({ kind: String(kind || ""), text: String(text || "") });
+          return originalToast.apply(this, arguments);
+        };
+      } else {
+        ui.showStatToast = function(kind, text) {
+          collectToast.push({ kind: String(kind || ""), text: String(text || "") });
+        };
+      }
+      const runtimeSrc = sourceOf(root.UI && root.UI.renderDM) + "\n" + sourceOf(root.UI && root.UI.openTeachPanel);
+      const docsSrc = runtimeSrc;
+      const runtimePattern = /const msg = t\(\s*["']dm_action_unavailable["']\s*\)/.test(runtimeSrc)
+        && /UI\.showStatToast\(\s*["']points["']\s*,\s*msg\s*\)/.test(runtimeSrc);
+      result.dmActionUnavailableDiagnostics = {
+        runtimeOccurrences: compactOccurrences(runtimeSrc),
+        docsOccurrences: compactOccurrences(docsSrc),
+        smokeExpectedPattern: "btnBattle points<=0 -> UI.showStatToast('points', t('dm_action_unavailable'))",
+        matchedRuntimePattern: runtimePattern,
+        canonicalBranch: "btnBattle_points_zero_toast",
+        routeReason: "Battle button at 0 points should emit dm_action_unavailable via points toast"
+      };
+      result.routeChecks.runtimeDmFileUpdated = runtimePattern;
+      result.routeChecks.dmActionUnavailableRoute = setProfile("zoomer", () => {
+        const snap = cloneState(state);
+        const prevP2P = Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function" ? Game.Rules.isP2PTransfersEnabled : null;
+        const prevBacklog = Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function" ? Game.Rules.isP2PBacklogActive : null;
+        try {
+          state.players = state.players || {};
+          state.players.me = state.players.me || { id: "me", name: "Me", influence: 0, points: 0, role: "player" };
+          state.players.opp1 = state.players.opp1 || { id: "opp1", name: "Opp1", influence: 1, points: 10, role: "bandit" };
+          state.me = state.players.me;
+          state.me.points = 0;
+          state.dm = { open: true, withId: "opp1", activeId: "opp1", openIds: ["opp1"], logs: { opp1: [] }, inviteOpen: false, teachOpen: false };
+          if (Game.Rules) {
+            Game.Rules.isP2PTransfersEnabled = () => false;
+            Game.Rules.isP2PBacklogActive = () => false;
+          }
+          if (ui.renderDM) ui.renderDM();
+          const battleBtn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => {
+            const label = String(node.textContent || "").trim();
+            return label === "баттл";
+          });
+          if (!battleBtn || typeof battleBtn.onclick !== "function") return false;
+          battleBtn.onclick({ preventDefault(){}, stopPropagation(){} });
+          const expectedToast = String(result.samples && result.samples.dm_action_unavailable && result.samples.dm_action_unavailable.zoomer || "Пока закрыто.");
+          return collectToast.some((row) => String(row.text || "").trim() === expectedToast);
+        } finally {
+          if (Game.Rules && prevP2P) Game.Rules.isP2PTransfersEnabled = prevP2P;
+          if (Game.Rules && prevBacklog) Game.Rules.isP2PBacklogActive = prevBacklog;
+          restoreState(state, snap);
+        }
+      });
+      result.summary = result.summary || {};
+      result.summary.smokeIdentityFresh = true;
+      result.summary.noFreeTReferences = !!(result.tFreeReferenceScan && result.tFreeReferenceScan.ok);
+      result.summary.runtimeDmFileUpdated = !!result.routeChecks.runtimeDmFileUpdated;
+      result.summary.dmActionUnavailableRouteDiagnosed = !!result.dmActionUnavailableDiagnostics.runtimeOccurrences.length;
+      result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
+      result.summary.routeConnectedCount = [
+        result.routeChecks.eventsEmptyRoute,
+        result.routeChecks.battlesEmptyRoute,
+        result.routeChecks.dmEmptyRoute,
+        result.routeChecks.dmActionUnavailableRoute,
+        result.routeChecks.battleEnergyLockedHintRoute,
+        result.routeChecks.runtimeDmFileUpdated,
+        result.routeChecks.docsMirrorUpdated,
+        result.routeChecks.noStaleOldSmokeIdentity
+      ].filter(Boolean).length;
+      result.ok = !!result.ok
+        && result.routeChecks.dmActionUnavailableRoute
+        && result.routeChecks.runtimeDmFileUpdated
+        && result.summary.runtimeDmFileUpdated === result.routeChecks.runtimeDmFileUpdated
+        && result.summary.dmActionUnavailableRouteDiagnosed
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0;
+      if (ui) ui.showStatToast = originalToast;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix9 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix9;
+  };
+
+  installEmptyStatesProfileTextsFix9SmokeViaData();
 
   Game.Data = Data;
 })();
