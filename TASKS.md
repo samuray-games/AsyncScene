@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.2 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: make the always-visible menu chrome feel different between Millennial and Zoomer profiles by routing the player-facing menu title, return CTA, unavailable label/toast, and goal label through the existing profile text resolver while preserving Millennial/default fallback.
+- Added dev-only Safari command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels()`.
+- Scope held: menu chrome text routing and smoke only; no dev mode changes, no console panel changes, no menu open/close changes, no start screen changes, no storage-key changes, and no gameplay/economy/event/battle/DM/persistence logic changes.
+
 ## 2026-06-15 — Step 6.7.1 Fix6 Start Screen Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Goal: keep the Fix5 feature checks green while making the smoke restore the previous visible app screen/state after probing the start screen.

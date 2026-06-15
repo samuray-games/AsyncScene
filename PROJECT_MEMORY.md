@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.7.2 Menu Chrome Buttons & Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added profile-aware menu chrome text keys in `AsyncScene/Web/data.js` and `docs/data.js`: `menu_title`, `return_to_start`, `menu_unavailable`, and `goal_label`, with Millennial/default preserved as the fallback and Zoomer made more compact/casual on the visible player-facing labels.
+- Routed the visible menu chrome labels in `AsyncScene/Web/ui/ui-menu.js` and `docs/ui/ui-menu.js` through `Game.Data.t(...)`, including the menu title button, return-to-start CTA, unavailable label/toast, menu chrome goal label, and the always-visible lottery unavailable placeholder, while leaving dev-only labels and menu behavior intact.
+- Added dev-only Safari smoke `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels()` with fresh identity `build_2026_06_15_step6_7_2_menu_chrome_buttons_labels` / `step6_7_2_menu_chrome_buttons_labels` / `step6_7_2_menu_chrome_buttons_labels_v20260615_001`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabels()`.
+- Scope held: menu chrome text routing and smoke only; no dev mode changes, no console panel changes, no menu open/close changes, no storage-key changes, no start screen changes, and no gameplay/economy/event/battle/DM/persistence logic changes.
+
 ## 2026-06-15 — Step 6.7.1 Fix6 Start Screen Buttons & Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fix5 passed the feature checks, but running the smoke left the app on the start screen, which breaks the smoke contract.
