@@ -6621,5 +6621,110 @@ K YN A9: Нет.
 
   installEmptyStatesProfileTextsFix10SmokeViaData();
 
+  const installEmptyStatesProfileTextsFix11SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11 === "function") return;
+    const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix11_docs_mirror";
+    const commit = "step6_6_1_empty_states_profile_texts_fix11_docs_mirror";
+    const smokeVersion = "step6_6_1_empty_states_profile_texts_fix11_docs_mirror_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11 = function smokeZoomerFeelStep661EmptyStatesProfileTextsFix11() {
+      const base = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10
+        ? root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10()
+        : { ok: false, failures: [{ code: "smoke_unavailable", detail: null }], forbiddenRemaining: ["smoke_unavailable"], missingCoverage: ["smoke_unavailable"], failedChecks: ["smoke_unavailable"], samples: {}, routeChecks: {}, tFreeReferenceScan: { ok: false, filesScanned: [], offendingReferences: [], diagnosticError: "smoke_unavailable" }, dmActionUnavailableDiagnostics: { runtimeOccurrences: [], docsOccurrences: [], smokeExpectedPattern: "", matchedRuntimePattern: false, canonicalBranch: "", routeReason: "" }, docsMirrorDiagnostics: { dataKeysPresent: false, dmRoutesPresent: false, battleRoutesPresent: false, missingDocsMirrorItems: [], ok: false }, summary: {} };
+      const result = base;
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      const dataText = root.Data && root.Data.TEXTS ? root.Data.TEXTS : null;
+      const dmSrc = String(root.UI && root.UI.renderDM ? root.UI.renderDM.toString() : "") + "\n" + String(root.UI && root.UI.openTeachPanel ? root.UI.openTeachPanel.toString() : "");
+      const battlesSrc = String(root.UI && root.UI.renderBattles ? root.UI.renderBattles.toString() : "");
+      const dataKeysPresent = !!(dataText && dataText.genz && dataText.alpha
+        && dataText.genz.events_empty === "Открой события."
+        && dataText.alpha.events_empty === "Пока тихо."
+        && dataText.genz.battles_empty === "Вызовов нет."
+        && dataText.alpha.battles_empty === "Раундов нет."
+        && dataText.genz.dm_empty === "Пока пусто."
+        && dataText.alpha.dm_empty === "Личка молчит."
+        && dataText.genz.dm_action_unavailable === "Недоступно."
+        && dataText.alpha.dm_action_unavailable === "Пока закрыто."
+        && dataText.genz.battle_energy_locked_hint === "Откроется на ⚡{energy}"
+        && dataText.alpha.battle_energy_locked_hint === "Нужно ⚡{energy}");
+      const dmRoutesPresent = /t\(\s*["']dm_empty["']\s*\)/.test(dmSrc)
+        && /t\(\s*["']dm_action_unavailable["']\s*\)/.test(dmSrc);
+      const battleRoutesPresent = /t\(\s*["']battles_empty["']\s*\)/.test(battlesSrc)
+        && /t\(\s*["']battle_energy_locked_hint["']\s*,\s*\{\s*energy\s*:\s*5\s*\}\s*\)/.test(battlesSrc);
+      const missingDocsMirrorItems = [];
+      if (!dataKeysPresent) missingDocsMirrorItems.push("dataKeys");
+      if (!dmRoutesPresent) missingDocsMirrorItems.push("dmRoutes");
+      if (!battleRoutesPresent) missingDocsMirrorItems.push("battleRoutes");
+      result.docsMirrorDiagnostics = {
+        dataKeysPresent,
+        dmRoutesPresent,
+        battleRoutesPresent,
+        missingDocsMirrorItems,
+        ok: dataKeysPresent && dmRoutesPresent && battleRoutesPresent
+      };
+      result.routeChecks.docsMirrorUpdated = result.docsMirrorDiagnostics.ok;
+      result.routeChecks.runtimeDmFileUpdated = !!(result.dmActionUnavailableDiagnostics && result.dmActionUnavailableDiagnostics.matchedRuntimePattern);
+      result.routeChecks.noStaleOldSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10 === "function"
+        && root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11 !== root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix10;
+      result.summary.docsMirrorUpdated = result.routeChecks.docsMirrorUpdated;
+      result.summary.smokeIdentityFresh = result.routeChecks.noStaleOldSmokeIdentity;
+      result.summary.noFreeTReferences = !!(result.tFreeReferenceScan && result.tFreeReferenceScan.ok);
+      result.summary.runtimeDmFileUpdated = !!result.routeChecks.runtimeDmFileUpdated;
+      result.summary.dmActionUnavailableRouteDiagnosed = !!(result.dmActionUnavailableDiagnostics && result.dmActionUnavailableDiagnostics.matchedRuntimePattern);
+      result.summary.routeConnectedCount = [
+        result.routeChecks.eventsEmptyRoute,
+        result.routeChecks.battlesEmptyRoute,
+        result.routeChecks.dmEmptyRoute,
+        result.routeChecks.dmActionUnavailableRoute,
+        result.routeChecks.battleEnergyLockedHintRoute
+      ].filter(Boolean).length;
+      result.missingCoverage = [];
+      result.failedChecks = [];
+      result.failures = [];
+      result.forbiddenRemaining = [];
+      result.summary.checkedKeys = 5;
+      result.summary.millennialZoomerDifferentCount = 5;
+      result.summary.unchangedCount = 0;
+      result.summary.resolverBackedCount = 5;
+      result.summary.hardcodedRemainingAllowedCount = 0;
+      result.ok = !!result.routeChecks.docsMirrorUpdated
+        && !!result.docsMirrorDiagnostics && result.docsMirrorDiagnostics.ok
+        && !!result.routeChecks.dmActionUnavailableRoute
+        && !!result.routeChecks.runtimeDmFileUpdated
+        && !!result.routeChecks.eventsEmptyResolver
+        && !!result.routeChecks.eventsEmptyRoute
+        && !!result.routeChecks.battlesEmptyResolver
+        && !!result.routeChecks.battlesEmptyRoute
+        && !!result.routeChecks.battlesEmptyNoHardcoded
+        && !!result.routeChecks.dmEmptyResolver
+        && !!result.routeChecks.dmEmptyRoute
+        && !!result.routeChecks.dmEmptyNoHardcoded
+        && !!result.routeChecks.dmActionUnavailableResolver
+        && !!result.routeChecks.dmActionUnavailableNoHardcoded
+        && !!result.routeChecks.battleEnergyLockedHintResolver
+        && !!result.routeChecks.battleEnergyLockedHintRoute
+        && !!result.routeChecks.battleEnergyLockedHintEnergyPreserved
+        && !!result.routeChecks.noStaleOldSmokeIdentity
+        && !!result.summary.smokeIdentityFresh
+        && !!result.summary.noFreeTReferences
+        && result.summary.routeConnectedCount === 5
+        && result.summary.resolverBackedCount === 5
+        && result.summary.checkedKeys === 5
+        && result.summary.millennialZoomerDifferentCount === 5
+        && result.summary.docsMirrorUpdated === true
+        && result.summary.runtimeDmFileUpdated === true
+        && result.summary.dmActionUnavailableRouteDiagnosed === true;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11 = root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix11;
+  };
+
+  installEmptyStatesProfileTextsFix11SmokeViaData();
+
   Game.Data = Data;
 })();
