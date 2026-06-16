@@ -434,6 +434,152 @@ FROM:
 TO:
 Не хватает 💰. Для этого действия нужен ресурс.
 
+## SOFT VERBS
+
+Boomer verb language is a delta from UI_PROFILE_MILLENNIAL.
+
+Rule:
+- sharp verbs become calm verbs
+- slang commands become neutral actions
+- direct pressure becomes optional action language
+- player-facing imperatives become polite forms
+- conflict verbs stay clear but less aggressive
+- mechanic meaning does not change
+- cost meaning does not change
+- result meaning does not change
+- no standalone boomer profile is created
+
+Preferred replacements:
+- "свалить" -> "уйти"
+- "снести" -> "сбросить"
+- "тыкни" -> "выберите"
+- "вписывайся" -> "участвовать"
+- "плати" -> "можно заплатить"
+- "отвечай" -> "можно ответить"
+- "бросил вызов" -> "начал конфликт"
+- "разберусь" -> "проверю"
+- "вмешался" -> "меры приняты"
+- "зовёт" -> "предлагает"
+
+Limit:
+- do not soften mechanic names if they are labels only
+- do not remove cost values
+- do not remove variables
+- do not add moral tone
+- do not add pressure
+- do not add fear language
+- do not change mechanics
+
+## EXACT SOFT VERB COPY TABLE
+
+TXT_0019
+FROM:
+Погнали
+TO:
+Начать
+
+TXT_0020
+FROM:
+Снести выбор
+TO:
+Сбросить выбор
+
+TXT_0038
+FROM:
+Сдать {name}: +2💰.
+TO:
+Сообщить о {name}: +2💰.
+
+TXT_0039
+FROM:
+Коп: {name} сдан, +2💰.
+TO:
+Коп: информация по {name} принята, +2💰.
+
+TXT_0041
+FROM:
+{name} зовёт на реванш.
+TO:
+{name} предлагает реванш.
+
+TXT_0042
+FROM:
+Свалить за 1💰.
+TO:
+Уйти за 1💰.
+
+TXT_0047
+FROM:
+Свалить: -{escapeCost}💰.
+TO:
+Уйти: -{escapeCost}💰.
+
+TXT_0050
+FROM:
+{attackerName} [{attackerInf}] бросил вызов.
+TO:
+{attackerName} [{attackerInf}] начал конфликт.
+
+TXT_0070
+FROM:
+Свалить: {X}
+TO:
+Уйти: {X}
+
+TXT_0073
+FROM:
+Введи точный ник.
+TO:
+Введите точный ник.
+
+TXT_0079
+FROM:
+Понял. Проверяю.
+TO:
+Принято. Проверяю.
+
+TXT_0080
+FROM:
+Принял. Разберусь.
+TO:
+Принято. Проверю.
+
+TXT_0083
+FROM:
+Проверка сошлась. Вмешался.
+TO:
+Проверка подтвердилась. Меры приняты.
+
+TXT_0084
+FROM:
+Проверка сошлась. Занялся.
+TO:
+Проверка подтвердилась. Работа начата.
+
+TXT_0087
+FROM:
+Ответь: кто?
+TO:
+Ответьте: кто?
+
+TXT_0088
+FROM:
+Ответь: где?
+TO:
+Ответьте: где?
+
+TXT_0089
+FROM:
+Ответь: о ком?
+TO:
+Ответьте: о ком?
+
+TXT_0090
+FROM:
+Ответь: да или нет?
+TO:
+Ответьте: да или нет?
+
 TXT_0026
 FROM:
 Мало 💰 на баттл.
