@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.5 Buttons & Labels Final
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added final cross-group smoke command `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal()` in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
+- The smoke checks start screen, menu chrome, events panel, battle labels, global resolver health, raw-key leak protection, docs mirror parity, dev labels, storage stability, guarded state, and non-mutation coverage without changing gameplay, economy, event, or battle logic.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal()`.
+- Scope held: smoke aggregation and docs notes only; no gameplay/economy/event/battle mutations, no UI behavior changes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.4 Fix1 Battle Invite / Action Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 6.7.4 smoke diagnostics so the battle empty-state read targets only the hint node, and the source scan now includes the resolved battle-card helpers where `battle_action_rematch`, `battle_win`, and `battle_loss` are actually emitted.
