@@ -4866,6 +4866,77 @@ window.Game = window.Game || {};
     return result;
   };
 
+  const BOOMER_DIFF_BUILD_TAG = "build_2026_06_16_step1_1_boomer_source_delta_only";
+  const BOOMER_DIFF_COMMIT = "step1_1_boomer_source_delta_only";
+  const BOOMER_DIFF_SMOKE_VERSION = "step1_1_boomer_source_delta_only_v20260616_001";
+  Game.__DEV.smokeBoomerDiffStep11SourceOnce = function smokeBoomerDiffStep11SourceOnce(){
+    const result = {
+      ok: false,
+      buildTag: BOOMER_DIFF_BUILD_TAG,
+      commit: BOOMER_DIFF_COMMIT,
+      smokeVersion: BOOMER_DIFF_SMOKE_VERSION,
+      baseProfile: "UI_PROFILE_MILLENNIAL",
+      documentName: "UI_PROFILE_BOOMER_DIFF",
+      docPresent: false,
+      referencesMillennialBase: false,
+      deltaOnly: false,
+      hasStandaloneBoomerProfile: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, { code, detail }); addUnique(result.failedChecks, code); };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    try {
+      const docRes = fetchTextFromCandidates("UI_PROFILE_BOOMER_DIFF.md");
+      result.docPresent = !!docRes.ok;
+      if (!docRes.ok) fail("document_exists", { path: "UI_PROFILE_BOOMER_DIFF.md", reason: docRes.reason || "unavailable" });
+      const text = normalize(docRes.ok ? String(docRes.text || "") : "");
+      result.referencesMillennialBase = /UI_PROFILE_MILLENNIAL/.test(text) && /(base|source)/i.test(text);
+      result.deltaOnly = /delta-only/i.test(text);
+      result.hasStandaloneBoomerProfile = /standalone\s+boomer\s+profile\s+container/i.test(text) || /separate\s+boomer\s+profile/i.test(text);
+      [
+        "UI_PROFILE_BOOMER_DIFF",
+        "delta-only",
+        "UI_PROFILE_MILLENNIAL",
+        "Source delta only",
+        "Base/source profile: `UI_PROFILE_MILLENNIAL`.",
+        "Scope: boomer is delta-only.",
+        "No standalone boomer profile container is defined here.",
+        "No runtime UI logic is defined here.",
+        "No copy duplication of millennial as a separate profile is allowed here.",
+        "This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`."
+      ].forEach((phrase) => {
+        if (!text.includes(phrase)) {
+          addUnique(result.missingCoverage, phrase);
+          fail("required_phrase_missing", phrase);
+        }
+      });
+      if (!result.referencesMillennialBase) fail("references_millennial_base", "missing millennial base/source linkage");
+      if (!result.deltaOnly) fail("delta_only", "missing delta-only contract");
+      if (result.hasStandaloneBoomerProfile) fail("no_standalone_boomer_profile", "standalone boomer profile detected");
+      if (/```|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(text)) fail("text_only_contract", "contains_code_like_markup");
+      if (/Console\.txt/i.test(text)) { addUnique(result.forbiddenRemaining, "console_txt"); fail("forbidden_console_txt", "Console.txt reference detected"); }
+      if (!/delta-only\s+document\s+поверх\s+`UI_PROFILE_MILLENNIAL`/i.test(text)) fail("derived_from_millennial_source", "missing direct derivation statement");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.docPresent === true
+      && result.referencesMillennialBase === true
+      && result.deltaOnly === true
+      && result.hasStandaloneBoomerProfile === false
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0
+      && result.baseProfile === "UI_PROFILE_MILLENNIAL"
+      && result.documentName === "UI_PROFILE_BOOMER_DIFF";
+    return result;
+  };
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerDiffStep11SourceOnce = Game.__DEV.smokeBoomerDiffStep11SourceOnce;
+
   const Z_PROFILE_FINAL_PACKAGE_BUILD_TAG = "build_2026_06_12_step7_z_profile_final_package";
   const Z_PROFILE_FINAL_PACKAGE_COMMIT = "step7_z_profile_final_package";
   const Z_PROFILE_FINAL_PACKAGE_SMOKE_VERSION = "step7_z_profile_final_package_v20260612_002";
