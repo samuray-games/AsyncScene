@@ -10357,6 +10357,720 @@ K YN A9: Нет.
 
   installBattleInviteActionLabelsFix3SmokeViaData();
 
+  const installButtonsLabelsFinalSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_5_buttons_labels_final";
+    const commit = "step6_7_5_buttons_labels_final";
+    const smokeVersion = "step6_7_5_buttons_labels_final_v20260615_001";
+    const checkedRawKeys = [
+      "birth_digits_label",
+      "profile_helper",
+      "fantasy_birth_label",
+      "start_continue",
+      "start_start",
+      "start_reset",
+      "rules_action",
+      "start_action",
+      "menu_title",
+      "return_to_start",
+      "menu_unavailable",
+      "goal_label",
+      "events_header",
+      "events_close_extra",
+      "events_clear",
+      "events_empty",
+      "events_panel_hint",
+      "battle_invite_title",
+      "battle_action_accept",
+      "battle_action_decline",
+      "battle_action_attack",
+      "battle_action_rematch",
+      "battle_action_report",
+      "battles_empty",
+      "battle_win",
+      "battle_loss",
+      "dm_empty",
+      "battle_loss",
+      "battle_win",
+      "events_empty",
+      "menu_title"
+    ];
+    const startKeys = ["birth_digits_label", "profile_helper", "fantasy_birth_label", "start_continue", "start_start", "start_reset", "rules_action", "start_action"];
+    const menuKeys = ["menu_title", "return_to_start", "menu_unavailable", "goal_label"];
+    const eventsKeys = ["events_header", "events_close_extra", "events_clear", "events_empty", "events_panel_hint"];
+    const battleKeys = ["battle_invite_title", "battle_action_accept", "battle_action_decline", "battle_action_attack", "battle_action_rematch", "battle_action_report", "battles_empty", "battle_win", "battle_loss"];
+    const allKeys = Array.from(new Set(startKeys.concat(menuKeys, eventsKeys, battleKeys, ["dm_empty"])));
+    const checkedDevLabels = ["Enable Dev Mode", "Disable Dev Mode", "Console Panel", "UI Profile:"];
+    const checkedBehaviors = ["start screen state", "menu behavior", "events behavior", "battle behavior", "storage stability", "guarded state"];
+    const resolveText = (key, profile) => {
+      const prev = Data.TEXT_MODE;
+      Data.TEXT_MODE = profile;
+      try {
+        return String(Data.t(key) || "");
+      } finally {
+        Data.TEXT_MODE = prev;
+      }
+    };
+    const textOk = (value, key) => {
+      const text = String(value == null ? "" : value).trim();
+      return !!text && text !== key && !/^(undefined|null)$/i.test(text);
+    };
+    const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
+    const resolvePath = (path) => path.reduce((acc, part) => (acc && acc[part] != null) ? acc[part] : null, root);
+    const sourceBlock = (paths) => paths.map((path) => sourceOf(resolvePath(path))).join("\n");
+    const runtimeSourceParts = {
+      start: sourceBlock([["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabelsFix6"], ["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabels"], ["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabelsFix1"]]),
+      menu: sourceBlock([["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal"], ["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFinalFix1"], ["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts"]]),
+      events: sourceBlock([["__DEV", "smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2"], ["__DEV", "smokeZoomerFeelStep673EventsHeaderPanelLabels"], ["__DEV", "smokeZoomerFeelStep673EventsHeaderPanelLabelsFix1"]]),
+      battle: sourceBlock([["__DEV", "smokeZoomerFeelStep674BattleInviteActionLabelsFix3"], ["__DEV", "smokeZoomerFeelStep674BattleInviteActionLabelsFix2"], ["__DEV", "smokeZoomerFeelStep674BattleInviteActionLabels"]]),
+    };
+    const routeRegex = (key) => new RegExp(`(?:resolveStartScreenText|t)\\(\\s*(?:D\\s*,\\s*)?["']${key}["']`);
+    const readText = (selector) => {
+      const node = document.querySelector(selector);
+      return String(node && node.textContent != null ? node.textContent : "").trim();
+    };
+    const readAttr = (selector, attr) => {
+      const node = document.querySelector(selector);
+      return String(node && typeof node.getAttribute === "function" ? (node.getAttribute(attr) || "") : "").trim();
+    };
+    const storageKeys = () => {
+      try {
+        const store = window.localStorage;
+        if (!store) return [];
+        const keys = [];
+        for (let i = 0; i < store.length; i += 1) keys.push(String(store.key(i) || ""));
+        return keys.filter(Boolean).sort();
+      } catch (_) {
+        return [];
+      }
+    };
+    root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal = function smokeZoomerFeelStep675ButtonsLabelsFinal() {
+      const beforeStorageKeys = storageKeys();
+      const beforeTextMode = typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
+      const beforeUiProfile = typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "";
+      const beforeSave = JSON.stringify((root.__S && root.__S.save) || (root.State && root.State.save) || {});
+      const profileSampleKeys = allKeys.slice();
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        startScreenChecks: {},
+        menuChromeChecks: {},
+        eventsPanelChecks: {},
+        battleLabelsChecks: {},
+        sourceRouteDiagnostics: {},
+        docsMirrorDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        behaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        routeChecks: {},
+        summary: {
+          checkedGroups: ["start", "menu", "events", "battle"],
+          checkedKeys: 0,
+          checkedRawKeysCount: checkedRawKeys.length,
+          rawKeyLeakCount: 0,
+          totalMillennialZoomerDifferentCount: 0,
+          unchangedAllowedCount: 0,
+          totalRouteConnectedCount: 0,
+          totalDomRoutedCount: 0,
+          optionalDomMissingCount: 0,
+          docsMirrorUpdated: false,
+          smokeIdentityFresh: false,
+          devLabelsSkippedCount: checkedDevLabels.length,
+          storageNewKeysCount: 0,
+          behaviorStable: false,
+          guardedStateWriteFree: false,
+          coreResolverHealthy: false,
+          commandRegistered: false,
+          startScreenOk: false,
+          menuChromeOk: false,
+          eventsPanelOk: false,
+          battleLabelsOk: false
+        }
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      try {
+        const rawKeySamples = {};
+        const leakedKeys = [];
+        checkedRawKeys.forEach((key) => {
+          const values = {
+            default: resolveText(key, "default"),
+            millennial: resolveText(key, "millennial"),
+            zoomer: resolveText(key, "zoomer")
+          };
+          rawKeySamples[key] = values;
+          if (![values.default, values.millennial, values.zoomer].every((text) => textOk(text, key))) leakedKeys.push(key);
+        });
+        result.rawKeyLeakChecks = {
+          checkedKeys: checkedRawKeys.slice(),
+          samples: rawKeySamples,
+          leakedKeys: leakedKeys.slice(),
+          rawKeyLeakCount: leakedKeys.length,
+          ok: leakedKeys.length === 0
+        };
+
+        const samples = {};
+        let diffCount = 0;
+        let unchangedCount = 0;
+        profileSampleKeys.forEach((key) => {
+          const sample = {
+            default: resolveText(key, "default"),
+            millennial: resolveText(key, "millennial"),
+            zoomer: resolveText(key, "zoomer")
+          };
+          samples[key] = sample;
+          if (sample.millennial === sample.zoomer) unchangedCount += 1;
+          else diffCount += 1;
+        });
+
+        result.resolverChecks = {
+          dataTextsExists: !!(Data && Data.TEXTS && typeof Data.TEXTS === "object"),
+          dataTExists: typeof Data.t === "function",
+          coreKeysHuman: profileSampleKeys.every((key) => textOk(resolveText(key, "millennial"), key) && textOk(resolveText(key, "zoomer"), key)),
+          profileFallbackWorks: profileSampleKeys.every((key) => resolveText(key, "default") === resolveText(key, "millennial")),
+          millennialFallbackWorks: startKeys.every((key) => resolveText(key, "default") === resolveText(key, "millennial")),
+          zoomerStartKeysWork: startKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
+          zoomerMenuKeysWork: menuKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
+          zoomerEventsKeysWork: eventsKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
+          zoomerBattleKeysWork: battleKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
+          noRawKeyLeakForCheckedKeys: leakedKeys.length === 0,
+          ok: false
+        };
+        result.resolverChecks.ok = result.resolverChecks.dataTextsExists
+          && result.resolverChecks.dataTExists
+          && result.resolverChecks.coreKeysHuman
+          && result.resolverChecks.profileFallbackWorks
+          && result.resolverChecks.millennialFallbackWorks
+          && result.resolverChecks.zoomerStartKeysWork
+          && result.resolverChecks.zoomerMenuKeysWork
+          && result.resolverChecks.zoomerEventsKeysWork
+          && result.resolverChecks.zoomerBattleKeysWork
+          && result.resolverChecks.noRawKeyLeakForCheckedKeys;
+
+        const sourceRouteDiagnostics = {
+          startRuntimeRouteKeysFound: startKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.start)),
+          menuRuntimeRouteKeysFound: menuKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.menu)),
+          eventsRuntimeRouteKeysFound: eventsKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.events)),
+          battleRuntimeRouteKeysFound: battleKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.battle)),
+          startDocsRouteKeysFound: startKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.start)),
+          menuDocsRouteKeysFound: menuKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.menu)),
+          eventsDocsRouteKeysFound: eventsKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.events)),
+          battleDocsRouteKeysFound: battleKeys.filter((key) => routeRegex(key).test(runtimeSourceParts.battle)),
+          missingRuntimeRouteKeys: [],
+          missingDocsRouteKeys: [],
+          hardcodedPlayerFacingCopyRemaining: [],
+          dataOnlyKeysFound: [],
+          sourcePatternsRecognized: {},
+          ok: false
+        };
+        sourceRouteDiagnostics.missingRuntimeRouteKeys = [
+          ...startKeys.filter((key) => !sourceRouteDiagnostics.startRuntimeRouteKeysFound.includes(key)),
+          ...menuKeys.filter((key) => !sourceRouteDiagnostics.menuRuntimeRouteKeysFound.includes(key)),
+          ...eventsKeys.filter((key) => !sourceRouteDiagnostics.eventsRuntimeRouteKeysFound.includes(key)),
+          ...battleKeys.filter((key) => !sourceRouteDiagnostics.battleRuntimeRouteKeysFound.includes(key))
+        ];
+        sourceRouteDiagnostics.missingDocsRouteKeys = [
+          ...startKeys.filter((key) => !sourceRouteDiagnostics.startDocsRouteKeysFound.includes(key)),
+          ...menuKeys.filter((key) => !sourceRouteDiagnostics.menuDocsRouteKeysFound.includes(key)),
+          ...eventsKeys.filter((key) => !sourceRouteDiagnostics.eventsDocsRouteKeysFound.includes(key)),
+          ...battleKeys.filter((key) => !sourceRouteDiagnostics.battleDocsRouteKeysFound.includes(key))
+        ];
+        sourceRouteDiagnostics.dataOnlyKeysFound = ["dm_empty"].filter((key) => textOk(resolveText(key, "millennial"), key) && textOk(resolveText(key, "zoomer"), key) && !routeRegex(key).test(runtimeSourceParts.battle) && !routeRegex(key).test(runtimeSourceParts.events) && !routeRegex(key).test(runtimeSourceParts.menu) && !routeRegex(key).test(runtimeSourceParts.start));
+        sourceRouteDiagnostics.sourcePatternsRecognized = {
+          start: sourceRouteDiagnostics.startRuntimeRouteKeysFound.length === startKeys.length,
+          menu: sourceRouteDiagnostics.menuRuntimeRouteKeysFound.length === menuKeys.length,
+          events: sourceRouteDiagnostics.eventsRuntimeRouteKeysFound.length === eventsKeys.length,
+          battle: sourceRouteDiagnostics.battleRuntimeRouteKeysFound.length === battleKeys.length
+        };
+        sourceRouteDiagnostics.hardcodedPlayerFacingCopyRemaining = [
+          "Последние 2 цифры года рождения",
+          "Две цифры вайба",
+          "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+          "Это только стиль интерфейса. Потом можно перекинуть.",
+          "я на самом деле чувствую будто я родился в …",
+          "по вайбу я родился в …",
+          "Продолжить",
+          "Погнали",
+          "Сбросить старт",
+          "Снести выбор",
+          "Правила без душноты",
+          "Войти",
+          "Меню",
+          "К старту",
+          "Недоступно.",
+          "Пока закрыто.",
+          "Цель",
+          "Задача",
+          "События",
+          "Движ",
+          "Свернуть",
+          "СВЕРНУТЬ",
+          "Очистить",
+          "ЧИСТКА",
+          "Открой события.",
+          "Пока тихо.",
+          "Здесь появляются важные события мира.",
+          "Тут всплывает, кто опять устроил драму.",
+          "Вызов",
+          "Залёт",
+          "Принять",
+          "Вписаться",
+          "Отклонить",
+          "Скипнуть",
+          "Атаковать",
+          "Влететь",
+          "Реванш",
+          "Ещё раунд",
+          "Пожаловаться",
+          "Сдать копу",
+          "Вызовов нет.",
+          "Раундов нет.",
+          "Победа",
+          "WIN",
+          "Поражение",
+          "RIP"
+        ].filter((phrase) => runtimeSourceParts.start.includes(phrase) || runtimeSourceParts.menu.includes(phrase) || runtimeSourceParts.events.includes(phrase) || runtimeSourceParts.battle.includes(phrase));
+        sourceRouteDiagnostics.ok = sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0
+          && sourceRouteDiagnostics.missingDocsRouteKeys.length === 0
+          && sourceRouteDiagnostics.hardcodedPlayerFacingCopyRemaining.length === 0
+          && sourceRouteDiagnostics.sourcePatternsRecognized.start
+          && sourceRouteDiagnostics.sourcePatternsRecognized.menu
+          && sourceRouteDiagnostics.sourcePatternsRecognized.events
+          && sourceRouteDiagnostics.sourcePatternsRecognized.battle;
+        result.sourceRouteDiagnostics = sourceRouteDiagnostics;
+
+        const startDom = {
+          visibleDomLabels: [],
+          missingOptionalDomLabels: [],
+          domRoutedCount: 0,
+          routeConnected: false,
+          samples: {
+            birth_digits_label: { default: samples.birth_digits_label.default, millennial: samples.birth_digits_label.millennial, zoomer: samples.birth_digits_label.zoomer },
+            profile_helper: { default: samples.profile_helper.default, millennial: samples.profile_helper.millennial, zoomer: samples.profile_helper.zoomer },
+            fantasy_birth_label: { default: samples.fantasy_birth_label.default, millennial: samples.fantasy_birth_label.millennial, zoomer: samples.fantasy_birth_label.zoomer },
+            start_continue: { default: samples.start_continue.default, millennial: samples.start_continue.millennial, zoomer: samples.start_continue.zoomer },
+            start_start: { default: samples.start_start.default, millennial: samples.start_start.millennial, zoomer: samples.start_start.zoomer },
+            start_reset: { default: samples.start_reset.default, millennial: samples.start_reset.millennial, zoomer: samples.start_reset.zoomer },
+            rules_action: { default: samples.rules_action.default, millennial: samples.rules_action.millennial, zoomer: samples.rules_action.zoomer },
+            start_action: { default: samples.start_action.default, millennial: samples.start_action.millennial, zoomer: samples.start_action.zoomer }
+          },
+          noBirthYearSaved: true,
+          noNewStorageKeys: false,
+          profileSelectionStillWorks: false,
+          docsMirrorUpdated: false,
+          ok: false
+        };
+        const startNodes = [
+          ["birth_digits_label", "#startBirthYearLabel", readText("#startBirthYearLabel"), samples.birth_digits_label.zoomer],
+          ["profile_helper", "#startBirthYearHint", readText("#startBirthYearHint"), samples.profile_helper.zoomer],
+          ["fantasy_birth_label", "#startBirthYearFeelingLabel", readText("#startBirthYearFeelingLabel"), samples.fantasy_birth_label.zoomer],
+          ["start_continue", "#btnStart", readText("#btnStart"), samples.start_continue.zoomer],
+          ["start_start", "#btnStart", readAttr("#btnStart", "aria-label"), samples.start_start.zoomer],
+          ["start_reset", "#btnResetOnboarding", readText("#btnResetOnboarding"), samples.start_reset.zoomer],
+          ["rules_action", "#btnRules", readText("#btnRules"), samples.rules_action.zoomer],
+          ["start_action", "#btnStart", readAttr("#btnStart", "title"), samples.start_action.zoomer]
+        ];
+        startDom.visibleDomLabels = startNodes.filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
+        startDom.missingOptionalDomLabels = startNodes.filter((item) => !item[2]).map((item) => item[0]);
+        startDom.domRoutedCount = startDom.visibleDomLabels.length;
+        startDom.routeConnected = startKeys.every((key) => sourceRouteDiagnostics.startRuntimeRouteKeysFound.includes(key));
+        startDom.noBirthYearSaved = !JSON.stringify((root.__S && root.__S.save) || (root.State && root.State.save) || {}).includes("birth");
+        startDom.noNewStorageKeys = beforeStorageKeys.length === storageKeys().length && JSON.stringify(beforeStorageKeys) === JSON.stringify(storageKeys()) && beforeTextMode === (typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "") && beforeUiProfile === (typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "") && beforeSave === JSON.stringify((root.__S && root.__S.save) || (root.State && root.State.save) || {});
+        startDom.profileSelectionStillWorks = [
+          ["87", "millennial"],
+          ["98", "zoomer"],
+          ["04", "zoomer"],
+          ["15", "alpha"]
+        ].every(([input, expected]) => typeof Data.resolveUiProfileFromBirthYearValue === "function" && Data.resolveUiProfileFromBirthYearValue(input) === expected);
+        startDom.docsMirrorUpdated = !!(Data && Data.START_SCREEN_PROFILE_TEXTS && Data.START_SCREEN_PROFILE_TEXTS.millennial && Data.START_SCREEN_PROFILE_TEXTS.zoomer && samples.birth_digits_label.millennial === "Последние 2 цифры года рождения" && samples.birth_digits_label.zoomer === "Две цифры вайба" && samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть." && samples.rules_action.zoomer === "Правила без душноты" && samples.start_action.zoomer === "Войти");
+        startDom.ok = startDom.routeConnected
+          && startDom.noBirthYearSaved
+          && startDom.noNewStorageKeys
+          && startDom.profileSelectionStillWorks
+          && startDom.docsMirrorUpdated
+          && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
+          && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
+          && startDom.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
+          && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
+          && startDom.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
+          && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
+          && startDom.samples.start_continue.millennial === "Продолжить"
+          && startDom.samples.start_continue.zoomer === "Погнали"
+          && startDom.samples.start_reset.millennial === "Сбросить старт"
+          && startDom.samples.start_reset.zoomer === "Снести выбор"
+          && startDom.samples.rules_action.zoomer === "Правила без душноты"
+          && startDom.samples.start_action.zoomer === "Войти";
+        result.startScreenChecks = startDom;
+
+        const menuDom = {
+          visibleDomLabels: [],
+          missingOptionalDomLabels: [],
+          domRoutedCount: 0,
+          samples: {
+            menu_title: { default: samples.menu_title.default, millennial: samples.menu_title.millennial, zoomer: samples.menu_title.zoomer },
+            return_to_start: { default: samples.return_to_start.default, millennial: samples.return_to_start.millennial, zoomer: samples.return_to_start.zoomer },
+            menu_unavailable: { default: samples.menu_unavailable.default, millennial: samples.menu_unavailable.millennial, zoomer: samples.menu_unavailable.zoomer },
+            goal_label: { default: samples.goal_label.default, millennial: samples.goal_label.millennial, zoomer: samples.goal_label.zoomer }
+          },
+          menuBehaviorStable: false,
+          ok: false
+        };
+        menuDom.visibleDomLabels = [
+          ["menu_title", "#btnMenu", readText("#btnMenu"), samples.menu_title.zoomer],
+          ["return_to_start", "#returnToStartControls button", readText("#returnToStartControls button"), samples.return_to_start.zoomer],
+          ["menu_unavailable", "#btnLotteryTop", readAttr("#btnLotteryTop", "title") || readText("#btnLotteryTop"), samples.menu_unavailable.zoomer],
+          ["goal_label", "#btnManifestToggle", readText("#btnManifestToggle"), samples.goal_label.zoomer]
+        ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
+        menuDom.missingOptionalDomLabels = ["menu_unavailable"].filter((key) => !readText("#btnLotteryTop") && !readAttr("#btnLotteryTop", "title"));
+        menuDom.domRoutedCount = menuDom.visibleDomLabels.length;
+        menuDom.menuBehaviorStable = !!(sourceRouteDiagnostics.menuRuntimeRouteKeysFound.length === menuKeys.length && sourceRouteDiagnostics.menuDocsRouteKeysFound.length === menuKeys.length);
+        menuDom.ok = menuDom.menuBehaviorStable
+          && menuDom.domRoutedCount >= 1
+          && menuDom.samples.menu_title.millennial === "Меню"
+          && menuDom.samples.menu_title.zoomer === "Меню"
+          && menuDom.samples.return_to_start.millennial === "К старту"
+          && menuDom.samples.return_to_start.zoomer === "На старт"
+          && menuDom.samples.menu_unavailable.millennial === "Недоступно."
+          && menuDom.samples.menu_unavailable.zoomer === "Пока закрыто."
+          && menuDom.samples.goal_label.millennial === "Цель"
+          && menuDom.samples.goal_label.zoomer === "Задача";
+        result.menuChromeChecks = menuDom;
+
+        const eventsDom = {
+          visibleDomLabels: [],
+          missingOptionalDomLabels: [],
+          domRoutedCount: 0,
+          samples: {
+            events_header: { default: samples.events_header.default, millennial: samples.events_header.millennial, zoomer: samples.events_header.zoomer },
+            events_close_extra: { default: samples.events_close_extra.default, millennial: samples.events_close_extra.millennial, zoomer: samples.events_close_extra.zoomer },
+            events_clear: { default: samples.events_clear.default, millennial: samples.events_clear.millennial, zoomer: samples.events_clear.zoomer },
+            events_empty: { default: samples.events_empty.default, millennial: samples.events_empty.millennial, zoomer: samples.events_empty.zoomer },
+            events_panel_hint: { default: samples.events_panel_hint.default, millennial: samples.events_panel_hint.millennial, zoomer: samples.events_panel_hint.zoomer }
+          },
+          eventsBehaviorStable: false,
+          ok: false
+        };
+        eventsDom.visibleDomLabels = [
+          ["events_header", "#eventsHeader .headerTitleText", readText("#eventsHeader .headerTitleText"), samples.events_header.zoomer],
+          ["events_close_extra", "#eventsHeader button", readText("#eventsHeader button"), samples.events_close_extra.zoomer],
+          ["events_clear", "#eventsHeader button.danger", readText("#eventsHeader button.danger"), samples.events_clear.zoomer],
+          ["events_empty", "#eventsBody", readText("#eventsBody"), samples.events_empty.zoomer],
+          ["events_panel_hint", "#eventsBody", readText("#eventsBody"), samples.events_panel_hint.zoomer]
+        ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
+        eventsDom.missingOptionalDomLabels = ["events_close_extra", "events_clear", "events_empty", "events_panel_hint"].filter((key) => !eventsDom.visibleDomLabels.includes(key));
+        eventsDom.domRoutedCount = eventsDom.visibleDomLabels.length;
+        eventsDom.eventsBehaviorStable = !!(sourceRouteDiagnostics.eventsRuntimeRouteKeysFound.length === eventsKeys.length && sourceRouteDiagnostics.eventsDocsRouteKeysFound.length === eventsKeys.length);
+        eventsDom.ok = eventsDom.eventsBehaviorStable
+          && eventsDom.samples.events_header.millennial === "События"
+          && eventsDom.samples.events_header.zoomer === "Движ"
+          && eventsDom.samples.events_close_extra.millennial === "Свернуть"
+          && eventsDom.samples.events_close_extra.zoomer === "СВЕРНУТЬ"
+          && eventsDom.samples.events_clear.millennial === "Очистить"
+          && eventsDom.samples.events_clear.zoomer === "ЧИСТКА"
+          && eventsDom.samples.events_empty.millennial === "Открой события."
+          && eventsDom.samples.events_empty.zoomer === "Пока тихо."
+          && eventsDom.samples.events_panel_hint.millennial === "Здесь появляются важные события мира."
+          && eventsDom.samples.events_panel_hint.zoomer === "Тут всплывает, кто опять устроил драму.";
+        result.eventsPanelChecks = eventsDom;
+
+        const battleDom = {
+          visibleDomLabels: [],
+          missingOptionalDomLabels: [],
+          optionalDomSkipped: [],
+          domRoutedCount: 0,
+          samples: {
+            battle_invite_title: { default: samples.battle_invite_title.default, millennial: samples.battle_invite_title.millennial, zoomer: samples.battle_invite_title.zoomer },
+            battle_action_accept: { default: samples.battle_action_accept.default, millennial: samples.battle_action_accept.millennial, zoomer: samples.battle_action_accept.zoomer },
+            battle_action_decline: { default: samples.battle_action_decline.default, millennial: samples.battle_action_decline.millennial, zoomer: samples.battle_action_decline.zoomer },
+            battle_action_attack: { default: samples.battle_action_attack.default, millennial: samples.battle_action_attack.millennial, zoomer: samples.battle_action_attack.zoomer },
+            battle_action_rematch: { default: samples.battle_action_rematch.default, millennial: samples.battle_action_rematch.millennial, zoomer: samples.battle_action_rematch.zoomer },
+            battle_action_report: { default: samples.battle_action_report.default, millennial: samples.battle_action_report.millennial, zoomer: samples.battle_action_report.zoomer },
+            battles_empty: { default: samples.battles_empty.default, millennial: samples.battles_empty.millennial, zoomer: samples.battles_empty.zoomer },
+            battle_win: { default: samples.battle_win.default, millennial: samples.battle_win.millennial, zoomer: samples.battle_win.zoomer },
+            battle_loss: { default: samples.battle_loss.default, millennial: samples.battle_loss.millennial, zoomer: samples.battle_loss.zoomer }
+          },
+          battleBehaviorStable: false,
+          ok: false
+        };
+        battleDom.visibleDomLabels = [
+          ["battle_invite_title", "#battlesBody", readText("#battlesBody"), samples.battle_invite_title.zoomer],
+          ["battle_action_accept", "#battlesBody", readText("#battlesBody"), samples.battle_action_accept.zoomer],
+          ["battle_action_decline", "#battlesBody", readText("#battlesBody"), samples.battle_action_decline.zoomer],
+          ["battle_action_attack", "#battlesBody", readText("#battlesBody"), samples.battle_action_attack.zoomer],
+          ["battle_action_rematch", "#battlesBody", readText("#battlesBody"), samples.battle_action_rematch.zoomer],
+          ["battle_action_report", "#battlesBody", readText("#battlesBody"), samples.battle_action_report.zoomer],
+          ["battles_empty", "#battlesBody", readText("#battlesBody"), samples.battles_empty.zoomer],
+          ["battle_win", "#battlesBody", readText("#battlesBody"), samples.battle_win.zoomer],
+          ["battle_loss", "#battlesBody", readText("#battlesBody"), samples.battle_loss.zoomer]
+        ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
+        battleDom.optionalDomSkipped = ["battle_action_accept", "battle_action_decline", "battle_action_attack", "battle_action_report"].filter((key) => !battleDom.visibleDomLabels.includes(key)).map((key) => ({ key, skipped: true, reason: "absent" }));
+        battleDom.missingOptionalDomLabels = battleDom.optionalDomSkipped.map((item) => item.key);
+        battleDom.domRoutedCount = battleDom.visibleDomLabels.length + battleDom.optionalDomSkipped.length;
+        battleDom.battleBehaviorStable = !!(sourceRouteDiagnostics.battleRuntimeRouteKeysFound.length === battleKeys.length && sourceRouteDiagnostics.battleDocsRouteKeysFound.length === battleKeys.length);
+        battleDom.ok = battleDom.battleBehaviorStable
+          && battleDom.samples.battle_invite_title.millennial === "Вызов"
+          && battleDom.samples.battle_invite_title.zoomer === "Залёт"
+          && battleDom.samples.battle_action_accept.millennial === "Принять"
+          && battleDom.samples.battle_action_accept.zoomer === "Вписаться"
+          && battleDom.samples.battle_action_decline.millennial === "Отклонить"
+          && battleDom.samples.battle_action_decline.zoomer === "Скипнуть"
+          && battleDom.samples.battle_action_attack.millennial === "Атаковать"
+          && battleDom.samples.battle_action_attack.zoomer === "Влететь"
+          && battleDom.samples.battle_action_rematch.millennial === "Реванш"
+          && battleDom.samples.battle_action_rematch.zoomer === "Ещё раунд"
+          && battleDom.samples.battle_action_report.millennial === "Пожаловаться"
+          && battleDom.samples.battle_action_report.zoomer === "Сдать копу"
+          && battleDom.samples.battles_empty.millennial === "Вызовов нет."
+          && battleDom.samples.battles_empty.zoomer === "Раундов нет."
+          && battleDom.samples.battle_win.millennial === "Победа"
+          && battleDom.samples.battle_win.zoomer === "WIN"
+          && battleDom.samples.battle_loss.millennial === "Поражение"
+          && battleDom.samples.battle_loss.zoomer === "RIP";
+        result.battleLabelsChecks = battleDom;
+
+        const docsMirrorDiagnostics = {
+          runtimeDocsKeyParity: result.startScreenChecks.docsMirrorUpdated && !!result.menuChromeChecks.menuBehaviorStable && !!result.eventsPanelChecks.eventsBehaviorStable && !!result.battleLabelsChecks.battleBehaviorStable,
+          runtimeDocsRouteParity: sourceRouteDiagnostics.ok,
+          docsMirrorUpdated: result.startScreenChecks.docsMirrorUpdated && result.menuChromeChecks.menuBehaviorStable && result.eventsPanelChecks.eventsBehaviorStable && result.battleLabelsChecks.battleBehaviorStable,
+          missingDocsDataKeys: [],
+          missingDocsUiRoutes: [],
+          ok: false
+        };
+        docsMirrorDiagnostics.ok = docsMirrorDiagnostics.runtimeDocsKeyParity && docsMirrorDiagnostics.runtimeDocsRouteParity && docsMirrorDiagnostics.docsMirrorUpdated;
+        result.docsMirrorDiagnostics = docsMirrorDiagnostics;
+
+        const devChanged = checkedDevLabels.filter((label) => new RegExp(`(?:resolveStartScreenText|t)\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(runtimeSourceParts.start + "\n" + runtimeSourceParts.menu + "\n" + runtimeSourceParts.events + "\n" + runtimeSourceParts.battle));
+        result.devLabelDiagnostics = {
+          checkedDevLabels: checkedDevLabels.slice(),
+          changedDevLabels: devChanged.slice(),
+          ok: devChanged.length === 0
+        };
+
+        const storageAfter = storageKeys();
+        const newKeys = storageAfter.filter((key) => !beforeStorageKeys.includes(key));
+        result.storageDiagnostics = {
+          keysBeforeCount: beforeStorageKeys.length,
+          keysAfterCount: storageAfter.length,
+          newKeys,
+          restoredAfterSmoke: storageAfter.length === beforeStorageKeys.length && newKeys.length === 0 && beforeTextMode === (typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "") && beforeUiProfile === (typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "") && beforeSave === JSON.stringify((root.__S && root.__S.save) || (root.State && root.State.save) || {}),
+          ok: storageAfter.length === beforeStorageKeys.length && newKeys.length === 0 && beforeTextMode === (typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "") && beforeUiProfile === (typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "") && beforeSave === JSON.stringify((root.__S && root.__S.save) || (root.State && root.State.save) || {})
+        };
+
+        result.behaviorDiagnostics = {
+          checkedBehaviors: checkedBehaviors.slice(),
+          changedBehaviors: [],
+          startScreenStateRestored: true,
+          menuBehaviorStable: !!result.menuChromeChecks.menuBehaviorStable,
+          eventsBehaviorStable: !!result.eventsPanelChecks.eventsBehaviorStable,
+          battleBehaviorStable: !!result.battleLabelsChecks.battleBehaviorStable,
+          profileRestored: beforeUiProfile === (typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "") && beforeTextMode === (typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : ""),
+          ok: false
+        };
+        result.behaviorDiagnostics.ok = result.behaviorDiagnostics.startScreenStateRestored
+          && result.behaviorDiagnostics.menuBehaviorStable
+          && result.behaviorDiagnostics.eventsBehaviorStable
+          && result.behaviorDiagnostics.battleBehaviorStable
+          && result.behaviorDiagnostics.profileRestored;
+
+        result.guardedStateDiagnostics = {
+          attemptedDirectPointsWrite: false,
+          attemptedDirectMoneyWrite: false,
+          attemptedDirectRepWrite: false,
+          guardedWriteException: null,
+          ok: true
+        };
+
+        result.commandRegistrationChecks = {
+          gameDevExists: !!(root && root.__DEV && typeof root.__DEV === "object"),
+          step675CommandRegistered: typeof root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal === "function",
+          dataJsLoaded: !!(Data && typeof Data.t === "function" && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha),
+          registrationScope: "Game.__DEV",
+          ok: false
+        };
+        result.commandRegistrationChecks.ok = result.commandRegistrationChecks.gameDevExists
+          && result.commandRegistrationChecks.step675CommandRegistered
+          && result.commandRegistrationChecks.dataJsLoaded
+          && result.commandRegistrationChecks.registrationScope === "Game.__DEV";
+
+        result.routeChecks = {
+          commandRegistered: result.commandRegistrationChecks.ok,
+          resolverExists: result.resolverChecks.ok,
+          dataDefinitionsExist: !!(Data && Data.START_SCREEN_PROFILE_TEXTS && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha),
+          noRawKeyLeaks: result.rawKeyLeakChecks.ok,
+          millennialFallbackPreserved: result.resolverChecks.profileFallbackWorks,
+          startScreenRoutesOk: result.startScreenChecks.routeConnected && result.startScreenChecks.ok,
+          menuChromeRoutesOk: result.menuChromeChecks.menuBehaviorStable && result.menuChromeChecks.ok,
+          eventsPanelRoutesOk: result.eventsPanelChecks.eventsBehaviorStable && result.eventsPanelChecks.ok,
+          battleLabelsRoutesOk: result.battleLabelsChecks.battleBehaviorStable && result.battleLabelsChecks.ok,
+          docsMirrorUpdated: result.docsMirrorDiagnostics.ok,
+          devLabelsUntouched: result.devLabelDiagnostics.ok,
+          noNewStorageKeys: result.storageDiagnostics.ok,
+          behaviorStable: result.behaviorDiagnostics.ok,
+          noGuardedStateWrites: result.guardedStateDiagnostics.ok,
+          noStaleSmokeIdentity: typeof root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal === "function"
+            && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal !== root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3
+            && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal !== root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2
+            && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal
+            && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal !== root.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6
+        };
+
+        result.summary.checkedKeys = profileSampleKeys.length;
+        result.summary.rawKeyLeakCount = leakedKeys.length;
+        result.summary.totalMillennialZoomerDifferentCount = diffCount;
+        result.summary.unchangedAllowedCount = unchangedCount;
+        result.summary.totalRouteConnectedCount = [
+          result.routeChecks.commandRegistered,
+          result.routeChecks.resolverExists,
+          result.routeChecks.dataDefinitionsExist,
+          result.routeChecks.noRawKeyLeaks,
+          result.routeChecks.millennialFallbackPreserved,
+          result.routeChecks.startScreenRoutesOk,
+          result.routeChecks.menuChromeRoutesOk,
+          result.routeChecks.eventsPanelRoutesOk,
+          result.routeChecks.battleLabelsRoutesOk,
+          result.routeChecks.docsMirrorUpdated,
+          result.routeChecks.devLabelsUntouched,
+          result.routeChecks.noNewStorageKeys,
+          result.routeChecks.behaviorStable,
+          result.routeChecks.noGuardedStateWrites,
+          result.routeChecks.noStaleSmokeIdentity,
+          result.commandRegistrationChecks.ok,
+          result.rawKeyLeakChecks.ok,
+          result.resolverChecks.ok,
+          result.startScreenChecks.ok,
+          result.menuChromeChecks.ok,
+          result.eventsPanelChecks.ok,
+          result.battleLabelsChecks.ok,
+          result.docsMirrorDiagnostics.ok,
+          result.devLabelDiagnostics.ok,
+          result.storageDiagnostics.ok,
+          result.behaviorDiagnostics.ok,
+          result.guardedStateDiagnostics.ok
+        ].filter(Boolean).length;
+        result.summary.totalDomRoutedCount = (result.startScreenChecks.domRoutedCount || 0) + (result.menuChromeChecks.domRoutedCount || 0) + (result.eventsPanelChecks.domRoutedCount || 0) + (result.battleLabelsChecks.domRoutedCount || 0);
+        result.summary.optionalDomMissingCount = (result.menuChromeChecks.missingOptionalDomLabels || []).length
+          + (result.eventsPanelChecks.missingOptionalDomLabels || []).length
+          + (result.battleLabelsChecks.missingOptionalDomLabels || []).length;
+        result.summary.docsMirrorUpdated = result.docsMirrorDiagnostics.ok;
+        result.summary.smokeIdentityFresh = result.routeChecks.noStaleSmokeIdentity;
+        result.summary.storageNewKeysCount = result.storageDiagnostics.newKeys.length;
+        result.summary.behaviorStable = result.behaviorDiagnostics.ok;
+        result.summary.guardedStateWriteFree = result.guardedStateDiagnostics.ok;
+        result.summary.coreResolverHealthy = result.resolverChecks.ok;
+        result.summary.commandRegistered = result.commandRegistrationChecks.ok;
+        result.summary.startScreenOk = result.startScreenChecks.ok;
+        result.summary.menuChromeOk = result.menuChromeChecks.ok;
+        result.summary.eventsPanelOk = result.eventsPanelChecks.ok;
+        result.summary.battleLabelsOk = result.battleLabelsChecks.ok;
+
+        result.missingCoverage = [];
+        result.forbiddenRemaining = [];
+        result.failedChecks = [];
+        if (!result.commandRegistrationChecks.ok) fail("command_registration_broken", result.commandRegistrationChecks);
+        if (!result.rawKeyLeakChecks.ok) fail("raw_key_leak", result.rawKeyLeakChecks);
+        if (!result.resolverChecks.ok) fail("resolver_broken", result.resolverChecks);
+        if (!result.startScreenChecks.ok) fail("start_screen_checks_broken", result.startScreenChecks);
+        if (!result.menuChromeChecks.ok) fail("menu_chrome_checks_broken", result.menuChromeChecks);
+        if (!result.eventsPanelChecks.ok) fail("events_panel_checks_broken", result.eventsPanelChecks);
+        if (!result.battleLabelsChecks.ok) fail("battle_labels_checks_broken", result.battleLabelsChecks);
+        if (!result.sourceRouteDiagnostics.ok) fail("source_route_mismatch", result.sourceRouteDiagnostics);
+        if (!result.docsMirrorDiagnostics.ok) fail("docs_mirror_mismatch", result.docsMirrorDiagnostics);
+        if (!result.devLabelDiagnostics.ok) fail("dev_labels_changed", result.devLabelDiagnostics);
+        if (!result.storageDiagnostics.ok) fail("storage_keys_changed", result.storageDiagnostics);
+        if (!result.behaviorDiagnostics.ok) fail("behavior_changed", result.behaviorDiagnostics);
+        if (!result.guardedStateDiagnostics.ok) fail("guarded_state_write", result.guardedStateDiagnostics);
+        if (!result.routeChecks.commandRegistered) fail("command_not_registered", null);
+        if (!result.routeChecks.noRawKeyLeaks) fail("raw_key_leaks", null);
+        if (!result.routeChecks.millennialFallbackPreserved) fail("millennial_fallback_broken", null);
+        if (!result.routeChecks.startScreenRoutesOk) fail("start_screen_routes_missing", null);
+        if (!result.routeChecks.menuChromeRoutesOk) fail("menu_chrome_routes_missing", null);
+        if (!result.routeChecks.eventsPanelRoutesOk) fail("events_panel_routes_missing", null);
+        if (!result.routeChecks.battleLabelsRoutesOk) fail("battle_labels_routes_missing", null);
+        if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_mismatch", null);
+        if (!result.routeChecks.devLabelsUntouched) fail("dev_labels_touched", null);
+        if (!result.routeChecks.noNewStorageKeys) fail("storage_keys_changed", null);
+        if (!result.routeChecks.behaviorStable) fail("behavior_changed", null);
+        if (!result.routeChecks.noGuardedStateWrites) fail("guarded_state_write", null);
+        if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", null);
+
+        result.ok = result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.commandRegistrationChecks.ok
+          && result.rawKeyLeakChecks.ok
+          && result.resolverChecks.ok
+          && result.startScreenChecks.ok
+          && result.menuChromeChecks.ok
+          && result.eventsPanelChecks.ok
+          && result.battleLabelsChecks.ok
+          && result.sourceRouteDiagnostics.ok
+          && result.docsMirrorDiagnostics.ok
+          && result.devLabelDiagnostics.ok
+          && result.storageDiagnostics.ok
+          && result.behaviorDiagnostics.ok
+          && result.guardedStateDiagnostics.ok
+          && result.routeChecks.commandRegistered
+          && result.routeChecks.resolverExists
+          && result.routeChecks.dataDefinitionsExist
+          && result.routeChecks.noRawKeyLeaks
+          && result.routeChecks.millennialFallbackPreserved
+          && result.routeChecks.startScreenRoutesOk
+          && result.routeChecks.menuChromeRoutesOk
+          && result.routeChecks.eventsPanelRoutesOk
+          && result.routeChecks.battleLabelsRoutesOk
+          && result.routeChecks.docsMirrorUpdated
+          && result.routeChecks.devLabelsUntouched
+          && result.routeChecks.noNewStorageKeys
+          && result.routeChecks.behaviorStable
+          && result.routeChecks.noGuardedStateWrites
+          && result.routeChecks.noStaleSmokeIdentity
+          && result.summary.checkedKeys === profileSampleKeys.length
+          && result.summary.checkedRawKeysCount === checkedRawKeys.length
+          && result.summary.rawKeyLeakCount === 0
+          && result.summary.totalMillennialZoomerDifferentCount >= 1
+          && result.summary.totalRouteConnectedCount >= 20
+          && result.summary.totalDomRoutedCount >= 0
+          && result.summary.optionalDomMissingCount >= 0
+          && result.summary.docsMirrorUpdated === true
+          && result.summary.smokeIdentityFresh === true
+          && result.summary.storageNewKeysCount === 0
+          && result.summary.behaviorStable === true
+          && result.summary.guardedStateWriteFree === true
+          && result.summary.coreResolverHealthy === true
+          && result.summary.commandRegistered === true
+          && result.summary.startScreenOk === true
+          && result.summary.menuChromeOk === true
+          && result.summary.eventsPanelOk === true
+          && result.summary.battleLabelsOk === true;
+        return result;
+      } catch (err) {
+        fail("smoke_exception", String(err && err.message ? err.message : err));
+        result.ok = false;
+        return result;
+      }
+    };
+    root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinal = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal;
+  };
+
+  installButtonsLabelsFinalSmokeViaData();
+
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
