@@ -1,3 +1,9 @@
+## 2026-06-16 — Step 1.1 Boomer Standalone Detection Fix3
+- Removed the broad standalone/independent trigger from the boomer classification source and replaced it with explicit positive detection sources only.
+- Added `Game.__DEV.smokeBoomerDiffStep11SourceFix3Once()` with `standaloneDetectionSources` and `standaloneDetectionCount` diagnostics.
+- Fresh identity: `build_2026_06_16_step1_1_boomer_source_delta_only_fix3` / `step1_1_boomer_source_delta_only_fix3` / `step1_1_boomer_source_delta_only_fix3_v20260616_004`.
+- Scope held: classification source only; no UI changes, no gameplay changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.1 Boomer Source Contract Fix2
 - Aligned `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` to the same explicit contract language used by smoke validation.
 - The boomer contract now states: base profile = `UI_PROFILE_MILLENNIAL`, boomer is delta-only, and boomer is not an independent profile.
