@@ -7323,3 +7323,8 @@ Error: Download failure, code=1
 - Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
 - Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+## 2026-06-16 — Step 3 Boomer UI text inventory
+- Added the read-only inventory document `AsyncScene/Web/UI_PROFILE_TEXT_INVENTORY` with source locations and current text rows for the visible text surfaces already enumerated in the curated scan.
+- Added dev-only smoke `Game.__DEV.smokeBoomerTextInventoryStep0Once()` in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles to verify the inventory file is present and has non-zero coverage.
+- Fresh identity: `boomer_text_inventory_step0_v20260616_001`.
+- Scope held: inventory/doc and smoke only; no text changes, no UI changes, no gameplay changes, no profile behavior changes, and no `Console.txt` usage.
