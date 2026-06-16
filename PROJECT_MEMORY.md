@@ -1,3 +1,9 @@
+## 2026-06-16 — Step 1.2 Boomer Pace / Tempo Section
+- Added a dedicated `PACE / TEMPO` section to `UI_PROFILE_BOOMER_DIFF.md` and the mirrored `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact boomer pace delta, tempo markers, and separation rule.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep12TempoOnce()` in `AsyncScene/Web/data.js` and `docs/data.js` to verify the section exists, stays standalone, and is not classified as Tone.
+- Fresh identity: `step1_2_boomer_pace_tempo_section_v20260616_001`.
+- Scope held: documentation and smoke only; no runtime behavior changes, no UI changes, no gameplay changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.1 Boomer Standalone Detection Fix3
 - Removed the broad standalone/independent trigger from the boomer classification source and replaced it with explicit positive detection sources only.
 - Added `Game.__DEV.smokeBoomerDiffStep11SourceFix3Once()` with `standaloneDetectionSources` and `standaloneDetectionCount` diagnostics.

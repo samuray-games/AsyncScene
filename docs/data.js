@@ -56,6 +56,58 @@ window.Game = window.Game || {};
       start_action: "Войти",
     }),
   });
+  Data.UI_PROFILE_BOOMER_DIFF = Object.freeze({
+    paceTempo: Object.freeze({
+      base: "Derived from UI_PROFILE_MILLENNIAL.",
+      boomerPaceDelta: Object.freeze([
+        "slower delivery",
+        "fewer abrupt transitions",
+        "more explicit transitions between statements",
+        "short pause phrases allowed",
+        "explanation before conclusion when useful",
+        "no additional logic",
+        "no moralizing",
+        "no official/corporate language"
+      ]),
+      tempoMarkers: Object.freeze([
+        "Сначала...",
+        "В этом случае...",
+        "После этого...",
+        "Поэтому...",
+        "Если это произойдёт..."
+      ]),
+      separationRule: Object.freeze([
+        "Pace/Tempo must be its own section.",
+        "It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections."
+      ])
+    })
+  });
+  Data.UI_PROFILE_BOOMER_DIFF = Object.freeze({
+    paceTempo: Object.freeze({
+      base: "Derived from UI_PROFILE_MILLENNIAL.",
+      boomerPaceDelta: Object.freeze([
+        "slower delivery",
+        "fewer abrupt transitions",
+        "more explicit transitions between statements",
+        "short pause phrases allowed",
+        "explanation before conclusion when useful",
+        "no additional logic",
+        "no moralizing",
+        "no official/corporate language"
+      ]),
+      tempoMarkers: Object.freeze([
+        "Сначала...",
+        "В этом случае...",
+        "После этого...",
+        "Поэтому...",
+        "Если это произойдёт..."
+      ]),
+      separationRule: Object.freeze([
+        "Pace/Tempo must be its own section.",
+        "It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections."
+      ])
+    })
+  });
 
   // === PROGRESSION (single source of truth) ===
   Data.PROGRESSION_V2 = true;
@@ -10391,6 +10443,16 @@ K YN A9: Нет.
     const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
     const resolvePath = (path) => path.reduce((acc, part) => (acc && acc[part] != null) ? acc[part] : null, root);
     const sourceBlock = (paths) => paths.map((path) => sourceOf(resolvePath(path))).join("\n");
+    const docText = () => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "UI_PROFILE_BOOMER_DIFF.md", false);
+        xhr.send(null);
+        return String(xhr.status >= 200 && xhr.status < 300 ? xhr.responseText : "");
+      } catch (_) {
+        return "";
+      }
+    };
     const runtimeSourceParts = {
       start: sourceBlock([["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabelsFix6"], ["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabels"], ["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabelsFix1"]]),
       menu: sourceBlock([["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal"], ["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFinalFix1"], ["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts"]]),
@@ -11423,6 +11485,45 @@ K YN A9: Нет.
       return normalized;
     };
     root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinalFix2 = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2;
+    const smokeVersionBoomerTempo = "step1_2_boomer_pace_tempo_section_v20260616_001";
+    root.__DEV.smokeBoomerDiffStep12TempoOnce = function smokeBoomerDiffStep12TempoOnce() {
+      const doc = docText();
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion: smokeVersionBoomerTempo,
+        ok: false,
+        docPresent: false,
+        paceSectionPresent: false,
+        paceSeparatedFromTone: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
+      result.paceSectionPresent = /## PACE \/ TEMPO[\s\S]*?Base:[\s\S]*?Derived from UI_PROFILE_MILLENNIAL\./.test(doc)
+        && doc.includes("Tempo markers:")
+        && doc.includes("\"Сначала...\"")
+        && doc.includes("\"Если это произойдёт...\"");
+      const toneIndex = doc.indexOf("Tone");
+      const paceIndex = doc.indexOf("## PACE / TEMPO");
+      result.paceSeparatedFromTone = paceIndex >= 0 && (toneIndex < 0 || paceIndex < toneIndex);
+      if (!result.docPresent) fail("doc_missing", null);
+      if (!result.paceSectionPresent) fail("pace_section_missing", null);
+      if (!result.paceSeparatedFromTone) fail("pace_not_separated_from_tone", null);
+      result.ok = result.docPresent && result.paceSectionPresent && result.paceSeparatedFromTone
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    root.Dev.smokeBoomerDiffStep12TempoOnce = root.__DEV.smokeBoomerDiffStep12TempoOnce;
   };
 
   installButtonsLabelsFinalSmokeViaData();
