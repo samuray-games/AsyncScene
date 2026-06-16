@@ -416,6 +416,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       teach_sent_chat: "TEACH {teacher}->{student}",
       invite_open_hint: "ВВЕДИ НИК",
       invite_invalid: "НЕТ ТАКОГО",
+      hint_type_who: "Кто?",
+      hint_type_where: "Где?",
+      hint_type_about: "О ком?",
+      hint_type_yn: "Да или нет?",
       menu_title: "Меню",
       return_to_start: "На старт",
       menu_unavailable: "Пока закрыто.",
@@ -11741,6 +11745,81 @@ K YN A9: Нет.
   };
 
   installCoverageAuditSmokeViaData();
+
+  const installCoverageAuditFix1SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1 === "function") return;
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1 = function smokeZoomerFeelStep68CoverageAuditSummaryFix1() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary === "function"
+        ? root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()
+        : null;
+      return base && typeof base === "object" ? base : {
+        buildTag: "build_2026_06_15_step6_8_coverage_audit_fix1",
+        commit: "step6_8_coverage_audit_fix1",
+        smokeVersion: "step6_8_coverage_audit_fix1_v20260615_001",
+        ok: false,
+        failures: [{ code: "smoke_exception", detail: "base smoke unavailable" }],
+        failedChecks: ["smoke_exception"],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        coverageSummary: {},
+        routeChecks: {},
+        guardedStateDiagnostics: {}
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1 = function smokeZoomerFeelStep68CoverageAuditSameSampleFix1() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample === "function"
+        ? root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()
+        : null;
+      return base && typeof base === "object" ? base : {
+        buildTag: "build_2026_06_15_step6_8_coverage_audit_fix1",
+        smokeVersion: "step6_8_coverage_audit_fix1_v20260615_001",
+        ok: false,
+        sameSample: [],
+        sameCount: 0,
+        sampleLimit: 50,
+        truncatedSample: false,
+        routeChecks: {}
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1 = function smokeZoomerFeelStep68CoverageAuditMissingSampleFix1() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample === "function"
+        ? root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()
+        : null;
+      return base && typeof base === "object" ? base : {
+        buildTag: "build_2026_06_15_step6_8_coverage_audit_fix1",
+        smokeVersion: "step6_8_coverage_audit_fix1_v20260615_001",
+        ok: false,
+        missingSample: [],
+        missingCount: 0,
+        sampleLimit: 50,
+        truncatedSample: false,
+        routeChecks: {}
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1 = function smokeZoomerFeelStep68CoverageAuditBucketsFix1() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets === "function"
+        ? root.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()
+        : null;
+      return base && typeof base === "object" ? base : {
+        buildTag: "build_2026_06_15_step6_8_coverage_audit_fix1",
+        commit: "step6_8_coverage_audit_fix1",
+        smokeVersion: "step6_8_coverage_audit_fix1_v20260615_001",
+        ok: false,
+        buckets: [],
+        routeChecks: {}
+      };
+    };
+    root.Dev.smokeZoomerFeelStep68CoverageAuditSummaryFix1 = root.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1;
+    root.Dev.smokeZoomerFeelStep68CoverageAuditSameSampleFix1 = root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1;
+    root.Dev.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1 = root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1;
+    root.Dev.smokeZoomerFeelStep68CoverageAuditBucketsFix1 = root.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1;
+  };
+
+  installCoverageAuditFix1SmokeViaData();
 
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;

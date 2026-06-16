@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.8 Fix1 Coverage Audit for profile-aware UI texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the four missing zoomer hint-type values in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `hint_type_who`, `hint_type_where`, `hint_type_about`, and `hint_type_yn`.
+- Added fresh fix1 audit aliases in the mirrored data bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1()`.
+- Expected coverage after the fix is comparableEntries 95, missingZoomerEntries 0, and thresholdPassed true without changing the audit threshold logic or any gameplay/UI behavior.
+- Pending Safari runtime smoke commands: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1()`.
+- Scope held: audit data and docs updates only; no gameplay logic changes, no battle/event/economy/persistence changes, no guarded state writes, and no UI file edits.
+
 ## 2026-06-15 — Step 6.8 Coverage Audit for profile-aware UI texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the coverage-audit smoke commands in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()`.
