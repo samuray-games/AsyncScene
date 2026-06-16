@@ -12235,5 +12235,94 @@ K YN A9: Нет.
 
   installBoomerTextInventorySmokeViaData();
 
+  const installBoomerTextInventoryFix1SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeBoomerTextInventoryStep0Fix1Once === "function") return;
+    const buildTag = "build_2026_06_16_boomer_text_inventory_step0_fix1";
+    const commit = "boomer_text_inventory_step0_fix1";
+    const smokeVersion = "boomer_text_inventory_step0_fix1_v20260616_001";
+    const candidatePaths = [
+      "/AsyncScene/UI_PROFILE_TEXT_INVENTORY",
+      "UI_PROFILE_TEXT_INVENTORY",
+      "/AsyncScene/Web/UI_PROFILE_TEXT_INVENTORY",
+      "Web/UI_PROFILE_TEXT_INVENTORY",
+      "/docs/UI_PROFILE_TEXT_INVENTORY",
+      "docs/UI_PROFILE_TEXT_INVENTORY",
+      "../UI_PROFILE_TEXT_INVENTORY",
+    ];
+    const loadInventory = async () => {
+      const attempts = [];
+      for (const candidate of candidatePaths) {
+        try {
+          const url = `${candidate}?v=${Date.now()}`;
+          const resp = await fetch(url, { cache: "no-store" });
+          const text = resp && resp.ok ? await resp.text() : "";
+          const ok = !!text && text.includes("| category | key | current text | source location |");
+          attempts.push({ candidate, ok });
+          if (ok) return { path: candidate, text, attempts, error: "" };
+        } catch (err) {
+          attempts.push({ candidate, ok: false });
+        }
+      }
+      return { path: "", text: "", attempts, error: "inventory not found on candidate paths" };
+    };
+    root.__DEV.smokeBoomerTextInventoryStep0Fix1Once = async function smokeBoomerTextInventoryStep0Fix1Once() {
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        inventoryPresent: false,
+        totalEntries: 0,
+        categoriesCovered: [],
+        missingCoverage: [],
+        failures: [],
+        forbiddenRemaining: [],
+        failedChecks: [],
+        inventoryCandidatePaths: candidatePaths.slice(),
+        loadedInventoryPath: "",
+        inventoryLoadError: "",
+      };
+      try {
+        const loaded = await loadInventory();
+        result.loadedInventoryPath = loaded.path || "";
+        result.inventoryLoadError = loaded.error || "";
+        result.inventoryPresent = !!loaded.text;
+        if (!result.inventoryPresent) {
+          result.failures.push("inventory_missing");
+          result.failedChecks.push("inventory_missing");
+          result.ok = false;
+          return result;
+        }
+        const rows = loaded.text.split("\n").filter((line) => /^\|\s*[^|]+\s*\|\s*[^|]+\s*\|\s*[^|]+\s*\|\s*[^|]+\s*\|$/.test(line));
+        result.totalEntries = Math.max(0, rows.length - 1);
+        const cats = new Set();
+        for (const row of rows.slice(1)) {
+          const parts = row.split("|").map((part) => part.trim()).filter(Boolean);
+          if (parts[0] && parts[0] !== "---") cats.add(parts[0]);
+        }
+        result.categoriesCovered = Array.from(cats);
+        const required = ["system messages", "errors", "conflict results", "economy", "reputation", "buttons", "labels", "start screen", "empty states", "NPC SAY", "NPC DM", "conflict feed", "reports", "cop flow", "rematch flow", "onboarding", "tutorials", "timeline/history", "rumors/chronicle"];
+        result.missingCoverage = required.filter((cat) => !cats.has(cat));
+        if (result.missingCoverage.length) {
+          result.failures.push("missing_coverage");
+          result.failedChecks.push("missing_coverage");
+        }
+        result.ok = result.inventoryPresent && result.totalEntries > 0 && result.failures.length === 0;
+      } catch (err) {
+        result.failures.push("smoke_exception");
+        result.failedChecks.push("smoke_exception");
+        result.forbiddenRemaining.push(String(err && err.message ? err.message : err));
+      }
+      return result;
+    };
+    root.Dev.smokeBoomerTextInventoryStep0Fix1Once = root.__DEV.smokeBoomerTextInventoryStep0Fix1Once;
+  };
+
+  installBoomerTextInventoryFix1SmokeViaData();
+
   Game.Data = Data;
 })();
