@@ -4,6 +4,12 @@
 - Fresh identity: `step1_4_boomer_risk_doc_table_fix1_v20260616_001`.
 - Scope held: documentation and smoke only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
 
+## 2026-06-17 — Step 1.5 Boomer Soft Verbs Section Fix1
+- Added a dedicated `SOFT VERBS` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact soft-verb copy table from `TXT_0019` through `TXT_0090`.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep15SoftVerbsDocTableOnce()` in the mirrored runtime/docs data bundles to validate the soft-verbs section, exact row coverage, and runtime copy isolation.
+- Fresh identity: `step1_5_boomer_soft_verbs_doc_table_v20260616_001`.
+- Scope held: documentation and smoke only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 1.4 Boomer Risk Language Section
 - Added a dedicated `RISK LANGUAGE` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact risk copy table from TXT_0003 through TXT_0070.
 - Kept the change documentation-only; no runtime text bundles, UI files, or gameplay logic were modified.
