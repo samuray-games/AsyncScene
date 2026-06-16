@@ -1,7 +1,7 @@
 ## 2026-06-16 — Step 1.3 Boomer Explanations Section
-- Added a dedicated `EXPLANATIONS` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact explanation copy table from TXT_0024 through TXT_0117.
+- Added a dedicated `EXPLANATIONS` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact explanation copy table from TXT_0024 through TXT_0164.
 - Kept the change documentation-only; no runtime text bundles, UI files, or gameplay logic were modified.
-- Fresh identity: `step1_3_boomer_explanations_section_v20260616_001`.
+- Fresh identity: `step1_3_boomer_explanations_doc_table_fix1_v20260616_002`.
 - Scope held: documentation only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
 
 ## 2026-06-16 — Step 1.2 Boomer Pace / Tempo Section
