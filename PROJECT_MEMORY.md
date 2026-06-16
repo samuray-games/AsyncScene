@@ -1,3 +1,9 @@
+## 2026-06-16 — Step 1.3 Boomer Explanations Section
+- Added a dedicated `EXPLANATIONS` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact purpose/allowed/rules/cap/separation wording.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep13ExplanationsOnce()` in `AsyncScene/Web/data.js` and `docs/data.js` to verify the section exists, explains why/what happens next, and includes the lecture cap.
+- Fresh identity: `step1_3_boomer_explanations_section_v20260616_001`.
+- Scope held: documentation and smoke only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.2 Boomer Pace / Tempo Section
 - Added a dedicated `PACE / TEMPO` section to `UI_PROFILE_BOOMER_DIFF.md` and the mirrored `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact boomer pace delta, tempo markers, and separation rule.
 - Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep12TempoOnce()` in `AsyncScene/Web/data.js` and `docs/data.js` to verify the section exists, stays standalone, and is not classified as Tone.

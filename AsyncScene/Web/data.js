@@ -79,6 +79,26 @@ window.Game = window.Game || {};
       separationRule: Object.freeze([
         "Pace/Tempo must be its own section.",
         "It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections."
+      ]),
+      explanations: Object.freeze([
+        "briefly explain why",
+        "briefly explain what happens next",
+        "one short reason",
+        "one short consequence",
+        "one short next-step hint",
+        "action + reason",
+        "error + reason",
+        "risk + consequence",
+        "result + next step",
+        "explanation is optional, not mandatory",
+        "maximum two short sentences",
+        "no teaching",
+        "no life advice",
+        "no lectures",
+        "no moralizing",
+        "no repetition",
+        "if explanation exceeds two short sentences, classify as lecture",
+        "Explanation section must be separate from Tone, Pace, Risk, Vocabulary, NPC."
       ])
     })
   });
