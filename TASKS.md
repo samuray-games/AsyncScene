@@ -1,3 +1,11 @@
+## 2026-06-16 — Step 1.1 Boomer Source Delta Only
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` as delta-only documentation over `UI_PROFILE_MILLENNIAL`, with explicit source derivation and no standalone boomer profile container.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep11SourceOnce()` in the mirrored runtime/docs smoke surfaces.
+- Fresh identity: `build_2026_06_16_step1_1_boomer_source_delta_only` / `step1_1_boomer_source_delta_only` / `step1_1_boomer_source_delta_only_v20260616_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerDiffStep11SourceOnce()`.
+- Scope held: documentation and smoke metadata only; no runtime profile behavior changes, no new UI logic, no independent boomer profile container, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-15 — Step 6.9.1 Runtime Feel Checklist
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the dev-only read-only checklist helper in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `Game.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist()`.
