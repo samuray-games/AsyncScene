@@ -12345,5 +12345,25 @@ K YN A9: Нет.
 
   installBoomerTextInventoryFix1SmokeViaData();
 
+  const installBoomerDiffStep13ExplanationsDocTableFix1SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeBoomerDiffStep13ExplanationsDocTableFix1Once === "function") return;
+    const smokeVersion = "step1_3_boomer_explanations_doc_only_fix1_v20260616_001";
+    root.__DEV.smokeBoomerDiffStep13ExplanationsDocTableFix1Once = function smokeBoomerDiffStep13ExplanationsDocTableFix1Once() {
+      return {
+        buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || root.__DEV.buildTag || null,
+        commit: (typeof window !== "undefined" && window.__COMMIT__) || root.__DEV.commit || null,
+        smokeVersion,
+        ok: true
+      };
+    };
+    root.Dev.smokeBoomerDiffStep13ExplanationsDocTableFix1Once = root.__DEV.smokeBoomerDiffStep13ExplanationsDocTableFix1Once;
+  };
+
+  installBoomerDiffStep13ExplanationsDocTableFix1SmokeViaData();
+
   Game.Data = Data;
 })();
