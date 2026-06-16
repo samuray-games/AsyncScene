@@ -2983,7 +2983,14 @@ UI.renderBattles = () => {
        } catch (e) {
          console.warn('[updateBattleCounters] DOM update failed:', e);
        }
-     }
    }
- };
+  }
+};
+
+// Expose battle-card helper sources for smoke diagnostics only.
+try {
+  UI._renderResolvedBattleCardCore = renderResolvedBattleCardCore;
+  UI._normalizeResultText = _normalizeResultText;
+  UI._getBattleOutcomeLabel = getBattleOutcomeLabel;
+} catch (_) {}
 })();
