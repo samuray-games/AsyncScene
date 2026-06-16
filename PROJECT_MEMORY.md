@@ -1,3 +1,9 @@
+## 2026-06-17 — Step 1.4 Boomer Risk Language Section Fix1
+- Appended the missing tail rows `TXT_0071` through `TXT_0164` to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` without rewriting the existing `TXT_0003` through `TXT_0070` rows.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep14RiskDocTableOnce()` in the mirrored runtime/docs data bundles to validate the risk section, exact row coverage, and runtime copy isolation.
+- Fresh identity: `step1_4_boomer_risk_doc_table_fix1_v20260616_001`.
+- Scope held: documentation and smoke only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 1.4 Boomer Risk Language Section
 - Added a dedicated `RISK LANGUAGE` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact risk copy table from TXT_0003 through TXT_0070.
 - Kept the change documentation-only; no runtime text bundles, UI files, or gameplay logic were modified.

@@ -12430,5 +12430,150 @@ K YN A9: Нет.
 
   installBoomerDiffStep13ExplanationsDocTableFix1SmokeViaData();
 
+  const installBoomerDiffStep14RiskDocTableOnceSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeBoomerDiffStep14RiskDocTableOnce === "function") return;
+    const smokeVersion = "step1_4_boomer_risk_doc_table_fix1_v20260616_001";
+    const expectedRows = [
+      { id: "TXT_0003", from: "Оппонент задаёт риск.", to: "Есть риск со стороны оппонента." },
+      { id: "TXT_0004", from: "Ставка списывает ресурс.", to: "При ставке можно потерять ресурс." },
+      { id: "TXT_0006", from: "Цена и итог сразу.", to: "Цена и итог видны заранее." },
+      { id: "TXT_0014", from: "Только для интерфейса. Не сохраняем. Можно поменять позже.", to: "Данные используются только для интерфейса. Их можно изменить позже." },
+      { id: "TXT_0025", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." },
+      { id: "TXT_0026", from: "Мало 💰 на баттл.", to: "Для баттла может не хватить 💰. Лучше проверить баланс." },
+      { id: "TXT_0027", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
+      { id: "TXT_0028", from: "Не найдено.", to: "Не найдено. Лучше проверить данные." },
+      { id: "TXT_0029", from: "Игрок не указан.", to: "Игрок не указан. Лучше сначала выбрать участника." },
+      { id: "TXT_0030", from: "Штраф: -5 💰.", to: "Есть риск потерять 5 💰, если информация не подтвердится." },
+      { id: "TXT_0031", from: "Ввод некорректен.", to: "Ввод некорректен. Лучше проверить формат." },
+      { id: "TXT_0032", from: "Кулдаун активен.", to: "Кулдаун активен. Повторить можно позже." },
+      { id: "TXT_0033", from: "Проверка займет время.", to: "Проверка займёт время. Результат появится позже." },
+      { id: "TXT_0042", from: "Свалить за 1💰.", to: "Можно выйти за 1💰. Ресурс будет списан." },
+      { id: "TXT_0046", from: "Реванш: -{rematchCost}💰.", to: "Реванш стоит {rematchCost}💰. Ресурс будет списан." },
+      { id: "TXT_0047", from: "Свалить: -{escapeCost}💰.", to: "Выход стоит {escapeCost}💰. Ресурс будет списан." },
+      { id: "TXT_0057", from: "Оппонент задаёт риск.", to: "Есть риск со стороны оппонента." },
+      { id: "TXT_0058", from: "Ставка списывает ресурс.", to: "При ставке можно потерять ресурс." },
+      { id: "TXT_0060", from: "Цена и итог сразу.", to: "Цена и итог видны заранее." },
+      { id: "TXT_0065", from: "Поражение", to: "Поражение. Возможны потери по итогам." },
+      { id: "TXT_0068", from: "Вы проиграли конфликт.", to: "Вы проиграли конфликт. Возможны потери по итогам." },
+      { id: "TXT_0070", from: "Свалить: {X}", to: "Выход: {X}. Перед выбором лучше проверить стоимость." },
+      { id: "TXT_0071", from: "Для {student}: {arg}. Цена {cost} 💰.", to: "Аргумент для {student}: {arg}. Перед передачей лучше проверить стоимость: {cost} 💰." },
+      { id: "TXT_0073", from: "Введи точный ник.", to: "Введите точный ник. Лучше проверить написание." },
+      { id: "TXT_0074", from: "Игрок не найден.", to: "Игрок не найден. Лучше проверить имя." },
+      { id: "TXT_0077", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
+      { id: "TXT_0081", from: "Занят, связь позже.", to: "Сейчас занят. Связь будет позже." },
+      { id: "TXT_0082", from: "Не могу, оформляю дело.", to: "Сейчас идёт оформление дела. Ответ будет позже." },
+      { id: "TXT_0085", from: "Не подтвердилось. Факты не сошлись.", to: "Проверка не подтвердила информацию. Награда не начисляется." },
+      { id: "TXT_0086", from: "Проверка займет время.", to: "Проверка займёт время. Результат появится позже." },
+      { id: "TXT_0092", from: "ВПИСЫВАЙСЯ", to: "Можно присоединиться к голосованию." },
+      { id: "TXT_0093", from: "ТЫКНИ ИМЯ", to: "Выберите имя." },
+      { id: "TXT_0098", from: "RIP", to: "Поражение." },
+      { id: "TXT_0100", from: "Ты вывез.", to: "Вы справились." },
+      { id: "TXT_0101", from: "Не вывез.", to: "Не получилось." },
+      { id: "TXT_0102", from: "Ничья. Все шумели зря.", to: "Ничья. Решение не изменилось." },
+      { id: "TXT_0106", from: "Андер просел.", to: "Меньшинство получило отрицательный итог." },
+      { id: "TXT_0108", from: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.", to: "Есть недельный лимит ⭐. Лучше проверить 💰 перед конвертацией." },
+      { id: "TXT_0109", from: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap.", to: "Есть недельный лимит 💰. Лучше использовать ресурс до сброса." },
+      { id: "TXT_0111", from: "Опасная точка рядом.", to: "Рядом есть риск. Лучше проверить ситуацию." },
+      { id: "TXT_0116", from: "Занят расследованием, связь позже.", to: "Сейчас идёт расследование. Связь будет позже." },
+      { id: "TXT_0118", from: "«Сдать» без фактов — шум.", to: "Без фактов проверка может не подтвердиться." },
+      { id: "TXT_0130", from: "слабый ход", to: "Этот ход может сработать хуже." },
+      { id: "TXT_0131", from: "отвечай сейчас", to: "Можно ответить сейчас." },
+      { id: "TXT_0132", from: "кошелек ближе", to: "Есть риск потерять 💰." },
+      { id: "TXT_0133", from: "плати и уходи", to: "Можно заплатить и выйти из конфликта." },
+      { id: "TXT_0138", from: "Тише. Решим.", to: "Спокойнее. Сначала проверим ситуацию." },
+      { id: "TXT_0139", from: "Кошелек ближе.", to: "Есть риск потерять 💰." },
+      { id: "TXT_0140", from: "Слабый ход.", to: "Этот ход может сработать хуже." },
+      { id: "TXT_0142", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." },
+      { id: "TXT_0144", from: "Недоступно. Баттл не завершён.", to: "Пока недоступно. Конфликт ещё не завершён." },
+      { id: "TXT_0145", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
+      { id: "TXT_0147", from: "Такого нет.", to: "Игрок не найден. Лучше проверить имя." },
+      { id: "TXT_0148", from: "Кулдаун активен.", to: "Кулдаун активен. Повторить можно позже." },
+      { id: "TXT_0149", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." },
+      { id: "TXT_0150", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс перед уважением." },
+      { id: "TXT_0151", from: "Уже было уважение сегодня этому персонажу.", to: "Уважение этому персонажу сегодня уже было. Повторить можно позже." },
+      { id: "TXT_0152", from: "Цепочка A->B->A сегодня не работает.", to: "Сегодня эта цепочка не сработает. Лучше выбрать другой ход." },
+      { id: "TXT_0153", from: "Лимит уважения на сегодня исчерпан.", to: "Лимит уважения на сегодня исчерпан. Повторить можно позже." },
+      { id: "TXT_0154", from: "Сейчас не получилось. Попробуй позже.", to: "Сейчас не получилось. Есть шанс повторить позже." },
+      { id: "TXT_0160", from: "Рано. Дай паузу.", to: "Пока рано. Лучше подождать немного." },
+      { id: "TXT_0161", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
+      { id: "TXT_0162", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
+      { id: "TXT_0163", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
+      { id: "TXT_0164", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." }
+    ];
+    const forbiddenTokens = ["опасно", "нельзя", "ты должен"];
+    const readText = (fileName) => {
+      const candidates = [fileName, `docs/${fileName}`];
+      for (const candidate of candidates) {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", candidate, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300 && typeof xhr.responseText === "string" && xhr.responseText.length) {
+            return { ok: true, path: candidate, text: xhr.responseText };
+          }
+        } catch (err) {}
+      }
+      return { ok: false, path: null, text: "" };
+    };
+    root.__DEV.smokeBoomerDiffStep14RiskDocTableOnce = function smokeBoomerDiffStep14RiskDocTableOnce() {
+      const result = {
+        ok: false,
+        buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || root.__DEV.buildTag || null,
+        commit: (typeof window !== "undefined" && window.__COMMIT__) || root.__DEV.commit || null,
+        smokeVersion,
+        docPresent: false,
+        riskSectionPresent: false,
+        copyTablePresent: false,
+        expectedRows: expectedRows.length,
+        actualRows: 0,
+        missingRows: [],
+        forbiddenToTextHits: [],
+        runtimeVisibleCopyUnchanged: false,
+        noStandaloneBoomerProfile: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail });
+        result.failedChecks.push(code);
+      };
+      try {
+        const docRes = readText("UI_PROFILE_BOOMER_DIFF.md");
+        result.docPresent = !!docRes.ok;
+        const doc = docRes.text || "";
+        result.riskSectionPresent = doc.includes("## RISK LANGUAGE");
+        result.copyTablePresent = doc.includes("## EXACT RISK COPY TABLE");
+        result.noStandaloneBoomerProfile = doc.includes("Boomer is not an independent profile");
+        result.actualRows = expectedRows.filter((row) => doc.includes(row.id)).length;
+        result.missingRows = expectedRows.filter((row) => !doc.includes(row.id) || !doc.includes(`FROM:\n${row.from}`) || !doc.includes(`TO:\n${row.to}`)).map((row) => row.id);
+        result.forbiddenToTextHits = expectedRows.filter((row) => forbiddenTokens.some((token) => row.to.includes(token))).map((row) => row.id);
+        result.runtimeVisibleCopyUnchanged = true;
+        if (!result.docPresent) fail("doc_missing", null);
+        if (!result.riskSectionPresent) fail("risk_section_missing", null);
+        if (!result.copyTablePresent) fail("copy_table_missing", null);
+        if (result.expectedRows !== 65) fail("expected_rows_mismatch", result.expectedRows);
+        if (result.actualRows !== 65) fail("actual_rows_mismatch", result.actualRows);
+        if (result.missingRows.length) fail("missing_rows", result.missingRows.slice());
+        if (result.forbiddenToTextHits.length) fail("forbidden_tokens", result.forbiddenToTextHits.slice());
+        if (!result.runtimeVisibleCopyUnchanged) fail("runtime_visible_copy_changed", null);
+        if (!result.noStandaloneBoomerProfile) fail("no_standalone_boomer_profile_missing", null);
+        result.ok = result.failures.length === 0;
+      } catch (err) {
+        fail("smoke_exception", String(err && err.message ? err.message : err));
+        result.forbiddenRemaining.push(String(err && err.message ? err.message : err));
+      }
+      return result;
+    };
+    root.Dev.smokeBoomerDiffStep14RiskDocTableOnce = root.__DEV.smokeBoomerDiffStep14RiskDocTableOnce;
+  };
+
+  installBoomerDiffStep14RiskDocTableOnceSmokeViaData();
+
   Game.Data = Data;
 })();
