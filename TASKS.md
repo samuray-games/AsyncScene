@@ -1,3 +1,10 @@
+## 2026-06-17 — Step 1.4 Boomer Risk Language Section
+- Status: documentation-only.
+- Added a dedicated `RISK LANGUAGE` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact risk copy table from TXT_0003 through TXT_0070.
+- Kept the change documentation-only; no runtime text bundles, UI files, or gameplay logic were modified.
+- Fresh identity: `step1_4_boomer_risk_language_doc_table_fix1_v20260617_001`.
+- Scope held: documentation only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.3 Boomer Explanations Section
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added a dedicated `EXPLANATIONS` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact explanation copy table from TXT_0024 through TXT_0164.
