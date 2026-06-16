@@ -1,3 +1,10 @@
+## 2026-06-16 — Step 1.1 Boomer Source Contract Fix2
+- Aligned `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` to the same explicit contract language used by smoke validation.
+- The boomer contract now states: base profile = `UI_PROFILE_MILLENNIAL`, boomer is delta-only, and boomer is not an independent profile.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep11SourceFix2Once()` with the same wording contract.
+- Fresh identity: `build_2026_06_16_step1_1_boomer_source_delta_only_fix2` / `step1_1_boomer_source_delta_only_fix2` / `step1_1_boomer_source_delta_only_fix2_v20260616_003`.
+- Scope held: boomer source contract text and smoke validation only; no UI changes, no gameplay changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.1 Boomer Source Smoke Fix1
 - Fixed the boomer source smoke dependency on missing `fetchTextFromCandidates` by adding `Game.__DEV.smokeBoomerDiffStep11SourceFix1Once()` with an inline runtime-safe document resolver.
 - Preserved the original smoke validations: `docPresent`, `referencesMillennialBase`, `deltaOnly`, and `hasStandaloneBoomerProfile`.
