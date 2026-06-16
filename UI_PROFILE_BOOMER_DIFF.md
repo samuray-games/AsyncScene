@@ -41,6 +41,181 @@ Forbidden for this step:
 - replacing NPC lines
 - changing battle/report/economy behavior
 
+## RISK LANGUAGE
+
+Boomer risk language is a delta from UI_PROFILE_MILLENNIAL.
+
+Rule:
+- risk is calm
+- risk is factual
+- risk uses soft probability
+- risk explains possible loss without pressure
+- risk gives a check hint when useful
+- risk does not scare the player
+- risk does not judge the player
+- risk does not command the player
+- risk does not add moral pressure
+- risk does not change mechanics
+
+Meaning:
+- risk wording changes only delivery
+- risk wording does not change rewards
+- risk wording does not change costs
+- risk wording does not change cooldowns
+- risk wording does not change outcomes
+- risk wording does not change available actions
+- risk wording does not create a standalone boomer profile
+
+Preferred risk patterns:
+- "Можно потерять..."
+- "Есть шанс..."
+- "Есть риск..."
+- "Лучше проверить..."
+- "Стоит проверить..."
+- "Можно повторить позже."
+- "Перед выбором лучше проверить..."
+
+Limit:
+- one risk idea per message
+- one check hint per message
+- no fear language
+- no pressure language
+- no moral judgment
+
+## EXACT RISK COPY TABLE
+
+TXT_0003
+FROM:
+Оппонент задаёт риск.
+TO:
+Есть риск со стороны оппонента.
+
+TXT_0004
+FROM:
+Ставка списывает ресурс.
+TO:
+При ставке можно потерять ресурс.
+
+TXT_0006
+FROM:
+Цена и итог сразу.
+TO:
+Цена и итог видны заранее.
+
+TXT_0014
+FROM:
+Только для интерфейса. Не сохраняем. Можно поменять позже.
+TO:
+Данные используются только для интерфейса. Их можно изменить позже.
+
+TXT_0025
+FROM:
+Не хватает 💰.
+TO:
+Не хватает 💰. Лучше проверить баланс.
+
+TXT_0026
+FROM:
+Мало 💰 на баттл.
+TO:
+Для баттла может не хватить 💰. Лучше проверить баланс.
+
+TXT_0027
+FROM:
+Недоступно.
+TO:
+Пока недоступно. Лучше проверить условия.
+
+TXT_0028
+FROM:
+Не найдено.
+TO:
+Не найдено. Лучше проверить данные.
+
+TXT_0029
+FROM:
+Игрок не указан.
+TO:
+Игрок не указан. Лучше сначала выбрать участника.
+
+TXT_0030
+FROM:
+Штраф: -5 💰.
+TO:
+Есть риск потерять 5 💰, если информация не подтвердится.
+
+TXT_0031
+FROM:
+Ввод некорректен.
+TO:
+Ввод некорректен. Лучше проверить формат.
+
+TXT_0032
+FROM:
+Кулдаун активен.
+TO:
+Кулдаун активен. Повторить можно позже.
+
+TXT_0033
+FROM:
+Проверка займет время.
+TO:
+Проверка займёт время. Результат появится позже.
+
+TXT_0042
+FROM:
+Свалить за 1💰.
+TO:
+Можно выйти за 1💰. Ресурс будет списан.
+
+TXT_0046
+FROM:
+Реванш: -{rematchCost}💰.
+TO:
+Реванш стоит {rematchCost}💰. Ресурс будет списан.
+
+TXT_0047
+FROM:
+Свалить: -{escapeCost}💰.
+TO:
+Выход стоит {escapeCost}💰. Ресурс будет списан.
+
+TXT_0057
+FROM:
+Оппонент задаёт риск.
+TO:
+Есть риск со стороны оппонента.
+
+TXT_0058
+FROM:
+Ставка списывает ресурс.
+TO:
+При ставке можно потерять ресурс.
+
+TXT_0060
+FROM:
+Цена и итог сразу.
+TO:
+Цена и итог видны заранее.
+
+TXT_0065
+FROM:
+Поражение
+TO:
+Поражение. Возможны потери по итогам.
+
+TXT_0068
+FROM:
+Вы проиграли конфликт.
+TO:
+Вы проиграли конфликт. Возможны потери по итогам.
+
+TXT_0070
+FROM:
+Свалить: {X}
+TO:
+Выход: {X}. Перед выбором лучше проверить стоимость.
+
 TXT_0118
 FROM:
 «Сдать» без фактов — шум.
