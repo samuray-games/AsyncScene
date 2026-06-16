@@ -1,3 +1,9 @@
+## 2026-06-16 — Step 1.1 Boomer Source Smoke Fix1
+- Fixed the boomer source smoke dependency on missing `fetchTextFromCandidates` by adding `Game.__DEV.smokeBoomerDiffStep11SourceFix1Once()` with an inline runtime-safe document resolver.
+- Preserved the original smoke validations: `docPresent`, `referencesMillennialBase`, `deltaOnly`, and `hasStandaloneBoomerProfile`.
+- Fresh identity: `build_2026_06_16_step1_1_boomer_source_delta_only_fix1` / `step1_1_boomer_source_delta_only_fix1` / `step1_1_boomer_source_delta_only_fix1_v20260616_002`.
+- Scope held: smoke wiring only; no boomer profile rule changes, no UI logic changes, no document content changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.1 Boomer Source Delta Only
 - Added `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` as delta-only documentation over `UI_PROFILE_MILLENNIAL`.
 - The boomer doc explicitly states it derives from `UI_PROFILE_MILLENNIAL`, is delta-only, and does not define a standalone boomer profile container or runtime UI logic.
