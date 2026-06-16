@@ -8,11 +8,11 @@
 
 ## 2026-06-16 — Step 1.2 Boomer Pace / Tempo Section
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Added a dedicated `PACE / TEMPO` section to `UI_PROFILE_BOOMER_DIFF.md` with the exact boomer pace delta, tempo markers, and separation rule.
-- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep12TempoOnce()` in the mirrored runtime/docs data bundles.
-- Fresh identity: `step1_2_boomer_pace_tempo_section_v20260616_001`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerDiffStep12TempoOnce()`.
-- Scope held: documentation and smoke only; no runtime behavior changes, no UI changes, no gameplay changes, no refactors, and no `Console.txt` usage.
+- Added a dedicated `PACE / TEMPO` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` as a delta from `UI_PROFILE_MILLENNIAL`.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once()` in the mirrored runtime/docs data bundles.
+- Fresh identity: `step1_2_boomer_pace_tempo_doc_only_fix1_v20260616_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once()`.
+- Scope held: documentation and smoke only; no runtime copy changes, no UI changes, no gameplay changes, no refactors, and no `Console.txt` usage.
 
 ## 2026-06-16 — Step 1.1 Boomer Standalone Detection Fix3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.

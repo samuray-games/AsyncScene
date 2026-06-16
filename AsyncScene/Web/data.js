@@ -11885,6 +11885,63 @@ K YN A9: Нет.
       return result;
     };
     root.Dev.smokeBoomerDiffStep12TempoOnce = root.__DEV.smokeBoomerDiffStep12TempoOnce;
+    const smokeVersionBoomerTempoDocOnlyFix1 = "step1_2_boomer_pace_tempo_doc_only_fix1_v20260616_001";
+    root.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once = function smokeBoomerDiffStep12TempoDocOnlyFix1Once() {
+      const doc = docText();
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion: smokeVersionBoomerTempoDocOnlyFix1,
+        ok: false,
+        docPresent: false,
+        paceSectionPresent: false,
+        referencesMillennialDelta: false,
+        slowerRulePresent: false,
+        clearTransitionsRulePresent: false,
+        fewerAbruptCommandsRulePresent: false,
+        deliveryNotMeaningRulePresent: false,
+        noMechanicsChangeRulePresent: false,
+        noStandaloneBoomerProfile: false,
+        runtimeCopyFilesUntouched: true,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
+      result.paceSectionPresent = /## PACE \/ TEMPO[\s\S]*?Boomer pace is a delta from UI_PROFILE_MILLENNIAL\./.test(doc);
+      result.referencesMillennialDelta = doc.includes("Boomer pace is a delta from UI_PROFILE_MILLENNIAL.");
+      result.slowerRulePresent = doc.includes("slower than millennial");
+      result.clearTransitionsRulePresent = doc.includes("clearer transitions");
+      result.fewerAbruptCommandsRulePresent = doc.includes("fewer abrupt commands");
+      result.deliveryNotMeaningRulePresent = doc.includes("pace changes delivery, not meaning");
+      result.noMechanicsChangeRulePresent = doc.includes("pace does not change mechanics")
+        && doc.includes("pace does not change rewards, costs, risks, cooldowns, or outcomes");
+      result.noStandaloneBoomerProfile = doc.includes("pace does not create a standalone boomer profile");
+      if (!result.docPresent) fail("doc_missing", null);
+      if (!result.paceSectionPresent) fail("pace_section_missing", null);
+      if (!result.referencesMillennialDelta) fail("references_millennial_delta_missing", null);
+      if (!result.slowerRulePresent) fail("slower_rule_missing", null);
+      if (!result.clearTransitionsRulePresent) fail("clear_transitions_rule_missing", null);
+      if (!result.fewerAbruptCommandsRulePresent) fail("fewer_abrupt_commands_rule_missing", null);
+      if (!result.deliveryNotMeaningRulePresent) fail("delivery_not_meaning_rule_missing", null);
+      if (!result.noMechanicsChangeRulePresent) fail("no_mechanics_change_rule_missing", null);
+      if (!result.noStandaloneBoomerProfile) fail("no_standalone_boomer_profile_missing", null);
+      result.ok = result.docPresent && result.paceSectionPresent && result.referencesMillennialDelta
+        && result.slowerRulePresent && result.clearTransitionsRulePresent && result.fewerAbruptCommandsRulePresent
+        && result.deliveryNotMeaningRulePresent && result.noMechanicsChangeRulePresent && result.noStandaloneBoomerProfile
+        && result.runtimeCopyFilesUntouched
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    root.Dev.smokeBoomerDiffStep12TempoDocOnlyFix1Once = root.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once;
   };
 
   installBoomerDiffStep12TempoSmokeViaData();
